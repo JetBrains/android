@@ -1,4 +1,5 @@
 load("//tools/adt/idea/aswb:build-visibility.bzl", "DEFAULT_TEST_VISIBILITY")
+load("//tools/adt/idea/aswb/testing:test_defs.bzl", "aswb_test")
 
 package(
     default_visibility = DEFAULT_TEST_VISIBILITY,
@@ -14,10 +15,11 @@ java_proto_library(
     deps = [":test_proto"],
 )
 
-java_test(
+aswb_test(
     name = "ProtoStringInternerTest",
     size = "small",
     srcs = ["ProtoStringInternerTest.java"],
+    test_class = "com.google.idea.blaze.common.proto.ProtoStringInternerTest",
     deps = [
         ":test_java_proto",
         "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common/proto",

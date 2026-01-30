@@ -33,9 +33,10 @@ aswb_library(
     ],
 )
 
-java_test(
+aswb_test(
     name = "QuerySyncTestUtilsTest",
     srcs = ["QuerySyncTestUtilsTest.java"],
+    test_class = "com.google.idea.blaze.qsync.QuerySyncTestUtilsTest",
     deps = [
         ":TestUtils",
         "//tools/adt/idea/aswb/shared/javatests/com/google/idea/blaze/common:test_utils",
@@ -72,10 +73,11 @@ aswb_test(
     ],
 )
 
-java_test(
+aswb_test(
     name = "AffectedPackagesTest",
     size = "small",
     srcs = ["AffectedPackagesTest.java"],
+    test_class = "com.google.idea.blaze.qsync.AffectedPackagesTest",
     deps = [
         ":TestUtils",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync",

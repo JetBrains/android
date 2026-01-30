@@ -8,10 +8,11 @@ package(
     ],
 )
 
-java_test(
+aswb_test(
     name = "LabelTest",
     size = "small",
     srcs = ["LabelTest.java"],
+    test_class = "com.google.idea.blaze.common.LabelTest",
     deps = [
         "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common",
         "//tools/adt/idea/aswb/third_party/java/junit",
@@ -53,10 +54,11 @@ aswb_test(
     ],
 )
 
-java_test(
+aswb_test(
     name = "AtomicFileWriterTest",
     size = "small",
     srcs = ["AtomicFileWriterTest.java"],
+    test_class = "com.google.idea.blaze.common.AtomicFileWriterTest",
     deps = [
         "//tools/adt/idea/aswb/shared",
         "//tools/adt/idea/aswb/third_party/java/junit",

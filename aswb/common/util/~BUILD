@@ -2,6 +2,7 @@ load(
     "//tools/adt/idea/aswb:build-visibility.bzl",
     "COMMON_PLUGINS_VISIBILITY",
 )
+load("//tools/adt/idea/aswb/testing:test_defs.bzl", "aswb_test")
 
 package(default_visibility = COMMON_PLUGINS_VISIBILITY)
 
@@ -45,7 +46,7 @@ java_library(
     ],
 )
 
-java_test(
+aswb_test(
     name = "CommandLineTaskTest",
     size = "medium",
     srcs = ["tests/unittests/com/google/idea/common/async/process/CommandLineTaskTest.java"],

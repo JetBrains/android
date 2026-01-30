@@ -69,10 +69,11 @@ aswb_test(
     ],
 )
 
-java_test(
+aswb_test(
     name = "QuerySyncLanguageTest",
     size = "small",
     srcs = ["QuerySyncLanguageTest.java"],
+    test_class = "com.google.idea.blaze.qsync.project.QuerySyncLanguageTest",
     deps = [
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:language_class_java_proto",
@@ -83,10 +84,11 @@ java_test(
     ],
 )
 
-java_test(
+aswb_test(
     name = "TestSourceGlobMatcherTest",
     size = "small",
     srcs = ["TestSourceGlobMatcherTest.java"],
+    test_class = "com.google.idea.blaze.qsync.project.TestSourceGlobMatcherTest",
     deps = [
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
         "//tools/adt/idea/aswb/third_party/java/junit",
