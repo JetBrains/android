@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
@@ -36,6 +35,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import kotlin.time.Duration
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
@@ -99,7 +99,7 @@ fun ComposePreviewRepresentation.debugStatusForTesting(): DebugStatus {
 
 /** Wait for all running refreshes to complete. */
 suspend fun waitForAllRefreshesToFinish(timeout: Duration) =
-  withContext(workerThread) {
+  withContext(Dispatchers.Default) {
     PreviewRefreshManager.getInstance(RenderAsyncActionExecutor.RenderingTopic.COMPOSE_PREVIEW).refreshingTypeFlow.awaitStatus(
       "Timeout waiting for all pending refreshes to finish",
       timeout,

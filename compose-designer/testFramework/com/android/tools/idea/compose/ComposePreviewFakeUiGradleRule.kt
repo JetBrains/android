@@ -22,7 +22,6 @@ import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.TestComposePreviewView
 import com.android.tools.idea.compose.preview.displayName
 import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.editors.build.RenderingBuildStatus
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration
@@ -33,6 +32,7 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
@@ -45,6 +45,7 @@ import java.awt.image.BufferedImage
 import javax.swing.JPanel
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -115,7 +116,7 @@ class ComposePreviewFakeUiGradleRule(
     composePreviewRepresentation = createComposePreviewRepresentation(psiMainFile, previewView)
     refreshManager = PreviewRefreshManager.getInstance(RenderingTopic.COMPOSE_PREVIEW)
 
-    withContext(AndroidDispatchers.uiThread) {
+    withContext(Dispatchers.EDT) {
       fakeUi =
         FakeUi(
           JPanel().apply {
@@ -137,7 +138,7 @@ class ComposePreviewFakeUiGradleRule(
     runAndWaitForRefresh { composePreviewRepresentation.requestRefreshForTest() }
     logger.debug("requestRefresh completed")
 
-    withContext(AndroidDispatchers.uiThread) {
+    withContext(Dispatchers.EDT) {
       previewView.updateVisibilityAndNotifications()
       UIUtil.dispatchAllInvocationEvents()
     }
@@ -164,7 +165,7 @@ class ComposePreviewFakeUiGradleRule(
         StudioFlags.PREVIEW_RENDER_QUALITY.override(true)
         // We need to set up things again to make sure that the flag change takes effect
         resetInitialConfiguration()
-        withContext(AndroidDispatchers.uiThread) { fakeUi.root.validate() }
+        withContext(Dispatchers.EDT) { fakeUi.root.validate() }
       }
       runnable()
     } finally {
@@ -227,8 +228,9 @@ class ComposePreviewFakeUiGradleRule(
 
   /** Validates the UI to ensure is up to date. */
   suspend fun validate(zoomToFit: Boolean = true) {
+
     runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY, failOnTimeout = false) {
-      withContext(AndroidDispatchers.uiThread) {
+      withContext(Dispatchers.EDT) {
         fakeUi.root.validate()
         fakeUi.layoutAndDispatchEvents()
         if (zoomToFit) {
