@@ -30,8 +30,8 @@ import com.android.tools.idea.testing.resolve
 import com.android.tools.idea.testing.switchVariant
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.projectRoots.Sdk
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.IndexingTestUtil
 import org.jetbrains.annotations.SystemIndependent
@@ -337,14 +337,14 @@ fun migratePackageAttribute(root: File) {
         buildGradle.replaceContent {
           it.placeNamespaceProperty(namespace)
         }
-        VfsUtil.markDirtyAndRefresh(false, false, false, buildGradle.toFile())
+        VfsUtil.markDirtyAndRefresh(false, false, false, buildGradle)
       }
 
       buildGradleKts?.exists() == true -> {
         buildGradleKts.replaceContent {
           it.placeNamespaceProperty(namespace)
         }
-        VfsUtil.markDirtyAndRefresh(false, false, false, buildGradleKts.toFile())
+        VfsUtil.markDirtyAndRefresh(false, false, false, buildGradleKts)
       }
 
       else -> {
