@@ -67,7 +67,8 @@ int32_t GetRemoteSubmixDeviceId(Jni jni) {
 }  // namespace
 
 RemoteSubmixReader::RemoteSubmixReader(int32_t num_channels, int32_t sample_rate)
-    : AudioReader(num_channels, sample_rate) {
+    : AudioReader(num_channels, sample_rate),
+      reader_stopped_(true) {
 }
 
 RemoteSubmixReader::~RemoteSubmixReader() {

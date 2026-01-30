@@ -46,7 +46,7 @@ protected:
   AAudioStream* stream_ = nullptr;
 
 private:
-  std::atomic_bool reader_stopped_ = true;
+  std::atomic_bool reader_stopped_;
 };
 
 }  // namespace screensharing
