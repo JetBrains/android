@@ -33,13 +33,10 @@ class ProjectStatesValidationTest : ProjectsUpgradeTestBase() {
     @Contract(pure = true)
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
-    fun testProjects(): Collection<*> = allBaseProjectsForCurrentRunner()
-      .onEach { println("Test project state validity $it") }
+    fun testProjects(): Collection<*> = allBaseProjectsForCurrentRunner().onEach { println("Test project state validity $it") }
   }
 
-  @JvmField
-  @Parameterized.Parameter(0)
-  var projectState: AUATestProjectState? = null
+  @JvmField @Parameterized.Parameter(0) var projectState: AUATestProjectState? = null
 
   @Test
   fun testProjectSyncs() {
@@ -57,14 +54,13 @@ class ProjectMinimalUpgradeTest : ProjectsUpgradeTestBase() {
     @Contract(pure = true)
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
-    fun testProjects(): Collection<*> = generateAllTestCases()
-      .filter { it.from.minimalState && it.to.minimalState }
-      .onEach { println("Test min upgrade from ${it.from} to ${it.to}") }
+    fun testProjects(): Collection<*> =
+      generateAllTestCases()
+        .filter { it.from.minimalState && it.to.minimalState }
+        .onEach { println("Test min upgrade from ${it.from} to ${it.to}") }
   }
 
-  @JvmField
-  @Parameterized.Parameter(0)
-  var testCase: UpgradeTestCase? = null
+  @JvmField @Parameterized.Parameter(0) var testCase: UpgradeTestCase? = null
 
   @Test
   fun testMinimalProjectUpgrade() {
@@ -82,14 +78,11 @@ class ProjectFullUpgradeTest : ProjectsUpgradeTestBase() {
     @Contract(pure = true)
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
-    fun testProjects(): Collection<*> = generateAllTestCases()
-      .filter { !it.to.minimalState }
-      .onEach { println("Test full upgrade from ${it.from} to ${it.to}") }
+    fun testProjects(): Collection<*> =
+      generateAllTestCases().filter { !it.to.minimalState }.onEach { println("Test full upgrade from ${it.from} to ${it.to}") }
   }
 
-  @JvmField
-  @Parameterized.Parameter(0)
-  var testCase: UpgradeTestCase? = null
+  @JvmField @Parameterized.Parameter(0) var testCase: UpgradeTestCase? = null
 
   @Test
   fun testFullProjectUpgrade() {

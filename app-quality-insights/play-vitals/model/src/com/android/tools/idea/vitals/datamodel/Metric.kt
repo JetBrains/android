@@ -45,7 +45,5 @@ internal fun String.toEnumMetricType(): MetricType {
 }
 
 internal fun List<Metric>.extractValue(type: MetricType): Long {
-  return filter { it.type == type }
-    .map { (it.value as MetricValue.BigDecimalValue).value.toLong() }
-    .single()
+  return filter { it.type == type }.map { (it.value as MetricValue.BigDecimalValue).value.toLong() }.single()
 }

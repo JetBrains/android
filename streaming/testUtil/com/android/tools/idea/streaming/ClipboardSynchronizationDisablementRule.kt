@@ -19,8 +19,7 @@ import com.android.testutils.PropertySetterRule
 import com.intellij.testFramework.RuleChain
 
 /**
- * Sets EmulatorSettings.synchronizeClipboard and DeviceMirroringSettings.synchronizeClipboard
- * to false and restores them after the test.
+ * Sets EmulatorSettings.synchronizeClipboard and DeviceMirroringSettings.synchronizeClipboard to false and restores them after the test.
  */
 fun ClipboardSynchronizationDisablementRule() =
   RuleChain(

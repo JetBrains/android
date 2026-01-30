@@ -35,17 +35,18 @@ class MultiDexKeepParserTest : AndroidParsingTestCase(MultiDexKeepFileType.INSTA
   fun testParseResultOnFailure() {
     assertEquals(
       """
-        MultiDexKeep File
-          MultiDexKeepClassNamesImpl(CLASS_NAMES)
-            MultiDexKeepClassNameImpl(CLASS_NAME)
-              PsiElement(class file name)('this')
-          PsiErrorElement:class file name or new line expected
-            PsiElement(BAD_CHARACTER)(' ')
-          PsiElement(class file name)('should')
+      MultiDexKeep File
+        MultiDexKeepClassNamesImpl(CLASS_NAMES)
+          MultiDexKeepClassNameImpl(CLASS_NAME)
+            PsiElement(class file name)('this')
+        PsiErrorElement:class file name or new line expected
           PsiElement(BAD_CHARACTER)(' ')
-          PsiElement(class file name)('fail')
-      """.trimIndent(),
-      toParseTreeText("this should fail")
+        PsiElement(class file name)('should')
+        PsiElement(BAD_CHARACTER)(' ')
+        PsiElement(class file name)('fail')
+      """
+        .trimIndent(),
+      toParseTreeText("this should fail"),
     )
   }
 
@@ -56,61 +57,72 @@ class MultiDexKeepParserTest : AndroidParsingTestCase(MultiDexKeepFileType.INSTA
   fun testParsedResult() {
     assertEquals(
       """
-        MultiDexKeep File
-          MultiDexKeepClassNamesImpl(CLASS_NAMES)
-            MultiDexKeepClassNameImpl(CLASS_NAME)
-              PsiElement(class file name)('com/somePackage/SomeClass.class')
-      """.trimIndent(),
-      toParseTreeText("""
+      MultiDexKeep File
+        MultiDexKeepClassNamesImpl(CLASS_NAMES)
+          MultiDexKeepClassNameImpl(CLASS_NAME)
+            PsiElement(class file name)('com/somePackage/SomeClass.class')
+      """
+        .trimIndent(),
+      toParseTreeText(
+        """
         com/somePackage/SomeClass.class
 
-      """.trimIndent())
+        """
+          .trimIndent()
+      ),
     )
   }
 
   fun testInnerClasses() {
     assertEquals(
       """
-        MultiDexKeep File
-          MultiDexKeepClassNamesImpl(CLASS_NAMES)
-            MultiDexKeepClassNameImpl(CLASS_NAME)
-              PsiElement(class file name)('com/somePackage/SomeClass${'$'}Inner.class')
-      """.trimIndent(),
-      toParseTreeText("com/somePackage/SomeClass\$Inner.class")
+      MultiDexKeep File
+        MultiDexKeepClassNamesImpl(CLASS_NAMES)
+          MultiDexKeepClassNameImpl(CLASS_NAME)
+            PsiElement(class file name)('com/somePackage/SomeClass${'$'}Inner.class')
+      """
+        .trimIndent(),
+      toParseTreeText("com/somePackage/SomeClass\$Inner.class"),
     )
   }
 
   fun testMultipleLinesParsedResult() {
     assertEquals(
       """
-        MultiDexKeep File
-          MultiDexKeepClassNamesImpl(CLASS_NAMES)
-            MultiDexKeepClassNameImpl(CLASS_NAME)
-              PsiElement(class file name)('com/somePackage/SomeClass.class')
-            MultiDexKeepClassNameImpl(CLASS_NAME)
-              PsiElement(class file name)('com/somePackage/AnotherClass.class')
-      """.trimIndent(),
-      toParseTreeText("""
+      MultiDexKeep File
+        MultiDexKeepClassNamesImpl(CLASS_NAMES)
+          MultiDexKeepClassNameImpl(CLASS_NAME)
+            PsiElement(class file name)('com/somePackage/SomeClass.class')
+          MultiDexKeepClassNameImpl(CLASS_NAME)
+            PsiElement(class file name)('com/somePackage/AnotherClass.class')
+      """
+        .trimIndent(),
+      toParseTreeText(
+        """
         com/somePackage/SomeClass.class
         com/somePackage/AnotherClass.class
 
-      """.trimIndent())
+        """
+          .trimIndent()
+      ),
     )
   }
 
   fun testEmptyLinesBetweenClassNamesParsedResult() {
     assertEquals(
       """
-        MultiDexKeep File
-          MultiDexKeepClassNamesImpl(CLASS_NAMES)
-            MultiDexKeepClassNameImpl(CLASS_NAME)
-              PsiElement(class file name)('com/somePackage/SomeClass.class')
-            MultiDexKeepClassNameImpl(CLASS_NAME)
-              PsiElement(class file name)('com/somePackage/AnotherClass.class')
-            MultiDexKeepClassNameImpl(CLASS_NAME)
-              PsiElement(class file name)('com/somePackage/OneLastClass.class')
-      """.trimIndent(),
-      toParseTreeText("""
+      MultiDexKeep File
+        MultiDexKeepClassNamesImpl(CLASS_NAMES)
+          MultiDexKeepClassNameImpl(CLASS_NAME)
+            PsiElement(class file name)('com/somePackage/SomeClass.class')
+          MultiDexKeepClassNameImpl(CLASS_NAME)
+            PsiElement(class file name)('com/somePackage/AnotherClass.class')
+          MultiDexKeepClassNameImpl(CLASS_NAME)
+            PsiElement(class file name)('com/somePackage/OneLastClass.class')
+      """
+        .trimIndent(),
+      toParseTreeText(
+        """
         com/somePackage/SomeClass.class
 
 
@@ -119,7 +131,9 @@ class MultiDexKeepParserTest : AndroidParsingTestCase(MultiDexKeepFileType.INSTA
 
         com/somePackage/OneLastClass.class
 
-      """.trimIndent())
+        """
+          .trimIndent()
+      ),
     )
   }
 }

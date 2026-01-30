@@ -22,10 +22,10 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
-import org.jetbrains.annotations.SystemIndependent
 import java.io.File
 import java.io.IOException
 import kotlin.io.path.pathString
+import org.jetbrains.annotations.SystemIndependent
 
 abstract class DeclarativeSchemaTestBase {
 
@@ -41,19 +41,19 @@ abstract class DeclarativeSchemaTestBase {
     runWriteAction {
       val gradlePath = projectDir.createChildDirectory(this, ".gradle")
       val schemaFolder = gradlePath.createChildDirectory(this, "declarative-schema")
-      children.filter { it.endsWith("dcl.schema") }.forEach {
-        val newFile = schemaFolder.createChildData(this, it)
-        val file = VfsUtil.findFileByIoFile(File(folder, it), true)
-        VfsUtil.saveText(newFile, VfsUtilCore.loadText(file!!))
-      }
+      children
+        .filter { it.endsWith("dcl.schema") }
+        .forEach {
+          val newFile = schemaFolder.createChildData(this, it)
+          val file = VfsUtil.findFileByIoFile(File(folder, it), true)
+          VfsUtil.saveText(newFile, VfsUtilCore.loadText(file!!))
+        }
     }
   }
 
-
   enum class TestFile(private val path: @SystemIndependent String) {
     DECLARATIVE_SETTINGS_SCHEMAS("settingsSchemas"),
-    DECLARATIVE_NEW_FORMAT_SCHEMAS("newFormatSchemas"),
-    ;
+    DECLARATIVE_NEW_FORMAT_SCHEMAS("newFormatSchemas");
 
     fun toFile(basePath: @SystemIndependent String, extension: String): File {
       return File(FileUtil.toSystemDependentName("$basePath/$path/") + extension)

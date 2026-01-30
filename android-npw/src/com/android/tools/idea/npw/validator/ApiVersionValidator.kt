@@ -19,20 +19,17 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.device.FormFactor
 import com.android.tools.adtui.validation.Validator
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
-import org.jetbrains.android.util.AndroidBundle
 import java.util.Optional
+import org.jetbrains.android.util.AndroidBundle
 
 // TODO(qumeric): search for "select.target.dialog.text", find usages and refactor
-class ApiVersionValidator(
-  private val isAndroidX: Boolean,
-  private val formFactor: FormFactor
-): Validator<Optional<AndroidVersionsInfo.VersionItem>> {
-  override fun validate(value: Optional<AndroidVersionsInfo.VersionItem>): Validator.Result = when {
-    !value.isPresent ->
-      Validator.Result(Validator.Severity.ERROR, AndroidBundle.message("select.target.dialog.text"))
-    (value.get().minApiLevel >= AndroidVersion.VersionCodes.Q || formFactor === FormFactor.WEAR) && !isAndroidX ->
-      Validator.Result(Validator.Severity.ERROR, AndroidBundle.message("android.wizard.validate.module.needs.androidx"))
-    else ->
-      Validator.Result.OK
-  }
+class ApiVersionValidator(private val isAndroidX: Boolean, private val formFactor: FormFactor) :
+  Validator<Optional<AndroidVersionsInfo.VersionItem>> {
+  override fun validate(value: Optional<AndroidVersionsInfo.VersionItem>): Validator.Result =
+    when {
+      !value.isPresent -> Validator.Result(Validator.Severity.ERROR, AndroidBundle.message("select.target.dialog.text"))
+      (value.get().minApiLevel >= AndroidVersion.VersionCodes.Q || formFactor === FormFactor.WEAR) && !isAndroidX ->
+        Validator.Result(Validator.Severity.ERROR, AndroidBundle.message("android.wizard.validate.module.needs.androidx"))
+      else -> Validator.Result.OK
+    }
 }

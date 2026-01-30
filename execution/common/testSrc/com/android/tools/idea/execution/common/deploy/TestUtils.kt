@@ -21,17 +21,14 @@ import com.android.tools.manifest.parser.XmlNode
 import com.android.tools.manifest.parser.components.ManifestActivityInfo
 import com.android.tools.manifest.parser.components.ManifestServiceInfo
 
-fun createApp(appId: String, servicesName: List<String> = emptyList(), activitiesName: List<String> = emptyList()
-): App {
+fun createApp(appId: String, servicesName: List<String> = emptyList(), activitiesName: List<String> = emptyList()): App {
   val services = servicesName.map { createManifestServiceInfo(it, appId) }
   val activities = activitiesName.map { createManifestActivityInfo(it, appId) }
   val apk = Apk.Builder().setServices(services).setActivities(activities).build()
   return App.fromApk(appId, apk)
 }
 
-private fun createManifestServiceInfo(
-  serviceName: String, appId: String, attrs: Map<String, String> = emptyMap()
-): ManifestServiceInfo {
+private fun createManifestServiceInfo(serviceName: String, appId: String, attrs: Map<String, String> = emptyMap()): ManifestServiceInfo {
   val node = XmlNode()
   node.attributes()["name"] = serviceName
   for ((attr, value) in attrs) {
@@ -40,9 +37,7 @@ private fun createManifestServiceInfo(
   return ManifestServiceInfo(node, appId)
 }
 
-private fun createManifestActivityInfo(
-  activityName: String, appId: String, attrs: Map<String, String> = emptyMap()
-): ManifestActivityInfo {
+private fun createManifestActivityInfo(activityName: String, appId: String, attrs: Map<String, String> = emptyMap()): ManifestActivityInfo {
   val node = XmlNode()
   node.attributes()["name"] = activityName
   for ((attr, value) in attrs) {

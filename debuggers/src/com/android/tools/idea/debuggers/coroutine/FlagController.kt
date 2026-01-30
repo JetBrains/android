@@ -20,10 +20,10 @@ import com.android.tools.idea.flags.StudioFlags
 import org.jetbrains.annotations.TestOnly
 
 object FlagController {
-  val isCoroutineDebuggerEnabled get() = StudioFlags.COROUTINE_DEBUGGER_ENABLE.get()
+  val isCoroutineDebuggerEnabled
+    get() = StudioFlags.COROUTINE_DEBUGGER_ENABLE.get()
 
-  @TestOnly
-  fun enableCoroutineDebugger(enabled: Boolean): Boolean = setFlagState(StudioFlags.COROUTINE_DEBUGGER_ENABLE, enabled)
+  @TestOnly fun enableCoroutineDebugger(enabled: Boolean): Boolean = setFlagState(StudioFlags.COROUTINE_DEBUGGER_ENABLE, enabled)
 
   private fun setFlagState(flag: Flag<Boolean>, desiredState: Boolean): Boolean {
     val previous = flag.get()
@@ -31,6 +31,6 @@ object FlagController {
     if (desiredState != flag.get()) {
       flag.override(desiredState)
     }
-    return previous;
+    return previous
   }
 }

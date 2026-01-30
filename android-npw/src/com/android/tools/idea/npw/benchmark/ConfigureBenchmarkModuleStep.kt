@@ -60,41 +60,26 @@ class ConfigureBenchmarkModuleStep(model: NewBenchmarkModuleModel) :
   private val microbenchmarkRadioButton = JRadioButton(MICROBENCHMARK.title)
   private val macrobenchmarkRadioButton = JRadioButton(MACROBENCHMARK.title)
   private val benchmarkModuleType =
-    SelectedRadioButtonProperty(
-      MACROBENCHMARK,
-      BenchmarkModuleType.values(),
-      macrobenchmarkRadioButton,
-      microbenchmarkRadioButton,
-    )
+    SelectedRadioButtonProperty(MACROBENCHMARK, BenchmarkModuleType.values(), macrobenchmarkRadioButton, microbenchmarkRadioButton)
   private var targetModuleRow: Row? = null
   private val targetModuleCombo: JComboBox<Module> = ModuleComboProvider().createComponent()
 
   init {
-    val appModules =
-      AndroidProjectInfo.getInstance(model.project)
-        .getAllModulesOfProjectType(AndroidProjectTypes.PROJECT_TYPE_APP)
+    val appModules = AndroidProjectInfo.getInstance(model.project).getAllModulesOfProjectType(AndroidProjectTypes.PROJECT_TYPE_APP)
     appModules.forEach { targetModuleCombo.addItem(it) }
     if (appModules.isNotEmpty()) {
       model.targetModule.value = appModules.first()
     }
 
     bindings.bindTwoWay(benchmarkModuleType, model.benchmarkModuleType)
-    listeners.listenAndFire(model.benchmarkModuleType) {
-      targetModuleRow?.visible(model.benchmarkModuleType.get() == MACROBENCHMARK)
-    }
+    listeners.listenAndFire(model.benchmarkModuleType) { targetModuleRow?.visible(model.benchmarkModuleType.get() == MACROBENCHMARK) }
 
     // Only allow min SDK >= 23 for macrobenchmarks.
     validatorPanel.registerValidator(
       model.androidSdkInfo,
       createValidator { value ->
-        if (
-          model.benchmarkModuleType.get() == MACROBENCHMARK &&
-            value.isPresent &&
-            value.get().minApiLevel < MACRO_SDK_MIN_VERSION
-        )
-          Validator.Result.fromNullableMessage(
-            "Macrobenchmark requires minimum SDK >= $MACRO_SDK_MIN_VERSION"
-          )
+        if (model.benchmarkModuleType.get() == MACROBENCHMARK && value.isPresent && value.get().minApiLevel < MACRO_SDK_MIN_VERSION)
+          Validator.Result.fromNullableMessage("Macrobenchmark requires minimum SDK >= $MACRO_SDK_MIN_VERSION")
         else OK
       },
       model.benchmarkModuleType,
@@ -105,10 +90,7 @@ class ConfigureBenchmarkModuleStep(model: NewBenchmarkModuleModel) :
     val targetModuleValidator = ModuleSelectedValidator()
     validatorPanel.registerValidator(
       model.targetModule,
-      createValidator { value ->
-        if (model.benchmarkModuleType.get() == MACROBENCHMARK) targetModuleValidator.validate(value)
-        else OK
-      },
+      createValidator { value -> if (model.benchmarkModuleType.get() == MACROBENCHMARK) targetModuleValidator.validate(value) else OK },
       model.benchmarkModuleType,
     )
 
@@ -116,15 +98,9 @@ class ConfigureBenchmarkModuleStep(model: NewBenchmarkModuleModel) :
     validatorPanel.registerValidator(
       model.agpVersionSelector,
       createValidator { versionSelector ->
-        if (
-          model.benchmarkModuleType.get() == MACROBENCHMARK &&
-            !versionSelector.willSelectAtLeast(minAgpVersion)
-        )
+        if (model.benchmarkModuleType.get() == MACROBENCHMARK && !versionSelector.willSelectAtLeast(minAgpVersion))
           Validator.Result.fromNullableMessage(
-            message(
-              "android.wizard.validate.module.needs.new.agp.macro.benchmark",
-              MACRO_AGP_MIN_VERSION,
-            )
+            message("android.wizard.validate.module.needs.new.agp.macro.benchmark", MACRO_AGP_MIN_VERSION)
           )
         else OK
       },
@@ -135,31 +111,19 @@ class ConfigureBenchmarkModuleStep(model: NewBenchmarkModuleModel) :
   override fun createMainPanel(): DialogPanel =
     panel {
         buttonsGroup {
-          row(
-            contextLabel(
-              "Benchmark module type",
-              message("android.wizard.module.help.benchmark.module.type"),
-            )
-          ) {
+          row(contextLabel("Benchmark module type", message("android.wizard.module.help.benchmark.module.type"))) {
             cell(macrobenchmarkRadioButton)
             cell(microbenchmarkRadioButton)
           }
         }
 
         targetModuleRow =
-          row(
-              contextLabel(
-                "Target application",
-                message("android.wizard.module.help.benchmark.target.module"),
-              )
-            ) {
+          row(contextLabel("Target application", message("android.wizard.module.help.benchmark.target.module"))) {
               cell(targetModuleCombo).align(AlignX.FILL)
             }
             .visible(benchmarkModuleType.get() == MACROBENCHMARK)
 
-        row(contextLabel("Module name", message("android.wizard.module.help.name"))) {
-          cell(moduleName).align(AlignX.FILL)
-        }
+        row(contextLabel("Module name", message("android.wizard.module.help.name"))) { cell(moduleName).align(AlignX.FILL) }
 
         row("Package name") { cell(packageName).align(AlignX.FILL) }
 
@@ -186,9 +150,7 @@ class ConfigureBenchmarkModuleStep(model: NewBenchmarkModuleModel) :
   private fun AndroidApiLevelComboBox.selectAtLeastMinApiLevel(minApiLevel: Int) {
     val currentItem = selectedItem
     if (currentItem is AndroidVersionsInfo.VersionItem && currentItem.minApiLevel < minApiLevel) {
-      (0 until itemCount)
-        .firstOrNull { getItemAt(it)!!.minApiLevel == minApiLevel }
-        ?.let { selectedIndex = it }
+      (0 until itemCount).firstOrNull { getItemAt(it)!!.minApiLevel == minApiLevel }?.let { selectedIndex = it }
     }
   }
 }

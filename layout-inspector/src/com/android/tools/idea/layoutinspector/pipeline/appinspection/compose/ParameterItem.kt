@@ -27,8 +27,8 @@ import org.jetbrains.annotations.VisibleForTesting
 /**
  * Return the namespace used for the specified [section].
  *
- * Where the View inspector make use real namespaces, the strings used for the namespace qualifier
- * for Compose does not mean anything. It is only used to avoid name clashes in the PropertyTable.
+ * Where the View inspector make use real namespaces, the strings used for the namespace qualifier for Compose does not mean anything. It is
+ * only used to avoid name clashes in the PropertyTable.
  */
 @VisibleForTesting
 fun parameterNamespaceOf(section: PropertySection) =
@@ -51,24 +51,13 @@ open class ParameterItem(
   lookup: ViewNodeAndResourceLookup,
   val rootId: Long,
   var index: Int,
-) :
-  InspectorPropertyItem(
-    parameterNamespaceOf(section),
-    name,
-    type,
-    value,
-    section,
-    null,
-    viewId,
-    lookup,
-  ) {
+) : InspectorPropertyItem(parameterNamespaceOf(section), name, type, value, section, null, viewId, lookup) {
 
-  open fun clone(): ParameterItem =
-    ParameterItem(name, type, value, section, viewId, lookup, rootId, index)
+  open fun clone(): ParameterItem = ParameterItem(name, type, value, section, viewId, lookup, rootId, index)
 
   /**
-   * Return true if this [ParameterItem] is the same parameter as [other] with respect to everything
-   * other than the value and the group settings.
+   * Return true if this [ParameterItem] is the same parameter as [other] with respect to everything other than the value and the group
+   * settings.
    */
   fun sameParameter(other: ParameterItem): Boolean =
     javaClass == other.javaClass &&
@@ -95,19 +84,9 @@ class ParameterGroupItem(
 ) : ParameterItem(name, type, value, section, viewId, lookup, rootId, index), PTableGroupItem {
 
   override fun clone(): ParameterGroupItem =
-    ParameterGroupItem(
-        name,
-        type,
-        value,
-        section,
-        viewId,
-        lookup,
-        rootId,
-        index,
-        reference,
-        mutableListOf(),
-      )
-      .apply { addClonedChildrenFrom(this@ParameterGroupItem.children) }
+    ParameterGroupItem(name, type, value, section, viewId, lookup, rootId, index, reference, mutableListOf()).apply {
+      addClonedChildrenFrom(this@ParameterGroupItem.children)
+    }
 
   private fun addClonedChildrenFrom(items: List<ParameterItem>) {
     items.mapTo(children) { it.clone() }
@@ -121,18 +100,15 @@ class ParameterGroupItem(
     get() = children.lastIndex - (if (children.lastOrNull() is ShowMoreElementsItem) 1 else 0)
 
   /**
-   * Return the index from the composite value on the device of the last child in children that is
-   * not a ShowMoreElementsItem
+   * Return the index from the composite value on the device of the last child in children that is not a ShowMoreElementsItem
    *
-   * This value may be identical to [lastRealChildElementIndex] unless some of the sibling values
-   * were skipped in the agent.
+   * This value may be identical to [lastRealChildElementIndex] unless some of the sibling values were skipped in the agent.
    */
   val lastRealChildReferenceIndex: Int
     get() = children.getOrNull(lastRealChildElementIndex)?.index ?: -1
 
   /**
-   * Return the index of the children list where [ParameterItem.index] is the same as
-   * [referenceIndex]
+   * Return the index of the children list where [ParameterItem.index] is the same as [referenceIndex]
    *
    * The [referenceIndex] value will usually come from one of [ParameterReference.indices].
    */
@@ -158,9 +134,8 @@ class ParameterGroupItem(
   }
 
   /**
-   * Update the value and child element information to the values from [newValue] representing
-   * changes on the device for this parameter. Attempt to use the same instances for child elements
-   * to keep expanded groups expanded after an update.
+   * Update the value and child element information to the values from [newValue] representing changes on the device for this parameter.
+   * Attempt to use the same instances for child elements to keep expanded groups expanded after an update.
    */
   override fun updateValue(newValue: InspectorPropertyItem): Boolean {
     super.updateValue(newValue)
@@ -203,9 +178,7 @@ class ParameterGroupItem(
       return null
     }
     val sizeBeforeAdding = children.size
-    addClonedChildrenFrom(
-      replacement.children.subList(elementIndex, replacement.lastRealChildElementIndex + 1)
-    )
+    addClonedChildrenFrom(replacement.children.subList(elementIndex, replacement.lastRealChildElementIndex + 1))
     val added = children.subList(sizeBeforeAdding, children.size).toList()
     if (reference != null) {
       children.add(showMoreItem)
@@ -218,13 +191,7 @@ class ParameterGroupItem(
 }
 
 /** A reference to another composite parameter. */
-class ParameterReference(
-  val nodeId: Long,
-  val anchorHash: Int,
-  val kind: ParameterKind,
-  val parameterIndex: Int,
-  val indices: IntArray,
-)
+class ParameterReference(val nodeId: Long, val anchorHash: Int, val kind: ParameterKind, val parameterIndex: Int, val indices: IntArray)
 
 /** The parameter kind a [ParameterReference] points to. */
 enum class ParameterKind {

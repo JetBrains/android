@@ -50,8 +50,6 @@ import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.StatusText
-import kotlinx.coroutines.CoroutineScope
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Graphics
@@ -65,6 +63,8 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.geom.AffineTransform
 import java.awt.geom.Point2D
+import kotlinx.coroutines.CoroutineScope
+import org.jetbrains.annotations.VisibleForTesting
 
 private const val MARGIN = 50
 
@@ -104,16 +104,11 @@ class DeviceViewContentPanel(
 
   @get:VisibleForTesting
   val showNavigateToDebuggableProcess
-    get() =
-      !renderModel.isActive &&
-        !isLoading() &&
-        deviceModel?.selectedDevice != null &&
-        !hasForegroundProcess()
+    get() = !renderModel.isActive && !isLoading() && deviceModel?.selectedDevice != null && !hasForegroundProcess()
 
   val rootLocation: Point?
     get() {
-      val modelCoordinates =
-        renderModel.hitRects.firstOrNull()?.bounds?.bounds?.location ?: return null
+      val modelCoordinates = renderModel.hitRects.firstOrNull()?.bounds?.bounds?.location ?: return null
       val panelCoordinates = toPanelCoordinates(modelCoordinates.x, modelCoordinates.y)
       return Point(panelCoordinates.x.toInt(), panelCoordinates.y.toInt())
     }
@@ -134,10 +129,7 @@ class DeviceViewContentPanel(
         if (renderModel.model.isXr) {
           // For XR we simply want to center the root node in the panel.
           // The width and height of the root node matches the width and height of the grid.
-          translate(
-            -renderModel.model.root.layoutBounds.width / 2.0,
-            -renderModel.model.root.layoutBounds.height / 2.0,
-          )
+          translate(-renderModel.model.root.layoutBounds.width / 2.0, -renderModel.model.root.layoutBounds.height / 2.0)
         } else {
           // center the container of the app's ui
           translate(-maxBounds.width / 2.0, -maxBounds.height / 2.0)
@@ -166,16 +158,10 @@ class DeviceViewContentPanel(
     }
 
   init {
-    processNotDebuggableText.appendLine(
-      LayoutInspectorBundle.message("application.not.inspectable")
-    )
-    processNotDebuggableText.appendLine(
-      LayoutInspectorBundle.message("navigate.to.debuggable.application")
-    )
+    processNotDebuggableText.appendLine(LayoutInspectorBundle.message("application.not.inspectable"))
+    processNotDebuggableText.appendLine(LayoutInspectorBundle.message("navigate.to.debuggable.application"))
 
-    navigateToDebuggableProcessText.appendLine(
-      LayoutInspectorBundle.message("navigate.to.debuggable.application")
-    )
+    navigateToDebuggableProcessText.appendLine(LayoutInspectorBundle.message("navigate.to.debuggable.application"))
 
     selectTargetAction?.let { selectTargetAction ->
       emptyText.appendLine(LayoutInspectorBundle.message("no.process.connected"))
@@ -192,10 +178,7 @@ class DeviceViewContentPanel(
       emptyText.appendText(text, SimpleTextAttributes.LINK_ATTRIBUTES) {
         val button = selectTargetAction.getButton()
         val dataContext = DataManager.getInstance().getDataContext(button)
-        selectTargetAction.dropDownAction.templatePresentation.putClientProperty(
-          CustomComponentAction.COMPONENT_KEY,
-          button,
-        )
+        selectTargetAction.dropDownAction.templatePresentation.putClientProperty(CustomComponentAction.COMPONENT_KEY, button)
         val event =
           AnActionEvent.createEvent(
             dataContext,
@@ -209,11 +192,7 @@ class DeviceViewContentPanel(
       @Suppress("DialogTitleCapitalization") emptyText.appendText(" to begin inspection.")
 
       emptyText.appendLine("")
-      emptyText.appendLine(
-        AllIcons.General.ContextHelp,
-        "Using the layout inspector",
-        SimpleTextAttributes.LINK_ATTRIBUTES,
-      ) {
+      emptyText.appendLine(AllIcons.General.ContextHelp, "Using the layout inspector", SimpleTextAttributes.LINK_ATTRIBUTES) {
         BrowserUtil.browse("https://developer.android.com/studio/debug/layout-inspector")
       }
     }
@@ -243,9 +222,7 @@ class DeviceViewContentPanel(
         override fun mouseDragged(e: MouseEvent) {
           if (e.isConsumed) return
           if (
-            renderModel.overlayImage != null ||
-              currentClient()?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) !=
-                true
+            renderModel.overlayImage != null || currentClient()?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) != true
           ) {
             // can't rotate
             return
@@ -263,11 +240,7 @@ class DeviceViewContentPanel(
             // Drag when rotation is disabled. Show tooltip.
             val dataContext = DataManager.getInstance().getDataContext(this@DeviceViewContentPanel)
             dataContext.getData(TOGGLE_3D_ACTION_BUTTON_KEY)?.let { toggle3dButton ->
-              GotItTooltip(
-                  "LayoutInspector.RotateViewTooltip",
-                  "Click to toggle 3D mode",
-                  disposableParent,
-                )
+              GotItTooltip("LayoutInspector.RotateViewTooltip", "Click to toggle 3D mode", disposableParent)
                 .withShowCount(FRAMES_BEFORE_RESET_TO_BITMAP)
                 .withPosition(Balloon.Position.atLeft)
                 .show(toggle3dButton, GotItTooltip.LEFT_MIDDLE)
@@ -279,12 +252,7 @@ class DeviceViewContentPanel(
           if (event.isConsumed) return
           if (event.clickCount > 1) {
             // The View was selected with the first click of the double click
-            GotoDeclaration.navigateToSelectedView(
-              coroutineScope,
-              renderModel.model,
-              currentClient(),
-              renderModel.notificationModel,
-            )
+            GotoDeclaration.navigateToSelectedView(coroutineScope, renderModel.model, currentClient(), renderModel.notificationModel)
             currentClient()?.stats?.gotoSourceFromRenderDoubleClick()
           } else {
             val modelCoordinates = toModelCoordinates(event.x, event.y)
@@ -295,10 +263,8 @@ class DeviceViewContentPanel(
         override fun mouseMoved(e: MouseEvent) {
           if (e.isConsumed) return
           val modelCoordinates = toModelCoordinates(e.x, e.y)
-          renderModel.hoveredDrawInfo =
-            renderModel.findDrawInfoAt(modelCoordinates.x, modelCoordinates.y).firstOrNull()
-          inspectorModel.hoveredNode =
-            renderModel.hoveredDrawInfo?.node?.findFilteredOwner(treeSettings)
+          renderModel.hoveredDrawInfo = renderModel.findDrawInfoAt(modelCoordinates.x, modelCoordinates.y).firstOrNull()
+          inspectorModel.hoveredNode = renderModel.hoveredDrawInfo?.node?.findFilteredOwner(treeSettings)
         }
       }
     addMouseListener(listener)
@@ -333,8 +299,7 @@ class DeviceViewContentPanel(
       // may have been removed.
       val currentClient = currentClient()
       if (
-        (inspectorModel.pictureType == AndroidWindow.ImageType.SKP ||
-          inspectorModel.pictureType == AndroidWindow.ImageType.SKP_PENDING) &&
+        (inspectorModel.pictureType == AndroidWindow.ImageType.SKP || inspectorModel.pictureType == AndroidWindow.ImageType.SKP_PENDING) &&
           currentClient?.inLiveMode == true &&
           !renderModel.isRotated &&
           !inspectorModel.hasHiddenNodes()
@@ -345,10 +310,7 @@ class DeviceViewContentPanel(
           toResetCount = 0
           // Be sure to reset the scale as well, since if we were previously paused the scale will
           // be set to 1.
-          currentClient.updateScreenshotType(
-            AndroidWindow.ImageType.BITMAP_AS_REQUESTED,
-            renderSettings.scaleFraction.toFloat(),
-          )
+          currentClient.updateScreenshotType(AndroidWindow.ImageType.BITMAP_AS_REQUESTED, renderSettings.scaleFraction.toFloat())
         }
       } else {
         // SKP was needed
@@ -400,8 +362,8 @@ class DeviceViewContentPanel(
   }
 
   /**
-   * Change the panel size with the size of what is being rendered. This makes sure that when the
-   * render is too big to be entirely visible, the panel expands and scrollbars are shown.
+   * Change the panel size with the size of what is being rendered. This makes sure that when the render is too big to be entirely visible,
+   * the panel expands and scrollbars are shown.
    */
   override fun getPreferredSize(): Dimension {
     val (desiredWidth, desiredHeight) =
@@ -423,20 +385,15 @@ class DeviceViewContentPanel(
   private fun autoScrollAndRepaint(origin: SelectionOrigin) {
     val selection = inspectorModel.selection
     if (origin != SelectionOrigin.INTERNAL && selection != null) {
-      val hits =
-        renderModel.hitRects.filter { it.node.findFilteredOwner(treeSettings) == selection }
+      val hits = renderModel.hitRects.filter { it.node.findFilteredOwner(treeSettings) == selection }
       val bounds = Rectangle()
-      hits.forEach {
-        if (bounds.isEmpty) bounds.bounds = it.bounds.bounds else bounds.add(it.bounds.bounds)
-      }
+      hits.forEach { if (bounds.isEmpty) bounds.bounds = it.bounds.bounds else bounds.add(it.bounds.bounds) }
       if (!bounds.isEmpty) {
-        val font =
-          StartupUiUtil.labelFont.deriveFont(getLabelFontSize(renderSettings.scaleFraction))
+        val font = StartupUiUtil.labelFont.deriveFont(getLabelFontSize(renderSettings.scaleFraction))
         val fontMetrics = getFontMetrics(font)
         val textWidth = fontMetrics.stringWidth(selection.unqualifiedName)
         val labelHeight = getDrawNodeLabelHeight(renderSettings.scaleFraction).toInt()
-        val borderSize =
-          getEmphasizedBorderOutlineThickness(renderSettings.scaleFraction).toInt() / 2
+        val borderSize = getEmphasizedBorderOutlineThickness(renderSettings.scaleFraction).toInt() / 2
         bounds.width = kotlin.math.max(bounds.width, textWidth)
         bounds.x -= borderSize
         bounds.y -= borderSize + labelHeight

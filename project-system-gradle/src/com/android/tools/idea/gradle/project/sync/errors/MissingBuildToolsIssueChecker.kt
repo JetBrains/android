@@ -23,17 +23,17 @@ import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.externalSystem.model.ExternalSystemException
+import java.util.function.Consumer
+import java.util.regex.Pattern
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
-import java.util.function.Consumer
-import java.util.regex.Pattern
 
 /**
  * This IssueChecker is for olg AGP version where having an old build tools version ends up in a sync issue. For newer AGP (tested for 3.6
  * and above, a low build tools version will be ignored and the default minimum version required by the SDK handler will be chosen.
  */
-class MissingBuildToolsIssueChecker: GradleIssueChecker {
+class MissingBuildToolsIssueChecker : GradleIssueChecker {
   private val MISSING_BUILD_TOOLS_PATTERN = Pattern.compile("(Cause: )?([Ff])ailed to find Build Tools revision (.*)")
   private val EXCEPTION_ILLEGAL_PATTERN = Pattern.compile("Caused by: java.lang.IllegalStateException(.*)")
   private val EXCEPTION_EXTERNAL_SYSTEM_PATTERN =
@@ -55,19 +55,20 @@ class MissingBuildToolsIssueChecker: GradleIssueChecker {
 
   private fun getBuildIssueDescription(message: String, version: String): BuildIssueComposer {
     val buildIssueComposer = BuildIssueComposer(message)
-    buildIssueComposer.addQuickFix("Install Build Tools $version and sync project",
-                                   InstallBuildToolsQuickFix(version, emptyList(), false))
+    buildIssueComposer.addQuickFix("Install Build Tools $version and sync project", InstallBuildToolsQuickFix(version, emptyList(), false))
     return buildIssueComposer
   }
 
-  override fun consumeBuildOutputFailureMessage(message: String,
-                                                failureCause: String,
-                                                stacktrace: String?,
-                                                location: FilePosition?,
-                                                parentEventId: Any,
-                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+  override fun consumeBuildOutputFailureMessage(
+    message: String,
+    failureCause: String,
+    stacktrace: String?,
+    location: FilePosition?,
+    parentEventId: Any,
+    messageConsumer: Consumer<in BuildEvent>,
+  ): Boolean {
     return stacktrace != null &&
-           (EXCEPTION_ILLEGAL_PATTERN.matcher(stacktrace).find() || EXCEPTION_EXTERNAL_SYSTEM_PATTERN.matcher(stacktrace).find()) &&
-           MISSING_BUILD_TOOLS_PATTERN.matcher(failureCause.lines()[0]).matches()
+      (EXCEPTION_ILLEGAL_PATTERN.matcher(stacktrace).find() || EXCEPTION_EXTERNAL_SYSTEM_PATTERN.matcher(stacktrace).find()) &&
+      MISSING_BUILD_TOOLS_PATTERN.matcher(failureCause.lines()[0]).matches()
   }
 }

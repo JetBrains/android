@@ -38,9 +38,7 @@ import kotlinx.coroutines.withContext
 
 private const val SERIAL_NUMBER_PREFIX = "emulator-"
 
-/**
- * A [RecordingProvider] that uses [EmulatorConsole].
- */
+/** A [RecordingProvider] that uses [EmulatorConsole]. */
 internal class EmulatorConsoleRecordingProvider(
   disposableParent: Disposable,
   private val serialNumber: String,
@@ -63,9 +61,7 @@ internal class EmulatorConsoleRecordingProvider(
       CoroutineScope(Dispatchers.IO).launch {
         try {
           emulatorConsole.stopScreenRecording()
-        }
-        catch (_: ClosedChannelException) {
-        }
+        } catch (_: ClosedChannelException) {}
       }
       recordingHandle.getAndSet(null)?.completeExceptionally(RuntimeException(message("screenrecord.error.disconnected")))
     }
@@ -83,8 +79,7 @@ internal class EmulatorConsoleRecordingProvider(
       try {
         emulatorConsole.stopScreenRecording()
         handle.complete(Unit)
-      }
-      catch (e: Throwable) {
+      } catch (e: Throwable) {
         handle.completeExceptionally(e)
       }
     }
@@ -95,8 +90,7 @@ internal class EmulatorConsoleRecordingProvider(
     CoroutineScope(Dispatchers.IO).launch {
       try {
         emulatorConsole.stopScreenRecording()
-      }
-      finally {
+      } finally {
         handle.cancel()
         Files.deleteIfExists(localPath)
       }
@@ -106,9 +100,7 @@ internal class EmulatorConsoleRecordingProvider(
   override suspend fun doesRecordingExist(): Boolean = localPath.exists()
 
   override suspend fun pullRecording(target: Path) {
-    withContext(Dispatchers.IO) {
-      localPath.move(target)
-    }
+    withContext(Dispatchers.IO) { localPath.move(target) }
   }
 
   override fun dispose() {
@@ -148,8 +140,7 @@ private fun String.getEmulatorPort(): Int {
   }
   try {
     return substring(SERIAL_NUMBER_PREFIX.length).toInt()
-  }
-  catch (_: NumberFormatException) {
+  } catch (_: NumberFormatException) {
     throw IllegalArgumentException("Not an emulator serial number: $this")
   }
 }

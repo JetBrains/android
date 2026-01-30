@@ -55,12 +55,12 @@ class DaggerIndexMethodWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      class Foo {
-        fun bar(arg1: Integer, arg2: Bat = Bat()): Baz {}
-      }
-      """
+        class Foo {
+          fun bar(arg1: Integer, arg2: Bat = Bat()): Baz {}
+        }
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -82,12 +82,12 @@ class DaggerIndexMethodWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      class Foo {
-        fun bar(arg1: Integer, arg2: Bat) = resultOfSomeFunction
-      }
-      """
+        class Foo {
+          fun bar(arg1: Integer, arg2: Bat) = resultOfSomeFunction
+        }
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -104,17 +104,17 @@ class DaggerIndexMethodWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      import dagger.*
+        import dagger.*
 
-      class Foo {
-        @Binds
-        @Module()
-        @Component(true)
-        fun bar(arg1: Integer, arg2: Bat = Bat()): Baz {}
-      }
-      """
+        class Foo {
+          @Binds
+          @Module()
+          @Component(true)
+          fun bar(arg1: Integer, arg2: Bat = Bat()): Baz {}
+        }
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -134,10 +134,10 @@ class DaggerIndexMethodWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      fun bar(arg1: Integer, arg2: Bat): Baz {}
-      """
+        fun bar(arg1: Integer, arg2: Bat): Baz {}
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -154,10 +154,10 @@ class DaggerIndexMethodWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      class Foo(arg1: Integer, arg2: Bat) {}
-      """
+        class Foo(arg1: Integer, arg2: Bat) {}
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -179,12 +179,12 @@ class DaggerIndexMethodWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      class Foo(arg1: Integer, arg2: Bat) {
-        constructor(arg1: Integer)
-      }
-      """
+        class Foo(arg1: Integer, arg2: Bat) {
+          constructor(arg1: Integer)
+        }
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -206,11 +206,11 @@ class DaggerIndexMethodWrapperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
-      public class Foo {
-        public Baz bar(int arg1, Bat arg2) {}
-      }
-      """
+        package com.example;
+        public class Foo {
+          public Baz bar(int arg1, Bat arg2) {}
+        }
+        """
           .trimIndent(),
       ) as PsiJavaFile
 
@@ -232,17 +232,17 @@ class DaggerIndexMethodWrapperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
+        package com.example;
 
-      import dagger.*;
+        import dagger.*;
 
-      public class Foo {
-        @Binds
-        @Module()
-        @Component(true)
-        public Baz bar(int arg1, Bat arg2) {}
-      }
-      """
+        public class Foo {
+          @Binds
+          @Module()
+          @Component(true)
+          public Baz bar(int arg1, Bat arg2) {}
+        }
+        """
           .trimIndent(),
       ) as PsiJavaFile
 
@@ -262,11 +262,11 @@ class DaggerIndexMethodWrapperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
-      public class Foo {
-        public Foo(int arg1, Bat arg2) {}
-      }
-      """
+        package com.example;
+        public class Foo {
+          public Foo(int arg1, Bat arg2) {}
+        }
+        """
           .trimIndent(),
       ) as PsiJavaFile
 

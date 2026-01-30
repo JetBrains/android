@@ -30,13 +30,12 @@ import com.android.tools.idea.downloads.AndroidProfilerDownloader
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.util.StudioPathManager
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.PluginPathManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
-import kotlinx.coroutines.flow.Flow
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlinx.coroutines.flow.Flow
 
 private const val LOGCAT_PROTO_SUPPORT_SDK = 36
 
@@ -49,36 +48,25 @@ internal class ProcessNameMonitorService(project: Project) : ProcessNameMonitor,
     val adbLogger = AndroidAdbLogger(thisLogger())
     val pollingIntervalMs = StudioFlags.PROCESS_NAME_TRACKER_AGENT_INTERVAL_MS.get()
     // If Logcat Proto format is supported and enabled, we don't need to use an agent.
-    val shouldUseAgentForSdk: (Int) -> Boolean = { sdk ->
-      sdk < LOGCAT_PROTO_SUPPORT_SDK || !StudioFlags.LOGCAT_PROTOBUF_ENABLED.get()
-    }
+    val shouldUseAgentForSdk: (Int) -> Boolean = { sdk -> sdk < LOGCAT_PROTO_SUPPORT_SDK || !StudioFlags.LOGCAT_PROTOBUF_ENABLED.get() }
     val trackerAgentConfig = AgentProcessTrackerConfig(getAgentPath(), pollingIntervalMs, shouldUseAgentForSdk)
-    val config =
-      ProcessNameMonitor.Config(
-        StudioFlags.PROCESS_NAME_MONITOR_MAX_RETENTION.get(),
-        trackerAgentConfig,
-      )
+    val config = ProcessNameMonitor.Config(StudioFlags.PROCESS_NAME_MONITOR_MAX_RETENTION.get(), trackerAgentConfig)
 
     ProcessNameMonitorImpl.create(parentScope, adbSession, deviceProvisioner, config, adbLogger)
   }
 
   override fun start() = delegate.start()
 
-  override fun getProcessNames(serialNumber: String, pid: Int) =
-    delegate.getProcessNames(serialNumber, pid)
+  override fun getProcessNames(serialNumber: String, pid: Int) = delegate.getProcessNames(serialNumber, pid)
 
-  override suspend fun trackDeviceProcesses(serialNumber: String): Flow<ProcessEvent> =
-    delegate.trackDeviceProcesses(serialNumber)
+  override suspend fun trackDeviceProcesses(serialNumber: String): Flow<ProcessEvent> = delegate.trackDeviceProcesses(serialNumber)
 
   override fun dispose() {
     delegate.close()
   }
 
   private fun getAgentPath(): Path {
-    return when (
-      StudioPathManager.isRunningFromSources() &&
-        (IdeInfo.getInstance().isAndroidStudio || IdeInfo.getInstance().isGameTools)
-    ) {
+    return when (StudioPathManager.isRunningFromSources() && (IdeInfo.getInstance().isAndroidStudio || IdeInfo.getInstance().isGameTools)) {
       true -> Paths.get(StudioPathManager.getBinariesRoot()).resolve(AGENT_SOURCE_DEV)
       false -> AndroidProfilerDownloader.getInstance().getHostDir("plugins/android/$AGENT_RESOURCE_PROD").toPath()
     }

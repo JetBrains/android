@@ -36,8 +36,7 @@ import org.junit.Test
 class RuleVariablesDialogTest {
   private val projectRule = ProjectRule()
 
-  @get:Rule
-  val rule = RuleChain(projectRule, HeadlessDialogRule(), WaitForIndexRule(projectRule), EdtRule())
+  @get:Rule val rule = RuleChain(projectRule, HeadlessDialogRule(), WaitForIndexRule(projectRule), EdtRule())
 
   private val project
     get() = projectRule.project
@@ -87,11 +86,7 @@ class RuleVariablesDialogTest {
       dialog.addAction.actionPerformed(TestActionEvent.createTestEvent())
 
       assertThat(dialog.variables())
-        .containsExactly(
-          RuleVariable("NEW-VARIABLE", ""),
-          RuleVariable("NEW-VARIABLE-2", ""),
-          RuleVariable("NEW-VARIABLE-3", ""),
-        )
+        .containsExactly(RuleVariable("NEW-VARIABLE", ""), RuleVariable("NEW-VARIABLE-2", ""), RuleVariable("NEW-VARIABLE-3", ""))
     }
   }
 
@@ -143,8 +138,7 @@ class RuleVariablesDialogTest {
     variables.add(RuleVariable("BAR", "bar"))
     val dialog = ruleVariablesDialog(variables)
     createModalDialogAndInteractWithIt(dialog::show) {
-      assertThat(dialog.variables())
-        .containsExactly(RuleVariable("FOO", "foo"), RuleVariable("BAR", "bar"))
+      assertThat(dialog.variables()).containsExactly(RuleVariable("FOO", "foo"), RuleVariable("BAR", "bar"))
     }
   }
 

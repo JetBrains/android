@@ -43,15 +43,6 @@ internal fun DeviceState.toDevice(): Device? {
         properties.deviceType,
       )
     }
-    else ->
-      Device.createPhysical(
-        serialNumber,
-        true,
-        release,
-        androidVersion,
-        manufacturer,
-        model,
-        properties.deviceType,
-      )
+    else -> Device.createPhysical(serialNumber, true, release, androidVersion, manufacturer, model, properties.deviceType)
   }
 }

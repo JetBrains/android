@@ -20,8 +20,7 @@ import java.util.zip.ZipInputStream
 
 object ApkTestUtils {
   fun getResourceText(resourcePath: String): String {
-    val stream = JsonPrettyPrinterTest::class.java.getResourceAsStream(resourcePath) ?: error(
-      "Could not find test data")
+    val stream = JsonPrettyPrinterTest::class.java.getResourceAsStream(resourcePath) ?: error("Could not find test data")
     return stream.use { String(it.readBytes()) }
   }
 
@@ -30,9 +29,7 @@ object ApkTestUtils {
   }
 
   fun getApkBytes(fileName: String): ByteArray {
-    val bytes: ByteArray = getApkInputStream(fileName).use { file ->
-      file.readBytes()
-    }
+    val bytes: ByteArray = getApkInputStream(fileName).use { file -> file.readBytes() }
     return bytes
   }
 

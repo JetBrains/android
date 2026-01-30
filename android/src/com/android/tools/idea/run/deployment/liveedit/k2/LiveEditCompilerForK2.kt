@@ -53,19 +53,19 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtPsiFactory
 
 @OptIn(KaExperimentalApi::class)
-internal class LiveEditCompilerForK2(private val project: Project,
-                                     private val module: Module) : LiveEditCompiler.LiveEditCompilerForKotlinVersion {
+internal class LiveEditCompilerForK2(private val project: Project, private val module: Module) :
+  LiveEditCompiler.LiveEditCompilerForKotlinVersion {
 
   private val LOGGER = LogWrapper(Logger.getInstance(LiveEditCompilerForK2::class.java))
 
-  override fun compileKtFile(applicationLiveEditServices: ApplicationLiveEditServices,
-                             file: KtFile,
-                             inputs: Collection<LiveEditCompilerInput>) = runWithCompileLock {
+  override fun compileKtFile(
+    applicationLiveEditServices: ApplicationLiveEditServices,
+    file: KtFile,
+    inputs: Collection<LiveEditCompilerInput>,
+  ) = runWithCompileLock {
     LOGGER.info("Using Live Edit K2 CodeGen")
     readActionPrebuildChecks(project, file)
-    val result = backendCodeGenForK2(file, module) {
-      with(applicationLiveEditServices) { configureKotlinCompilationOptions(file) }
-    }
+    val result = backendCodeGenForK2(file, module) { with(applicationLiveEditServices) { configureKotlinCompilationOptions(file) } }
     return@runWithCompileLock result.output.map { OutputFileForKtCompiledFile(it) }
   }
 }
@@ -81,9 +81,7 @@ private fun getCompileTargetFile(original: KtFile, module: Module): KtFile {
   }
 
   val androidModule = module.findAndroidModule() ?: return original
-  val sourceModule = androidModule.toKaSourceModuleForProduction()
-                     ?: androidModule.toKaSourceModuleForTest()
-                     ?: return original
+  val sourceModule = androidModule.toKaSourceModuleForProduction() ?: androidModule.toKaSourceModuleForTest() ?: return original
 
   // create a dangling copy of this file with the proper (Android) context.
   val danglingFile = KtPsiFactory(module.project).createFile(original.name, original.text)
@@ -121,12 +119,12 @@ fun backendCodeGenForK2(file: KtFile, module: Module, configurator: KaCompilatio
 
     when (val result = compile(substituteFile, options)) {
       is KaCompilationResult.Success -> return result
-      is KaCompilationResult.Failure -> throw compilationError(result.errors.map{it.getErrorMessage()})
+      is KaCompilationResult.Failure -> throw compilationError(result.errors.map { it.getErrorMessage() })
     }
   }
 }
 
-private fun KaDiagnostic.getErrorMessage() : CompilerErrorSource {
+private fun KaDiagnostic.getErrorMessage(): CompilerErrorSource {
   var message = getDefaultMessageWithFactoryName()
   if (this is KaDiagnosticWithPsi<*>) {
     var lineNumber = getLineNumberFromKaDiagnostic()

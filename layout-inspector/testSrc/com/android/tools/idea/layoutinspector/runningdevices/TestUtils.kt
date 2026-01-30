@@ -65,20 +65,15 @@ object EmbeddedLayoutInspectorSettingsProxy {
     }
     get() = LayoutInspectorSettings.getInstance().autoConnectEnabled
 
-  val embeddedLayoutInspectorChanges =
-    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorChanges
+  val embeddedLayoutInspectorChanges = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorChanges
 }
 
 /**
- * Utility function used to enable and disable embedded Layout Inspector in tests. It takes care of
- * restoring the settings state at the end of the test, and provides
- * [EmbeddedLayoutInspectorSettingsProxy], a utility to enable and disable embedded Layout Inspector
- * during the test.
+ * Utility function used to enable and disable embedded Layout Inspector in tests. It takes care of restoring the settings state at the end
+ * of the test, and provides [EmbeddedLayoutInspectorSettingsProxy], a utility to enable and disable embedded Layout Inspector during the
+ * test.
  */
-fun withEmbeddedLayoutInspector(
-  enabled: Boolean = true,
-  block: EmbeddedLayoutInspectorSettingsProxy.() -> Unit,
-) {
+fun withEmbeddedLayoutInspector(enabled: Boolean = true, block: EmbeddedLayoutInspectorSettingsProxy.() -> Unit) {
   val settings = EmbeddedLayoutInspectorSettingsProxy
   val prev = settings.enableEmbeddedLayoutInspector
   settings.enableEmbeddedLayoutInspector = enabled
@@ -91,14 +86,10 @@ fun withEmbeddedLayoutInspector(
 }
 
 /**
- * Utility function used to enable and disable auto connect in tests. It takes care of restoring the
- * settings state at the end of the test, and provides [EmbeddedLayoutInspectorSettingsProxy], a
- * utility to enable and auto connect during the test.
+ * Utility function used to enable and disable auto connect in tests. It takes care of restoring the settings state at the end of the test,
+ * and provides [EmbeddedLayoutInspectorSettingsProxy], a utility to enable and auto connect during the test.
  */
-fun withAutoConnect(
-  enabled: Boolean = true,
-  block: EmbeddedLayoutInspectorSettingsProxy.() -> Unit,
-) {
+fun withAutoConnect(enabled: Boolean = true, block: EmbeddedLayoutInspectorSettingsProxy.() -> Unit) {
   val settings = EmbeddedLayoutInspectorSettingsProxy
   val prev = settings.enableAutoConnect
   settings.enableAutoConnect = enabled
@@ -132,8 +123,7 @@ fun Container.allChildren(): List<Component> {
 
 fun WorkBench<LayoutInspector>.getTreePanel() = allChildren().filterIsInstance<RootPanel>().first()
 
-fun WorkBench<LayoutInspector>.getAttributesPanel() =
-  allChildren().first { it.name == PROPERTIES_COMPONENT_NAME }
+fun WorkBench<LayoutInspector>.getAttributesPanel() = allChildren().first { it.name == PROPERTIES_COMPONENT_NAME }
 
 inline fun <reified T : LayoutInspectorRenderer> verifyUiInjected(
   uiConfig: UiConfig,
@@ -147,8 +137,7 @@ inline fun <reified T : LayoutInspectorRenderer> verifyUiInjected(
     when (uiConfig) {
       UiConfig.HORIZONTAL -> {
         val splitter = findSplitter(content)!!
-        val workbench =
-          splitter.allChildren().filterIsInstance<WorkBench<LayoutInspector>>().first()
+        val workbench = splitter.allChildren().filterIsInstance<WorkBench<LayoutInspector>>().first()
 
         val left = workbench.getBottomComponents(Side.LEFT)?.first()!!
         val right = workbench.getBottomComponents(Side.RIGHT)?.first()!!
@@ -160,8 +149,7 @@ inline fun <reified T : LayoutInspectorRenderer> verifyUiInjected(
       }
       UiConfig.HORIZONTAL_SWAP -> {
         val splitter = findSplitter(content)!!
-        val workbench =
-          splitter.allChildren().filterIsInstance<WorkBench<LayoutInspector>>().first()
+        val workbench = splitter.allChildren().filterIsInstance<WorkBench<LayoutInspector>>().first()
 
         val left = workbench.getBottomComponents(Side.LEFT)?.first()!!
         val right = workbench.getBottomComponents(Side.RIGHT)?.first()!!
@@ -247,10 +235,7 @@ inline fun <reified T : LayoutInspectorRenderer> verifyUiInjected(
 
   assertThat(workbench.isFocusCycleRoot).isFalse()
 
-  verifyToolbar(
-    container,
-    shouldContainProcessPicker = !LayoutInspectorSettings.getInstance().autoConnectEnabled,
-  )
+  verifyToolbar(container, shouldContainProcessPicker = !LayoutInspectorSettings.getInstance().autoConnectEnabled)
   verifyWorkbench(workbench)
 
   val inspectorBanner = container.allChildren().filterIsInstance<InspectorBanner>().first()
@@ -260,15 +245,11 @@ inline fun <reified T : LayoutInspectorRenderer> verifyUiInjected(
   assertThat(rootPanel).isNotNull()
 
   assertThat(displays).isNotEmpty()
-  displays.forEach { displayView ->
-    assertThat(displayView.allChildren().filterIsInstance<T>()).hasSize(1)
-  }
+  displays.forEach { displayView -> assertThat(displayView.allChildren().filterIsInstance<T>()).hasSize(1) }
 }
 
 fun findSplitter(content: Component): Splitter? =
-  content.allParents().filterIsInstance<Splitter>().singleOrNull {
-    it.name != STATE_READ_SPLITTER_NAME
-  }
+  content.allParents().filterIsInstance<Splitter>().singleOrNull { it.name != STATE_READ_SPLITTER_NAME }
 
 fun verifyUiRemoved(content: Component, container: Container, displays: List<AbstractDisplayView>) {
   assertThat(SwingUtilities.isDescendingFrom(content, container)).isTrue()
@@ -279,28 +260,20 @@ fun verifyUiRemoved(content: Component, container: Container, displays: List<Abs
   assertThat(container.allChildren().filterIsInstance<Splitter>()).hasSize(0)
   assertThat(content.parent).isEqualTo(container)
 
-  val toolbars =
-    container.allChildren().filterIsInstance<ActionToolbar>().filter {
-      it.component.name == "LayoutInspector.MainToolbar"
-    }
+  val toolbars = container.allChildren().filterIsInstance<ActionToolbar>().filter { it.component.name == "LayoutInspector.MainToolbar" }
   assertThat(toolbars).hasSize(0)
 
   val inspectorBanner = container.allChildren().filterIsInstance<InspectorBanner>()
   assertThat(inspectorBanner).hasSize(0)
 
   assertThat(displays).isNotEmpty()
-  displays.forEach { displayView ->
-    assertThat(displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>()).hasSize(0)
-  }
+  displays.forEach { displayView -> assertThat(displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>()).hasSize(0) }
 }
 
 fun verifyToolbar(container: Container, shouldContainProcessPicker: Boolean) {
   PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
-  val toolbars =
-    container.allChildren().filterIsInstance<ActionToolbar>().filter {
-      it.component.name == "LayoutInspector.MainToolbar"
-    }
+  val toolbars = container.allChildren().filterIsInstance<ActionToolbar>().filter { it.component.name == "LayoutInspector.MainToolbar" }
 
   assertThat(toolbars).hasSize(1)
   val toolbar = toolbars.first()
@@ -327,8 +300,7 @@ fun verifyToolbar(container: Container, shouldContainProcessPicker: Boolean) {
   assertThat(gearAction.actions.filterIsInstance<SwapRightVerticalSplitAction>()).hasSize(1)
   assertThat(gearAction.actions.filterIsInstance<DimensionUnitAction>()).hasSize(1)
 
-  assertThat(container.allChildren().filter { it.name == "LayoutInspectorToolbarTitleLabel" })
-    .hasSize(1)
+  assertThat(container.allChildren().filter { it.name == "LayoutInspectorToolbarTitleLabel" }).hasSize(1)
 }
 
 fun verifyWorkbench(workbench: WorkBench<LayoutInspector>) {

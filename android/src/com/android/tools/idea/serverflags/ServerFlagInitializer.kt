@@ -30,15 +30,11 @@ import java.nio.file.Path
 import kotlin.math.abs
 
 /**
- * ServerFlagInitializer initializes the ServerFlagService.instance field. It will try to download
- * the protobuf file for the current version of Android Studio from the specified URL. If it
- * succeeds it will save the file to a local path, then initialize the service. If the download
- * fails, it will use the last successful download to initialize the service
+ * ServerFlagInitializer initializes the ServerFlagService.instance field. It will try to download the protobuf file for the current version
+ * of Android Studio from the specified URL. If it succeeds it will save the file to a local path, then initialize the service. If the
+ * download fails, it will use the last successful download to initialize the service
  */
-data class ServerFlagInitializationData(
-  val configurationVersion: Long,
-  val flags: Map<String, ServerFlagValueData>,
-)
+data class ServerFlagInitializationData(val configurationVersion: Long, val flags: Map<String, ServerFlagValueData>)
 
 data class ServerFlagValueData(val index: Int, val value: FlagValue)
 
@@ -49,10 +45,8 @@ class ServerFlagInitializer {
      * Initialize the server flag service
      *
      * @param localCacheDirectory The local directory to store the most recent download.
-     * @param version The current version of Android Studio. This is used to construct the full
-     *   paths from the first two parameters.
-     * @param overriddenFlags A map of flags and the index of value. For flags that have a single
-     *   value, the value of the entry is ignored.
+     * @param version The current version of Android Studio. This is used to construct the full paths from the first two parameters.
+     * @param overriddenFlags A map of flags and the index of value. For flags that have a single value, the value of the entry is ignored.
      * @param hashOverride mainly used for testing - overrides the default hashing function.
      */
     fun initializeService(
@@ -66,9 +60,7 @@ class ServerFlagInitializer {
       val localFilePath = buildLocalFilePath(localCacheDirectory, version)
       val serverFlagList = unmarshalFlagList(localFilePath.toFile())
       val configurationVersion = serverFlagList?.configurationVersion ?: -1
-      val list =
-        serverFlagList?.serverFlagsList
-          ?: return ServerFlagInitializationData(configurationVersion, emptyMap())
+      val list = serverFlagList?.serverFlagsList ?: return ServerFlagInitializationData(configurationVersion, emptyMap())
       val osType = getOsType(osName)
       val brand = getBrand(ideBrand)
       val values =
@@ -76,9 +68,7 @@ class ServerFlagInitializer {
           list
             .filter { it.isEnabled(osType, brand) }
             .associateNotNull { serverFlagData ->
-              serverFlagData.getEnabledValue(hashOverride)?.let { flagValue ->
-                serverFlagData.name to flagValue
-              }
+              serverFlagData.getEnabledValue(hashOverride)?.let { flagValue -> serverFlagData.name to flagValue }
             }
         } else {
           list.getOverriddenFlags(overriddenFlags)
@@ -102,14 +92,12 @@ private fun List<ServerFlagData>.getOverriddenFlags(overriddenFlags: Map<String,
           try {
             it.multiValueServerFlag.flagValuesList[flagValueIndex]
           } catch (_: IndexOutOfBoundsException) {
-            Logger.getInstance("ServerFlagInitializer")
-              .warn("Index $flagValueIndex is out of bounds for flag ${it.name}")
+            Logger.getInstance("ServerFlagInitializer").warn("Index $flagValueIndex is out of bounds for flag ${it.name}")
             return@associateNotNull null
           }
         it.name to ServerFlagValueData(flagValueIndex, flagValue)
       } else {
-        Logger.getInstance("ServerFlagInitializer")
-          .warn("Expected MultiValueServerFlag to be set for overridden flag ${it.name}")
+        Logger.getInstance("ServerFlagInitializer").warn("Expected MultiValueServerFlag to be set for overridden flag ${it.name}")
         null
       }
     }
@@ -121,21 +109,18 @@ private fun ServerFlagData.isEnabled(osType: OSType, brand: Brand): Boolean {
 /**
  * Returns the enabled flag value for a particular server flag. Null if none match.
  *
- * This is compatible with the old way of declaring server flag value directly in the ServerFlag
- * proto message (as opposed to FlagValue).
+ * This is compatible with the old way of declaring server flag value directly in the ServerFlag proto message (as opposed to FlagValue).
  */
 private fun ServerFlagData.getEnabledValue(hashFunction: (String) -> Int): ServerFlagValueData? {
   val key = AnalyticsSettings.userId + name
   val hash = hashFunction(key)
 
   if (!hasMultiValueServerFlag()) {
-    Logger.getInstance("ServerFlagInitializer")
-      .warn("Server flag $name does not have MultiValueServerFlag field set.")
+    Logger.getInstance("ServerFlagInitializer").warn("Server flag $name does not have MultiValueServerFlag field set.")
     return null
   }
   if (!areAllValuesTheSameType(multiValueServerFlag.flagValuesList)) {
-    Logger.getInstance("ServerFlagInitializer")
-      .warn("Server flag $name have flag values of different types.")
+    Logger.getInstance("ServerFlagInitializer").warn("Server flag $name have flag values of different types.")
     return null
   }
   var acc = 0
@@ -154,13 +139,11 @@ private fun areAllValuesTheSameType(flags: List<FlagValue>): Boolean {
 }
 
 private fun ServerFlagData.isOSEnabled(osType: OSType): Boolean {
-  return (this.multiValueServerFlag.osTypeCount == 0 ||
-    this.multiValueServerFlag.osTypeList.contains(osType))
+  return (this.multiValueServerFlag.osTypeCount == 0 || this.multiValueServerFlag.osTypeList.contains(osType))
 }
 
 private fun ServerFlagData.isBrandEnabled(brand: Brand): Boolean {
-  return (this.multiValueServerFlag.brandCount == 0 ||
-    this.multiValueServerFlag.brandList.contains(brand))
+  return (this.multiValueServerFlag.brandCount == 0 || this.multiValueServerFlag.brandList.contains(brand))
 }
 
 private fun getOsType(osName: String): OSType {
@@ -202,8 +185,7 @@ fun ServerFlag.toSingleFlagValue(): FlagValue =
         ServerFlag.ValuesCase.BOOLEAN_VALUE -> booleanValue = this@toSingleFlagValue.booleanValue
         ServerFlag.ValuesCase.PROTO_VALUE -> protoValue = this@toSingleFlagValue.protoValue
         else -> {
-          Logger.getInstance(this::class.java)
-            .warn("Unexpected server flag value type: ${this@toSingleFlagValue.valuesCase}")
+          Logger.getInstance(this::class.java).warn("Unexpected server flag value type: ${this@toSingleFlagValue.valuesCase}")
         }
       }
     }

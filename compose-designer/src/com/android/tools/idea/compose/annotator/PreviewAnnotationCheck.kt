@@ -32,8 +32,7 @@ import org.jetbrains.uast.toUElement
 /** Singleton that provides methods to verify the correctness of the Compose @Preview annotation. */
 internal object PreviewAnnotationCheck {
   /**
-   * Checks if a [KtAnnotationEntry] element that should correspond to a reference of
-   * Compose @Preview annotation has any issues.
+   * Checks if a [KtAnnotationEntry] element that should correspond to a reference of Compose @Preview annotation has any issues.
    *
    * @see DeviceSpecCheck.hasIssues
    */
@@ -49,16 +48,12 @@ internal object PreviewAnnotationCheck {
   }
 
   /**
-   * Takes a [KtAnnotationEntry] element that should correspond to a reference of Compose @Preview
-   * annotation and returns a [ProblemDescriptor] if any issues are found.
+   * Takes a [KtAnnotationEntry] element that should correspond to a reference of Compose @Preview annotation and returns a
+   * [ProblemDescriptor] if any issues are found.
    *
    * @see DeviceSpecCheck.checkAnnotation
    */
-  fun checkAnnotation(
-    annotationEntry: KtAnnotationEntry,
-    inspectionManager: InspectionManager,
-    isOnTheFly: Boolean,
-  ): ProblemDescriptor? {
+  fun checkAnnotation(annotationEntry: KtAnnotationEntry, inspectionManager: InspectionManager, isOnTheFly: Boolean): ProblemDescriptor? {
     if (!ApplicationManager.getApplication().isReadAccessAllowed) {
       return inspectionManager.createProblemDescriptor(
         annotationEntry,
@@ -92,5 +87,4 @@ internal object PreviewAnnotationCheck {
 
 @RequiresReadLock
 private fun hasValidTarget(annotation: UAnnotation) =
-  annotation.getContainingComposableUMethod() != null ||
-    (annotation.getContainingUClass()?.isAnnotationType == true)
+  annotation.getContainingComposableUMethod() != null || (annotation.getContainingUClass()?.isAnnotationType == true)

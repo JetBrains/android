@@ -42,10 +42,12 @@ class BuildNotificationTest : GradleFileModelTestCase() {
     assertFalse(firstNotification.isCorrectionAvailable)
     assertThat(INCOMPLETE_PARSE, equalTo(firstNotification.type))
 
-    val expected = "Found the following unknown element types while parsing: " + when {
-      isGroovy -> "GrAdditiveExpressionImpl, GrMultiplicativeExpressionImpl, GrPowerExpressionImpl"
-      else -> "KtBinaryExpression, KtBinaryExpression, KtBinaryExpression"
-    }
+    val expected =
+      "Found the following unknown element types while parsing: " +
+        when {
+          isGroovy -> "GrAdditiveExpressionImpl, GrMultiplicativeExpressionImpl, GrPowerExpressionImpl"
+          else -> "KtBinaryExpression, KtBinaryExpression, KtBinaryExpression"
+        }
     assertThat(firstNotification.toString(), equalTo(expected))
   }
 
@@ -65,10 +67,12 @@ class BuildNotificationTest : GradleFileModelTestCase() {
       val firstNotification = parentNotifications[0]!!
       assertFalse(firstNotification.isCorrectionAvailable)
       assertThat(INCOMPLETE_PARSE, equalTo(firstNotification.type))
-      val expected = "Found the following unknown element types while parsing: " + when {
-        isGroovy -> "GrMultiplicativeExpressionImpl"
-        else -> "KtBinaryExpression"
-      }
+      val expected =
+        "Found the following unknown element types while parsing: " +
+          when {
+            isGroovy -> "GrMultiplicativeExpressionImpl"
+            else -> "KtBinaryExpression"
+          }
       assertThat(firstNotification.toString(), equalTo(expected))
     }
 
@@ -78,10 +82,12 @@ class BuildNotificationTest : GradleFileModelTestCase() {
       val firstNotification = subModuleNotifications[0]!!
       assertFalse(firstNotification.isCorrectionAvailable)
       assertThat(INCOMPLETE_PARSE, equalTo(firstNotification.type))
-      val expected = "Found the following unknown element types while parsing: " + when {
-        isGroovy -> "GrAdditiveExpressionImpl"
-        else -> "KtBinaryExpression"
-      }
+      val expected =
+        "Found the following unknown element types while parsing: " +
+          when {
+            isGroovy -> "GrAdditiveExpressionImpl"
+            else -> "KtBinaryExpression"
+          }
       assertThat(firstNotification.toString(), equalTo(expected))
     }
   }

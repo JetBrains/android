@@ -24,20 +24,18 @@ import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SimpleModificationTracker
 
 /**
- * A module-wide modification tracker whose modification count is a value
- * incremented by any modifications of corresponding android manifest files .
- * Also, it can be incremented after any project syncs.
+ * A module-wide modification tracker whose modification count is a value incremented by any modifications of corresponding android manifest
+ * files . Also, it can be incremented after any project syncs.
  */
 class MergedManifestModificationTracker(val module: Module) : ModificationTracker {
   private val manifestContributorTracker = SimpleModificationTracker()
-  private val LOG: Logger get() = Logger.getInstance("MergedManifestModificationTracker.kt")
+  private val LOG: Logger
+    get() = Logger.getInstance("MergedManifestModificationTracker.kt")
 
   init {
     // If query happens before indexing when project just starts up, invalid queried results are cached.
     // So we need to explicitly update tracker to ensure another index query, instead of providing stale cached results.
-    StartupManager.getInstance(module.project).runAfterOpened {
-      manifestChanged()
-    }
+    StartupManager.getInstance(module.project).runAfterOpened { manifestChanged() }
   }
 
   companion object {
@@ -45,17 +43,14 @@ class MergedManifestModificationTracker(val module: Module) : ModificationTracke
     fun getInstance(module: Module): MergedManifestModificationTracker = module.getService(MergedManifestModificationTracker::class.java)
   }
 
-  /**
-   * Returns count from merged manifest contributors change + project sync count
-   */
+  /** Returns count from merged manifest contributors change + project sync count */
   override fun getModificationCount(): Long {
     return manifestContributorTracker.modificationCount + ProjectSyncModificationTracker.getInstance(module.project).modificationCount
   }
 
   /**
-   * This is invoked when MergedManifestRefreshListener detects
-   * a manifest contributor has been changed for this module
-   * or one of its transitive dependencies
+   * This is invoked when MergedManifestRefreshListener detects a manifest contributor has been changed for this module or one of its
+   * transitive dependencies
    */
   fun manifestChanged() {
     manifestContributorTracker.incModificationCount()

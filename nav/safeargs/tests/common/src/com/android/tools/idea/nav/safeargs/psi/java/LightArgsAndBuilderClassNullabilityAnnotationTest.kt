@@ -29,14 +29,12 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 /**
- * Tests that would normally go in [LightArgsBuilderClassTest] and [LightArgsClass] but are related
- * to a bunch of arguments types that we want to test with parametrization.
+ * Tests that would normally go in [LightArgsBuilderClassTest] and [LightArgsClass] but are related to a bunch of arguments types that we
+ * want to test with parametrization.
  */
 @RunsInEdt
 @RunWith(Parameterized::class)
-class LightArgsAndBuilderClassNullabilityAnnotationTest(
-  private val typeNullabilityMapping: TypeNullabilityMapping
-) {
+class LightArgsAndBuilderClassNullabilityAnnotationTest(private val typeNullabilityMapping: TypeNullabilityMapping) {
   @get:Rule val safeArgsRule = SafeArgsRule()
 
   companion object {
@@ -50,11 +48,7 @@ class LightArgsAndBuilderClassNullabilityAnnotationTest(
         TypeNullabilityMapping(PsiTypes.booleanType().name, false),
         TypeNullabilityMapping("string", "String", true),
         TypeNullabilityMapping("reference", PsiTypes.intType().name, false),
-        TypeNullabilityMapping(
-          "test.safeargs.MyCustomType",
-          "MyCustomType",
-          true,
-        ), // e.g Parcelable, Serializable
+        TypeNullabilityMapping("test.safeargs.MyCustomType", "MyCustomType", true), // e.g Parcelable, Serializable
       )
   }
 
@@ -89,9 +83,7 @@ class LightArgsAndBuilderClassNullabilityAnnotationTest(
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment {}")
 
     // Classes can be found with context
-    val builderClass =
-      safeArgsRule.fixture.findClass("test.safeargs.FragmentArgs.Builder", context)
-        as LightArgsBuilderClass
+    val builderClass = safeArgsRule.fixture.findClass("test.safeargs.FragmentArgs.Builder", context) as LightArgsBuilderClass
 
     // For the above xml, we expect a getter and setter for each <argument> tag as well as a final
     // `build()` method that generates its parent args class.
@@ -145,8 +137,7 @@ class LightArgsAndBuilderClassNullabilityAnnotationTest(
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment {}")
 
     // Classes can be found with context
-    val argClass =
-      safeArgsRule.fixture.findClass("test.safeargs.FragmentArgs", context) as LightArgsClass
+    val argClass = safeArgsRule.fixture.findClass("test.safeargs.FragmentArgs", context) as LightArgsClass
 
     argClass.methods.let { methods ->
       assertThat(methods.size).isEqualTo(3)
@@ -167,13 +158,6 @@ class LightArgsAndBuilderClassNullabilityAnnotationTest(
   }
 }
 
-data class TypeNullabilityMapping(
-  val before: String,
-  val after: String,
-  val isReturnTypeNullable: Boolean,
-) {
-  constructor(
-    beforeAndAfter: String,
-    nullability: Boolean,
-  ) : this(beforeAndAfter, beforeAndAfter, nullability)
+data class TypeNullabilityMapping(val before: String, val after: String, val isReturnTypeNullable: Boolean) {
+  constructor(beforeAndAfter: String, nullability: Boolean) : this(beforeAndAfter, beforeAndAfter, nullability)
 }

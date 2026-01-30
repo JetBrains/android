@@ -26,16 +26,12 @@ import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorVie
 private const val ANDROID_VIEWS_HANDLER = "androidx.compose.ui.platform.AndroidViewsHandler"
 
 /**
- * Helper class which handles the logic of converting a [LayoutInspectorViewProtocol.LayoutEvent]
- * into its corresponding [ViewNode]s.
+ * Helper class which handles the logic of converting a [LayoutInspectorViewProtocol.LayoutEvent] into its corresponding [ViewNode]s.
  *
- * @param composeResult If passed in, and the current view being processed is an AndroidComposeView,
- *   this will be used to generate [ComposeViewNode] children.
+ * @param composeResult If passed in, and the current view being processed is an AndroidComposeView, this will be used to generate
+ *   [ComposeViewNode] children.
  */
-class ViewNodeCreator(
-  layoutEvent: LayoutInspectorViewProtocol.LayoutEvent,
-  composeResult: GetComposablesResult?,
-) {
+class ViewNodeCreator(layoutEvent: LayoutInspectorViewProtocol.LayoutEvent, composeResult: GetComposablesResult?) {
   val strings: StringTable = StringTableImpl(layoutEvent.stringsList)
   private val rootView = layoutEvent.rootView.node
 
@@ -53,10 +49,7 @@ class ViewNodeCreator(
     }
   }
 
-  private fun LayoutInspectorViewProtocol.ViewNode.convert(
-    shouldInterrupt: () -> Boolean,
-    access: ViewNode.WriteAccess,
-  ): ViewNode {
+  private fun LayoutInspectorViewProtocol.ViewNode.convert(shouldInterrupt: () -> Boolean, access: ViewNode.WriteAccess): ViewNode {
     if (shouldInterrupt()) {
       throw InterruptedException()
     }
@@ -69,9 +62,7 @@ class ViewNodeCreator(
     val textValue = strings[view.textValue]
     val layoutBounds = view.bounds.layout.toRectangle()
     val renderBounds =
-      view.bounds.render
-        .takeIf { it != LayoutInspectorViewProtocol.Quad.getDefaultInstance() }
-        ?.toPolygon() ?: layoutBounds
+      view.bounds.render.takeIf { it != LayoutInspectorViewProtocol.Quad.getDefaultInstance() }?.toPolygon() ?: layoutBounds
 
     val node =
       ViewNode(
@@ -87,9 +78,7 @@ class ViewNodeCreator(
       )
 
     val children = view.childrenList.map { it.convert(shouldInterrupt, access) }.toMutableList()
-    composeNodeCreator?.createForViewId(view.id, shouldInterrupt)?.forEach { child ->
-      children.add(child)
-    }
+    composeNodeCreator?.createForViewId(view.id, shouldInterrupt)?.forEach { child -> children.add(child) }
     val viewsToSkip = composeNodeCreator?.viewsToSkip?.get(view.id) ?: emptyList()
     access.apply {
       children.forEach { child ->

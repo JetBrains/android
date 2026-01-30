@@ -36,18 +36,19 @@ import com.intellij.notification.Notification
 import com.intellij.notification.NotificationsManager
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.testFramework.HeavyPlatformTestCase
-import org.mockito.Mockito
-import org.mockito.kotlin.whenever
 import java.io.File
 import java.nio.file.Path
+import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 
-/**
- * Tests for [GradleTaskFinder].
- */
+/** Tests for [GradleTaskFinder]. */
 class GradleTaskFinderTest : HeavyPlatformTestCase() {
 
-  private val modules get() = ModuleManager.getInstance(project).modules
-  private val projectDir get() = File(project.basePath!!)
+  private val modules
+    get() = ModuleManager.getInstance(project).modules
+
+  private val projectDir
+    get() = File(project.basePath!!)
 
   private lateinit var taskFinder: GradleTaskFinder
 
@@ -71,8 +72,8 @@ class GradleTaskFinderTest : HeavyPlatformTestCase() {
     whenever(syncState.lastSyncFailed()).thenReturn(true)
     val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE)
     // If sync fails, try building last known Gradle projects.
-    assertThat(tasksPerProject.forTest()).containsEntry(
-      projectDir, listOf(":app:assembleDebug", ":app:assembleDebugUnitTest", ":app:assembleDebugAndroidTest"))
+    assertThat(tasksPerProject.forTest())
+      .containsEntry(projectDir, listOf(":app:assembleDebug", ":app:assembleDebugUnitTest", ":app:assembleDebugAndroidTest"))
     assertThat(getNotification(prefix = "Unable to find Gradle tasks")).isNull()
   }
 
@@ -81,8 +82,7 @@ class GradleTaskFinderTest : HeavyPlatformTestCase() {
     val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE)
     assertThat(tasksPerProject.forTest()).isEmpty()
     assertThat(getNotification(prefix = "Unable to find Gradle tasks"))
-      .isEqualTo(
-        "Unable to find Gradle tasks to build: [:, :buildSrc, :buildSrc:other]. <br>Build mode: ASSEMBLE.")
+      .isEqualTo("Unable to find Gradle tasks to build: [:, :buildSrc, :buildSrc:other]. <br>Build mode: ASSEMBLE.")
   }
 
   fun testFindTasksWithNonBuildSrcModule() {
@@ -115,89 +115,105 @@ class GradleTaskFinderTest : HeavyPlatformTestCase() {
   fun testFindTasksToExecuteWhenCleaningAndroidProject_rootModule() {
     setupTestProjectFromAndroidModel(project, projectDir, androidModule(":"))
     val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.CLEAN)
-    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
-      ":generateDebugSources", ":ideUnitTestSetupTask1", ":ideUnitTestSetupTask2", ":ideAndroidTestSetupTask1", ":ideAndroidTestSetupTask2"
-    ))
+    assertThat(tasksPerProject.forTest())
+      .containsExactly(
+        projectDir,
+        listOf(
+          ":generateDebugSources",
+          ":ideUnitTestSetupTask1",
+          ":ideUnitTestSetupTask2",
+          ":ideAndroidTestSetupTask1",
+          ":ideAndroidTestSetupTask2",
+        ),
+      )
     assertThat(getNotification(prefix = "Unable to find Gradle tasks")).isNull()
   }
 
   fun testFindTasksToExecuteWhenCleaningAndroidProject_nonRootModule() {
     setupTestProjectFromAndroidModel(project, projectDir, rootModule(), androidModule(":app"))
     var tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.CLEAN)
-    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
-      ":app:generateDebugSources",
-      ":app:ideUnitTestSetupTask1",
-      ":app:ideUnitTestSetupTask2",
-      ":app:ideAndroidTestSetupTask1",
-      ":app:ideAndroidTestSetupTask2"
-    ))
+    assertThat(tasksPerProject.forTest())
+      .containsExactly(
+        projectDir,
+        listOf(
+          ":app:generateDebugSources",
+          ":app:ideUnitTestSetupTask1",
+          ":app:ideUnitTestSetupTask2",
+          ":app:ideAndroidTestSetupTask1",
+          ":app:ideAndroidTestSetupTask2",
+        ),
+      )
 
     tasksPerProject = taskFinder.findTasksToExecute(modules.filter { it.isMainModule() }.toTypedArray(), BuildMode.CLEAN)
-    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":app:generateDebugSources", ))
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":app:generateDebugSources"))
 
     tasksPerProject = taskFinder.findTasksToExecute(modules.filter { it.isUnitTestModule() }.toTypedArray(), BuildMode.CLEAN)
-    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
-      ":app:ideUnitTestSetupTask1",
-      ":app:ideUnitTestSetupTask2",
-    ))
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":app:ideUnitTestSetupTask1", ":app:ideUnitTestSetupTask2"))
 
     tasksPerProject = taskFinder.findTasksToExecute(modules.filter { it.isAndroidTestModule() }.toTypedArray(), BuildMode.CLEAN)
-    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
-      ":app:ideAndroidTestSetupTask1",
-      ":app:ideAndroidTestSetupTask2"
-    ))
+    assertThat(tasksPerProject.forTest())
+      .containsExactly(projectDir, listOf(":app:ideAndroidTestSetupTask1", ":app:ideAndroidTestSetupTask2"))
     assertThat(getNotification(prefix = "Unable to find Gradle tasks")).isNull()
   }
 
   fun testFindTasksToExecuteForSourceGenerationInAndroidProject_rootModule() {
     setupTestProjectFromAndroidModel(project, projectDir, androidModule(":"))
     val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.SOURCE_GEN)
-    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
-      ":generateDebugSources", ":ideUnitTestSetupTask1", ":ideUnitTestSetupTask2", ":ideAndroidTestSetupTask1", ":ideAndroidTestSetupTask2"
-    ))
+    assertThat(tasksPerProject.forTest())
+      .containsExactly(
+        projectDir,
+        listOf(
+          ":generateDebugSources",
+          ":ideUnitTestSetupTask1",
+          ":ideUnitTestSetupTask2",
+          ":ideAndroidTestSetupTask1",
+          ":ideAndroidTestSetupTask2",
+        ),
+      )
     assertThat(getNotification(prefix = "Unable to find Gradle tasks")).isNull()
   }
 
   fun testFindTasksToExecuteForSourceGenerationInAndroidProject_nonRootModule() {
     setupTestProjectFromAndroidModel(project, projectDir, rootModule(), androidModule(":app"))
     var tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.SOURCE_GEN)
-    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
-      ":app:generateDebugSources",
-      ":app:ideUnitTestSetupTask1",
-      ":app:ideUnitTestSetupTask2",
-      ":app:ideAndroidTestSetupTask1",
-      ":app:ideAndroidTestSetupTask2"
-    ))
+    assertThat(tasksPerProject.forTest())
+      .containsExactly(
+        projectDir,
+        listOf(
+          ":app:generateDebugSources",
+          ":app:ideUnitTestSetupTask1",
+          ":app:ideUnitTestSetupTask2",
+          ":app:ideAndroidTestSetupTask1",
+          ":app:ideAndroidTestSetupTask2",
+        ),
+      )
 
     tasksPerProject = taskFinder.findTasksToExecute(modules.filter { it.isMainModule() }.toTypedArray(), BuildMode.SOURCE_GEN)
-    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
-      ":app:generateDebugSources"
-    ))
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":app:generateDebugSources"))
 
     tasksPerProject = taskFinder.findTasksToExecute(modules.filter { it.isUnitTestModule() }.toTypedArray(), BuildMode.SOURCE_GEN)
     assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":app:ideUnitTestSetupTask1", ":app:ideUnitTestSetupTask2"))
 
     tasksPerProject = taskFinder.findTasksToExecute(modules.filter { it.isAndroidTestModule() }.toTypedArray(), BuildMode.SOURCE_GEN)
-    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":app:ideAndroidTestSetupTask1", ":app:ideAndroidTestSetupTask2"))
+    assertThat(tasksPerProject.forTest())
+      .containsExactly(projectDir, listOf(":app:ideAndroidTestSetupTask1", ":app:ideAndroidTestSetupTask2"))
 
     assertThat(getNotification(prefix = "Unable to find Gradle tasks")).isNull()
   }
 
-
   fun testFindTasksToExecuteForAssemblingAndroidProject_rootModule() {
     setupTestProjectFromAndroidModel(project, projectDir, androidModule(":"))
     val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE)
-    assertThat(tasksPerProject.forTest()).containsExactly(
-      projectDir, listOf(":assembleDebug", ":assembleDebugUnitTest", ":assembleDebugAndroidTest")
-    )
+    assertThat(tasksPerProject.forTest())
+      .containsExactly(projectDir, listOf(":assembleDebug", ":assembleDebugUnitTest", ":assembleDebugAndroidTest"))
     assertThat(getNotification(prefix = "Unable to find Gradle tasks")).isNull()
   }
 
   fun testFindTasksToExecuteForAssemblingAndroidProject_nonRootModule() {
     setupTestProjectFromAndroidModel(project, projectDir, rootModule(), androidModule(":app"))
     var tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE)
-    assertThat(tasksPerProject.forTest()).containsExactly(
-      projectDir, listOf(":app:assembleDebug", ":app:assembleDebugUnitTest", ":app:assembleDebugAndroidTest"))
+    assertThat(tasksPerProject.forTest())
+      .containsExactly(projectDir, listOf(":app:assembleDebug", ":app:assembleDebugUnitTest", ":app:assembleDebugAndroidTest"))
 
     tasksPerProject = taskFinder.findTasksToExecute(modules.filter { it.isMainModule() }.toTypedArray(), BuildMode.ASSEMBLE)
     assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":app:assembleDebug"))
@@ -214,42 +230,59 @@ class GradleTaskFinderTest : HeavyPlatformTestCase() {
   fun testFindTasksToExecuteForRebuildingAndroidProject() {
     setupTestProjectFromAndroidModel(project, projectDir, androidModule(":"))
     val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.REBUILD)
-    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
-      ":clean", // Note that the comparison is order sensitive and "clean" goes first. (b/78443416)
-      ":assembleDebug",
-      ":assembleDebugUnitTest",
-      ":assembleDebugAndroidTest"
-    )).inOrder()
+    assertThat(tasksPerProject.forTest())
+      .containsExactly(
+        projectDir,
+        listOf(
+          ":clean", // Note that the comparison is order sensitive and "clean" goes first. (b/78443416)
+          ":assembleDebug",
+          ":assembleDebugUnitTest",
+          ":assembleDebugAndroidTest",
+        ),
+      )
+      .inOrder()
     assertThat(getNotification(prefix = "Unable to find Gradle tasks")).isNull()
   }
 
   fun testFindTasksToExecuteForRebuildingAndroidProject_nonRootModule() {
     setupTestProjectFromAndroidModel(project, projectDir, rootModule(), androidModule(":app"))
     var tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.REBUILD)
-    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
-      ":app:clean", // Note that the comparison is order sensitive and the clean task goes first. (b/78443416)
-      ":app:assembleDebug",
-      ":app:assembleDebugUnitTest",
-      ":app:assembleDebugAndroidTest"
-    )).inOrder()
+    assertThat(tasksPerProject.forTest())
+      .containsExactly(
+        projectDir,
+        listOf(
+          ":app:clean", // Note that the comparison is order sensitive and the clean task goes first. (b/78443416)
+          ":app:assembleDebug",
+          ":app:assembleDebugUnitTest",
+          ":app:assembleDebugAndroidTest",
+        ),
+      )
+      .inOrder()
 
     tasksPerProject = taskFinder.findTasksToExecute(modules.filter { it.isMainModule() }.toTypedArray(), BuildMode.REBUILD)
-    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
-      ":app:clean", // Note that the comparison is order sensitive and the clean task goes first. (b/78443416)
-      ":app:assembleDebug"
-    )).inOrder()
+    assertThat(tasksPerProject.forTest())
+      .containsExactly(
+        projectDir,
+        listOf(
+          ":app:clean", // Note that the comparison is order sensitive and the clean task goes first. (b/78443416)
+          ":app:assembleDebug",
+        ),
+      )
+      .inOrder()
 
     tasksPerProject = taskFinder.findTasksToExecute(modules.filter { it.isUnitTestModule() }.toTypedArray(), BuildMode.REBUILD)
-    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
-      ":app:clean", // Note that the comparison is order sensitive and the clean task goes first. (b/78443416)
-      ":app:assembleDebugUnitTest",
-    )).inOrder()
+    assertThat(tasksPerProject.forTest())
+      .containsExactly(
+        projectDir,
+        listOf(
+          ":app:clean", // Note that the comparison is order sensitive and the clean task goes first. (b/78443416)
+          ":app:assembleDebugUnitTest",
+        ),
+      )
+      .inOrder()
 
     tasksPerProject = taskFinder.findTasksToExecute(modules.filter { it.isAndroidTestModule() }.toTypedArray(), BuildMode.REBUILD)
-    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
-      ":app:clean",
-      ":app:assembleDebugAndroidTest"
-    )).inOrder()
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":app:clean", ":app:assembleDebugAndroidTest")).inOrder()
 
     assertThat(getNotification(prefix = "Unable to find Gradle tasks")).isNull()
   }
@@ -257,18 +290,19 @@ class GradleTaskFinderTest : HeavyPlatformTestCase() {
   fun testFindTasksToExecuteForCompilingAndroidProject_rootModule() {
     setupTestProjectFromAndroidModel(project, projectDir, androidModule(":"))
     val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.COMPILE_JAVA)
-    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
-      ":compileDebugSources", ":compileDebugUnitTestSources", ":compileDebugAndroidTestSources"
-    ))
+    assertThat(tasksPerProject.forTest())
+      .containsExactly(projectDir, listOf(":compileDebugSources", ":compileDebugUnitTestSources", ":compileDebugAndroidTestSources"))
     assertThat(getNotification(prefix = "Unable to find Gradle tasks")).isNull()
   }
 
   fun testFindTasksToExecuteForCompilingAndroidProject_nonRootModule() {
     setupTestProjectFromAndroidModel(project, projectDir, rootModule(), androidModule(":app"))
     var tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.COMPILE_JAVA)
-    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
-      ":app:compileDebugSources", ":app:compileDebugUnitTestSources", ":app:compileDebugAndroidTestSources"
-    ))
+    assertThat(tasksPerProject.forTest())
+      .containsExactly(
+        projectDir,
+        listOf(":app:compileDebugSources", ":app:compileDebugUnitTestSources", ":app:compileDebugAndroidTestSources"),
+      )
 
     tasksPerProject = taskFinder.findTasksToExecute(modules.filter { it.isMainModule() }.toTypedArray(), BuildMode.COMPILE_JAVA)
     assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":app:compileDebugSources"))
@@ -288,19 +322,12 @@ class GradleTaskFinderTest : HeavyPlatformTestCase() {
       projectDir,
       rootModule(),
       androidModule(":app", dynamicFeatures = listOf(":feature1")),
-      androidModule(":feature1", projectType = IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE, moduleDependencies = listOf(":app"))
+      androidModule(":feature1", projectType = IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE, moduleDependencies = listOf(":app")),
     )
-    val tasksPerProject = taskFinder
-      .findTasksToExecute(
-        modules
-          .filter { it.getGradleProjectPath()?.path == ":app" }
-          .toTypedArray(),
-        BuildMode.ASSEMBLE)
-    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
-      ":app:assembleDebug",
-      ":app:assembleDebugUnitTest",
-      ":app:assembleDebugAndroidTest"
-    ))
+    val tasksPerProject =
+      taskFinder.findTasksToExecute(modules.filter { it.getGradleProjectPath()?.path == ":app" }.toTypedArray(), BuildMode.ASSEMBLE)
+    assertThat(tasksPerProject.forTest())
+      .containsExactly(projectDir, listOf(":app:assembleDebug", ":app:assembleDebugUnitTest", ":app:assembleDebugAndroidTest"))
     assertThat(getNotification(prefix = "Unable to find Gradle tasks")).isNull()
   }
 
@@ -363,32 +390,20 @@ class GradleTaskFinderTest : HeavyPlatformTestCase() {
   fun testFindTasksToExecuteForCompilingJavaModuleAndTests_rootModule() {
     setupTestProjectFromAndroidModel(project, projectDir, javaModule(":"))
     var tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.COMPILE_JAVA)
-    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
-      ":compileJava",
-      ":testClasses"
-    ))
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":compileJava", ":testClasses"))
     // check it also when compiling all.
     tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.COMPILE_JAVA)
-    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
-      ":compileJava",
-      ":testClasses"
-    ))
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":compileJava", ":testClasses"))
     assertThat(getNotification(prefix = "Unable to find Gradle tasks")).isNull()
   }
 
   fun testFindTasksToExecuteForCompilingJavaModuleAndTests_nonRootModule() {
     setupTestProjectFromAndroidModel(project, projectDir, rootModule(), javaModule(":lib"))
     var tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.COMPILE_JAVA)
-    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
-      ":lib:compileJava",
-      ":lib:testClasses"
-    ))
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":lib:compileJava", ":lib:testClasses"))
     // check it also when compiling all.
     tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.COMPILE_JAVA)
-    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
-      ":lib:compileJava",
-      ":lib:testClasses"
-    ))
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":lib:compileJava", ":lib:testClasses"))
     assertThat(getNotification(prefix = "Unable to find Gradle tasks")).isNull()
   }
 
@@ -402,20 +417,22 @@ class GradleTaskFinderTest : HeavyPlatformTestCase() {
   fun testFindTasksRebuildForMultipleModules() {
     setupTestProjectFromAndroidModel(project, projectDir, rootModule(), javaModule(":lib"), javaModule(":lib2"), androidModule(":app"))
     val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.REBUILD)
-    assertThat(tasksPerProject.forTest()).containsExactly(
-      projectDir, listOf(
-        ":lib:clean",
-        ":lib2:clean",
-        ":app:clean",
-        ":lib:assemble",
-        ":lib:testClasses",
-        ":lib2:assemble",
-        ":lib2:testClasses",
-        ":app:assembleDebug",
-        ":app:assembleDebugUnitTest",
-        ":app:assembleDebugAndroidTest"
+    assertThat(tasksPerProject.forTest())
+      .containsExactly(
+        projectDir,
+        listOf(
+          ":lib:clean",
+          ":lib2:clean",
+          ":app:clean",
+          ":lib:assemble",
+          ":lib:testClasses",
+          ":lib2:assemble",
+          ":lib2:testClasses",
+          ":app:assembleDebug",
+          ":app:assembleDebugUnitTest",
+          ":app:assembleDebugAndroidTest",
+        ),
       )
-    )
     assertThat(getNotification(prefix = "Unable to find Gradle tasks")).isNull()
   }
 
@@ -424,7 +441,6 @@ class GradleTaskFinderTest : HeavyPlatformTestCase() {
       .getNotificationsOfType(Notification::class.java, project)
       .map { it.content }
       .singleOrNull { it.startsWith(prefix) }
-
 }
 
 private fun javaModule(gradlePath: String) = JavaModuleModelBuilder(gradlePath)
@@ -439,13 +455,14 @@ private fun androidModule(
   gradlePath: String,
   projectType: IdeAndroidProjectType = IdeAndroidProjectType.PROJECT_TYPE_APP,
   moduleDependencies: List<String> = emptyList(),
-  dynamicFeatures: List<String> = emptyList()
-) = AndroidModuleModelBuilder(
-  gradlePath,
-  "debug",
-  AndroidProjectBuilder(
-    projectType = { projectType },
-    androidModuleDependencyList = { moduleDependencies.map { AndroidModuleDependency(it, "debug") } },
-    dynamicFeatures = { dynamicFeatures }
+  dynamicFeatures: List<String> = emptyList(),
+) =
+  AndroidModuleModelBuilder(
+    gradlePath,
+    "debug",
+    AndroidProjectBuilder(
+      projectType = { projectType },
+      androidModuleDependencyList = { moduleDependencies.map { AndroidModuleDependency(it, "debug") } },
+      dynamicFeatures = { dynamicFeatures },
+    ),
   )
-)

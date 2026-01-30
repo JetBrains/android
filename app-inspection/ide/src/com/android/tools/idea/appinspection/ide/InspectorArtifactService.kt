@@ -28,16 +28,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
 import java.nio.file.Path
 
-/**
- * An application service that exposes functionality to find, retrieve and manipulate inspector
- * artifacts.
- */
+/** An application service that exposes functionality to find, retrieve and manipulate inspector artifacts. */
 interface InspectorArtifactService {
   /** Gets the cached inspector artifact if it exists, otherwise try to resolve it. */
-  suspend fun getOrResolveInspectorArtifact(
-    artifactCoordinate: RunningArtifactCoordinate,
-    project: Project,
-  ): Path
+  suspend fun getOrResolveInspectorArtifact(artifactCoordinate: RunningArtifactCoordinate, project: Project): Path
 
   companion object {
     val instance
@@ -46,16 +40,9 @@ interface InspectorArtifactService {
 }
 
 /** A helper function that returns an [AppInspectorJar] directly instead of a path. */
-suspend fun InspectorArtifactService.getOrResolveInspectorJar(
-  project: Project,
-  coordinate: RunningArtifactCoordinate,
-): AppInspectorJar {
+suspend fun InspectorArtifactService.getOrResolveInspectorJar(project: Project, coordinate: RunningArtifactCoordinate): AppInspectorJar {
   val inspectorPath = getOrResolveInspectorArtifact(coordinate, project)
-  return AppInspectorJar(
-    inspectorPath.fileName.toString(),
-    inspectorPath.parent.toString(),
-    inspectorPath.parent.toString(),
-  )
+  return AppInspectorJar(inspectorPath.fileName.toString(), inspectorPath.parent.toString(), inspectorPath.parent.toString())
 }
 
 class InspectorArtifactServiceImpl
@@ -63,15 +50,12 @@ class InspectorArtifactServiceImpl
 @VisibleForTesting
 constructor(
   private val fileService: FileService,
-  private val artifactResolverFactory: ArtifactResolverFactoryBase =
-    ArtifactResolverFactory(fileService),
+  private val artifactResolverFactory: ArtifactResolverFactoryBase = ArtifactResolverFactory(fileService),
 ) : InspectorArtifactService {
   // Called using reflection by intellij service framework
   constructor() : this(IdeFileService("app-inspection"))
 
   @WorkerThread
-  override suspend fun getOrResolveInspectorArtifact(
-    artifactCoordinate: RunningArtifactCoordinate,
-    project: Project,
-  ) = artifactResolverFactory.getArtifactResolver(project).resolveArtifact(artifactCoordinate)
+  override suspend fun getOrResolveInspectorArtifact(artifactCoordinate: RunningArtifactCoordinate, project: Project) =
+    artifactResolverFactory.getArtifactResolver(project).resolveArtifact(artifactCoordinate)
 }

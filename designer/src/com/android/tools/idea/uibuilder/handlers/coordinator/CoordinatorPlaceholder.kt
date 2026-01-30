@@ -28,21 +28,13 @@ import java.awt.Point
 
 const val SIZE = 20
 
-class CoordinatorPlaceholder(
-  host: SceneComponent,
-  private val anchor: SceneComponent,
-  private val type: Type,
-) : Placeholder(host) {
+class CoordinatorPlaceholder(host: SceneComponent, private val anchor: SceneComponent, private val type: Type) : Placeholder(host) {
 
   override val associatedComponent: SceneComponent
     get() = anchor
 
   override fun updateAttribute(sceneComponent: SceneComponent, attributes: NlAttributesHolder) {
-    attributes.setAttribute(
-      SdkConstants.AUTO_URI,
-      SdkConstants.ATTR_LAYOUT_ANCHOR_GRAVITY,
-      getAnchorGravity(),
-    )
+    attributes.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR_GRAVITY, getAnchorGravity())
     attributes.setAttribute(
       SdkConstants.AUTO_URI,
       SdkConstants.ATTR_LAYOUT_ANCHOR,
@@ -77,10 +69,7 @@ class CoordinatorPlaceholder(
   private val right = left + SIZE
   private val bottom = top + SIZE
 
-  /**
-   * Make the level higher than the anchor itself otherwise $CoordinatePlaceholder cannot be snapped
-   * when anchor is a ViewGroup.
-   */
+  /** Make the level higher than the anchor itself otherwise $CoordinatePlaceholder cannot be snapped when anchor is a ViewGroup. */
   override val region = Region(left, top, right, bottom, anchor.depth + 1)
 
   override fun snap(info: SnappingInfo, retPoint: Point): Boolean {

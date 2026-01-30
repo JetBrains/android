@@ -43,23 +43,14 @@ interface CodeEditedMetricsService {
   }
 }
 
-/**
- * The actual implementation of [CodeEditedMetricsService] that works as an application-level
- * service.
- */
+/** The actual implementation of [CodeEditedMetricsService] that works as an application-level service. */
 @VisibleForTesting
-class CodeEditedMetricsServiceImpl
-@TestOnly
-constructor(coroutineScope: CoroutineScope, dispatcher: CoroutineDispatcher) :
+class CodeEditedMetricsServiceImpl @TestOnly constructor(coroutineScope: CoroutineScope, dispatcher: CoroutineDispatcher) :
   CodeEditedMetricsService, Disposable.Default {
   private val eventChannel = Channel<CodeEdited>(Channel.UNLIMITED)
 
-  /**
-   * Stores the ongoing action which will add the next piece of code. This allows added code to be
-   * tagged for metrics.
-   */
-  private val codeEditingAction: AtomicReference<CodeEditingAction> =
-    AtomicReference(CodeEditingAction.Unknown)
+  /** Stores the ongoing action which will add the next piece of code. This allows added code to be tagged for metrics. */
+  private val codeEditingAction: AtomicReference<CodeEditingAction> = AtomicReference(CodeEditingAction.Unknown)
 
   constructor(coroutineScope: CoroutineScope) : this(coroutineScope, Dispatchers.Default)
 
@@ -107,11 +98,7 @@ constructor(coroutineScope: CoroutineScope, dispatcher: CoroutineDispatcher) :
   }
 }
 
-data class CodeEdited(
-  val addedCharacterCount: Int,
-  val deletedCharacterCount: Int,
-  val source: Source,
-)
+data class CodeEdited(val addedCharacterCount: Int, val deletedCharacterCount: Int, val source: Source)
 
 /** Potential sources of code edits. */
 enum class Source {

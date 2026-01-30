@@ -88,13 +88,12 @@ import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
- * A wrapper class for communicating with [AvdManager] and exposing helper functions for dealing
- * with [AvdInfo] objects inside Android Studio.
+ * A wrapper class for communicating with [AvdManager] and exposing helper functions for dealing with [AvdInfo] objects inside Android
+ * Studio.
  *
- * Much of what this class does is actually handle the case where the SDK location is not defined.
- * In that case, the [NULL_CONNECTION] object, with null values for [sdkHandler] and [avdManager] is
- * returned from the factory method. Many of the methods on this class are simple delegates to
- * [AvdManager] that handle the null case.
+ * Much of what this class does is actually handle the case where the SDK location is not defined. In that case, the [NULL_CONNECTION]
+ * object, with null values for [sdkHandler] and [avdManager] is returned from the factory method. Many of the methods on this class are
+ * simple delegates to [AvdManager] that handle the null case.
  *
  * Both [sdkHandler] and [avdManager] will be set for all instances except [NULL_CONNECTION].
  */
@@ -109,8 +108,8 @@ constructor(
     get() = sdkHandler?.getEmulatorPackage(REPO_LOG)
 
   /**
-   * @param forceRefresh if true the manager will read the AVD list from disk. If false, the cached
-   *   version in memory is returned if available
+   * @param forceRefresh if true the manager will read the AVD list from disk. If false, the cached version in memory is returned if
+   *   available
    * @return a list of AVDs currently present on the system.
    */
   @Slow
@@ -178,13 +177,7 @@ constructor(
 
     return withContext(AndroidDispatchers.workerThread) {
       val code = checkAcceleration(sdkHandler)
-      continueToStartAvdIfAccelerationErrorIsNotBlocking(
-        code,
-        project,
-        avd,
-        forceLaunchInToolWindow,
-        bootMode,
-      )
+      continueToStartAvdIfAccelerationErrorIsNotBlocking(code, project, avd, forceLaunchInToolWindow, bootMode)
     }
   }
 
@@ -199,20 +192,16 @@ constructor(
       IJ_LOG.warn(String.format("Launching %s: %s: %s", avd.name, code, code.problem))
     }
     when (code) {
-      AccelerationErrorCode.ALREADY_INSTALLED ->
-        return continueToStartAvd(project, avd, forceLaunchInToolWindow, bootMode)
+      AccelerationErrorCode.ALREADY_INSTALLED -> return continueToStartAvd(project, avd, forceLaunchInToolWindow, bootMode)
       AccelerationErrorCode.PLATFORM_TOOLS_UPDATE_ADVISED,
       AccelerationErrorCode.SYSTEM_IMAGE_UPDATE_ADVISED ->
         // Launch the virtual device with possibly degraded performance even if there are updates
         // noinspection DuplicateBranchesInSwitch
         return continueToStartAvd(project, avd, forceLaunchInToolWindow, bootMode)
       AccelerationErrorCode.EMULATOR_UPDATE_REQUIRED,
-      AccelerationErrorCode.NO_EMULATOR_INSTALLED ->
-        return handleAccelerationError(project, avd, forceLaunchInToolWindow, bootMode, code)
+      AccelerationErrorCode.NO_EMULATOR_INSTALLED -> return handleAccelerationError(project, avd, forceLaunchInToolWindow, bootMode, code)
       else -> {
-        val abi =
-          Abi.getEnum(avd.abiType)
-            ?: return continueToStartAvd(project, avd, forceLaunchInToolWindow, bootMode)
+        val abi = Abi.getEnum(avd.abiType) ?: return continueToStartAvd(project, avd, forceLaunchInToolWindow, bootMode)
 
         if (abi == Abi.X86 || abi == Abi.X86_64) {
           return handleAccelerationError(project, avd, forceLaunchInToolWindow, bootMode, code)
@@ -224,82 +213,71 @@ constructor(
     }
   }
 
-  private suspend fun continueToStartAvd(
-    project: Project?,
-    avd: AvdInfo,
-    forceLaunchInToolWindow: Boolean,
-    bootMode: BootMode,
-  ): IDevice = coroutineScope {
-    var avd = avd
-    val emulator = emulator
-    if (emulator == null) {
-      IJ_LOG.error("No emulator binary found!")
-      throw DeviceActionException("No emulator installed")
-    }
-
-    val emulatorBinary = emulator.emulatorBinary
-    if (emulatorBinary == null) {
-      IJ_LOG.error("No emulator binary found!")
-      throw DeviceActionException("No emulator binary found")
-    }
-
-    val avdManager = checkNotNull(avdManager)
-    avd = avdManager.reloadAvd(avd) // Reload the AVD in case it was modified externally.
-    val avdName = avd.displayName
-
-    val pid = avdManager.getPid(avd)
-    if (pid != 0L) {
-      if (ProcessHandleProvider.getProcessHandle(pid)?.isAlive == true) {
-        // TODO: Bring the running emulator's window to the front.
-        throw AvdIsAlreadyRunningException(avd.displayName, pid)
-      } else {
-        avdManager.deleteLockFiles(avd)
-      }
-    }
-
-    val commandLine =
-      newEmulatorCommand(project, emulatorBinary, avd, forceLaunchInToolWindow, bootMode)
-    val runner = EmulatorRunner(commandLine, avd)
-
-    val processHandler =
-      try {
-        runner.start()
-      } catch (e: ExecutionException) {
-        IJ_LOG.error("Error launching emulator", e)
-        throw DeviceActionException(String.format("Error launching emulator %1\$s", avdName), e)
+  private suspend fun continueToStartAvd(project: Project?, avd: AvdInfo, forceLaunchInToolWindow: Boolean, bootMode: BootMode): IDevice =
+    coroutineScope {
+      var avd = avd
+      val emulator = emulator
+      if (emulator == null) {
+        IJ_LOG.error("No emulator binary found!")
+        throw DeviceActionException("No emulator installed")
       }
 
-    // It takes >= 8 seconds to start the Emulator. Display a small progress indicator; otherwise,
-    // it seems like the action wasn't invoked.
-    val progressJob = launch {
-      if (project != null) {
-        withBackgroundProgress(project, "Launching emulator") {
-          reportProgress(80) { reporter ->
-            withProgressText("Starting AVD...") {
-              repeat(80) {
-                reporter.itemStep { delay(100) }
-                if (processHandler.isProcessTerminated) {
-                  return@withProgressText
+      val emulatorBinary = emulator.emulatorBinary
+      if (emulatorBinary == null) {
+        IJ_LOG.error("No emulator binary found!")
+        throw DeviceActionException("No emulator binary found")
+      }
+
+      val avdManager = checkNotNull(avdManager)
+      avd = avdManager.reloadAvd(avd) // Reload the AVD in case it was modified externally.
+      val avdName = avd.displayName
+
+      val pid = avdManager.getPid(avd)
+      if (pid != 0L) {
+        if (ProcessHandleProvider.getProcessHandle(pid)?.isAlive == true) {
+          // TODO: Bring the running emulator's window to the front.
+          throw AvdIsAlreadyRunningException(avd.displayName, pid)
+        } else {
+          avdManager.deleteLockFiles(avd)
+        }
+      }
+
+      val commandLine = newEmulatorCommand(project, emulatorBinary, avd, forceLaunchInToolWindow, bootMode)
+      val runner = EmulatorRunner(commandLine, avd)
+
+      val processHandler =
+        try {
+          runner.start()
+        } catch (e: ExecutionException) {
+          IJ_LOG.error("Error launching emulator", e)
+          throw DeviceActionException(String.format("Error launching emulator %1\$s", avdName), e)
+        }
+
+      // It takes >= 8 seconds to start the Emulator. Display a small progress indicator; otherwise,
+      // it seems like the action wasn't invoked.
+      val progressJob = launch {
+        if (project != null) {
+          withBackgroundProgress(project, "Launching emulator") {
+            reportProgress(80) { reporter ->
+              withProgressText("Starting AVD...") {
+                repeat(80) {
+                  reporter.itemStep { delay(100) }
+                  if (processHandler.isProcessTerminated) {
+                    return@withProgressText
+                  }
                 }
               }
             }
           }
         }
       }
+      try {
+        return@coroutineScope EmulatorConnectionListener.getDeviceForEmulator(project, avd.name, processHandler, 5, TimeUnit.MINUTES)
+          .await()
+      } finally {
+        progressJob.cancel()
+      }
     }
-    try {
-      return@coroutineScope EmulatorConnectionListener.getDeviceForEmulator(
-          project,
-          avd.name,
-          processHandler,
-          5,
-          TimeUnit.MINUTES,
-        )
-        .await()
-    } finally {
-      progressJob.cancel()
-    }
-  }
 
   protected open fun newEmulatorCommand(
     project: Project?,
@@ -316,8 +294,7 @@ constructor(
         sdkLocation = sdkHandler?.location
         studioParams = writeParameterFile()
         launchInToolWindow =
-          canLaunchInToolWindow(avd, project) &&
-            (forceLaunchInToolWindow || EmulatorSettings.getInstance().launchInToolWindow)
+          canLaunchInToolWindow(avd, project) && (forceLaunchInToolWindow || EmulatorSettings.getInstance().launchInToolWindow)
         studioEmuParams.addAll(params)
         this.bootMode = bootMode
       }
@@ -328,9 +305,7 @@ constructor(
   private fun writeParameterFile(): Path? {
     // These are defined in the HTTP Proxy section of the Settings dialog.
     // We can only use static HTTP proxies; ignore the other types.
-    val config =
-      ProxySettings.getInstance().getProxyConfiguration() as? StaticProxyConfiguration
-        ?: return null
+    val config = ProxySettings.getInstance().getProxyConfiguration() as? StaticProxyConfiguration ?: return null
     val params = config.toStudioParams(ProxyCredentialStore.getInstance())
     if (params.isEmpty()) {
       return null
@@ -357,10 +332,7 @@ constructor(
     return tryFixingAccelerationError(project, info, launchInToolWindow, bootMode, code)
   }
 
-  private suspend fun showAccelerationErrorDialog(
-    code: AccelerationErrorCode,
-    project: Project?,
-  ): Int =
+  private suspend fun showAccelerationErrorDialog(code: AccelerationErrorCode, project: Project?): Int =
     withContext(uiContext) {
       val message = "${code.problem}\n\n${code.solutionMessage}"
       Messages.showOkCancelDialog(
@@ -384,12 +356,7 @@ constructor(
 
     ApplicationManager.getApplication()
       .invokeLater(
-        AccelerationErrorSolution.getActionForFix(
-          code,
-          project,
-          { changeWasMade.complete(true) },
-          { changeWasMade.complete(false) },
-        )
+        AccelerationErrorSolution.getActionForFix(code, project, { changeWasMade.complete(true) }, { changeWasMade.complete(false) })
       )
 
     if (changeWasMade.await()) {
@@ -408,8 +375,8 @@ constructor(
   }
 
   /**
-   * Kills the emulator if it is running and deletes all AVD files and subdirectories except the
-   * ones that were created when the AVD itself was created.
+   * Kills the emulator if it is running and deletes all AVD files and subdirectories except the ones that were created when the AVD itself
+   * was created.
    */
   @Slow
   fun wipeUserData(avdInfo: AvdInfo): Boolean {
@@ -430,10 +397,7 @@ constructor(
     // Clear the paired devices when data is wiped.
     AvdBuilder.updateUserSettings(
       avdInfo.dataFolderPath,
-      mapOf(
-        UserSettingsKey.PAIRED_PHONE_AVD_ID to null,
-        UserSettingsKey.PAIRED_GLASSES_AVD_ID to null,
-      ),
+      mapOf(UserSettingsKey.PAIRED_PHONE_AVD_ID to null, UserSettingsKey.PAIRED_GLASSES_AVD_ID to null),
       LogWrapper(IJ_LOG),
     )
     return true
@@ -445,8 +409,7 @@ constructor(
 
   companion object {
     private val IJ_LOG = Logger.getInstance(AvdManagerConnection::class.java)
-    private val REPO_LOG: ProgressIndicator =
-      StudioLoggerProgressIndicator(AvdManagerConnection::class.java)
+    private val REPO_LOG: ProgressIndicator = StudioLoggerProgressIndicator(AvdManagerConnection::class.java)
     // The dispatcher on NULL_CONNECTION is unused. Pass Unconfined rather than the default
     // Dispatchers.EDT + ModalityState.any().asContextElement(), because ModalityState.any()
     // requires Application, which may not exist at class-init time in a test.
@@ -454,15 +417,13 @@ constructor(
 
     private val ourAvdCache: MutableMap<Path?, AvdManagerConnection> = WeakHashMap()
 
-    private var ourConnectionFactory: (AndroidSdkHandler, Path) -> AvdManagerConnection =
-      ::defaultConnectionFactory
+    private var ourConnectionFactory: (AndroidSdkHandler, Path) -> AvdManagerConnection = ::defaultConnectionFactory
 
     private fun defaultConnectionFactory(sdkHandler: AndroidSdkHandler, avdHomeFolder: Path) =
       AvdManagerConnection(sdkHandler, IdeAvdManagers.getAvdManager(sdkHandler, avdHomeFolder))
 
     @JvmStatic
-    fun getDefaultAvdManagerConnection(): AvdManagerConnection =
-      getAvdManagerConnection(AndroidSdks.getInstance().tryToChooseSdkHandler())
+    fun getDefaultAvdManagerConnection(): AvdManagerConnection = getAvdManagerConnection(AndroidSdks.getInstance().tryToChooseSdkHandler())
 
     @Synchronized
     fun getAvdManagerConnection(handler: AndroidSdkHandler): AvdManagerConnection {
@@ -472,11 +433,9 @@ constructor(
     }
 
     /**
-     * Sets the factory to be used for creating connections, so subclasses can be injected for
-     * testing.
+     * Sets the factory to be used for creating connections, so subclasses can be injected for testing.
      *
-     * Note that the passed path is always AndroidLocationsSingleton.avdLocation, but tests may
-     * ignore it and use their own AVD directory.
+     * Note that the passed path is always AndroidLocationsSingleton.avdLocation, but tests may ignore it and use their own AVD directory.
      */
     @JvmStatic
     @TestOnly
@@ -506,9 +465,9 @@ constructor(
     }
 
     /**
-     * Creates a temporary file and write some parameters into it. This is how we pass parameters to
-     * the Emulator (other than on the command line). The file is marked to be deleted when Studio
-     * exits. This is to increase security in case the file contains sensitive information.
+     * Creates a temporary file and write some parameters into it. This is how we pass parameters to the Emulator (other than on the command
+     * line). The file is marked to be deleted when Studio exits. This is to increase security in case the file contains sensitive
+     * information.
      *
      * @param fileContents What should be written to the file.
      * @return The temporary file. This will be null if we could not create or write the file.
@@ -540,17 +499,12 @@ constructor(
     @JvmStatic
     fun getRequiredSystemImagePath(avdInfo: AvdInfo): String? {
       val imageSystemDir = avdInfo.properties[ConfigKey.IMAGES_1] ?: return null
-      return StringUtil.trimEnd(
-        imageSystemDir.replace(File.separatorChar, RepoPackage.PATH_SEPARATOR),
-        RepoPackage.PATH_SEPARATOR,
-      )
+      return StringUtil.trimEnd(imageSystemDir.replace(File.separatorChar, RepoPackage.PATH_SEPARATOR), RepoPackage.PATH_SEPARATOR)
     }
   }
 }
 
-internal fun StaticProxyConfiguration.toStudioParams(
-  credentialStore: ProxyCredentialStore
-): List<String> {
+internal fun StaticProxyConfiguration.toStudioParams(credentialStore: ProxyCredentialStore): List<String> {
   // The emulator consumes this in settings-page-proxy.cpp:getStudioProxyString().
   val proxyParameters = mutableListOf<String>()
   if (protocol == ProxyConfiguration.ProxyProtocol.HTTP && host.isNotBlank() && port > 0) {

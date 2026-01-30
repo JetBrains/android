@@ -25,10 +25,7 @@ class AndroidLintBundle private constructor() {
     private var ourBundle = DynamicBundle(AndroidLintBundle::class.java, BUNDLE_NAME)
 
     @JvmStatic
-    fun message(
-      @PropertyKey(resourceBundle = BUNDLE_NAME) key: String,
-      vararg params: Any?,
-    ): String {
+    fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: Any?): String {
       return ourBundle.getMessage(key, *params)
     }
   }

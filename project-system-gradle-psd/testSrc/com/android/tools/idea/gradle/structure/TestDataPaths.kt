@@ -17,7 +17,8 @@ package com.android.tools.idea.gradle.structure
 
 import com.android.tools.idea.gradle.GradleFileModelTestCase.TestFileName
 
-val ARTIFACT_REPOSITORY_SEARCH_FORM_KT_PREPARE_ARTIFACT_VERSION_CHOICES = TestFileName("artifactRepositorySearchFormKt/prepareArtifactVersionChoices")
+val ARTIFACT_REPOSITORY_SEARCH_FORM_KT_PREPARE_ARTIFACT_VERSION_CHOICES =
+  TestFileName("artifactRepositorySearchFormKt/prepareArtifactVersionChoices")
 val MODEL_LIST_PROPERTY_IMPL_PROPERTY_VALUES = TestFileName("modelListPropertyImpl/propertyValues")
 val MODEL_LIST_PROPERTY_IMPL_REBIND_RESOLVED_PROPERTY = TestFileName("modelListPropertyImpl/rebindResolvedProperty")
 val MODEL_LIST_PROPERTY_IMPL_REBIND_RESOLVED_PROPERTY_EXPECTED = TestFileName("modelListPropertyImpl/rebindResolvedPropertyExpected")

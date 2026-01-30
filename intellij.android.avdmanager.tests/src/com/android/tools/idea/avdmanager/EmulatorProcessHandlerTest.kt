@@ -41,14 +41,8 @@ class EmulatorProcessHandlerTest {
   fun testLogProcessing() {
     val avdDir = Paths.get("/users/user/.android/avd")
     val avdId = "Pixel_9_API_34"
-    val avd =
-      AvdInfo(
-        iniFile = avdDir.resolve("$avdId.ini"),
-        dataFolderPath = avdDir.resolve("$avdId.avd"),
-        systemImage = null,
-      )
-    val commandLine =
-      "/users/user/Android/Sdk/emulator/emulator -avd $avdId -qt-hide-window -grpc-use-token"
+    val avd = AvdInfo(iniFile = avdDir.resolve("$avdId.ini"), dataFolderPath = avdDir.resolve("$avdId.avd"), systemImage = null)
+    val commandLine = "/users/user/Android/Sdk/emulator/emulator -avd $avdId -qt-hide-window -grpc-use-token"
     val logMessages =
       arrayOf(
         "INFO         | Informational message",
@@ -135,8 +129,7 @@ class EmulatorProcessHandlerTest {
     }
   }
 
-  private class CountDownByteArrayInputStream(data: ByteArray) :
-    FilterInputStream(data.inputStream()) {
+  private class CountDownByteArrayInputStream(data: ByteArray) : FilterInputStream(data.inputStream()) {
 
     private val latch = CountDownLatch(data.size)
 

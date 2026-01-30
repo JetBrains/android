@@ -30,34 +30,34 @@ import org.junit.Rule
 import org.junit.Test
 
 class DataBindingDefaultTrackerTest {
-  @JvmField
-  @Rule
-  val projectRule = AndroidProjectRule.withAndroidModels()
+  @JvmField @Rule val projectRule = AndroidProjectRule.withAndroidModels()
 
   @Before
   fun setUp() {
     projectRule.fixture.testDataPath =
-        resolveWorkspacePath("tools/adt/idea/android/testData/${TestProjectPaths.SIMPLE_APPLICATION}").toString()
+      resolveWorkspacePath("tools/adt/idea/android/testData/${TestProjectPaths.SIMPLE_APPLICATION}").toString()
     projectRule.fixture.copyDirectoryToProject("", "")
   }
 
   @Test
   fun testTrackDataBindingEnabled() {
     val tracker = TestUsageTracker(VirtualTimeScheduler())
-      try {
-        UsageTracker.setWriterForTest(tracker)
-        DataBindingTrackerSyncListener(projectRule.project).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
+    try {
+      UsageTracker.setWriterForTest(tracker)
+      DataBindingTrackerSyncListener(projectRule.project).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
 
-        assertThat(
+      assertThat(
           tracker.usages
             .map { it.studioEvent }
             .last { it.kind == AndroidStudioEvent.EventKind.DATA_BINDING }
-            .dataBindingEvent.pollMetadata.dataBindingEnabled)
-          .isFalse()
-      }
-      finally {
-        tracker.close()
-        UsageTracker.cleanAfterTesting()
-      }
+            .dataBindingEvent
+            .pollMetadata
+            .dataBindingEnabled
+        )
+        .isFalse()
+    } finally {
+      tracker.close()
+      UsageTracker.cleanAfterTesting()
     }
+  }
 }

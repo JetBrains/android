@@ -42,8 +42,7 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.ide.PooledThreadExecutor
 
 private const val EXPERIMENTAL_AGENT_FILE = "database-inspector.jar"
-private const val EXPERIMENTAL_AGENT_DEV_DIR =
-  "bazel-bin/tools/base/app-inspection/inspectors/database"
+private const val EXPERIMENTAL_AGENT_DEV_DIR = "bazel-bin/tools/base/app-inspection/inspectors/database"
 private const val AGENT_FILE = "sqlite-inspection.jar"
 private const val AGENT_DEV_DIR = "prebuilts/tools/common/app-inspection/androidx/sqlite"
 
@@ -94,19 +93,13 @@ class DatabaseInspectorTabProvider : SingleAppInspectorTabProvider() {
     return object : SingleAppInspectorTab(messenger) {
       private val taskExecutor = PooledThreadExecutor.INSTANCE
       private val errorsSideChannel = createErrorSideChannel(project)
-      private val databaseInspectorProjectService =
-        DatabaseInspectorProjectService.getInstance(project)
-      private val openDatabase: (SqliteDatabaseId, LiveDatabaseConnection) -> Unit =
-        { databaseId, databaseConnection ->
-          databaseInspectorProjectService.openSqliteDatabase(databaseId, databaseConnection)
-        }
+      private val databaseInspectorProjectService = DatabaseInspectorProjectService.getInstance(project)
+      private val openDatabase: (SqliteDatabaseId, LiveDatabaseConnection) -> Unit = { databaseId, databaseConnection ->
+        databaseInspectorProjectService.openSqliteDatabase(databaseId, databaseConnection)
+      }
 
-      private val handleError: (String) -> Unit = {
-        databaseInspectorProjectService.handleError(it, null)
-      }
-      private val onDatabasePossiblyChanged: () -> Unit = {
-        databaseInspectorProjectService.databasePossiblyChanged()
-      }
+      private val handleError: (String) -> Unit = { databaseInspectorProjectService.handleError(it, null) }
+      private val onDatabasePossiblyChanged: () -> Unit = { databaseInspectorProjectService.databasePossiblyChanged() }
       private val onDatabaseClosed: (SqliteDatabaseId) -> Unit = { databaseId ->
         databaseInspectorProjectService.handleDatabaseClosed(databaseId)
       }
@@ -130,16 +123,10 @@ class DatabaseInspectorTabProvider : SingleAppInspectorTabProvider() {
 
       init {
         databaseInspectorProjectService.scope.launch {
-          databaseInspectorProjectService.startAppInspectionSession(
-            dbClient,
-            ideServices,
-            processDescriptor,
-          )
+          databaseInspectorProjectService.startAppInspectionSession(dbClient, ideServices, processDescriptor)
           dbClient.startTrackingDatabaseConnections()
           messenger.awaitForDisposal()
-          withContext(AndroidDispatchers.uiThread) {
-            databaseInspectorProjectService.stopAppInspectionSession(processDescriptor)
-          }
+          withContext(AndroidDispatchers.uiThread) { databaseInspectorProjectService.stopAppInspectionSession(processDescriptor) }
         }
       }
     }

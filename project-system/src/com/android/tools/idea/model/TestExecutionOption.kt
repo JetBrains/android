@@ -16,29 +16,30 @@
 package com.android.tools.idea.model
 
 enum class TestExecutionOption {
-    /** On device orchestration is not used in this case.  */
-    HOST,
+  /** On device orchestration is not used in this case. */
+  HOST,
 
-    /** On device orchestration is used.  */
-    ANDROID_TEST_ORCHESTRATOR,
+  /** On device orchestration is used. */
+  ANDROID_TEST_ORCHESTRATOR,
 
-    /** On device orchestration is used, with androidx class names.  */
-    ANDROIDX_TEST_ORCHESTRATOR
+  /** On device orchestration is used, with androidx class names. */
+  ANDROIDX_TEST_ORCHESTRATOR,
 }
 
 data class TestOptions(
   val executionOption: TestExecutionOption?,
   val animationsDisabled: Boolean,
   val instrumentationRunner: String?,
-  val instrumentationRunnerArguments: Map<String, String>
+  val instrumentationRunnerArguments: Map<String, String>,
 ) {
   companion object {
     @JvmField
-    val DEFAULT: TestOptions = TestOptions(
-      executionOption = null,
-      animationsDisabled = false,
-      instrumentationRunner = null,
-      instrumentationRunnerArguments = emptyMap()
-    )
+    val DEFAULT: TestOptions =
+      TestOptions(
+        executionOption = null,
+        animationsDisabled = false,
+        instrumentationRunner = null,
+        instrumentationRunnerArguments = emptyMap(),
+      )
   }
 }

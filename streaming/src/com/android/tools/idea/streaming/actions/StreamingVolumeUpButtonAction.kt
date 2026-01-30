@@ -18,7 +18,5 @@ package com.android.tools.idea.streaming.actions
 import com.android.tools.idea.streaming.device.actions.DeviceVolumeUpButtonAction
 import com.android.tools.idea.streaming.emulator.actions.EmulatorVolumeUpButtonAction
 
-/**
- * Simulates pressing the Volume Up button on an Android device.
- */
+/** Simulates pressing the Volume Up button on an Android device. */
 internal class StreamingVolumeUpButtonAction : StreamingPushButtonAction(EmulatorVolumeUpButtonAction(), DeviceVolumeUpButtonAction())

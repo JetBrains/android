@@ -27,46 +27,46 @@ import java.io.File
 class SimpleDeduplicatingSyncIssueReporterTest : HeavyPlatformTestCase() {
 
   fun testShouldReport() {
-    val reporter = object: SimpleDeduplicatingSyncIssueReporter() {
-      override fun getSupportedIssueType(): Int = IdeSyncIssue.TYPE_GENERIC
-    }
+    val reporter =
+      object : SimpleDeduplicatingSyncIssueReporter() {
+        override fun getSupportedIssueType(): Int = IdeSyncIssue.TYPE_GENERIC
+      }
 
-    val syncIssues = listOf(IdeSyncIssueImpl(
-      severity = IdeSyncIssue.SEVERITY_WARNING,
-      type = IdeSyncIssue.TYPE_GENERIC,
-      data = "key",
-      message = "Warning message!",
-      multiLineMessage = null
-    ));
+    val syncIssues =
+      listOf(
+        IdeSyncIssueImpl(
+          severity = IdeSyncIssue.SEVERITY_WARNING,
+          type = IdeSyncIssue.TYPE_GENERIC,
+          data = "key",
+          message = "Warning message!",
+          multiLineMessage = null,
+        )
+      )
     val moduleMap = mapOf<IdeSyncIssue, Module>(syncIssues[0] to module)
     val buildFileMap = mapOf<Module, VirtualFile>(module to getVirtualFile(File("")))
-    Truth.assertThat(reporter.reportAll(
-      syncIssues,
-      moduleMap,
-      buildFileMap
-    )).isNotEmpty()
+    Truth.assertThat(reporter.reportAll(syncIssues, moduleMap, buildFileMap)).isNotEmpty()
   }
 
   fun testShouldNotReport() {
-    val reporter = object: SimpleDeduplicatingSyncIssueReporter() {
-      override fun getSupportedIssueType(): Int = IdeSyncIssue.TYPE_GENERIC
-      override fun shouldReport(project: Project): Boolean = false
-    }
+    val reporter =
+      object : SimpleDeduplicatingSyncIssueReporter() {
+        override fun getSupportedIssueType(): Int = IdeSyncIssue.TYPE_GENERIC
 
-    val syncIssues = listOf(IdeSyncIssueImpl(
-      severity = IdeSyncIssue.SEVERITY_WARNING,
-      type = IdeSyncIssue.TYPE_GENERIC,
-      data = "key",
-      message = "Warning message!",
-      multiLineMessage = null
-    ));
+        override fun shouldReport(project: Project): Boolean = false
+      }
+
+    val syncIssues =
+      listOf(
+        IdeSyncIssueImpl(
+          severity = IdeSyncIssue.SEVERITY_WARNING,
+          type = IdeSyncIssue.TYPE_GENERIC,
+          data = "key",
+          message = "Warning message!",
+          multiLineMessage = null,
+        )
+      )
     val moduleMap = mapOf<IdeSyncIssue, Module>(syncIssues[0] to module)
     val buildFileMap = mapOf<Module, VirtualFile>(module to getVirtualFile(File("")))
-    Truth.assertThat(reporter.reportAll(
-      syncIssues,
-      moduleMap,
-      buildFileMap
-    )).isEmpty()
+    Truth.assertThat(reporter.reportAll(syncIssues, moduleMap, buildFileMap)).isEmpty()
   }
-
 }

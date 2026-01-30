@@ -59,9 +59,8 @@ import kotlin.math.min
 /**
  * Controller responsible for displaying data from a SQLite table.
  *
- * @param tableSupplier returns a [SqliteTable] instance representing the table or view associated
- *   with the controller, or `null` if the controller not associated with a specific table, e.g. in
- *   the case of custom queries.
+ * @param tableSupplier returns a [SqliteTable] instance representing the table or view associated with the controller, or `null` if the
+ *   controller not associated with a specific table, e.g. in the case of custom queries.
  */
 @UiThread
 class TableController(
@@ -84,8 +83,7 @@ class TableController(
   private var orderBy: OrderBy = OrderBy.NotOrdered
   private var rowOffset = 0
 
-  private val databaseInspectorAnalyticsTracker =
-    DatabaseInspectorAnalyticsTracker.getInstance(project)
+  private val databaseInspectorAnalyticsTracker = DatabaseInspectorAnalyticsTracker.getInstance(project)
 
   /** The list of columns currently shown in the view */
   private var currentCols = emptyList<ResultSetSqliteColumn>()
@@ -93,10 +91,7 @@ class TableController(
   /** The list of rows that is currently shown in the view. */
   private var currentRows = emptyList<SqliteRow>()
 
-  /**
-   * Future corresponding to a [refreshData] operation. If the future is done, the refresh operation
-   * is over.
-   */
+  /** Future corresponding to a [refreshData] operation. If the future is done, the refresh operation is over. */
   private var refreshDataFuture: ListenableFuture<Unit> = Futures.immediateFuture(Unit)
 
   fun setUp(): ListenableFuture<Unit> {
@@ -164,9 +159,7 @@ class TableController(
           currentCols = columns
 
           val table = tableSupplier()
-          view.showTableColumns(
-            columns.filter { it.name != table?.rowIdName?.stringName }.toViewColumns(table)
-          )
+          view.showTableColumns(columns.filter { it.name != table?.rowIdName?.stringName }.toViewColumns(table))
           view.setEditable(isEditable())
 
           updateDataAndButtons()
@@ -175,8 +168,7 @@ class TableController(
 
     val futureCatching = handleFetchRowsError(fetchTableDataFuture)
 
-    val future =
-      futureCatching.finallySync(edtExecutor) { view.stopTableLoading() }.cancelOnDispose(this)
+    val future = futureCatching.finallySync(edtExecutor) { view.stopTableLoading() }.cancelOnDispose(this)
 
     return Futures.transform(future, Functions.constant(Unit), MoreExecutors.directExecutor())
   }
@@ -211,10 +203,9 @@ class TableController(
   }
 
   /**
-   * Fetches rows through the [resultSet] using [rowOffset] and [rowBatchSize]. The view is updated
-   * through a list of [RowDiffOperation]. Compared to just recreating the view this approach has
-   * the advantage that the state is not lost. E.g. if the user is navigating the table using the
-   * keyboard we don't want to lose the navigation each time the data has to be updated.
+   * Fetches rows through the [resultSet] using [rowOffset] and [rowBatchSize]. The view is updated through a list of [RowDiffOperation].
+   * Compared to just recreating the view this approach has the advantage that the state is not lost. E.g. if the user is navigating the
+   * table using the keyboard we don't want to lose the navigation each time the data has to be updated.
    */
   private fun fetchAndDisplayRows(): ListenableFuture<Unit> {
     return resultSet
@@ -230,9 +221,7 @@ class TableController(
 
         // add new rows
         if (currentRows.size < newRows.size) {
-          rowDiffOperations.addAll(
-            newRows.drop(currentRows.size).map { RowDiffOperation.AddRow(it) }
-          )
+          rowDiffOperations.addAll(newRows.drop(currentRows.size).map { RowDiffOperation.AddRow(it) })
         }
         // remove extra rows
         else if (currentRows.size > newRows.size) {
@@ -250,14 +239,10 @@ class TableController(
   }
 
   /**
-   * Returns a list of [RowDiffOperation.UpdateCell] commands. A command is added to the list if
-   * [oldRow] and [newRow] have different values in the same position.
+   * Returns a list of [RowDiffOperation.UpdateCell] commands. A command is added to the list if [oldRow] and [newRow] have different values
+   * in the same position.
    */
-  private fun performRowsDiff(
-    oldRow: SqliteRow,
-    newRow: SqliteRow,
-    rowIndex: Int,
-  ): List<RowDiffOperation.UpdateCell> {
+  private fun performRowsDiff(oldRow: SqliteRow, newRow: SqliteRow, rowIndex: Int): List<RowDiffOperation.UpdateCell> {
     val cellUpdates = mutableListOf<RowDiffOperation.UpdateCell>()
 
     for (colIndex in oldRow.values.indices) {
@@ -313,10 +298,8 @@ class TableController(
     override fun cancelRunningStatementInvoked() {
       val connectivityState =
         when (databaseId) {
-          is SqliteDatabaseId.FileSqliteDatabaseId ->
-            AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_OFFLINE
-          is SqliteDatabaseId.LiveSqliteDatabaseId ->
-            AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_ONLINE
+          is SqliteDatabaseId.FileSqliteDatabaseId -> AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_OFFLINE
+          is SqliteDatabaseId.LiveSqliteDatabaseId -> AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_ONLINE
         }
 
       databaseInspectorAnalyticsTracker.trackStatementExecutionCanceled(
@@ -369,9 +352,7 @@ class TableController(
     }
 
     override fun refreshDataInvoked() {
-      databaseInspectorAnalyticsTracker.trackTargetRefreshed(
-        AppInspectionEvent.DatabaseInspectorEvent.TargetType.TABLE_TARGET
-      )
+      databaseInspectorAnalyticsTracker.trackTargetRefreshed(AppInspectionEvent.DatabaseInspectorEvent.TargetType.TABLE_TARGET)
       refreshData()
     }
 
@@ -390,12 +371,9 @@ class TableController(
       val tableName = tableSupplier()?.name
       val exportScenario: ExportDialogParams =
         when {
-          tableName != null ->
-            ExportTableDialogParams(databaseId, tableName, TABLE_CONTENTS_EXPORT_BUTTON)
-          sqliteStatement.isQueryStatement ->
-            ExportQueryResultsDialogParams(databaseId, sqliteStatement, QUERY_RESULTS_EXPORT_BUTTON)
-          else ->
-            return // TODO(161081452): consider throwing an Exception or logging an error instead of
+          tableName != null -> ExportTableDialogParams(databaseId, tableName, TABLE_CONTENTS_EXPORT_BUTTON)
+          sqliteStatement.isQueryStatement -> ExportQueryResultsDialogParams(databaseId, sqliteStatement, QUERY_RESULTS_EXPORT_BUTTON)
+          else -> return // TODO(161081452): consider throwing an Exception or logging an error instead of
         // silently ignoring the request
         }
 
@@ -428,11 +406,7 @@ class TableController(
         )
     }
 
-    override fun updateCellInvoked(
-      targetRowIndex: Int,
-      targetColumn: ViewColumn,
-      newValue: SqliteValue,
-    ) {
+    override fun updateCellInvoked(targetRowIndex: Int, targetColumn: ViewColumn, newValue: SqliteValue) {
       val targetTable = tableSupplier()
       if (targetTable == null) {
         view.reportError("Can't update. Table not found.", null)
@@ -461,20 +435,14 @@ class TableController(
     }
   }
 
-  private fun List<ResultSetSqliteColumn>.toViewColumns(table: SqliteTable? = null) = map {
-    it.toViewColumn(table)
-  }
+  private fun List<ResultSetSqliteColumn>.toViewColumns(table: SqliteTable? = null) = map { it.toViewColumn(table) }
 
   /**
-   * Column information in [ResultSetSqliteColumn] can be incomplete. This method tries to overlap
-   * the information from the column with the information from the schema.
+   * Column information in [ResultSetSqliteColumn] can be incomplete. This method tries to overlap the information from the column with the
+   * information from the schema.
    */
   private fun ResultSetSqliteColumn.toViewColumn(table: SqliteTable? = null): ViewColumn {
     val schemaColumn = table?.columns?.firstOrNull { it.name == name }
-    return ViewColumn(
-      name,
-      schemaColumn?.inPrimaryKey ?: inPrimaryKey ?: false,
-      schemaColumn?.isNullable ?: isNullable ?: true,
-    )
+    return ViewColumn(name, schemaColumn?.inPrimaryKey ?: inPrimaryKey ?: false, schemaColumn?.isNullable ?: isNullable ?: true)
   }
 }

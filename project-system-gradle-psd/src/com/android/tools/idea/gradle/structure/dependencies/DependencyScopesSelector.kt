@@ -19,5 +19,6 @@ import com.intellij.openapi.ui.ValidationInfo
 
 interface DependencyScopesSelector {
   val selectedScopeName: String
+
   fun validateInput(): ValidationInfo?
 }

@@ -69,8 +69,7 @@ class TestToolWindow(project: Project) : ToolWindowHeadlessManagerImpl.MockToolW
     _isFocused = autoFocusContents
   }
 
-  override fun activate(runnable: Runnable?, autoFocusContents: Boolean, forced: Boolean) =
-    activate(runnable, autoFocusContents)
+  override fun activate(runnable: Runnable?, autoFocusContents: Boolean, forced: Boolean) = activate(runnable, autoFocusContents)
 
   override fun show(runnable: Runnable?) {
     _isVisible = true

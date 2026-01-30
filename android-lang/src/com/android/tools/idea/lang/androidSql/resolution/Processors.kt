@@ -19,25 +19,22 @@ import com.intellij.psi.PsiElement
 import com.intellij.util.CommonProcessors
 import com.intellij.util.Processor
 
-/**
- * [Processor] that finds a table with a given name.
- */
+/** [Processor] that finds a table with a given name. */
 class FindTableByNameProcessor(private val nameToLookFor: String) : CommonProcessors.FindProcessor<AndroidSqlTable>() {
   override fun accept(t: AndroidSqlTable): Boolean = nameToLookFor.equals(t.name, ignoreCase = true)
 }
 
 class FindColumnByNameProcessor(private val nameToLookFor: String) : CommonProcessors.FindProcessor<AndroidSqlColumn>() {
   override fun accept(c: AndroidSqlColumn): Boolean {
-    return nameToLookFor.equals(c.name, ignoreCase = true) || c.alternativeNames.any{ it.equals(nameToLookFor, ignoreCase = true) }
+    return nameToLookFor.equals(c.name, ignoreCase = true) || c.alternativeNames.any { it.equals(nameToLookFor, ignoreCase = true) }
   }
 }
 
-/**
- * [Processor] that records all available tables/columns that have a name.
- */
+/** [Processor] that records all available tables/columns that have a name. */
 class CollectUniqueNamesProcessor<T : AndroidSqlDefinition> : Processor<T> {
   val map: HashMap<String, T> = hashMapOf()
-  val result: Collection<T> get() = map.values
+  val result: Collection<T>
+    get() = map.values
 
   override fun process(t: T): Boolean {
     val name = t.name
@@ -49,18 +46,16 @@ class CollectUniqueNamesProcessor<T : AndroidSqlDefinition> : Processor<T> {
 /**
  * Runs a [delegate] [Processor] on every [AndroidSqlColumn] of every processed [AndroidSqlTable].
  *
- *  @see AndroidSqlColumnPsiReference for [sqlTablesInProcess] explanation
+ * @see AndroidSqlColumnPsiReference for [sqlTablesInProcess] explanation
  */
-class AllColumnsProcessor(
-  private val delegate: Processor<AndroidSqlColumn>,
-  private val sqlTablesInProcess: MutableSet<PsiElement>
-) : Processor<AndroidSqlTable> {
+class AllColumnsProcessor(private val delegate: Processor<AndroidSqlColumn>, private val sqlTablesInProcess: MutableSet<PsiElement>) :
+  Processor<AndroidSqlTable> {
   var tablesProcessed = 0
 
   override fun process(t: AndroidSqlTable): Boolean {
     if (sqlTablesInProcess.contains(t.definingElement)) {
       // We don't want to continue process if we found recursion.
-      return false;
+      return false
     }
     sqlTablesInProcess.add(t.definingElement)
     t.processColumns(delegate, sqlTablesInProcess)
@@ -73,4 +68,3 @@ class AllColumnsProcessor(
 class IgnoreViewsProcessor(private val delegate: Processor<AndroidSqlTable>) : Processor<AndroidSqlTable> {
   override fun process(t: AndroidSqlTable): Boolean = t.isView || delegate.process(t)
 }
-

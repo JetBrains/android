@@ -36,14 +36,7 @@ class InsightFeedbackSubmitted(val feedback: InsightFeedback) : ChangeEvent {
     val currentInsight = state.currentInsight.valueOrNull() ?: return state.toEmptyTransition()
     val newInsight = currentInsight.copy(feedback = feedback)
     val newState = state.copy(currentInsight = LoadingState.Ready(newInsight))
-    tracker.logInsightSentiment(
-      feedback.toSentiment(),
-      currentIssue.issueDetails.fatality.toCrashType(),
-      currentInsight,
-    )
-    return StateTransition(
-      newState,
-      Action.UpdateInsightFeedback(currentIssue.id, connection, state.selectedVariant?.id, feedback),
-    )
+    tracker.logInsightSentiment(feedback.toSentiment(), currentIssue.issueDetails.fatality.toCrashType(), currentInsight)
+    return StateTransition(newState, Action.UpdateInsightFeedback(currentIssue.id, connection, state.selectedVariant?.id, feedback))
   }
 }

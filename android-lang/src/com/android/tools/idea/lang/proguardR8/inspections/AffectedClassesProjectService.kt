@@ -32,49 +32,44 @@ import com.intellij.psi.search.searches.AllClassesSearch
 import com.intellij.util.Processor
 import org.jetbrains.annotations.VisibleForTesting
 
-
 @Service(Service.Level.PROJECT)
 class AffectedClassesProjectService(private val project: Project) {
 
-  private val logger get() = thisLogger()
+  private val logger
+    get() = thisLogger()
 
   /**
-   * @return The `count` of the number of affected classes that match a pattern encapsulated by the
-   * incoming [ProguardR8QualifiedName].
+   * @return The `count` of the number of affected classes that match a pattern encapsulated by the incoming [ProguardR8QualifiedName].
    *
-   * **Note:** This method does not handle complex rules like negation, and filters on
-   * method / field specifiers given we want this check to be fast.
+   * **Note:** This method does not handle complex rules like negation, and filters on method / field specifiers given we want this check to
+   * be fast.
    */
-  fun affectedClassesForQualifiedName(
-    qualifiedName: ProguardR8QualifiedName,
-    limit: Int,
-  ): Int =
+  fun affectedClassesForQualifiedName(qualifiedName: ProguardR8QualifiedName, limit: Int): Int =
     affectedClassesForQualifiedName(qualifiedPattern = qualifiedName.text, limit = limit)
 
   // Helper to make testing easier.
   @VisibleForTesting
-  fun affectedClassesForQualifiedName(
-    qualifiedPattern: String,
-    limit: Int,
-  ): Int {
+  fun affectedClassesForQualifiedName(qualifiedPattern: String, limit: Int): Int {
     val regex = qualifiedPattern.asRegex() ?: return 0
 
     val appModules = applicationModules()
     return if (appModules.isNotEmpty()) {
       appModules.maxOf { module ->
-        val searchScope = module.getModuleWithDependenciesAndLibrariesScope(false)
-          .intersectWith(GlobalSearchScope.notScope(androidSdkScope(module)))
+        val searchScope =
+          module.getModuleWithDependenciesAndLibrariesScope(false).intersectWith(GlobalSearchScope.notScope(androidSdkScope(module)))
 
         var counter = 0
         AllClassesSearch.search(searchScope, project)
-          .forEach( Processor { psiClass ->
-            psiClass.qualifiedName?.let { name ->
-              if (regex.matches(input = name)) {
-                counter += 1
+          .forEach(
+            Processor { psiClass ->
+              psiClass.qualifiedName?.let { name ->
+                if (regex.matches(input = name)) {
+                  counter += 1
+                }
               }
+              counter < limit
             }
-            counter < limit
-          })
+          )
         counter
       }
     } else {
@@ -85,20 +80,17 @@ class AffectedClassesProjectService(private val project: Project) {
   /**
    * Finds the [List] of application [Module]s for a given project.
    *
-   * Note: There may be multiple application modules, but we end up computing the number of
-   * affected classes from the perspective of all application modules that we can find.
+   * Note: There may be multiple application modules, but we end up computing the number of affected classes from the perspective of all
+   * application modules that we can find.
    */
   private fun applicationModules(): List<Module> {
     return project.modules.filter {
-      it.getModuleSystem().isProductionAndroidModule() &&
-      it.androidProjectType() == AndroidModuleSystem.Type.TYPE_APP
+      it.getModuleSystem().isProductionAndroidModule() && it.androidProjectType() == AndroidModuleSystem.Type.TYPE_APP
     }
   }
 
   private fun androidSdkScope(module: Module): GlobalSearchScope {
-    val jdk = ModuleRootManager.getInstance(module).orderEntries
-      .filterIsInstance<JdkOrderEntry>()
-      .firstOrNull()
+    val jdk = ModuleRootManager.getInstance(module).orderEntries.filterIsInstance<JdkOrderEntry>().firstOrNull()
 
     return if (jdk?.jdk?.sdkType?.name == "Android SDK") {
       JdkScope(module.project, jdk)
@@ -156,10 +148,7 @@ class AffectedClassesProjectService(private val project: Project) {
     return when {
       regexResult.isFailure -> {
         val throwable = regexResult.exceptionOrNull()!!
-        logger.warnWithDebug(
-          "Pattern ($prefix) translated to $prefixPattern.",
-          throwable
-        )
+        logger.warnWithDebug("Pattern ($prefix) translated to $prefixPattern.", throwable)
         null
       }
 

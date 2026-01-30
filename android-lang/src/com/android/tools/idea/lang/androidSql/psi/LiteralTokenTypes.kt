@@ -17,11 +17,7 @@
 
 package com.android.tools.idea.lang.androidSql.psi
 
-@JvmField
-val UNTERMINATED_SINGLE_QUOTE_STRING_LITERAL = AndroidSqlTokenType("unterminated single quote string literal")
-@JvmField
-val UNTERMINATED_DOUBLE_QUOTE_STRING_LITERAL = AndroidSqlTokenType("unterminated double quote string literal")
-@JvmField
-val UNTERMINATED_BRACKET_LITERAL = AndroidSqlTokenType("unterminated bracket literal")
-@JvmField
-val UNTERMINATED_BACKTICK_LITERAL = AndroidSqlTokenType("unterminated backtick literal")
+@JvmField val UNTERMINATED_SINGLE_QUOTE_STRING_LITERAL = AndroidSqlTokenType("unterminated single quote string literal")
+@JvmField val UNTERMINATED_DOUBLE_QUOTE_STRING_LITERAL = AndroidSqlTokenType("unterminated double quote string literal")
+@JvmField val UNTERMINATED_BRACKET_LITERAL = AndroidSqlTokenType("unterminated bracket literal")
+@JvmField val UNTERMINATED_BACKTICK_LITERAL = AndroidSqlTokenType("unterminated backtick literal")

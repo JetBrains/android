@@ -25,8 +25,7 @@ import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
 
 /**
- * A default implementation of [TestResultsPsiElementProvider] which works for Java class-based
- * tests, e.g. Android instrumentation tests.
+ * A default implementation of [TestResultsPsiElementProvider] which works for Java class-based tests, e.g. Android instrumentation tests.
  */
 @AnyThread
 class DefaultAndroidTestResultsPsiElementProvider : TestResultsPsiElementProvider {
@@ -36,25 +35,19 @@ class DefaultAndroidTestResultsPsiElementProvider : TestResultsPsiElementProvide
     return true
   }
 
-  override fun getPsiElement(project: Project,
-                             androidTestResults: AndroidTestResults,
-                             module: Module?): PsiElement? {
+  override fun getPsiElement(project: Project, androidTestResults: AndroidTestResults, module: Module?): PsiElement? {
     val scopes = module?.let { TestArtifactSearchScopes.getInstance(module) } ?: return null
     val androidTestSourceScope = scopes.androidTestSourceScope
     val javaPsiFacade = JavaPsiFacade.getInstance(project)
 
     return runReadAction {
-      val testClasses = androidTestResults.getFullTestClassName().let {
-        javaPsiFacade.findClasses(it, androidTestSourceScope)
-      }
+      val testClasses = androidTestResults.getFullTestClassName().let { javaPsiFacade.findClasses(it, androidTestSourceScope) }
 
-      testClasses.firstNotNullOfOrNull {
-        it.findMethodsByName(androidTestResults.methodName, true).firstOrNull()
-      }
-      ?: testClasses.firstNotNullOfOrNull {
-        it.findMethodsByName(androidTestResults.methodName.replace(parameterizedTestMethodNameRegex, ""), true).firstOrNull()
-      }
-      ?: testClasses.firstOrNull()
+      testClasses.firstNotNullOfOrNull { it.findMethodsByName(androidTestResults.methodName, true).firstOrNull() }
+        ?: testClasses.firstNotNullOfOrNull {
+          it.findMethodsByName(androidTestResults.methodName.replace(parameterizedTestMethodNameRegex, ""), true).firstOrNull()
+        }
+        ?: testClasses.firstOrNull()
     }
   }
 }

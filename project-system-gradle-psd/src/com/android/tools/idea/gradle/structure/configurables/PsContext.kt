@@ -31,6 +31,7 @@ import java.util.EventListener
 interface PsContext : Disposable {
   interface SyncListener : EventListener {
     fun started()
+
     fun ended()
   }
 
@@ -43,20 +44,19 @@ interface PsContext : Disposable {
   val mainConfigurable: ProjectStructureConfigurable
 
   /**
-   * Gets an [ArtifactRepositorySearchService] that searches the repositories configured for `module`. The results are cached and
-   * in the case of an exactly matching request reused.
+   * Gets an [ArtifactRepositorySearchService] that searches the repositories configured for `module`. The results are cached and in the
+   * case of an exactly matching request reused.
    */
   fun getArtifactRepositorySearchServiceFor(module: PsModule): ArtifactRepositorySearchService
 
   fun setSelectedModule(gradlePath: String, source: Any)
+
   fun add(listener: SyncListener, parentDisposable: Disposable)
+
   fun applyRunAndReparse(runnable: () -> Boolean)
 
-  /**
-   * Validates and applies changes to the [project].
-   */
-  @Throws(ConfigurationException::class)
-  fun applyChanges()
+  /** Validates and applies changes to the [project]. */
+  @Throws(ConfigurationException::class) fun applyChanges()
 
   /**
    * Records [fieldId] for inclusion in the modified field list of the [PSDEvent] reported to [UsageTracker]. This method is supposed to be
@@ -64,8 +64,6 @@ interface PsContext : Disposable {
    */
   fun logFieldEdited(fieldId: PSDEvent.PSDField)
 
-  /**
-   * Returns a copy of the list of the field ids recorded by [logFieldEdited] and clears the list.
-   */
+  /** Returns a copy of the list of the field ids recorded by [logFieldEdited] and clears the list. */
   fun getEditedFieldsAndClear(): List<PSDEvent.PSDField>
 }

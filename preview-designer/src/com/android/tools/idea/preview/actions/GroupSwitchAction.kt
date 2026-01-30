@@ -38,8 +38,7 @@ class GroupSwitchAction(
   inner class SetGroupAction(private val group: PreviewGroup) : ToggleAction(group.displayName) {
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
-    override fun isSelected(e: AnActionEvent): Boolean =
-      e.dataContext.findPreviewManager(PreviewGroupManager.KEY)?.groupFilter == group
+    override fun isSelected(e: AnActionEvent): Boolean = e.dataContext.findPreviewManager(PreviewGroupManager.KEY)?.groupFilter == group
 
     override fun setSelected(e: AnActionEvent, state: Boolean) {
       if (state) {

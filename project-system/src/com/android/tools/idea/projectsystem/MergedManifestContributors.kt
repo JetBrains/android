@@ -21,27 +21,24 @@ import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * Immutable data object responsible for determining all the files that contribute to
- * the merged manifest of a particular [AndroidFacet] at a particular moment in time.
+ * Immutable data object responsible for determining all the files that contribute to the merged manifest of a particular [AndroidFacet] at
+ * a particular moment in time.
  *
- * Note that any navigation files are also considered contributors, since you can
- * specify the <nav-graph> tag in your manifest and the navigation component will
- * replace it at merge time with intent filters derived from the module's navigation
- * files. See https://developer.android.com/guide/navigation/navigation-deep-link
+ * Note that any navigation files are also considered contributors, since you can specify the <nav-graph> tag in your manifest and the
+ * navigation component will replace it at merge time with intent filters derived from the module's navigation files. See
+ * https://developer.android.com/guide/navigation/navigation-deep-link
  */
 data class MergedManifestContributors(
   @JvmField val primaryManifest: VirtualFile?,
   @JvmField val flavorAndBuildTypeManifests: List<VirtualFile>,
   @JvmField val libraryManifests: List<VirtualFile>,
   @JvmField val navigationFiles: List<VirtualFile>,
-  @JvmField val flavorAndBuildTypeManifestsOfLibs: List<VirtualFile>) {
+  @JvmField val flavorAndBuildTypeManifestsOfLibs: List<VirtualFile>,
+) {
 
   @JvmField
-  val allFiles = flavorAndBuildTypeManifests +
-                 listOfNotNull(primaryManifest) +
-                 libraryManifests +
-                 navigationFiles +
-                 flavorAndBuildTypeManifestsOfLibs
+  val allFiles =
+    flavorAndBuildTypeManifests + listOfNotNull(primaryManifest) + libraryManifests + navigationFiles + flavorAndBuildTypeManifestsOfLibs
 }
 
 fun AndroidModuleSystem.defaultGetMergedManifestContributors(): MergedManifestContributors {
@@ -52,7 +49,7 @@ fun AndroidModuleSystem.defaultGetMergedManifestContributors(): MergedManifestCo
     flavorAndBuildTypeManifests = facet.getFlavorAndBuildTypeManifests(),
     libraryManifests = if (facet.configuration.isAppOrFeature) facet.getLibraryManifests(dependencies) else emptyList(),
     navigationFiles = facet.getTransitiveNavigationFiles(dependencies),
-    flavorAndBuildTypeManifestsOfLibs = facet.getFlavorAndBuildTypeManifestsOfLibs(dependencies)
+    flavorAndBuildTypeManifestsOfLibs = facet.getFlavorAndBuildTypeManifestsOfLibs(dependencies),
   )
 }
 
@@ -77,16 +74,13 @@ private fun AndroidFacet.getLibraryManifests(dependencies: List<AndroidFacet>): 
   return dependencies.mapNotNull { it.sourceProviders.mainManifestFile }
 }
 
-
 /**
- * Returns all navigation files for the facet's module and its transitive dependencies,
- * ordered from higher precedence to lower precedence.
+ * Returns all navigation files for the facet's module and its transitive dependencies, ordered from higher precedence to lower precedence.
+ *
  * TODO(b/70815924): Change implementation to use resource repository API
  */
 fun AndroidFacet.getTransitiveNavigationFiles(transitiveDependencies: List<AndroidFacet>): List<VirtualFile> {
-  return (sequenceOf(this) + transitiveDependencies.asSequence())
-    .flatMap { it.getNavigationFiles() }
-    .toList()
+  return (sequenceOf(this) + transitiveDependencies.asSequence()).flatMap { it.getNavigationFiles() }.toList()
 }
 
 private fun AndroidFacet.getNavigationFiles(): Sequence<VirtualFile> {

@@ -38,9 +38,7 @@ fun AnActionEvent.getLogcatMessage(): LogcatMessage? {
 internal fun AnActionEvent.getLogcatMessages(): List<LogcatMessage> {
   val editor = getEditor() ?: return emptyList()
   val selectionModel = editor.selectionModel
-  val end =
-    if (selectionModel.endsOnLineBreak()) selectionModel.selectionEnd - 1
-    else selectionModel.selectionEnd
+  val end = if (selectionModel.endsOnLineBreak()) selectionModel.selectionEnd - 1 else selectionModel.selectionEnd
   return getLogcatMessages(selectionModel.selectionStart, end)
 }
 

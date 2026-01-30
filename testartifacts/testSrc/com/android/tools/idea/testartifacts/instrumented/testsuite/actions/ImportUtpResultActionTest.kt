@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.actions
 
-import com.google.common.truth.Truth.assertThat
 import com.android.tools.idea.protobuf.TextFormat
 import com.google.common.truth.Truth.assertThat
 import com.google.testing.platform.proto.api.core.TestSuiteResultProto
@@ -43,12 +42,7 @@ class ImportUtpResultActionTest {
   private val disposableRule = DisposableRule()
   private val temporaryFolder = TemporaryFolder()
 
-  @get:Rule
-  val rules: RuleChain = RuleChain
-    .outerRule(projectRule)
-    .around(EdtRule())
-    .around(disposableRule)
-    .around(temporaryFolder)
+  @get:Rule val rules: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule()).around(disposableRule).around(temporaryFolder)
 
   @Test
   fun importUtpResults() {
@@ -64,8 +58,7 @@ class ImportUtpResultActionTest {
   @Test
   fun importUtpResultPreCreateContentManager() {
     RunContentManager.getInstance(projectRule.project)
-    val toolWindow = ToolWindowManager.getInstance(projectRule.project)
-      .getToolWindow(ImportUtpResultAction.IMPORTED_TEST_WINDOW_ID)
+    val toolWindow = ToolWindowManager.getInstance(projectRule.project).getToolWindow(ImportUtpResultAction.IMPORTED_TEST_WINDOW_ID)
 
     assertThat(toolWindow).isNull()
 
@@ -87,11 +80,10 @@ class ImportUtpResultActionTest {
 
   @Test
   fun createImportUtpResultAction() {
-    projectRule.module.rootManager.contentRoots[0]
-      .writeChild(
-        "build/outputs/androidTest-results/connected/test-result.pb",
-        createTestResultsProto().toByteArray()
-      )
+    projectRule.module.rootManager.contentRoots[0].writeChild(
+      "build/outputs/androidTest-results/connected/test-result.pb",
+      createTestResultsProto().toByteArray(),
+    )
 
     val importActions = createImportUtpResultActionFromAndroidGradlePluginOutput(projectRule.project)
 
@@ -102,21 +94,18 @@ class ImportUtpResultActionTest {
 
   @Test
   fun createImportUtpResultActionShouldPreferMergedResult() {
-    projectRule.module.rootManager.contentRoots[0]
-      .writeChild(
-        "build/outputs/androidTest-results/connected/test-result.pb",
-        createTestResultsProto("MergedResult").toByteArray()
-      )
-    projectRule.module.rootManager.contentRoots[0]
-      .writeChild(
-        "build/outputs/androidTest-results/connected/device1/test-result.pb",
-        createTestResultsProto("Device1Result").toByteArray()
-      )
-    projectRule.module.rootManager.contentRoots[0]
-      .writeChild(
-        "build/outputs/androidTest-results/connected/device2/test-result.pb",
-        createTestResultsProto("Device2Result").toByteArray()
-      )
+    projectRule.module.rootManager.contentRoots[0].writeChild(
+      "build/outputs/androidTest-results/connected/test-result.pb",
+      createTestResultsProto("MergedResult").toByteArray(),
+    )
+    projectRule.module.rootManager.contentRoots[0].writeChild(
+      "build/outputs/androidTest-results/connected/device1/test-result.pb",
+      createTestResultsProto("Device1Result").toByteArray(),
+    )
+    projectRule.module.rootManager.contentRoots[0].writeChild(
+      "build/outputs/androidTest-results/connected/device2/test-result.pb",
+      createTestResultsProto("Device2Result").toByteArray(),
+    )
 
     val importActions = createImportUtpResultActionFromAndroidGradlePluginOutput(projectRule.project)
 
@@ -126,16 +115,14 @@ class ImportUtpResultActionTest {
 
   @Test
   fun createImportUtpResultActionShouldPreferMergedResultButFallbackToIndividualResult() {
-    projectRule.module.rootManager.contentRoots[0]
-      .writeChild(
-        "build/outputs/androidTest-results/connected/device1/test-result.pb",
-        createTestResultsProto("Device1Result").toByteArray()
-      )
-    projectRule.module.rootManager.contentRoots[0]
-      .writeChild(
-        "build/outputs/androidTest-results/connected/device2/test-result.pb",
-        createTestResultsProto("Device2Result").toByteArray()
-      )
+    projectRule.module.rootManager.contentRoots[0].writeChild(
+      "build/outputs/androidTest-results/connected/device1/test-result.pb",
+      createTestResultsProto("Device1Result").toByteArray(),
+    )
+    projectRule.module.rootManager.contentRoots[0].writeChild(
+      "build/outputs/androidTest-results/connected/device2/test-result.pb",
+      createTestResultsProto("Device2Result").toByteArray(),
+    )
 
     val importActions = createImportUtpResultActionFromAndroidGradlePluginOutput(projectRule.project)
 
@@ -146,11 +133,10 @@ class ImportUtpResultActionTest {
 
   @Test
   fun createImportUtpResultActionWithFlavor() {
-    projectRule.module.rootManager.contentRoots[0]
-      .writeChild(
-        "build/outputs/androidTest-results/connected/flavors/demo/test-result.pb",
-        createTestResultsProto().toByteArray()
-      )
+    projectRule.module.rootManager.contentRoots[0].writeChild(
+      "build/outputs/androidTest-results/connected/flavors/demo/test-result.pb",
+      createTestResultsProto().toByteArray(),
+    )
 
     val importActions = createImportUtpResultActionFromAndroidGradlePluginOutput(projectRule.project)
 
@@ -158,25 +144,21 @@ class ImportUtpResultActionTest {
     assertThat(importActions[0].action.templateText).contains("ExampleInstrumentedTest - demo - connected")
   }
 
-
   @Test
   fun createImportGradleManagedDeviceUtpResultAction() {
-    projectRule.module.rootManager.contentRoots[0]
-      .writeChild(
-        "build/outputs/androidTest-results/managedDevice/test-result.pb",
-        createTestResultsProto("UnwantedTestResult").toByteArray()
-      )
+    projectRule.module.rootManager.contentRoots[0].writeChild(
+      "build/outputs/androidTest-results/managedDevice/test-result.pb",
+      createTestResultsProto("UnwantedTestResult").toByteArray(),
+    )
 
-    projectRule.module.rootManager.contentRoots[0]
-      .writeChild(
-        "build/outputs/androidTest-results/managedDevice/testDevice1/test-result.pb",
-        createTestResultsProto().toByteArray()
-      )
-    projectRule.module.rootManager.contentRoots[0]
-      .writeChild(
-        "build/outputs/androidTest-results/managedDevice/testDevice1/device-info.pb",
-        ""
-      )
+    projectRule.module.rootManager.contentRoots[0].writeChild(
+      "build/outputs/androidTest-results/managedDevice/testDevice1/test-result.pb",
+      createTestResultsProto().toByteArray(),
+    )
+    projectRule.module.rootManager.contentRoots[0].writeChild(
+      "build/outputs/androidTest-results/managedDevice/testDevice1/device-info.pb",
+      "",
+    )
     val importActions = createImportGradleManagedDeviceUtpResults(projectRule.project)
 
     assertThat(importActions).hasSize(1)
@@ -185,21 +167,18 @@ class ImportUtpResultActionTest {
 
   @Test
   fun createImportGradleManagedDeviceUtpResultActionWithFlavor() {
-    projectRule.module.rootManager.contentRoots[0]
-      .writeChild(
-        "build/outputs/androidTest-results/managedDevice/debug/flavors/demo/testDevice1/test-result.pb",
-        createTestResultsProto().toByteArray()
-      )
-    projectRule.module.rootManager.contentRoots[0]
-      .writeChild(
-        "build/outputs/androidTest-results/managedDevice/debug/flavors/demo/testDevice1/device-info.pb",
-        ""
-      )
-    projectRule.module.rootManager.contentRoots[0]
-      .writeChild(
-        "build/outputs/androidTest-results/managedDevice/debug/flavors/demo/test-result.pb",
-        createTestResultsProto("UnwantedTestResult").toByteArray()
-      )
+    projectRule.module.rootManager.contentRoots[0].writeChild(
+      "build/outputs/androidTest-results/managedDevice/debug/flavors/demo/testDevice1/test-result.pb",
+      createTestResultsProto().toByteArray(),
+    )
+    projectRule.module.rootManager.contentRoots[0].writeChild(
+      "build/outputs/androidTest-results/managedDevice/debug/flavors/demo/testDevice1/device-info.pb",
+      "",
+    )
+    projectRule.module.rootManager.contentRoots[0].writeChild(
+      "build/outputs/androidTest-results/managedDevice/debug/flavors/demo/test-result.pb",
+      createTestResultsProto("UnwantedTestResult").toByteArray(),
+    )
 
     val importActions = createImportGradleManagedDeviceUtpResults(projectRule.project)
 
@@ -207,9 +186,7 @@ class ImportUtpResultActionTest {
     assertThat(importActions[0].action.templateText).contains("ExampleInstrumentedTest - demo - managed")
   }
 
-  private fun createTestResultsProto(
-    testClassName: String = "ExampleInstrumentedTest"
-  ): TestSuiteResultProto.TestSuiteResult {
+  private fun createTestResultsProto(testClassName: String = "ExampleInstrumentedTest"): TestSuiteResultProto.TestSuiteResult {
     return TextFormat.parse(
       """
       test_result {
@@ -229,7 +206,7 @@ class ImportUtpResultActionTest {
         test_status: PASSED
       }
       """,
-      TestSuiteResultProto.TestSuiteResult::class.java
+      TestSuiteResultProto.TestSuiteResult::class.java,
     )
   }
 }

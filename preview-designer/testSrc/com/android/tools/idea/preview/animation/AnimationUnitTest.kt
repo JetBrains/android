@@ -115,8 +115,7 @@ class AnimationUnitTest {
 
   @Test
   fun testHashCodeAndEqualsWithMultipleComponents() {
-    class TestUnit(vararg components: Any) :
-      AnimationUnit.BaseUnit<Any>(*components) { // Vararg constructor
+    class TestUnit(vararg components: Any) : AnimationUnit.BaseUnit<Any>(*components) { // Vararg constructor
       override fun parseUnit(getValue: (Int) -> String?) = null // Not needed for testing
 
       override fun getPickerTitle(): String = "Test Unit"

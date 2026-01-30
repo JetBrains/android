@@ -25,20 +25,15 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 
-/**
- * Quickfix to apply the Compose Compiler Gradle plugin to modules that need it.
- */
-class AddComposeCompilerGradlePluginHyperlink(
-  val project: Project,
-  val affectedModules: List<Module>,
-  val kotlinVersion: String
-) : SyncIssueNotificationHyperlink(
-  "add.compose.compiler.gradle.plugin.hyperlink",
-  "Add Compose Compiler Gradle plugin",
-  AndroidStudioEvent.GradleSyncQuickFix.ADD_COMPOSE_COMPILER_GRADLE_PLUGIN_HYPERLINK
-) {
+/** Quickfix to apply the Compose Compiler Gradle plugin to modules that need it. */
+class AddComposeCompilerGradlePluginHyperlink(val project: Project, val affectedModules: List<Module>, val kotlinVersion: String) :
+  SyncIssueNotificationHyperlink(
+    "add.compose.compiler.gradle.plugin.hyperlink",
+    "Add Compose Compiler Gradle plugin",
+    AndroidStudioEvent.GradleSyncQuickFix.ADD_COMPOSE_COMPILER_GRADLE_PLUGIN_HYPERLINK,
+  ) {
   companion object {
-    fun canBeApplied(project: Project, affectedModules: List<Module>) : Boolean {
+    fun canBeApplied(project: Project, affectedModules: List<Module>): Boolean {
       // If there are no affected modules, there will be nothing to do
       if (affectedModules.isEmpty()) {
         return false
@@ -49,21 +44,14 @@ class AddComposeCompilerGradlePluginHyperlink(
   }
 
   override fun execute(project: Project) {
-    applyFix(
-      project,
-      AddComposeCompilerGradlePluginProcessor(project, affectedModules, kotlinVersion)
-    )
+    applyFix(project, AddComposeCompilerGradlePluginProcessor(project, affectedModules, kotlinVersion))
   }
 
   @VisibleForTesting
   fun applyFix(project: Project, processor: AddComposeCompilerGradlePluginProcessor) {
     if (!canBeApplied(project, affectedModules)) {
       if (!ApplicationManager.getApplication().isUnitTestMode) {
-        Messages.showWarningDialog(
-          project,
-          "Could not identify where to apply this fix",
-          "Add Compose Compiler Gradle Plugin"
-        )
+        Messages.showWarningDialog(project, "Could not identify where to apply this fix", "Add Compose Compiler Gradle Plugin")
       }
       return
     }

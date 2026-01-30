@@ -19,8 +19,7 @@ package com.android.tools.idea.preview.animation
  * Animation transition for selected from/to states.
  *
  * @param properties
- * - map of properties for this Animation, it maps the index of the property to an
- *   [AnimatedProperty].
+ * - map of properties for this Animation, it maps the index of the property to an [AnimatedProperty].
  */
 data class Transition(val properties: Map<Int, AnimatedProperty<Double>?> = mutableMapOf()) {
   val startMillis = properties.values.filterNotNull().minOfOrNull { it.startMs }

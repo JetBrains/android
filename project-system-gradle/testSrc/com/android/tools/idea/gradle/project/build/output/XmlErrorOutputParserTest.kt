@@ -16,17 +16,16 @@
 package com.android.tools.idea.gradle.project.build.output
 
 import com.intellij.build.events.MessageEvent
+import java.io.File
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.xml.sax.SAXParseException
-import java.io.File
 
 class XmlErrorOutputParserTest : BuildOutputParserTest() {
 
-  @get:Rule
-  val temporaryFolder = TemporaryFolder()
+  @get:Rule val temporaryFolder = TemporaryFolder()
 
   private lateinit var sourceFile: File
 
@@ -39,19 +38,26 @@ class XmlErrorOutputParserTest : BuildOutputParserTest() {
   fun parseFileLineColumnAndMessage() {
     parseOutput(
       parentEventId = "testId",
-      gradleOutput = "org.xml.sax.SAXParseException; systemId: file:${sourceFile.absolutePath}; lineNumber: 4; columnNumber: 5; Element type \"ASd\" must be followed by either attribute specifications, \">\" or \"/>\".",
-      expectedEvents = listOf(ExpectedEvent(
-        message = "Element type \"ASd\" must be followed by either attribute specifications, \">\" or \"/>\".",
-        isFileMessageEvent = true,
-        isBuildIssueEvent = false,
-        isDuplicateMessageAware = false,
-        group = "Xml parsing errors",
-        kind= MessageEvent.Kind.WARNING,
-        parentId = "testId",
-        filePosition = "${sourceFile.absolutePath}:4:5-4:5",
-        description = """
-        Element type "ASd" must be followed by either attribute specifications, ">" or "/>".
-        """.trimIndent()))
+      gradleOutput =
+        "org.xml.sax.SAXParseException; systemId: file:${sourceFile.absolutePath}; lineNumber: 4; columnNumber: 5; Element type \"ASd\" must be followed by either attribute specifications, \">\" or \"/>\".",
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message = "Element type \"ASd\" must be followed by either attribute specifications, \">\" or \"/>\".",
+            isFileMessageEvent = true,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = false,
+            group = "Xml parsing errors",
+            kind = MessageEvent.Kind.WARNING,
+            parentId = "testId",
+            filePosition = "${sourceFile.absolutePath}:4:5-4:5",
+            description =
+              """
+              Element type "ASd" must be followed by either attribute specifications, ">" or "/>".
+              """
+                .trimIndent(),
+          )
+        ),
     )
   }
 
@@ -59,41 +65,60 @@ class XmlErrorOutputParserTest : BuildOutputParserTest() {
   fun parseFileLineColumnAndMessageWithPublicId() {
     parseOutput(
       parentEventId = "testId",
-      gradleOutput = "> org.xml.sax.SAXParseExceptionpublicId: test; systemId: ${sourceFile.absolutePath}; lineNumber: 20; columnNumber: 1; XML document structures must start and end within the same entity.",
-      expectedEvents = listOf(ExpectedEvent(
-        message = "XML document structures must start and end within the same entity.",
-        isFileMessageEvent = true,
-        isBuildIssueEvent = false,
-        isDuplicateMessageAware = false,
-        group = "Xml parsing errors",
-        kind= MessageEvent.Kind.WARNING,
-        parentId = "testId",
-        filePosition = "${sourceFile.absolutePath}:20:1-20:1",
-        description = """
-        XML document structures must start and end within the same entity.
-        """.trimIndent()))
+      gradleOutput =
+        "> org.xml.sax.SAXParseExceptionpublicId: test; systemId: ${sourceFile.absolutePath}; lineNumber: 20; columnNumber: 1; XML document structures must start and end within the same entity.",
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message = "XML document structures must start and end within the same entity.",
+            isFileMessageEvent = true,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = false,
+            group = "Xml parsing errors",
+            kind = MessageEvent.Kind.WARNING,
+            parentId = "testId",
+            filePosition = "${sourceFile.absolutePath}:20:1-20:1",
+            description =
+              """
+              XML document structures must start and end within the same entity.
+              """
+                .trimIndent(),
+          )
+        ),
     )
   }
 
   @Test
   fun parseFileLineAndMessageFromException() {
-    val exception = SAXParseException("The content of elements must consist of well-formed character data or markup.", null,
-                                      sourceFile.absolutePath, 3, -1)
+    val exception =
+      SAXParseException(
+        "The content of elements must consist of well-formed character data or markup.",
+        null,
+        sourceFile.absolutePath,
+        3,
+        -1,
+      )
     parseOutput(
       parentEventId = "testId",
       gradleOutput = exception.toString(),
-      expectedEvents = listOf(ExpectedEvent(
-        message = "The content of elements must consist of well-formed character data or markup.",
-        isFileMessageEvent = true,
-        isBuildIssueEvent = false,
-        isDuplicateMessageAware = false,
-        group = "Xml parsing errors",
-        kind= MessageEvent.Kind.WARNING,
-        parentId = "testId",
-        filePosition = "${sourceFile.absolutePath}:3:0-3:0",
-        description = """
-        The content of elements must consist of well-formed character data or markup.
-        """.trimIndent()))
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message = "The content of elements must consist of well-formed character data or markup.",
+            isFileMessageEvent = true,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = false,
+            group = "Xml parsing errors",
+            kind = MessageEvent.Kind.WARNING,
+            parentId = "testId",
+            filePosition = "${sourceFile.absolutePath}:3:0-3:0",
+            description =
+              """
+              The content of elements must consist of well-formed character data or markup.
+              """
+                .trimIndent(),
+          )
+        ),
     )
   }
 
@@ -104,18 +129,24 @@ class XmlErrorOutputParserTest : BuildOutputParserTest() {
     parseOutput(
       parentEventId = "testId",
       gradleOutput = exception.toString(),
-      expectedEvents = listOf(ExpectedEvent(
-        message = "Premature end of file.",
-        isFileMessageEvent = true,
-        isBuildIssueEvent = false,
-        isDuplicateMessageAware = false,
-        group = "Xml parsing errors",
-        kind= MessageEvent.Kind.WARNING,
-        parentId = "testId",
-        filePosition = "${sourceFile.absolutePath}:0:0-0:0",
-        description = """
-        Premature end of file.
-        """.trimIndent()))
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message = "Premature end of file.",
+            isFileMessageEvent = true,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = false,
+            group = "Xml parsing errors",
+            kind = MessageEvent.Kind.WARNING,
+            parentId = "testId",
+            filePosition = "${sourceFile.absolutePath}:0:0-0:0",
+            description =
+              """
+              Premature end of file.
+              """
+                .trimIndent(),
+          )
+        ),
     )
   }
 
@@ -126,17 +157,23 @@ class XmlErrorOutputParserTest : BuildOutputParserTest() {
     parseOutput(
       parentEventId = "testId",
       gradleOutput = exception.toString(),
-      expectedEvents = listOf(ExpectedEvent(
-        message = "Some error message.",
-        isFileMessageEvent = false,
-        isBuildIssueEvent = false,
-        isDuplicateMessageAware = false,
-        group = "Xml parsing errors",
-        kind= MessageEvent.Kind.WARNING,
-        parentId = "testId",
-        description = """
-        Some error message.
-        """.trimIndent()))
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message = "Some error message.",
+            isFileMessageEvent = false,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = false,
+            group = "Xml parsing errors",
+            kind = MessageEvent.Kind.WARNING,
+            parentId = "testId",
+            description =
+              """
+              Some error message.
+              """
+                .trimIndent(),
+          )
+        ),
     )
   }
 }

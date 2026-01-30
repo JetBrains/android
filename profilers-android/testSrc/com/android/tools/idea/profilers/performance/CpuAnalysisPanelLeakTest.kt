@@ -32,24 +32,20 @@ import com.android.tools.profilers.cpu.analysis.CpuAnalysisPanel
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.system.measureNanoTime
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 class CpuAnalysisPanelLeakTest {
   private val log = makeLogger("Range change time (ns)", "selection")
   private val timer = FakeTimer()
-  @get:Rule
-  var grpcChannel = FakeGrpcChannel("CpuCaptureStageTestChannel", FakeTransportService(timer, true))
-  @get:Rule
-  val myEdtRule = EdtRule()
-  @get:Rule
-  val applicationRule = ApplicationRule()
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule var grpcChannel = FakeGrpcChannel("CpuCaptureStageTestChannel", FakeTransportService(timer, true))
+  @get:Rule val myEdtRule = EdtRule()
+  @get:Rule val applicationRule = ApplicationRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   private lateinit var profilers: StudioProfilers
   private val services = FakeIdeProfilerServices()
@@ -59,8 +55,13 @@ class CpuAnalysisPanelLeakTest {
   @Before
   fun setUp() {
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
-    stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
-                                   resolveWorkspacePath(CpuProfilerTestUtils.ATRACE_DATA_FILE).toFile(), 123L)
+    stage =
+      CpuCaptureStage.create(
+        profilers,
+        ProfilersTestData.DEFAULT_CONFIG,
+        resolveWorkspacePath(CpuProfilerTestUtils.ATRACE_DATA_FILE).toFile(),
+        123L,
+      )
     panel = CpuAnalysisPanel(SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable), stage)
   }
 

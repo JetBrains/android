@@ -40,6 +40,12 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.testFramework.DisposableRule
+import java.time.Instant
+import java.util.concurrent.BlockingDeque
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.LinkedBlockingDeque
+import java.util.concurrent.TimeUnit
+import kotlin.test.assertEquals
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -55,13 +61,6 @@ import org.mockito.Mockito.any
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.`when`
-import java.time.Instant
-import java.util.concurrent.BlockingDeque
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.LinkedBlockingDeque
-import java.util.concurrent.TimeUnit
-import kotlin.test.assertEquals
-import org.mockito.kotlin.verify
 
 class LeakCanaryLogcatCommandHandlerTest {
   private lateinit var mockDevice: IDevice
@@ -74,8 +73,7 @@ class LeakCanaryLogcatCommandHandlerTest {
   // Needed for GetCurrentTime
   private val service = FakeTransportService(timer)
 
-  @get:Rule
-  var grpcChannel = FakeGrpcChannel("LeakCanaryLogcatCommandHandlerTest", service)
+  @get:Rule var grpcChannel = FakeGrpcChannel("LeakCanaryLogcatCommandHandlerTest", service)
   private val channel: ManagedChannel = InProcessChannelBuilder.forName(grpcChannel.name).usePlaintext().directExecutor().build()
   private var transportServiceGrpc = TransportServiceGrpc.newBlockingStub(channel)
   private val startTime = System.nanoTime()
@@ -83,8 +81,7 @@ class LeakCanaryLogcatCommandHandlerTest {
   // endTime should be greater than startTime
   private val endTime = System.nanoTime() + 10000000
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   @Before
   fun setUp() {
@@ -112,19 +109,21 @@ class LeakCanaryLogcatCommandHandlerTest {
 
   @Test
   fun testExecuteStartLogcatTracking() {
-    val command = Commands.Command.newBuilder()
-      .setType(Commands.Command.CommandType.START_LEAKCANARY_TASK)
-      .setPid(123)
-      .build()
+    val command =
+      Commands.Command.newBuilder()
+        .setType(Commands.Command.CommandType.START_LEAKCANARY_TASK)
+        .setPid(123)
+        .build()
     val response = handler.execute(command)
     assertNotNull(response)
   }
 
   @Test
   fun testExecuteStopLogcatTracking() {
-    val command = Commands.Command.newBuilder()
-      .setType(Commands.Command.CommandType.STOP_LEAKCANARY_TASK)
-      .build()
+    val command =
+      Commands.Command.newBuilder()
+        .setType(Commands.Command.CommandType.STOP_LEAKCANARY_TASK)
+        .build()
     val response = handler.execute(command)
     assertNotNull(response)
   }
@@ -132,20 +131,15 @@ class LeakCanaryLogcatCommandHandlerTest {
   @Test
   fun testLeakCanaryLogWithDifferentTag() = runTest {
     handler = LeakCanaryLogcatCommandHandler(mockDevice, transportServiceGrpc, mockEventQueue)
-    handler.execute(Commands.Command.newBuilder().setType(Commands.Command.CommandType.START_LEAKCANARY_TASK).setPid(123).build())
+    handler.execute(
+      Commands.Command.newBuilder().setType(Commands.Command.CommandType.START_LEAKCANARY_TASK).setPid(123).build()
+    )
 
     // Before pushing messages wait for logcat to setup
     waitForEvent(this)
     val message1 =
-      LogcatMessage(
-        LogcatHeader(LogLevel.DEBUG, 1, 2, "app1", "", "LeakCanaryRandom", Instant.ofEpochMilli(1000)),
-        "HEAP ANALYSIS RESULT",
-      )
-    val message2 =
-      LogcatMessage(
-        LogcatHeader(LogLevel.DEBUG, 1, 2, "app1", "", "LeakCanaryRandom", Instant.ofEpochMilli(1000)),
-        "METADATA",
-      )
+      LogcatMessage(LogcatHeader(LogLevel.DEBUG, 1, 2, "app1", "", "LeakCanaryRandom", Instant.ofEpochMilli(1000)), "HEAP ANALYSIS RESULT")
+    val message2 = LogcatMessage(LogcatHeader(LogLevel.DEBUG, 1, 2, "app1", "", "LeakCanaryRandom", Instant.ofEpochMilli(1000)), "METADATA")
     val message3 =
       LogcatMessage(
         LogcatHeader(LogLevel.DEBUG, 1, 2, "app1", "", "LeakCanaryRandom", Instant.ofEpochMilli(1000)),
@@ -161,24 +155,20 @@ class LeakCanaryLogcatCommandHandlerTest {
     verifyEndEvent()
   }
 
-  @Test
-  fun testLogcatWithMultipleLeaksOneLinePerLogEntry() = testLogcatWithMultipleLeaks(true)
+  @Test fun testLogcatWithMultipleLeaksOneLinePerLogEntry() = testLogcatWithMultipleLeaks(true)
 
-  @Test
-  fun testLogcatWithMultipleLeaksMultiLinePerLogEntry() = testLogcatWithMultipleLeaks(false)
+  @Test fun testLogcatWithMultipleLeaksMultiLinePerLogEntry() = testLogcatWithMultipleLeaks(false)
 
   private fun testLogcatWithMultipleLeaks(oneLinePerLogEntry: Boolean) = runTest {
     handler = LeakCanaryLogcatCommandHandler(mockDevice, transportServiceGrpc, mockEventQueue)
-    handler.execute(Commands.Command.newBuilder().setType(Commands.Command.CommandType.START_LEAKCANARY_TASK).setPid(123).build())
+    handler.execute(
+      Commands.Command.newBuilder().setType(Commands.Command.CommandType.START_LEAKCANARY_TASK).setPid(123).build()
+    )
 
     // Before pushing messages wait for logcat to setup
     waitForEvent(this)
-    val listOfFiles = ImmutableList.of(
-      "SingleApplicationLeak.txt",
-      "SingleApplicationLeakAnalyzeCmd.txt",
-      "MultiApplicationLeak.txt",
-      "NoLeak.txt"
-    )
+    val listOfFiles =
+      ImmutableList.of("SingleApplicationLeak.txt", "SingleApplicationLeakAnalyzeCmd.txt", "MultiApplicationLeak.txt", "NoLeak.txt")
     val fakedMessages = pushLogcatMessages(listOfFiles, mockLogcatService, oneLinePerLogEntry)
 
     // Simulate some delay to allow coroutines to process
@@ -200,18 +190,15 @@ class LeakCanaryLogcatCommandHandlerTest {
   @Test
   fun testLogcatWithCompleteLeakAfterInCompleteLeak() = runTest {
     handler = LeakCanaryLogcatCommandHandler(mockDevice, transportServiceGrpc, mockEventQueue)
-    handler.execute(Commands.Command.newBuilder().setType(Commands.Command.CommandType.START_LEAKCANARY_TASK).setPid(123).build())
+    handler.execute(
+      Commands.Command.newBuilder().setType(Commands.Command.CommandType.START_LEAKCANARY_TASK).setPid(123).build()
+    )
 
     // Before pushing messages wait for logcat to setup
     waitForEvent(this)
-    val listOfFiles = ImmutableList.of(
-      "SingleApplicationLeak.txt"
-    )
+    val listOfFiles = ImmutableList.of("SingleApplicationLeak.txt")
     val messageStart =
-      LogcatMessage(
-        LogcatHeader(LogLevel.DEBUG, 1, 2, "app1", "", "LeakCanary", Instant.ofEpochMilli(1000)),
-        "HEAP ANALYSIS RESULT",
-      )
+      LogcatMessage(LogcatHeader(LogLevel.DEBUG, 1, 2, "app1", "", "LeakCanary", Instant.ofEpochMilli(1000)), "HEAP ANALYSIS RESULT")
     val messageRandomStrings =
       LogcatMessage(
         LogcatHeader(LogLevel.DEBUG, 1, 2, "app1", "", "LeakCanary", Instant.ofEpochMilli(1000)),
@@ -242,7 +229,9 @@ class LeakCanaryLogcatCommandHandlerTest {
   @Test
   fun testLogcatWithIncompleteLeak() = runTest {
     handler = LeakCanaryLogcatCommandHandler(mockDevice, transportServiceGrpc, mockEventQueue)
-    handler.execute(Commands.Command.newBuilder().setType(Commands.Command.CommandType.START_LEAKCANARY_TASK).setPid(123).build())
+    handler.execute(
+      Commands.Command.newBuilder().setType(Commands.Command.CommandType.START_LEAKCANARY_TASK).setPid(123).build()
+    )
 
     // Before pushing messages wait for logcat to setup
     waitForEvent(this)
@@ -275,7 +264,9 @@ class LeakCanaryLogcatCommandHandlerTest {
 
   private fun verifyEndEvent() {
     `when`(transportServiceGrpc.getCurrentTime(any())).thenReturn(Transport.TimeResponse.newBuilder().setTimestampNs(endTime).build())
-    handler.execute(Commands.Command.newBuilder().setType(Commands.Command.CommandType.STOP_LEAKCANARY_TASK).setPid(123).build())
+    handler.execute(
+      Commands.Command.newBuilder().setType(Commands.Command.CommandType.STOP_LEAKCANARY_TASK).setPid(123).build()
+    )
     assertEquals(mockEventQueue.size, 1)
     val leakInfoEndEvent = mockEventQueue.poll()
     assertEquals(Common.Event.Kind.LEAKCANARY_ANALYSIS_STATUS, leakInfoEndEvent.kind)
@@ -290,7 +281,7 @@ class LeakCanaryLogcatCommandHandlerTest {
     testScope.advanceUntilIdle()
     val latch = CountDownLatch(1)
     testScope.launch {
-      var allowedCount = 10;
+      var allowedCount = 10
       while (mockEventQueue.isEmpty() && allowedCount > 0) {
         delay(10)
         allowedCount--
@@ -303,9 +294,7 @@ class LeakCanaryLogcatCommandHandlerTest {
   }
 
   private fun shouldHandleCommand(commandType: Commands.Command.CommandType): Boolean {
-    val command = Commands.Command.newBuilder()
-      .setType(commandType)
-      .build()
+    val command = Commands.Command.newBuilder().setType(commandType).build()
     return handler.shouldHandle(command)
   }
 
@@ -319,9 +308,11 @@ class LeakCanaryLogcatCommandHandlerTest {
     `when`(projectManagerMock.defaultProject).thenReturn(projectMock)
   }
 
-  private suspend fun pushLogcatMessages(listOfFiles: ImmutableList<String>,
-                                         mockLogcatService: FakeLogcatService,
-                                         oneLinePerLogEntry: Boolean): MutableList<String> {
+  private suspend fun pushLogcatMessages(
+    listOfFiles: ImmutableList<String>,
+    mockLogcatService: FakeLogcatService,
+    oneLinePerLogEntry: Boolean,
+  ): MutableList<String> {
     val resultList = mutableListOf<String>()
     listOfFiles.forEach { fileName ->
       run {
@@ -329,12 +320,7 @@ class LeakCanaryLogcatCommandHandlerTest {
         val fileContent = file.readText()
         val fileContentEachLine = if (oneLinePerLogEntry) fileContent.split("\n") else listOf(fileContent)
         for (leakLine in fileContentEachLine) {
-          val message =
-            LogcatMessage(
-              LogcatHeader(LogLevel.DEBUG, 1, 2, "app1",
-                           "", "LeakCanary", Instant.ofEpochMilli(1000)),
-              leakLine,
-            )
+          val message = LogcatMessage(LogcatHeader(LogLevel.DEBUG, 1, 2, "app1", "", "LeakCanary", Instant.ofEpochMilli(1000)), leakLine)
           mockLogcatService.logMessages(message)
         }
         resultList.add(fileContent)

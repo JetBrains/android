@@ -53,9 +53,7 @@ internal suspend fun PsiFile.containsViewSuccessor(): Boolean =
         try {
           val classes = readAction { this@containsViewSuccessor.classes }
           // Properly detect inheritance from View in Smart mode
-          smartReadAction(project) {
-            classes.any { aClass -> aClass.isValid && aClass.extendsView() }
-          }
+          smartReadAction(project) { classes.any { aClass -> aClass.isValid && aClass.extendsView() } }
         } catch (t: Exception) {
           Logger.getInstance(Utils::class.java).warn(t)
           false

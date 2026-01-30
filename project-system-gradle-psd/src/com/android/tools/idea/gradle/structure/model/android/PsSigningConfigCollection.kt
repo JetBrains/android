@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.tools.idea.gradle.dsl.android.model.android.android
 
-class PsSigningConfigCollection internal constructor(parent: PsAndroidModule)
-  : PsMutableCollectionBase<PsSigningConfig, String, PsAndroidModule>(parent) {
+class PsSigningConfigCollection internal constructor(parent: PsAndroidModule) :
+  PsMutableCollectionBase<PsSigningConfig, String, PsAndroidModule>(parent) {
   init {
     refresh()
   }
@@ -36,7 +36,7 @@ class PsSigningConfigCollection internal constructor(parent: PsAndroidModule)
   override fun update(key: String, model: PsSigningConfig) {
     model.init(
       parent.resolvedModel?.androidProject?.signingConfigs?.firstOrNull { it.name == key },
-      parent.parsedModel?.android()?.signingConfigs()?.firstOrNull { it.name() == key }
+      parent.parsedModel?.android()?.signingConfigs()?.firstOrNull { it.name() == key },
     )
   }
 

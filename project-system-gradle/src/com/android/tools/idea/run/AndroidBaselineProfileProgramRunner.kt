@@ -53,15 +53,16 @@ class AndroidBaselineProfileProgramRunner : AndroidConfigurationProgramRunner() 
     return !syncState.isSyncInProgress && syncState.isSyncNeeded() == ThreeState.NO
   }
 
-  override fun run(environment: ExecutionEnvironment,
-                   executor: AndroidConfigurationExecutor,
-                   indicator: ProgressIndicator): RunContentDescriptor {
+  override fun run(
+    environment: ExecutionEnvironment,
+    executor: AndroidConfigurationExecutor,
+    indicator: ProgressIndicator,
+  ): RunContentDescriptor {
     val swapInfo = environment.getUserData(SwapInfo.SWAP_INFO_KEY)
 
     return if (swapInfo != null) {
       throw RuntimeException("Apply (Code) Changes unsupported in this run config")
-    }
-    else {
+    } else {
       when (environment.executor.id) {
         DefaultRunExecutor.EXECUTOR_ID -> executor.run(indicator)
         else -> throw RuntimeException("Unsupported executor")

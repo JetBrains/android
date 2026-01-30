@@ -120,11 +120,9 @@ class DatabaseInspectorControllerImpl(
   /**
    * Controllers for all open tabs, keyed by id.
    *
-   * <p>Multiple tables can be open at the same time in different tabs. This map keeps track of
-   * corresponding controllers.
+   * <p>Multiple tables can be open at the same time in different tabs. This map keeps track of corresponding controllers.
    */
-  private val resultSetControllers =
-    mutableMapOf<TabId, DatabaseInspectorController.TabController>()
+  private val resultSetControllers = mutableMapOf<TabId, DatabaseInspectorController.TabController>()
 
   private val sqliteViewListener = SqliteViewListenerImpl()
 
@@ -137,9 +135,7 @@ class DatabaseInspectorControllerImpl(
   private var evaluatorTabCount = 0
   private var keepConnectionsOpen = false
     set(value) {
-      databaseInspectorClientCommandsChannel?.keepConnectionsOpen(value)?.transformNullable(
-        edtExecutor
-      ) {
+      databaseInspectorClientCommandsChannel?.keepConnectionsOpen(value)?.transformNullable(edtExecutor) {
         if (it != null) {
           field = it
           view.updateKeepConnectionOpenButton(value)
@@ -147,8 +143,7 @@ class DatabaseInspectorControllerImpl(
       }
     }
 
-  private val databaseInspectorAnalyticsTracker =
-    DatabaseInspectorAnalyticsTracker.getInstance(project)
+  private val databaseInspectorAnalyticsTracker = DatabaseInspectorAnalyticsTracker.getInstance(project)
 
   private val modelListener =
     object : DatabaseInspectorModel.Listener {
@@ -156,16 +151,9 @@ class DatabaseInspectorControllerImpl(
       private var currentCloseDatabaseIds = listOf<SqliteDatabaseId>()
 
       @UiThread
-      override fun onDatabasesChanged(
-        openDatabaseIds: List<SqliteDatabaseId>,
-        closeDatabaseIds: List<SqliteDatabaseId>,
-      ) {
-        val currentState =
-          currentOpenDatabaseIds.map { ViewDatabase(it, true) } +
-            currentCloseDatabaseIds.map { ViewDatabase(it, false) }
-        val newState =
-          openDatabaseIds.map { ViewDatabase(it, true) } +
-            closeDatabaseIds.map { ViewDatabase(it, false) }
+      override fun onDatabasesChanged(openDatabaseIds: List<SqliteDatabaseId>, closeDatabaseIds: List<SqliteDatabaseId>) {
+        val currentState = currentOpenDatabaseIds.map { ViewDatabase(it, true) } + currentCloseDatabaseIds.map { ViewDatabase(it, false) }
+        val newState = openDatabaseIds.map { ViewDatabase(it, true) } + closeDatabaseIds.map { ViewDatabase(it, false) }
 
         val diffOperations = performDiff(currentState, newState)
 
@@ -181,47 +169,25 @@ class DatabaseInspectorControllerImpl(
       }
 
       @UiThread
-      override fun onSchemaChanged(
-        databaseId: SqliteDatabaseId,
-        oldSchema: SqliteSchema,
-        newSchema: SqliteSchema,
-      ) {
+      override fun onSchemaChanged(databaseId: SqliteDatabaseId, oldSchema: SqliteSchema, newSchema: SqliteSchema) {
         updateExistingDatabaseSchemaView(databaseId, oldSchema, newSchema)
       }
 
-      private fun closeTabsBelongingToClosedDatabases(
-        currentlyOpenDbs: List<SqliteDatabaseId>,
-        newOpenDbs: List<SqliteDatabaseId>,
-      ) {
+      private fun closeTabsBelongingToClosedDatabases(currentlyOpenDbs: List<SqliteDatabaseId>, newOpenDbs: List<SqliteDatabaseId>) {
         val closedDbs = currentlyOpenDbs.filter { !newOpenDbs.contains(it) }
-        val tabsToClose =
-          resultSetControllers.keys.filterIsInstance<TabId.TableTab>().filter {
-            closedDbs.contains(it.databaseId)
-          }
+        val tabsToClose = resultSetControllers.keys.filterIsInstance<TabId.TableTab>().filter { closedDbs.contains(it.databaseId) }
 
         tabsToClose.forEach { closeTab(it) }
       }
 
-      private fun performDiff(
-        currentState: List<ViewDatabase>,
-        newState: List<ViewDatabase>,
-      ): List<DatabaseDiffOperation> {
+      private fun performDiff(currentState: List<ViewDatabase>, newState: List<ViewDatabase>): List<DatabaseDiffOperation> {
         val sortedNewState = newState.sortedBy { it.databaseId.name }
 
         val toAdd =
           newState
             .filter { !currentState.contains(it) }
-            .map {
-              DatabaseDiffOperation.AddDatabase(
-                it,
-                model.getDatabaseSchema(it.databaseId),
-                sortedNewState.indexOf(it),
-              )
-            }
-        val toRemove =
-          currentState
-            .filter { !newState.contains(it) }
-            .map { DatabaseDiffOperation.RemoveDatabase(it) }
+            .map { DatabaseDiffOperation.AddDatabase(it, model.getDatabaseSchema(it.databaseId), sortedNewState.indexOf(it)) }
+        val toRemove = currentState.filter { !newState.contains(it) }.map { DatabaseDiffOperation.RemoveDatabase(it) }
 
         return toAdd + toRemove
       }
@@ -246,15 +212,8 @@ class DatabaseInspectorControllerImpl(
     }
 
   @AnyThread
-  override suspend fun runSqlStatement(
-    databaseId: SqliteDatabaseId,
-    sqliteStatement: SqliteStatement,
-  ) =
-    withContext(uiDispatcher) {
-      openNewEvaluatorTab(databaseId)
-        .showAndExecuteSqlStatement(databaseId, sqliteStatement)
-        .await()
-    }
+  override suspend fun runSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement) =
+    withContext(uiDispatcher) { openNewEvaluatorTab(databaseId).showAndExecuteSqlStatement(databaseId, sqliteStatement).await() }
 
   @AnyThread
   override suspend fun closeDatabase(databaseId: SqliteDatabaseId): Unit =
@@ -311,10 +270,7 @@ class DatabaseInspectorControllerImpl(
 
   // TODO(161081452): move appPackageName and processDescriptor to OfflineModeManager
   @UiThread
-  override fun stopAppInspectionSession(
-    appPackageName: String?,
-    processDescriptor: ProcessDescriptor,
-  ) {
+  override fun stopAppInspectionSession(appPackageName: String?, processDescriptor: ProcessDescriptor) {
     databaseInspectorClientCommandsChannel = null
     this.processDescriptor = null
     this.appPackageName = null
@@ -325,17 +281,11 @@ class DatabaseInspectorControllerImpl(
   }
 
   /**
-   * Download files for live dbs and open relative database in database inspector. To cancel this
-   * operation users should cancel [downloadAndOpenOfflineDatabasesJob].
+   * Download files for live dbs and open relative database in database inspector. To cancel this operation users should cancel
+   * [downloadAndOpenOfflineDatabasesJob].
    */
-  private fun enterOfflineMode(
-    databasesToDownload: List<SqliteDatabaseId>,
-    appPackageName: String?,
-    processDescriptor: ProcessDescriptor,
-  ) {
-    val isDatabaseInspectorSelected =
-      appInspectionIdeServices?.isTabSelected(DatabaseInspectorTabProvider.DATABASE_INSPECTOR_ID)
-        ?: false
+  private fun enterOfflineMode(databasesToDownload: List<SqliteDatabaseId>, appPackageName: String?, processDescriptor: ProcessDescriptor) {
+    val isDatabaseInspectorSelected = appInspectionIdeServices?.isTabSelected(DatabaseInspectorTabProvider.DATABASE_INSPECTOR_ID) ?: false
     // Don't enter offline mode if DBI is not currently being used.
     // This prevents downloading files for no reason but also prevents the offline mode permissions
     // dialog to show up when the user does not expect it.
@@ -350,11 +300,7 @@ class DatabaseInspectorControllerImpl(
         var totalSizeDownloaded = 0L
 
         val flow =
-          offlineModeManager.downloadFiles(
-            databasesToDownload,
-            processDescriptor,
-            appPackageName,
-          ) { message, throwable ->
+          offlineModeManager.downloadFiles(databasesToDownload, processDescriptor, appPackageName) { message, throwable ->
             view.reportError(message, throwable)
           }
 
@@ -369,9 +315,7 @@ class DatabaseInspectorControllerImpl(
                   view.showOfflineModeUnavailablePanel()
                 } else {
                   it.filesDownloaded.forEach { databaseFileData ->
-                    totalSizeDownloaded +=
-                      databaseFileData.mainFile.length +
-                        databaseFileData.walFiles.sumOf { file -> file.length }
+                    totalSizeDownloaded += databaseFileData.mainFile.length + databaseFileData.walFiles.sumOf { file -> file.length }
 
                     // we open dbs only after all downloads are completed because if the user opens
                     // a tab before all downloads are done,
@@ -379,9 +323,7 @@ class DatabaseInspectorControllerImpl(
                     // TODO(b/168969287)
                     // TODO(b/169319781) we shouldn't call DatabaseInspectorProjectService from
                     // here.
-                    DatabaseInspectorProjectService.getInstance(project)
-                      .openSqliteDatabase(databaseFileData)
-                      .await()
+                    DatabaseInspectorProjectService.getInstance(project).openSqliteDatabase(databaseFileData).await()
                   }
                 }
               }
@@ -465,21 +407,11 @@ class DatabaseInspectorControllerImpl(
           val rowBatchSize = tabController.getRowBatchSize()
           when (val tabId = it.key) {
             is TabId.TableTab -> {
-              TabDescription.Table(
-                tabId.databaseId.path,
-                tabId.tableName,
-                isLiveUpdateEnabled,
-                rowBatchSize,
-              )
+              TabDescription.Table(tabId.databaseId.path, tabId.tableName, isLiveUpdateEnabled, rowBatchSize)
             }
             is TabId.AdHocQueryTab -> {
               val params = (tabController as SqliteEvaluatorController).saveEvaluationParams()
-              TabDescription.AdHocQuery(
-                params.databaseId?.path,
-                params.statementText,
-                isLiveUpdateEnabled,
-                rowBatchSize,
-              )
+              TabDescription.AdHocQuery(params.databaseId?.path, params.statementText, isLiveUpdateEnabled, rowBatchSize)
             }
           }
         }
@@ -497,14 +429,7 @@ class DatabaseInspectorControllerImpl(
           is TabDescription.Table ->
             schema.tables
               .find { tabDescription.tableName == it.name }
-              ?.let {
-                openTableTab(
-                  databaseId,
-                  it,
-                  tabDescription.liveUpdatesEnabled,
-                  tabDescription.rowBatchSize,
-                )
-              }
+              ?.let { openTableTab(databaseId, it, tabDescription.liveUpdatesEnabled, tabDescription.rowBatchSize) }
           is TabDescription.AdHocQuery -> {
             openNewEvaluatorTab(
               databaseId,
@@ -556,11 +481,7 @@ class DatabaseInspectorControllerImpl(
     }
   }
 
-  private fun updateExistingDatabaseSchemaView(
-    databaseId: SqliteDatabaseId,
-    oldSchema: SqliteSchema,
-    newSchema: SqliteSchema,
-  ) {
+  private fun updateExistingDatabaseSchemaView(databaseId: SqliteDatabaseId, oldSchema: SqliteSchema, newSchema: SqliteSchema) {
     val diffOperations = mutableListOf<SchemaDiffOperation>()
 
     oldSchema.tables.forEach { oldTable ->
@@ -581,10 +502,7 @@ class DatabaseInspectorControllerImpl(
         val indexedSqliteTable = IndexedSqliteTable(newTable, tableIndex)
         val oldTable = oldSchema.tables.firstOrNull { it.name == newTable.name }
         if (oldTable == null) {
-          val indexedColumnsToAdd =
-            newTable.columns.mapIndexed { colIndex, sqliteColumn ->
-              IndexedSqliteColumn(sqliteColumn, colIndex)
-            }
+          val indexedColumnsToAdd = newTable.columns.mapIndexed { colIndex, sqliteColumn -> IndexedSqliteColumn(sqliteColumn, colIndex) }
 
           diffOperations.add(AddTable(indexedSqliteTable, indexedColumnsToAdd))
         } else if (oldTable != newTable) {
@@ -602,13 +520,9 @@ class DatabaseInspectorControllerImpl(
     } catch (e: Exception) {
       // this UI change does not correspond to a change in the model, therefore it has to be done
       // manually
-      view.updateDatabases(
-        listOf(DatabaseDiffOperation.RemoveDatabase(ViewDatabase(databaseId, true)))
-      )
+      view.updateDatabases(listOf(DatabaseDiffOperation.RemoveDatabase(ViewDatabase(databaseId, true))))
       val index = model.getAllDatabaseIds().sortedBy { it.name }.indexOf(databaseId)
-      view.updateDatabases(
-        listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), newSchema, index))
-      )
+      view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), newSchema, index)))
     }
   }
 
@@ -632,10 +546,7 @@ class DatabaseInspectorControllerImpl(
       )
 
     val tabNames = view.getTabNames()
-    val name =
-      UniqueNameGenerator.generateUniqueName("New Query", "", "", " [", "]") {
-        !tabNames.contains(it)
-      }
+    val name = UniqueNameGenerator.generateUniqueName("New Query", "", "", " [", "]") { !tabNames.contains(it) }
     view.openTab(tabId, name, StudioIcons.DatabaseInspector.TABLE, sqliteEvaluatorView.component)
 
     val sqliteEvaluatorController =
@@ -664,12 +575,7 @@ class DatabaseInspectorControllerImpl(
   }
 
   @UiThread
-  private fun openTableTab(
-    databaseId: SqliteDatabaseId,
-    table: SqliteTable,
-    liveUpdatesEnabled: Boolean,
-    rowBatchSize: Int,
-  ) {
+  private fun openTableTab(databaseId: SqliteDatabaseId, table: SqliteTable, liveUpdatesEnabled: Boolean, rowBatchSize: Int) {
     val tabId = TabId.TableTab(databaseId, table.name)
     if (tabId in resultSetControllers) {
       view.focusTab(tabId)
@@ -677,8 +583,7 @@ class DatabaseInspectorControllerImpl(
     }
 
     val tableView = viewFactory.createTableView(TABLE)
-    val icon =
-      if (table.isView) StudioIcons.DatabaseInspector.VIEW else StudioIcons.DatabaseInspector.TABLE
+    val icon = if (table.isView) StudioIcons.DatabaseInspector.VIEW else StudioIcons.DatabaseInspector.TABLE
     view.openTab(tabId, table.name, icon, tableView.component)
 
     val tableController =
@@ -687,9 +592,7 @@ class DatabaseInspectorControllerImpl(
         rowBatchSize = rowBatchSize,
         view = tableView,
         databaseId = databaseId,
-        tableSupplier = {
-          model.getDatabaseSchema(databaseId)?.tables?.firstOrNull { it.name == table.name }
-        },
+        tableSupplier = { model.getDatabaseSchema(databaseId)?.tables?.firstOrNull { it.name == table.name } },
         databaseRepository = databaseRepository,
         sqliteStatement = createSqliteStatement(project, selectAllAndRowIdFromTable(table)),
         closeTabInvoked = { closeTab(tabId) },
@@ -718,41 +621,26 @@ class DatabaseInspectorControllerImpl(
 
   /** Removes tables we don't care about from the schema. */
   private fun filterSqliteSchema(schema: SqliteSchema): SqliteSchema {
-    val filteredTables =
-      schema.tables.filter { it.name != "android_metadata" && it.name != "sqlite_sequence" }
+    val filteredTables = schema.tables.filter { it.name != "android_metadata" && it.name != "sqlite_sequence" }
     return SqliteSchema(filteredTables)
   }
 
   private fun showExportDialog(exportDialogParams: ExportDialogParams) {
-    val view =
-      viewFactory.createExportToFileView(
-        project,
-        exportDialogParams,
-        databaseInspectorAnalyticsTracker,
-      )
+    val view = viewFactory.createExportToFileView(project, exportDialogParams, databaseInspectorAnalyticsTracker)
     val controller =
       ExportToFileController(
         project,
         projectScope,
         view,
         databaseRepository,
-        downloadDatabase = { id, onError ->
-          processDescriptor?.let { procDesc -> downloadDatabase(id, onError, procDesc) }
-            ?: emptyFlow()
-        },
+        downloadDatabase = { id, onError -> processDescriptor?.let { procDesc -> downloadDatabase(id, onError, procDesc) } ?: emptyFlow() },
         deleteDatabase = { fileDatabaseManager.cleanUp(it) },
-        acquireDatabaseLock = {
-          databaseInspectorClientCommandsChannel?.acquireDatabaseLock(it)?.await()
-        },
-        releaseDatabaseLock = {
-          databaseInspectorClientCommandsChannel?.releaseDatabaseLock(it)?.await()
-        },
+        acquireDatabaseLock = { databaseInspectorClientCommandsChannel?.acquireDatabaseLock(it)?.await() },
+        releaseDatabaseLock = { databaseInspectorClientCommandsChannel?.releaseDatabaseLock(it)?.await() },
         taskExecutor = taskExecutor,
         edtExecutor = edtExecutor,
         notifyExportInProgress = { job ->
-          viewFactory
-            .createExportInProgressView(project, job, taskExecutor.asCoroutineDispatcher())
-            .show()
+          viewFactory.createExportInProgressView(project, job, taskExecutor.asCoroutineDispatcher()).show()
         },
         notifyExportComplete = { request ->
           appInspectionIdeServices?.showNotification( // TODO(161081452):  replace with a Toast
@@ -771,8 +659,7 @@ class DatabaseInspectorControllerImpl(
           )
         },
         notifyExportError = { _, throwable ->
-          if (throwable is CancellationException)
-            return@ExportToFileController // normal cancellation of a coroutine as per Kotlin spec
+          if (throwable is CancellationException) return@ExportToFileController // normal cancellation of a coroutine as per Kotlin spec
           val title = DatabaseInspectorBundle.message("export.notification.error.title")
           thisLogger().warn(title, throwable)
           appInspectionIdeServices?.showNotification(
@@ -792,22 +679,15 @@ class DatabaseInspectorControllerImpl(
     onError: (String, Throwable?) -> Unit,
     processDescriptor: ProcessDescriptor,
   ): Flow<DownloadProgress> {
-    return offlineModeManager.downloadFiles(
-      listOf(databaseId),
-      processDescriptor,
-      appPackageName,
-      onError,
-    )
+    return offlineModeManager.downloadFiles(listOf(databaseId), processDescriptor, appPackageName, onError)
   }
 
   private inner class SqliteViewListenerImpl : DatabaseInspectorView.Listener {
     override fun tableNodeActionInvoked(databaseId: SqliteDatabaseId, table: SqliteTable) {
       val connectivityState =
         when (databaseId) {
-          is SqliteDatabaseId.FileSqliteDatabaseId ->
-            AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_OFFLINE
-          is LiveSqliteDatabaseId ->
-            AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_ONLINE
+          is SqliteDatabaseId.FileSqliteDatabaseId -> AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_OFFLINE
+          is LiveSqliteDatabaseId -> AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_ONLINE
         }
 
       databaseInspectorAnalyticsTracker.trackStatementExecuted(
@@ -826,9 +706,7 @@ class DatabaseInspectorControllerImpl(
     }
 
     override fun refreshAllOpenDatabasesSchemaActionInvoked() {
-      databaseInspectorAnalyticsTracker.trackTargetRefreshed(
-        AppInspectionEvent.DatabaseInspectorEvent.TargetType.SCHEMA_TARGET
-      )
+      databaseInspectorAnalyticsTracker.trackTargetRefreshed(AppInspectionEvent.DatabaseInspectorEvent.TargetType.SCHEMA_TARGET)
       projectScope.launch { model.getOpenDatabaseIds().forEach { updateDatabaseSchema(it) } }
     }
 
@@ -841,8 +719,7 @@ class DatabaseInspectorControllerImpl(
       projectScope.launch { downloadAndOpenOfflineDatabasesJob?.cancelAndJoin() }
     }
 
-    override fun showExportToFileDialogInvoked(exportDialogParams: ExportDialogParams) =
-      showExportDialog(exportDialogParams)
+    override fun showExportToFileDialogInvoked(exportDialogParams: ExportDialogParams) = showExportDialog(exportDialogParams)
   }
 
   inner class SqliteEvaluatorControllerListenerImpl : SqliteEvaluatorController.Listener {
@@ -884,17 +761,15 @@ interface DatabaseInspectorController : Disposable {
   /** Adds a database that is immediately ready */
   @AnyThread suspend fun addSqliteDatabase(databaseId: SqliteDatabaseId)
 
-  @AnyThread
-  suspend fun runSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement)
+  @AnyThread suspend fun runSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement)
 
   @AnyThread suspend fun closeDatabase(databaseId: SqliteDatabaseId)
 
   /**
    * Updates schema of all open databases and notifies each tab that its data might be stale.
    *
-   * This method is called when a `DatabasePossiblyChanged` event is received from the on-device
-   * inspector which tells us that the data in a database might have changed (schema, tables or
-   * both).
+   * This method is called when a `DatabasePossiblyChanged` event is received from the on-device inspector which tells us that the data in a
+   * database might have changed (schema, tables or both).
    */
   @AnyThread suspend fun databasePossiblyChanged()
 
@@ -909,17 +784,15 @@ interface DatabaseInspectorController : Disposable {
     appPackageName: String?,
   )
 
-  @UiThread
-  fun stopAppInspectionSession(appPackageName: String?, processDescriptor: ProcessDescriptor)
+  @UiThread fun stopAppInspectionSession(appPackageName: String?, processDescriptor: ProcessDescriptor)
 
   interface TabController : Disposable {
     val closeTabInvoked: () -> Unit
 
     /**
-     * Triggers a refresh operation in this tab. If called multiple times in sequence, this method
-     * is re-executed only once the future from the first invocation completes. While the future of
-     * the first invocation is not completed, the future from the first invocation is returned to
-     * following invocations.
+     * Triggers a refresh operation in this tab. If called multiple times in sequence, this method is re-executed only once the future from
+     * the first invocation completes. While the future of the first invocation is not completed, the future from the first invocation is
+     * returned to following invocations.
      */
     fun refreshData(): ListenableFuture<Unit>
 
@@ -942,11 +815,9 @@ sealed class TabId {
   data class AdHocQueryTab(val tabId: Int) : TabId()
 }
 
-private fun Map.Entry<TabId, DatabaseInspectorController.TabController>.getDatabaseId():
-  SqliteDatabaseId? {
+private fun Map.Entry<TabId, DatabaseInspectorController.TabController>.getDatabaseId(): SqliteDatabaseId? {
   return when (val tabId = key) {
     is TabId.TableTab -> tabId.databaseId
-    is TabId.AdHocQueryTab ->
-      (value as? SqliteEvaluatorController)?.saveEvaluationParams()?.databaseId
+    is TabId.AdHocQueryTab -> (value as? SqliteEvaluatorController)?.saveEvaluationParams()?.databaseId
   }
 }

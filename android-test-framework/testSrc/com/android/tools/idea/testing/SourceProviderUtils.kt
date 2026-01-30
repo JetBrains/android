@@ -54,8 +54,7 @@ fun Project.dumpSourceProviders(): String {
         return result
       }
 
-      fun String.toPrintablePath(): String =
-        this.replace(projectRootPath.absolutePath.toSystemIndependent(), ".", false)
+      fun String.toPrintablePath(): String = this.replace(projectRootPath.absolutePath.toSystemIndependent(), ".", false)
 
       fun <T, F> T.dumpPathsCore(name: String, getter: (T) -> Iterable<F>, mapper: (F) -> String?) {
         val entries = getter(this).toList()
@@ -64,20 +63,13 @@ fun Project.dumpSourceProviders(): String {
         nest { entries.mapNotNull(mapper).forEach { out(it.toPrintablePath()) } }
       }
 
-      fun IdeSourceProvider.dumpPaths(
-        name: String,
-        getter: (IdeSourceProvider) -> Collection<File>,
-      ) = dumpPathsCore(name, getter) { it.path.toSystemIndependent() }
+      fun IdeSourceProvider.dumpPaths(name: String, getter: (IdeSourceProvider) -> Collection<File>) =
+        dumpPathsCore(name, getter) { it.path.toSystemIndependent() }
 
-      fun IdeaSourceProvider.dumpUrls(
-        name: String,
-        getter: (IdeaSourceProvider) -> Iterable<String>,
-      ) = dumpPathsCore(name, getter) { it }
+      fun IdeaSourceProvider.dumpUrls(name: String, getter: (IdeaSourceProvider) -> Iterable<String>) = dumpPathsCore(name, getter) { it }
 
-      fun IdeaSourceProvider.dumpPaths(
-        name: String,
-        getter: (IdeaSourceProvider) -> Iterable<VirtualFile?>,
-      ) = dumpPathsCore(name, getter) { it?.url }
+      fun IdeaSourceProvider.dumpPaths(name: String, getter: (IdeaSourceProvider) -> Iterable<VirtualFile?>) =
+        dumpPathsCore(name, getter) { it?.url }
 
       fun IdeCustomSourceDirectory.dump() {
         nest("CustomSourceDirectory") {
@@ -171,18 +163,12 @@ fun Project.dumpSourceProviders(): String {
               nest("by AndroidModel:") {
                 model.defaultSourceProvider?.dump()
                 nest("Active:") { model.activeSourceProviders.forEach { it.dump() } }
-                nest("All:") {
-                  model.allSourceProviders.sortedBy { it.adjustedName() }.forEach { it.dump() }
-                }
+                nest("All:") { model.allSourceProviders.sortedBy { it.adjustedName() }.forEach { it.dump() } }
                 nest("HostTest:") {
-                  model.hostTestSourceProviders.forEach { (k, v) ->
-                    nest(k.type.toPrintableName()) { v.forEach { it.dump() } }
-                  }
+                  model.hostTestSourceProviders.forEach { (k, v) -> nest(k.type.toPrintableName()) { v.forEach { it.dump() } } }
                 }
                 nest("DeviceTest:") {
-                  model.deviceTestSourceProviders.forEach { (k, v) ->
-                    nest(k.type.toPrintableName()) { v.forEach { it.dump() } }
-                  }
+                  model.deviceTestSourceProviders.forEach { (k, v) -> nest(k.type.toPrintableName()) { v.forEach { it.dump() } } }
                 }
                 nest("TestFixtures:") { model.testFixturesSourceProviders.forEach { it.dump() } }
               }
@@ -192,28 +178,18 @@ fun Project.dumpSourceProviders(): String {
               dumpPathsCore("Manifests", { getManifestFiles(facet) }, { it.url })
               nest("Sources:") { sourceProviderManager.sources.dump("Sources") }
               nest("HostTestSources:") {
-                sourceProviderManager.hostTestSources.forEach {
-                  it.value.dump("${it.key.type.toPrintableName()}Sources")
-                }
+                sourceProviderManager.hostTestSources.forEach { it.value.dump("${it.key.type.toPrintableName()}Sources") }
               }
               nest("DeviceTestSources:") {
-                sourceProviderManager.deviceTestSources.forEach {
-                  it.value.dump("${it.key.type.toPrintableName()}TestSources")
-                }
+                sourceProviderManager.deviceTestSources.forEach { it.value.dump("${it.key.type.toPrintableName()}TestSources") }
               }
               nest("TestSuiteSources:") {
                 sourceProviderManager.testSuiteSources.forEach {
-                  it.value.forEach { sourceProvider ->
-                    sourceProvider.dump("${it.key}TestSuiteSources")
-                  }
+                  it.value.forEach { sourceProvider -> sourceProvider.dump("${it.key}TestSuiteSources") }
                 }
               }
-              nest("TestFixturesSources:") {
-                sourceProviderManager.testFixturesSources.dump("TestFixturesSources")
-              }
-              nest("GeneratedSources:") {
-                sourceProviderManager.generatedSources.dump("GeneratedSources")
-              }
+              nest("TestFixturesSources:") { sourceProviderManager.testFixturesSources.dump("TestFixturesSources") }
+              nest("GeneratedSources:") { sourceProviderManager.generatedSources.dump("GeneratedSources") }
               nest("GeneratedHostTestSources:") {
                 sourceProviderManager.generatedHostTestSources.forEach {
                   it.value.dump("Generated${it.key.type.toPrintableName()}TestSources")
@@ -225,56 +201,36 @@ fun Project.dumpSourceProviders(): String {
                 }
               }
               nest("GeneratedTestFixturesSources:") {
-                sourceProviderManager.generatedTestFixturesSources.dump(
-                  "GeneratedTestFixturesSources"
-                )
+                sourceProviderManager.generatedTestFixturesSources.dump("GeneratedTestFixturesSources")
               }
               nest("AllVariantAllArtifactsSources:") {
-                sourceProviderManager.allVariantAllArtifactsSourceProviders
-                  .sortedBy { it.adjustedName() }
-                  .forEach { it.dump() }
+                sourceProviderManager.allVariantAllArtifactsSourceProviders.sortedBy { it.adjustedName() }.forEach { it.dump() }
               }
               nest("CurrentAndSomeFrequentlyUsedInactiveSourceProviders:") {
                 sourceProviderManager.currentAndSomeFrequentlyUsedInactiveSourceProviders
                   .sortedBy { it.adjustedName() }
                   .forEach { it.dump() }
               }
-              nest("CurrentSourceProviders:") {
-                sourceProviderManager.currentSourceProviders.forEach { it.dump() }
-              }
+              nest("CurrentSourceProviders:") { sourceProviderManager.currentSourceProviders.forEach { it.dump() } }
               nest("CurrentHostTestSourceProviders:") {
-                sourceProviderManager.currentHostTestSourceProviders.values.flatten().forEach {
-                  it.dump()
-                }
+                sourceProviderManager.currentHostTestSourceProviders.values.flatten().forEach { it.dump() }
               }
               nest("CurrentDeviceTestSourceProviders:") {
-                sourceProviderManager.currentDeviceTestSourceProviders.values.flatten().forEach {
-                  it.dump()
-                }
+                sourceProviderManager.currentDeviceTestSourceProviders.values.flatten().forEach { it.dump() }
               }
               nest("CurrentTestSuiteSourceProviders:") {
-                sourceProviderManager.currentTestSuiteSourceProviders.values.flatten().forEach {
-                  it.dump()
-                }
+                sourceProviderManager.currentTestSuiteSourceProviders.values.flatten().forEach { it.dump() }
               }
-              nest("CurrentTestFixturesSourceProviders:") {
-                sourceProviderManager.currentTestFixturesSourceProviders.forEach { it.dump() }
-              }
+              nest("CurrentTestFixturesSourceProviders:") { sourceProviderManager.currentTestFixturesSourceProviders.forEach { it.dump() } }
             }
           }
         }
-      val buildConfigurationFiles =
-        getProjectSystem()
-          .getBuildConfigurationSourceProvider()
-          ?.getBuildConfigurationFiles()
-          .orEmpty()
+      val buildConfigurationFiles = getProjectSystem().getBuildConfigurationSourceProvider()?.getBuildConfigurationFiles().orEmpty()
       if (buildConfigurationFiles.isNotEmpty()) {
         nest("Build configuration files:") {
           buildConfigurationFiles
             .sortedBy { it.groupOrder }
-            .forEach {
-              out("${it.file.url.toPrintablePath()} : ${it.displayName} [${it.groupOrder}]")
-            }
+            .forEach { out("${it.file.url.toPrintablePath()} : ${it.displayName} [${it.groupOrder}]") }
         }
       }
     }

@@ -25,6 +25,8 @@ import com.intellij.openapi.fileEditor.FileEditorNavigatable
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.TemporaryDirectory
 import com.intellij.testFramework.replaceService
+import java.io.File
+import java.net.URI
 import org.jetbrains.android.ComponentStack
 import org.junit.After
 import org.junit.Before
@@ -38,15 +40,12 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
-import java.net.URI
-import java.io.File
 
 class BenchmarkLinkListenerTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val temporaryDirectoryRule = TemporaryDirectory()
 
-  @get:Rule
-  val rules = checkNotNull(RuleChain.outerRule(projectRule).around(temporaryDirectoryRule))
+  @get:Rule val rules = checkNotNull(RuleChain.outerRule(projectRule).around(temporaryDirectoryRule))
   private val mockEditorService = mock<FileEditorManager>()
   private val mockBrowserService = mock<BrowserLauncher>()
   private val fileCapture = ArgumentCaptor.forClass(FileEditorNavigatable::class.java)
@@ -71,9 +70,7 @@ class BenchmarkLinkListenerTest {
     val listener = BenchmarkLinkListener(projectRule.project)
     val traceFile = FileUtil.createTempFile("traceFile", ".trace")
     traceFile.deleteOnExit()
-    ApplicationManager.getApplication().invokeAndWait {
-      listener.hyperlinkClicked("file://${traceFile.name}")
-    }
+    ApplicationManager.getApplication().invokeAndWait { listener.hyperlinkClicked("file://${traceFile.name}") }
     assertThat(fileCapture.value.file.name).isEqualTo(traceFile.name)
   }
 
@@ -150,8 +147,10 @@ class BenchmarkLinkListenerTest {
 private class FakePerfettoLoader {
   lateinit var capturedFile: File
     private set
+
   var capturedQuery: String? = null
     private set
+
   var callCount = 0
     private set
 

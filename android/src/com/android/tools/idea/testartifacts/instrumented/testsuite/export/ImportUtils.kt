@@ -54,10 +54,6 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.JDOMUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
-import org.jdom.JDOMException
-import org.xml.sax.Attributes
-import org.xml.sax.InputSource
-import org.xml.sax.helpers.DefaultHandler
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStreamReader
@@ -65,6 +61,10 @@ import java.io.OutputStream
 import java.nio.charset.StandardCharsets
 import java.time.Duration
 import javax.xml.parsers.SAXParserFactory
+import org.jdom.JDOMException
+import org.xml.sax.Attributes
+import org.xml.sax.InputSource
+import org.xml.sax.helpers.DefaultHandler
 
 private val logger: Logger
   get() = Logger.getInstance("ImportUtils")
@@ -76,50 +76,53 @@ private val logger: Logger
  * @return true if a given xmlFile has `androidTestMatrix` element, otherwise false.
  */
 @UiThread
-fun importAndroidTestMatrixResultXmlFile(project: Project, xmlFile: VirtualFile,
-                                         onExecutionStarted: (ExecutionEnvironment) -> Unit = {}): Boolean {
-  val rootElement = try {
-    JDOMUtil.load(VfsUtilCore.virtualToIoFile(xmlFile))
-  } catch (e: JDOMException) {
-    logger.warn(e)
-    return false
-  } catch (e: WFCException) {
-    logger.warn(e)
-    return false
-  } catch (e: UncheckedStreamException) {
-    logger.warn(e)
-    return false
-  }
+fun importAndroidTestMatrixResultXmlFile(
+  project: Project,
+  xmlFile: VirtualFile,
+  onExecutionStarted: (ExecutionEnvironment) -> Unit = {},
+): Boolean {
+  val rootElement =
+    try {
+      JDOMUtil.load(VfsUtilCore.virtualToIoFile(xmlFile))
+    } catch (e: JDOMException) {
+      logger.warn(e)
+      return false
+    } catch (e: WFCException) {
+      logger.warn(e)
+      return false
+    } catch (e: UncheckedStreamException) {
+      logger.warn(e)
+      return false
+    }
   if (rootElement.getChild("androidTestMatrix") == null) {
     return false
   }
 
   try {
     val runProfile = ImportAndroidTestMatrixRunProfile(xmlFile, project)
-    val executor = ExecutorRegistry.getInstance().getExecutorById(DefaultRunExecutor.EXECUTOR_ID)
-                   ?: return false
+    val executor = ExecutorRegistry.getInstance().getExecutorById(DefaultRunExecutor.EXECUTOR_ID) ?: return false
     val builder = ExecutionEnvironmentBuilder.create(project, executor, runProfile)
     runProfile.target?.let { builder.target(it) }
-    val runner = ProgramRunner.getRunner(executor.id, runProfile.initialConfiguration) ?: object : GenericProgramRunner<RunnerSettings>() {
-      override fun canRun(executorId: String, profile: RunProfile) = true
-      override fun getRunnerId() = "AndroidTestMatrixResultXmlFileRunner"
-    }
+    val runner =
+      ProgramRunner.getRunner(executor.id, runProfile.initialConfiguration)
+        ?: object : GenericProgramRunner<RunnerSettings>() {
+          override fun canRun(executorId: String, profile: RunProfile) = true
+
+          override fun getRunnerId() = "AndroidTestMatrixResultXmlFileRunner"
+        }
     builder.runner(runner)
     val env = builder.build()
     env.runner.execute(env)
     onExecutionStarted(env)
   } catch (e: ExecutionException) {
-    Messages.showErrorDialog(
-      project, e.message,
-      SmRunnerBundle.message("sm.test.runner.abstract.import.test.error.title"))
+    Messages.showErrorDialog(project, e.message, SmRunnerBundle.message("sm.test.runner.abstract.import.test.error.title"))
   }
 
   return true
 }
 
 /**
- * Returns a timestamp in millis when the first test case execution started.
- * If no test cases found, it falls back to [File.lastModified].
+ * Returns a timestamp in millis when the first test case execution started. If no test cases found, it falls back to [File.lastModified].
  */
 @Slow
 fun getTestStartTime(xmlFile: File): Long {
@@ -129,8 +132,8 @@ fun getTestStartTime(xmlFile: File): Long {
   return firstTestCaseElement.getAttribute("startTimestampMillis")?.value?.toLongOrNull() ?: xmlFile.lastModified()
 }
 
-class ImportAndroidTestMatrixRunProfile(private val historyXmlFile: VirtualFile, project: Project)
-  : AbstractImportTestsAction.ImportRunProfile(historyXmlFile, project) {
+class ImportAndroidTestMatrixRunProfile(private val historyXmlFile: VirtualFile, project: Project) :
+  AbstractImportTestsAction.ImportRunProfile(historyXmlFile, project) {
   override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState? {
     val state = super.getState(executor, environment)
     return if (state is ImportedTestRunnableState) {
@@ -147,17 +150,30 @@ class ImportAndroidTestMatrixRunProfile(private val historyXmlFile: VirtualFile,
 
 private class ImportAndroidTestMatrixRunProfileState(
   private val importRunProfile: ImportAndroidTestMatrixRunProfile,
-  private val historyXmlFile: File)
-  : RunProfileState, HistoryTestRunnableState {
+  private val historyXmlFile: File,
+) : RunProfileState, HistoryTestRunnableState {
   override fun execute(executor: Executor, runner: ProgramRunner<*>): ExecutionResult? {
-    val handler = object: ProcessHandler() {
-      override fun destroyProcessImpl() {}
-      override fun detachProcessImpl() { notifyProcessTerminated(0) }
-      override fun detachIsDefault(): Boolean = false
-      override fun getProcessInput(): OutputStream? = null
-    }
-    val console = AndroidTestSuiteView(
-      importRunProfile.project, importRunProfile.project, null, executor.toolWindowId, importRunProfile.initialConfiguration, myIsImportedResult = true)
+    val handler =
+      object : ProcessHandler() {
+        override fun destroyProcessImpl() {}
+
+        override fun detachProcessImpl() {
+          notifyProcessTerminated(0)
+        }
+
+        override fun detachIsDefault(): Boolean = false
+
+        override fun getProcessInput(): OutputStream? = null
+      }
+    val console =
+      AndroidTestSuiteView(
+        importRunProfile.project,
+        importRunProfile.project,
+        null,
+        executor.toolWindowId,
+        importRunProfile.initialConfiguration,
+        myIsImportedResult = true,
+      )
     console.attachToProcess(handler)
     handler.detachProcess()
 
@@ -165,7 +181,7 @@ private class ImportAndroidTestMatrixRunProfileState(
       val saxParser = SAXParserFactory.newInstance().newSAXParser()
       saxParser.parse(
         InputSource(InputStreamReader(FileInputStream(historyXmlFile), StandardCharsets.UTF_8)),
-        object: DefaultHandler() {
+        object : DefaultHandler() {
 
           private var myProcessingAndroidTestMatrixElement: Boolean = false
           private val myDevices: MutableMap<String, AndroidDevice> = mutableMapOf()
@@ -184,49 +200,52 @@ private class ImportAndroidTestMatrixRunProfileState(
                 console.testExecutionDurationOverride = Duration.ofMillis(it)
               }
             }
-            when(qName) {
+            when (qName) {
               "device" -> {
-                val device = AndroidDevice(
-                  attributes.getValue("id"),
-                  attributes.getValue("deviceName"),
-                  attributes.getValue("deviceName"),
-                  AndroidDeviceType.valueOf(attributes.getValue("deviceType")),
-                  AndroidVersion(attributes.getValue("version").toInt())
-                )
+                val device =
+                  AndroidDevice(
+                    attributes.getValue("id"),
+                    attributes.getValue("deviceName"),
+                    attributes.getValue("deviceName"),
+                    AndroidDeviceType.valueOf(attributes.getValue("deviceType")),
+                    AndroidVersion(attributes.getValue("version").toInt()),
+                  )
                 myDevices[device.id] = device
                 myCurrentTargetDevice = device
               }
 
               "additionalInfo" -> {
-                requireNotNull(myCurrentTargetDevice)
-                  .additionalInfo[attributes.getValue("key")] = attributes.getValue("value")
+                requireNotNull(myCurrentTargetDevice).additionalInfo[attributes.getValue("key")] = attributes.getValue("value")
               }
 
               "testsuite" -> {
                 val device = requireNotNull(myDevices[attributes.getValue("deviceId")])
-                val testSuite = AndroidTestSuite(
-                  device.id,
-                  device.id,
-                  attributes.getValue("testCount").toInt(),
-                  AndroidTestSuiteResult.valueOf(attributes.getValue("result")))
+                val testSuite =
+                  AndroidTestSuite(
+                    device.id,
+                    device.id,
+                    attributes.getValue("testCount").toInt(),
+                    AndroidTestSuiteResult.valueOf(attributes.getValue("result")),
+                  )
                 myCurrentTargetDevice = device
                 myCurrentTestSuite = testSuite
                 console.onTestSuiteStarted(device, testSuite)
               }
 
               "testcase" -> {
-                val testcase = AndroidTestCase(
-                  attributes.getValue("id"),
-                  attributes.getValue("methodName"),
-                  attributes.getValue("className"),
-                  attributes.getValue("packageName"),
-                  AndroidTestCaseResult.valueOf(attributes.getValue("result")),
-                  attributes.getValue("logcat"),
-                  attributes.getValue("errorStackTrace"),
-                  attributes.getValue("startTimestampMillis").toLong(),
-                  attributes.getValue("endTimestampMillis").toLong(),
-                  attributes.getValue("benchmark")
-                )
+                val testcase =
+                  AndroidTestCase(
+                    attributes.getValue("id"),
+                    attributes.getValue("methodName"),
+                    attributes.getValue("className"),
+                    attributes.getValue("packageName"),
+                    AndroidTestCaseResult.valueOf(attributes.getValue("result")),
+                    attributes.getValue("logcat"),
+                    attributes.getValue("errorStackTrace"),
+                    attributes.getValue("startTimestampMillis").toLong(),
+                    attributes.getValue("endTimestampMillis").toLong(),
+                    attributes.getValue("benchmark"),
+                  )
                 val device = requireNotNull(myCurrentTargetDevice)
                 val testsuite = requireNotNull(myCurrentTestSuite)
                 myCurrentTestCase = testcase
@@ -235,21 +254,21 @@ private class ImportAndroidTestMatrixRunProfileState(
               }
 
               "additionalTestCaseArtifact" -> {
-                requireNotNull(myCurrentTestCase)
-                  .additionalTestArtifacts[attributes.getValue("key")] = attributes.getValue("value")
+                requireNotNull(myCurrentTestCase).additionalTestArtifacts[attributes.getValue("key")] = attributes.getValue("value")
               }
 
               "testStep" -> {
-                val testStep = AndroidTestStep(
-                  attributes.getValue("id"),
-                  attributes.getValue("index").toInt(),
-                  attributes.getValue("name"),
-                  AndroidTestCaseResult.valueOf(attributes.getValue("result")),
-                  attributes.getValue("logcat"),
-                  attributes.getValue("errorStackTrace"),
-                  attributes.getValue("startTimestampMillis").toLong(),
-                  attributes.getValue("endTimestampMillis").toLong(),
-                )
+                val testStep =
+                  AndroidTestStep(
+                    attributes.getValue("id"),
+                    attributes.getValue("index").toInt(),
+                    attributes.getValue("name"),
+                    AndroidTestCaseResult.valueOf(attributes.getValue("result")),
+                    attributes.getValue("logcat"),
+                    attributes.getValue("errorStackTrace"),
+                    attributes.getValue("startTimestampMillis").toLong(),
+                    attributes.getValue("endTimestampMillis").toLong(),
+                  )
                 val device = requireNotNull(myCurrentTargetDevice)
                 val testSuite = requireNotNull(myCurrentTestSuite)
                 val testCase = requireNotNull(myCurrentTestCase)
@@ -259,8 +278,7 @@ private class ImportAndroidTestMatrixRunProfileState(
               }
 
               "additionalTestStepArtifact" -> {
-                requireNotNull(myCurrentTestStep)
-                  .additionalTestArtifacts[attributes.getValue("key")] = attributes.getValue("value")
+                requireNotNull(myCurrentTestStep).additionalTestArtifacts[attributes.getValue("key")] = attributes.getValue("value")
               }
             }
           }
@@ -269,7 +287,7 @@ private class ImportAndroidTestMatrixRunProfileState(
             if (!myProcessingAndroidTestMatrixElement) {
               return
             }
-            when(qName) {
+            when (qName) {
               "androidTestMatrix" -> {
                 myProcessingAndroidTestMatrixElement = false
               }
@@ -279,13 +297,12 @@ private class ImportAndroidTestMatrixRunProfileState(
               }
 
               "testsuite" -> {
-                console.onTestSuiteFinished(
-                  requireNotNull(myCurrentTargetDevice),
-                  requireNotNull(myCurrentTestSuite))
+                console.onTestSuiteFinished(requireNotNull(myCurrentTargetDevice), requireNotNull(myCurrentTestSuite))
               }
             }
           }
-        })
+        },
+      )
     }
 
     return DefaultExecutionResult(console, handler)

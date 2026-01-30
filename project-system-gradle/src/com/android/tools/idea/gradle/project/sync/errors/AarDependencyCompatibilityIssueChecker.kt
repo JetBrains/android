@@ -23,17 +23,20 @@ import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
+import java.util.concurrent.CompletableFuture
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
-import java.util.concurrent.CompletableFuture
 
 private const val MODULE_COMPILED_AGAINST_PATTERN = """(?<modulePath>\S+) is currently compiled against \S+."""
-private const val COMPILE_SDK_UPDATE_RECOMMENDED_ACTION_PATTERN = """Recommended action: Update this project to use a newer compileSdk[\t\s\r\n]*of at least (?<minCompileSdk>\d+), for example \d+."""
-private const val DEPENDENCY_PATTERN = """Dependency '.*' requires libraries and applications that[\t\s\r\n]*depend on it to compile against version \d+ or later of the[\t\s\r\n]*Android APIs."""
-private val COMPILE_SDK_ISSUE_REGEX = """$DEPENDENCY_PATTERN[\t\s\r\n]*$MODULE_COMPILED_AGAINST_PATTERN[\t\s\r\n]*$COMPILE_SDK_UPDATE_RECOMMENDED_ACTION_PATTERN""".toRegex()
+private const val COMPILE_SDK_UPDATE_RECOMMENDED_ACTION_PATTERN =
+  """Recommended action: Update this project to use a newer compileSdk[\t\s\r\n]*of at least (?<minCompileSdk>\d+), for example \d+."""
+private const val DEPENDENCY_PATTERN =
+  """Dependency '.*' requires libraries and applications that[\t\s\r\n]*depend on it to compile against version \d+ or later of the[\t\s\r\n]*Android APIs."""
+private val COMPILE_SDK_ISSUE_REGEX =
+  """$DEPENDENCY_PATTERN[\t\s\r\n]*$MODULE_COMPILED_AGAINST_PATTERN[\t\s\r\n]*$COMPILE_SDK_UPDATE_RECOMMENDED_ACTION_PATTERN""".toRegex()
 
-class AarDependencyCompatibilityIssueChecker: GradleIssueChecker {
+class AarDependencyCompatibilityIssueChecker : GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     // Confirm rootCause is one of the expected causes.
     val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first ?: return null
@@ -62,10 +65,11 @@ class AarDependencyCompatibilityIssueChecker: GradleIssueChecker {
   }
 }
 
-class AarDependencyCompatibilityIssue(private val buildIssue: BuildIssue): BuildIssue {
+class AarDependencyCompatibilityIssue(private val buildIssue: BuildIssue) : BuildIssue {
   override val title = buildIssue.title
   override val description = buildIssue.description
   override val quickFixes = buildIssue.quickFixes
+
   override fun getNavigatable(project: Project) = buildIssue.getNavigatable(project)
 }
 
@@ -79,24 +83,20 @@ class UpdateCompileSdkQuickFix(val modulesWithSuggestedMinCompileSdk: Map<String
       if (!project.isDisposed) {
         val buildFilesWithSuggestedMinCompileSdk = buildMap {
           for ((modulePath, minCompileSdk) in modulesWithSuggestedMinCompileSdk) {
-            project.moduleBuildFiles(modulePath).forEach {
-              put(it, minCompileSdk)
-            }
+            project.moduleBuildFiles(modulePath).forEach { put(it, minCompileSdk) }
           }
         }
         if (buildFilesWithSuggestedMinCompileSdk.isEmpty()) {
           // There is nothing to change, show an error message
           Messages.showErrorDialog(project, "Could not determine build files to apply fix", "Update minCompileSdk")
-        }
-        else {
+        } else {
           val processor = UpdateCompileSdkProcessor(project, buildFilesWithSuggestedMinCompileSdk)
           processor.setPreviewUsages(true)
           processor.run()
         }
       }
       future.complete(null)
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
       future.completeExceptionally(e)
     }
     return future

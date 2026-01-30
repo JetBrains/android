@@ -26,21 +26,17 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 
 /**
- * Runs the supplied block, which should invoke a DeviceAction. In the case of a
- * DeviceActionException, logs the exception and shows an error dialog with the supplied title.
+ * Runs the supplied block, which should invoke a DeviceAction. In the case of a DeviceActionException, logs the exception and shows an
+ * error dialog with the supplied title.
  */
-suspend fun runCatchingDeviceActionException(
-  project: Project?,
-  title: String,
-  block: suspend () -> Unit,
-) {
+suspend fun runCatchingDeviceActionException(project: Project?, title: String, block: suspend () -> Unit) {
   try {
     block()
   } catch (e: DeviceActionCanceledException) {
@@ -52,8 +48,8 @@ suspend fun runCatchingDeviceActionException(
 }
 
 /**
- * Launches a coroutine in the DeviceHandle's [scope] that runs the given [block]. Any
- * [DeviceActionException] is caught, logged, and displayed in an error popup.
+ * Launches a coroutine in the DeviceHandle's [scope] that runs the given [block]. Any [DeviceActionException] is caught, logged, and
+ * displayed in an error popup.
  *
  * @param coroutineContext additional CoroutineContext to apply to the launch
  * @param project the Project used for the error popup
@@ -63,14 +59,12 @@ fun <DeviceHandleT : DeviceHandle> DeviceHandleT.launchCatchingDeviceActionExcep
   project: Project? = null,
   block: suspend DeviceHandleT.() -> Unit,
 ) {
-  scope.launch(coroutineContext) {
-    runCatchingDeviceActionException(project, state.properties.title) { block() }
-  }
+  scope.launch(coroutineContext) { runCatchingDeviceActionException(project, state.properties.title) { block() } }
 }
 
 /**
- * Launches a coroutine in the supplied [coroutineScope] that runs the given [block]. Any
- * [DeviceActionException] is caught, logged, and displayed in an error popup.
+ * Launches a coroutine in the supplied [coroutineScope] that runs the given [block]. Any [DeviceActionException] is caught, logged, and
+ * displayed in an error popup.
  *
  * @param project the Project used for the error popup
  */
@@ -83,19 +77,16 @@ fun <DeviceTemplateT : DeviceTemplate> DeviceTemplateT.launchCatchingDeviceActio
 }
 
 /**
- * Returns the DeviceHandle associated with the existing event. Note that this depends on some
- * component related to the event implementing [DataProvider] and supplying the handle.
+ * Returns the DeviceHandle associated with the existing event. Note that this depends on some component related to the event implementing
+ * [DataProvider] and supplying the handle.
  */
 fun AnActionEvent.deviceHandle() = DEVICE_HANDLE_KEY.getData(dataContext)
 
 /**
- * Returns the DeviceTemplate associated with the existing event. Note that this depends on some
- * component related to the event implementing [DataProvider] and supplying the handle.
+ * Returns the DeviceTemplate associated with the existing event. Note that this depends on some component related to the event implementing
+ * [DataProvider] and supplying the handle.
  */
 fun AnActionEvent.deviceTemplate() = DEVICE_TEMPLATE_KEY.getData(dataContext)
 
-/**
- * Returns the [ReservationAction] for [DeviceHandle]; null if the handle does not have
- * [ReservationAction]
- */
+/** Returns the [ReservationAction] for [DeviceHandle]; null if the handle does not have [ReservationAction] */
 internal fun AnActionEvent.reservationAction() = deviceHandle()?.reservationAction

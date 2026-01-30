@@ -41,15 +41,15 @@ import com.intellij.openapi.updateSettings.impl.ChannelStatus
 import com.intellij.openapi.updateSettings.impl.UpdateSettings
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import java.io.File
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.After
 import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
 
 private val PROJECT_ROOT = File("/")
 private val APP_MODULE_ROOT = File("/app")
@@ -61,23 +61,33 @@ class AndroidSdkCompatibilityCheckerTest {
   @get:Rule val rule = RuleChain(projectRule, HeadlessDialogRule())
 
   private val checker: AndroidSdkCompatibilityChecker = AndroidSdkCompatibilityChecker()
-  private val serverFlag: MutableMap<String, RecommendedVersions> = mutableMapOf(
-    "1000" to RecommendedVersions.newBuilder().apply {
-      canaryChannel = StudioVersionRecommendation.getDefaultInstance()
-      betaRcChannel = StudioVersionRecommendation.getDefaultInstance()
-      stableChannel = StudioVersionRecommendation.getDefaultInstance()
-    }.build(),
-    "1000.1" to RecommendedVersions.newBuilder().apply {
-      canaryChannel = StudioVersionRecommendation.getDefaultInstance()
-      betaRcChannel = StudioVersionRecommendation.getDefaultInstance()
-      stableChannel = StudioVersionRecommendation.getDefaultInstance()
-    }.build(),
-    "1000.2" to RecommendedVersions.newBuilder().apply {
-      canaryChannel = StudioVersionRecommendation.getDefaultInstance()
-      betaRcChannel = StudioVersionRecommendation.getDefaultInstance()
-      stableChannel = StudioVersionRecommendation.getDefaultInstance()
-    }.build()
-  )
+  private val serverFlag: MutableMap<String, RecommendedVersions> =
+    mutableMapOf(
+      "1000" to
+        RecommendedVersions.newBuilder()
+          .apply {
+            canaryChannel = StudioVersionRecommendation.getDefaultInstance()
+            betaRcChannel = StudioVersionRecommendation.getDefaultInstance()
+            stableChannel = StudioVersionRecommendation.getDefaultInstance()
+          }
+          .build(),
+      "1000.1" to
+        RecommendedVersions.newBuilder()
+          .apply {
+            canaryChannel = StudioVersionRecommendation.getDefaultInstance()
+            betaRcChannel = StudioVersionRecommendation.getDefaultInstance()
+            stableChannel = StudioVersionRecommendation.getDefaultInstance()
+          }
+          .build(),
+      "1000.2" to
+        RecommendedVersions.newBuilder()
+          .apply {
+            canaryChannel = StudioVersionRecommendation.getDefaultInstance()
+            betaRcChannel = StudioVersionRecommendation.getDefaultInstance()
+            stableChannel = StudioVersionRecommendation.getDefaultInstance()
+          }
+          .build(),
+    )
   private val timeout: Long = 5
 
   private fun findDialog(): AndroidSdkCompatibilityDialog? = findModelessDialog<AndroidSdkCompatibilityDialog>()
@@ -94,9 +104,7 @@ class AndroidSdkCompatibilityCheckerTest {
 
   @Test
   fun `test dialog is not shown when the server flag does not exist`() {
-    projectRule.setupProjectFrom(
-      JavaModuleModelBuilder.rootModuleBuilder,
-    )
+    projectRule.setupProjectFrom(JavaModuleModelBuilder.rootModuleBuilder)
     val androidModels = getGradleAndroidModels(projectRule.project)
 
     assertThrows(TimeoutException::class.java) {
@@ -108,9 +116,7 @@ class AndroidSdkCompatibilityCheckerTest {
 
   @Test
   fun `test dialog is not shown when there are no android modules`() {
-    projectRule.setupProjectFrom(
-      JavaModuleModelBuilder.rootModuleBuilder,
-    )
+    projectRule.setupProjectFrom(JavaModuleModelBuilder.rootModuleBuilder)
     val androidModels = getGradleAndroidModels(projectRule.project)
 
     assertThrows(TimeoutException::class.java) {
@@ -122,10 +128,7 @@ class AndroidSdkCompatibilityCheckerTest {
 
   @Test
   fun `test dialog is not shown when there is a module which does not violate rules`() {
-    projectRule.setupProjectFrom(
-      JavaModuleModelBuilder.rootModuleBuilder,
-      appModuleBuilder(compileSdk = "android-33"),
-    )
+    projectRule.setupProjectFrom(JavaModuleModelBuilder.rootModuleBuilder, appModuleBuilder(compileSdk = "android-33"))
     val androidModels = getGradleAndroidModels(projectRule.project)
 
     assertThrows(TimeoutException::class.java) {
@@ -137,10 +140,7 @@ class AndroidSdkCompatibilityCheckerTest {
 
   @Test
   fun `test dialog is not shown when there is a module that violate rules but use invalid sdk`() {
-    projectRule.setupProjectFrom(
-      JavaModuleModelBuilder.rootModuleBuilder,
-      appModuleBuilder(compileSdk = "random-sdk-value"),
-    )
+    projectRule.setupProjectFrom(JavaModuleModelBuilder.rootModuleBuilder, appModuleBuilder(compileSdk = "random-sdk-value"))
     val androidModels = getGradleAndroidModels(projectRule.project)
 
     assertThrows(TimeoutException::class.java) {
@@ -155,7 +155,7 @@ class AndroidSdkCompatibilityCheckerTest {
     projectRule.setupProjectFrom(
       JavaModuleModelBuilder.rootModuleBuilder,
       appModuleBuilder(compileSdk = "android-1000.1"),
-      libModuleBuilder(compileSdk = "android-1000.2")
+      libModuleBuilder(compileSdk = "android-1000.2"),
     )
 
     val androidModels = getGradleAndroidModels(projectRule.project)
@@ -172,7 +172,7 @@ class AndroidSdkCompatibilityCheckerTest {
     projectRule.setupProjectFrom(
       JavaModuleModelBuilder.rootModuleBuilder,
       appModuleBuilder(compileSdk = "android-1000"),
-      libModuleBuilder(compileSdk = "android-1000")
+      libModuleBuilder(compileSdk = "android-1000"),
     )
     AndroidSdkCompatibilityChecker.StudioUpgradeReminder(projectRule.project).doNotAskAgainIdeLevel = true
     AndroidSdkCompatibilityChecker.StudioUpgradeReminder(projectRule.project).doNotAskAgainProjectLevel = false
@@ -188,10 +188,7 @@ class AndroidSdkCompatibilityCheckerTest {
 
   @Test
   fun `test dialog shown when only doNotAskAgainProjectLevel is set`() {
-    projectRule.setupProjectFrom(
-      JavaModuleModelBuilder.rootModuleBuilder,
-      appModuleBuilder(compileSdk = "android-1000"),
-    )
+    projectRule.setupProjectFrom(JavaModuleModelBuilder.rootModuleBuilder, appModuleBuilder(compileSdk = "android-1000"))
     AndroidSdkCompatibilityChecker.StudioUpgradeReminder(projectRule.project).doNotAskAgainIdeLevel = false
     AndroidSdkCompatibilityChecker.StudioUpgradeReminder(projectRule.project).doNotAskAgainProjectLevel = true
 
@@ -207,10 +204,7 @@ class AndroidSdkCompatibilityCheckerTest {
   @Test
   fun `test dialog not shown when channel is dev`() {
     UpdateSettings.getInstance().selectedChannelStatus = ChannelStatus.MILESTONE
-    projectRule.setupProjectFrom(
-      JavaModuleModelBuilder.rootModuleBuilder,
-      appModuleBuilder(compileSdk = "android-1000"),
-    )
+    projectRule.setupProjectFrom(JavaModuleModelBuilder.rootModuleBuilder, appModuleBuilder(compileSdk = "android-1000"))
 
     val androidModels = getGradleAndroidModels(projectRule.project)
 
@@ -223,10 +217,7 @@ class AndroidSdkCompatibilityCheckerTest {
 
   @Test
   fun `test dialog not shown when both properties are set`() {
-    projectRule.setupProjectFrom(
-      JavaModuleModelBuilder.rootModuleBuilder,
-      appModuleBuilder(compileSdk = "android-1000"),
-    )
+    projectRule.setupProjectFrom(JavaModuleModelBuilder.rootModuleBuilder, appModuleBuilder(compileSdk = "android-1000"))
     AndroidSdkCompatibilityChecker.StudioUpgradeReminder(projectRule.project).doNotAskAgainIdeLevel = true
     AndroidSdkCompatibilityChecker.StudioUpgradeReminder(projectRule.project).doNotAskAgainProjectLevel = true
 
@@ -242,16 +233,19 @@ class AndroidSdkCompatibilityCheckerTest {
   @Test
   fun `test dialog shown with released canary channel`() {
     UpdateSettings.getInstance().selectedChannelStatus = ChannelStatus.EAP
-    serverFlag["1000"] = RecommendedVersions.newBuilder().apply {
-      canaryChannel = StudioVersionRecommendation.newBuilder().apply {
-        versionReleased = true
-        buildDisplayName = "Android Studio Canary X"
-      }.build()
-    }.build()
-    projectRule.setupProjectFrom(
-      JavaModuleModelBuilder.rootModuleBuilder,
-      appModuleBuilder(compileSdk = "android-1000"),
-    )
+    serverFlag["1000"] =
+      RecommendedVersions.newBuilder()
+        .apply {
+          canaryChannel =
+            StudioVersionRecommendation.newBuilder()
+              .apply {
+                versionReleased = true
+                buildDisplayName = "Android Studio Canary X"
+              }
+              .build()
+        }
+        .build()
+    projectRule.setupProjectFrom(JavaModuleModelBuilder.rootModuleBuilder, appModuleBuilder(compileSdk = "android-1000"))
     val androidModels = getGradleAndroidModels(projectRule.project)
     checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag)
     waitForCondition(timeout, TimeUnit.SECONDS) { findDialog() != null }
@@ -267,16 +261,19 @@ class AndroidSdkCompatibilityCheckerTest {
   @Test
   fun `test dialog shown with released beta channel`() {
     UpdateSettings.getInstance().selectedChannelStatus = ChannelStatus.BETA
-    serverFlag["1000"] = RecommendedVersions.newBuilder().apply {
-      betaRcChannel = StudioVersionRecommendation.newBuilder().apply {
-        versionReleased = true
-        buildDisplayName = "Android Studio Beta Y"
-      }.build()
-    }.build()
-    projectRule.setupProjectFrom(
-      JavaModuleModelBuilder.rootModuleBuilder,
-      appModuleBuilder(compileSdk = "android-1000"),
-    )
+    serverFlag["1000"] =
+      RecommendedVersions.newBuilder()
+        .apply {
+          betaRcChannel =
+            StudioVersionRecommendation.newBuilder()
+              .apply {
+                versionReleased = true
+                buildDisplayName = "Android Studio Beta Y"
+              }
+              .build()
+        }
+        .build()
+    projectRule.setupProjectFrom(JavaModuleModelBuilder.rootModuleBuilder, appModuleBuilder(compileSdk = "android-1000"))
 
     val androidModels = getGradleAndroidModels(projectRule.project)
     checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag)
@@ -293,16 +290,19 @@ class AndroidSdkCompatibilityCheckerTest {
   @Test
   fun `test dialog shown with released stable version`() {
     UpdateSettings.getInstance().selectedChannelStatus = ChannelStatus.RELEASE
-    serverFlag["1000"] = RecommendedVersions.newBuilder().apply {
-      stableChannel = StudioVersionRecommendation.newBuilder().apply {
-        versionReleased = true
-        buildDisplayName = "Android Studio Stable Z"
-      }.build()
-    }.build()
-    projectRule.setupProjectFrom(
-      JavaModuleModelBuilder.rootModuleBuilder,
-      appModuleBuilder(compileSdk = "android-1000"),
-    )
+    serverFlag["1000"] =
+      RecommendedVersions.newBuilder()
+        .apply {
+          stableChannel =
+            StudioVersionRecommendation.newBuilder()
+              .apply {
+                versionReleased = true
+                buildDisplayName = "Android Studio Stable Z"
+              }
+              .build()
+        }
+        .build()
+    projectRule.setupProjectFrom(JavaModuleModelBuilder.rootModuleBuilder, appModuleBuilder(compileSdk = "android-1000"))
 
     val androidModels = getGradleAndroidModels(projectRule.project)
     checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag)
@@ -319,20 +319,26 @@ class AndroidSdkCompatibilityCheckerTest {
   @Test
   fun `test dialog shown with unreleased beta channel recommending canary`() {
     UpdateSettings.getInstance().selectedChannelStatus = ChannelStatus.BETA
-    serverFlag["1000"] = RecommendedVersions.newBuilder().apply {
-      canaryChannel = StudioVersionRecommendation.newBuilder().apply {
-        versionReleased = true
-        buildDisplayName = "Android Studio Canary X"
-      }.build()
-      betaRcChannel = StudioVersionRecommendation.newBuilder().apply {
-        versionReleased = false
-        buildDisplayName = "Android Studio Beta Y"
-      }.build()
-    }.build()
-    projectRule.setupProjectFrom(
-      JavaModuleModelBuilder.rootModuleBuilder,
-      appModuleBuilder(compileSdk = "android-1000"),
-    )
+    serverFlag["1000"] =
+      RecommendedVersions.newBuilder()
+        .apply {
+          canaryChannel =
+            StudioVersionRecommendation.newBuilder()
+              .apply {
+                versionReleased = true
+                buildDisplayName = "Android Studio Canary X"
+              }
+              .build()
+          betaRcChannel =
+            StudioVersionRecommendation.newBuilder()
+              .apply {
+                versionReleased = false
+                buildDisplayName = "Android Studio Beta Y"
+              }
+              .build()
+        }
+        .build()
+    projectRule.setupProjectFrom(JavaModuleModelBuilder.rootModuleBuilder, appModuleBuilder(compileSdk = "android-1000"))
 
     val androidModels = getGradleAndroidModels(projectRule.project)
     checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag)
@@ -351,16 +357,19 @@ class AndroidSdkCompatibilityCheckerTest {
   @Test
   fun `test dialog shown with unreleased alpha channel no recommendation`() {
     UpdateSettings.getInstance().selectedChannelStatus = ChannelStatus.EAP
-    serverFlag["1000"] = RecommendedVersions.newBuilder().apply {
-      canaryChannel = StudioVersionRecommendation.newBuilder().apply {
-        versionReleased = false
-        buildDisplayName = "Android Studio Canary X"
-      }.build()
-    }.build()
-    projectRule.setupProjectFrom(
-      JavaModuleModelBuilder.rootModuleBuilder,
-      appModuleBuilder(compileSdk = "android-1000"),
-    )
+    serverFlag["1000"] =
+      RecommendedVersions.newBuilder()
+        .apply {
+          canaryChannel =
+            StudioVersionRecommendation.newBuilder()
+              .apply {
+                versionReleased = false
+                buildDisplayName = "Android Studio Canary X"
+              }
+              .build()
+        }
+        .build()
+    projectRule.setupProjectFrom(JavaModuleModelBuilder.rootModuleBuilder, appModuleBuilder(compileSdk = "android-1000"))
 
     val androidModels = getGradleAndroidModels(projectRule.project)
     checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag)
@@ -377,22 +386,31 @@ class AndroidSdkCompatibilityCheckerTest {
   @Test
   fun `test sdk compatibility rules with preview sdk will use the codename`() {
     UpdateSettings.getInstance().selectedChannelStatus = ChannelStatus.EAP
-    serverFlag["TiramisuPrivacySandbox"] = RecommendedVersions.newBuilder().apply {
-      canaryChannel = StudioVersionRecommendation.newBuilder().apply {
-        versionReleased = true
-        buildDisplayName = "Android Studio Canary X"
-      }.build()
-    }.build()
-    serverFlag["34"] = RecommendedVersions.newBuilder().apply {
-      canaryChannel = StudioVersionRecommendation.newBuilder().apply {
-        versionReleased = true
-        buildDisplayName = "Android Studio Canary Y"
-      }.build()
-    }.build()
-    projectRule.setupProjectFrom(
-      JavaModuleModelBuilder.rootModuleBuilder,
-      appModuleBuilder(compileSdk = "android-TiramisuPrivacySandbox")
-    )
+    serverFlag["TiramisuPrivacySandbox"] =
+      RecommendedVersions.newBuilder()
+        .apply {
+          canaryChannel =
+            StudioVersionRecommendation.newBuilder()
+              .apply {
+                versionReleased = true
+                buildDisplayName = "Android Studio Canary X"
+              }
+              .build()
+        }
+        .build()
+    serverFlag["34"] =
+      RecommendedVersions.newBuilder()
+        .apply {
+          canaryChannel =
+            StudioVersionRecommendation.newBuilder()
+              .apply {
+                versionReleased = true
+                buildDisplayName = "Android Studio Canary Y"
+              }
+              .build()
+        }
+        .build()
+    projectRule.setupProjectFrom(JavaModuleModelBuilder.rootModuleBuilder, appModuleBuilder(compileSdk = "android-TiramisuPrivacySandbox"))
     val androidModels = getGradleAndroidModels(projectRule.project)
     checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag, AndroidVersion(34))
     waitForCondition(timeout, TimeUnit.SECONDS) { findDialog() != null }
@@ -406,52 +424,33 @@ class AndroidSdkCompatibilityCheckerTest {
   }
 
   private fun getGradleAndroidModels(project: Project): List<DataNode<GradleAndroidModelData>> {
-    val externalInfo = ProjectDataManager.getInstance().getExternalProjectData(
-      project, GradleConstants.SYSTEM_ID, project.basePath!!
-    )
+    val externalInfo = ProjectDataManager.getInstance().getExternalProjectData(project, GradleConstants.SYSTEM_ID, project.basePath!!)
     val projectStructure = externalInfo!!.externalProjectStructure
 
-    return ExternalSystemApiUtil.findAllRecursively(projectStructure!!) { node ->
-      AndroidProjectKeys.ANDROID_MODEL == node.key
-    }.map {
-      DataNode<GradleAndroidModelData>(
-        AndroidProjectKeys.ANDROID_MODEL, it.data as GradleAndroidModelData, null
-      )
-    }
+    return ExternalSystemApiUtil.findAllRecursively(projectStructure!!) { node -> AndroidProjectKeys.ANDROID_MODEL == node.key }
+      .map { DataNode<GradleAndroidModelData>(AndroidProjectKeys.ANDROID_MODEL, it.data as GradleAndroidModelData, null) }
   }
 
-  private fun appModuleBuilder(
-    appPath: String = ":myapp",
-    selectedVariant: String = "debug",
-    compileSdk: String
-  ) =
+  private fun appModuleBuilder(appPath: String = ":myapp", selectedVariant: String = "debug", compileSdk: String) =
     AndroidModuleModelBuilder(
       appPath,
       selectedVariant,
-      AndroidProjectBuilder().withAndroidProject { buildProjectWithCompileSdk(compileSdk) }
+      AndroidProjectBuilder().withAndroidProject { buildProjectWithCompileSdk(compileSdk) },
     )
 
-  private fun libModuleBuilder(
-    libPath: String = ":mylib",
-    selectedVariant: String = "debug",
-    compileSdk: String
-  ) =
+  private fun libModuleBuilder(libPath: String = ":mylib", selectedVariant: String = "debug", compileSdk: String) =
     AndroidModuleModelBuilder(
       libPath,
       selectedVariant,
-      AndroidProjectBuilder(projectType = { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY })
-        .withAndroidProject { buildProjectWithCompileSdk(compileSdk) }
+      AndroidProjectBuilder(projectType = { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY }).withAndroidProject {
+        buildProjectWithCompileSdk(compileSdk)
+      },
     )
 
   private fun buildProjectWithCompileSdk(compileSdk: String): IdeAndroidProjectImpl {
-    return AndroidProjectBuilder(
-        androidProject = {
-          buildAndroidProjectStub().copy(
-            compileTarget = compileSdk,
-          )
-        }
-      ).build().invoke(
-        "projectName", ":app", PROJECT_ROOT, APP_MODULE_ROOT, "8.0.0", InternedModels(null)
-      ).androidProject
+    return AndroidProjectBuilder(androidProject = { buildAndroidProjectStub().copy(compileTarget = compileSdk) })
+      .build()
+      .invoke("projectName", ":app", PROJECT_ROOT, APP_MODULE_ROOT, "8.0.0", InternedModels(null))
+      .androidProject
   }
 }

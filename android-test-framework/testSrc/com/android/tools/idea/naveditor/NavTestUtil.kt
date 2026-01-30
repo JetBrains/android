@@ -32,12 +32,10 @@ private val GMAVEN =
     override fun readUrlData(url: String, timeout: Int, lastModified: Long): ReadUrlDataResult =
       throw UnsupportedOperationException("Should not attempt to read from network")
 
-    override fun error(throwable: Throwable, message: String?) =
-      throw UnsupportedOperationException("Should not have i/o errors")
+    override fun error(throwable: Throwable, message: String?) = throw UnsupportedOperationException("Should not have i/o errors")
   }
 
-private val RUNTIME_VERSION =
-  GMAVEN.findVersion(NAVIGATION_ID, "navigation-runtime", allowPreview = true)
+private val RUNTIME_VERSION = GMAVEN.findVersion(NAVIGATION_ID, "navigation-runtime", allowPreview = true)
 
 val navEditorRuntimePaths: Map<String, String>
   get() {
@@ -53,8 +51,7 @@ val navEditorRuntimePaths: Map<String, String>
 
 val navEditorFragmentPaths: Map<String, String>
   get() {
-    val navigationFragmentVersion =
-      GMAVEN.findVersion(NAVIGATION_ID, "navigation-fragment", allowPreview = true)
+    val navigationFragmentVersion = GMAVEN.findVersion(NAVIGATION_ID, "navigation-fragment", allowPreview = true)
     val supportFragmentVersion = GMAVEN.findVersion(SUPPORT_ID, "support-fragment")
 
     return mapOf(

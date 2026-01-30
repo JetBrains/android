@@ -36,16 +36,13 @@ class AndroidStudioWelcomeScreenProviderTest {
 
   private val projectRule = AndroidProjectRule.inMemory()
 
-  @get:Rule
-  val chain =
-    RuleChain(projectRule, EdtRule()) // AndroidProjectRule must get initialized off the EDT thread
+  @get:Rule val chain = RuleChain(projectRule, EdtRule()) // AndroidProjectRule must get initialized off the EDT thread
 
   lateinit var mockAndroidStudioWelcomeScreenService: AndroidStudioWelcomeScreenService
 
   @Before
   fun setUp() {
-    mockAndroidStudioWelcomeScreenService =
-      projectRule.mockService(AndroidStudioWelcomeScreenService::class.java)
+    mockAndroidStudioWelcomeScreenService = projectRule.mockService(AndroidStudioWelcomeScreenService::class.java)
   }
 
   @Test
@@ -58,16 +55,14 @@ class AndroidStudioWelcomeScreenProviderTest {
 
   @Test
   fun createWelcomeScreen_marksWizardAsShownInService() {
-    whenever(mockAndroidStudioWelcomeScreenService.getWizardMode(any(), anyOrNull(), any()))
-      .thenReturn(FirstRunWizardMode.NEW_INSTALL)
+    whenever(mockAndroidStudioWelcomeScreenService.getWizardMode(any(), anyOrNull(), any())).thenReturn(FirstRunWizardMode.NEW_INSTALL)
     AndroidStudioWelcomeScreenProvider().createWelcomeScreen(JRootPane())
     verify(mockAndroidStudioWelcomeScreenService).wizardWasShown = true
   }
 
   @Test
   fun createWelcomeScreen_returnsWizard() {
-    whenever(mockAndroidStudioWelcomeScreenService.getWizardMode(any(), anyOrNull(), any()))
-      .thenReturn(FirstRunWizardMode.NEW_INSTALL)
+    whenever(mockAndroidStudioWelcomeScreenService.getWizardMode(any(), anyOrNull(), any())).thenReturn(FirstRunWizardMode.NEW_INSTALL)
     val screen = AndroidStudioWelcomeScreenProvider().createWelcomeScreen(JRootPane())
 
     assertTrue { screen is StudioFirstRunWelcomeScreen }

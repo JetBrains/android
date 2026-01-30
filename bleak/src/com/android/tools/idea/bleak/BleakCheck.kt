@@ -18,10 +18,13 @@ package com.android.tools.idea.bleak
 abstract class BleakCheck<OptionsType, ResultType>(val options: OptionsType, val ignoreList: IgnoreList<ResultType>) {
   // callbacks from BLeak
   abstract fun firstIterationFinished()
+
   abstract fun middleIterationFinished()
+
   abstract fun lastIterationFinished()
 
   abstract fun getResults(ignoreList: IgnoreList<ResultType>): List<ResultType>
+
   val report: String
     get() {
       return getResults(ignoreList).joinToString(separator = "\n----------------------\n")

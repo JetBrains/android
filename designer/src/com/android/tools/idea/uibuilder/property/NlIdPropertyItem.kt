@@ -79,8 +79,7 @@ open class NlIdPropertyItem(
       val newId = stripIdPrefix(value)
       val newValue = toValue(newId)
       val tag = model.getPropertyTag(this)
-      val attribute =
-        if (tag != null && tag.isValid) tag.getAttribute(ATTR_ID, ANDROID_URI) else null
+      val attribute = if (tag != null && tag.isValid) tag.getAttribute(ATTR_ID, ANDROID_URI) else null
       val xmlValue = attribute?.valueElement
 
       if (!renameRefactoring(xmlValue, oldId, newId, newValue)) {
@@ -94,11 +93,7 @@ open class NlIdPropertyItem(
 
   private fun readIdFromPsi(): String? {
     return SlowOperations.knownIssue("b/382307133").use {
-      firstTag?.let {
-        if (AndroidPsiUtils.isValid(it))
-          AndroidPsiUtils.getAttributeSafely(it, ANDROID_URI, ATTR_ID)
-        else null
-      }
+      firstTag?.let { if (AndroidPsiUtils.isValid(it)) AndroidPsiUtils.getAttributeSafely(it, ANDROID_URI, ATTR_ID) else null }
     }
   }
 
@@ -119,12 +114,7 @@ open class NlIdPropertyItem(
    *
    * @return true if the rename refactoring made the requred changes, false if the value must be set
    */
-  protected open fun renameRefactoring(
-    value: XmlAttributeValue?,
-    oldId: String,
-    newId: String,
-    newValue: String?,
-  ): Boolean {
+  protected open fun renameRefactoring(value: XmlAttributeValue?, oldId: String, newId: String, newValue: String?): Boolean {
     if (oldId.isEmpty() || newId.isEmpty() || newValue == null || value == null || !value.isValid) {
       return false
     }

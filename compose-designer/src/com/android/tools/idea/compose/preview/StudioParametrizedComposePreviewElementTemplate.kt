@@ -28,8 +28,7 @@ import com.intellij.psi.SmartPsiElementPointer
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager
 
 /**
- * [ParametrizedComposePreviewElementTemplate] based on studio-specific [ModuleRenderContext] from
- * [PsiComposePreviewElement] constructor.
+ * [ParametrizedComposePreviewElementTemplate] based on studio-specific [ModuleRenderContext] from [PsiComposePreviewElement] constructor.
  */
 class StudioParametrizedComposePreviewElementTemplate(
   basePreviewElement: PsiComposePreviewElement,
@@ -48,11 +47,9 @@ class StudioParametrizedComposePreviewElementTemplate(
             additionalProjectTransform: ClassTransform,
             additionalNonProjectTransform: ClassTransform,
             onNewModuleClassLoader: Runnable ->
-            StudioModuleClassLoaderManager.get()
-              .getPrivate(parent, it, additionalProjectTransform, additionalNonProjectTransform)
-              .also {
-                onNewModuleClassLoader.run()
-              } // TEMP: Adding this for consistency even though we pass `Runnable {}`.
+            StudioModuleClassLoaderManager.get().getPrivate(parent, it, additionalProjectTransform, additionalNonProjectTransform).also {
+              onNewModuleClassLoader.run()
+            } // TEMP: Adding this for consistency even though we pass `Runnable {}`.
           }
         }
       },

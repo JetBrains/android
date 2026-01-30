@@ -29,11 +29,11 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
 /**
- * Useful test rule for common setup across most safe args tests, which creates a single module
- * application (with module package "test.safeargs").
+ * Useful test rule for common setup across most safe args tests, which creates a single module application (with module package
+ * "test.safeargs").
  *
- * This rule also enables running tests in the EDT. Apply the [RunsInEdt] annotation either on the
- * test class or individual test method to enable it.
+ * This rule also enables running tests in the EDT. Apply the [RunsInEdt] annotation either on the test class or individual test method to
+ * enable it.
  */
 class SafeArgsRule(val mode: SafeArgsMode = SafeArgsMode.JAVA) : TestRule {
   /** Overrides the Android app package name for a given test. */
@@ -86,7 +86,7 @@ class SafeArgsRule(val mode: SafeArgsMode = SafeArgsMode.JAVA) : TestRule {
         package androidx.navigation;
 
         public interface NavArgs {}
-      """
+        """
           .trimIndent(),
       )
     ) {
@@ -103,7 +103,7 @@ class SafeArgsRule(val mode: SafeArgsMode = SafeArgsMode.JAVA) : TestRule {
         package androidx.navigation;
 
         public interface NavDirections {}
-      """
+        """
           .trimIndent(),
       )
     ) {
@@ -130,8 +130,7 @@ class SafeArgsRule(val mode: SafeArgsMode = SafeArgsMode.JAVA) : TestRule {
   }
 
   /**
-   * Test utility for setting up Safe Args Features as if for a specific [Version] of the
-   * [ANDROIDX_NAVIGATION_COMMON] artifact.
+   * Test utility for setting up Safe Args Features as if for a specific [Version] of the [ANDROIDX_NAVIGATION_COMMON] artifact.
    *
    * If this is not called, it is expected that only base functionality will be provided.
    *
@@ -140,23 +139,16 @@ class SafeArgsRule(val mode: SafeArgsMode = SafeArgsMode.JAVA) : TestRule {
   fun setSafeArgsFeatureForVersion(version: Version) {
     val features =
       setOfNotNull(
-        SafeArgsFeature.FROM_SAVED_STATE_HANDLE.takeIf {
-          version >= SafeArgsFeatureVersions.FROM_SAVED_STATE_HANDLE
-        },
-        SafeArgsFeature.TO_SAVED_STATE_HANDLE.takeIf {
-          version >= SafeArgsFeatureVersions.TO_SAVED_STATE_HANDLE
-        },
-        SafeArgsFeature.ADJUST_PARAMS_WITH_DEFAULTS.takeIf {
-          version >= SafeArgsFeatureVersions.ADJUST_PARAMS_WITH_DEFAULTS
-        },
+        SafeArgsFeature.FROM_SAVED_STATE_HANDLE.takeIf { version >= SafeArgsFeatureVersions.FROM_SAVED_STATE_HANDLE },
+        SafeArgsFeature.TO_SAVED_STATE_HANDLE.takeIf { version >= SafeArgsFeatureVersions.TO_SAVED_STATE_HANDLE },
+        SafeArgsFeature.ADJUST_PARAMS_WITH_DEFAULTS.takeIf { version >= SafeArgsFeatureVersions.ADJUST_PARAMS_WITH_DEFAULTS },
       )
     setSafeArgsFeatures(features)
   }
 
   /**
-   * Test utility for setting up Safe Args Features for our module. This allows testing for the
-   * existing / absence of various features. If this is not called (directly or indirectly), only
-   * base functionality will be provided.
+   * Test utility for setting up Safe Args Features for our module. This allows testing for the existing / absence of various features. If
+   * this is not called (directly or indirectly), only base functionality will be provided.
    *
    * This should be called before any light classes are generated.
    */

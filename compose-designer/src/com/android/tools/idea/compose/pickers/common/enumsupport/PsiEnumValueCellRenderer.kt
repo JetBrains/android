@@ -51,8 +51,7 @@ internal class PsiEnumValueCellRenderer : EnumValueListCellRenderer() {
     }
   }
 
-  override fun getToolTipText(event: MouseEvent?): String? =
-    getAndFormatDescription() ?: super.getToolTipText(event)
+  override fun getToolTipText(event: MouseEvent?): String? = getAndFormatDescription() ?: super.getToolTipText(event)
 
   override fun getHeaderRenderer(header: String, headerIcon: Icon?): Component {
     headerLabel.icon = headerIcon
@@ -65,16 +64,10 @@ internal class PsiEnumValueCellRenderer : EnumValueListCellRenderer() {
     if (iterator.hasNext()) {
       // Make sure the cell renderer has any content
       iterator.next()
-      val description =
-        iterator
-          .tag // The tag should correspond to the description attached from DescriptionEnumValue
+      val description = iterator.tag // The tag should correspond to the description attached from DescriptionEnumValue
       if (description is String) {
         // Limit the width of the resulting text using html
-        return HtmlChunk.div()
-          .attr("width", JBUIScale.scale(250))
-          .addRaw(description)
-          .wrapWith(HtmlChunk.html())
-          .toString()
+        return HtmlChunk.div().attr("width", JBUIScale.scale(250)).addRaw(description).wrapWith(HtmlChunk.html()).toString()
       }
     }
     return null

@@ -31,43 +31,38 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 
-/**
- * Coroutine-friendly wrapper around an [AsynchronousSocketChannel] with suspending read and write
- * methods.
- */
-class SuspendingSocketChannel(
-  asynchronousChannel: AsynchronousSocketChannel
-) : SuspendingNetworkChannel<AsynchronousSocketChannel>(asynchronousChannel) {
+/** Coroutine-friendly wrapper around an [AsynchronousSocketChannel] with suspending read and write methods. */
+class SuspendingSocketChannel(asynchronousChannel: AsynchronousSocketChannel) :
+  SuspendingNetworkChannel<AsynchronousSocketChannel>(asynchronousChannel) {
 
   private val readCompletionHandler = CompletionHandlerAdapter(Operation.READ)
   private val writeCompletionHandler = CompletionHandlerAdapter(Operation.WRITE)
 
   /**
    * Connects this channel to the given remote address.
+   *
    * @see AsynchronousSocketChannel.connect
    */
   suspend fun connect(remote: SocketAddress) {
-    val continuationHandler = object : CompletionHandler<Void?, CancellableContinuation<Void?>> {
+    val continuationHandler =
+      object : CompletionHandler<Void?, CancellableContinuation<Void?>> {
 
-      override fun completed(result: Void?, continuation: CancellableContinuation<Void?>) {
-        continuation.resume(null)
-      }
+        override fun completed(result: Void?, continuation: CancellableContinuation<Void?>) {
+          continuation.resume(null)
+        }
 
-      override fun failed(exception: Throwable, continuation: CancellableContinuation<Void?>) {
-        continuation.resumeWithException(exception)
+        override fun failed(exception: Throwable, continuation: CancellableContinuation<Void?>) {
+          continuation.resumeWithException(exception)
+        }
       }
-    }
-    suspendCancellableCoroutine { continuation ->
-      networkChannel.connect(remote, continuation, continuationHandler)
-    }
+    suspendCancellableCoroutine { continuation -> networkChannel.connect(remote, continuation, continuationHandler) }
   }
 
   /**
    * Reads a sequence of bytes from this channel into the given buffer.
    *
-   * [ByteBuffer.position] is advanced to the end of the read data. The read operation might not
-   * fill the buffer, but it is guaranteed to read at least one byte unless there is no remaining
-   * space in the buffer, or the end of channel is reached.
+   * [ByteBuffer.position] is advanced to the end of the read data. The read operation might not fill the buffer, but it is guaranteed to
+   * read at least one byte unless there is no remaining space in the buffer, or the end of channel is reached.
    *
    * @throws InterruptedByTimeoutException if the timeout elapses before the operation completes
    * @throws EOFException if the end of channel is reached before reading any bytes
@@ -82,13 +77,12 @@ class SuspendingSocketChannel(
   }
 
   /**
-   * Reads a sequence of bytes from this channel into the given buffer until the no more space left
-   * in the buffer or until the end of the channel is reached. [ByteBuffer.position] is advanced to
-   * the end of the read data.
+   * Reads a sequence of bytes from this channel into the given buffer until the no more space left in the buffer or until the end of the
+   * channel is reached. [ByteBuffer.position] is advanced to the end of the read data.
    *
    * @throws InterruptedByTimeoutException if the timeout elapses before the operation completes
-   * @throws EOFException if the end of channel is reached before filling the buffer; all available
-   *     data is already transferred to the buffer when the exception is thrown
+   * @throws EOFException if the end of channel is reached before filling the buffer; all available data is already transferred to the
+   *   buffer when the exception is thrown
    * @throws IOException if any I/O error occurs during the operation
    */
   suspend fun readFully(buffer: ByteBuffer, timeout: Long = 0, unit: TimeUnit = TimeUnit.MILLISECONDS) {
@@ -113,9 +107,8 @@ class SuspendingSocketChannel(
   /**
    * Writes a sequence of bytes from the given buffer into this channel.
    *
-   * [ByteBuffer.position] is advanced to the end of the written data. The write operation might not
-   * write all data remaining in the buffer, but it is guaranteed to write at least one byte unless
-   * there is no remaining data in the buffer.
+   * [ByteBuffer.position] is advanced to the end of the written data. The write operation might not write all data remaining in the buffer,
+   * but it is guaranteed to write at least one byte unless there is no remaining data in the buffer.
    *
    * @throws InterruptedByTimeoutException if the timeout elapses before the operation completes
    * @throws IOException if any I/O error occurs during the operation
@@ -129,8 +122,8 @@ class SuspendingSocketChannel(
   }
 
   /**
-   * Writes all remaining data contained in the given buffer into this channel.
-   * [ByteBuffer.position] is advanced to the end of the written data.
+   * Writes all remaining data contained in the given buffer into this channel. [ByteBuffer.position] is advanced to the end of the written
+   * data.
    *
    * @throws InterruptedByTimeoutException if the timeout elapses before the operation completes
    * @throws IOException if any I/O error occurs during the operation
@@ -159,15 +152,12 @@ class SuspendingSocketChannel(
      * Opens a suspending socket channel.
      *
      * @param group the group to which the newly constructed channel should be bound, or null for the default group
-     *
      * @see AsynchronousSocketChannel.open(group: AsynchronousChannelGroup?)
      */
     @JvmOverloads
     @JvmStatic
     suspend fun open(group: AsynchronousChannelGroup? = null): SuspendingSocketChannel {
-      return withContext(Dispatchers.IO) {
-        SuspendingSocketChannel(AsynchronousSocketChannel.open(group))
-      }
+      return withContext(Dispatchers.IO) { SuspendingSocketChannel(AsynchronousSocketChannel.open(group)) }
     }
   }
 
@@ -181,8 +171,7 @@ class SuspendingSocketChannel(
       if (result == -1) {
         assert(operation == Operation.READ)
         continuation.resumeWithException(EOFException("Reached the end of channel"))
-      }
-      else {
+      } else {
         continuation.resume(Unit)
       }
     }
@@ -197,6 +186,7 @@ class SuspendingSocketChannel(
   }
 
   private enum class Operation {
-    READ, WRITE
+    READ,
+    WRITE,
   }
 }

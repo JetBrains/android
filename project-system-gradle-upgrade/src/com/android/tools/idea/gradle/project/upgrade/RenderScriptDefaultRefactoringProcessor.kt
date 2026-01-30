@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
-import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.gradle.isMainModule
 import com.android.tools.idea.util.androidFacet
@@ -32,17 +32,18 @@ import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
 
 class RenderScriptDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
-  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
-  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val necessityInfo = PointNecessity(DEFAULT_CHANGED)
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
     val explicitProperty =
-      projectBuildModel.projectBuildModel?.propertiesModel?.declaredProperties
-        ?.any { it.name == "android.defaults.buildfeatures.renderscript" }
-      ?: false
+      projectBuildModel.projectBuildModel?.propertiesModel?.declaredProperties?.any {
+        it.name == "android.defaults.buildfeatures.renderscript"
+      } ?: false
     if (explicitProperty) return UsageInfo.EMPTY_ARRAY
     val modules = ModuleManager.getInstance(project).modules.filter { it.isMainModule() }
     modules.forEach module@{ module ->
@@ -59,9 +60,8 @@ class RenderScriptDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringPr
       if (renderScriptEnabled != null) return@module
 
       val buildFeaturesOrHigherPsiElement =
-        listOf(buildModel.android().buildFeatures(), buildModel.android(), buildModel)
-          .firstNotNullOfOrNull { it.psiElement }
-        ?: return@module
+        listOf(buildModel.android().buildFeatures(), buildModel.android(), buildModel).firstNotNullOfOrNull { it.psiElement }
+          ?: return@module
       val psiElement = WrappedPsiElement(buildFeaturesOrHigherPsiElement, this, INSERT_RENDER_SCRIPT_DIRECTIVE)
       usages.add(RenderScriptEnableUsageInfo(psiElement, renderScriptModel))
     }
@@ -73,12 +73,14 @@ class RenderScriptDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringPr
 
   override fun getCommandName() = AgpUpgradeBundle.message("renderScriptDefaultRefactoringProcessor.commandName")
 
-  override fun getShortDescription() = """
+  override fun getShortDescription() =
+    """
     The default value for buildFeatures.renderScript has changed, and some
     modules in this project appear to be using RenderScript.  Build files
     will be modified to explicitly turn renderScript on in modules with
     RenderScript sources.
-  """.trimIndent()
+    """
+      .trimIndent()
 
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.renderScriptDefault"
 
@@ -95,15 +97,14 @@ class RenderScriptDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringPr
   override val readMoreUrlRedirect = ReadMoreUrlRedirect("render-script-default")
 
   companion object {
-    val INSERT_RENDER_SCRIPT_DIRECTIVE = UsageType(AgpUpgradeBundle.messagePointer("renderScriptDefaultRefactoringProcessor.enable.usageType"))
+    val INSERT_RENDER_SCRIPT_DIRECTIVE =
+      UsageType(AgpUpgradeBundle.messagePointer("renderScriptDefaultRefactoringProcessor.enable.usageType"))
     val DEFAULT_CHANGED = AgpVersion.parse("8.0.0-alpha02")
   }
 }
 
-class RenderScriptEnableUsageInfo(
-  element: WrappedPsiElement,
-  private val resultModel: GradlePropertyModel,
-): GradleBuildModelUsageInfo(element) {
+class RenderScriptEnableUsageInfo(element: WrappedPsiElement, private val resultModel: GradlePropertyModel) :
+  GradleBuildModelUsageInfo(element) {
   override fun getTooltipText(): String = AgpUpgradeBundle.message("renderScriptBuildFeature.enable.tooltipText")
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {

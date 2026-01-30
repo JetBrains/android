@@ -23,26 +23,22 @@ import com.android.tools.idea.streaming.uisettings.data.AppLanguage
 import java.awt.Dimension
 import kotlin.math.abs
 
-/**
- * Give 7 choices for font scales. A [percent] of 100 is the normal font scale.
- */
+/** Give 7 choices for font scales. A [percent] of 100 is the normal font scale. */
 internal enum class FontScale(val percent: Int) {
   SMALL(85),
   NORMAL(100),
   LARGE_115(115),
   LARGE_130(130),
-  LARGE_150(150),  // Added in API 34
-  LARGE_180(180),  // Added in API 34
-  LARGE_200(200);  // Added in API 34
+  LARGE_150(150), // Added in API 34
+  LARGE_180(180), // Added in API 34
+  LARGE_200(200); // Added in API 34
 
   companion object {
     val scaleMap = FontScale.entries.map { it.percent }
   }
 }
 
-/**
- * Give 6 choices for wear devices.
- */
+/** Give 6 choices for wear devices. */
 internal enum class WearFontScale(val percent: Int) {
   SMALL(94),
   NORMAL(100),
@@ -56,9 +52,7 @@ internal enum class WearFontScale(val percent: Int) {
   }
 }
 
-/**
- * A model for the [UiSettingsPanel] with bindable properties for getting and setting various Android settings.
- */
+/** A model for the [UiSettingsPanel] with bindable properties for getting and setting various Android settings. */
 internal class UiSettingsModel(screenSize: Dimension, physicalDensity: Int, api: Int, private val deviceType: DeviceType) {
   private val densities = GoogleDensityRange.computeDensityRange(screenSize, physicalDensity)
 
@@ -78,42 +72,33 @@ internal class UiSettingsModel(screenSize: Dimension, physicalDensity: Int, api:
   val screenDensitySettable: ReadOnlyProperty<Boolean> = DefaultTwoWayProperty(true)
   val screenDensityIndex: TwoWayProperty<Int> = screenDensity.createMappedProperty(::toDensityIndex, ::toDensityFromIndex)
   val screenDensityMaxIndex: ReadOnlyProperty<Int> = DefaultTwoWayProperty(densities.size - 1)
-  val debugLayout:  TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
+  val debugLayout: TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
   val differentFromDefault: ReadOnlyProperty<Boolean> = DefaultTwoWayProperty(false)
   var resetAction: () -> Unit = {}
 
-  /***
-   * If font scale or density is not settable, we are likely connected to an OEM device that has
-   * "Permission Monitoring" turned on. In order to change system & secure settings the user will need to disable
-   * this in the developer options.
+  /**
+   * If font scale or density is not settable, we are likely connected to an OEM device that has "Permission Monitoring" turned on. In order
+   * to change system & secure settings the user will need to disable this in the developer options.
    */
   val permissionMonitoringDisabled: ReadOnlyProperty<Boolean> = fontScaleSettable.and(screenDensitySettable)
 
-  /**
-   * The font scale settings for wear has 6 values, API 33 has 4 values, and for API 34+ there are 7 possible values.
-   * See [FontScale]
-   */
-  private fun numberOfFontScales(api: Int): Int = when {
-    deviceType == DeviceType.WEAR -> WearFontScale.entries.size
-    api == 33 -> 4
-    else -> FontScale.entries.size
-  }
+  /** The font scale settings for wear has 6 values, API 33 has 4 values, and for API 34+ there are 7 possible values. See [FontScale] */
+  private fun numberOfFontScales(api: Int): Int =
+    when {
+      deviceType == DeviceType.WEAR -> WearFontScale.entries.size
+      api == 33 -> 4
+      else -> FontScale.entries.size
+    }
 
-  /**
-   * The scaleMap for the current device type.
-   */
+  /** The scaleMap for the current device type. */
   private val scaleMap: List<Int>
     get() = if (deviceType == DeviceType.WEAR) WearFontScale.scaleMap else FontScale.scaleMap
 
-  private fun toFontScaleInPercent(fontIndex: Int): Int =
-    scaleMap[fontIndex.coerceIn(0, fontScaleMaxIndex.value)]
+  private fun toFontScaleInPercent(fontIndex: Int): Int = scaleMap[fontIndex.coerceIn(0, fontScaleMaxIndex.value)]
 
-  private fun toFontScaleIndex(percent: Int): Int =
-    scaleMap.withIndex().minBy { (_,value) -> abs(value - percent) }.index
+  private fun toFontScaleIndex(percent: Int): Int = scaleMap.withIndex().minBy { (_, value) -> abs(value - percent) }.index
 
-  private fun toDensityFromIndex(densityIndex: Int): Int =
-    densities[densityIndex.coerceIn(0, screenDensityMaxIndex.value)]
+  private fun toDensityFromIndex(densityIndex: Int): Int = densities[densityIndex.coerceIn(0, screenDensityMaxIndex.value)]
 
-  private fun toDensityIndex(density: Int): Int =
-    densities.indexOf(densities.minBy { abs(it - density) })
+  private fun toDensityIndex(density: Int): Int = densities.indexOf(densities.minBy { abs(it - density) })
 }

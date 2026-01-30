@@ -18,9 +18,6 @@ package com.android.tools.idea.device.explorer.files.external.services
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem
 
 interface DeviceFileSystemManager {
-  /**
-   * Returns a [DeviceFileSystem] for a device by [serialNumber] or `null` if device is not
-   * available.
-   */
+  /** Returns a [DeviceFileSystem] for a device by [serialNumber] or `null` if device is not available. */
   suspend fun getFileSystem(serialNumber: String): DeviceFileSystem?
 }

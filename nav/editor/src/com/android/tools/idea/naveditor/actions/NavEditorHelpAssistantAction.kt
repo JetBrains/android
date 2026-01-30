@@ -28,8 +28,7 @@ import com.intellij.openapi.project.Project
 
 const val NAV_EDITOR_BUNDLE_ID = "NavEditor.HelpAssistant"
 
-val navEditorHelpPanelBundle =
-  HelpPanelBundle(NAV_EDITOR_BUNDLE_ID, "/naveditor_help_assistance_bundle.xml")
+val navEditorHelpPanelBundle = HelpPanelBundle(NAV_EDITOR_BUNDLE_ID, "/naveditor_help_assistance_bundle.xml")
 
 class NavEditorHelperAssistanceAction : OpenAssistSidePanelAction() {
 
@@ -50,8 +49,7 @@ class NavEditorHelperAssistanceAction : OpenAssistSidePanelAction() {
   }
 }
 
-class NavEditorPanelAssistantBundleCreator :
-  LayoutEditorHelpPanelAssistantBundleCreatorBase(navEditorHelpPanelBundle)
+class NavEditorPanelAssistantBundleCreator : LayoutEditorHelpPanelAssistantBundleCreatorBase(navEditorHelpPanelBundle)
 
 class NavEditorHelpScrollHandler : ScrollHandler {
 

@@ -26,12 +26,10 @@ import com.intellij.openapi.wm.ext.LibrarySearchHelper
  *
  * An Android environment is either Android Studio or IntelliJ with an Android facet.
  *
- * Android Tool Windows should use this instead of `ToolWindowFactory.isApplicable()` to enable
- * themselves. This is because an IntelliJ project may start up as a non Android project but then
- * turn into one if an Android Module is added.
+ * Android Tool Windows should use this instead of `ToolWindowFactory.isApplicable()` to enable themselves. This is because an IntelliJ
+ * project may start up as a non Android project but then turn into one if an Android Module is added.
  *
- * Unlike `ToolWindowFactory.isApplicable()`, `LibrarySearchHelper.isLibraryExists()` is reevaluated
- * when the project changes.
+ * Unlike `ToolWindowFactory.isApplicable()`, `LibrarySearchHelper.isLibraryExists()` is reevaluated when the project changes.
  */
 class AndroidEnvironmentChecker : LibrarySearchHelper {
   override fun isLibraryExists(project: Project): Boolean {

@@ -24,8 +24,8 @@ import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.sdklib.deviceprovisioner.TemplateActivationAction
 import com.android.sdklib.deviceprovisioner.TestDefaultDeviceActionPresentation
 import icons.StudioIcons
-import kotlinx.coroutines.flow.MutableStateFlow
 import java.time.Duration
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
@@ -43,17 +43,12 @@ internal class FakeDeviceTemplate(override val properties: DeviceProperties) : D
 
   override val activationAction =
     object : TemplateActivationAction {
-      override suspend fun activate(duration: Duration?) =
-        throw DeviceActionException("Device is unavailable")
+      override suspend fun activate(duration: Duration?) = throw DeviceActionException("Device is unavailable")
 
       override val durationUsed = false
-      override val presentation =
-        MutableStateFlow(DeviceAction.Presentation("", StudioIcons.Avd.RUN, true))
+      override val presentation = MutableStateFlow(DeviceAction.Presentation("", StudioIcons.Avd.RUN, true))
     }
   override val editAction = null
   override val deleteAction =
-    mock<DeleteAction>().also {
-      whenever(it.presentation)
-        .thenReturn(MutableStateFlow(TestDefaultDeviceActionPresentation.deleteAction))
-    }
+    mock<DeleteAction>().also { whenever(it.presentation).thenReturn(MutableStateFlow(TestDefaultDeviceActionPresentation.deleteAction)) }
 }

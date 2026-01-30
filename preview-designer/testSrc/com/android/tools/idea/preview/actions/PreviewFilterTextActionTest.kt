@@ -39,11 +39,9 @@ class PreviewFilterTextActionTest {
     val textField = action.createCustomComponent(Presentation(), ActionPlaces.UNKNOWN) as JTextField
 
     textField.text = "Hello"
-    Mockito.verify(filter, Mockito.times(1))
-      .filter(ArgumentMatchers.eq("Hello"), ArgumentMatchers.any(DataContext::class.java))
+    Mockito.verify(filter, Mockito.times(1)).filter(ArgumentMatchers.eq("Hello"), ArgumentMatchers.any(DataContext::class.java))
 
     textField.text = "World"
-    Mockito.verify(filter, Mockito.times(1))
-      .filter(ArgumentMatchers.eq("World"), ArgumentMatchers.any(DataContext::class.java))
+    Mockito.verify(filter, Mockito.times(1)).filter(ArgumentMatchers.eq("World"), ArgumentMatchers.any(DataContext::class.java))
   }
 }

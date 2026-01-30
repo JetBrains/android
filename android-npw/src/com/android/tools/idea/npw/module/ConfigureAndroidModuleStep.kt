@@ -38,48 +38,36 @@ import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.Panel
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.JBUI.Borders.empty
-import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JTextField
 import javax.swing.SwingConstants
+import org.jetbrains.android.util.AndroidBundle.message
 
-class ConfigureAndroidModuleStep(
-  model: NewAndroidModuleModel,
-  minSdkLevel: Int,
-  basePackage: String?,
-  title: String
-) : ConfigureModuleStep<NewAndroidModuleModel>(model, model.formFactor.get().toWizardFormFactor(), minSdkLevel, basePackage, title) {
+class ConfigureAndroidModuleStep(model: NewAndroidModuleModel, minSdkLevel: Int, basePackage: String?, title: String) :
+  ConfigureModuleStep<NewAndroidModuleModel>(model, model.formFactor.get().toWizardFormFactor(), minSdkLevel, basePackage, title) {
   private val appName: JTextField = JBTextField(model.applicationName.get())
   private val bytecodeCombo: JComboBox<BytecodeLevel> = BytecodeLevelComboProvider().createComponent()
 
-  override fun createMainPanel(): DialogPanel = panel {
-    if (!model.isLibrary) {
-      row("Application name") {
-        cell(appName).align(AlignX.FILL)
+  override fun createMainPanel(): DialogPanel =
+    panel {
+        if (!model.isLibrary) {
+          row("Application name") { cell(appName).align(AlignX.FILL) }
+        }
+
+        row(contextLabel("Module name", message("android.wizard.module.help.name"))) { cell(moduleName).align(AlignX.FILL) }
+
+        row("Package name") { cell(packageName).align(AlignX.FILL) }
+
+        row("Language") { cell(languageCombo).align(AlignX.FILL) }
+
+        row("Minimum SDK") { cell(apiLevelCombo).align(AlignX.FILL) }
+
+        if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get()) {
+          generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
+        }
       }
-    }
-
-    row(contextLabel("Module name", message("android.wizard.module.help.name"))) {
-      cell(moduleName).align(AlignX.FILL)
-    }
-
-    row("Package name") {
-      cell(packageName).align(AlignX.FILL)
-    }
-
-    row("Language") {
-      cell(languageCombo).align(AlignX.FILL)
-    }
-
-    row("Minimum SDK") {
-      cell(apiLevelCombo).align(AlignX.FILL)
-    }
-
-    if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get()) {
-      generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
-    }
-  }.withBorder(empty(6))
+      .withBorder(empty(6))
 
   init {
     bindings.bindTwoWay(TextProperty(appName), model.applicationName)
@@ -102,15 +90,12 @@ class ConfigureAndroidModuleStep(
 
 fun Panel.generateBuildConfigurationLanguageRow(comboBox: JComboBox<BuildConfigurationLanguageForNewModule>) {
   val buildConfigurationLanguageLabel =
-    ContextHelpLabel.createWithLink(
-      null,
-      message("android.wizard.module.help.buildconfigurationlanguage.description"),
-      "Learn more"
-    ) { BrowserUtil.browse(KOTLIN_DSL_LINK) }.apply {
-      horizontalTextPosition = SwingConstants.LEFT
-      text = "Build Configuration Language"
-    }
-  row(buildConfigurationLanguageLabel) {
-    cell(comboBox).align(AlignX.FILL)
-  }
+    ContextHelpLabel.createWithLink(null, message("android.wizard.module.help.buildconfigurationlanguage.description"), "Learn more") {
+        BrowserUtil.browse(KOTLIN_DSL_LINK)
+      }
+      .apply {
+        horizontalTextPosition = SwingConstants.LEFT
+        text = "Build Configuration Language"
+      }
+  row(buildConfigurationLanguageLabel) { cell(comboBox).align(AlignX.FILL) }
 }

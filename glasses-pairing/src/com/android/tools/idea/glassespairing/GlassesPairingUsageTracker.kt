@@ -23,10 +23,7 @@ object GlassesPairingUsageTracker {
   fun log(eventKind: GlassesPairingEvent.EventKind) {
     val event = GlassesPairingEvent.newBuilder().setKind(eventKind).build()
 
-    val builder =
-      AndroidStudioEvent.newBuilder()
-        .setKind(AndroidStudioEvent.EventKind.GLASSES_PAIRING_EVENT)
-        .setGlassesPairingEvent(event)
+    val builder = AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.GLASSES_PAIRING_EVENT).setGlassesPairingEvent(event)
 
     UsageTracker.log(builder)
   }

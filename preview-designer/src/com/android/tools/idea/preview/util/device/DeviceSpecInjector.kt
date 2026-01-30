@@ -40,15 +40,12 @@ import org.jetbrains.kotlin.psi.KtValueArgument
 /**
  * Denotes which [PsiElement] may be injected with the [DeviceSpecLanguage].
  *
- * For the @Preview device parameter, the first [KtStringTemplateExpression] in Kotlin, or
- * [PsiLiteralExpression] in Java, may be injected. [KtDeviceSpecInjectionPerformer] will handle
- * injecting all other [KtStringTemplateExpression] present in the parameter's value in Kotlin. In
- * Java, string concatenation in the device parameter is not supported as [JavaInjectionPerformer]
- * takes precedence over other [LanguageInjectionPerformer]s. [JavaInjectionPerformer] does not
- * handle string concatenation with references to other variables properly.
+ * For the @Preview device parameter, the first [KtStringTemplateExpression] in Kotlin, or [PsiLiteralExpression] in Java, may be injected.
+ * [KtDeviceSpecInjectionPerformer] will handle injecting all other [KtStringTemplateExpression] present in the parameter's value in Kotlin.
+ * In Java, string concatenation in the device parameter is not supported as [JavaInjectionPerformer] takes precedence over other
+ * [LanguageInjectionPerformer]s. [JavaInjectionPerformer] does not handle string concatenation with references to other variables properly.
  *
- * To identify which @Preview is a valid preview annotation, subclasses must implement
- * [isInPreviewAnnotation].
+ * To identify which @Preview is a valid preview annotation, subclasses must implement [isInPreviewAnnotation].
  */
 abstract class DeviceSpecInjectionContributor : LanguageInjectionContributor {
   override fun getInjection(context: PsiElement): Injection? {
@@ -92,20 +89,18 @@ abstract class DeviceSpecInjectionContributor : LanguageInjectionContributor {
   }
 
   /**
-   * Returns if the [PsiElement] is a child element of a preview annotation. Each subclass must
-   * implement this method to identify their preview-specific parent annotation.
+   * Returns if the [PsiElement] is a child element of a preview annotation. Each subclass must implement this method to identify their
+   * preview-specific parent annotation.
    */
   protected abstract fun isInPreviewAnnotation(psiElement: PsiElement): Boolean
 }
 
 /**
- * Injects the [DeviceSpecLanguage] into the given [PsiElement] and any other
- * [PsiLanguageInjectionHost]s available within the same expression via [MultiHostRegistrar] to
- * support concatenated injected elements.
+ * Injects the [DeviceSpecLanguage] into the given [PsiElement] and any other [PsiLanguageInjectionHost]s available within the same
+ * expression via [MultiHostRegistrar] to support concatenated injected elements.
  *
- * Since the Language cannot be injected to constant references, those are resolved and then added
- * to the injection of the closest [PsiLanguageInjectionHost]. Preserving the full statement in the
- * final injected file.
+ * Since the Language cannot be injected to constant references, those are resolved and then added to the injection of the closest
+ * [PsiLanguageInjectionHost]. Preserving the full statement in the final injected file.
  *
  * E.g:
  * ```
@@ -114,9 +109,8 @@ abstract class DeviceSpecInjectionContributor : LanguageInjectionContributor {
  * @Preview(device = "spec:" + width + ",height=1920px")
  * ```
  *
- * Injects the [DeviceSpecLanguage] in the first and last expressions, while the value of the
- * constant (width=1080px) is applied as a prefix to the injected file of the last expression,
- * resulting internally in: `"width=1080px,height1920px"`.
+ * Injects the [DeviceSpecLanguage] in the first and last expressions, while the value of the constant (width=1080px) is applied as a prefix
+ * to the injected file of the last expression, resulting internally in: `"width=1080px,height1920px"`.
  *
  * So, contents of the injected file within `"spec:"` is: `"spec:width1080px,height1920px"`.
  */
@@ -125,13 +119,8 @@ class KtDeviceSpecInjectionPerformer : LanguageInjectionPerformer {
     return false
   }
 
-  override fun performInjection(
-    registrar: MultiHostRegistrar,
-    injection: Injection,
-    context: PsiElement,
-  ): Boolean {
-    val containingExpression =
-      context.parentOfType<KtValueArgument>()?.getArgumentExpression() ?: return false
+  override fun performInjection(registrar: MultiHostRegistrar, injection: Injection, context: PsiElement): Boolean {
+    val containingExpression = context.parentOfType<KtValueArgument>()?.getArgumentExpression() ?: return false
 
     val internalExpressions =
       PsiTreeUtil.collectElements(containingExpression) {
@@ -152,28 +141,20 @@ class KtDeviceSpecInjectionPerformer : LanguageInjectionPerformer {
   }
 }
 
-/**
- * Contains the information used by [MultiHostRegistrar] when injecting a concatenated Language (in
- * segments).
- */
+/** Contains the information used by [MultiHostRegistrar] when injecting a concatenated Language (in segments). */
 private data class InjectionSegment(
   val injectionHost: PsiLanguageInjectionHost,
   val precedingContent: String = "",
   val followingContent: String = "",
 ) {
   fun injectTo(registrar: MultiHostRegistrar) {
-    registrar.addPlace(
-      precedingContent,
-      followingContent,
-      injectionHost,
-      TextRange.from(1, injectionHost.textLength - 1),
-    )
+    registrar.addPlace(precedingContent, followingContent, injectionHost, TextRange.from(1, injectionHost.textLength - 1))
   }
 }
 
 /**
- * Organizes the elements so that the values of elements referencing a constant are added as a
- * suffix or prefix of a [PsiLanguageInjectionHost] element, depending on their order.
+ * Organizes the elements so that the values of elements referencing a constant are added as a suffix or prefix of a
+ * [PsiLanguageInjectionHost] element, depending on their order.
  *
  * @see InjectionSegment
  */
@@ -187,13 +168,7 @@ private fun Array<PsiElement>.collectInjectionSegments(): List<InjectionSegment>
     when (expression) {
       is PsiLanguageInjectionHost -> {
         lastHost?.let {
-          collectedSegments.add(
-            InjectionSegment(
-              injectionHost = it,
-              precedingContent = prefixConstant,
-              followingContent = "",
-            )
-          )
+          collectedSegments.add(InjectionSegment(injectionHost = it, precedingContent = prefixConstant, followingContent = ""))
           prefixConstant = ""
         }
 
@@ -207,13 +182,7 @@ private fun Array<PsiElement>.collectInjectionSegments(): List<InjectionSegment>
     }
   }
   lastHost?.let {
-    collectedSegments.add(
-      InjectionSegment(
-        injectionHost = it,
-        precedingContent = prefixConstant,
-        followingContent = suffixConstant,
-      )
-    )
+    collectedSegments.add(InjectionSegment(injectionHost = it, precedingContent = prefixConstant, followingContent = suffixConstant))
   }
   return collectedSegments
 }
@@ -227,14 +196,12 @@ private fun isDeviceSpecParameter(psiElement: PsiElement): Boolean =
 
 private fun isKotlinDeviceSpecParameter(psiElement: PsiElement): Boolean {
   val valueArgument = psiElement.parentOfType<KtValueArgument>() ?: return false
-  return valueArgument.isForDeviceParameter() &&
-    valueArgument.getFirstStringExpression() === psiElement
+  return valueArgument.isForDeviceParameter() && valueArgument.getFirstStringExpression() === psiElement
 }
 
 private fun isJavaDeviceSpecParameter(psiElement: PsiElement): Boolean {
   val nameValuePair = psiElement.parentOfType<PsiNameValuePair>() ?: return false
-  return nameValuePair.isForDeviceParameter() &&
-    nameValuePair.getFirstStringExpression() === psiElement
+  return nameValuePair.isForDeviceParameter() && nameValuePair.getFirstStringExpression() === psiElement
 }
 
 private fun KtValueArgument.isForDeviceParameter() = getArgumentName()?.text == PARAMETER_DEVICE
@@ -243,11 +210,7 @@ private fun PsiNameValuePair.isForDeviceParameter(): Boolean = name == PARAMETER
 
 private fun KtValueArgument.getFirstStringExpression(): PsiElement? {
   val containingExpression = getArgumentExpression() ?: return null
-  return PsiTreeUtil.findChildOfType(
-    containingExpression,
-    KtStringTemplateExpression::class.java,
-    false,
-  )
+  return PsiTreeUtil.findChildOfType(containingExpression, KtStringTemplateExpression::class.java, false)
 }
 
 private fun PsiNameValuePair.getFirstStringExpression(): PsiElement? {

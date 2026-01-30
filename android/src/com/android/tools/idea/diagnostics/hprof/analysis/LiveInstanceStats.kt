@@ -35,9 +35,7 @@ class LiveInstanceStats {
       val allEditors = FileEditorManager.getInstance(project).allEditors
       val typeToCount = allEditors.groupingBy { "${it.javaClass.name}[${it.file?.fileType?.javaClass?.name}]" }.eachCount()
       appendLine("  Editors opened: ${allEditors.size}. Counts by type:")
-      typeToCount.entries.sortedByDescending { it.value }.forEach { (typeString, count) ->
-        appendLine("   * $count $typeString")
-      }
+      typeToCount.entries.sortedByDescending { it.value }.forEach { (typeString, count) -> appendLine("   * $count $typeString") }
       appendLine()
     }
   }

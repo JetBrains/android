@@ -33,15 +33,9 @@ interface ZoomListener {
  *
  * The difference with [ScaleChange] is there are no scale numbers but [ZoomType]s.
  *
- * @param zoomType the zoom type can be: [ZoomType.IN], [ZoomType.OUT], [ZoomType.ACTUAL] or
- *   [ZoomType.FIT]
+ * @param zoomType the zoom type can be: [ZoomType.IN], [ZoomType.OUT], [ZoomType.ACTUAL] or [ZoomType.FIT]
  * @param hasScaleChanged True if the zoom change has changed scale value, false otherwise.
- * @param focusPoint the focus point where to apply the zoom change, default value is with
- *   coordinates of (-1, -1), meaning that when the zoom was changed, no coordinates were expressed
- *   (for example when we press the zoom-in or the zoom-out buttons).
+ * @param focusPoint the focus point where to apply the zoom change, default value is with coordinates of (-1, -1), meaning that when the
+ *   zoom was changed, no coordinates were expressed (for example when we press the zoom-in or the zoom-out buttons).
  */
-data class ZoomChange(
-  val zoomType: ZoomType,
-  val hasScaleChanged: Boolean,
-  val focusPoint: Point = Point(-1, -1),
-)
+data class ZoomChange(val zoomType: ZoomType, val hasScaleChanged: Boolean, val focusPoint: Point = Point(-1, -1))

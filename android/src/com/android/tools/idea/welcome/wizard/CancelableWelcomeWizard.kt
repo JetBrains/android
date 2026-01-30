@@ -18,8 +18,8 @@ package com.android.tools.idea.welcome.wizard
 import com.android.annotations.concurrency.UiThread
 
 /**
- * Represents a welcome wizard that can be canceled. It allows the wizard to be cancelled
- * programmatically if needed, for instance when the IDE frame is closed while it's active.
+ * Represents a welcome wizard that can be canceled. It allows the wizard to be cancelled programmatically if needed, for instance when the
+ * IDE frame is closed while it's active.
  */
 interface CancelableWelcomeWizard {
 

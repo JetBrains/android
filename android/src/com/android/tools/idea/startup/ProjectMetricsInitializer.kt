@@ -20,11 +20,11 @@ import com.android.tools.idea.projectsystem.getProjectSystem
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.StudioProjectChange
 import com.intellij.concurrency.JobScheduler
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ProjectCloseListener
+import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.util.application
 import java.util.Collections
@@ -47,35 +47,48 @@ class ProjectMetricsInitializer : ProjectCloseListener {
       UsageTracker.log(
         AndroidStudioEvent.newBuilder()
           .setKind(AndroidStudioEvent.EventKind.STUDIO_PROJECT_OPENED)
-          .setStudioProjectChange(StudioProjectChange.newBuilder().setProjectsOpen(projectsOpen)))
+          .setStudioProjectChange(StudioProjectChange.newBuilder().setProjectsOpen(projectsOpen))
+      )
 
       // Once an hour, log all known application ids for the current project
-      val scheduledFuture = JobScheduler.getScheduler().schedule(
-        {
-          //wait until initial indexing is finished
-          DumbService.getInstance(project).runWhenSmart {
-            val future = JobScheduler.getScheduler()
-              .scheduleWithFixedDelay(
-                {
-                  val knownProjectIds = project.getProjectSystem().getKnownApplicationIds(project)
-                  UsageTracker.log(AndroidStudioEvent.newBuilder()
-                                     .setKind(AndroidStudioEvent.EventKind.PROJECT_IDS)
-                                     .addAllRawProjectIds(knownProjectIds)
-                  )
-                },
-                0, DELAY, TimeUnit.MINUTES)
-            application.getService(ProjectMetricsService::class.java).persistStatisticsSessionsMap[project] = future
-          }
-        }, INITIAL_DELAY, TimeUnit.MINUTES)
+      val scheduledFuture =
+        JobScheduler.getScheduler()
+          .schedule(
+            {
+              // wait until initial indexing is finished
+              DumbService.getInstance(project).runWhenSmart {
+                val future =
+                  JobScheduler.getScheduler()
+                    .scheduleWithFixedDelay(
+                      {
+                        val knownProjectIds = project.getProjectSystem().getKnownApplicationIds(project)
+                        UsageTracker.log(
+                          AndroidStudioEvent.newBuilder()
+                            .setKind(AndroidStudioEvent.EventKind.PROJECT_IDS)
+                            .addAllRawProjectIds(knownProjectIds)
+                        )
+                      },
+                      0,
+                      DELAY,
+                      TimeUnit.MINUTES,
+                    )
+                application.getService(ProjectMetricsService::class.java).persistStatisticsSessionsMap[project] = future
+              }
+            },
+            INITIAL_DELAY,
+            TimeUnit.MINUTES,
+          )
       application.getService(ProjectMetricsService::class.java).persistStatisticsSessionsMap[project] = scheduledFuture
     }
   }
 
   override fun projectClosed(project: Project) {
     val projectsOpen = ProjectManager.getInstance().openProjects.size
-    UsageTracker.log(AndroidStudioEvent.newBuilder()
-                       .setKind(AndroidStudioEvent.EventKind.STUDIO_PROJECT_CLOSED)
-                       .setStudioProjectChange(StudioProjectChange.newBuilder().setProjectsOpen(projectsOpen)))
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.STUDIO_PROJECT_CLOSED)
+        .setStudioProjectChange(StudioProjectChange.newBuilder().setProjectsOpen(projectsOpen))
+    )
 
     val future = application.getService(ProjectMetricsService::class.java).persistStatisticsSessionsMap.remove(project)
     future?.cancel(true)

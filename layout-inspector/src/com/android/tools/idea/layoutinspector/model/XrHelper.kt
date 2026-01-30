@@ -24,9 +24,8 @@ import org.jetbrains.annotations.VisibleForTesting
 @VisibleForTesting const val WINDOWS_GAP = 100
 
 /**
- * Rearrange the coordinates of the [ViewNode]s inside each window so that windows are rendered on a
- * grid. This is useful when the app is being rendered across multiple displays (like for glasses)
- * or in the case of XR when the app can have multiple windows in space.
+ * Rearrange the coordinates of the [ViewNode]s inside each window so that windows are rendered on a grid. This is useful when the app is
+ * being rendered across multiple displays (like for glasses) or in the case of XR when the app can have multiple windows in space.
  */
 fun reLayoutWindowsAsGrid(writeAccess: ViewNode.WriteAccess, windows: List<AndroidWindow>) {
   if (LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
@@ -64,8 +63,8 @@ fun reLayoutWindowsAsGrid(writeAccess: ViewNode.WriteAccess, windows: List<Andro
 }
 
 /**
- * Returns the max width of the window. It's not enough to just check the size of the root, since
- * children ViewNodes could be rendered outside the root bounds.
+ * Returns the max width of the window. It's not enough to just check the size of the root, since children ViewNodes could be rendered
+ * outside the root bounds.
  */
 private fun AndroidWindow.getMaxWidth(): Int {
   val minX = root.flattenedList().minOfOrNull { it.layoutBounds.x } ?: 0
@@ -74,8 +73,8 @@ private fun AndroidWindow.getMaxWidth(): Int {
 }
 
 /**
- * Returns the max height of the window. It's not enough to just check the size of the root, since
- * children ViewNodes could be rendered outside the root bounds.
+ * Returns the max height of the window. It's not enough to just check the size of the root, since children ViewNodes could be rendered
+ * outside the root bounds.
  */
 private fun AndroidWindow.getMaxHeight(): Int {
   val minY = root.flattenedList().minOfOrNull { it.layoutBounds.y } ?: 0
@@ -84,8 +83,8 @@ private fun AndroidWindow.getMaxHeight(): Int {
 }
 
 /**
- * Set the position of this view node to be [xCoord] and [yCoord]. Since [ViewNode] is a tree, all
- * the child nodes also need to be shifted accordingly.
+ * Set the position of this view node to be [xCoord] and [yCoord]. Since [ViewNode] is a tree, all the child nodes also need to be shifted
+ * accordingly.
  */
 private fun ViewNode.setPosition(writeAccess: ViewNode.WriteAccess, xCoord: Int, yCoord: Int) {
   val xShift = xCoord - layoutBounds.x

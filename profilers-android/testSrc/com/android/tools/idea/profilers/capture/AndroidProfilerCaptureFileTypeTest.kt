@@ -29,12 +29,12 @@ import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito.any
 import org.mockito.Mockito.anyBoolean
+import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.never
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
-import org.mockito.kotlin.whenever
-import org.mockito.Mockito.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class AndroidProfilerCaptureFileTypeTest {
 
@@ -54,11 +54,16 @@ class AndroidProfilerCaptureFileTypeTest {
   @Before
   fun setUp() {
     // Create a spy of the abstract class to test the logic.
-    captureFileType = spy(object : AndroidProfilerCaptureFileType() {
-      override fun getName() = "TestCapture"
-      override fun getDescription() = "Test Capture File Type"
-      override fun getDefaultExtension() = "trace"
-    })
+    captureFileType =
+      spy(
+        object : AndroidProfilerCaptureFileType() {
+          override fun getName() = "TestCapture"
+
+          override fun getDescription() = "Test Capture File Type"
+
+          override fun getDefaultExtension() = "trace"
+        }
+      )
     whenever(mockFile.isValid).thenReturn(true)
     whenever(mockFile.isInLocalFileSystem).thenReturn(true)
     whenever(mockFile.extension).thenReturn("pftrace")
@@ -72,13 +77,11 @@ class AndroidProfilerCaptureFileTypeTest {
     doReturn(false).whenever(mockUnifiedProvider).accept(any(), any())
     doReturn(true).whenever(mockLegacyProvider).accept(any(), any())
 
-    doReturn(mock<FileEditor>())
-      .whenever(mockLegacyProvider).createEditor(any(), any())
+    doReturn(mock<FileEditor>()).whenever(mockLegacyProvider).createEditor(any(), any())
 
     // Act: Attempt to open the file.
-    val result = captureFileType.openFileInAssociatedApplication(
-      mockProject, mockFile, mockLegacyProvider, mockUnifiedProvider, mockFileEditorManager
-    )
+    val result =
+      captureFileType.openFileInAssociatedApplication(mockProject, mockFile, mockLegacyProvider, mockUnifiedProvider, mockFileEditorManager)
 
     // Assert: The method should return true.
     assertTrue(result)
@@ -102,8 +105,8 @@ class AndroidProfilerCaptureFileTypeTest {
     doReturn(false).whenever(mockLegacyProvider).accept(any(), any())
 
     // Act: Attempt to open the file.
-    val result = captureFileType.openFileInAssociatedApplication(
-      mockProject, mockFile, mockLegacyProvider, mockUnifiedProvider, mockFileEditorManager)
+    val result =
+      captureFileType.openFileInAssociatedApplication(mockProject, mockFile, mockLegacyProvider, mockUnifiedProvider, mockFileEditorManager)
 
     // Assert: The method should return true.
     assertTrue(result)
@@ -122,8 +125,8 @@ class AndroidProfilerCaptureFileTypeTest {
     doReturn(false).whenever(mockLegacyProvider).accept(any(), any())
 
     // Act: Attempt to open the file.
-    val result = captureFileType.openFileInAssociatedApplication(
-      mockProject, mockFile, mockLegacyProvider, mockUnifiedProvider, mockFileEditorManager)
+    val result =
+      captureFileType.openFileInAssociatedApplication(mockProject, mockFile, mockLegacyProvider, mockUnifiedProvider, mockFileEditorManager)
 
     // Assert: The method should return false.
     assertFalse(result)

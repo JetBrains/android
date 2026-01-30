@@ -25,12 +25,10 @@ import java.util.function.Supplier
 /**
  * Simple helper class useful for creating a message bundle for your module.
  *
- * It creates a soft reference to an underlying text bundle, which means that it can
- * be garbage collected if needed (although it will be reallocated again if you request
- * a new message from it).
+ * It creates a soft reference to an underlying text bundle, which means that it can be garbage collected if needed (although it will be
+ * reallocated again if you request a new message from it).
  *
  * You might use it like so:
- *
  * ```
  * # In module 'custom'...
  *
@@ -60,8 +58,7 @@ class MessageBundleReference(private val name: String) {
   private var bundleRef: SoftReference<ResourceBundle>? = null
 
   private fun getBundle(): ResourceBundle =
-    bundleRef?.get() ?:
-    DynamicBundle.getResourceBundle(bundleClassLoader, name).also { bundleRef = SoftReference(it) }
+    bundleRef?.get() ?: DynamicBundle.getResourceBundle(bundleClassLoader, name).also { bundleRef = SoftReference(it) }
 
   fun message(key: String, vararg params: Any) = AbstractBundle.message(getBundle(), key, *params)
 

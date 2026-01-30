@@ -37,10 +37,7 @@ private val FONT = Font(Font.MONOSPACED, Font.PLAIN, 14)
 internal class BinaryDataViewer(bytes: ByteArray) : JPanel(FlowLayout(LEFT)) {
   private val addressView = TextArea(bytes.toAddressRows())
   private val hexView = TextArea(bytes.toHexRows())
-  private val asciiView =
-    TextArea(bytes.toAsciiRows()).apply {
-      border = CompoundBorder(MatteBorder(0, 1, 0, 1, foreground), border)
-    }
+  private val asciiView = TextArea(bytes.toAsciiRows()).apply { border = CompoundBorder(MatteBorder(0, 1, 0, 1, foreground), border) }
 
   init {
     val panel = JPanel()
@@ -70,11 +67,7 @@ private fun ByteArray.toAddressRows(): String {
 
 private fun ByteArray.toHexRows(): String {
   return asSequence()
-    .chunked(16) { row ->
-      row
-        .chunked(8) { block -> block.joinToString(" ") { "%02x".format(it) } }
-        .joinToString("  ") { it }
-    }
+    .chunked(16) { row -> row.chunked(8) { block -> block.joinToString(" ") { "%02x".format(it) } }.joinToString("  ") { it } }
     .joinToString("\n") { it.padEnd(16 * 3) }
 }
 

@@ -19,19 +19,8 @@ import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.preview.animation.AnimationTracker
 import com.android.tools.idea.preview.animation.state.ColorAnimationState
 
-/**
- * [AnimationState] for Compose animations where initial and target states should be selected with a
- * color picker.
- */
+/** [AnimationState] for Compose animations where initial and target states should be selected with a color picker. */
 val DEFAULT_COMPOSE_COLOR = ComposeUnit.Color.create(ColorAnimationState.DEFAULT_COLOR)
 
-class ComposeColorState(
-  tracker: AnimationTracker,
-  initialColor: ComposeUnit.Color?,
-  targetColor: ComposeUnit.Color?,
-) :
-  ColorAnimationState<ComposeUnit.Color>(
-    tracker,
-    initialColor ?: DEFAULT_COMPOSE_COLOR,
-    targetColor ?: DEFAULT_COMPOSE_COLOR,
-  )
+class ComposeColorState(tracker: AnimationTracker, initialColor: ComposeUnit.Color?, targetColor: ComposeUnit.Color?) :
+  ColorAnimationState<ComposeUnit.Color>(tracker, initialColor ?: DEFAULT_COMPOSE_COLOR, targetColor ?: DEFAULT_COMPOSE_COLOR)

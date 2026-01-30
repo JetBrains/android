@@ -28,11 +28,9 @@ import com.intellij.psi.tree.TokenSet
 class DeclarativeTodoIndexPatternBuilder : IndexPatternBuilder {
   private val comments = TokenSet.create(BLOCK_COMMENT, LINE_COMMENT)
 
-  override fun getIndexingLexer(file: PsiFile): Lexer? =
-    if (file is DeclarativeFile) DeclarativeLexer() else null
+  override fun getIndexingLexer(file: PsiFile): Lexer? = if (file is DeclarativeFile) DeclarativeLexer() else null
 
-  override fun getCommentTokenSet(file: PsiFile): TokenSet? =
-    if (file is DeclarativeFile) comments else null
+  override fun getCommentTokenSet(file: PsiFile): TokenSet? = if (file is DeclarativeFile) comments else null
 
   override fun getCommentStartDelta(tokenType: IElementType?): Int = 2 // as both comments has two symbols as prefix // and /*
 

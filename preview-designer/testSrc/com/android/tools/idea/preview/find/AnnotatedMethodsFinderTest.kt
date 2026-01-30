@@ -62,27 +62,15 @@ class AnnotatedMethodsFinderTest {
       )
 
     assertEquals(0, CacheKeysManager.getInstance(project).map().size)
-    assertEquals(
-      2,
-      runReadAction { findAnnotations(project, sourceFile.virtualFile, "MyAnnotationA").size },
-    )
+    assertEquals(2, runReadAction { findAnnotations(project, sourceFile.virtualFile, "MyAnnotationA").size })
     assertEquals(1, CacheKeysManager.getInstance(project).map().size)
-    assertEquals(
-      2,
-      runReadAction { findAnnotations(project, sourceFile.virtualFile, "MyAnnotationA").size },
-    )
+    assertEquals(2, runReadAction { findAnnotations(project, sourceFile.virtualFile, "MyAnnotationA").size })
     // Check that call with the same args combination does not create a new key and reuses the
     // cache:
     assertEquals(1, CacheKeysManager.getInstance(project).map().size)
-    assertEquals(
-      1,
-      runReadAction { findAnnotations(project, sourceFile.virtualFile, "MyAnnotationB").size },
-    )
+    assertEquals(1, runReadAction { findAnnotations(project, sourceFile.virtualFile, "MyAnnotationB").size })
     assertEquals(2, CacheKeysManager.getInstance(project).map().size)
-    assertEquals(
-      0,
-      runReadAction { findAnnotations(project, sourceFile.virtualFile, "MyAnnotationC").size },
-    )
+    assertEquals(0, runReadAction { findAnnotations(project, sourceFile.virtualFile, "MyAnnotationC").size })
     assertEquals(3, CacheKeysManager.getInstance(project).map().size)
   }
 
@@ -92,10 +80,10 @@ class AnnotatedMethodsFinderTest {
       "com/android/annotations/MyAnnotationA.kt",
       // language=kotlin
       """
-        package com.android.annotations
+      package com.android.annotations
 
-        annotation class MyAnnotationA
-        """
+      annotation class MyAnnotationA
+      """
         .trimIndent(),
     )
 
@@ -132,10 +120,7 @@ class AnnotatedMethodsFinderTest {
         )
         .size,
     )
-    assertTrue(
-      "Unexpectedly no new cache keys",
-      CacheKeysManager.getInstance(project).map().size > 0,
-    )
+    assertTrue("Unexpectedly no new cache keys", CacheKeysManager.getInstance(project).map().size > 0)
     val cacheKeys = CacheKeysManager.getInstance(project).map().size
     assertEquals(
       nLetters,
@@ -161,10 +146,7 @@ class AnnotatedMethodsFinderTest {
         )
         .size,
     )
-    assertTrue(
-      "Unexpectedly no new cache keys",
-      cacheKeys < CacheKeysManager.getInstance(project).map().size,
-    )
+    assertTrue("Unexpectedly no new cache keys", cacheKeys < CacheKeysManager.getInstance(project).map().size)
     assertEquals(
       0,
       findAnnotatedMethodsValues(
@@ -190,12 +172,8 @@ class AnnotatedMethodsFinderTest {
         """
           .trimIndent(),
       )
-    val withoutReadLock = runCatching {
-      findAnnotations(project, sourceFile.virtualFile, "MyAnnotationA")
-    }
-    val withReadLock = runCatching {
-      runReadAction { findAnnotations(project, sourceFile.virtualFile, "MyAnnotationA") }
-    }
+    val withoutReadLock = runCatching { findAnnotations(project, sourceFile.virtualFile, "MyAnnotationA") }
+    val withReadLock = runCatching { runReadAction { findAnnotations(project, sourceFile.virtualFile, "MyAnnotationA") } }
     assertTrue(withoutReadLock.isFailure)
     assertTrue(withReadLock.isSuccess)
   }

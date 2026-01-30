@@ -6,8 +6,8 @@ import com.intellij.psi.AbstractElementManipulator
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 
 /**
- * This allows to index and then search references in KTS files. getRangeInElement is what is in use from abstract class.
- * In other words it enables findUsages for references in KTS.
+ * This allows to index and then search references in KTS files. getRangeInElement is what is in use from abstract class. In other words it
+ * enables findUsages for references in KTS.
  *
  * Groovy on other hand has manipulator for references (GroovyMacroManipulator) on platform level.
  */

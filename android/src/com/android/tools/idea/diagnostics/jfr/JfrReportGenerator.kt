@@ -18,20 +18,18 @@ package com.android.tools.idea.diagnostics.jfr
 import com.android.tools.idea.diagnostics.report.DiagnosticReportProperties
 import com.android.tools.idea.diagnostics.report.GenericReport
 import com.intellij.openapi.diagnostic.thisLogger
-import jdk.jfr.consumer.RecordedEvent
 import java.time.Clock
 import java.time.Instant
+import jdk.jfr.consumer.RecordedEvent
 
 /**
- * A [JfrReportGenerator] handles processing the JFR events and creating the report text for a single
- * crash report. A [Capture] represents a time interval of interest, for which this generator will
- * receive events to process. In the case of an [AggregatingJfrReportManager], multiple Captures may
- * occur during the lifetime of the generator (though they must not overlap).
+ * A [JfrReportGenerator] handles processing the JFR events and creating the report text for a single crash report. A [Capture] represents a
+ * time interval of interest, for which this generator will receive events to process. In the case of an [AggregatingJfrReportManager],
+ * multiple Captures may occur during the lifetime of the generator (though they must not overlap).
  *
- * Start and end offsets can be used to adjust the capture interval relative to the actual times of
- * the calls to startCapture and stopCapture. This can be useful to, for example, adjust the start
- * time of a freeze capture, given that it takes some time to detect that a freeze is occurring.
- * Negative start offsets must be shorter than the length of one recording chunk ([JFR_RECORDING_DURATION]).
+ * Start and end offsets can be used to adjust the capture interval relative to the actual times of the calls to startCapture and
+ * stopCapture. This can be useful to, for example, adjust the start time of a freeze capture, given that it takes some time to detect that
+ * a freeze is occurring. Negative start offsets must be shorter than the length of one recording chunk ([JFR_RECORDING_DURATION]).
  */
 abstract class JfrReportGenerator(
   val reportType: String,
@@ -39,7 +37,7 @@ abstract class JfrReportGenerator(
   private val startOffsetMs: Long = 0,
   private val endOffsetMs: Long = 0,
   private val clock: Clock = Clock.systemUTC(),
-  ) {
+) {
   private var currentCapture: Capture? = null
   var isFinished = false
     private set
@@ -58,18 +56,16 @@ abstract class JfrReportGenerator(
       if (containsInstant(e.startTime) && eventFilter.accepts(e)) accept(e, this)
     }
 
-    private fun containsInstant(instant: Instant) =
-      !instant.isBefore(start) && (end == null || instant.isBefore(end))
+    private fun containsInstant(instant: Instant) = !instant.isBefore(start) && (end == null || instant.isBefore(end))
 
-    fun completeAndGenerateReport(endThreshold: Instant, reportCallback: ReportCallback) : Boolean {
+    fun completeAndGenerateReport(endThreshold: Instant, reportCallback: ReportCallback): Boolean {
       if (end?.isBefore(endThreshold) != true) return false
       captureCompleted(this)
-      if (isFinished)  {
+      if (isFinished) {
         try {
           val report = generateReport()
           if (report.isNotEmpty()) reportCallback(GenericReport(reportType, report, DiagnosticReportProperties()))
-        }
-        catch (e: Exception) {
+        } catch (e: Exception) {
           thisLogger().warn(e)
         }
       }
@@ -80,29 +76,23 @@ abstract class JfrReportGenerator(
   // Called for each JFR event that eventFilter accepts and is within the Capture's interval.
   abstract fun accept(e: RecordedEvent, c: Capture)
 
-  /**
-   * Indicates all of the events for this capture have been accepted by this generator. Perform
-   * processing/aggregation work here.
-   */
+  /** Indicates all of the events for this capture have been accepted by this generator. Perform processing/aggregation work here. */
   abstract fun captureCompleted(c: Capture)
 
   /**
-   * Generates the contents of a crash report based on all the relevant events accepted during this
-   * generator's Captures. The report will contain a field for each key in the map, with the corresponding
-   * value as its contents. If no report should be submitted (e.g., for a report aggregating profile
-   * snippets for some event that did not occur during the aggregation period), return an empty map.
+   * Generates the contents of a crash report based on all the relevant events accepted during this generator's Captures. The report will
+   * contain a field for each key in the map, with the corresponding value as its contents. If no report should be submitted (e.g., for a
+   * report aggregating profile snippets for some event that did not occur during the aggregation period), return an empty map.
    */
   abstract fun generateReport(): Map<String, String>
 
   fun finish() {
-    isFinished = true;
+    isFinished = true
   }
 
   fun startCapture() {
     check(currentCapture == null) { "Cannot start capture: capture already in progress" }
-    currentCapture = Capture().also {
-      RecordingManager.getInstance().startCapture(it);
-    }
+    currentCapture = Capture().also { RecordingManager.getInstance().startCapture(it) }
   }
 
   fun stopCapture() {

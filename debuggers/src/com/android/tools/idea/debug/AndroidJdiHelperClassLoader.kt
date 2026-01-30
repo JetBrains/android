@@ -40,8 +40,7 @@ import kotlin.text.replace
  */
 private class AndroidHelperClassCache {
   companion object {
-    val ANDROID_HELPER_CLASS_CACHE_KEY =
-      Key.create<AndroidHelperClassCache>("ANDROID_HELPER_CLASS_CACHE_KEY")
+    val ANDROID_HELPER_CLASS_CACHE_KEY = Key.create<AndroidHelperClassCache>("ANDROID_HELPER_CLASS_CACHE_KEY")
   }
 
   val classToJDIType = mutableMapOf<Class<*>, ClassType>()
@@ -56,16 +55,9 @@ class AndroidJdiHelperClassLoader : JdiHelperClassLoader {
     return DexDebugFacility.isDex(evaluationContext.virtualMachineProxy.virtualMachine)
   }
 
-  override fun getHelperClass(
-    cls: Class<*>,
-    context: EvaluationContextImpl,
-    vararg additionalClassesToLoad: String,
-  ): ClassType? {
+  override fun getHelperClass(cls: Class<*>, context: EvaluationContextImpl, vararg additionalClassesToLoad: String): ClassType? {
     val vmProxy = context.virtualMachineProxy
-    val cache =
-      vmProxy.getOrCreateUserData(AndroidHelperClassCache.ANDROID_HELPER_CLASS_CACHE_KEY) {
-        AndroidHelperClassCache()
-      }
+    val cache = vmProxy.getOrCreateUserData(AndroidHelperClassCache.ANDROID_HELPER_CLASS_CACHE_KEY) { AndroidHelperClassCache() }
     cache?.classToJDIType[cls]?.let {
       return it
     }
@@ -86,31 +78,19 @@ private fun loadClasses(
   vararg additionalClassesToLoad: String,
 ): ClassType? {
   val constructorMethod =
-    inMemoryClassLoader.concreteMethodByName(
-      JVMNameUtil.CONSTRUCTOR_NAME,
-      "(Ljava/nio/ByteBuffer;Ljava/lang/ClassLoader;)V",
-    ) ?: return null
+    inMemoryClassLoader.concreteMethodByName(JVMNameUtil.CONSTRUCTOR_NAME, "(Ljava/nio/ByteBuffer;Ljava/lang/ClassLoader;)V") ?: return null
 
   val classesBytes = getBytes(cls, *additionalClassesToLoad) ?: return null
   val dexBytes = dex(context, classesBytes) ?: return null
   val dexByteBuffer = wrapToByteBuffer(dexBytes, context)
   val classLoader =
-    context.debugProcess.newInstance(
-      context,
-      inMemoryClassLoader,
-      constructorMethod,
-      listOf(dexByteBuffer, context.classLoader),
-      0,
-      true
-    ) as? ClassLoaderReference ?: return null
+    context.debugProcess.newInstance(context, inMemoryClassLoader, constructorMethod, listOf(dexByteBuffer, context.classLoader), 0, true)
+      as? ClassLoaderReference ?: return null
   context.keep(classLoader)
   return context.debugProcess.findClass(context, cls.name, classLoader) as? ClassType
 }
 
-private fun getBytes(
-  cls: Class<*>,
-  vararg additionalClassesToLoad: String,
-): Collection<ByteArray>? {
+private fun getBytes(cls: Class<*>, vararg additionalClassesToLoad: String): Collection<ByteArray>? {
   val classesBytes =
     listOf(cls.name, *additionalClassesToLoad).map { name ->
       val resource = fullyQualifiedClassNameToBinaryName(name)
@@ -130,12 +110,7 @@ private fun dex(context: EvaluationContextImpl, classesBytes: Collection<ByteArr
       object : DexIndexedConsumer {
         var encodedBytes: ByteArray? = null
 
-        override fun accept(
-          fileIndex: Int,
-          data: ByteArray,
-          descriptors: Set<String>,
-          handler: DiagnosticsHandler,
-        ) {
+        override fun accept(fileIndex: Int, data: ByteArray, descriptors: Set<String>, handler: DiagnosticsHandler) {
           if (encodedBytes != null) {
             throw IllegalStateException("Only one dex file is supported")
           }
@@ -151,9 +126,7 @@ private fun dex(context: EvaluationContextImpl, classesBytes: Collection<ByteArr
 
     builder.mode = CompilationMode.RELEASE
     builder.programConsumer = consumer
-    builder.minApiLevel =
-      context.debugProcess.connectedDevice?.version?.androidApiLevel?.majorVersion
-        ?: AndroidVersion.VersionCodes.O
+    builder.minApiLevel = context.debugProcess.connectedDevice?.version?.androidApiLevel?.majorVersion ?: AndroidVersion.VersionCodes.O
     D8.run(builder.build())
     return consumer.encodedBytes
   } catch (_: Exception) {
@@ -163,11 +136,7 @@ private fun dex(context: EvaluationContextImpl, classesBytes: Collection<ByteArr
 
 private fun findOrLoadInMemoryClassLoaderSafe(context: EvaluationContextImpl): ClassType? {
   return try {
-    context.debugProcess.findClass(
-      context,
-      "dalvik.system.InMemoryDexClassLoader",
-      context.classLoader,
-    ) as? ClassType
+    context.debugProcess.findClass(context, "dalvik.system.InMemoryDexClassLoader", context.classLoader) as? ClassType
   } catch (_: Exception) {
     null
   }
@@ -176,11 +145,7 @@ private fun findOrLoadInMemoryClassLoaderSafe(context: EvaluationContextImpl): C
 private fun wrapToByteBuffer(bytes: ByteArray, context: EvaluationContextImpl): ObjectReference? {
   val bytesMirror = DebuggerUtilsEx.mirrorOfByteArray(bytes, context)
   val debugProcess = context.debugProcess
-  val byteBufferClass =
-    debugProcess.findClass(context, "java.nio.ByteBuffer", context.classLoader) as? ClassType
-      ?: return null
-  val wrapMethod =
-    byteBufferClass.concreteMethodByName("wrap", "([B)Ljava/nio/ByteBuffer;") ?: return null
-  return debugProcess.invokeMethod(context, byteBufferClass, wrapMethod, listOf(bytesMirror), true)
-    as? ObjectReference
+  val byteBufferClass = debugProcess.findClass(context, "java.nio.ByteBuffer", context.classLoader) as? ClassType ?: return null
+  val wrapMethod = byteBufferClass.concreteMethodByName("wrap", "([B)Ljava/nio/ByteBuffer;") ?: return null
+  return debugProcess.invokeMethod(context, byteBufferClass, wrapMethod, listOf(bytesMirror), true) as? ObjectReference
 }

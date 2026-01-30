@@ -49,17 +49,11 @@ private const val TAG_FIREBASE = "(?<tag>.+?(?=\\())"
 private const val MESSAGE = "(?<message>.*)"
 private val JSON_REGEX = "^\\{".toRegex()
 private val THREADTIME_REGEX = "^$TIMESTAMP +$PID +$TID $LEVEL $TAG_THREADTIME: $MESSAGE$".toRegex()
-private val BUGREPORT_REGEX =
-  "^$TIMESTAMP +$UID +$PID +$TID $LEVEL $TAG_THREADTIME: $MESSAGE$".toRegex()
+private val BUGREPORT_REGEX = "^$TIMESTAMP +$UID +$PID +$TID $LEVEL $TAG_THREADTIME: $MESSAGE$".toRegex()
 private val FIREBASE_REGEX = "^$TIMESTAMP: $LEVEL/$TAG_FIREBASE\\($PID\\): $MESSAGE$".toRegex()
-private val BUGREPORT_FILE_REGEX =
-  "^========================================================$".toRegex()
+private val BUGREPORT_FILE_REGEX = "^========================================================$".toRegex()
 
-private val gson =
-  GsonBuilder()
-    .registerTypeAdapter(Device::class.java, DeviceSerializer())
-    .setPrettyPrinting()
-    .create()
+private val gson = GsonBuilder().registerTypeAdapter(Device::class.java, DeviceSerializer()).setPrettyPrinting().create()
 
 /** Contains functions to read and write a Logcat file */
 internal class LogcatFileIo(private val zoneId: ZoneId = ZoneId.systemDefault()) {
@@ -72,8 +66,7 @@ internal class LogcatFileIo(private val zoneId: ZoneId = ZoneId.systemDefault())
       override fun parse(path: Path, zoneId: ZoneId) = parseLogcat(path, THREADTIME_REGEX, zoneId)
     },
     BUGREPORT {
-      override fun parse(path: Path, zoneId: ZoneId) =
-        parseLogcat(path, BUGREPORT_REGEX, zoneId, isBugreport = true)
+      override fun parse(path: Path, zoneId: ZoneId) = parseLogcat(path, BUGREPORT_REGEX, zoneId, isBugreport = true)
     },
     BUGREPORT_ZIP {
       override fun parse(path: Path, zoneId: ZoneId) = parseBugreport(path, zoneId)
@@ -85,13 +78,7 @@ internal class LogcatFileIo(private val zoneId: ZoneId = ZoneId.systemDefault())
     abstract fun parse(path: Path, zoneId: ZoneId): LogcatFileData
   }
 
-  fun writeLogcat(
-    path: Path,
-    logcatMessages: List<LogcatMessage>,
-    device: Device,
-    filter: String,
-    projectApplicationIds: Set<String>,
-  ) {
+  fun writeLogcat(path: Path, logcatMessages: List<LogcatMessage>, device: Device, filter: String, projectApplicationIds: Set<String>) {
     val data = LogcatFileData(Metadata(device, filter, projectApplicationIds), logcatMessages)
     path.writer().use { gson.toJson(data, it) }
   }
@@ -102,8 +89,7 @@ internal class LogcatFileIo(private val zoneId: ZoneId = ZoneId.systemDefault())
     if (path.pathString.endsWith(".zip")) {
       return BUGREPORT_ZIP
     }
-    val line =
-      path.bufferedReader().lineSequence().take(10).find { !it.startsWith(SYSTEM_LOG_PREFIX) } ?: ""
+    val line = path.bufferedReader().lineSequence().take(10).find { !it.startsWith(SYSTEM_LOG_PREFIX) } ?: ""
     return when {
       JSON_REGEX.containsMatchIn(line) -> JSON
       THREADTIME_REGEX.containsMatchIn(line) -> THREADTIME
@@ -118,16 +104,8 @@ private fun readJsonFile(path: Path): LogcatFileData {
   return path.reader().use { gson.fromJson(it, LogcatFileData::class.java) }
 }
 
-private fun parseLogcat(
-  path: Path,
-  headerRegex: Regex,
-  zoneId: ZoneId,
-  isBugreport: Boolean = false,
-) =
-  LogcatFileData(
-    null,
-    LogcatFileParser(headerRegex, zoneId = zoneId).parseLogcatFile(path, isBugreport),
-  )
+private fun parseLogcat(path: Path, headerRegex: Regex, zoneId: ZoneId, isBugreport: Boolean = false) =
+  LogcatFileData(null, LogcatFileParser(headerRegex, zoneId = zoneId).parseLogcatFile(path, isBugreport))
 
 private fun parseBugreport(path: Path, zoneId: ZoneId) =
   LogcatFileData(null, LogcatFileParser(BUGREPORT_REGEX, zoneId = zoneId).parseBugreportFile(path))

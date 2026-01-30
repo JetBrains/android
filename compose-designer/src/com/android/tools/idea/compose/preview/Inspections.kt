@@ -72,36 +72,27 @@ import org.jetbrains.uast.toUElement
 val composePreviewGroupDisplayName = message("inspection.group.name")
 
 object ComposePreviewAnnotationChecker : PreviewAnnotationChecker {
-  override fun isPreview(importDirective: KtImportDirective) =
-    COMPOSE_PREVIEW_ANNOTATION_FQN == importDirective.importedFqName?.asString()
+  override fun isPreview(importDirective: KtImportDirective) = COMPOSE_PREVIEW_ANNOTATION_FQN == importDirective.importedFqName?.asString()
 
-  override fun isPreview(annotation: KtAnnotationEntry) =
-    annotation.fqNameMatches(COMPOSE_PREVIEW_ANNOTATION_FQN)
+  override fun isPreview(annotation: KtAnnotationEntry) = annotation.fqNameMatches(COMPOSE_PREVIEW_ANNOTATION_FQN)
 
   override fun isPreviewOrMultiPreview(annotation: KtAnnotationEntry) =
     isPreview(annotation) || (annotation.toUElement() as? UAnnotation).isMultiPreviewAnnotation()
 }
 
 /**
- * Returns whether the [KtParameter] can be used in the preview. This will return true if the
- * parameter has a default value or a value provider.
+ * Returns whether the [KtParameter] can be used in the preview. This will return true if the parameter has a default value or a value
+ * provider.
  */
 private fun KtParameter.isAcceptableForPreview(): Boolean =
   hasDefaultValue() ||
     // We also accept parameters with the @PreviewParameter annotation
     annotationEntries.any { it.fqNameMatches(COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN) }
 
-/**
- * Inspection that checks that any function annotated with `@Preview`, or with a MultiPreview, does
- * not have parameters.
- */
+/** Inspection that checks that any function annotated with `@Preview`, or with a MultiPreview, does not have parameters. */
 open class PreviewAnnotationInFunctionWithParametersInspection :
   BasePreviewAnnotationInspection(composePreviewGroupDisplayName, ComposePreviewAnnotationChecker) {
-  override fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    function: KtNamedFunction,
-    previewAnnotation: KtAnnotationEntry,
-  ) {
+  override fun visitPreviewAnnotation(holder: ProblemsHolder, function: KtNamedFunction, previewAnnotation: KtAnnotationEntry) {
     if (function.valueParameters.any { !it.isAcceptableForPreview() }) {
       holder.registerProblem(
         previewAnnotation.psiOrParent as PsiElement,
@@ -111,11 +102,7 @@ open class PreviewAnnotationInFunctionWithParametersInspection :
     }
   }
 
-  override fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    annotationClass: KtClass,
-    previewAnnotation: KtAnnotationEntry,
-  ) {
+  override fun visitPreviewAnnotation(holder: ProblemsHolder, annotationClass: KtClass, previewAnnotation: KtAnnotationEntry) {
     // This inspection only applies for functions, not for Annotation classes
     return
   }
@@ -123,24 +110,15 @@ open class PreviewAnnotationInFunctionWithParametersInspection :
   override fun getStaticDescription() = message("inspection.no.parameters.or.provider.description")
 }
 
-/**
- * Inspection that checks that any function annotated with `@Preview`, or with a MultiPreview, has
- * at most one `@PreviewParameter`.
- */
+/** Inspection that checks that any function annotated with `@Preview`, or with a MultiPreview, has at most one `@PreviewParameter`. */
 open class PreviewMultipleParameterProvidersInspection :
   BasePreviewAnnotationInspection(composePreviewGroupDisplayName, ComposePreviewAnnotationChecker) {
-  override fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    function: KtNamedFunction,
-    previewAnnotation: KtAnnotationEntry,
-  ) {
+  override fun visitPreviewAnnotation(holder: ProblemsHolder, function: KtNamedFunction, previewAnnotation: KtAnnotationEntry) {
     // Find the second PreviewParameter annotation if any
     val secondPreviewParameter =
       function.valueParameters
         .mapNotNull {
-          it.annotationEntries.firstOrNull { annotation ->
-            annotation.fqNameMatches(COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN)
-          }
+          it.annotationEntries.firstOrNull { annotation -> annotation.fqNameMatches(COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN) }
         }
         .drop(1)
         .firstOrNull() ?: return
@@ -153,34 +131,21 @@ open class PreviewMultipleParameterProvidersInspection :
     )
   }
 
-  override fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    annotationClass: KtClass,
-    previewAnnotation: KtAnnotationEntry,
-  ) {
+  override fun visitPreviewAnnotation(holder: ProblemsHolder, annotationClass: KtClass, previewAnnotation: KtAnnotationEntry) {
     // This inspection only applies for functions, not for Annotation classes
     return
   }
 }
 
-/**
- * Inspection that checks that any existing @PreviewParameter is used in the first argument of a
- * method
- */
+/** Inspection that checks that any existing @PreviewParameter is used in the first argument of a method */
 open class PreviewParameterProviderOnFirstParameterInspection :
   BasePreviewAnnotationInspection(composePreviewGroupDisplayName, ComposePreviewAnnotationChecker) {
-  override fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    function: KtNamedFunction,
-    previewAnnotation: KtAnnotationEntry,
-  ) {
+  override fun visitPreviewAnnotation(holder: ProblemsHolder, function: KtNamedFunction, previewAnnotation: KtAnnotationEntry) {
     // Find the first PreviewParameter annotation if any
     val firstPreviewParameter =
       function.valueParameters
         .mapNotNull {
-          it.annotationEntries.firstOrNull { annotation ->
-            annotation.fqNameMatches(COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN)
-          }
+          it.annotationEntries.firstOrNull { annotation -> annotation.fqNameMatches(COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN) }
         }
         .firstOrNull() ?: return // If no @PreviewParameter, then ok
 
@@ -194,11 +159,7 @@ open class PreviewParameterProviderOnFirstParameterInspection :
     )
   }
 
-  override fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    annotationClass: KtClass,
-    previewAnnotation: KtAnnotationEntry,
-  ) {
+  override fun visitPreviewAnnotation(holder: ProblemsHolder, annotationClass: KtClass, previewAnnotation: KtAnnotationEntry) {
     // This inspection only applies for functions, not for Annotation classes
     return
   }
@@ -212,11 +173,7 @@ open class ComposePreviewNeedsComposableAnnotationInspection :
   )
 
 open class ComposePreviewMustBeTopLevelFunction :
-  PreviewMustBeTopLevelFunction(
-    message("inspection.top.level.function"),
-    composePreviewGroupDisplayName,
-    ComposePreviewAnnotationChecker,
-  )
+  PreviewMustBeTopLevelFunction(message("inspection.top.level.function"), composePreviewGroupDisplayName, ComposePreviewAnnotationChecker)
 
 open class ComposePreviewDimensionRespectsLimit :
   PreviewDimensionRespectsLimit(
@@ -232,19 +189,11 @@ open class ComposePreviewDimensionRespectsLimit :
 /** Inspection that checks if `@Preview` fontScale parameter is not positive. */
 open class PreviewFontScaleMustBeGreaterThanZero :
   BasePreviewAnnotationInspection(composePreviewGroupDisplayName, ComposePreviewAnnotationChecker) {
-  override fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    function: KtNamedFunction,
-    previewAnnotation: KtAnnotationEntry,
-  ) {
+  override fun visitPreviewAnnotation(holder: ProblemsHolder, function: KtNamedFunction, previewAnnotation: KtAnnotationEntry) {
     checkMinFontScale(holder, previewAnnotation)
   }
 
-  override fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    annotationClass: KtClass,
-    previewAnnotation: KtAnnotationEntry,
-  ) {
+  override fun visitPreviewAnnotation(holder: ProblemsHolder, annotationClass: KtClass, previewAnnotation: KtAnnotationEntry) {
     checkMinFontScale(holder, previewAnnotation)
   }
 
@@ -271,21 +220,12 @@ open class PreviewFontScaleMustBeGreaterThanZero :
 }
 
 /** Inspection that checks if `@Preview` apiLevel is valid. */
-open class PreviewApiLevelMustBeValid :
-  BasePreviewAnnotationInspection(composePreviewGroupDisplayName, ComposePreviewAnnotationChecker) {
-  override fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    function: KtNamedFunction,
-    previewAnnotation: KtAnnotationEntry,
-  ) {
+open class PreviewApiLevelMustBeValid : BasePreviewAnnotationInspection(composePreviewGroupDisplayName, ComposePreviewAnnotationChecker) {
+  override fun visitPreviewAnnotation(holder: ProblemsHolder, function: KtNamedFunction, previewAnnotation: KtAnnotationEntry) {
     checkApiLevelIsValid(holder, previewAnnotation)
   }
 
-  override fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    annotationClass: KtClass,
-    previewAnnotation: KtAnnotationEntry,
-  ) {
+  override fun visitPreviewAnnotation(holder: ProblemsHolder, annotationClass: KtClass, previewAnnotation: KtAnnotationEntry) {
     checkApiLevelIsValid(holder, previewAnnotation)
   }
 
@@ -323,22 +263,14 @@ open class PreviewApiLevelMustBeValid :
 }
 
 class ComposePreviewNotSupportedInUnitTestFiles :
-  PreviewNotSupportedInUnitTestFiles(
-    message("inspection.unit.test.files"),
-    composePreviewGroupDisplayName,
-    ComposePreviewAnnotationChecker,
-  )
+  PreviewNotSupportedInUnitTestFiles(message("inspection.unit.test.files"), composePreviewGroupDisplayName, ComposePreviewAnnotationChecker)
 
 /** Inspection that checks that Preview functions are not called recursively. */
 class PreviewShouldNotBeCalledRecursively : AbstractKotlinInspection() {
 
   override fun getStaticDescription() = message("inspection.preview.recursive.description")
 
-  override fun buildVisitor(
-    holder: ProblemsHolder,
-    isOnTheFly: Boolean,
-    session: LocalInspectionToolSession,
-  ): PsiElementVisitor =
+  override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean, session: LocalInspectionToolSession): PsiElementVisitor =
     if (session.file.androidFacet != null || ApplicationManager.getApplication().isUnitTestMode) {
       object : KtVisitorVoid() {
         override fun visitCallExpression(expression: KtCallExpression) {
@@ -356,8 +288,7 @@ class PreviewShouldNotBeCalledRecursively : AbstractKotlinInspection() {
 
         private fun KtNamedFunction.isComposablePreviewFunction() =
           annotationEntries.any {
-            it.fqNameMatches(COMPOSE_PREVIEW_ANNOTATION_FQN) ||
-              (it.toUElement() as? UAnnotation).isMultiPreviewAnnotation()
+            it.fqNameMatches(COMPOSE_PREVIEW_ANNOTATION_FQN) || (it.toUElement() as? UAnnotation).isMultiPreviewAnnotation()
           }
 
         private fun KtCallExpression.calleeFunctionName() =
@@ -372,24 +303,14 @@ class PreviewShouldNotBeCalledRecursively : AbstractKotlinInspection() {
 }
 
 /**
- * Inspection that checks if the `@Preview` device is referencing an old constant of the `Devices`
- * API, which uses the legacy device spec.
+ * Inspection that checks if the `@Preview` device is referencing an old constant of the `Devices` API, which uses the legacy device spec.
  */
-class PreviewDeviceShouldUseNewSpec :
-  BasePreviewAnnotationInspection(composePreviewGroupDisplayName, ComposePreviewAnnotationChecker) {
-  override fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    function: KtNamedFunction,
-    previewAnnotation: KtAnnotationEntry,
-  ) {
+class PreviewDeviceShouldUseNewSpec : BasePreviewAnnotationInspection(composePreviewGroupDisplayName, ComposePreviewAnnotationChecker) {
+  override fun visitPreviewAnnotation(holder: ProblemsHolder, function: KtNamedFunction, previewAnnotation: KtAnnotationEntry) {
     checkDeviceIsValid(holder, previewAnnotation)
   }
 
-  override fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    annotationClass: KtClass,
-    previewAnnotation: KtAnnotationEntry,
-  ) {
+  override fun visitPreviewAnnotation(holder: ProblemsHolder, annotationClass: KtClass, previewAnnotation: KtAnnotationEntry) {
     checkDeviceIsValid(holder, previewAnnotation)
   }
 
@@ -442,12 +363,7 @@ class PreviewDeviceShouldUseNewSpec :
 
     override fun getText() = message("inspection.preview.device.legacy.spec.quick.fix")
 
-    override fun invoke(
-      project: Project,
-      file: PsiFile,
-      startElement: PsiElement,
-      endElement: PsiElement,
-    ) {
+    override fun invoke(project: Project, file: PsiFile, startElement: PsiElement, endElement: PsiElement) {
       val fixedDeviceSpecText = "\"$deviceSpec\""
       val psiFactory = KtPsiFactory(project = project, markGenerated = false)
       startElement.replace(psiFactory.createExpression(fixedDeviceSpecText))

@@ -86,21 +86,13 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
         StopInteractivePreviewAction(isDisabled = { isPreviewRefreshing(it.dataContext) }),
         StopAnimationInspectorAction(isDisabled = { isPreviewRefreshing(it.dataContext) }),
         StopUiCheckPreviewAction(),
-        GroupSwitchAction(isEnabled = { !isPreviewRefreshing(it.dataContext) })
-          .visibleOnlyInDefaultPreview(),
+        GroupSwitchAction(isEnabled = { !isPreviewRefreshing(it.dataContext) }).visibleOnlyInDefaultPreview(),
         CommonViewControlAction().visibleOnlyInStaticPreview(),
-        ComposeStudioBotActionFactory.EP_NAME.extensionList
-          .firstOrNull()
-          ?.previewAgentsToolbarAction()
-          ?.visibleOnlyInStaticPreview(),
+        ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull()?.previewAgentsToolbarAction()?.visibleOnlyInStaticPreview(),
         Separator.getInstance().visibleOnlyInUiCheck(),
         UiCheckDropDownAction().visibleOnlyInUiCheck(),
-        StudioFlags.PREVIEW_FILTER.ifEnabled {
-          PreviewFilterShowHistoryAction().visibleOnlyInStaticPreview()
-        },
-        StudioFlags.PREVIEW_FILTER.ifEnabled {
-          PreviewFilterTextAction(PreviewViewSingleWordFilter()).visibleOnlyInStaticPreview()
-        },
+        StudioFlags.PREVIEW_FILTER.ifEnabled { PreviewFilterShowHistoryAction().visibleOnlyInStaticPreview() },
+        StudioFlags.PREVIEW_FILTER.ifEnabled { PreviewFilterTextAction(PreviewViewSingleWordFilter()).visibleOnlyInStaticPreview() },
         StudioFlags.COMPOSE_DEBUG_BOUNDS.ifEnabled { ShowDebugBoundaries() },
       )
     ) {
@@ -113,9 +105,7 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
         isEssentialsModeSelected = PreviewEssentialsModeManager.isEssentialsModeEnabled
         if (isEssentialsModeSelected) {
           val layoutSwitcher = e.getData(DESIGN_SURFACE)?.layoutManagerSwitcher
-          ApplicationManager.getApplication().invokeLater {
-            layoutSwitcher?.currentLayoutOption?.value = FOCUS_MODE_LAYOUT_OPTION
-          }
+          ApplicationManager.getApplication().invokeLater { layoutSwitcher?.currentLayoutOption?.value = FOCUS_MODE_LAYOUT_OPTION }
         }
       }
     }
@@ -132,41 +122,29 @@ class ComposeAdapterLightVirtualFile(name: String, content: String, originFile: 
 
 /** A [PreviewRepresentationProvider] coupled with [ComposePreviewRepresentation]. */
 class ComposePreviewRepresentationProvider(
-  private val filePreviewElementProvider: () -> FilePreviewElementFinder<PsiComposePreviewElement> =
-    {
-      AnnotationFilePreviewElementFinder
-    }
+  private val filePreviewElementProvider: () -> FilePreviewElementFinder<PsiComposePreviewElement> = { AnnotationFilePreviewElementFinder }
 ) : PreviewRepresentationProvider {
 
   private object ComposeEditorFileType :
-    CommonRepresentationEditorFileType(
-      ComposeAdapterLightVirtualFile::class.java,
-      LayoutEditorState.Type.COMPOSE,
-      ::ComposePreviewToolbar,
-    )
+    CommonRepresentationEditorFileType(ComposeAdapterLightVirtualFile::class.java, LayoutEditorState.Type.COMPOSE, ::ComposePreviewToolbar)
 
   init {
     DesignerTypeRegistrar.register(ComposeEditorFileType)
   }
 
-  /**
-   * Checks if the input [psiFile] contains compose previews and therefore can be provided with the
-   * `PreviewRepresentation` of them.
-   */
+  /** Checks if the input [psiFile] contains compose previews and therefore can be provided with the `PreviewRepresentation` of them. */
   override suspend fun accept(project: Project, psiFile: PsiFile): Boolean {
     // We need to be in smart mode to be able to access the index for the annotations.
     if (DumbService.isDumb(project)) return false
     return psiFile.virtualFile.isKotlinFileType() &&
       (smartReadAction(project) {
-        (psiFile.getModuleSystem()?.usesCompose == true ||
-          isCompatibleComposableClassAvailable(psiFile)) && !psiFile.isInLibrary()
+        (psiFile.getModuleSystem()?.usesCompose == true || isCompatibleComposableClassAvailable(psiFile)) && !psiFile.isInLibrary()
       })
   }
 
   /** Creates a [ComposePreviewRepresentation] for the input [psiFile]. */
   override suspend fun createRepresentation(psiFile: PsiFile): ComposePreviewRepresentation {
-    val hasPreviewMethods =
-      filePreviewElementProvider().hasPreviewElements(psiFile.project, psiFile.virtualFile)
+    val hasPreviewMethods = filePreviewElementProvider().hasPreviewElements(psiFile.project, psiFile.virtualFile)
     thisLogger().debug { "${psiFile.virtualFile.path} hasPreviewMethods=${hasPreviewMethods}" }
 
     val globalState = AndroidEditorSettings.getInstance().globalState
@@ -182,8 +160,7 @@ class ComposePreviewRepresentationProvider(
 
   override val displayName = message("representation.name")
 
-  private fun PsiFile.isInLibrary() =
-    ProjectRootManager.getInstance(project).fileIndex.isInLibrary(virtualFile)
+  private fun PsiFile.isInLibrary() = ProjectRootManager.getInstance(project).fileIndex.isInLibrary(virtualFile)
 }
 
 private fun isCompatibleComposableClassAvailable(file: PsiFile): Boolean {
@@ -196,7 +173,7 @@ private fun isCompatibleComposableClassAvailable(file: PsiFile): Boolean {
     return false
   }
   return if (!DumbService.getInstance(module.project).isDumb) {
-    val moduleScope = module.getModuleWithDependenciesAndLibrariesScope(/*includeTests = */true)
+    val moduleScope = module.getModuleWithDependenciesAndLibrariesScope(/* includeTests= */ true)
     val foundClasses = KotlinFullClassNameIndex[COMPOSABLE_ANNOTATION_FQ_NAME, module.project, moduleScope]
     foundClasses.isNotEmpty()
   } else {
@@ -206,8 +183,7 @@ private fun isCompatibleComposableClassAvailable(file: PsiFile): Boolean {
 
 private const val PREFIX = "ComposePreview"
 internal val COMPOSE_PREVIEW_MANAGER = DataKey.create<ComposePreviewManager>("$PREFIX.Manager")
-internal val PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE =
-  DataKey.create<PsiComposePreviewElementInstance>("$PREFIX.PreviewElement")
+internal val PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE = DataKey.create<PsiComposePreviewElementInstance>("$PREFIX.PreviewElement")
 
 @TestOnly fun getComposePreviewManagerKeyForTests() = COMPOSE_PREVIEW_MANAGER
 

@@ -23,16 +23,17 @@ import org.junit.Rule
 import org.junit.Test
 
 class LiveTemplateCompletionTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory().initAndroid(true)
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().initAndroid(true)
 
   @Test
   fun testLiveTemplateAttributeCompletion() {
     LiveTemplateCompletionContributor.setShowTemplatesInTests(true, projectRule.fixture.testRootDisposable)
-    val virtualFile = projectRule.fixture.addFileToProject(
-      "res/layout/layout.xml",
-      //language=XML
-      """
+    val virtualFile =
+      projectRule.fixture
+        .addFileToProject(
+          "res/layout/layout.xml",
+          // language=XML
+          """
         <LinearLayout
                 xmlns:android="http://schemas.android.com/apk/res/android"
                 $caret
@@ -40,7 +41,10 @@ class LiveTemplateCompletionTest {
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
         </LinearLayout>
-      """.trimIndent()).virtualFile
+      """
+            .trimIndent(),
+        )
+        .virtualFile
     projectRule.fixture.configureFromExistingVirtualFile(virtualFile)
     projectRule.fixture.type("too")
     projectRule.fixture.completeBasic()
@@ -51,10 +55,12 @@ class LiveTemplateCompletionTest {
   @Test
   fun testLiveTemplateTagCompletion() {
     LiveTemplateCompletionContributor.setShowTemplatesInTests(true, projectRule.fixture.testRootDisposable)
-    val virtualFile = projectRule.fixture.addFileToProject(
-      "res/layout/layout.xml",
-      //language=XML
-      """
+    val virtualFile =
+      projectRule.fixture
+        .addFileToProject(
+          "res/layout/layout.xml",
+          // language=XML
+          """
         <LinearLayout
                 xmlns:android="http://schemas.android.com/apk/res/android"
                 android:orientation="vertical"
@@ -62,7 +68,10 @@ class LiveTemplateCompletionTest {
                 android:layout_height="match_parent">
                 $caret
         </LinearLayout>
-      """.trimIndent()).virtualFile
+      """
+            .trimIndent(),
+        )
+        .virtualFile
     projectRule.fixture.configureFromExistingVirtualFile(virtualFile)
     projectRule.fixture.type("too")
     projectRule.fixture.completeBasic()

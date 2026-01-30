@@ -18,14 +18,12 @@ package com.android.tools.idea
 import com.android.tools.asdriver.tests.AndroidProjectWithoutGradle
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.testlib.Emulator
+import kotlin.time.Duration.Companion.seconds
 import org.junit.Rule
 import org.junit.Test
-import kotlin.time.Duration.Companion.seconds
 
 class RunApkTest {
-  @JvmField
-  @Rule
-  val system = AndroidSystem.standard()
+  @JvmField @Rule val system = AndroidSystem.standard()
 
   @Test
   fun runApkTest() {
@@ -51,16 +49,14 @@ class RunApkTest {
 
         system.runStudioFromApk(project) { studio ->
           studio.waitForIndex()
-          println("Finished waiting for index");
+          println("Finished waiting for index")
 
           studio.waitForProjectInit()
 
           println("Running the app")
           studio.executeAction("Run")
 
-          adb.runCommand("logcat") {
-            waitForLog(".*Hello Minimal World!.*", 300.seconds);
-          }
+          adb.runCommand("logcat") { waitForLog(".*Hello Minimal World!.*", 300.seconds) }
         }
       }
     }

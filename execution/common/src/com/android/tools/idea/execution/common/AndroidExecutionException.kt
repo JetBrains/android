@@ -17,7 +17,5 @@ package com.android.tools.idea.execution.common
 
 import com.intellij.execution.ExecutionException
 
-/**
- * Wrapper for [ExecutionException] if we need provide [errorId] for [com.android.tools.idea.stats.RunStats.setErrorId]
- */
+/** Wrapper for [ExecutionException] if we need provide [errorId] for [com.android.tools.idea.stats.RunStats.setErrorId] */
 class AndroidExecutionException(val errorId: String, override val message: String?) : ExecutionException(message)

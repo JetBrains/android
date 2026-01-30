@@ -47,12 +47,8 @@ import com.google.common.collect.ImmutableList
  */
 class RelativeLayoutHandler : ViewGroupHandler() {
 
-  override fun createDragHandler(
-    editor: ViewEditor,
-    layout: SceneComponent,
-    components: List<NlComponent>,
-    type: DragType,
-  ): DragHandler = CommonDragHandler(editor, this, layout, components, type)
+  override fun createDragHandler(editor: ViewEditor, layout: SceneComponent, components: List<NlComponent>, type: DragType): DragHandler =
+    CommonDragHandler(editor, this, layout, components, type)
 
   override fun onChildRemoved(layout: NlComponent, newChild: NlComponent, insertType: InsertType) {
     RELATIVE_LAYOUT_ATTRIBUTES.forEach { newChild.removeAndroidAttribute(it) }
@@ -61,8 +57,7 @@ class RelativeLayoutHandler : ViewGroupHandler() {
   override fun cleanUpAttributes(component: NlComponent, attributes: NlAttributesHolder) {
     with(attributes) {
       if (
-        getAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_HORIZONTAL) ==
-          SdkConstants.VALUE_TRUE &&
+        getAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_HORIZONTAL) == SdkConstants.VALUE_TRUE &&
           getAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_VERTICAL) == SdkConstants.VALUE_TRUE
       ) {
         removeAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_HORIZONTAL)
@@ -84,27 +79,19 @@ class RelativeLayoutHandler : ViewGroupHandler() {
 
   override fun handlesPainting(): Boolean = true
 
-  override fun createInteraction(screenView: ScreenView, x: Int, y: Int, component: NlComponent) =
-    SceneInteraction(screenView)
+  override fun createInteraction(screenView: ScreenView, x: Int, y: Int, component: NlComponent) = SceneInteraction(screenView)
 
   override fun createTargets(sceneComponent: SceneComponent): List<Target> {
     val listBuilder = ImmutableList.Builder<Target>()
-    AnchorTarget.Type.values()
-      .filterNot { it == AnchorTarget.Type.BASELINE }
-      .forEach { listBuilder.add(RelativeAnchorTarget(it, true)) }
+    AnchorTarget.Type.values().filterNot { it == AnchorTarget.Type.BASELINE }.forEach { listBuilder.add(RelativeAnchorTarget(it, true)) }
     return listBuilder.build()
   }
 
-  override fun createChildTargets(
-    parentComponent: SceneComponent,
-    childComponent: SceneComponent,
-  ): List<Target> {
+  override fun createChildTargets(parentComponent: SceneComponent, childComponent: SceneComponent): List<Target> {
     val listBuilder = ImmutableList.builder<Target>()
 
     RESIZE_TARGETS.forEach { listBuilder.add(RelativeResizeTarget(it)) }
-    AnchorTarget.Type.values()
-      .filterNot { it == AnchorTarget.Type.BASELINE }
-      .forEach { listBuilder.add(RelativeAnchorTarget(it, false)) }
+    AnchorTarget.Type.values().filterNot { it == AnchorTarget.Type.BASELINE }.forEach { listBuilder.add(RelativeAnchorTarget(it, false)) }
     return listBuilder.build()
   }
 
@@ -116,10 +103,8 @@ class RelativeLayoutHandler : ViewGroupHandler() {
     actions.add(ToggleAutoConnectAction())
   }
 
-  override fun getPlaceholders(
-    sceneComponent: SceneComponent,
-    draggedComponents: List<SceneComponent>,
-  ) = listOf(RelativePlaceholder(sceneComponent))
+  override fun getPlaceholders(sceneComponent: SceneComponent, draggedComponents: List<SceneComponent>) =
+    listOf(RelativePlaceholder(sceneComponent))
 }
 
 private val RESIZE_TARGETS =

@@ -72,8 +72,7 @@ class RenderErrorContributorImplTest {
 
   @Before
   fun setUp() {
-    projectRule.fixture.testDataPath =
-      TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData/").toString()
+    projectRule.fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData/").toString()
     RenderTestUtil.beforeRenderTestCase()
     RenderLogger.ignoreFidelityWarning(
       "The current rendering only supports APIs up to 34. You may encounter " +
@@ -93,14 +92,9 @@ class RenderErrorContributorImplTest {
    *
    * @param file the layout file
    * @param logOperation optional [LogOperation] to intercept rendering errors
-   * @param useDumbMode when true, the render error model will be generated using the IntelliJ
-   *   [com.intellij.openapi.project.DumbService]
+   * @param useDumbMode when true, the render error model will be generated using the IntelliJ [com.intellij.openapi.project.DumbService]
    */
-  private fun getRenderOutput(
-    file: VirtualFile,
-    logOperation: LogOperation?,
-    useDumbMode: Boolean = false,
-  ): List<RenderErrorModel.Issue?> {
+  private fun getRenderOutput(file: VirtualFile, logOperation: LogOperation?, useDumbMode: Boolean = false): List<RenderErrorModel.Issue?> {
     val facet = AndroidFacet.getInstance(module)
     assertNotNull(facet)
     val configurationManager = ConfigurationManager.getOrCreateInstance(module)
@@ -127,15 +121,10 @@ class RenderErrorContributorImplTest {
         val errorModelTask = Runnable {
           // The error model must be created on a background thread.
           val errorModel =
-            ApplicationManager.getApplication()
-              .executeOnPooledThread(
-                Callable { RenderErrorModelFactory.createErrorModel(null, render!!) }
-              )
-          Futures.getUnchecked<RenderErrorModel?>(errorModel)!!
-            .issues
-            .stream()
-            .sorted()
-            .forEachOrdered { e: RenderErrorModel.Issue? -> issues.add(e) }
+            ApplicationManager.getApplication().executeOnPooledThread(Callable { RenderErrorModelFactory.createErrorModel(null, render!!) })
+          Futures.getUnchecked<RenderErrorModel?>(errorModel)!!.issues.stream().sorted().forEachOrdered { e: RenderErrorModel.Issue? ->
+            issues.add(e)
+          }
         }
         if (useDumbMode) {
           runInDumbModeSynchronously(fixture.project, ThrowableRunnable { errorModelTask.run() })
@@ -149,11 +138,7 @@ class RenderErrorContributorImplTest {
 
   @Test
   fun testPanel() {
-    val issues =
-      getRenderOutput(
-        fixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout1.xml"),
-        null,
-      )
+    val issues = getRenderOutput(fixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout1.xml"), null)
     assertSize(2, issues)
     assertHtmlEquals(
       "The following classes could not be found:<DL>" +
@@ -174,18 +159,9 @@ class RenderErrorContributorImplTest {
     )
     assertBottomPanelEquals(
       listOf(
-        MessageTip(
-          AllIcons.General.Information,
-          "Tip: <A HREF=\"action:buildForRendering\">Build</A> the module.",
-        ),
-        MessageTip(
-          AllIcons.General.Information,
-          "Tip: <A HREF=\"action:build\">Build</A> the project.",
-        ),
-        MessageTip(
-          AllIcons.General.Information,
-          "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview.",
-        ),
+        MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:buildForRendering\">Build</A> the module."),
+        MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:build\">Build</A> the project."),
+        MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview."),
       ),
       issues[0]!!,
     )
@@ -193,8 +169,7 @@ class RenderErrorContributorImplTest {
 
   @Test
   fun testDataBindingAttributes() {
-    val issues =
-      getRenderOutput(fixture.copyFileToProject(BASE_PATH + "db.xml", "res/layout/db.xml"), null)
+    val issues = getRenderOutput(fixture.copyFileToProject(BASE_PATH + "db.xml", "res/layout/db.xml"), null)
     assertSize(2, issues)
     assertHtmlEquals(
       "The following classes could not be found:<DL>" +
@@ -215,18 +190,9 @@ class RenderErrorContributorImplTest {
     )
     assertBottomPanelEquals(
       listOf(
-        MessageTip(
-          AllIcons.General.Information,
-          "Tip: <A HREF=\"action:buildForRendering\">Build</A> the module.",
-        ),
-        MessageTip(
-          AllIcons.General.Information,
-          "Tip: <A HREF=\"action:build\">Build</A> the project.",
-        ),
-        MessageTip(
-          AllIcons.General.Information,
-          "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview.",
-        ),
+        MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:buildForRendering\">Build</A> the module."),
+        MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:build\">Build</A> the project."),
+        MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview."),
       ),
       issues[0]!!,
     )
@@ -234,11 +200,7 @@ class RenderErrorContributorImplTest {
 
   @Test
   fun testTypo() {
-    val issues =
-      getRenderOutput(
-        fixture.copyFileToProject(BASE_PATH + "layout3.xml", "res/layout/layout3.xml"),
-        null,
-      )
+    val issues = getRenderOutput(fixture.copyFileToProject(BASE_PATH + "layout3.xml", "res/layout/layout3.xml"), null)
     assertSize(1, issues)
     assertHtmlEquals(
       "The following classes could not be found:<DL>" +
@@ -250,18 +212,9 @@ class RenderErrorContributorImplTest {
 
     assertBottomPanelEquals(
       listOf(
-        MessageTip(
-          AllIcons.General.Information,
-          "Tip: <A HREF=\"action:buildForRendering\">Build</A> the module.",
-        ),
-        MessageTip(
-          AllIcons.General.Information,
-          "Tip: <A HREF=\"action:build\">Build</A> the project.",
-        ),
-        MessageTip(
-          AllIcons.General.Information,
-          "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview.",
-        ),
+        MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:buildForRendering\">Build</A> the module."),
+        MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:build\">Build</A> the project."),
+        MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview."),
       ),
       issues[0]!!,
     )
@@ -328,11 +281,7 @@ class RenderErrorContributorImplTest {
       assertTrue(logger.hasProblems())
     }
 
-    val issues =
-      getRenderOutput(
-        fixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"),
-        operation,
-      )
+    val issues = getRenderOutput(fixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation)
     assertSize(1, issues)
     assertNotNull(target.get())
     val havePlatformSources = AndroidSdks.getInstance().findPlatformSources(target.get()!!) != null
@@ -350,12 +299,7 @@ class RenderErrorContributorImplTest {
         issues[0]!!,
       )
       assertBottomPanelEquals(
-        listOf(
-          MessageTip(
-            AllIcons.General.Information,
-            "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview.",
-          )
-        ),
+        listOf(MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview.")),
         issues[0]!!,
       )
     } else {
@@ -372,12 +316,7 @@ class RenderErrorContributorImplTest {
         issues[0]!!,
       )
       assertBottomPanelEquals(
-        listOf(
-          MessageTip(
-            AllIcons.General.Information,
-            "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview.",
-          )
-        ),
+        listOf(MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview.")),
         issues[0]!!,
       )
     }
@@ -459,11 +398,7 @@ class RenderErrorContributorImplTest {
       logger.error(null, "Failed to configure parser for " + path, throwable, null, null)
     }
 
-    val issues =
-      getRenderOutput(
-        fixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"),
-        operation,
-      )
+    val issues = getRenderOutput(fixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation)
     assertSize(1, issues)
     assertHtmlEquals(
       "Resource error: Attempted to load a bitmap as a color state list.<BR/>" +
@@ -478,12 +413,7 @@ class RenderErrorContributorImplTest {
     )
 
     assertBottomPanelEquals(
-      listOf(
-        MessageTip(
-          AllIcons.General.Information,
-          "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview.",
-        )
-      ),
+      listOf(MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview.")),
       issues[0]!!,
     )
   }
@@ -554,11 +484,7 @@ class RenderErrorContributorImplTest {
       target.set(render.getRenderContext()!!.configuration.getRealTarget())
     }
 
-    val issues =
-      getRenderOutput(
-        fixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"),
-        operation,
-      )
+    val issues = getRenderOutput(fixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation)
     assertSize(1, issues)
 
     assertNotNull(target.get())
@@ -579,12 +505,7 @@ class RenderErrorContributorImplTest {
         issues[0]!!,
       )
       assertBottomPanelEquals(
-        listOf(
-          MessageTip(
-            AllIcons.General.Information,
-            "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview.",
-          )
-        ),
+        listOf(MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview.")),
         issues[0]!!,
       )
     } else {
@@ -608,16 +529,11 @@ class RenderErrorContributorImplTest {
   @Test
   fun testSandboxError() {
     val operation = LogOperation { logger: RenderLogger, _: RenderResult ->
-      val throwable =
-        RenderSecurityException.create("Network access is not allowed during rendering")
+      val throwable = RenderSecurityException.create("Network access is not allowed during rendering")
       logger.error(null, null, throwable, null, null)
     }
 
-    val issues =
-      getRenderOutput(
-        fixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"),
-        operation,
-      )
+    val issues = getRenderOutput(fixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation)
     assertSize(1, issues)
     assertHtmlEquals(
       "Looks like the preview you are running has run into a limitation of our " +
@@ -641,11 +557,7 @@ class RenderErrorContributorImplTest {
     var operation = LogOperation { logger: RenderLogger, render: RenderResult ->
       logger.fidelityWarning("Fidelity", "Fidelity issue", null, null, null)
     }
-    var issues =
-      getRenderOutput(
-        fixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"),
-        operation,
-      )
+    var issues = getRenderOutput(fixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation)
     assertSize(1, issues)
     assertHtmlEquals(
       "The graphics preview in the layout editor may not be accurate:<BR/>" +
@@ -658,11 +570,7 @@ class RenderErrorContributorImplTest {
       logger.fidelityWarning("Fidelity", "Fidelity issue", null, null, null)
       logger.error("Error", "An error", null, null)
     }
-    issues =
-      getRenderOutput(
-        fixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"),
-        operation,
-      )
+    issues = getRenderOutput(fixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation)
     assertSize(2, issues)
     // The ERROR should go first in the list (higher priority)
     assertHtmlEquals(
@@ -672,12 +580,7 @@ class RenderErrorContributorImplTest {
       issues.get(1)!!,
     )
     assertBottomPanelEquals(
-      listOf(
-        MessageTip(
-          AllIcons.General.Information,
-          "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview.",
-        )
-      ),
+      listOf(MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview.")),
       issues[0]!!,
     )
   }
@@ -720,11 +623,7 @@ class RenderErrorContributorImplTest {
       logger.addBrokenClass("com.example.myapplication.MyButton", throwable)
     }
 
-    val issues =
-      getRenderOutput(
-        fixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"),
-        operation,
-      )
+    val issues = getRenderOutput(fixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation)
     assertSize(1, issues)
     assertHtmlEquals(
       "The following classes could not be instantiated:<DL><DD>-&nbs" +
@@ -790,32 +689,19 @@ class RenderErrorContributorImplTest {
       logger.addBrokenClass("com.example.myapplication.MyButton", throwable)
     }
 
-    val issues =
-      getRenderOutput(
-        fixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"),
-        operation,
-      )
+    val issues = getRenderOutput(fixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation)
     assertSize(1, issues)
-    assertHtmlEquals(
-      "Select <I>Theme.AppCompat</I> or a descendant in the theme selector.",
-      issues[0]!!,
-    )
+    assertHtmlEquals("Select <I>Theme.AppCompat</I> or a descendant in the theme selector.", issues[0]!!)
   }
 
   /**
    * Regression test for b/149357583
    *
-   * The [RenderErrorContributor] should not throw an
-   * [com.intellij.openapi.project.IndexNotReadyException] when executed in dumb mode.
+   * The [RenderErrorContributor] should not throw an [com.intellij.openapi.project.IndexNotReadyException] when executed in dumb mode.
    */
   @Test
   fun testDumbModeRenderErrorContributor() {
-    val issues =
-      getRenderOutput(
-        fixture.copyFileToProject(BASE_PATH + "layout3.xml", "res/layout/layout3.xml"),
-        null,
-        true,
-      )
+    val issues = getRenderOutput(fixture.copyFileToProject(BASE_PATH + "layout3.xml", "res/layout/layout3.xml"), null, true)
     assertSize(1, issues)
     assertHtmlEquals(
       "The following classes could not be found:<DL>" +
@@ -825,18 +711,9 @@ class RenderErrorContributorImplTest {
     )
     assertBottomPanelEquals(
       listOf(
-        MessageTip(
-          AllIcons.General.Information,
-          "Tip: <A HREF=\"action:buildForRendering\">Build</A> the module.",
-        ),
-        MessageTip(
-          AllIcons.General.Information,
-          "Tip: <A HREF=\"action:build\">Build</A> the project.",
-        ),
-        MessageTip(
-          AllIcons.General.Information,
-          "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview.",
-        ),
+        MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:buildForRendering\">Build</A> the module."),
+        MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:build\">Build</A> the project."),
+        MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview."),
       ),
       issues[0]!!,
     )
@@ -853,11 +730,7 @@ class RenderErrorContributorImplTest {
       logger.addMessage(RenderProblem.createPlain(ProblemSeverity.ERROR, "Error 1"))
     }
 
-    val issues =
-      getRenderOutput(
-        fixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"),
-        operation,
-      )
+    val issues = getRenderOutput(fixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation)
     assertSize(2, issues)
   }
 
@@ -870,20 +743,13 @@ class RenderErrorContributorImplTest {
       logger.addMessage(RenderProblem.createPlain(ProblemSeverity.WARNING, "Warning"))
     }
 
-    val issues =
-      getRenderOutput(
-        fixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"),
-        operation,
-      )
+    val issues = getRenderOutput(fixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation)
     assertSize(2, issues)
     assertEquals(HighlightSeverity.ERROR, issues[0]!!.severity)
     assertEquals(HighlightSeverity.WARNING, issues[1]!!.severity)
   }
 
-  /**
-   * Tests that the RenderErrorContributor builds the correct help message for errors with data
-   * binding.
-   */
+  /** Tests that the RenderErrorContributor builds the correct help message for errors with data binding. */
   @Test
   fun testDataBindingIssue() {
     val operation = LogOperation { logger: RenderLogger, render: RenderResult ->
@@ -930,11 +796,7 @@ class RenderErrorContributorImplTest {
       logger.addBrokenClass("com.example.module.TestCustomView", throwable)
     }
 
-    val issues =
-      getRenderOutput(
-        fixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"),
-        operation,
-      )
+    val issues = getRenderOutput(fixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation)
     assertSize(1, issues)
     Truth.assertThat(issues[0]!!.htmlContent)
       .startsWith(
@@ -950,10 +812,7 @@ class RenderErrorContributorImplTest {
     assertNotNull(platform)
     var location = platform!!.getSdkData().getLocation().toString()
     location = FileUtil.toSystemIndependentName(location)
-    html =
-      html
-        .replace(location, "\$SDK_HOME")
-        .replace("file:///", "file://") // On Windows JavaDoc source may start with /
+    html = html.replace(location, "\$SDK_HOME").replace("file:///", "file://") // On Windows JavaDoc source may start with /
     return html
   }
 
@@ -985,10 +844,7 @@ class RenderErrorContributorImplTest {
     TestCase.assertEquals(expected, actual)
   }
 
-  private fun assertBottomPanelEquals(
-    expectedMessageTips: List<MessageTip>,
-    issue: RenderErrorModel.Issue,
-  ) {
+  private fun assertBottomPanelEquals(expectedMessageTips: List<MessageTip>, issue: RenderErrorModel.Issue) {
     val actualMessageTips = issue.messageTip
 
     TestCase.assertEquals(expectedMessageTips.size, actualMessageTips.size)

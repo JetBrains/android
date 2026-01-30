@@ -18,10 +18,6 @@ package com.android.tools.idea.gradle.project.sync.issues.toolchain
 import com.google.wireless.android.sdk.stats.GradleDaemonJvmCriteriaErrorEvent.Error.UNDEFINED_DAEMON_JVM_CRITERIA
 import org.jetbrains.plugins.gradle.issue.GradleUndefinedDaemonJvmCriteriaIssueChecker
 
-/**
- * Gradle build error analytics tracker for [GradleUndefinedDaemonJvmCriteriaIssueChecker]
- */
-class GradleUndefinedDaemonJvmCriteriaIssueReporter : DaemonJvmCriteriaIssueReporter(
-  checker = GradleUndefinedDaemonJvmCriteriaIssueChecker(),
-  errorEvent = UNDEFINED_DAEMON_JVM_CRITERIA
-)
+/** Gradle build error analytics tracker for [GradleUndefinedDaemonJvmCriteriaIssueChecker] */
+class GradleUndefinedDaemonJvmCriteriaIssueReporter :
+  DaemonJvmCriteriaIssueReporter(checker = GradleUndefinedDaemonJvmCriteriaIssueChecker(), errorEvent = UNDEFINED_DAEMON_JVM_CRITERIA)

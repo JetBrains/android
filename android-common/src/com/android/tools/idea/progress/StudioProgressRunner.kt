@@ -33,18 +33,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 
-/**
- * [ProgressRunner] implementation that sets up IntelliJ's progress reporting and adapts it to the
- * sdklib progress reporting interface.
- */
+/** [ProgressRunner] implementation that sets up IntelliJ's progress reporting and adapts it to the sdklib progress reporting interface. */
 class StudioProgressRunner
 @JvmOverloads
 constructor(
   private val cancellable: Boolean,
   private val title: String,
   private val project: Project?,
-  private val coroutineScope: CoroutineScope =
-    StudioProgressRunnerService.getInstance().coroutineScope + Dispatchers.Default,
+  private val coroutineScope: CoroutineScope = StudioProgressRunnerService.getInstance().coroutineScope + Dispatchers.Default,
 ) : ProgressRunner {
   /** Runs the task on [coroutineScope] with a background progress indicator. */
   @AnyThread
@@ -56,18 +52,13 @@ constructor(
         r.run(NullProgressIndicator)
       } else {
         withBackgroundProgress(project, title, cancellable) {
-          reportRawProgress { reporter ->
-            r.run(RawProgressReporterAdapter(reporter))
-          }
+          reportRawProgress { reporter -> r.run(RawProgressReporterAdapter(reporter)) }
         }
       }
     }
   }
 
-  /**
-   * Runs a modal progress reporting dialog on the EDT, which invokes the task on a background
-   * worker thread.
-   */
+  /** Runs a modal progress reporting dialog on the EDT, which invokes the task on a background worker thread. */
   @AnyThread
   override fun runSyncWithProgress(progressRunnable: ProgressRunner.ProgressRunnable) {
     // runWithModalProgressBlocking requires the EDT
@@ -75,15 +66,11 @@ constructor(
       .invokeAndWait(
         {
           runWithModalProgressBlocking(
-            owner =
-              if (project != null) ModalTaskOwner.project(project) else ModalTaskOwner.guess(),
+            owner = if (project != null) ModalTaskOwner.project(project) else ModalTaskOwner.guess(),
             title = title,
-            cancellation =
-              if (cancellable) TaskCancellation.cancellable() else TaskCancellation.nonCancellable(),
+            cancellation = if (cancellable) TaskCancellation.cancellable() else TaskCancellation.nonCancellable(),
           ) {
-            reportRawProgress { reporter ->
-              progressRunnable.run(RawProgressReporterAdapter(reporter))
-            }
+            reportRawProgress { reporter -> progressRunnable.run(RawProgressReporterAdapter(reporter)) }
           }
         },
         ModalityState.any(),

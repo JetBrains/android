@@ -18,10 +18,8 @@ package com.android.tools.idea.gradle.model
 import java.io.File
 import java.io.Serializable
 
-/**
- * A project path together with the name and location of the build containing it.
- */
-interface IdeProjectPath: Serializable {
+/** A project path together with the name and location of the build containing it. */
+interface IdeProjectPath : Serializable {
   /**
    * The build ID (directory containing the settings file) of the root build of this project.
    *
@@ -38,8 +36,6 @@ interface IdeProjectPath: Serializable {
    */
   val buildId: File
 
-  /**
-   * Returns the Gradle project path of the module (excluding the build name, if in an included build).
-   */
+  /** Returns the Gradle project path of the module (excluding the build name, if in an included build). */
   val projectPath: String
 }

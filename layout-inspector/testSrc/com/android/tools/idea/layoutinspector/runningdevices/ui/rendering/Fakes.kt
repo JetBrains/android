@@ -50,8 +50,7 @@ class FakeActionPopupMenu(private val group: ActionGroup) : ActionPopupMenu {
     assertThat(actions.size).isEqualTo(3)
     assertThat(actions[1]).isInstanceOf(DropDownAction::class.java)
     val selectActions = (actions[1] as DropDownAction).getChildren(event)
-    val selectedViewsIds =
-      selectActions.toList().filterIsInstance<SelectViewAction>().map { it.view.drawId }
+    val selectedViewsIds = selectActions.toList().filterIsInstance<SelectViewAction>().map { it.view.drawId }
     assertThat(selectedViewsIds).containsExactlyElementsIn(expected.toList())
     assertThat(actions[2]).isEqualTo(GotoDeclarationAction)
   }

@@ -42,14 +42,9 @@ import org.jetbrains.annotations.TestOnly
 
 /** [Display] that runs the layout and the creation of the display list in a background thread. */
 private class AsyncDisplay(disposable: Disposable, private val captureRepaints: Boolean) : Display {
-  private data class CachedState(
-    val displayListVersion: Long,
-    val displayList: DisplayList,
-    val scale: Double,
-  )
+  private data class CachedState(val displayListVersion: Long, val displayList: DisplayList, val scale: Double)
 
-  private val rebuildTriggerFlow =
-    MutableSharedFlow<SceneView>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+  private val rebuildTriggerFlow = MutableSharedFlow<SceneView>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
   private val cachedStateFlow = MutableStateFlow(CachedState(0, initialEmptyList, 0.0))
 
@@ -81,8 +76,7 @@ private class AsyncDisplay(disposable: Disposable, private val captureRepaints: 
     cachedStateFlow.value = cachedStateFlow.value.copy(displayListVersion = 0)
   }
 
-  @TestOnly
-  override fun hasPendingPaints() = pendingRepaintsLock.withLock { !pendingRepaints.isEmpty() }
+  @TestOnly override fun hasPendingPaints() = pendingRepaintsLock.withLock { !pendingRepaints.isEmpty() }
 
   @UiThread
   override fun draw(sceneView: SceneView, g: Graphics2D) {
@@ -90,9 +84,7 @@ private class AsyncDisplay(disposable: Disposable, private val captureRepaints: 
     val sceneContext = sceneView.context
     val state = cachedStateFlow.value
     val needsRebuild =
-      scene.displayListVersion > state.displayListVersion ||
-        sceneContext.scale != state.scale ||
-        state.displayList == initialEmptyList
+      scene.displayListVersion > state.displayListVersion || sceneContext.scale != state.scale || state.displayList == initialEmptyList
 
     if (needsRebuild) {
       rebuildTriggerFlow.tryEmit(sceneView)
@@ -135,11 +127,10 @@ interface Display {
     private val displays = WeakList<Display>()
 
     /**
-     * Enables a mode for testing where [Display.hasPendingPaints] returns if there are any pending
-     * repaints to be done. The method returns the previous value.
+     * Enables a mode for testing where [Display.hasPendingPaints] returns if there are any pending repaints to be done. The method returns
+     * the previous value.
      */
-    @TestOnly
-    fun setCaptureDisplayRepaints(enable: Boolean): Boolean = captureRepaints.getAndSet(enable)
+    @TestOnly fun setCaptureDisplayRepaints(enable: Boolean): Boolean = captureRepaints.getAndSet(enable)
 
     /** Returns if there are any pending [Display] repaints. */
     @TestOnly
@@ -150,13 +141,10 @@ interface Display {
 
     @JvmStatic
     fun create(disposable: Disposable): Display =
-      (if (StudioFlags.NELE_BACKGROUND_DISPLAY_LIST.get())
-          AsyncDisplay(disposable, captureRepaints.get())
-        else SyncDisplay())
-        .also {
-          if (captureRepaints.get()) {
-            displays.add(it)
-          }
+      (if (StudioFlags.NELE_BACKGROUND_DISPLAY_LIST.get()) AsyncDisplay(disposable, captureRepaints.get()) else SyncDisplay()).also {
+        if (captureRepaints.get()) {
+          displays.add(it)
         }
+      }
   }
 }

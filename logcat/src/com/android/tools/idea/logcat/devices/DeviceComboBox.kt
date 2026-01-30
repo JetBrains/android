@@ -89,20 +89,15 @@ private val EMULATOR_ICONS =
 /**
  * A [ComboBox] for selecting a device.
  *
- * The items are populated by devices as they come online. When a device goes offline, it's not
- * removed from the combo, rather, it's representation changes to reflect its state.
+ * The items are populated by devices as they come online. When a device goes offline, it's not removed from the combo, rather, it's
+ * representation changes to reflect its state.
  *
- * An initial device can optionally be provided. This initial device will become the selected item.
- * If no initial device is provided, the first device added will be selected.
+ * An initial device can optionally be provided. This initial device will become the selected item. If no initial device is provided, the
+ * first device added will be selected.
  */
-internal class DeviceComboBox(
-  private val project: Project,
-  private val initialItem: DeviceComboItem?,
-) : ComboBox<DeviceComboItem>() {
+internal class DeviceComboBox(private val project: Project, private val initialItem: DeviceComboItem?) : ComboBox<DeviceComboItem>() {
   private val deviceTracker: IDeviceComboBoxDeviceTracker =
-    project
-      .service<DeviceComboBoxDeviceTrackerFactory>()
-      .createDeviceComboBoxDeviceTracker((initialItem as? DeviceItem)?.device)
+    project.service<DeviceComboBoxDeviceTrackerFactory>().createDeviceComboBoxDeviceTracker((initialItem as? DeviceItem)?.device)
 
   private val deviceComboModel: DeviceComboModel
     get() = model as DeviceComboModel
@@ -125,11 +120,7 @@ internal class DeviceComboBox(
     when (item) {
       is FileItem -> {
         if (!item.path.exists()) {
-          val itemRemoved =
-            handleItemError(
-              item,
-              LogcatBundle.message("logcat.device.combo.error.message", item.path),
-            )
+          val itemRemoved = handleItemError(item, LogcatBundle.message("logcat.device.combo.error.message", item.path))
           if (itemRemoved) {
             return
           }
@@ -142,15 +133,14 @@ internal class DeviceComboBox(
   /**
    * Shows a popup reporting a problem with an item.
    *
-   * The popup asks the user if they want to remove the item from the list. Returns true if the item
-   * was removed.
+   * The popup asks the user if they want to remove the item from the list. Returns true if the item was removed.
    */
   fun handleItemError(item: DeviceComboItem, message: String): Boolean {
     val answer =
       MessageDialogBuilder.yesNo(
-        LogcatBundle.message("logcat.device.combo.error.title"),
-        LogcatBundle.message("logcat.device.combo.error.message", message),
-      )
+          LogcatBundle.message("logcat.device.combo.error.title"),
+          LogcatBundle.message("logcat.device.combo.error.message", message),
+        )
         .ask(project)
     if (answer) {
       deviceComboModel.remove(item)
@@ -205,19 +195,13 @@ internal class DeviceComboBox(
 
   private fun deviceStateChanged(device: Device) {
     when (deviceComboModel.containsDevice(device)) {
-      true ->
-        deviceComboModel.replaceDevice(
-          device,
-          device.deviceId == (item as? DeviceItem)?.device?.deviceId,
-        )
+      true -> deviceComboModel.replaceDevice(device, device.deviceId == (item as? DeviceItem)?.device?.deviceId)
       false -> deviceAdded(device) // Device was removed manually so we re-add it
     }
   }
 
   fun addOrSelectFile(path: Path) {
-    val fileItem =
-      deviceComboModel.items.find { it is FileItem && it.path.pathString == path.pathString }
-      ?: deviceComboModel.addFile(path)
+    val fileItem = deviceComboModel.items.find { it is FileItem && it.path.pathString == path.pathString } ?: deviceComboModel.addFile(path)
     selectedItem = fileItem
   }
 
@@ -250,13 +234,10 @@ internal class DeviceComboBox(
       selected: Boolean,
       hasFocus: Boolean,
     ): Component {
-      val deviceComponent =
-        super.getListCellRendererComponent(list, value, index, selected, hasFocus)
+      val deviceComponent = super.getListCellRendererComponent(list, value, index, selected, hasFocus)
       component.addToLeft(deviceComponent)
       deleteLabel.icon =
-        if (selected && value != null && value.isDeletable())
-          IconUtil.colorize(DELETE_ICON, list.selectionForeground)
-        else null
+        if (selected && value != null && value.isDeletable()) IconUtil.colorize(DELETE_ICON, list.selectionForeground) else null
 
       return component
     }
@@ -286,10 +267,7 @@ internal class DeviceComboBox(
       if (device.isOnline) {
         append(" (${device.serialNumber})", REGULAR_ATTRIBUTES)
       }
-      append(
-        LogcatBundle.message("logcat.device.combo.version", device.release, device.apiLevel),
-        GRAY_ATTRIBUTES,
-      )
+      append(LogcatBundle.message("logcat.device.combo.version", device.release, device.apiLevel), GRAY_ATTRIBUTES)
       if (!device.isOnline) {
         append(LogcatBundle.message("logcat.device.combo.offline"), GRAYED_BOLD_ATTRIBUTES)
       }
@@ -326,8 +304,7 @@ internal class DeviceComboBox(
       }
     }
 
-    fun containsDevice(device: Device): Boolean =
-      items.find { it is DeviceItem && it.device.deviceId == device.deviceId } != null
+    fun containsDevice(device: Device): Boolean = items.find { it is DeviceItem && it.device.deviceId == device.deviceId } != null
   }
 
   sealed class DeviceComboItem {
@@ -336,10 +313,7 @@ internal class DeviceComboBox(
     data class FileItem(val path: Path) : DeviceComboItem()
   }
 
-  /**
-   * A custom UI based on DarculaComboBoxUI that has more control over the popup, so we can
-   * intercept mouse events.
-   */
+  /** A custom UI based on DarculaComboBoxUI that has more control over the popup, so we can intercept mouse events. */
   private class DeviceComboBoxUi : DarculaComboBoxUI() {
     override fun installDefaults() {
       super.installDefaults()
@@ -356,8 +330,7 @@ internal class DeviceComboBox(
         val mouseListener = createListMouseListener()
         val mouseMotionListener = createListMouseMotionListener()
 
-        val handler =
-          DeviceComboBoxPopupMouseListener(comboBox, list, mouseListener, mouseMotionListener)
+        val handler = DeviceComboBoxPopupMouseListener(comboBox, list, mouseListener, mouseMotionListener)
         comboBox.addKeyListener(handler)
 
         listMouseListener = handler
@@ -428,10 +401,7 @@ internal class DeviceComboBox(
 
     override fun mouseMoved(e: MouseEvent) {
       val hintColor = String.format("%06x", NamedColorUtil.getInactiveTextColor().rgb and 0xffffff)
-      list.toolTipText =
-        if (e.isOverDeleteIcon())
-          LogcatBundle.message("logcat.device.combo.delete.tooltip", hintColor)
-        else null
+      list.toolTipText = if (e.isOverDeleteIcon()) LogcatBundle.message("logcat.device.combo.delete.tooltip", hintColor) else null
       mouseMotionListener.mouseMoved(e)
     }
 

@@ -20,12 +20,12 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 
 interface IdeBrandProvider {
-  fun get() : AndroidStudioEvent.IdeBrand
+  fun get(): AndroidStudioEvent.IdeBrand
 }
 
 private val EP = ExtensionPointName.create<IdeBrandProvider>("com.android.tools.idea.analytics.ideBrandProvider")
 
-fun currentIdeBrand() : AndroidStudioEvent.IdeBrand {
+fun currentIdeBrand(): AndroidStudioEvent.IdeBrand {
   val extensions = EP.extensionList
   if (extensions.isEmpty()) {
     return AndroidStudioEvent.IdeBrand.ANDROID_STUDIO

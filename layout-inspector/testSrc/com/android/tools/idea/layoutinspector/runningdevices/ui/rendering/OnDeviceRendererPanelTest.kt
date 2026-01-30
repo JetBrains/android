@@ -102,12 +102,7 @@ class OnDeviceRendererPanelTest {
   fun testMouseEventsAreDispatchedToParent() = runTest {
     val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
 
-    val onDeviceRendererModel =
-      OnDeviceRendererModel(
-        disposable = disposableRule.disposable,
-        scope = scope,
-        renderModel = renderModel,
-      )
+    val onDeviceRendererModel = OnDeviceRendererModel(disposable = disposableRule.disposable, scope = scope, renderModel = renderModel)
 
     val onDeviceRendererPanel =
       OnDeviceRendererPanel(
@@ -230,10 +225,7 @@ class OnDeviceRendererPanelTest {
           bounds = listOf(inspectorModel[VIEW1]!!.layoutBounds),
           color = SELECTION_COLOR_ARGB,
           type = LayoutInspectorViewProtocol.DrawCommand.Type.SELECTED_NODES,
-          label =
-            inspectorModel[VIEW1]?.unqualifiedName?.let {
-              DrawInstruction.Label(text = it, size = LABEL_FONT_SIZE)
-            },
+          label = inspectorModel[VIEW1]?.unqualifiedName?.let { DrawInstruction.Label(text = it, size = LABEL_FONT_SIZE) },
           strokeThickness = EMPHASIZED_BORDER_THICKNESS,
         )
         .toByteArray()
@@ -312,11 +304,7 @@ class OnDeviceRendererPanelTest {
       buildDrawNodeCommand(
           rootId = ROOT,
           bounds =
-            listOf(
-              inspectorModel[COMPOSE1]!!.layoutBounds,
-              inspectorModel[VIEW1]!!.layoutBounds,
-              inspectorModel[ROOT]!!.layoutBounds,
-            ),
+            listOf(inspectorModel[COMPOSE1]!!.layoutBounds, inspectorModel[VIEW1]!!.layoutBounds, inspectorModel[ROOT]!!.layoutBounds),
           color = BASE_COLOR_ARGB,
           type = LayoutInspectorViewProtocol.DrawCommand.Type.VISIBLE_NODES,
           label = null,
@@ -353,10 +341,7 @@ class OnDeviceRendererPanelTest {
 
     treeSettings.showRecompositions = true
 
-    val newWindow =
-      viewWindow(ROOT, 0, 0, 100, 200) {
-        compose(COMPOSE2, name = "compose-node", x = 0, y = 0, width = 50, height = 50) {}
-      }
+    val newWindow = viewWindow(ROOT, 0, 0, 100, 200) { compose(COMPOSE2, name = "compose-node", x = 0, y = 0, width = 50, height = 50) {} }
     val composeNode2 = newWindow.root.flattenedList().find { it.drawId == COMPOSE2 }!!
     composeNode2.recompositions.highlightCount = 100f
     inspectorModel.update(newWindow, listOf(ROOT), 0)
@@ -402,12 +387,7 @@ class OnDeviceRendererPanelTest {
     testScheduler.advanceUntilIdle()
 
     val touchEvent =
-      buildUserInputEventProto(
-        rootId = ROOT,
-        x = 15f,
-        y = 55f,
-        type = LayoutInspectorViewProtocol.UserInputEvent.Type.SELECTION,
-      )
+      buildUserInputEventProto(rootId = ROOT, x = 15f, y = 55f, type = LayoutInspectorViewProtocol.UserInputEvent.Type.SELECTION)
     renderModel.setInterceptClicks(true)
     testScheduler.advanceUntilIdle()
 
@@ -455,13 +435,7 @@ class OnDeviceRendererPanelTest {
 
     testScheduler.advanceUntilIdle()
 
-    val touchEvent =
-      buildUserInputEventProto(
-        rootId = ROOT,
-        x = 15f,
-        y = 55f,
-        type = LayoutInspectorViewProtocol.UserInputEvent.Type.HOVER,
-      )
+    val touchEvent = buildUserInputEventProto(rootId = ROOT, x = 15f, y = 55f, type = LayoutInspectorViewProtocol.UserInputEvent.Type.HOVER)
     renderModel.setInterceptClicks(true)
     testScheduler.advanceUntilIdle()
 
@@ -503,12 +477,7 @@ class OnDeviceRendererPanelTest {
     testScheduler.advanceUntilIdle()
 
     val touchEvent =
-      buildUserInputEventProto(
-        rootId = ROOT,
-        x = 15f,
-        y = 55f,
-        type = LayoutInspectorViewProtocol.UserInputEvent.Type.DOUBLE_CLICK,
-      )
+      buildUserInputEventProto(rootId = ROOT, x = 15f, y = 55f, type = LayoutInspectorViewProtocol.UserInputEvent.Type.DOUBLE_CLICK)
     renderModel.setInterceptClicks(true)
     testScheduler.advanceUntilIdle()
 
@@ -547,11 +516,7 @@ class OnDeviceRendererPanelTest {
         scope = scope,
         model = onDeviceRendererModel,
         enableSendRightClicksToDevice = {},
-        showRightClickMenu = {
-          _: JComponent,
-          selectedNode: ViewNode?,
-          nodes: List<ViewNode>,
-          point: Point ->
+        showRightClickMenu = { _: JComponent, selectedNode: ViewNode?, nodes: List<ViewNode>, point: Point ->
           rightClickInvocations += 1
           rightClickNodes = nodes
           rightClickCoordinates = point
@@ -576,12 +541,7 @@ class OnDeviceRendererPanelTest {
     assertThat(inspectorModel.selection).isNull()
 
     val rightClickEvent =
-      buildUserInputEventProto(
-        rootId = ROOT,
-        x = 15f,
-        y = 55f,
-        type = LayoutInspectorViewProtocol.UserInputEvent.Type.RIGHT_CLICK,
-      )
+      buildUserInputEventProto(rootId = ROOT, x = 15f, y = 55f, type = LayoutInspectorViewProtocol.UserInputEvent.Type.RIGHT_CLICK)
     // send right click from the device
     onDeviceRenderingClient.handleEvent(rightClickEvent)
 
@@ -605,12 +565,7 @@ class OnDeviceRendererPanelTest {
     fakeUi.layoutAndDispatchEvents()
 
     val rightClickEvent2 =
-      buildUserInputEventProto(
-        rootId = ROOT,
-        x = 15f,
-        y = 55f,
-        type = LayoutInspectorViewProtocol.UserInputEvent.Type.RIGHT_CLICK,
-      )
+      buildUserInputEventProto(rootId = ROOT, x = 15f, y = 55f, type = LayoutInspectorViewProtocol.UserInputEvent.Type.RIGHT_CLICK)
     // send right click from the device
     onDeviceRenderingClient.handleEvent(rightClickEvent2)
 

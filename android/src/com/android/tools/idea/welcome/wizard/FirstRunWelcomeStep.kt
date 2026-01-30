@@ -21,10 +21,8 @@ import com.google.wireless.android.sdk.stats.SetupWizardEvent
 import javax.swing.JComponent
 
 /** Welcome page for the first run wizard */
-open class FirstRunWelcomeStep(
-  model: FirstRunWizardModel,
-  private val tracker: FirstRunWizardTracker,
-) : ModelWizardStep<FirstRunWizardModel>(model, "Welcome") {
+open class FirstRunWelcomeStep(model: FirstRunWizardModel, private val tracker: FirstRunWizardTracker) :
+  ModelWizardStep<FirstRunWizardModel>(model, "Welcome") {
   private val form = FirstRunWelcomeStepForm(model.initialSdkExists)
 
   override fun getComponent(): JComponent = form.root

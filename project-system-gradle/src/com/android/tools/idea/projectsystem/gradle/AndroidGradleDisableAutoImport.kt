@@ -20,13 +20,20 @@ import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectAware
 import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectId
 import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker
 
-class RefreshOnlyAutoImportProjectTracker(): ExternalSystemProjectTracker {
+class RefreshOnlyAutoImportProjectTracker() : ExternalSystemProjectTracker {
   override fun activate(id: ExternalSystemProjectId) = Unit
+
   override fun markDirty(id: ExternalSystemProjectId) = Unit
+
   override fun markDirtyAllProjects() = Unit
+
   override fun register(projectAware: ExternalSystemProjectAware) = Unit
+
   override fun register(projectAware: ExternalSystemProjectAware, parentDisposable: Disposable) = Unit
+
   override fun remove(id: ExternalSystemProjectId) = Unit
+
   override fun scheduleChangeProcessing() = Unit
+
   override fun scheduleProjectRefresh() = Unit
 }

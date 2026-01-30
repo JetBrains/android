@@ -23,7 +23,7 @@ import com.intellij.psi.PsiModifier
  *
  * Note: This class is adapted from [android.databinding.tool.reflection.ModelField] from db-compiler.
  */
-class PsiModelField(override val containingClass: PsiModelClass, val psiField: PsiField) : PsiModelMember{
+class PsiModelField(override val containingClass: PsiModelClass, val psiField: PsiField) : PsiModelMember {
 
   val name: String
     get() = psiField.name

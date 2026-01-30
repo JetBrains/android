@@ -70,64 +70,61 @@ private const val SYSPROPS_TRANSACTION = 1599295570 // from frameworks/base/core
 
 internal const val POPULATE_COMMAND =
   "echo $DARK_MODE_DIVIDER; " +
-  "cmd uimode night; " +
-  "echo $GESTURES_DIVIDER; " +
-  "cmd overlay list android | grep $GESTURES_OVERLAY$; " +
-  "echo $LIST_PACKAGES_DIVIDER; " +
-  "pm list packages | grep package:$TALKBACK_PACKAGE_NAME$; " +
-  "echo $ACCESSIBILITY_SERVICES_DIVIDER; " +
-  "settings get secure $ENABLED_ACCESSIBILITY_SERVICES; " +
-  "echo $ACCESSIBILITY_BUTTON_TARGETS_DIVIDER; " +
-  "settings get secure $ACCESSIBILITY_BUTTON_TARGETS; " +
-  "echo $FONT_SCALE_DIVIDER; " +
-  "settings get system font_scale; " +
-  "echo $DENSITY_DIVIDER; " +
-  "wm density; " +
-  "echo $DEBUG_LAYOUT_DIVIDER; " +
-  "getprop debug.layout; " +
-  "echo $FOREGROUND_APPLICATION_DIVIDER; " +
-  "dumpsys activity activities | grep mFocusedApp=ActivityRecord; "
+    "cmd uimode night; " +
+    "echo $GESTURES_DIVIDER; " +
+    "cmd overlay list android | grep $GESTURES_OVERLAY$; " +
+    "echo $LIST_PACKAGES_DIVIDER; " +
+    "pm list packages | grep package:$TALKBACK_PACKAGE_NAME$; " +
+    "echo $ACCESSIBILITY_SERVICES_DIVIDER; " +
+    "settings get secure $ENABLED_ACCESSIBILITY_SERVICES; " +
+    "echo $ACCESSIBILITY_BUTTON_TARGETS_DIVIDER; " +
+    "settings get secure $ACCESSIBILITY_BUTTON_TARGETS; " +
+    "echo $FONT_SCALE_DIVIDER; " +
+    "settings get system font_scale; " +
+    "echo $DENSITY_DIVIDER; " +
+    "wm density; " +
+    "echo $DEBUG_LAYOUT_DIVIDER; " +
+    "getprop debug.layout; " +
+    "echo $FOREGROUND_APPLICATION_DIVIDER; " +
+    "dumpsys activity activities | grep mFocusedApp=ActivityRecord; "
 
-internal const val GET_ACCESSIBILITY_SERVICES_COMMAND =
-  "settings get secure $ENABLED_ACCESSIBILITY_SERVICES"
+internal const val GET_ACCESSIBILITY_SERVICES_COMMAND = "settings get secure $ENABLED_ACCESSIBILITY_SERVICES"
 
-internal const val GET_ACCESSIBILITY_BUTTON_TARGETS_COMMAND =
-  "settings get secure $ACCESSIBILITY_BUTTON_TARGETS"
+internal const val GET_ACCESSIBILITY_BUTTON_TARGETS_COMMAND = "settings get secure $ACCESSIBILITY_BUTTON_TARGETS"
 
 internal const val POPULATE_LANGUAGE_COMMAND =
-  "echo $APP_LANGUAGE_DIVIDER; " +
-  "cmd locale get-app-locales %s; "  // Parameter: applicationId
+  "echo $APP_LANGUAGE_DIVIDER; " + "cmd locale get-app-locales %s; " // Parameter: applicationId
 
 internal const val FACTORY_RESET_COMMAND_FOR_WEAR =
   "cmd locale set-app-locales %s --locales; " +
-  "settings put system font_scale 1; " +
-  "setprop debug.layout false; " +
-  "service call activity $SYSPROPS_TRANSACTION; "  // Parameters: applicationId
+    "settings put system font_scale 1; " +
+    "setprop debug.layout false; " +
+    "service call activity $SYSPROPS_TRANSACTION; " // Parameters: applicationId
 
 internal const val FACTORY_RESET_COMMAND_FOR_TV_AND_AUTO =
   "cmd uimode night no; " +
-  "cmd locale set-app-locales %s --locales; " +
-  "settings put system font_scale 1; " +
-  "setprop debug.layout false; " +
-  "service call activity $SYSPROPS_TRANSACTION; " // Parameters: applicationId
+    "cmd locale set-app-locales %s --locales; " +
+    "settings put system font_scale 1; " +
+    "setprop debug.layout false; " +
+    "service call activity $SYSPROPS_TRANSACTION; " // Parameters: applicationId
 
 internal const val FACTORY_RESET_COMMAND_FOR_XR =
   "cmd uimode night yes; " +
-  "cmd locale set-app-locales %s --locales; " +
-  "settings put system font_scale 1; " +
-  "wm density %d; " +
-  "setprop debug.layout false; " +
-  "service call activity $SYSPROPS_TRANSACTION; "  // Parameters: applicationId, density
+    "cmd locale set-app-locales %s --locales; " +
+    "settings put system font_scale 1; " +
+    "wm density %d; " +
+    "setprop debug.layout false; " +
+    "service call activity $SYSPROPS_TRANSACTION; " // Parameters: applicationId, density
 
 internal const val FACTORY_RESET_COMMAND =
   "cmd uimode night no; " +
-  "cmd locale set-app-locales %s --locales; " +
-  "settings put system font_scale 1; " +
-  "wm density %d; " +
-  "setprop debug.layout false; " +
-  "service call activity $SYSPROPS_TRANSACTION; " +
-  "cmd overlay enable $GESTURES_OVERLAY; " +
-  "cmd overlay disable $THREE_BUTTON_OVERLAY; " // Parameters: applicationId, density
+    "cmd locale set-app-locales %s --locales; " +
+    "settings put system font_scale 1; " +
+    "wm density %d; " +
+    "setprop debug.layout false; " +
+    "service call activity $SYSPROPS_TRANSACTION; " +
+    "cmd overlay enable $GESTURES_OVERLAY; " +
+    "cmd overlay disable $THREE_BUTTON_OVERLAY; " // Parameters: applicationId, density
 
 private fun EmulatorConfiguration.toDeviceInfo(serialNumber: String): DeviceInfo {
   return DeviceInfo.newBuilder()
@@ -137,10 +134,7 @@ private fun EmulatorConfiguration.toDeviceInfo(serialNumber: String): DeviceInfo
     .build()
 }
 
-/**
- * A controller for the UI settings for an Emulator,
- * that populates the model and reacts to changes to the model initiated by the UI.
- */
+/** A controller for the UI settings for an Emulator, that populates the model and reacts to changes to the model initiated by the UI. */
 internal class EmulatorUiSettingsController(
   private val project: Project,
   private val deviceSerialNumber: String,
@@ -228,8 +222,7 @@ internal class EmulatorUiSettingsController(
       val line = iterator.next()
       if (line.startsWith(DIVIDER_PREFIX)) {
         iterator.previous()
-      }
-      else {
+      } else {
         gestureOverlayInstalled = true
         gestureNavigation = line == "[x] $GESTURES_OVERLAY"
       }
@@ -245,8 +238,7 @@ internal class EmulatorUiSettingsController(
       val line = iterator.next()
       if (line.startsWith(DIVIDER_PREFIX)) {
         iterator.previous()
-      }
-      else {
+      } else {
         isDebuggingLayout = line == "true"
       }
     }
@@ -277,11 +269,9 @@ internal class EmulatorUiSettingsController(
     val match = Regex(APP_LANGUAGE_PATTERN).find(appLanguageLine) ?: return
     val applicationId = match.groupValues[1]
     val localeTag = match.groupValues[2].split(",").firstOrNull().takeIf { it != "null" } ?: ""
-    AppLanguageService.getInstance(project).getAppLanguageInfo(
-      RunningApplicationIdentity(applicationId = applicationId, processName = null))?.let {
-      addLanguage(applicationId, it.localeConfig, localeTag)
-    }
-
+    AppLanguageService.getInstance(project)
+      .getAppLanguageInfo(RunningApplicationIdentity(applicationId = applicationId, processName = null))
+      ?.let { addLanguage(applicationId, it.localeConfig, localeTag) }
 
     readApplicationId = applicationId
     lastLocaleTag = localeTag
@@ -312,8 +302,9 @@ internal class EmulatorUiSettingsController(
 
   private fun processAccessibility(enabled: AccessibilityData, buttonTarget: AccessibilityData) {
     model.talkBackOn.setFromController(enabled.services.contains(TALK_BACK_SERVICE_NAME))
-    model.selectToSpeakOn.setFromController(enabled.services.contains(SELECT_TO_SPEAK_SERVICE_NAME) &&
-                                            buttonTarget.services.contains(SELECT_TO_SPEAK_SERVICE_NAME))
+    model.selectToSpeakOn.setFromController(
+      enabled.services.contains(SELECT_TO_SPEAK_SERVICE_NAME) && buttonTarget.services.contains(SELECT_TO_SPEAK_SERVICE_NAME)
+    )
     lastTalkBack = model.talkBackOn.value
     lastSelectToSpeak = model.selectToSpeakOn.value
   }
@@ -383,13 +374,14 @@ internal class EmulatorUiSettingsController(
 
   override fun reset() {
     scope.launch {
-      val command = when (deviceType) {
-        DeviceType.WEAR -> FACTORY_RESET_COMMAND_FOR_WEAR.format(readApplicationId)
-        DeviceType.TV,
-        DeviceType.AUTOMOTIVE -> FACTORY_RESET_COMMAND_FOR_TV_AND_AUTO.format(readApplicationId)
-        DeviceType.XR_HEADSET -> FACTORY_RESET_COMMAND_FOR_XR.format(readApplicationId, readPhysicalDensity)
-        else -> FACTORY_RESET_COMMAND.format(readApplicationId, readPhysicalDensity)
-      }
+      val command =
+        when (deviceType) {
+          DeviceType.WEAR -> FACTORY_RESET_COMMAND_FOR_WEAR.format(readApplicationId)
+          DeviceType.TV,
+          DeviceType.AUTOMOTIVE -> FACTORY_RESET_COMMAND_FOR_TV_AND_AUTO.format(readApplicationId)
+          DeviceType.XR_HEADSET -> FACTORY_RESET_COMMAND_FOR_XR.format(readApplicationId, readPhysicalDensity)
+          else -> FACTORY_RESET_COMMAND.format(readApplicationId, readPhysicalDensity)
+        }
       executeShellCommand(command)
       resetTalkBackAndSelectToSpeak()
       populateModel()
@@ -413,20 +405,18 @@ internal class EmulatorUiSettingsController(
   }
 
   private fun updateResetButton() {
-    var isDefault = lastLocaleTag.isEmpty() && !lastTalkBack &&
-                    lastFontScale == FontScale.NORMAL.percent && !lastDebugLayout
-    val extraChecks = when (deviceType) {
-      DeviceType.WEAR -> true
-      DeviceType.TV,
-      DeviceType.AUTOMOTIVE -> !lastDarkMode
-      DeviceType.XR_HEADSET -> lastDarkMode && // Dark mode is default on XR emulator
-                               !lastSelectToSpeak &&
-                               lastDensity == readPhysicalDensity
-      else -> !lastDarkMode &&
-              !lastSelectToSpeak &&
-              lastDensity == readPhysicalDensity &&
-              lastGestureNavigation
-    }
+    var isDefault = lastLocaleTag.isEmpty() && !lastTalkBack && lastFontScale == FontScale.NORMAL.percent && !lastDebugLayout
+    val extraChecks =
+      when (deviceType) {
+        DeviceType.WEAR -> true
+        DeviceType.TV,
+        DeviceType.AUTOMOTIVE -> !lastDarkMode
+        DeviceType.XR_HEADSET ->
+          lastDarkMode && // Dark mode is default on XR emulator
+            !lastSelectToSpeak &&
+            lastDensity == readPhysicalDensity
+        else -> !lastDarkMode && !lastSelectToSpeak && lastDensity == readPhysicalDensity && lastGestureNavigation
+      }
     isDefault = isDefault && extraChecks
     model.differentFromDefault.setFromController(!isDefault)
   }
@@ -443,8 +433,7 @@ internal class EmulatorUiSettingsController(
   private suspend fun setSecureSettings(settingsName: String, settings: AccessibilityData) {
     if (settings.services.isEmpty()) {
       executeShellCommand("settings delete secure $settingsName")
-    }
-    else {
+    } else {
       executeShellCommand("settings put secure $settingsName ${settings.servicesLine}")
     }
   }
@@ -455,9 +444,7 @@ internal class EmulatorUiSettingsController(
     return output.filterIsInstance<ShellCommandOutputElement.StdoutLine>().mapNotNull { it.contents.ifBlank { null } }.toList()
   }
 
-  /**
-   * Captured accessibility service names.
-   */
+  /** Captured accessibility service names. */
   private class AccessibilityData {
     val services = mutableSetOf<String>()
 
@@ -471,9 +458,7 @@ internal class EmulatorUiSettingsController(
       }
   }
 
-  /**
-   * Context for handling adb commands.
-   */
+  /** Context for handling adb commands. */
   private class CommandContext {
     val enabled = AccessibilityData()
     val buttons = AccessibilityData()

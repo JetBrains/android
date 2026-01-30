@@ -88,8 +88,7 @@ import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.UpdateS
 const val COMPOSE_LAYOUT_INSPECTOR_ID = "layoutinspector.compose.inspection"
 
 const val EXPECTED_CLASS_IN_COMPOSE_LIBRARY = "androidx.compose.ui.Modifier"
-val COMPOSE_INSPECTION_COMPATIBILITY =
-  LibraryCompatibility(COMPOSE_UI, listOf(EXPECTED_CLASS_IN_COMPOSE_LIBRARY))
+val COMPOSE_INSPECTION_COMPATIBILITY = LibraryCompatibility(COMPOSE_UI, listOf(EXPECTED_CLASS_IN_COMPOSE_LIBRARY))
 private val KMP_MIGRATION_VERSION = Version.parse("1.5.0-beta01")
 
 @VisibleForTesting const val INCOMPATIBLE_LIBRARY_MESSAGE_KEY = "incompatible.library.message"
@@ -98,14 +97,11 @@ private val KMP_MIGRATION_VERSION = Version.parse("1.5.0-beta01")
 
 @VisibleForTesting const val VERSION_MISSING_MESSAGE_KEY = "version.missing.message"
 
-@VisibleForTesting
-const val INSPECTOR_NOT_FOUND_USE_SNAPSHOT_KEY = "inspector.not.found.use.snapshot"
+@VisibleForTesting const val INSPECTOR_NOT_FOUND_USE_SNAPSHOT_KEY = "inspector.not.found.use.snapshot"
 
-@VisibleForTesting
-const val COMPOSE_INSPECTION_NOT_AVAILABLE_KEY = "compose.inspection.not.available"
+@VisibleForTesting const val COMPOSE_INSPECTION_NOT_AVAILABLE_KEY = "compose.inspection.not.available"
 
-@VisibleForTesting
-const val COMPOSE_MAY_CAUSE_APP_CRASH_KEY = "compose.inspection.may.cause.app.crash"
+@VisibleForTesting const val COMPOSE_MAY_CAUSE_APP_CRASH_KEY = "compose.inspection.may.cause.app.crash"
 
 @VisibleForTesting const val MAVEN_DOWNLOAD_PROBLEM = "maven.download.problem"
 
@@ -115,31 +111,24 @@ const val COMPOSE_MAY_CAUSE_APP_CRASH_KEY = "compose.inspection.may.cause.app.cr
 
 @VisibleForTesting const val LAUNCH_UNKNOWN_ERROR = "compose.inspector.launch.unknown.error"
 
-@VisibleForTesting
-const val ANDROIDX_RELEASE_LOCATION = "#studio/../../../../../../out/dist/inspection"
+@VisibleForTesting const val ANDROIDX_RELEASE_LOCATION = "#studio/../../../../../../out/dist/inspection"
 
-private const val PROGUARD_LEARN_MORE =
-  "https://d.android.com/r/studio-ui/layout-inspector/code-shrinking"
+private const val PROGUARD_LEARN_MORE = "https://d.android.com/r/studio-ui/layout-inspector/code-shrinking"
 
 /** Result from [ComposeLayoutInspectorClient.getComposeables]. */
 class GetComposablesResult(
   /** The response received from the agent */
   val response: GetComposablesResponse,
 
-  /**
-   * This is true, if a recomposition count reset command was sent after the GetComposables command
-   * was sent.
-   */
+  /** This is true, if a recomposition count reset command was sent after the GetComposables command was sent. */
   val pendingRecompositionCountReset: Boolean,
 )
 
 /**
- * The client responsible for interacting with the compose layout inspector running on the target
- * device.
+ * The client responsible for interacting with the compose layout inspector running on the target device.
  *
  * @param messenger The messenger that lets us communicate with the view inspector.
- * @param capabilities Of the containing [InspectorClient]. Some capabilities may be added by this
- *   class.
+ * @param capabilities Of the containing [InspectorClient]. Some capabilities may be added by this class.
  */
 class ComposeLayoutInspectorClient(
   private val model: InspectorModel,
@@ -152,37 +141,18 @@ class ComposeLayoutInspectorClient(
 ) {
 
   companion object {
-    /**
-     * Check for problems with the specified compose version, and display banners if appropriate.
-     */
+    /** Check for problems with the specified compose version, and display banners if appropriate. */
     private fun checkComposeVersion(notificationModel: NotificationModel, versionString: String) {
       val version = Version.parse(versionString)
       // b/237987764 App crash while fetching parameters with empty lambda was fixed in
       // 1.3.0-alpha03 and in 1.2.1
       // b/235526153 App crash while fetching component tree with certain Borders was fixed in
       // 1.3.0-alpha03 and in 1.2.1
-      if (
-        version >= Version.parse("1.3.0-alpha03") ||
-          version.minor == 2 && version >= Version.parse("1.2.1")
-      )
-        return
+      if (version >= Version.parse("1.3.0-alpha03") || version.minor == 2 && version >= Version.parse("1.2.1")) return
       val versionUpgrade = if (version.minor == 3) "1.3.0" else "1.2.1"
-      val message =
-        LayoutInspectorBundle.message(
-          COMPOSE_MAY_CAUSE_APP_CRASH_KEY,
-          versionString,
-          versionUpgrade,
-        )
-      logDiagnostics(
-        ComposeLayoutInspectorClient::class.java,
-        "Compose version warning, message: %s",
-        message,
-      )
-      notificationModel.addNotification(
-        COMPOSE_MAY_CAUSE_APP_CRASH_KEY,
-        message,
-        EditorNotificationPanel.Status.Warning,
-      )
+      val message = LayoutInspectorBundle.message(COMPOSE_MAY_CAUSE_APP_CRASH_KEY, versionString, versionUpgrade)
+      logDiagnostics(ComposeLayoutInspectorClient::class.java, "Compose version warning, message: %s", message)
+      notificationModel.addNotification(COMPOSE_MAY_CAUSE_APP_CRASH_KEY, message, EditorNotificationPanel.Status.Warning)
       // Allow the user to connect and inspect compose elements because:
       // - b/235526153 is uncommon
       // - b/237987764 only happens if the kotlin compiler version is at least 1.6.20 (which we
@@ -203,9 +173,7 @@ class ComposeLayoutInspectorClient(
       isRunningFromSourcesInTests: Boolean?,
     ): String? {
       val version =
-        compatibility?.version?.takeIf {
-          compatibility.status == LibraryCompatibilityInfo.Status.COMPATIBLE && it.isNotBlank()
-        }
+        compatibility?.version?.takeIf { compatibility.status == LibraryCompatibilityInfo.Status.COMPATIBLE && it.isNotBlank() }
           ?: return handleError(
             notificationModel,
             logErrorToMetrics,
@@ -227,26 +195,13 @@ class ComposeLayoutInspectorClient(
       if (version == null) return null
 
       return try {
-        runBlocking {
-          InspectorArtifactService.instance.getOrResolveInspectorJar(
-            project,
-            determineArtifactCoordinate(version),
-          )
-        }
+        runBlocking { InspectorArtifactService.instance.getOrResolveInspectorJar(project, determineArtifactCoordinate(version)) }
       } catch (exception: AppInspectionArtifactNotFoundException) {
-        handleError(
-          notificationModel,
-          logErrorToMetrics,
-          isRunningFromSourcesInTests,
-          exception.toAttachErrorInfo(),
-        )
+        handleError(notificationModel, logErrorToMetrics, isRunningFromSourcesInTests, exception.toAttachErrorInfo())
       }
     }
 
-    /**
-     * Helper function for launching the compose layout inspector and creating a client to interact
-     * with it.
-     */
+    /** Helper function for launching the compose layout inspector and creating a client to interact with it. */
     suspend fun launch(
       apiServices: AppInspectionApiServices,
       process: ProcessDescriptor,
@@ -257,8 +212,7 @@ class ComposeLayoutInspectorClient(
       capabilities: EnumSet<Capability>,
       launchMonitor: InspectorClientLaunchMonitor,
       logErrorToMetrics: (AttachErrorCode) -> Unit,
-      @VisibleForTesting
-      isRunningFromSourcesInTests: Boolean? = null, // Should only be set from tests
+      @VisibleForTesting isRunningFromSourcesInTests: Boolean? = null, // Should only be set from tests
     ): ComposeLayoutInspectorClient? {
       logDiagnostics(ComposeLayoutInspectorClient::class.java, "Launching: Compose Inspector")
       val project = model.project
@@ -275,14 +229,8 @@ class ComposeLayoutInspectorClient(
           // (releaseDirectory)
           AppInspectorJar(
             "compose-ui-inspection.jar",
-            developmentDirectory =
-              resolveFolder(
-                StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_DEVELOPMENT_FOLDER.get()
-              ),
-            releaseDirectory =
-              resolveFolder(
-                StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_RELEASE_FOLDER.get()
-              ),
+            developmentDirectory = resolveFolder(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_DEVELOPMENT_FOLDER.get()),
+            releaseDirectory = resolveFolder(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_RELEASE_FOLDER.get()),
           )
         } else {
           val projectSystem = project.getProjectSystem()
@@ -290,32 +238,16 @@ class ComposeLayoutInspectorClient(
           // Blaze.
           val token = projectSystem.getTokenOrNull(GetComposeLayoutInspectorJarToken.EP_NAME)
 
-          val compatibility =
-            apiServices.checkVersion(
-              project.name,
-              process,
-              COMPOSE_UI,
-              listOf(EXPECTED_CLASS_IN_COMPOSE_LIBRARY),
-            )
+          val compatibility = apiServices.checkVersion(project.name, process, COMPOSE_UI, listOf(EXPECTED_CLASS_IN_COMPOSE_LIBRARY))
 
           composeVersion =
             when (token) {
               null ->
                 // The token is null when there is no build system. eg the user imported an APK or
                 // is using a plain intellij project.
-                handleCompatibilityAndComputeVersion(
-                  notificationModel,
-                  compatibility,
-                  logErrorToMetrics,
-                  isRunningFromSourcesInTests,
-                )
+                handleCompatibilityAndComputeVersion(notificationModel, compatibility, logErrorToMetrics, isRunningFromSourcesInTests)
               else ->
-                token.handleCompatibilityAndComputeVersion(
-                  notificationModel,
-                  compatibility,
-                  logErrorToMetrics,
-                  isRunningFromSourcesInTests,
-                )
+                token.handleCompatibilityAndComputeVersion(notificationModel, compatibility, logErrorToMetrics, isRunningFromSourcesInTests)
             }
 
           val appInspectorJar =
@@ -323,71 +255,30 @@ class ComposeLayoutInspectorClient(
               null ->
                 // The token is null when there is no build system. eg the user imported an APK or
                 // is using a plain intellij project.
-                getAppInspectorJar(
-                  project,
-                  composeVersion,
-                  notificationModel,
-                  logErrorToMetrics,
-                  isRunningFromSourcesInTests,
-                )
+                getAppInspectorJar(project, composeVersion, notificationModel, logErrorToMetrics, isRunningFromSourcesInTests)
               else ->
-                token.getAppInspectorJar(
-                  projectSystem,
-                  composeVersion,
-                  notificationModel,
-                  logErrorToMetrics,
-                  isRunningFromSourcesInTests,
-                )
+                token.getAppInspectorJar(projectSystem, composeVersion, notificationModel, logErrorToMetrics, isRunningFromSourcesInTests)
             } ?: return null
 
-          requiredCompatibility =
-            token?.getRequiredCompatibility() ?: COMPOSE_INSPECTION_COMPATIBILITY
+          requiredCompatibility = token?.getRequiredCompatibility() ?: COMPOSE_INSPECTION_COMPATIBILITY
           appInspectorJar
         }
 
       // Set force = true, to be more aggressive about connecting the layout inspector if an old
       // version was left running for some reason.
-      val params =
-        LaunchParameters(
-          process,
-          COMPOSE_LAYOUT_INSPECTOR_ID,
-          jar,
-          model.project.name,
-          requiredCompatibility,
-          force = true,
-        )
+      val params = LaunchParameters(process, COMPOSE_LAYOUT_INSPECTOR_ID, jar, model.project.name, requiredCompatibility, force = true)
       return try {
         val messenger = apiServices.launchInspector(params)
         val client =
-          ComposeLayoutInspectorClient(
-              model,
-              scope,
-              treeSettings,
-              messenger,
-              capabilities,
-              launchMonitor,
-              composeVersion,
-            )
-            .apply { updateSettings() }
-        logDiagnostics(
-          ComposeLayoutInspectorClient::class.java,
-          "Launch Success: Compose Inspector",
-        )
+          ComposeLayoutInspectorClient(model, scope, treeSettings, messenger, capabilities, launchMonitor, composeVersion).apply {
+            updateSettings()
+          }
+        logDiagnostics(ComposeLayoutInspectorClient::class.java, "Launch Success: Compose Inspector")
         client
       } catch (unexpected: AppInspectionException) {
-        handleError(
-          notificationModel,
-          logErrorToMetrics,
-          isRunningFromSourcesInTests,
-          unexpected.toAttachErrorInfo(),
-        )
+        handleError(notificationModel, logErrorToMetrics, isRunningFromSourcesInTests, unexpected.toAttachErrorInfo())
       } catch (unexpected: TransportException) {
-        handleError(
-          notificationModel,
-          logErrorToMetrics,
-          isRunningFromSourcesInTests,
-          unexpected.toAttachErrorInfo(),
-        )
+        handleError(notificationModel, logErrorToMetrics, isRunningFromSourcesInTests, unexpected.toAttachErrorInfo())
       }
     }
 
@@ -396,19 +287,16 @@ class ComposeLayoutInspectorClient(
     /**
      * Resolve the [folder] to a possible initial parent reference.
      *
-     * This functionality is added for developers on androidx-main where the depth of the current
-     * directory (where studio is started from) depends on the platform. By adding the "#studio" the
-     * reference would work on all platforms.
+     * This functionality is added for developers on androidx-main where the depth of the current directory (where studio is started from)
+     * depends on the platform. By adding the "#studio" the reference would work on all platforms.
      *
-     * The name after an initial '#' is regarded as a parent reference. The parent reference is
-     * matched to a parent folder of [currentFolder]. The returned path will make [folder] relative
-     * to the matched parent folder.
+     * The name after an initial '#' is regarded as a parent reference. The parent reference is matched to a parent folder of
+     * [currentFolder]. The returned path will make [folder] relative to the matched parent folder.
      *
-     * Example: if the currentFolder is:
-     * "/Volumes/android/androidx-main/frameworks/support/studio/android-studio-2022.2.1.5-mac/Android
-     * Studio Preview.app/Contents" Then a folder spec of "#studio/../../../out/some-folder" will be
-     * resolved to: "../../../../../../out/some-folder" which later will be resolved to the absolute
-     * path: "/Volumes/android/androidx-main/out/some-folder"
+     * Example: if the currentFolder is: "/Volumes/android/androidx-main/frameworks/support/studio/android-studio-2022.2.1.5-mac/Android
+     * Studio Preview.app/Contents" Then a folder spec of "#studio/../../../out/some-folder" will be resolved to:
+     * "../../../../../../out/some-folder" which later will be resolved to the absolute path:
+     * "/Volumes/android/androidx-main/out/some-folder"
      */
     @VisibleForTesting
     fun resolveFolder(currentFolder: String, folder: String?): String? {
@@ -453,34 +341,22 @@ class ComposeLayoutInspectorClient(
             // The compose.ui.ui was not present, which is normal in a View only application.
             return null
           }
-          AttachErrorCode.APP_INSPECTION_VERSION_FILE_NOT_FOUND ->
-            LayoutInspectorBundle.message(VERSION_MISSING_MESSAGE_KEY)
-          AttachErrorCode.APP_INSPECTION_INCOMPATIBLE_VERSION ->
-            LayoutInspectorBundle.message(INCOMPATIBLE_LIBRARY_MESSAGE_KEY)
+          AttachErrorCode.APP_INSPECTION_VERSION_FILE_NOT_FOUND -> LayoutInspectorBundle.message(VERSION_MISSING_MESSAGE_KEY)
+          AttachErrorCode.APP_INSPECTION_INCOMPATIBLE_VERSION -> LayoutInspectorBundle.message(INCOMPATIBLE_LIBRARY_MESSAGE_KEY)
           AttachErrorCode.APP_INSPECTION_PROGUARDED_APP -> {
             actions.add(learnMoreAction(PROGUARD_LEARN_MORE))
             LayoutInspectorBundle.message(PROGUARDED_LIBRARY_MESSAGE_KEY)
           }
-          AttachErrorCode.APP_INSPECTION_SNAPSHOT_NOT_SPECIFIED ->
-            LayoutInspectorBundle.message(INSPECTOR_NOT_FOUND_USE_SNAPSHOT_KEY)
-          AttachErrorCode.APP_INSPECTION_COMPOSE_INSPECTOR_NOT_FOUND ->
-            LayoutInspectorBundle.message(COMPOSE_INSPECTION_NOT_AVAILABLE_KEY)
+          AttachErrorCode.APP_INSPECTION_SNAPSHOT_NOT_SPECIFIED -> LayoutInspectorBundle.message(INSPECTOR_NOT_FOUND_USE_SNAPSHOT_KEY)
+          AttachErrorCode.APP_INSPECTION_COMPOSE_INSPECTOR_NOT_FOUND -> LayoutInspectorBundle.message(COMPOSE_INSPECTION_NOT_AVAILABLE_KEY)
           AttachErrorCode.APP_INSPECTION_FAILED_MAVEN_DOWNLOAD ->
             LayoutInspectorBundle.message(MAVEN_DOWNLOAD_PROBLEM, error.args["artifact"]!!)
           AttachErrorCode.TRANSPORT_PUSH_FAILED_FILE_NOT_FOUND -> {
-            Logger.getInstance(ComposeLayoutInspectorClient::class.java)
-              .warn("not found: ${error.args["path"]}")
-            if (
-              StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_RELEASE_FOLDER.get() ==
-                ANDROIDX_RELEASE_LOCATION
-            ) {
+            Logger.getInstance(ComposeLayoutInspectorClient::class.java).warn("not found: ${error.args["path"]}")
+            if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_RELEASE_FOLDER.get() == ANDROIDX_RELEASE_LOCATION) {
               LayoutInspectorBundle.message(COMPOSE_JAR_FOUND_FOR_ANDROIDX_KEY)
             } else {
-              LayoutInspectorBundle.message(
-                COMPOSE_JAR_FOUND_KEY,
-                error.args["path"]!!,
-                inspectorFolderFlag(isRunningFromSourcesInTests),
-              )
+              LayoutInspectorBundle.message(COMPOSE_JAR_FOUND_KEY, error.args["path"]!!, inspectorFolderFlag(isRunningFromSourcesInTests))
             }
           }
           AttachErrorCode.UNKNOWN_APP_INSPECTION_ERROR -> {
@@ -493,27 +369,16 @@ class ComposeLayoutInspectorClient(
           }
         }
       actions.add(notificationModel.dismissAction)
-      notificationModel.addNotification(
-        error.code.name,
-        message,
-        EditorNotificationPanel.Status.Warning,
-        actions,
-      )
-      logDiagnostics(
-        ComposeLayoutInspectorClient::class.java,
-        "Launch error: %s, message: %s",
-        error,
-        message,
-      )
+      notificationModel.addNotification(error.code.name, message, EditorNotificationPanel.Status.Warning, actions)
+      logDiagnostics(ComposeLayoutInspectorClient::class.java, "Launch error: %s, message: %s", error, message)
       logErrorToMetrics(error.code)
       return null
     }
 
     /**
-     * Return the flag name that can be used to specify the folder of the compose inspector if
-     * running on dev jar i.e. if [StudioFlags.APP_INSPECTION_USE_DEV_JAR] is turned on. Return the
-     * flag name that can be used to specify the folder of the compose inspector if running on dev
-     * jar i.e. if [StudioFlags.APP_INSPECTION_USE_DEV_JAR] is turned on.
+     * Return the flag name that can be used to specify the folder of the compose inspector if running on dev jar i.e. if
+     * [StudioFlags.APP_INSPECTION_USE_DEV_JAR] is turned on. Return the flag name that can be used to specify the folder of the compose
+     * inspector if running on dev jar i.e. if [StudioFlags.APP_INSPECTION_USE_DEV_JAR] is turned on.
      */
     private fun inspectorFolderFlag(isRunningFromSourcesInTests: Boolean?): String =
       if (isRunningFromSourcesInTests ?: StudioPathManager.isRunningFromSources())
@@ -525,20 +390,13 @@ class ComposeLayoutInspectorClient(
 
   val recompositionStateReadsCache = RecompositionStateReadCache(this, model, scope)
 
-  /**
-   * The caller will supply a running (increasing) number, that can be used to coordinate the
-   * responses from varies commands.
-   */
+  /** The caller will supply a running (increasing) number, that can be used to coordinate the responses from varies commands. */
   private var lastGeneration = 0
 
   /** The value of [lastGeneration] when the last recomposition reset command was sent. */
   private var lastGenerationReset = 0
 
-  suspend fun getComposeables(
-    rootViewId: Long,
-    newGeneration: Int,
-    forSnapshot: Boolean,
-  ): GetComposablesResult {
+  suspend fun getComposeables(rootViewId: Long, newGeneration: Int, forSnapshot: Boolean): GetComposablesResult {
     lastGeneration = newGeneration
     launchMonitor.updateProgress(AttachErrorState.COMPOSE_REQUEST_SENT)
     logDiagnostics(ComposeLayoutInspectorClient::class.java, "Sending: GetComposablesCommand")
@@ -553,24 +411,14 @@ class ComposeLayoutInspectorClient(
             }
             .build()
       }
-    logDiagnostics(
-      ComposeLayoutInspectorClient::class.java,
-      "Receiving: GetComposablesResult nodes: %d, system nodes: %d, max depth: %d",
-    ) {
+    logDiagnostics(ComposeLayoutInspectorClient::class.java, "Receiving: GetComposablesResult nodes: %d, system nodes: %d, max depth: %d") {
       response.getComposablesResponse.countNodes()
     }
     launchMonitor.updateProgress(AttachErrorState.COMPOSE_RESPONSE_RECEIVED)
-    return GetComposablesResult(
-      response.getComposablesResponse,
-      lastGenerationReset >= newGeneration,
-    )
+    return GetComposablesResult(response.getComposablesResponse, lastGenerationReset >= newGeneration)
   }
 
-  suspend fun getParameters(
-    rootViewId: Long,
-    composableId: Long,
-    anchorHash: Int,
-  ): GetParametersResponse {
+  suspend fun getParameters(rootViewId: Long, composableId: Long, anchorHash: Int): GetParametersResponse {
     logDiagnostics(ComposeLayoutInspectorClient::class.java, "Sending: GetParametersCommand")
     val response =
       messenger.sendCommand {
@@ -584,10 +432,7 @@ class ComposeLayoutInspectorClient(
             }
             .build()
       }
-    logDiagnostics(
-      ComposeLayoutInspectorClient::class.java,
-      "Receiving: GetParametersResponse parameters: %d",
-    ) {
+    logDiagnostics(ComposeLayoutInspectorClient::class.java, "Receiving: GetParametersResponse parameters: %d") {
       arrayOf(response.getParametersResponse.parameterGroup.parameterCount)
     }
     return response.getParametersResponse
@@ -605,10 +450,7 @@ class ComposeLayoutInspectorClient(
             }
             .build()
       }
-    logDiagnostics(
-      ComposeLayoutInspectorClient::class.java,
-      "Receiving: GetAllParametersResponse groups: %d, parameters: %d",
-    ) {
+    logDiagnostics(ComposeLayoutInspectorClient::class.java, "Receiving: GetAllParametersResponse groups: %d, parameters: %d") {
       arrayOf(
         response.getAllParametersResponse.parameterGroupsCount,
         response.getAllParametersResponse.parameterGroupsList.sumOf { it.parameterCount },
@@ -651,9 +493,8 @@ class ComposeLayoutInspectorClient(
    * @param anchorHash The anchor hash of the composable to retrieve state reads for
    * @param recompositionNumberStart the lower recomposition number of the range
    * @param recompositionNumberEnd the upper recomposition number of the range
-   * @param includeExtra If false: return state reads for the specified recompositions only. If
-   *   true: include extra recompositions after recomposition_number_end if any of the
-   *   recompositions in the specified range doesn't have state reads.
+   * @param includeExtra If false: return state reads for the specified recompositions only. If true: include extra recompositions after
+   *   recomposition_number_end if any of the recompositions in the specified range doesn't have state reads.
    */
   suspend fun getRecompositionStateReads(
     anchorHash: Int,
@@ -712,11 +553,7 @@ class ComposeLayoutInspectorClient(
     if (response.hasUpdateSettingsResponse()) {
       capabilities.add(Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS)
     }
-    if (
-      response.updateSettingsResponse.supportedStateReadKindList.containsAll(
-        listOf(Kind.ALL, Kind.BY_ID)
-      )
-    ) {
+    if (response.updateSettingsResponse.supportedStateReadKindList.containsAll(listOf(Kind.ALL, Kind.BY_ID))) {
       capabilities.add(Capability.CAN_OBSERVE_RECOMPOSE_STATE_READS)
     }
     return response.updateSettingsResponse
@@ -729,13 +566,8 @@ class ComposeLayoutInspectorClient(
   }
 }
 
-/**
- * Convenience method for wrapping a specific view-inspector command inside a parent app inspection
- * command.
- */
-private suspend fun AppInspectorMessenger.sendCommand(
-  initCommand: Command.Builder.() -> Unit
-): Response {
+/** Convenience method for wrapping a specific view-inspector command inside a parent app inspection command. */
+private suspend fun AppInspectorMessenger.sendCommand(initCommand: Command.Builder.() -> Unit): Response {
   val command = Command.newBuilder()
   command.initCommand()
   val bytes = sendRawCommand(command.build().toByteArray())
@@ -743,16 +575,12 @@ private suspend fun AppInspectorMessenger.sendCommand(
   // The protobuf parser has a default recursion limit of 100.
   // Increase this limit for the compose inspector because we typically get a deep recursion
   // response.
-  val inputStream =
-    CodedInputStream.newInstance(bytes, 0, bytes.size).apply {
-      setRecursionLimit(Integer.MAX_VALUE)
-    }
+  val inputStream = CodedInputStream.newInstance(bytes, 0, bytes.size).apply { setRecursionLimit(Integer.MAX_VALUE) }
   return Response.parseFrom(inputStream)
 }
 
 /**
- * Project System token to find the Compose Layout Inspector Jar file. Allows us to handle different
- * build systems, like Gradle and Blaze.
+ * Project System token to find the Compose Layout Inspector Jar file. Allows us to handle different build systems, like Gradle and Blaze.
  */
 interface GetComposeLayoutInspectorJarToken<P : AndroidProjectSystem> : Token {
   companion object {
@@ -771,10 +599,9 @@ interface GetComposeLayoutInspectorJarToken<P : AndroidProjectSystem> : Token {
   ): AppInspectorJar?
 
   /**
-   * Use [compatibility], resulting from a call to [checkVersion], to inform the user through the
-   * [notificationModel] of any issues, and return a [String] representing the version of the
-   * AppInspector jar to get. The return value is nullable to allow this method to indicate that no
-   * compatible version of the library has been found from the call to [checkVersion].
+   * Use [compatibility], resulting from a call to [checkVersion], to inform the user through the [notificationModel] of any issues, and
+   * return a [String] representing the version of the AppInspector jar to get. The return value is nullable to allow this method to
+   * indicate that no compatible version of the library has been found from the call to [checkVersion].
    */
   fun handleCompatibilityAndComputeVersion(
     notificationModel: NotificationModel,

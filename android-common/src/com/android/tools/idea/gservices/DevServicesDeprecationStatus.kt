@@ -18,10 +18,9 @@ package com.android.tools.idea.gservices
 import com.android.tools.idea.serverflags.protos.DevServicesDeprecationMetadata
 
 /**
- * Status of services that rely on backend APIs for the current build of the IDE. Our SLA is to
- * support features that rely on backend APIs for a period of about a year past the release of a
- * specific IDE version. Beyond that timeline, users must upgrade to a newer IDE version to continue
- * using those features.
+ * Status of services that rely on backend APIs for the current build of the IDE. Our SLA is to support features that rely on backend APIs
+ * for a period of about a year past the release of a specific IDE version. Beyond that timeline, users must upgrade to a newer IDE version
+ * to continue using those features.
  *
  * See go/android-studio-developer-services-compat-policy and go/as-kill-feature-past-deadline.
  */
@@ -29,9 +28,7 @@ enum class DevServicesDeprecationStatus {
   /** Developer services are within the support window and available to user. */
   SUPPORTED,
 
-  /**
-   * Developer services are deprecated and will be removed soon. Service remains available to user.
-   */
+  /** Developer services are deprecated and will be removed soon. Service remains available to user. */
   DEPRECATED,
 
   /** Developer Services are no longer supported and not available to user. */

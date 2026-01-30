@@ -31,6 +31,10 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.usageView.UsageInfo
+import java.awt.Color
+import javax.swing.Icon
+import kotlin.random.Random
+import kotlin.test.assertFailsWith
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -45,16 +49,10 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
-import java.awt.Color
-import javax.swing.Icon
-import kotlin.random.Random
-import kotlin.test.assertFailsWith
 
 class UsageInfoTreeNodeTest {
 
-  @Rule
-  @JvmField
-  val strict: MockitoRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
+  @Rule @JvmField val strict: MockitoRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
 
   @Test
   fun `constructor populates PsiElement from UsageInfo`() {
@@ -77,9 +75,7 @@ class UsageInfoTreeNodeTest {
   @Test
   fun `render throws a NPE if the PsiElement is missing`() {
     val app = mock<Application>()
-    whenever(app.runReadAction(any<Computable<Icon>>())).thenAnswer {
-      it.getTypedArgument<Computable<Icon>>(0).compute()
-    }
+    whenever(app.runReadAction(any<Computable<Icon>>())).thenAnswer { it.getTypedArgument<Computable<Icon>>(0).compute() }
 
     val node = UsageInfoTreeNode(mock(), Random.nextInt())
 
@@ -99,9 +95,7 @@ class UsageInfoTreeNodeTest {
     whenever(usageInfo.element).thenReturn(element)
 
     val app = mock<Application>()
-    whenever(app.runReadAction(any<Computable<Icon>>())).thenAnswer {
-      it.getTypedArgument<Computable<Icon>>(0).compute()
-    }
+    whenever(app.runReadAction(any<Computable<Icon>>())).thenAnswer { it.getTypedArgument<Computable<Icon>>(0).compute() }
 
     val renderer = mock<ColoredTreeCellRenderer>()
 
@@ -110,9 +104,9 @@ class UsageInfoTreeNodeTest {
     mockStatic<ApplicationManager>().use {
       whenever(ApplicationManager.getApplication()).thenReturn(app)
 
-      assertThat(
-        assertFailsWith<IllegalArgumentException> { node.render(renderer) })
-        .hasMessageThat().isEqualTo("Unknown psiElement $element")
+      assertThat(assertFailsWith<IllegalArgumentException> { node.render(renderer) })
+        .hasMessageThat()
+        .isEqualTo("Unknown psiElement $element")
       verify(renderer).icon = icon
     }
   }
@@ -217,10 +211,11 @@ class UsageInfoTreeNodeTest {
         node.render(renderer)
 
         verify(renderer).append(eq(name), eq(attributes))
-        verify(renderer).append(eq(" ($qualifierString)"), argThat {
-          style == attributes.style or SimpleTextAttributes.STYLE_SMALLER &&
-          fgColor == attributes.fgColor
-        })
+        verify(renderer)
+          .append(
+            eq(" ($qualifierString)"),
+            argThat { style == attributes.style or SimpleTextAttributes.STYLE_SMALLER && fgColor == attributes.fgColor },
+          )
         verify(node).renderReferenceCount(eq(renderer), eq(attributes))
       }
     }
@@ -254,10 +249,11 @@ class UsageInfoTreeNodeTest {
         node.render(renderer)
 
         verify(renderer).append(eq(name), eq(attributes))
-        verify(renderer, never()).append(eq(" ($qualifierString)"), argThat {
-          style == attributes.style or SimpleTextAttributes.STYLE_SMALLER &&
-          fgColor == attributes.fgColor
-        })
+        verify(renderer, never())
+          .append(
+            eq(" ($qualifierString)"),
+            argThat { style == attributes.style or SimpleTextAttributes.STYLE_SMALLER && fgColor == attributes.fgColor },
+          )
         verify(node).renderReferenceCount(eq(renderer), eq(attributes))
       }
     }

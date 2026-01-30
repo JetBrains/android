@@ -27,9 +27,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 
 /** Backups the state of the foreground app to a file */
-internal class BackupForegroundAppAction(
-  private val dialogFactory: DialogFactory = DialogFactoryImpl()
-) : AnAction() {
+internal class BackupForegroundAppAction(private val dialogFactory: DialogFactory = DialogFactoryImpl()) : AnAction() {
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 

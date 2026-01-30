@@ -37,11 +37,7 @@ enum class Delimiter(val delimiter: Char) {
 }
 
 /** All the information needed to perform an export operation */
-sealed class ExportRequest(
-  open val srcDatabase: SqliteDatabaseId,
-  open val format: ExportFormat,
-  open val dstPath: Path,
-) {
+sealed class ExportRequest(open val srcDatabase: SqliteDatabaseId, open val format: ExportFormat, open val dstPath: Path) {
   data class ExportDatabaseRequest(
     override val srcDatabase: SqliteDatabaseId,
     override val format: ExportFormat,
@@ -66,25 +62,16 @@ sealed class ExportRequest(
 /**
  * All the information needed to show a dialog asking a user to specify an [ExportRequest].
  *
- * @param actionOrigin Represents the UI area where the export dialog was launched from. Captured
- *   for analytics purposes.
+ * @param actionOrigin Represents the UI area where the export dialog was launched from. Captured for analytics purposes.
  */
-sealed class ExportDialogParams(
-  open val srcDatabase: SqliteDatabaseId,
-  open val actionOrigin: Origin,
-) {
+sealed class ExportDialogParams(open val srcDatabase: SqliteDatabaseId, open val actionOrigin: Origin) {
   /** @param actionOrigin see [ExportDialogParams.actionOrigin] */
-  data class ExportDatabaseDialogParams(
-    override val srcDatabase: SqliteDatabaseId,
-    override val actionOrigin: Origin,
-  ) : ExportDialogParams(srcDatabase, actionOrigin)
+  data class ExportDatabaseDialogParams(override val srcDatabase: SqliteDatabaseId, override val actionOrigin: Origin) :
+    ExportDialogParams(srcDatabase, actionOrigin)
 
   /** @param actionOrigin see [ExportDialogParams.actionOrigin] */
-  data class ExportTableDialogParams(
-    override val srcDatabase: SqliteDatabaseId,
-    val srcTable: String,
-    override val actionOrigin: Origin,
-  ) : ExportDialogParams(srcDatabase, actionOrigin)
+  data class ExportTableDialogParams(override val srcDatabase: SqliteDatabaseId, val srcTable: String, override val actionOrigin: Origin) :
+    ExportDialogParams(srcDatabase, actionOrigin)
 
   /** @param actionOrigin see [ExportDialogParams.actionOrigin] */
   data class ExportQueryResultsDialogParams(

@@ -31,7 +31,7 @@ fun startAndroidJavaDebuggerSession(
   project: Project,
   client: Client,
   consoleViewToReuse: ConsoleView?,
-  detachIsDefault: Boolean
+  detachIsDefault: Boolean,
 ): AsyncPromise<DebuggerSession> {
 
   val sessionName = "Android Java Debugger (pid: ${client.clientData.pid}, debug port: ${client.debuggerListenPort})"
@@ -40,16 +40,11 @@ fun startAndroidJavaDebuggerSession(
 
   runInEdt {
     promise.catchError {
-      val debugEnvironment = AndroidJavaDebugEnvironmentImpl(
-        project,
-        client,
-        sessionName,
-        consoleViewToReuse,
-        detachIsDefault
-      )
+      val debugEnvironment = AndroidJavaDebugEnvironmentImpl(project, client, sessionName, consoleViewToReuse, detachIsDefault)
 
-      val debuggerSession = DebuggerManagerEx.getInstanceEx(project).attachVirtualMachine(debugEnvironment)
-                            ?: throw ExecutionException("Unable to start debugger session")
+      val debuggerSession =
+        DebuggerManagerEx.getInstanceEx(project).attachVirtualMachine(debugEnvironment)
+          ?: throw ExecutionException("Unable to start debugger session")
 
       if (StudioFlags.EMIT_CONSOLE_OUTPUT_TO_LOGCAT.get()) {
         debuggerSession.process.processHandler.addProcessListener(LogcatEmitterProcessListener(debuggerSession.process))

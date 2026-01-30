@@ -56,8 +56,7 @@ internal fun FileInputField(
 
   val textState = rememberTextFieldState(filePath?.toString() ?: "")
   LaunchedEffect(Unit) {
-    snapshotFlow { textState.text.toString() }
-      .collect { onPathUpdated(if (it.isBlank()) null else fileSystem.getPath(it.trim())) }
+    snapshotFlow { textState.text.toString() }.collect { onPathUpdated(if (it.isBlank()) null else fileSystem.getPath(it.trim())) }
   }
 
   ErrorTooltip(errorMessage?.takeIf { enabled }, modifier) {
@@ -74,8 +73,7 @@ internal fun FileInputField(
             .clickable(
               enabled,
               onClick = {
-                val virtualFile =
-                  FileChooser.chooseFile(descriptor, component, project, null) ?: return@clickable
+                val virtualFile = FileChooser.chooseFile(descriptor, component, project, null) ?: return@clickable
                 textState.setTextAndPlaceCursorAtEnd(virtualFile.toNioPath().toString())
               },
             )

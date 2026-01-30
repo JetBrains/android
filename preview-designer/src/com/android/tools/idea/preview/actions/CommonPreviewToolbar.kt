@@ -32,15 +32,10 @@ class CommonPreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGroups(surf
         StopInteractivePreviewAction(isDisabled = { isPreviewRefreshing(it.dataContext) }),
         StopAnimationInspectorAction(isDisabled = { isPreviewRefreshing(it.dataContext) }),
         // TODO(b/292057010) Enable group filtering for Gallery mode.
-        GroupSwitchAction(isEnabled = { !isPreviewRefreshing(it.dataContext) })
-          .visibleOnlyInDefaultPreview(),
+        GroupSwitchAction(isEnabled = { !isPreviewRefreshing(it.dataContext) }).visibleOnlyInDefaultPreview(),
         CommonViewControlAction().visibleOnlyInStaticPreview(),
-        StudioFlags.PREVIEW_FILTER.ifEnabled {
-          PreviewFilterShowHistoryAction().visibleOnlyInStaticPreview()
-        },
-        StudioFlags.PREVIEW_FILTER.ifEnabled {
-          PreviewFilterTextAction(PreviewViewSingleWordFilter()).visibleOnlyInStaticPreview()
-        },
+        StudioFlags.PREVIEW_FILTER.ifEnabled { PreviewFilterShowHistoryAction().visibleOnlyInStaticPreview() },
+        StudioFlags.PREVIEW_FILTER.ifEnabled { PreviewFilterTextAction(PreviewViewSingleWordFilter()).visibleOnlyInStaticPreview() },
       )
     )
   }
@@ -48,9 +43,7 @@ class CommonPreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGroups(surf
   override fun getNorthEastGroup(): ActionGroup =
     DefaultActionGroup(
       listOfNotNull(
-        StudioFlags.PREVIEW_PAGINATION.ifEnabled {
-          PaginationActionGroup().visibleOnlyInDefaultPreview()
-        },
+        StudioFlags.PREVIEW_PAGINATION.ifEnabled { PaginationActionGroup().visibleOnlyInDefaultPreview() },
         CommonIssueNotificationAction(),
         ForceCompileAndRefreshActionForNotification.getInstance(),
       )

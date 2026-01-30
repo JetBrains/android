@@ -22,15 +22,15 @@ import com.android.tools.idea.editing.metrics.CodeEdited
 import com.android.tools.idea.editing.metrics.Source
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class ClearcutCodeEditedListenerTest {
@@ -91,13 +91,9 @@ class ClearcutCodeEditedListenerTest {
       with(editingMetricsEvent.characterMetrics) {
         assertThat(durationMs).isEqualTo(WINDOW_DURATION.inWholeMilliseconds)
         assertThat(charsAddedList.map { it.source })
-          .containsExactlyElementsIn(
-            events.filter { it.addedCharacterCount > 0 }.map { it.source.toProto() }.distinct()
-          )
+          .containsExactlyElementsIn(events.filter { it.addedCharacterCount > 0 }.map { it.source.toProto() }.distinct())
         assertThat(charsDeletedList.map { it.source })
-          .containsExactlyElementsIn(
-            events.filter { it.deletedCharacterCount > 0 }.map { it.source.toProto() }.distinct()
-          )
+          .containsExactlyElementsIn(events.filter { it.deletedCharacterCount > 0 }.map { it.source.toProto() }.distinct())
       }
     }
   }
@@ -120,13 +116,9 @@ class ClearcutCodeEditedListenerTest {
       with(editingMetricsEvent.characterMetrics) {
         assertThat(durationMs).isEqualTo(0L)
         assertThat(charsAddedList.map { it.source })
-          .containsExactlyElementsIn(
-            events.filter { it.addedCharacterCount > 0 }.map { it.source.toProto() }.distinct()
-          )
+          .containsExactlyElementsIn(events.filter { it.addedCharacterCount > 0 }.map { it.source.toProto() }.distinct())
         assertThat(charsDeletedList.map { it.source })
-          .containsExactlyElementsIn(
-            events.filter { it.deletedCharacterCount > 0 }.map { it.source.toProto() }.distinct()
-          )
+          .containsExactlyElementsIn(events.filter { it.deletedCharacterCount > 0 }.map { it.source.toProto() }.distinct())
       }
     }
   }
@@ -164,9 +156,7 @@ class ClearcutCodeEditedListenerTest {
           )
 
         assertThat(charsDeletedList.map { it.source })
-          .containsExactlyElementsIn(
-            events.filter { it.deletedCharacterCount > 0 }.map { it.source.toProto() }.distinct()
-          )
+          .containsExactlyElementsIn(events.filter { it.deletedCharacterCount > 0 }.map { it.source.toProto() }.distinct())
       }
     }
   }

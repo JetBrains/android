@@ -25,12 +25,12 @@ import com.intellij.psi.PsiElement
 /**
  * Adds support for custom folding regions (region...endregion).
  *
- * As we don't support any folding regions besides custom folding regions [getLanguagePlaceholderText] and [isRegionCollapsedByDefault]
- * that called for NOT custom folding regions should never be called.
+ * As we don't support any folding regions besides custom folding regions [getLanguagePlaceholderText] and [isRegionCollapsedByDefault] that
+ * called for NOT custom folding regions should never be called.
  */
 class ProguardR8CustomFoldingBuilder : CustomFoldingBuilder() {
   override fun buildLanguageFoldRegions(descriptors: MutableList<FoldingDescriptor>, root: PsiElement, document: Document, quick: Boolean) {
-    //We don't support any folding regions besides custom folding regions (region...endregion).
+    // We don't support any folding regions besides custom folding regions (region...endregion).
     return
   }
 

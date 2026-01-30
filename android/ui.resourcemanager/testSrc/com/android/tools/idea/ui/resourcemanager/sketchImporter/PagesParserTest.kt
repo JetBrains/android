@@ -16,21 +16,20 @@
 package com.android.tools.idea.ui.resourcemanager.sketchImporter
 
 import com.intellij.testFramework.ProjectRule
-import org.jetbrains.android.AndroidTestBase
-import org.junit.Rule
-import org.junit.Test
 import java.awt.Color
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import org.jetbrains.android.AndroidTestBase
+import org.junit.Rule
+import org.junit.Test
 
 class PagesParserTest {
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
   @Test
   fun checkParsedPageData() {
-    val page: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPage = SketchTestUtils.parsePage(
-      AndroidTestBase.getTestDataPath() + "/sketch/simple.json")
+    val page: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPage =
+      SketchTestUtils.parsePage(AndroidTestBase.getTestDataPath() + "/sketch/simple.json")
 
     assertEquals("page", page.classType)
     assertEquals("4A20F10B-61D2-4A1B-8BF1-623ACF2E7637", page.objectId)
@@ -51,14 +50,13 @@ class PagesParserTest {
     assertEquals(10, page.style.miterLimit)
     assertEquals(1, page.style.windingRule)
 
-
     assertEquals(2, page.layers.size)
   }
 
   @Test
   fun checkParsedSliceData() {
-    val page: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPage = SketchTestUtils.parsePage(
-      AndroidTestBase.getTestDataPath() + "/sketch/simple.json")
+    val page: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPage =
+      SketchTestUtils.parsePage(AndroidTestBase.getTestDataPath() + "/sketch/simple.json")
 
     assertTrue(page.layers[0] is com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchSlice)
     val slice = page.layers[0] as com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchSlice
@@ -87,8 +85,8 @@ class PagesParserTest {
 
   @Test
   fun checkParsedShapeGroupData() {
-    val page: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPage = SketchTestUtils.parsePage(
-      AndroidTestBase.getTestDataPath() + "/sketch/simple.json")
+    val page: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPage =
+      SketchTestUtils.parsePage(AndroidTestBase.getTestDataPath() + "/sketch/simple.json")
 
     assertTrue(page.layers[1] is com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapeGroup)
     val shapeGroup = page.layers[1] as com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapeGroup
@@ -116,8 +114,8 @@ class PagesParserTest {
 
   @Test
   fun checkStyleData() {
-    val page: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPage = SketchTestUtils.parsePage(
-      AndroidTestBase.getTestDataPath() + "/sketch/simple.json")
+    val page: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPage =
+      SketchTestUtils.parsePage(AndroidTestBase.getTestDataPath() + "/sketch/simple.json")
 
     assertTrue(page.layers[1] is com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapeGroup)
     val style = (page.layers[1] as com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapeGroup).style
@@ -139,12 +137,17 @@ class PagesParserTest {
 
   @Test
   fun checkShapePathData() {
-    val page: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPage = SketchTestUtils.parsePage(
-      AndroidTestBase.getTestDataPath() + "/sketch/simple.json")
+    val page: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPage =
+      SketchTestUtils.parsePage(AndroidTestBase.getTestDataPath() + "/sketch/simple.json")
 
     assertTrue(page.layers[1] is com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapeGroup)
-    assertTrue((page.layers[1] as com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapeGroup).layers[0] is com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapePath)
-    val shapePath = (page.layers[1] as com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapeGroup).layers[0] as com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapePath
+    assertTrue(
+      (page.layers[1] as com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapeGroup).layers[0]
+        is com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapePath
+    )
+    val shapePath =
+      (page.layers[1] as com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapeGroup).layers[0]
+        as com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapePath
 
     assertEquals("shapePath", shapePath.classType)
     assertEquals("9CE12CC7-66A6-46DD-BA01-79B52634AF04", shapePath.objectId)
@@ -167,32 +170,52 @@ class PagesParserTest {
 
   @Test
   fun checkPointsData() {
-    val page: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPage = SketchTestUtils.parsePage(
-      AndroidTestBase.getTestDataPath() + "/sketch/simple.json")
+    val page: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPage =
+      SketchTestUtils.parsePage(AndroidTestBase.getTestDataPath() + "/sketch/simple.json")
 
     assertTrue(page.layers[1] is com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapeGroup)
-    assertTrue((page.layers[1] as com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapeGroup).layers[0] is com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapePath)
-    val points = ((page.layers[1] as com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapeGroup).layers[0] as com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapePath).points
+    assertTrue(
+      (page.layers[1] as com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapeGroup).layers[0]
+        is com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapePath
+    )
+    val points =
+      ((page.layers[1] as com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapeGroup).layers[0]
+          as com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapePath)
+        .points
 
     assertEquals(0, points[0].cornerRadius)
-    assertEquals(com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPoint2D(0.0034722222222222246, 1.0), points[0].curveFrom)
+    assertEquals(
+      com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPoint2D(0.0034722222222222246, 1.0),
+      points[0].curveFrom,
+    )
     assertEquals(1.0, points[0].curveFrom.y)
     assertEquals(1, points[0].curveMode)
-    assertEquals(com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPoint2D(0.0034722222222222246, 1.0), points[0].curveFrom)
+    assertEquals(
+      com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPoint2D(0.0034722222222222246, 1.0),
+      points[0].curveFrom,
+    )
     assertEquals(false, points[0].hasCurveFrom())
     assertEquals(false, points[0].hasCurveTo())
     assertEquals(
-      com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPoint2D(0.0017361111111111123, 0.99374999999999969), points[0].point)
+      com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPoint2D(0.0017361111111111123, 0.99374999999999969),
+      points[0].point,
+    )
 
     assertEquals(0, points[1].cornerRadius)
     assertEquals(
-      com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPoint2D(0.0069444444444444493, 1.0125000000000002), points[1].curveFrom)
+      com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPoint2D(0.0069444444444444493, 1.0125000000000002),
+      points[1].curveFrom,
+    )
     assertEquals(1, points[1].curveMode)
     assertEquals(
-      com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPoint2D(0.0069444444444444493, 1.0125000000000002), points[1].curveFrom)
+      com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPoint2D(0.0069444444444444493, 1.0125000000000002),
+      points[1].curveFrom,
+    )
     assertEquals(false, points[1].hasCurveFrom())
     assertEquals(false, points[1].hasCurveTo())
     assertEquals(
-      com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPoint2D(0.99826388888888884, 0.0062500000000000003), points[1].point)
+      com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPoint2D(0.99826388888888884, 0.0062500000000000003),
+      points[1].point,
+    )
   }
 }

@@ -29,7 +29,7 @@ class ObjectNavigatorOnAuxFiles(
   private val aux: ByteBuffer,
   classStore: ClassStore,
   instanceCount: Long,
-  private val idSize: Int
+  private val idSize: Int,
 ) : ObjectNavigator(classStore, instanceCount) {
 
   override fun getClass() = currentClass!!
@@ -48,7 +48,11 @@ class ObjectNavigatorOnAuxFiles(
   private val references = LongArrayList()
   private var softWeakReferenceId = 0L
 
-  private enum class ReferenceType { Strong, Weak, Soft }
+  private enum class ReferenceType {
+    Strong,
+    Weak,
+    Soft,
+  }
 
   private var referenceType = ReferenceType.Strong
   private var extraData = 0
@@ -59,6 +63,7 @@ class ObjectNavigatorOnAuxFiles(
   override fun createRootsIterator(): Iterator<RootObject> {
     return object : Iterator<RootObject> {
       val internalIterator = roots.iterator()
+
       override fun hasNext(): Boolean {
         return internalIterator.hasNext()
       }
@@ -100,8 +105,7 @@ class ObjectNavigatorOnAuxFiles(
     val classDefinition: ClassDefinition
     if (classId == 0) {
       classDefinition = classStore.classClass
-    }
-    else {
+    } else {
       classDefinition = classStore[classId]
     }
     currentClass = classDefinition
@@ -128,8 +132,7 @@ class ObjectNavigatorOnAuxFiles(
     arraySize = aux.readNonNegativeLEB128Int()
   }
 
-  private fun preloadClass(classId: Int,
-                           referenceResolution: ReferenceResolution) {
+  private fun preloadClass(classId: Int, referenceResolution: ReferenceResolution) {
     arraySize = 0
 
     if (referenceResolution != ReferenceResolution.NO_REFERENCES) {
@@ -152,8 +155,7 @@ class ObjectNavigatorOnAuxFiles(
     }
   }
 
-  private fun preloadInstance(classDefinition: ClassDefinition,
-                              referenceResolution: ReferenceResolution) {
+  private fun preloadInstance(classDefinition: ClassDefinition, referenceResolution: ReferenceResolution) {
     arraySize = 0
 
     if (referenceResolution == ReferenceResolution.NO_REFERENCES) {
@@ -177,16 +179,14 @@ class ObjectNavigatorOnAuxFiles(
           } else {
             references.add(reference.toLong())
           }
-        }
-        else {
+        } else {
           softWeakReferenceId = reference.toLong()
           softWeakReferenceIndex = references.count() // current index in references list
           referenceType = if (isSoftReference) ReferenceType.Soft else ReferenceType.Weak
           // Soft/weak reference
           if (includeSoftWeakReferences) {
             references.add(reference.toLong())
-          }
-          else {
+          } else {
             references.add(0L)
           }
         }
@@ -196,8 +196,7 @@ class ObjectNavigatorOnAuxFiles(
         break
       }
       c = classStore[superClassId]
-    }
-    while (true)
+    } while (true)
 
     if (isExtraDataPresent(classDefinition)) {
       preloadExtraData()
@@ -257,14 +256,10 @@ class ObjectNavigatorOnAuxFiles(
       if (classDefinition.id == id) {
         rootReason = RootReason.createClassDefinitionReason(classDefinition)
       }
-      classDefinition.staticFields.firstOrNull {
-        it.objectId == id
-      }?.let {
-        rootReason = RootReason.createStaticFieldReferenceReason(classDefinition, it.name)
-      }
-      val index = classDefinition.constantFields.indexOfFirst {
-        it == id
-      }
+      classDefinition.staticFields
+        .firstOrNull { it.objectId == id }
+        ?.let { rootReason = RootReason.createStaticFieldReferenceReason(classDefinition, it.name) }
+      val index = classDefinition.constantFields.indexOfFirst { it == id }
       if (index != -1) {
         rootReason = RootReason.createConstantReferenceReason(classDefinition, index)
       }
@@ -290,4 +285,3 @@ class ObjectNavigatorOnAuxFiles(
     return v
   }
 }
-

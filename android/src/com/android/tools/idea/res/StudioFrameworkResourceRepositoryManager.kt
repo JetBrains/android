@@ -22,21 +22,14 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import java.util.concurrent.Executor
 
-/**
- * Studio-specific Application service for caching and reusing instances of
- * [FrameworkResourceRepository].
- */
+/** Studio-specific Application service for caching and reusing instances of [FrameworkResourceRepository]. */
 class StudioFrameworkResourceRepositoryManager :
   FrameworkResourceRepositoryManagerImpl(
     PathManager.getSystemPath(),
     // Don't create a persistent cache in tests to avoid unnecessary overhead.
-    if (ApplicationManager.getApplication().isUnitTestMode) Executor {}
-    else AndroidIoManager.getInstance().getBackgroundDiskIoExecutor(),
+    if (ApplicationManager.getApplication().isUnitTestMode) Executor {} else AndroidIoManager.getInstance().getBackgroundDiskIoExecutor(),
   ) {
   companion object {
-    @JvmStatic
-    fun getInstance() =
-      ApplicationManager.getApplication()
-        .getService(FrameworkResourceRepositoryManagerImpl::class.java)!!
+    @JvmStatic fun getInstance() = ApplicationManager.getApplication().getService(FrameworkResourceRepositoryManagerImpl::class.java)!!
   }
 }

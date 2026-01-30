@@ -25,12 +25,13 @@ import com.intellij.psi.impl.light.LightMethodBuilder
 /**
  * A [LightMethodBuilder] that supports adding return types / parameters with nullability support.
  *
- * This ensures that annotations show up correctly in the parameter info popup, and possibly other
- * locations.
+ * This ensures that annotations show up correctly in the parameter info popup, and possibly other locations.
  */
 open class NullabilityLightMethodBuilder : LightMethodBuilder {
   constructor(manager: PsiManager, language: Language, name: String) : super(manager, language, name)
+
   constructor(manager: PsiManager, name: String) : super(manager, name)
+
   constructor(constructedClass: PsiClass, language: Language) : super(constructedClass, language)
 
   fun setMethodReturnType(type: PsiType, isNonNull: Boolean): NullabilityLightMethodBuilder {

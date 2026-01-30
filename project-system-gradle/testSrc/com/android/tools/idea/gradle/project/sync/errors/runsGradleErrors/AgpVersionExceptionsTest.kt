@@ -37,12 +37,7 @@ class AgpVersionExceptionsTest : AbstractIssueCheckerIntegrationTest() {
   @Test
   fun testAgpVersionsMismatchError() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
-    val originalException = AgpVersionsMismatch(
-      listOf(
-        Pair("7.2.1", "mainProj"),
-        Pair("7.4.0", "included")
-      )
-    )
+    val originalException = AgpVersionsMismatch(listOf(Pair("7.2.1", "mainProj"), Pair("7.4.0", "included")))
 
     SimulatedSyncErrors.registerSyncErrorToSimulate(originalException.simulatePassingThroughModel())
 
@@ -50,23 +45,29 @@ class AgpVersionExceptionsTest : AbstractIssueCheckerIntegrationTest() {
       preparedProject = preparedProject,
       verifyBuildIssue = { _, buildIssue ->
         expect.that(buildIssue).isNotNull()
-        expect.that(buildIssue.description).contains("""
-                Using multiple versions of the Android Gradle Plugin [7.2.1, 7.4.0] across Gradle builds is not allowed.
-                Affected builds: [mainProj, included].
-              """.trimIndent()
-        )
+        expect
+          .that(buildIssue.description)
+          .contains(
+            """
+            Using multiple versions of the Android Gradle Plugin [7.2.1, 7.4.0] across Gradle builds is not allowed.
+            Affected builds: [mainProj, included].
+            """
+              .trimIndent()
+          )
         expect.that(buildIssue.quickFixes).hasSize(0)
       },
       expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.MULTIPLE_ANDROID_PLUGIN_VERSIONS,
       expectedPhasesReported = null, // Because of using simulated error phases are not relevant in this test
-      expectedFailureDetailsString = """
+      expectedFailureDetailsString =
+        """
         failure {
           error {
             exception: com.android.tools.idea.gradle.project.sync.AndroidSyncException
               at: [0]com.android.tools.idea.gradle.project.sync.IdeAndroidModelsKt#ideAndroidSyncErrorToException
           }
         }
-      """.trimIndent()
+        """
+          .trimIndent(),
     )
   }
 
@@ -82,22 +83,26 @@ class AgpVersionExceptionsTest : AbstractIssueCheckerIntegrationTest() {
       verifyBuildIssue = { _, buildIssue ->
         expect.that(buildIssue).isNotNull()
         expect.that(buildIssue.quickFixes.size).isEqualTo(1)
-        expect.that(buildIssue.description)
+        expect
+          .that(buildIssue.description)
           .contains("The project is using an incompatible version (AGP 3.1.4) of the Android Gradle plugin.")
         expect.that(buildIssue.quickFixes[0]).isInstanceOf(OpenLinkQuickFix::class.java)
-        expect.that((buildIssue.quickFixes[0] as OpenLinkQuickFix).link)
+        expect
+          .that((buildIssue.quickFixes[0] as OpenLinkQuickFix).link)
           .isEqualTo("https://developer.android.com/studio/releases#android_gradle_plugin_and_android_studio_compatibility")
       },
       expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.OLD_ANDROID_PLUGIN,
       expectedPhasesReported = null, // Because of using simulated error phases are not relevant in this test
-      expectedFailureDetailsString = """
+      expectedFailureDetailsString =
+        """
         failure {
           error {
             exception: com.android.tools.idea.gradle.project.sync.AndroidSyncException
               at: [0]com.android.tools.idea.gradle.project.sync.IdeAndroidModelsKt#ideAndroidSyncErrorToException
           }
         }
-      """.trimIndent()
+        """
+          .trimIndent(),
     )
   }
 
@@ -113,22 +118,26 @@ class AgpVersionExceptionsTest : AbstractIssueCheckerIntegrationTest() {
       verifyBuildIssue = { _, buildIssue ->
         expect.that(buildIssue).isNotNull()
         expect.that(buildIssue.quickFixes.size).isEqualTo(1)
-        expect.that(buildIssue.description)
+        expect
+          .that(buildIssue.description)
           .contains("The project is using an incompatible version (AGP 99.1.4) of the Android Gradle plugin.")
         expect.that(buildIssue.quickFixes[0]).isInstanceOf(OpenLinkQuickFix::class.java)
-        expect.that((buildIssue.quickFixes[0] as OpenLinkQuickFix).link)
+        expect
+          .that((buildIssue.quickFixes[0] as OpenLinkQuickFix).link)
           .isEqualTo("https://developer.android.com/studio/releases#android_gradle_plugin_and_android_studio_compatibility")
       },
       expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.ANDROID_PLUGIN_TOO_NEW,
       expectedPhasesReported = null, // Because of using simulated error phases are not relevant in this test
-      expectedFailureDetailsString = """
+      expectedFailureDetailsString =
+        """
         failure {
           error {
             exception: com.android.tools.idea.gradle.project.sync.AndroidSyncException
               at: [0]com.android.tools.idea.gradle.project.sync.IdeAndroidModelsKt#ideAndroidSyncErrorToException
           }
         }
-      """.trimIndent()
+        """
+          .trimIndent(),
     )
   }
 
@@ -144,32 +153,38 @@ class AgpVersionExceptionsTest : AbstractIssueCheckerIntegrationTest() {
       verifyBuildIssue = { _, buildIssue ->
         expect.that(buildIssue).isNotNull()
         expect.that(buildIssue.quickFixes.size).isEqualTo(2)
-        expect.that(buildIssue.description)
+        expect
+          .that(buildIssue.description)
           .contains("The project is using an incompatible preview version (AGP 7.1.0-beta01) of the Android Gradle plugin.")
         expect.that(buildIssue.quickFixes[0]).isInstanceOf(AgpUpgradeQuickFix::class.java)
         expect.that(buildIssue.quickFixes[1]).isInstanceOf(OpenLinkQuickFix::class.java)
-        expect.that((buildIssue.quickFixes[1] as OpenLinkQuickFix).link)
+        expect
+          .that((buildIssue.quickFixes[1] as OpenLinkQuickFix).link)
           .isEqualTo("https://developer.android.com/studio/preview/features#agp-previews")
       },
       expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.ANDROID_PLUGIN_VERSION_INCOMPATIBLE,
       expectedPhasesReported = null, // Because of using simulated error phases are not relevant in this test
-      expectedFailureDetailsString = """
+      expectedFailureDetailsString =
+        """
         failure {
           error {
             exception: com.android.tools.idea.gradle.project.sync.AndroidSyncException
               at: [0]com.android.tools.idea.gradle.project.sync.IdeAndroidModelsKt#ideAndroidSyncErrorToException
           }
         }
-      """.trimIndent()
+        """
+          .trimIndent(),
     )
   }
 
-  private fun AndroidSyncException.simulatePassingThroughModel(): AndroidSyncException = IdeAndroidSyncError(
-    type  = type,
-    message = message.orEmpty(),
-    stackTrace = stackTrace.map { it.toString() },
-    buildPath = buildPath,
-    modulePath = modulePath,
-    syncIssues = syncIssues
-  ).toException()
+  private fun AndroidSyncException.simulatePassingThroughModel(): AndroidSyncException =
+    IdeAndroidSyncError(
+        type = type,
+        message = message.orEmpty(),
+        stackTrace = stackTrace.map { it.toString() },
+        buildPath = buildPath,
+        modulePath = modulePath,
+        syncIssues = syncIssues,
+      )
+      .toException()
 }

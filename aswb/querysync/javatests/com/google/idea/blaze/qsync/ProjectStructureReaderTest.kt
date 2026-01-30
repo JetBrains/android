@@ -58,10 +58,7 @@ class ProjectStructureReaderTest {
     workspaceRoot = temporaryFolder.root.toPath()
   }
 
-  private fun createProjectDefinition(
-    includes: Set<String>,
-    excludes: Set<String> = emptySet(),
-  ): ProjectDefinition {
+  private fun createProjectDefinition(includes: Set<String>, excludes: Set<String> = emptySet()): ProjectDefinition {
     return ProjectDefinition(
       projectIncludes = includes.map { Path.of(it) }.toSet(),
       projectExcludes = excludes.map { Path.of(it) }.toSet(),
@@ -195,8 +192,7 @@ class ProjectStructureReaderTest {
     createFile("java/com/example/excluded/Exc.java")
     createFile("javatests/com/example/BUILD")
 
-    val projectDefinition =
-      createProjectDefinition(setOf("java", "javatests"), setOf("java/com/example/excluded"))
+    val projectDefinition = createProjectDefinition(setOf("java", "javatests"), setOf("java/com/example/excluded"))
     val structure = reader.read(context, workspaceRoot, projectDefinition)
 
     val expected =
@@ -217,8 +213,7 @@ class ProjectStructureReaderTest {
     createFile("java/com/example/excluded/deep/BUILD")
     createFile("java/com/example/excluded/deep/Deep.java")
 
-    val projectDefinition =
-      createProjectDefinition(setOf("java/com/example"), setOf("java/com/example/excluded/deep"))
+    val projectDefinition = createProjectDefinition(setOf("java/com/example"), setOf("java/com/example/excluded/deep"))
     val structure = reader.read(context, workspaceRoot, projectDefinition)
 
     val expected =
@@ -313,11 +308,7 @@ class ProjectStructureReaderTest {
       expectedStructure(
         packages = setOf("java/com/example", "java/com/example/another"),
         javaSources =
-          listOf(
-            "java/com/example/MyClass.java",
-            "java/com/example/subdir/AnotherClass.kt",
-            "java/com/example/another/Other.java",
-          ),
+          listOf("java/com/example/MyClass.java", "java/com/example/subdir/AnotherClass.kt", "java/com/example/another/Other.java"),
         languages = setOf(QuerySyncLanguage.JVM),
       )
     assertStructureEquals(structure, expected)
@@ -339,12 +330,7 @@ class ProjectStructureReaderTest {
     val expected =
       expectedStructure(
         packages = setOf("java/com/example"),
-        javaSources =
-          listOf(
-            "java/com/example/MyClass.java",
-            "java/com/orphan/Orphan.kt",
-            "another/RootOrphan.java",
-          ),
+        javaSources = listOf("java/com/example/MyClass.java", "java/com/orphan/Orphan.kt", "another/RootOrphan.java"),
         languages = setOf(QuerySyncLanguage.JVM),
       )
     assertStructureEquals(structure, expected)
@@ -362,8 +348,7 @@ class ProjectStructureReaderTest {
     createFile("java/com/example/excluded/deep/BUILD")
     createFile("java/com/example/excluded/deep/Deep.java")
 
-    val projectDefinition =
-      createProjectDefinition(setOf("java"), setOf("java/com/example/excluded"))
+    val projectDefinition = createProjectDefinition(setOf("java"), setOf("java/com/example/excluded"))
     val structure = reader.read(context, workspaceRoot, projectDefinition)
 
     val expected =
@@ -371,7 +356,7 @@ class ProjectStructureReaderTest {
         packages = setOf("java/com/example"),
         javaSources = listOf("java/com/example/Inc.java"),
         languages = setOf(QuerySyncLanguage.JVM),
-            )
+      )
     assertStructureEquals(structure, expected)
   }
 

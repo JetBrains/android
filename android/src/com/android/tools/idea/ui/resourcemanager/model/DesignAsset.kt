@@ -47,9 +47,7 @@ interface Asset {
   val name: String
   val resourceItem: ResourceItem
 
-  /**
-   * A modification counter that changes when the resource content has been updated. Can be used to guarantee cache freshness.
-   */
+  /** A modification counter that changes when the resource content has been updated. Can be used to guarantee cache freshness. */
   val modificationStamp: Long
 
   /**
@@ -58,26 +56,24 @@ interface Asset {
    * Returns the appropriate [ResourceUrl] according to its [ResourceNamespace] and whether this [Asset] represents a theme attribute.
    */
   val resourceUrl: ResourceUrl
-    get() = kotlin.run {
-      val resourceReference = resourceItem.referenceToSelf
-      val namespace = if (resourceReference.namespace == ResourceNamespace.TOOLS) {
-        SdkConstants.TOOLS_NS_NAME
+    get() =
+      kotlin.run {
+        val resourceReference = resourceItem.referenceToSelf
+        val namespace =
+          if (resourceReference.namespace == ResourceNamespace.TOOLS) {
+            SdkConstants.TOOLS_NS_NAME
+          } else {
+            resourceReference.namespace.packageName
+          }
+        return if (type != ResourceType.ATTR && resourceItem.type == ResourceType.ATTR) {
+          // This Attribute resource is being used as a theme attribute
+          ResourceUrl.createThemeReference(namespace, resourceReference.resourceType, resourceReference.name)
+        } else {
+          ResourceUrl.create(namespace, resourceReference.resourceType, resourceReference.name)
+        }
       }
-      else {
-        resourceReference.namespace.packageName
-      }
-      return if (type != ResourceType.ATTR && resourceItem.type == ResourceType.ATTR) {
-        // This Attribute resource is being used as a theme attribute
-        ResourceUrl.createThemeReference(namespace, resourceReference.resourceType, resourceReference.name)
-      }
-      else {
-        ResourceUrl.create(namespace, resourceReference.resourceType, resourceReference.name)
-      }
-    }
 
-  /**
-   * A light-weight object to represent [Asset] instances, use for maps that may outlive the current Module. E.g. Cache<AssetKey, V>
-   */
+  /** A light-weight object to represent [Asset] instances, use for maps that may outlive the current Module. E.g. Cache<AssetKey, V> */
   val key: AssetKey
     get() = AssetKey(name, type, null)
 
@@ -87,19 +83,21 @@ interface Asset {
      *
      * @param resourceItem The backing resource object for the [Asset] interface
      * @param resourceType The [ResourceType] to return under [Asset.type], defaults to the type of [ResourceItem.getType], useful to
-     *  represent resources of a different [ResourceType]. Eg: Theme attributes and sample data.
+     *   represent resources of a different [ResourceType]. Eg: Theme attributes and sample data.
      */
     fun fromResourceItem(resourceItem: ResourceItem, resourceType: ResourceType = resourceItem.type): Asset {
       if (resourceItem is SampleDataResourceItem) {
-        val imageFile = resourceItem.getDrawableResources().getOrNull(0)?.value?.let { drawablePath ->
-          LocalFileSystem.getInstance().findFileByPath(drawablePath)
-        } ?: return BaseAsset(resourceType, resourceItem.name, resourceItem)
+        val imageFile =
+          resourceItem.getDrawableResources().getOrNull(0)?.value?.let { drawablePath ->
+            LocalFileSystem.getInstance().findFileByPath(drawablePath)
+          } ?: return BaseAsset(resourceType, resourceItem.name, resourceItem)
         return DesignAsset(
           file = imageFile,
           qualifiers = resourceItem.configuration.qualifiers.toList(),
           type = ResourceType.DRAWABLE,
           name = resourceItem.name,
-          resourceItem = resourceItem)
+          resourceItem = resourceItem,
+        )
       }
       val file = resourceItem.getSourceAsVirtualFile() ?: return BaseAsset(resourceType, resourceItem.name, resourceItem)
       return DesignAsset(
@@ -107,7 +105,8 @@ interface Asset {
         qualifiers = resourceItem.configuration.qualifiers.toList(),
         type = resourceType,
         name = resourceItem.name,
-        resourceItem = resourceItem)
+        resourceItem = resourceItem,
+      )
     }
   }
 }
@@ -125,10 +124,10 @@ data class AssetKey(val name: String, val type: ResourceType, val path: String?)
  *
  * E.g: [ResourceType.SAMPLE_DATA]. It contains resource information and can be displayed, but it does not reference a file.
  */
-data class BaseAsset (
+data class BaseAsset(
   override val type: ResourceType,
   override val name: String = "resource_name",
-  override val resourceItem: ResourceItem = ResourceMergerItem(name, externalResourceNamespace, type, null, null, "external")
+  override val resourceItem: ResourceItem = ResourceMergerItem(name, externalResourceNamespace, type, null, null, "external"),
 ) : Asset {
   override val modificationStamp = -1L
 }
@@ -143,12 +142,12 @@ data class DesignAsset(
   var qualifiers: List<ResourceQualifier>,
   override val type: ResourceType,
   override val name: String = file.nameWithoutExtension,
-  override val resourceItem: ResourceItem = ResourceMergerItem(name, externalResourceNamespace, type, null, null, "external")
-): Asset {
+  override val resourceItem: ResourceItem = ResourceMergerItem(name, externalResourceNamespace, type, null, null, "external"),
+) : Asset {
 
   /**
-   * Returns the human readable (KB, MB) file size if the [DesignAsset] is a file (e.g layout, drawables)
-   * and not contained in a file (e.g colors).
+   * Returns the human readable (KB, MB) file size if the [DesignAsset] is a file (e.g layout, drawables) and not contained in a file (e.g
+   * colors).
    */
   fun getDisplayableFileSize(): String {
     if (resourceItem.isFileBased) {
@@ -168,13 +167,12 @@ fun getDesignAssets(
   directory: VirtualFile,
   supportedTypes: Set<String>,
   root: VirtualFile,
-  qualifierMatcher: QualifierMatcher
+  qualifierMatcher: QualifierMatcher,
 ): List<DesignAsset> {
   return directory.children
     .filter { it.isDirectory || supportedTypes.contains(it.extension) }
     .flatMap {
-      if (it.isDirectory) getDesignAssets(it, supportedTypes, root, qualifierMatcher)
-      else listOf(createAsset(it, root, qualifierMatcher))
+      if (it.isDirectory) getDesignAssets(it, supportedTypes, root, qualifierMatcher) else listOf(createAsset(it, root, qualifierMatcher))
     }
 }
 
@@ -185,11 +183,14 @@ private fun createAsset(child: VirtualFile, root: VirtualFile, matcher: Qualifie
 }
 
 fun ResourceResolver.resolveValue(designAsset: Asset): ResourceValue? {
-  val resolvedValue = resolveResValue(if (designAsset.resourceItem.type == ResourceType.ATTR) {
-    findItemInTheme(designAsset.resourceItem.referenceToSelf)
-  } else {
-    designAsset.resourceItem.resourceValue
-  })
+  val resolvedValue =
+    resolveResValue(
+      if (designAsset.resourceItem.type == ResourceType.ATTR) {
+        findItemInTheme(designAsset.resourceItem.referenceToSelf)
+      } else {
+        designAsset.resourceItem.resourceValue
+      }
+    )
   if (resolvedValue == null) {
     LOG.warn("${designAsset.resourceItem.name} couldn't be resolved")
   }
@@ -197,6 +198,7 @@ fun ResourceResolver.resolveValue(designAsset: Asset): ResourceValue? {
 }
 
 /** Get the [Asset]s of type [DesignAsset] within a [ResourceAssetSet]. */
-val ResourceAssetSet.designAssets: List<DesignAsset> get() {
-  return this.assets.filterIsInstance<DesignAsset>()
-}
+val ResourceAssetSet.designAssets: List<DesignAsset>
+  get() {
+    return this.assets.filterIsInstance<DesignAsset>()
+  }

@@ -30,18 +30,17 @@ import javax.swing.table.TableCellEditor
 import javax.swing.table.TableColumn
 import javax.swing.table.TableColumnModel
 
-/**
- * A property editor [ModelPropertyEditor] for properties of simple list types.
- */
+/** A property editor [ModelPropertyEditor] for properties of simple list types. */
 class ListPropertyEditor<ValueT : Any, ModelPropertyT : ModelListPropertyCore<ValueT>>(
   property: ModelPropertyT,
   propertyContext: ModelPropertyContext<ValueT>,
   editor: PropertyEditorCoreFactory<ModelPropertyCore<ValueT>, ModelPropertyContext<ValueT>, ValueT>,
   variablesScope: PsVariablesScope?,
-  logValueEdited: () -> Unit
+  logValueEdited: () -> Unit,
 ) :
   CollectionPropertyEditor<ModelPropertyT, ValueT>(property, propertyContext, editor, variablesScope, logValueEdited),
-  ModelPropertyEditor<List<ValueT>>, ModelPropertyEditorFactory<List<ValueT>, ModelPropertyT> {
+  ModelPropertyEditor<List<ValueT>>,
+  ModelPropertyEditorFactory<List<ValueT>, ModelPropertyT> {
 
   override fun updateProperty(): UpdatePropertyOutcome = throw UnsupportedOperationException()
 
@@ -66,11 +65,13 @@ class ListPropertyEditor<ValueT : Any, ModelPropertyT : ModelListPropertyCore<Va
 
   override fun createColumnModel(): TableColumnModel {
     return DefaultTableColumnModel().apply {
-      addColumn(TableColumn(0).apply {
-        headerValue = "V"
-        cellEditor = MyCellEditor()
-        cellRenderer = MyCellRenderer()
-      })
+      addColumn(
+        TableColumn(0).apply {
+          headerValue = "V"
+          cellEditor = MyCellEditor()
+          cellRenderer = MyCellRenderer()
+        }
+      )
     }
   }
 
@@ -82,7 +83,7 @@ class ListPropertyEditor<ValueT : Any, ModelPropertyT : ModelListPropertyCore<Va
       val modelPropertyCore = property.addItem(index)
       tableModel.addRow(arrayOf(modelPropertyCore.getValue().value.parsedValue.toTableModelValue()))
       table.selectionModel.setSelectionInterval(index, index)
-    table.editCellAt(index, 0)
+      table.editCellAt(index, 0)
     }
   }
 
@@ -104,8 +105,6 @@ class ListPropertyEditor<ValueT : Any, ModelPropertyT : ModelListPropertyCore<Va
   override fun createNew(
     property: ModelPropertyT,
     cellEditor: TableCellEditor?,
-    isPropertyContext: Boolean
-  ): ModelPropertyEditor<List<ValueT>> =
-    ListPropertyEditor(property, propertyContext, editor, variablesScope) { /* no usage logging */}
+    isPropertyContext: Boolean,
+  ): ModelPropertyEditor<List<ValueT>> = ListPropertyEditor(property, propertyContext, editor, variablesScope) { /* no usage logging */ }
 }
-

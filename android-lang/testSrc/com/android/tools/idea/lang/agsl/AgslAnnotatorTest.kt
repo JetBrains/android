@@ -90,16 +90,16 @@ class AgslAnnotatorTest : JavaCodeInsightFixtureAdtTestCase() {
     // Note that we don't have a file type for AGSL files; they're only supported
     // as strings nested in code. So in this unit test we'll place them inside
     // a Kotlin string.
-     @Language("kotlin") val kotlin = """
+    @Language("kotlin")
+    val kotlin =
+      """
       //language=AGSL
       val s = ""${'"'}
       ""${'"'}
-     """.trimIndent()
+      """
+        .trimIndent()
     val index = kotlin.indexOf("\n\"\"\"") + 1
-    assertFalse(
-      "Don't include the surrounding Kotlin code in the AGSL snippet",
-      code.startsWith(kotlin.substring(0, index))
-    )
+    assertFalse("Don't include the surrounding Kotlin code in the AGSL snippet", code.startsWith(kotlin.substring(0, index)))
     val inserted = kotlin.substring(0, index) + code.trimIndent() + kotlin.substring(index)
     val file = myFixture.configureByText(KotlinFileType.INSTANCE, inserted)
     myFixture.testHighlighting(true, false, true, file.virtualFile)

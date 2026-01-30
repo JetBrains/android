@@ -23,12 +23,10 @@ import java.util.concurrent.atomic.AtomicReference
 /**
  * A [FocusTraversalPolicy] that allows overriding each method with a "one time" only [Component]
  *
- * This class is useful when an existing [FocusTraversalPolicy] must be customized temporarily in a
- * very specific context. The "one time" behavior is useful to ensure the likelihood of infinite
- * recursion with the [delegate] is small.
+ * This class is useful when an existing [FocusTraversalPolicy] must be customized temporarily in a very specific context. The "one time"
+ * behavior is useful to ensure the likelihood of infinite recursion with the [delegate] is small.
  */
-class OneTimeOverrideFocusTraversalPolicy(private val delegate: FocusTraversalPolicy?) :
-  FocusTraversalPolicy() {
+class OneTimeOverrideFocusTraversalPolicy(private val delegate: FocusTraversalPolicy?) : FocusTraversalPolicy() {
   val oneTimeComponentAfter = AtomicReference<Component>()
   val oneTimeComponentBefore = AtomicReference<Component>()
   val oneTimeFirstComponent = AtomicReference<Component>()
@@ -36,15 +34,11 @@ class OneTimeOverrideFocusTraversalPolicy(private val delegate: FocusTraversalPo
   val oneTimeDefaultComponent = AtomicReference<Component>()
 
   override fun getComponentAfter(aContainer: Container?, aComponent: Component?): Component? {
-    return handleOverride(oneTimeComponentAfter) {
-      delegate?.getComponentAfter(aContainer, aComponent)
-    }
+    return handleOverride(oneTimeComponentAfter) { delegate?.getComponentAfter(aContainer, aComponent) }
   }
 
   override fun getComponentBefore(aContainer: Container?, aComponent: Component?): Component? {
-    return handleOverride(oneTimeComponentBefore) {
-      delegate?.getComponentBefore(aContainer, aComponent)
-    }
+    return handleOverride(oneTimeComponentBefore) { delegate?.getComponentBefore(aContainer, aComponent) }
   }
 
   override fun getFirstComponent(aContainer: Container?): Component? {
@@ -59,10 +53,7 @@ class OneTimeOverrideFocusTraversalPolicy(private val delegate: FocusTraversalPo
     return handleOverride(oneTimeDefaultComponent) { delegate?.getDefaultComponent(aContainer) }
   }
 
-  private fun handleOverride(
-    override: AtomicReference<Component>,
-    default: () -> Component?,
-  ): Component? {
+  private fun handleOverride(override: AtomicReference<Component>, default: () -> Component?): Component? {
     val overrideTo = override.getAndSet(null)
     return overrideTo ?: default()
   }

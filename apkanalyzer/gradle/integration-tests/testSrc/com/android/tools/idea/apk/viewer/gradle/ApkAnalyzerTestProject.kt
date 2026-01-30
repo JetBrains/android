@@ -21,7 +21,6 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.intellij.openapi.project.Project
 import java.io.File
 
-
 enum class ApkAnalyzerTestProject(
   override val template: String,
   override val pathToOpen: String = "",
@@ -33,12 +32,9 @@ enum class ApkAnalyzerTestProject(
   override val expectedSyncIssues: Set<Int> = emptySet(),
   override val verifyOpened: ((Project) -> Unit)? = null,
 ) : TemplateBasedTestProject {
-  SIMPLE_APPLICATION("simpleApplication"),
-  ;
+  SIMPLE_APPLICATION("simpleApplication");
 
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String =
-    "tools/adt/idea/apkanalyzer/gradle/integration-tests/projects"
+  override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/apkanalyzer/gradle/integration-tests/projects"
 
   override fun getAdditionalRepos(): Collection<File> = listOf()
-
 }

@@ -25,29 +25,26 @@ import org.jetbrains.annotations.VisibleForTesting
 
 object TraceSignatureConverter {
   /**
-   * Mapping from java primitive type encoding to PsiPrimitiveType. More about java primitive type
-   * encoding: https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html#getName()
+   * Mapping from java primitive type encoding to PsiPrimitiveType. More about java primitive type encoding:
+   * https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html#getName()
    */
-  private val primitiveTypes = mapOf(
-    PsiTypes.byteType() to "B",
-    PsiTypes.charType() to "C",
-    PsiTypes.doubleType() to "D",
-    PsiTypes.floatType() to "F",
-    PsiTypes.intType() to "I",
-    PsiTypes.longType() to "J",
-    PsiTypes.shortType() to "S",
-    PsiTypes.booleanType() to "Z",
-    PsiTypes.voidType() to "V",
-  )
+  private val primitiveTypes =
+    mapOf(
+      PsiTypes.byteType() to "B",
+      PsiTypes.charType() to "C",
+      PsiTypes.doubleType() to "D",
+      PsiTypes.floatType() to "F",
+      PsiTypes.intType() to "I",
+      PsiTypes.longType() to "J",
+      PsiTypes.shortType() to "S",
+      PsiTypes.booleanType() to "Z",
+      PsiTypes.voidType() to "V",
+    )
 
   /**
    * @return - java encoding of the given PsiType.
    *
-   * For example:
-   * byte => "B"
-   * String[][][] => "[[[Ljava/lang/String;"
-   * ArrayList => "Ljava/util/ArrayList;"
-   * void => "V"
+   * For example: byte => "B" String[][][] => "[[[Ljava/lang/String;" ArrayList => "Ljava/util/ArrayList;" void => "V"
    */
   @VisibleForTesting
   fun convertToString(psiType: PsiType): String {
@@ -62,9 +59,8 @@ object TraceSignatureConverter {
   /**
    * @return - signature of the given method encoded by java encoding and by applying type erasure.
    *
-   * For example:
-   * `int aMethod(List<String> a, ArrayList<T> b, boolean c, Integer[][] d)`
-   * returns (Ljava/util/List;Ljava/util/ArrayList;Z[[Ljava/lang/Integer;)I
+   * For example: `int aMethod(List<String> a, ArrayList<T> b, boolean c, Integer[][] d)` returns
+   * (Ljava/util/List;Ljava/util/ArrayList;Z[[Ljava/lang/Integer;)I
    */
   fun getTraceSignature(returnType: PsiType?, parameterTypes: Array<PsiType>): String {
     return if (returnType == null) {

@@ -57,10 +57,7 @@ class ViewInFocusModeActionTest {
 
   @Before
   fun setUp() {
-    dataContextBuilder =
-      SimpleDataContext.builder()
-        .add(DESIGN_SURFACE, designSurface)
-        .add(PreviewModeManager.KEY, modeManager)
+    dataContextBuilder = SimpleDataContext.builder().add(DESIGN_SURFACE, designSurface).add(PreviewModeManager.KEY, modeManager)
   }
 
   @Test
@@ -71,8 +68,7 @@ class ViewInFocusModeActionTest {
     // We are focussing a scene view
     val sceneManagerMock = createSceneManagerMock()
 
-    val dataContext =
-      dataContextBuilder.add(SCENE_VIEW, TestSceneView(3, 4, sceneManagerMock)).build()
+    val dataContext = dataContextBuilder.add(SCENE_VIEW, TestSceneView(3, 4, sceneManagerMock)).build()
 
     val viewInFocusModeAction = ViewInFocusModeAction()
     val event = TestActionEvent.createTestEvent(viewInFocusModeAction, dataContext)
@@ -166,16 +162,12 @@ class ViewInFocusModeActionTest {
   fun `selected preview opens to focus correctly`() {
     // We are right-clicking a scene view.
     val previewInstanceOfClickedSceneView = createSingleElementInstance("Right Clicked")
-    val sceneManagerMock =
-      createSceneManagerMock(previewElement = previewInstanceOfClickedSceneView)
+    val sceneManagerMock = createSceneManagerMock(previewElement = previewInstanceOfClickedSceneView)
 
     val dataContext =
       dataContextBuilder
         .add(SCENE_VIEW, TestSceneView(3, 4, sceneManagerMock))
-        .add(
-          PREVIEW_ELEMENT_INSTANCE,
-          sceneManagerMock.model.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE),
-        )
+        .add(PREVIEW_ELEMENT_INSTANCE, sceneManagerMock.model.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE))
         .build()
 
     val viewInFocusModeAction = ViewInFocusModeAction()
@@ -208,10 +200,7 @@ class ViewInFocusModeActionTest {
     val dataContext =
       dataContextBuilder
         .add(SCENE_VIEW, rightClickedSceneView)
-        .add(
-          PREVIEW_ELEMENT_INSTANCE,
-          sceneManagerMock.model.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE),
-        )
+        .add(PREVIEW_ELEMENT_INSTANCE, sceneManagerMock.model.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE))
         .build()
 
     val viewInFocusModeAction = ViewInFocusModeAction()
@@ -239,8 +228,7 @@ class ViewInFocusModeActionTest {
 
     val dataProvider =
       object : NlDataProvider(PREVIEW_ELEMENT_INSTANCE) {
-        override fun getData(dataId: String): Any? =
-          previewElement.takeIf { dataId == PREVIEW_ELEMENT_INSTANCE.name }
+        override fun getData(dataId: String): Any? = previewElement.takeIf { dataId == PREVIEW_ELEMENT_INSTANCE.name }
       }
     whenever(modelMock.dataProvider).thenReturn(dataProvider)
     return sceneManagerMock

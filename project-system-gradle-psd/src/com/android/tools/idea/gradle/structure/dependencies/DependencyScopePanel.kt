@@ -21,25 +21,28 @@ import com.intellij.openapi.ui.ValidationInfo
 class DependencyScopePanel(module: PsModule, importantFor: PsModule.ImportantFor?) : AbstractDependencyScopesPanel() {
 
   val configurations = module.getConfigurations().toSet()
-  val comboBox = createQuickSearchComboBox(module.parent.ideProject, module.getConfigurations(), module.getConfigurations(importantFor))
-    .apply { name = "configuration" }
+  val comboBox =
+    createQuickSearchComboBox(module.parent.ideProject, module.getConfigurations(), module.getConfigurations(importantFor)).apply {
+      name = "configuration"
+    }
 
   init {
     setUpContents(comboBox, INSTRUCTIONS)
   }
 
-  override fun validateInput(): ValidationInfo? = when {
-    comboBox.text.isNullOrEmpty() -> ValidationInfo("Please select at least one configuration", comboBox)
-    !configurations.contains(comboBox.text) ->
-      ValidationInfo("'${comboBox.text}' is not a valid configuration name", comboBox)
-    else -> null
-  }
+  override fun validateInput(): ValidationInfo? =
+    when {
+      comboBox.text.isNullOrEmpty() -> ValidationInfo("Please select at least one configuration", comboBox)
+      !configurations.contains(comboBox.text) -> ValidationInfo("'${comboBox.text}' is not a valid configuration name", comboBox)
+      else -> null
+    }
 
-  override val selectedScopeName: String get() = comboBox.text
+  override val selectedScopeName: String
+    get() = comboBox.text
+
   override fun dispose() {}
 }
 
 private const val INSTRUCTIONS =
-    """Assign your dependency to a configuration by selecting one of the configurations below.<br/><a
+  """Assign your dependency to a configuration by selecting one of the configurations below.<br/><a
       |href='https://docs.gradle.org/current/userguide/artifact_dependencies_tutorial.html'>Open Documentation</a>"""
-

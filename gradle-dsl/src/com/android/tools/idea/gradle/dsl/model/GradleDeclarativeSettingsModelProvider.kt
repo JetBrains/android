@@ -22,7 +22,7 @@ import com.intellij.openapi.extensions.ExtensionPointName
 interface GradleDeclarativeSettingsModelProvider {
   fun createModel(dslFile: GradleSettingsFile): GradleDeclarativeSettingsModel?
 
-  companion object{
+  companion object {
     @JvmField
     val EP: ExtensionPointName<GradleDeclarativeSettingsModelProvider> =
       ExtensionPointName.Companion.create("com.android.tools.idea.gradle.dsl.gradleDeclarativeSettingsModelProvider")

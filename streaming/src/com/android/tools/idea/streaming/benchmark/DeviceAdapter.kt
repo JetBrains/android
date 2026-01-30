@@ -68,39 +68,26 @@ private val LOG = Logger.getInstance(DeviceAdapter::class.java)
 
 private fun Int.isEven() = this % 2 == 0
 
-/**
- * Computes values in between [this.start] and [this.end] at regular intervals representing the
- * centers of [numValues] equal ranges.
- */
+/** Computes values in between [this.start] and [this.end] at regular intervals representing the centers of [numValues] equal ranges. */
 private fun IntRange.sampleValues(numValues: Int): List<Int> {
   val spacing = ((endInclusive - start) / numValues.toDouble())
   return List(numValues) { start + (spacing * (it + 0.5)).roundToInt() }
 }
 
-private fun Rectangle.fractionalX(fraction: Double): Int =
-  (x + width * fraction).roundToInt().coerceIn(x until x + width)
+private fun Rectangle.fractionalX(fraction: Double): Int = (x + width * fraction).roundToInt().coerceIn(x until x + width)
 
-private fun Rectangle.fractionalY(fraction: Double): Int =
-  (y + height * fraction).roundToInt().coerceIn(y until y + height)
+private fun Rectangle.fractionalY(fraction: Double): Int = (y + height * fraction).roundToInt().coerceIn(y until y + height)
 
 /** Gets the range of Y values within the [Rectangle] in which we encode frame latency. */
 private fun Rectangle.latencyEncodingYRange(): IntRange = fractionalY(0.85) until bottom
 
-/**
- * Gets the center of the range of X values within the [Rectangle] in which we encode frame latency.
- */
+/** Gets the center of the range of X values within the [Rectangle] in which we encode frame latency. */
 private fun Rectangle.latencyEncodingX(): Int = fractionalX(0.9)
 
-/**
- * Gets the center of the range of Y values within the [Rectangle] in which we encode the first
- * integer.
- */
+/** Gets the center of the range of Y values within the [Rectangle] in which we encode the first integer. */
 private fun Rectangle.integer1EncodingX(): Int = fractionalX(0.25)
 
-/**
- * Gets the center of the range of Y values within the [Rectangle] in which we encode the second
- * integer.
- */
+/** Gets the center of the range of Y values within the [Rectangle] in which we encode the second integer. */
 private fun Rectangle.integer2EncodingX(): Int = fractionalX(0.75)
 
 /** Gets the range of Y values within the [Rectangle] in which we encode integer values. */
@@ -108,8 +95,7 @@ private fun Rectangle.integerEncodingYRange(): IntRange = y..fractionalY(0.5)
 
 private fun Color.channels(): List<Int> = listOf(red, green, blue)
 
-private fun Color.distanceFrom(other: Color) =
-  channels().zip(other.channels()).sumOf { abs(it.first - it.second) }
+private fun Color.distanceFrom(other: Color) = channels().zip(other.channels()).sumOf { abs(it.first - it.second) }
 
 fun Color.isReddish() = red > 0xE0 && green < 0x1F && blue < 0x1F
 
@@ -117,10 +103,7 @@ fun Color.isGreenish() = red < 0x1F && green > 0xE0 && blue < 0x1F
 
 fun Color.isBluish() = red < 0x1F && green < 0x1F && blue > 0xE0
 
-private fun AbstractDisplayView.dispatchMouseEvent(
-  location: Point,
-  mouseEventType: Int = MOUSE_DRAGGED,
-) {
+private fun AbstractDisplayView.dispatchMouseEvent(location: Point, mouseEventType: Int = MOUSE_DRAGGED) {
   UIUtil.invokeLaterIfNeeded {
     dispatchEvent(
       MouseEvent(
@@ -141,17 +124,12 @@ private fun AbstractDisplayView.dispatchMouseEvent(
 /** Extracts the [Color] of the pixel at ([x], [y]) in the image. */
 private fun BufferedImage.extract(x: Int, y: Int): Color = Color(getRGB(x, y))
 
-/**
- * Determines whether the image holds the initialization frame pattern, a gradient from red to green
- * to blue.
- */
+/** Determines whether the image holds the initialization frame pattern, a gradient from red to green to blue. */
 private fun BufferedImage.isInitializationFrame(): Boolean {
   val center = Point(width / 2, height / 2)
 
   val extremesCorrect =
-    extract(0, center.y).isReddish() &&
-      extract(center.x, center.y).isGreenish() &&
-      extract(width - 1, center.y).isBluish()
+    extract(0, center.y).isReddish() && extract(center.x, center.y).isGreenish() && extract(width - 1, center.y).isBluish()
 
   // Use a local function so we don't bother with this if the first part fails. This just tells us
   // if a sampling of pixels are the right (color) distance from one another.
@@ -169,11 +147,10 @@ private fun BufferedImage.isInitializationFrame(): Boolean {
 }
 
 /**
- * Finds a [Rectangle] of touchable area of the screen, which should be colored green, or `null` if
- * no such touchable area can be found.
+ * Finds a [Rectangle] of touchable area of the screen, which should be colored green, or `null` if no such touchable area can be found.
  *
- * This method assumes that the marked touchable area overlaps the center of the screen. This method
- * also returns the [Rectangle] in image coordinates.
+ * This method assumes that the marked touchable area overlaps the center of the screen. This method also returns the [Rectangle] in image
+ * coordinates.
  */
 private fun BufferedImage.findTouchableArea(): Rectangle? {
   val center = Point(width / 2, height / 2)
@@ -188,15 +165,11 @@ private fun BufferedImage.findTouchableArea(): Rectangle? {
   return Rectangle(left, top, width, height).also { LOG.info("Found touchable area: $it") }
 }
 
-/**
- * Returns a [Sequence] of [Point]s scribbling sinusoidally back and forth across the [Rectangle].
- */
+/** Returns a [Sequence] of [Point]s scribbling sinusoidally back and forth across the [Rectangle]. */
 private fun Rectangle.scribble(numPoints: Int, step: Int, spikiness: Int): Sequence<Point> =
   sequence {
       // Each row is width points, so make sure we have enough rows.
-      val numRows =
-        if (numPoints > (width * height) / step) height
-        else ((numPoints * step + width - 1) / width).coerceIn(1, height)
+      val numRows = if (numPoints > (width * height) / step) height else ((numPoints * step + width - 1) / width).coerceIn(1, height)
       val targetStripeHeight = height / numRows.toDouble()
       val p = Point()
       // Scaling factor to compress x coordinates, so we go from [0, 1) to [0, 2πn)
@@ -247,13 +220,10 @@ internal class DeviceAdapter(
   @Volatile private lateinit var adapterCallbacks: Adapter.Callbacks<Point>
   @Volatile private lateinit var startedGettingReady: TimeMark
 
-  private val pointsToTouch: Iterator<Point> by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    touchableArea.scribble(maxTouches + 1, step, spikiness).iterator()
-  }
+  private val pointsToTouch: Iterator<Point> by
+    lazy(LazyThreadSafetyMode.SYNCHRONIZED) { touchableArea.scribble(maxTouches + 1, step, spikiness).iterator() }
   private val startPoint: Point by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { pointsToTouch.next() }
-  private val numPointsToTouch by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    min(touchableArea.width * touchableArea.height, maxTouches)
-  }
+  private val numPointsToTouch by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { min(touchableArea.width * touchableArea.height, maxTouches) }
 
   private var lastPressed: Point? = null
 
@@ -265,9 +235,7 @@ internal class DeviceAdapter(
 
     coroutineScope.launch {
       for (keyEventDispatch in keyEventDispatchChannel) {
-        withContext(Dispatchers.EDT + ModalityState.any().asContextElement()) {
-          keyEventDispatch()
-        }
+        withContext(Dispatchers.EDT + ModalityState.any().asContextElement()) { keyEventDispatch() }
         delay(KEY_EVENT_DELAY)
       }
     }
@@ -296,9 +264,7 @@ internal class DeviceAdapter(
       AppState.DISPLAYING_TOUCHABLE_AREA -> {
         if (displayImage.isInitializationFrame()) return
         if (startedGettingReady.elapsedNow() > MAX_BECOME_READY_DURATION) {
-          adapterCallbacks.onFailedToBecomeReady(
-            "Failed to find touchable area within $MAX_BECOME_READY_DURATION"
-          )
+          adapterCallbacks.onFailedToBecomeReady("Failed to find touchable area within $MAX_BECOME_READY_DURATION")
           return
         }
         displayImage.findTouchableAreas()?.let {
@@ -426,54 +392,26 @@ internal class DeviceAdapter(
   /** Decode the frame to a [Point]. */
   private fun BufferedImage.decodeToPoint(): Point {
     val yRange = touchableImageArea.integerEncodingYRange()
-    val x =
-      readIntegerEncodedAt(
-        touchableImageArea.integer1EncodingX(),
-        yRange,
-        numRegionsPerCoordinate,
-        maxBits,
-      )
-    val y =
-      readIntegerEncodedAt(
-        touchableImageArea.integer2EncodingX(),
-        yRange,
-        numRegionsPerCoordinate,
-        maxBits,
-      )
+    val x = readIntegerEncodedAt(touchableImageArea.integer1EncodingX(), yRange, numRegionsPerCoordinate, maxBits)
+    val y = readIntegerEncodedAt(touchableImageArea.integer2EncodingX(), yRange, numRegionsPerCoordinate, maxBits)
     return Point(x, y)
   }
 
   /**
-   * Reads an integer that is encoded as [numRegions] contiguous blocks of color. The blocks are
-   * located at x coordinate [sampleX] and distributed across [yRange]. Only the most significant
-   * [totalBits] are used to construct the integer.
+   * Reads an integer that is encoded as [numRegions] contiguous blocks of color. The blocks are located at x coordinate [sampleX] and
+   * distributed across [yRange]. Only the most significant [totalBits] are used to construct the integer.
    */
-  private fun BufferedImage.readIntegerEncodedAt(
-    sampleX: Int,
-    yRange: IntRange,
-    numRegions: Int,
-    totalBits: Int,
-  ): Int =
-    yRange
-      .sampleValues(numRegions)
-      .joinToString("") { extract(sampleX, it).decodeToBinaryString() }
-      .take(totalBits)
-      .toInt(2)
+  private fun BufferedImage.readIntegerEncodedAt(sampleX: Int, yRange: IntRange, numRegions: Int, totalBits: Int): Int =
+    yRange.sampleValues(numRegions).joinToString("") { extract(sampleX, it).decodeToBinaryString() }.take(totalBits).toInt(2)
 
-  /**
-   * Turns this [Color] into a [String] of `1` and `0` characters by reading [bitsPerChannel] bits
-   * from each color channel.
-   */
+  /** Turns this [Color] into a [String] of `1` and `0` characters by reading [bitsPerChannel] bits from each color channel. */
   private fun Color.decodeToBinaryString(): String {
     return when (bitsPerChannel) {
       0 -> if (red + green + blue > 382) "1" else "0"
       1 -> channels().joinToString("") { if (it > 127) "1" else "0" }
       else ->
         channels().joinToString("") { channel ->
-          (channel * ((1 shl bitsPerChannel) - 1).toDouble() / 255)
-            .roundToInt()
-            .toString(2)
-            .padStart(bitsPerChannel, '0')
+          (channel * ((1 shl bitsPerChannel) - 1).toDouble() / 255).roundToInt().toString(2).padStart(bitsPerChannel, '0')
         }
     }
   }
@@ -481,12 +419,7 @@ internal class DeviceAdapter(
   /** Get the latency associated with generating this frame. */
   private fun BufferedImage.decodeLatency(): Int {
     val latencyYRange = touchableImageArea.latencyEncodingYRange()
-    return readIntegerEncodedAt(
-      touchableImageArea.latencyEncodingX(),
-      latencyYRange,
-      numLatencyRegions,
-      latencyBits,
-    )
+    return readIntegerEncodedAt(touchableImageArea.latencyEncodingX(), latencyYRange, numLatencyRegions, latencyBits)
   }
 
   private fun Point.toDisplayViewCoordinates(): Point? {

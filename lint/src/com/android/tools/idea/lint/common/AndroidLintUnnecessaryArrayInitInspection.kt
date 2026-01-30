@@ -19,7 +19,4 @@ import com.android.tools.idea.lint.common.LintBundle.Companion.message
 import com.android.tools.lint.checks.ArrayInitDetector
 
 class AndroidLintUnnecessaryArrayInitInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.unnecessary.array.init"),
-    ArrayInitDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.unnecessary.array.init"), ArrayInitDetector.ISSUE)

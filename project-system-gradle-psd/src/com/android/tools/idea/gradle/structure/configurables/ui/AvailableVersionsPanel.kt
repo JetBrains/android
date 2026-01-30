@@ -36,20 +36,24 @@ internal class AvailableVersionsPanel(notifyVersionSelectionChanged: Consumer<Pa
   init {
     versionsTable.setShowGrid(false)
     versionsTable.setSelectionMode(SINGLE_SELECTION)
-    val cellRenderer = object : ColoredTableCellRenderer() {
-      init {
-        font = versionsTable.font
+    val cellRenderer =
+      object : ColoredTableCellRenderer() {
+        init {
+          font = versionsTable.font
+        }
+
+        override fun customizeCellRenderer(table: JTable, value: Any?, selected: Boolean, hasFocus: Boolean, row: Int, column: Int) {
+          @Suppress("UNCHECKED_CAST") (value as Annotated<ParsedValue<Version>>?)?.renderTo(this.toRenderer(), { toString() }, mapOf())
+        }
       }
-      override fun customizeCellRenderer(table: JTable, value: Any?, selected: Boolean, hasFocus: Boolean, row: Int, column: Int) {
-        @Suppress("UNCHECKED_CAST")
-        (value as Annotated<ParsedValue<Version>>?)?.renderTo(this.toRenderer(), { toString() }, mapOf())
-      }
-    }
-    versionsTable.listTableModel.columnInfos = arrayOf(
-      object : ColumnInfo<Annotated<ParsedValue<Version>>, Annotated<ParsedValue<Version>>>("Versions") {
-        override fun valueOf(version: Annotated<ParsedValue<Version>>): Annotated<ParsedValue<Version>> = version
-        override fun getRenderer(item: Annotated<ParsedValue<Version>>?): TableCellRenderer? = cellRenderer
-      })
+    versionsTable.listTableModel.columnInfos =
+      arrayOf(
+        object : ColumnInfo<Annotated<ParsedValue<Version>>, Annotated<ParsedValue<Version>>>("Versions") {
+          override fun valueOf(version: Annotated<ParsedValue<Version>>): Annotated<ParsedValue<Version>> = version
+
+          override fun getRenderer(item: Annotated<ParsedValue<Version>>?): TableCellRenderer? = cellRenderer
+        }
+      )
 
     versionsTable.selectionModel.addListSelectionListener {
       notifyVersionSelectionChanged.accept(versionsTable.selectedObject?.value ?: ParsedValue.NotSet)

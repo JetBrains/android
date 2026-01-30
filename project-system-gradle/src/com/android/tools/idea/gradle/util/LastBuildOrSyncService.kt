@@ -28,7 +28,6 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.TestOnly
 
-
 class LastBuildOrSyncService {
   // Do not set outside of tests or this class!!
   @Volatile
@@ -45,20 +44,22 @@ internal class LastBuildOrSyncListener : ExternalSystemTaskNotificationListener 
 }
 
 /**
- * This should not really be used, but we currently do not use the intellij build infra and therefore do not get
- * events for build. If we move to using this and the events from running tasks trigger the GenericBuiltArtifactsCacheCleaner then
- * this should be removed.
+ * This should not really be used, but we currently do not use the intellij build infra and therefore do not get events for build. If we
+ * move to using this and the events from running tasks trigger the GenericBuiltArtifactsCacheCleaner then this should be removed.
  */
 internal class LastBuildOrSyncStartupActivity : AndroidStartupActivity {
   @UiThread
   override fun runActivity(project: Project, disposable: Disposable) {
-    GradleBuildState.subscribe(project, object : GradleBuildListener.Adapter() {
-      @UiThread
-      override fun buildFinished(status: BuildStatus, context: BuildContext) {
-        val service = context.project.getService(LastBuildOrSyncService::class.java)
-        service.lastBuildOrSyncTimeStamp = System.currentTimeMillis()
-      }
-    })
+    GradleBuildState.subscribe(
+      project,
+      object : GradleBuildListener.Adapter() {
+        @UiThread
+        override fun buildFinished(status: BuildStatus, context: BuildContext) {
+          val service = context.project.getService(LastBuildOrSyncService::class.java)
+          service.lastBuildOrSyncTimeStamp = System.currentTimeMillis()
+        }
+      },
+    )
 
     val service = project.getService(LastBuildOrSyncService::class.java)
     service.lastBuildOrSyncTimeStamp = System.currentTimeMillis()
@@ -66,6 +67,5 @@ internal class LastBuildOrSyncStartupActivity : AndroidStartupActivity {
 }
 
 @TestOnly
-fun emulateStartupActivityForTest(project: Project) = AndroidStartupActivity.STARTUP_ACTIVITY.findExtension(
-  LastBuildOrSyncStartupActivity::class.java)?.runActivity(project, project)
-
+fun emulateStartupActivityForTest(project: Project) =
+  AndroidStartupActivity.STARTUP_ACTIVITY.findExtension(LastBuildOrSyncStartupActivity::class.java)?.runActivity(project, project)

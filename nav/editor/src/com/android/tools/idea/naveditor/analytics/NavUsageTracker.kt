@@ -20,10 +20,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 
-/**
- * To log a nav editor event, do
- * [NavUsageTracker.getInstance(surface).createEvent(type).withWhateverInfo(...).log()].
- */
+/** To log a nav editor event, do [NavUsageTracker.getInstance(surface).createEvent(type).withWhateverInfo(...).log()]. */
 interface NavUsageTracker {
   fun createEvent(type: NavEditorEvent.NavEditorEventType) = NavLogEvent(type, this)
 
@@ -35,8 +32,7 @@ interface NavUsageTracker {
   companion object {
     private val NOP_TRACKER = NavNopTracker()
     @VisibleForTesting
-    val MANAGER: DesignerUsageTrackerManager<NavUsageTracker, NlModel> =
-      DesignerUsageTrackerManager(::NavUsageTrackerImpl, NOP_TRACKER)
+    val MANAGER: DesignerUsageTrackerManager<NavUsageTracker, NlModel> = DesignerUsageTrackerManager(::NavUsageTrackerImpl, NOP_TRACKER)
 
     fun getInstance(model: NlModel?) = MANAGER.getInstance(model)
   }

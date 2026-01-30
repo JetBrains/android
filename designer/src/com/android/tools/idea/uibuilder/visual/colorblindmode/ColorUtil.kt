@@ -115,8 +115,7 @@ fun applyGamma(color: RGB, gamma: Double = GAMMA): RGB {
 /**
  * Creates a uniform [ColorLut]. Index represents 3D Map, with R,G,B represented through its index.
  *
- * E.g.) with [dim] == 4 0 - r: 0, g: 0, b: 0 1 - r: 85, g: 0, b: 0 2 - r: 170, g: 0, b: 0 3 - r:
- * 255, g: 0, b: 0
+ * E.g.) with [dim] == 4 0 - r: 0, g: 0, b: 0 1 - r: 85, g: 0, b: 0 2 - r: 170, g: 0, b: 0 3 - r: 255, g: 0, b: 0
  *
  * 4 - r: 0, g: 85, b: 0 5 - r: 85, g: 85, b: 0 6 - r: 170, g: 85, b: 0 7 - r: 255, g: 85, b: 0
  *
@@ -124,8 +123,8 @@ fun applyGamma(color: RGB, gamma: Double = GAMMA): RGB {
  *
  * ... 63 - r: 255, g: 255, b: 255
  *
- * Red grows the fastest rate (let's call this velocity 1). It repeats [dim]^2 Green grows at
- * 1 * [dim]. Thus it repeats [dim] Blue grows at 1 * [dim]^2. Thus it never repeats
+ * Red grows the fastest rate (let's call this velocity 1). It repeats [dim]^2 Green grows at 1 * [dim]. Thus it repeats [dim] Blue grows at
+ * 1 * [dim]^2. Thus it never repeats
  *
  * Think of it as a cycle.
  */

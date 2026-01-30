@@ -102,14 +102,7 @@ class ActionHitProviderTest : NavTestCase() {
       verifyScene(model.surface) { inOrder, g ->
         verifyDrawAction(inOrder, g, color)
 
-        verifyDrawHeader(
-          inOrder,
-          g,
-          Rectangle2D.Float(490f, 389f, 76.5f, 11f),
-          0.5,
-          "fragment1",
-          isStart = true,
-        )
+        verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 76.5f, 11f), 0.5, "fragment1", isStart = true)
         verifyDrawFragment(inOrder, g, Rectangle2D.Float(490f, 400f, 76.5f, 128f), 0.5)
 
         verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 11f), 0.5, "fragment2")

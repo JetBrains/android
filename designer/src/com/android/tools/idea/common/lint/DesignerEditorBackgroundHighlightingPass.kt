@@ -20,10 +20,8 @@ import com.intellij.codeHighlighting.HighlightingPass
 import com.intellij.openapi.progress.ProgressIndicator
 import java.lang.ref.WeakReference
 
-class DesignerEditorBackgroundHighlightingPass(
-  editor: DesignerEditorPanel,
-  private val annotator: ModelLintIssueAnnotator,
-) : HighlightingPass {
+class DesignerEditorBackgroundHighlightingPass(editor: DesignerEditorPanel, private val annotator: ModelLintIssueAnnotator) :
+  HighlightingPass {
 
   private val surfaceRef = WeakReference(editor.surface)
 

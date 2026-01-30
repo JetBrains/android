@@ -18,10 +18,10 @@ package com.android.tools.idea.util
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.io.FileUtil
-import junit.framework.TestCase
 import java.io.File
 import java.nio.file.Path
 import java.util.zip.ZipFile
+import junit.framework.TestCase
 
 private const val NAME_FORMAT = "ZipUtilTest/file%d.txt"
 private const val TEXT_FORMAT = "This is file %d."

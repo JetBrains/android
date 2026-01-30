@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("ConfigurationFileUtil")
+
 package com.android.tools.idea.configurations
 
 import com.android.tools.configurations.Configuration
@@ -21,7 +22,8 @@ import com.intellij.openapi.vfs.VirtualFile
 
 /** Returns [VirtualFile] associated with the configuration or null if there is none. */
 val Configuration.virtualFile: VirtualFile?
-  get() = when {
-    this is ConfigurationForFile -> this.file
-    else -> null
-  }
+  get() =
+    when {
+      this is ConfigurationForFile -> this.file
+      else -> null
+    }

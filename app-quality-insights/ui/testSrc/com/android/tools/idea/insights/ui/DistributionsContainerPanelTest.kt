@@ -47,26 +47,16 @@ class DistributionsContainerPanelTest {
         currentIssueDetails = LoadingState.Loading,
       )
     val flow = MutableSharedFlow<AppInsightsState>()
-    val panel =
-      DistributionsContainerPanel(
-        AndroidCoroutineScope(projectRule.disposable, AndroidDispatchers.uiThread),
-        flow,
-      )
+    val panel = DistributionsContainerPanel(AndroidCoroutineScope(projectRule.disposable, AndroidDispatchers.uiThread), flow)
 
     withContext(AndroidDispatchers.uiThread) {
       flow.emit(initialState)
       assertThat(panel.emptyText.text).isEqualTo("Loading...")
 
-      flow.emit(
-        initialState.copy(currentIssueDetails = LoadingState.NetworkFailure("network failed"))
-      )
+      flow.emit(initialState.copy(currentIssueDetails = LoadingState.NetworkFailure("network failed")))
       assertThat(panel.emptyText.text).isEqualTo("Request failed")
 
-      flow.emit(
-        initialState.copy(
-          currentIssueDetails = LoadingState.UnknownFailure("unknown failure occurred")
-        )
-      )
+      flow.emit(initialState.copy(currentIssueDetails = LoadingState.UnknownFailure("unknown failure occurred")))
       assertThat(panel.emptyText.text).isEqualTo("unknown failure occurred")
     }
   }

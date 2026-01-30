@@ -32,8 +32,7 @@ private class SuspendingStreamObserver<T> : EmptyStreamObserver<T>() {
 
   private val deferredResult = CompletableDeferred<T>()
 
-  suspend fun getResult(): T =
-    deferredResult.await()
+  suspend fun getResult(): T = deferredResult.await()
 
   override fun onNext(message: T) {
     deferredResult.complete(message)

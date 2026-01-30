@@ -63,14 +63,9 @@ class ResourceCompletionContributorTest {
       """
         .trimIndent()
 
-    COLORS.forEach {
-      fixture.addFileToProject(fileName.format(it.key), circle.format(it.value.rgb))
-    }
+    COLORS.forEach { fixture.addFileToProject(fileName.format(it.key), circle.format(it.value.rgb)) }
 
-    val colorsXml =
-      COLORS.map { (key, value) ->
-        "<color name=\"${key}\">#${Integer.toHexString(value.rgb)}</color>"
-      }
+    val colorsXml = COLORS.map { (key, value) -> "<color name=\"${key}\">#${Integer.toHexString(value.rgb)}</color>" }
     val contents =
       """
       <?xml version="1.0" encoding="utf-8"?>
@@ -217,10 +212,7 @@ class ResourceCompletionContributorTest {
       )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
-    val results =
-      fixture.completeBasic().filter { result ->
-        COLORS.entries.any { it.key in result.lookupString }
-      }
+    val results = fixture.completeBasic().filter { result -> COLORS.entries.any { it.key in result.lookupString } }
     assertThat(results).hasSize(COLORS.size)
 
     for (result in results) {
@@ -250,10 +242,7 @@ class ResourceCompletionContributorTest {
       )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
-    val results =
-      fixture.completeBasic().filter { result ->
-        COLORS.entries.any { it.key in result.lookupString }
-      }
+    val results = fixture.completeBasic().filter { result -> COLORS.entries.any { it.key in result.lookupString } }
     assertThat(results).hasSize(COLORS.size)
 
     for (result in results) {
@@ -333,8 +322,7 @@ class ResourceCompletionContributorTest {
     fixture.openFileInEditor(file)
     fixture.moveCaret("R.color.col|")
     val lookupElements = fixture.completeBasic().toList()
-    assertThat(lookupElements.map(LookupElement::getLookupString))
-      .containsExactly("publicColor", "privateColor")
+    assertThat(lookupElements.map(LookupElement::getLookupString)).containsExactly("publicColor", "privateColor")
   }
 
   @Test
@@ -400,8 +388,7 @@ class ResourceCompletionContributorTest {
     fixture.openFileInEditor(file)
     fixture.moveCaret("R.color.col|")
     val lookupElements = fixture.completeBasic().toList()
-    assertThat(lookupElements.map(LookupElement::getLookupString))
-      .containsExactly("publicColor", "privateColor")
+    assertThat(lookupElements.map(LookupElement::getLookupString)).containsExactly("publicColor", "privateColor")
   }
 
   private fun Array<LookupElement>.toExpectedColors(): List<Int> = map { elt ->
@@ -418,8 +405,7 @@ class ResourceCompletionContributorTest {
 
   private fun LookupElement.slowRenderedIcon(): Icon? {
     val pres = LookupElementPresentation()
-    @Suppress("unchecked_cast")
-    (expensiveRenderer as? LookupElementRenderer<LookupElement>)?.renderElement(this, pres)
+    @Suppress("unchecked_cast") (expensiveRenderer as? LookupElementRenderer<LookupElement>)?.renderElement(this, pres)
     return pres.icon
   }
 

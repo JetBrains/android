@@ -76,45 +76,39 @@ class RunGrpcCatchingTest {
   }
 
   @Test
-  fun `runGrpcCatching when block throws UNAUTHENTICATED should return Unauthorized`() =
-    runBlocking {
-      val ready = LoadingState.Ready("hello")
-      val result = runGrpcCatching(ready) { throw StatusRuntimeException(Status.UNAUTHENTICATED) }
-      Truth.assertThat(result).isInstanceOf(LoadingState.Unauthorized::class.java)
-    }
+  fun `runGrpcCatching when block throws UNAUTHENTICATED should return Unauthorized`() = runBlocking {
+    val ready = LoadingState.Ready("hello")
+    val result = runGrpcCatching(ready) { throw StatusRuntimeException(Status.UNAUTHENTICATED) }
+    Truth.assertThat(result).isInstanceOf(LoadingState.Unauthorized::class.java)
+  }
 
   @Test
-  fun `runGrpcCatching when block throws other grpc exception should return UnknownFailure`() =
-    runBlocking {
-      val ready = LoadingState.Ready("hello")
-      val result = runGrpcCatching(ready) { throw StatusRuntimeException(Status.INTERNAL) }
-      Truth.assertThat(result).isInstanceOf(LoadingState.UnknownFailure::class.java)
-    }
+  fun `runGrpcCatching when block throws other grpc exception should return UnknownFailure`() = runBlocking {
+    val ready = LoadingState.Ready("hello")
+    val result = runGrpcCatching(ready) { throw StatusRuntimeException(Status.INTERNAL) }
+    Truth.assertThat(result).isInstanceOf(LoadingState.UnknownFailure::class.java)
+  }
 
   @Test
-  fun `runGrpcCatching when block throws TokenResponseException should return Unauthorized`() =
-    runBlocking {
-      val ready = LoadingState.Ready("hello")
-      val result = runGrpcCatching(ready) { throw Mockito.mock<TokenResponseException>() }
-      Truth.assertThat(result).isInstanceOf(LoadingState.Unauthorized::class.java)
-    }
+  fun `runGrpcCatching when block throws TokenResponseException should return Unauthorized`() = runBlocking {
+    val ready = LoadingState.Ready("hello")
+    val result = runGrpcCatching(ready) { throw Mockito.mock<TokenResponseException>() }
+    Truth.assertThat(result).isInstanceOf(LoadingState.Unauthorized::class.java)
+  }
 
   @Test
-  fun `runGrpcCatching when block throws GoogleJsonResponseException should return ServerFailure`() =
-    runBlocking {
-      val ready = LoadingState.Ready("hello")
-      val httpResponseExceptionBuilder =
-        HttpResponseException.Builder(400, "Bad Request", HttpHeaders())
-      val jsonError =
-        GoogleJsonError().apply {
-          set("status", "not found")
-          message = "resource is not found"
-        }
-      val exception = GoogleJsonResponseException(httpResponseExceptionBuilder, jsonError)
-      val result = runGrpcCatching(ready) { throw exception }
-      Truth.assertThat(result)
-        .isEqualTo(LoadingState.ServerFailure("not found: resource is not found", exception))
-    }
+  fun `runGrpcCatching when block throws GoogleJsonResponseException should return ServerFailure`() = runBlocking {
+    val ready = LoadingState.Ready("hello")
+    val httpResponseExceptionBuilder = HttpResponseException.Builder(400, "Bad Request", HttpHeaders())
+    val jsonError =
+      GoogleJsonError().apply {
+        set("status", "not found")
+        message = "resource is not found"
+      }
+    val exception = GoogleJsonResponseException(httpResponseExceptionBuilder, jsonError)
+    val result = runGrpcCatching(ready) { throw exception }
+    Truth.assertThat(result).isEqualTo(LoadingState.ServerFailure("not found: resource is not found", exception))
+  }
 
   @Test
   fun `runGrpcCatching when block throws IOException should return UnknownFailure`() = runBlocking {
@@ -135,6 +129,5 @@ class RunGrpcCatchingTest {
     Truth.assertThat(log.message).isEqualTo("callGrpcHelper - Got exception: null")
   }
 
-  private suspend fun callGrpcHelper(ready: LoadingState.Done<String>) =
-    runGrpcCatching(ready) { throw RuntimeException() }
+  private suspend fun callGrpcHelper(ready: LoadingState.Done<String>) = runGrpcCatching(ready) { throw RuntimeException() }
 }

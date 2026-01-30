@@ -22,15 +22,14 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailur
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
-import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
-import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import java.net.SocketException
 import java.util.function.Consumer
 import java.util.regex.Pattern
+import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
+import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 
-
-class ConnectionPermissionDeniedIssueChecker: GradleIssueChecker {
+class ConnectionPermissionDeniedIssueChecker : GradleIssueChecker {
   private val SOCKET_EXCEPTION_PATTERN = Pattern.compile("Caused by: java.net.SocketException(.*)")
   private val PERMISSION_DENIED = "Permission denied: connect"
 
@@ -42,18 +41,24 @@ class ConnectionPermissionDeniedIssueChecker: GradleIssueChecker {
     // Log metrics.
     SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, CONNECTION_DENIED)
 
-    return BuildIssueComposer("Connection to the Internet denied.").apply {
-      addQuickFix("More details (and potential fix)",
-                  OpenLinkQuickFix("https://developer.android.com/studio/troubleshoot.html#project-sync"))
-    }.composeBuildIssue()
+    return BuildIssueComposer("Connection to the Internet denied.")
+      .apply {
+        addQuickFix(
+          "More details (and potential fix)",
+          OpenLinkQuickFix("https://developer.android.com/studio/troubleshoot.html#project-sync"),
+        )
+      }
+      .composeBuildIssue()
   }
 
-  override fun consumeBuildOutputFailureMessage(message: String,
-                                                failureCause: String,
-                                                stacktrace: String?,
-                                                location: FilePosition?,
-                                                parentEventId: Any,
-                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+  override fun consumeBuildOutputFailureMessage(
+    message: String,
+    failureCause: String,
+    stacktrace: String?,
+    location: FilePosition?,
+    parentEventId: Any,
+    messageConsumer: Consumer<in BuildEvent>,
+  ): Boolean {
     return stacktrace != null && SOCKET_EXCEPTION_PATTERN.matcher(stacktrace).find() && failureCause.contains(PERMISSION_DENIED)
   }
 }

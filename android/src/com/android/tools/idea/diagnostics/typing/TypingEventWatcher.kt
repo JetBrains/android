@@ -43,15 +43,6 @@ import com.intellij.util.ReflectionUtil
 import com.intellij.util.application
 import com.intellij.util.ui.EDT
 import com.intellij.util.ui.UIUtil
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
-import org.apache.commons.io.FileUtils
-import org.apache.http.entity.mime.MultipartEntityBuilder
 import java.awt.AWTEvent
 import java.awt.event.KeyEvent
 import java.io.IOException
@@ -65,6 +56,15 @@ import java.time.format.DateTimeFormatter
 import kotlin.io.path.name
 import kotlin.math.max
 import kotlin.time.Duration.Companion.hours
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+import org.apache.commons.io.FileUtils
+import org.apache.http.entity.mime.MultipartEntityBuilder
 
 @Suppress("UnstableApiUsage")
 class TypingEventWatcher(private val coroutineScope: CoroutineScope) : EventWatcher, Disposable {
@@ -121,9 +121,13 @@ class TypingEventWatcher(private val coroutineScope: CoroutineScope) : EventWatc
     if (!reportDir.toFile().exists()) {
       return
     }
-    val reportFile = reportDir.toFile().listFiles()?.filter { e ->
-      e.name.startsWith(TYPING_LATENCY_DUMP_PREFIX)
-    }?.sortedWith { o1, o2 -> o1.name.compareTo(o2.name) }?.lastOrNull()
+    val reportFile =
+      reportDir
+        .toFile()
+        .listFiles()
+        ?.filter { e -> e.name.startsWith(TYPING_LATENCY_DUMP_PREFIX) }
+        ?.sortedWith { o1, o2 -> o1.name.compareTo(o2.name) }
+        ?.lastOrNull()
     if (reportFile == null) {
       return
     }
@@ -137,24 +141,30 @@ class TypingEventWatcher(private val coroutineScope: CoroutineScope) : EventWatc
       val reportMissedSlowTypingEventsCount = it.readLine().toInt()
       val reportLongestTypingLatencyMs = it.readLine().toLong()
 
-      StudioCrashReporter.getInstance().submit(
-        TypingLatencyCrashReport(it.readText(), reportSlowTypingEventsCount, reportMissedSlowTypingEventsCount,
-                                 reportLongestTypingLatencyMs,
-                                 collectionOnStudioStartup))
+      StudioCrashReporter.getInstance()
+        .submit(
+          TypingLatencyCrashReport(
+            it.readText(),
+            reportSlowTypingEventsCount,
+            reportMissedSlowTypingEventsCount,
+            reportLongestTypingLatencyMs,
+            collectionOnStudioStartup,
+          )
+        )
     }
 
     FileUtils.deleteDirectory(reportDir.toFile())
   }
 
-  private data class TypingLatencyThreadsSample(val threadInfo: Array<ThreadInfo>,
-                                                val isWriteActionPending: Boolean)
+  private data class TypingLatencyThreadsSample(val threadInfo: Array<ThreadInfo>, val isWriteActionPending: Boolean)
 
-  private data class TypingLatencySamplingInfo(val samples: MutableList<TypingLatencyThreadsSample>,
-                                               val keyEventStartTimestampMs: Long)
+  private data class TypingLatencySamplingInfo(val samples: MutableList<TypingLatencyThreadsSample>, val keyEventStartTimestampMs: Long)
 
-  private inner class TypingLatencySamplingTask(val freezeStartThreadsSample: TypingLatencyThreadsSample,
-                                                keyEventStartTimestampMs: Long,
-                                                keyChar: Char) : TypingLatencyCheckerTask(keyEventStartTimestampMs, keyChar) {
+  private inner class TypingLatencySamplingTask(
+    val freezeStartThreadsSample: TypingLatencyThreadsSample,
+    keyEventStartTimestampMs: Long,
+    keyChar: Char,
+  ) : TypingLatencyCheckerTask(keyEventStartTimestampMs, keyChar) {
     override val delay: Long = typingLatencyReportConfig!!.samplingIntervalMillis
 
     override fun processSlowTypingEvent() {
@@ -163,8 +173,7 @@ class TypingEventWatcher(private val coroutineScope: CoroutineScope) : EventWatc
         return
       }
       val allThreads = myThreadMXBean.dumpAllThreads(false, false)
-      val typingLatencyThreadsSample = TypingLatencyThreadsSample(allThreads,
-                                 ApplicationManagerEx.getApplicationEx().isWriteActionPending)
+      val typingLatencyThreadsSample = TypingLatencyThreadsSample(allThreads, ApplicationManagerEx.getApplicationEx().isWriteActionPending)
       if (lastTypingLatencySamplingInfo != null && lastTypingLatencySamplingInfo?.keyEventStartTimestampMs == keyEventStartTimestampMs) {
         lastTypingLatencySamplingInfo?.samples?.add(typingLatencyThreadsSample)
         lastTypingLatencySamplingInfo?.samples?.size?.let {
@@ -174,16 +183,18 @@ class TypingEventWatcher(private val coroutineScope: CoroutineScope) : EventWatc
             return
           }
         }
-      }
-      else {
-        lastTypingLatencySamplingInfo = TypingLatencySamplingInfo(Lists.newArrayList(freezeStartThreadsSample, typingLatencyThreadsSample),
-                                                                  keyEventStartTimestampMs)
+      } else {
+        lastTypingLatencySamplingInfo =
+          TypingLatencySamplingInfo(Lists.newArrayList(freezeStartThreadsSample, typingLatencyThreadsSample), keyEventStartTimestampMs)
       }
 
       stopCurrentTaskAndReEmit(
-        TypingLatencySamplingTask(TypingLatencyThreadsSample(allThreads, ApplicationManagerEx.getApplicationEx().isWriteActionPending),
-                                  keyEventStartTimestampMs,
-                                  keyChar))
+        TypingLatencySamplingTask(
+          TypingLatencyThreadsSample(allThreads, ApplicationManagerEx.getApplicationEx().isWriteActionPending),
+          keyEventStartTimestampMs,
+          keyChar,
+        )
+      )
     }
   }
 
@@ -193,18 +204,22 @@ class TypingEventWatcher(private val coroutineScope: CoroutineScope) : EventWatc
     open fun processSlowTypingEvent() {
       val allThreads = myThreadMXBean.dumpAllThreads(false, false)
       stopCurrentTaskAndReEmit(
-        TypingLatencySamplingTask(TypingLatencyThreadsSample(allThreads, ApplicationManagerEx.getApplicationEx().isWriteActionPending),
-                                  keyEventStartTimestampMs,
-                                  keyChar))
+        TypingLatencySamplingTask(
+          TypingLatencyThreadsSample(allThreads, ApplicationManagerEx.getApplicationEx().isWriteActionPending),
+          keyEventStartTimestampMs,
+          keyChar,
+        )
+      )
     }
   }
 
-  class TypingLatencyCrashReport(private val uiThreadSnapshot: String,
-                                 private val slowTypingEventsCount: Int,
-                                 private val missedSlowTypingEventsCount: Int,
-                                 private var longestTypingLatencyMs: Long,
-                                 private val collectionOnStudioStartup: Boolean) : DiagnosticCrashReport(
-    "TypingLatency", DiagnosticReportProperties()) {
+  class TypingLatencyCrashReport(
+    private val uiThreadSnapshot: String,
+    private val slowTypingEventsCount: Int,
+    private val missedSlowTypingEventsCount: Int,
+    private var longestTypingLatencyMs: Long,
+    private val collectionOnStudioStartup: Boolean,
+  ) : DiagnosticCrashReport("TypingLatency", DiagnosticReportProperties()) {
     override fun serialize(builder: MultipartEntityBuilder) {
       super.serialize(builder)
       GoogleCrashReporter.addBodyToBuilder(builder, "numberOfSlowTypingEvents", slowTypingEventsCount.toString())
@@ -215,16 +230,21 @@ class TypingEventWatcher(private val coroutineScope: CoroutineScope) : EventWatc
     }
   }
 
-  override fun runnableTaskFinished(runnable: Runnable,
-                                    waitedInQueueNs: Long,
-                                    queueSize: Int,
-                                    executionDurationNs: Long,
-                                    wasInSkippedItems: Boolean) {
-  }
+  override fun runnableTaskFinished(
+    runnable: Runnable,
+    waitedInQueueNs: Long,
+    queueSize: Int,
+    executionDurationNs: Long,
+    wasInSkippedItems: Boolean,
+  ) {}
 
   private fun shouldProcessEvent(event: AWTEvent): Boolean {
-    return isActive && processKeyEvents && typingLatencyReportConfig != null && event is KeyEvent && event.id == KeyEvent.KEY_TYPED && UIUtil.isReallyTypedEvent(
-      event)
+    return isActive &&
+      processKeyEvents &&
+      typingLatencyReportConfig != null &&
+      event is KeyEvent &&
+      event.id == KeyEvent.KEY_TYPED &&
+      UIUtil.isReallyTypedEvent(event)
   }
 
   override fun edtEventStarted(event: AWTEvent, startedAtMs: Long) {
@@ -260,8 +280,7 @@ class TypingEventWatcher(private val coroutineScope: CoroutineScope) : EventWatc
   private inner class SlowTypingEventListener : LatencyListener {
     private val logDir = PathManager.getLogDir()
 
-    @Suppress("SpellCheckingInspection")
-    private val dateFormat = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")
+    @Suppress("SpellCheckingInspection") private val dateFormat = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")
 
     private fun formatTime(time: ZonedDateTime): String = dateFormat.format(time)
 
@@ -303,11 +322,8 @@ class TypingEventWatcher(private val coroutineScope: CoroutineScope) : EventWatc
             for (threadInfo in sample.threadInfo) {
               addThreadSnapshot(threadInfo, label)
             }
-          }
-          else {
-            sample.threadInfo.filter { t -> t.threadId == EDT.getEventDispatchThread().id }.forEach { e ->
-              addThreadSnapshot(e, label)
-            }
+          } else {
+            sample.threadInfo.filter { t -> t.threadId == EDT.getEventDispatchThread().id }.forEach { e -> addThreadSnapshot(e, label) }
           }
         }
         mergedThreadSnapshots?.let { saveSlowTypingLatencyReports(it) }
@@ -327,8 +343,7 @@ class TypingEventWatcher(private val coroutineScope: CoroutineScope) : EventWatc
         mergedSnapshotsCount++
         serializeThreadsReport(threadSnapshots, reportFilePath)
         reportDir.toFile().listFiles()?.filter { f -> !f.name.equals(reportFilePath.name) }?.forEach { f -> Files.delete(f.toPath()) }
-      }
-      catch (e: IOException) {
+      } catch (e: IOException) {
         LOG.warn("Failed to write the thread dump file", e)
       }
     }
@@ -360,14 +375,13 @@ class TypingEventWatcher(private val coroutineScope: CoroutineScope) : EventWatc
     }
 
     private fun addThreadSnapshot(freezeStartThreadInfo: ThreadInfo, leafInfo: String) {
-      mergedThreadSnapshots?.getOrPut(freezeStartThreadInfo.threadId) {
-        ThreadCallTree(freezeStartThreadInfo.threadId, freezeStartThreadInfo.threadName)
-      }?.addThreadInfoWithLabels(freezeStartThreadInfo, typingLatencyReportConfig!!.typingEventReportThresholdMillis, leafInfo)
+      mergedThreadSnapshots
+        ?.getOrPut(freezeStartThreadInfo.threadId) { ThreadCallTree(freezeStartThreadInfo.threadId, freezeStartThreadInfo.threadName) }
+        ?.addThreadInfoWithLabels(freezeStartThreadInfo, typingLatencyReportConfig!!.typingEventReportThresholdMillis, leafInfo)
     }
   }
 
-  override fun logTimeMillis(processId: String, startedAtMs: Long, runnableClass: Class<out Runnable>) {
-  }
+  override fun logTimeMillis(processId: String, startedAtMs: Long, runnableClass: Class<out Runnable>) {}
 
   companion object {
     private val LOG: Logger

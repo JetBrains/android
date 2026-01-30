@@ -25,9 +25,7 @@ object HardwareAccelerationCheck {
     OS.CURRENT == OS.Linux && Path.of("/dev/.cros_milestone").exists()
   }
 
-  /**
-   * This should only be executed on Crostini. On any other OS, it will throw an [UnsupportedOperationException].
-   */
+  /** This should only be executed on Crostini. On any other OS, it will throw an [UnsupportedOperationException]. */
   private val isHWAccelerated: Boolean by lazy {
     if (isChromeOS) Path.of("/dev/kvm").exists()
     else throw UnsupportedOperationException("Can only check for existence of /dev/kvm on Crostini")
@@ -38,6 +36,5 @@ object HardwareAccelerationCheck {
    * support this now behave like Linux machines when it comes to Studio's emulator functionality. Use this method instead of [isChromeOS]
    * when making choices about virtual devices.
    */
-  @JvmStatic
-  fun isChromeOSAndIsNotHWAccelerated(): Boolean = isChromeOS && !isHWAccelerated
+  @JvmStatic fun isChromeOSAndIsNotHWAccelerated(): Boolean = isChromeOS && !isHWAccelerated
 }

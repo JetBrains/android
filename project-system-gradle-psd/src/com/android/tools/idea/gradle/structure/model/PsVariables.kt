@@ -25,24 +25,20 @@ import com.android.tools.idea.gradle.structure.model.meta.ValueAnnotation
 import com.android.tools.idea.gradle.structure.model.meta.annotateWith
 import com.google.common.annotations.VisibleForTesting
 
-open class PsVariables (
+open class PsVariables(
   override val model: PsModel,
   override val name: String,
   override val title: String,
-  private val parentScope: PsVariablesScope?
+  private val parentScope: PsVariablesScope?,
 ) : PsMutableCollectionBase<PsVariable, String, PsModel>(model), PsVariablesScope {
   init {
     refresh()
   }
 
-  override fun getKeys(from: PsModel): Set<String> =
-    getContainer(from)
-      ?.properties
-      ?.map { it.name }
-      ?.toSet()
-    ?: setOf()
+  override fun getKeys(from: PsModel): Set<String> = getContainer(from)?.properties?.map { it.name }?.toSet() ?: setOf()
 
   override fun create(key: String): PsVariable = PsVariable(model, this, ::refresh)
+
   override fun update(key: String, model: PsVariable) = model.init(getContainer(parent)!!.properties.first { it.name == key })
 
   override fun instantiateNew(key: String) {
@@ -55,15 +51,12 @@ open class PsVariables (
     getContainer(parent)!!.findProperty(key).delete()
   }
 
-  override fun checkIfCanAddNew(key: String): String? =
-    if (key.indexOf(".") != -1) "Name contains dot"
-    else
-      super.checkIfCanAddNew(key)
+  override fun checkIfCanAddNew(key: String): String? = if (key.indexOf(".") != -1) "Name contains dot" else super.checkIfCanAddNew(key)
 
   override fun <ValueT : Any> getAvailableVariablesFor(
     property: ModelPropertyContext<ValueT>
   ): List<Annotated<ParsedValue.Set.Parsed<ValueT>>> =
-  // TODO(solodkyy): Merge with variables available at the project level.
+    // TODO(solodkyy): Merge with variables available at the project level.
     getContainer(model)
       ?.inScopeProperties
       ?.map { it.key to it.value.resolve() }
@@ -71,9 +64,7 @@ open class PsVariables (
         when (it.second.valueType) {
           GradlePropertyModel.ValueType.LIST -> listOf()
           GradlePropertyModel.ValueType.MAP ->
-            it.second.getValue(GradlePropertyModel.MAP_TYPE)?.map { entry ->
-              "${it.first}.${entry.key}" to entry.value
-            }.orEmpty()
+            it.second.getValue(GradlePropertyModel.MAP_TYPE)?.map { entry -> "${it.first}.${entry.key}" to entry.value }.orEmpty()
           else -> listOf(it)
         }
       }
@@ -101,15 +92,10 @@ open class PsVariables (
   override fun getOrCreateVariable(name: String): PsVariable = findElement(name) ?: addNewVariable(name)
 
   override fun addNewVariable(name: String): PsVariable = addNew(name)
-  override fun addNewListVariable(name: String): PsVariable =
-    batchChange {
-      addNew(name).also { it.convertToEmptyList() }
-    }
 
-  override fun addNewMapVariable(name: String): PsVariable =
-    batchChange {
-      addNew(name).also { it.convertToEmptyMap() }
-    }
+  override fun addNewListVariable(name: String): PsVariable = batchChange { addNew(name).also { it.convertToEmptyList() } }
+
+  override fun addNewMapVariable(name: String): PsVariable = batchChange { addNew(name).also { it.convertToEmptyMap() } }
 
   override fun removeVariable(name: String) = remove(name)
 

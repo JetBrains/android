@@ -21,7 +21,6 @@ import com.android.tools.idea.fonts.StudioDownloadableFontCacheService
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.intellij.util.ui.JBUI
-import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Component
 import java.awt.Font
 import java.awt.Graphics
@@ -29,21 +28,19 @@ import java.awt.Graphics2D
 import java.awt.RenderingHints
 import java.awt.geom.Rectangle2D
 import javax.swing.Icon
+import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * Create a reusable [Icon] that is updated each time [getIcon] is called.
- * It paints a sample of all font styles defined in the resource's [FontFamily], It will try to fit the samples in the given dimensions.
- * Usually, for most Android Projects, a [FontFamily] will have up to two styles.
+ * Create a reusable [Icon] that is updated each time [getIcon] is called. It paints a sample of all font styles defined in the resource's
+ * [FontFamily], It will try to fit the samples in the given dimensions. Usually, for most Android Projects, a [FontFamily] will have up to
+ * two styles.
  */
-class FontIconProvider(
-  facet: AndroidFacet
-) : AssetIconProvider {
+class FontIconProvider(facet: AndroidFacet) : AssetIconProvider {
 
   private val fontIcon = FontFamilyIcon()
 
-  private val projectFonts = ProjectFonts(
-    StudioDownloadableFontCacheService.getInstance(),
-    StudioResourceRepositoryManager.getInstance(facet))
+  private val projectFonts =
+    ProjectFonts(StudioDownloadableFontCacheService.getInstance(), StudioResourceRepositoryManager.getInstance(facet))
 
   override val supportsTransparency: Boolean = false
 
@@ -53,7 +50,7 @@ class FontIconProvider(
     height: Int,
     component: Component,
     refreshCallback: () -> Unit,
-    shouldBeRendered: () -> Boolean
+    shouldBeRendered: () -> Boolean,
   ): Icon {
     val resource = assetToRender.resourceItem
     val fontFamily = projectFonts.getFont(resource.referenceToSelf.resourceUrl.toString())
@@ -65,10 +62,8 @@ class FontIconProvider(
   }
 }
 
-/**
- * Creates an Icon that draws samples of each style within a [FontFamily].
- */
-private class FontFamilyIcon: Icon {
+/** Creates an Icon that draws samples of each style within a [FontFamily]. */
+private class FontFamilyIcon : Icon {
   var width: Int = 0
   var height: Int = 0
 
@@ -76,11 +71,10 @@ private class FontFamilyIcon: Icon {
   private val fontService = StudioDownloadableFontCacheService.getInstance()
 
   fun setFontFamily(fontFamily: FontFamily) {
-    fonts = fontFamily.fonts.mapNotNull{ fontDetail ->
-      fontService.loadDetailFont(fontDetail)?.let { font ->
-        FontIconData(fontDetail.styleName, font)
+    fonts =
+      fontFamily.fonts.mapNotNull { fontDetail ->
+        fontService.loadDetailFont(fontDetail)?.let { font -> FontIconData(fontDetail.styleName, font) }
       }
-    }
   }
 
   override fun getIconWidth(): Int = width
@@ -130,10 +124,7 @@ private class FontFamilyIcon: Icon {
   }
 }
 
-private data class FontIconData(
-  val name: String,
-  val font: Font
-)
+private data class FontIconData(val name: String, val font: Font)
 
 private fun FontIconData.getFontBounds(g: Graphics, fontSize: Float): Rectangle2D {
   return g.getFontMetrics(font.deriveFont(fontSize)).getStringBounds(name, g)

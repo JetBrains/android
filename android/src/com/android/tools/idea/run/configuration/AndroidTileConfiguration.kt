@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.run.configuration
 
-import com.android.tools.idea.execution.common.AppRunSettings
-import com.android.tools.idea.run.ApkProvider
-import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
+import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.projectsystem.ApplicationProjectContext
+import com.android.tools.idea.run.ApkProvider
+import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.configuration.execution.AndroidTileConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.TileLaunchOptions
 import com.intellij.execution.configurations.ConfigurationFactory
@@ -36,17 +36,21 @@ class AndroidTileConfigurationType :
     ID,
     AndroidBundle.message("android.tile.configuration.type.name"),
     AndroidBundle.message("android.run.configuration.type.description"),
-    StudioIcons.Wear.TILES_RUN_CONFIG
-  ), DumbAware {
+    StudioIcons.Wear.TILES_RUN_CONFIG,
+  ),
+  DumbAware {
   companion object {
     const val ID = "AndroidTileConfigurationType"
   }
 
   init {
-    addFactory(object : AndroidWearConfigurationFactory(this) {
-      override fun getId() = "AndroidTileConfigurationFactory"
-      override fun createTemplateConfiguration(project: Project) = AndroidTileConfiguration(project, this)
-    })
+    addFactory(
+      object : AndroidWearConfigurationFactory(this) {
+        override fun getId() = "AndroidTileConfigurationFactory"
+
+        override fun createTemplateConfiguration(project: Project) = AndroidTileConfiguration(project, this)
+      }
+    )
   }
 }
 
@@ -59,16 +63,8 @@ class AndroidTileConfiguration(project: Project, factory: ConfigurationFactory) 
     appRunSettings: AppRunSettings,
     apkProvider: ApkProvider,
     applicationContext: ApplicationProjectContext,
-    deployer: ApplicationDeployer
+    deployer: ApplicationDeployer,
   ): AndroidConfigurationExecutor {
-    return AndroidTileConfigurationExecutor(
-      environment,
-      deviceFutures,
-      appRunSettings,
-      apkProvider,
-      applicationContext,
-      deployer
-    )
+    return AndroidTileConfigurationExecutor(environment, deviceFutures, appRunSettings, apkProvider, applicationContext, deployer)
   }
 }
-

@@ -19,9 +19,7 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.intellij.openapi.module.Module
 
-/**
- * Returns the gradle plugin version for the given module or null if the model is unknown
- */
+/** Returns the gradle plugin version for the given module or null if the model is unknown */
 fun Module.getGradlePluginVersion(): AgpVersion? {
   return GradleAndroidModel.get(this)?.let { AgpVersion.parse(it.androidProject.agpVersion) }
 }

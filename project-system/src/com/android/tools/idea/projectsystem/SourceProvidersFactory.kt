@@ -18,13 +18,12 @@ package com.android.tools.idea.projectsystem
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * An interface used by the project system internally to instantiate project specific [SourceProviders] when the project
- * structure changes.
+ * An interface used by the project system internally to instantiate project specific [SourceProviders] when the project structure changes.
  */
 interface SourceProvidersFactory {
   /**
-   * Do not use directly. This method is supposed to be called by the project system internals to instantiate a cached copy
-   * of [SourceProviders].
+   * Do not use directly. This method is supposed to be called by the project system internals to instantiate a cached copy of
+   * [SourceProviders].
    *
    * Note: Temporarily, if the method returns [null] an implementation for legacy projects will be provided.
    */

@@ -23,8 +23,7 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 
 /** The dropdown action used to choose the configuration set in visualization tool. */
-class ConfigurationSetMenuAction(defaultSet: ConfigurationSet) :
-  DropDownAction(null, "Configuration Set", null) {
+class ConfigurationSetMenuAction(defaultSet: ConfigurationSet) : DropDownAction(null, "Configuration Set", null) {
 
   private var currentConfigurationSet = defaultSet
 

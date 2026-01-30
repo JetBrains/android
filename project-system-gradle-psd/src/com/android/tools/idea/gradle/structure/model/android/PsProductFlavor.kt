@@ -63,7 +63,7 @@ data class PsProductFlavorKey(val dimension: String, val name: String)
 
 open class PsProductFlavor(
   final override val parent: PsAndroidModule,
-  private val renamed: (PsProductFlavorKey, PsProductFlavorKey) -> Unit
+  private val renamed: (PsProductFlavorKey, PsProductFlavorKey) -> Unit,
 ) : PsChildModel() {
   override val descriptor by ProductFlavorDescriptors
   var resolvedModel: IdeProductFlavor? = null
@@ -74,22 +74,21 @@ open class PsProductFlavor(
     this.parsedModel = parsedModel
   }
 
-  override val name: String get() = resolvedModel?.name ?: parsedModel?.name() ?: ""
-  override val path: PsProductFlavorNavigationPath get() = PsProductFlavorNavigationPath(parent.path.productFlavorsPath, name)
+  override val name: String
+    get() = resolvedModel?.name ?: parsedModel?.name() ?: ""
 
-  /**
-   * The dimension the product flavor belongs to, i.e. either the configured dimension or the default dimension.
-   */
-  val effectiveDimension: String? get() =
-    (configuredDimension.maybeValue ?: parent.flavorDimensions.singleOrNull()?.name)
-      ?.takeIf { parent.findFlavorDimension(it) != null }
+  override val path: PsProductFlavorNavigationPath
+    get() = PsProductFlavorNavigationPath(parent.path.productFlavorsPath, name)
+
+  /** The dimension the product flavor belongs to, i.e. either the configured dimension or the default dimension. */
+  val effectiveDimension: String?
+    get() =
+      (configuredDimension.maybeValue ?: parent.flavorDimensions.singleOrNull()?.name)?.takeIf { parent.findFlavorDimension(it) != null }
 
   var applicationId by ProductFlavorDescriptors.applicationId
   var applicationIdSuffix by ProductFlavorDescriptors.applicationIdSuffix
 
-  /**
-   * The 'dimension' property. Note, for filtering and matching, [effectiveDimension] should be used.
-   */
+  /** The 'dimension' property. Note, for filtering and matching, [effectiveDimension] should be used. */
   var configuredDimension by ProductFlavorDescriptors.dimension
 
   var maxSdkVersion by ProductFlavorDescriptors.maxSdkVersion
@@ -110,7 +109,9 @@ open class PsProductFlavor(
   var manifestPlaceholders by ProductFlavorDescriptors.manifestPlaceholders
   var testInstrumentationRunnerArguments by ProductFlavorDescriptors.testInstrumentationRunnerArguments
 
-  override val isDeclared: Boolean get() = parsedModel != null
+  override val isDeclared: Boolean
+    get() = parsedModel != null
+
   override val icon: Icon = PRODUCT_FLAVOR
 
   fun rename(newName: String) {
@@ -132,230 +133,269 @@ open class PsProductFlavor(
 
     private fun variableName(name: String): String = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, name)
 
-    val applicationId: SimpleProperty<PsProductFlavor, String> = property(
-      "Application ID",
-      preferredVariableName = { variableName("$name-application-id") },
-      resolvedValueGetter = { applicationId },
-      parsedPropertyGetter = { applicationId() },
-      getter = { asString() },
-      setter = { setValue(it) },
-      parser = ::parseString
-    )
+    val applicationId: SimpleProperty<PsProductFlavor, String> =
+      property(
+        "Application ID",
+        preferredVariableName = { variableName("$name-application-id") },
+        resolvedValueGetter = { applicationId },
+        parsedPropertyGetter = { applicationId() },
+        getter = { asString() },
+        setter = { setValue(it) },
+        parser = ::parseString,
+      )
 
-    val applicationIdSuffix: SimpleProperty<PsProductFlavor, String> = property(
-      "Application ID Suffix",
-      preferredVariableName = { variableName("$name-application-id-suffix") },
-      resolvedValueGetter = { applicationIdSuffix },
-      parsedPropertyGetter = { applicationIdSuffix() },
-      getter = { asString() },
-      setter = { setValue(it) },
-      parser = ::parseString
-    )
+    val applicationIdSuffix: SimpleProperty<PsProductFlavor, String> =
+      property(
+        "Application ID Suffix",
+        preferredVariableName = { variableName("$name-application-id-suffix") },
+        resolvedValueGetter = { applicationIdSuffix },
+        parsedPropertyGetter = { applicationIdSuffix() },
+        getter = { asString() },
+        setter = { setValue(it) },
+        parser = ::parseString,
+      )
 
-    val dimension: SimpleProperty<PsProductFlavor, String> = property(
-      "Dimension",
-      preferredVariableName = { variableName("$name-dimension") },
-      resolvedValueGetter = { dimension },
-      parsedPropertyGetter = { dimension() },
-      getter = { asString() },
-      setter = { setValue(it) },
-      refresher = { parent.resetProductFlavors() },
-      parser = ::parseString,
-      knownValuesGetter = { model -> immediateFuture(model.parent.flavorDimensions.map { ValueDescriptor(it.name, it.name) }) }
-    )
+    val dimension: SimpleProperty<PsProductFlavor, String> =
+      property(
+        "Dimension",
+        preferredVariableName = { variableName("$name-dimension") },
+        resolvedValueGetter = { dimension },
+        parsedPropertyGetter = { dimension() },
+        getter = { asString() },
+        setter = { setValue(it) },
+        refresher = { parent.resetProductFlavors() },
+        parser = ::parseString,
+        knownValuesGetter = { model -> immediateFuture(model.parent.flavorDimensions.map { ValueDescriptor(it.name, it.name) }) },
+      )
 
-    val maxSdkVersion: SimpleProperty<PsProductFlavor, Int> = property(
-      "Max SDK Version",
-      preferredVariableName = { variableName("$name-max-sdk-version") },
-      resolvedValueGetter = { maxSdkVersion },
-      parsedPropertyGetter = { maxSdkVersion() },
-      getter = { asInt() },
-      setter = { setValue(it) },
-      parser = ::parseInt,
-      knownValuesGetter = ::maxSdkValues
-    )
+    val maxSdkVersion: SimpleProperty<PsProductFlavor, Int> =
+      property(
+        "Max SDK Version",
+        preferredVariableName = { variableName("$name-max-sdk-version") },
+        resolvedValueGetter = { maxSdkVersion },
+        parsedPropertyGetter = { maxSdkVersion() },
+        getter = { asInt() },
+        setter = { setValue(it) },
+        parser = ::parseInt,
+        knownValuesGetter = ::maxSdkValues,
+      )
 
-    val minSdkVersion: SimpleProperty<PsProductFlavor, String> = property(
-      "Min SDK Version",
-      preferredVariableName = { variableName("$name-min-sdk-version") },
-      resolvedValueGetter = { minSdkVersion?.apiLevel?.toString() },
-      parsedPropertyGetter = { minSdkVersion() },
-      getter = { asString() },
-      setter = { setValue(it.toIntOrString()) },
-      parser = ::parseString,
-      knownValuesGetter = ::minSdkValues
-    )
+    val minSdkVersion: SimpleProperty<PsProductFlavor, String> =
+      property(
+        "Min SDK Version",
+        preferredVariableName = { variableName("$name-min-sdk-version") },
+        resolvedValueGetter = { minSdkVersion?.apiLevel?.toString() },
+        parsedPropertyGetter = { minSdkVersion() },
+        getter = { asString() },
+        setter = { setValue(it.toIntOrString()) },
+        parser = ::parseString,
+        knownValuesGetter = ::minSdkValues,
+      )
 
-    val multiDexEnabled: SimpleProperty<PsProductFlavor, Boolean> = property(
-      "Multi Dex Enabled",
-      preferredVariableName = { variableName("$name-multi-dex-enabled") },
-      resolvedValueGetter = { multiDexEnabled },
-      parsedPropertyGetter = { multiDexEnabled() },
-      getter = { asBoolean() },
-      setter = { setValue(it) },
-      parser = ::parseBoolean,
-      knownValuesGetter = ::booleanValues
-    )
+    val multiDexEnabled: SimpleProperty<PsProductFlavor, Boolean> =
+      property(
+        "Multi Dex Enabled",
+        preferredVariableName = { variableName("$name-multi-dex-enabled") },
+        resolvedValueGetter = { multiDexEnabled },
+        parsedPropertyGetter = { multiDexEnabled() },
+        getter = { asBoolean() },
+        setter = { setValue(it) },
+        parser = ::parseBoolean,
+        knownValuesGetter = ::booleanValues,
+      )
 
-    val signingConfig: SimpleProperty<PsProductFlavor, Unit> = property(
-      "Signing Config",
-      resolvedValueGetter = IdeBaseConfig::kotlinUnitWorkAround,
-      parsedPropertyGetter = { signingConfig() },
-      getter = ResolvedPropertyModel::asUnit,
-      setter = {},
-      parser = ::parseReferenceOnly,
-      formatter = ::formatUnit,
-      knownValuesGetter = { model -> signingConfigs(model.parent) }
-    )
+    val signingConfig: SimpleProperty<PsProductFlavor, Unit> =
+      property(
+        "Signing Config",
+        resolvedValueGetter = IdeBaseConfig::kotlinUnitWorkAround,
+        parsedPropertyGetter = { signingConfig() },
+        getter = ResolvedPropertyModel::asUnit,
+        setter = {},
+        parser = ::parseReferenceOnly,
+        formatter = ::formatUnit,
+        knownValuesGetter = { model -> signingConfigs(model.parent) },
+      )
 
-    val targetSdkVersion: SimpleProperty<PsProductFlavor, String> = property(
-      "Target SDK Version",
-      preferredVariableName = { variableName("$name-target-sdk-version") },
-      resolvedValueGetter = { targetSdkVersion?.apiLevel?.toString() },
-      parsedPropertyGetter = { targetSdkVersion() },
-      getter = { asString() },
-      setter = { setValue(it.toIntOrString()) },
-      parser = ::parseString,
-      knownValuesGetter = ::targetSdkValues
+    val targetSdkVersion: SimpleProperty<PsProductFlavor, String> =
+      property(
+        "Target SDK Version",
+        preferredVariableName = { variableName("$name-target-sdk-version") },
+        resolvedValueGetter = { targetSdkVersion?.apiLevel?.toString() },
+        parsedPropertyGetter = { targetSdkVersion() },
+        getter = { asString() },
+        setter = { setValue(it.toIntOrString()) },
+        parser = ::parseString,
+        knownValuesGetter = ::targetSdkValues,
+      )
 
-    )
+    val testApplicationId: SimpleProperty<PsProductFlavor, String> =
+      property(
+        "Test Application ID",
+        preferredVariableName = { variableName("$name-test-application-id") },
+        resolvedValueGetter = { testApplicationId },
+        parsedPropertyGetter = { testApplicationId() },
+        getter = { asString() },
+        setter = { setValue(it) },
+        parser = ::parseString,
+      )
 
-    val testApplicationId: SimpleProperty<PsProductFlavor, String> = property(
-      "Test Application ID",
-      preferredVariableName = { variableName("$name-test-application-id") },
-      resolvedValueGetter = { testApplicationId },
-      parsedPropertyGetter = { testApplicationId() },
-      getter = { asString() },
-      setter = { setValue(it) },
-      parser = ::parseString
-    )
+    val testFunctionalTest: SimpleProperty<PsProductFlavor, Boolean> =
+      property(
+        "Test Functional Test",
+        preferredVariableName = { variableName("$name-test-functional-test") },
+        resolvedValueGetter = { testFunctionalTest },
+        parsedPropertyGetter = { testFunctionalTest() },
+        getter = { asBoolean() },
+        setter = { setValue(it) },
+        parser = ::parseBoolean,
+        knownValuesGetter = ::booleanValues,
+      )
 
-    val testFunctionalTest: SimpleProperty<PsProductFlavor, Boolean> = property(
-      "Test Functional Test",
-      preferredVariableName = { variableName("$name-test-functional-test") },
-      resolvedValueGetter = { testFunctionalTest },
-      parsedPropertyGetter = { testFunctionalTest() },
-      getter = { asBoolean() },
-      setter = { setValue(it) },
-      parser = ::parseBoolean,
-      knownValuesGetter = ::booleanValues
-    )
+    val testHandleProfiling: SimpleProperty<PsProductFlavor, Boolean> =
+      property(
+        "Test Handle Profiling",
+        preferredVariableName = { variableName("$name-test-handle-profiling") },
+        resolvedValueGetter = { testHandleProfiling },
+        parsedPropertyGetter = { testHandleProfiling() },
+        getter = { asBoolean() },
+        setter = { setValue(it) },
+        parser = ::parseBoolean,
+        knownValuesGetter = ::booleanValues,
+      )
 
-    val testHandleProfiling: SimpleProperty<PsProductFlavor, Boolean> = property(
-      "Test Handle Profiling",
-      preferredVariableName = { variableName("$name-test-handle-profiling") },
-      resolvedValueGetter = { testHandleProfiling },
-      parsedPropertyGetter = { testHandleProfiling() },
-      getter = { asBoolean() },
-      setter = { setValue(it) },
-      parser = ::parseBoolean,
-      knownValuesGetter = ::booleanValues
-    )
+    val testInstrumentationRunner: SimpleProperty<PsProductFlavor, String> =
+      property(
+        "Test instrumentation runner class name",
+        preferredVariableName = { variableName("$name-test-instrumentation-runner") },
+        resolvedValueGetter = { testInstrumentationRunner },
+        parsedPropertyGetter = { testInstrumentationRunner() },
+        getter = { asString() },
+        setter = { setValue(it) },
+        parser = ::parseString,
+      )
 
-    val testInstrumentationRunner: SimpleProperty<PsProductFlavor, String> = property(
-      "Test instrumentation runner class name",
-      preferredVariableName = { variableName("$name-test-instrumentation-runner") },
-      resolvedValueGetter = { testInstrumentationRunner },
-      parsedPropertyGetter = { testInstrumentationRunner() },
-      getter = { asString() },
-      setter = { setValue(it) },
-      parser = ::parseString
-    )
+    val versionCode: SimpleProperty<PsProductFlavor, Int> =
+      property(
+        "Version Code",
+        preferredVariableName = { variableName("$name-version-code") },
+        resolvedValueGetter = { versionCode },
+        parsedPropertyGetter = { versionCode() },
+        getter = { asInt() },
+        setter = { setValue(it) },
+        parser = ::parseInt,
+      )
 
-    val versionCode: SimpleProperty<PsProductFlavor, Int> = property(
-      "Version Code",
-      preferredVariableName = { variableName("$name-version-code") },
-      resolvedValueGetter = { versionCode },
-      parsedPropertyGetter = { versionCode() },
-      getter = { asInt() },
-      setter = { setValue(it) },
-      parser = ::parseInt
-    )
+    val versionName: SimpleProperty<PsProductFlavor, String> =
+      property(
+        "Version Name",
+        preferredVariableName = { variableName("$name-version-name") },
+        resolvedValueGetter = { versionName },
+        parsedPropertyGetter = { versionName() },
+        getter = { asString() },
+        setter = { setValue(it) },
+        parser = ::parseString,
+      )
 
-    val versionName: SimpleProperty<PsProductFlavor, String> = property(
-      "Version Name",
-      preferredVariableName = { variableName("$name-version-name") },
-      resolvedValueGetter = { versionName },
-      parsedPropertyGetter = { versionName() },
-      getter = { asString() },
-      setter = { setValue(it) },
-      parser = ::parseString
-    )
+    val versionNameSuffix: SimpleProperty<PsProductFlavor, String> =
+      property(
+        "Version Name Suffix",
+        preferredVariableName = { variableName("$name-version-name-suffix") },
+        resolvedValueGetter = { versionNameSuffix },
+        parsedPropertyGetter = { versionNameSuffix() },
+        getter = { asString() },
+        setter = { setValue(it) },
+        parser = ::parseString,
+      )
 
-    val versionNameSuffix: SimpleProperty<PsProductFlavor, String> = property(
-      "Version Name Suffix",
-      preferredVariableName = { variableName("$name-version-name-suffix") },
-      resolvedValueGetter = { versionNameSuffix },
-      parsedPropertyGetter = { versionNameSuffix() },
-      getter = { asString() },
-      setter = { setValue(it) },
-      parser = ::parseString
-    )
+    val matchingFallbacks: ListProperty<PsProductFlavor, String> =
+      listProperty(
+        "Matching Fallbacks",
+        resolvedValueGetter = { null },
+        parsedPropertyGetter = { matchingFallbacks() },
+        getter = { asString() },
+        setter = { setValue(it) },
+        parser = ::parseString,
+        variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE,
+        knownValuesGetter = { model -> productFlavorMatchingFallbackValues(model.parent.parent, model.configuredDimension.maybeValue) },
+      )
 
-    val matchingFallbacks: ListProperty<PsProductFlavor, String> = listProperty(
-      "Matching Fallbacks",
-      resolvedValueGetter = { null },
-      parsedPropertyGetter = { matchingFallbacks() },
-      getter = { asString() },
-      setter = { setValue(it) },
-      parser = ::parseString,
-      variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE,
-      knownValuesGetter = { model -> productFlavorMatchingFallbackValues(model.parent.parent, model.configuredDimension.maybeValue) }
-    )
+    val consumerProGuardFiles: ListProperty<PsProductFlavor, File> =
+      listProperty(
+          "Consumer ProGuard Files",
+          resolvedValueGetter = { consumerProguardFiles.toList() },
+          parsedPropertyGetter = { consumerProguardFiles() },
+          getter = { asFile() },
+          setter = { setValue(it.toString()) },
+          parser = ::parseFile,
+          knownValuesGetter = { model -> proGuardFileValues(model.parent) },
+        )
+        .withProFileSelector(module = { parent })
 
-    val consumerProGuardFiles: ListProperty<PsProductFlavor, File> = listProperty(
-      "Consumer ProGuard Files",
-      resolvedValueGetter = { consumerProguardFiles.toList() },
-      parsedPropertyGetter = { consumerProguardFiles() },
-      getter = { asFile() },
-      setter = { setValue(it.toString()) },
-      parser = ::parseFile,
-      knownValuesGetter = { model -> proGuardFileValues(model.parent) }
-    )
-      .withProFileSelector(module = { parent })
+    val proGuardFiles: ListProperty<PsProductFlavor, File> =
+      listProperty(
+          "ProGuard Files",
+          resolvedValueGetter = { proguardFiles.toList() },
+          parsedPropertyGetter = { proguardFiles() },
+          getter = { asFile() },
+          setter = { setValue(it.toString()) },
+          parser = ::parseFile,
+          knownValuesGetter = { model -> proGuardFileValues(model.parent) },
+        )
+        .withProFileSelector(module = { parent })
 
-    val proGuardFiles: ListProperty<PsProductFlavor, File> = listProperty(
-      "ProGuard Files",
-      resolvedValueGetter = { proguardFiles.toList() },
-      parsedPropertyGetter = { proguardFiles() },
-      getter = { asFile() },
-      setter = { setValue(it.toString()) },
-      parser = ::parseFile,
-      knownValuesGetter = { model -> proGuardFileValues(model.parent) }
-    )
-      .withProFileSelector(module = { parent })
+    val resConfigs: ListProperty<PsProductFlavor, String> =
+      listProperty(
+        "Resource Configs",
+        resolvedValueGetter = { resourceConfigurations.toList() },
+        parsedPropertyGetter = { resConfigs() },
+        getter = { asString() },
+        setter = { setValue(it) },
+        parser = ::parseString,
+      )
 
-    val resConfigs: ListProperty<PsProductFlavor, String> = listProperty(
-      "Resource Configs",
-      resolvedValueGetter = { resourceConfigurations.toList() },
-      parsedPropertyGetter = { resConfigs() },
-      getter = { asString() },
-      setter = { setValue(it) },
-      parser = ::parseString
-    )
+    val manifestPlaceholders: MapProperty<PsProductFlavor, Any> =
+      mapProperty(
+        "Manifest Placeholders",
+        resolvedValueGetter = { manifestPlaceholders },
+        parsedPropertyGetter = { manifestPlaceholders() },
+        getter = { asAny() },
+        setter = { setValue(it) },
+        parser = ::parseAny,
+      )
 
-    val manifestPlaceholders: MapProperty<PsProductFlavor, Any> = mapProperty(
-      "Manifest Placeholders",
-      resolvedValueGetter = { manifestPlaceholders },
-      parsedPropertyGetter = { manifestPlaceholders() },
-      getter = { asAny() },
-      setter = { setValue(it) },
-      parser = ::parseAny
-    )
-
-    val testInstrumentationRunnerArguments: MapProperty<PsProductFlavor, String> = mapProperty(
-      "Test Instrumentation Runner Arguments",
-      resolvedValueGetter = { testInstrumentationRunnerArguments },
-      parsedPropertyGetter = { testInstrumentationRunnerArguments() },
-      getter = { asString() },
-      setter = { setValue(it) },
-      parser = ::parseString
-    )
+    val testInstrumentationRunnerArguments: MapProperty<PsProductFlavor, String> =
+      mapProperty(
+        "Test Instrumentation Runner Arguments",
+        resolvedValueGetter = { testInstrumentationRunnerArguments },
+        parsedPropertyGetter = { testInstrumentationRunnerArguments() },
+        getter = { asString() },
+        setter = { setValue(it) },
+        parser = ::parseString,
+      )
 
     override val properties: Collection<ModelProperty<PsProductFlavor, *, *, *>> =
-      listOf(applicationId, applicationIdSuffix, dimension, maxSdkVersion, minSdkVersion, multiDexEnabled, signingConfig, targetSdkVersion,
-             testApplicationId, testFunctionalTest, testHandleProfiling, testInstrumentationRunner, versionCode, versionName,
-             versionNameSuffix, matchingFallbacks, consumerProGuardFiles, proGuardFiles, resConfigs, manifestPlaceholders,
-             testInstrumentationRunnerArguments)
+      listOf(
+        applicationId,
+        applicationIdSuffix,
+        dimension,
+        maxSdkVersion,
+        minSdkVersion,
+        multiDexEnabled,
+        signingConfig,
+        targetSdkVersion,
+        testApplicationId,
+        testFunctionalTest,
+        testHandleProfiling,
+        testInstrumentationRunner,
+        versionCode,
+        versionName,
+        versionNameSuffix,
+        matchingFallbacks,
+        consumerProGuardFiles,
+        proGuardFiles,
+        resConfigs,
+        manifestPlaceholders,
+        testInstrumentationRunnerArguments,
+      )
   }
 }

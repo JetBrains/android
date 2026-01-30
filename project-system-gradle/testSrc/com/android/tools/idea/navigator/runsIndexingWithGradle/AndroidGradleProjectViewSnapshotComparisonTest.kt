@@ -37,19 +37,18 @@ import org.junit.Test
 import org.junit.rules.TestName
 
 class AndroidGradleProjectViewSnapshotComparisonTest : SnapshotComparisonTest {
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-  @get:Rule
-  var testName = TestName()
+  @get:Rule var testName = TestName()
 
   @Test
   fun testKotlinKapt() {
     val preparedProject = projectRule.prepareTestProject(TestProject.KOTLIN_KAPT)
     preparedProject.open { project ->
       project.buildAndWait { invoker -> invoker.assemble() }
-      val text =
-        invokeAndWaitIfNeeded { project.dumpAndroidProjectView(ProjectViewSettings(flattenPackages = true), Unit, { _, _ -> Unit }) }
+      val text = invokeAndWaitIfNeeded {
+        project.dumpAndroidProjectView(ProjectViewSettings(flattenPackages = true), Unit, { _, _ -> Unit })
+      }
       assertIsEqualToSnapshot(text)
     }
   }
@@ -70,9 +69,7 @@ class AndroidGradleProjectViewSnapshotComparisonTest : SnapshotComparisonTest {
     AndroidGradleTests.addJdk8ToTableButUseCurrent()
     try {
       val preparedProject = projectRule.prepareTestProject(TestProjectOther.SIMPLE_APPLICATION_CORRUPTED_MISSING_IML_40)
-      val text = preparedProject.open { project: Project ->
-        project.dumpAndroidProjectView()
-      }
+      val text = preparedProject.open { project: Project -> project.dumpAndroidProjectView() }
 
       assertIsEqualToSnapshot(text)
     } finally {
@@ -85,9 +82,7 @@ class AndroidGradleProjectViewSnapshotComparisonTest : SnapshotComparisonTest {
   fun testTestSuites() {
     try {
       val preparedProject = projectRule.prepareTestProject(TestProject.TEST_SUITES)
-      val text = preparedProject.open { project: Project ->
-        project.dumpAndroidProjectView()
-      }
+      val text = preparedProject.open { project: Project -> project.dumpAndroidProjectView() }
 
       assertIsEqualToSnapshot(text)
     } finally {

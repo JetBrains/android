@@ -16,8 +16,11 @@
 package com.android.tools.idea.gradle.dependencies
 
 typealias ConfigName = String
+
 typealias Dependency = String
+
 typealias PluginId = String
+
 typealias Version = String
 
 data class DependenciesConfig(
@@ -27,7 +30,7 @@ data class DependenciesConfig(
   val dependencies: List<DependencyDescription>,
   val dependencyMatcherFactory: (ConfigName, Dependency) -> DependencyMatcher,
   val platforms: List<PlatformDescription>,
-){
+) {
   companion object {
     fun defaultConfig() =
       DependenciesConfig(
@@ -36,22 +39,31 @@ data class DependenciesConfig(
         PluginInsertionConfig.defaultInsertionConfig(),
         listOf(),
         { configName, dependency -> ExactDependencyMatcher(configName, dependency) },
-        listOf()
+        listOf(),
       )
   }
 
   fun withPlugin(plugin: PluginDescription) = this.copy(plugins = plugins + plugin)
+
   fun withPlugins(newPlugins: List<PluginDescription>) = this.copy(plugins = plugins + newPlugins)
+
   fun withDependency(dependency: DependencyDescription) = this.copy(dependencies = dependencies + dependency)
+
   fun withDependencies(newDependencies: List<DependencyDescription>) = this.copy(dependencies = dependencies + newDependencies)
+
   fun withPlatform(platform: PlatformDescription) = this.copy(platforms = platforms + platform)
+
   fun withPlatforms(newPlatforms: List<PlatformDescription>) = this.copy(platforms = platforms + newPlatforms)
 }
 
-data class PluginDescription(val pluginId: String,
-                             val version: String,
-                             val classpathModule: String,
-                             val ecosystemPlugin: String? = null,
-                             val ecosystemPluginVersion: String? = null)
+data class PluginDescription(
+  val pluginId: String,
+  val version: String,
+  val classpathModule: String,
+  val ecosystemPlugin: String? = null,
+  val ecosystemPluginVersion: String? = null,
+)
+
 data class DependencyDescription(val configurationName: ConfigName, val dependency: Dependency)
+
 data class PlatformDescription(val configurationName: ConfigName, val dependency: Dependency, val enforced: Boolean)

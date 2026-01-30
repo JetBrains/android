@@ -24,18 +24,8 @@ import com.android.tools.idea.npw.module.recipes.androidModule.gradleToKtsIfKts
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 import com.android.tools.idea.npw.module.recipes.minSdk
 
-fun buildKmpGradle(
-  agpVersion: AgpVersion,
-  name: String,
-  packageName: String,
-  minApi: AndroidMajorVersion,
-): String {
-  val androidTargetBlock =
-    androidTargetConfig(
-      agpVersion = agpVersion,
-      minApi = minApi,
-      packageName = packageName,
-    )
+fun buildKmpGradle(agpVersion: AgpVersion, name: String, packageName: String, minApi: AndroidMajorVersion): String {
+  val androidTargetBlock = androidTargetConfig(agpVersion = agpVersion, minApi = minApi, packageName = packageName)
 
   val iosTargetBlock = iosTargetConfig(name)
 
@@ -102,11 +92,7 @@ fun buildKmpGradle(
   return allBlocks.gradleToKtsIfKts(true)
 }
 
-private fun androidTargetConfig(
-  agpVersion: AgpVersion,
-  packageName: String,
-  minApi: AndroidMajorVersion,
-): String {
+private fun androidTargetConfig(agpVersion: AgpVersion, packageName: String, minApi: AndroidMajorVersion): String {
   val agpConstraint = VersionConstraint.agpFrom(KMP_ANDROID_MINIMUM_AGP_VERSION).isOkWith(parse(agpVersion.toString()))
   val androidBlock = if (agpConstraint) "android" else "androidLibrary"
 

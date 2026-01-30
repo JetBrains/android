@@ -25,8 +25,7 @@ class ColorBlindSimulatorTest : TestCase() {
 
   /** Smith and Pokorny XYZ to LMS. */
   fun testrgb2lms() {
-    val rgb2xyz =
-      Mat3D(40.9568, 35.5041, 17.9167, 21.3389, 70.6743, 7.98680, 1.86297, 11.4620, 91.2367)
+    val rgb2xyz = Mat3D(40.9568, 35.5041, 17.9167, 21.3389, 70.6743, 7.98680, 1.86297, 11.4620, 91.2367)
 
     val xyz2lmx = Mat3D(0.15514, 0.54312, -0.03286, -0.15514, 0.45684, 0.03286, 0.0, 0.0, 0.01608)
 

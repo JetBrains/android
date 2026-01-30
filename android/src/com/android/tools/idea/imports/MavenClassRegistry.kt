@@ -33,26 +33,23 @@ import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.name.FqName
 
-private val KOTLIN_ARTIFACT_PLATFORM_SUFFIXES =
-  Regex("-(android|desktop|jvmstubs|linuxx64stubs)$", RegexOption.IGNORE_CASE)
+private val KOTLIN_ARTIFACT_PLATFORM_SUFFIXES = Regex("-(android|desktop|jvmstubs|linuxx64stubs)$", RegexOption.IGNORE_CASE)
 
 /**
  * Registry contains [lookup] extracted by reading indices from [GMavenIndexRepository].
  *
- * Here, it covers all the latest stable versions of libraries which are explicitly marked as `Yes`
- * to include in go/studio-auto-import-packages.
+ * Here, it covers all the latest stable versions of libraries which are explicitly marked as `Yes` to include in
+ * go/studio-auto-import-packages.
  */
 class MavenClassRegistry private constructor(@VisibleForTesting internal val lookup: LookupData) {
 
   /**
-   * Given an unresolved name, returns the likely collection of [LibraryImportData] objects for the
-   * maven.google.com artifacts containing a class or function matching the [name] and
-   * [receiverType].
+   * Given an unresolved name, returns the likely collection of [LibraryImportData] objects for the maven.google.com artifacts containing a
+   * class or function matching the [name] and [receiverType].
    *
-   * @param name simple or fully-qualified name typed by the user. May correspond to a class name
-   *   (any files) or a top-level Kotlin function name (Kotlin files only).
-   * @param receiverType the fully-qualified name of the receiver type, if any, or `null` for no
-   *   receiver.
+   * @param name simple or fully-qualified name typed by the user. May correspond to a class name (any files) or a top-level Kotlin function
+   *   name (Kotlin files only).
+   * @param receiverType the fully-qualified name of the receiver type, if any, or `null` for no receiver.
    */
   fun findLibraryData(
     name: String,
@@ -60,24 +57,21 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
     useAndroidX: Boolean,
     completionFileType: FileType?,
     module: Module,
-  ): Collection<LibraryImportData> =
-    findLibraryDataInternal(name, receiverType, false, useAndroidX, completionFileType, module)
+  ): Collection<LibraryImportData> = findLibraryDataInternal(name, receiverType, false, useAndroidX, completionFileType, module)
 
   /**
-   * Given an unresolved name, returns the likely collection of [LibraryImportData] objects for the
-   * maven.google.com artifacts containing a class or function matching the [name].
+   * Given an unresolved name, returns the likely collection of [LibraryImportData] objects for the maven.google.com artifacts containing a
+   * class or function matching the [name].
    *
-   * @param name simple or fully-qualified name typed by the user. May correspond to a class name
-   *   (any files) or a top-level Kotlin function name, including extension functions (Kotlin files
-   *   only).
+   * @param name simple or fully-qualified name typed by the user. May correspond to a class name (any files) or a top-level Kotlin function
+   *   name, including extension functions (Kotlin files only).
    */
   fun findLibraryDataAnyReceiver(
     name: String,
     useAndroidX: Boolean,
     completionFileType: FileType?,
     module: Module,
-  ): Collection<LibraryImportData> =
-    findLibraryDataInternal(name, null, true, useAndroidX, completionFileType, module)
+  ): Collection<LibraryImportData> = findLibraryDataInternal(name, null, true, useAndroidX, completionFileType, module)
 
   private fun findLibraryDataInternal(
     name: String,
@@ -94,15 +88,11 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
     val packageName = name.substringBeforeLast('.', missingDelimiterValue = "")
 
     val shouldMap =
-      module.project
-        .getProjectSystem()
-        .getTokenOrNull(AndroidMavenImportToken.EP_NAME)
-        ?.shouldMapKmpArtifacts(module) ?: false
+      module.project.getProjectSystem().getTokenOrNull(AndroidMavenImportToken.EP_NAME)?.shouldMapKmpArtifacts(module) ?: false
 
     val foundArtifacts =
       buildList {
-          if (anyReceiver || receiverType == null)
-            lookup.classNameMap[shortName]?.let { addAll(it) }
+          if (anyReceiver || receiverType == null) lookup.classNameMap[shortName]?.let { addAll(it) }
           // Only suggest top-level Kotlin functions when completing in a Kotlin file.
           if (completionFileType == KotlinFileType.INSTANCE) {
             if (anyReceiver) {
@@ -130,10 +120,7 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
     return foundArtifacts.filter { it.importedItemPackageName == packageName }
   }
 
-  /**
-   * For the given runtime artifact, if Kotlin is the adopted language, the corresponding ktx
-   * library is provided.
-   */
+  /** For the given runtime artifact, if Kotlin is the adopted language, the corresponding ktx library is provided. */
   fun findKtxLibrary(artifact: String): String? {
     return lookup.ktxMap[artifact]
   }
@@ -143,10 +130,7 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
     return lookup.coordinateList
   }
 
-  /**
-   * Returns a value indicating whether a given [packageName] is included in any of the libraries
-   * indexed by this registry.
-   */
+  /** Returns a value indicating whether a given [packageName] is included in any of the libraries indexed by this registry. */
   fun isPackageIndexed(packageName: String): Boolean {
     return packageName in allIndexedPackages
   }
@@ -160,17 +144,13 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
     }
 
   /**
-   * Given a simple class name (eg, not a fully-qualified name), returns a collection of
-   * [LibraryImportData] objects that contains a class with that name.
+   * Given a simple class name (eg, not a fully-qualified name), returns a collection of [LibraryImportData] objects that contains a class
+   * with that name.
    */
   fun findImportDataByClassName(simpleClassName: String) = lookup.classNameMap[simpleClassName]
 
-  /**
-   * Given a [FunctionSpecifier], returns a collection of [LibraryImportData] objects that contains
-   * a matching top-level function.
-   */
-  fun findImportDataByFunctionSpecifier(functionSpecifier: FunctionSpecifier) =
-    lookup.topLevelFunctionsMap[functionSpecifier]
+  /** Given a [FunctionSpecifier], returns a collection of [LibraryImportData] objects that contains a matching top-level function. */
+  fun findImportDataByFunctionSpecifier(functionSpecifier: FunctionSpecifier) = lookup.topLevelFunctionsMap[functionSpecifier]
 
   private enum class IndexKey(val key: String) {
     GROUP_ID("groupId"),
@@ -189,24 +169,18 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
     }
 
     /**
-     * For the given artifact, if it also requires extra artifacts for proper functionality, provide
-     * it.
+     * For the given artifact, if it also requires extra artifacts for proper functionality, provide it.
      *
-     * This is to handle those special cases. For example, for an unresolved symbol "@Preview",
-     * "androidx.compose.ui:ui-tooling-preview" is one of the suggested artifacts to import based on
-     * the extracted contents from the GMaven index file. However, this is not enough
-     * -"androidx.compose.ui:ui-tooling" should be added on instead. So we just provide both in the
-     * end.
+     * This is to handle those special cases. For example, for an unresolved symbol "@Preview", "androidx.compose.ui:ui-tooling-preview" is
+     * one of the suggested artifacts to import based on the extracted contents from the GMaven index file. However, this is not enough
+     * -"androidx.compose.ui:ui-tooling" should be added on instead. So we just provide both in the end.
      */
     fun findExtraArtifacts(artifact: String): Map<String, DependencyType> {
       return when (artifact) {
         "androidx.room:room-runtime",
-        "android.arch.persistence.room:runtime" ->
-          mapOf("android.arch.persistence.room:compiler" to ANNOTATION_PROCESSOR)
-        "androidx.remotecallback:remotecallback" ->
-          mapOf("androidx.remotecallback:remotecallback-processor" to ANNOTATION_PROCESSOR)
-        "androidx.compose.ui:ui-tooling-preview" ->
-          mapOf("androidx.compose.ui:ui-tooling" to DEBUG_IMPLEMENTATION)
+        "android.arch.persistence.room:runtime" -> mapOf("android.arch.persistence.room:compiler" to ANNOTATION_PROCESSOR)
+        "androidx.remotecallback:remotecallback" -> mapOf("androidx.remotecallback:remotecallback-processor" to ANNOTATION_PROCESSOR)
+        "androidx.compose.ui:ui-tooling-preview" -> mapOf("androidx.compose.ui:ui-tooling" to DEBUG_IMPLEMENTATION)
         else -> emptyMap()
       }
     }
@@ -240,8 +214,7 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
     @Throws(IOException::class)
     private fun readIndexArray(reader: JsonReader): LookupData {
       val classNames: MutableList<Pair<String, LibraryImportData>> = mutableListOf()
-      val topLevelFunctions: MutableList<Pair<FunctionSpecifier, LibraryImportData>> =
-        mutableListOf()
+      val topLevelFunctions: MutableList<Pair<FunctionSpecifier, LibraryImportData>> = mutableListOf()
       val ktxMap: MutableMap<String, String> = mutableMapOf()
       val coordinateList: MutableList<Coordinate> = mutableListOf()
       val allIndexData: MutableList<GMavenArtifactIndex> = mutableListOf()
@@ -275,8 +248,7 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
     private fun List<GMavenArtifactIndex>.toKmpArtifactMap(): Map<String, String?> {
       val artifactToVersionMap = this.associate { "${it.groupId}:${it.artifactId}" to it.version }
 
-      val candidateArtifacts =
-        artifactToVersionMap.keys.filter { KOTLIN_ARTIFACT_PLATFORM_SUFFIXES.containsMatchIn(it) }
+      val candidateArtifacts = artifactToVersionMap.keys.filter { KOTLIN_ARTIFACT_PLATFORM_SUFFIXES.containsMatchIn(it) }
 
       return buildMap {
         for (candidateArtifact in candidateArtifacts) {
@@ -338,14 +310,10 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
       val gMavenIndex =
         GMavenArtifactIndex(
           groupId = groupId ?: throw MalformedIndexException("Group ID is missing($reader)."),
-          artifactId =
-            artifactId ?: throw MalformedIndexException("Artifact ID is missing($reader)."),
+          artifactId = artifactId ?: throw MalformedIndexException("Artifact ID is missing($reader)."),
           version = version ?: throw MalformedIndexException("Version is missing($reader)."),
-          ktxTargets =
-            ktxTargets ?: throw MalformedIndexException("Ktx targets are missing($reader)."),
-          fqcns =
-            fqcns
-              ?: throw MalformedIndexException("Fully qualified class names are missing($reader)."),
+          ktxTargets = ktxTargets ?: throw MalformedIndexException("Ktx targets are missing($reader)."),
+          fqcns = fqcns ?: throw MalformedIndexException("Fully qualified class names are missing($reader)."),
           topLevelFunctions = topLevelFunctions,
         )
       reader.endObject()
@@ -384,8 +352,7 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
 
           when {
             fqName != null -> add(KotlinTopLevelFunction.fromJvmQualifiedName(fqName))
-            xFqName != null && receiverFqName != null ->
-              add(KotlinTopLevelFunction.fromJvmQualifiedName(xFqName, receiverFqName))
+            xFqName != null && receiverFqName != null -> add(KotlinTopLevelFunction.fromJvmQualifiedName(xFqName, receiverFqName))
           }
         }
         reader.endArray()
@@ -407,10 +374,8 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
   /**
    * Library data for importing a specific item (class or function) with its GMaven artifact.
    *
-   * @property artifact maven coordinate: groupId:artifactId, please note version is not included
-   *   here.
-   * @property importedItemFqName fully-qualified name of the item to import. Can be a class or
-   *   function name.
+   * @property artifact maven coordinate: groupId:artifactId, please note version is not included here.
+   * @property importedItemFqName fully-qualified name of the item to import. Can be a class or function name.
    * @property importedItemPackageName package name of the item to import.
    * @property version the version of the [artifact].
    */
@@ -433,22 +398,16 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
     /** A map from non-KTX libraries to the associated KTX libraries. */
     val ktxMap: Map<String, String>,
     /**
-     * A map from platform-specific artifacts to general artifacts, eg
-     * "androidx.compose.ui:ui-android" to "androidx.compose.ui:ui". If the value is null, then the
-     * artifact shouldn't be used for KMP purposes.
+     * A map from platform-specific artifacts to general artifacts, eg "androidx.compose.ui:ui-android" to "androidx.compose.ui:ui". If the
+     * value is null, then the artifact shouldn't be used for KMP purposes.
      */
     val kmpArtifactMap: Map<String, String?>,
     /** A list of Google Maven [Coordinate]. */
     val coordinateList: List<Coordinate>,
   ) {
-    /**
-     * A map from simple names (irrespective of receiver) to corresponding [LibraryImportData]
-     * objects.
-     */
+    /** A map from simple names (irrespective of receiver) to corresponding [LibraryImportData] objects. */
     val topLevelFunctionsMapAllReceivers: Map<String, List<LibraryImportData>> =
-      topLevelFunctionsMap.entries.groupBy({ it.key.simpleName }, { it.value }).mapValues {
-        it.value.flatten().distinct()
-      }
+      topLevelFunctionsMap.entries.groupBy({ it.key.simpleName }, { it.value }).mapValues { it.value.flatten().distinct() }
 
     companion object {
       @JvmStatic val EMPTY = LookupData(emptyMap(), emptyMap(), emptyMap(), emptyMap(), emptyList())
@@ -479,11 +438,8 @@ private data class GMavenArtifactIndex(
     }
   }
 
-  /**
-   * Gets a list of top-level function simple names and their corresponding [LibraryImportData]s.
-   */
-  fun getTopLevelFunctionSpecifiersWithLibraries():
-    List<Pair<FunctionSpecifier, LibraryImportData>> {
+  /** Gets a list of top-level function simple names and their corresponding [LibraryImportData]s. */
+  fun getTopLevelFunctionSpecifiersWithLibraries(): List<Pair<FunctionSpecifier, LibraryImportData>> {
     return topLevelFunctions.map { topLevelFunction ->
       topLevelFunction.toSpecifier() to
         LibraryImportData(
@@ -520,9 +476,8 @@ internal data class KotlinTopLevelFunction(
   /** Package name of the function. */
   val packageName: String,
   /**
-   * Fully-qualified name of the function in Kotlin. This does not contain the synthetic class (e.g.
-   * "FileFacadeKt") that contains the function in the JVM. That makes this name appropriate to use
-   * when calling from Kotlin, but not from Java.
+   * Fully-qualified name of the function in Kotlin. This does not contain the synthetic class (e.g. "FileFacadeKt") that contains the
+   * function in the JVM. That makes this name appropriate to use when calling from Kotlin, but not from Java.
    */
   val kotlinFqName: FqName,
   /** Fully-qualified name of the function's receiver in Kotlin. */
@@ -532,13 +487,8 @@ internal data class KotlinTopLevelFunction(
   fun toSpecifier() = FunctionSpecifier(simpleName, receiverFqName)
 
   companion object {
-    fun fromJvmQualifiedName(
-      fqName: String,
-      receiverFqName: String? = null,
-    ): KotlinTopLevelFunction {
-      require(fqName.contains('.')) {
-        "fqName does not have file facade class containing the function: '$fqName'"
-      }
+    fun fromJvmQualifiedName(fqName: String, receiverFqName: String? = null): KotlinTopLevelFunction {
+      require(fqName.contains('.')) { "fqName does not have file facade class containing the function: '$fqName'" }
 
       val functionSimpleName = fqName.substringAfterLast('.')
       val classFullName = fqName.substringBeforeLast('.')

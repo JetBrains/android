@@ -10,11 +10,11 @@ import com.intellij.testFramework.RunsInEdt
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
+import kotlin.io.path.createTempDirectory
 import org.junit.After
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
-import kotlin.io.path.createTempDirectory
 
 class JavadocGenerationManagerTest {
   @get:Rule val projectRule = AndroidProjectRule.withSdk()
@@ -42,7 +42,7 @@ class JavadocGenerationManagerTest {
         /** Field Javadoc */
         public int a = 0;
       }
-    """
+      """
         .trimIndent(),
     )
 

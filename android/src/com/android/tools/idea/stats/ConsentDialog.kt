@@ -22,11 +22,11 @@ import com.android.tools.idea.ui.GuiTestingService
 import com.google.common.base.Predicates
 import com.intellij.ide.gdpr.Consent
 import com.intellij.ide.gdpr.ConsentOptions
-import com.intellij.platform.ide.bootstrap.hideSplashBeforeShow
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.platform.ide.bootstrap.hideSplashBeforeShow
 import com.intellij.ui.AppUIUtil
 import icons.StudioIllustrations
 import java.awt.Color
@@ -45,76 +45,79 @@ import javax.swing.JPanel
 
 class ConsentDialog(private val consent: Consent) : DialogWrapper(null) {
   override fun createActions(): Array<Action> {
-    val decline = object : DialogWrapperAction("Don't send") {
-      override fun doAction(e: ActionEvent) {
-        close(NEXT_USER_EXIT_CODE)
+    val decline =
+      object : DialogWrapperAction("Don't send") {
+        override fun doAction(e: ActionEvent) {
+          close(NEXT_USER_EXIT_CODE)
+        }
       }
-    }
 
-    val consent = object : DialogWrapperAction(consent.name) {
-      override fun doAction(e: ActionEvent) {
-        close(OK_EXIT_CODE)
+    val consent =
+      object : DialogWrapperAction(consent.name) {
+        override fun doAction(e: ActionEvent) {
+          close(OK_EXIT_CODE)
+        }
       }
-    }
 
     return arrayOf(decline, consent)
   }
 
-  val content: JComponent = JPanel(GridBagLayout()).apply {
-    val icon = StudioIllustrations.Common.PRODUCT_ICON
-    val imageComponent = ImageComponent(icon)
-    imageComponent.preferredSize = Dimension(icon.iconWidth, icon.iconHeight)
+  val content: JComponent =
+    JPanel(GridBagLayout()).apply {
+      val icon = StudioIllustrations.Common.PRODUCT_ICON
+      val imageComponent = ImageComponent(icon)
+      imageComponent.preferredSize = Dimension(icon.iconWidth, icon.iconHeight)
 
-    val constraints = GridBagConstraints().apply {
-      gridx = 0
-      gridy = 0
-      gridheight = 3
-      anchor = NORTHWEST
-      insets = Insets(10, 5, 5, 12)
+      val constraints =
+        GridBagConstraints().apply {
+          gridx = 0
+          gridy = 0
+          gridheight = 3
+          anchor = NORTHWEST
+          insets = Insets(10, 5, 5, 12)
+        }
+
+      add(imageComponent, constraints)
+
+      val title =
+        JLabel().apply {
+          text = "Help improve Android Studio"
+          font = Font(font.name, Font.BOLD, font.size + 2)
+        }
+
+      constraints.apply {
+        gridx = 1
+        gridheight = 1
+        insets = Insets(10, 0, 10, 0)
+      }
+
+      add(title, constraints)
+
+      val message =
+        HtmlLabel().apply {
+          HtmlLabel.setUpAsHtmlLabel(this, Font(font.name, Font.PLAIN, title.font.size - 2))
+          text = consent.text
+          preferredSize = Dimension(420, 140)
+        }
+
+      constraints.apply { gridy = 2 }
+
+      add(message, constraints)
+
+      val menuName = ShowSettingsUtil.getSettingsMenuName()
+      val settingsText = "You can always change this behavior in $menuName | Appearance & Behavior | System Settings | Data Sharing."
+
+      val hint =
+        HtmlLabel().apply {
+          HtmlLabel.setUpAsHtmlLabel(this, Font(font.name, Font.PLAIN, title.font.size - 4), Color.GRAY)
+          text = settingsText
+          preferredSize = Dimension(420, 35)
+        }
+
+      constraints.apply { gridy = 3 }
+
+      add(hint, constraints)
     }
-
-    add(imageComponent, constraints)
-
-    val title = JLabel().apply {
-      text = "Help improve Android Studio"
-      font = Font(font.name, Font.BOLD, font.size + 2)
-    }
-
-    constraints.apply {
-      gridx = 1
-      gridheight = 1
-      insets = Insets(10, 0, 10, 0)
-    }
-
-    add(title, constraints)
-
-    val message = HtmlLabel().apply {
-      HtmlLabel.setUpAsHtmlLabel(this, Font(font.name, Font.PLAIN, title.font.size - 2))
-      text = consent.text
-      preferredSize = Dimension(420, 140)
-    }
-
-    constraints.apply {
-      gridy = 2
-    }
-
-    add(message, constraints)
-
-    val menuName = ShowSettingsUtil.getSettingsMenuName()
-    val settingsText = "You can always change this behavior in $menuName | Appearance & Behavior | System Settings | Data Sharing."
-
-    val hint = HtmlLabel().apply {
-      HtmlLabel.setUpAsHtmlLabel(this, Font(font.name, Font.PLAIN, title.font.size - 4), Color.GRAY)
-      text = settingsText
-      preferredSize = Dimension(420, 35)
-    }
-
-    constraints.apply {
-      gridy = 3
-    }
-
-    add(hint, constraints)
-  }
 
   init {
     isResizable = false
@@ -146,8 +149,7 @@ class ConsentDialog(private val consent: Consent) : DialogWrapper(null) {
       // NOTE: in this case the metrics logic will be left in the opted-out state
       // and no metrics are ever sent.
       val application = ApplicationManager.getApplication()
-      if ((GuiTestingService.isInTestingMode() || application.isHeadlessEnvironment)
-          && !isConsentDialogEnabledInTests) {
+      if ((GuiTestingService.isInTestingMode() || application.isHeadlessEnvironment) && !isConsentDialogEnabledInTests) {
         return
       }
 

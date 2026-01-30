@@ -27,14 +27,11 @@ import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Tests for [PsModuleType].
- */
+/** Tests for [PsModuleType]. */
 @RunsInEdt
 class PsModuleTypeTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testProjectTypeDetection() {
@@ -77,12 +74,14 @@ class PsModuleTypeTest {
 private fun moduleWithoutSyncedModel(project: PsProject, name: String): PsModule {
   val moduleWithSyncedModel = project.findModuleByName(name)
   return when (moduleWithSyncedModel) {
-    is PsAndroidModule -> PsAndroidModule(project, moduleWithSyncedModel.gradlePath).apply {
-      init(moduleWithSyncedModel.name, null, null, null, null, moduleWithSyncedModel.parsedModel)
-    }
-    is PsJavaModule -> PsJavaModule(project, moduleWithSyncedModel.gradlePath).apply {
-      init(moduleWithSyncedModel.name, null, null, null, moduleWithSyncedModel.parsedModel)
-    }
+    is PsAndroidModule ->
+      PsAndroidModule(project, moduleWithSyncedModel.gradlePath).apply {
+        init(moduleWithSyncedModel.name, null, null, null, null, moduleWithSyncedModel.parsedModel)
+      }
+    is PsJavaModule ->
+      PsJavaModule(project, moduleWithSyncedModel.gradlePath).apply {
+        init(moduleWithSyncedModel.name, null, null, null, moduleWithSyncedModel.parsedModel)
+      }
     else -> throw IllegalArgumentException()
   }
 }

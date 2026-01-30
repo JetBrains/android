@@ -42,37 +42,29 @@ import org.junit.rules.TemporaryFolder
 @RunsInEdt
 class MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest {
 
-  @get:Rule
-  val separateOldAgpTestsRule = SeparateOldAgpTestsRule()
+  @get:Rule val separateOldAgpTestsRule = SeparateOldAgpTestsRule()
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-  @get:Rule
-  val expect: Expect = Expect.createAndEnableStackTrace()
+  @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
 
-  @get:Rule
-  val temporaryFolder = TemporaryFolder()
+  @get:Rule val temporaryFolder = TemporaryFolder()
 
   private val jdkIntegrationTest = JdkIntegrationTest(projectRule, temporaryFolder, expect)
 
   @Test
   fun `Given multiple roots with gradleJdk JDK_EMBEDDED When synced project successfully Then projectJdk is updated with JDK_EMBEDDED`() =
     jdkIntegrationTest.run(
-      project = SimpleApplicationMultipleRoots(
-        roots = listOf(
-          GradleRoot("project_root1", JDK_EMBEDDED),
-          GradleRoot("project_root2", JDK_EMBEDDED)
+      project =
+        SimpleApplicationMultipleRoots(
+          roots = listOf(GradleRoot("project_root1", JDK_EMBEDDED), GradleRoot("project_root2", JDK_EMBEDDED)),
+          ideaProjectJdk = "any",
         ),
-        ideaProjectJdk = "any"
-      ),
-      environment = TestEnvironment(
-        jdkTable = listOf(Jdk(JDK_EMBEDDED, JDK_EMBEDDED_PATH))
-      )
+      environment = TestEnvironment(jdkTable = listOf(Jdk(JDK_EMBEDDED, JDK_EMBEDDED_PATH))),
     ) {
       sync(
         assertInMemoryConfig = { assertProjectJdkAndValidateTableEntry(JDK_EMBEDDED, JDK_EMBEDDED_PATH) },
-        assertOnDiskConfig = { assertProjectJdk(JDK_EMBEDDED) }
+        assertOnDiskConfig = { assertProjectJdk(JDK_EMBEDDED) },
       )
     }
 
@@ -80,21 +72,17 @@ class MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest {
   @OldAgpTest(agpVersions = ["7.4.1"], gradleVersions = ["7.5"])
   fun `Given root using gradleJdk #JAVA_HOME pointing to JDK_EMBEDDED When synced project successfully Then projectJdk is updated with JDK_EMBEDDED`() =
     jdkIntegrationTest.run(
-      project = SimpleApplicationMultipleRoots(
-        agpVersion = AGP_74, // Later versions of AGP (8.0 and beyond) require JDK17
-        roots = listOf(
-          GradleRoot("project_root1", JDK_11),
-          GradleRoot("project_root2", USE_JAVA_HOME)
-        )
-      ),
-      environment = TestEnvironment(
-        jdkTable = listOf(Jdk(JDK_11, JDK_11_PATH)),
-        environmentVariables = mapOf(JAVA_HOME to JDK_EMBEDDED_PATH)
-      )
+      project =
+        SimpleApplicationMultipleRoots(
+          agpVersion = AGP_74, // Later versions of AGP (8.0 and beyond) require JDK17
+          roots = listOf(GradleRoot("project_root1", JDK_11), GradleRoot("project_root2", USE_JAVA_HOME)),
+        ),
+      environment =
+        TestEnvironment(jdkTable = listOf(Jdk(JDK_11, JDK_11_PATH)), environmentVariables = mapOf(JAVA_HOME to JDK_EMBEDDED_PATH)),
     ) {
       sync(
         assertInMemoryConfig = { assertProjectJdkAndValidateTableEntry(JDK_EMBEDDED, JDK_EMBEDDED_PATH) },
-        assertOnDiskConfig = { assertProjectJdk(JDK_EMBEDDED) }
+        assertOnDiskConfig = { assertProjectJdk(JDK_EMBEDDED) },
       )
     }
 
@@ -102,50 +90,46 @@ class MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest {
   @OldAgpTest(agpVersions = ["7.4.1"], gradleVersions = ["7.5"])
   fun `Given multiple roots using different gradleJdk versions When synced project successfully Then projectJdk is updated with greatest JDK version JDK_EMBEDDED`() =
     jdkIntegrationTest.run(
-      project = SimpleApplicationMultipleRoots(
-        agpVersion = AGP_74, // Later versions of AGP (8.0 and beyond) require JDK17
-        roots = listOf(
-          GradleRoot("project_root1", JDK_11),
-          GradleRoot("project_root2", JDK_11),
-          GradleRoot("project_root3", JDK_EMBEDDED),
-          GradleRoot("project_root4", JDK_11)
+      project =
+        SimpleApplicationMultipleRoots(
+          agpVersion = AGP_74, // Later versions of AGP (8.0 and beyond) require JDK17
+          roots =
+            listOf(
+              GradleRoot("project_root1", JDK_11),
+              GradleRoot("project_root2", JDK_11),
+              GradleRoot("project_root3", JDK_EMBEDDED),
+              GradleRoot("project_root4", JDK_11),
+            ),
+          ideaProjectJdk = JDK_11,
         ),
-        ideaProjectJdk = JDK_11
-      ),
-      environment = TestEnvironment(
-        jdkTable = listOf(
-          Jdk(JDK_EMBEDDED, JDK_EMBEDDED_PATH),
-          Jdk(JDK_11, JDK_11_PATH)
-        )
-      )
+      environment = TestEnvironment(jdkTable = listOf(Jdk(JDK_EMBEDDED, JDK_EMBEDDED_PATH), Jdk(JDK_11, JDK_11_PATH))),
     ) {
       sync(
         assertInMemoryConfig = { assertProjectJdkAndValidateTableEntry(JDK_EMBEDDED, JDK_EMBEDDED_PATH) },
-        assertOnDiskConfig = { assertProjectJdk(JDK_EMBEDDED) }
+        assertOnDiskConfig = { assertProjectJdk(JDK_EMBEDDED) },
       )
     }
 
   @Test
   fun `Given multiple roots using non expected JDK_EMBEDDED entry When synced project successfully Then projectJdk is updated with specific jdkTable entry created for JDK_EMBEDDED_PATH`() {
     jdkIntegrationTest.run(
-      project = SimpleApplicationMultipleRoots(
-        roots = listOf(
-          GradleRoot("project_root1", "jdkRoot1"),
-          GradleRoot("project_root2", "jdkRoot2"),
-          GradleRoot("project_root3", "jdkRoot3")
-        )
-      ),
-      environment = TestEnvironment(
-        jdkTable = listOf(
-          Jdk("jdkRoot1", JDK_EMBEDDED_PATH),
-          Jdk("jdkRoot2", JDK_EMBEDDED_PATH),
-          Jdk("jdkRoot3", JDK_EMBEDDED_PATH)
-        )
-      )
+      project =
+        SimpleApplicationMultipleRoots(
+          roots =
+            listOf(
+              GradleRoot("project_root1", "jdkRoot1"),
+              GradleRoot("project_root2", "jdkRoot2"),
+              GradleRoot("project_root3", "jdkRoot3"),
+            )
+        ),
+      environment =
+        TestEnvironment(
+          jdkTable = listOf(Jdk("jdkRoot1", JDK_EMBEDDED_PATH), Jdk("jdkRoot2", JDK_EMBEDDED_PATH), Jdk("jdkRoot3", JDK_EMBEDDED_PATH))
+        ),
     ) {
       sync(
         assertInMemoryConfig = { assertProjectJdkAndValidateTableEntry(JDK_EMBEDDED, JDK_EMBEDDED_PATH) },
-        assertOnDiskConfig = { assertProjectJdk(JDK_EMBEDDED) }
+        assertOnDiskConfig = { assertProjectJdk(JDK_EMBEDDED) },
       )
     }
   }
@@ -153,67 +137,44 @@ class MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest {
   @Test
   fun `Given multiple roots with projectJdk pointing to JDK_EMBEDDED When synced project successfully Then projectJdk isn't modified`() =
     jdkIntegrationTest.run(
-      project = SimpleApplicationMultipleRoots(
-        roots = listOf(
-          GradleRoot("project_root1", JDK_EMBEDDED),
-          GradleRoot("project_root2", JDK_EMBEDDED)
+      project =
+        SimpleApplicationMultipleRoots(
+          roots = listOf(GradleRoot("project_root1", JDK_EMBEDDED), GradleRoot("project_root2", JDK_EMBEDDED)),
+          ideaProjectJdk = JDK_EMBEDDED,
         ),
-        ideaProjectJdk = JDK_EMBEDDED
-      ),
-      environment = TestEnvironment(
-        jdkTable = listOf(Jdk(JDK_EMBEDDED, JDK_EMBEDDED_PATH))
-      )
+      environment = TestEnvironment(jdkTable = listOf(Jdk(JDK_EMBEDDED, JDK_EMBEDDED_PATH))),
     ) {
       sync(
         assertInMemoryConfig = { assertProjectJdkAndValidateTableEntry(JDK_EMBEDDED, JDK_EMBEDDED_PATH) },
-        assertOnDiskConfig = { assertProjectJdk(JDK_EMBEDDED) }
+        assertOnDiskConfig = { assertProjectJdk(JDK_EMBEDDED) },
       )
     }
 
   @Test
   fun `Given multiple roots with invalid jdkTable entry When sync project failed Then projectJdk isn't modified`() =
     jdkIntegrationTest.run(
-      project = SimpleApplicationMultipleRoots(
-        roots = listOf(
-          GradleRoot("project_root1", JDK_EMBEDDED),
-          GradleRoot("project_root2", JDK_EMBEDDED)
+      project =
+        SimpleApplicationMultipleRoots(
+          roots = listOf(GradleRoot("project_root1", JDK_EMBEDDED), GradleRoot("project_root2", JDK_EMBEDDED)),
+          ideaProjectJdk = "any",
         ),
-        ideaProjectJdk = "any"
-      ),
-      environment = TestEnvironment(
-        jdkTable = listOf(
-          Jdk(JDK_EMBEDDED, JDK_INVALID_PATH),
-        )
-      )
+      environment = TestEnvironment(jdkTable = listOf(Jdk(JDK_EMBEDDED, JDK_INVALID_PATH))),
     ) {
-      sync(
-        assertOnDiskConfig = { assertProjectJdk("any") },
-        assertOnFailure = { assertException(ExternalSystemJdkException::class) }
-      )
+      sync(assertOnDiskConfig = { assertProjectJdk("any") }, assertOnFailure = { assertException(ExternalSystemJdkException::class) })
     }
 
   @Test
   @OldAgpTest(agpVersions = ["7.4.1"], gradleVersions = ["7.5"])
   fun `Given multiple roots with invalid and valid jdkTable entry When sync partially succeed Then projectJdk is updated with greatest JDK synced version JDK_11`() =
     jdkIntegrationTest.run(
-      project = SimpleApplicationMultipleRoots(
-        agpVersion = AGP_74, // Later versions of AGP (8.0 and beyond) require JDK17
-        roots = listOf(
-          GradleRoot("project_root1", JDK_EMBEDDED),
-          GradleRoot("project_root2", JDK_11)
+      project =
+        SimpleApplicationMultipleRoots(
+          agpVersion = AGP_74, // Later versions of AGP (8.0 and beyond) require JDK17
+          roots = listOf(GradleRoot("project_root1", JDK_EMBEDDED), GradleRoot("project_root2", JDK_11)),
+          ideaProjectJdk = "any",
         ),
-        ideaProjectJdk = "any"
-      ),
-      environment = TestEnvironment(
-        jdkTable = listOf(
-          Jdk(JDK_EMBEDDED, JDK_INVALID_PATH),
-          Jdk(JDK_11, JDK_11_PATH)
-        )
-      )
+      environment = TestEnvironment(jdkTable = listOf(Jdk(JDK_EMBEDDED, JDK_INVALID_PATH), Jdk(JDK_11, JDK_11_PATH))),
     ) {
-      sync(
-        assertOnDiskConfig = { assertProjectJdk(JDK_11) },
-        assertOnFailure = { assertException(ExternalSystemJdkException::class) }
-      )
+      sync(assertOnDiskConfig = { assertProjectJdk(JDK_11) }, assertOnFailure = { assertException(ExternalSystemJdkException::class) })
     }
 }

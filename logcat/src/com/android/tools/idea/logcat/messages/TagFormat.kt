@@ -43,8 +43,7 @@ internal data class TagFormat(
       return "<no-tag>".padEnd(maxLength + 1)
     }
     if (tag.length > maxLength) {
-      return StringUtil.shortenTextWithEllipsis(tag, maxLength, (maxLength - ELLIPSIS_LEN) / 2) +
-        " "
+      return StringUtil.shortenTextWithEllipsis(tag, maxLength, (maxLength - ELLIPSIS_LEN) / 2) + " "
     }
     return tag.padEnd(maxLength + 1)
   }

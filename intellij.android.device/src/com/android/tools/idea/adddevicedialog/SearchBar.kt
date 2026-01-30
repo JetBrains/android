@@ -33,28 +33,16 @@ import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
 /** Displays a search bar where the search term is controlled by the [searchFieldTextState]. */
 @Composable
-fun SearchBar(
-  searchFieldTextState: TextFieldState,
-  searchFieldPlaceholder: String,
-  modifier: Modifier = Modifier,
-) {
+fun SearchBar(searchFieldTextState: TextFieldState, searchFieldPlaceholder: String, modifier: Modifier = Modifier) {
   TextField(
     searchFieldTextState,
-    leadingIcon = {
-      Icon(
-        StudioIconsCompose.Common.Search,
-        contentDescription = "Search",
-        modifier.padding(end = 4.dp),
-      )
-    },
+    leadingIcon = { Icon(StudioIconsCompose.Common.Search, contentDescription = "Search", modifier.padding(end = 4.dp)) },
     trailingIcon =
       (@Composable {
           Icon(
             AllIconsKeys.General.CloseSmall,
             contentDescription = "Clear search",
-            modifier
-              .clickable(onClick = { searchFieldTextState.setTextAndPlaceCursorAtEnd("") })
-              .pointerHoverIcon(PointerIcon.Default),
+            modifier.clickable(onClick = { searchFieldTextState.setTextAndPlaceCursorAtEnd("") }).pointerHoverIcon(PointerIcon.Default),
           )
         })
         .takeIf { searchFieldTextState.text.isNotEmpty() },

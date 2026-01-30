@@ -31,10 +31,7 @@ import java.util.Locale
 
 // The below pieces of code are from IJ. We duplicate their code because of lack of access but ease
 // of maintain on both sides. TODO: we can polish this when we get to the stable version.
-internal class Category(
-  val category: SettingsCategory,
-  val secondaryGroup: SyncSubcategoryGroup? = null,
-) {
+internal class Category(val category: SettingsCategory, val secondaryGroup: SyncSubcategoryGroup? = null) {
 
   val name: String
     get() {
@@ -90,14 +87,10 @@ internal class SyncPluginsGroup : SyncSubcategoryGroup {
 
   override fun getDescriptors(): List<SettingsSyncSubcategoryDescriptor> {
     val descriptors = ArrayList<SettingsSyncSubcategoryDescriptor>()
-    val bundledPluginsDescriptor =
-      getOrCreateDescriptor(SettingsSyncBundle.message("plugins.bundled"), BUNDLED_PLUGINS_ID)
+    val bundledPluginsDescriptor = getOrCreateDescriptor(SettingsSyncBundle.message("plugins.bundled"), BUNDLED_PLUGINS_ID)
     descriptors.add(bundledPluginsDescriptor)
     PluginManagerCore.plugins.forEach {
-      if (
-        !it.isBundled &&
-          SettingsSyncPluginCategoryFinder.getPluginCategory(it) == SettingsCategory.PLUGINS
-      ) {
+      if (!it.isBundled && SettingsSyncPluginCategoryFinder.getPluginCategory(it) == SettingsCategory.PLUGINS) {
         bundledPluginsDescriptor.isSubGroupEnd = true
         // NOTE: the code in `com.intellij.settingsSync.SettingsSyncFilteringKt.getSubCategory`
         // relies on the value being plugin ID
@@ -122,10 +115,9 @@ internal interface SyncSubcategoryGroup {
   fun getDescriptors(): List<SettingsSyncSubcategoryDescriptor>
 
   /**
-   * Returns `true` if [getDescriptors] covers all the possible synchronizable elements of the
-   * group. `false` if there are implicit elements not covered by the returned list of descriptors,
-   * in other words a user can't disable the entire group by unselecting the explicitly described
-   * items.
+   * Returns `true` if [getDescriptors] covers all the possible synchronizable elements of the group. `false` if there are implicit elements
+   * not covered by the returned list of descriptors, in other words a user can't disable the entire group by unselecting the explicitly
+   * described items.
    */
   fun isComplete(): Boolean = true
 }

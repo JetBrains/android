@@ -30,8 +30,8 @@ import org.jetbrains.kotlin.psi.KtVisitorVoid
 
 class KtsCatalogHighlighter : HighlightVisitor, KtVisitorVoid() {
   private var myHolder: HighlightInfoHolder? = null
-  override fun suitableForFile(file: PsiFile): Boolean =
-    file is KtFile && file.virtualFile.name.endsWith("gradle.kts")
+
+  override fun suitableForFile(file: PsiFile): Boolean = file is KtFile && file.virtualFile.name.endsWith("gradle.kts")
 
   override fun visit(element: PsiElement) = element.accept(this)
 
@@ -41,8 +41,7 @@ class KtsCatalogHighlighter : HighlightVisitor, KtVisitorVoid() {
     myHolder = holder
     try {
       action.run()
-    }
-    finally {
+    } finally {
       myHolder = null
     }
     return true

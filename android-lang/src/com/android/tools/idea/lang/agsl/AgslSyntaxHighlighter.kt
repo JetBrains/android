@@ -21,18 +21,17 @@ import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase
 import com.intellij.psi.tree.IElementType
 
-/**
- * Basic syntax highlighter that highlights the keywords and comments.
- */
+/** Basic syntax highlighter that highlights the keywords and comments. */
 class AgslSyntaxHighlighter : SyntaxHighlighterBase() {
   override fun getHighlightingLexer(): Lexer = AgslLexer()
 
-  override fun getTokenHighlights(tokenType: IElementType): Array<out TextAttributesKey> = when (tokenType) {
-    in AgslTokenTypeSets.KEYWORDS -> pack(DefaultLanguageHighlighterColors.KEYWORD)
-    in AgslTokenTypeSets.NUMBERS -> pack(DefaultLanguageHighlighterColors.NUMBER)
-    in AgslTokenTypeSets.OPERATORS -> pack(DefaultLanguageHighlighterColors.OPERATION_SIGN)
-    AgslTokenTypes.COMMENT -> pack(DefaultLanguageHighlighterColors.LINE_COMMENT)
-    AgslTokenTypes.BLOCK_COMMENT -> pack(DefaultLanguageHighlighterColors.BLOCK_COMMENT)
-    else -> TextAttributesKey.EMPTY_ARRAY
-  }
+  override fun getTokenHighlights(tokenType: IElementType): Array<out TextAttributesKey> =
+    when (tokenType) {
+      in AgslTokenTypeSets.KEYWORDS -> pack(DefaultLanguageHighlighterColors.KEYWORD)
+      in AgslTokenTypeSets.NUMBERS -> pack(DefaultLanguageHighlighterColors.NUMBER)
+      in AgslTokenTypeSets.OPERATORS -> pack(DefaultLanguageHighlighterColors.OPERATION_SIGN)
+      AgslTokenTypes.COMMENT -> pack(DefaultLanguageHighlighterColors.LINE_COMMENT)
+      AgslTokenTypes.BLOCK_COMMENT -> pack(DefaultLanguageHighlighterColors.BLOCK_COMMENT)
+      else -> TextAttributesKey.EMPTY_ARRAY
+    }
 }

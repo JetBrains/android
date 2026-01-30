@@ -26,17 +26,16 @@ import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.TestActionEvent
+import java.util.concurrent.TimeUnit.SECONDS
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit.SECONDS
 
 /** Tests for [RestartOrReloadLogcatAction] */
 class RestartOrReloadLogcatActionTest {
   @get:Rule val applicationRule = ApplicationRule()
 
-  private val device =
-    Device.createPhysical("device", false, "11", AndroidVersion(30, 0), "Google", "Pixel 2")
+  private val device = Device.createPhysical("device", false, "11", AndroidVersion(30, 0), "Google", "Pixel 2")
 
   private val fakeLogcatPresenter = FakeLogcatPresenter()
 
@@ -83,6 +82,4 @@ class RestartOrReloadLogcatActionTest {
 }
 
 private fun testEvent(logcatPresenter: LogcatPresenter) =
-  TestActionEvent.createTestEvent(
-    SimpleDataContext.builder().add(LOGCAT_PRESENTER_ACTION, logcatPresenter).build()
-  )
+  TestActionEvent.createTestEvent(SimpleDataContext.builder().add(LOGCAT_PRESENTER_ACTION, logcatPresenter).build())

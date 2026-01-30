@@ -19,8 +19,8 @@ import com.android.tools.idea.sqlite.controllers.SqliteParameter
 import com.android.tools.idea.sqlite.controllers.SqliteParameterValue
 
 /**
- * Abstraction used by [com.android.tools.idea.sqlite.controllers.ParametersBindingController] to
- * avoid direct dependency on the UI implementation.
+ * Abstraction used by [com.android.tools.idea.sqlite.controllers.ParametersBindingController] to avoid direct dependency on the UI
+ * implementation.
  *
  * A dialog that allows the user to assign values to templates in a SQLite statement.
  *

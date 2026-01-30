@@ -20,32 +20,31 @@ import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
 import java.io.Serializable
 
 /**
- * Represents flags that affect the semantic of the build in the Android Gradle Plugin
- * that also should affect the behavior of Android Studio.
+ * Represents flags that affect the semantic of the build in the Android Gradle Plugin that also should affect the behavior of Android
+ * Studio.
  */
 data class IdeAndroidGradlePluginProjectFlagsImpl(
   /**
    * Whether the R class in applications and dynamic features are constant.
    *
-   * If they are constant they can be inlined by the java compiler and used in places that
-   * require constants such as annotations and cases of switch statements.
+   * If they are constant they can be inlined by the java compiler and used in places that require constants such as annotations and cases
+   * of switch statements.
    */
   override val applicationRClassConstantIds: Boolean,
 
   /**
    * Whether the R class in instrumentation tests are constant.
    *
-   * If they are constant they can be inlined by the java compiler and used in places that
-   * require constants such as annotations and cases of switch statements.
+   * If they are constant they can be inlined by the java compiler and used in places that require constants such as annotations and cases
+   * of switch statements.
    */
   override val testRClassConstantIds: Boolean,
 
   /**
    * Whether the R class generated for this project is Transitive.
    *
-   * If it is transitive it will contain all of the resources defined in its transitive
-   * dependencies alongside those defined in this project.
-   * If non-transitive it will only contain the resources defined in this project.
+   * If it is transitive it will contain all of the resources defined in its transitive dependencies alongside those defined in this
+   * project. If non-transitive it will only contain the resources defined in this project.
    */
   override val transitiveRClasses: Boolean,
 
@@ -54,21 +53,14 @@ data class IdeAndroidGradlePluginProjectFlagsImpl(
 
   /** Whether the ML model binding feature is enabled for this project. */
   override val mlModelBindingEnabled: Boolean,
-
   override val androidResourcesEnabled: Boolean,
 
   /** Whether the Android Test Platform is enabled for this project. */
   override val unifiedTestPlatformEnabled: Boolean,
-
   override val useAndroidX: Boolean,
-
   override val dataBindingEnabled: Boolean,
-
   override val generateManifestClass: Boolean,
-
   override val disableAgpUpgradePrompt: Boolean,
-
   override val useCustomManagedDevices: Boolean,
-
   override val highlightGradualR8Api: Boolean,
 ) : Serializable, IdeAndroidGradlePluginProjectFlags

@@ -196,10 +196,7 @@ class WidgetConstraintSection(private val widgetModel: WidgetConstraintModel) : 
     } else {
       val listSize = list.preferredSize
       val warningSize = warningPanel.preferredSize
-      return Dimension(
-        maxOf(titleSize.width, listSize.width, warningSize.width),
-        titleSize.height + listSize.height + warningSize.height,
-      )
+      return Dimension(maxOf(titleSize.width, listSize.width, warningSize.width), titleSize.height + listSize.height + warningSize.height)
     }
   }
 
@@ -212,15 +209,7 @@ class WidgetConstraintSection(private val widgetModel: WidgetConstraintModel) : 
         if (item.condition(component)) {
           val boldText = item.boldTextFunc(component)
           val fadingText = item.fadingTextFuc(component)
-          listData.add(
-            ConstraintCellData(
-              item.namespace,
-              item.attribute,
-              item.displayName,
-              boldText,
-              fadingText,
-            )
-          )
+          listData.add(ConstraintCellData(item.namespace, item.attribute, item.displayName, boldText, fadingText))
         }
       }
     }
@@ -291,21 +280,12 @@ class WidgetConstraintSection(private val widgetModel: WidgetConstraintModel) : 
         override fun paint(g: Graphics) {
           super.paint(g)
           val hasWarning =
-            widgetModel.isMissingHorizontalConstrained ||
-              widgetModel.isMissingVerticalConstrained ||
-              widgetModel.isOverConstrained
+            widgetModel.isMissingHorizontalConstrained || widgetModel.isMissingVerticalConstrained || widgetModel.isOverConstrained
           if (!expanded && hasWarning) {
             val originalColor = g.color
             g.color = Color.RED
             val shiftY = 0.8 * height
-            EffectPainter2D.WAVE_UNDERSCORE.paint(
-              g as Graphics2D,
-              0.0,
-              (y + shiftY),
-              width.toDouble(),
-              (height - shiftY),
-              null,
-            )
+            EffectPainter2D.WAVE_UNDERSCORE.paint(g as Graphics2D, 0.0, (y + shiftY), width.toDouble(), (height - shiftY), null)
             g.color = originalColor
           }
         }
@@ -506,17 +486,10 @@ private class ConstraintItemRenderer : DefaultListCellRenderer() {
     panel.add(centerPanel, BorderLayout.CENTER)
   }
 
-  override fun getListCellRendererComponent(
-    list: JList<*>,
-    value: Any?,
-    index: Int,
-    selected: Boolean,
-    expanded: Boolean,
-  ): Component {
+  override fun getListCellRendererComponent(list: JList<*>, value: Any?, index: Int, selected: Boolean, expanded: Boolean): Component {
     val item = value as ConstraintCellData
     nameLabel.text = item.displayName
-    boldLabel.text =
-      if (item.boldValue != null) item.boldValue.removePrefix("@+id/").removePrefix("@id/") else ""
+    boldLabel.text = if (item.boldValue != null) item.boldValue.removePrefix("@+id/").removePrefix("@id/") else ""
     fadingLabel.text = if (item.fadingValue != null) "(${item.fadingValue})" else ""
 
     if (selected) {
@@ -553,15 +526,8 @@ private class ConstraintItemRenderer : DefaultListCellRenderer() {
   }
 }
 
-/**
- * Return a list of attributes which have same direction of the given
- * [SecondarySelector.Constraint].
- */
-fun getAttributesForConstraint(
-  constraint: SecondarySelector.Constraint,
-  apiLevel: Int,
-  isRtl: Boolean,
-): List<String> {
+/** Return a list of attributes which have same direction of the given [SecondarySelector.Constraint]. */
+fun getAttributesForConstraint(constraint: SecondarySelector.Constraint, apiLevel: Int, isRtl: Boolean): List<String> {
   return when (constraint) {
     SecondarySelector.Constraint.LEFT ->
       when {
@@ -581,14 +547,8 @@ fun getAttributesForConstraint(
   }
 }
 
-/**
- * Return [SecondarySelector.Constraint] which represent the same direction of the given attribute.
- */
-fun getConstraintForAttribute(
-  attribute: String,
-  apiLevel: Int,
-  isRtl: Boolean,
-): SecondarySelector.Constraint? {
+/** Return [SecondarySelector.Constraint] which represent the same direction of the given attribute. */
+fun getConstraintForAttribute(attribute: String, apiLevel: Int, isRtl: Boolean): SecondarySelector.Constraint? {
   when {
     apiLevel < RtlSupportProcessor.RTL_TARGET_SDK_START ->
       return when (attribute) {
@@ -624,23 +584,17 @@ fun getConstraintForAttribute(
   }
 }
 
-private val START_ATTRIBUTES =
-  listOf(SdkConstants.ATTR_LAYOUT_START_TO_START_OF, SdkConstants.ATTR_LAYOUT_START_TO_END_OF)
+private val START_ATTRIBUTES = listOf(SdkConstants.ATTR_LAYOUT_START_TO_START_OF, SdkConstants.ATTR_LAYOUT_START_TO_END_OF)
 
-private val END_ATTRIBUTES =
-  listOf(SdkConstants.ATTR_LAYOUT_END_TO_START_OF, SdkConstants.ATTR_LAYOUT_END_TO_END_OF)
+private val END_ATTRIBUTES = listOf(SdkConstants.ATTR_LAYOUT_END_TO_START_OF, SdkConstants.ATTR_LAYOUT_END_TO_END_OF)
 
-private val LEFT_ATTRIBUTES =
-  listOf(SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF)
+private val LEFT_ATTRIBUTES = listOf(SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF)
 
-private val RIGHT_ATTRIBUTES =
-  listOf(SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF)
+private val RIGHT_ATTRIBUTES = listOf(SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF)
 
-private val TOP_ATTRIBUTES =
-  listOf(SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF)
+private val TOP_ATTRIBUTES = listOf(SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF)
 
-private val BOTTOM_ATTRIBUTES =
-  listOf(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF)
+private val BOTTOM_ATTRIBUTES = listOf(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF)
 
 private val BASELINE_ATTRIBUTES = listOf(SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF)
 

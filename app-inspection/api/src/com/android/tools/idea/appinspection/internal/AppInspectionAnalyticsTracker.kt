@@ -40,11 +40,7 @@ val STUB_TRACKER =
 
     override fun trackToolWindowHidden() {}
 
-    override fun trackProcessSelected(
-      device: DeviceDescriptor,
-      numDevices: Int,
-      numProcesses: Int,
-    ) {}
+    override fun trackProcessSelected(device: DeviceDescriptor, numDevices: Int, numProcesses: Int) {}
 
     override fun trackInspectionStopped() {}
 

@@ -26,8 +26,7 @@ import org.junit.Test
 class UnexpectedIssueCheckerTest {
   private val unexpectedIssueChecker = UnexpectedIssueChecker()
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   @Test
   fun testCheckIssue() {
@@ -45,13 +44,15 @@ class UnexpectedIssueCheckerTest {
   @Test
   fun testCheckIssueHandled() {
     assertThat(
-      unexpectedIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "This is an unexpected error. Please file a bug containing the idea.log file.",
-        null,
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isEqualTo(true)
+        unexpectedIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "This is an unexpected error. Please file a bug containing the idea.log file.",
+          null,
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isEqualTo(true)
   }
 }

@@ -29,20 +29,18 @@ import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * Information for a single, target layout XML file that is useful for generating a Binding or
- * BindingImpl class (assuming it is a data binding or a view binding layout).
+ * Information for a single, target layout XML file that is useful for generating a Binding or BindingImpl class (assuming it is a data
+ * binding or a view binding layout).
  *
  * See also: [BindingLayoutGroup], which owns one (or more) related [BindingLayout] instances.
  *
- * Note: In order to ensure that all necessary constructor fields are non-null, and to avoid a user
- * from specifying values that are inconsistent with each other, you cannot instantiate this class
- * directly. Instead, you must use [tryCreate].
+ * Note: In order to ensure that all necessary constructor fields are non-null, and to avoid a user from specifying values that are
+ * inconsistent with each other, you cannot instantiate this class directly. Instead, you must use [tryCreate].
  *
  * @param facet the facet of the Android module this layout belongs to.
  * @param modulePackage the base package for all classes in the current module.
  * @param file the [VirtualFile] backing the XML layout associated with this binding.
- * @param data the raw [BindingXmlData] extracted from this binding's layout. If you need a PSI
- *   representation of this data, see [toXmlFile]
+ * @param data the raw [BindingXmlData] extracted from this binding's layout. If you need a PSI representation of this data, see [toXmlFile]
  * @param resource the [ResourceItem] representation of the XML layout file.
  */
 class BindingLayout
@@ -56,26 +54,22 @@ private constructor(
 
   companion object {
     /**
-     * Tries to create a [BindingLayout] instance corresponding to a target resource file, returning
-     * null if unable to do so or if the target layout should not have a binding created for it.
+     * Tries to create a [BindingLayout] instance corresponding to a target resource file, returning null if unable to do so or if the
+     * target layout should not have a binding created for it.
      *
-     * Most initialization logic in here is not expected to return null, but it has been reported in
-     * production, so the following plays it safe to avoid crashing. See: b/140308533
+     * Most initialization logic in here is not expected to return null, but it has been reported in production, so the following plays it
+     * safe to avoid crashing. See: b/140308533
      */
     fun tryCreate(facet: AndroidFacet, resource: ResourceItem): BindingLayout? {
       val modulePackage =
         when {
-          BindingLayoutToken.isTestModule(facet.module) ->
-            facet.getModuleSystem().getTestPackageName()
+          BindingLayoutToken.isTestModule(facet.module) -> facet.getModuleSystem().getTestPackageName()
           else -> facet.getModuleSystem().getPackageName()
         } ?: return null
 
       val file = resource.getSourceAsVirtualFile() ?: return null
       val data = BindingXmlIndex.getDataForFile(facet.module.project, file) ?: return null
-      if (
-        data.viewBindingIgnore ||
-          (data.layoutType == BindingLayoutType.PLAIN_LAYOUT && !facet.isViewBindingEnabled())
-      ) {
+      if (data.viewBindingIgnore || (data.layoutType == BindingLayoutType.PLAIN_LAYOUT && !facet.isViewBindingEnabled())) {
         return null
       }
 
@@ -86,11 +80,10 @@ private constructor(
   /**
    * Creates a PSI representation of the XML layout associated with this binding.
    *
-   * Note that PSI parsing incurs a performance hit, so this should only be called if needed.
-   * Otherwise, it is preferable to work with [file] and [data] directly.
+   * Note that PSI parsing incurs a performance hit, so this should only be called if needed. Otherwise, it is preferable to work with
+   * [file] and [data] directly.
    *
-   * In most cases, this method will return a valid PSI file, but it could technically return null,
-   * so that should be handled.
+   * In most cases, this method will return a valid PSI file, but it could technically return null, so that should be handled.
    */
   fun toXmlFile(): XmlFile? {
     return DataBindingUtil.findXmlFile(facet.module.project, file)
@@ -100,10 +93,7 @@ private constructor(
 
   private fun computeBindingClassName(): BindingClassName {
     if (data.customBindingName.isNullOrEmpty()) {
-      return BindingClassName(
-        "$modulePackage.databinding",
-        DataBindingUtil.convertFileNameToJavaClassName(file.name) + "Binding",
-      )
+      return BindingClassName("$modulePackage.databinding", DataBindingUtil.convertFileNameToJavaClassName(file.name) + "Binding")
     } else {
       val customBindingName = data.customBindingName!!
       val firstDotIndex = customBindingName.indexOf('.')
@@ -137,17 +127,14 @@ private constructor(
   /**
    * Returns the unique "Impl" suffix for this specific layout configuration.
    *
-   * In multi-layout configurations, a general "Binding" class will be generated as well as a unique
-   * "Impl" version for each configuration. This method returns what that exact "Impl" suffix should
-   * be, which can safely be appended to [qualifiedClassName] or [className].
+   * In multi-layout configurations, a general "Binding" class will be generated as well as a unique "Impl" version for each configuration.
+   * This method returns what that exact "Impl" suffix should be, which can safely be appended to [qualifiedClassName] or [className].
    */
   fun getImplSuffix(): String {
     val folderName = file.parent.name
     return when {
       folderName.isEmpty() -> "Impl"
-      folderName.startsWith("layout-") ->
-        DataBindingUtil.convertFileNameToJavaClassName(folderName.substringAfter("layout-")) +
-          "Impl"
+      folderName.startsWith("layout-") -> DataBindingUtil.convertFileNameToJavaClassName(folderName.substringAfter("layout-")) + "Impl"
       folderName.startsWith("layout") -> "Impl"
       else -> DataBindingUtil.convertFileNameToJavaClassName(folderName) + "Impl"
     }
@@ -156,8 +143,8 @@ private constructor(
   /**
    * The package + name for the binding class generated for this layout.
    *
-   * The package for a binding class is usually a subpackage of module's package, but it can be
-   * fully customized based on the value of [BindingXmlData.customBindingName].
+   * The package for a binding class is usually a subpackage of module's package, but it can be fully customized based on the value of
+   * [BindingXmlData.customBindingName].
    *
    * See also: [getImplSuffix], if you want to generate the path to a binding impl class instead.
    */

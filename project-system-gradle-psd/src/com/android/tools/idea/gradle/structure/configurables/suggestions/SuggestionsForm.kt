@@ -24,18 +24,14 @@ import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.navigation.Place
 
-class SuggestionsForm(
-    private val context: PsContext,
-    suggestionsViewIssueRenderer: SuggestionsViewIssueRenderer
-) : SuggestionsFormUi(), Disposable {
+class SuggestionsForm(private val context: PsContext, suggestionsViewIssueRenderer: SuggestionsViewIssueRenderer) :
+  SuggestionsFormUi(), Disposable {
   private val maxNumberOfIssuesToShow = 300
   private val logger = Logger.getInstance(this::class.java)
 
   val panel = myMainPanel!!
 
-  private val issuesViewer = SuggestionsViewer(context, suggestionsViewIssueRenderer).also {
-    Disposer.register(this, it)
-  }
+  private val issuesViewer = SuggestionsViewer(context, suggestionsViewIssueRenderer).also { Disposer.register(this, it) }
 
   init {
     setViewComponent(issuesViewer.panel)

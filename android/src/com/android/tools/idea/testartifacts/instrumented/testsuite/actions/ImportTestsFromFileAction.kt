@@ -28,39 +28,40 @@ import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
-/**
- * Customized import tests from action which supports additional test format
- * such as UTP test results.
- */
-class ImportTestsFromFileAction: AnAction(SmRunnerBundle.message("sm.test.runner.import.test"),
-                                          SmRunnerBundle.message("sm.test.runner.import.test.description"),
-                                          AllIcons.ToolbarDecorator.Import) {
+/** Customized import tests from action which supports additional test format such as UTP test results. */
+class ImportTestsFromFileAction :
+  AnAction(
+    SmRunnerBundle.message("sm.test.runner.import.test"),
+    SmRunnerBundle.message("sm.test.runner.import.test.description"),
+    AllIcons.ToolbarDecorator.Import,
+  ) {
   override fun actionPerformed(e: AnActionEvent) {
     FileChooser.chooseFile(
-      FileChooserDescriptor(true, false, false, false, false, false)
-        .withFileFilter {
-          it.name == "test-result.pb"
-          || FileTypeRegistry.getInstance().isFileOfType(it, XmlFileType.INSTANCE)
-        },
-      e.project, null) { file ->
+      FileChooserDescriptor(true, false, false, false, false, false).withFileFilter {
+        it.name == "test-result.pb" || FileTypeRegistry.getInstance().isFileOfType(it, XmlFileType.INSTANCE)
+      },
+      e.project,
+      null,
+    ) { file ->
       // The file filter does not work on Mac very well. Let's do our best and also
       // handle the situation when users might select the text proto version.
       if (file.extension == "pb" || file.extension == "textproto") {
         ImportUtpResultAction(importFile = file).actionPerformed(e)
       } else {
-        object: AbstractImportTestsAction(null, null, null) {
-          override fun getFile(project: Project): VirtualFile? = file
-          override fun actionPerformed(e: AnActionEvent) {
-            val project = e.project ?: return
-            val virtualFile = getFile(project) ?: return
-            if (!importAndroidTestMatrixResultXmlFile(project, virtualFile)) {
-              // Fallback to the standard IntelliJ test import action.
-              super.actionPerformed(e)
+        object : AbstractImportTestsAction(null, null, null) {
+            override fun getFile(project: Project): VirtualFile? = file
+
+            override fun actionPerformed(e: AnActionEvent) {
+              val project = e.project ?: return
+              val virtualFile = getFile(project) ?: return
+              if (!importAndroidTestMatrixResultXmlFile(project, virtualFile)) {
+                // Fallback to the standard IntelliJ test import action.
+                super.actionPerformed(e)
+              }
             }
           }
-        }.actionPerformed(e)
+          .actionPerformed(e)
       }
     }
   }
 }
-

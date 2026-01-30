@@ -21,8 +21,7 @@ import com.intellij.lang.parser.GeneratedParserUtilBase
 import com.intellij.psi.TokenType.WHITE_SPACE
 import com.intellij.psi.tree.IElementType
 
-
-object DeclarativeParserUtil: GeneratedParserUtilBase() {
+object DeclarativeParserUtil : GeneratedParserUtilBase() {
   @JvmStatic
   fun atSameLine(b: PsiBuilder, level: Int, parser: Parser): Boolean {
     val marker = enter_section_(b)
@@ -52,8 +51,7 @@ object DeclarativeParserUtil: GeneratedParserUtilBase() {
   }
 }
 
-private fun isBefore(b: PsiBuilder, element: IElementType): Boolean =
-  b.rawLookup(0) == element
+private fun isBefore(b: PsiBuilder, element: IElementType): Boolean = b.rawLookup(0) == element
 
 private fun isNextAfterNewLine(b: PsiBuilder): Boolean {
   return when (b.rawLookup(-1)) {

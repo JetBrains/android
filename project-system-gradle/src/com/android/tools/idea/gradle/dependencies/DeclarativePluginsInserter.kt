@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.dependencies
 
 import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.Companion.defaultInsertionConfig
 import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.MatchedStrategy
-import com.android.tools.idea.gradle.dsl.android.api.android.AndroidGradleDeclarativeBuildModel
 import com.android.tools.idea.gradle.dsl.android.api.android.AndroidDeclarativeType
+import com.android.tools.idea.gradle.dsl.android.api.android.AndroidGradleDeclarativeBuildModel
 import com.android.tools.idea.gradle.dsl.api.BasePluginsModel
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.GradleDeclarativeSettingsModel
@@ -30,8 +30,7 @@ import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.utils.addIfNotNull
 
 class DeclarativePluginsInserter(private val projectModel: ProjectBuildModel) : CommonPluginsInserter(projectModel) {
-  override fun applySettingsPlugin(pluginId: String,
-                                   version: String): Set<PsiFile> {
+  override fun applySettingsPlugin(pluginId: String, version: String): Set<PsiFile> {
     val changedFiles = mutableSetOf<PsiFile>()
 
     getSettingsModel()?.plugins()?.let {
@@ -42,24 +41,25 @@ class DeclarativePluginsInserter(private val projectModel: ProjectBuildModel) : 
     return changedFiles
   }
 
-  /**
-   * Applying plugin to module for declarative means nothing as all plugins can only be on settings
-   */
+  /** Applying plugin to module for declarative means nothing as all plugins can only be on settings */
   override fun addPlugin(pluginId: String, buildModel: GradleBuildModel, matcher: PluginMatcher): PsiFile =
-    throw IllegalStateException("Add plugin to module (addPlugin function) is impossible for declarative. Low level API like this will be removed eventually")
+    throw IllegalStateException(
+      "Add plugin to module (addPlugin function) is impossible for declarative. Low level API like this will be removed eventually"
+    )
 
-  override fun addPluginToModule(pluginId: String,
-                             version: String,
-                             buildModel: GradleBuildModel,
-                             matcher: PluginMatcher): Set<PsiFile> =
-    throw IllegalStateException("Add plugin to module (addPluginToModule function) is impossible for declarative. Low level API like this will be removed eventually")
+  override fun addPluginToModule(pluginId: String, version: String, buildModel: GradleBuildModel, matcher: PluginMatcher): Set<PsiFile> =
+    throw IllegalStateException(
+      "Add plugin to module (addPluginToModule function) is impossible for declarative. Low level API like this will be removed eventually"
+    )
 
-  override fun addPlugin(pluginId: String,
-                         version: String,
-                         apply: Boolean?,
-                         settingsPlugins: PluginsBlockModel,
-                         buildModel: GradleBuildModel,
-                         matcher: PluginMatcher): Set<PsiFile> {
+  override fun addPlugin(
+    pluginId: String,
+    version: String,
+    apply: Boolean?,
+    settingsPlugins: PluginsBlockModel,
+    buildModel: GradleBuildModel,
+    matcher: PluginMatcher,
+  ): Set<PsiFile> {
     val changedFiles = mutableSetOf<PsiFile>()
 
     getSettingsModel()?.plugins()?.let { settings ->
@@ -76,42 +76,50 @@ class DeclarativePluginsInserter(private val projectModel: ProjectBuildModel) : 
     buildModels: List<GradleBuildModel>,
     matcherFactory: (String, String) -> PluginMatcher,
     classpathMatcher: DependencyMatcher,
-    config: PluginInsertionConfig
+    config: PluginInsertionConfig,
   ): Set<PsiFile> = applyPlugin(pluginId, version, buildModels, config.whenFoundSame, matcherFactory)
 
+  override fun findPlaceAndAddPlugin(
+    pluginId: String,
+    version: String,
+    buildModels: List<GradleBuildModel>,
+    matcherFactory: (String, String) -> PluginMatcher,
+  ): Set<PsiFile> = applyPlugin(pluginId, version, buildModels, defaultInsertionConfig().whenFoundSame, matcherFactory)
 
-  override fun findPlaceAndAddPlugin(pluginId: String,
-                                     version: String,
-                                     buildModels: List<GradleBuildModel>,
-                                     matcherFactory: (String, String) -> PluginMatcher): Set<PsiFile> =
-    applyPlugin(pluginId, version, buildModels, defaultInsertionConfig().whenFoundSame, matcherFactory)
-
-  override fun addClasspathDependency(dependency: String,
-                                      excludes: List<ArtifactDependencySpec>,
-                                      matcher: DependencyMatcher): Set<PsiFile> =
+  override fun addClasspathDependency(
+    dependency: String,
+    excludes: List<ArtifactDependencySpec>,
+    matcher: DependencyMatcher,
+  ): Set<PsiFile> =
     throw IllegalStateException("Add classpath is impossible for declarative. Low level API like this will be removed eventually")
 
-  override fun addClasspathDependencyWithVersionVariable(dependency: String,
-                                                     variableName: String,
-                                                     excludes: List<ArtifactDependencySpec>,
-                                                     matcher: DependencyMatcher): Set<PsiFile> =
-    throw IllegalStateException("Add classpath with variable is impossible for declarative. Low level API like this will be removed eventually")
+  override fun addClasspathDependencyWithVersionVariable(
+    dependency: String,
+    variableName: String,
+    excludes: List<ArtifactDependencySpec>,
+    matcher: DependencyMatcher,
+  ): Set<PsiFile> =
+    throw IllegalStateException(
+      "Add classpath with variable is impossible for declarative. Low level API like this will be removed eventually"
+    )
 
-  private fun applyPlugin(pluginId: String,
-                          version: String?,
-                          buildModels: List<GradleBuildModel>,
-                          whenFoundPlugin: MatchedStrategy,
-                          matcherFactory: (String, String) -> PluginMatcher = { id, _ -> IdPluginMatcher(id) }): Set<PsiFile> {
+  private fun applyPlugin(
+    pluginId: String,
+    version: String?,
+    buildModels: List<GradleBuildModel>,
+    whenFoundPlugin: MatchedStrategy,
+    matcherFactory: (String, String) -> PluginMatcher = { id, _ -> IdPluginMatcher(id) },
+  ): Set<PsiFile> {
     val changedFiles = mutableSetOf<PsiFile>()
-    projectModel.declarativeSettingsModel?.plugins() ?: run {
-      log.warn("Settings file does not exist so cannot insert plugin for declarative project")
-      return changedFiles
-    }
+    projectModel.declarativeSettingsModel?.plugins()
+      ?: run {
+        log.warn("Settings file does not exist so cannot insert plugin for declarative project")
+        return changedFiles
+      }
     val ecosystemPlugin = pluginToEcosystemPluginMap.get(pluginId)
     if (ecosystemPlugin != null) {
       // assuming ecosystem version is the same as for real plugin
-      val ecosystemPluginVersion = version
-                                   ?: throw IllegalArgumentException("Version cannot be null for ecosystem plugin for $pluginId")
+      val ecosystemPluginVersion = version ?: throw IllegalArgumentException("Version cannot be null for ecosystem plugin for $pluginId")
 
       val component = getEcosystemPlugin(pluginId)
       if (component == null) {
@@ -122,33 +130,31 @@ class DeclarativePluginsInserter(private val projectModel: ProjectBuildModel) : 
       if (!hasPlugin(ecosystemMatcher)) {
         applySettingsPlugin(ecosystemPlugin, ecosystemPluginVersion).also { changedFiles.addAll(it) }
         buildModels.forEach { addModuleComponent(component, it).also { changedFiles.addAll(it) } }
-      }
-      else if (whenFoundPlugin == MatchedStrategy.UPDATE_VERSION) {
+      } else if (whenFoundPlugin == MatchedStrategy.UPDATE_VERSION) {
         updatePlugin(ecosystemPlugin, ecosystemPluginVersion).also { changedFiles.addAll(it) }
       }
-    }
-    else {
+    } else {
       if (version != null) {
         val pluginMatcher = matcherFactory(pluginId, version)
         if (!hasPlugin(pluginMatcher)) {
           applySettingsPlugin(pluginId, version).also { changedFiles.addAll(it) }
-        }
-        else if (whenFoundPlugin == MatchedStrategy.UPDATE_VERSION) {
+        } else if (whenFoundPlugin == MatchedStrategy.UPDATE_VERSION) {
           updatePlugin(pluginId, version).also { changedFiles.addAll(it) }
         }
         // TODO - not clear how to apply non ecosystem plugins
 
-      }
-      else {
+      } else {
         // TODO - insert gradle ecosystem plugin
       }
     }
     return changedFiles
   }
 
-  private fun updatePlugin(pluginId: String,
-                           version: String): Set<PsiFile> {
-    val plugin = projectModel.declarativeSettingsModel?.plugins()?.plugins()?.firstOrNull { it.name().toString() == pluginId && it.version().toString() != version }
+  private fun updatePlugin(pluginId: String, version: String): Set<PsiFile> {
+    val plugin =
+      projectModel.declarativeSettingsModel?.plugins()?.plugins()?.firstOrNull {
+        it.name().toString() == pluginId && it.version().toString() != version
+      }
     if (plugin != null) {
       plugin.version().resolve().setValue(version)
       val result = mutableSetOf<PsiFile>()
@@ -158,11 +164,8 @@ class DeclarativePluginsInserter(private val projectModel: ProjectBuildModel) : 
     return setOf()
   }
 
-  private fun hasPlugin(
-    pluginMatcher: PluginMatcher,
-  ): Boolean {
-    val settingsPlugins =
-      projectModel.declarativeSettingsModel?.plugins()?.plugins()
+  private fun hasPlugin(pluginMatcher: PluginMatcher): Boolean {
+    val settingsPlugins = projectModel.declarativeSettingsModel?.plugins()?.plugins()
     return settingsPlugins?.any { pluginMatcher.match(it) } == true
   }
 
@@ -175,10 +178,11 @@ class DeclarativePluginsInserter(private val projectModel: ProjectBuildModel) : 
       return changedFiles
     }
 
-    val type = when (plugin) {
-      EcosystemPlugin.APPLICATION -> AndroidDeclarativeType.APPLICATION
-      EcosystemPlugin.LIBRARY -> AndroidDeclarativeType.LIBRARY
-    }
+    val type =
+      when (plugin) {
+        EcosystemPlugin.APPLICATION -> AndroidDeclarativeType.APPLICATION
+        EcosystemPlugin.LIBRARY -> AndroidDeclarativeType.LIBRARY
+      }
     return declarativeBuildModel.let { model ->
       if (model.existingAndroidElement() == null) {
         model.createAndroidElement(type)
@@ -188,13 +192,11 @@ class DeclarativePluginsInserter(private val projectModel: ProjectBuildModel) : 
     }
   }
 
-  private fun getEcosystemPlugin(plugin: String): EcosystemPlugin? =
-    EcosystemPlugin.entries.find { it.pluginId == plugin }
+  private fun getEcosystemPlugin(plugin: String): EcosystemPlugin? = EcosystemPlugin.entries.find { it.pluginId == plugin }
 
   private fun getSettingsModel(): GradleDeclarativeSettingsModel? {
     val settingsFile = projectModel.declarativeSettingsModel
-    if (settingsFile == null)
-      log.warn("Settings file does not exist so cannot insert declaration into plugin{} block")
+    if (settingsFile == null) log.warn("Settings file does not exist so cannot insert declaration into plugin{} block")
     return settingsFile
   }
 
@@ -203,11 +205,8 @@ class DeclarativePluginsInserter(private val projectModel: ProjectBuildModel) : 
   companion object {
     val log = Logger.getInstance(DependenciesHelper::class.java)
     val pluginToEcosystemPluginMap: Map<String, String> =
-      listOf("com.android.application",
-             "com.android.library",
-             "com.android.test",
-             "com.android.asset-pack",
-             "com.android.dynamic-feature").associateWith { "com.android.ecosystem" }
+      listOf("com.android.application", "com.android.library", "com.android.test", "com.android.asset-pack", "com.android.dynamic-feature")
+        .associateWith { "com.android.ecosystem" }
   }
 }
 

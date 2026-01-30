@@ -22,18 +22,14 @@ import com.android.tools.idea.gradle.dsl.api.kotlin.KotlinSourceSetModel
 import com.android.tools.idea.gradle.dsl.parser.elements.EmptyGradleBlockModel
 
 class EmptyKotlinModelImpl : EmptyGradleBlockModel(), KotlinModel {
-  override fun jvmToolchain(): ResolvedPropertyModel =
-    throw UnsupportedOperationException("Call is not supported for Declarative")
+  override fun jvmToolchain(): ResolvedPropertyModel = throw UnsupportedOperationException("Call is not supported for Declarative")
 
-  override fun compilerOptions(): CompilerOptionsModel =
-    throw UnsupportedOperationException("Call is not supported for Declarative")
+  override fun compilerOptions(): CompilerOptionsModel = throw UnsupportedOperationException("Call is not supported for Declarative")
 
-  override fun sourceSets(): List<KotlinSourceSetModel> =
-    listOf()
+  override fun sourceSets(): List<KotlinSourceSetModel> = listOf()
 
   override fun addSourceSet(name: String): KotlinSourceSetModel =
     throw UnsupportedOperationException("Call is not supported for Declarative")
 
-  override fun removeSourceSet(name: String) =
-    throw UnsupportedOperationException("Call is not supported for Declarative")
+  override fun removeSourceSet(name: String) = throw UnsupportedOperationException("Call is not supported for Declarative")
 }

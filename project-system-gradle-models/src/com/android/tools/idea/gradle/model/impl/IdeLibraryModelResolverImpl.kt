@@ -20,22 +20,24 @@ import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
 import com.android.tools.idea.gradle.model.ResolverType
-import org.jetbrains.annotations.VisibleForTesting
 import java.io.Serializable
 import kotlin.collections.asSequence
+import org.jetbrains.annotations.VisibleForTesting
 
-class IdeLibraryModelResolverImpl @VisibleForTesting constructor(
+class IdeLibraryModelResolverImpl
+@VisibleForTesting
+constructor(
   private val globalLibraryTable: IdeResolvedLibraryTableImpl?,
   private val kmpLibraryTable: KotlinMultiplatformIdeLibraryTable?,
 ) : IdeLibraryModelResolver {
 
   override fun resolve(unresolved: IdeDependencyCore, lenient: Boolean): Sequence<IdeLibrary> {
-    val table = if (unresolved.target.resolverType == ResolverType.KMP_ANDROID) {
-      kmpLibraryTable!!.libraries
-    }
-    else {
-      globalLibraryTable!!.libraries
-    }
+    val table =
+      if (unresolved.target.resolverType == ResolverType.KMP_ANDROID) {
+        kmpLibraryTable!!.libraries
+      } else {
+        globalLibraryTable!!.libraries
+      }
     return when {
       unresolved.target.libraryIndex < table.size -> table[unresolved.target.libraryIndex].asSequence()
       lenient -> emptySequence()
@@ -45,10 +47,8 @@ class IdeLibraryModelResolverImpl @VisibleForTesting constructor(
 
   companion object {
     @JvmStatic
-    fun fromLibraryTables(
-      globalLibraryTable: IdeResolvedLibraryTableImpl?,
-      kmpLibraryTable: KotlinMultiplatformIdeLibraryTable?,
-    ) = IdeLibraryModelResolverImpl(globalLibraryTable, kmpLibraryTable)
+    fun fromLibraryTables(globalLibraryTable: IdeResolvedLibraryTableImpl?, kmpLibraryTable: KotlinMultiplatformIdeLibraryTable?) =
+      IdeLibraryModelResolverImpl(globalLibraryTable, kmpLibraryTable)
   }
 }
 
@@ -60,12 +60,9 @@ interface IdeResolvedLibraryTable {
   val libraries: List<List<IdeLibrary>>
 }
 
-sealed interface KotlinMultiplatformIdeLibraryTable: IdeResolvedLibraryTable
+sealed interface KotlinMultiplatformIdeLibraryTable : IdeResolvedLibraryTable
 
-data class IdeUnresolvedLibraryTableImpl(
-  override val libraries: List<IdeUnresolvedLibrary>
-) : IdeUnresolvedLibraryTable, Serializable
+data class IdeUnresolvedLibraryTableImpl(override val libraries: List<IdeUnresolvedLibrary>) : IdeUnresolvedLibraryTable, Serializable
 
-data class IdeResolvedLibraryTableImpl(
-  override val libraries: List<List<IdeLibrary>>
-) : IdeResolvedLibraryTable, KotlinMultiplatformIdeLibraryTable, Serializable
+data class IdeResolvedLibraryTableImpl(override val libraries: List<List<IdeLibrary>>) :
+  IdeResolvedLibraryTable, KotlinMultiplatformIdeLibraryTable, Serializable

@@ -18,10 +18,8 @@ package com.android.tools.idea.profilers.perfetto.traceprocessor
 import com.google.common.base.Ticker
 import java.util.concurrent.TimeUnit
 
-/**
- * FakeTicker with auto increments on each {@link read()} call.
- */
-class FakeTicker(val step: Long, val unit: TimeUnit): Ticker() {
+/** FakeTicker with auto increments on each {@link read()} call. */
+class FakeTicker(val step: Long, val unit: TimeUnit) : Ticker() {
   private var internalTimerNanos = 0L
 
   override fun read(): Long {

@@ -70,8 +70,7 @@ private object InjectedFieldIndexer : DaggerConceptIndexer<DaggerIndexFieldWrapp
 }
 
 @VisibleForTesting
-internal data class InjectedFieldIndexValue(val classId: ClassId, val fieldName: String) :
-  IndexValue() {
+internal data class InjectedFieldIndexValue(val classId: ClassId, val fieldName: String) : IndexValue() {
   override val dataType = Reader.supportedType
 
   override fun save(output: DataOutput) {
@@ -82,16 +81,12 @@ internal data class InjectedFieldIndexValue(val classId: ClassId, val fieldName:
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.INJECTED_FIELD
 
-    override fun read(input: DataInput) =
-      InjectedFieldIndexValue(input.readClassId(), input.readString())
+    override fun read(input: DataInput) = InjectedFieldIndexValue(input.readClassId(), input.readString())
   }
 
   companion object {
     private fun identify(psiElement: KtProperty): DaggerElement? =
-      if (
-        psiElement.containingClassOrObject != null &&
-          psiElement.hasAnnotation(DaggerAnnotation.INJECT)
-      ) {
+      if (psiElement.containingClassOrObject != null && psiElement.hasAnnotation(DaggerAnnotation.INJECT)) {
         ConsumerDaggerElement(psiElement)
       } else {
         null
@@ -112,11 +107,8 @@ internal data class InjectedFieldIndexValue(val classId: ClassId, val fieldName:
   }
 
   override fun getResolveCandidates(project: Project, scope: GlobalSearchScope) =
-    JavaPsiFacade.getInstance(project)
-      .findClass(classId.asFqNameString(), scope)
-      ?.fields
-      ?.asSequence()
-      ?.filter { it.name == fieldName } ?: emptySequence()
+    JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope)?.fields?.asSequence()?.filter { it.name == fieldName }
+      ?: emptySequence()
 
   override val daggerElementIdentifiers = identifiers
 }

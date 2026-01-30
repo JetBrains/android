@@ -28,10 +28,10 @@ class SyncIssueUsageReporterImpl(private val project: Project) : SyncIssueUsageR
   override fun reportToUsageTracker(rootProjectPath: @SystemIndependent String) {
     if (collectedIssues.isNotEmpty()) {
       UsageTracker.log(
-        GradleSyncStateHolder
-          .getInstance(project)
+        GradleSyncStateHolder.getInstance(project)
           .generateSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_ISSUES, rootProjectPath)
-          .addAllGradleSyncIssues(collectedIssues))
+          .addAllGradleSyncIssues(collectedIssues)
+      )
       collectedIssues.clear()
     }
   }
@@ -40,4 +40,3 @@ class SyncIssueUsageReporterImpl(private val project: Project) : SyncIssueUsageR
     collectedIssues.add(issue)
   }
 }
-

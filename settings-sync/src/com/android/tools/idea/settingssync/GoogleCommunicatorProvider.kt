@@ -52,23 +52,19 @@ internal const val PROVIDER_NAME_GOOGLE = "Google"
 /**
  * Listens to Google login state changes for the active sync user and reacts accordingly.
  *
- * This class observes the login status of the user currently designated for settings sync. When a
- * change in login state is detected (e.g., user logs in or logs out), it performs several actions:
+ * This class observes the login status of the user currently designated for settings sync. When a change in login state is detected (e.g.,
+ * user logs in or logs out), it performs several actions:
  * - Fires a `LoginStateChanged` event via [SettingsSyncEvents].
- * - If the user has logged in and there was a pending "login required" action, it clears that
- *   action.
+ * - If the user has logged in and there was a pending "login required" action, it clears that action.
  * - Triggers a new settings sync to ensure the sync status is up-to-date.
  *
- * TODO: once we have disposable available (IJ already made the change in the master branch, we have
- *   to wait for the next merge), we can simplify this.
+ * TODO: once we have disposable available (IJ already made the change in the master branch, we have to wait for the next merge), we can
+ *   simplify this.
  */
 @Service
 class GoogleLoginStateListener(private val coroutineScope: CoroutineScope) {
   private val syncUser: String?
-    get() =
-      getActiveSyncUserEmail().takeIf {
-        SettingsSyncLocalSettings.getInstance().providerCode == PROVIDER_CODE_GOOGLE
-      }
+    get() = getActiveSyncUserEmail().takeIf { SettingsSyncLocalSettings.getInstance().providerCode == PROVIDER_CODE_GOOGLE }
 
   fun startListening() {
     coroutineScope.launch {
@@ -77,8 +73,7 @@ class GoogleLoginStateListener(private val coroutineScope: CoroutineScope) {
         .map { it[syncUser]?.isLoggedIn(feature) == true }
         .distinctUntilChanged()
         .collect { isLoggedIn ->
-          thisLogger()
-            .info("Login status gets changed for $syncUser (login state = $isLoggedIn)...")
+          thisLogger().info("Login status gets changed for $syncUser (login state = $isLoggedIn)...")
           SettingsSyncEvents.getInstance().fireLoginStateChanged()
 
           // Ideally, we should just fire login state change and the platform will handle the rest
@@ -131,18 +126,13 @@ private fun getCredential(email: String): Credential {
 
 class GoogleCloudServerCommunicator(
   private val email: String,
-  @TestOnly
-  private val googleDriveClient: GoogleDriveClient = GoogleDriveClient { getCredential(email) },
+  @TestOnly private val googleDriveClient: GoogleDriveClient = GoogleDriveClient { getCredential(email) },
 ) : AbstractServerCommunicator() {
   private val lastRemoteErrorRef = AtomicReference<Throwable>()
 
   override val userId: String = email
 
-  override fun writeFileInternal(
-    filePath: String,
-    versionId: String?,
-    content: InputStream,
-  ): String {
+  override fun writeFileInternal(filePath: String, versionId: String?, content: InputStream): String {
     // 1. delete the oldest files on cloud if the total count > 10
     googleDriveClient.deleteOldestFilesOverLimit(filePath)
 
@@ -150,16 +140,10 @@ class GoogleCloudServerCommunicator(
     return googleDriveClient.write(filePath, content).versionId
   }
 
-  override fun push(
-    snapshot: SettingsSnapshot,
-    force: Boolean,
-    expectedServerVersionId: String?,
-  ): SettingsSyncPushResult {
+  override fun push(snapshot: SettingsSnapshot, force: Boolean, expectedServerVersionId: String?): SettingsSyncPushResult {
     // If we're pushing the "deleted" marker, instead delete the actual file.
     if (snapshot.isDeleted()) {
-      deleteFile(
-        "${ApplicationNamesInfo.getInstance().productName.lowercase()}/$SETTINGS_SYNC_SNAPSHOT_ZIP"
-      )
+      deleteFile("${ApplicationNamesInfo.getInstance().productName.lowercase()}/$SETTINGS_SYNC_SNAPSHOT_ZIP")
       return SettingsSyncPushResult.Success(null)
     } else {
       return super.push(snapshot, force, expectedServerVersionId)

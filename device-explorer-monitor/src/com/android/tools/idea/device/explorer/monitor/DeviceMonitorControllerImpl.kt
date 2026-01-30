@@ -44,7 +44,7 @@ class DeviceMonitorControllerImpl(
   private val project: Project,
   private val model: DeviceMonitorModel,
   private val view: DeviceMonitorView,
-  private val deviceService: DeviceService
+  private val deviceService: DeviceService,
 ) : Disposable, DeviceExplorerTabController {
 
   private val uiThreadScope = AndroidCoroutineScope(this, AndroidDispatchers.uiThread)
@@ -69,20 +69,17 @@ class DeviceMonitorControllerImpl(
       try {
         deviceService.start()
         setupJob.complete(Unit)
-      }
-      catch (t: Throwable) {
+      } catch (t: Throwable) {
         setupJob.completeExceptionally(t)
       }
     }
 
-    project.messageBus.connect(this).subscribe(
-      PROJECT_APPLICATION_IDS_CHANGED_TOPIC,
-      ProjectApplicationIdsProvider.ProjectApplicationIdsListener {
-        uiThreadScope.launch {
-          model.projectApplicationIdListChanged()
-        }
-      }
-    )
+    project.messageBus
+      .connect(this)
+      .subscribe(
+        PROJECT_APPLICATION_IDS_CHANGED_TOPIC,
+        ProjectApplicationIdsProvider.ProjectApplicationIdsListener { uiThreadScope.launch { model.projectApplicationIdListChanged() } },
+      )
   }
 
   override fun setActiveConnectedDevice(deviceHandle: DeviceHandle?) {
@@ -98,9 +95,7 @@ class DeviceMonitorControllerImpl(
   override fun getTabName(): String = DeviceExplorerTab.Processes.name
 
   override fun setPackageFilter(isActive: Boolean) {
-    uiThreadScope.launch {
-      model.setPackageFilter(isActive)
-    }
+    uiThreadScope.launch { model.setPackageFilter(isActive) }
   }
 
   override fun dispose() {
@@ -113,18 +108,13 @@ class DeviceMonitorControllerImpl(
     log(
       AndroidStudioEvent.newBuilder()
         .setKind(AndroidStudioEvent.EventKind.DEVICE_EXPLORER)
-        .setDeviceExplorerEvent(
-          DeviceExplorerEvent.newBuilder()
-            .setAction(action)
-        )
+        .setDeviceExplorerEvent(DeviceExplorerEvent.newBuilder().setAction(action))
     )
   }
 
   private inner class ModelDeviceServiceListener : DeviceServiceListener {
     override fun deviceProcessListUpdated(device: IDevice) {
-      uiThreadScope.launch {
-        model.refreshProcessListForDevice(device)
-      }
+      uiThreadScope.launch { model.refreshProcessListForDevice(device) }
     }
   }
 
@@ -192,9 +182,7 @@ class DeviceMonitorControllerImpl(
   }
 
   companion object {
-    private val KEY = Key.create<DeviceMonitorControllerImpl>(
-      DeviceMonitorControllerImpl::class.java.name
-    )
+    private val KEY = Key.create<DeviceMonitorControllerImpl>(DeviceMonitorControllerImpl::class.java.name)
 
     @JvmStatic
     fun getProjectController(project: Project?): DeviceMonitorControllerImpl? {

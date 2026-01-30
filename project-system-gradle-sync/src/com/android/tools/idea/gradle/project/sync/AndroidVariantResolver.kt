@@ -20,12 +20,12 @@ package com.android.tools.idea.gradle.project.sync
  *
  * Implements [HasLintJar] for compatibility purposes.
  */
-interface ResolvedAndroidProjectPath: HasBasicGradleProject, HasAndroidVariantResolver, HasLintJar
+interface ResolvedAndroidProjectPath : HasBasicGradleProject, HasAndroidVariantResolver, HasLintJar
 
 fun interface AndroidProjectPathResolver {
   /**
-   * Resolves a pair of [buildId] and [projectPath] into an Android project represented by [ResolvedAndroidProjectPath] or returns `null`
-   * if the given path does not refer to an Android Gradle project.
+   * Resolves a pair of [buildId] and [projectPath] into an Android project represented by [ResolvedAndroidProjectPath] or returns `null` if
+   * the given path does not refer to an Android Gradle project.
    *
    * This exists as a functional interface to be able to resolve variants. This is not called on KMP projects (even if they have Android
    * targets), as it's a single variant anyway.
@@ -38,12 +38,10 @@ interface HasAndroidVariantResolver {
 }
 
 interface AndroidVariantResolver {
-  /**
-   * Resolves a [buildType] and [productFlavors] into a variant name.
-   */
+  /** Resolves a [buildType] and [productFlavors] into a variant name. */
   fun resolveVariant(buildType: String?, productFlavors: (dimension: String) -> String): String?
 
-  object NONE: AndroidVariantResolver {
+  object NONE : AndroidVariantResolver {
     override fun resolveVariant(buildType: String?, productFlavors: (dimension: String) -> String): String? = null
   }
 }

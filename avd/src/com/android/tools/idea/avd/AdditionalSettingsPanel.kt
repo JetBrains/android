@@ -51,10 +51,7 @@ import org.jetbrains.jewel.ui.component.GroupHeader
 import org.jetbrains.jewel.ui.component.Text
 
 @Composable
-internal fun AdditionalSettingsPanel(
-  state: ConfigureDevicePanelState,
-  modifier: Modifier = Modifier,
-) {
+internal fun AdditionalSettingsPanel(state: ConfigureDevicePanelState, modifier: Modifier = Modifier) {
   val device = state.device
   Column(modifier, verticalArrangement = Arrangement.spacedBy(Padding.EXTRA_LARGE)) {
     when {
@@ -68,17 +65,9 @@ internal fun AdditionalSettingsPanel(
 
     StorageGroup(device = device, state = state.storageGroupState)
 
-    EmulatedPerformanceGroup(
-      device = device,
-      state = state.emulatedPerformanceGroupState,
-      maxCpuCoreCount = state.maxCpuCoreCount,
-    )
+    EmulatedPerformanceGroup(device = device, state = state.emulatedPerformanceGroupState, maxCpuCoreCount = state.maxCpuCoreCount)
 
-    PreferredAbiGroup(
-      device.preferredAbi,
-      state.systemImageTableSelectionState.selection,
-      onPreferredAbiChange = device::preferredAbi::set,
-    )
+    PreferredAbiGroup(device.preferredAbi, state.systemImageTableSelectionState.selection, onPreferredAbiChange = device::preferredAbi::set)
   }
 }
 
@@ -157,11 +146,7 @@ private fun CameraGroup(device: VirtualDevice) {
 }
 
 private fun VirtualDevice.frontCameraOptions(): List<AvdCamera> =
-  listOfNotNull(
-    AvdCamera.NONE,
-    AvdCamera.EMULATED.takeUnless { formFactor == FormFactors.AI_GLASSES },
-    AvdCamera.WEBCAM,
-  )
+  listOfNotNull(AvdCamera.NONE, AvdCamera.EMULATED.takeUnless { formFactor == FormFactors.AI_GLASSES }, AvdCamera.WEBCAM)
 
 private fun VirtualDevice.rearCameraOptions(): List<AvdCamera> =
   listOfNotNull(
@@ -222,8 +207,7 @@ private fun StartupGroup(device: VirtualDevice) {
   Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
     GroupHeader("Startup")
 
-    val orientations =
-      remember(device) { device.deviceProfile.allStates.mapTo(HashSet()) { it.orientation } }
+    val orientations = remember(device) { device.deviceProfile.allStates.mapTo(HashSet()) { it.orientation } }
 
     Grid(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
       if (orientations.size > 1) {
@@ -234,9 +218,7 @@ private fun StartupGroup(device: VirtualDevice) {
             Modifier.alignByBaseline(),
             menuContent = {
               orientations.forEach {
-                selectableItem(device.orientation == it, onClick = { device.orientation = it }) {
-                  Text(it.shortDisplayValue)
-                }
+                selectableItem(device.orientation == it, onClick = { device.orientation = it }) { Text(it.shortDisplayValue) }
               }
             },
           ) {
@@ -273,11 +255,7 @@ private fun StartupGroup(device: VirtualDevice) {
 private val BOOTS = enumValues<Boot>().asIterable().toImmutableList()
 
 @Composable
-private fun EmulatedPerformanceGroup(
-  device: VirtualDevice,
-  state: EmulatedPerformanceGroupState,
-  maxCpuCoreCount: Int,
-) {
+private fun EmulatedPerformanceGroup(device: VirtualDevice, state: EmulatedPerformanceGroupState, maxCpuCoreCount: Int) {
   Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
     GroupHeader("Emulated Performance")
 
@@ -289,12 +267,7 @@ private fun EmulatedPerformanceGroup(
           modifier = Modifier.alignByBaseline().width(DROPDOWN_WIDTH),
           menuContent = {
             for (count in 1..maxCpuCoreCount) {
-              selectableItem(
-                device.cpuCoreCount == count,
-                onClick = { device.cpuCoreCount = count },
-              ) {
-                Text(count.toString())
-              }
+              selectableItem(device.cpuCoreCount == count, onClick = { device.cpuCoreCount = count }) { Text(count.toString()) }
             }
           },
         ) {
@@ -307,9 +280,7 @@ private fun EmulatedPerformanceGroup(
 
         Dropdown(
           selectedItem = device.graphicsMode,
-          items =
-            listOf(GraphicsMode.AUTO, GraphicsMode.HARDWARE, GraphicsMode.SOFTWARE)
-              .toImmutableList(),
+          items = listOf(GraphicsMode.AUTO, GraphicsMode.HARDWARE, GraphicsMode.SOFTWARE).toImmutableList(),
           onSelectedItemChange = { device.graphicsMode = it },
           modifier = Modifier.alignByBaseline().width(DROPDOWN_WIDTH),
         )
@@ -343,8 +314,7 @@ private fun EmulatedPerformanceGroup(
         StorageCapacityField(
           state = state.vmHeapSize,
           errorMessage = state.vmHeapSize.result().vmHeapSizeErrorMessage(),
-          modifier =
-            Modifier.alignByBaseline().padding(end = Padding.MEDIUM).testTag("VMHeapSizeRow"),
+          modifier = Modifier.alignByBaseline().padding(end = Padding.MEDIUM).testTag("VMHeapSizeRow"),
         )
 
         LaunchedEffect(Unit) { state.vmHeapSize.storageCapacity.collect { device.vmHeapSize = it } }
@@ -362,12 +332,7 @@ private fun EmulatedPerformanceGroup(
 internal class EmulatedPerformanceGroupState(device: VirtualDevice) {
   val ram = StorageCapacityFieldState(requireNotNull(device.ram), VirtualDevice.MIN_RAM, UNITS)
 
-  val vmHeapSize =
-    StorageCapacityFieldState(
-      requireNotNull(device.vmHeapSize),
-      VirtualDevice.MIN_VM_HEAP_SIZE,
-      UNITS,
-    )
+  val vmHeapSize = StorageCapacityFieldState(requireNotNull(device.vmHeapSize), VirtualDevice.MIN_VM_HEAP_SIZE, UNITS)
 
   companion object {
     private val UNITS = listOf(StorageCapacity.Unit.MB, StorageCapacity.Unit.GB).toImmutableList()
@@ -378,8 +343,7 @@ private fun Result.ramErrorMessage() =
   when (this) {
     is Valid -> null
     is Empty -> "Specify a RAM value"
-    is LessThanMin ->
-      "RAM must be at least ${VirtualDevice.MIN_RAM}. Recommendation is ${StorageCapacity(1, StorageCapacity.Unit.GB)}."
+    is LessThanMin -> "RAM must be at least ${VirtualDevice.MIN_RAM}. Recommendation is ${StorageCapacity(1, StorageCapacity.Unit.GB)}."
     is Overflow -> "RAM value is too large"
   }
 
@@ -392,11 +356,7 @@ private fun Result.vmHeapSizeErrorMessage() =
   }
 
 @Composable
-private fun PreferredAbiGroup(
-  preferredAbi: String?,
-  systemImage: ISystemImage?,
-  onPreferredAbiChange: (String?) -> Unit,
-) {
+private fun PreferredAbiGroup(preferredAbi: String?, systemImage: ISystemImage?, onPreferredAbiChange: (String?) -> Unit) {
   val availableAbis = persistentListOf("Optimal").plus(systemImage.allAbiTypes())
   Row {
     Text("Preferred ABI", Modifier.alignByBaseline().padding(end = Padding.SMALL))
@@ -408,8 +368,7 @@ private fun PreferredAbiGroup(
       onSelectedItemChange = { onPreferredAbiChange(it.takeUnless { it == "Optimal" }) },
       Modifier.alignByBaseline().width(DROPDOWN_WIDTH),
       enabled = availableAbis.isNotEmpty(),
-      outline =
-        if (preferredAbi == null || preferredAbi in availableAbis) Outline.None else Outline.Error,
+      outline = if (preferredAbi == null || preferredAbi in availableAbis) Outline.None else Outline.Error,
     )
   }
 }

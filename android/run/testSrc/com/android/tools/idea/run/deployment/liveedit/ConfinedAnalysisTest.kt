@@ -26,18 +26,15 @@ import org.junit.Rule
 import org.junit.Test
 
 class ConfinedAnalysisTest {
-  @get:Rule
-  var projectRule = AndroidProjectRule.inMemory().withKotlin()
+  @get:Rule var projectRule = AndroidProjectRule.inMemory().withKotlin()
   private var files = HashMap<String, PsiFile>()
 
   @Before
   fun setUp() {
     setUpComposeInProjectFixture(projectRule)
     StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_CONFINED_ANALYSIS.override(true)
-    files["A.kt"] = projectRule.fixture.configureByText("A.kt",
-                                                        "public class A() { fun foo() : Int { return B().foo() } }")
-    files["B.kt"] = projectRule.fixture.configureByText("B.kt",
-                                                        "public class B() { fun foo() : Int { asdfadsfasdf } }")
+    files["A.kt"] = projectRule.fixture.configureByText("A.kt", "public class A() { fun foo() : Int { return B().foo() } }")
+    files["B.kt"] = projectRule.fixture.configureByText("B.kt", "public class B() { fun foo() : Int { asdfadsfasdf } }")
   }
 
   @After

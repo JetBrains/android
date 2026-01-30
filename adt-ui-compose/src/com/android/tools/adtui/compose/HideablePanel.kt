@@ -41,17 +41,9 @@ import org.jetbrains.jewel.ui.component.styling.LocalGroupHeaderStyle
 import org.jetbrains.jewel.ui.focusOutline
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
-/**
- * A panel that can be opened or closed. It has a header with a title and an arrow indicating
- * open/close state.
- */
+/** A panel that can be opened or closed. It has a header with a title and an arrow indicating open/close state. */
 @Composable
-fun HideablePanel(
-  title: String,
-  modifier: Modifier = Modifier,
-  initiallyOpen: Boolean = true,
-  content: @Composable () -> Unit,
-) {
+fun HideablePanel(title: String, modifier: Modifier = Modifier, initiallyOpen: Boolean = true, content: @Composable () -> Unit) {
   var isOpen by remember { mutableStateOf(initiallyOpen) }
   var isFocused by remember { mutableStateOf(false) }
   Column(modifier) {

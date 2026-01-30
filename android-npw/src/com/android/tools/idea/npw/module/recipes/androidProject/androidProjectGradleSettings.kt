@@ -19,22 +19,25 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.extensions.isDaemonJvmCriteriaRequiredForNewProjects
 import com.android.tools.idea.npw.builders.GradleSettingsBuilder
 import com.android.tools.idea.wizard.template.renderIf
+import java.net.URL
 import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
-import java.net.URL
 
-fun androidProjectGradleSettings(appTitle: String,
-                                 gradleVersion: GradleVersion,
-                                 agpVersion: AgpVersion,
-                                 useGradleKts: Boolean,
-                                 injectedRepositories: List<URL>): String {
+fun androidProjectGradleSettings(
+  appTitle: String,
+  gradleVersion: GradleVersion,
+  agpVersion: AgpVersion,
+  useGradleKts: Boolean,
+  injectedRepositories: List<URL>,
+): String {
   return renderIf(appTitle.isNotBlank()) {
     GradleSettingsBuilder(appTitle, useGradleKts) {
-      withPluginManager(injectedRepositories)
-      if (GradleDaemonJvmHelper.isDaemonJvmCriteriaRequiredForNewProjects(gradleVersion)) {
-        withFoojayPlugin(gradleVersion)
+        withPluginManager(injectedRepositories)
+        if (GradleDaemonJvmHelper.isDaemonJvmCriteriaRequiredForNewProjects(gradleVersion)) {
+          withFoojayPlugin(gradleVersion)
+        }
+        withDependencyResolutionManagement(injectedRepositories)
       }
-      withDependencyResolutionManagement(injectedRepositories)
-    }.build()
+      .build()
   }
 }

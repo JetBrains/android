@@ -25,18 +25,13 @@ import com.intellij.openapi.util.Disposer
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Tests for [SubmitBugReportAction]
- */
+/** Tests for [SubmitBugReportAction] */
 class SubmitBugReportActionTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
   val project by lazy { projectRule.project }
   val fixture by lazy { projectRule.fixture }
 
-  /**
-   * Verify that Gradle JDK information is used.
-   */
+  /** Verify that Gradle JDK information is used. */
   @Test
   fun testDescriptionContainsGradleJdk() {
     projectRule.loadProject(SIMPLE_APPLICATION)
@@ -50,9 +45,7 @@ class SubmitBugReportActionTest {
     }
   }
 
-  /**
-   * Verify that the default Gradle JDK is used when project is null
-   */
+  /** Verify that the default Gradle JDK is used when project is null */
   @Test
   fun testDescriptionContainsDefaultGradleJdk() {
     val description = SubmitBugReportAction.getDescription(null)

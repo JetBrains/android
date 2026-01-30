@@ -19,16 +19,15 @@ import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProje
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.testFramework.RunsInEdt
+import java.io.File
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 @RunsInEdt
 class AndroidGradleProjectOpenProcessorTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   lateinit var root: File
 

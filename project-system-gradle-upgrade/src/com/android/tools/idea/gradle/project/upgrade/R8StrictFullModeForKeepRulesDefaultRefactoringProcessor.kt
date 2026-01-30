@@ -23,9 +23,10 @@ import com.intellij.openapi.project.Project
  * Starting with AGP 9.0, the default value of android.r8.strictFullModeForKeepRules is now true. This refactoring adds the property if it
  * was not defined and sets it to false when upgrading from a version lower than 9.0.0-alpha02
  */
-class R8StrictFullModeForKeepRulesDefaultRefactoringProcessor: AbstractBooleanPropertyDefaultRefactoringProcessor {
-  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
-  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+class R8StrictFullModeForKeepRulesDefaultRefactoringProcessor : AbstractBooleanPropertyDefaultRefactoringProcessor {
+  constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val propertyKey = "android.r8.strictFullModeForKeepRules"
   override val oldDefault = false
@@ -34,9 +35,13 @@ class R8StrictFullModeForKeepRulesDefaultRefactoringProcessor: AbstractBooleanPr
   override val tooltip = AgpUpgradeBundle.message("useR8StrictModeForKeepRules.tooltipText")
   override val usageViewHeader = AgpUpgradeBundle.message("useR8StrictModeForKeepRules.usageView.header")
   override val necessityInfo = PointNecessity(DEFAULT_CHANGED)
+
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.r8StrictFullModeForKeepRules"
+
   override fun getCommandName() = AgpUpgradeBundle.message("useR8StrictModeForKeepRules.commandName")
+
   override val readMoreUrlRedirect: ReadMoreUrlRedirect? = ReadMoreUrlRedirect("r8-strict-full-mode-for-keep-rules")
+
   override fun getShortDescription() = AgpUpgradeBundle.message("useR8StrictModeForKeepRules.shortDescription")
 
   companion object {

@@ -19,7 +19,4 @@ import com.android.tools.idea.lint.common.LintBundle.Companion.message
 import com.android.tools.lint.checks.FileEndsWithDetector
 
 class AndroidLintFileEndsWithExtInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.file.ends.with.ext"),
-    FileEndsWithDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.file.ends.with.ext"), FileEndsWithDetector.ISSUE)

@@ -16,22 +16,8 @@ class InsightsDiffVirtualFileTest {
   fun `check equal`() {
     val filePath = mock<FilePath>().apply { whenever(this.name).thenReturn("filename") }
 
-    val context1 =
-      ContextDataForDiff(
-        vcsKey = VCS_CATEGORY.TEST_VCS,
-        revision = "123",
-        filePath = filePath,
-        lineNumber = 1,
-        origin = null,
-      )
-    val context2 =
-      ContextDataForDiff(
-        vcsKey = VCS_CATEGORY.TEST_VCS,
-        revision = "123",
-        filePath = filePath,
-        lineNumber = 3,
-        origin = null,
-      )
+    val context1 = ContextDataForDiff(vcsKey = VCS_CATEGORY.TEST_VCS, revision = "123", filePath = filePath, lineNumber = 1, origin = null)
+    val context2 = ContextDataForDiff(vcsKey = VCS_CATEGORY.TEST_VCS, revision = "123", filePath = filePath, lineNumber = 3, origin = null)
 
     val provider1 = InsightsDiffViewProvider(context1, projectRule.project)
     val provider2 = InsightsDiffViewProvider(context2, projectRule.project)

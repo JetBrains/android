@@ -63,14 +63,7 @@ class ComposeScreenViewProvidersTest {
 
     // Create a device with round shape
     val deviceWithRoundFrame =
-      DeviceConfig(
-          width = 600f,
-          height = 600f,
-          dimUnit = DimUnit.px,
-          dpi = 480,
-          shape = Shape.Round,
-        )
-        .createDeviceInstance()
+      DeviceConfig(width = 600f, height = 600f, dimUnit = DimUnit.px, dpi = 480, shape = Shape.Round).createDeviceInstance()
     model.configuration.setDevice(deviceWithRoundFrame, false)
 
     var previewElement =
@@ -81,36 +74,21 @@ class ComposeScreenViewProvidersTest {
       )
     model.dataProvider =
       object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
-        override fun getData(dataId: String): Any? =
-          previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
+        override fun getData(dataId: String): Any? = previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
       }
 
     val composeScreenViewProvider = ComposeScreenViewProvider(NopComposePreviewManager())
 
     // When showDecorations is true, the scene view should always use the device shape. In this
     // case, round.
-    assertTrue(
-      composeScreenViewProvider
-        .createPrimarySceneView(surface, surface.getSceneManager(model)!!)
-        .screenShape is Ellipse2D
-    )
+    assertTrue(composeScreenViewProvider.createPrimarySceneView(surface, surface.getSceneManager(model)!!).screenShape is Ellipse2D)
 
     // When showDecorations is false, the scene view should always use a square shape
-    previewElement =
-      SingleComposePreviewElementInstance.forTesting(
-        "TestMethod",
-        displayName = "displayName",
-        showDecorations = false,
-      )
+    previewElement = SingleComposePreviewElementInstance.forTesting("TestMethod", displayName = "displayName", showDecorations = false)
     model.dataProvider =
       object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
-        override fun getData(dataId: String): Any? =
-          previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
+        override fun getData(dataId: String): Any? = previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
       }
-    assertTrue(
-      composeScreenViewProvider
-        .createPrimarySceneView(surface, surface.getSceneManager(model)!!)
-        .screenShape is Rectangle
-    )
+    assertTrue(composeScreenViewProvider.createPrimarySceneView(surface, surface.getSceneManager(model)!!).screenShape is Rectangle)
   }
 }

@@ -18,26 +18,16 @@ package com.android.tools.idea.navigator.nodes
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiFile
 
-/**
- * A node that represents a group of files in a merged form.
- */
+/** A node that represents a group of files in a merged form. */
 interface FileGroupNode {
-  /**
-   * A list of files represented by the node.
-   */
+  /** A list of files represented by the node. */
   val files: List<PsiFile>
-
 }
 
-/**
- * A node whose children are selected from multiple folders.
- */
+/** A node whose children are selected from multiple folders. */
 interface FolderGroupNode {
-  /**
-   * A list of folders from which its children are/can be selected.
-   */
+  /** A list of folders from which its children are/can be selected. */
   val folders: List<PsiDirectory>
-
 }
 
 object GroupNodes {
@@ -51,5 +41,4 @@ object GroupNodes {
   fun canRepresent(node: FileGroupNode, element: Any?): Boolean {
     return node.files.any { it == element || it.virtualFile == element }
   }
-
 }

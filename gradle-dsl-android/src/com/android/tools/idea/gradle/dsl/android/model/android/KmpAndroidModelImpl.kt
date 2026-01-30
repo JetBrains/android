@@ -24,20 +24,17 @@ import com.android.tools.idea.gradle.dsl.model.ext.transforms.SdkOrPreviewTransf
 import com.android.tools.idea.gradle.dsl.android.parser.android.KmpAndroidDslElement
 import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint
 
-class KmpAndroidModelImpl(dslElement: KmpAndroidDslElement):
-  KmpAndroidModel, GradleDslBlockModel(dslElement) {
+class KmpAndroidModelImpl(dslElement: KmpAndroidDslElement) : KmpAndroidModel, GradleDslBlockModel(dslElement) {
   override fun namespace(): ResolvedPropertyModel {
     return getModelForProperty(AndroidModelImpl.NAMESPACE)
   }
 
   override fun compileSdkVersion(): CompileSdkPropertyModel {
-    return CompileSdkPropertyModelImpl.getOrCreateCompileSdkPropertyModel(
-      myDslElement, null)
+    return CompileSdkPropertyModelImpl.getOrCreateCompileSdkPropertyModel(myDslElement, null)
   }
 
   override fun compileSdkVersion(maybeCreateAfter: ResolvedPropertyModel?): CompileSdkPropertyModel {
-    return CompileSdkPropertyModelImpl.getOrCreateCompileSdkPropertyModel(
-      myDslElement, maybeCreateAfter)
+    return CompileSdkPropertyModelImpl.getOrCreateCompileSdkPropertyModel(myDslElement, maybeCreateAfter)
   }
 
   override fun compileSdkMinor(): ResolvedPropertyModel {
@@ -51,8 +48,7 @@ class KmpAndroidModelImpl(dslElement: KmpAndroidDslElement):
   override fun minSdkVersion(): ResolvedPropertyModel {
     val agp410plus = VersionConstraint.agpFrom("4.1.0")
     return GradlePropertyModelBuilder.create(myDslElement, ProductFlavorModelImpl.MIN_SDK_VERSION)
-      .addTransform(SdkOrPreviewTransform(
-        ProductFlavorModelImpl.MIN_SDK_VERSION, "minSdkVersion", "minSdk", "minSdkPreview", agp410plus))
+      .addTransform(SdkOrPreviewTransform(ProductFlavorModelImpl.MIN_SDK_VERSION, "minSdkVersion", "minSdk", "minSdkPreview", agp410plus))
       .buildResolved()
   }
 }

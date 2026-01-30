@@ -20,10 +20,7 @@ import com.android.tools.idea.device.explorer.files.ui.DeviceFileExplorerActionL
 import icons.StudioIcons
 import javax.swing.Icon
 
-class DeleteNodesMenuItem(
-  listener: DeviceFileExplorerActionListener,
-  private val context: MenuContext
-) : NonToggleMenuItem(listener) {
+class DeleteNodesMenuItem(listener: DeviceFileExplorerActionListener, private val context: MenuContext) : NonToggleMenuItem(listener) {
   override fun getText(nodes: List<DeviceFileEntryNode>): String = "Delete..."
 
   override val icon: Icon
@@ -31,11 +28,10 @@ class DeleteNodesMenuItem(
 
   override val shortcutId: String
     get() = // Re-use existing shortcut, see platform/platform-resources/src/keymaps/$default.xml
-      "\$Delete"
+    "\$Delete"
 
   override val isVisible: Boolean
-    get() =
-      if (context == MenuContext.Toolbar) true else super.isVisible
+    get() = if (context == MenuContext.Toolbar) true else super.isVisible
 
   override fun run(nodes: List<DeviceFileEntryNode>) {
     listener.deleteNodes(nodes)

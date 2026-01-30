@@ -26,10 +26,7 @@ import javax.swing.Icon
  *
  * Supports multiple sources of gutter insights grouped by the key in [insights].
  */
-data class AppInsightsGutterRenderer(
-  val insights: List<AppInsight>,
-  val itemChosenCallback: (AppInsight) -> Unit,
-) : GutterIconRenderer() {
+data class AppInsightsGutterRenderer(val insights: List<AppInsight>, val itemChosenCallback: (AppInsight) -> Unit) : GutterIconRenderer() {
 
   override fun getIcon(): Icon = StudioIcons.GutterIcons.ISSUE
 

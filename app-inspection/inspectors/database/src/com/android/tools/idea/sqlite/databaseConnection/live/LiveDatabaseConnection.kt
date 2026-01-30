@@ -48,23 +48,18 @@ class LiveDatabaseConnection(
   }
 
   override fun readSchema(): ListenableFuture<SqliteSchema> {
-    val commands =
-      Command.newBuilder().setGetSchema(GetSchemaCommand.newBuilder().setDatabaseId(id)).build()
+    val commands = Command.newBuilder().setGetSchema(GetSchemaCommand.newBuilder().setDatabaseId(id)).build()
     val responseFuture = messenger.sendCommandAsync(commands)
 
-    return responseFuture.transform(taskExecutor) { response ->
-      response.getSchema.tablesList.toSqliteSchema()
-    }
+    return responseFuture.transform(taskExecutor) { response -> response.getSchema.tablesList.toSqliteSchema() }
   }
 
   override fun query(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet> {
     val resultSet =
       when (sqliteStatement.statementType) {
-        SqliteStatementType.SELECT ->
-          PagedLiveSqliteResultSet(sqliteStatement, messenger, id, taskExecutor)
+        SqliteStatementType.SELECT -> PagedLiveSqliteResultSet(sqliteStatement, messenger, id, taskExecutor)
         SqliteStatementType.EXPLAIN,
-        SqliteStatementType.PRAGMA_QUERY ->
-          LazyLiveSqliteResultSet(sqliteStatement, messenger, id, taskExecutor)
+        SqliteStatementType.PRAGMA_QUERY -> LazyLiveSqliteResultSet(sqliteStatement, messenger, id, taskExecutor)
         else ->
           throw IllegalArgumentException(
             "SqliteStatement must be of type SELECT, EXPLAIN or PRAGMA, but is ${sqliteStatement.statementType}"

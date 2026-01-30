@@ -46,10 +46,11 @@ import com.intellij.psi.PsiMember
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiNewExpression
 import com.intellij.psi.util.PsiTreeUtil
+import javax.swing.Icon
 import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -64,7 +65,6 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.psiUtil.getStrictParentOfType
 import org.jetbrains.plugins.groovy.intentions.style.inference.resolve
-import javax.swing.Icon
 
 class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
 
@@ -77,14 +77,17 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
 
     private val generateAction = ActionManager.getInstance().getAction("AndroidX.BaselineProfile.RunGenerate")
 
-    private val executorActions: List<AnAction> = ExecutorAction.getActionList()
-      .mapNotNull { it as? ExecutorAction }
-      .filter { it.executor == DefaultRunExecutor.getRunExecutorInstance() ||
-                it.executor == DefaultDebugExecutor.getDebugExecutorInstance() }
+    private val executorActions: List<AnAction> =
+      ExecutorAction.getActionList()
+        .mapNotNull { it as? ExecutorAction }
+        .filter {
+          it.executor == DefaultRunExecutor.getRunExecutorInstance() || it.executor == DefaultDebugExecutor.getDebugExecutorInstance()
+        }
 
-    private val createRunConfigAction = ExecutorAction.getActionList()
-      .mapNotNull { it as? ActionGroupWrapper }
-      .firstOrNull { it.delegate == ActionManager.getInstance().getAction("CreateRunConfiguration") }
+    private val createRunConfigAction =
+      ExecutorAction.getActionList()
+        .mapNotNull { it as? ActionGroupWrapper }
+        .firstOrNull { it.delegate == ActionManager.getInstance().getAction("CreateRunConfiguration") }
 
     internal fun isKtTestClassIdentifier(e: PsiElement): Boolean {
       if (e.node?.elementType != KtTokens.IDENTIFIER) {
@@ -93,9 +96,7 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
 
       val declaration = e.getStrictParentOfType<KtNamedDeclaration>()?.takeIf { it.nameIdentifier == e } ?: return false
 
-      return declaration is KtClassOrObject &&
-             declaration.isUnderKotlinSourceRootTypes() &&
-             e.parent is KtClass
+      return declaration is KtClassOrObject && declaration.isUnderKotlinSourceRootTypes() && e.parent is KtClass
     }
 
     internal fun isKtTestMethodIdentifier(e: PsiElement): Boolean {
@@ -106,9 +107,9 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
       val declaration = e.getStrictParentOfType<KtNamedDeclaration>()?.takeIf { it.nameIdentifier == e } ?: return false
 
       return declaration is KtNamedFunction &&
-             declaration.isUnderKotlinSourceRootTypes() &&
-             e.parent is KtNamedFunction &&
-             declaration.hasAnnotation(ClassId.fromString("org/junit/Test"))
+        declaration.isUnderKotlinSourceRootTypes() &&
+        e.parent is KtNamedFunction &&
+        declaration.hasAnnotation(ClassId.fromString("org/junit/Test"))
     }
 
     internal fun isJavaTestClassIdentifier(e: PsiElement): Boolean {
@@ -116,20 +117,18 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
     }
 
     internal fun isJavaTestMethodIdentifier(e: PsiElement): Boolean {
-      return e is PsiIdentifier &&
-             e.parent is PsiMethod &&
-             AnnotationUtil.findAnnotation(e.parent as PsiMethod, "org.junit.Test") != null
+      return e is PsiIdentifier && e.parent is PsiMethod && AnnotationUtil.findAnnotation(e.parent as PsiMethod, "org.junit.Test") != null
     }
 
     @OptIn(KaAllowAnalysisOnEdt::class)
     internal fun anyTopLevelKtRule(psiElement: PsiElement): String? {
       // Find class body
-      val topLevelClass = if (psiElement is KtClass) {
-        psiElement
-      }
-      else {
-        PsiTreeUtil.getParentOfType(psiElement, KtClass::class.java) ?: return null
-      }
+      val topLevelClass =
+        if (psiElement is KtClass) {
+          psiElement
+        } else {
+          PsiTreeUtil.getParentOfType(psiElement, KtClass::class.java) ?: return null
+        }
 
       // Find properties
       val ktProperties = PsiTreeUtil.findChildrenOfType(topLevelClass, KtProperty::class.java).toList()
@@ -147,15 +146,14 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
                 // Check that this property has a rule annotation applied and that the parent class node is the
                 // same of the method (to ensure both method and rule are in the same class).
                 prop.annotationEntries.any { it.getQualifiedName() == FQ_NAME_ORG_JUNIT_RULE } &&
-                PsiTreeUtil.getParentOfType(prop, KtClass::class.java) == topLevelClass
-              }.firstNotNullOfOrNull { prop ->
+                  PsiTreeUtil.getParentOfType(prop, KtClass::class.java) == topLevelClass
+              }
+              .firstNotNullOfOrNull { prop ->
                 // TODO(b/303222395): Only using the receiver type here, but this won't work if the baseline profile rule
                 // gets extended.
-                PsiTreeUtil
-                  .findChildOfType(prop, KtCallExpression::class.java)
-                  ?.expressionType
-                  ?.toString()
-                  ?.takeIf { it == NAME_ANDROIDX_JUNIT_BASELINE_PROFILE_RULE || it == NAME_ANDROIDX_JUNIT_MACROBENCHMARK_RULE }
+                PsiTreeUtil.findChildOfType(prop, KtCallExpression::class.java)?.expressionType?.toString()?.takeIf {
+                  it == NAME_ANDROIDX_JUNIT_BASELINE_PROFILE_RULE || it == NAME_ANDROIDX_JUNIT_MACROBENCHMARK_RULE
+                }
               }
           }
         }
@@ -164,12 +162,12 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
 
     internal fun anyTopLevelJavaRule(psiElement: PsiElement, vararg filter: String): String? {
       // Find class body
-      val topLevelClass = if (psiElement is PsiClass) {
-        psiElement
-      }
-      else {
-        PsiTreeUtil.getParentOfType(psiElement, PsiClass::class.java) ?: return null
-      }
+      val topLevelClass =
+        if (psiElement is PsiClass) {
+          psiElement
+        } else {
+          PsiTreeUtil.getParentOfType(psiElement, PsiClass::class.java) ?: return null
+        }
 
       // Find class members
       val classMembers = PsiTreeUtil.getChildrenOfTypeAsList(topLevelClass, PsiField::class.java)
@@ -180,19 +178,15 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
       // Find a class member that has a BaselineProfileRule applied.
       for (member: PsiMember in classMembers) {
         // Only evaluate direct field member of the top level class
-        val rule = PsiTreeUtil
-          .findChildrenOfType(member, PsiAnnotation::class.java)
-          .filter {
-            it.resolveAnnotationType()?.qualifiedName == FQ_NAME_ORG_JUNIT_RULE
-          }
-          .map {
-            PsiTreeUtil.findChildOfType(member, PsiNewExpression::class.java)
-              ?.type
-              .resolve()
-              ?.qualifiedName
-              ?.takeIf { it == FQ_NAME_ANDROIDX_JUNIT_BASELINE_PROFILE_RULE || it == FQ_NAME_ANDROIDX_JUNIT_MACROBENCHMARK_RULE }
-          }
-          .firstOrNull()
+        val rule =
+          PsiTreeUtil.findChildrenOfType(member, PsiAnnotation::class.java)
+            .filter { it.resolveAnnotationType()?.qualifiedName == FQ_NAME_ORG_JUNIT_RULE }
+            .map {
+              PsiTreeUtil.findChildOfType(member, PsiNewExpression::class.java)?.type.resolve()?.qualifiedName?.takeIf {
+                it == FQ_NAME_ANDROIDX_JUNIT_BASELINE_PROFILE_RULE || it == FQ_NAME_ANDROIDX_JUNIT_MACROBENCHMARK_RULE
+              }
+            }
+            .firstOrNull()
 
         if (rule != null) {
           return rule
@@ -202,34 +196,30 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
     }
   }
 
-  private val generateBaselineProfileInfo = createOverridingInfo(
-    AllIcons.RunConfigurations.TestState.Run_run,
-    AndroidBundle.message("android.run.configuration.generate.baseline.profile"),
-    listOfNotNull(
-      generateAction,
-      Separator.getInstance().takeIf { executorActions.isNotEmpty() },
-      *executorActions.toTypedArray(),
-      createRunConfigAction.takeIf { executorActions.isNotEmpty() && createRunConfigAction != null })
-  )
+  private val generateBaselineProfileInfo =
+    createOverridingInfo(
+      AllIcons.RunConfigurations.TestState.Run_run,
+      AndroidBundle.message("android.run.configuration.generate.baseline.profile"),
+      listOfNotNull(
+        generateAction,
+        Separator.getInstance().takeIf { executorActions.isNotEmpty() },
+        *executorActions.toTypedArray(),
+        createRunConfigAction.takeIf { executorActions.isNotEmpty() && createRunConfigAction != null },
+      ),
+    )
 
-  private val runTestInfo = createOverridingInfo(
-    AllIcons.RunConfigurations.TestState.Run,
-    AndroidBundle.message("android.run.configuration.generate.baseline.profile"),
-    listOfNotNull(
-      *executorActions.toTypedArray(),
-      createRunConfigAction.takeIf { executorActions.isNotEmpty() && createRunConfigAction != null })
-  )
+  private val runTestInfo =
+    createOverridingInfo(
+      AllIcons.RunConfigurations.TestState.Run,
+      AndroidBundle.message("android.run.configuration.generate.baseline.profile"),
+      listOfNotNull(
+        *executorActions.toTypedArray(),
+        createRunConfigAction.takeIf { executorActions.isNotEmpty() && createRunConfigAction != null },
+      ),
+    )
 
-  private fun createOverridingInfo(
-    icon: Icon,
-    message: String,
-    actions: List<AnAction>,
-  ): Info {
-    return object : Info(
-      icon,
-      actions.toTypedArray(),
-      { _ -> message }
-    ) {
+  private fun createOverridingInfo(icon: Icon, message: String, actions: List<AnAction>): Info {
+    return object : Info(icon, actions.toTypedArray(), { _ -> message }) {
       override fun shouldReplace(other: Info): Boolean {
         return other.actions.intersect(executorActions.toSet()).isNotEmpty()
       }
@@ -255,8 +245,7 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
       // either this PsiElement is a class or a method. Therefore, we check it only once after
       // making sure we have a class or method identifier.
       rule = anyTopLevelKtRule(e)
-    }
-    else if (e.language == JavaLanguage.INSTANCE) {
+    } else if (e.language == JavaLanguage.INSTANCE) {
       classIdentifier = isJavaTestClassIdentifier(e)
       val methodIdentifier = isJavaTestMethodIdentifier(e)
       if (!classIdentifier && !methodIdentifier) {
@@ -269,9 +258,10 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
     }
 
     return when (rule) {
-      NAME_ANDROIDX_JUNIT_BASELINE_PROFILE_RULE, FQ_NAME_ANDROIDX_JUNIT_BASELINE_PROFILE_RULE ->
-        if (classIdentifier) generateBaselineProfileInfo else runTestInfo
-      NAME_ANDROIDX_JUNIT_MACROBENCHMARK_RULE, FQ_NAME_ANDROIDX_JUNIT_MACROBENCHMARK_RULE -> runTestInfo
+      NAME_ANDROIDX_JUNIT_BASELINE_PROFILE_RULE,
+      FQ_NAME_ANDROIDX_JUNIT_BASELINE_PROFILE_RULE -> if (classIdentifier) generateBaselineProfileInfo else runTestInfo
+      NAME_ANDROIDX_JUNIT_MACROBENCHMARK_RULE,
+      FQ_NAME_ANDROIDX_JUNIT_MACROBENCHMARK_RULE -> runTestInfo
       else -> null
     }
   }
@@ -281,25 +271,31 @@ class BaselineProfileAction : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
     val sourceModule = e.getData(PlatformCoreDataKeys.MODULE) ?: return
-    val targetModulePath = GradleAndroidModel.get(sourceModule)?.selectedVariant?.testedTargetVariants?.map { it.targetProjectPath }?.firstOrNull() ?: return
+    val targetModulePath =
+      GradleAndroidModel.get(sourceModule)?.selectedVariant?.testedTargetVariants?.map { it.targetProjectPath }?.firstOrNull() ?: return
     val targetModuleGradlePath = sourceModule.getGradleProjectPath()?.resolve(targetModulePath)
     val runManager = RunManagerEx.getInstanceEx(project)
-    val runConfiguration = runManager.allSettings
-      .asSequence()
-      .filter { it.type == AndroidBaselineProfileRunConfigurationType.getInstance() }
-      .filter { (it.configuration as AndroidBaselineProfileRunConfiguration).configurationModule.module?.getGradleProjectPath() == targetModuleGradlePath }
-      .firstOrNull()
-      .let {
-        // If the configuration was found, use this one
-        if (it != null) return@let it
+    val runConfiguration =
+      runManager.allSettings
+        .asSequence()
+        .filter { it.type == AndroidBaselineProfileRunConfigurationType.getInstance() }
+        .filter {
+          (it.configuration as AndroidBaselineProfileRunConfiguration).configurationModule.module?.getGradleProjectPath() ==
+            targetModuleGradlePath
+        }
+        .firstOrNull()
+        .let {
+          // If the configuration was found, use this one
+          if (it != null) return@let it
 
-        val runnerAndConfigSettings = runManager.createConfiguration(
-          AndroidBaselineProfileRunConfigurationType.NAME,
-          AndroidBaselineProfileRunConfigurationType.getInstance().factory
-        )
-        runManager.addConfiguration(runnerAndConfigSettings)
-        return@let runnerAndConfigSettings
-      }
+          val runnerAndConfigSettings =
+            runManager.createConfiguration(
+              AndroidBaselineProfileRunConfigurationType.NAME,
+              AndroidBaselineProfileRunConfigurationType.getInstance().factory,
+            )
+          runManager.addConfiguration(runnerAndConfigSettings)
+          return@let runnerAndConfigSettings
+        }
 
     // If the configuration is not selected, if fails says it cannot run on the selected target.
     // Selecting this gradle configuration also disables the target selection.
@@ -307,4 +303,3 @@ class BaselineProfileAction : AnAction() {
     ProgramRunnerUtil.executeConfiguration(runConfiguration, DefaultRunExecutor.getRunExecutorInstance())
   }
 }
-

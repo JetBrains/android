@@ -38,34 +38,29 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class DependenciesProcessorTest {
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule().withDeclarative()
-  private val project get() = projectRule.project
+  @get:Rule val projectRule = AndroidGradleProjectRule().withDeclarative()
+  private val project
+    get() = projectRule.project
 
   @Test
   fun simpleAddPluginAndDependency() {
     projectRule.loadProject(SIMPLE_APPLICATION)
     val projectBuildModel = ProjectBuildModel.get(project)
     val appModule = project.findModule("app")
-    val config = DependenciesConfig.defaultConfig().withDependency(
-      DependencyDescription("api", "my.not.existing.dependency:gradle:1.2.3-dev")
-    ).withPlugin(
-      PluginDescription("org.example", "1.0", "org.example.gradle.plugin:gradle")
-    )
+    val config =
+      DependenciesConfig.defaultConfig()
+        .withDependency(DependencyDescription("api", "my.not.existing.dependency:gradle:1.2.3-dev"))
+        .withPlugin(PluginDescription("org.example", "1.0", "org.example.gradle.plugin:gradle"))
     WriteCommandAction.runWriteCommandAction(project) {
       DependenciesProcessor(projectBuildModel).apply(config, appModule)
       projectBuildModel.applyChanges()
     }
     runReadAction {
+      assertThat(project.getTextForFile("build.gradle")).contains("classpath 'org.example.gradle.plugin:gradle:1.0'")
 
-      assertThat(project.getTextForFile("build.gradle"))
-        .contains("classpath 'org.example.gradle.plugin:gradle:1.0'")
+      assertThat(project.getTextForFile("app/build.gradle")).contains("api 'my.not.existing.dependency:gradle:1.2.3-dev'")
 
-      assertThat(project.getTextForFile("app/build.gradle"))
-        .contains("api 'my.not.existing.dependency:gradle:1.2.3-dev'")
-
-      assertThat(project.getTextForFile("app/build.gradle"))
-        .contains("apply plugin: 'org.example'")
+      assertThat(project.getTextForFile("app/build.gradle")).contains("apply plugin: 'org.example'")
     }
   }
 
@@ -75,15 +70,18 @@ class DependenciesProcessorTest {
     val projectBuildModel = ProjectBuildModel.get(project)
     val appModule = project.findModule("app")
     val env = BuildEnvironment.getInstance()
-    val config = DependenciesConfig.defaultConfig().withDependency(
-      DependencyDescription("api", "my.not.existing.dependency:gradle:1.2.3-dev")
-    ).withPlugin(
-      PluginDescription("com.android.application",
-                        env.gradlePluginVersion,
-                        "com.android.tools.build:gradle:${env.gradlePluginVersion}",
-                        "com.android.ecosystem",
-                        env.gradlePluginVersion)
-    )
+    val config =
+      DependenciesConfig.defaultConfig()
+        .withDependency(DependencyDescription("api", "my.not.existing.dependency:gradle:1.2.3-dev"))
+        .withPlugin(
+          PluginDescription(
+            "com.android.application",
+            env.gradlePluginVersion,
+            "com.android.tools.build:gradle:${env.gradlePluginVersion}",
+            "com.android.ecosystem",
+            env.gradlePluginVersion,
+          )
+        )
     WriteCommandAction.runWriteCommandAction(project) {
       DependenciesProcessor(projectBuildModel).apply(config, appModule)
       projectBuildModel.applyChanges()
@@ -92,9 +90,7 @@ class DependenciesProcessorTest {
       assertThat(project.getTextForFile("settings.gradle.dcl"))
         .contains("id(\"com.android.ecosystem\").version(\"${env.gradlePluginVersion}\")")
 
-      assertThat(project.getTextForFile("app/build.gradle.dcl"))
-        .contains("androidApp {")
+      assertThat(project.getTextForFile("app/build.gradle.dcl")).contains("androidApp {")
     }
   }
-
 }

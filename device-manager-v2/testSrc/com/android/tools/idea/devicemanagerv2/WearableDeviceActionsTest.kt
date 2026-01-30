@@ -45,19 +45,15 @@ class WearableDeviceActionsTest {
       }
     )
 
-  private suspend fun createTestEventWithDeviceRowData(action: AnAction): AnActionEvent =
-    coroutineScope {
-      TestActionEvent.createTestEvent(
-        action,
-        SimpleDataContext.getSimpleContext(
-          DEVICE_ROW_DATA_KEY,
-          DeviceRowData.create(
-            FakeDeviceHandle(this, wearDeviceTemplate, wearDeviceTemplate.properties),
-            emptyList(),
-          ),
-        ),
-      )
-    }
+  private suspend fun createTestEventWithDeviceRowData(action: AnAction): AnActionEvent = coroutineScope {
+    TestActionEvent.createTestEvent(
+      action,
+      SimpleDataContext.getSimpleContext(
+        DEVICE_ROW_DATA_KEY,
+        DeviceRowData.create(FakeDeviceHandle(this, wearDeviceTemplate, wearDeviceTemplate.properties), emptyList()),
+      ),
+    )
+  }
 
   @Test
   fun testActionsDefaultState() {
@@ -151,17 +147,10 @@ class WearableDeviceActionsTest {
         pairAction,
         SimpleDataContext.getSimpleContext(
           DEVICE_ROW_DATA_KEY,
-          DeviceRowData.create(
-            FakeDeviceHandle(this, deviceTemplate, deviceTemplate.properties),
-            emptyList(),
-          ),
+          DeviceRowData.create(FakeDeviceHandle(this, deviceTemplate, deviceTemplate.properties), emptyList()),
         ),
       )
-    WearPairingManager.getInstance()
-      .loadSettings(
-        listOf(PairingDeviceState("wearPairing1"), PairingDeviceState("phonePairing1")),
-        listOf(),
-      )
+    WearPairingManager.getInstance().loadSettings(listOf(PairingDeviceState("wearPairing1"), PairingDeviceState("phonePairing1")), listOf())
 
     pairAction.update(event)
     // Pair action should not be available for non-emulator wear devices
@@ -187,17 +176,10 @@ class WearableDeviceActionsTest {
         pairAction,
         SimpleDataContext.getSimpleContext(
           DEVICE_ROW_DATA_KEY,
-          DeviceRowData.create(
-            FakeDeviceHandle(this, deviceTemplate, deviceTemplate.properties),
-            emptyList(),
-          ),
+          DeviceRowData.create(FakeDeviceHandle(this, deviceTemplate, deviceTemplate.properties), emptyList()),
         ),
       )
-    WearPairingManager.getInstance()
-      .loadSettings(
-        listOf(PairingDeviceState("wearPairing1"), PairingDeviceState("phonePairing1")),
-        listOf(),
-      )
+    WearPairingManager.getInstance().loadSettings(listOf(PairingDeviceState("wearPairing1"), PairingDeviceState("phonePairing1")), listOf())
 
     pairAction.update(event)
     // Pair action should be available for physical phone devices
@@ -224,17 +206,10 @@ class WearableDeviceActionsTest {
         pairAction,
         SimpleDataContext.getSimpleContext(
           DEVICE_ROW_DATA_KEY,
-          DeviceRowData.create(
-            FakeDeviceHandle(this, deviceTemplate, deviceTemplate.properties),
-            emptyList(),
-          ),
+          DeviceRowData.create(FakeDeviceHandle(this, deviceTemplate, deviceTemplate.properties), emptyList()),
         ),
       )
-    WearPairingManager.getInstance()
-      .loadSettings(
-        listOf(PairingDeviceState("wearPairing1"), PairingDeviceState("phonePairing1")),
-        listOf(),
-      )
+    WearPairingManager.getInstance().loadSettings(listOf(PairingDeviceState("wearPairing1"), PairingDeviceState("phonePairing1")), listOf())
 
     pairAction.update(event)
     // Pair action should be available for remote phone devices

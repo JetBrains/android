@@ -30,11 +30,7 @@ class CanvasResizeInteractionTest : SceneTest() {
   override fun createModel(): ModelBuilder =
     model(
       "linear.xml",
-      component(SdkConstants.LINEAR_LAYOUT)
-        .withMockView()
-        .withBounds(0, 0, 90, 90)
-        .matchParentWidth()
-        .matchParentHeight(),
+      component(SdkConstants.LINEAR_LAYOUT).withMockView().withBounds(0, 0, 90, 90).matchParentWidth().matchParentHeight(),
     )
 
   fun testCanvasClickWithoutDragKeepsStartingSize() {
@@ -45,12 +41,7 @@ class CanvasResizeInteractionTest : SceneTest() {
         object : ResizeTracker {
           override fun isApplicable(sceneManager: SceneManager): Boolean = true
 
-          override fun reportResizeStopped(
-            sceneManager: SceneManager,
-            widthDp: Int,
-            heightDp: Int,
-            dpi: Int,
-          ) {
+          override fun reportResizeStopped(sceneManager: SceneManager, widthDp: Int, heightDp: Int, dpi: Int) {
             assertTrue(widthDp != 0)
             assertTrue(heightDp != 0)
             resizeReported = true
@@ -61,15 +52,9 @@ class CanvasResizeInteractionTest : SceneTest() {
     )
 
     val configuration = mySceneManager.model.configuration
-    val canvasResizeInteraction =
-      CanvasResizeInteraction(
-        myScene.designSurface as NlDesignSurface,
-        myScreen.screen,
-        configuration,
-      )
+    val canvasResizeInteraction = CanvasResizeInteraction(myScene.designSurface as NlDesignSurface, myScreen.screen, configuration)
 
-    val mouseEvent =
-      MouseReleasedEvent(MouseEventBuilder(90, 90).build(), InteractionInformation(90, 90, 0))
+    val mouseEvent = MouseReleasedEvent(MouseEventBuilder(90, 90).build(), InteractionInformation(90, 90, 0))
     canvasResizeInteraction.commit(mouseEvent)
     assertFalse("Resize should not happen if the mouse is not dragged", resizeReported)
   }

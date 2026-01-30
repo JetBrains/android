@@ -49,21 +49,12 @@ class LeftPanelViewTest {
   private val disposable
     get() = disposableRule.disposable
 
-  @get:Rule
-  val rule = RuleChain(projectRule, disposableRule, WaitForIndexRule(projectRule), EdtRule())
+  @get:Rule val rule = RuleChain(projectRule, disposableRule, WaitForIndexRule(projectRule), EdtRule())
 
   private val inspectorListener = FakeInspectorListener()
-  private val inspectorView by lazy {
-    DatabaseInspectorViewImpl(project, disposable).apply { listeners.add(inspectorListener) }
-  }
+  private val inspectorView by lazy { DatabaseInspectorViewImpl(project, disposable).apply { listeners.add(inspectorListener) } }
 
-  private val schema =
-    SqliteSchema(
-      listOf(
-        SqliteTable("t1", emptyList(), null, false),
-        SqliteTable("t2", emptyList(), null, false),
-      )
-    )
+  private val schema = SqliteSchema(listOf(SqliteTable("t1", emptyList(), null, false), SqliteTable("t2", emptyList(), null, false)))
   private val database1 = SqliteDatabaseId.fromLiveDatabase("db1", 1)
   private val database2 = SqliteDatabaseId.fromLiveDatabase("db2", 2)
   private val database3 = SqliteDatabaseId.fromLiveDatabase("db3", 3)
@@ -113,11 +104,7 @@ class LeftPanelViewTest {
     val view = LeftPanelView(inspectorView)
     val tree = view.component.descendantByName<JTree>("left-panel-tree")
 
-    view.addDatabaseSchema(
-      ViewDatabase(SqliteDatabaseId.fromLiveDatabase("db", 1, apiClassName = "Foo"), true),
-      schema,
-      0,
-    )
+    view.addDatabaseSchema(ViewDatabase(SqliteDatabaseId.fromLiveDatabase("db", 1, apiClassName = "Foo"), true), schema, 0)
 
     assertThat(tree.getChildText(0)).isEqualTo("db Foo")
   }
@@ -127,11 +114,7 @@ class LeftPanelViewTest {
     val view = LeftPanelView(inspectorView)
     val tree = view.component.descendantByName<JTree>("left-panel-tree")
 
-    view.addDatabaseSchema(
-      ViewDatabase(SqliteDatabaseId.fromLiveDatabase("db", 1, apiClassName = null), true),
-      schema,
-      0,
-    )
+    view.addDatabaseSchema(ViewDatabase(SqliteDatabaseId.fromLiveDatabase("db", 1, apiClassName = null), true), schema, 0)
 
     assertThat(tree.getChildText(0)).isEqualTo("db")
   }
@@ -184,8 +167,7 @@ class LeftPanelViewTest {
   }
 }
 
-private inline fun <reified T : Component> Component.descendantByName(name: String): T =
-  getDescendant(T::class.java) { it.name == name }
+private inline fun <reified T : Component> Component.descendantByName(name: String): T = getDescendant(T::class.java) { it.name == name }
 
 private fun JTree.selectPath(db: SqliteDatabaseId?, table: String?) {
   val model = model as DefaultTreeModel
@@ -204,19 +186,11 @@ private fun JTree.selectPath(db: SqliteDatabaseId?, table: String?) {
   selectionModel.selectionPath = TreePath(path.toTypedArray())
 }
 
-private fun DefaultTreeModel.getChildren(parent: Any) =
-  List(getChildCount(parent)) { getChild(parent, it) as DefaultMutableTreeNode }
+private fun DefaultTreeModel.getChildren(parent: Any) = List(getChildCount(parent)) { getChild(parent, it) as DefaultMutableTreeNode }
 
 private fun JTree.getChildText(index: Int): String {
   val component =
-    cellRenderer.getTreeCellRendererComponent(
-      this,
-      model.getChild(model.root, index),
-      false,
-      false,
-      false,
-      0,
-      false,
-    ) as SimpleColoredComponent
+    cellRenderer.getTreeCellRendererComponent(this, model.getChild(model.root, index), false, false, false, 0, false)
+      as SimpleColoredComponent
   return component.getCharSequence(false).toString()
 }

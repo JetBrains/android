@@ -32,8 +32,8 @@ enum class ComposePreviewRefreshType(override val priority: Int) : RefreshType {
   NORMAL(3),
 
   /**
-   * Previews from the same Composable are not re-inflated (i.e. only new Previews are inflated).
-   * See [ComposePreviewRepresentation.requestRefresh].
+   * Previews from the same Composable are not re-inflated (i.e. only new Previews are inflated). See
+   * [ComposePreviewRepresentation.requestRefresh].
    */
   QUICK(2),
 
@@ -44,16 +44,14 @@ enum class ComposePreviewRefreshType(override val priority: Int) : RefreshType {
 /**
  * A [PreviewRefreshRequest] specific for Compose Preview.
  *
- * @param surface the surface where the previews are located. Actually used for finding the
- *   application id when tracking refresh metrics.
+ * @param surface the surface where the previews are located. Actually used for finding the application id when tracking refresh metrics.
  * @param clientId see [PreviewRefreshRequest.clientId]
  * @param delegateRefresh method responsible for performing the refresh
- * @param onRefreshCompleted optional completable that will be completed once the refresh is
- *   completed. If the request is skipped and replaced with another one, then this completable will
- *   be completed when the other one is completed. If the refresh gets cancelled, this completable
- *   will be completed exceptionally.
- * @param refreshType a [ComposePreviewRefreshType] value used for prioritizing the requests and
- *   that could influence the logic in [delegateRefresh].
+ * @param onRefreshCompleted optional completable that will be completed once the refresh is completed. If the request is skipped and
+ *   replaced with another one, then this completable will be completed when the other one is completed. If the refresh gets cancelled, this
+ *   completable will be completed exceptionally.
+ * @param refreshType a [ComposePreviewRefreshType] value used for prioritizing the requests and that could influence the logic in
+ *   [delegateRefresh].
  * @param requestId identifier used for testing and logging/debugging.
  */
 class ComposePreviewRefreshRequest(
@@ -71,11 +69,7 @@ class ComposePreviewRefreshRequest(
       delegateRefresh = { delegateRefresh(this) },
       onRefreshCompleted = onRefreshCompleted,
       refreshType = refreshType,
-      refreshEventBuilder =
-        PreviewRefreshEventBuilder(
-          PreviewRefreshEvent.PreviewType.COMPOSE,
-          PreviewRefreshTracker.getInstance(surface),
-        ),
+      refreshEventBuilder = PreviewRefreshEventBuilder(PreviewRefreshEvent.PreviewType.COMPOSE, PreviewRefreshTracker.getInstance(surface)),
       requestId = requestId,
     )
 
@@ -88,8 +82,7 @@ class ComposePreviewRefreshRequest(
 
   override fun doRefresh() = delegate.doRefresh()
 
-  override fun onRefreshCompleted(result: RefreshResult, throwable: Throwable?) =
-    delegate.onRefreshCompleted(result, throwable)
+  override fun onRefreshCompleted(result: RefreshResult, throwable: Throwable?) = delegate.onRefreshCompleted(result, throwable)
 
   override fun onSkip(replacedBy: PreviewRefreshRequest) {
     delegate.onSkip((replacedBy as ComposePreviewRefreshRequest).delegate)

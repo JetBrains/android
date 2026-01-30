@@ -64,15 +64,13 @@ enum class InspectorSection(val title: String) {
 
       override fun setSelected(event: AnActionEvent, state: Boolean) {
         visible = !visible
-        getPropertiesToolContent(event.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT))
-          ?.firePropertiesGenerated()
+        getPropertiesToolContent(event.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT))?.firePropertiesGenerated()
       }
 
       override fun update(event: AnActionEvent) {
         super.update(event)
         event.presentation.isVisible =
-          getPropertiesToolContent(event.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT))
-            ?.isInspectorSectionsActive ?: false
+          getPropertiesToolContent(event.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT))?.isInspectorSectionsActive ?: false
       }
     }
 }

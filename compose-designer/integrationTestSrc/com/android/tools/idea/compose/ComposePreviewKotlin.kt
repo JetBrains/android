@@ -19,16 +19,13 @@ import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
+import java.nio.file.Path
+import java.util.concurrent.TimeUnit
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.nio.file.Path
-import java.util.concurrent.TimeUnit
 
-/**
- * Note: the "Kotlin" in the name of this is because the test ensures Compose Preview works on
- * Kotlin files (as opposed to XML files).
- */
+/** Note: the "Kotlin" in the name of this is because the test ensures Compose Preview works on Kotlin files (as opposed to XML files). */
 class ComposePreviewKotlin {
 
   @get:Rule val system = AndroidSystem.standard()
@@ -45,9 +42,7 @@ class ComposePreviewKotlin {
     system.installRepo(MavenRepo("tools/adt/idea/compose-designer/compose_preview_deps.manifest"))
 
     // Enable ComposePreviewKotlin
-    system.installation.addVmOption(
-      "-Didea.log.debug.categories=#com.android.tools.idea.compose.preview.ComposePreviewRepresentation"
-    )
+    system.installation.addVmOption("-Didea.log.debug.categories=#com.android.tools.idea.compose.preview.ComposePreviewRepresentation")
   }
 
   @Test
@@ -56,10 +51,7 @@ class ComposePreviewKotlin {
       studio.waitForSync()
       studio.waitForIndex()
 
-      val path: Path =
-        project.targetProject.resolve(
-          "app/src/main/java/com/example/composepreviewtest/MainActivity.kt"
-        )
+      val path: Path = project.targetProject.resolve("app/src/main/java/com/example/composepreviewtest/MainActivity.kt")
       studio.openFile("ComposePreviewTest", path.toString())
 
       // Ensure the instructions component is visible. It's the one that says "A successful build

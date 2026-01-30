@@ -42,18 +42,15 @@ import org.jetbrains.android.dom.layout.Layout
 import org.jetbrains.annotations.Contract
 
 /**
- * Used to suggest completions related to data-binding. This is used in the expressions (`@{...}`) and in
- * `<variable type='...'>` and `<import type='...'>` tags.
+ * Used to suggest completions related to data-binding. This is used in the expressions (`@{...}`) and in `<variable type='...'>` and
+ * `<import type='...'>` tags.
  */
 class DataBindingCompletionSupportImpl : DataBindingCompletionSupport {
   companion object {
     /**
      * Finds the relevant package prefix given the current offset position.
      *
-     * "abc.def.ghi.|" -> "abc.def.ghi"
-     * "   abc.def.ghi.|" -> "abc.def.ghi"
-     * "abc.def.ghi.Cl|ass" -> "abc.def.ghi"
-     * "abc.de|f.ghi" -> "abc"
+     * "abc.def.ghi.|" -> "abc.def.ghi" " abc.def.ghi.|" -> "abc.def.ghi" "abc.def.ghi.Cl|ass" -> "abc.def.ghi" "abc.de|f.ghi" -> "abc"
      * "ab|c.def.ghi" -> ""
      */
     private fun getPackagePrefix(context: PsiElement, offset: Int): String {
@@ -61,8 +58,8 @@ class DataBindingCompletionSupportImpl : DataBindingCompletionSupport {
     }
 
     /**
-     * Note: Originally copied from [AllClassesGetter] because it was private.
-     * (The method has since been moved to [LimitedAccessibleClassPreprocessor.getPackagePrefix].)
+     * Note: Originally copied from [AllClassesGetter] because it was private. (The method has since been moved to
+     * [LimitedAccessibleClassPreprocessor.getPackagePrefix].)
      */
     @VisibleForTesting
     fun getPackagePrefix(text: CharSequence, offset: Int): String {
@@ -92,11 +89,13 @@ class DataBindingCompletionSupportImpl : DataBindingCompletionSupport {
    *
    * @param resultSet the set to add the suggestions to.
    */
-  private fun fillAliases(resultSet: CompletionResultSet,
-                          packagePrefix: String,
-                          originalPosition: PsiElement,
-                          module: Module,
-                          originalParent: PsiElement) {
+  private fun fillAliases(
+    resultSet: CompletionResultSet,
+    packagePrefix: String,
+    originalPosition: PsiElement,
+    module: Module,
+    originalParent: PsiElement,
+  ) {
     val containingFile = getRealContainingFile(originalParent.containingFile)
     if (containingFile !is XmlFile) return
 
@@ -124,8 +123,7 @@ class DataBindingCompletionSupportImpl : DataBindingCompletionSupport {
             resultSet.addElement(getClassReferenceElement(alias, aClass))
           }
         }
-      }
-      else {
+      } else {
         // If here, we're trying to autocomplete in the context of a package, e.g. "java.util." or "java.util.Lis"
         // At this point, most imports (which provide a single-name alias) don't apply, unless we
         // happen to be trying to autocomplete an inner class, e.g. "Map.Entr", which produces a packagePrefix "Map"
@@ -142,16 +140,15 @@ class DataBindingCompletionSupportImpl : DataBindingCompletionSupport {
         // fqcn <- "java.util.Map.Entry"
         val fqcn = packagePrefix.replaceFirst(alias, type)
         val aClass = facade.findClass(fqcn, moduleScope) ?: continue
-        aClass.innerClasses.asSequence()
+        aClass.innerClasses
+          .asSequence()
           .filter { innerClass -> innerClass.name != null }
           .forEach { innerClass -> resultSet.addElement(getClassReferenceElement(innerClass.name!!, innerClass)) }
       }
     }
   }
 
-  private fun fillClassNames(resultSet: CompletionResultSet,
-                             packagePrefix: String,
-                             module: Module) {
+  private fun fillClassNames(resultSet: CompletionResultSet, packagePrefix: String, module: Module) {
     val project = module.project
     val javaPsiFacade = JavaPsiFacade.getInstance(project)
     val rootPackage = javaPsiFacade.findPackage(packagePrefix)
@@ -166,19 +163,18 @@ class DataBindingCompletionSupportImpl : DataBindingCompletionSupport {
           resultSet.addElement(JavaPsiClassReferenceElement(innerClass))
         }
       }
-    }
-    else {
+    } else {
       // If here, we are grounded to some package (or maybe no package, i.e. top-level).
       // Either way, add all direct subpackages.
-      rootPackage.getSubPackages(moduleScope).asSequence()
+      rootPackage
+        .getSubPackages(moduleScope)
+        .asSequence()
         // Make sure that the package contains some useful content before suggesting it. Without this check,
         // many res folders also show up as package suggestions - eg. drawable-hdpi, which is clearly not a package.
         .filter { pkg -> pkg.getSubPackages(moduleScope).isNotEmpty() || pkg.getClasses(moduleScope).isNotEmpty() }
         // pkg.name is always non-null for subpackages
         .filter { pkg -> pkg.name!!.all { char -> Character.isJavaIdentifierPart(char) } }
-        .forEach { pkg ->
-          resultSet.addElement(LookupElementBuilder.createWithIcon(pkg).withTypeDecorator(TailTypes.dotType()))
-        }
+        .forEach { pkg -> resultSet.addElement(LookupElementBuilder.createWithIcon(pkg).withTypeDecorator(TailTypes.dotType())) }
 
       if (rootPackage.name.isNullOrEmpty()) {
         // If here, we're typing an unqualified name (e.g. "AtomicBo|"). At this point, add all
@@ -186,8 +182,7 @@ class DataBindingCompletionSupportImpl : DataBindingCompletionSupport {
         // package.
         val query = AllClassesSearch.search(moduleScope, project)
         query.findAll().forEach { psiClass -> resultSet.addElement(JavaPsiClassReferenceElement(psiClass)) }
-      }
-      else {
+      } else {
         // If in a subpackage (e.g. "a.b.c"), only add classes directly under that package.
         for (psiClass in rootPackage.getClasses(moduleScope)) {
           resultSet.addElement(JavaPsiClassReferenceElement(psiClass))

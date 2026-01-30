@@ -21,16 +21,12 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.TestOnly
 
-/**
- * [AbstractBooleanPropertyDefaultRefactoringProcessor] for the `android.builtInKotlin` Boolean
- * property.
- */
+/** [AbstractBooleanPropertyDefaultRefactoringProcessor] for the `android.builtInKotlin` Boolean property. */
 class BuiltInKotlinDefaultRefactoringProcessor : AbstractBooleanPropertyDefaultRefactoringProcessor {
 
-  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
-  @TestOnly
-  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
+  @TestOnly constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
 
   override val upgradeEventKind = UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.BUILT_IN_KOTLIN_DEFAULT
   override val propertyKey = "android.builtInKotlin"
@@ -42,6 +38,8 @@ class BuiltInKotlinDefaultRefactoringProcessor : AbstractBooleanPropertyDefaultR
   override val usageViewHeader = AgpUpgradeBundle.message("builtInKotlin.default.commandName")
 
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.builtInKotlin.default"
+
   override fun getCommandName() = AgpUpgradeBundle.message("builtInKotlin.default.commandName")
+
   override fun getShortDescription() = AgpUpgradeBundle.message("builtInKotlin.default.shortDescription")
 }

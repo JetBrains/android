@@ -30,11 +30,11 @@ private const val DEFAULT_SIZE = 50
 data class BuilderInfo(val date: Date, val builder: AndroidStudioEvent.Builder)
 
 /**
- * MetricsLogFileProvider maintains a circular buffer of the most recent messages logged to the metrics infrastructure.
- * When queried it will write these messages to a file in the logs directory for inclusion in the diagnostics summary file.
+ * MetricsLogFileProvider maintains a circular buffer of the most recent messages logged to the metrics infrastructure. When queried it will
+ * write these messages to a file in the logs directory for inclusion in the diagnostics summary file.
  */
-class MetricsLogFileProvider(private val pathProvider: PathProvider,
-                             private val size: Int = DEFAULT_SIZE) : DiagnosticsSummaryFileProvider {
+class MetricsLogFileProvider(private val pathProvider: PathProvider, private val size: Int = DEFAULT_SIZE) :
+  DiagnosticsSummaryFileProvider {
   override val name: String = "Metrics"
   private val builders = arrayOfNulls<BuilderInfo>(size)
   private var index = 0

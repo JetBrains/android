@@ -29,9 +29,6 @@ data class ErrorThrown(val error: Throwable?) : ChangeEvent {
     provider: InsightsProvider,
     cache: AppInsightsCache,
   ): StateTransition<Action> {
-    return StateTransition(
-      state.copy(issues = LoadingState.UnknownFailure(null, error)),
-      Action.NONE,
-    )
+    return StateTransition(state.copy(issues = LoadingState.UnknownFailure(null, error)), Action.NONE)
   }
 }

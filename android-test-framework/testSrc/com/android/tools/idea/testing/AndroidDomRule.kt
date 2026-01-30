@@ -26,8 +26,7 @@ import org.junit.rules.ExternalResource
 import org.junit.rules.RuleChain
 
 /**
- * A rule useful for running semantic highlighting / completion tests against various Android
- * classes.
+ * A rule useful for running semantic highlighting / completion tests against various Android classes.
  *
  * This rule isn't useful without a fixture - to get one, using a JUnit [RuleChain] is recommended:
  *
@@ -40,15 +39,14 @@ import org.junit.rules.RuleChain
  */
 class AndroidDomRule(
   /**
-   * The root path in the Android project that all files we're testing / highlighting should exist
-   * under, e.g. 'res/layout'. The location of a file gives the system more context about which sort
-   * of completions should be enabled.
+   * The root path in the Android project that all files we're testing / highlighting should exist under, e.g. 'res/layout'. The location of
+   * a file gives the system more context about which sort of completions should be enabled.
    */
   private val pathRoot: String,
 
   /**
-   * A callback that returns a completed fixture. This won't get called until [before] happens,
-   * allowing another rule time to initialize the fixture.
+   * A callback that returns a completed fixture. This won't get called until [before] happens, allowing another rule time to initialize the
+   * fixture.
    */
   private val fixtureProvider: () -> CodeInsightTestFixture,
 ) : ExternalResource() {
@@ -65,18 +63,15 @@ class AndroidDomRule(
     )
   }
 
-  /**
-   * Convenience method for copying the target `file` over and calling
-   * [CodeInsightTestFixture.configureFromExistingVirtualFile] on it.
-   */
+  /** Convenience method for copying the target `file` over and calling [CodeInsightTestFixture.configureFromExistingVirtualFile] on it. */
   private fun copyAndConfigure(file: String) {
     val virtualFile = fixture.copyFileToProject(file, "$pathRoot/$file")
     fixture.configureFromExistingVirtualFile(virtualFile)
   }
 
   /**
-   * Given a properly formatted file with highlight warnings and errors marked within it, verify
-   * that its state matches what actually happens when you execute a highlight pass.
+   * Given a properly formatted file with highlight warnings and errors marked within it, verify that its state matches what actually
+   * happens when you execute a highlight pass.
    */
   fun testHighlighting(file: String) {
     copyAndConfigure(file)
@@ -84,10 +79,9 @@ class AndroidDomRule(
   }
 
   /**
-   * Assert that an expected code transformation happens after executing a target write action,
-   * given a before / after set of files, with the prior indicating a caret position and the latter
-   * indicating what the file should look like after executing a write action at that caret
-   * position.
+   * Assert that an expected code transformation happens after executing a target write action, given a before / after set of files, with
+   * the prior indicating a caret position and the latter indicating what the file should look like after executing a write action at that
+   * caret position.
    */
   fun testWriteAction(fileBefore: String, fileAfter: String, writeAction: Runnable) {
     copyAndConfigure(fileBefore)
@@ -97,12 +91,11 @@ class AndroidDomRule(
   }
 
   /**
-   * Assert that expected code completion happens, given a before / after set of files, with the
-   * prior indicating a caret position and the latter indicating what the file should look like
-   * after executing a completion action at that caret position.
+   * Assert that expected code completion happens, given a before / after set of files, with the prior indicating a caret position and the
+   * latter indicating what the file should look like after executing a completion action at that caret position.
    *
-   * Note: This test is useful if you expect exactly one completion possibility. If you want to test
-   * for multiple possible completion matches, use [getCompletionResults] instead.
+   * Note: This test is useful if you expect exactly one completion possibility. If you want to test for multiple possible completion
+   * matches, use [getCompletionResults] instead.
    */
   fun testCompletion(fileBefore: String, fileAfter: String) {
     copyAndConfigure(fileBefore)
@@ -111,8 +104,8 @@ class AndroidDomRule(
   }
 
   /**
-   * Given a file which indicates a caret position, return the list of completion choices that
-   * should show up when executing a completion action at that caret position.
+   * Given a file which indicates a caret position, return the list of completion choices that should show up when executing a completion
+   * action at that caret position.
    */
   fun getCompletionResults(file: String): List<String> {
     copyAndConfigure(file)

@@ -23,18 +23,12 @@ import kotlin.math.min
 
 private const val MARGIN = 20
 
-/**
- * The [IssueListener] of [DesignSurface]. TODO?: Consider to move as inner class of
- * [DesignSurface]?
- */
+/** The [IssueListener] of [DesignSurface]. TODO?: Consider to move as inner class of [DesignSurface]? */
 class DesignSurfaceIssueListenerImpl(val surface: DesignSurface<*>) : IssueListener {
   override fun onIssueSelected(issue: Issue?) {
     when (val source = issue?.source) {
       is VisualLintIssueProvider.VisualLintIssueSource -> {
-        val sceneViews =
-          surface.sceneManagers
-            .filter { source.models.contains(it.model) }
-            .flatMap { it.sceneViews }
+        val sceneViews = surface.sceneManagers.filter { source.models.contains(it.model) }.flatMap { it.sceneViews }
         if (sceneViews.isEmpty()) {
           return
         }

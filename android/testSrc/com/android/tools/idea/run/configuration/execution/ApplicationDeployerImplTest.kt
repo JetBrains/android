@@ -25,7 +25,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-
 class ApplicationDeployerImplTest {
 
   private val fakeAdbRule = FakeAdbServerAdbLibRule()
@@ -34,8 +33,7 @@ class ApplicationDeployerImplTest {
 
   private val projectRule = AndroidProjectRule.onDisk()
 
-  @get:Rule
-  val rule = RuleChain(projectRule, fakeAdbRule)
+  @get:Rule val rule = RuleChain(projectRule, fakeAdbRule)
 
   @Before
   fun setUp() {
@@ -55,12 +53,13 @@ class ApplicationDeployerImplTest {
     AssumeUtil.assumeNotWindows()
 
     fakeAdbRule.connectDevice(
-        deviceId = "device_id",
-        manufacturer = "mfg",
-        deviceModel = "model",
-        release = "10.0.0",
-        sdk = AndroidApiLevel(30),
-        hostConnectionType = DeviceState.HostConnectionType.USB)
+      deviceId = "device_id",
+      manufacturer = "mfg",
+      deviceModel = "model",
+      release = "10.0.0",
+      sdk = AndroidApiLevel(30),
+      hostConnectionType = DeviceState.HostConnectionType.USB,
+    )
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     val runStat = RunStatsService.get(projectRule.project).create()

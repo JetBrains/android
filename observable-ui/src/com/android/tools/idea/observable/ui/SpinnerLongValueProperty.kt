@@ -20,9 +20,7 @@ import javax.swing.JSpinner
 import javax.swing.event.ChangeEvent
 import javax.swing.event.ChangeListener
 
-/**
- * [AbstractProperty] that wraps a [JSpinner] and exposes its value.
- */
+/** [AbstractProperty] that wraps a [JSpinner] and exposes its value. */
 class SpinnerLongValueProperty(private val spinner: JSpinner) : AbstractProperty<Long>(), ChangeListener {
 
   init {

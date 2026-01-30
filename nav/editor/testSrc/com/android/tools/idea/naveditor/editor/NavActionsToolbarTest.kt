@@ -49,8 +49,7 @@ class NavActionsToolbarTest : NavTestCase() {
     whenever(actionManager.getPopupMenuActions(any(), any())).thenReturn(DefaultActionGroup())
     // We use any ?: Collections.emptyList() below because any() returns null and Kotlin will
     // complain during the null checking
-    whenever(actionManager.getToolbarActions(Mockito.any() ?: Collections.emptyList()))
-      .thenReturn(DefaultActionGroup())
+    whenever(actionManager.getToolbarActions(Mockito.any() ?: Collections.emptyList())).thenReturn(DefaultActionGroup())
     ActionsToolbar(project, surface)
 
     val components = listOf(model.treeReader.find("root")!!)

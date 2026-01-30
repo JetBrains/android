@@ -29,7 +29,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 @RunWith(Parameterized::class)
-class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : ProguardR8TestCase() {
+class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType) : ProguardR8TestCase() {
 
   private fun createParameterList(vararg types: String): PsiParameterList {
     val psiTypes = types.map { elementFactory.createTypeFromText(it, null) }.toTypedArray()
@@ -37,24 +37,27 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
     return elementFactory.createParameterList(names.toTypedArray(), psiTypes)
   }
 
-  private fun getTypeUnderCaret() =
-    myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassMember>()!!.type
+  private fun getTypeUnderCaret() = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassMember>()!!.type
 
   @Test
   fun testResolvePsiClassFromQualifiedName() {
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       package test;
 
       class MyClass {}
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     myFixture.configureByText(
       fileType,
       """
       -keep class test.MyClas${caret}s {}
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     val qName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8QualifiedName>()
 
@@ -65,7 +68,7 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
   @Test
   fun testResolveInnerPsiClassFromQualifiedName() {
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       package test;
 
@@ -74,12 +77,11 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
           class SecondInner {}
         }
       }
-    """.trimIndent())
-
-    myFixture.configureByText(
-      fileType,
-      " -keep class test.MyClass\$Inner\$Second${caret}Inner {}"
+      """
+        .trimIndent()
     )
+
+    myFixture.configureByText(fileType, " -keep class test.MyClass\$Inner\$Second${caret}Inner {}")
     val qName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8QualifiedName>()!!
 
     assertThat(qName.resolveToPsiClass()).isEqualTo(myFixture.findClass("test.MyClass.Inner.SecondInner"))
@@ -88,7 +90,7 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
   @Test
   fun testDontResolveInnerClassAfterDot() {
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       package test;
 
@@ -96,12 +98,11 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
         class Inner {
         }
       }
-    """.trimIndent())
-
-    myFixture.configureByText(
-      fileType,
-      " -keep class test.MyClass.${caret}Inner {}"
+      """
+        .trimIndent()
     )
+
+    myFixture.configureByText(fileType, " -keep class test.MyClass.${caret}Inner {}")
     val qName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8QualifiedName>()!!
 
     assertThat(qName.resolveToPsiClass()).isNull()
@@ -110,31 +111,37 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
   @Test
   fun testResolvePsiClassFromQualifiedNameInQuotes() {
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       package test;
 
       class MyClass {}
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    //double quotes
+    // double quotes
     myFixture.configureByText(
       fileType,
       """
       -keep class "test.MyClas${caret}s" {}
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     var qName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8QualifiedName>()
 
     assertThat(qName).isNotNull()
     assertThat(qName!!.resolveToPsiClass()).isEqualTo(myFixture.findClass("test.MyClass"))
 
-    //single quotes
+    // single quotes
     myFixture.configureByText(
       fileType,
       """
       -keep class 'test.MyClas${caret}s' {}
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     qName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8QualifiedName>()
 
@@ -146,7 +153,9 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
       fileType,
       """
       -keep class "test.MyClas${caret}s
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     qName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8QualifiedName>()
 
@@ -158,7 +167,9 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
       fileType,
       """
       -keep class test.MyClas${caret}s' {}
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     qName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8QualifiedName>()
 
@@ -169,7 +180,7 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
   @Test
   fun testMatchesArrayType() {
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       package test;
 
@@ -177,7 +188,9 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
         String[] field;
         List<String> field2;
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     myFixture.configureByText(
       fileType,
@@ -186,7 +199,9 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
         java.lang.S${caret}tring[] field;
         java.util.List field2;
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     var type = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8Type>()
     assertThat(type).isNotNull()
@@ -212,7 +227,9 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
         in${caret}t myPrimitive;
         byte myPrimitive2;
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     var primitiveType = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8JavaPrimitive>()
 
@@ -238,7 +255,9 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
         % myAnyPrimitive;
         *** myAnyType;
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     var type = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8Type>()!!
     assertThat(type.matchesPsiType(PsiTypes.booleanType())).isTrue()
@@ -272,7 +291,7 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
         void myMethod(..., int);
         void myMethod(int, ..., int);
         }
-        """
+        """,
     )
 
     myFixture.moveCaret("myMethod(..|.)")
@@ -312,7 +331,9 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
         void myMethod(..., int);
         void myMethod(wildcard**);
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     myFixture.moveCaret("myMethod(i|nt)")
     var parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8Parameters>()!!
@@ -341,11 +362,7 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
     psiParameters = createParameterList(intFQ, intFQ)
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
     // (int, String) != (int, String, String)
-    psiParameters = createParameterList(
-      intFQ,
-      stringFQ,
-      stringFQ
-    )
+    psiParameters = createParameterList(intFQ, stringFQ, stringFQ)
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
     // (int, String) != (int[], String[])
     psiParameters = createParameterList("${intFQ}[]", "${stringFQ}[]")
@@ -381,16 +398,13 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
     myFixture.moveCaret("myMethod(%, java.lan|g.String, %)")
     parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8Parameters>()!!
     // (%, String, %) == (int, String, boolean)
-    psiParameters = createParameterList(
-      intFQ, stringFQ, PsiTypes.booleanType().name)
+    psiParameters = createParameterList(intFQ, stringFQ, PsiTypes.booleanType().name)
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
     // (%, String, %) != (int, String, void)
-    psiParameters = createParameterList(
-      intFQ, stringFQ, PsiTypes.voidType().name)
+    psiParameters = createParameterList(intFQ, stringFQ, PsiTypes.voidType().name)
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
     // (%, String, %) != (int, String, String)
-    psiParameters = createParameterList(
-      intFQ, stringFQ, stringFQ)
+    psiParameters = createParameterList(intFQ, stringFQ, stringFQ)
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
 
     myFixture.moveCaret("myMethod(..|.)")
@@ -399,8 +413,7 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
     psiParameters = createParameterList(intFQ)
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
     // (...) == (int, String, long[])
-    psiParameters = createParameterList(
-      intFQ, stringFQ, "${PsiTypes.longType().name}[]")
+    psiParameters = createParameterList(intFQ, stringFQ, "${PsiTypes.longType().name}[]")
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
     // (...) == ()
     psiParameters = createParameterList()
@@ -412,8 +425,7 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
     psiParameters = createParameterList(intFQ)
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
     // (int, ...) == (int, String, long[])
-    psiParameters = createParameterList(
-      intFQ, stringFQ, "${PsiTypes.longType().name}[]")
+    psiParameters = createParameterList(intFQ, stringFQ, "${PsiTypes.longType().name}[]")
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
     // (int, ...) != ()
     psiParameters = createParameterList()
@@ -449,19 +461,21 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
     myFixture.addFileToProject(
       "MyType.kt",
       """
-        package p1.p2
+      package p1.p2
 
-        class MyType {}
-      """.trimIndent()
+      class MyType {}
+      """
+        .trimIndent(),
     )
 
     myFixture.configureByText(
       fileType,
       """
-        -keep class * {
-          void myMethod(p1.p2.MyType)
-        }
-      """.trimIndent()
+      -keep class * {
+        void myMethod(p1.p2.MyType)
+      }
+      """
+        .trimIndent(),
     )
 
     myFixture.moveCaret("myMethod(p1.p2.MyTyp|e)")
@@ -473,23 +487,33 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
 
   @Test
   fun testResolvePsiClasses() {
-    val superClass = myFixture.addClass("""
-      package p1.p2
+    val superClass =
+      myFixture.addClass(
+        """
+        package p1.p2
 
-      class MySuperClass {}
-    """.trimIndent())
+        class MySuperClass {}
+        """
+          .trimIndent()
+      )
 
-    val myClass = myFixture.addClass("""
-      package p1.p2
+    val myClass =
+      myFixture.addClass(
+        """
+        package p1.p2
 
-      class MyClass extends MySuperClass {}
-    """.trimIndent())
+        class MyClass extends MySuperClass {}
+        """
+          .trimIndent()
+      )
 
     myFixture.configureByText(
       fileType,
       """
           -keep class $caret p1.p2.MyClass
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     var header = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassSpecificationHeader>()!!
     assertThat(header.resolvePsiClasses()).containsExactly(myClass)
@@ -498,7 +522,8 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
       fileType,
       """
           -keep class $caret * implements p1.p2.MyClass
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
     header = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassSpecificationHeader>()!!
     assertThat(header.resolveSuperPsiClasses()).containsExactly(myClass)
@@ -507,7 +532,8 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
       fileType,
       """
           -keep class $caret p1.p2.MyClass extends p1.p2.MySuperClass
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
     header = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassSpecificationHeader>()!!
     assertThat(header.resolvePsiClasses() + header.resolveSuperPsiClasses()).containsExactly(myClass, superClass)
@@ -515,27 +541,32 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
 
   @Test
   fun testResolveToMultiplePsiClasses() {
-    val class1 = myFixture.addClass(
-      """
-      package p1.p2
+    val class1 =
+      myFixture.addClass(
+        """
+        package p1.p2
 
-      class MyClass1 {}
-    """.trimIndent()
-    )
+        class MyClass1 {}
+        """
+          .trimIndent()
+      )
 
-    val class2 = myFixture.addClass(
-      """
-      package p1.p2
+    val class2 =
+      myFixture.addClass(
+        """
+        package p1.p2
 
-      class MyClass2 {}
-    """.trimIndent()
-    )
+        class MyClass2 {}
+        """
+          .trimIndent()
+      )
 
     myFixture.configureByText(
       fileType,
       """
           -keep class $caret p1.p2.MyClass1, p1.p2.MyClass2 
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
 
     val header = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassSpecificationHeader>()!!
@@ -549,13 +580,14 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
     myFixture.configureByText(
       fileType,
       """
-        -keep class test.MyClass {
-          int myMethod();
-          % myMethod();
-          *** myMethod();
-          java.lang.String myMethod();
-        }
-      """.trimIndent()
+      -keep class test.MyClass {
+        int myMethod();
+        % myMethod();
+        *** myMethod();
+        java.lang.String myMethod();
+      }
+      """
+        .trimIndent(),
     )
 
     myFixture.moveCaret("int myM|ethod()")
@@ -580,13 +612,14 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
     myFixture.configureByText(
       fileType,
       """
-        -keep class test.MyClass {
-          int myField;
-          % myField;
-          *** myField;
-          java.lang.String myField;
-        }
-      """.trimIndent()
+      -keep class test.MyClass {
+        int myField;
+        % myField;
+        *** myField;
+        java.lang.String myField;
+      }
+      """
+        .trimIndent(),
     )
 
     myFixture.moveCaret("int myF|ield")
@@ -618,7 +651,9 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
         void myMethod3
             (int);
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     myFixture.moveCaret("myM|ethod1")
     assertThat(getParameters()).isNotNull()
@@ -635,12 +670,13 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
     myFixture.configureByText(
       fileType,
       """
-    -keep class myClass {
-      int NoWildcards;
-      int *;
-      int **wildcard;
-    }
-    """.trimIndent()
+      -keep class myClass {
+        int NoWildcards;
+        int *;
+        int **wildcard;
+      }
+      """
+        .trimIndent(),
     )
 
     myFixture.moveCaret("No|Wildcard")
@@ -661,14 +697,15 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
     myFixture.configureByText(
       fileType,
       """
-    -keep class myClass {
-      public int field1;
-      static int field1;
-      !public int field2;
-      ! public int field3;
-      ! final int field3;
-    }
-    """.trimIndent()
+      -keep class myClass {
+        public int field1;
+        static int field1;
+        !public int field2;
+        ! public int field3;
+        ! final int field3;
+      }
+      """
+        .trimIndent(),
     )
 
     var accessModifier = myFixture.moveCaret("publ|ic int field1").parentOfType<ProguardR8Modifier>()!!
@@ -692,11 +729,12 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
     myFixture.configureByText(
       fileType,
       """
-        -keep class MyClass {
-          java.lang.Object[][] myFunction1();
-          int[][][] myFunction2();
-        }
-      """.trimIndent()
+      -keep class MyClass {
+        java.lang.Object[][] myFunction1();
+        int[][][] myFunction2();
+      }
+      """
+        .trimIndent(),
     )
 
     var type = myFixture.moveCaret("Objec|t").parentOfType<ProguardR8Type>()!!
@@ -711,11 +749,12 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
     myFixture.configureByText(
       fileType,
       """
-        -keep class MyClass {
-          ** myFunction1();
-          **[] myFunction2();
-        }
-      """.trimIndent()
+      -keep class MyClass {
+        ** myFunction1();
+        **[] myFunction2();
+      }
+      """
+        .trimIndent(),
     )
 
     var type = myFixture.moveCaret("*|* myFunction1();").parentOfType<ProguardR8Type>()!!
@@ -732,10 +771,11 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
     myFixture.configureByText(
       fileType,
       """
-        -keep class java.wildCard**.myClass
-        -keep class java.lang.String
-        -keep class *
-      """.trimIndent()
+      -keep class java.wildCard**.myClass
+      -keep class java.lang.String
+      -keep class *
+      """
+        .trimIndent(),
     )
 
     var name = myFixture.moveCaret("java.wildCard**.myCl|ass").parentOfType<ProguardR8QualifiedName>()!!
@@ -753,11 +793,12 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
     myFixture.configureByText(
       fileType,
       """
-        -include file
-        -include "file"
-        -include 'file'
-        -include 'file2
-      """.trimIndent()
+      -include file
+      -include "file"
+      -include 'file'
+      -include 'file2
+      """
+        .trimIndent(),
     )
 
     var file = myFixture.moveCaret("-include fi|le").parentOfType<ProguardR8File>()!!
@@ -780,8 +821,9 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
     myFixture.configureByText(
       fileType,
       """
-        -include <caret>
-      """.trimIndent()
+      -include <caret>
+      """
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -790,8 +832,9 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
     myFixture.configureByText(
       fileType,
       """
-        -include "<caret>
-      """.trimIndent()
+      -include "<caret>
+      """
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -800,8 +843,9 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
     myFixture.configureByText(
       fileType,
       """
-        -include '<caret>
-      """.trimIndent()
+      -include '<caret>
+      """
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -810,8 +854,9 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
     myFixture.configureByText(
       fileType,
       """
-        -include "my<caret>File.pro"
-      """.trimIndent()
+      -include "my<caret>File.pro"
+      """
+        .trimIndent(),
     )
 
     assertThat(myFixture.elementAtCaret).isNotNull()
@@ -819,8 +864,9 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
     myFixture.configureByText(
       fileType,
       """
-        -include 'my<caret>File.pro'
-      """.trimIndent()
+      -include 'my<caret>File.pro'
+      """
+        .trimIndent(),
     )
 
     assertThat(myFixture.elementAtCaret).isNotNull()
@@ -828,8 +874,9 @@ class ProguardR8PsiImplUtilTest(private val fileType: LanguageFileType)  : Progu
     myFixture.configureByText(
       fileType,
       """
-        -include "my<caret>File.pro
-      """.trimIndent()
+      -include "my<caret>File.pro
+      """
+        .trimIndent(),
     )
 
     assertThat(myFixture.elementAtCaret).isNotNull()

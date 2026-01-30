@@ -25,16 +25,11 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import java.io.File
 
-
 fun ProjectDumper.dumpNdkIdeModel(project: Project) {
   nest(File(project.basePath!!), "PROJECT") {
     ModuleManager.getInstance(project).modules.sortModules().forEach { module ->
       head("MODULE") { module.name }
-      nest {
-        NdkModuleModel.get(module)?.let { it ->
-          dumpNdkModuleModel(it)
-        }
-      }
+      nest { NdkModuleModel.get(module)?.let { it -> dumpNdkModuleModel(it) } }
     }
   }
 }
@@ -51,46 +46,34 @@ private fun ProjectDumper.dump(nativeModule: IdeNativeModule) {
   prop("NativeBuildSystem") { nativeModule.nativeBuildSystem.toString() }
   prop("NdkVersion") {
     when (nativeModule.ndkVersion) {
-      nativeModule.defaultNdkVersion, SdkConstants.NDK_DEFAULT_VERSION -> "<DEFAULT_NDK_VERSION>"
+      nativeModule.defaultNdkVersion,
+      SdkConstants.NDK_DEFAULT_VERSION -> "<DEFAULT_NDK_VERSION>"
       else -> nativeModule.ndkVersion
     }
   }
   prop("ExternalNativeBuildFile") { nativeModule.externalNativeBuildFile.path.toPrintablePath() }
   if (nativeModule.variants.isNotEmpty()) {
     head("Variants")
-      nest  {
-        nativeModule.variants.forEach {
-          dump(it)
-        }
-      }
+    nest { nativeModule.variants.forEach { dump(it) } }
   }
 }
 
 private fun ProjectDumper.dump(nativeAbi: IdeNativeAbi, variantName: String? = null) {
   head("NativeAbi")
-    nest {
-      prop("Name") { nativeAbi.name }
-      prop("SourceFlagsFile") { nativeAbi.sourceFlagsFile.normalizeCxxPath(variantName).toPrintablePath() }
-      prop("SymbolFolderIndexFile") { nativeAbi.symbolFolderIndexFile.normalizeCxxPath(variantName).toPrintablePath() }
-      prop("BuildFileIndexFile") { nativeAbi.buildFileIndexFile.normalizeCxxPath(variantName).toPrintablePath() }
-      prop("AdditionalProjectFilesIndexFile") {
-        nativeAbi.additionalProjectFilesIndexFile?.normalizeCxxPath(variantName)?.toPrintablePath()
-      }
-    }
+  nest {
+    prop("Name") { nativeAbi.name }
+    prop("SourceFlagsFile") { nativeAbi.sourceFlagsFile.normalizeCxxPath(variantName).toPrintablePath() }
+    prop("SymbolFolderIndexFile") { nativeAbi.symbolFolderIndexFile.normalizeCxxPath(variantName).toPrintablePath() }
+    prop("BuildFileIndexFile") { nativeAbi.buildFileIndexFile.normalizeCxxPath(variantName).toPrintablePath() }
+    prop("AdditionalProjectFilesIndexFile") { nativeAbi.additionalProjectFilesIndexFile?.normalizeCxxPath(variantName)?.toPrintablePath() }
+  }
 }
 
 private fun ProjectDumper.dump(nativeVariant: IdeNativeVariant) {
   head("NativeVariant")
-    nest {
-      prop("Name") { nativeVariant.name }
-    }
+  nest { prop("Name") { nativeVariant.name } }
   if (nativeVariant.abis.isNotEmpty()) {
     head("ABIs")
-      nest {
-        nativeVariant.abis.forEach {
-          dump(it, nativeVariant.name)
-        }
-      }
+    nest { nativeVariant.abis.forEach { dump(it, nativeVariant.name) } }
   }
 }
-

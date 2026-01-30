@@ -44,7 +44,6 @@ import javax.swing.JPanel
 import javax.swing.JSeparator
 import javax.swing.border.CompoundBorder
 import org.jetbrains.annotations.VisibleForTesting
-import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 
 @VisibleForTesting val KEY = Key.create<Pair<String, String>>("android.aqi.details.header")
 
@@ -59,40 +58,20 @@ data class DetailsPanelHeaderModel(
     fun fromIssueVariant(issue: IssueDetails, variant: IssueVariant?): DetailsPanelHeaderModel {
       val (className, methodName) = issue.getDisplayTitle()
       return variant?.let {
-        DetailsPanelHeaderModel(
-          issue.fatality.getIcon(),
-          className,
-          methodName,
-          it.eventsCount,
-          it.impactedDevicesCount,
-        )
-      }
-        ?: DetailsPanelHeaderModel(
-          issue.fatality.getIcon(),
-          className,
-          methodName,
-          issue.eventsCount,
-          issue.impactedDevicesCount,
-        )
+        DetailsPanelHeaderModel(issue.fatality.getIcon(), className, methodName, it.eventsCount, it.impactedDevicesCount)
+      } ?: DetailsPanelHeaderModel(issue.fatality.getIcon(), className, methodName, issue.eventsCount, issue.impactedDevicesCount)
     }
   }
 }
 
-class DetailsPanelHeader(
-  private val variantComboBox: VariantComboBox? = null,
-  onVariantSelected: (IssueVariant?) -> Unit = {},
-) : JPanel(GridBagLayout()) {
+class DetailsPanelHeader(private val variantComboBox: VariantComboBox? = null, onVariantSelected: (IssueVariant?) -> Unit = {}) :
+  JPanel(GridBagLayout()) {
   @VisibleForTesting val titleLabel = JBLabel()
 
   // User, event counts
+  @VisibleForTesting val eventsCountLabel = JLabel(StudioIcons.AppQualityInsights.ISSUE).apply { toolTipText = "Number of Events" }
   @VisibleForTesting
-  val eventsCountLabel =
-    JLabel(StudioIcons.AppQualityInsights.ISSUE).apply { toolTipText = "Number of Events" }
-  @VisibleForTesting
-  val usersCountLabel =
-    JLabel(StudioIcons.LayoutEditor.Palette.QUICK_CONTACT_BADGE).apply {
-      toolTipText = "Number of Users"
-    }
+  val usersCountLabel = JLabel(StudioIcons.LayoutEditor.Palette.QUICK_CONTACT_BADGE).apply { toolTipText = "Number of Users" }
   private val countsPanel =
     transparentPanel().apply {
       layout = BoxLayout(this, BoxLayout.X_AXIS)
@@ -104,11 +83,7 @@ class DetailsPanelHeader(
 
   private val titleVariantSeparatorPanel =
     JPanel(BorderLayout()).apply {
-      add(
-        JSeparator(JSeparator.VERTICAL).apply {
-          foreground = JBUI.CurrentTheme.Toolbar.SEPARATOR_COLOR
-        }
-      )
+      add(JSeparator(JSeparator.VERTICAL).apply { foreground = JBUI.CurrentTheme.Toolbar.SEPARATOR_COLOR })
       border = JBUI.Borders.empty(5, 2)
     }
 
@@ -161,8 +136,7 @@ class DetailsPanelHeader(
     gbc.fill = GridBagConstraints.NONE
     gbc.anchor = GridBagConstraints.WEST
     add(countsPanel, gbc)
-    border =
-      CompoundBorder(SideBorder(JBColor.border(), SideBorder.BOTTOM), JBUI.Borders.emptyLeft(8))
+    border = CompoundBorder(SideBorder(JBColor.border(), SideBorder.BOTTOM), JBUI.Borders.emptyLeft(8))
     addComponentListener(
       object : ComponentAdapter() {
         override fun componentResized(e: ComponentEvent) {
@@ -203,24 +177,15 @@ class DetailsPanelHeader(
   }
 
   @VisibleForTesting
-  fun generateTitleLabelText(
-    className: String,
-    methodName: String,
-    contentWidth: Int,
-    displayFont: Font,
-  ): String {
+  fun generateTitleLabelText(className: String, methodName: String, contentWidth: Int, displayFont: Font): String {
     var remainingWidth = contentWidth
     if (remainingWidth <= 0) return "<html></html>"
     val shrunkenMethodText =
       if (methodName.isNotEmpty()) {
         val methodFontMetrics = getFontMetrics(displayFont.deriveFont(Font.BOLD))
-        AdtUiUtils.shrinkToFit(
-            methodName,
-            methodFontMetrics,
-            remainingWidth.toFloat(),
-            AdtUiUtils.ShrinkDirection.TRUNCATE_START,
-          )
-          .also { remainingWidth -= methodFontMetrics.stringWidth(it) }
+        AdtUiUtils.shrinkToFit(methodName, methodFontMetrics, remainingWidth.toFloat(), AdtUiUtils.ShrinkDirection.TRUNCATE_START).also {
+          remainingWidth -= methodFontMetrics.stringWidth(it)
+        }
       } else {
         ""
       }
@@ -228,13 +193,9 @@ class DetailsPanelHeader(
     val shrunkenClassText =
       if (remainingWidth > 0) {
         val classFontMetrics = getFontMetrics(displayFont)
-        AdtUiUtils.shrinkToFit(
-            "$className.",
-            classFontMetrics,
-            remainingWidth.toFloat(),
-            AdtUiUtils.ShrinkDirection.TRUNCATE_START,
-          )
-          .also { remainingWidth -= classFontMetrics.stringWidth(it) }
+        AdtUiUtils.shrinkToFit("$className.", classFontMetrics, remainingWidth.toFloat(), AdtUiUtils.ShrinkDirection.TRUNCATE_START).also {
+          remainingWidth -= classFontMetrics.stringWidth(it)
+        }
       } else ""
 
     val methodString =

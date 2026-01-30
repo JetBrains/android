@@ -47,7 +47,6 @@ class ExceptionFoldingTest {
 
   @Test
   fun getPlaceholderText() {
-    assertThat(exceptionFolding.getPlaceholderText(project, List(3) { "line" }))
-      .isEqualTo("<3 more...>")
+    assertThat(exceptionFolding.getPlaceholderText(project, List(3) { "line" })).isEqualTo("<3 more...>")
   }
 }

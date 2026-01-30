@@ -49,9 +49,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 
-@VisibleForTesting
-const val UI_CONFIGURATION_KEY =
-  "com.android.tools.idea.layoutinspector.runningdevices.ui.uiconfigkey"
+@VisibleForTesting const val UI_CONFIGURATION_KEY = "com.android.tools.idea.layoutinspector.runningdevices.ui.uiconfigkey"
 
 private val logger = Logger.getInstance(SelectedTabState::class.java)
 
@@ -60,9 +58,8 @@ private val logger = Logger.getInstance(SelectedTabState::class.java)
  *
  * @param deviceId The id of selected tab.
  * @param tabComponents The components of the selected tab.
- * @param renderingComponents The components required for the rendering of Layout Inspector UI on
- *   the selected tab. It's a list because a tab can have multiple displays, in which case each
- *   display has its on [RenderingComponents].
+ * @param renderingComponents The components required for the rendering of Layout Inspector UI on the selected tab. It's a list because a
+ *   tab can have multiple displays, in which case each display has its on [RenderingComponents].
  */
 @UiThread
 data class SelectedTabState(
@@ -111,31 +108,21 @@ data class SelectedTabState(
     coroutineScope.launch(Dispatchers.EDT) {
       tabComponents.displayList.collect { displayViews ->
         val newRenderingComponents =
-          createRenderingComponents(
-            disposable = this@SelectedTabState,
-            displayList = displayViews,
-            layoutInspector = layoutInspector,
-          )
+          createRenderingComponents(disposable = this@SelectedTabState, displayList = displayViews, layoutInspector = layoutInspector)
         renderingComponents = newRenderingComponents
       }
     }
 
     coroutineScope.launch(Dispatchers.EDT) {
-      toolbarState.isDeepInspectEnabled.collect {
-        renderingComponents.forEach { comp -> comp.model.setInterceptClicks(it) }
-      }
+      toolbarState.isDeepInspectEnabled.collect { renderingComponents.forEach { comp -> comp.model.setInterceptClicks(it) } }
     }
 
     coroutineScope.launch(Dispatchers.EDT) {
-      toolbarState.overlayImage.collect {
-        renderingComponents.forEach { comp -> comp.model.setOverlay(it) }
-      }
+      toolbarState.overlayImage.collect { renderingComponents.forEach { comp -> comp.model.setOverlay(it) } }
     }
 
     coroutineScope.launch(Dispatchers.EDT) {
-      toolbarState.overlayTransparency.collect {
-        renderingComponents.forEach { comp -> comp.model.setOverlayTransparency(it) }
-      }
+      toolbarState.overlayTransparency.collect { renderingComponents.forEach { comp -> comp.model.setOverlayTransparency(it) } }
     }
   }
 
@@ -152,10 +139,7 @@ data class SelectedTabState(
     wrapUi(uiConfig)
     renderingComponents.forEach { it.addRenderer() }
 
-    layoutInspector.processModel?.addSelectedProcessListeners(
-      EdtExecutorService.getInstance(),
-      selectedProcessListener,
-    )
+    layoutInspector.processModel?.addSelectedProcessListeners(EdtExecutorService.getInstance(), selectedProcessListener)
 
     logger.debug("Embedded Layout Inspector successfully enabled.")
   }
@@ -168,10 +152,7 @@ data class SelectedTabState(
 
     wrapLogic?.wrapContent { disposable, component ->
       val processPicker =
-        TargetSelectionActionFactory.getSingleDeviceProcessPicker(
-          layoutInspector,
-          targetDeviceSerialNumber = deviceId.serialNumber,
-        )
+        TargetSelectionActionFactory.getSingleDeviceProcessPicker(layoutInspector, targetDeviceSerialNumber = deviceId.serialNumber)
 
       val gearAction =
         GearAction(

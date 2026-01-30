@@ -16,15 +16,8 @@
 package com.android.tools.idea.material.icons.metadata
 
 /** A builder class for [MaterialIconsMetadata] that incrementally takes [MaterialMetadataIcon]. */
-class MaterialIconsMetadataBuilder(
-  private val host: String,
-  private val urlPattern: String,
-  private val families: Array<String>,
-) {
-  /**
-   * [MaterialIconsMetadata] is expected to be sorted. Using an ordered set since the list of icons
-   * is in the thousands.
-   */
+class MaterialIconsMetadataBuilder(private val host: String, private val urlPattern: String, private val families: Array<String>) {
+  /** [MaterialIconsMetadata] is expected to be sorted. Using an ordered set since the list of icons is in the thousands. */
   private val iconsSet: LinkedHashSet<MaterialMetadataIcon> = LinkedHashSet()
 
   /**
@@ -41,18 +34,9 @@ class MaterialIconsMetadataBuilder(
     iconsSet.remove(iconMetadata)
   }
 
-  /**
-   * Create a copy of [MaterialMetadataIcon] containing the current list of icons added into this
-   * instance through [addIconMetadata].
-   */
+  /** Create a copy of [MaterialMetadataIcon] containing the current list of icons added into this instance through [addIconMetadata]. */
   fun build(): MaterialIconsMetadata {
-    return MaterialIconsMetadata(
-      host,
-      urlPattern,
-      families,
-      iconsSet.toTypedArray(),
-      computeCategories(),
-    )
+    return MaterialIconsMetadata(host, urlPattern, families, iconsSet.toTypedArray(), computeCategories())
   }
 
   private fun computeCategories(): Array<String> {

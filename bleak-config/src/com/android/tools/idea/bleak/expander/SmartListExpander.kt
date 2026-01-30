@@ -17,12 +17,12 @@ package com.android.tools.idea.bleak.expander
 
 import com.intellij.util.SmartList
 
-/** [SmartList] is a list optimized for holding 0 or 1 element. It has an Object field 'elem' which either
- * contains the single element of the list, or an array of elements if the list is larger. Without the special
- * handling provided by this class, BLeak would not be able to follow the expansion of the list across the
- * boundary from one to multiple elements.
+/**
+ * [SmartList] is a list optimized for holding 0 or 1 element. It has an Object field 'elem' which either contains the single element of the
+ * list, or an array of elements if the list is larger. Without the special handling provided by this class, BLeak would not be able to
+ * follow the expansion of the list across the boundary from one to multiple elements.
  */
-class SmartListExpander: Expander() {
+class SmartListExpander : Expander() {
   override fun canExpand(obj: Any) = obj is SmartList<*>
 
   override fun canPotentiallyGrowIndefinitely(n: Node) = true

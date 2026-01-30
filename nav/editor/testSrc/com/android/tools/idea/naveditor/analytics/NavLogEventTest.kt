@@ -46,12 +46,7 @@ class NavLogEventTest : NavTestCase() {
   fun testLog() {
     val tracker = mock<NavUsageTracker>()
     NavLogEvent(NavEditorEvent.NavEditorEventType.ACTIVATE_INCLUDE, tracker).log()
-    verify(tracker)
-      .logEvent(
-        NavEditorEvent.newBuilder()
-          .setType(NavEditorEvent.NavEditorEventType.ACTIVATE_INCLUDE)
-          .build()
-      )
+    verify(tracker).logEvent(NavEditorEvent.newBuilder().setType(NavEditorEvent.NavEditorEventType.ACTIVATE_INCLUDE).build())
   }
 
   fun testActionInfo() {
@@ -163,29 +158,19 @@ class NavLogEventTest : NavTestCase() {
     validateDestinationInfo(
       model,
       "f1",
-      NavDestinationInfo.newBuilder()
-        .setType(NavDestinationInfo.DestinationType.FRAGMENT)
-        .setHasClass(true)
-        .build(),
+      NavDestinationInfo.newBuilder().setType(NavDestinationInfo.DestinationType.FRAGMENT).setHasClass(true).build(),
     )
 
     validateDestinationInfo(
       model,
       "a1",
-      NavDestinationInfo.newBuilder()
-        .setType(NavDestinationInfo.DestinationType.ACTIVITY)
-        .setHasLayout(true)
-        .build(),
+      NavDestinationInfo.newBuilder().setType(NavDestinationInfo.DestinationType.ACTIVITY).setHasLayout(true).build(),
     )
 
     validateDestinationInfo(
       model,
       "custom1",
-      NavDestinationInfo.newBuilder()
-        .setType(NavDestinationInfo.DestinationType.OTHER)
-        .setHasLayout(true)
-        .setHasClass(true)
-        .build(),
+      NavDestinationInfo.newBuilder().setType(NavDestinationInfo.DestinationType.OTHER).setHasLayout(true).setHasClass(true).build(),
     )
 
     validateDestinationInfo(
@@ -195,11 +180,7 @@ class NavLogEventTest : NavTestCase() {
     )
   }
 
-  private fun validateDestinationInfo(
-    model: NlModel,
-    destinationId: String,
-    expected: NavDestinationInfo,
-  ) {
+  private fun validateDestinationInfo(model: NlModel, destinationId: String, expected: NavDestinationInfo) {
     val tracker = mock<NavUsageTracker>()
     val proto =
       NavLogEvent(NavEditorEvent.NavEditorEventType.UNKNOWN_EVENT_TYPE, tracker)
@@ -255,10 +236,7 @@ class NavLogEventTest : NavTestCase() {
 
     val tracker = NavUsageTrackerImpl(mock<Executor>(), model, Consumer {})
     val proto =
-      NavLogEvent(NavEditorEvent.NavEditorEventType.UNKNOWN_EVENT_TYPE, tracker)
-        .withNavigationContents()
-        .getProtoForTest()
-        .contents
+      NavLogEvent(NavEditorEvent.NavEditorEventType.UNKNOWN_EVENT_TYPE, tracker).withNavigationContents().getProtoForTest().contents
     assertEquals(
       NavigationContents.newBuilder()
         .setActivities(2)
@@ -289,9 +267,7 @@ class NavLogEventTest : NavTestCase() {
     val model =
       model("nav.xml") {
         navigation {
-          custom("mycustomactivity", id = "customactivity") {
-            deeplink("deepLink", "http://example.com")
-          }
+          custom("mycustomactivity", id = "customactivity") { deeplink("deepLink", "http://example.com") }
           custom("mycustomdestination", id = "customdestination")
           fragment("f1") { argument("arg1") }
         }
@@ -420,18 +396,7 @@ class NavLogEventTest : NavTestCase() {
         }
       }
     val tracker = NavUsageTrackerImpl(mock<Executor>(), model, Consumer {})
-    val proto =
-      NavLogEvent(NavEditorEvent.NavEditorEventType.UNKNOWN_EVENT_TYPE, tracker)
-        .withSchemaInfo()
-        .getProtoForTest()
-        .schemaInfo
-    assertEquals(
-      NavSchemaInfo.newBuilder()
-        .setCustomDestinations(1)
-        .setCustomNavigators(3)
-        .setCustomTags(2)
-        .toString(),
-      proto.toString(),
-    )
+    val proto = NavLogEvent(NavEditorEvent.NavEditorEventType.UNKNOWN_EVENT_TYPE, tracker).withSchemaInfo().getProtoForTest().schemaInfo
+    assertEquals(NavSchemaInfo.newBuilder().setCustomDestinations(1).setCustomNavigators(3).setCustomTags(2).toString(), proto.toString())
   }
 }

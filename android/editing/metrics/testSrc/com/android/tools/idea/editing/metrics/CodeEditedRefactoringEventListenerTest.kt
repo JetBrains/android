@@ -70,8 +70,7 @@ class CodeEditedRefactoringEventListenerTest {
       }
       """
         .trimIndent()
-    val virtualFile =
-      fixture.addFileToProject("src/com/example/MyGreatFile.kt", contents).virtualFile
+    val virtualFile = fixture.addFileToProject("src/com/example/MyGreatFile.kt", contents).virtualFile
     val otherContents =
       // language=kotlin
       """
@@ -85,8 +84,7 @@ class CodeEditedRefactoringEventListenerTest {
       }
       """
         .trimIndent()
-    val otherVirtualFile =
-      fixture.addFileToProject("src/com/example/MyOtherGreatFile.kt", otherContents).virtualFile
+    val otherVirtualFile = fixture.addFileToProject("src/com/example/MyOtherGreatFile.kt", otherContents).virtualFile
     fixture.configureFromExistingVirtualFile(otherVirtualFile)
     fixture.configureFromExistingVirtualFile(virtualFile)
 
@@ -98,7 +96,6 @@ class CodeEditedRefactoringEventListenerTest {
 
     testScope.advanceUntilIdle()
     assertThat(codeEditedListener.events).hasSize(5)
-    assertThat(codeEditedListener.events.distinct())
-      .containsExactly(CodeEdited(3, 3, Source.REFACTORING))
+    assertThat(codeEditedListener.events.distinct()).containsExactly(CodeEdited(3, 3, Source.REFACTORING))
   }
 }

@@ -41,8 +41,7 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
 
 /** Maximum amount of time to wait for a fast compilation to happen. */
-private val FAST_PREVIEW_COMPILE_TIMEOUT =
-  java.lang.Long.getLong("fast.preview.daemon.compile.seconds.timeout", 30)
+private val FAST_PREVIEW_COMPILE_TIMEOUT = java.lang.Long.getLong("fast.preview.daemon.compile.seconds.timeout", 30)
 
 private suspend fun PsiFile.saveIfNeeded() {
   val vFile = virtualFile ?: return
@@ -53,8 +52,8 @@ private suspend fun PsiFile.saveIfNeeded() {
 }
 
 /**
- * Starts a new fast compilation for the current file in the Preview and returns the result of the
- * compilation. All given files must belong to the same project.
+ * Starts a new fast compilation for the current file in the Preview and returns the result of the compilation. All given files must belong
+ * to the same project.
  */
 @VisibleForTesting
 internal suspend fun fastCompile(
@@ -62,13 +61,11 @@ internal suspend fun fastCompile(
   contextBuildTargetReference: BuildTargetReference,
   files: Set<PsiFile>,
   fastPreviewManager: FastPreviewManager = FastPreviewManager.getInstance(files.first().project),
-  requestTracker: FastPreviewTrackerManager.Request =
-    FastPreviewTrackerManager.getInstance(files.first().project).trackRequest(),
+  requestTracker: FastPreviewTrackerManager.Request = FastPreviewTrackerManager.getInstance(files.first().project).trackRequest(),
 ): Pair<CompilationResult, String> = coroutineScope {
   val project = files.first().project
 
-  val compileProgressIndicator =
-    BackgroundableProcessIndicator(project, message("notification.compiling"), "", "", false)
+  val compileProgressIndicator = BackgroundableProcessIndicator(project, message("notification.compiling"), "", "", false)
   compileProgressIndicator.isIndeterminate = true
   Disposer.register(parentDisposable, compileProgressIndicator)
   try {
@@ -78,11 +75,7 @@ internal suspend fun fastCompile(
 
     val (result, outputAbsolutePath) =
       withTimeout(Duration.ofSeconds(FAST_PREVIEW_COMPILE_TIMEOUT)) {
-        fastPreviewManager.compileRequest(
-          files,
-          contextBuildTargetReference,
-          tracker = requestTracker,
-        )
+        fastPreviewManager.compileRequest(files, contextBuildTargetReference, tracker = requestTracker)
       }
 
     return@coroutineScope result to outputAbsolutePath
@@ -105,12 +98,11 @@ private fun isInInPlaceEditMode(files: Set<PsiFile>) =
     .any()
 
 /**
- * Requests a "Fast Preview" compilation and invokes the [trackedForceRefresh] if successful. This
- * method tracks the time that the compilation and the execution of the [trackedForceRefresh] call
- * take in order to do statistics reporting.
+ * Requests a "Fast Preview" compilation and invokes the [trackedForceRefresh] if successful. This method tracks the time that the
+ * compilation and the execution of the [trackedForceRefresh] call take in order to do statistics reporting.
  *
- * The given [contextModule] will be used as context for the compilation. This module or one of this
- * module dependencies must contain all the given [files].
+ * The given [contextModule] will be used as context for the compilation. This module or one of this module dependencies must contain all
+ * the given [files].
  */
 suspend fun requestFastPreviewRefreshAndTrack(
   parentDisposable: Disposable,
@@ -123,19 +115,14 @@ suspend fun requestFastPreviewRefreshAndTrack(
   // We delay the reporting of compilationSucceeded until we have the amount of time the refresh
   // took. Either refreshSucceeded or
   // refreshFailed should be called.
-  val delegateRequestTracker =
-    FastPreviewTrackerManager.getInstance(files.first().project).trackRequest()
+  val delegateRequestTracker = FastPreviewTrackerManager.getInstance(files.first().project).trackRequest()
   val requestTracker =
     object : FastPreviewTrackerManager.Request by delegateRequestTracker {
       private var compilationDurationMs: Long = -1
       private var compiledFiles: Int = -1
       private var compilationSuccess: Boolean? = null
 
-      override fun compilationSucceeded(
-        compilationDurationMs: Long,
-        compiledFiles: Int,
-        refreshTimeMs: Long,
-      ) {
+      override fun compilationSucceeded(compilationDurationMs: Long, compiledFiles: Int, refreshTimeMs: Long) {
         compilationSuccess = true
         this.compilationDurationMs = compilationDurationMs
         this.compiledFiles = compiledFiles
@@ -147,20 +134,11 @@ suspend fun requestFastPreviewRefreshAndTrack(
         this.compiledFiles = compiledFiles
       }
 
-      /**
-       * Reports that the refresh has completed. If [refreshTimeMs] is -1, the refresh has failed.
-       */
-      /**
-       * Reports that the refresh has completed. If [refreshTimeMs] is -1, the refresh has failed.
-       */
+      /** Reports that the refresh has completed. If [refreshTimeMs] is -1, the refresh has failed. */
+      /** Reports that the refresh has completed. If [refreshTimeMs] is -1, the refresh has failed. */
       private fun reportRefresh(refreshTimeMs: Long = -1) {
         when (compilationSuccess) {
-          true ->
-            delegateRequestTracker.compilationSucceeded(
-              compilationDurationMs,
-              compiledFiles,
-              refreshTimeMs,
-            )
+          true -> delegateRequestTracker.compilationSucceeded(compilationDurationMs, compiledFiles, refreshTimeMs)
           false -> delegateRequestTracker.compilationFailed(compilationDurationMs, compiledFiles)
           null -> Unit
         }
@@ -183,26 +161,16 @@ suspend fun requestFastPreviewRefreshAndTrack(
       // We do not want to trigger the compilation if the code has syntax errors or if there is an
       // editor in in-place edit mode.
       if (currentStatus.hasSyntaxErrors) {
-        deferredCompilationResult.complete(
-          CompilationResult.CompilationAborted(IllegalStateException("Files have syntax errors"))
-        )
+        deferredCompilationResult.complete(CompilationResult.CompilationAborted(IllegalStateException("Files have syntax errors")))
         return@launch
       }
 
       if (isInInPlaceEditMode(files)) {
-        deferredCompilationResult.complete(
-          CompilationResult.CompilationAborted(IllegalStateException("Renaming in progress"))
-        )
+        deferredCompilationResult.complete(CompilationResult.CompilationAborted(IllegalStateException("Renaming in progress")))
         return@launch
       }
 
-      val (result, outputAbsolutePath) =
-        fastCompile(
-          parentDisposable,
-          contextBuildTargetReference,
-          files,
-          requestTracker = requestTracker,
-        )
+      val (result, outputAbsolutePath) = fastCompile(parentDisposable, contextBuildTargetReference, files, requestTracker = requestTracker)
       deferredCompilationResult.complete(result)
       if (result is CompilationResult.Success) {
         val refreshStartMs = System.currentTimeMillis()

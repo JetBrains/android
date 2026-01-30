@@ -37,13 +37,7 @@ internal fun <I> Dropdown(
     modifier,
     enabled,
     menuModifier = Modifier.heightIn(max = 300.dp),
-    menuContent = {
-      items.forEach {
-        selectableItem(selectedItem == it, onClick = { onSelectedItemChange(it) }) {
-          Text(it.toString())
-        }
-      }
-    },
+    menuContent = { items.forEach { selectableItem(selectedItem == it, onClick = { onSelectedItemChange(it) }) { Text(it.toString()) } } },
     outline = outline,
   ) {
     Text(selectedItem.toString())

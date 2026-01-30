@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-/**
- * An instance of [ModelResult] represents a result of an operation together with any exceptions that have been suppressed.
- */
-class ModelResult<out T : Any> private constructor (private val result: T?, val exceptions: List<Throwable> = emptyList()) {
+/** An instance of [ModelResult] represents a result of an operation together with any exceptions that have been suppressed. */
+class ModelResult<out T : Any> private constructor(private val result: T?, val exceptions: List<Throwable> = emptyList()) {
 
   companion object {
     /**
@@ -34,15 +32,13 @@ class ModelResult<out T : Any> private constructor (private val result: T?, val 
     }
 
     /**
-     * If this [ModelResult] holds a value, transforms the value using [mapper] and returns a new [ModelResult] holding the result
-     * and exceptions from both the original result and the transformation.
+     * If this [ModelResult] holds a value, transforms the value using [mapper] and returns a new [ModelResult] holding the result and
+     * exceptions from both the original result and the transformation.
      *
      * Additional exceptions can be recorded from [mapper] using methods of [Context].
      */
-    fun <T: Any, V : Any> ModelResult<T>.mapCatching(mapper: Context.(T) -> V): ModelResult<V> {
-      return create {
-        recordAndGet()?.let { mapper(it) }
-      }
+    fun <T : Any, V : Any> ModelResult<T>.mapCatching(mapper: Context.(T) -> V): ModelResult<V> {
+      return create { recordAndGet()?.let { mapper(it) } }
     }
 
     /**
@@ -51,10 +47,8 @@ class ModelResult<out T : Any> private constructor (private val result: T?, val 
      *
      * Additional exceptions can be recorded from [mapper] using methods of [Context].
      */
-    fun <T: Any> ModelResult<T>.mapNull(mapper: Context.() -> T?): ModelResult<T> {
-      return create {
-        recordAndGet() ?: mapper()
-      }
+    fun <T : Any> ModelResult<T>.mapNull(mapper: Context.() -> T?): ModelResult<T> {
+      return create { recordAndGet() ?: mapper() }
     }
 
     /**
@@ -66,19 +60,13 @@ class ModelResult<out T : Any> private constructor (private val result: T?, val 
   }
 
   fun interface Context {
-    /**
-     * Records the [exceptions].
-     */
+    /** Records the [exceptions]. */
     fun record(exceptions: List<Throwable>)
 
-    /**
-     * Records any exceptions that this [ModelResult] holds and returns its value.
-     */
+    /** Records any exceptions that this [ModelResult] holds and returns its value. */
     fun <T : Any> ModelResult<T>.recordAndGet(): T? = also { record(exceptions) }.result
 
-    /**
-     * Executes [exception] and records the exception it throws.
-     */
+    /** Executes [exception] and records the exception it throws. */
     fun recordException(exception: () -> Nothing) = kotlin.runCatching { exception() }.exceptionOrNull()?.let(::listOf)?.let(::record)
   }
 }

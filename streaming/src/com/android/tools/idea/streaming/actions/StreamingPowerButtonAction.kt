@@ -18,7 +18,5 @@ package com.android.tools.idea.streaming.actions
 import com.android.tools.idea.streaming.device.actions.DevicePowerButtonAction
 import com.android.tools.idea.streaming.emulator.actions.EmulatorPowerButtonAction
 
-/**
- * Simulates pressing the Power button on an Android device.
- */
+/** Simulates pressing the Power button on an Android device. */
 internal class StreamingPowerButtonAction : StreamingPushButtonAction(EmulatorPowerButtonAction(), DevicePowerButtonAction())

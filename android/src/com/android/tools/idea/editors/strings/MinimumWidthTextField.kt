@@ -23,11 +23,9 @@ private const val MIN_WIDTH = 50
 internal open class MinimumWidthTextField : JBTextField() {
 
   /**
-   * The default version of [getMinimumSize] computes the minimum span of the text in the control.
-   * For some languages e.g. Bengla this is not supported and the returned width is the width of
-   * the entire string. If the string is wider than the width of the string translator this will
-   * block the horizontal scroll capability of the text field.
-   * Override the width with an arbitrary value to avoid this.
+   * The default version of [getMinimumSize] computes the minimum span of the text in the control. For some languages e.g. Bengla this is
+   * not supported and the returned width is the width of the entire string. If the string is wider than the width of the string translator
+   * this will block the horizontal scroll capability of the text field. Override the width with an arbitrary value to avoid this.
    */
   override fun getMinimumSize(): Dimension {
     val size = super.getMinimumSize()

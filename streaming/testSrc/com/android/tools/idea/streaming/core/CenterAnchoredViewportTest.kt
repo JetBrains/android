@@ -40,10 +40,11 @@ class CenterAnchoredViewportTest {
 
   @get:Rule val rule = EdtRule()
 
-  private val view = JPanel().apply {
-    background = JBColor.cyan
-    border = BorderFactory.createLineBorder(JBColor.blue)
-  }
+  private val view =
+    JPanel().apply {
+      background = JBColor.cyan
+      border = BorderFactory.createLineBorder(JBColor.blue)
+    }
   private val viewport = CenterAnchoredViewport().also { it.view = view }
   private val scrollPane = TestScrollPane().apply { setBounds(0, 0, 100, 160) }
   private val ui = FakeUi(scrollPane)

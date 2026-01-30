@@ -110,12 +110,7 @@ class EditVirtualDeviceDialogTest {
     }
 
     fun parseIniFile(): Map<String, String> =
-      checkNotNull(
-        AvdManager.parseIniFile(
-          PathFileWrapper(sdkFixture.avdRoot.resolve("Pixel_7.avd").resolve("config.ini")),
-          null,
-        )
-      )
+      checkNotNull(AvdManager.parseIniFile(PathFileWrapper(sdkFixture.avdRoot.resolve("Pixel_7.avd").resolve("config.ini")), null))
   }
 
   /** Edit an existing AVD, changing its name and its system image. */
@@ -123,17 +118,14 @@ class EditVirtualDeviceDialogTest {
   @Test
   fun editAvdName() {
     with(SdkFixture()) {
-      with(
-        EditAvdFixture(sdkFixture = this, localPackages = listOf(api34(), api34ps16kbPackage()))
-      ) {
+      with(EditAvdFixture(sdkFixture = this, localPackages = listOf(api34(), api34ps16kbPackage()))) {
         composeTestRule.onNodeWithEditableText("Pixel 7").performTextReplacement("Large Pages")
         composeTestRule.onNodeWithText("16 KB Page Size", substring = true).performClick()
 
         wizard.performAction(wizard.finishAction)
         wizard.awaitClose()
 
-        assertThat(Files.list(avdRoot).map { it.fileName.toString() }.toList())
-          .containsExactly("Pixel_7.avd", "Large_Pages.ini")
+        assertThat(Files.list(avdRoot).map { it.fileName.toString() }.toList()).containsExactly("Pixel_7.avd", "Large_Pages.ini")
 
         val properties = parseIniFile()
         assertThat(properties[ConfigKey.IMAGES_1]).contains("google_apis_ps16k")
@@ -149,9 +141,7 @@ class EditVirtualDeviceDialogTest {
     with(SdkFixture()) {
       with(EditAvdFixture(sdkFixture = this, localPackages = listOf(api34Play()))) {
         composeTestRule.onNodeWithText("Additional settings").performClick()
-        composeTestRule
-          .onNode(hasParent(hasTestTag("RamRow")) and hasSetTextAction())
-          .performTextReplacement("5")
+        composeTestRule.onNode(hasParent(hasTestTag("RamRow")) and hasSetTextAction()).performTextReplacement("5")
         composeTestRule.waitForIdle()
 
         wizard.performAction(wizard.finishAction)
@@ -164,9 +154,8 @@ class EditVirtualDeviceDialogTest {
   }
 
   /**
-   * Create a device that has a skin that is only present in a particular system image. When that
-   * system image is selected, the skin should be set to that custom skin; when a different image
-   * that doesn't contain the skin is selected, the skin should be set to None.
+   * Create a device that has a skin that is only present in a particular system image. When that system image is selected, the skin should
+   * be set to that custom skin; when a different image that doesn't contain the skin is selected, the skin should be set to None.
    */
   @Test
   fun specialDeviceWithCustomSkin() {
@@ -176,19 +165,11 @@ class EditVirtualDeviceDialogTest {
         Device.Builder(baseDevice)
           .apply {
             baseDevice.allStates.forEach { removeState(it.name) }
-            addState(
-              baseDevice.defaultState.deepCopy().apply { hardware.skinFile = File("special_skin") }
-            )
+            addState(baseDevice.defaultState.deepCopy().apply { hardware.skinFile = File("special_skin") })
           }
           .build()
       val api34Image = api34()
-      with(
-        EditAvdFixture(
-          sdkFixture = this,
-          device = specialDevice,
-          localPackages = listOf(api34Image, specialDeviceImage()),
-        )
-      ) {
+      with(EditAvdFixture(sdkFixture = this, device = specialDevice, localPackages = listOf(api34Image, specialDeviceImage()))) {
         // Switch to special system image
         composeTestRule.onNodeWithText("Special Device").performClick()
 
@@ -244,15 +225,10 @@ class EditVirtualDeviceDialogTest {
       composeTestRule.waitUntilDoesNotExist(hasText("Loading"))
 
       // We can't change the name to the AVD that it was cloned from
-      composeTestRule.onNodeWithEditableText("Pixel 7 (2)").performMouseInput {
-        moveTo(Offset(5f, 5f))
-      }
+      composeTestRule.onNodeWithEditableText("Pixel 7 (2)").performMouseInput { moveTo(Offset(5f, 5f)) }
       composeTestRule.onNodeWithEditableText("Pixel 7 (2)").performTextReplacement("Pixel 7")
       composeTestRule.waitForIdle()
-      composeTestRule
-        .onNodeWithEditableText("Pixel 7")
-        .assertIsDisplayed()
-        .lingerMouseHover(composeTestRule)
+      composeTestRule.onNodeWithEditableText("Pixel 7").assertIsDisplayed().lingerMouseHover(composeTestRule)
       composeTestRule.onNodeWithText("already exists", substring = true).assertIsDisplayed()
       assertThat(wizard.finishAction.enabled).isFalse()
 
@@ -268,15 +244,10 @@ class EditVirtualDeviceDialogTest {
   }
 }
 
-private fun SdkFixture.api34() =
-  createLocalSystemImage("google_apis", listOf(SystemImageTags.GOOGLE_APIS_TAG), AndroidVersion(34))
+private fun SdkFixture.api34() = createLocalSystemImage("google_apis", listOf(SystemImageTags.GOOGLE_APIS_TAG), AndroidVersion(34))
 
 private fun SdkFixture.api34Play() =
-  createLocalSystemImage(
-    "google_apis_playstore",
-    listOf(SystemImageTags.PLAY_STORE_TAG),
-    AndroidVersion(34),
-  )
+  createLocalSystemImage("google_apis_playstore", listOf(SystemImageTags.PLAY_STORE_TAG), AndroidVersion(34))
 
 private fun SdkFixture.specialDeviceImage() =
   createLocalSystemImage(

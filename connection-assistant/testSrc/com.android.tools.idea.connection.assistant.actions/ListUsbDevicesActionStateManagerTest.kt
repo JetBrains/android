@@ -22,14 +22,14 @@ import com.android.tools.idea.assistant.datamodel.DefaultActionState
 import com.android.tools.usb.UsbDevice
 import com.android.tools.usb.UsbDeviceCollector
 import com.intellij.ide.IdeEventQueue
+import java.io.IOException
+import java.util.concurrent.CompletableFuture
 import junit.framework.TestCase
 import org.jetbrains.android.AndroidTestCase
 import org.junit.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.io.IOException
-import java.util.concurrent.CompletableFuture
 
 class ListUsbDevicesActionStateManagerTest : AndroidTestCase() {
   private val testUsbDeviceCollector: UsbDeviceCollector = mock {
@@ -46,13 +46,13 @@ class ListUsbDevicesActionStateManagerTest : AndroidTestCase() {
     myStateManager = ListUsbDevicesActionStateManager()
     rawDevices = CompletableFuture.completedFuture(emptyList())
     devices = emptyList()
-    myStateManager.init(project, emptyActionData, testUsbDeviceCollector, { rawDevices }, { devices } )
+    myStateManager.init(project, emptyActionData, testUsbDeviceCollector, { rawDevices }, { devices })
   }
 
   @Test
   fun testDefaultState() {
     myStateManager.refresh()
-    IdeEventQueue.getInstance().flushQueue();
+    IdeEventQueue.getInstance().flushQueue()
     TestCase.assertEquals(DefaultActionState.ERROR_RETRY, myStateManager.getState(project, emptyActionData))
   }
 
@@ -60,7 +60,7 @@ class ListUsbDevicesActionStateManagerTest : AndroidTestCase() {
   fun testLoadingState() {
     whenever(testUsbDeviceCollector.listUsbDevices()).thenReturn(CompletableFuture())
     myStateManager.refresh()
-    IdeEventQueue.getInstance().flushQueue();
+    IdeEventQueue.getInstance().flushQueue()
     TestCase.assertEquals(DefaultActionState.IN_PROGRESS, myStateManager.getState(project, emptyActionData))
   }
 
@@ -70,7 +70,7 @@ class ListUsbDevicesActionStateManagerTest : AndroidTestCase() {
     devices.add(UsbDevice("test", "test", "test"))
     whenever(testUsbDeviceCollector.listUsbDevices()).thenReturn(CompletableFuture.completedFuture(devices))
     myStateManager.refresh()
-    IdeEventQueue.getInstance().flushQueue();
+    IdeEventQueue.getInstance().flushQueue()
     TestCase.assertEquals(CustomSuccessState, myStateManager.getState(project, emptyActionData))
   }
 
@@ -80,7 +80,7 @@ class ListUsbDevicesActionStateManagerTest : AndroidTestCase() {
     exceptionFuture.completeExceptionally(IOException())
     whenever(testUsbDeviceCollector.listUsbDevices()).thenReturn(exceptionFuture)
     myStateManager.refresh()
-    IdeEventQueue.getInstance().flushQueue();
+    IdeEventQueue.getInstance().flushQueue()
     TestCase.assertEquals(DefaultActionState.ERROR_RETRY, myStateManager.getState(project, emptyActionData))
   }
 }

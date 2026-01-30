@@ -37,7 +37,6 @@ import com.android.tools.idea.run.configuration.DefaultComplicationWatchFaceInfo
 import com.android.tools.idea.run.configuration.WearBaseClasses
 import com.android.tools.idea.run.configuration.getComplicationSourceTypes
 import com.android.tools.idea.run.configuration.parseRawComplicationTypes
-import com.intellij.compiler.options.CompileStepBeforeRun.MakeBeforeRunTask
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.RuntimeConfigurationWarning
 import com.intellij.execution.runners.ExecutionEnvironment
@@ -46,8 +45,8 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.util.xmlb.annotations.Transient
-import org.jetbrains.android.util.AndroidBundle
 import java.io.File
+import org.jetbrains.android.util.AndroidBundle
 
 private const val COMPLICATION_MIN_DEBUG_SURFACE_VERSION = 2
 private const val COMPLICATION_RECOMMENDED_DEBUG_SURFACE_VERSION = 3
@@ -58,15 +57,8 @@ class AndroidComplicationConfigurationExecutor(
   appRunSettings: AppRunSettings,
   apkProvider: ApkProvider,
   applicationContext: ApplicationProjectContext,
-  deployer: ApplicationDeployer
-) : AndroidWearConfigurationExecutor(
-  environment,
-  deviceFutures,
-  appRunSettings,
-  apkProvider,
-  applicationContext,
-  deployer
-) {
+  deployer: ApplicationDeployer,
+) : AndroidWearConfigurationExecutor(environment, deviceFutures, appRunSettings, apkProvider, applicationContext, deployer) {
   private val complicationLaunchOptions = appRunSettings.componentLaunchOptions as ComplicationLaunchOptions
 
   @WorkerThread
@@ -91,40 +83,46 @@ class AndroidComplicationConfigurationExecutor(
     if (isDebug) {
       // There is a bug in complication that right after the app with complication was installed, which is for configurations every time, if
       // you try immediately launch it for debug it fails with error, work around is launch and immediately stop before launching for debug.
-      complicationLaunchOptions.chosenSlots.first().let { slot -> setComplicationOnWatchFace(app, slot, AppComponent.Mode.RUN, indicator, device) }
+      complicationLaunchOptions.chosenSlots.first().let { slot ->
+        setComplicationOnWatchFace(app, slot, AppComponent.Mode.RUN, indicator, device)
+      }
       getStopCallback(console, applicationContext.applicationId, false).invoke(device)
     }
 
     indicator.text = "Setting up complication..."
-    complicationLaunchOptions.chosenSlots.forEach { slot ->
-      setComplicationOnWatchFace(app, slot, mode, indicator, device)
-    }
+    complicationLaunchOptions.chosenSlots.forEach { slot -> setComplicationOnWatchFace(app, slot, mode, indicator, device) }
     showWatchFace(device, console, indicator)
   }
 
-  private fun setComplicationOnWatchFace(app: App, slot: ChosenSlot, mode: AppComponent.Mode, indicator: ProgressIndicator?, device: IDevice) {
+  private fun setComplicationOnWatchFace(
+    app: App,
+    slot: ChosenSlot,
+    mode: AppComponent.Mode,
+    indicator: ProgressIndicator?,
+    device: IDevice,
+  ) {
     if (slot.type == null) {
       throw ExecutionException("Slot type is not specified for slot(id: ${slot.id}).")
     }
     val receiver = RecordOutputReceiver { indicator?.isCanceled == true }
 
-    val watchFaceInfo =
-      "${complicationLaunchOptions.watchFaceInfo.appId} ${complicationLaunchOptions.watchFaceInfo.watchFaceFQName}"
+    val watchFaceInfo = "${complicationLaunchOptions.watchFaceInfo.appId} ${complicationLaunchOptions.watchFaceInfo.watchFaceFQName}"
     try {
-      getActivator(app).activate(
-        complicationLaunchOptions.componentType,
-        complicationLaunchOptions.componentName!!,
-        "$watchFaceInfo ${slot.id} ${slot.type}",
-        mode,
-        receiver,
-        device)
-    }
-    catch (ex: DeployerException) {
+      getActivator(app)
+        .activate(
+          complicationLaunchOptions.componentType,
+          complicationLaunchOptions.componentName!!,
+          "$watchFaceInfo ${slot.id} ${slot.type}",
+          mode,
+          receiver,
+          device,
+        )
+    } catch (ex: DeployerException) {
       throw ExecutionException("Error while launching complication, message: ${receiver.getOutput().ifEmpty { ex.details }}", ex)
     }
   }
 
-  internal fun getComplicationSourceTypes(apks: Collection<ApkInfo>): List<String>{
+  internal fun getComplicationSourceTypes(apks: Collection<ApkInfo>): List<String> {
     return try {
       getComplicationSourceTypes(apks, complicationLaunchOptions.componentName!!)
     } catch (exception: Exception) {
@@ -141,7 +139,7 @@ class AndroidComplicationConfigurationExecutor(
     indicator.text = "Installing test WatchFace"
     val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
 
-    return applicationDeployer.fullDeploy(device, apkInfo, appRunSettings.deployOptions, containsMakeBeforeRun,  indicator).app
+    return applicationDeployer.fullDeploy(device, apkInfo, appRunSettings.deployOptions, containsMakeBeforeRun, indicator).app
   }
 
   override fun getStopCallback(console: ConsoleView, applicationId: String, isDebug: Boolean): (IDevice) -> Unit {
@@ -157,24 +155,25 @@ class ComplicationLaunchOptions : WearSurfaceLaunchOptions {
   override var componentName: String? = null
   var chosenSlots: List<ChosenSlot> = listOf()
 
-  @Transient
-  @JvmField
-  var watchFaceInfo: ComplicationWatchFaceInfo = DefaultComplicationWatchFaceInfo
+  @Transient @JvmField var watchFaceInfo: ComplicationWatchFaceInfo = DefaultComplicationWatchFaceInfo
 
   internal fun verifyProviderTypes(supportedTypes: List<Complication.ComplicationType>) {
     if (supportedTypes.isEmpty()) {
       throw RuntimeConfigurationWarning(AndroidBundle.message("no.provider.type.error"))
     }
     for (slot in chosenSlots) {
-      val slotType = slot.type ?: throw RuntimeConfigurationWarning(
-        AndroidBundle.message("provider.type.empty", watchFaceInfo.complicationSlots.find { it.slotId == slot.id }!!.name))
+      val slotType =
+        slot.type
+          ?: throw RuntimeConfigurationWarning(
+            AndroidBundle.message("provider.type.empty", watchFaceInfo.complicationSlots.find { it.slotId == slot.id }!!.name)
+          )
       if (!supportedTypes.contains(slotType)) {
         throw RuntimeConfigurationWarning(AndroidBundle.message("provider.type.mismatch.error", slotType))
       }
     }
   }
 
-  fun clone() : ComplicationLaunchOptions {
+  fun clone(): ComplicationLaunchOptions {
     val clone = ComplicationLaunchOptions()
     clone.componentName = componentName
     clone.chosenSlots = chosenSlots.map { it.copy() }
@@ -182,19 +181,18 @@ class ComplicationLaunchOptions : WearSurfaceLaunchOptions {
   }
 }
 
-private fun getStopComplicationCallback(complicationComponentName: String,
-                                        console: ConsoleView,
-                                        isDebug: Boolean): (IDevice) -> Unit = { device: IDevice ->
-  val removeReceiver = CommandResultReceiver()
-  val removeComplicationCommand = Complication.ShellCommand.REMOVE_ALL_INSTANCES_FROM_CURRENT_WF + complicationComponentName
-  device.executeShellCommand(removeComplicationCommand, console, removeReceiver, indicator = null)
+private fun getStopComplicationCallback(complicationComponentName: String, console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit =
+  { device: IDevice ->
+    val removeReceiver = CommandResultReceiver()
+    val removeComplicationCommand = Complication.ShellCommand.REMOVE_ALL_INSTANCES_FROM_CURRENT_WF + complicationComponentName
+    device.executeShellCommand(removeComplicationCommand, console, removeReceiver, indicator = null)
 
-  val unsetReceiver = CommandResultReceiver()
-  device.executeShellCommand(UNSET_WATCH_FACE, console, unsetReceiver, indicator = null)
-  if (removeReceiver.resultCode != CommandResultReceiver.SUCCESS_CODE || unsetReceiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
-    console.printlnError("Warning: Complication was not stopped.")
+    val unsetReceiver = CommandResultReceiver()
+    device.executeShellCommand(UNSET_WATCH_FACE, console, unsetReceiver, indicator = null)
+    if (removeReceiver.resultCode != CommandResultReceiver.SUCCESS_CODE || unsetReceiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
+      console.printlnError("Warning: Complication was not stopped.")
+    }
+    if (isDebug) {
+      stopDebugApp(device)
+    }
   }
-  if (isDebug) {
-    stopDebugApp(device)
-  }
-}

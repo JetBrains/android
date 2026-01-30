@@ -23,19 +23,19 @@ import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem
 import com.intellij.openapi.util.text.StringUtil
+import java.util.concurrent.Executor
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.job
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
-import java.util.concurrent.Executor
 
 class AdbDeviceFileSystem(
   deviceHandle: DeviceHandle,
   val device: ConnectedDevice,
   edtExecutor: Executor,
-  val dispatcher: CoroutineDispatcher
+  val dispatcher: CoroutineDispatcher,
 ) : DeviceFileSystem {
 
   private val scope: CoroutineScope = device.scope + SupervisorJob(device.scope.coroutineContext.job)
@@ -75,10 +75,7 @@ class AdbDeviceFileSystem(
     return resolvePathSegments(root, pathSegments)
   }
 
-  private suspend fun resolvePathSegments(
-    rootEntry: DeviceFileEntry,
-    segments: List<String>
-  ): DeviceFileEntry {
+  private suspend fun resolvePathSegments(rootEntry: DeviceFileEntry, segments: List<String>): DeviceFileEntry {
     var currentEntry = rootEntry
     for (segment in segments) {
       currentEntry = currentEntry.entries().find { it.name == segment } ?: throw IllegalArgumentException("Path not found")
@@ -94,8 +91,11 @@ class AdbDeviceFileSystem(
     // Shell /data/ entries to keep a consistent tree structure. This should not be shown
     private fun createEmptyRootParent(device: AdbDeviceFileSystem): AdbDeviceFileEntry {
       val rootShell = AdbDeviceDefaultFileEntry(device, AdbFileListing.defaultRoot, null)
-      return AdbDeviceDefaultFileEntry(device, AdbFileListingEntryBuilder().setPath("/data/").setKind(
-        AdbFileListingEntry.EntryKind.DIRECTORY).build(), rootShell)
+      return AdbDeviceDefaultFileEntry(
+        device,
+        AdbFileListingEntryBuilder().setPath("/data/").setKind(AdbFileListingEntry.EntryKind.DIRECTORY).build(),
+        rootShell,
+      )
     }
   }
 }

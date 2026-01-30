@@ -17,16 +17,13 @@ package com.android.tools.idea.navigator.nodes.ndk.includes.utils
 
 import com.android.repository.Revision
 
-/**
- * Convert NDK revision like 19.2.5345600 to standard NDK release name like r19c
- */
-fun getNdkVersionName(version : String) : String {
+/** Convert NDK revision like 19.2.5345600 to standard NDK release name like r19c */
+fun getNdkVersionName(version: String): String {
   val revision = Revision.parseRevision(version)
   return if (revision.minor == 0) {
     // Don't show 'a' in the NDK version. It should be r20 not r20a
     " r${revision.major}"
-  }
-  else {
+  } else {
     val minor = ('a'.code + revision.minor).toChar()
     " r${revision.major}$minor"
   }

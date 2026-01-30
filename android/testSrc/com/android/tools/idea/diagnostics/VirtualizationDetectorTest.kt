@@ -18,10 +18,10 @@ package com.android.tools.idea.diagnostics
 import com.google.wireless.android.sdk.stats.VirtualizationEvent
 import com.google.wireless.android.sdk.stats.VirtualizationEvent.ContainerType
 import com.google.wireless.android.sdk.stats.VirtualizationEvent.VmType
-import org.junit.Assert.*
-import org.junit.Test
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import org.junit.Assert.*
+import org.junit.Test
 
 class VirtualizationDetectorTest {
 

@@ -35,9 +35,9 @@ private const val CONTENT_ENCODING = "content-encoding"
 private const val CONTENT_TYPE = "content-type"
 
 /**
- * Data of http url connection. Each [HttpData] object matches a http connection with a unique id,
- * and it includes both request data and response data. Request data is filled immediately when the
- * connection starts. Response data may start empty but filled when connection completes.
+ * Data of http url connection. Each [HttpData] object matches a http connection with a unique id, and it includes both request data and
+ * response data. Request data is filled immediately when the connection starts. Response data may start empty but filled when connection
+ * completes.
  */
 data class HttpData(
   override val id: Long,
@@ -73,12 +73,11 @@ data class HttpData(
     get() = uri?.path ?: "Unknown"
 
   /**
-   * Return the name of the URL, which is the final complete word in the path portion of the URL.
-   * The query is included as it can be useful to disambiguate requests. Additionally, the returned
-   * value is URL decoded, so that, say, "Hello%2520World" -> "Hello World".
+   * Return the name of the URL, which is the final complete word in the path portion of the URL. The query is included as it can be useful
+   * to disambiguate requests. Additionally, the returned value is URL decoded, so that, say, "Hello%2520World" -> "Hello World".
    *
-   * For example, "www.example.com/demo/" -> "demo" "www.example.com/test.png" -> "test.png"
-   * "www.example.com/test.png?res=2" -> "test.png?res=2" "www.example.com/" -> "www.example.com"
+   * For example, "www.example.com/demo/" -> "demo" "www.example.com/test.png" -> "test.png" "www.example.com/test.png?res=2" ->
+   * "test.png?res=2" "www.example.com/" -> "www.example.com"
    */
   override val name: String =
     if (uri == null) {
@@ -138,16 +137,10 @@ data class HttpData(
   }
 
   internal fun withHttpThread(event: NetworkInspectorProtocol.Event) =
-    copy(
-      updateTimeUs = TimeUnit.NANOSECONDS.toMicros(event.timestamp),
-      threads = threads + event.toJavaThread(),
-    )
+    copy(updateTimeUs = TimeUnit.NANOSECONDS.toMicros(event.timestamp), threads = threads + event.toJavaThread())
 
   internal fun withRequestPayload(event: NetworkInspectorProtocol.Event) =
-    copy(
-      updateTimeUs = TimeUnit.NANOSECONDS.toMicros(event.timestamp),
-      requestPayload = event.httpConnectionEvent.requestPayload.payload,
-    )
+    copy(updateTimeUs = TimeUnit.NANOSECONDS.toMicros(event.timestamp), requestPayload = event.httpConnectionEvent.requestPayload.payload)
 
   internal fun withRequestCompleted(event: NetworkInspectorProtocol.Event): HttpData {
     val timestamp = TimeUnit.NANOSECONDS.toMicros(event.timestamp)
@@ -166,10 +159,7 @@ data class HttpData(
   }
 
   internal fun withResponsePayload(event: NetworkInspectorProtocol.Event) =
-    copy(
-      updateTimeUs = TimeUnit.NANOSECONDS.toMicros(event.timestamp),
-      responsePayload = event.httpConnectionEvent.responsePayload.payload,
-    )
+    copy(updateTimeUs = TimeUnit.NANOSECONDS.toMicros(event.timestamp), responsePayload = event.httpConnectionEvent.responsePayload.payload)
 
   internal fun withResponseCompleted(event: NetworkInspectorProtocol.Event): HttpData {
     val timestamp = TimeUnit.NANOSECONDS.toMicros(event.timestamp)
@@ -197,8 +187,8 @@ data class HttpData(
     val isEmpty = contentType.isEmpty()
 
     /**
-     * @return MIME type related information from Content-Type because Content-Type may contain
-     *   other information such as charset or boundary.
+     * @return MIME type related information from Content-Type because Content-Type may contain other information such as charset or
+     *   boundary.
      *
      * Examples: "text/html; charset=utf-8" => "text/html" "text/html" => "text/html"
      */
@@ -259,9 +249,8 @@ private fun String.lastComponent() = trimEnd('/').substringAfterLast('/')
 /**
  * Decodes a URL Component
  *
- * A URL might be encoded an arbitrarily deep number of times. Keep decoding until we peel away the
- * final layer. Usually this is only expected to loop once or twice.
- * [See more](http://stackoverflow.com/questions/3617784/plus-signs-being-replaced-for-252520)
+ * A URL might be encoded an arbitrarily deep number of times. Keep decoding until we peel away the final layer. Usually this is only
+ * expected to loop once or twice. [See more](http://stackoverflow.com/questions/3617784/plus-signs-being-replaced-for-252520)
  */
 private fun String.decodeUrl(): String {
   var currentValue = this
@@ -280,8 +269,7 @@ private fun String.decodeUrl(): String {
 private fun NetworkInspectorProtocol.Event.toJavaThread() =
   JavaThread(httpConnectionEvent.httpThread.threadId, httpConnectionEvent.httpThread.threadName)
 
-private fun List<Header>.toMap() =
-  associateTo(TreeMap(String.CASE_INSENSITIVE_ORDER)) { it.key to it.valuesList }
+private fun List<Header>.toMap() = associateTo(TreeMap(String.CASE_INSENSITIVE_ORDER)) { it.key to it.valuesList }
 
 private fun HttpTransport.toDisplayText() =
   when (this) {

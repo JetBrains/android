@@ -18,8 +18,7 @@ package com.android.tools.idea.compose.preview
 import com.android.tools.idea.common.surface.InteractionHandler
 import java.awt.dnd.DropTargetDragEvent
 
-open class ComposeNavigationInteractionHandler(private val base: InteractionHandler) :
-  InteractionHandler by base {
+open class ComposeNavigationInteractionHandler(private val base: InteractionHandler) : InteractionHandler by base {
 
   override fun createInteractionOnDrag(mouseX: Int, mouseY: Int, modifiersEx: Int) = null
 

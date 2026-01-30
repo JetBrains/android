@@ -24,13 +24,10 @@ import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * This class observes [LayoutInspector] and keeps track of when it is in a loading state. It can be
- * used for example to show loading indicators in the UI.
+ * This class observes [LayoutInspector] and keeps track of when it is in a loading state. It can be used for example to show loading
+ * indicators in the UI.
  */
-class LayoutInspectorLoadingObserver(
-  parentDisposable: Disposable,
-  private val layoutInspector: LayoutInspector,
-) : Disposable {
+class LayoutInspectorLoadingObserver(parentDisposable: Disposable, private val layoutInspector: LayoutInspector) : Disposable {
   interface Listener {
     fun onStartLoading()
 
@@ -55,16 +52,12 @@ class LayoutInspectorLoadingObserver(
     }
   }
 
-  private val inspectorModelModificationListener =
-    InspectorModel.ModificationListener { _, _, _ -> setIsLoading(false) }
+  private val inspectorModelModificationListener = InspectorModel.ModificationListener { _, _, _ -> setIsLoading(false) }
 
   init {
     Disposer.register(parentDisposable, this)
     layoutInspector.stopInspectorListeners.add(stopInspectorListener)
-    layoutInspector.processModel?.addSelectedProcessListeners(
-      Executors.newSingleThreadExecutor(),
-      selectedProcessListener,
-    )
+    layoutInspector.processModel?.addSelectedProcessListeners(Executors.newSingleThreadExecutor(), selectedProcessListener)
     layoutInspector.inspectorModel.addModificationListener(inspectorModelModificationListener)
   }
 

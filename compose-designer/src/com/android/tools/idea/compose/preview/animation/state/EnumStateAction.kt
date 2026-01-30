@@ -44,9 +44,7 @@ class EnumStateAction<T>(var states: Set<T>, private val callback: (T) -> Unit, 
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent =
-    super<ComboBoxAction>.createCustomComponent(presentation, place).apply {
-      this.components.forEach { it.isFocusable = true }
-    }
+    super<ComboBoxAction>.createCustomComponent(presentation, place).apply { this.components.forEach { it.isFocusable = true } }
 
   override fun createComboBoxButton(presentation: Presentation): ComboBoxButton {
     return object : ComboBoxButton(presentation) {
@@ -60,8 +58,7 @@ class EnumStateAction<T>(var states: Set<T>, private val callback: (T) -> Unit, 
     }
   }
 
-  override fun createPopupActionGroup(button: JComponent?) =
-    DefaultActionGroup(states.map { StateAction(it) })
+  override fun createPopupActionGroup(button: JComponent?) = DefaultActionGroup(states.map { StateAction(it) })
 
   override fun getActionUpdateThread(): ActionUpdateThread {
     return ActionUpdateThread.BGT

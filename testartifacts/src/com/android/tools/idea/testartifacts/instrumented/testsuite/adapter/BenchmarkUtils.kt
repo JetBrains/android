@@ -20,43 +20,41 @@ import com.google.testing.platform.proto.api.core.TestResultProto
 import com.intellij.openapi.util.io.FileUtil
 import java.io.File
 
-/**
- * A label used for the benchmark message output artifact from the AdditionalTestOutputPlugin in UTP.
- */
+/** A label used for the benchmark message output artifact from the AdditionalTestOutputPlugin in UTP. */
 const val ADDITIONAL_TEST_OUTPUT_PLUGIN_BENCHMARK_MESSAGE_LABEL = "additionaltestoutput.benchmark.message"
 
-/**
- * A label used for the benchmark trace file output artifact from the AdditionalTestOutputPlugin in UTP.
- */
+/** A label used for the benchmark trace file output artifact from the AdditionalTestOutputPlugin in UTP. */
 const val ADDITIONAL_TEST_OUTPUT_PLUGIN_BENCHMARK_TRACE_LABEL = "additionaltestoutput.benchmark.trace"
 
-/**
- * Finds benchmark output artifacts from [utpTestResultProto],
- * retrieves files and messages, and set them to [testCase].
- */
-fun setBenchmarkContextAndPrepareFiles(utpTestResultProto: TestResultProto.TestResult,
-                                       testCase: AndroidTestCase,
-                                       resolveOutputArtifactFunc: (String) -> File = ::File) {
-  utpTestResultProto.outputArtifactList.asSequence().filter { it.label.namespace == "android" }.forEach {
-    when (it.label.label) {
-      ADDITIONAL_TEST_OUTPUT_PLUGIN_BENCHMARK_MESSAGE_LABEL -> {
-        val benchmarkMessageFile = resolveOutputArtifactFunc(it.sourcePath.path)
-        if (benchmarkMessageFile.exists()) {
-          testCase.benchmark = benchmarkMessageFile.readText()
+/** Finds benchmark output artifacts from [utpTestResultProto], retrieves files and messages, and set them to [testCase]. */
+fun setBenchmarkContextAndPrepareFiles(
+  utpTestResultProto: TestResultProto.TestResult,
+  testCase: AndroidTestCase,
+  resolveOutputArtifactFunc: (String) -> File = ::File,
+) {
+  utpTestResultProto.outputArtifactList
+    .asSequence()
+    .filter { it.label.namespace == "android" }
+    .forEach {
+      when (it.label.label) {
+        ADDITIONAL_TEST_OUTPUT_PLUGIN_BENCHMARK_MESSAGE_LABEL -> {
+          val benchmarkMessageFile = resolveOutputArtifactFunc(it.sourcePath.path)
+          if (benchmarkMessageFile.exists()) {
+            testCase.benchmark = benchmarkMessageFile.readText()
+          }
         }
-      }
-      ADDITIONAL_TEST_OUTPUT_PLUGIN_BENCHMARK_TRACE_LABEL -> {
-        val benchmarkTraceFile = resolveOutputArtifactFunc(it.sourcePath.path)
-        if (benchmarkTraceFile.exists()) {
-          // Copy trace files into Android Studio's temporary directory because
-          // BenchmarkLinkListener assumes files are available in FileUtil.getTempDirectory().
-          // TODO(b/194527508): Don't create a copy as a trace file can be large.
-          val tempCopyFilePath = FileUtil.getTempDirectory() + File.separator + benchmarkTraceFile.name
-          val tempCopyFile = File(tempCopyFilePath)
-          benchmarkTraceFile.copyTo(tempCopyFile, overwrite = true)
-          tempCopyFile.deleteOnExit()
+        ADDITIONAL_TEST_OUTPUT_PLUGIN_BENCHMARK_TRACE_LABEL -> {
+          val benchmarkTraceFile = resolveOutputArtifactFunc(it.sourcePath.path)
+          if (benchmarkTraceFile.exists()) {
+            // Copy trace files into Android Studio's temporary directory because
+            // BenchmarkLinkListener assumes files are available in FileUtil.getTempDirectory().
+            // TODO(b/194527508): Don't create a copy as a trace file can be large.
+            val tempCopyFilePath = FileUtil.getTempDirectory() + File.separator + benchmarkTraceFile.name
+            val tempCopyFile = File(tempCopyFilePath)
+            benchmarkTraceFile.copyTo(tempCopyFile, overwrite = true)
+            tempCopyFile.deleteOnExit()
+          }
         }
       }
     }
-  }
 }

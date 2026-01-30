@@ -53,8 +53,7 @@ import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
 import org.jetbrains.kotlin.psi.psiUtil.findPropertyByName
 
 /**
- * Represents a Component's
- * [provision method](https://dagger.dev/api/latest/dagger/Component.html#provision-methods).
+ * Represents a Component's [provision method](https://dagger.dev/api/latest/dagger/Component.html#provision-methods).
  *
  * Example:
  * ```java
@@ -64,8 +63,7 @@ import org.jetbrains.kotlin.psi.psiUtil.findPropertyByName
  *   }
  * ```
  *
- * The `getFoo` method is a Component provision method, and is considered a Consumer of the type
- * `Foo`.
+ * The `getFoo` method is a Component provision method, and is considered a Consumer of the type `Foo`.
  *
  * Kotlin properties can also be used as provision methods (in the JVM, they are methods as well):
  * ```kotlin
@@ -84,10 +82,7 @@ internal object ComponentProvisionMethodConcept : DaggerConcept {
   override val indexValueReaders: List<IndexValue.Reader> =
     listOf(ComponentProvisionMethodIndexValue.Reader, ComponentProvisionPropertyIndexValue.Reader)
   override val daggerElementIdentifiers =
-    DaggerElementIdentifiers.of(
-      ComponentProvisionMethodIndexValue.identifiers,
-      ComponentProvisionPropertyIndexValue.identifiers,
-    )
+    DaggerElementIdentifiers.of(ComponentProvisionMethodIndexValue.identifiers, ComponentProvisionPropertyIndexValue.identifiers)
 }
 
 private object ComponentProvisionMethodIndexer : DaggerConceptIndexer<DaggerIndexMethodWrapper> {
@@ -98,12 +93,7 @@ private object ComponentProvisionMethodIndexer : DaggerConceptIndexer<DaggerInde
 
     // A provision method must be on a @Component or @Subcomponent.
     val containingClass = wrapper.getContainingClass() ?: return
-    if (
-      containingClass.getIsAnnotatedWithAnyOf(
-        DaggerAnnotation.COMPONENT,
-        DaggerAnnotation.SUBCOMPONENT,
-      )
-    ) {
+    if (containingClass.getIsAnnotatedWithAnyOf(DaggerAnnotation.COMPONENT, DaggerAnnotation.SUBCOMPONENT)) {
       indexEntries.addIndexValue(
         returnType.getSimpleName() ?: "",
         ComponentProvisionMethodIndexValue(containingClass.getClassId(), wrapper.getSimpleName()),
@@ -121,12 +111,7 @@ private object ComponentProvisionPropertyIndexer : DaggerConceptIndexer<DaggerIn
 
     // A provision method must be on a @Component or @Subcomponent.
     val containingClass = wrapper.getContainingClass() ?: return
-    if (
-      containingClass.getIsAnnotatedWithAnyOf(
-        DaggerAnnotation.COMPONENT,
-        DaggerAnnotation.SUBCOMPONENT,
-      )
-    ) {
+    if (containingClass.getIsAnnotatedWithAnyOf(DaggerAnnotation.COMPONENT, DaggerAnnotation.SUBCOMPONENT)) {
       indexEntries.addIndexValue(
         propertyType.getSimpleName() ?: "",
         ComponentProvisionPropertyIndexValue(containingClass.getClassId(), wrapper.getSimpleName()),
@@ -136,10 +121,7 @@ private object ComponentProvisionPropertyIndexer : DaggerConceptIndexer<DaggerIn
 }
 
 @VisibleForTesting
-internal data class ComponentProvisionMethodIndexValue(
-  val classId: ClassId,
-  val methodSimpleName: String,
-) : IndexValue() {
+internal data class ComponentProvisionMethodIndexValue(val classId: ClassId, val methodSimpleName: String) : IndexValue() {
   override val dataType = Reader.supportedType
 
   override fun save(output: DataOutput) {
@@ -150,8 +132,7 @@ internal data class ComponentProvisionMethodIndexValue(
   object Reader : IndexValue.Reader {
     override val supportedType: DataType = DataType.COMPONENT_PROVISION_METHOD
 
-    override fun read(input: DataInput) =
-      ComponentProvisionMethodIndexValue(input.readClassId(), input.readString())
+    override fun read(input: DataInput) = ComponentProvisionMethodIndexValue(input.readClassId(), input.readString())
   }
 
   companion object {
@@ -187,20 +168,15 @@ internal data class ComponentProvisionMethodIndexValue(
   }
 
   override fun getResolveCandidates(project: Project, scope: GlobalSearchScope) =
-    JavaPsiFacade.getInstance(project)
-      .findClass(classId.asFqNameString(), scope)
-      ?.methods
-      ?.asSequence()
-      ?.filter { it.name == methodSimpleName } ?: emptySequence()
+    JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope)?.methods?.asSequence()?.filter {
+      it.name == methodSimpleName
+    } ?: emptySequence()
 
   override val daggerElementIdentifiers = identifiers
 }
 
 @VisibleForTesting
-internal data class ComponentProvisionPropertyIndexValue(
-  val classId: ClassId,
-  val propertySimpleName: String,
-) : IndexValue() {
+internal data class ComponentProvisionPropertyIndexValue(val classId: ClassId, val propertySimpleName: String) : IndexValue() {
   override val dataType = Reader.supportedType
 
   override fun save(output: DataOutput) {
@@ -211,41 +187,29 @@ internal data class ComponentProvisionPropertyIndexValue(
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.COMPONENT_PROVISION_PROPERTY
 
-    override fun read(input: DataInput) =
-      ComponentProvisionPropertyIndexValue(input.readClassId(), input.readString())
+    override fun read(input: DataInput) = ComponentProvisionPropertyIndexValue(input.readClassId(), input.readString())
   }
 
   companion object {
     private fun identify(psiElement: KtProperty): DaggerElement? =
-      if (
-        !psiElement.hasBody() &&
-          psiElement.containingClassOrObject?.isComponentOrSubcomponent() == true
-      ) {
-        psiElement.psiType?.unboxed?.let { propertyPsiType ->
-          ComponentProvisionMethodDaggerElement(psiElement, propertyPsiType)
-        }
+      if (!psiElement.hasBody() && psiElement.containingClassOrObject?.isComponentOrSubcomponent() == true) {
+        psiElement.psiType?.unboxed?.let { propertyPsiType -> ComponentProvisionMethodDaggerElement(psiElement, propertyPsiType) }
       } else {
         null
       }
 
     internal val identifiers: DaggerElementIdentifiers =
-      DaggerElementIdentifiers(
-        ktPropertyIdentifiers = listOf(DaggerElementIdentifier(this::identify))
-      )
+      DaggerElementIdentifiers(ktPropertyIdentifiers = listOf(DaggerElementIdentifier(this::identify)))
   }
 
   override fun getResolveCandidates(project: Project, scope: GlobalSearchScope) =
-    KotlinFullClassNameIndex[classId.asFqNameString(), project, scope].asSequence().mapNotNull {
-      it.findPropertyByName(propertySimpleName)
-    }
+    KotlinFullClassNameIndex[classId.asFqNameString(), project, scope].asSequence().mapNotNull { it.findPropertyByName(propertySimpleName) }
 
   override val daggerElementIdentifiers = identifiers
 }
 
-internal data class ComponentProvisionMethodDaggerElement(
-  override val psiElement: PsiElement,
-  override val rawType: PsiType,
-) : ConsumerDaggerElementBase() {
+internal data class ComponentProvisionMethodDaggerElement(override val psiElement: PsiElement, override val rawType: PsiType) :
+  ConsumerDaggerElementBase() {
 
   internal constructor(psiElement: KtFunction) : this(psiElement, psiElement.getReturnedPsiType())
 
@@ -259,15 +223,11 @@ internal data class ComponentProvisionMethodDaggerElement(
   override val relationDescriptionKey: String = "navigate.to.provider.from.component"
 
   companion object {
-    private val RELATED_ELEMENTS_KEY =
-      Key<CachedValue<List<DaggerRelatedElement>>>(
-        "ComponentProvisionMethodDaggerElement_RelatedElements"
-      )
+    private val RELATED_ELEMENTS_KEY = Key<CachedValue<List<DaggerRelatedElement>>>("ComponentProvisionMethodDaggerElement_RelatedElements")
   }
 }
 
 private fun KtClassOrObject.isComponentOrSubcomponent() =
   hasAnnotation(DaggerAnnotation.COMPONENT) || hasAnnotation(DaggerAnnotation.SUBCOMPONENT)
 
-private fun PsiClass.isComponentOrSubcomponent() =
-  hasAnnotation(DaggerAnnotation.COMPONENT) || hasAnnotation(DaggerAnnotation.SUBCOMPONENT)
+private fun PsiClass.isComponentOrSubcomponent() = hasAnnotation(DaggerAnnotation.COMPONENT) || hasAnnotation(DaggerAnnotation.SUBCOMPONENT)

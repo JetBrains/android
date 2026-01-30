@@ -25,27 +25,28 @@ import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Unit tests for [AndroidTestExtraParamsDialog].
- */
+/** Unit tests for [AndroidTestExtraParamsDialog]. */
 class AndroidTestExtraParamsDialogTest {
 
   @get:Rule
   val projectRule: EdtAndroidProjectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.RUN_CONFIG_RUNNER_ARGUMENTS).onEdt()
 
-  val project get() = projectRule.project
+  val project
+    get() = projectRule.project
 
-  val androidFacet get() = projectRule.fixture.module.androidFacet!!
-
+  val androidFacet
+    get() = projectRule.fixture.module.androidFacet!!
 
   @Test
   @RunsInEdt
   fun testAndroidTestExtraParamsDialog() {
 
     // RUN_CONFIG_RUNNER_ARGUMENTS test project defines two extra params in its Gradle build file as follows.
-    assertThat(androidFacet.getAndroidTestExtraParams().toList()).containsExactly(
-      AndroidTestExtraParam("size", "medium", "medium", AndroidTestExtraParamSource.GRADLE),
-      AndroidTestExtraParam("foo", "bar", "bar", AndroidTestExtraParamSource.GRADLE))
+    assertThat(androidFacet.getAndroidTestExtraParams().toList())
+      .containsExactly(
+        AndroidTestExtraParam("size", "medium", "medium", AndroidTestExtraParamSource.GRADLE),
+        AndroidTestExtraParam("foo", "bar", "bar", AndroidTestExtraParamSource.GRADLE),
+      )
 
     // Create dialog with includeGradleExtraParams true.
     var dialog = AndroidTestExtraParamsDialog(project, androidFacet, "")

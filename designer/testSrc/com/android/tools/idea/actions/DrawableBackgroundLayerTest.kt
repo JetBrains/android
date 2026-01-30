@@ -45,8 +45,7 @@ class DrawableBackgroundLayerTest {
 
   private suspend fun renderLayerForBackgroundType(type: DrawableBackgroundType): BufferedImage =
     withContext(AndroidDispatchers.uiThread) {
-      val drawablePsiFile =
-        projectRule.fixture.loadNewFile("res/drawable/icon.xml", "<drawable></drawable>")
+      val drawablePsiFile = projectRule.fixture.loadNewFile("res/drawable/icon.xml", "<drawable></drawable>")
       val virtualFile = drawablePsiFile.virtualFile
 
       val mockDesignSurface = Mockito.mock<NlDesignSurface>()
@@ -58,8 +57,7 @@ class DrawableBackgroundLayerTest {
             projectRule.testRootDisposable,
             AndroidBuildTargetReference.gradleOnly(projectRule.module.androidFacet!!),
             virtualFile,
-            ConfigurationManager.getOrCreateInstance(projectRule.module)
-              .getConfiguration(virtualFile),
+            ConfigurationManager.getOrCreateInstance(projectRule.module).getConfiguration(virtualFile),
           )
           .build()
       whenever(mockLayoutlibSceneManager.model).thenReturn(nlModel)
@@ -112,5 +110,4 @@ class DrawableBackgroundLayerTest {
   }
 }
 
-private val GOLDEN_FILE_PATH =
-  "tools/adt/idea/designer/testData/${DrawableBackgroundLayerTest::class.simpleName!!}/golden"
+private val GOLDEN_FILE_PATH = "tools/adt/idea/designer/testData/${DrawableBackgroundLayerTest::class.simpleName!!}/golden"

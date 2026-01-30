@@ -44,7 +44,8 @@ class R8OptimizedResourceShrinkingRefactoringProcessorTest : UpgradeGradleFileMo
     val processor = R8OptimizedResourceShrinkingDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
     assertThat(project.findGradleProperties()).isNull()
     processor.run()
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains("android.r8.optimizedResourceShrinking=false")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .contains("android.r8.optimizedResourceShrinking=false")
   }
 
   @Test
@@ -52,9 +53,11 @@ class R8OptimizedResourceShrinkingRefactoringProcessorTest : UpgradeGradleFileMo
     val project = projectRule.project
     projectRule.fixture.addFileToProject("gradle.properties", "")
     val processor = R8OptimizedResourceShrinkingDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).doesNotContain("android.r8.optimizedResourceShrinking=false")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .doesNotContain("android.r8.optimizedResourceShrinking=false")
     processor.run()
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains("android.r8.optimizedResourceShrinking=false")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .contains("android.r8.optimizedResourceShrinking=false")
   }
 
   @Test
@@ -63,7 +66,8 @@ class R8OptimizedResourceShrinkingRefactoringProcessorTest : UpgradeGradleFileMo
     projectRule.fixture.addFileToProject("gradle.properties", "android.r8.optimizedResourceShrinking=false")
     val processor = R8OptimizedResourceShrinkingDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
     processor.run()
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains("android.r8.optimizedResourceShrinking=false")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .contains("android.r8.optimizedResourceShrinking=false")
   }
 
   @Test
@@ -72,23 +76,25 @@ class R8OptimizedResourceShrinkingRefactoringProcessorTest : UpgradeGradleFileMo
     projectRule.fixture.addFileToProject("gradle.properties", "android.r8.optimizedResourceShrinking=true")
     val processor = R8OptimizedResourceShrinkingDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
     processor.run()
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains("android.r8.optimizedResourceShrinking=true")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .contains("android.r8.optimizedResourceShrinking=true")
   }
 
   @Test
   fun `Refactoring disabled for 9_0_0-alpha01`() {
     val project = projectRule.project
-    val processor = R8OptimizedResourceShrinkingDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0-alpha02"))
+    val processor =
+      R8OptimizedResourceShrinkingDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0-alpha02"))
     assertTrue(processor.isEnabled)
   }
 
   @Test
   fun `Refactoring enabled for 9_0_0-alpha02`() {
     val project = projectRule.project
-    val processor = R8OptimizedResourceShrinkingDefaultRefactoringProcessor(project, AgpVersion.parse("9.0.0-alpha01"), AgpVersion.parse("9.0.0-alpha02"))
+    val processor =
+      R8OptimizedResourceShrinkingDefaultRefactoringProcessor(project, AgpVersion.parse("9.0.0-alpha01"), AgpVersion.parse("9.0.0-alpha02"))
     assertTrue(processor.isEnabled)
   }
-
 
   private fun Project.findGradleProperties(): VirtualFile? = guessProjectDir()?.findChild("gradle.properties")
 }

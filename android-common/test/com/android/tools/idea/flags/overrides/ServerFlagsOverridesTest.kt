@@ -17,8 +17,8 @@ package com.android.tools.idea.flags.overrides
 
 import com.android.flags.BooleanFlag
 import com.android.flags.FlagGroup
-import com.android.flags.Flags
 import com.android.flags.FlagValueProvider
+import com.android.flags.Flags
 import com.android.flags.IntFlag
 import com.android.tools.idea.serverflags.ServerFlagService
 import com.android.tools.idea.testing.registerServiceInstance
@@ -56,8 +56,7 @@ class ServerFlagOverridesTest {
     whenever(service.getBoolean("$STUDIO_FLAG_PREFIX.a")).thenReturn(true)
     whenever(service.getBoolean("$STUDIO_FLAG_PREFIX.b")).thenReturn(false)
     whenever(service.getBoolean("$STUDIO_FLAG_PREFIX.c")).thenReturn(null)
-    ApplicationManager.getApplication()
-      .registerServiceInstance(ServerFlagService::class.java, service, disposableRule.disposable)
+    ApplicationManager.getApplication().registerServiceInstance(ServerFlagService::class.java, service, disposableRule.disposable)
 
     assertThat(overrides.get(flagA)).isEqualTo("true")
     assertThat(overrides.get(flagB)).isEqualTo("false")
@@ -81,8 +80,7 @@ class ServerFlagOverridesTest {
     whenever(service.getInt("$STUDIO_FLAG_PREFIX.d")).thenReturn(1)
     whenever(service.getInt("$STUDIO_FLAG_PREFIX.e")).thenReturn(0)
     whenever(service.getInt("$STUDIO_FLAG_PREFIX.f")).thenReturn(null)
-    ApplicationManager.getApplication()
-      .registerServiceInstance(ServerFlagService::class.java, service, disposableRule.disposable)
+    ApplicationManager.getApplication().registerServiceInstance(ServerFlagService::class.java, service, disposableRule.disposable)
 
     assertThat(overrides.get(flagD)).isEqualTo("1")
     assertThat(overrides.get(flagE)).isEqualTo("0")

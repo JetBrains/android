@@ -20,13 +20,13 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
 
 /**
- * Starting with AGP 9.0, the default value of android.enableAppCompileTimeRClass is now true. This
- * refactoring adds the property if it was not defined and sets it to false when upgrading from a
- * version lower than 9.0.0-alpha01.
+ * Starting with AGP 9.0, the default value of android.enableAppCompileTimeRClass is now true. This refactoring adds the property if it was
+ * not defined and sets it to false when upgrading from a version lower than 9.0.0-alpha01.
  */
 class AppCompileTimeRClassDefaultRefactoringProcessor : AbstractBooleanPropertyDefaultRefactoringProcessor {
-  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
-  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val propertyKey = "android.enableAppCompileTimeRClass"
   override val oldDefault = false
@@ -35,7 +35,10 @@ class AppCompileTimeRClassDefaultRefactoringProcessor : AbstractBooleanPropertyD
   override val tooltip = AgpUpgradeBundle.message("appCompileTimeRClass.tooltipText")
   override val usageViewHeader = AgpUpgradeBundle.message("appCompileTimeRClass.usageView.header")
   override val necessityInfo = PointNecessity(AgpVersion.parse("9.0.0-alpha01"))
+
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.appCompileTimeRClass"
+
   override fun getCommandName() = AgpUpgradeBundle.message("appCompileTimeRClass.commandName")
+
   override fun getShortDescription() = AgpUpgradeBundle.message("appCompileTimeRClass.shortDescription")
 }

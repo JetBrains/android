@@ -63,10 +63,7 @@ class InteractiveLabelPanelTest {
         setTooltip("Tooltip")
       }
 
-    val label =
-      InteractiveLabelPanel(settings, scope, MutableStateFlow(false), ::labelClicked).apply {
-        size = Dimension(250, 50)
-      }
+    val label = InteractiveLabelPanel(settings, scope, MutableStateFlow(false), ::labelClicked).apply { size = Dimension(250, 50) }
     val ui = FakeUi(label)
     withContext(uiThread) { ui.clickOn(label) }
     withTimeout(TimeUnit.SECONDS.toMillis(1)) { clickCount.await() }

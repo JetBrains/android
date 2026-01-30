@@ -91,12 +91,10 @@ const val schemaQuery =
     """
 
 /**
- * Processes requests using sqlite3 CLI - targeted as a testing replacement a live device
- * connection.
+ * Processes requests using sqlite3 CLI - targeted as a testing replacement a live device connection.
  *
  * @param columnSeparator
- * - column separator used for dealing with CLI output; use any value that is not present in the
- *   data.
+ * - column separator used for dealing with CLI output; use any value that is not present in the data.
  */
 class CliDatabaseConnection(
   private val databasePath: Path,
@@ -113,9 +111,7 @@ class CliDatabaseConnection(
           .runSqliteCliCommand(
             SqliteCliArgs.builder()
               .database(databasePath)
-              .raw(
-                "${sqliteStatement.checkNoSeparatorClash().sqliteStatementWithInlineParameters};"
-              )
+              .raw("${sqliteStatement.checkNoSeparatorClash().sqliteStatementWithInlineParameters};")
               .build()
           )
           .checkSuccess()
@@ -131,9 +127,7 @@ class CliDatabaseConnection(
               .database(databasePath)
               .headersOn()
               .separator(columnSeparator)
-              .raw(
-                "${sqliteStatement.checkNoSeparatorClash().sqliteStatementWithInlineParameters};"
-              )
+              .raw("${sqliteStatement.checkNoSeparatorClash().sqliteStatementWithInlineParameters};")
               .build()
           )
           .checkSuccess()
@@ -148,12 +142,7 @@ class CliDatabaseConnection(
       .async {
         client
           .runSqliteCliCommand(
-            SqliteCliArgs.builder()
-              .database(databasePath)
-              .headersOn()
-              .separator(columnSeparator)
-              .raw("$schemaQuery;")
-              .build()
+            SqliteCliArgs.builder().database(databasePath).headersOn().separator(columnSeparator).raw("$schemaQuery;").build()
           )
           .checkSuccess()
           .toSqliteSchema()
@@ -169,11 +158,7 @@ class CliDatabaseConnection(
         override val totalRowCount: ListenableFuture<Int>
           get() = Futures.immediateFuture(rawCells.dataRows.size)
 
-        override fun getRowBatch(
-          rowOffset: Int,
-          rowBatchSize: Int,
-          responseSizeByteLimitHint: Long?,
-        ): ListenableFuture<SqliteQueryResult> =
+        override fun getRowBatch(rowOffset: Int, rowBatchSize: Int, responseSizeByteLimitHint: Long?): ListenableFuture<SqliteQueryResult> =
           Futures.immediateFuture(
             let {
               // simulate responseSizeByteLimitHint by hard-coding `2` rows per response - good
@@ -183,10 +168,7 @@ class CliDatabaseConnection(
               // are enforced
               val rows =
                 rawCells.dataRows.drop(rowOffset).take(min(batchSize, rowBatchSize)).map { row ->
-                  val cells =
-                    row.mapIndexed { ix, cell ->
-                      SqliteColumnValue(rawCells.header[ix], SqliteValue.fromAny(cell))
-                    }
+                  val cells = row.mapIndexed { ix, cell -> SqliteColumnValue(rawCells.header[ix], SqliteValue.fromAny(cell)) }
                   SqliteRow(cells)
                 }
               SqliteQueryResult(rows)
@@ -201,8 +183,7 @@ class CliDatabaseConnection(
     toRawCells().let { rawCells ->
       /** @see [schemaQuery] documentation for column list */
       val columnMap = rawCells.header.mapIndexed { ix, name -> name to ix }.toMap()
-      fun List<String>.getCell(columnName: String): String =
-        this[columnMap.getValue(columnName)] // this is a bit slow, but OK for tests
+      fun List<String>.getCell(columnName: String): String = this[columnMap.getValue(columnName)] // this is a bit slow, but OK for tests
 
       val tables =
         rawCells.dataRows
@@ -220,8 +201,7 @@ class CliDatabaseConnection(
             val rowIdName = getRowIdName(columns)
             val isView =
               tableLines.first().getCell("type").let {
-                if (listOf("table", "view").contains(it)) it == "view"
-                else throw IllegalArgumentException("Unexpected type: $it")
+                if (listOf("table", "view").contains(it)) it == "view" else throw IllegalArgumentException("Unexpected type: $it")
               }
             SqliteTable(tableName, columns, rowIdName, isView)
           }

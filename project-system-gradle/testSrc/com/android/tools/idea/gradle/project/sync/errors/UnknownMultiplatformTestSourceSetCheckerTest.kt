@@ -38,13 +38,15 @@ class UnknownMultiplatformTestSourceSetCheckerTest {
   @Test
   fun testIssueHandled() {
     assertThat(
-      issueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "KotlinSourceSet with name 'androidTestOnJvm' not found",
-        null,
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isEqualTo(true)
+        issueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "KotlinSourceSet with name 'androidTestOnJvm' not found",
+          null,
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isEqualTo(true)
   }
 }

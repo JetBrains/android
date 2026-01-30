@@ -19,9 +19,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
 import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.SystemIndependent
 
-/**
- * Tracks, using [UsageTracker], the structure of a project.
- */
+/** Tracks, using [UsageTracker], the structure of a project. */
 class ProjectStructureUsageTrackerSyncListener : GradleSyncListenerWithRoot {
 
   override fun syncSucceeded(project: Project, rootProjectPath: @SystemIndependent String) {

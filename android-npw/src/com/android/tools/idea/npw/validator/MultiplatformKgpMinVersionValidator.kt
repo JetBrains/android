@@ -27,20 +27,14 @@ class MultiplatformKgpMinVersionValidator : Validator<Optional<KotlinGradlePlugi
     if (value.isEmpty)
       return Validator.Result(
         Validator.Severity.ERROR,
-        message(
-          "android.wizard.validate.kgp.version.for.kmp.module",
-          MINIMUM_SUPPORTED_KOTLIN_MULTIPLATFORM_VERSION,
-        ),
+        message("android.wizard.validate.kgp.version.for.kmp.module", MINIMUM_SUPPORTED_KOTLIN_MULTIPLATFORM_VERSION),
       )
 
     val currentKgpVersion = value.get()
     if (currentKgpVersion < MINIMUM_SUPPORTED_KOTLIN_MULTIPLATFORM_VERSION) {
       return Validator.Result(
         Validator.Severity.ERROR,
-        message(
-          "android.wizard.validate.kgp.version.for.kmp.module",
-          MINIMUM_SUPPORTED_KOTLIN_MULTIPLATFORM_VERSION,
-        ),
+        message("android.wizard.validate.kgp.version.for.kmp.module", MINIMUM_SUPPORTED_KOTLIN_MULTIPLATFORM_VERSION),
       )
     }
 
@@ -48,7 +42,6 @@ class MultiplatformKgpMinVersionValidator : Validator<Optional<KotlinGradlePlugi
   }
 
   companion object {
-    private val MINIMUM_SUPPORTED_KOTLIN_MULTIPLATFORM_VERSION =
-      KotlinGradlePluginVersion.parse("2.0.0")!!
+    private val MINIMUM_SUPPORTED_KOTLIN_MULTIPLATFORM_VERSION = KotlinGradlePluginVersion.parse("2.0.0")!!
   }
 }

@@ -38,14 +38,14 @@ import org.junit.Test
 @RunsInEdt
 class GradlePropertyProcessorTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun `test usage view descriptor`() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     preparedProject.open { project ->
-      val processor = GradlePropertyProcessor(project, propertyName = "android.suppressUnsupportedCompileSdk", propertyValue = "UpsideDownCake")
+      val processor =
+        GradlePropertyProcessor(project, propertyName = "android.suppressUnsupportedCompileSdk", propertyValue = "UpsideDownCake")
       val usageDescriptor = processor.createUsageViewDescriptor(UsageInfo.EMPTY_ARRAY)
 
       assertThat(usageDescriptor.getCodeReferencesText(1, 1))
@@ -59,16 +59,20 @@ class GradlePropertyProcessorTest {
   fun `test with existing key in gradle properties file`() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     preparedProject.open { project ->
-
       val gradlePropertiesFile = project.baseDir.findChild("gradle.properties")!!
       runWriteAction {
-        gradlePropertiesFile.setBinaryContent("""
+        gradlePropertiesFile.setBinaryContent(
+          """
           android.suppressUnsupportedCompileSdk=33
-      """.trimIndent().toByteArray(Charsets.UTF_8))
+          """
+            .trimIndent()
+            .toByteArray(Charsets.UTF_8)
+        )
       }
       assertThat(gradlePropertiesFile.exists()).isTrue()
 
-      val processor = GradlePropertyProcessor(project, propertyName = "android.suppressUnsupportedCompileSdk", propertyValue = "33,UpsideDownCake")
+      val processor =
+        GradlePropertyProcessor(project, propertyName = "android.suppressUnsupportedCompileSdk", propertyValue = "33,UpsideDownCake")
 
       val usages = processor.findUsages()
       assertThat(usages).hasLength(1)
@@ -76,17 +80,20 @@ class GradlePropertyProcessorTest {
       assertThat(usages.getOrNull(0)?.element?.text).isEqualTo("android.suppressUnsupportedCompileSdk=33")
 
       var synced = false
-      GradleSyncState.subscribe(project, object : GradleSyncListener {
-        override fun syncSucceeded(project: Project) {
-          synced = true
-        }
-      }, projectRule.testRootDisposable)
-      WriteCommandAction.runWriteCommandAction(project) {
-        processor.updateProjectBuildModel(usages)
-      }
+      GradleSyncState.subscribe(
+        project,
+        object : GradleSyncListener {
+          override fun syncSucceeded(project: Project) {
+            synced = true
+          }
+        },
+        projectRule.testRootDisposable,
+      )
+      WriteCommandAction.runWriteCommandAction(project) { processor.updateProjectBuildModel(usages) }
       GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_PROJECT_MODIFIED)
 
-      assertThat(String(gradlePropertiesFile.contentsToByteArray()).contains("android.suppressUnsupportedCompileSdk=33,UpsideDownCake")).isTrue()
+      assertThat(String(gradlePropertiesFile.contentsToByteArray()).contains("android.suppressUnsupportedCompileSdk=33,UpsideDownCake"))
+        .isTrue()
       assertThat(synced).isTrue()
     }
   }
@@ -98,7 +105,8 @@ class GradlePropertyProcessorTest {
       val gradlePropertiesFile = project.baseDir.findChild("gradle.properties")!!
       assertThat(gradlePropertiesFile.exists()).isTrue()
 
-      val processor = GradlePropertyProcessor(project, propertyName = "android.suppressUnsupportedCompileSdk", propertyValue = "UpsideDownCake")
+      val processor =
+        GradlePropertyProcessor(project, propertyName = "android.suppressUnsupportedCompileSdk", propertyValue = "UpsideDownCake")
 
       val usages = processor.findUsages()
       assertThat(usages).hasLength(1)
@@ -106,17 +114,20 @@ class GradlePropertyProcessorTest {
       assertThat(usages.getOrNull(0)?.element?.text).isEqualTo(String(gradlePropertiesFile.contentsToByteArray()))
 
       var synced = false
-      GradleSyncState.subscribe(project, object : GradleSyncListener {
-        override fun syncSucceeded(project: Project) {
-          synced = true
-        }
-      }, projectRule.testRootDisposable)
-      WriteCommandAction.runWriteCommandAction(project) {
-        processor.updateProjectBuildModel(usages)
-      }
+      GradleSyncState.subscribe(
+        project,
+        object : GradleSyncListener {
+          override fun syncSucceeded(project: Project) {
+            synced = true
+          }
+        },
+        projectRule.testRootDisposable,
+      )
+      WriteCommandAction.runWriteCommandAction(project) { processor.updateProjectBuildModel(usages) }
       GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_PROJECT_MODIFIED)
 
-      assertThat(String(gradlePropertiesFile.contentsToByteArray()).contains("android.suppressUnsupportedCompileSdk=UpsideDownCake")).isTrue()
+      assertThat(String(gradlePropertiesFile.contentsToByteArray()).contains("android.suppressUnsupportedCompileSdk=UpsideDownCake"))
+        .isTrue()
       assertThat(synced).isTrue()
     }
   }
@@ -127,10 +138,9 @@ class GradlePropertyProcessorTest {
     preparedProject.open { project ->
       var gradlePropertiesFile = project.baseDir.findChild("gradle.properties")!!
 
-      runWriteAction {
-        gradlePropertiesFile.delete(this)
-      }
-      val processor = GradlePropertyProcessor(project, propertyName = "android.suppressUnsupportedCompileSdk", propertyValue = "UpsideDownCake")
+      runWriteAction { gradlePropertiesFile.delete(this) }
+      val processor =
+        GradlePropertyProcessor(project, propertyName = "android.suppressUnsupportedCompileSdk", propertyValue = "UpsideDownCake")
 
       val usages = processor.findUsages()
       assertThat(usages).hasLength(1)
@@ -138,19 +148,22 @@ class GradlePropertyProcessorTest {
       assertThat(usages.getOrNull(0)?.element?.text).isEqualTo("")
 
       var synced = false
-      GradleSyncState.subscribe(project, object : GradleSyncListener {
-        override fun syncSucceeded(project: Project) {
-          synced = true
-        }
-      }, projectRule.testRootDisposable)
-      WriteCommandAction.runWriteCommandAction(project) {
-        processor.updateProjectBuildModel(usages)
-      }
+      GradleSyncState.subscribe(
+        project,
+        object : GradleSyncListener {
+          override fun syncSucceeded(project: Project) {
+            synced = true
+          }
+        },
+        projectRule.testRootDisposable,
+      )
+      WriteCommandAction.runWriteCommandAction(project) { processor.updateProjectBuildModel(usages) }
       GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_PROJECT_MODIFIED)
 
       gradlePropertiesFile = project.baseDir.findChild("gradle.properties")!!
       assertThat(gradlePropertiesFile.exists()).isTrue()
-      assertThat(String(gradlePropertiesFile.contentsToByteArray()).contains("android.suppressUnsupportedCompileSdk=UpsideDownCake")).isTrue()
+      assertThat(String(gradlePropertiesFile.contentsToByteArray()).contains("android.suppressUnsupportedCompileSdk=UpsideDownCake"))
+        .isTrue()
       assertThat(synced).isTrue()
     }
   }

@@ -101,9 +101,7 @@ class PreviewPickerLineMarkerProviderTest {
 
     fixture.doHighlighting()
     val previewLineMarkerInfos = getAndAssertPreviewLineMarkers()
-    listOf(psiFile.findPreviewAnnotation(2), psiFile.findPreviewAnnotation(4)).forEachIndexed {
-      idx,
-      validAnnotation ->
+    listOf(psiFile.findPreviewAnnotation(2), psiFile.findPreviewAnnotation(4)).forEachIndexed { idx, validAnnotation ->
       assertEquals(validAnnotation.startOffset, previewLineMarkerInfos[idx].startOffset)
       assertEquals(validAnnotation.endOffset, previewLineMarkerInfos[idx].endOffset)
       assertEquals(COMPOSE_PREVIEW_ANNOTATION_NAME, previewLineMarkerInfos[idx].element!!.text)
@@ -137,17 +135,12 @@ class PreviewPickerLineMarkerProviderTest {
     val previewLineMarkerInfos = getPreviewLineMarkers()
 
     assertEquals(2, previewLineMarkerInfos.size)
-    assertTrue(
-      previewLineMarkerInfos.all {
-        "Preview Picker" == it.createGutterRenderer().clickAction!!.templateText
-      }
-    )
+    assertTrue(previewLineMarkerInfos.all { "Preview Picker" == it.createGutterRenderer().clickAction!!.templateText })
     return previewLineMarkerInfos
   }
 
   private fun getPreviewLineMarkers(): List<LineMarkerInfo<*>> =
-    DaemonCodeAnalyzerImpl.getLineMarkers(fixture.editor.document, rule.project).filter {
-      lineMarkerInfo ->
+    DaemonCodeAnalyzerImpl.getLineMarkers(fixture.editor.document, rule.project).filter { lineMarkerInfo ->
       lineMarkerInfo.lineMarkerTooltip == "Preview configuration picker"
     }
 }
@@ -155,12 +148,5 @@ class PreviewPickerLineMarkerProviderTest {
 private fun PsiFile.findPreviewAnnotation(ordinal: Int): PsiElement = runInEdtAndGet {
   // The element should start after the '@' so add 1 to the offset
   val indexOfElement = StringUtils.ordinalIndexOf(text, "@$COMPOSE_PREVIEW_ANNOTATION_NAME", ordinal) + 1
-  checkNotNull(
-    PsiTreeUtil.findElementOfClassAtOffset(
-      this,
-      indexOfElement,
-      KtNameReferenceExpression::class.java,
-      true,
-    )
-  )
+  checkNotNull(PsiTreeUtil.findElementOfClassAtOffset(this, indexOfElement, KtNameReferenceExpression::class.java, true))
 }

@@ -29,11 +29,7 @@ data class Dimension(val type: DimensionType, val value: DimensionValue, val dis
           else -> throw IllegalStateException("$proto is neither or long nor string type.")
         }
 
-      return Dimension(
-        type = dimensionType,
-        value = dimensionValue,
-        displayValue = proto.valueLabel,
-      )
+      return Dimension(type = dimensionType, value = dimensionValue, displayValue = proto.valueLabel)
     }
   }
 }

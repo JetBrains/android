@@ -34,11 +34,11 @@ import javax.swing.JTextPane
 import javax.swing.SwingConstants
 import javax.swing.event.HyperlinkEvent
 
-class SdkInsightsPanel(private val category: String, private val title: String, body: String) :
-  BorderLayoutPanel() {
+class SdkInsightsPanel(private val category: String, private val title: String, body: String) : BorderLayoutPanel() {
   private val iconLabel =
-    JBLabel(createTitleText(category, title), AllIcons.Actions.IntentionBulb, SwingConstants.LEFT)
-      .apply { verticalAlignment = SwingConstants.BOTTOM }
+    JBLabel(createTitleText(category, title), AllIcons.Actions.IntentionBulb, SwingConstants.LEFT).apply {
+      verticalAlignment = SwingConstants.BOTTOM
+    }
 
   init {
     addToTop(iconLabel)
@@ -77,11 +77,7 @@ class SdkInsightsPanel(private val category: String, private val title: String, 
           object : MouseAdapter() {
             override fun mouseEntered(e: MouseEvent?) {
               cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
-              font =
-                JBFont.label()
-                  .deriveFont(
-                    font.attributes.plus(Pair(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON))
-                  )
+              font = JBFont.label().deriveFont(font.attributes.plus(Pair(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON)))
             }
 
             override fun mouseExited(e: MouseEvent?) {
@@ -143,9 +139,7 @@ class SdkInsightsPanel(private val category: String, private val title: String, 
     }
 
     private fun String.replaceUrl() =
-      replace(urlRegex) { matchResult ->
-        "(<a href=\"${matchResult.groupValues[1]}\">${matchResult.groupValues[1]}</a>)"
-      }
+      replace(urlRegex) { matchResult -> "(<a href=\"${matchResult.groupValues[1]}\">${matchResult.groupValues[1]}</a>)" }
 
     private fun String.addWordBreaks() = replace(" ", " <wbr>")
   }

@@ -21,12 +21,9 @@ import com.android.tools.idea.streaming.device.SetDeviceOrientationMessage
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-/**
- * Rotates device left or right.
- */
-internal sealed class DeviceRotateAction(
-  private val rotationQuadrants: Int,
-) : AbstractDeviceAction(configFilter = { it.hasOrientationSensors && it.deviceType == DeviceType.HANDHELD }) {
+/** Rotates device left or right. */
+internal sealed class DeviceRotateAction(private val rotationQuadrants: Int) :
+  AbstractDeviceAction(configFilter = { it.hasOrientationSensors && it.deviceType == DeviceType.HANDHELD }) {
 
   @UiThread
   override fun actionPerformed(event: AnActionEvent) {
@@ -40,5 +37,6 @@ internal sealed class DeviceRotateAction(
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
   class Left : DeviceRotateAction(1)
+
   class Right : DeviceRotateAction(3)
 }

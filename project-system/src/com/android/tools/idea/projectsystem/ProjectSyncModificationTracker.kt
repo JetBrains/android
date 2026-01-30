@@ -23,16 +23,20 @@ class ProjectSyncModificationTracker(val project: Project) : ModificationTracker
   private val tracker = SimpleModificationTracker()
 
   init {
-    project.messageBus.connect(project).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : ProjectSystemSyncManager.SyncResultListener {
-      override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
-        tracker.incModificationCount()
-      }
-    })
+    project.messageBus
+      .connect(project)
+      .subscribe(
+        PROJECT_SYSTEM_SYNC_TOPIC,
+        object : ProjectSystemSyncManager.SyncResultListener {
+          override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
+            tracker.incModificationCount()
+          }
+        },
+      )
   }
 
   companion object {
-    @JvmStatic
-    fun getInstance(project: Project) = project.getService(ProjectSyncModificationTracker::class.java)!!
+    @JvmStatic fun getInstance(project: Project) = project.getService(ProjectSyncModificationTracker::class.java)!!
   }
 
   override fun getModificationCount() = tracker.modificationCount

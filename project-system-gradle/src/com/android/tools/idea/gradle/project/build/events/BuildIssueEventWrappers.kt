@@ -36,31 +36,31 @@ import java.util.Objects
 /**
  * Wrapper on [FileMessageEvent] to represent a FileMessageEvent that is also build issue.
  *
- * This class combines the properties of a `FileMessageEvent` and a `BuildIssueEvent`,
- * so that quick fixes like [BuildIssueQuickFix] can be attached to the event.
+ * This class combines the properties of a `FileMessageEvent` and a `BuildIssueEvent`, so that quick fixes like [BuildIssueQuickFix] can be
+ * attached to the event.
  *
- * @constructor Creates a new `[FileMessageBuildIssueEvent]`.
  * @param fileMessageEvent The original `FileMessageEvent`.
  * @param describedBuildIssueQuickFix The `BuildIssueQuickFix` associated with the file message event.
+ * @constructor Creates a new `[FileMessageBuildIssueEvent]`.
  */
 @Suppress("UnstableApiUsage")
 open class FileMessageBuildIssueEvent(
   private val fileMessageEvent: FileMessageEvent,
-  private val additionalDescriptions: List<BuildIssueDescriptionComposer>
-): FileMessageEvent, BuildIssueEvent {
+  private val additionalDescriptions: List<BuildIssueDescriptionComposer>,
+) : FileMessageEvent, BuildIssueEvent {
 
   constructor(
     fileMessageBuildIssueEvent: FileMessageBuildIssueEvent,
-    additionalDescription: BuildIssueDescriptionComposer
+    additionalDescription: BuildIssueDescriptionComposer,
   ) : this(
     fileMessageEvent = fileMessageBuildIssueEvent.fileMessageEvent,
-    additionalDescriptions = fileMessageBuildIssueEvent.additionalDescriptions + additionalDescription
+    additionalDescriptions = fileMessageBuildIssueEvent.additionalDescriptions + additionalDescription,
   )
 
   constructor(
     fileMessageEvent: FileMessageEvent,
-    additionalDescription: BuildIssueDescriptionComposer
-  ) : this( fileMessageEvent, listOf(additionalDescription))
+    additionalDescription: BuildIssueDescriptionComposer,
+  ) : this(fileMessageEvent, listOf(additionalDescription))
 
   private val buildIssue: BuildIssue =
     BuildIssueComposer(fileMessageEvent.description.orEmpty(), fileMessageEvent.message).let { composer ->
@@ -85,7 +85,7 @@ open class FileMessageBuildIssueEvent(
   }
 
   override fun getMessage(): String {
-   return fileMessageEvent.message
+    return fileMessageEvent.message
   }
 
   override fun getHint(): String? {
@@ -105,7 +105,7 @@ open class FileMessageBuildIssueEvent(
   }
 
   override fun getNavigatable(project: Project): Navigatable? {
-   return fileMessageEvent.getNavigatable(project)
+    return fileMessageEvent.getNavigatable(project)
   }
 
   override fun getResult(): FileMessageEventResult {
@@ -143,31 +143,31 @@ open class FileMessageBuildIssueEvent(
 /**
  * Wrapper on [MessageEvent] to represent a MessageEvent that is also build issue.
  *
- * This class extends an existing messageEvent object to support a BuildIssueEvent,
- * so that quick fixes like [BuildIssueQuickFix] can be attached to the event.
+ * This class extends an existing messageEvent object to support a BuildIssueEvent, so that quick fixes like [BuildIssueQuickFix] can be
+ * attached to the event.
  *
- * @constructor Creates a new `[MessageBuildIssueEvent]`.
  * @param messageEvent The original `MessageEvent`.
  * @param describedBuildIssueQuickFix The `BuildIssueQuickFix` associated with the message event.
+ * @constructor Creates a new `[MessageBuildIssueEvent]`.
  */
 @Suppress("UnstableApiUsage")
 open class MessageBuildIssueEvent(
   private val messageEvent: MessageEvent,
-  private val additionalDescriptions: List<BuildIssueDescriptionComposer>
-): MessageEvent, BuildIssueEvent {
+  private val additionalDescriptions: List<BuildIssueDescriptionComposer>,
+) : MessageEvent, BuildIssueEvent {
 
   constructor(
     messageBuildIssueEvent: MessageBuildIssueEvent,
-    additionalDescription: BuildIssueDescriptionComposer
+    additionalDescription: BuildIssueDescriptionComposer,
   ) : this(
     messageEvent = messageBuildIssueEvent.messageEvent,
-    additionalDescriptions = messageBuildIssueEvent.additionalDescriptions + additionalDescription
+    additionalDescriptions = messageBuildIssueEvent.additionalDescriptions + additionalDescription,
   )
 
   constructor(
     messageEvent: MessageEvent,
-    additionalDescription: BuildIssueDescriptionComposer
-  ) : this( messageEvent, listOf(additionalDescription))
+    additionalDescription: BuildIssueDescriptionComposer,
+  ) : this(messageEvent, listOf(additionalDescription))
 
   private val buildIssue: BuildIssue =
     BuildIssueComposer(messageEvent.description.orEmpty(), messageEvent.message).let { composer ->
@@ -196,7 +196,7 @@ open class MessageBuildIssueEvent(
   }
 
   override fun getDescription(): String {
-      return buildIssue.description
+    return buildIssue.description
   }
 
   override fun getKind(): MessageEvent.Kind {
@@ -212,7 +212,7 @@ open class MessageBuildIssueEvent(
   }
 
   override fun getResult(): MessageEventResult {
-    return object: MessageEventResult {
+    return object : MessageEventResult {
       override fun getKind(): MessageEvent.Kind {
         return messageEvent.kind
       }
@@ -239,70 +239,83 @@ open class MessageBuildIssueEvent(
   }
 }
 
-/** Copies contents of a  [BuildIssueEventImpl] to an anonymous object of [BuildIssueEvent] with quick fix added.
- *  It does this by creating a new [AbstractBuildEvent] class so that the fields like id, eventTime are copied
- *  from the original BuildIssueEvent.
+/**
+ * Copies contents of a [BuildIssueEventImpl] to an anonymous object of [BuildIssueEvent] with quick fix added. It does this by creating a
+ * new [AbstractBuildEvent] class so that the fields like id, eventTime are copied from the original BuildIssueEvent.
  *
  * @param quickFix The `BuildIssueQuickFix` to be added.
  * @return [BuildIssueEvent] A BuildIssueEvent with all the contents copied.
  */
 @Suppress("UnstableApiUsage")
 fun BuildIssueEventImpl.copyWithQuickFix(additionalDescription: BuildIssueDescriptionComposer): BuildIssueEvent {
-  val newBuildIssue = when (this.issue) {
-    is ErrorMessageAwareBuildIssue -> (this.issue as ErrorMessageAwareBuildIssue).withAdditionalDescription(additionalDescription)
-    else -> this.issue.withAdditionalDescription(additionalDescription)
-  }
+  val newBuildIssue =
+    when (this.issue) {
+      is ErrorMessageAwareBuildIssue -> (this.issue as ErrorMessageAwareBuildIssue).withAdditionalDescription(additionalDescription)
+      else -> this.issue.withAdditionalDescription(additionalDescription)
+    }
 
-  val newMessageEventResult = object : MessageEventResult {
-    override fun getKind(): MessageEvent.Kind {
-      return this@copyWithQuickFix.kind
+  val newMessageEventResult =
+    object : MessageEventResult {
+      override fun getKind(): MessageEvent.Kind {
+        return this@copyWithQuickFix.kind
+      }
+
+      override fun getDetails(): String? {
+        return newBuildIssue.description
+      }
     }
-    override fun getDetails(): String? {
-      return newBuildIssue.description
-    }
-  }
 
   return object : AbstractBuildEvent(this.id, this.parentId, this.eventTime, this.message), BuildIssueEvent {
     override fun getDescription(): String {
       return newBuildIssue.description
     }
+
     override fun getKind(): MessageEvent.Kind {
       return this@copyWithQuickFix.kind
     }
+
     override fun getGroup(): String {
       return this@copyWithQuickFix.group
     }
+
     override fun getNavigatable(project: Project): Navigatable? {
       return newBuildIssue.getNavigatable(project)
     }
+
     override fun getIssue(): BuildIssue {
       return newBuildIssue
     }
+
     override fun getResult(): MessageEventResult {
       return newMessageEventResult
     }
   }
 }
 
-fun ErrorMessageAwareBuildIssue.withAdditionalDescription(additionalDescription: BuildIssueDescriptionComposer): ErrorMessageAwareBuildIssue = object : ErrorMessageAwareBuildIssue {
-  override val title: String = this@withAdditionalDescription.title
-  override val description: String = buildString {
-    appendLine(this@withAdditionalDescription.description)
-    append(additionalDescription.description)
+fun ErrorMessageAwareBuildIssue.withAdditionalDescription(
+  additionalDescription: BuildIssueDescriptionComposer
+): ErrorMessageAwareBuildIssue =
+  object : ErrorMessageAwareBuildIssue {
+    override val title: String = this@withAdditionalDescription.title
+    override val description: String = buildString {
+      appendLine(this@withAdditionalDescription.description)
+      append(additionalDescription.description)
+    }
+    override val quickFixes: List<BuildIssueQuickFix> = this@withAdditionalDescription.quickFixes + additionalDescription.quickFixes
+
+    override fun getNavigatable(project: Project): Navigatable? = this@withAdditionalDescription.getNavigatable(project)
+
+    override val buildErrorMessage: BuildErrorMessage = this@withAdditionalDescription.buildErrorMessage
   }
-  override val quickFixes: List<BuildIssueQuickFix> = this@withAdditionalDescription.quickFixes + additionalDescription.quickFixes
-  override fun getNavigatable(project: Project): Navigatable? = this@withAdditionalDescription.getNavigatable(project)
-  override val buildErrorMessage: BuildErrorMessage = this@withAdditionalDescription.buildErrorMessage
-}
 
-fun BuildIssue.withAdditionalDescription(additionalDescription: BuildIssueDescriptionComposer): BuildIssue = object : BuildIssue {
-  override val title: String = this@withAdditionalDescription.title
-  override val description: String = buildString {
-    appendLine(this@withAdditionalDescription.description)
-    append(additionalDescription.description)
+fun BuildIssue.withAdditionalDescription(additionalDescription: BuildIssueDescriptionComposer): BuildIssue =
+  object : BuildIssue {
+    override val title: String = this@withAdditionalDescription.title
+    override val description: String = buildString {
+      appendLine(this@withAdditionalDescription.description)
+      append(additionalDescription.description)
+    }
+    override val quickFixes: List<BuildIssueQuickFix> = this@withAdditionalDescription.quickFixes + additionalDescription.quickFixes
+
+    override fun getNavigatable(project: Project): Navigatable? = this@withAdditionalDescription.getNavigatable(project)
   }
-  override val quickFixes: List<BuildIssueQuickFix> = this@withAdditionalDescription.quickFixes + additionalDescription.quickFixes
-  override fun getNavigatable(project: Project): Navigatable? = this@withAdditionalDescription.getNavigatable(project)
-}
-
-

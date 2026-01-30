@@ -81,12 +81,9 @@ fun JourneysResultsView(
     val path = artifact.screenshotImage
     if (path != null) {
       JourneyScreenshot(modifier = Modifier, path = path, onImageDoubleClicked = onImageDoubleClicked)
-    }
-    else {
+    } else {
       Tooltip(modifier = Modifier, tooltip = { Text("No screenshot available") }) {
-        Box(
-          modifier = Modifier.aspectRatio(0.5f).fillMaxHeight().background(color = Color.LightGray)
-        )
+        Box(modifier = Modifier.aspectRatio(0.5f).fillMaxHeight().background(color = Color.LightGray))
       }
     }
 
@@ -96,40 +93,20 @@ fun JourneysResultsView(
       val textScrollState = rememberScrollState()
       Box {
         SelectionContainer {
-          Column(
-            modifier = Modifier.verticalScroll(textScrollState),
-            verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.Top),
-          ) {
+          Column(modifier = Modifier.verticalScroll(textScrollState), verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.Top)) {
             Row {
-              ArtifactText(
-                modifier = Modifier.weight(1f, fill = true),
-                title = "Action Taken",
-                text = artifact.description ?: "No action",
-              )
+              ArtifactText(modifier = Modifier.weight(1f, fill = true), title = "Action Taken", text = artifact.description ?: "No action")
               if (numEntries > 1) {
-                DisableSelection {
-                  StepCounter(modifier = Modifier, index = index, numEntries = numEntries)
-                }
+                DisableSelection { StepCounter(modifier = Modifier, index = index, numEntries = numEntries) }
               }
             }
-            ArtifactText(
-              modifier = Modifier,
-              title = "Reasoning",
-              text = artifact.reasoning ?: "None",
-            )
+            ArtifactText(modifier = Modifier, title = "Reasoning", text = artifact.reasoning ?: "None")
             if (artifact.interactions.isNotEmpty()) {
-              ArtifactText(
-                modifier = Modifier,
-                title = "Commands",
-                text = artifact.interactions.joinToString(",")
-              )
+              ArtifactText(modifier = Modifier, title = "Commands", text = artifact.interactions.joinToString(","))
             }
           }
         }
-        VerticalScrollbar(
-          modifier = Modifier.fillMaxHeight().align(Alignment.TopEnd),
-          adapter = rememberScrollbarAdapter(textScrollState),
-        )
+        VerticalScrollbar(modifier = Modifier.fillMaxHeight().align(Alignment.TopEnd), adapter = rememberScrollbarAdapter(textScrollState))
       }
     }
   }
@@ -159,32 +136,17 @@ fun JourneysResultsViewCompact(
             modifier = Modifier.widthIn(max = 400.dp).verticalScroll(textScrollState).padding(vertical = 4.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.Top),
           ) {
-            ArtifactText(
-              modifier = Modifier,
-              title = "Action Taken",
-              text = artifact.description ?: "No action",
-            )
-            ArtifactText(
-              modifier = Modifier,
-              title = "Reasoning",
-              text = artifact.reasoning ?: "None",
-            )
+            ArtifactText(modifier = Modifier, title = "Action Taken", text = artifact.description ?: "No action")
+            ArtifactText(modifier = Modifier, title = "Reasoning", text = artifact.reasoning ?: "None")
           }
         }
-        VerticalScrollbar(
-          modifier = Modifier.fillMaxHeight().align(Alignment.TopEnd),
-          adapter = rememberScrollbarAdapter(textScrollState),
-        )
+        VerticalScrollbar(modifier = Modifier.fillMaxHeight().align(Alignment.TopEnd), adapter = rememberScrollbarAdapter(textScrollState))
       }
     }
 
     if (numEntries > 1 && showStepCounter) {
       Spacer(modifier = Modifier.height(12.dp))
-      StepCounter(
-        modifier = Modifier.align(Alignment.CenterHorizontally),
-        index = index,
-        numEntries = numEntries,
-      )
+      StepCounter(modifier = Modifier.align(Alignment.CenterHorizontally), index = index, numEntries = numEntries)
     }
   }
 }
@@ -215,32 +177,20 @@ fun JourneyScreenshot(modifier: Modifier, path: String, onImageDoubleClicked: ((
     }
   }
   val bitmap = imageBitmap
-  Box(
-    modifier = modifier.hoverable(interactionSource = interactionSource).testTag("Screenshot"),
-    contentAlignment = Alignment.Center
-  ) {
+  Box(modifier = modifier.hoverable(interactionSource = interactionSource).testTag("Screenshot"), contentAlignment = Alignment.Center) {
     when {
       isLoading -> LoadingPlaceholder(modifier = Modifier)
       error -> ScreenshotError(modifier = Modifier, screenshotPath = path)
-      bitmap != null ->
-        Image(
-          modifier = Modifier,
-          bitmap = bitmap,
-          contentDescription = "Screenshot of app prior to action",
-        )
+      bitmap != null -> Image(modifier = Modifier, bitmap = bitmap, contentDescription = "Screenshot of app prior to action")
     }
 
     if (!isLoading && !error && isHovered && onImageDoubleClicked != null) {
       Box(
-        modifier = Modifier
-          .matchParentSize()
-          .background(Color(red = 255, green = 255, blue = 255, alpha = 200))
-          .testTag("OpenScreenshotButton"),
+        modifier =
+          Modifier.matchParentSize().background(Color(red = 255, green = 255, blue = 255, alpha = 200)).testTag("OpenScreenshotButton"),
         contentAlignment = Alignment.Center,
       ) {
-        OutlinedButton(onClick = onImageDoubleClicked) {
-          Text("Open Screenshot")
-        }
+        OutlinedButton(onClick = onImageDoubleClicked) { Text("Open Screenshot") }
       }
     }
   }
@@ -248,10 +198,7 @@ fun JourneyScreenshot(modifier: Modifier, path: String, onImageDoubleClicked: ((
 
 @Composable
 private fun LoadingPlaceholder(modifier: Modifier) {
-  Box(
-    modifier = modifier.aspectRatio(0.5f).background(color = Color.LightGray),
-    contentAlignment = Alignment.Center,
-  ) {
+  Box(modifier = modifier.aspectRatio(0.5f).background(color = Color.LightGray), contentAlignment = Alignment.Center) {
     CircularProgressIndicator()
   }
 }
@@ -259,13 +206,9 @@ private fun LoadingPlaceholder(modifier: Modifier) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ScreenshotError(modifier: Modifier, screenshotPath: String) {
-  Tooltip(
-    modifier = modifier,
-    tooltip = { Text("Error loading screenshot at path: $screenshotPath") },
-  ) {
+  Tooltip(modifier = modifier, tooltip = { Text("Error loading screenshot at path: $screenshotPath") }) {
     Box(
-      modifier =
-        modifier.testTag("ScreenshotError").aspectRatio(0.5f).background(color = Color.LightGray),
+      modifier = modifier.testTag("ScreenshotError").aspectRatio(0.5f).background(color = Color.LightGray),
       contentAlignment = Alignment.Center,
     ) {
       Icon(key = StudioIconsCompose.Common.Error, contentDescription = null)
@@ -278,12 +221,7 @@ private fun ArtifactText(modifier: Modifier, title: String, text: String) {
   Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
     Text(
       title,
-      style =
-        TextStyle(
-          fontSize = 13.sp,
-          lineHeight = 16.sp,
-          fontWeight = FontWeight(500),
-        ),
+      style = TextStyle(fontSize = 13.sp, lineHeight = 16.sp, fontWeight = FontWeight(500)),
       maxLines = 1,
       overflow = TextOverflow.Ellipsis,
     )
@@ -295,13 +233,7 @@ private fun ArtifactText(modifier: Modifier, title: String, text: String) {
 private fun StepCounter(modifier: Modifier, index: Int, numEntries: Int) {
   Text(
     "Step ${index + 1} of $numEntries",
-    style =
-    TextStyle(
-      fontSize = 13.sp,
-      lineHeight = 16.sp,
-      fontWeight = FontWeight(500),
-      color = JewelTheme.globalColors.text.info
-    ),
+    style = TextStyle(fontSize = 13.sp, lineHeight = 16.sp, fontWeight = FontWeight(500), color = JewelTheme.globalColors.text.info),
     modifier = modifier,
   )
 }

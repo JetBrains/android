@@ -21,22 +21,31 @@ import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel
 
 interface CompileSdkBlockModel : GradleBlockModel {
   fun getVersion(): CompileSdkVersionModel?
+
   fun setReleaseVersion(version: Int, minorApi: Int?, extension: Int?)
+
   fun setReleaseVersion(reference: ReferenceTo)
+
   fun setPreviewVersion(version: String)
+
   fun setPreviewVersion(reference: ReferenceTo)
+
   fun setAddon(vendorName: String, addonName: String, apiLevel: Int)
 }
 
 interface CompileSdkVersionModel {
   fun toHash(): String?
+
   fun toInt(): Int?
+
   fun getVersion(): ResolvedPropertyModel
+
   fun delete()
 }
 
 interface CompileSdkReleaseModel : CompileSdkVersionModel {
   fun getMinorApiLevel(): ResolvedPropertyModel
+
   fun getSdkExtension(): ResolvedPropertyModel
 }
 
@@ -44,5 +53,6 @@ interface CompileSdkPreviewModel : CompileSdkVersionModel
 
 interface CompileSdkAddonModel : CompileSdkVersionModel {
   fun getVendorName(): ResolvedPropertyModel
+
   fun getAddonName(): ResolvedPropertyModel
 }

@@ -26,20 +26,14 @@ import com.intellij.util.xmlb.annotations.OptionTag
 import org.jetbrains.annotations.VisibleForTesting
 
 /** Global formatting options. */
-@State(
-  name = "AndroidLogcatFormattingOptions",
-  storages = [Storage("androidLogcatFormattingOptions.xml")],
-)
-internal class AndroidLogcatFormattingOptions @VisibleForTesting constructor() :
-  PersistentStateComponent<AndroidLogcatFormattingOptions> {
+@State(name = "AndroidLogcatFormattingOptions", storages = [Storage("androidLogcatFormattingOptions.xml")])
+internal class AndroidLogcatFormattingOptions @VisibleForTesting constructor() : PersistentStateComponent<AndroidLogcatFormattingOptions> {
   @OptionTag(converter = FormattingOptionsStyleConverter::class)
   var defaultFormatting: FormattingOptions.Style = FormattingOptions.Style.STANDARD
 
-  @OptionTag(converter = FormattingOptionsConverter::class)
-  var standardFormattingOptions: FormattingOptions = DEFAULT_STANDARD.copy()
+  @OptionTag(converter = FormattingOptionsConverter::class) var standardFormattingOptions: FormattingOptions = DEFAULT_STANDARD.copy()
 
-  @OptionTag(converter = FormattingOptionsConverter::class)
-  var compactFormattingOptions: FormattingOptions = DEFAULT_COMPACT.copy()
+  @OptionTag(converter = FormattingOptionsConverter::class) var compactFormattingOptions: FormattingOptions = DEFAULT_COMPACT.copy()
 
   override fun getState(): AndroidLogcatFormattingOptions = this
 
@@ -76,8 +70,7 @@ internal class AndroidLogcatFormattingOptions @VisibleForTesting constructor() :
   private class FormattingOptionsStyleConverter : Converter<FormattingOptions.Style>() {
     override fun toString(value: FormattingOptions.Style): String = value.name
 
-    override fun fromString(value: String): FormattingOptions.Style =
-      FormattingOptions.Style.valueOf(value)
+    override fun fromString(value: String): FormattingOptions.Style = FormattingOptions.Style.valueOf(value)
   }
 
   private class FormattingOptionsConverter : Converter<FormattingOptions>() {
@@ -86,7 +79,6 @@ internal class AndroidLogcatFormattingOptions @VisibleForTesting constructor() :
     override fun toString(value: FormattingOptions): String =
       gson.toJson(value, FormattingOptions::class.java).replace(Regex("(?<!\\\\)\""), "'")
 
-    override fun fromString(value: String): FormattingOptions? =
-      gson.fromJson(value, FormattingOptions::class.java)
+    override fun fromString(value: String): FormattingOptions? = gson.fromJson(value, FormattingOptions::class.java)
   }
 }

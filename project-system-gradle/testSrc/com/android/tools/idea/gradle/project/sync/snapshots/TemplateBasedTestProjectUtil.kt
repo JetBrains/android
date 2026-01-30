@@ -23,9 +23,9 @@ import com.android.tools.idea.testing.FileSubject
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth
 import com.intellij.openapi.util.io.FileUtil
-import org.jetbrains.android.AndroidTestBase
 import java.io.File
 import java.nio.file.Files
+import org.jetbrains.android.AndroidTestBase
 
 internal fun truncateForV2(settingsFile: File) {
   val patchedText = settingsFile.readLines().takeWhile { !it.contains("//-v2:truncate-from-here") }.joinToString("\n")
@@ -46,15 +46,14 @@ internal fun moveGradleRootUnderGradleProjectDirectory(root: File, makeSecondCop
   Files.move(tempRoot.toPath(), newRoot.toPath())
   if (makeSecondCopy) {
     FileUtils.copyDirectory(newRoot, newRoot2)
-    newRoot2
-      .resolve("settings.gradle")
-      .replaceContent { "rootProject.name = 'gradle_project_name'\n$it" } // Give it a name not matching the directory name.
+    newRoot2.resolve("settings.gradle").replaceContent {
+      "rootProject.name = 'gradle_project_name'\n$it"
+    } // Give it a name not matching the directory name.
   }
   Files.createDirectory(ideaDirectory.toPath())
 
   val gradleRoots = mutableListOf(GradleRoot(newRoot.name))
-  if (makeSecondCopy)
-    gradleRoots.add(GradleRoot(newRoot2.name))
+  if (makeSecondCopy) gradleRoots.add(GradleRoot(newRoot2.name))
   gradleXml.writeText(ProjectIdeaConfigFilesUtils.buildGradleXmlConfig(gradleRoots))
   miscXml.writeText(ProjectIdeaConfigFilesUtils.buildMiscXmlConfig(testJdkName))
 }
@@ -63,7 +62,7 @@ internal fun cloneProjectRootIntoMultipleGradleRoots(
   projectRoot: File,
   gradleRoots: List<GradleRoot>,
   configGradleRoot: (File, GradleRoot) -> Unit,
-  configProjectRoot: () -> Unit
+  configProjectRoot: () -> Unit,
 ) {
   val tempDir = File(projectRoot.path + "_tmp")
   Files.move(projectRoot.toPath(), tempDir.toPath())
@@ -83,17 +82,21 @@ internal fun patchMppProject(
   addJvmTo: List<String> = emptyList(),
   addIosTo: List<String> = emptyList(),
   addIntermediateTo: List<String> = emptyList(),
-  addJsModule: Boolean = false
+  addJsModule: Boolean = false,
 ) {
   if (convertAppToKmp) {
-    projectRoot.resolve("app").resolve("build.gradle").replaceInContent(
-      """
+    projectRoot
+      .resolve("app")
+      .resolve("build.gradle")
+      .replaceInContent(
+        """
         plugins {
             id 'com.android.application'
             id 'kotlin-android'
         }
-      """.trimIndent(),
-      """
+        """
+          .trimIndent(),
+        """
         plugins {
             id 'com.android.application'
             id 'kotlin-multiplatform'
@@ -101,42 +104,43 @@ internal fun patchMppProject(
         kotlin {
             androidTarget()
         }
-     """.trimIndent(),
-    )
+        """
+          .trimIndent(),
+      )
   }
   for (module in addJvmTo) {
-    projectRoot.resolve(module).resolve("build.gradle").replaceInContent(
-      "androidTarget()",
-      "androidTarget()\njvm()"
-    )
+    projectRoot.resolve(module).resolve("build.gradle").replaceInContent("androidTarget()", "androidTarget()\njvm()")
   }
   for (module in addIosTo) {
-    projectRoot.resolve(module).resolve("build.gradle").replaceInContent(
-      "androidTarget()",
-      "androidTarget()\niosX64()\niosSimulatorArm64()\niosArm64()"
-    )
+    projectRoot
+      .resolve(module)
+      .resolve("build.gradle")
+      .replaceInContent("androidTarget()", "androidTarget()\niosX64()\niosSimulatorArm64()\niosArm64()")
   }
   for (module in addIntermediateTo) {
-    projectRoot.resolve(module).resolve("build.gradle").replaceInContent(
-      """
+    projectRoot
+      .resolve(module)
+      .resolve("build.gradle")
+      .replaceInContent(
+        """
         |sourceSets {
-      """.trimMargin(),
-      """
+        """
+          .trimMargin(),
+        """
         |sourceSets {
         |  create("jvmAndAndroid") {
         |    dependsOn(commonMain)
         |    androidMain.dependsOn(it)
         |    jvmMain.dependsOn(it)
         |  }
-      """.trimMargin()
-    )
+        """
+          .trimMargin(),
+      )
   }
   if (addJsModule) {
-    projectRoot.resolve("settings.gradle")
-      .replaceInContent("//include ':jsModule'", "include ':jsModule'")
+    projectRoot.resolve("settings.gradle").replaceInContent("//include ':jsModule'", "include ':jsModule'")
     // "org.jetbrains.kotlin.js" conflicts with "clean" task.
-    projectRoot.resolve("build.gradle")
-      .replaceInContent("task clean(type: Delete)", "task clean1(type: Delete)")
+    projectRoot.resolve("build.gradle").replaceInContent("task clean(type: Delete)", "task clean1(type: Delete)")
   }
 }
 
@@ -153,4 +157,3 @@ internal fun createEmptyGradleSettingsFile(projectRootPath: File) {
   Truth.assertAbout(FileSubject.file()).that(settingsFilePath).isFile()
   AndroidTestBase.refreshProjectFiles()
 }
-

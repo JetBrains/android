@@ -30,88 +30,79 @@ import org.junit.Test
 import org.junit.rules.ExpectedException
 
 class FeatureConfigurationOverridesTest {
-  @get:Rule
-  val appRule = ApplicationRule()
+  @get:Rule val appRule = ApplicationRule()
 
-  @get:Rule
-  val studioFlagRule = FlagRule(StudioFlags.FLAG_LEVEL)
+  @get:Rule val studioFlagRule = FlagRule(StudioFlags.FLAG_LEVEL)
 
-  @get:Rule
-  val exception = ExpectedException.none()
+  @get:Rule val exception = ExpectedException.none()
 
   @Test
   fun testEmpty() {
-    val content = """
-    #some comments
-    """.trimIndent()
+    val content =
+      """
+      #some comments
+      """
+        .trimIndent()
 
     Truth.assertThat(FeatureConfigurationProvider.loadValues(content.byteInputStream()).toMap()).isEmpty()
   }
 
   @Test
   fun testInternal() {
-    val content = """
-    #some comments
-    group1.flag1=INTERNAL
-    group1.flag2=PREVIEW
-    group1.flag3=COMPLETE:2025
-    """.trimIndent()
+    val content =
+      """
+      #some comments
+      group1.flag1=INTERNAL
+      group1.flag2=PREVIEW
+      group1.flag3=COMPLETE:2025
+      """
+        .trimIndent()
 
     StudioFlags.FLAG_LEVEL.override(FeatureConfiguration.INTERNAL)
-    Truth.assertThat(
-      FeatureConfigurationProvider.loadValues(content.byteInputStream()).toMap()
-    ).containsExactly(
-      "group1.flag1", "true",
-      "group1.flag2", "true",
-      "group1.flag3", "true",
-    )
+    Truth.assertThat(FeatureConfigurationProvider.loadValues(content.byteInputStream()).toMap())
+      .containsExactly("group1.flag1", "true", "group1.flag2", "true", "group1.flag3", "true")
   }
 
   @Test
   fun testPreview() {
-    val content = """
-    #some comments
-    group1.flag1=INTERNAL
-    group1.flag2=PREVIEW
-    group1.flag3=COMPLETE:2025
-    """.trimIndent()
+    val content =
+      """
+      #some comments
+      group1.flag1=INTERNAL
+      group1.flag2=PREVIEW
+      group1.flag3=COMPLETE:2025
+      """
+        .trimIndent()
     StudioFlags.FLAG_LEVEL.override(FeatureConfiguration.PREVIEW)
-    Truth.assertThat(
-      FeatureConfigurationProvider.loadValues(content.byteInputStream()).toMap()
-    ).containsExactly(
-      "group1.flag1", "false",
-      "group1.flag2", "true",
-      "group1.flag3", "true",
-    )
+    Truth.assertThat(FeatureConfigurationProvider.loadValues(content.byteInputStream()).toMap())
+      .containsExactly("group1.flag1", "false", "group1.flag2", "true", "group1.flag3", "true")
   }
 
   @Test
   fun testComplete() {
-    val content = """
-    #some comments
-    group1.flag1=INTERNAL
-    group1.flag2=PREVIEW
-    group1.flag3=COMPLETE:2025
-    """.trimIndent()
+    val content =
+      """
+      #some comments
+      group1.flag1=INTERNAL
+      group1.flag2=PREVIEW
+      group1.flag3=COMPLETE:2025
+      """
+        .trimIndent()
     StudioFlags.FLAG_LEVEL.override(FeatureConfiguration.COMPLETE)
-    Truth.assertThat(
-      FeatureConfigurationProvider.loadValues(content.byteInputStream()).toMap()
-    ).containsExactly(
-      "group1.flag1", "false",
-      "group1.flag2", "false",
-      "group1.flag3", "true",
-    )
+    Truth.assertThat(FeatureConfigurationProvider.loadValues(content.byteInputStream()).toMap())
+      .containsExactly("group1.flag1", "false", "group1.flag2", "false", "group1.flag3", "true")
   }
-
 
   @Test
   fun testDebugInfo() {
-    val content = """
-    #some comments
-    group1.flagInternal=INTERNAL
-    group1.flagPreview=PREVIEW
-    group1.flagComplete=COMPLETE:2025
-    """.trimIndent()
+    val content =
+      """
+      #some comments
+      group1.flagInternal=INTERNAL
+      group1.flagPreview=PREVIEW
+      group1.flagComplete=COMPLETE:2025
+      """
+        .trimIndent()
 
     val flags = Flags()
     val group = FlagGroup(flags, "group1", "display")
@@ -140,7 +131,8 @@ class FeatureConfigurationOverridesTest {
     FeatureConfigurationProvider.loadValues(content.byteInputStream()).let { complete ->
       assertThat(complete.getConfigurationExplanation(offFlag)).isNull()
       assertThat(complete.getConfigurationExplanation(internalFlag)).isEqualTo("Disabled by default. Enabled only in internal builds")
-      assertThat(complete.getConfigurationExplanation(previewFlag)).isEqualTo("Disabled by default. Enabled only in internal, nightly and canary builds")
+      assertThat(complete.getConfigurationExplanation(previewFlag))
+        .isEqualTo("Disabled by default. Enabled only in internal, nightly and canary builds")
       assertThat(complete.getConfigurationExplanation(completeFlag)).isNull()
     }
   }
@@ -151,81 +143,70 @@ class FeatureConfigurationOverridesTest {
     StudioFlags.FLAG_LEVEL.override(FeatureConfiguration.INTERNAL)
     // Unit test should match to DEV channel.
 
-    val content = """
-    #some comments
-    group1.flag1=INTERNAL
-    group1.flag2=PREVIEW
-    group1.flag3=COMPLETE:2025
-    """.trimIndent()
+    val content =
+      """
+      #some comments
+      group1.flag1=INTERNAL
+      group1.flag2=PREVIEW
+      group1.flag3=COMPLETE:2025
+      """
+        .trimIndent()
 
     // make sure to use the default param for loadValues
-    Truth.assertThat(
-      FeatureConfigurationProvider.loadValues(content.byteInputStream()).toMap()
-    ).containsExactly(
-      "group1.flag1", "true",
-      "group1.flag2", "true",
-      "group1.flag3", "true",
-    )
+    Truth.assertThat(FeatureConfigurationProvider.loadValues(content.byteInputStream()).toMap())
+      .containsExactly("group1.flag1", "true", "group1.flag2", "true", "group1.flag3", "true")
   }
 
   @Test
   fun testTrailingWhitespace() {
     // they seem to treat the application that runs in tests as `INTERNAL` but in our tests it's `COMPLETE`
     StudioFlags.FLAG_LEVEL.override(FeatureConfiguration.INTERNAL)
-    val content = """
-    #some comments
-    group1.flag1=INTERNAL${' '}
-    group1.flag2=PREVIEW${' '}
-    group1.flag3=COMPLETE:2025${' '}
-    """.trimIndent()
+    val content =
+      """
+      #some comments
+      group1.flag1=INTERNAL${' '}
+      group1.flag2=PREVIEW${' '}
+      group1.flag3=COMPLETE:2025${' '}
+      """
+        .trimIndent()
 
-    Truth.assertThat(
-      FeatureConfigurationProvider.loadValues(content.byteInputStream()).toMap()
-    ).containsExactly(
-      "group1.flag1", "true",
-      "group1.flag2", "true",
-      "group1.flag3", "true",
-    )
+    Truth.assertThat(FeatureConfigurationProvider.loadValues(content.byteInputStream()).toMap())
+      .containsExactly("group1.flag1", "true", "group1.flag2", "true", "group1.flag3", "true")
   }
 
   @Test
   fun testComments() {
     // they seem to treat the application that runs in tests as `INTERNAL` but in our tests it's `COMPLETE`
     StudioFlags.FLAG_LEVEL.override(FeatureConfiguration.INTERNAL)
-    val content = """
-    #some comments
-    group1.flag1=INTERNAL # some comments
-    group1.flag2=PREVIEW # some comments
-    group1.flag3=COMPLETE:2025 # some comments with = sign
-    """.trimIndent()
+    val content =
+      """
+      #some comments
+      group1.flag1=INTERNAL # some comments
+      group1.flag2=PREVIEW # some comments
+      group1.flag3=COMPLETE:2025 # some comments with = sign
+      """
+        .trimIndent()
 
-    Truth.assertThat(
-      FeatureConfigurationProvider.loadValues(content.byteInputStream()).toMap()
-    ).containsExactly(
-      "group1.flag1", "true",
-      "group1.flag2", "true",
-      "group1.flag3", "true",
-    )
+    Truth.assertThat(FeatureConfigurationProvider.loadValues(content.byteInputStream()).toMap())
+      .containsExactly("group1.flag1", "true", "group1.flag2", "true", "group1.flag3", "true")
   }
 
   @Test
   fun testWrongValues() {
-    val content = """
-    #some comments
-    group1.flag1=INTERNAL
-    group1.flag2=false
-    group1.flag3=COMPLETE:2025
-    """.trimIndent()
+    val content =
+      """
+      #some comments
+      group1.flag1=INTERNAL
+      group1.flag2=false
+      group1.flag3=COMPLETE:2025
+      """
+        .trimIndent()
 
     exception.expectMessage("Invalid value 'false' for flag 'group1.flag2'")
     FeatureConfigurationProvider.loadValues(content.byteInputStream())
   }
 
   private fun FeatureConfigurationProvider.toMap(): Map<String, String> {
-    return this.getEntries().associateNotNull { entry ->
-      getValueById(entry)?.let { value ->
-        entry to value
-      }
-    }
+    return this.getEntries().associateNotNull { entry -> getValueById(entry)?.let { value -> entry to value } }
   }
 }
