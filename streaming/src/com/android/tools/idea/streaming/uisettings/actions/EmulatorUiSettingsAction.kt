@@ -34,7 +34,7 @@ import kotlinx.coroutines.withContext
 
 /** Opens a picker with UI settings of an emulator. */
 internal class EmulatorUiSettingsAction : AbstractEmulatorAction(
-  configFilter = { it.api >= 33 && it.deviceType != DeviceType.AUTOMOTIVE },
+  configFilter = { it.api >= 33 && it.deviceType != DeviceType.AUTOMOTIVE && it.deviceType != DeviceType.AI_GLASSES },
 ) {
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
