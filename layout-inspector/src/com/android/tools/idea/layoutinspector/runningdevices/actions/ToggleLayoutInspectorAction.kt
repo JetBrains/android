@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices.actions
 
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManagerGlobalState
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
+import com.android.tools.idea.streaming.DEVICE_TYPE_KEY
 import com.android.tools.idea.streaming.core.DEVICE_ID_KEY
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.intellij.ide.BrowserUtil
@@ -102,8 +104,9 @@ class ToggleLayoutInspectorAction(
     val project = e.project ?: return
     val deviceId = DEVICE_ID_KEY.getData(e.dataContext) ?: return
     val isEnabled = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
+    val deviceTypeSupported = DEVICE_TYPE_KEY.getData(e.dataContext) != DeviceType.AI_GLASSES
     e.presentation.isVisible =
-      isEnabled && LayoutInspectorManager.getInstance(project).isSupported(deviceId)
+      isEnabled && deviceTypeSupported && LayoutInspectorManager.getInstance(project).isSupported(deviceId)
 
     val displayView = DISPLAY_VIEW_KEY.getData(e.dataContext)
     val apiLevel = runCatching { displayView?.apiLevel }.getOrNull()
