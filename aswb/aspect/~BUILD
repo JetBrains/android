@@ -8,13 +8,8 @@ licenses(["notice"])
 filegroup(
     name = "integration_test_files",
     srcs = [
-        "artifacts.bzl",
         "java_classpath.bzl",
-        "make_variables.bzl",
         ":BUILD.bazel",
-        "//tools/adt/idea/aswb/aspect/tools:CreateAar",
-        "//tools/adt/idea/aswb/aspect/tools:JarFilter_deploy.jar",
-        "//tools/adt/idea/aswb/aspect/tools:PackageParser_deploy.jar",
     ],
     visibility = ["//visibility:public"],
 )
@@ -24,7 +19,6 @@ filegroup(
     name = "aspect_files",
     srcs = [
         ":aspect_files_only",
-        ":aspect_tools",
     ],
     visibility = ["//visibility:public"],
 )
@@ -34,7 +28,6 @@ filegroup(
     name = "aspect_files_only",
     srcs = [
         "WORKSPACE",
-        "artifacts.bzl",
         "build_compose_dependencies.bzl",
         "build_dependencies.bzl",
         "build_dependencies_android_deps.bzl",
@@ -48,18 +41,7 @@ filegroup(
         "build_dependencies_kotlin_deps.bzl",
         "build_dependencies_kotlin_stub_deps.bzl",
         "java_classpath.bzl",
-        "make_variables.bzl",
         ":BUILD.bazel",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-filegroup(
-    name = "aspect_tools",
-    srcs = [
-        "//tools/adt/idea/aswb/aspect/tools:CreateAar",
-        "//tools/adt/idea/aswb/aspect/tools:JarFilter_deploy.jar",
-        "//tools/adt/idea/aswb/aspect/tools:PackageParser_deploy.jar",
     ],
     visibility = ["//visibility:public"],
 )
