@@ -2,10 +2,14 @@ load(
     "//tools/adt/idea/aswb:build-visibility.bzl",
     "COMMON_PLUGINS_VISIBILITY",
 )
+load(
+    "//tools/adt/idea/aswb/build_defs:build_defs.bzl",
+    "aswb_library",
+)
 
 licenses(["notice"])
 
-java_library(
+aswb_library(
     name = "actions",
     srcs = glob(["src/**/*.java"]),
     visibility = COMMON_PLUGINS_VISIBILITY,

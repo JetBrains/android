@@ -4,15 +4,17 @@ load(
 )
 load(
     "//tools/adt/idea/aswb/build_defs:build_defs.bzl",
+    "aswb_library",
     "intellij_plugin_library",
     "optional_plugin_xml",
 )
 
 licenses(["notice"])
 
-java_library(
+aswb_library(
     name = "terminal",
     srcs = glob(["src/**/*.java"]),
+    visibility = PLUGIN_PACKAGES_VISIBILITY,
     deps = [
         "//tools/adt/idea/aswb/base",
         "//tools/vendor/google/aswb/plugin_api",

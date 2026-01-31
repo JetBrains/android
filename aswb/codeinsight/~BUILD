@@ -1,22 +1,18 @@
 load(
     "//tools/adt/idea/aswb:build-visibility.bzl",
-    "COMMON_PLUGINS_VISIBILITY",
+    "PLUGIN_PACKAGES_VISIBILITY",
 )
 load(
     "//tools/adt/idea/aswb/build_defs:build_defs.bzl",
     "aswb_library",
 )
 
-licenses(["notice"])
-
 aswb_library(
-    name = "settings",
+    name = "codeinsight",
     srcs = glob(["src/**/*.java"]),
-    visibility = COMMON_PLUGINS_VISIBILITY,
+    visibility = PLUGIN_PACKAGES_VISIBILITY,
     deps = [
-        "//tools/adt/idea/aswb/third_party/java/auto_value",
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
-        "@maven//:com.google.errorprone.error_prone_annotations",
     ],
 )

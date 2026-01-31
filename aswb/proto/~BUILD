@@ -10,6 +10,7 @@ load(
 )
 load(
     "//tools/adt/idea/aswb/build_defs:build_defs.bzl",
+    "aswb_library",
     "combine_visibilities",
 )
 load("//tools/base/bazel:proto.bzl", "java_proto_library")
@@ -32,5 +33,8 @@ java_library(
         "//tools/adt/idea/aswb/third_party/bazel/src/main/protobuf:build_java_proto",
         "//tools/adt/idea/aswb/third_party/bazel/src/main/protobuf:command_line_java_proto",
         "//tools/adt/idea/aswb/third_party/bazel/src/main/protobuf:deps_java_proto",
+        "//tools/vendor/google/aswb/plugin_api",
+        "//tools/vendor/google/aswb/plugin_api:jsr305",
+        "@maven//:com.google.errorprone.error_prone_annotations",  # unuseddeps: keep
     ],
 )

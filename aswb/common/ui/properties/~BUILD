@@ -4,13 +4,17 @@ load(
     "DEFAULT_TEST_VISIBILITY",
 )
 load(
+    "//tools/adt/idea/aswb/build_defs:build_defs.bzl",
+    "aswb_library",
+)
+load(
     "//tools/adt/idea/aswb/testing:test_defs.bzl",
     "intellij_unit_test_suite",
 )
 
 licenses(["notice"])
 
-java_library(
+aswb_library(
     name = "properties",
     srcs = glob(["src/**/*.java"]),
     visibility = COMMON_PLUGINS_VISIBILITY,

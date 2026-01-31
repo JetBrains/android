@@ -17,6 +17,7 @@ package com.google.idea.common.experiments;
 
 import com.google.common.annotations.VisibleForTesting;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import javax.annotation.Nullable;
 
@@ -109,7 +110,7 @@ public class FeatureRolloutExperiment extends Experiment {
       int rollout = Integer.parseInt(value);
       int user = getUserPercentage();
       boolean enabled = user < rollout;
-      return String.format("%d<%d? %s", user, rollout, enabled ? "enabled" : "disabled");
+      return String.format(Locale.US, "%d<%d? %s", user, rollout, enabled ? "enabled" : "disabled");
     } catch (NumberFormatException e) {
       return value;
     }
