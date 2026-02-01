@@ -63,7 +63,7 @@ import org.jetbrains.kotlin.idea.completion.CompletionSession
 import org.jetbrains.kotlin.idea.completion.InsertHandlerProvider
 import org.jetbrains.kotlin.idea.completion.LookupElementFactory
 import org.jetbrains.kotlin.idea.completion.impl.k2.ImportStrategyDetector
-import org.jetbrains.kotlin.idea.completion.lookups.factories.KotlinFirLookupElementFactory
+import org.jetbrains.kotlin.idea.completion.impl.k2.lookups.factories.KotlinFirLookupElementFactory
 import org.jetbrains.kotlin.idea.core.KotlinIndicesHelper
 import org.jetbrains.kotlin.idea.core.isVisible
 import org.jetbrains.kotlin.idea.core.util.getResolveScope

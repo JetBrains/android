@@ -15,6 +15,9 @@
   -->
 
 <idea-plugin>
+  <dependencies>
+    <module name="intellij.kotlin.completion.impl"/>
+  </dependencies>
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
     <codeinsight.quickfix.registrar implementation="com.android.tools.compose.aa.intentions.ComposeIdePluginQuickFixRegistrar"/>
     <extractFunctionDescriptorModifier implementation="com.android.tools.compose.aa.ComposableFunctionExtractableAnalyser"/>
