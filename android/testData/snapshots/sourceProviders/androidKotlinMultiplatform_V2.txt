@@ -3075,13 +3075,282 @@ MODULE: Kotlin_Multiplatform.kmpSecondLib
         CurrentDeviceTestSourceProviders:
         CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
+MODULE: build-logic.lib-foo
+    by Facet:
+        androidMain (IDEA)
+            ScopeType: MAIN
+            ManifestFileUrls:
+                file://./build-logic/lib-foo/src/androidMain/AndroidManifest.xml
+            ManifestDirectoryUrls:
+                file://./build-logic/lib-foo/src/androidMain
+            ManifestDirectories:
+                file://./build-logic/lib-foo/src/androidMain
+            AssetsDirectoryUrls:
+                file://./build-logic/lib-foo/src/androidMain/assets
+            KotlinDirectoryUrls:
+                file://./build-logic/lib-foo/src/androidMain/kotlin
+            KotlinDirectories:
+                file://./build-logic/lib-foo/src/androidMain/kotlin
+            ResDirectoryUrls:
+                file://./build-logic/lib-foo/src/androidMain/res
+            ResourcesDirectoryUrls:
+                file://./build-logic/lib-foo/src/androidMain/resources
+    by AndroidModel:
+        androidMain
+            Manifest:
+                ./build-logic/lib-foo/src/androidMain/AndroidManifest.xml
+            AssetsDirectories:
+                ./build-logic/lib-foo/src/androidMain/assets
+            KotlinDirectories:
+                ./build-logic/lib-foo/src/androidMain/kotlin
+            ResDirectories:
+                ./build-logic/lib-foo/src/androidMain/res
+            ResourcesDirectories:
+                ./build-logic/lib-foo/src/androidMain/resources
+        Active:
+            androidMain
+                Manifest:
+                    ./build-logic/lib-foo/src/androidMain/AndroidManifest.xml
+                AssetsDirectories:
+                    ./build-logic/lib-foo/src/androidMain/assets
+                KotlinDirectories:
+                    ./build-logic/lib-foo/src/androidMain/kotlin
+                ResDirectories:
+                    ./build-logic/lib-foo/src/androidMain/res
+                ResourcesDirectories:
+                    ./build-logic/lib-foo/src/androidMain/resources
+        All:
+            androidMain
+                Manifest:
+                    ./build-logic/lib-foo/src/androidMain/AndroidManifest.xml
+                AssetsDirectories:
+                    ./build-logic/lib-foo/src/androidMain/assets
+                KotlinDirectories:
+                    ./build-logic/lib-foo/src/androidMain/kotlin
+                ResDirectories:
+                    ./build-logic/lib-foo/src/androidMain/res
+                ResourcesDirectories:
+                    ./build-logic/lib-foo/src/androidMain/resources
+        HostTest:
+            UnitTest
+                androidHostTest
+                    Manifest:
+                        ./build-logic/lib-foo/src/androidHostTest/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./build-logic/lib-foo/src/androidHostTest/assets
+                    KotlinDirectories:
+                        ./build-logic/lib-foo/src/androidHostTest/kotlin
+                    ResDirectories:
+                        ./build-logic/lib-foo/src/androidHostTest/res
+                    ResourcesDirectories:
+                        ./build-logic/lib-foo/src/androidHostTest/resources
+        DeviceTest:
+            AndroidTest
+                androidDeviceTest
+                    Manifest:
+                        ./build-logic/lib-foo/src/androidDeviceTest/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./build-logic/lib-foo/src/androidDeviceTest/assets
+                    KotlinDirectories:
+                        ./build-logic/lib-foo/src/androidDeviceTest/kotlin
+                    ResDirectories:
+                        ./build-logic/lib-foo/src/androidDeviceTest/res
+                    ResourcesDirectories:
+                        ./build-logic/lib-foo/src/androidDeviceTest/resources
+        TestFixtures:
+    by IdeaSourceProviders:
+        Sources:
+            Sources (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./build-logic/lib-foo/src/androidMain/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidMain
+                ManifestDirectories:
+                    file://./build-logic/lib-foo/src/androidMain
+                AssetsDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidMain/assets
+                KotlinDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidMain/kotlin
+                KotlinDirectories:
+                    file://./build-logic/lib-foo/src/androidMain/kotlin
+                ResDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidMain/res
+                ResourcesDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidMain/resources
+        HostTestSources:
+            UnitTestSources (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./build-logic/lib-foo/src/androidHostTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidHostTest
+                AssetsDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidHostTest/assets
+                KotlinDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidHostTest/kotlin
+                ResDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidHostTest/res
+                ResourcesDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidHostTest/resources
+        DeviceTestSources:
+            AndroidTestTestSources (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./build-logic/lib-foo/src/androidDeviceTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidDeviceTest
+                AssetsDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidDeviceTest/assets
+                KotlinDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidDeviceTest/kotlin
+                ResDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidDeviceTest/res
+                ResourcesDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidDeviceTest/resources
+        TestSuiteSources:
+        TestFixturesSources:
+            TestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
+        GeneratedSources:
+            GeneratedSources (IDEA)
+                ScopeType: MAIN
+        GeneratedHostTestSources:
+            GeneratedUnitTestTestSources (IDEA)
+                ScopeType: UNIT_TEST
+        GeneratedDeviceTestSources:
+            GeneratedAndroidTestTestSources (IDEA)
+                ScopeType: ANDROID_TEST
+        GeneratedTestFixturesSources:
+            GeneratedTestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
+        AllVariantAllArtifactsSources:
+            androidDeviceTest (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./build-logic/lib-foo/src/androidDeviceTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidDeviceTest
+                AssetsDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidDeviceTest/assets
+                KotlinDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidDeviceTest/kotlin
+                ResDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidDeviceTest/res
+                ResourcesDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidDeviceTest/resources
+            androidHostTest (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./build-logic/lib-foo/src/androidHostTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidHostTest
+                AssetsDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidHostTest/assets
+                KotlinDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidHostTest/kotlin
+                ResDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidHostTest/res
+                ResourcesDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidHostTest/resources
+            androidMain (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./build-logic/lib-foo/src/androidMain/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidMain
+                ManifestDirectories:
+                    file://./build-logic/lib-foo/src/androidMain
+                AssetsDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidMain/assets
+                KotlinDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidMain/kotlin
+                KotlinDirectories:
+                    file://./build-logic/lib-foo/src/androidMain/kotlin
+                ResDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidMain/res
+                ResourcesDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidMain/resources
+        CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
+            androidMain (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./build-logic/lib-foo/src/androidMain/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidMain
+                ManifestDirectories:
+                    file://./build-logic/lib-foo/src/androidMain
+                AssetsDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidMain/assets
+                KotlinDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidMain/kotlin
+                KotlinDirectories:
+                    file://./build-logic/lib-foo/src/androidMain/kotlin
+                ResDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidMain/res
+                ResourcesDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidMain/resources
+        CurrentSourceProviders:
+            androidMain (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./build-logic/lib-foo/src/androidMain/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidMain
+                ManifestDirectories:
+                    file://./build-logic/lib-foo/src/androidMain
+                AssetsDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidMain/assets
+                KotlinDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidMain/kotlin
+                KotlinDirectories:
+                    file://./build-logic/lib-foo/src/androidMain/kotlin
+                ResDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidMain/res
+                ResourcesDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidMain/resources
+        CurrentHostTestSourceProviders:
+            androidHostTest (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./build-logic/lib-foo/src/androidHostTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidHostTest
+                AssetsDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidHostTest/assets
+                KotlinDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidHostTest/kotlin
+                ResDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidHostTest/res
+                ResourcesDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidHostTest/resources
+        CurrentDeviceTestSourceProviders:
+            androidDeviceTest (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./build-logic/lib-foo/src/androidDeviceTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidDeviceTest
+                AssetsDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidDeviceTest/assets
+                KotlinDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidDeviceTest/kotlin
+                ResDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidDeviceTest/res
+                ResourcesDirectoryUrls:
+                    file://./build-logic/lib-foo/src/androidDeviceTest/resources
+        CurrentTestSuiteSourceProviders:
+        CurrentTestFixturesSourceProviders:
 Build configuration files:
     file://./build.gradle : Project: Kotlin_Multiplatform [0]
+    file://./build-logic/build.gradle : Included build: :build-logic [1000026]
+    file://./build-logic/settings.gradle : Included build: :build-logic [1000026]
     file://./androidLib/build.gradle.kts : Module :androidLib [2000004]
     file://./app/build.gradle.kts : Module :app [2000008]
     file://./kmpFirstLib/build.gradle.kts : Module :kmpFirstLib [2000014]
     file://./kmpJvmOnly/build.gradle.kts : Module :kmpJvmOnly [2000019]
     file://./kmpSecondLib/build.gradle.kts : Module :kmpSecondLib [2000025]
+    file://./build-logic/lib-foo/build.gradle.kts : Module :build-logic:lib-foo [2000032]
     file://./settings.gradle : Project Settings [3000000]
     file://./gradle.properties : Project Properties [3000000]
     file://./gradle/wrapper/gradle-wrapper.properties : Gradle Version [3000000]
