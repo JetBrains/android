@@ -203,7 +203,7 @@ class ToggleLayoutInspectorActionTest {
     toggleLayoutInspectorAction.update(fakeActionEvent)
     assertThat(fakeActionEvent.presentation.icon).isInstanceOf(LayeredIcon::class.java)
     assertThat(fakeActionEvent.presentation.description)
-      .isEqualTo("Warning: the app is likely running on the Phone. Considering inspect that instead.")
+      .isEqualTo("Warning: the app is likely running on the phone. Considering inspecting that instead.")
 
     val normalActionEvent = toggleLayoutInspectorAction.getFakeActionEvent(deviceType = DeviceType.HANDHELD)
     toggleLayoutInspectorAction.update(normalActionEvent)
