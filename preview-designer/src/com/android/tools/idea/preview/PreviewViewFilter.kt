@@ -20,21 +20,18 @@ import com.android.tools.idea.common.surface.updateSceneViewVisibilities
 import com.intellij.openapi.actionSystem.DataContext
 
 /**
- * The interface for implementing the filtering logic of
- * [com.android.tools.idea.preview.actions.PreviewFilterTextAction].
+ * The interface for implementing the filtering logic of [com.android.tools.idea.preview.actions.PreviewFilterTextAction].
  *
- * TODO: redesign the filter feature to be applied to existing flows. See
- *   [com.android.tools.idea.preview.flow.PreviewFlowManager]
+ * TODO: redesign the filter feature to be applied to existing flows. See [com.android.tools.idea.preview.flow.PreviewFlowManager]
  */
 interface PreviewViewFilter {
   fun filter(query: String?, dataContext: DataContext?)
 }
 
 /**
- * A filter which treats the query text as a single word and compare it to the model display name.
- * The case of the word doesn't matter. A [com.android.tools.idea.common.surface.SceneView] is
- * visible only when its model name contains the searched text, otherwise it is invisible. If the
- * query is blank or null, all [com.android.tools.idea.common.surface.SceneView] would be visible.
+ * A filter which treats the query text as a single word and compare it to the model display name. The case of the word doesn't matter. A
+ * [com.android.tools.idea.common.surface.SceneView] is visible only when its model name contains the searched text, otherwise it is
+ * invisible. If the query is blank or null, all [com.android.tools.idea.common.surface.SceneView] would be visible.
  */
 class PreviewViewSingleWordFilter : PreviewViewFilter {
   override fun filter(query: String?, dataContext: DataContext?) {
