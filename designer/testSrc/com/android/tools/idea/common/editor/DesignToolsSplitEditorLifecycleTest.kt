@@ -76,13 +76,9 @@ class DesignToolsSplitEditorLifecycleTest {
       )
     file.putUserData(FileEditorProvider.KEY, DesignFilesPreviewEditorProvider())
     val editor =
-      runBlocking(Dispatchers.EDT) {
-        val editor =
-          withContext(Dispatchers.EDT) {
-            val editors = FileEditorManager.getInstance(projectRule.project).openFile(file.virtualFile, true, true)
-            (editors[0] as DesignToolsSplitEditor)
-          }
-        editor
+      withContext(Dispatchers.EDT) {
+        val editors = FileEditorManager.getInstance(projectRule.project).openFile(file.virtualFile, true, true)
+        (editors[0] as DesignToolsSplitEditor)
       }
     assertFalse(
       "The surface must not be active before the editor has completed loading",
