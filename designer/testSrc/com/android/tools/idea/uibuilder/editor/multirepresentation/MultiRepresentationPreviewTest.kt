@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.editor.multirepresentation
 
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.insertText
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.DefaultLogger
@@ -36,6 +36,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -507,7 +508,7 @@ class MultiRepresentationPreviewTest {
       )
     multiPreview.updateRepresentationsInTestAsync().await()
 
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       assertEquals(0, representation1.nCaretNotifications)
       myFixture.editor.caretModel.moveCaretRelatively(0, 1, false, false, false)
       assertEquals(1, representation1.nCaretNotifications)

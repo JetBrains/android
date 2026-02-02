@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.error
 
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
@@ -33,6 +32,7 @@ import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.TestActionEvent.createTestEvent
 import com.intellij.testFramework.assertInstanceOf
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -170,7 +170,7 @@ class VisualLintFilterActionTest {
   @Test
   fun testPerform() {
     ToolWindowManager.getInstance(rule.project).registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
-    runBlocking(workerThread) { ProblemsViewToolWindowUtils.addTab(rule.project, SharedIssuePanelProvider(rule.project)) }
+    runBlocking(Dispatchers.Default) { ProblemsViewToolWindowUtils.addTab(rule.project, SharedIssuePanelProvider(rule.project)) }
     val panel = IssuePanelService.getDesignerCommonIssuePanel(rule.project)!!
     val visualLintIssue = mock<VisualLintRenderIssue>()
     val dataContext = SimpleDataContext.builder().add(DESIGNER_COMMON_ISSUE_PANEL, panel).add(CommonDataKeys.PROJECT, rule.project).build()

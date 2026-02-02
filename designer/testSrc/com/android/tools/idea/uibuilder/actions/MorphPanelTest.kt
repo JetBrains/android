@@ -16,13 +16,14 @@
 package com.android.tools.idea.uibuilder.actions
 
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.edtWriteAction
 import com.intellij.util.textCompletion.TextFieldWithCompletion
 import java.awt.Dimension
 import javax.swing.JButton
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
@@ -40,7 +41,7 @@ class MorphPanelTest {
     val morphPanel = edtWriteAction {
       MorphPanel(projectRule.module.androidFacet!!, projectRule.project, "InitialTag", listOf("SuggestionA", "SuggestionB"))
     }
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       val fakeUi =
         FakeUi(morphPanel, createFakeWindow = true, parentDisposable = projectRule.testRootDisposable).apply {
           root.size = Dimension(400, 400)

@@ -18,13 +18,14 @@ package com.android.tools.idea.common.surface.sceneview
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.DisplaySettings
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.intellij.ide.ui.UISettingsListener
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.merge
@@ -73,7 +74,7 @@ open class LabelPanel(
         )
         .conflate()
         .collect {
-          withContext(uiThread) {
+          withContext(Dispatchers.EDT) {
             updateUi()
             invalidate()
           }

@@ -20,7 +20,6 @@ import com.android.tools.adtui.actions.prettyPrintActions
 import com.android.tools.idea.DesignSurfaceTestUtil.createZoomControllerFake
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurfaceSettings
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -33,9 +32,11 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.androidFacet
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.TestActionEvent
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.concurrency.await
@@ -52,7 +53,7 @@ class DrawableBackgroundMenuActionTest {
 
   @Test
   fun `switch options`() = runBlocking {
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       val drawablePsiFile = projectRule.fixture.loadNewFile("res/drawable/icon.xml", "<drawable></drawable>")
 
       projectRule.fixture.openFileInEditor(drawablePsiFile.virtualFile)
@@ -99,7 +100,7 @@ class DrawableBackgroundMenuActionTest {
 
   @Test
   fun `option change changes the global state`() = runBlocking {
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       val drawablePsiFile = projectRule.fixture.loadNewFile("res/drawable/icon.xml", "<drawable></drawable>")
 
       projectRule.fixture.openFileInEditor(drawablePsiFile.virtualFile)
@@ -122,7 +123,7 @@ class DrawableBackgroundMenuActionTest {
 
   @Test
   fun `option change changes the surface state`() = runBlocking {
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       val drawablePsiFile = projectRule.fixture.loadNewFile("res/drawable/icon.xml", "<drawable></drawable>")
       val virtualFile = drawablePsiFile.virtualFile
 

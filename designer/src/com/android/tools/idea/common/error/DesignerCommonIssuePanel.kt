@@ -17,8 +17,6 @@ package com.android.tools.idea.common.error
 
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintSettings
 import com.google.common.annotations.VisibleForTesting
@@ -35,6 +33,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.SimpleToolWindowPanel
@@ -59,6 +58,7 @@ import com.intellij.util.ui.tree.TreeUtil
 import javax.swing.event.TreeModelEvent
 import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -239,10 +239,10 @@ class DesignerCommonIssuePanel(
 
   private fun updateEmptyMessageIfNeed() {
     if (issueProvider.getFilteredIssues().isEmpty()) {
-      coroutineScope.launch(workerThread) {
+      coroutineScope.launch(Dispatchers.Default) {
         val newEmptyString = emptyMessageProvider()
         if (newEmptyString != tree.emptyText.text) {
-          withContext(uiThread) { tree.emptyText.text = newEmptyString }
+          withContext(Dispatchers.EDT) { tree.emptyText.text = newEmptyString }
         }
       }
     }

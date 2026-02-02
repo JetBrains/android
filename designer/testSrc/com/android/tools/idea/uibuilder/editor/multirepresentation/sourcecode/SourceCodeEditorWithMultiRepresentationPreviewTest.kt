@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode
 
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TestPreviewRepresentationProvider
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
@@ -23,11 +22,13 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.common.waitUntil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Rule
@@ -44,7 +45,7 @@ class SourceCodeEditorWithMultiRepresentationPreviewTest {
     val file = fixture.addFileToProject("src/Preview.kt", "")
     val editorProvider = SourceCodeEditorProvider.forTesting(listOf(TestPreviewRepresentationProvider("Representation1", true)))
     val editor =
-      withContext(uiThread) {
+      withContext(Dispatchers.EDT) {
         (editorProvider.createEditor(file.project, file.virtualFile) as TextEditorWithMultiRepresentationPreview<*>).also {
           Disposer.register(projectRule.testRootDisposable, it)
         }
@@ -65,14 +66,14 @@ class SourceCodeEditorWithMultiRepresentationPreviewTest {
       fixture.testRootDisposable,
     )
 
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       // Check we are in design mode before navigation is triggered
       editor.selectDesignMode(false)
       PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     }
 
     waitUntil { editor.isDesignMode() }
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       editor.navigateTo(OpenFileDescriptor(projectRule.project, file.virtualFile, 0))
       PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     }
@@ -84,13 +85,15 @@ class SourceCodeEditorWithMultiRepresentationPreviewTest {
     val file = fixture.addFileToProject("src/Preview.kt", "")
     val editorProvider = SourceCodeEditorProvider.forTesting(listOf(TestPreviewRepresentationProvider("Representation1", true)))
     val editor =
-      withContext(uiThread) { (editorProvider.createEditor(file.project, file.virtualFile) as TextEditorWithMultiRepresentationPreview<*>) }
+      withContext(Dispatchers.EDT) {
+        (editorProvider.createEditor(file.project, file.virtualFile) as TextEditorWithMultiRepresentationPreview<*>)
+      }
 
     // Wait for representations to be fully initialized
     waitUntil { editor.preview.representationNames.isNotEmpty() }
 
     assertThat(editor.getToolbarComponentForTests()).isNotNull()
-    withContext(uiThread) { Disposer.dispose(editor) }
+    withContext(Dispatchers.EDT) { Disposer.dispose(editor) }
     assertThat(editor.getToolbarComponentForTests()).isNull()
   }
 }

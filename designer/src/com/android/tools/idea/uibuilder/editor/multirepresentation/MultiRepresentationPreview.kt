@@ -23,8 +23,6 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_NAME
 import com.android.tools.idea.common.editor.DesignFileEditor
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -37,6 +35,7 @@ import com.intellij.openapi.actionSystem.PlatformCoreDataKeys.FILE_EDITOR
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.smartReadAction
@@ -240,7 +239,7 @@ open class MultiRepresentationPreview(
   private val isUpdating = AtomicBoolean(false)
 
   init {
-    launch(workerThread) {
+    launch(Dispatchers.Default) {
       updateRepresentationsFlow.collect { request ->
         if (request == null) return@collect
         isUpdating.set(true)
@@ -295,7 +294,7 @@ open class MultiRepresentationPreview(
   /** Updates the current representations and ensures the current selected one is valid. */
   private suspend fun updateRepresentationsImpl() {
     if (Disposer.isDisposed(this@MultiRepresentationPreview)) return
-    val file = withContext(workerThread) { readAction { psiFilePointer.element?.takeIf { it.isValid } } } ?: return
+    val file = withContext(Dispatchers.Default) { readAction { psiFilePointer.element?.takeIf { it.isValid } } } ?: return
 
     val providers = providers.filter { it.accept(project, file) }.toList()
     val currentRepresentationsNames = synchronized(representations) { representations.keys.toSet() }
@@ -325,7 +324,7 @@ open class MultiRepresentationPreview(
       hadAnyRepresentationsInitialized = representations.isNotEmpty()
       representations.putAll(newRepresentations)
     }
-    toDispose.forEach { representation -> withContext(uiThread) { Disposer.dispose(representation) } }
+    toDispose.forEach { representation -> withContext(Dispatchers.EDT) { Disposer.dispose(representation) } }
 
     if (!hadAnyRepresentationsInitialized) {
       // The first time we load one representation, we try to set it to the one we had saved on disk
@@ -333,9 +332,9 @@ open class MultiRepresentationPreview(
       stateFromDisk?.let { currentRepresentationName = it.selectedRepresentationName }
     }
     // Updates the cached value of hasPreviews for each representation
-    withContext(workerThread) { representations.values.forEach { it.hasPreviews() } }
+    withContext(Dispatchers.Default) { representations.values.forEach { it.hasPreviews() } }
 
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       // update current if it was deleted
       updateCurrentRepresentationName()
 

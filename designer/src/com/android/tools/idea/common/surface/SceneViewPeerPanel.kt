@@ -24,7 +24,6 @@ import com.android.tools.idea.common.layout.positionable.margin
 import com.android.tools.idea.common.layout.positionable.scaledContentSize
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.common.surface.sceneview.SceneViewTopPanel
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.android.tools.idea.uibuilder.surface.layout.horizontal
 import com.android.tools.idea.uibuilder.surface.layout.vertical
@@ -32,6 +31,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.UiDataProvider
+import com.intellij.openapi.application.EDT
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
@@ -41,6 +41,7 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.math.round
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -70,7 +71,7 @@ class SceneViewPeerPanel(
 ) : JPanel(), PositionablePanel, UiDataProvider {
 
   init {
-    scope.launch { sceneView.sceneManager.model.organizationGroup?.isOpened?.collect { withContext(uiThread) { invalidate() } } }
+    scope.launch { sceneView.sceneManager.model.organizationGroup?.isOpened?.collect { withContext(Dispatchers.EDT) { invalidate() } } }
   }
 
   /**

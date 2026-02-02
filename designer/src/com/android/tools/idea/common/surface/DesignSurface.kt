@@ -54,7 +54,6 @@ import com.android.tools.idea.common.surface.layout.ScrollableDesignSurfaceViewp
 import com.android.tools.idea.common.type.DefaultDesignerFileType
 import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.ui.designer.EditorDesignSurface
 import com.android.tools.idea.uibuilder.surface.ScreenView
@@ -198,7 +197,7 @@ abstract class DesignSurface<T : SceneManager>(
   protected val sceneViewPanel =
     SceneViewPanel(
         scope = scope.createChildScope(),
-        uiThread,
+        Dispatchers.EDT,
         sceneViewProvider = ::sceneViews,
         interactionLayersProvider = ::getLayers,
         actionManagerProvider = ::actionManager,

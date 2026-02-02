@@ -17,13 +17,14 @@ package com.android.tools.idea.common.surface.sceneview
 
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.model.DisplaySettings
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.intellij.openapi.application.EDT
 import com.intellij.testFramework.ApplicationRule
 import java.awt.Dimension
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
@@ -65,7 +66,7 @@ class InteractiveLabelPanelTest {
 
     val label = InteractiveLabelPanel(settings, scope, MutableStateFlow(false), ::labelClicked).apply { size = Dimension(250, 50) }
     val ui = FakeUi(label)
-    withContext(uiThread) { ui.clickOn(label) }
+    withContext(Dispatchers.EDT) { ui.clickOn(label) }
     withTimeout(TimeUnit.SECONDS.toMillis(1)) { clickCount.await() }
   }
 }

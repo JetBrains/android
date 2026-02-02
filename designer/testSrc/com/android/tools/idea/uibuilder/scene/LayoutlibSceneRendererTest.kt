@@ -19,7 +19,6 @@ import com.android.SdkConstants
 import com.android.ide.common.rendering.api.Result
 import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil.model
@@ -258,7 +257,7 @@ class LayoutlibSceneRendererTest {
   @Test
   fun testRenderAndWait() = runBlocking {
     blockInflationAndRequestRender()
-    val requestRenderAndWaitJob = launch(workerThread) { renderer.requestRenderAndWait(trigger = null) }
+    val requestRenderAndWaitJob = launch(Dispatchers.Default) { renderer.requestRenderAndWait(trigger = null) }
     delay(1000)
     renderer.sceneRenderConfiguration.needsInflation.set(true)
     renderer.requestRender(trigger = null)

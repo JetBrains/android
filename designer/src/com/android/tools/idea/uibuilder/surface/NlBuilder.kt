@@ -29,7 +29,6 @@ import com.android.tools.idea.common.surface.LayoutScannerEnabled
 import com.android.tools.idea.common.surface.SurfaceInteractable
 import com.android.tools.idea.common.surface.ZoomControlsPolicy
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.rendering.RenderSettings.Companion.getProjectSettings
 import com.android.tools.idea.uibuilder.editor.NlActionManager
@@ -39,9 +38,11 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvide
 import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.UiDataProvider
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import java.util.function.Supplier
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -265,7 +266,9 @@ class NlSurfaceBuilder(
 
     nlDesignSurfacePositionableContentLayoutManager.surface = surface
     AndroidCoroutineScope(surface).launch {
-      nlDesignSurfacePositionableContentLayoutManager.currentLayoutOption.collect { withContext(uiThread) { surface.onLayoutUpdated(it) } }
+      nlDesignSurfacePositionableContentLayoutManager.currentLayoutOption.collect {
+        withContext(Dispatchers.EDT) { surface.onLayoutUpdated(it) }
+      }
     }
 
     _screenViewProvider?.let { surface.setScreenViewProvider(it, _setDefaultScreenViewProvider) }

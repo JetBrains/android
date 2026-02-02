@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.util
 
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.documentChangeFlow
 import com.android.tools.idea.editors.setupChangeListener
 import com.android.tools.idea.editors.setupOnSaveListener
@@ -29,6 +28,7 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
@@ -190,7 +190,9 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureAdtTestCase() {
     val composeTest = myFixture.addFileToProject("src/Test.kt", startFileContent)
     val ready = CompletableDeferred<Unit>()
     val changes =
-      async(workerThread) { documentChangeFlow(composeTest, testRootDisposable, onReady = { ready.complete(Unit) }).take(3).toList() }
+      async(Dispatchers.Default) {
+        documentChangeFlow(composeTest, testRootDisposable, onReady = { ready.complete(Unit) }).take(3).toList()
+      }
     ready.await()
 
     repeat(3) {

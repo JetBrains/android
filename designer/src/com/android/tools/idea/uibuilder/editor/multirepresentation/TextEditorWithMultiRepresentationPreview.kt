@@ -20,10 +20,9 @@ package com.android.tools.idea.uibuilder.editor.multirepresentation
 import com.android.tools.idea.common.editor.SeamlessTextEditorWithPreview
 import com.android.tools.idea.common.editor.setEditorLayout
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.SourceCodePreview
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerKeys
 import com.intellij.openapi.fileEditor.TextEditor
@@ -34,6 +33,7 @@ import com.intellij.pom.Navigatable
 import java.awt.event.ComponentEvent
 import java.awt.event.ComponentListener
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -145,7 +145,7 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
 
   private fun setActive(activate: Boolean) {
     if (isActive.getAndSet(activate) == activate) return
-    launch(workerThread) {
+    launch(Dispatchers.Default) {
       // onActivate and onDeactivate is not a suspendable function so we put it in a
       // blockingContextScope to make it cancellable.
       blockingContextScope { if (isActive.get()) preview.onActivate() else preview.onDeactivate() }
@@ -174,7 +174,7 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
       launch {
         preview.onInit()
 
-        withContext(uiThread) {
+        withContext(Dispatchers.EDT) {
           if (!layoutSetExplicitly) {
             preview.currentRepresentation?.preferredInitialVisibility?.toTextEditorLayout()?.let { setLayoutExplicitly(it) }
           }

@@ -44,8 +44,6 @@ import com.android.tools.dom.attrs.AttributeDefinition
 import com.android.tools.fonts.Fonts.Companion.AVAILABLE_FAMILIES
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.psi.TagToClassMapper
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.res.StudioResourceRepositoryManager
@@ -64,6 +62,7 @@ import com.android.utils.HashCodes
 import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.command.undo.UndoManager
@@ -80,6 +79,7 @@ import java.awt.Color
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.Icon
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.dom.AndroidDomUtil
@@ -613,7 +613,7 @@ open class NlPropertyItem(
       cachedIcon.set(null)
       val rawValueToCalculate = rawValue
       if (rawValueToCalculate != null) {
-        supervisorScope.launch(workerThread) {
+        supervisorScope.launch(Dispatchers.Default) {
           val icon = model.resolver?.resolveAsIcon(resValue, model.facet)
           if (icon != null) {
             val currentRawValue = readAction { rawValue }
@@ -621,7 +621,7 @@ open class NlPropertyItem(
               if (rawValueToCalculate == currentRawValue) return@updateAndGet rawValueToCalculate to icon else return@updateAndGet previous
             }
 
-            withContext(uiThread) {
+            withContext(Dispatchers.EDT) {
               // Trigger refresh of the properties to show the new cached icon
               model.firePropertyValueChanged()
             }

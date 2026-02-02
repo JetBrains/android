@@ -31,8 +31,6 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor
 import com.android.tools.idea.res.psi.ResourceRepositoryToPsiResolver
@@ -48,6 +46,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.WeakReferenceDisposableWrapper
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
@@ -65,6 +64,7 @@ import java.util.concurrent.Callable
 import java.util.function.Consumer
 import javax.swing.event.ChangeListener
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
@@ -186,9 +186,9 @@ open class NlPropertiesModel(
   private fun createResolverCache(surface: DesignSurface<*>?): LazyCachedValue<ResourceResolver?> {
     return LazyCachedValue(
       supervisorScope,
-      loader = { runInterruptible(workerThread) { surface?.model?.configuration?.resourceResolver } },
+      loader = { runInterruptible(Dispatchers.Default) { surface?.model?.configuration?.resourceResolver } },
       onValueLoaded = { _ ->
-        withContext(uiThread) {
+        withContext(Dispatchers.EDT) {
           // Trigger refresh of all properties due to the resolver being available
           firePropertyValueChanged()
         }

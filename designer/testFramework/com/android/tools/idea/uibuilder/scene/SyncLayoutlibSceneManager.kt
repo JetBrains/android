@@ -23,7 +23,6 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration.Companion.DISABLED
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.rendering.RenderResult
 import com.google.common.collect.ImmutableSet
@@ -33,6 +32,7 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.EdtExecutorService
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
@@ -75,7 +75,7 @@ constructor(surface: DesignSurface<LayoutlibSceneManager>, model: NlModel, priva
   }
 
   override suspend fun requestRenderAndWait() =
-    withContext(workerThread) {
+    withContext(Dispatchers.Default) {
       if (ignoreRenderRequests) return@withContext
       super.requestRenderAndWait()
     }

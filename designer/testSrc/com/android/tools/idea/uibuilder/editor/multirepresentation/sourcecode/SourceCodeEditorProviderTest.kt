@@ -18,8 +18,6 @@ package com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode
 import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Facets
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
@@ -30,6 +28,7 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWit
 import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.components.serviceAsync
@@ -48,6 +47,7 @@ import com.intellij.testFramework.UsefulTestCase.assertContainsElements
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import junit.framework.TestCase
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jdom.Element
@@ -86,9 +86,9 @@ class SourceCodeEditorProviderTest(private val asyncMode: EditorCreationMode) {
 
   private suspend fun buildEditor(provider: SourceCodeEditorProvider, project: Project, file: VirtualFile): FileEditor {
     return when (asyncMode) {
-      EditorCreationMode.SYNC -> withContext(uiThread) { provider.createEditor(project, file) }
+      EditorCreationMode.SYNC -> withContext(Dispatchers.EDT) { provider.createEditor(project, file) }
       EditorCreationMode.ASYNC ->
-        withContext(workerThread) {
+        withContext(Dispatchers.Default) {
           val fileDocumentManager = serviceAsync<FileDocumentManager>()
           val document = readAction { fileDocumentManager.getDocument(file) }
           provider.createFileEditor(project, file, document, editorScope)
@@ -160,7 +160,7 @@ class SourceCodeEditorProviderTest(private val asyncMode: EditorCreationMode) {
 
     TestCase.assertNotNull(editor)
 
-    withContext(uiThread) { provider.disposeEditor(editor) }
+    withContext(Dispatchers.EDT) { provider.disposeEditor(editor) }
   }
 
   @Test
@@ -180,7 +180,7 @@ class SourceCodeEditorProviderTest(private val asyncMode: EditorCreationMode) {
     val editor = buildEditor(serializationProvider, file.project, file.virtualFile) as TextEditorWithMultiRepresentationPreview<*>
     // Wait for the initializations
     editor.preview.onInit()
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       // Editor are not selected in unit testing. Force the preview activation so it loads the
       // state.
       editor.preview.onActivate()

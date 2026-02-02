@@ -18,7 +18,6 @@ package com.android.tools.idea.actions
 import com.android.testutils.ImageDiffUtil.assertImageSimilar
 import com.android.testutils.TestUtils.resolveWorkspacePathUnchecked
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -30,9 +29,11 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.android.tools.idea.uibuilder.surface.sizepolicy.ContentSizePolicy
 import com.android.tools.idea.util.androidFacet
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.util.Disposer
 import java.awt.Dimension
 import java.awt.image.BufferedImage
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Rule
@@ -44,7 +45,7 @@ class DrawableBackgroundLayerTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private suspend fun renderLayerForBackgroundType(type: DrawableBackgroundType): BufferedImage =
-    withContext(AndroidDispatchers.uiThread) {
+    withContext(Dispatchers.EDT) {
       val drawablePsiFile = projectRule.fixture.loadNewFile("res/drawable/icon.xml", "<drawable></drawable>")
       val virtualFile = drawablePsiFile.virtualFile
 

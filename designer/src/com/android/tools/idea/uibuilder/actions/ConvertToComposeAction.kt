@@ -16,8 +16,6 @@
 package com.android.tools.idea.uibuilder.actions
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.ml.xmltocompose.ComposeConverterDataType
 import com.android.tools.idea.ml.xmltocompose.ConversionResponse
@@ -26,6 +24,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys.VIRTUAL_FILE
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
@@ -40,6 +39,7 @@ import javax.swing.ButtonGroup
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JToggleButton.ToggleButtonModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -130,7 +130,7 @@ class ConvertToComposeAction : AnAction(ACTION_TITLE) {
           ComposeCodeDialog(project).run {
             Disposer.register(disposable, nShotXmlToComposeConverter)
             show()
-            AndroidCoroutineScope(disposable).launch(workerThread) {
+            AndroidCoroutineScope(disposable).launch(Dispatchers.Default) {
               val response = nShotXmlToComposeConverter.convertToCompose(xmlFileContent)
               val contentText =
                 if (response.status == ConversionResponse.Status.SUCCESS) {
@@ -138,7 +138,7 @@ class ConvertToComposeAction : AnAction(ACTION_TITLE) {
                 } else {
                   "[CONVERSION FAILED] ${response.generatedCode}"
                 }
-              withContext(uiThread) { updateContent(contentText) }
+              withContext(Dispatchers.EDT) { updateContent(contentText) }
             }
           }
         }

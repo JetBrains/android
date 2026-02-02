@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.error
 
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.util.TestToolWindow
@@ -26,6 +25,7 @@ import com.intellij.analysis.problemsView.toolWindow.ProblemsViewPanel
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewState
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewTab
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindow
@@ -36,6 +36,7 @@ import com.intellij.testFramework.waitUntil
 import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
@@ -74,7 +75,7 @@ class IssuePanelServiceTest {
   fun testInitWithOtherFile() {
     runBlocking {
       val file = rule.fixture.addFileToProject("/src/file.kt", "")
-      withContext(uiThread) { rule.fixture.openFileInEditor(file.virtualFile) }
+      withContext(Dispatchers.EDT) { rule.fixture.openFileInEditor(file.virtualFile) }
       waitUntil(timeout = 1.seconds) { toolWindow.contentManager.contents.size == 1 }
       assertEquals("Current File", toolWindow.contentManager.selectedContent!!.displayName)
     }
@@ -149,7 +150,7 @@ class IssuePanelServiceTest {
       val messageBus = rule.project.messageBus
       val toolWindow = ToolWindowManager.getInstance(rule.project).getToolWindow(ProblemsView.ID)!!
       val layoutFile =
-        withContext(uiThread) {
+        withContext(Dispatchers.EDT) {
           val file = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />").virtualFile
           rule.fixture.openFileInEditor(file)
           service.showSharedIssuePanel()

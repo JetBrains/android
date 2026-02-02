@@ -32,7 +32,6 @@ import com.android.SdkConstants.TEXT_VIEW
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.popup.FakeComponentPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property.NlPropertyDocumentationTarget
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
@@ -44,12 +43,14 @@ import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.util.Disposer
 import com.intellij.platform.ide.documentation.DOCUMENTATION_TARGETS
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.concurrency.resolvedPromise
@@ -78,7 +79,7 @@ class HelpActionsTest {
     val property =
       NlPropertyItem(AUTO_URI, "legend", NlPropertyType.BOOLEAN, null, "", "", mock(), mock(), null, null, supervisorScope = this)
 
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       assertThat(helpTextInPopup(property))
         .isEqualTo(
           normalizeHtml(

@@ -60,7 +60,6 @@ import com.android.tools.adtui.model.stdui.EditingErrorCategory.ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory.WARNING
 import com.android.tools.fonts.Fonts.Companion.AVAILABLE_FAMILIES
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.rendering.RenderTestRule
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -75,6 +74,7 @@ import com.android.tools.property.panel.api.PropertiesModelListener
 import com.android.tools.rendering.parsers.TagSnapshot
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeHighlighting.HighlightDisplayLevel
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.command.impl.UndoManagerImpl
 import com.intellij.openapi.command.undo.UndoManager
@@ -88,6 +88,7 @@ import com.intellij.util.ui.ColorsIcon
 import icons.StudioIcons
 import java.awt.Color
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -231,7 +232,7 @@ class NlPropertyItemTest {
     testScope.runTest {
       val util = SupportTestUtil(projectRule, createTextViewWithTextColor("@android:color/primary_text_dark"))
       val property = util.makeProperty(ANDROID_URI, ATTR_TEXT_COLOR, NlPropertyType.COLOR_STATE_LIST)
-      withContext(uiThread) {
+      withContext(Dispatchers.EDT) {
         property.model.showResolvedValues = false
         assertThat(property.name).isEqualTo(ATTR_TEXT_COLOR)
         assertThat(property.namespace).isEqualTo(ANDROID_URI)
@@ -747,7 +748,7 @@ class NlPropertyItemTest {
     testScope.runTest {
       val util = SupportTestUtil(projectRule, parentTag = "action", resourceFolder = FD_RES_NAVIGATION, fileName = "navigation.xml")
       val property = util.makeProperty(ANDROID_URI, NavigationSchema.ATTR_ENTER_ANIM, NlPropertyType.ANIMATOR)
-      withContext(uiThread) {
+      withContext(Dispatchers.EDT) {
         assertThat(property.editingSupport.validation("@android:anim/accelerate_interpolator")).isEqualTo(EDITOR_NO_ERROR)
         assertThat(property.editingSupport.validation("@android:animator/fade_in")).isEqualTo(EDITOR_NO_ERROR)
       }

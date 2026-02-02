@@ -27,7 +27,6 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.Disposable
@@ -38,6 +37,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -46,6 +46,7 @@ import java.lang.ref.WeakReference
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -91,10 +92,10 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
   init {
     Disposer.register(parent, this)
     scope.launch {
-      merge(surface.panningChanged, surface.zoomChanged).collect { withContext(uiThread) { northEastToolbar?.updateActionsAsync() } }
+      merge(surface.panningChanged, surface.zoomChanged).collect { withContext(Dispatchers.EDT) { northEastToolbar?.updateActionsAsync() } }
     }
 
-    scope.launch { surface.modelChanged.collect { models -> withContext(uiThread) { modelsChanged(models) } } }
+    scope.launch { surface.modelChanged.collect { models -> withContext(Dispatchers.EDT) { modelsChanged(models) } } }
 
     surface.addListener(this)
     // TODO: Update to support multiple configurations

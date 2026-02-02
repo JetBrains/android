@@ -23,8 +23,6 @@ import com.android.tools.idea.common.surface.getDesignSurface
 import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_BUILD_TOPIC
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
@@ -38,6 +36,7 @@ import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.fileEditor.FileEditor
@@ -48,6 +47,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.content.Content
 import com.intellij.ui.tree.TreeVisitor
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.idea.KotlinFileType
@@ -102,13 +102,13 @@ class IssuePanelService(private val project: Project) : Disposable.Default {
   }
 
   private fun updateIssuePanelVisibility(newFile: VirtualFile, newEditor: FileEditor?) {
-    coroutineScope.launch(workerThread) {
+    coroutineScope.launch(Dispatchers.Default) {
       if (isSupportedDesignerFileType(newFile)) {
         updateIssuePanelVisibility(newFile)
         return@launch
       }
       val designSurface =
-        withContext(uiThread) {
+        withContext(Dispatchers.EDT) {
           val surface = newEditor?.getDesignSurface()
           if (surface == null) {
             ProblemsViewToolWindowUtils.removeTab(project, SHARED_ISSUE_PANEL_TAB_ID)
@@ -120,18 +120,18 @@ class IssuePanelService(private val project: Project) : Disposable.Default {
   }
 
   private suspend fun updateIssuePanelVisibility(file: VirtualFile) {
-    withContext(workerThread) {
+    withContext(Dispatchers.Default) {
       val psiFileType = readAction {
         if (!file.isValid) return@readAction null
         file.toPsiFile(project)?.typeOf()
       }
       if (psiFileType is DrawableFileType) {
-        withContext(uiThread) {
+        withContext(Dispatchers.EDT) {
           // We don't support Shared issue panel for Drawable files.
           ProblemsViewToolWindowUtils.removeTab(project, SHARED_ISSUE_PANEL_TAB_ID)
         }
       } else {
-        withContext(uiThread) {
+        withContext(Dispatchers.EDT) {
           if (ProblemsViewToolWindowUtils.getContentById(project, SHARED_ISSUE_PANEL_TAB_ID) == null) {
             if (ProblemsView.getToolWindow(project) != null) {
               ProblemsViewToolWindowUtils.addTab(project, SharedIssuePanelProvider(project))
@@ -158,7 +158,7 @@ class IssuePanelService(private val project: Project) : Disposable.Default {
       if (!isTabShowing(it)) {
         problemsViewPanel.show {
           problemsViewPanel.contentManager.setSelectedContent(it)
-          coroutineScope.launch(workerThread) { updateSharedIssuePanelTabName() }
+          coroutineScope.launch(Dispatchers.Default) { updateSharedIssuePanelTabName() }
           if (focus) {
             problemsViewPanel.activate(null, true)
           }
@@ -172,13 +172,13 @@ class IssuePanelService(private val project: Project) : Disposable.Default {
 
   /** Update the tab name (includes the issue count) of shared issue panel. */
   private suspend fun updateSharedIssuePanelTabName() {
-    withContext(workerThread) {
+    withContext(Dispatchers.Default) {
       val tab = ProblemsViewToolWindowUtils.getContentById(project, SHARED_ISSUE_PANEL_TAB_ID) ?: return@withContext
       val newName = getSharedIssuePanelTabTitle()
       val panel = (tab.component as? DesignerCommonIssuePanel)?.apply { name = newName }
       val count = panel?.issueProvider?.getFilteredIssues()?.distinct()?.size ?: 0
       // This change the ui text, run it in the UI thread.
-      withContext(uiThread) {
+      withContext(Dispatchers.EDT) {
         if (!project.isDisposed) {
           tab.displayName = panel?.getName(count) ?: newName
         }
@@ -188,7 +188,7 @@ class IssuePanelService(private val project: Project) : Disposable.Default {
 
   /** Get the title of shared issue panel. The returned string doesn't include the issue count. */
   private suspend fun getSharedIssuePanelTabTitle(): String {
-    return withContext(workerThread) {
+    return withContext(Dispatchers.Default) {
       val editors = FileEditorManager.getInstance(project).selectedEditors
       if (editors.size != 1) {
         // TODO: What tab name should be show when opening multiple file editor?
@@ -200,7 +200,7 @@ class IssuePanelService(private val project: Project) : Disposable.Default {
       if (name != null) {
         return@withContext name
       }
-      val surface = withContext(uiThread) { editors[0].getDesignSurface() }
+      val surface = withContext(Dispatchers.EDT) { editors[0].getDesignSurface() }
       if (surface?.name != null) {
         return@withContext surface.name
       }
@@ -221,12 +221,12 @@ class IssuePanelService(private val project: Project) : Disposable.Default {
 
   @WorkerThread
   private suspend fun isSupportedDesignerFileType(file: VirtualFile): Boolean {
-    return withContext(workerThread) { getTabNameOfSupportedDesignerFile(file) != null }
+    return withContext(Dispatchers.Default) { getTabNameOfSupportedDesignerFile(file) != null }
   }
 
   /** Returns null if the given file is not the supported [DesignerEditorFileType]. */
   private suspend fun getTabNameOfSupportedDesignerFile(file: VirtualFile): String? {
-    return withContext(workerThread) {
+    return withContext(Dispatchers.Default) {
       readAction {
         if (!file.isValid) return@readAction null
         val psiFile = file.toPsiFile(project) ?: return@readAction null
