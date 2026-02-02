@@ -786,10 +786,6 @@ KMP_LIBRARY_TABLE
         artifact                      : <M2>/com/google/guava/listenablefuture/1.0/listenablefuture-1.0.jar
         artifactAddress               : com.google.guava:listenablefuture:1.0
         component                     : com.google.guava:listenablefuture:1.0
-    - library                     : junit:junit:4.12 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/junit/junit/4.12/junit-4.12.jar
-        artifactAddress               : junit:junit:4.12
-        component                     : junit:junit:4.12
     - library                     : junit:junit:4.13.2 (IdeJavaLibraryImpl)
         artifact                      : <M2>/junit/junit/4.13.2/junit-4.13.2.jar
         artifactAddress               : junit:junit:4.13.2
@@ -2341,8 +2337,11 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 ClassesFolder                 : <ROOT>/kmpFirstLib/build/intermediates/javac/androidDeviceTest/compileAndroidDeviceTestJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
+                        module                        : :-:kmpFirstLib-commonTest
                         module                        : :-:kmpFirstLib-androidMain
                         module                        : :-:kmpFirstLib-commonMain
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-test-junit:<KOTLIN_VERSION>
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-test:<KOTLIN_VERSION>
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                         androidLibrary                : androidx.appcompat:appcompat:1.4.1@aar
                         androidLibrary                : androidx.test:runner:1.4.0-alpha06@aar
@@ -2375,7 +2374,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                         javaLibrary                   : androidx.arch.core:core-common:2.1.0
                         androidLibrary                : androidx.interpolator:interpolator:1.0.0@aar
                         javaLibrary                   : androidx.annotation:annotation:1.3.0
-                        javaLibrary                   : junit:junit:4.12
+                        javaLibrary                   : junit:junit:4.13.2
                         androidLibrary                : androidx.annotation:annotation-experimental:1.1.0@aar
                         javaLibrary                   : com.google.code.findbugs:jsr305:2.0.1
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3
@@ -2385,8 +2384,11 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                         module                        : :-:kmpJvmOnly-jvmMain
                         module                        : :-:kmpJvmOnly-commonMain
                     runtimeClasspath
+                        module                        : :-:kmpFirstLib-commonTest
                         module                        : :-:kmpFirstLib-androidMain
                         module                        : :-:kmpFirstLib-commonMain
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-test-junit:<KOTLIN_VERSION>
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-test:<KOTLIN_VERSION>
                         androidLibrary                : androidx.appcompat:appcompat:1.4.1@aar
                         androidLibrary                : androidx.test:runner:1.4.0-alpha06@aar
                         androidLibrary                : androidx.test.ext:junit:1.1.2@aar
@@ -2424,12 +2426,12 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                         androidLibrary                : androidx.interpolator:interpolator:1.0.0@aar
                         javaLibrary                   : androidx.lifecycle:lifecycle-common:2.4.0
                         javaLibrary                   : androidx.annotation:annotation:1.3.0
-                        javaLibrary                   : junit:junit:4.12
+                        javaLibrary                   : junit:junit:4.13.2
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                         androidLibrary                : androidx.annotation:annotation-experimental:1.1.0@aar
                         javaLibrary                   : com.google.code.findbugs:jsr305:2.0.1
-                        javaLibrary                   : org.hamcrest:hamcrest-core:1.3
                         javaLibrary                   : org.jetbrains:annotations:13.0
+                        javaLibrary                   : org.hamcrest:hamcrest-core:1.3
                         javaLibrary                   : com.google.guava:listenablefuture:1.0
                         module                        : :-:androidLib-MAIN
                         module                        : :-:kmpSecondLib-commonMain
@@ -2511,6 +2513,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 - dependency                  : :androidLib::androidLib
                 - dependency                  : :kmpFirstLib::kmpFirstLib/androidMain
                 - dependency                  : :kmpFirstLib::kmpFirstLib/commonMain
+                - dependency                  : :kmpFirstLib::kmpFirstLib/commonTest
                 - dependency                  : :kmpJvmOnly::kmpJvmOnly
                 - dependency                  : :kmpSecondLib::kmpSecondLib
                 - dependency                  : :kmpSecondLib::kmpSecondLib
@@ -2586,12 +2589,16 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 - dependency                  : com.google.code.findbugs:jsr305:2.0.1
                 - dependency                  : com.google.code.findbugs:jsr305:2.0.1
                 - dependency                  : com.google.guava:listenablefuture:1.0
-                - dependency                  : junit:junit:4.12
-                - dependency                  : junit:junit:4.12
+                - dependency                  : junit:junit:4.13.2
+                - dependency                  : junit:junit:4.13.2
                 - dependency                  : org.hamcrest:hamcrest-core:1.3
                 - dependency                  : org.hamcrest:hamcrest-core:1.3
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin:kotlin-test-junit:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin:kotlin-test-junit:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin:kotlin-test:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin:kotlin-test:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
                 - dependency                  : org.jetbrains:annotations:13.0
             androidHostTest
@@ -2662,12 +2669,32 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         - targets                     : android (KotlinTargetImpl)
             - compilations                : deviceTest (KotlinCompilationImpl)
+                - allSourceSets               : commonTest (KotlinSourceSetImpl)
+                    actualPlatforms               : KotlinPlatformContainerImpl
+                        arePlatformsInitialized       : true
+                        - platforms                   : ANDROID
+                    - additionalVisibleSourceSets : androidMain
+                    - additionalVisibleSourceSets : commonMain
+                    isTestComponent               : true
+                    languageSettings              : KotlinLanguageSettingsImpl
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    - resourceDirs                : <ROOT>/kmpFirstLib/src/commonTest/resources [-]
+                    - sourceDirs                  : <ROOT>/kmpFirstLib/src/commonTest/kotlin
+                    platform                      : ANDROID
                 - allSourceSets               : androidDeviceTest (KotlinSourceSetImpl)
                     actualPlatforms               : KotlinPlatformContainerImpl
                         arePlatformsInitialized       : true
                         - platforms                   : ANDROID
                     - additionalVisibleSourceSets : androidMain
                     - additionalVisibleSourceSets : commonMain
+                    - allDependsOnSourceSets      : commonTest
+                    - declaredDependsOnSourceSets : commonTest
                     isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -2697,7 +2724,9 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
+                    - fragmentRefines             : androidDeviceTest:commonTest
                     - fragments                   : androidDeviceTest
+                    - fragments                   : commonTest
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -2720,24 +2749,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                     resourcesDir                  : <ROOT>/kmpFirstLib/build/processedResources/android/deviceTest [-]
                 platform                      : ANDROID
             - compilations                : hostTest (KotlinCompilationImpl)
-                - allSourceSets               : commonTest (KotlinSourceSetImpl)
-                    actualPlatforms               : KotlinPlatformContainerImpl
-                        arePlatformsInitialized       : true
-                        - platforms                   : ANDROID
-                    - additionalVisibleSourceSets : androidMain
-                    - additionalVisibleSourceSets : commonMain
-                    isTestComponent               : true
-                    languageSettings              : KotlinLanguageSettingsImpl
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - resourceDirs                : <ROOT>/kmpFirstLib/src/commonTest/resources [-]
-                    - sourceDirs                  : <ROOT>/kmpFirstLib/src/commonTest/kotlin
-                    platform                      : ANDROID
+                - allSourceSets               : commonTest (KotlinSourceSetImpl) (*seen*)
                 - allSourceSets               : androidHostTest (KotlinSourceSetImpl)
                     actualPlatforms               : KotlinPlatformContainerImpl
                         arePlatformsInitialized       : true

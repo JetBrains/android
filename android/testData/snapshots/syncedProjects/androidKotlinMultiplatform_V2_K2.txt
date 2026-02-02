@@ -786,6 +786,7 @@ PROJECT                       : Kotlin Multiplatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             Platform                      : JVM (11)
+            - SourceSetName               : Kotlin_Multiplatform.kmpFirstLib.commonTest
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:kmpFirstLib:androidMain, :kmpFirstLib:commonMain]
@@ -886,11 +887,15 @@ PROJECT                       : Kotlin Multiplatform
             Scope                         : Test
         LIBRARY                       : Gradle: com.google.guava:listenablefuture:1.0 [=]
             Scope                         : Runtime
-        LIBRARY                       : Gradle: junit:junit:4.12 [=]
+        LIBRARY                       : Gradle: junit:junit:4.13.2 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-test-junit:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-test:<KOTLIN_VERSION> [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
@@ -899,6 +904,8 @@ PROJECT                       : Kotlin Multiplatform
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.androidMain
             Scope                         : Test
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.commonMain
+            Scope                         : Test
+        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.commonTest
             Scope                         : Test
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpJvmOnly.commonMain
             Scope                         : Test
@@ -2524,8 +2531,6 @@ PROJECT                       : Kotlin Multiplatform
             *CLASSES                      : jar://<M2>/com/google/truth/truth/0.44/truth-0.44.jar!/
         LIBRARY                       : Gradle: com.googlecode.java-diff-utils:diffutils:1.3.0
             *CLASSES                      : jar://<M2>/com/googlecode/java-diff-utils/diffutils/1.3.0/diffutils-1.3.0.jar!/
-        LIBRARY                       : Gradle: junit:junit:4.12
-            *CLASSES                      : jar://<M2>/junit/junit/4.12/junit-4.12.jar!/
         LIBRARY                       : Gradle: junit:junit:4.13.2
             *CLASSES                      : jar://<M2>/junit/junit/4.13.2/junit-4.13.2.jar!/
         LIBRARY                       : Gradle: org.checkerframework:checker-compat-qual:2.5.5

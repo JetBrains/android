@@ -11,6 +11,7 @@ kotlin {
     }
 
     withDeviceTestBuilder {
+      sourceSetTreeName = "test"
     }
 
     compilations.withType(com.android.build.api.dsl.KotlinMultiplatformAndroidDeviceTestCompilation::class.java) {
