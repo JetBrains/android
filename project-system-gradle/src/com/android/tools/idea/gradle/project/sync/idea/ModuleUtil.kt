@@ -35,6 +35,7 @@ import com.intellij.openapi.module.ModulePointerManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.idea.gradle.configuration.KotlinTargetData
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
+import org.jetbrains.plugins.gradle.util.gradlePath
 
 object ModuleUtil {
   @JvmStatic
@@ -64,13 +65,18 @@ object ModuleUtil {
             ?.let { ExternalSystemApiUtil.find(it, AndroidProjectKeys.KOTLIN_MULTIPLATFORM_ANDROID_SOURCE_SETS_TABLE) }
             ?.data
             ?.sourceSetsByGradleProjectPath
-            ?.get(this.data.id)
+            ?.get(this.data.gradlePath)
 
-        mapOf(
-          kotlinMultiplatformAndroidSourceSetData?.get(KotlinMultiplatformAndroidSourceSetType.MAIN) to IdeArtifactName.MAIN,
-          kotlinMultiplatformAndroidSourceSetData?.get(KotlinMultiplatformAndroidSourceSetType.UNIT_TEST) to IdeArtifactName.UNIT_TEST,
-          kotlinMultiplatformAndroidSourceSetData?.get(KotlinMultiplatformAndroidSourceSetType.ANDROID_TEST) to IdeArtifactName.ANDROID_TEST,
-        )
+        if (kotlinMultiplatformAndroidSourceSetData != null) {
+          mapOf(
+            kotlinMultiplatformAndroidSourceSetData?.get(KotlinMultiplatformAndroidSourceSetType.MAIN) to IdeArtifactName.MAIN,
+            kotlinMultiplatformAndroidSourceSetData?.get(KotlinMultiplatformAndroidSourceSetType.UNIT_TEST) to IdeArtifactName.UNIT_TEST,
+            kotlinMultiplatformAndroidSourceSetData?.get(KotlinMultiplatformAndroidSourceSetType.ANDROID_TEST) to
+              IdeArtifactName.ANDROID_TEST,
+          )
+        } else {
+          emptyMap()
+        }
       } else {
         IdeArtifactName.values().associate { getModuleName(it) to it }
       }
