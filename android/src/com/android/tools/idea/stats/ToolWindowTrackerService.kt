@@ -28,13 +28,20 @@ import com.intellij.openapi.wm.ToolWindowType
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 
 /**
- * Tracks tool window usage by listening to state changes. [ToolWindowManagerListener]'s [stateChanged] method doesn't actually contained
+ * Tracks tool window usage by listening to state changes. [ToolWindowManagerListener]'s [stateChanged] method doesn't actually contain
  * which tool window was changed, so we calculate it by tracking all registered tool window states in a state map and checking which tool
  * window(s) state was changed. Note: If a tool window is active and the user opens another tool window in the same group, then the active
  * tool window is closed and the new tool window is opened. This triggers 2 events (1 close and 1 open).
  */
 class ToolWindowTrackerService(private val project: Project) : ToolWindowManagerListener {
   private val stateMap = HashMap<String, ToolWindowState>()
+
+  init {
+    val toolWindowManager = ToolWindowManager.getInstance(project)
+    for (id in toolWindowManager.toolWindowIds) {
+      stateMap[id] = getToolWindowState(toolWindowManager.getToolWindow(id))
+    }
+  }
 
   companion object {
     @JvmStatic fun getInstance(project: Project) = project.service<ToolWindowTrackerService>()
