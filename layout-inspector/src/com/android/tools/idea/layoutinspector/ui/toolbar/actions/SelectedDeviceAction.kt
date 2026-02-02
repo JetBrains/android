@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.ui.toolbar.actions
 
 import com.android.adblib.DeviceSelector
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.appinspection.ide.ui.ICON_PHONE
 import com.android.tools.idea.appinspection.ide.ui.NO_DEVICE_ACTION
@@ -36,6 +37,7 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.ex.ActionUtil
+import com.intellij.ui.LayeredIcon
 import java.util.concurrent.ConcurrentHashMap
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -45,6 +47,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.VisibleForTesting
+
+@VisibleForTesting data class DeviceInfo(val icon: Icon, val deviceType: DeviceType)
 
 /**
  * Action used to display a dropdown of all inspectable devices.
@@ -71,7 +75,8 @@ class SelectDeviceAction(
     }
   }
 
-  @VisibleForTesting val deviceIcons = ConcurrentHashMap<String, Icon?>()
+  /** Maps device serial number to device info */
+  @VisibleForTesting val deviceInfo = ConcurrentHashMap<String, DeviceInfo>()
 
   var button: JComponent? = null
     private set
@@ -157,7 +162,7 @@ class SelectDeviceAction(
   }
 
   /** A device which the user can select. */
-  private inner class DeviceAction(private val device: DeviceDescriptor) : ToggleAction(device.buildDeviceName(), null, device.toIcon()) {
+  private inner class DeviceAction(private val device: DeviceDescriptor) : ToggleAction(device.toTitle(), null, device.toIcon()) {
 
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
@@ -226,10 +231,13 @@ class SelectDeviceAction(
   /** Retrieves and updates device icons for the provided list of devices. */
   private suspend fun updateDeviceIcons(devices: Set<DeviceDescriptor>) {
     devices.forEach {
-      val icon = deviceProvisioner.findConnectedDeviceHandle(DeviceSelector.fromSerialNumber(it.serial), 1.seconds)?.state?.properties?.icon
+      val deviceProperties =
+        deviceProvisioner.findConnectedDeviceHandle(DeviceSelector.fromSerialNumber(it.serial), 1.seconds)?.state?.properties
+      val deviceIcon = deviceProperties?.icon
+      val deviceType = deviceProperties?.deviceType
 
-      if (icon != null) {
-        deviceIcons[it.serial] = icon
+      if (deviceIcon != null && deviceType != null) {
+        deviceInfo[it.serial] = DeviceInfo(deviceIcon, deviceType)
       }
     }
   }
@@ -238,7 +246,25 @@ class SelectDeviceAction(
     // If the icon is not found, display no icon to prevent replacing the placeholder icon after the
     // actual icon is done loading. Which would result in a jarring user experience, Also the
     // placeholder icon does not hold significant meaning about the device type.
-    return deviceIcons[serial]
+    val deviceInfo = deviceInfo[serial] ?: return null
+    return if (deviceInfo.deviceType == DeviceType.AI_GLASSES) {
+      LayeredIcon.layeredIcon { arrayOf(deviceInfo.icon, AllIcons.General.WarningDecorator) }
+    } else {
+      deviceInfo.icon
+    }
+  }
+
+  private fun DeviceDescriptor.toTitle(): String {
+    val deviceName = buildDeviceName()
+
+    val deviceInfo = deviceInfo[serial]
+    val deviceType = deviceInfo?.deviceType
+
+    return if (deviceType == DeviceType.AI_GLASSES) {
+      "$deviceName - ${LayoutInspectorBundle.message ("device.picker.glasses.warning")}"
+    } else {
+      deviceName
+    }
   }
 }
 

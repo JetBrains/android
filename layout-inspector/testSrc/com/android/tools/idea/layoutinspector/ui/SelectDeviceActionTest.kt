@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.ui
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState.Connected
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
@@ -96,7 +97,10 @@ class SelectDeviceActionTest {
       .build()
   }
 
-  private suspend fun createFakeProvisionerDevice(serial: String = FakeTransportService.FAKE_DEVICE_NAME) {
+  private suspend fun createFakeProvisionerDevice(
+    serial: String = FakeTransportService.FAKE_DEVICE_NAME,
+    type: DeviceType = DeviceType.HANDHELD,
+  ) {
     val device =
       plugin.addNewDevice(
         serial,
@@ -106,6 +110,7 @@ class SelectDeviceActionTest {
           androidVersion = AndroidVersion(31)
           androidRelease = "11"
           icon = ICON_PHONE
+          deviceType = type
         },
       )
     device.activationAction.activate()
@@ -187,10 +192,30 @@ class SelectDeviceActionTest {
     val selectDeviceAction = SelectDeviceAction(deviceProvisioner, scope, deviceModel, {}, {})
 
     testNotifier.addDevice(physicalStream.device.toDeviceDescriptor())
-    waitForCondition(10.seconds) { !selectDeviceAction.deviceIcons.isEmpty() }
+    waitForCondition(10.seconds) { !selectDeviceAction.deviceInfo.isEmpty() }
     selectDeviceAction.updateActions(DataContext.EMPTY_CONTEXT)
     val children = selectDeviceAction.getChildren(null)
     Truth.assertThat(children[0].templatePresentation.icon).isEqualTo(ICON_PHONE)
+  }
+
+  @Test
+  fun testGlassesDeviceIconAndTitle() = runBlocking {
+    val testNotifier = TestProcessDiscovery()
+    val processesModel = ProcessesModel(testNotifier)
+    val glassesStream = createFakeStream()
+    val deviceModel = DeviceModel(projectRule.testRootDisposable, processesModel, setOf(glassesStream.device.toDeviceDescriptor()))
+    createFakeProvisionerDevice(glassesStream.device.serial, type = DeviceType.AI_GLASSES)
+
+    val selectDeviceAction = SelectDeviceAction(deviceProvisioner, scope, deviceModel, {}, {})
+
+    testNotifier.addDevice(glassesStream.device.toDeviceDescriptor())
+    waitForCondition(10.seconds) { !selectDeviceAction.deviceInfo.isEmpty() }
+
+    selectDeviceAction.updateActions(DataContext.EMPTY_CONTEXT)
+    val children = selectDeviceAction.getChildren(null)
+
+    val title = children[0].templateText
+    Truth.assertThat(title).endsWith("warning: the app is likely running on the phone")
   }
 
   @Test
