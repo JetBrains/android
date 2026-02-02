@@ -391,6 +391,28 @@ class StateInspectionModelTest {
     assertThat(model.show.value).isFalse()
   }
 
+  @Test
+  fun testDispose() = runTestWithDisposable { disposable ->
+    var results = 0
+    val model = StateInspectionModelImpl(inspectorModel, this, disposable) { results++ }
+    assertThat(model.show.value).isFalse()
+
+    inspectorModel.stateReadsModel.requestStateReadFor(compose1)
+    testScheduler.advanceUntilIdle()
+    assertThat(model.show.value).isTrue()
+    assertThat(results).isEqualTo(0)
+
+    // The result is received from the agent:
+    inspectorModel.stateReadsModel.stateReads.emit(read2Anchor1.convert(compose1, 2))
+    testScheduler.advanceUntilIdle()
+    assertThat(model.show.value).isTrue()
+    assertThat(results).isEqualTo(1)
+
+    Disposer.dispose(disposable)
+    // Verify that the stateReads were reset such that old data is not shown if LI is reconnected.
+    assertThat(inspectorModel.stateReadsModel.stateReads.value).isNull()
+  }
+
   private fun AnAction.isEnabled(): Boolean {
     val presentation = templatePresentation.clone()
     val event = AnActionEvent.createEvent(DataContext.EMPTY_CONTEXT, presentation, ActionPlaces.UNKNOWN, ActionUiKind.NONE, null)
