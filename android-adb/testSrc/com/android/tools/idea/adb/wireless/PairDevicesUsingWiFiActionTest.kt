@@ -18,6 +18,8 @@ package com.android.tools.idea.adb.wireless
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.ui.SimpleDialog
 import com.google.common.truth.Truth
 import com.intellij.testFramework.LightPlatform4TestCase
@@ -50,6 +52,9 @@ class PairDevicesUsingWiFiActionTest : LightPlatform4TestCase() {
   @Test
   fun dialogShouldShowWhenInvokingAction() {
     // Prepare
+    // Disable the flag because can't use swing utilities to verify the new compose dialog.
+    StudioFlags.ADB_WIFI_V2_DIALOG.overrideForTest(false, testRootDisposable)
+
     val action = PairDevicesUsingWiFiAction()
     val event = TestActionEvent.createTestEvent(action)
 

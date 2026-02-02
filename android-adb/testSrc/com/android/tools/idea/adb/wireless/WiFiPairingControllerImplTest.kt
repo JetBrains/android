@@ -15,7 +15,12 @@
  */
 package com.android.tools.idea.adb.wireless
 
+import com.android.adblib.AdbFeatures.TRACK_MDNS_SERVICE
+import com.android.adblib.MdnsPairingService
+import com.android.adblib.MdnsServices
+import com.android.adblib.MdnsTrackServiceInfo
 import com.android.adblib.ServerStatus
+import com.android.adblib.ServiceInstanceName
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.TimeoutRemainder
 import com.android.test.testutils.EnsureAndroidProjectRule
@@ -29,7 +34,9 @@ import com.android.tools.idea.adb.AdbOptionsService
 import com.android.tools.idea.adb.AdbServerMdnsBackend
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.ThreadingCheckRule
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.WIFI_PAIRING_EVENT
 import com.google.wireless.android.sdk.stats.ApiVersion
@@ -56,6 +63,8 @@ import javax.swing.JLabel
 import javax.swing.JTextField
 import javax.swing.text.html.HTML
 import javax.swing.text.html.HTMLDocument
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Rule
@@ -140,6 +149,7 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
     super.setUp()
     testTimeout = TimeoutRemainder(30, testTimeUnit)
     enableHeadlessDialogs(testRootDisposable)
+    StudioFlags.ADB_WIFI_V2_DIALOG.overrideForTest(true, testRootDisposable)
   }
 
   @Suppress("SameParameterValue")
@@ -340,6 +350,10 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
 
     whenever(adbService.instance.getServerStatus()).thenReturn(ServerStatus(version = adbVersionWorkingOnMac))
 
+    whenever(adbService.instance.getHostFeatures()).thenReturn(listOf(TRACK_MDNS_SERVICE))
+
+    whenever(adbService.instance.trackMdnsServices()).thenReturn(emptyFlow())
+
     // Act
     createModalDialogAndInteractWithIt({ controller.showDialog() }) {
       // Assert
@@ -377,7 +391,6 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
     val phoneIpAddress = "192.168.1.86"
     val phonePairingPort = 37313
     val phoneServiceName = "adb-939AX05XBZ-vWgJpq"
-    val phonePairingString = "${generatedServiceName}\t_adb-tls-pairing._tcp.\t${phoneIpAddress}:${phonePairingPort}"
     val phoneConnectPort = 12345
     val phoneDeviceInfo =
       AdbOnlineDevice(
@@ -396,10 +409,10 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
 
     whenever(adbService.instance.getServerStatus()).thenReturn(ServerStatus(version = adbVersionWorkingOnMac))
 
-    whenever(adbService.instance.executeCommand(listOf("mdns", "services"), ""))
-      .thenReturn(AdbCommandResult(0, listOf(), listOf())) // Simulate user taking some time to scan
-      .thenReturn(AdbCommandResult(0, listOf(), listOf())) // Simulate user taking some time to scan
-      .thenReturn(AdbCommandResult(0, listOf("List of discovered mdns services", phonePairingString), listOf()))
+    whenever(adbService.instance.getHostFeatures()).thenReturn(listOf(TRACK_MDNS_SERVICE))
+
+    whenever(adbService.instance.trackMdnsServices())
+      .thenReturn(flowOf(createMdnsPairingService(generatedServiceName, phoneIpAddress, phonePairingPort)))
 
     whenever(adbService.instance.executeCommand(listOf("pair", "${phoneIpAddress}:${phonePairingPort}"), generatedPassword + newLine()))
       .thenReturn(
@@ -456,7 +469,6 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
     val phoneIpAddress = "192.168.1.86"
     val phonePairingPort = 37313
     val phoneServiceName = "adb-939AX05XBZ-vWgJpq"
-    val phonePairingString = "${generatedServiceName}\t_adb-tls-pairing._tcp.\t${phoneIpAddress}:${phonePairingPort}"
     val phoneConnectPort = 12345
 
     adbService.useMock = true
@@ -465,10 +477,10 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
 
     whenever(adbService.instance.getServerStatus()).thenReturn(ServerStatus(version = adbVersionWorkingOnMac))
 
-    whenever(adbService.instance.executeCommand(listOf("mdns", "services"), ""))
-      .thenReturn(AdbCommandResult(0, listOf(), listOf())) // Simulate user taking some time to scan
-      .thenReturn(AdbCommandResult(0, listOf(), listOf())) // Simulate user taking some time to scan
-      .thenReturn(AdbCommandResult(0, listOf("List of discovered mdns services", phonePairingString), listOf()))
+    whenever(adbService.instance.getHostFeatures()).thenReturn(listOf(TRACK_MDNS_SERVICE))
+
+    whenever(adbService.instance.trackMdnsServices())
+      .thenReturn(flowOf(createMdnsPairingService(generatedServiceName, phoneIpAddress, phonePairingPort)))
 
     whenever(adbService.instance.executeCommand(listOf("pair", "${phoneIpAddress}:${phonePairingPort}"), generatedPassword + newLine()))
       .thenReturn(
@@ -515,7 +527,6 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
     val phoneIpAddress = "192.168.1.86"
     val phonePairingPort = 37313
     val phoneServiceName = "adb-939AX05XBZ-vWgJpq"
-    val phonePairingString = "${phoneServiceName}\t_adb-tls-pairing._tcp.\t${phoneIpAddress}:${phonePairingPort}"
     val phonePairingCode = "123456"
     val phoneConnectPort = 12345
     val phoneDeviceInfo =
@@ -535,10 +546,10 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
 
     whenever(adbService.instance.getServerStatus()).thenReturn(ServerStatus(version = adbVersionWorkingOnMac))
 
-    whenever(adbService.instance.executeCommand(listOf("mdns", "services"), ""))
-      .thenReturn(AdbCommandResult(0, listOf(), listOf())) // Simulate user taking some time to scan
-      .thenReturn(AdbCommandResult(0, listOf(), listOf())) // Simulate user taking some time to scan
-      .thenReturn(AdbCommandResult(0, listOf("List of discovered mdns services", phonePairingString), listOf()))
+    whenever(adbService.instance.getHostFeatures()).thenReturn(listOf(TRACK_MDNS_SERVICE))
+
+    whenever(adbService.instance.trackMdnsServices())
+      .thenReturn(flowOf(createMdnsPairingService(phoneServiceName, phoneIpAddress, phonePairingPort)))
 
     whenever(adbService.instance.executeCommand(listOf("pair", "${phoneIpAddress}:${phonePairingPort}"), phonePairingCode + newLine()))
       .thenReturn(
@@ -635,7 +646,6 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
     val phoneIpAddress = "192.168.1.86"
     val phonePairingPort = 37313
     val phoneServiceName = "adb-939AX05XBZ-vWgJpq"
-    val phonePairingString = "${phoneServiceName}\t_adb-tls-pairing._tcp.\t${phoneIpAddress}:${phonePairingPort}"
     val phonePairingCode = "123456"
     val phoneConnectPort = 12345
 
@@ -645,10 +655,10 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
 
     whenever(adbService.instance.getServerStatus()).thenReturn(ServerStatus(version = adbVersionWorkingOnMac))
 
-    whenever(adbService.instance.executeCommand(listOf("mdns", "services"), ""))
-      .thenReturn(AdbCommandResult(0, listOf(), listOf())) // Simulate user taking some time to scan
-      .thenReturn(AdbCommandResult(0, listOf(), listOf())) // Simulate user taking some time to scan
-      .thenReturn(AdbCommandResult(0, listOf("List of discovered mdns services", phonePairingString), listOf()))
+    whenever(adbService.instance.getHostFeatures()).thenReturn(listOf(TRACK_MDNS_SERVICE))
+
+    whenever(adbService.instance.trackMdnsServices())
+      .thenReturn(flowOf(createMdnsPairingService(phoneServiceName, phoneIpAddress, phonePairingPort)))
 
     whenever(adbService.instance.executeCommand(listOf("pair", "${phoneIpAddress}:${phonePairingPort}"), phonePairingCode + newLine()))
       .thenReturn(
@@ -714,6 +724,24 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
         enterPairingCode(pairingCodeDialog, phonePairingCode)
       }
     }
+  }
+
+  private fun createMdnsPairingService(instance: String, ipv4: String, port: Int): MdnsServices {
+    val pairingService =
+      MdnsPairingService(
+        MdnsTrackServiceInfo(
+          ServiceInstanceName(instance, "_adb-tls-pairing._tcp", "local"),
+          ipv4,
+          emptyList(),
+          port,
+          null,
+          null,
+          null,
+          null,
+          null,
+        )
+      )
+    return MdnsServices(emptyList(), emptyList(), listOf(pairingService))
   }
 
   @Throws(ExecutionException::class, InterruptedException::class, TimeoutException::class)
