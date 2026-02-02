@@ -35,8 +35,7 @@ class AdbServerStatusReporter(val statusReporter: (ServerStatus) -> Unit) : Proj
     if (!isAndroidEnvironment(project)) {
       return
     }
-    val serverStatus =
-      AdbServerStatusRetriever.getInstance(project).serverStatus.filterNotNull().first()
+    val serverStatus = AdbServerStatusRetriever.getInstance(project).serverStatus.filterNotNull().first()
     statusReporter(serverStatus)
   }
 }
@@ -62,7 +61,7 @@ private fun ServerStatus.UsbBackend.toProto(): AdbServerStatus.USBBackend =
     ServerStatus.UsbBackend.UNKNOWN -> AdbServerStatus.USBBackend.TYPE_USB_UNKNOWN
     ServerStatus.UsbBackend.LIBUSB -> AdbServerStatus.USBBackend.TYPE_LIBUSB
     ServerStatus.UsbBackend.NATIVE -> AdbServerStatus.USBBackend.TYPE_NATIVE
-    else -> TODO("TODO: android-merge; needs a cherry-pick of commit supporting ${this.name}")
+    ServerStatus.UsbBackend.USB_DISABLED -> AdbServerStatus.USBBackend.TYPE_USB_DISABLED
   }
 
 private fun ServerStatus.MdnsBackend.toProto(): AdbServerStatus.MDNSBackend =
@@ -70,5 +69,6 @@ private fun ServerStatus.MdnsBackend.toProto(): AdbServerStatus.MDNSBackend =
     ServerStatus.MdnsBackend.UNKNOWN -> AdbServerStatus.MDNSBackend.TYPE_MDNS_UNKNOWN
     ServerStatus.MdnsBackend.BONJOUR -> AdbServerStatus.MDNSBackend.TYPE_BONJOUR
     ServerStatus.MdnsBackend.OPENSCREEN -> AdbServerStatus.MDNSBackend.TYPE_OPENSCREEN
-    else -> TODO("TODO: android-merge; needs a cherry-pick of commit supporting ${this.name}")
+    ServerStatus.MdnsBackend.LIBADBMDNS -> AdbServerStatus.MDNSBackend.TYPE_LIBADBMDNS
+    ServerStatus.MdnsBackend.MDNS_DISABLED -> AdbServerStatus.MDNSBackend.TYPE_MDNS_DISABLED
   }
