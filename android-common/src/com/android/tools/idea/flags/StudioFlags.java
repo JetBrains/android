@@ -621,27 +621,6 @@ public final class StudioFlags {
     "Enable package filtering for the \"Device Explorer\" tool window, which allows users to filter processes by app package ids.\n" +
     "Changing the value of this flag requires restarting Android Studio.");
 
-  public static final Flag<Boolean> ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER = new BooleanFlag(
-    RUNDEBUG,
-    "adblib.migration.ddmlib.clientmanager",
-    "Use adblib to track device processes (Client)",
-    "Use adblib instead of ddmlib to track processes (Client) on devices and handle debug sessions. " +
-    "Note: Changing the value of this flag requires restarting Android Studio.");
-
-  public static final Flag<Boolean> ADBLIB_MIGRATION_DDMLIB_IDEVICE_MANAGER = new BooleanFlag(
-    RUNDEBUG,
-    "adblib.migration.ddmlib.idevicemanager",
-    "Use adblib to track devices (IDevice)",
-    "Use adblib instead of ddmlib to track and implement `IDevice` instances. " +
-    "Note: Changing the value of this flag requires restarting Android Studio.");
-
-  public static final Flag<Boolean> ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE = new BooleanFlag(
-    RUNDEBUG,
-    "adblib.migration.ddmlib.androiddebugbridgedelegate",
-    "Use adblib version of `AndroidDebugBridgeDelegate`",
-    "Use adblib version of `AndroidDebugBridgeDelegate` in `AndroidDebugBridge` class. " +
-    "Note: Changing the value of this flag requires restarting Android Studio.");
-
   public static final Flag<Boolean> ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE_USAGE_TRACKER = new BooleanFlag(
     RUNDEBUG,
     "adblib.migration.ddmlib.androiddebugbridgedelegateusagetracker",
@@ -1874,18 +1853,6 @@ public final class StudioFlags {
     "Enables the pairing assistant for glasses and phone emulators."
   );
   // endregion
-
-  //region DDMLIB
-  private static final FlagGroup DDMLIB = new FlagGroup(FLAGS, "ddmlib", "DDMLIB");
-  public static final Flag<Boolean> ENABLE_JDWP_PROXY_SERVICE = new BooleanFlag(
-    DDMLIB, "enable.jdwp.proxy.service", "Enable jdwp proxy service",
-    "Creates a proxy service within DDMLIB to allow shared device client connections."
-  );
-  public static final Flag<Boolean> ENABLE_DDMLIB_COMMAND_SERVICE = new BooleanFlag(
-    DDMLIB, "enable.ddmlib.command.service", "Enable ddmlib command service",
-    "Creates a service within DDMLIB to allow external processes to issue commands to ddmlib."
-  );
-  // endregion DDMLIB
 
   // region Play Policy Insights
   private static final FlagGroup PLAY_POLICY_INSIGHTS = new FlagGroup(FLAGS, "playpolicyinsights", "Play Policy Insights");
