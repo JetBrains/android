@@ -237,11 +237,6 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     override fun init() {
       var resolvedAgpVersion = this@NewProjectModel.agpVersionSelector.get().resolveVersion(AgpVersions::getAvailableVersions)
 
-      // TODO(b/444641424): Remove when Hilt supports AGP 9.
-      if (prompt.get().isNotEmpty()) {
-        resolvedAgpVersion = resolvedAgpVersion.coerceAtMost(AgpVersion(8, 13, 1))
-      }
-
       projectTemplateData =
         projectTemplateDataBuilder
           .apply {
