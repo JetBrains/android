@@ -38,7 +38,8 @@ internal class ClassPsiCallParameter(
   parameterName: Name,
   parameterTypeNameIfStandard: Name?,
   argumentExpression: KtExpression?,
-  initialValue: String?,
+  defaultValue: String?,
+  initialValue: String? = null,
 ) :
   PsiCallParameterPropertyItem(
     project,
@@ -47,7 +48,8 @@ internal class ClassPsiCallParameter(
     parameterName,
     parameterTypeNameIfStandard,
     argumentExpression,
-    initialValue,
+    defaultValue,
+    initialValue = initialValue,
   ) {
 
   /**

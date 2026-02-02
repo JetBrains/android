@@ -36,7 +36,8 @@ internal class FloatPsiCallParameter(
   parameterName: Name,
   parameterTypeNameIfStandard: Name?,
   argumentExpression: KtExpression?,
-  initialValue: String?,
+  defaultValue: String?,
+  initialValue: String? = null,
 ) :
   PsiCallParameterPropertyItem(
     project,
@@ -45,11 +46,12 @@ internal class FloatPsiCallParameter(
     parameterName,
     parameterTypeNameIfStandard,
     argumentExpression,
-    initialValue,
+    defaultValue,
     FloatValidator,
+    initialValue,
   ) {
   override var value: String?
-    get() = super.value
+    get() = super.value?.removeSuffix("f")
     set(newValue) {
       super.value = newValue?.toFloatOrNull()?.let { "${it}f" } ?: newValue
     }

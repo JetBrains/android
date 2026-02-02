@@ -48,7 +48,8 @@ internal class ColorPsiCallParameter(
   parameterName: Name,
   parameterTypeNameIfStandard: Name?,
   argumentExpression: KtExpression?,
-  initialValue: String?,
+  defaultValue: String?,
+  initialValue: String? = null,
 ) :
   PsiCallParameterPropertyItem(
     project,
@@ -57,8 +58,9 @@ internal class ColorPsiCallParameter(
     parameterName,
     parameterTypeNameIfStandard,
     argumentExpression,
-    initialValue,
+    defaultValue,
     ColorValidation,
+    initialValue,
   ) {
 
   override val colorButton =
@@ -90,7 +92,14 @@ internal class ColorPsiCallParameter(
   override var value: String?
     get() {
       val valueString = super.value
-      val colorValue = valueString?.toLongOrNull() ?: return valueString
+      val colorValue =
+        valueString?.let {
+          if (it.startsWith("0x")) {
+            it.substring(2).toLongOrNull(16)
+          } else {
+            it.toLongOrNull()
+          }
+        } ?: return valueString
       return colorToStringWithAlpha(
         Color(
           (colorValue shr 16 and 0xFF).toInt(),

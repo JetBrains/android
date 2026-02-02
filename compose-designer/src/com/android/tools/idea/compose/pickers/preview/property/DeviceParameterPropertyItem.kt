@@ -77,6 +77,7 @@ internal class DeviceParameterPropertyItem(
   parameterTypeNameIfStandard: Name?,
   argumentExpression: KtExpression?,
   defaultValue: String?,
+  initialValue: String? = null,
 ) :
   PsiCallParameterPropertyItem(
     project,
@@ -86,6 +87,7 @@ internal class DeviceParameterPropertyItem(
     parameterTypeNameIfStandard,
     argumentExpression,
     defaultValue,
+    initialValue = initialValue,
   ) {
   private val log = Logger.getInstance(this.javaClass)
 

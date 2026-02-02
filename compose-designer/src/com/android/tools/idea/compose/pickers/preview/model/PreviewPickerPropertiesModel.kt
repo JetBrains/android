@@ -37,6 +37,7 @@ import com.android.tools.idea.compose.pickers.preview.property.DeviceParameterPr
 import com.android.tools.idea.compose.pickers.preview.utils.addNewValueArgument
 import com.android.tools.idea.compose.pickers.preview.utils.getArgumentForParameter
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.kotlin.tryEvaluateConstantAsText
 import com.android.tools.idea.preview.find.findPreviewDefaultValues
 import com.android.tools.idea.preview.util.AvailableDevicesKey
 import com.android.tools.idea.preview.util.getSdkDevices
@@ -196,6 +197,7 @@ private class PreviewPropertiesProvider(private val defaultValues: Map<String, S
     argumentExpression: KtExpression?,
     defaultValue: String?,
     callElement: KtCallElement?,
+    initialValue: String?,
   ) {
     fun addNewValueArgument(newValueArgument: KtValueArgument, psiFactory: KtPsiFactory) =
       callElement?.addNewValueArgument(newValueArgument, psiFactory)
@@ -211,6 +213,7 @@ private class PreviewPropertiesProvider(private val defaultValues: Map<String, S
           parameterTypeNameIfStandard,
           argumentExpression,
           defaultValue,
+          initialValue,
         )
       PARAMETER_BACKGROUND_COLOR ->
         ColorPsiCallParameter(
@@ -221,6 +224,7 @@ private class PreviewPropertiesProvider(private val defaultValues: Map<String, S
           parameterTypeNameIfStandard,
           argumentExpression,
           defaultValue,
+          initialValue,
         )
       PARAMETER_WIDTH,
       PARAMETER_WIDTH_DP,
@@ -235,6 +239,7 @@ private class PreviewPropertiesProvider(private val defaultValues: Map<String, S
           argumentExpression,
           defaultValue,
           IntegerNormalValidator,
+          initialValue,
         )
       PARAMETER_API_LEVEL ->
         PsiCallParameterPropertyItem(
@@ -246,6 +251,7 @@ private class PreviewPropertiesProvider(private val defaultValues: Map<String, S
           argumentExpression,
           defaultValue,
           IntegerStrictValidator,
+          initialValue,
         )
       PARAMETER_DEVICE -> { // Note that DeviceParameterPropertyItem sets its own name to
         // PARAMETER_HARDWARE_DEVICE
@@ -257,6 +263,7 @@ private class PreviewPropertiesProvider(private val defaultValues: Map<String, S
             parameterTypeNameIfStandard,
             argumentExpression,
             defaultValue,
+            initialValue,
           )
           .also { properties.addAll(it.innerProperties) }
       }
@@ -270,6 +277,7 @@ private class PreviewPropertiesProvider(private val defaultValues: Map<String, S
           parameterTypeNameIfStandard,
           argumentExpression,
           defaultValue,
+          initialValue,
         )
       PARAMETER_SHOW_SYSTEM_UI,
       PARAMETER_SHOW_BACKGROUND ->
@@ -281,6 +289,7 @@ private class PreviewPropertiesProvider(private val defaultValues: Map<String, S
           parameterTypeNameIfStandard,
           argumentExpression,
           defaultValue,
+          initialValue,
         )
       else ->
         PsiCallParameterPropertyItem(
@@ -291,6 +300,7 @@ private class PreviewPropertiesProvider(private val defaultValues: Map<String, S
           parameterTypeNameIfStandard,
           argumentExpression,
           defaultValue,
+          initialValue = initialValue,
         )
     }.also { properties.add(it) }
   }
@@ -307,6 +317,7 @@ private class PreviewPropertiesProvider(private val defaultValues: Map<String, S
       callableSymbol.valueParameters.forEach { parameter ->
         val argument = getArgumentForParameter(resolvedFunctionCall, parameter)
         val defaultValue = defaultValues[parameter.name.asString()]
+        val initialValue = argument?.tryEvaluateConstantAsText(this)
         collectParameterPropertyItems(
           project,
           model,
@@ -316,6 +327,7 @@ private class PreviewPropertiesProvider(private val defaultValues: Map<String, S
           argument,
           defaultValue,
           annotationEntry,
+          initialValue,
         )
       }
     }

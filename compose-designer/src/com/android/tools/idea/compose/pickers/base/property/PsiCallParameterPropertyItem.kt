@@ -23,21 +23,26 @@ import com.android.tools.idea.compose.pickers.base.model.PsiCallPropertiesModel
 import com.android.tools.idea.compose.pickers.preview.model.CurrentDeviceKey
 import com.android.tools.idea.kotlin.tryEvaluateConstantAsText
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.codeStyle.CodeStyleManager
-import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.util.SlowOperations
+import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.text.nullize
+import java.util.concurrent.Callable
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.psi.KtConstantExpression
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
+import com.intellij.psi.util.PsiTreeUtil
 
 private const val WRITE_COMMAND = "Psi Parameter Modification"
 
@@ -52,6 +57,7 @@ private const val WRITE_COMMAND = "Psi Parameter Modification"
  * @param argumentExpression The initial [KtExpression] for the argument when this parameter was initialized.
  * @param defaultValue The default value string for the parameter, this is the value that the parameter takes when it does not have a
  * @param validation A function used for input validation
+ * @param initialValue The initial value of the property, if known.
  */
 internal open class PsiCallParameterPropertyItem(
   protected val project: Project,
@@ -59,10 +65,20 @@ internal open class PsiCallParameterPropertyItem(
   private val addNewArgumentToResolvedCall: (KtValueArgument, KtPsiFactory) -> KtValueArgument?,
   private val parameterName: Name,
   private val parameterTypeNameIfStandard: Name?,
-  protected var argumentExpression: KtExpression?,
+  argumentExpression: KtExpression?,
   override val defaultValue: String?,
   validation: EditingValidation = { EDITOR_NO_ERROR },
+  initialValue: String? = null,
 ) : PsiPropertyItem {
+
+  protected var argumentExpression: KtExpression? = argumentExpression
+    set(value) {
+      if (field != value) {
+        field = value
+        cachedValue = null
+        isCachedValueValid = false
+      }
+    }
 
   override var name: String
     get() = parameterName.identifier
@@ -71,15 +87,33 @@ internal open class PsiCallParameterPropertyItem(
 
   override val editingSupport: EditingSupport = PsiEditingSupport(validation)
 
-  @OptIn(KaAllowAnalysisOnEdt::class)
+  private var cachedValue: String? = initialValue
+  private var isCachedValueValid = initialValue != null || argumentExpression == null
+
   override var value: String?
-    get() =
-      // JetBrains patch: Establish a read action; the getter can be called off the EDT.
+    get() {
+      // JetBrains patch (KMT-2006): Establish a read action; the getter reads PSI and calls
+      // analyze(), and can be called off the EDT without a read lock.
       runReadAction {
-        SlowOperations.knownIssue("b/382724628").use {
-          allowAnalysisOnEdt { argumentExpression?.let { analyze(it) { it.tryEvaluateConstantAsText(this) } } }
+        if (!isCachedValueValid) {
+          val expression = argumentExpression
+          val literalValue = expression?.tryEvaluateLiteralAsText()
+          if (literalValue != null || expression == null) {
+            cachedValue = literalValue
+            isCachedValueValid = true
+          } else {
+            if (ApplicationManager.getApplication().isDispatchThread) {
+              triggerAsyncValueUpdate()
+            } else {
+              // If called from a background thread, we can perform the analysis synchronously
+              cachedValue = analyze(expression) { expression.tryEvaluateConstantAsText(this) }
+              isCachedValueValid = true
+            }
+          }
         }
       }
+      return cachedValue
+    }
     set(value) {
       val newValue = value?.trim()?.nullize()
       val trackable = if (newValue == null) PreviewPickerValue.CLEARED else PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED
@@ -87,6 +121,31 @@ internal open class PsiCallParameterPropertyItem(
         writeNewValue(newValue, false, trackable)
       }
     }
+
+  private fun triggerAsyncValueUpdate() {
+    val expression = argumentExpression ?: return
+    ReadAction.nonBlocking(Callable { analyze(expression) { expression.tryEvaluateConstantAsText(this) } })
+      .finishOnUiThread(ModalityState.any()) { newValue ->
+        if (argumentExpression == expression) {
+          cachedValue = newValue
+          isCachedValueValid = true
+          model.firePropertyValuesChanged()
+        }
+      }
+      .submit(AppExecutorUtil.getAppExecutorService())
+  }
+
+  private fun KtExpression.tryEvaluateLiteralAsText(): String? {
+    return when (this) {
+      is KtConstantExpression -> if (text == "null") null else text
+      is KtStringTemplateExpression -> {
+        if (entries.size == 1 && entries[0] is KtLiteralStringTemplateEntry) {
+          entries[0].text
+        } else null
+      }
+      else -> null
+    }
+  }
 
   /**
    * Writes the [newValue] to the property's PsiElement, wrapped in double quotation marks when the property's type is String, unless

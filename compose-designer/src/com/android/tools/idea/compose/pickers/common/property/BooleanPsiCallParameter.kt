@@ -32,7 +32,8 @@ internal class BooleanPsiCallParameter(
   parameterName: Name,
   parameterTypeNameIfStandard: Name?,
   argumentExpression: KtExpression?,
-  initialValue: String?,
+  defaultValue: String?,
+  initialValue: String? = null,
 ) :
   PsiCallParameterPropertyItem(
     project,
@@ -41,6 +42,7 @@ internal class BooleanPsiCallParameter(
     parameterName,
     parameterTypeNameIfStandard,
     argumentExpression,
-    initialValue,
+    defaultValue,
     BooleanValidator,
+    initialValue,
   )

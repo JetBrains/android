@@ -40,8 +40,10 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import java.util.concurrent.Callable
+import java.util.concurrent.CompletableFuture
 import kotlinx.coroutines.runBlocking
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.compose.stubConfigurationAsLibrary
@@ -562,9 +564,6 @@ class PreviewPickerTests {
   @RunsInEdt
   @Test
   fun `test K2 crash if analyze is called into a write action`() {
-    // ProhibitedAnalysisException is private, and it is an extension of
-    // IllegalStateException.
-    // Check if the error message is the one we expect from ProhibitedAnalysisException
     runBlocking {
       @Language("kotlin")
       val fileContent =
@@ -585,15 +584,8 @@ class PreviewPickerTests {
       model.addListener(FakePropertiesRefreshListener())
 
       runWriteAction {
-        try {
-          property.writeNewValue("true", true, PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED)
-          fail("Expected to fail with a ProhibitedAnalysisException.")
-        } catch (e: IllegalStateException) {
-          // ProhibitedAnalysisException is private, and it is an extension of
-          // IllegalStateException.
-          // Check if the error message is the one we expect from ProhibitedAnalysisException
-          assertEquals("Analysis is not allowed: Called from a write action.", e.message)
-        }
+        // Should not throw ProhibitedAnalysisException
+        property.writeNewValue("true", true, PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED)
       }
     }
   }
@@ -632,10 +624,6 @@ class PreviewPickerTests {
   @RunsInEdt
   @Test
   fun `test K2 crash if analyze is called into a delete parameter`() {
-    // ProhibitedAnalysisException is private, and it is an extension of
-    // ProhibitedAnalysisException is private, and it is an extension of IllegalStateException.
-    // Check if the error message is the one we expect from ProhibitedAnalysisException
-    // Test fails if this call throws a ProhibitedAnalysisException.
     runBlocking {
       @Language("kotlin")
       val fileContent =
@@ -661,16 +649,8 @@ class PreviewPickerTests {
       model.addListener(FakePropertiesRefreshListener())
 
       runWriteAction {
-        try {
-          // Test fails if this call throws a ProhibitedAnalysisException.
-          property.deleteParameter()
-          fail("Expected to fail with a ProhibitedAnalysisException.")
-        } catch (e: IllegalStateException) {
-          // ProhibitedAnalysisException is private, and it is an extension of
-          // IllegalStateException.
-          // Check if the error message is the one we expect from ProhibitedAnalysisException
-          assertEquals("Analysis is not allowed: Called from a write action.", e.message)
-        }
+        // Should not throw ProhibitedAnalysisException
+        property.deleteParameter()
       }
     }
   }
@@ -753,6 +733,53 @@ class PreviewPickerTests {
     // Verify that every modification (setting, overwriting and deleting values) triggered the
     // listener
     assertEquals(0, expectedModificationsCountdown)
+  }
+
+  @RunsInEdt
+  @Test
+  fun testAsyncValueEvaluation() = runBlocking {
+    @Language("kotlin")
+    val fileContent =
+      """
+      import $COMPOSABLE_ANNOTATION_FQN
+      import $PREVIEW_TOOLING_PACKAGE.Preview
+
+      private const val myName = "Async Name"
+
+      @Composable
+      @Preview(name = myName)
+      fun Preview() {
+      }
+    """
+        .trimIndent()
+    val model = getFirstModel(fileContent) as PreviewPickerPropertiesModel
+    val property = model.properties["", "name"] as PsiCallParameterPropertyItem
+
+    // Reset cache to force async evaluation.
+    // We use reflection because these fields are private/protected and intended for internal use,
+    // but we need to manipulate them to test the async fallback path specifically.
+    val fieldCachedValue = PsiCallParameterPropertyItem::class.java.getDeclaredField("cachedValue").apply { isAccessible = true }
+    val fieldIsCachedValueValid =
+      PsiCallParameterPropertyItem::class.java.getDeclaredField("isCachedValueValid").apply { isAccessible = true }
+
+    fieldCachedValue.set(property, null)
+    fieldIsCachedValueValid.set(property, false)
+
+    val future = CompletableFuture<Unit>()
+    model.addListener(
+      object : PropertiesModelListener<PsiPropertyItem> {
+        override fun propertyValuesChanged(model: PropertiesModel<PsiPropertyItem>, childElementChanges: Boolean) {
+          future.complete(Unit)
+        }
+      }
+    )
+
+    // On EDT, first access should return null and trigger async update
+    assertNull(property.value)
+
+    PlatformTestUtil.waitForFuture(future, 5000)
+
+    assertEquals("Async Name", property.value)
   }
 
   private fun simpleTrackingTestSetup(): Pair<TestTracker, PsiPropertiesModel> {
