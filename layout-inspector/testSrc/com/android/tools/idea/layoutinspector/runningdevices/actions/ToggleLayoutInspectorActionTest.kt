@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices.actions
 
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.layoutinspector.runningdevices.FakeToolWindowManager
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManagerGlobalState
 import com.android.tools.idea.layoutinspector.runningdevices.TabInfo
 import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
+import com.android.tools.idea.streaming.DEVICE_TYPE_KEY
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.streaming.core.AbstractDisplayView
@@ -43,6 +45,7 @@ import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
+import com.intellij.ui.LayeredIcon
 import com.intellij.util.ui.components.BorderLayoutPanel
 import javax.swing.JPanel
 import org.junit.Before
@@ -177,7 +180,7 @@ class ToggleLayoutInspectorActionTest {
 
     toggleLayoutInspectorAction.update(fakeActionEvent)
     assertThat(fakeActionEvent.presentation.isEnabled).isTrue()
-    assertThat(fakeActionEvent.presentation.description).isEmpty()
+    assertThat(fakeActionEvent.presentation.description).isEqualTo("Toggles Layout Inspection on and off for this device.")
   }
 
   @Test
@@ -192,9 +195,26 @@ class ToggleLayoutInspectorActionTest {
     assertThat(isTriggered).isTrue()
   }
 
+  @Test
+  fun testActionAppearanceOnAiGlasses() = withEmbeddedLayoutInspector {
+    val toggleLayoutInspectorAction = ToggleLayoutInspectorAction()
+    val fakeActionEvent = toggleLayoutInspectorAction.getFakeActionEvent(deviceType = DeviceType.AI_GLASSES)
+
+    toggleLayoutInspectorAction.update(fakeActionEvent)
+    assertThat(fakeActionEvent.presentation.icon).isInstanceOf(LayeredIcon::class.java)
+    assertThat(fakeActionEvent.presentation.description)
+      .isEqualTo("Warning: the app is likely running on the Phone. Considering inspect that instead.")
+
+    val normalActionEvent = toggleLayoutInspectorAction.getFakeActionEvent(deviceType = DeviceType.HANDHELD)
+    toggleLayoutInspectorAction.update(normalActionEvent)
+    assertThat(normalActionEvent.presentation.icon).isNotInstanceOf(LayeredIcon::class.java)
+    assertThat(normalActionEvent.presentation.description).isEqualTo("Toggles Layout Inspection on and off for this device.")
+  }
+
   private fun AnAction.getFakeActionEvent(
     deviceSerialNumber: String = "serial_number",
     deviceId: DeviceId? = DeviceId.ofPhysicalDevice(deviceSerialNumber),
+    deviceType: DeviceType = DeviceType.HANDHELD,
   ): AnActionEvent {
     val contentPanelContainer = JPanel()
     val contentPanel = BorderLayoutPanel()
@@ -207,6 +227,7 @@ class ToggleLayoutInspectorActionTest {
         .add(STREAMING_CONTENT_PANEL_KEY, contentPanel)
         .add(DISPLAY_VIEW_KEY, displayView)
         .add(DEVICE_ID_KEY, deviceId)
+        .add(DEVICE_TYPE_KEY, deviceType)
         .add(CONTENT_MANAGER, toolWindowManager.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)!!.contentManager)
         .build()
 
