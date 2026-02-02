@@ -19,8 +19,6 @@ import com.android.tools.idea.compose.ComposePreviewElementsModel
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.util.isFastPreviewAvailable
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.concurrency.smartModeFlow
 import com.android.tools.idea.editors.build.PsiCodeFileOutOfDateStatusReporter
@@ -31,11 +29,13 @@ import com.android.tools.idea.preview.flow.PreviewElementFilter
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.DumbService
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -120,7 +120,7 @@ internal class ComposePreviewFlowManager(
       // Flow to collate and process refreshNotificationsAndVisibilityFlow requests.
       launch {
         refreshNotificationsAndVisibilityFlow.conflate().collect {
-          withContext(workerThread) {
+          withContext(Dispatchers.Default) {
             refreshNotificationsAndVisibilityFlow.resetReplayCache() // Do not keep re-playing after we have received the element.
             log.debug("refreshNotificationsAndVisibilityFlow, request=$it")
             updateVisibilityAndNotifications()
@@ -128,7 +128,7 @@ internal class ComposePreviewFlowManager(
         }
       }
 
-      launch(workerThread) {
+      launch(Dispatchers.Default) {
         log.debug("smartModeFlow setup status=${queryStatus()}, dumbMode=${DumbService.isDumb(project)}")
         // Flow handling switch to smart mode.
         smartModeFlow(project, disposable, log).collectLatest {
@@ -148,7 +148,7 @@ internal class ComposePreviewFlowManager(
   }
 
   fun CoroutineScope.updateVisibilityAndNotifications(onVisibilityAndNotificationsUpdate: () -> Unit) {
-    launch(workerThread) { refreshNotificationsAndVisibilityFlow.emit(Unit) }
-    launch(uiThread) { onVisibilityAndNotificationsUpdate() }
+    launch(Dispatchers.Default) { refreshNotificationsAndVisibilityFlow.emit(Unit) }
+    launch(Dispatchers.EDT) { onVisibilityAndNotificationsUpdate() }
   }
 }

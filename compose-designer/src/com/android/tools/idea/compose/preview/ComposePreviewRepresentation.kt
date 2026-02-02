@@ -46,7 +46,6 @@ import com.android.tools.idea.compose.preview.uicheck.UiCheckPanelProvider
 import com.android.tools.idea.compose.preview.util.containsOffset
 import com.android.tools.idea.compose.preview.util.isFastPreviewAvailable
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.createCoroutineScope
@@ -1213,7 +1212,7 @@ class ComposePreviewRepresentation(
     var invalidateIfCancelled = false
 
     val refreshJob =
-      launchWithProgress(refreshProgressIndicator, workerThread) {
+      launchWithProgress(refreshProgressIndicator, Dispatchers.Default) {
         refreshTriggers.forEach { requestLogger.debug("Refresh triggered (inside launchWithProgress scope)", it) }
 
         if (DumbService.isDumb(project)) {
@@ -1541,7 +1540,7 @@ class ComposePreviewRepresentation(
 
       lifecycleManager.executeIfActive {
         launch(Dispatchers.EDT) {
-          val filePreviewElements = withContext(workerThread) { composePreviewFlowManager.allPreviewElementsFlow.value }
+          val filePreviewElements = withContext(Dispatchers.Default) { composePreviewFlowManager.allPreviewElementsFlow.value }
           // Workaround for b/238735830: The following withContext(Dispatchers.EDT) should not be
           // needed but the code below ends up being executed in a worker thread under some
           // circumstances so we need to prevent that from happening by forcing the context switch.

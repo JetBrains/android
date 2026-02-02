@@ -27,8 +27,6 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.GuiInputHandler
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.build.RenderingBuildStatus
 import com.android.tools.idea.editors.build.RenderingBuildStatusManager
 import com.android.tools.idea.editors.notifications.NotificationPanel
@@ -212,9 +210,9 @@ internal class ComposePreviewViewImpl(
       val actionDataText = "${message("panel.needs.build.action.text")}${getBuildAndRefreshShortcut().asString()}"
       return ActionData(actionDataText) {
         val virtualFile = psiFilePointer.virtualFile
-        scope.launch(workerThread) {
+        scope.launch(Dispatchers.Default) {
           if (virtualFile != null) project.requestBuildArtifactsForRendering(virtualFile)
-          withContext(uiThread) {
+          withContext(Dispatchers.EDT) {
             // Repaint the workbench, otherwise the text and link will keep displaying if the mouse
             // is hovering the link
             workbench.repaint()
