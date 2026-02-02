@@ -17,7 +17,6 @@ package com.android.tools.idea.wear.preview
 
 import com.android.SdkConstants
 import com.android.annotations.concurrency.Slow
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.module.getModule
 import com.android.tools.idea.preview.find.AnnotationPreviewNameHelper
 import com.android.tools.idea.preview.find.FilePreviewElementFinder
@@ -55,6 +54,7 @@ import com.intellij.util.concurrency.annotations.RequiresReadLock
 import java.util.concurrent.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.mapNotNull
@@ -107,7 +107,7 @@ internal class WearTilePreviewElementFinder(
   override suspend fun hasPreviewElements(project: Project, vFile: VirtualFile): Boolean {
     if (DumbService.isDumb(project)) return false
     return try {
-      withContext(workerThread) {
+      withContext(Dispatchers.Default) {
         if (!isTileAnnotationUsed(project, vFile)) {
           return@withContext false
         }
@@ -129,7 +129,7 @@ internal class WearTilePreviewElementFinder(
   override suspend fun findPreviewElements(project: Project, vFile: VirtualFile): Collection<PsiWearTilePreviewElement> {
     if (DumbService.isDumb(project)) return emptyList()
     return try {
-      withContext(workerThread) {
+      withContext(Dispatchers.Default) {
         cachedAsyncValue(vFile, previewElementsCacheKey, project.javaKotlinAndDumbChangeTrackers()) {
           findUMethodsWithTilePreviewSignature(project, vFile, findMethods)
             .flatMap { method ->

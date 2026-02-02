@@ -18,7 +18,6 @@ package com.android.tools.idea.glance.preview
 import com.android.ide.common.rendering.api.Bridge
 import com.android.tools.adtui.stdui.ActionData
 import com.android.tools.adtui.stdui.UrlData
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.editors.build.RenderingBuildStatus
 import com.android.tools.idea.editors.build.RenderingBuildStatusManager
 import com.android.tools.idea.preview.CommonPreviewRefreshType
@@ -26,12 +25,14 @@ import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.RefreshType
 import com.android.tools.idea.preview.mvvm.PreviewView
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -110,7 +111,7 @@ class GlancePreviewViewModelTest {
 
   @Test
   fun testRefreshWhenNeedsBuild() =
-    runBlocking(uiThread) {
+    runBlocking(Dispatchers.EDT) {
       statusManager.statusFlow.value = RenderingBuildStatus.NeedsBuild
 
       viewModel.activate()
@@ -137,7 +138,7 @@ class GlancePreviewViewModelTest {
 
   @Test
   fun testRefreshWithBuildNotReady() =
-    runBlocking(uiThread) {
+    runBlocking(Dispatchers.EDT) {
       viewModel.activate()
 
       Assert.assertTrue(testView.errorMessages.isEmpty())
@@ -223,7 +224,7 @@ class GlancePreviewViewModelTest {
 
   @Test
   fun testNativeCrash() =
-    runBlocking(uiThread) {
+    runBlocking(Dispatchers.EDT) {
       Bridge.setNativeCrash(false)
 
       viewModel.checkForNativeCrash {}

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.wear.preview
 
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_APP
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_LIBRARY
 import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
@@ -39,6 +38,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiMethod
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -871,7 +871,7 @@ class WearTilePreviewElementFinderTest {
       }
 
       val finder = WearTilePreviewElementFinder(findMethods = mockFindMethods)
-      withContext(AndroidDispatchers.workerThread) {
+      withContext(Dispatchers.Default) {
         (0 until 20).forEach {
           launch { finder.hasPreviewElements(project, previewFile.virtualFile) }
           launch { finder.findPreviewElements(project, previewFile.virtualFile) }

@@ -20,7 +20,6 @@ import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlDataProvider
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.preview.animation.DEFAULT_ANIMATION_PREVIEW_MAX_DURATION_MS
 import com.android.tools.idea.preview.animation.SupportedAnimationManager
@@ -40,10 +39,12 @@ import com.android.tools.rendering.RenderLogger
 import com.android.tools.rendering.RenderResult
 import com.android.tools.wear.preview.WearTilePreviewElement
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
 import javax.swing.JComponent
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
@@ -273,7 +274,8 @@ class WearTileAnimationPreviewTest {
       }
 
     delayUntilCondition(200) {
-      val errorPanel = withContext(uiThread) { FakeUi(animationPreview.component).findComponent<JComponent> { it.name == "Error Panel" } }
+      val errorPanel =
+        withContext(Dispatchers.EDT) { FakeUi(animationPreview.component).findComponent<JComponent> { it.name == "Error Panel" } }
       errorPanel != null && errorPanel.isVisible
     }
   }

@@ -20,8 +20,6 @@ import com.android.testutils.retryUntilPassing
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.editors.build.RenderingBuildStatus
 import com.android.tools.idea.preview.actions.GroupSwitchAction
@@ -45,6 +43,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.diagnostic.LogLevel
@@ -122,7 +121,7 @@ class WearTilePreviewRepresentationTest {
 
   @Test
   fun testPreviewInitialization() =
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       val preview = createWearTilePreviewRepresentation()
       preview.previewView.mainSurface.models.forEach { assertTrue(preview.navigationHandler.defaultNavigationMap.contains(it)) }
 
@@ -136,7 +135,7 @@ class WearTilePreviewRepresentationTest {
 
   @Test
   fun testGroupFilteringIsSupported() =
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       val preview = createWearTilePreviewRepresentation()
       val dataContext = DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, preview.previewView.mainSurface)
       val previewGroupManager = PreviewGroupManager.KEY.getData(dataContext)!!
@@ -175,7 +174,7 @@ class WearTilePreviewRepresentationTest {
 
   @Test
   fun testFocusMode() =
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       val preview = createWearTilePreviewRepresentation()
 
       assertThat(preview.previewView.mainSurface.models).hasSize(4)
@@ -194,7 +193,7 @@ class WearTilePreviewRepresentationTest {
 
   @Test
   fun testAnimationInspectorMode() =
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       val preview = createWearTilePreviewRepresentation()
 
       assertThat(preview.previewView.mainSurface.models).hasSize(4)
@@ -213,7 +212,7 @@ class WearTilePreviewRepresentationTest {
 
   @Test
   fun testFocusModeIsEnabledWhenEnablingWearTilePreviewEssentialsMode() =
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       val preview = createWearTilePreviewRepresentation()
 
       assertThat(preview.previewView.mainSurface.models).hasSize(4)
@@ -233,7 +232,7 @@ class WearTilePreviewRepresentationTest {
 
   @Test
   fun testInteractivePreviewManagerFpsLimitIsInitializedWhenEssentialsModeIsDisabled() =
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       val preview = createWearTilePreviewRepresentation()
 
       assertEquals(30, preview.interactiveManager.fpsLimit)
@@ -243,7 +242,7 @@ class WearTilePreviewRepresentationTest {
 
   @Test
   fun testInteractivePreviewManagerFpsLimitIsInitializedWhenEssentialsModeIsEnabled() =
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       wearTilePreviewEssentialsModeEnabled = true
       val preview = createWearTilePreviewRepresentation(expectedModelCount = 1)
 
@@ -254,7 +253,7 @@ class WearTilePreviewRepresentationTest {
 
   @Test
   fun testInteractivePreviewManagerFpsLimitIsUpdatedWhenEssentialsModeChanges() =
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       val preview = createWearTilePreviewRepresentation()
 
       assertEquals(30, preview.interactiveManager.fpsLimit)
@@ -270,7 +269,7 @@ class WearTilePreviewRepresentationTest {
 
   @Test
   fun clickingOnThePreviewNavigatesToDefinition() {
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       val preview = createWearTilePreviewRepresentation()
 
       assertEquals(0, runReadAction { projectRule.fixture.caretOffset })
@@ -282,7 +281,7 @@ class WearTilePreviewRepresentationTest {
             .first { it.model.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE)?.displaySettings?.name == "preview3 - tilePreview3" }
             .sceneViews
             .first()
-        withContext(uiThread) {
+        withContext(Dispatchers.EDT) {
           preview.navigationHandler
             .findNavigatablesWithCoordinates(
               sceneViewWithNormalPreviewAnnotation,
@@ -311,7 +310,7 @@ class WearTilePreviewRepresentationTest {
             }
             .sceneViews
             .first()
-        withContext(uiThread) {
+        withContext(Dispatchers.EDT) {
           preview.navigationHandler
             .findNavigatablesWithCoordinates(
               sceneViewWithMultiPreviewAnnotation,
@@ -367,7 +366,7 @@ class WearTilePreviewRepresentationTest {
           .trimIndent(),
       )
 
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       val preview = createWearTilePreviewRepresentation(testPsiFile)
 
       assertEquals(
