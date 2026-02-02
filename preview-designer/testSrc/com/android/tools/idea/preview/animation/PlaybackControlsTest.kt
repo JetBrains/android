@@ -17,16 +17,17 @@ package com.android.tools.idea.preview.animation
 
 import com.android.SdkConstants
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.NoopAnimationTracker
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.ToolbarLabelAction
+import com.intellij.openapi.application.EDT
 import com.intellij.testFramework.runInEdtAndGet
 import java.awt.Dimension
 import javax.swing.JSlider
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Before
@@ -70,7 +71,7 @@ class PlaybackControlsTest {
 
   @Test
   fun `create toolbar and each component is visible`() =
-    runBlocking(uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val playbackControl = PlaybackControls(clockControl = SliderClockControl(JSlider()), NoopAnimationTracker, surface, parentDisposable)
       val toolbar = playbackControl.createToolbar().apply { setSize(300, 50) }
       val ui =
@@ -86,11 +87,11 @@ class PlaybackControlsTest {
 
   @Test
   fun `create toolbar with extra action and each component is visible`() =
-    runBlocking(uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val playbackControl = PlaybackControls(clockControl = SliderClockControl(JSlider()), NoopAnimationTracker, surface, parentDisposable)
       val toolbar = playbackControl.createToolbar(listOf(TestAction(), TestAction())).apply { setSize(600, 50) }
       val ui =
-        com.android.tools.adtui.swing.FakeUi(toolbar).apply {
+        FakeUi(toolbar).apply {
           updateToolbars()
           layout()
         }

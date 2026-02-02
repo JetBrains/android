@@ -19,16 +19,17 @@ import com.android.SdkConstants
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
+import com.intellij.openapi.application.EDT
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.components.JBLabel
 import java.awt.BorderLayout
 import java.awt.Container
 import java.awt.Dimension
 import javax.swing.JPanel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -55,7 +56,7 @@ class BottomPanelTest {
 
   @Test
   fun `label is visible`(): Unit =
-    runBlocking(uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val panel = createBottomPanel().apply { clockTimeMs = 1234 }
       FakeUi(panel.parent).apply {
         updateToolbars()
@@ -70,7 +71,7 @@ class BottomPanelTest {
 
   @Test
   fun `label is updated immediately`(): Unit =
-    runBlocking(uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val panel = createBottomPanel().apply { clockTimeMs = 1234 }
       FakeUi(panel.parent).apply {
         updateToolbars()
@@ -84,7 +85,7 @@ class BottomPanelTest {
 
   @Test
   fun `ui preview renders correctly`(): Unit =
-    runBlocking(uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val panel = createBottomPanel().apply { clockTimeMs = 1234 }
       FakeUi(panel.parent).apply {
         updateToolbars()

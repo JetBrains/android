@@ -16,7 +16,6 @@
 package com.android.tools.idea.preview
 
 import com.android.testutils.waitForCondition
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
@@ -27,6 +26,7 @@ import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
 import com.android.tools.rendering.RenderService
 import com.android.tools.rendering.getRandomTopic
 import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.runWriteActionAndWait
 import java.util.Collections
 import java.util.concurrent.CountDownLatch
@@ -35,6 +35,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
@@ -360,7 +361,7 @@ class PreviewRefreshManagerTest {
           doRefreshCalledLatch.countDown()
           // Wait a little bit and try to get the UI-thread
           // Note that a countDownLatch cannot be used here as the wait is for the second request
-          // to happen, which would start the deadlock "on the other side (uiThread)" if we regress
+          // to happen, which would start the deadlock "on the other side (EDT)" if we regress
           runBlocking { delay(1000) }
           // Here is one of the sides of the deadlock seen in b/291792172,
           // this would hang if we regress
@@ -372,7 +373,7 @@ class PreviewRefreshManagerTest {
     doRefreshCalledLatch.await()
     // Request another refresh before the previous one tries to get the UI-thread
     // Here is one of the sides of the deadlock seen in b/291792172, this would hang if we regress
-    withContext(AndroidDispatchers.uiThread) {
+    withContext(Dispatchers.EDT) {
       refreshManager.requestRefreshSync(
         TestPreviewRefreshRequest(myScope, "client1", 1, "req1", PreviewRefreshEventBuilder(testPreviewType, refreshTracker))
       )

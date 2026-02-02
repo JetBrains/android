@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.preview.flow
 
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.res.ResourceNotificationManager.Reason
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.replaceText
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.readAndWriteAction
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CompletableDeferred
@@ -66,7 +66,7 @@ class ResourceChangedListenerFlowTest {
           .stateIn(flowScope, SharingStarted.Eagerly, emptySet())
       flowConnected.await()
 
-      withContext(AndroidDispatchers.uiThread) { projectRule.fixture.openFileInEditor(resourceFile.virtualFile) }
+      withContext(Dispatchers.EDT) { projectRule.fixture.openFileInEditor(resourceFile.virtualFile) }
       readAndWriteAction { writeAction { projectRule.fixture.editor.executeAndSave { replaceText("#FF0000", "#00FF00") } } }
       resourceChangedFlow.awaitStatus(timeout = 5.seconds) { it == setOf(Reason.RESOURCE_EDIT) }
       flowScope.cancel()
@@ -95,7 +95,7 @@ class ResourceChangedListenerFlowTest {
           .stateIn(flowScope, SharingStarted.Eagerly, emptySet())
       flowConnected.await()
 
-      withContext(AndroidDispatchers.uiThread) { projectRule.fixture.openFileInEditor(resourceFile.virtualFile) }
+      withContext(Dispatchers.EDT) { projectRule.fixture.openFileInEditor(resourceFile.virtualFile) }
       readAndWriteAction { writeAction { projectRule.fixture.editor.executeAndSave { replaceText("app_name", "app_name2") } } }
       resourceChangedFlow.awaitStatus(timeout = 5.seconds) { it == setOf(Reason.RESOURCE_EDIT) }
       flowScope.cancel()

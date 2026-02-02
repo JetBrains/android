@@ -17,13 +17,14 @@ package com.android.tools.idea.preview
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.testutils.waitForCondition
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
+import com.intellij.openapi.application.EDT
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -56,7 +57,7 @@ internal class TestPreviewRefreshRequest(
   override fun doRefresh(): Job {
     doBeforeLaunchingRefresh()
     runningRefreshJob =
-      scope.launch(AndroidDispatchers.uiThread) {
+      scope.launch(Dispatchers.EDT) {
         testLock.withLock {
           log.appendLine("start $name")
           expectedLogPrintCount.countDown()

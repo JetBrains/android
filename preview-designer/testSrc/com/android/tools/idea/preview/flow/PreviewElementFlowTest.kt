@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.preview.flow
 
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.preview.PsiTestPreviewElement
@@ -25,9 +24,11 @@ import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText
 import com.android.tools.idea.testing.moveCaretToEnd
 import com.android.tools.idea.ui.ApplicationUtils
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.ModalityState
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.waitUntil
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.stateIn
@@ -76,7 +77,7 @@ class PreviewElementFlowTest {
       assertEquals(firstPreviewElements.toList(), flowState.value.asCollection().toList())
       assertEquals(listOf(firstPreviewElements), updates)
 
-      withContext(AndroidDispatchers.uiThread) { projectRule.fixture.openFileInEditor(psiFile.virtualFile) }
+      withContext(Dispatchers.EDT) { projectRule.fixture.openFileInEditor(psiFile.virtualFile) }
       // the same preview elements will be returned despite the following file changes to check
       // that the flow is de-duped
       repeat(2) {

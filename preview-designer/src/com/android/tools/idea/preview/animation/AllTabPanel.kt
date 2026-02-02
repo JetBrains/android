@@ -18,10 +18,10 @@ package com.android.tools.idea.preview.animation
 import com.android.annotations.TestOnly
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.adtui.TabularLayout
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.JBColor
 import com.intellij.ui.OnePixelSplitter
@@ -44,6 +44,7 @@ import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER
 import javax.swing.border.MatteBorder
 import kotlin.concurrent.read
 import kotlin.concurrent.write
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -160,7 +161,7 @@ class AllTabPanel private constructor(parentDisposable: Disposable, private val 
     }
     updateDimension()
     if (card is AnimationCard) {
-      jobsByCard[card] = scope.launch { card.expanded.collect { withContext(uiThread) { updateCardSize(card) } } }
+      jobsByCard[card] = scope.launch { card.expanded.collect { withContext(Dispatchers.EDT) { updateCardSize(card) } } }
     }
   }
 

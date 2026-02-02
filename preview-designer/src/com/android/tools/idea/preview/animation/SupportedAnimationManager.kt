@@ -15,17 +15,18 @@
  */
 package com.android.tools.idea.preview.animation
 
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.animation.actions.FreezeAction
 import com.android.tools.idea.preview.animation.state.AnimationState
 import com.android.tools.idea.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.preview.animation.timeline.TimelineLine
 import com.android.tools.idea.preview.animation.timeline.TransitionCurve
+import com.intellij.openapi.application.EDT
 import com.intellij.ui.tabs.TabInfo
 import javax.swing.JComponent
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -153,7 +154,7 @@ abstract class SupportedAnimationManager(
     // To make sure that we load everything at least once before exiting the setup.
     syncState()
 
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       card =
         AnimationCard(rootComponent, tabTitle, listOf(freezeAction) + animationState.changeStateActions, tracker).apply {
 

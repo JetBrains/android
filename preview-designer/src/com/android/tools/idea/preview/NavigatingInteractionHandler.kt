@@ -29,7 +29,6 @@ import com.android.tools.idea.common.surface.SceneViewPanel
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.common.surface.navigateToComponent
 import com.android.tools.idea.common.surface.selectComponent
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
@@ -41,6 +40,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.application.EDT
 import java.awt.MouseInfo
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
@@ -334,7 +334,7 @@ class NavigatingInteractionHandler(
       if (isOptionDown && navigatables.isNotEmpty()) {
         // Open a pop up menu with all components under coordinates
         val actions = createActionGroup(sceneView, navigatables)
-        withContext(uiThread) { surface.showPopup(mouseEvent, actions, "Navigatables") }
+        withContext(Dispatchers.EDT) { surface.showPopup(mouseEvent, actions, "Navigatables") }
         return@launch
       }
 
@@ -350,7 +350,7 @@ class NavigatingInteractionHandler(
           }
       if (!navigated) {
         val sceneComponent = scene.findComponent(sceneView.context, androidX, androidY) ?: return@launch
-        withContext(uiThread) { navigateToComponent(sceneComponent.nlComponent, needsFocusEditor) }
+        withContext(Dispatchers.EDT) { navigateToComponent(sceneComponent.nlComponent, needsFocusEditor) }
       }
     }
   }

@@ -16,13 +16,14 @@
 package com.android.tools.idea.preview.animation
 
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.animation.TestUtils.scanForTooltips
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import javax.swing.JLabel
 import javax.swing.JSlider
 import kotlin.test.assertNotNull
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -37,7 +38,7 @@ class TimelinePanelTest {
 
   @Test
   fun `default labels and tick spacing`() =
-    runBlocking(uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val slider = TestUtils.createTestSlider().apply { maximum = 10000 }
       val ui = FakeUi(slider.parent)
       // Tick spacing with default max value and width 300.
@@ -47,7 +48,7 @@ class TimelinePanelTest {
 
   @Test
   fun `label and tick distance should change after size has changed`() =
-    runBlocking(uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val slider = TestUtils.createTestSlider().apply { maximum = 10000 }
       val ui = FakeUi(slider.parent)
       // Tick spacing with default 10_000 as maximum value and width 600
@@ -73,7 +74,7 @@ class TimelinePanelTest {
 
   @Test
   fun `label and tick distance should change after maximum has changed`() =
-    runBlocking(uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val slider = TestUtils.createTestSlider()
       val ui = FakeUi(slider.parent)
       // Tick spacing with 300 as maximum value and width 300
@@ -120,7 +121,7 @@ class TimelinePanelTest {
 
   @Test
   fun `ui with frozen elements`(): Unit =
-    runBlocking(uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val slider = TestUtils.createTestSlider().apply { value = 1000 }
       (slider.ui as TimelineSliderUI).apply {
         elements =
@@ -139,7 +140,7 @@ class TimelinePanelTest {
 
   @Test
   fun `ui with all unfrozen elements`(): Unit =
-    runBlocking(uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val slider = TestUtils.createTestSlider().apply { value = 1000 }
       (slider.ui as TimelineSliderUI).apply {
         elements =
@@ -158,7 +159,7 @@ class TimelinePanelTest {
 
   @Test
   fun `ui with one unfrozen element`(): Unit =
-    runBlocking(uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val slider = TestUtils.createTestSlider().apply { value = 1000 }
       (slider.ui as TimelineSliderUI).apply { elements = listOf(TestUtils.TestTimelineElement(50, 50)) }
       val ui = FakeUi(slider.parent)
@@ -169,7 +170,7 @@ class TimelinePanelTest {
 
   @Test
   fun `ui with one frozen element`(): Unit =
-    runBlocking(uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val slider = TestUtils.createTestSlider().apply { value = 1000 }
       (slider.ui as TimelineSliderUI).apply {
         elements = listOf(TestUtils.TestTimelineElement(50, 50, frozenState = SupportedAnimationManager.FrozenState(true, 0)))

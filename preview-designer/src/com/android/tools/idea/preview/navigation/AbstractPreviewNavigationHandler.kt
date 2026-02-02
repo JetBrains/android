@@ -18,17 +18,18 @@ package com.android.tools.idea.preview.navigation
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.PreviewNavigatableWrapper
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.util.PsiNavigationSupport
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiFile
 import java.awt.Rectangle
 import java.util.WeakHashMap
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
@@ -59,8 +60,9 @@ abstract class AbstractPreviewNavigationHandler : NavigationHandler {
   }
 
   override suspend fun handleNavigate(sceneView: SceneView, requestFocus: Boolean): Boolean {
-    return (getDefaultLocation(sceneView.sceneManager.model)?.navigatable?.apply { withContext(uiThread) { navigate(requestFocus) } } !=
-        null)
+    return (getDefaultLocation(sceneView.sceneManager.model)?.navigatable?.apply {
+        withContext(Dispatchers.EDT) { navigate(requestFocus) }
+      } != null)
       .also { LOG.debug { "Navigated to default? $it" } }
   }
 
@@ -92,7 +94,7 @@ abstract class AbstractPreviewNavigationHandler : NavigationHandler {
   protected abstract fun findBoundsOfComponentsInFile(sceneView: SceneView, fileName: String, lineNumber: Int): List<Rectangle>
 
   override suspend fun navigateTo(sceneView: SceneView, navigatable: Navigatable, requestFocus: Boolean): Boolean {
-    withContext(uiThread) { navigatable.navigate(requestFocus) }
+    withContext(Dispatchers.EDT) { navigatable.navigate(requestFocus) }
     return true
   }
 

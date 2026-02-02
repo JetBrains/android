@@ -24,7 +24,6 @@ import com.android.tools.idea.common.model.updateFileContentBlocking
 import com.android.tools.idea.common.surface.DesignSurfaceSettings.Companion.getInstance
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.common.surface.organization.OrganizationGroupType
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.getPsiFileSafely
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags
@@ -41,6 +40,7 @@ import com.android.tools.idea.util.findAndroidModule
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
@@ -48,6 +48,7 @@ import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.psi.PsiFile
 import com.jetbrains.rd.util.getOrCreate
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
@@ -211,7 +212,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   // Relayout the scene views and repaint, so that the updated lists of previews is shown before
   // the renders start, according to the placeholders added above. At this point, reused models
   // will keep their current Preview image and new models will be empty.
-  withContext(AndroidDispatchers.uiThread) { revalidateScrollArea() }
+  withContext(Dispatchers.EDT) { revalidateScrollArea() }
 
   // Finally, render
   elementsToSceneManagers.forEachIndexed { idx, (_, sceneManager) ->

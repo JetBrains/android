@@ -18,16 +18,17 @@ package com.android.tools.idea.preview.animation
 import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.NoopAnimationTracker
 import com.android.tools.idea.preview.animation.TestUtils.findExpandButton
 import com.android.tools.idea.preview.animation.TestUtils.findToolbar
 import com.android.tools.idea.preview.animation.actions.FreezeAction
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.openapi.application.EDT
 import java.awt.Component
 import java.awt.Dimension
 import javax.swing.JComponent
 import kotlin.test.assertNotNull
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -58,7 +59,7 @@ class AnimationCardTest {
     card.setSize(300, 300)
 
     val ui =
-      withContext(uiThread) {
+      withContext(Dispatchers.EDT) {
         FakeUi(card).apply {
           updateToolbars()
           layout()
@@ -73,7 +74,7 @@ class AnimationCardTest {
     // collector above will collect once even without any user action
     delayUntilCondition(200) { expendedStateChanges == 1 && frozenStateChanges == 1 }
 
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       // Expand/collapse button.
       card.findExpandButton().also {
         // Button is here and visible.
