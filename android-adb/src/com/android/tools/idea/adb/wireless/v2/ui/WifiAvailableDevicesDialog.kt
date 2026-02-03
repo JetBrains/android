@@ -71,6 +71,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.SystemInfo
@@ -78,9 +79,12 @@ import com.intellij.util.ui.JBDimension
 import icons.StudioIconsCompose
 import javax.swing.JComponent
 import kotlin.collections.forEach
+import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.retryWhen
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.CircularProgressIndicator
 import org.jetbrains.jewel.ui.component.Icon
@@ -97,6 +101,8 @@ class WifiAvailableDevicesDialog(private val project: Project, private val wifiP
     internal const val SEARCH_BAR_TEST_TAG = "deviceSearchBar"
     internal const val WARNING_TOOLTIP_TEST_TAG = "warningTag"
   }
+
+  private val log = logger<WifiAvailableDevicesDialog>()
 
   private val dialog: SimpleDialog
   private val model = WifiPairableDeviceModel()
@@ -207,6 +213,15 @@ class WifiAvailableDevicesDialog(private val project: Project, private val wifiP
   private suspend fun trackMdnsServices() {
     wifiPairingService
       .trackMdnsServices()
+      .retryWhen { throwable, attempt ->
+        if (throwable is CancellationException) {
+          false
+        } else {
+          log.warn("Error tracking mDNS services (attempt ${attempt + 1}), retrying in 1000 ms", throwable)
+          delay(1000)
+          true
+        }
+      }
       .map { it.tlsMdnsServices.toSet() }
       .trackSetChanges()
       // It's not possible to pair emulators.
