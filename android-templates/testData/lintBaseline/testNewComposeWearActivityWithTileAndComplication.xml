@@ -9,4 +9,15 @@
             file="src/main/res/mipmap-hdpi/ic_launcher_round.webp"/>
     </issue>
 
+    <issue
+        id="SquareAndRoundTilePreviews"
+        message="Tiles need a preview asset in both drawable-round and drawable"
+        errorLine1="                android:resource=&quot;@drawable/tile_preview&quot; />"
+        errorLine2="                                  ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="41"
+            column="35"/>
+    </issue>
+
 </issues>
