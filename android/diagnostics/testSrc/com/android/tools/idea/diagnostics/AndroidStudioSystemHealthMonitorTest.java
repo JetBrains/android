@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.diagnostics;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.inOrder;
@@ -33,12 +34,16 @@ import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.diagnostics.report.DiagnosticReport;
 import com.android.tools.idea.diagnostics.report.FreezeReport;
 import com.android.tools.idea.diagnostics.report.HistogramReport;
+import com.intellij.mock.MockApplication;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationGroupManager;
-import com.intellij.testFramework.PlatformLiteFixture;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Disposer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -48,8 +53,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link SystemHealthMonitor}.
  */
-public class AndroidStudioSystemHealthMonitorTest extends PlatformLiteFixture {
-
+public class AndroidStudioSystemHealthMonitorTest {
   @Mock private StudioCrashReporter studioCrashReporterMock;
   @Mock private NotificationGroupManager notificationGroupManagerMock;
   @Mock private StudioReportDatabase studioReportDatabaseMock;
@@ -60,16 +64,23 @@ public class AndroidStudioSystemHealthMonitorTest extends PlatformLiteFixture {
 
   private AndroidStudioSystemHealthMonitor androidStudioSystemHealthMonitor;
 
+  private final Disposable rootDisposable = Disposer.newDisposable();
+  private final MockApplication application = new MockApplication(rootDisposable);
+
   @Before
   public void setUp() throws Exception {
-    super.setUp();
+    ApplicationManager.setApplication(application, rootDisposable);
     initMocks(this);
-    initApplication();
-    getApplication().registerService(StudioCrashReporter.class, studioCrashReporterMock);
-    getApplication().registerService(NotificationGroupManager.class, notificationGroupManagerMock);
-    getApplication().registerService(ExceptionDataCollection.class, exceptionDataCollectionMock);
+    application.registerService(StudioCrashReporter.class, studioCrashReporterMock);
+    application.registerService(NotificationGroupManager.class, notificationGroupManagerMock);
+    application.registerService(ExceptionDataCollection.class, exceptionDataCollectionMock);
     when(notificationGroupManagerMock.getNotificationGroup(any(String.class))).thenReturn(notificationGroupMock);
     androidStudioSystemHealthMonitor = spy(new AndroidStudioSystemHealthMonitor(studioReportDatabaseMock));
+  }
+
+  @After
+  public void tearDown() {
+    Disposer.dispose(rootDisposable);
   }
 
   @Test
