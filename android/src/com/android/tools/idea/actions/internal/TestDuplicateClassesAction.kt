@@ -105,8 +105,6 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
           "com.google.shopping.type",
           // end b/476493791
           "com.google.type",
-          "com.squareup.wire", // b/476432509
-          "com.squareup.wire.internal", // b/476432509
           "kotlinx.atomicfu.locks",
           "kotlinx.atomicfu",
           // b/476502383 below here
