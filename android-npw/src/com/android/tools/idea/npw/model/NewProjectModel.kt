@@ -17,11 +17,11 @@ package com.android.tools.idea.npw.model
 
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
-import com.android.ide.common.repository.AgpVersion
 import com.android.io.CancellableFileIo
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
+import com.android.tools.idea.gemini.buildLlmPrompt
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity
 import com.android.tools.idea.gradle.project.importing.GradleNewProjectConfiguration
@@ -68,6 +68,7 @@ import com.intellij.openapi.fileEditor.impl.NonProjectFileWritingAccessProvider
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.JavaSdkVersion
@@ -86,6 +87,8 @@ import java.nio.file.Paths
 import java.util.Locale
 import java.util.Optional
 import java.util.regex.Pattern
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.android.util.AndroidUtils
 
@@ -348,6 +351,35 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       return project.findNewModuleRecommendedBuildSdk()
     }
     return null
+  }
+
+  /** Generates a project name based on user provided description of the project. */
+  fun generateAppNameAsync(onStart: Runnable, onFinish: Runnable) {
+    onStart.run()
+    ApplicationManager.getApplication().executeOnPooledThread {
+      try {
+        val project = ProjectManager.getInstance().defaultProject
+        val llmPrompt =
+          buildLlmPrompt(project) {
+            userMessage {
+              text(
+                "Generate a short, cool, and unique name for an Android application with the following description: ${prompt.get()} " +
+                  "\n" +
+                  "Only return the name, with no additional text.",
+                filesUsed = emptyList(),
+              )
+            }
+          }
+        val suggestedNameFlow = GeminiPluginApi.getInstance().generate(project, prompt = llmPrompt)
+        val suggestedName = runBlocking { suggestedNameFlow.toList().joinToString("") }
+        applicationName.set(suggestedName)
+      } catch (e: Exception) {
+        logger.warn("Failed to generate an application name.", e)
+        applicationName.set("My Application")
+      } finally {
+        onFinish.run()
+      }
+    }
   }
 
   companion object {
