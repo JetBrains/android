@@ -39,8 +39,10 @@ import androidx.compose.ui.unit.dp
 import com.android.adblib.serialNumber
 import com.android.adblib.tools.aiglasses.AiGlassesPairing
 import com.android.adblib.tools.aiglasses.ShellCommandException
+import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.deviceprovisioner.DeviceActionException
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
 import com.android.sdklib.deviceprovisioner.awaitReady
@@ -57,6 +59,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.util.ui.JBUI
 import icons.StudioIconsCompose
 import java.awt.Component
+import java.awt.Dimension
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -92,6 +95,20 @@ import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IndeterminateHorizontalProgressBar
 import org.jetbrains.jewel.ui.component.Text
 
+internal interface WizardController {
+  suspend fun show(): Boolean
+
+  fun focus()
+}
+
+private class ComposeWizardController(val wizard: ComposeWizard) : WizardController {
+  override suspend fun show() = wizard.showNonModal()
+
+  override fun focus() {
+    wizard.window?.toFront()
+  }
+}
+
 @Stable
 class GlassesPairingWizard
 internal constructor(
@@ -103,38 +120,63 @@ internal constructor(
   private val isCompatible: (DeviceHandle) -> Boolean = ::isAiGlassesCompatible,
 ) {
   companion object {
-    /** Shows the Glasses Pairing wizard dialog, returning the paired phone if pairing is successful. */
+    private val activeWizards = mutableMapOf<DeviceId, WizardController>()
+
+    /**
+     * Shows the Glasses Pairing wizard dialog, returning the paired phone if pairing is successful.
+     *
+     * Returns null if the wizard is cancelled or was already running.
+     */
+    @UiThread
     suspend fun show(
       parent: Component?,
       project: Project?,
       devicesFlow: Flow<List<DeviceHandle>>,
       glassesHandle: DeviceHandle,
+    ): DeviceHandle? =
+      showCore(parent, project, devicesFlow, glassesHandle) { p, t, par, min, pref, c ->
+        ComposeWizardController(ComposeWizard(p, t, par, min, pref, c))
+      }
+
+    @UiThread
+    internal suspend fun showCore(
+      parent: Component?,
+      project: Project?,
+      devicesFlow: Flow<List<DeviceHandle>>,
+      glassesHandle: DeviceHandle,
+      factory: (Project?, String, Component?, Dimension, Dimension, @Composable WizardPageScope.() -> Unit) -> WizardController,
     ): DeviceHandle? {
       if (!StudioFlags.AI_GLASSES_PHONE_EMULATOR_PAIRING_WIZARD_ENABLED.get()) {
         return null
       }
 
-      GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ASSISTANT_LAUNCHED)
+      val key = glassesHandle.id
+      // If a wizard for this device is already running, bring it to the front and return.
+      activeWizards[key]?.let {
+        it.focus()
+        return null
+      }
 
+      GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ASSISTANT_LAUNCHED)
       val coroutineScope = CoroutineScope(SupervisorJob())
-      val model = GlassesPairingWizard(project, coroutineScope, devicesFlow, glassesHandle)
-      val wizard =
-        ComposeWizard(
-          project,
-          "Glasses Pairing Assistant",
-          parent = parent,
-          minimumSize = JBUI.size(400, 200),
-          preferredSize = JBUI.size(600, 350),
-        ) {
-          with(model) { SelectDevicePage() }
+      val wizard = GlassesPairingWizard(project, coroutineScope, devicesFlow, glassesHandle)
+      val controller =
+        factory(project, "Glasses Pairing Assistant", parent, JBUI.size(400, 200), JBUI.size(600, 350)) {
+          with(wizard) { SelectDevicePage() }
         }
+
+      activeWizards[key] = controller
+
       try {
-        if (wizard.showNonModal()) {
-          return model.phone?.handle
+        if (controller.show()) {
+          return wizard.phone?.handle
         }
         return null
       } finally {
-        coroutineScope.cancel()
+        // Ensure we cancel the wizard's scope and remove it from the active map when it closes
+        // (either normally or via exception).
+        wizard.coroutineScope.cancel()
+        activeWizards.remove(key)
       }
     }
   }

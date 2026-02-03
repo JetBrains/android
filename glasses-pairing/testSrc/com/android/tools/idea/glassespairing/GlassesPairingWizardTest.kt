@@ -46,6 +46,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
@@ -282,6 +283,120 @@ class GlassesPairingWizardTest {
       coroutineScope.cancel()
       UsageTracker.cleanAfterTesting()
     }
+  }
+
+  @Test
+  fun testShowEnforcesSingleInstance() = runTest {
+    val coroutineScope = CoroutineScope(UnconfinedTestDispatcher())
+    val devicesFlow = MutableStateFlow(emptyList<DeviceHandle>())
+    val glasses =
+      FakeDeviceProvisionerPlugin.FakeDeviceHandle(
+        "g1",
+        coroutineScope,
+        DeviceState.Disconnected(
+          DeviceProperties.buildForTest {
+            icon = EmptyIcon.DEFAULT
+            manufacturer = "Google"
+            model = "AI Glasses"
+            deviceType = DeviceType.AI_GLASSES
+            androidVersion = AndroidVersion(36, 1)
+          }
+        ),
+      )
+
+    val controller1 = TestWizardController()
+    val controller2 = TestWizardController()
+    val controllers = mutableListOf(controller1, controller2)
+
+    val job1 = launch { GlassesPairingWizard.showCore(null, null, devicesFlow, glasses) { _, _, _, _, _, _ -> controllers.removeAt(0) } }
+
+    // Wait for first wizard to be active
+    delay(100)
+    assertThat(controller1.showCalled).isTrue()
+
+    // Try to show again for same glasses
+    val result2 = GlassesPairingWizard.showCore(null, null, devicesFlow, glasses) { _, _, _, _, _, _ -> controllers.removeAt(0) }
+
+    assertThat(result2).isNull()
+    assertThat(controller1.focusedCount).isEqualTo(1)
+    assertThat(controller2.showCalled).isFalse()
+
+    // Close first wizard
+    controller1.close(false)
+    job1.join()
+  }
+
+  @Test
+  fun testShowAllowsMultipleDevices() = runTest {
+    val coroutineScope = CoroutineScope(UnconfinedTestDispatcher())
+    val devicesFlow = MutableStateFlow(emptyList<DeviceHandle>())
+    val glasses1 =
+      FakeDeviceProvisionerPlugin.FakeDeviceHandle(
+        "g1",
+        coroutineScope,
+        DeviceState.Disconnected(
+          DeviceProperties.buildForTest {
+            icon = EmptyIcon.DEFAULT
+            manufacturer = "Google"
+            model = "AI Glasses 1"
+            deviceType = DeviceType.AI_GLASSES
+            androidVersion = AndroidVersion(36, 1)
+          }
+        ),
+      )
+    val glasses2 =
+      FakeDeviceProvisionerPlugin.FakeDeviceHandle(
+        "g2",
+        coroutineScope,
+        DeviceState.Disconnected(
+          DeviceProperties.buildForTest {
+            icon = EmptyIcon.DEFAULT
+            manufacturer = "Google"
+            model = "AI Glasses 2"
+            deviceType = DeviceType.AI_GLASSES
+            androidVersion = AndroidVersion(36, 1)
+          }
+        ),
+      )
+
+    val controller1 = TestWizardController()
+    val controller2 = TestWizardController()
+    val controllers = mutableListOf(controller1, controller2)
+
+    val job1 = launch { GlassesPairingWizard.showCore(null, null, devicesFlow, glasses1) { _, _, _, _, _, _ -> controllers.removeAt(0) } }
+
+    delay(50)
+    assertThat(controller1.showCalled).isTrue()
+
+    val job2 = launch { GlassesPairingWizard.showCore(null, null, devicesFlow, glasses2) { _, _, _, _, _, _ -> controllers.removeAt(0) } }
+
+    delay(50)
+    // Both should be running
+    assertThat(controller2.showCalled).isTrue()
+
+    controller1.close(false)
+    controller2.close(false)
+    job1.join()
+    job2.join()
+  }
+}
+
+private class TestWizardController : WizardController {
+  val completion = CompletableDeferred<Boolean>()
+  var focusedCount = 0
+  var showCalled = false
+
+  override suspend fun show(): Boolean {
+    showCalled = true
+    return completion.await()
+  }
+
+  override fun focus() {
+    focusedCount++
+  }
+
+  fun close(result: Boolean) {
+    completion.complete(result)
   }
 }
 
