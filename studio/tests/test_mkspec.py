@@ -47,7 +47,34 @@ class MkSpecTest(unittest.TestCase):
                   "--add-opens=java.base/java.net=ALL-UNNAMED",
                   "--add-exports=java.base/java.lang=ALL-UNNAMED",
                 ],
-            }]
+            }],
+            "layout": [
+                {
+                    "name": "com.sample.bar",
+                    "kind": "plugin",
+                    "classPath": ["plugins/bar/lib/bar.jar"]
+                }, {
+                    "name": "com.sample.common",
+                    "kind": "plugin",
+                    "classPath": ["plugins/common/lib/common.jar"]
+                }, {
+                    "name": "com.sample.foo",
+                    "kind": "plugin",
+                    "classPath": ["plugins/foo/lib/foo.jar"]
+                }, {
+                    "name": "common.plugin.module",
+                    "kind": "moduleV2",
+                    "classPath": ["plugins/common/lib/modules/common.plugin.module.jar"]
+                }, {
+                    "name": "intellij.platform.coverage",
+                    "kind": "productModuleV2",
+                    "classPath": ["lib/modules/intellij.platform.coverage.jar"]
+                }, {
+                    "name": "the_name",
+                    "kind": "plugin",
+                    "classPath": ["plugins/noid/lib/noid.jar"]
+                },
+            ]
         },
     })
 
@@ -113,7 +140,8 @@ SPEC = struct(
             "launch": [{
                 "bootClassPathJarNames": [],
                 "additionalJvmArguments": [],
-            }]
+            }],
+            "layout": []
         },
     })
 

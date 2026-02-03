@@ -10,6 +10,32 @@ class UpdateSdkTest(unittest.TestCase):
     deploy_files = os.environ['update_sdk_files'].split(" ")
     deploy_dir = test_utils.deploy_py("update_sdk_files")
 
+    product_info = {
+        "launch": [{
+            "bootClassPathJarNames": [],
+            "additionalJvmArguments": ["-Didea.platform.prefix=AndroidStudio"],
+        }],
+        "layout": [
+          {
+            "name": "com.sample.only_linux",
+            "kind": "plugin",
+            "classPath": ["plugins/only_linux/lib/foo.jar"]
+          }, {
+            "name": "com.sample.linux_windows",
+            "kind": "plugin",
+            "classPath": ["plugins/linux_windows/lib/foo.jar"]
+          }, {
+            "name": "com.sample.common",
+            "kind": "plugin",
+            "classPath": ["plugins/common/lib/common.jar"]
+          }, {
+            "name": "com.sample.common.submodule",
+            "kind": "moduleV2",
+            "classPath": ["plugins/common/lib/modules/com.sample.common.submodule.jar"]
+          },
+        ]
+    }
+
     download = tempfile.mkdtemp()
     test_utils.create(download + "/android-studio-1.2.3-no-jbr.tar.gz", {
         "android-studio/lib/app.jar": {
@@ -23,12 +49,7 @@ class UpdateSdkTest(unittest.TestCase):
         "android-studio/plugins/linux_windows/lib/foo.jar": {"META-INF/plugin.xml": "<xml><id>com.sample.linux_windows</id></xml>"},
         "android-studio/plugins/common/lib/common.jar": {"META-INF/plugin.xml": "<xml><id>com.sample.common</id></xml>"},
         "android-studio/plugins/common/lib/modules/com.sample.common.submodule.jar": {"META-INF/plugin.xml": "<idea-plugin></idea-plugin>"},
-        "android-studio/product-info.json": {
-            "launch": [{
-                "bootClassPathJarNames": [],
-                "additionalJvmArguments": ["-Didea.platform.prefix=AndroidStudio"],
-            }]
-        },
+        "android-studio/product-info.json": product_info,
     })
     test_utils.create(download + "/android-studio-1.2.3-no-jbr.win.zip", {
         "android-studio/lib/app.jar": {
@@ -37,12 +58,7 @@ class UpdateSdkTest(unittest.TestCase):
         "android-studio/lib/resources.jar": {
             "idea/AndroidStudioApplicationInfo.xml": "<version major=\"2024\" minor=\"1\">",
         },
-        "android-studio/product-info.json": {
-            "launch": [{
-                "bootClassPathJarNames": [],
-                "additionalJvmArguments": ["-Didea.platform.prefix=AndroidStudio"],
-            }]
-        },
+        "android-studio/product-info.json": product_info,
         "android-studio/plugins/linux_windows/lib/foo.jar": {"META-INF/plugin.xml": "<xml><id>com.sample.linux_windows</id></xml>"},
         "android-studio/plugins/common/lib/common.jar": {"META-INF/plugin.xml": "<xml><id>com.sample.common</id></xml>"},
         "android-studio/plugins/common/lib/modules/com.sample.common.submodule.jar": {"META-INF/plugin.xml": "<idea-plugin></idea-plugin>"},
@@ -55,12 +71,7 @@ class UpdateSdkTest(unittest.TestCase):
         "android-studio/Contents/lib/resources.jar": {
             "idea/AndroidStudioApplicationInfo.xml": "<version major=\"2024\" minor=\"1\">",
         },
-        "android-studio/Contents/Resources/product-info.json": {
-            "launch": [{
-                "bootClassPathJarNames": [],
-                "additionalJvmArguments": ["-Didea.platform.prefix=AndroidStudio"],
-            }]
-        },
+        "android-studio/Contents/Resources/product-info.json": product_info,
         "android-studio/Contents/plugins/common/lib/common.jar": {"META-INF/plugin.xml": "<xml><id>com.sample.common</id></xml>"},
         "android-studio/Contents/plugins/common/lib/modules/com.sample.common.submodule.jar": {"META-INF/plugin.xml": "<idea-plugin></idea-plugin>"},
         "android-studio/Contents/plugins/plugin-classpath.txt": "data",
@@ -72,12 +83,7 @@ class UpdateSdkTest(unittest.TestCase):
         "android-studio/Contents/lib/resources.jar": {
             "idea/AndroidStudioApplicationInfo.xml": "<version major=\"2024\" minor=\"1\">",
         },
-        "android-studio/Contents/Resources/product-info.json": {
-            "launch": [{
-                "bootClassPathJarNames": [],
-                "additionalJvmArguments": ["-Didea.platform.prefix=AndroidStudio"],
-            }]
-        },
+        "android-studio/Contents/Resources/product-info.json": product_info,
         "android-studio/Contents/plugins/common/lib/common.jar": {"META-INF/plugin.xml": "<xml><id>com.sample.common</id></xml>"},
         "android-studio/Contents/plugins/common/lib/modules/com.sample.common.submodule.jar": {"META-INF/plugin.xml": "<idea-plugin></idea-plugin>"},
         "android-studio/Contents/plugins/plugin-classpath.txt": "data",

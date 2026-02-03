@@ -40,6 +40,17 @@ class UpdateSherlockSdkTest(unittest.TestCase):
             "-Didea.platform.prefix=SherlockPlatform"
           ]
         }
+      ],
+      "layout": [
+        {
+          "name": "com.sample.common",
+          "kind": "plugin",
+          "classPath": ["plugins/common/lib/common.jar"]
+        }, {
+          "name": "com.sample.module",
+          "kind": "productModuleV2",
+          "classPath": ["lib/modules/com.sample.module.jar"]
+        }
       ]
     }
 

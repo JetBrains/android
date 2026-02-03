@@ -48,8 +48,8 @@ class IntelliJ:
     )
     prefix = _read_platform_prefix(product_info)
     major, minor = read_version(path/_idea_home[platform]/"lib", prefix)
-    jars = read_platform_jars(path/_idea_home[platform], product_info)
-    plugin_jars = _read_plugin_jars(path/_idea_home[platform])
+    jars = read_platform_jars(product_info)
+    plugin_jars = _read_plugin_jars(path/_idea_home[platform], product_info)
     add_exports = _read_jvm_args("--add-exports=","=ALL-UNNAMED", product_info)
     add_opens = _read_jvm_args("--add-opens=","=ALL-UNNAMED", product_info)
     return IntelliJ(major, minor, platform_jars=jars, plugin_jars=plugin_jars, jvm_add_exports=add_exports, jvm_add_opens=add_opens)
@@ -77,7 +77,7 @@ def read_version(lib_dir: Path, prefix: str) -> (str, str):
   return major, minor
 
 
-def read_platform_jars(ide_home: Path, product_info):
+def read_platform_jars(product_info):
   # Extract the runtime classpath from product-info.json.
   bootClassPath = product_info["launch"][0]["bootClassPathJarNames"]
   jars = ["/lib/" + jar for jar in bootClassPath]
@@ -102,41 +102,22 @@ def _read_zip_entry(zip_path, entry):
   return data.decode("utf-8")
 
 
-def _read_plugin_id(path: Path):
-  jars = path.glob("lib/*.jar")
-  xml = load_plugin_xml(jars)
-
-  # The id of a plugin is defined as the id tag and if missing, the name tag.
-  ids = [id.text for id in xml.findall("id")]
-  if len(set(ids)) > 1:
-    sys.exit(f"Too many plugin ids found in plugin: {path}")
-  if len(ids) >= 1:
-    return ids[0]
-  names = xml.findall("name")
-  if len(names) > 1:
-    sys.exit(f"Too many plugin names found (for plugin without id): {path}")
-  if len(names) == 1:
-    return names[0].text
-  sys.exit(f"Cannot find plugin id or name tag for plugin: {path}")
-
-
-def _read_plugin_jars(idea_home: Path):
-  plugins = {}
-  for plugin_path in idea_home.glob("plugins/*"):
-    if not plugin_path.is_dir():
-      continue
-    plugin_id = _read_plugin_id(plugin_path)
-    jars = plugin_path.glob("lib/*.jar")
-    jar_paths = ["/" + str(jar.relative_to(idea_home).as_posix()) for jar in jars]
-    assert plugin_id not in plugins, f"Duplicated plugin ID: {plugin_id}"
-    plugins[plugin_id] = set(jar_paths)
-  # We also model V2 modules as plugins---at least for now, until the V2 design solidifies upstream.
+def _read_plugin_jars(ide_home: Path, product_info):
+  # Note: we model V2 modules as plugins too, at least until the V2 design solidifies upstream.
   # See b/349849955 and go/studio-v2-modules for details.
-  for jar in [*idea_home.glob("lib/modules/*.jar"), *idea_home.glob("plugins/*/lib/modules/*.jar")]:
-    module_id = jar.stem
-    jar_path = "/" + str(jar.relative_to(idea_home).as_posix())
-    assert module_id not in plugins, f"Duplicated plugin ID: {module_id}"
-    plugins[module_id] = set([jar_path])
+  plugins = {}
+  for entry in product_info["layout"]:
+    if entry.get("kind") in ["plugin", "moduleV2", "productModuleV2"]:
+      id = entry["name"]
+      if id == "com.intellij":
+        continue  # IntelliJ core is not a true plugin.
+      classpath = entry.get("classPath", [])
+      classpath = [jar for jar in classpath if (ide_home/jar).exists()]
+      if not classpath:
+        continue  # Empty classpath => no need to create a Bazel target for it.
+      jars = ["/" + jar for jar in classpath]
+      assert id not in plugins, f"Duplicated plugin ID: {id}"
+      plugins[id] = set(jars)
   return plugins
 
 
