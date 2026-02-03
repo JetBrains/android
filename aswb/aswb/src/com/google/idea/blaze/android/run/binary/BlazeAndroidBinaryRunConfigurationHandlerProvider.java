@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.android.run.binary;
 
+import com.google.idea.blaze.android.run.BlazeAndroidRunConfigurationHandler;
 import com.google.idea.blaze.base.model.primitives.Kind;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.confighandler.BlazeCommandRunConfigurationHandler;
@@ -42,8 +43,8 @@ public class BlazeAndroidBinaryRunConfigurationHandlerProvider
   }
 
   @Override
-  public BlazeCommandRunConfigurationHandler createHandler(BlazeCommandRunConfiguration config) {
-    return new BlazeAndroidBinaryRunConfigurationHandler(config);
+  public BlazeAndroidRunConfigurationHandler createHandler(BlazeCommandRunConfiguration configuration) {
+    return new BlazeAndroidBinaryRunConfigurationHandler(configuration);
   }
 
   @Override

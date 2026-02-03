@@ -20,7 +20,6 @@ import static com.google.idea.blaze.android.run.LaunchMetrics.logBinaryLaunch;
 import com.android.tools.idea.execution.common.DeployableToDevice;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.sdk.AndroidPlatform;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
@@ -59,6 +58,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.Nullable;
 
@@ -71,8 +71,7 @@ public class BlazeAndroidBinaryRunConfigurationHandler implements BlazeAndroidRu
   private final Project project;
   private final BlazeAndroidBinaryRunConfigurationState configState;
 
-  @VisibleForTesting
-  BlazeAndroidBinaryRunConfigurationHandler(BlazeCommandRunConfiguration configuration) {
+  public BlazeAndroidBinaryRunConfigurationHandler(BlazeCommandRunConfiguration configuration) {
     this.project = configuration.getProject();
     this.configState =
         new BlazeAndroidBinaryRunConfigurationState(
@@ -267,7 +266,7 @@ public class BlazeAndroidBinaryRunConfigurationHandler implements BlazeAndroidRu
             Messages.getQuestionIcon());
     if (choice == Messages.YES) {
       Messages.showInfoMessage(
-          String.format(
+          String.format(Locale.ROOT,
               "Successfully migrated %d run configuration(s) to mobile-install",
               doMigrate(project)),
           "Success!");

@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.intellij.openapi.project.Project;
 import java.util.List;
+import java.util.Locale;
 
 /** Provides a list of supported launch methods from bazel and blaze for android tests. */
 public class BlazeAndroidTestLaunchMethodsProviderImpl
@@ -31,9 +32,9 @@ public class BlazeAndroidTestLaunchMethodsProviderImpl
             AndroidTestLaunchMethod.NON_BLAZE, String.format("Run without using %s", blaze)),
         new AndroidTestLaunchMethodComboEntry(
             AndroidTestLaunchMethod.BLAZE_TEST,
-            String.format("Run with %s test", blaze.toLowerCase())),
+            String.format("Run with %s test", blaze.toLowerCase(Locale.ROOT))),
         new AndroidTestLaunchMethodComboEntry(
             AndroidTestLaunchMethod.MOBILE_INSTALL,
-            String.format("Run with %s mobile-install", blaze.toLowerCase())));
+            String.format("Run with %s mobile-install", blaze.toLowerCase(Locale.ROOT))));
   }
 }

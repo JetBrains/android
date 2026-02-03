@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.android.cppimpl.debug;
 
+import com.android.annotations.concurrency.WorkerThread;
 import com.android.ddmlib.Client;
 import com.intellij.openapi.project.Project;
 import com.intellij.xdebugger.XDebugSession;
@@ -23,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 public class BlazeAutoAndroidDebugger extends BlazeAutoAndroidDebuggerBase {
 
   @Override
+  @WorkerThread
   public XDebugSession getExistingDebugSession(@NotNull Project project, @NotNull Client client) {
     if (isNativeProject(project)) {
       log.info("Project has native development enabled");

@@ -27,7 +27,6 @@ import com.android.tools.idea.run.configuration.execution.TileLaunchOptions;
 import com.android.tools.idea.run.configuration.execution.WatchFaceLaunchOptions;
 import com.android.tools.idea.run.editor.AndroidProfilersPanel;
 import com.android.tools.idea.run.editor.ProfilerState;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableList;
@@ -128,7 +127,6 @@ public final class BlazeAndroidBinaryRunConfigurationState implements RunConfigu
     wearLaunchOptions.put(mode, options);
   }
 
-  @VisibleForTesting
   public void setLaunchMethod(AndroidBinaryLaunchMethod launchMethod) {
     this.launchMethod = launchMethod;
   }

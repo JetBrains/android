@@ -75,11 +75,10 @@ public final class BlazeAndroidTestRunConfigurationState implements RunConfigura
   }
 
   @Contract(pure = true)
-  AndroidTestLaunchMethod getLaunchMethod() {
+  public AndroidTestLaunchMethod getLaunchMethod() {
     return launchMethod;
   }
 
-  @VisibleForTesting
   public void setLaunchMethod(AndroidTestLaunchMethod launchMethod) {
     this.launchMethod = launchMethod;
   }

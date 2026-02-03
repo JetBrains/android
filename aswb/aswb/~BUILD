@@ -102,7 +102,6 @@ aswb_library(
             "src/**/*.kt",
         ],
     ),
-    lint_enabled = False,  # TODO: b/414804974 - Enable when violations resolved.
     resources = glob(
         [
             "resources/**/*",

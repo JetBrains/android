@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
 
-/** Project view section white-listing generated resource directories */
+/** Project view section allowing generated resource directories */
 public class GeneratedAndroidResourcesSection {
   public static final SectionKey<GenfilesPath, ListSection<GenfilesPath>> KEY =
       SectionKey.of("generated_android_resource_directories");

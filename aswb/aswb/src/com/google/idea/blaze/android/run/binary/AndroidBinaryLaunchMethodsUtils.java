@@ -15,27 +15,24 @@
  */
 package com.google.idea.blaze.android.run.binary;
 
-import com.google.common.annotations.VisibleForTesting;
-
 /**
  * A class that provides function to convert between check box selection and binary launch method.
  */
 public class AndroidBinaryLaunchMethodsUtils {
 
   /** Get binary launch method according to users' selection. */
-  static AndroidBinaryLaunchMethod getLaunchMethod(boolean useMobileInstall) {
+  public static AndroidBinaryLaunchMethod getLaunchMethod(boolean useMobileInstall) {
     return useMobileInstall
         ? AndroidBinaryLaunchMethod.MOBILE_INSTALL
         : AndroidBinaryLaunchMethod.NON_BLAZE;
   }
 
   /** Get check box selection result according to binary launch method in run configuration file. */
-  static boolean useMobileInstall(AndroidBinaryLaunchMethod androidBinaryLaunchMethod) {
+  public static boolean useMobileInstall(AndroidBinaryLaunchMethod androidBinaryLaunchMethod) {
     return androidBinaryLaunchMethod != AndroidBinaryLaunchMethod.NON_BLAZE;
   }
 
   /** All possible binary launch methods. */
-  @VisibleForTesting
   public enum AndroidBinaryLaunchMethod {
     NON_BLAZE,
     // Both MOBILE_INSTALL methods have merged.

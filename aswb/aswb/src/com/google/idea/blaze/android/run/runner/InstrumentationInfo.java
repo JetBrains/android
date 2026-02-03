@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.android.run.runner;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.project.ProjectTarget;
@@ -26,7 +25,6 @@ import javax.annotation.Nullable;
  * Container for information about {@code android_instrumentation_test}: it holds links to the test
  * target and the instrumented target.
  */
-@VisibleForTesting
 public class InstrumentationInfo {
   /**
    * {@code android_binary} target corresponding to the application under test.
@@ -44,7 +42,6 @@ public class InstrumentationInfo {
    */
   public final Label testApp;
 
-  @VisibleForTesting
   public InstrumentationInfo(@Nullable Label targetApp, Label testApp) {
     this.targetApp = targetApp;
     this.testApp = testApp;
@@ -67,7 +64,6 @@ public class InstrumentationInfo {
    *
    * @return The labels contained in an {@link InstrumentationInfo} object.
    */
-  @VisibleForTesting
   public static InstrumentationInfo getInstrumentationInfo(
       Label instrumentationTestLabel, Project project) {
     var maybeProjectSnapshot = QuerySyncManager.getInstance(project).getCurrentSnapshot();
