@@ -119,6 +119,7 @@ network.inspector.grpc=COMPLETE:2023
 network.inspector.rule.variables=COMPLETE:2025
 network.inspector.static.timeline=COMPLETE:2023
 npw.ai.glasses.template=PREVIEW
+npw.emptycalapp.template=PREVIEW
 npw.enable.version.catalog=COMPLETE:2023
 npw.genai.template=COMPLETE:2024
 npw.navigationui.template=COMPLETE:2025

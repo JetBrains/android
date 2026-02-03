@@ -137,6 +137,7 @@ maven_repository(
         "@maven//:androidx.annotation.annotation_1.6.0",
         "@maven//:androidx.appcompat.appcompat_1.6.1",
         "@maven//:androidx.appcompat.appcompat_1.7.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.car.app.app_1.4.0",
         "@maven//:androidx.collection.collection-ktx_1.4.0",  # Compose BOM 2024.04.01
         "@maven//:androidx.collection.collection-ktx_1.5.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.collection.collection-ktx_1.5.0-alpha06",  # XR template
