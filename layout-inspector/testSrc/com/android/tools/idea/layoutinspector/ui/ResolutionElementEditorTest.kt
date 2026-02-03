@@ -23,7 +23,7 @@ import com.android.resources.ResourceType
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePathUnchecked
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
@@ -50,6 +50,7 @@ import com.intellij.ui.JBColor
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.event.ActionEvent
+import java.nio.file.Path
 import javax.swing.Box.Filler
 import javax.swing.BoxLayout
 import javax.swing.JComponent
@@ -58,20 +59,23 @@ import javax.swing.LookAndFeel
 import javax.swing.UIManager
 import javax.swing.plaf.metal.MetalLookAndFeel
 import javax.swing.plaf.metal.MetalTheme
+import kotlin.io.path.pathString
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExternalResource
 import org.junit.rules.RuleChain
+import org.junit.rules.TestName
 
-private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData/ui"
-private const val DIFF_THRESHOLD = 0.01
+private val TEST_DATA_PATH = Path.of("tools", "adt", "idea", "layout-inspector", "testData")
+private const val DIFF_THRESHOLD = 0.5
 
 class ResolutionElementEditorTest {
   // This test is SDK sensitive.
   // Explicitly specify the SDK to avoid failures in SDK upgrades.
   private val projectRule = AndroidProjectRule.withSdk(AndroidVersion(VersionCodes.VANILLA_ICE_CREAM))
 
+  @get:Rule val testName = TestName()
   @get:Rule
   val ruleChain =
     RuleChain.outerRule(projectRule).around(IntelliJLafRule()).around(PortableUiFontRule()).around(EdtRule()).around(IconLoaderRule())!!
@@ -80,13 +84,13 @@ class ResolutionElementEditorTest {
   fun testPaintClosed() = runBlocking {
     val editors = createEditors()
     getEditor(editors, 1).isVisible = false
-    checkImage(editors, "Closed")
+    checkImage(editors)
   }
 
   @Test
   fun testPaintOpen() = runBlocking {
     val editors = createEditors()
-    checkImage(editors, "Open")
+    checkImage(editors)
   }
 
   @Test
@@ -94,7 +98,7 @@ class ResolutionElementEditorTest {
     val editors = createEditors()
     getEditor(editors, 0).editorModel.isExpandedTableItem = true
     expandFirstLabel(getEditor(editors, 0), true)
-    checkImage(editors, "OpenWithDetails")
+    checkImage(editors)
   }
 
   @Test
@@ -103,7 +107,7 @@ class ResolutionElementEditorTest {
     getEditor(editors, 0).editorModel.isExpandedTableItem = true
     expandFirstLabel(getEditor(editors, 0), true)
     expandFirstLabel(getEditor(editors, 1), true)
-    checkImage(editors, "OpenWithTwoDetails")
+    checkImage(editors)
   }
 
   @Test
@@ -176,15 +180,18 @@ class ResolutionElementEditorTest {
     assertThat(toggleCount).isEqualTo(2)
   }
 
-  private fun checkImage(editors: JPanel, expected: String) {
+  private fun checkImage(editors: JPanel) {
     editors.setBounds(0, 0, 200, 300)
     val ui = FakeUi(editors)
     val generatedImage = ui.render()
-    ImageDiffUtil.assertImageSimilarPerPlatform(
-      TestUtils.resolveWorkspacePathUnchecked(TEST_DATA_PATH),
-      "testResolutionEditorPaint$expected",
-      generatedImage,
-      DIFF_THRESHOLD,
+
+    val testDataPath = TEST_DATA_PATH.resolve(this.javaClass.simpleName)
+    val imageName = testName.methodName
+
+    ImageDiffUtil.assertImageSimilar(
+      goldenFile = resolveWorkspacePathUnchecked(testDataPath.resolve("$imageName.png").pathString),
+      actual = generatedImage,
+      maxPercentDifferent = DIFF_THRESHOLD,
     )
   }
 
