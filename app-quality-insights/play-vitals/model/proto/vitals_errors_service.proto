@@ -52,6 +52,10 @@ enum ErrorType {
   // Crash caused by an unhandled exception in Java (or Kotlin or any other
   // JVM language) or a signal in native code such as SIGSEGV.
   CRASH = 2;
+
+  // Non-fatal caused by events that do not immediately cause crashes, but is
+  // likely to lead to one.
+  NON_FATAL = 3;
 }
 
 // An error report received for an app.
@@ -192,7 +196,6 @@ message ErrorIssue {
 
   // List of annotations for an issue. Annotations provide additional
   // information that may help in diagnosing and fixing the issue.
-  // (-- TODO(b/269246512): Remove visibility restrictions for launch. --)
   repeated IssueAnnotation annotations = 13;
 
   // An estimated percentage of users affected by any issue that are
@@ -258,8 +261,8 @@ message SearchErrorReportsRequest {
   // * `deviceType`: Matches error reports that occurred in the requested
   //    device types. Example: `deviceType = "PHONE"`.
   // * `errorIssueType`: Matches error reports of the requested types only.
-  //    Valid candidates: `JAVA_CRASH`, `NATIVE_CRASH`, `ANR`.
-  //    Example: `errorIssueType = JAVA_CRASH OR errorIssueType = NATIVE_CRASH`.
+  //    Valid candidates: `CRASH`, `ANR`, `NON_FATAL`.
+  //    Example: `errorIssueType = CRASH OR errorIssueType = ANR`.
   // * `errorIssueId`: Matches error reports belonging to the requested error
   //    issue ids only.
   //    Example: `errorIssueId = 1234 OR errorIssueId = 4567`.
@@ -362,7 +365,7 @@ message SearchErrorIssuesRequest {
   // * `deviceType`: Matches error issues that occurred in the requested
   //    device types. Example: `deviceType = "PHONE"`.
   // * `errorIssueType`: Matches error issues of the requested types only.
-  //    Valid candidates: `CRASH`, `ANR`.
+  //    Valid candidates: `CRASH`, `ANR`, `NON_FATAL`.
   //    Example: `errorIssueType = CRASH OR errorIssueType = ANR`.
   // * `appProcessState`: Matches error issues on the process state of an app,
   //    indicating whether an app runs in the foreground (user-visible) or

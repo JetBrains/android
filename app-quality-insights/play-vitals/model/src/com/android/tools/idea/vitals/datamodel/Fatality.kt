@@ -24,5 +24,7 @@ internal fun ErrorType.toFailureType(): FailureType {
     ErrorType.UNRECOGNIZED -> FailureType.UNSPECIFIED
     ErrorType.APPLICATION_NOT_RESPONDING -> FailureType.ANR
     ErrorType.CRASH -> FailureType.FATAL
+    // Studio does not support NON_FATAL in Vitals
+    ErrorType.NON_FATAL -> throw RuntimeException("NON_FATAL type not supported.")
   }
 }
