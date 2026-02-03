@@ -78,7 +78,7 @@ class StateInspectionPanelTest {
 
   @Test
   fun testNoEditorCreatedInitially() {
-    val panel = StateInspectionPanel(model, projectRule.project, stats, testScope, disposable)
+    val panel = StateInspectionPanel(model, projectRule.project, { stats }, testScope, disposable)
     testDispatcher.scheduler.advanceUntilIdle()
     assertThat(panel.componentCount).isEqualTo(0)
     assertThat(panel.getUserData(STATE_READ_EDITOR_KEY)).isNull()
@@ -87,7 +87,7 @@ class StateInspectionPanelTest {
 
   @Test
   fun testEditorDestroyedWhenHidden() {
-    val panel = StateInspectionPanel(model, projectRule.project, stats, testScope, disposable)
+    val panel = StateInspectionPanel(model, projectRule.project, { stats }, testScope, disposable)
     assertThat(panel.componentCount).isEqualTo(0)
     assertThat(panel.getUserData(STATE_READ_EDITOR_KEY)).isNull()
     testDispatcher.scheduler.advanceUntilIdle()
@@ -105,7 +105,7 @@ class StateInspectionPanelTest {
 
   @Test
   fun testRecompositionText() {
-    val panel = StateInspectionPanel(model, projectRule.project, stats, testScope, disposable)
+    val panel = StateInspectionPanel(model, projectRule.project, { stats }, testScope, disposable)
     model.show.value = true
     advanceUntilIdle()
     val label = panel.getDescendant<JLabel> { it.name == RECOMPOSITION_TEXT_LABEL_NAME }
@@ -118,7 +118,7 @@ class StateInspectionPanelTest {
 
   @Test
   fun testEmptyStateText() {
-    val panel = StateInspectionPanel(model, projectRule.project, stats, testScope, disposable)
+    val panel = StateInspectionPanel(model, projectRule.project, { stats }, testScope, disposable)
     model.show.value = true
     advanceUntilIdle()
     assertThat(panel.findDescendant<EmptyStatePanel>()).isNull()
@@ -135,7 +135,7 @@ class StateInspectionPanelTest {
 
   @Test
   fun testStateReadText() {
-    val panel = StateInspectionPanel(model, projectRule.project, stats, testScope, disposable)
+    val panel = StateInspectionPanel(model, projectRule.project, { stats }, testScope, disposable)
     model.show.value = true
     advanceUntilIdle()
     val label = panel.getDescendant<JLabel> { it.name == STATE_READ_TEXT_LABEL_NAME }
@@ -148,7 +148,7 @@ class StateInspectionPanelTest {
 
   @Test
   fun testStackTraceText() {
-    val panel = StateInspectionPanel(model, projectRule.project, stats, testScope, disposable)
+    val panel = StateInspectionPanel(model, projectRule.project, { stats }, testScope, disposable)
     model.show.value = true
     testDispatcher.scheduler.advanceUntilIdle()
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
@@ -178,7 +178,7 @@ class StateInspectionPanelTest {
 
   @Test
   fun testStateInspectionData() {
-    val panel = StateInspectionPanel(model, projectRule.project, stats, testScope, disposable)
+    val panel = StateInspectionPanel(model, projectRule.project, { stats }, testScope, disposable)
     model.show.value = true
     advanceUntilIdle()
     val editor = panel.getUserData(STATE_READ_EDITOR_KEY)!!
@@ -202,7 +202,7 @@ class StateInspectionPanelTest {
   }
 
   private fun testButton(buttonAction: TestAction) {
-    val panel = StateInspectionPanel(model, projectRule.project, stats, testScope, disposable)
+    val panel = StateInspectionPanel(model, projectRule.project, { stats }, testScope, disposable)
     model.show.value = true
     advanceUntilIdle()
     val button = panel.getDescendant<ActionButton> { it.action == buttonAction }
@@ -234,7 +234,7 @@ class StateInspectionPanelTest {
     val button = JButton()
     button.isFocusable = true
     container.add(button, BorderLayout.NORTH)
-    val panel = StateInspectionPanel(model, projectRule.project, stats, testScope, disposable)
+    val panel = StateInspectionPanel(model, projectRule.project, { stats }, testScope, disposable)
     model.show.value = true
     model.prevAction.enabled = true
     model.nextAction.enabled = true
@@ -284,9 +284,7 @@ class StateInspectionPanelTest {
 
     installFakeExtensionPoints(projectRule.testRootDisposable)
     projectRule.fixture.addFileToProject("src/com/example/recompositiontest/MainActivity.kt", "")
-    val project = projectRule.project
-    val detectorFactory = SynchronousHyperLinkDetectorFactory()
-    val panel = StateInspectionPanel(model, project, stats, testScope, disposable, detectorFactory)
+    val panel = StateInspectionPanel(model, projectRule.project, { stats }, testScope, disposable)
     model.prevAction.enabled = true
     model.nextAction.enabled = true
     model.show.value = true

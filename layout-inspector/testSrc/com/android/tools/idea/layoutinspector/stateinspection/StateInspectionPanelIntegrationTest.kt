@@ -70,6 +70,7 @@ class StateInspectionPanelIntegrationTest {
   private val inspectionRule = AppInspectionInspectorRule(projectRule)
   private val inspectorRule =
     LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider()), projectRule) { it.name == MODERN_PROCESS.name }
+  private lateinit var panel: StateInspectionPanel
 
   @get:Rule val rule = RuleChain(projectRule, inspectionRule, inspectorRule, EdtRule())
 
@@ -81,6 +82,10 @@ class StateInspectionPanelIntegrationTest {
       "settings get global debug_view_attributes",
       stdout = "1",
     )
+
+    // Create the panel before connecting the Layout Inspector:
+    panel = createPanel()
+
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     assertThat(inspectorRule.inspectorClient.isConnected).isTrue()
     installFakeExtensionPoints(projectRule.testRootDisposable)
@@ -99,7 +104,7 @@ class StateInspectionPanelIntegrationTest {
     val state = FakeInspectorStateReads(inspectionRule.composeInspector)
     state.createFakeStateReads()
 
-    val panel = createPanel()
+    requestStateReads()
     waitForCondition(10.seconds) { panel.findAllDescendants<ActionButton>({ true }).toList().size == 3 }
 
     val ui = FakeUi(panel, createFakeWindow = true)
@@ -224,6 +229,14 @@ class StateInspectionPanelIntegrationTest {
 
   private fun createPanel(): StateInspectionPanel {
     val model = inspectorRule.inspectorModel
+    val detectorFactory = SynchronousHyperLinkDetectorFactory()
+    val panel = createStateInspectionPanel(inspectorRule.inspector, projectRule.testRootDisposable, detectorFactory)
+    panel.size = Dimension(800, 600)
+    return panel
+  }
+
+  private fun requestStateReads() {
+    val model = inspectorRule.inspectorModel
     val window =
       window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
         compose(COMPOSE1, "Column", composeCount = 3, composeFilename = "MainActivity.kt") {
@@ -231,10 +244,6 @@ class StateInspectionPanelIntegrationTest {
         }
       }
     model.update(window, listOf(ROOT), 0)
-    val detectorFactory = SynchronousHyperLinkDetectorFactory()
-    val panel = createStateInspectionPanel(inspectorRule.inspector, projectRule.testRootDisposable, detectorFactory)
-    panel.size = Dimension(800, 600)
     model.stateReadsModel.requestStateReadFor(model[COMPOSE1] as ComposeViewNode)
-    return panel
   }
 }

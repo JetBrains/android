@@ -80,8 +80,8 @@ internal fun createStateInspectionPanel(
 ): StateInspectionPanel {
   val inspectorModel = layoutInspector.inspectorModel
   val project = inspectorModel.project
-  val stats = layoutInspector.currentClient.stats
-  val model = StateInspectionModelImpl(inspectorModel, layoutInspector.coroutineScope, parentDisposable) { stats.stateReadsShown() }
+  val stats = { layoutInspector.currentClient.stats }
+  val model = StateInspectionModelImpl(inspectorModel, layoutInspector.coroutineScope, parentDisposable) { stats().stateReadsShown() }
   val uiScope = parentDisposable.createCoroutineScope(extraContext = Dispatchers.EDT)
   return StateInspectionPanel(model, project, stats, uiScope, parentDisposable, hyperLinkDetectorFactory)
 }
@@ -90,7 +90,7 @@ internal fun createStateInspectionPanel(
 internal class StateInspectionPanel(
   model: StateInspectionModel,
   project: Project,
-  stats: SessionStatistics,
+  stats: () -> SessionStatistics,
   scope: CoroutineScope,
   parentDisposable: Disposable,
   hyperLinkDetectorFactory: HyperLinkDetectorFactory = StateInspectionHyperLinkDetectorFactory(),
@@ -127,7 +127,7 @@ internal class StateInspectionPanel(
 private class InnerStateInspectionPanel(
   private val parent: StateInspectionPanel,
   model: StateInspectionModel,
-  private val stats: SessionStatistics,
+  private val stats: () -> SessionStatistics,
   project: Project,
   parentScope: CoroutineScope,
   hyperLinkDetectorFactory: HyperLinkDetectorFactory,
@@ -262,8 +262,8 @@ private class InnerStateInspectionPanel(
 
   private fun logUsageEvent(linkInfo: HyperlinkInfo?) =
     when (linkInfo) {
-      is LayoutInspectorExplainWithAIHyperLinkInfo -> stats.stateReadsExplainWithAiClicked()
-      is HyperlinkInfo -> stats.stateReadsGotoSourceFromStackTrace()
+      is LayoutInspectorExplainWithAIHyperLinkInfo -> stats().stateReadsExplainWithAiClicked()
+      is HyperlinkInfo -> stats().stateReadsGotoSourceFromStackTrace()
       else -> {}
     }
 
