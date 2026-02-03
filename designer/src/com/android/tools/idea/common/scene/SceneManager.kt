@@ -58,7 +58,7 @@ abstract class SceneManager(
   protected open val designSurface: DesignSurface<*>,
   private val sceneComponentProvider: SceneComponentHierarchyProvider,
   private val listenToResourceChanges: Boolean,
-  protected val notificationExecutorServiceProvider: (Disposable) -> ExecutorService = ::defaultNotificationExecutorService,
+  notificationExecutorServiceProvider: (Disposable) -> ExecutorService = ::defaultNotificationExecutorService,
 ) : Disposable {
   /** [ResourceChangeListener] used to clean up the resources cache when a build happens or resources are modified. */
   protected class ResourceChangeListenerImpl(val model: NlModel, @VisibleForTesting val notificationExecutorService: ExecutorService) :
@@ -89,7 +89,7 @@ abstract class SceneManager(
   val scene: Scene
   private val hitProvider: HitProvider = DefaultHitProvider()
   private val isActive = AtomicBoolean(false)
-  protected val resourceChangeListener = ResourceChangeListenerImpl(model, notificationExecutorServiceProvider(this))
+  protected val resourceChangeListener: ResourceChangeListenerImpl
 
   // This will be initialized when constructor calls updateSceneView().
   protected var sceneView: SceneView? = null
@@ -139,6 +139,10 @@ abstract class SceneManager(
     // If initialized earlier, it could mean that a failed initialization would also leave the Scene
     // in the disposer as a leak  .
     scene = Scene(this, designSurface)
+
+    // Similar case for resourceChangeListener, as using notificationExecutorServiceProvider
+    // needs this manager to be properly registered in the disposer tree already
+    resourceChangeListener = ResourceChangeListenerImpl(model, notificationExecutorServiceProvider(this))
   }
 
   /** Returns true if this [SceneManager] has been disposed. */
