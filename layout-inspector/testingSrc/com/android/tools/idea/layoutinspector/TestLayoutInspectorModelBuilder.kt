@@ -24,8 +24,6 @@ import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
-import com.android.tools.idea.layoutinspector.model.DrawViewChild
-import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.FakeAndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -92,7 +90,7 @@ fun viewWindow(
 
   val layoutEvent = LayoutInspectorViewProtocol.LayoutEvent.newBuilder().apply { this.isXr = isXr }.build()
 
-  return ViewAndroidWindow(notificationModel = mock(), root = root, event = layoutEvent, folderConfiguration = mock(), logEvent = {})
+  return ViewAndroidWindow(root = root, event = layoutEvent, folderConfiguration = mock(), logEvent = {})
 }
 
 fun window(
@@ -128,15 +126,7 @@ fun window(
       .also(body)
       .build()
 
-  return FakeAndroidWindow(inspectorViewDescriptor, windowId, imageType) { _, window ->
-    ViewNode.writeAccess {
-      window.root.flatten().forEach {
-        it.drawChildren.clear()
-        it.children.mapTo(it.drawChildren) { child -> DrawViewChild(child) }
-      }
-    }
-    onRefreshImages()
-  }
+  return FakeAndroidWindow(inspectorViewDescriptor, windowId, imageType) { _, _ -> onRefreshImages() }
 }
 
 private val defaultLayout = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "defaultLayout")
@@ -196,8 +186,6 @@ fun compose(
 
 interface InspectorNodeDescriptor
 
-class InspectorImageDescriptor(internal val image: BufferedImage) : InspectorNodeDescriptor
-
 class InspectorViewDescriptor(
   private val drawId: Long,
   private val qualifiedName: String,
@@ -223,10 +211,6 @@ class InspectorViewDescriptor(
   var image: BufferedImage? = null,
 ) : InspectorNodeDescriptor {
   private val children = mutableListOf<InspectorNodeDescriptor>()
-
-  fun image(image: BufferedImage = mock()) {
-    children.add(InspectorImageDescriptor(image))
-  }
 
   fun view(
     drawId: Long,
@@ -361,10 +345,6 @@ class InspectorViewDescriptor(
           is InspectorViewDescriptor -> {
             val viewNode = it.build()
             result.children.add(viewNode)
-            result.drawChildren.add(DrawViewChild(viewNode))
-          }
-          is InspectorImageDescriptor -> {
-            result.drawChildren.add(DrawViewImage(it.image, result))
           }
         }
       }
@@ -455,32 +435,8 @@ class InspectorModelDescriptor(
         displayId = displayId,
         imageType = root?.imageType ?: ImageType.UNKNOWN,
         image = root?.image,
-      ) { _, window ->
-        ViewNode.writeAccess {
-          window.root.flatten().forEach {
-            val drawChildren = it.drawChildren
-            val children = it.children
-            if (drawChildren.any { drawChild -> drawChild is DrawViewImage }) {
-              // We can't support changes to the child list when there are also images, currently,
-              // since we can't know where in the order
-              // of children it should be, or if it should still be there at all.
-              if (
-                drawChildren.filterIsInstance<DrawViewChild>().map { drawChild -> drawChild.findFilteredOwner(treeSettings) } == children
-              ) {
-                // No changes, great.
-              } else {
-                throw UnsupportedOperationException(
-                  "TestLayoutInspectorModelBuilder doesn't support updating children of nodes with images."
-                )
-              }
-            } else {
-              // We don't have any images
-              drawChildren.clear()
-              children.mapTo(drawChildren) { child -> DrawViewChild(child) }
-            }
-          }
-        }
-      }
+        refreshImages = { _, _ -> },
+      )
     model.update(newWindow, listOf(windowRoot.drawId), 0)
     if (project.isOpen) {
       ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).singleOrNull()?.setApplicationIdForTest("com.example")

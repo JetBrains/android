@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection.view
 import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
-import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionTreeLoader
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.GetComposablesResult
@@ -29,7 +28,6 @@ import com.intellij.openapi.util.LowMemoryWatcher
 
 /** View-inspector specific logic supporting [AppInspectionTreeLoader]. */
 class ViewInspectorTreeLoader(
-  private val notificationModel: NotificationModel,
   private val viewEvent: LayoutInspectorViewProtocol.LayoutEvent,
   private val resourceLookup: ResourceLookup,
   private val process: ProcessDescriptor,
@@ -57,6 +55,6 @@ class ViewInspectorTreeLoader(
     val theme = context.theme.createReference(viewNodeCreator.strings)
     resourceLookup.updateConfiguration(folderConfig, theme, process, configuration.fontScale, displays = context.displays)
     val rootView = viewNodeCreator.createRootViewNode { isInterrupted } ?: return null
-    return ViewAndroidWindow(notificationModel, rootView, viewEvent, folderConfig, logEvent)
+    return ViewAndroidWindow(root = rootView, event = viewEvent, folderConfiguration = folderConfig, logEvent = logEvent)
   }
 }

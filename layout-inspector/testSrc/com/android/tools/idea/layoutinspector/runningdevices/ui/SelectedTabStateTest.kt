@@ -77,7 +77,7 @@ class SelectedTabStateTest {
     val model =
       model(displayViewRule.disposable) {
         view(ROOT, rectMap[ROOT]) {
-          view(VIEW1, rectMap[VIEW1]) { view(VIEW2, rectMap[VIEW2]) { image() } }
+          view(VIEW1, rectMap[VIEW1]) { view(VIEW2, rectMap[VIEW2]) }
           view(VIEW3, rectMap[VIEW3])
           view(VIEW4, rectMap[VIEW4])
         }

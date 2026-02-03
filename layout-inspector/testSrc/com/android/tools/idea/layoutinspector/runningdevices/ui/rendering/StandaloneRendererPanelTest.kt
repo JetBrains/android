@@ -70,9 +70,7 @@ class StandaloneRendererPanelTest {
 
   private val inspectorModel: InspectorModel
     get() =
-      model(disposable) {
-        view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height) { view(VIEW1, 50, 50, 50, 50) { image() } }
-      }
+      model(disposable) { view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height) { view(VIEW1, 50, 50, 50, 50) } }
 
   @Test
   fun testRenderingCentered() {
@@ -163,7 +161,7 @@ class StandaloneRendererPanelTest {
   @Test
   fun testChangingRootBoundsUpdatesCentering() {
     // Model with a different root size
-    val smallRootModel = model(disposable) { view(ROOT, 0, 0, 100, 100) { view(VIEW1, 10, 10, 20, 20) { image() } } }
+    val smallRootModel = model(disposable) { view(ROOT, 0, 0, 100, 100) { view(VIEW1, 10, 10, 20, 20) } }
 
     val (_, renderer) = createRenderer(inspectorModel = smallRootModel)
     renderer.setSize(screenDimension.width, screenDimension.height)

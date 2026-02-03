@@ -86,7 +86,7 @@ class AbstractStudioRendererPanelTest {
 
   /** A simple inspector model for basic rendering tests */
   private val simpleInspectorModel: InspectorModel
-    get() = model(disposable) { view(ROOT, 0, 0, 100, 100) { view(VIEW1, 10, 10, 50, 50) { image() } } }
+    get() = model(disposable) { view(ROOT, 0, 0, 100, 100) { view(VIEW1, 10, 10, 50, 50) } }
 
   @Test
   @RunsInEdt
@@ -227,7 +227,7 @@ class AbstractStudioRendererPanelTest {
       model(disposable) {
         view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
           image = imageBytes
-          view(VIEW1, 10, 15, 25, 25) { image() }
+          view(VIEW1, 10, 15, 25, 25)
         }
       }
 

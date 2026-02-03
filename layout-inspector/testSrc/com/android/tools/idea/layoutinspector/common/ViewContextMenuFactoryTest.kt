@@ -112,10 +112,7 @@ class ViewContextMenuFactoryTest {
               compose(COMPOSE4, "Item") { compose(COMPOSE5, "Text") }
             }
           }
-          view(VIEW2, qualifiedName = "viewName") {
-            view(VIEW3, textValue = "myText") { image() }
-            image()
-          }
+          view(VIEW2, qualifiedName = "viewName") { view(VIEW3, textValue = "myText") {} }
           view(VIEW4, qualifiedName = "MyWebView", isDerivedFromWebView = true)
         }
       }

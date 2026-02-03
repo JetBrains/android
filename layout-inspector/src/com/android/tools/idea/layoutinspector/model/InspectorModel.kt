@@ -242,7 +242,6 @@ class InspectorModel(
     ViewNode.writeAccess {
       root.children.forEach { it.parent = null }
       root.children.clear()
-      root.drawChildren.clear()
 
       // Calculate the root's width and height as the difference between the biggest and smallest
       // coordinate on the two axis. This allows us to handle the case where some windows exist
@@ -261,10 +260,6 @@ class InspectorModel(
       for (id in allIds) {
         if (id == null) continue
         val window = windows[id] ?: continue
-        if (window.isDimBehind) {
-          root.drawChildren.add(Dimmer(root))
-        }
-        root.drawChildren.add(DrawViewChild(window.root))
         root.children.add(window.root)
         window.root.parent = root
       }
@@ -320,14 +315,6 @@ class InspectorModel(
           } else if (newWindow.root.drawId != oldWindow?.root?.drawId || newWindow.root.qualifiedName != oldWindow.root.qualifiedName) {
             windows[newWindow.id] = newWindow
             structuralChange = true
-            if (oldWindow == null) {
-              // build draw tree on initial load of the window, so we can scale and scroll
-              // correctly.
-              // We only want to do this on initial load since otherwise there'll be flickering
-              // between when the tree is updated and when
-              // the images are loaded.
-              buildDrawTree(newWindow.root)
-            }
           } else {
             oldWindow.copyFrom(newWindow)
             val updater = Updater(oldWindow.root, newWindow.root, this)
@@ -425,15 +412,6 @@ class InspectorModel(
       }
     }
     windows.values.forEach { window -> modificationListeners.forEach { it.onModification(window, window, false) } }
-  }
-
-  /** Build draw nodes */
-  private fun ViewNode.WriteAccess.buildDrawTree(root: ViewNode) {
-    root.flattenedList().forEach { node ->
-      if (node.drawChildren.isEmpty()) {
-        node.children.forEach { node.drawChildren.add(DrawViewChild(it)) }
-      }
-    }
   }
 
   fun notifyModified(structuralChange: Boolean = false) {

@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
-import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.ComponentTreeData
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
@@ -29,13 +28,17 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.Dynamic
  * A [TreeLoader] that uses data from the [AppInspectionInspectorClient] to fetch a view tree from an API 29+ device, and parses it into
  * [ViewNode]s.
  */
-class AppInspectionTreeLoader(
-  private val notificationModel: NotificationModel,
-  private val logEvent: (DynamicLayoutInspectorEventType) -> Unit,
-) : TreeLoader {
+class AppInspectionTreeLoader(private val logEvent: (DynamicLayoutInspectorEventType) -> Unit) : TreeLoader {
   override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, process: ProcessDescriptor): ComponentTreeData? {
     if (data is ViewLayoutInspectorClient.Data) {
-      val treeLoader = ViewInspectorTreeLoader(notificationModel, data.viewEvent, resourceLookup, process, data.composeEvent, logEvent)
+      val treeLoader =
+        ViewInspectorTreeLoader(
+          viewEvent = data.viewEvent,
+          resourceLookup = resourceLookup,
+          process = process,
+          composeResult = data.composeEvent,
+          logEvent = logEvent,
+        )
       val window = treeLoader.loadComponentTree()
       return ComponentTreeData(window, data.generation, treeLoader.dynamicCapabilities)
     }

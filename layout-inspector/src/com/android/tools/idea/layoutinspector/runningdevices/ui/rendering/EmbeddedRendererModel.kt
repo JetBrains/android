@@ -17,10 +17,6 @@ package com.android.tools.idea.layoutinspector.runningdevices.ui.rendering
 
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.model.LABEL_FONT_SIZE
-import com.android.tools.idea.layoutinspector.model.RenderingDimensions.EMPHASIZED_BORDER_THICKNESS
-import com.android.tools.idea.layoutinspector.model.RenderingDimensions.NORMAL_BORDER_THICKNESS
-import com.android.tools.idea.layoutinspector.model.RenderingDimensions.RECOMPOSITION_BORDER_THICKNESS
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
@@ -33,6 +29,16 @@ import java.awt.Rectangle
 import java.awt.image.BufferedImage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+
+/**
+ * Screen density independent dimensions used for rendering Layout Inspector UI. They are used both for studio-side and on-device rendering,
+ * where the platform (intellij or android) will scale them according to the screen density.
+ */
+const val NORMAL_BORDER_THICKNESS = 1f
+const val EMPHASIZED_BORDER_THICKNESS = 2f
+const val RECOMPOSITION_BORDER_THICKNESS = 0f
+
+const val LABEL_FONT_SIZE = 12f
 
 /**
  * Package name used to identify views added to the app's view hierarchy by the Layout Inspector agent. Currently used to identify the view

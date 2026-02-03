@@ -19,10 +19,7 @@ import com.android.testutils.ImageDiffUtil
 import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.SYSTEM_PKG
 import com.android.tools.idea.layoutinspector.createProcess
-import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.FLAG_SYSTEM_DEFINED
-import com.android.tools.idea.layoutinspector.model.NotificationModel
-import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.GetComposablesResult
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableRoot
@@ -293,41 +290,34 @@ class AppInspectionTreeLoaderTest {
   @Test
   fun testCanProcessBitmapScreenshots() = runBlocking {
     val treeLoader =
-      AppInspectionTreeLoader(
-        NotificationModel(projectRule.project),
-        logEvent = { assertThat(it).isEqualTo(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS) },
-      )
+      AppInspectionTreeLoader(logEvent = { assertThat(it).isEqualTo(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS) })
 
     val data = createFakeData(BITMAP)
     val (window, generation) = treeLoader.loadComponentTree(data, ResourceLookup(projectRule.project), DEVICE_1.createProcess())!!
     assertThat(data.generation).isEqualTo(generation)
     window!!.refreshImages(1.0)
 
-    val resultImage = ViewNode.readAccess { (window.root.drawChildren[0] as DrawViewImage).image }
+    val resultImage = window.image!!
     ImageDiffUtil.assertImageSimilar("image1.png", sample565.image, resultImage, 0.01)
 
     val data2 = createFakeData(BITMAP, bitmapType = BitmapType.ARGB_8888)
     val (window2, _) = treeLoader.loadComponentTree(data2, ResourceLookup(projectRule.project), DEVICE_1.createProcess())!!
     window2!!.refreshImages(1.0)
 
-    val resultImage2 = ViewNode.readAccess { (window2.root.drawChildren[0] as DrawViewImage).image }
+    val resultImage2 = window2.image!!
     ImageDiffUtil.assertImageSimilar("image1.png", sample8888.image, resultImage2, 0.01)
   }
 
   @Test
   fun testCanProcessWithoutScreenshot() {
     val treeLoader =
-      AppInspectionTreeLoader(
-        NotificationModel(projectRule.project),
-        logEvent = { assertThat(it).isEqualTo(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS) },
-      )
+      AppInspectionTreeLoader(logEvent = { assertThat(it).isEqualTo(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS) })
 
     val data = createFakeData(hasScreenshot = false)
     val (window, generation) = treeLoader.loadComponentTree(data, ResourceLookup(projectRule.project), DEVICE_1.createProcess())!!
     assertThat(data.generation).isEqualTo(generation)
     runBlocking { window!!.refreshImages(1.0) }
 
-    val hasDrawViewImage = ViewNode.readAccess { (window!!.root.drawChildren.filterIsInstance<DrawViewImage>().isNotEmpty()) }
-    assertThat(hasDrawViewImage).isFalse()
+    assertThat(window!!.image).isNull()
   }
 }

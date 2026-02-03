@@ -142,11 +142,6 @@ open class ViewNode(
   private val parentSequence: Sequence<ViewNode>
     get() = generateSequence(this) { it.parent }
 
-  // Views and images that will be drawn.
-  // The order here and in children can be different at least due to how compose->view transitions
-  // are grafted in.
-  private val drawChildren = mutableListOf<DrawViewNode>()
-
   var tag: XmlTag?
     get() = tagPointer?.element
     set(value) {
@@ -210,9 +205,6 @@ open class ViewNode(
 
     val ViewNode.parent: ViewNode?
       get() = parent
-
-    val ViewNode.drawChildren: MutableList<DrawViewNode>
-      get() = drawChildren
 
     val ViewNode.parentSequence: Sequence<ViewNode>
       get() = parentSequence

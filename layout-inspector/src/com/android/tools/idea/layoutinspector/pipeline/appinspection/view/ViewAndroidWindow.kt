@@ -19,9 +19,6 @@ import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ScreenRound
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
-import com.android.tools.idea.layoutinspector.model.DrawViewChild
-import com.android.tools.idea.layoutinspector.model.DrawViewImage
-import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.layoutinspector.BITMAP_HEADER_SIZE
@@ -38,7 +35,6 @@ import java.util.zip.Inflater
 
 /** An [AndroidWindow] used by the app inspection view inspector. */
 class ViewAndroidWindow(
-  private val notificationModel: NotificationModel,
   root: ViewNode,
   event: LayoutInspectorViewProtocol.LayoutEvent,
   folderConfiguration: FolderConfiguration,
@@ -79,7 +75,6 @@ class ViewAndroidWindow(
     try {
       val immutableScreenshotBytes = screenshotBytes
       if (immutableScreenshotBytes == null) {
-        createDrawChildren(null)
         image = null
       } else {
         if (immutableScreenshotBytes.isNotEmpty()) {
@@ -87,8 +82,11 @@ class ViewAndroidWindow(
             ImageType.BITMAP_AS_REQUESTED -> {
               val bufferedImage = processBitmap(immutableScreenshotBytes)
               image = bufferedImage
-              createDrawChildren(bufferedImage)
               logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
+            }
+            ImageType.SKP,
+            ImageType.SKP_PENDING -> {
+              image = null
             }
             else -> {
               image = null
@@ -101,21 +99,6 @@ class ViewAndroidWindow(
       image = null
       // TODO: it seems like grpc can run out of memory landing us here. We should check for that.
       Logger.getInstance(LayoutInspector::class.java).warn(ex)
-    }
-  }
-
-  /**
-   * Creates the [DrawViewImage] and [DrawViewChild]ren, which will be used to render the image and borders. The image is optional, so the
-   * [DrawViewImage] might not be created.
-   */
-  private fun createDrawChildren(image: BufferedImage?) {
-    ViewNode.writeAccess {
-      val views = root.flattenedList()
-      views.forEach { it.drawChildren.clear() }
-      if (image != null) {
-        root.drawChildren.add(DrawViewImage(image, root, deviceClip))
-      }
-      views.forEach { it.children.mapTo(it.drawChildren) { child -> DrawViewChild(child) } }
     }
   }
 }

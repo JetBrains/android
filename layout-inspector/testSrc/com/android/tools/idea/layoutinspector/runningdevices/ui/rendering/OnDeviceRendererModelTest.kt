@@ -24,10 +24,7 @@ import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.model.LABEL_FONT_SIZE
 import com.android.tools.idea.layoutinspector.model.ROOT
-import com.android.tools.idea.layoutinspector.model.RenderingDimensions.EMPHASIZED_BORDER_THICKNESS
-import com.android.tools.idea.layoutinspector.model.RenderingDimensions.NORMAL_BORDER_THICKNESS
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule

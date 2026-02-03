@@ -99,7 +99,7 @@ class AppInspectionInspectorClient(
 
   override val capabilities = EnumSet.of(Capability.SUPPORTS_CONTINUOUS_MODE, Capability.SUPPORTS_SYSTEM_NODES, Capability.SUPPORTS_SKP)!!
 
-  override val treeLoader = AppInspectionTreeLoader(notificationModel = notificationModel, logEvent = ::logEventToMetrics)
+  override val treeLoader = AppInspectionTreeLoader(logEvent = ::logEventToMetrics)
   override val provider: PropertiesProvider
     get() = propertiesProvider
 

@@ -22,11 +22,7 @@ import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
 import com.android.tools.idea.layoutinspector.model.COMPOSE2
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.model.LABEL_FONT_SIZE
 import com.android.tools.idea.layoutinspector.model.ROOT
-import com.android.tools.idea.layoutinspector.model.RenderingDimensions.EMPHASIZED_BORDER_THICKNESS
-import com.android.tools.idea.layoutinspector.model.RenderingDimensions.NORMAL_BORDER_THICKNESS
-import com.android.tools.idea.layoutinspector.model.RenderingDimensions.RECOMPOSITION_BORDER_THICKNESS
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -41,6 +37,7 @@ import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorVie
 import com.android.tools.idea.layoutinspector.viewWindow
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -67,6 +64,7 @@ import org.junit.Test
 class OnDeviceRendererPanelTest {
   @get:Rule val runInEdt = EdtRule()
   @get:Rule val disposableRule = DisposableRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
   private lateinit var inspectorModel: InspectorModel
   private lateinit var renderModel: EmbeddedRendererModel

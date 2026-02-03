@@ -22,6 +22,7 @@ import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.Screenshot
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewBounds
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewRect
@@ -34,6 +35,7 @@ import com.android.tools.idea.metrics.MetricsTrackerRule
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.layoutinspector.BitmapType
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceInfo
@@ -49,6 +51,8 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 
 private val MODERN_PROCESS = DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+
+private val sample565 = Screenshot("partiallyTransparentImage.png", BitmapType.RGB_565)
 
 class AppInspectionInspectorMetricsTest {
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
@@ -159,7 +163,7 @@ class AppInspectionInspectorMetricsTest {
 
     val getUsages = {
       usageTrackerRule.testTracker.usages.filter {
-        it.studioEvent.dynamicLayoutInspectorEvent.type == DynamicLayoutInspectorEventType.INITIAL_RENDER
+        it.studioEvent.dynamicLayoutInspectorEvent.type == DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS
       }
     }
 
@@ -228,7 +232,7 @@ class AppInspectionInspectorMetricsTest {
 
   private fun createFakeData(
     rootId: Long,
-    screenshotType: LayoutInspectorViewProtocol.Screenshot.Type = LayoutInspectorViewProtocol.Screenshot.Type.SKP,
+    screenshotType: LayoutInspectorViewProtocol.Screenshot.Type = LayoutInspectorViewProtocol.Screenshot.Type.BITMAP,
   ): ViewLayoutInspectorClient.Data {
     val viewLayoutEvent =
       LayoutInspectorViewProtocol.LayoutEvent.newBuilder()
@@ -253,7 +257,7 @@ class AppInspectionInspectorMetricsTest {
 
           screenshotBuilder.apply {
             type = screenshotType
-            bytes = ByteString.copyFrom(byteArrayOf(1, 2, 3))
+            bytes = ByteString.copyFrom(sample565.bytes)
           }
         }
         .build()

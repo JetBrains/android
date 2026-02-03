@@ -87,7 +87,7 @@ class AppInspectionSnapshotLoader : SnapshotLoader {
             val composeResult = composeInfo?.let { GetComposablesResult(it.composables, false) }
             val data = ViewLayoutInspectorClient.Data(0, rootIds, windowInfo.layout, composeResult)
 
-            val treeLoader = AppInspectionTreeLoader(notificationModel, ::logEvent)
+            val treeLoader = AppInspectionTreeLoader(logEvent = ::logEvent)
             val treeData = treeLoader.loadComponentTree(data, model.resourceLookup, processDescriptor) ?: throw Exception()
             capabilities.addAll(treeData.dynamicCapabilities)
 

@@ -31,11 +31,7 @@ import com.android.tools.idea.layoutinspector.model.FLAG_HAS_CHILD_DRAW_MODIFIER
 import com.android.tools.idea.layoutinspector.model.FLAG_HAS_DRAW_MODIFIER
 import com.android.tools.idea.layoutinspector.model.FLAG_SYSTEM_DEFINED
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.model.LABEL_FONT_SIZE
 import com.android.tools.idea.layoutinspector.model.ROOT
-import com.android.tools.idea.layoutinspector.model.RenderingDimensions.EMPHASIZED_BORDER_THICKNESS
-import com.android.tools.idea.layoutinspector.model.RenderingDimensions.NORMAL_BORDER_THICKNESS
-import com.android.tools.idea.layoutinspector.model.RenderingDimensions.RECOMPOSITION_BORDER_THICKNESS
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2

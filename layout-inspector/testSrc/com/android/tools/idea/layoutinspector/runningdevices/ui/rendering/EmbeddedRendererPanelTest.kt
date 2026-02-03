@@ -97,7 +97,7 @@ class EmbeddedRendererPanelTest {
     get() =
       model(disposable, displayId = 0) {
         view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
-          view(VIEW1, 10, 15, 25, 25) { image() }
+          view(VIEW1, 10, 15, 25, 25)
           compose(COMPOSE1, "Text", composeCount = 15, x = 10, y = 50, width = 80, height = 50)
         }
       }
@@ -107,7 +107,7 @@ class EmbeddedRendererPanelTest {
     get() =
       model(disposable, displayId = 0) {
         view(ROOT, 0, 0, deviceScreenDimension.height, deviceScreenDimension.width) {
-          view(VIEW1, 10, 15, 25, 25) { image() }
+          view(VIEW1, 10, 15, 25, 25)
           compose(COMPOSE1, "Text", composeCount = 15, x = 10, y = 50, width = 80, height = 50)
         }
       }
@@ -124,9 +124,7 @@ class EmbeddedRendererPanelTest {
   @Test
   fun testBoundsOverflowRight() {
     val inspectorModelOverflowRight =
-      model(disposable) {
-        view(ROOT, 10, 0, deviceScreenDimension.width, deviceScreenDimension.height) { view(VIEW1, 10, 15, 25, 25) { image() } }
-      }
+      model(disposable) { view(ROOT, 10, 0, deviceScreenDimension.width, deviceScreenDimension.height) { view(VIEW1, 10, 15, 25, 25) } }
 
     val (_, renderer) = createRenderer(inspectorModel = inspectorModelOverflowRight)
 
@@ -139,7 +137,7 @@ class EmbeddedRendererPanelTest {
   fun testBoundsOverflowLeft() {
     val inspectorModelOverflowLeft =
       model(disposable) {
-        view(ROOT, -10, 0, deviceScreenDimension.width - 10, deviceScreenDimension.height) { view(VIEW1, 10, 15, 25, 25) { image() } }
+        view(ROOT, -10, 0, deviceScreenDimension.width - 10, deviceScreenDimension.height) { view(VIEW1, 10, 15, 25, 25) }
       }
 
     val (_, renderer) = createRenderer(inspectorModel = inspectorModelOverflowLeft)
@@ -152,9 +150,7 @@ class EmbeddedRendererPanelTest {
   @Test
   fun testBoundsOverflowBottom() {
     val inspectorModelOverflowBottom =
-      model(disposable) {
-        view(ROOT, 0, 10, deviceScreenDimension.width, deviceScreenDimension.height) { view(VIEW1, 10, 15, 25, 25) { image() } }
-      }
+      model(disposable) { view(ROOT, 0, 10, deviceScreenDimension.width, deviceScreenDimension.height) { view(VIEW1, 10, 15, 25, 25) } }
 
     val (_, renderer) = createRenderer(inspectorModel = inspectorModelOverflowBottom)
 
@@ -166,9 +162,7 @@ class EmbeddedRendererPanelTest {
   @Test
   fun testBoundsOverflowTop() {
     val inspectorModelOverflowTop =
-      model(disposable) {
-        view(ROOT, 0, -10, deviceScreenDimension.width, deviceScreenDimension.height) { view(VIEW1, 10, 15, 25, 25) { image() } }
-      }
+      model(disposable) { view(ROOT, 0, -10, deviceScreenDimension.width, deviceScreenDimension.height) { view(VIEW1, 10, 15, 25, 25) } }
 
     val (_, renderer) = createRenderer(inspectorModel = inspectorModelOverflowTop)
 
@@ -322,14 +316,14 @@ class EmbeddedRendererPanelTest {
     val recompositionModel =
       model(disposable, displayId = 0) {
         view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
-          view(VIEW1, 10, 15, 25, 25) { image() }
+          view(VIEW1, 10, 15, 25, 25)
           compose(COMPOSE1, "name", x = 10, y = 50, width = 80, height = 50, composeCount = 15)
         }
       }
 
     val window =
       window(ROOT, ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
-        view(drawId = VIEW1, x = 10, y = 15, width = 25, height = 25) { image() }
+        view(drawId = VIEW1, x = 10, y = 15, width = 25, height = 25)
         compose(COMPOSE1, "name", x = 10, y = 50, width = 80, height = 50, composeCount = 100)
       }
     // Receive an update with recomposition counts.
@@ -432,7 +426,7 @@ class EmbeddedRendererPanelTest {
     val customModel =
       model(disposable, displayId = 0) {
         view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
-          view(drawId = VIEW1, x = -10, y = 15, width = 25, height = 25) { image() }
+          view(drawId = VIEW1, x = -10, y = 15, width = 25, height = 25)
           compose(COMPOSE1, "name", x = 10, y = 50, width = 80, height = 50, composeCount = 15)
         }
       }
@@ -712,7 +706,7 @@ class EmbeddedRendererPanelTest {
     val customModel =
       model(disposable, displayId = 1) {
         view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
-          view(drawId = VIEW1, x = -10, y = 15, width = 25, height = 25) { image() }
+          view(drawId = VIEW1, x = -10, y = 15, width = 25, height = 25)
           compose(COMPOSE1, "name", x = 10, y = 50, width = 80, height = 50, composeCount = 15)
         }
       }
