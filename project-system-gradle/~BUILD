@@ -43,6 +43,7 @@ iml_module(
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea.common",
         # AI Plugin access to Gradle Project System functionality
         "//tools/vendor/google/ml/aiplugin/android/gradle:aiplugin.android.gradle",
+        "//tools/vendor/google/ml/aiplugin/android/gradle:aiplugin.android.gradle_tests",
         # TODO(b/427148033), MigrateToCatalogProcessor
         "//tools/vendor/google/ml/aiplugin/experimental:aiplugin.experimental",
         # TODO(xof): investigate
