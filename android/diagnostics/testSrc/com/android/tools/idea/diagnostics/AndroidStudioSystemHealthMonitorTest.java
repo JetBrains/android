@@ -99,7 +99,7 @@ public class AndroidStudioSystemHealthMonitorTest extends PlatformLiteFixture {
     orderVerifier.verify(studioCrashReporterMock, timeout(TIMEOUT)).submit(histogramCrashReport, true);
     orderVerifier.verify(studioCrashReporterMock, timeout(TIMEOUT)).submit(freezeCrashReport, true);
   }
-  
+
   @Test
   public void testSubsetOfHistogramReportsSubmitted() throws Exception {
     AnalyticsSettingsData analyticsSettings = new AnalyticsSettingsData();
