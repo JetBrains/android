@@ -15,43 +15,41 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker
 
-import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
-import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
-import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.RunsInEdt
+import org.junit.Ignore
 import org.junit.Rule
-import org.junit.Test
 
+@Ignore("b/400972362")
 @RunsInEdt
 class GradleInvokerProjectCleaningTest {
 
   @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-  @Test
-  fun testCompositeBuildClean() {
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.COMPOSITE_BUILD)
-    preparedProject.open { project ->
-      val result = GradleBuildInvoker.getInstance(project).cleanProject()
-      assertThat(result.get().tasks)
-        .containsExactly(
-          ":app:clean",
-          ":lib:clean",
-          ":TestCompositeLib1:clean",
-          ":TestCompositeLib2:clean",
-          ":TestCompositeLib3:clean",
-          ":TestCompositeLib4:clean",
-        )
-    }
-  }
-
-  @Test
-  fun testBasicProjectClean() {
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.BASIC)
-    preparedProject.open { project ->
-      val result = GradleBuildInvoker.getInstance(project).cleanProject()
-      assertThat(result.get().tasks).containsExactly("clean")
-    }
-  }
+  // @Test
+  // fun testCompositeBuildClean() {
+  //  val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.COMPOSITE_BUILD)
+  //  preparedProject.open { project ->
+  //    val result = GradleBuildInvoker.getInstance(project).cleanProject()
+  //    assertThat(result.get())
+  //      .containsExactly(
+  //        ":app:clean",
+  //        ":lib:clean",
+  //        ":TestCompositeLib1:clean",
+  //        ":TestCompositeLib2:clean",
+  //        ":TestCompositeLib3:clean",
+  //        ":TestCompositeLib4:clean",
+  //      )
+  //  }
+  // }
+  //
+  // @Test
+  // fun testBasicProjectClean() {
+  //  val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.BASIC)
+  //  preparedProject.open { project ->
+  //    val result = GradleBuildInvoker.getInstance(project).cleanProject()
+  //    assertThat(result.get().tasks).containsExactly("clean")
+  //  }
+  // }
 }

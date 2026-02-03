@@ -32,7 +32,7 @@ import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 interface GradleBuildInvoker {
   fun buildConfiguration(modules: Array<Module>, deployApkFromBundle: Boolean): ListenableFuture<AssembleInvocationResult>
 
-  fun cleanProject(): ListenableFuture<GradleInvocationResult>
+  fun cleanProject(): ListenableFuture<GradleMultiInvocationResult>
 
   fun generateSources(modules: Array<Module>): ListenableFuture<GradleMultiInvocationResult>
 
