@@ -121,7 +121,7 @@ private constructor(
         }
       val hasOrientationSensors = getConfigBoolean(configIni["hw.sensors.orientation"], true)
       val hasTransparentDisplay = getConfigBoolean(configIni["hw.lcd.transparent"], false)
-      val hasTouchScreen = !"no-touch".equals(configIni["hw.screen"])
+      val hasTouchScreen = "no-touch" != configIni["hw.screen"]
       val postureMode = parseInt(hardwareIni["hw.sensor.hinge.resizable.config"], -1)
       val displayModes =
         try {
