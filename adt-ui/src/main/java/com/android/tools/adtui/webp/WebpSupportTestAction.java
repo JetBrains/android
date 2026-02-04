@@ -19,7 +19,11 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.diagnostic.Logger;
-import javax.imageio.ImageIO;
+import java.util.Iterator;
+import javax.imageio.spi.IIORegistry;
+import javax.imageio.spi.ImageReaderSpi;
+import javax.imageio.spi.ImageReaderWriterSpi;
+import javax.imageio.spi.ImageWriterSpi;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -40,25 +44,36 @@ public class WebpSupportTestAction extends AnAction {
     if (webpSupported()) {
       LOG.info("ImageIO supports WebP");
     } else {
-      LOG.error("ImageIO don't support WebP");
+      LOG.error("ImageIO doesn't support WebP");
     }
   }
 
   private static boolean webpSupported() {
+    IIORegistry registry = IIORegistry.getDefaultInstance();
     try {
-      return
-        ImageIO.getImageWritersByFormatName("webp").hasNext() &&
-        ImageIO.getImageWritersByFormatName("WEBP").hasNext() &&
-
-        ImageIO.getImageReadersByFormatName("webp").hasNext() &&
-        ImageIO.getImageReadersByFormatName("WEBP").hasNext() &&
-
-        ImageIO.getImageReadersByMIMEType("image/webp").hasNext() &&
-        ImageIO.getImageWritersByMIMEType("image/webp").hasNext();
+      if (hasWebpInRegistry(registry, ImageReaderSpi.class) &&
+          hasWebpInRegistry(registry, ImageWriterSpi.class)) {
+        return true;
+      }
     }
     catch (Exception ignore) {
-      return false;
     }
+    return false;
+  }
+
+  private static boolean hasWebpInRegistry(IIORegistry registry, Class<?> category) {
+    Iterator<?> it = registry.getServiceProviders(category, true);
+    while (it.hasNext()) {
+      Object spi = it.next();
+      if (spi instanceof ImageReaderWriterSpi irw) {
+        for (String name : irw.getFormatNames()) {
+          if (name.equalsIgnoreCase("webp")) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   @Override
