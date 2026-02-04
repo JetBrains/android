@@ -139,7 +139,7 @@ class InsightDisclaimerPanelTest {
     val text = textPane.text.split("\n").joinToString(" ") { it.trim() }
     assertThat(text)
       .contains(
-        "This insight was generated without code context because the currently open project does not appear to match the project selected in Firebase Crashlytics"
+        "The AI does not have access to source code for generating insights because the currently open Android Studio project does not match the project selected in App Quality Insights."
       )
   }
 

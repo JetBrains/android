@@ -115,7 +115,7 @@ class InsightDisclaimerPanel(
   private val projectMismatch =
     disclaimerPanel(
       text =
-        "This insight was generated without code context because the currently open project does not appear to match the project selected in ${controller.provider.displayName}"
+        "The AI does not have access to source code for generating insights because the currently open Android Studio project does not match the project selected in App Quality Insights."
     ) { /* no link in text */
     }
 
