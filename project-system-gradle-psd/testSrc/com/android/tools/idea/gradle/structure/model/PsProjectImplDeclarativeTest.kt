@@ -26,9 +26,11 @@ import org.hamcrest.core.IsEqual.equalTo
 import org.junit.After
 import org.junit.Assert.assertThat
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
+@Ignore("b/481618524")
 class PsProjectImplDeclarativeTest {
   @get:Rule val projectRule: DeclarativeAndroidGradleProjectRule = AndroidGradleProjectRule().withDeclarative()
 

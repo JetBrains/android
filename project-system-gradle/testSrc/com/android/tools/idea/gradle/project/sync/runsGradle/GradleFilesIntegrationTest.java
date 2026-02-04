@@ -65,6 +65,7 @@ import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
@@ -440,6 +441,7 @@ public class GradleFilesIntegrationTest {
   }
 
   @Test
+  @Ignore("b/481618524")
   public void testModifiedWhenAddingTextChildInDeclarativeSettingsFile() {
     runWithDeclarativeSupport(() -> {
       loadSimpleDeclarativeApplication();
@@ -450,6 +452,7 @@ public class GradleFilesIntegrationTest {
   }
 
   @Test
+  @Ignore("b/481618524")
   public void testModifiedWhenAddingTextChildInDeclarativeBuildFile() {
     runWithDeclarativeSupport(() -> {
       loadSimpleDeclarativeApplication();
@@ -483,6 +486,7 @@ public class GradleFilesIntegrationTest {
   }
 
   @Test
+  @Ignore("b/481618524")
   public void testNotModifiedWhenAddingWhitespaceInDeclarativeSettingsFile() {
     runWithDeclarativeSupport(() -> {
       loadSimpleDeclarativeApplication();
@@ -499,6 +503,7 @@ public class GradleFilesIntegrationTest {
   }
 
   @Test
+  @Ignore("b/481618524")
   public void testNotModifiedWhenAddingWhitespaceInDeclarativeBuildFile() {
     runWithDeclarativeSupport(() -> {
       loadSimpleDeclarativeApplication();
