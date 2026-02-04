@@ -181,7 +181,6 @@
     <psi.referenceContributor language="kotlin" implementation="com.android.tools.idea.gradle.service.resolve.KotlinNamespacePsiPackageReferenceContributor"/>
     <psi.referenceContributor language="Declarative" implementation="com.android.tools.idea.gradle.service.resolve.DeclarativeNamespacePsiPackageReferenceContributor"/>
     <useScopeEnlarger implementation="com.android.tools.idea.gradle.service.resolve.PsiPackageGradleUseScopeEnlarger"/>
-    <additionalLibraryRootsProvider implementation="com.android.tools.idea.gradle.catalog.GradleVersionCatalogLibraryRootsProvider"/>
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.kotlin.idea.gradleJava">
     <kotlinMultiplatformProducersProvider implementation="com.android.tools.idea.testartifacts.instrumented.kmp.KotlinMultiplatformAndroidTestConfigurationProducer"/>
