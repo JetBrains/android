@@ -110,7 +110,7 @@ class VitalsIntegrationTest {
 
     install.addVmOption("-Dappinsights.enable.play.vitals=true")
     install.addVmOption("-Dappinsights.play.vitals.grpc.server=localhost:${grpcServerRule.server.port}")
-    install.addVmOption("-Dappinsights.gemini.fetch.real.insight=false")
+    install.addVmOption("-Dappinsights.generate.fake.insight=true")
     install.addVmOption("-Dappinsights.play.vitals.show.insight.tool.window=true")
     system.setEnv("GOOGLE_LOGIN_USER", "test_user@google.com")
     system.runStudio(project, watcher.dashboardName) { studio ->

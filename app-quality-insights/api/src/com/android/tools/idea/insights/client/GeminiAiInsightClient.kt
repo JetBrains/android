@@ -131,7 +131,11 @@ class GeminiAiInsightClient(
   private val logger = Logger.getInstance("com.android.tools.idea.insights.client.GeminiAiInsightClient")
 
   override suspend fun fetchCrashInsight(request: GeminiCrashInsightRequest): AiInsight =
-    if (StudioFlags.GEMINI_FETCH_REAL_INSIGHT.get()) {
+    if (java.lang.Boolean.getBoolean("appinsights.generate.fake.insight")) {
+      // Simulate a delay that would come generating an actual insight
+      delay(2000)
+      AiInsight(createPrompt(request, emptyList()), request.event, insightSource = InsightSource.STUDIO_BOT)
+    } else {
       getCachedInsight(request)?.let {
         return it
       }
@@ -158,10 +162,6 @@ class GeminiAiInsightClient(
       AiInsight(response, request.event, insightSource = InsightSource.STUDIO_BOT, codeContextData = contextData).also {
         cache.putAiInsight(request.connection, request.issueId, request.variantId, it)
       }
-    } else {
-      // Simulate a delay that would come generating an actual insight
-      delay(2000)
-      AiInsight(createPrompt(request, emptyList()), request.event, insightSource = InsightSource.STUDIO_BOT)
     }
 
   override fun insightFeedbackUpdated(connection: Connection, issueId: IssueId, variantId: String?, feedback: InsightFeedback) {

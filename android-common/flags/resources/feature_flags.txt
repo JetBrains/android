@@ -14,7 +14,6 @@ app.links.assistant.missing.urls.feature=INTERNAL
 app.links.assistant.service.compatibility.enabled=COMPLETE:2025
 app.links.assistant.website.association.generator.v2=PREVIEW
 appinsights.gemini.assisted.context.fetch=PREVIEW
-appinsights.gemini.fetch.real.insight=COMPLETE:2024
 appinsights.suggest.a.fix=PREVIEW
 appinspection.enable.tool.window=COMPLETE:2020
 appinspection.use.experimental.database.inspector=COMPLETE:2025

@@ -1961,14 +1961,6 @@ public final class StudioFlags {
   // region App Insights
   private static final FlagGroup APP_INSIGHTS = new FlagGroup(FLAGS, "appinsights", "App Insights");
 
-  public static final Flag<Boolean> GEMINI_FETCH_REAL_INSIGHT =
-    new BooleanFlag(
-      APP_INSIGHTS,
-      "gemini.fetch.real.insight",
-      "Fetch real insights",
-      "Fetch actual insights from AiInsightClient"
-    );
-
   public static final Flag<Boolean> GEMINI_ASSISTED_CONTEXT_FETCH =
     new BooleanFlag(
       APP_INSIGHTS,
