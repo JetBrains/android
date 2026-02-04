@@ -2100,22 +2100,10 @@ public final class StudioFlags {
     "Maximum number of processes to retain after they are terminated. Changing the value of this flag requires restarting Android Studio.",
     100
   );
-  public static final Flag<Boolean> PROCESS_NAME_TRACKER_AGENT_ENABLE = new BooleanFlag(
-    PROCESS_NAME_MONITOR, "processnamemonitor.tracker.agent.enable", "Enable process tracking agent",
-    "Enable process tracking using an agent deployed to the device. Changing the value of this flag requires restarting Android Studio."
-  );
   public static final Flag<Integer> PROCESS_NAME_TRACKER_AGENT_INTERVAL_MS = new IntFlag(
     PROCESS_NAME_MONITOR, "processnamemonitor.tracker.agent.interval", "Process tracking agent polling interval",
     "Process tracking agent polling interval in milliseconds. Changing the value of this flag requires restarting Android Studio.",
     1000
-  );
-  public static final Flag<Boolean> PROCESS_NAME_MONITOR_ADBLIB_ENABLED = new BooleanFlag(
-    PROCESS_NAME_MONITOR, "processnamemonitor.adblib.enable", "Enable Adblib monitor",
-    "Enable the Adblib version of the process name monitor. " +
-    "Note that adblib process tracking can not work concurrently with ddmlib process tracking because only one concurrent JDWP " +
-    "session can be open per process per device. Therefore, this feature is only enabled if the flag " +
-    "ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER is also true. " +
-    "Changing the value of this flag requires restarting Android Studio."
   );
   // endregion NEW_SEND_FEEDBACK_DIALOG
 
