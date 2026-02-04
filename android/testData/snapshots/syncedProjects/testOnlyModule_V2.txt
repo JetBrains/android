@@ -112,12 +112,14 @@ PROJECT                       : project
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/keepRules [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/resources [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/keepRules [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/resources [-]
@@ -175,12 +177,14 @@ PROJECT                       : project
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/keepRules [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/resources [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/keepRules [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/resources [-]
@@ -240,12 +244,14 @@ PROJECT                       : project
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/keepRules [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/resources [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/keepRules [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/resources [-]
@@ -348,20 +354,22 @@ PROJECT                       : project
         CONENT_ENTRY                  : file://<PROJECT>/benchmark/build/generated/ap_generated_sources/benchmark/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/benchmark/src/benchmark [-]
         CONENT_ENTRY                  : file://<PROJECT>/benchmark/src/main
-            JavaSource                    : file://<PROJECT>/benchmark/src/main/java
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/benchmark/build/generated/ap_generated_sources/benchmark/out [-]
+            JavaSource (test)             : file://<PROJECT>/benchmark/src/main/java
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/benchmark/build/generated/ap_generated_sources/benchmark/out [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/benchmark/src/benchmark/assets [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/benchmark/src/benchmark/baselineProfiles [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/benchmark/src/benchmark/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/benchmark/src/benchmark/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/benchmark/src/benchmark/res [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/benchmark/src/benchmark/resources [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/benchmark/src/main/assets [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/benchmark/src/main/baselineProfiles [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/benchmark/src/main/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/benchmark/src/main/res [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/benchmark/src/main/resources [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/benchmark/src/benchmark/assets [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/benchmark/src/benchmark/baselineProfiles [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/benchmark/src/benchmark/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/benchmark/src/benchmark/keepRules [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/benchmark/src/benchmark/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/benchmark/src/benchmark/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/benchmark/src/benchmark/resources [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/benchmark/src/main/assets [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/benchmark/src/main/baselineProfiles [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/benchmark/src/main/keepRules [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/benchmark/src/main/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/benchmark/src/main/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/benchmark/src/main/resources [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -410,9 +418,6 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-integration:1.3 [=]
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
         ORDER_ENTRY                   : project.app.main
-        Classes
-            -                             : file://<PROJECT>/benchmark/build/intermediates/javac/benchmark/compileBenchmarkJavaWithJavac/classes
-            -                             : jar://<PROJECT>/benchmark/build/intermediates/compile_r_class_jar/benchmark/generateBenchmarkRFile/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :benchmark:generateBenchmarkSources
                 ASSEMBLE                      : :benchmark:assembleBenchmark
@@ -501,20 +506,22 @@ PROJECT                       : project
         CONENT_ENTRY                  : file://<PROJECT>/test/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/test/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/test/src/main
-            JavaSource                    : file://<PROJECT>/test/src/main/java
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/test/build/generated/ap_generated_sources/debug/out [-]
+            JavaSource (test)             : file://<PROJECT>/test/src/main/java
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/test/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test/src/debug/assets [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test/src/debug/baselineProfiles [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/test/src/debug/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/test/src/debug/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test/src/debug/res [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test/src/debug/resources [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test/src/main/assets [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test/src/main/baselineProfiles [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/test/src/main/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test/src/main/res [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test/src/main/resources [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/test/src/debug/assets [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/test/src/debug/baselineProfiles [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/test/src/debug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/test/src/debug/keepRules [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/test/src/debug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/test/src/debug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/test/src/debug/resources [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/test/src/main/assets [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/test/src/main/baselineProfiles [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/test/src/main/keepRules [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/test/src/main/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/test/src/main/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/test/src/main/resources [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -563,9 +570,6 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-integration:1.3 [=]
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
         ORDER_ENTRY                   : project.app.main
-        Classes
-            -                             : file://<PROJECT>/test/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
-            -                             : jar://<PROJECT>/test/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :test:generateDebugSources
                 ASSEMBLE                      : :test:assembleDebug
@@ -654,20 +658,22 @@ PROJECT                       : project
         CONENT_ENTRY                  : file://<PROJECT>/test2/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/test2/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/test2/src/main
-            JavaSource                    : file://<PROJECT>/test2/src/main/java
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/test2/build/generated/ap_generated_sources/debug/out [-]
+            JavaSource (test)             : file://<PROJECT>/test2/src/main/java
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/test2/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test2/src/debug/assets [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test2/src/debug/baselineProfiles [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/test2/src/debug/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/test2/src/debug/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test2/src/debug/res [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test2/src/debug/resources [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test2/src/main/assets [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test2/src/main/baselineProfiles [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/test2/src/main/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test2/src/main/res [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test2/src/main/resources [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/test2/src/debug/assets [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/test2/src/debug/baselineProfiles [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/test2/src/debug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/test2/src/debug/keepRules [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/test2/src/debug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/test2/src/debug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/test2/src/debug/resources [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/test2/src/main/assets [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/test2/src/main/baselineProfiles [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/test2/src/main/keepRules [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/test2/src/main/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/test2/src/main/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/test2/src/main/resources [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -716,9 +722,6 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-integration:1.3 [=]
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
         ORDER_ENTRY                   : project.app.main
-        Classes
-            -                             : file://<PROJECT>/test2/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
-            -                             : jar://<PROJECT>/test2/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :test2:generateDebugSources
                 ASSEMBLE                      : :test2:assembleDebug
