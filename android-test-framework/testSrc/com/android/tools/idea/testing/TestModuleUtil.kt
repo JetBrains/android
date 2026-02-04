@@ -30,7 +30,8 @@ fun Project.findAppModule(): Module = findModule("app")
  * if they aren't then we attempt to find an exact match to the given [name]. If they are then we attempt to find a match by prefixing the
  * given [name] with the name of the project.
  *
- * If this yields no match we attempt to find any module which has a [name] as a prefix of the modules name.
+ * If this yields no match we attempt to find any module which has a dot [name] as a suffix of the modules name. Then checking suffix
+ * without leading dot as a last fallback
  *
  * Tests that rely on multiple modules of the same name (under different parents) should be very careful when calling this method.
  */
@@ -39,6 +40,28 @@ fun Project.findModule(name: String): Module =
     ?: error(
       "Unable to find module with name '$name', existing modules are ${ModuleManager.getInstance(this).modules.joinToString { it.name }}"
     )
+
+/**
+ * Attempts to find a module by its full name.
+ *
+ * This method first tries to find a module using [ModuleManager.findModuleByName]. If that fails,
+ * it iterates through all modules and returns the first one whose name exactly matches the given [name].
+ *
+ * @param name The full name of the module to find.
+ * @return The [Module] if found, or `null` otherwise.
+ */
+fun Project.findModuleByFullName(name: String): Module =
+  maybeFindModuleByFullName(name)
+  ?: error(
+    "Unable to find module with name '$name', existing modules are ${ModuleManager.getInstance(this).modules.joinToString { it.name }}"
+  )
+
+private fun Project.maybeFindModuleByFullName(name: String): Module? = runReadAction {
+
+  val moduleManager = ModuleManager.getInstance(this)
+    moduleManager.findModuleByName(name) ?: moduleManager.modules.firstOrNull { module -> module.name == name }
+}
+
 
 fun Project.hasModule(name: String): Boolean = maybeFindModule(name) != null
 
@@ -50,5 +73,6 @@ private fun Project.maybeFindModule(name: String): Module? = runReadAction {
     moduleManager.findModuleByName(name)
   } else {
     moduleManager.findModuleByName("${this.name}.$name")
-  } ?: moduleManager.modules.firstOrNull { module -> module.name.endsWith(name) }
+  }
+    ?: moduleManager.modules.firstOrNull { module -> module.name.endsWith(".$name") }
 }

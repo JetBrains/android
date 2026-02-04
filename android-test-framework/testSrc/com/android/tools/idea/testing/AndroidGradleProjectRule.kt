@@ -92,6 +92,7 @@ class AndroidGradleProjectRule(
   fun findGradleModule(gradlePath: String): Module? = project.gradleModule(gradlePath)
 
   fun getModule(moduleName: String) = delegateTestCase.getModule(moduleName)
+  fun getModuleByFullName(moduleName: String) = delegateTestCase.getModuleByFullName(moduleName)
 
   fun hasModule(moduleName: String) = delegateTestCase.hasModule(moduleName)
 

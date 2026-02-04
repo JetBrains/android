@@ -23,6 +23,7 @@ import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.findModule
+import com.android.tools.idea.testing.findModuleByFullName
 import com.android.utils.FileUtils
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth
@@ -61,7 +62,7 @@ class GradleUtilAndroidGradleTest {
   @Test
   fun testGetGradleBuildFileFromProjectModule() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
-    preparedProject.open { project -> verifyBuildFile(project, project.findModule(project.name), "build.gradle") }
+    preparedProject.open { project -> verifyBuildFile(project, project.findModuleByFullName(project.name), "build.gradle") }
   }
 
   @Test

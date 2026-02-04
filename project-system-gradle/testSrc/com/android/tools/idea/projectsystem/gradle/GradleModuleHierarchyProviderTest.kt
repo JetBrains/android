@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.findModule
+import com.android.tools.idea.testing.findModuleByFullName
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.TruthJUnit
 import com.intellij.gradle.toolingExtension.util.GradleVersionUtil
@@ -46,12 +47,12 @@ data class GradleModuleHierarchyProviderTest(
 
           val expected =
             mutableListOf(
-              project.findModule("project.app"),
-              project.findModule("project.lib"),
-              project.findModule(if (isPhasedSyncEnabled) "includedLib1" else "TestCompositeLib1"),
-              project.findModule(if (isPhasedSyncEnabled) "TestCompositeLib2" else "composite2"),
-              project.findModule("TestCompositeLib3"),
-              project.findModule(if (isPhasedSyncEnabled) "TestCompositeLib4" else "composite4"),
+              project.findModuleByFullName("project.app"),
+              project.findModuleByFullName("project.lib"),
+              project.findModuleByFullName(if (isPhasedSyncEnabled) "includedLib1" else "TestCompositeLib1"),
+              project.findModuleByFullName(if (isPhasedSyncEnabled) "TestCompositeLib2" else "composite2"),
+              project.findModuleByFullName("TestCompositeLib3"),
+              project.findModuleByFullName(if (isPhasedSyncEnabled) "TestCompositeLib4" else "composite4"),
             )
 
           val projectGradleVersion =
@@ -65,8 +66,8 @@ data class GradleModuleHierarchyProviderTest(
               // chain.
               // This means that resulting hierarchy is different.
               listOf(
-                project.findModule(if (isPhasedSyncEnabled) "TestCompositeLibNested_1" else "compositeNest"),
-                project.findModule(if (isPhasedSyncEnabled) "TestCompositeLibNested_3" else "com.test.compositeNest3.compositeNest"),
+                project.findModuleByFullName(if (isPhasedSyncEnabled) "TestCompositeLibNested_1" else "compositeNest"),
+                project.findModuleByFullName(if (isPhasedSyncEnabled) "TestCompositeLibNested_3" else "com.test.compositeNest3.compositeNest"),
               )
             } else {
               emptyList()

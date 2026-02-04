@@ -279,6 +279,10 @@ abstract class AndroidGradleTestCase extends AndroidTestBase implements GradleIn
   protected final Module getModule(@NotNull String moduleName) {
     return TestModuleUtil.findModule(getProject(), moduleName);
   }
+  @NotNull
+  protected final Module getModuleByFullName(@NotNull String fullName) {
+    return TestModuleUtil.findModuleByFullName(getProject(), fullName);
+  }
 
   protected final boolean hasModule(@NotNull String moduleName) {
     return TestModuleUtil.hasModule(getProject(), moduleName);
