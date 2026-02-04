@@ -2255,6 +2255,10 @@ public final class StudioFlags {
                     "Enable @file attachment and the context drawer.",
                     "When enabled, @file can be used to attach text files as context. Also enables the context drawer for context management.");
 
+  public static final Flag<Boolean> STUDIOBOT_CONTEXT_ATTACHMENT_CHANGES_ENABLED =
+    new BooleanFlag(STUDIOBOT, "chat.context.attachment.changes",
+                    "Enable inline context management.",
+                    "When enabled, inline references in the query box will be used for context management.");
   public static final Flag<Boolean> STUDIOBOT_FOLDER_CONTEXT_SELECTION_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.enable.folder.context.selection",
                     "Enable @folder attachment.",

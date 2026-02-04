@@ -190,6 +190,7 @@ studiobot.ask.user.tool.enabled=PREVIEW
 studiobot.askgemini.include.build.files.in.context=PREVIEW
 studiobot.attachments=COMPLETE:2025
 studiobot.bring.your.own.key=COMPLETE:2025
+studiobot.chat.context.attachment.changes=INTERNAL
 studiobot.chat.enable.context.attachment=COMPLETE:2025
 studiobot.chat.enable.folder.context.selection=INTERNAL
 studiobot.chat.multiple.sessions=COMPLETE:2025
