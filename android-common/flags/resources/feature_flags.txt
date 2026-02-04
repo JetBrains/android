@@ -13,8 +13,11 @@ app.links.assistant.gemini.add.logic.for.a.new.link=COMPLETE:2025
 app.links.assistant.missing.urls.feature=INTERNAL
 app.links.assistant.service.compatibility.enabled=COMPLETE:2025
 app.links.assistant.website.association.generator.v2=PREVIEW
-appinsights.gemini.assisted.context.fetch=PREVIEW
-appinsights.suggest.a.fix=PREVIEW
+appinsights.fix.with.agent=PREVIEW
+# Not necessary with agent integration
+# appinsights.gemini.assisted.context.fetch=PREVIEW
+# Replaced by fix.with.agent
+# appinsights.suggest.a.fix=PREVIEW
 appinspection.enable.tool.window=COMPLETE:2020
 appinspection.use.experimental.database.inspector=COMPLETE:2025
 backgroundtask.inspector.enable.backgroundtask.inspector.tab=COMPLETE:2021

@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.insights.ui.insight
 
+import com.android.flags.junit.FlagRule
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.LoadingState
@@ -54,7 +56,13 @@ class InsightBottomPanelTest {
   private val projectRule = ProjectRule()
   private val controllerRule = AppInsightsProjectLevelControllerRule(projectRule)
 
-  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(EdtRule()).around(projectRule).around(controllerRule)
+  @get:Rule
+  val ruleChain: RuleChain =
+    RuleChain.outerRule(EdtRule())
+      .around(FlagRule(StudioFlags.AQI_FIX_WITH_AGENT, false))
+      .around(FlagRule(StudioFlags.SUGGEST_A_FIX, true))
+      .around(projectRule)
+      .around(controllerRule)
 
   private lateinit var fakeUi: FakeUi
   private val currentInsightFlow = MutableStateFlow<LoadingState<AiInsight?>>(LoadingState.Ready(null))

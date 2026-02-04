@@ -51,6 +51,7 @@ class GeminiAiInsightClientTest {
   val ruleChain: RuleChain =
     RuleChain.outerRule(projectRule)
       .around(FlagRule(StudioFlags.SUGGEST_A_FIX, false))
+      .around(FlagRule(StudioFlags.AQI_FIX_WITH_AGENT, false))
       .around(FlagRule(StudioFlags.STUDIOBOT_TRANSFORM_SESSION_DIFF_EDITOR_VIEWER_ENABLED, false))
 
   private var expectedPromptText: String = ""
