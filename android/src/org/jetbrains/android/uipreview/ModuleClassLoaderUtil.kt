@@ -21,6 +21,7 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.classloading.loaders.ClassBinaryCacheLoader
+import com.android.tools.idea.rendering.classloading.loaders.FakeNavigationEventDispatcherOwnerLoader
 import com.android.tools.idea.rendering.classloading.loaders.FakeSavedStateRegistryLoader
 import com.android.tools.idea.rendering.classloading.loaders.ListeningLoader
 import com.android.tools.idea.rendering.classloading.loaders.MultiLoaderWithAffinity
@@ -193,7 +194,8 @@ internal class ModuleClassLoaderImpl(
     val fakeSavedStateRegistryLoader = FakeSavedStateRegistryLoader(jarLoader)
 
     // Tree of the class Loaders:
-    // Each node of this tree checks if it can load the current class, it delegates to its subtree otherwise.
+    // Each node of this tree checks if it can load the current class, it delegates to its subtree
+    // otherwise.
     return ListeningLoader(
       delegate =
         ClassBinaryCacheLoader(
@@ -202,7 +204,7 @@ internal class ModuleClassLoaderImpl(
               delegate =
                 AsmTransformingLoader(
                   transform = nonProjectTransforms,
-                  delegate = fakeSavedStateRegistryLoader,
+                  delegate = FakeNavigationEventDispatcherOwnerLoader(delegate = fakeSavedStateRegistryLoader),
                   pseudoClassLocator =
                     PseudoClassLocatorForLoader(
                       loaders = listOfNotNull(jarLoader, parentLoader).asSequence(),
@@ -213,7 +215,8 @@ internal class ModuleClassLoaderImpl(
                 ),
               onAfterLoad = { fqcn, bytes ->
                 onClassLoaded(fqcn)
-                // Map the fqcn to the library path and insert the class into the class binary cache
+                // Map the fqcn to the library path and insert the class into the class
+                // binary cache
                 fqcnToLibraryPath[onDiskClassNameLookup(fqcn)]?.let { libraryPath ->
                   binaryCache.put(fqcn, nonProjectTransformationId, libraryPath, bytes)
                 }
@@ -227,8 +230,8 @@ internal class ModuleClassLoaderImpl(
           // Hide this class to avoid the coroutines in the project loading the AndroidDispatcherFactory for now.
           // b/162056408
           //
-          // Throwing an exception here (other than ClassNotFoundException) will force the FastServiceLoader to fallback
-          // to the regular class loading. This allows us to inject our own DispatcherFactory, specific to Layoutlib.
+          // Throwing an exception here (other than ClassNotFoundException) will force the  FastServiceLoader to fallback to the regular
+          // class loading. This allows us to inject our own DispatcherFactory, specific to Layoutlib.
           throw IllegalArgumentException("AndroidDispatcherFactory not supported by layoutlib")
         }
       },

@@ -8,6 +8,7 @@ import com.android.layoutlib.reflection.TrackingThreadLocal;
 import com.android.tools.idea.module.ModuleDisposableService;
 import com.android.tools.idea.rendering.BuildTargetReference;
 import com.android.tools.idea.rendering.StudioModuleRenderContext;
+import com.android.tools.idea.rendering.classloading.LocalNavigationEventTransform;
 import com.android.tools.idea.rendering.classloading.StringReplaceTransform;
 import com.android.tools.rendering.RenderAsyncActionExecutor;
 import com.android.tools.rendering.RenderService;
@@ -51,7 +52,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.android.uipreview.classloading.LibraryResourceClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -128,6 +128,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
    *   <li>Redirects calls to PreviewAnimationClock's notifySubscribe and notifyUnsubscribe to ComposePreviewAnimationManager
    *   <li>Repackages certain classes to avoid loading the Studio versions from the Studio class loader
    *   <li>Wraps ViewTreeLifecycleOwner.get to intercept its returning value and make sure it never returns null
+   *   <li>Wraps LocalNavigationEventDispatcherOwner.current to intercept its returning value to use our local FakeNavigationEventDispatcherOwner
    * </ul>
    * Note that it does not attempt to handle cases where class file constructs cannot
    * be represented in the target version. This is intended for uses such as for example
@@ -163,6 +164,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
     ResourcesCompatTransform::new,
     RequestExecutorTransform::new,
     ViewTreeLifecycleTransform::new,
+    LocalNavigationEventTransform::new,
     SdkIntReplacer::new,
     // Because of the use of RepackageTransform, we also need to ensure that certain internal constants are correctly renamed
     // so they point to the new repackaged classes.

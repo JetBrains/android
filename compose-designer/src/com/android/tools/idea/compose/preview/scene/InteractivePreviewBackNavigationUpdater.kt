@@ -18,12 +18,38 @@ package com.android.tools.idea.compose.preview.scene
 import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
+import com.android.tools.idea.rendering.classloading.LocalNavigationEventTransform
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.openapi.diagnostic.Logger
 import org.jetbrains.annotations.VisibleForTesting
 
 object InteractivePreviewBackNavigationUpdater {
+
+  private var _currentNavigationEventDispatcherOwner: Any? = null
+
+  /**
+   * Returns the current `androidx.navigationevent.compose.FakeNavigationEventDispatcherOwner` preveviosly created by
+   * [LocalNavigationEventTransform]
+   */
+  val currentNavigationEventDispatcherOwner
+    get() = _currentNavigationEventDispatcherOwner
+
+  /**
+   * Sets the current [androidx.navigationevent.NavigationEventDispatcherOwner].
+   *
+   * This method is invoked by [LocalNavigationEventTransform] via bytecode injection to store the
+   * `androidx.navigationevent.compose.FakeNavigationEventDispatcherOwner` it creates. This makes the fake dispatcher accessible via
+   * [currentNavigationEventDispatcherOwner].
+   *
+   * WARNING: Do not rename or delete this method. It is accessed by name using a Java [org.objectweb.asm.MethodVisitor] within
+   * [LocalNavigationEventTransform.visitMethod].
+   */
+  @Suppress("unused") // Field names are accessed through [LocalNavigationEventTransform]
+  fun setNavigationEventDispatcherOwner(dispatcher: Any) {
+    _currentNavigationEventDispatcherOwner = dispatcher
+  }
+
   /**
    * Sets the `backPressDispatcher` property of the [previewElement] to the ComposeViewAdapter's
    * FakeOnBackPressedDispatcherOwner#onBackPressedDispatcher() method. This will make sure that back events triggered in interactive
