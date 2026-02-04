@@ -19,7 +19,6 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 
 import com.google.common.util.concurrent.Futures;
 import com.google.idea.blaze.base.qsync.settings.QuerySyncConfigurableProvider;
-import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings;
 import com.google.idea.common.experiments.IntExperiment;
 import com.google.idea.common.util.MorePlatformUtils;
 import com.intellij.ide.BrowserUtil;

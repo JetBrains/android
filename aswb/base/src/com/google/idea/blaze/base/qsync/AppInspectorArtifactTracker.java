@@ -20,7 +20,6 @@ import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.exception.BuildException;
 import java.nio.file.Path;
-import java.util.Set;
 
 /** A local cache of built app inspector artifacts. */
 public interface AppInspectorArtifactTracker {

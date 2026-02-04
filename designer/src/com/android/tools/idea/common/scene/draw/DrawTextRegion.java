@@ -17,23 +17,20 @@ package com.android.tools.idea.common.scene.draw;
 
 import com.android.SdkConstants;
 import com.android.annotations.concurrency.Slow;
-import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneContext;
-import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.text.StringUtil;
-
-import com.intellij.util.SlowOperations;
+import java.awt.*;
+import java.awt.geom.AffineTransform;
 import javax.swing.*;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
-import java.awt.*;
-import java.awt.geom.AffineTransform;
 
 /**
  * Base Class for drawing text components

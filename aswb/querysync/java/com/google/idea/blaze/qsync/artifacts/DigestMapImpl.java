@@ -17,7 +17,6 @@ package com.google.idea.blaze.qsync.artifacts;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.common.Label;
 import java.nio.file.Path;
 import java.util.Iterator;

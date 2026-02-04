@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.command.info.BlazeInfo;
 import com.google.idea.blaze.base.model.BlazeVersionData;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
-import com.google.idea.blaze.base.qsync.BazelQueryRunner;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.qsync.project.BuildGraphData;
 import com.intellij.openapi.project.Project;

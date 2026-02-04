@@ -19,7 +19,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.projectsystem.TestRepositories;
-import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.rendering.HtmlLinkManager;
 import com.google.common.collect.ImmutableList;

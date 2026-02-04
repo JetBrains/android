@@ -1,6 +1,5 @@
 package com.google.idea.blaze.qsync.artifacts;
 
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;

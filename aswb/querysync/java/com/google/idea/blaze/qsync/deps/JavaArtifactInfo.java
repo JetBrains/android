@@ -28,7 +28,6 @@ import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.artifacts.DigestMap;
 import com.google.idea.blaze.qsync.java.JavaTargetInfo;
 import com.google.idea.blaze.qsync.project.ProjectPath;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;

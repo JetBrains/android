@@ -21,7 +21,6 @@ import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.exception.BuildException;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.List;
 
 /** A service responsible for management of artifacts used by app inspectors.. */
 public interface AppInspectorTracker {

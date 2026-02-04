@@ -15,14 +15,11 @@
  */
 package com.google.idea.blaze.android.run;
 
-import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.run.ValidationError;
-import com.android.tools.idea.run.ValidationErrorCompat;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
-import com.google.idea.blaze.base.sync.BlazeSyncManager;
 import com.google.idea.blaze.base.sync.data.BlazeDataStorage;
 import com.google.idea.blaze.base.sync.projectstructure.ModuleFinder;
 import com.intellij.execution.ExecutionException;

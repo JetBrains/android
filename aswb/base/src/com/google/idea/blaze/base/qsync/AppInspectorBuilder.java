@@ -19,7 +19,6 @@ import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.exception.BuildException;
 import java.io.IOException;
-import java.util.Set;
 
 /** A query sync service that builds render jars for given targets */
 public interface AppInspectorBuilder {

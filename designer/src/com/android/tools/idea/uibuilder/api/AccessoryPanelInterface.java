@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.api;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
 import java.util.List;
-import javax.swing.JPanel;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 
 /**

@@ -18,26 +18,14 @@ package com.android.tools.idea.common.scene.draw;
 import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
-import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawAnchor;
-import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnection;
-import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils;
-import com.android.tools.idea.uibuilder.scene.decorator.ButtonDecorator;
-import com.android.tools.idea.uibuilder.scene.decorator.CheckBoxDecorator;
-import com.android.tools.idea.uibuilder.scene.decorator.ImageViewDecorator;
-import com.android.tools.idea.uibuilder.scene.decorator.LinearLayoutDecorator;
-import com.android.tools.idea.uibuilder.scene.decorator.ProgressBarDecorator;
-import com.android.tools.idea.uibuilder.scene.decorator.RadioButtonDecorator;
-import com.android.tools.idea.uibuilder.scene.decorator.SeekBarDecorator;
-import com.android.tools.idea.uibuilder.scene.decorator.SwitchDecorator;
-import com.android.tools.idea.uibuilder.scene.decorator.ToggleButtonDecorator;
-import com.android.tools.idea.uibuilder.scene.decorator.UnknownViewDecorator;
+import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawAnchor; // TODO: remove
+import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnection; // TODO: remove
+import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils; // TODO: remove
+import com.android.tools.idea.uibuilder.scene.decorator.*;
 import com.android.tools.idea.uibuilder.scene.draw.DrawResize;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.Shape;
+import java.awt.*;
 import java.awt.geom.GeneralPath;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -48,7 +36,6 @@ import java.util.Stack;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
 
 /**
  * DisplayList implementation for Scene

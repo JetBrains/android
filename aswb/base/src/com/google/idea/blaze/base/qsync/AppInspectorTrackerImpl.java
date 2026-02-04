@@ -15,10 +15,8 @@
  */
 package com.google.idea.blaze.base.qsync;
 
-import static java.util.stream.Collectors.joining;
 
 import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.Sets;
 import com.google.idea.blaze.base.bazel.BazelExitCode;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.common.Label;
@@ -26,8 +24,6 @@ import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.exception.BuildException;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.HashSet;
-import java.util.List;
 
 /**
  * An implementation of {@link AppInspectorTracker} service responsible for management of artifacts

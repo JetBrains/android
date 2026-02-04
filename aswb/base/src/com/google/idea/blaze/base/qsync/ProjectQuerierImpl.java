@@ -31,7 +31,6 @@ import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.query.QuerySpec;
 import com.google.idea.blaze.qsync.query.QuerySummary;
 import com.intellij.openapi.diagnostic.Logger;
-import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
