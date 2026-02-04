@@ -135,13 +135,11 @@ public final class StudioIcons {
     /** 16x16 */ public static final @NotNull Icon REMOVE = load("studio/icons/common/remove.svg", -858817730, 2);
     /** 16x16 */ public static final @NotNull Icon REORDER = load("studio/icons/common/reorder.svg", 914778934, 2);
     /** 16x16 */ public static final @NotNull Icon RESET_ZOOM = load("studio/icons/common/reset-zoom.svg", -788191351, 2);
-    /** 16x16 */ public static final @NotNull Icon SCREENSHOT = load("studio/icons/common/screenshot.svg", -1973062777, 2);
     /** 16x16 */ public static final @NotNull Icon SEARCH = load("studio/icons/common/search.svg", -1880693038, 2);
     /** 16x16 */ public static final @NotNull Icon SETTINGS = load("studio/icons/common/settings.svg", -2027334274, 2);
     /** 16x16 */ public static final @NotNull Icon SUCCESS_INLINE = load("studio/icons/common/success-inline.svg", 1028930380, 2);
     /** 16x16 */ public static final @NotNull Icon SUCCESS = load("studio/icons/common/success.svg", 388106321, 2);
     /** 16x16 */ public static final @NotNull Icon TYPO_STACK = load("studio/icons/common/typo-stack.svg", 1524992740, 2);
-    /** 16x16 */ public static final @NotNull Icon VIDEO_CAPTURE = load("studio/icons/common/video-capture.svg", 1301157087, 2);
     /** 16x16 */ public static final @NotNull Icon VISIBILITY_INLINE = load("studio/icons/common/visibility-inline.svg", -1785148697, 2);
     /** 16x16 */ public static final @NotNull Icon WARNING_INLINE = load("studio/icons/common/warning-inline.svg", -1381373094, 2);
     /** 16x16 */ public static final @NotNull Icon WARNING_STACK = load("studio/icons/common/warning-stack.svg", 1085911095, 2);
@@ -298,7 +296,8 @@ public final class StudioIcons {
       /** 16x16 */ public static final @NotNull Icon RESIZE_TABLET = load("studio/icons/emulator/toolbar/resize-tablet.svg", 469166195, 2);
       /** 16x16 */ public static final @NotNull Icon ROTATE_LEFT = load("studio/icons/emulator/toolbar/rotate-left.svg", 2102345878, 2);
       /** 16x16 */ public static final @NotNull Icon ROTATE_RIGHT = load("studio/icons/emulator/toolbar/rotate-right.svg", -1134724488, 2);
-      /** 16x16 */ public static final @NotNull Icon SCREENSHOT = load("studio/icons/emulator/toolbar/screenshot.svg", -1973062777, 2);
+      /** 16x16 */ public static final @NotNull Icon SCREEN_RECORD = load("studio/icons/emulator/toolbar/screen-record.svg", 68018541, 2);
+      /** 16x16 */ public static final @NotNull Icon SCREENSHOT = load("studio/icons/emulator/toolbar/screenshot.svg", 12840901, 2);
       /** 16x16 */ public static final @NotNull Icon SESSION = load("studio/icons/emulator/toolbar/session.svg", -1082551209, 2);
       /** 16x16 */ public static final @NotNull Icon SNAPSHOTS = load("studio/icons/emulator/toolbar/snapshots.svg", 1160622617, 2);
       /** 16x16 */ public static final @NotNull Icon VOLUME_DOWN = load("studio/icons/emulator/toolbar/volume-down.svg", -1222349156, 2);

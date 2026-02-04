@@ -258,212 +258,66 @@ object StudioIconsCompose {
   }
 
   object Common {
-    val Add: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/add.svg", "/studio/icons/common/add.svg", StudioIconsCompose.javaClass) // 16x16
-    val AndroidHead: IntelliJIconKey =
-      IntelliJIconKey(
-        "/studio/icons/common/android-head.svg",
-        "/studio/icons/common/android-head.svg",
-        StudioIconsCompose.javaClass,
-      ) // 16x16
-    val BackArrow: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/back-arrow.svg", "/studio/icons/common/back-arrow.svg", StudioIconsCompose.javaClass) // 16x16
-    val Checked: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/checked.svg", "/studio/icons/common/checked.svg", StudioIconsCompose.javaClass) // 16x16
-    val Clear: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/clear.svg", "/studio/icons/common/clear.svg", StudioIconsCompose.javaClass) // 16x16
-    val Close: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/close.svg", "/studio/icons/common/close.svg", StudioIconsCompose.javaClass) // 16x16
-    val ConfigureColumns: IntelliJIconKey =
-      IntelliJIconKey(
-        "/studio/icons/common/configure-columns.svg",
-        "/studio/icons/common/configure-columns.svg",
-        StudioIconsCompose.javaClass,
-      ) // 16x16
-    val Crop: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/crop.svg", "/studio/icons/common/crop.svg", StudioIconsCompose.javaClass) // 16x16
-    val Delete: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/delete.svg", "/studio/icons/common/delete.svg", StudioIconsCompose.javaClass) // 16x16
-    val Dislike: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/dislike.svg", "/studio/icons/common/dislike.svg", StudioIconsCompose.javaClass) // 16x16
-    val DownRightArrow: IntelliJIconKey =
-      IntelliJIconKey(
-        "/studio/icons/common/down-right-arrow.svg",
-        "/studio/icons/common/down-right-arrow.svg",
-        StudioIconsCompose.javaClass,
-      ) // 16x16
-    val Edit: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/edit.svg", "/studio/icons/common/edit.svg", StudioIconsCompose.javaClass) // 16x16
-    val ErrorDecorator: IntelliJIconKey =
-      IntelliJIconKey(
-        "/studio/icons/common/error-decorator.svg",
-        "/studio/icons/common/error-decorator.svg",
-        StudioIconsCompose.javaClass,
-      ) // 16x16
-    val ErrorInline: IntelliJIconKey =
-      IntelliJIconKey(
-        "/studio/icons/common/error-inline.svg",
-        "/studio/icons/common/error-inline.svg",
-        StudioIconsCompose.javaClass,
-      ) // 16x16
-    val ErrorStack: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/error-stack.svg", "/studio/icons/common/error-stack.svg", StudioIconsCompose.javaClass) // 16x16
-    val Error: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/error.svg", "/studio/icons/common/error.svg", StudioIconsCompose.javaClass) // 16x16
-    val Export: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/export.svg", "/studio/icons/common/export.svg", StudioIconsCompose.javaClass) // 16x16
-    val Filter: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/filter.svg", "/studio/icons/common/filter.svg", StudioIconsCompose.javaClass) // 16x16
-    val GridView: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/grid-view.svg", "/studio/icons/common/grid-view.svg", StudioIconsCompose.javaClass) // 16x16
-    val Group: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/group.svg", "/studio/icons/common/group.svg", StudioIconsCompose.javaClass) // 16x16
-    val Help: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/help.svg", "/studio/icons/common/help.svg", StudioIconsCompose.javaClass) // 16x16
-    val ImportData: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/import-data.svg", "/studio/icons/common/import-data.svg", StudioIconsCompose.javaClass) // 16x16
-    val InfoInline: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/info-inline.svg", "/studio/icons/common/info-inline.svg", StudioIconsCompose.javaClass) // 16x16
-    val Info: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/info.svg", "/studio/icons/common/info.svg", StudioIconsCompose.javaClass) // 16x16
-    val Layout: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/layout.svg", "/studio/icons/common/layout.svg", StudioIconsCompose.javaClass) // 16x16
-    val Like: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/like.svg", "/studio/icons/common/like.svg", StudioIconsCompose.javaClass) // 16x16
-    val Link: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/link.svg", "/studio/icons/common/link.svg", StudioIconsCompose.javaClass) // 16x16
-    val ListView: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/list-view.svg", "/studio/icons/common/list-view.svg", StudioIconsCompose.javaClass) // 16x16
-    val LockedInline: IntelliJIconKey =
-      IntelliJIconKey(
-        "/studio/icons/common/locked-inline.svg",
-        "/studio/icons/common/locked-inline.svg",
-        StudioIconsCompose.javaClass,
-      ) // 16x16
-    val Login: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/login.svg", "/studio/icons/common/login.svg", StudioIconsCompose.javaClass) // 16x16
-    val Logout: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/logout.svg", "/studio/icons/common/logout.svg", StudioIconsCompose.javaClass) // 16x16
-    val Missing: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/missing.svg", "/studio/icons/common/missing.svg", StudioIconsCompose.javaClass) // 16x16
-    val NavigateToSource: IntelliJIconKey =
-      IntelliJIconKey(
-        "/studio/icons/common/navigate-to-source.svg",
-        "/studio/icons/common/navigate-to-source.svg",
-        StudioIconsCompose.javaClass,
-      ) // 16x16
-    val Overflow: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/overflow.svg", "/studio/icons/common/overflow.svg", StudioIconsCompose.javaClass) // 16x16
-    val PropertyBoundFocusLarge: IntelliJIconKey =
-      IntelliJIconKey(
-        "/studio/icons/common/property-bound-focus-large.svg",
-        "/studio/icons/common/property-bound-focus-large.svg",
-        StudioIconsCompose.javaClass,
-      ) // 14x24
-    val PropertyBoundFocus: IntelliJIconKey =
-      IntelliJIconKey(
-        "/studio/icons/common/property-bound-focus.svg",
-        "/studio/icons/common/property-bound-focus.svg",
-        StudioIconsCompose.javaClass,
-      ) // 14x20
-    val PropertyBoundLarge: IntelliJIconKey =
-      IntelliJIconKey(
-        "/studio/icons/common/property-bound-large.svg",
-        "/studio/icons/common/property-bound-large.svg",
-        StudioIconsCompose.javaClass,
-      ) // 14x24
-    val PropertyBound: IntelliJIconKey =
-      IntelliJIconKey(
-        "/studio/icons/common/property-bound.svg",
-        "/studio/icons/common/property-bound.svg",
-        StudioIconsCompose.javaClass,
-      ) // 14x20
-    val PropertyUnboundFocusLarge: IntelliJIconKey =
-      IntelliJIconKey(
-        "/studio/icons/common/property-unbound-focus-large.svg",
-        "/studio/icons/common/property-unbound-focus-large.svg",
-        StudioIconsCompose.javaClass,
-      ) // 14x24
-    val PropertyUnboundFocus: IntelliJIconKey =
-      IntelliJIconKey(
-        "/studio/icons/common/property-unbound-focus.svg",
-        "/studio/icons/common/property-unbound-focus.svg",
-        StudioIconsCompose.javaClass,
-      ) // 14x20
-    val PropertyUnboundLarge: IntelliJIconKey =
-      IntelliJIconKey(
-        "/studio/icons/common/property-unbound-large.svg",
-        "/studio/icons/common/property-unbound-large.svg",
-        StudioIconsCompose.javaClass,
-      ) // 14x24
-    val PropertyUnbound: IntelliJIconKey =
-      IntelliJIconKey(
-        "/studio/icons/common/property-unbound.svg",
-        "/studio/icons/common/property-unbound.svg",
-        StudioIconsCompose.javaClass,
-      ) // 14x20
-    val Remove: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/remove.svg", "/studio/icons/common/remove.svg", StudioIconsCompose.javaClass) // 16x16
-    val Reorder: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/reorder.svg", "/studio/icons/common/reorder.svg", StudioIconsCompose.javaClass) // 16x16
-    val ResetZoom: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/reset-zoom.svg", "/studio/icons/common/reset-zoom.svg", StudioIconsCompose.javaClass) // 16x16
-    val Screenshot: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/screenshot.svg", "/studio/icons/common/screenshot.svg", StudioIconsCompose.javaClass) // 16x16
-    val Search: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/search.svg", "/studio/icons/common/search.svg", StudioIconsCompose.javaClass) // 16x16
-    val Settings: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/settings.svg", "/studio/icons/common/settings.svg", StudioIconsCompose.javaClass) // 16x16
-    val SuccessInline: IntelliJIconKey =
-      IntelliJIconKey(
-        "/studio/icons/common/success-inline.svg",
-        "/studio/icons/common/success-inline.svg",
-        StudioIconsCompose.javaClass,
-      ) // 16x16
-    val Success: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/success.svg", "/studio/icons/common/success.svg", StudioIconsCompose.javaClass) // 16x16
-    val TypoStack: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/typo-stack.svg", "/studio/icons/common/typo-stack.svg", StudioIconsCompose.javaClass) // 16x16
-    val VideoCapture: IntelliJIconKey =
-      IntelliJIconKey(
-        "/studio/icons/common/video-capture.svg",
-        "/studio/icons/common/video-capture.svg",
-        StudioIconsCompose.javaClass,
-      ) // 16x16
-    val VisibilityInline: IntelliJIconKey =
-      IntelliJIconKey(
-        "/studio/icons/common/visibility-inline.svg",
-        "/studio/icons/common/visibility-inline.svg",
-        StudioIconsCompose.javaClass,
-      ) // 16x16
-    val WarningInline: IntelliJIconKey =
-      IntelliJIconKey(
-        "/studio/icons/common/warning-inline.svg",
-        "/studio/icons/common/warning-inline.svg",
-        StudioIconsCompose.javaClass,
-      ) // 16x16
-    val WarningStack: IntelliJIconKey =
-      IntelliJIconKey(
-        "/studio/icons/common/warning-stack.svg",
-        "/studio/icons/common/warning-stack.svg",
-        StudioIconsCompose.javaClass,
-      ) // 16x16
-    val Warning: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/warning.svg", "/studio/icons/common/warning.svg", StudioIconsCompose.javaClass) // 16x16
-    val WeakWarningStack: IntelliJIconKey =
-      IntelliJIconKey(
-        "/studio/icons/common/weak-warning-stack.svg",
-        "/studio/icons/common/weak-warning-stack.svg",
-        StudioIconsCompose.javaClass,
-      ) // 16x16
-    val ZoomActual: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/zoom-actual.svg", "/studio/icons/common/zoom-actual.svg", StudioIconsCompose.javaClass) // 16x16
-    val ZoomIn: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/zoom-in.svg", "/studio/icons/common/zoom-in.svg", StudioIconsCompose.javaClass) // 16x16
-    val ZoomOut: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/zoom-out.svg", "/studio/icons/common/zoom-out.svg", StudioIconsCompose.javaClass) // 16x16
-    val ZoomSelect: IntelliJIconKey =
-      IntelliJIconKey("/studio/icons/common/zoom-select.svg", "/studio/icons/common/zoom-select.svg", StudioIconsCompose.javaClass) // 16x16
+    val Add: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/add.svg", "/studio/icons/common/add.svg", StudioIconsCompose.javaClass) // 16x16
+    val AndroidHead: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/android-head.svg", "/studio/icons/common/android-head.svg", StudioIconsCompose.javaClass) // 16x16
+    val BackArrow: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/back-arrow.svg", "/studio/icons/common/back-arrow.svg", StudioIconsCompose.javaClass) // 16x16
+    val Checked: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/checked.svg", "/studio/icons/common/checked.svg", StudioIconsCompose.javaClass) // 16x16
+    val Clear: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/clear.svg", "/studio/icons/common/clear.svg", StudioIconsCompose.javaClass) // 16x16
+    val Close: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/close.svg", "/studio/icons/common/close.svg", StudioIconsCompose.javaClass) // 16x16
+    val ConfigureColumns: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/configure-columns.svg", "/studio/icons/common/configure-columns.svg", StudioIconsCompose.javaClass) // 16x16
+    val Crop: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/crop.svg", "/studio/icons/common/crop.svg", StudioIconsCompose.javaClass) // 16x16
+    val Delete: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/delete.svg", "/studio/icons/common/delete.svg", StudioIconsCompose.javaClass) // 16x16
+    val Dislike: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/dislike.svg", "/studio/icons/common/dislike.svg", StudioIconsCompose.javaClass) // 16x16
+    val DownRightArrow: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/down-right-arrow.svg", "/studio/icons/common/down-right-arrow.svg", StudioIconsCompose.javaClass) // 16x16
+    val Edit: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/edit.svg", "/studio/icons/common/edit.svg", StudioIconsCompose.javaClass) // 16x16
+    val ErrorDecorator: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/error-decorator.svg", "/studio/icons/common/error-decorator.svg", StudioIconsCompose.javaClass) // 16x16
+    val ErrorInline: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/error-inline.svg", "/studio/icons/common/error-inline.svg", StudioIconsCompose.javaClass) // 16x16
+    val ErrorStack: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/error-stack.svg", "/studio/icons/common/error-stack.svg", StudioIconsCompose.javaClass) // 16x16
+    val Error: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/error.svg", "/studio/icons/common/error.svg", StudioIconsCompose.javaClass) // 16x16
+    val Export: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/export.svg", "/studio/icons/common/export.svg", StudioIconsCompose.javaClass) // 16x16
+    val Filter: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/filter.svg", "/studio/icons/common/filter.svg", StudioIconsCompose.javaClass) // 16x16
+    val GridView: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/grid-view.svg", "/studio/icons/common/grid-view.svg", StudioIconsCompose.javaClass) // 16x16
+    val Group: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/group.svg", "/studio/icons/common/group.svg", StudioIconsCompose.javaClass) // 16x16
+    val Help: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/help.svg", "/studio/icons/common/help.svg", StudioIconsCompose.javaClass) // 16x16
+    val ImportData: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/import-data.svg", "/studio/icons/common/import-data.svg", StudioIconsCompose.javaClass) // 16x16
+    val InfoInline: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/info-inline.svg", "/studio/icons/common/info-inline.svg", StudioIconsCompose.javaClass) // 16x16
+    val Info: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/info.svg", "/studio/icons/common/info.svg", StudioIconsCompose.javaClass) // 16x16
+    val Layout: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/layout.svg", "/studio/icons/common/layout.svg", StudioIconsCompose.javaClass) // 16x16
+    val Like: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/like.svg", "/studio/icons/common/like.svg", StudioIconsCompose.javaClass) // 16x16
+    val Link: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/link.svg", "/studio/icons/common/link.svg", StudioIconsCompose.javaClass) // 16x16
+    val ListView: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/list-view.svg", "/studio/icons/common/list-view.svg", StudioIconsCompose.javaClass) // 16x16
+    val LockedInline: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/locked-inline.svg", "/studio/icons/common/locked-inline.svg", StudioIconsCompose.javaClass) // 16x16
+    val Login: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/login.svg", "/studio/icons/common/login.svg", StudioIconsCompose.javaClass) // 16x16
+    val Logout: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/logout.svg", "/studio/icons/common/logout.svg", StudioIconsCompose.javaClass) // 16x16
+    val Missing: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/missing.svg", "/studio/icons/common/missing.svg", StudioIconsCompose.javaClass) // 16x16
+    val NavigateToSource: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/navigate-to-source.svg", "/studio/icons/common/navigate-to-source.svg", StudioIconsCompose.javaClass) // 16x16
+    val Overflow: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/overflow.svg", "/studio/icons/common/overflow.svg", StudioIconsCompose.javaClass) // 16x16
+    val PropertyBoundFocusLarge: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/property-bound-focus-large.svg", "/studio/icons/common/property-bound-focus-large.svg", StudioIconsCompose.javaClass) // 14x24
+    val PropertyBoundFocus: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/property-bound-focus.svg", "/studio/icons/common/property-bound-focus.svg", StudioIconsCompose.javaClass) // 14x20
+    val PropertyBoundLarge: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/property-bound-large.svg", "/studio/icons/common/property-bound-large.svg", StudioIconsCompose.javaClass) // 14x24
+    val PropertyBound: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/property-bound.svg", "/studio/icons/common/property-bound.svg", StudioIconsCompose.javaClass) // 14x20
+    val PropertyUnboundFocusLarge: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/property-unbound-focus-large.svg", "/studio/icons/common/property-unbound-focus-large.svg", StudioIconsCompose.javaClass) // 14x24
+    val PropertyUnboundFocus: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/property-unbound-focus.svg", "/studio/icons/common/property-unbound-focus.svg", StudioIconsCompose.javaClass) // 14x20
+    val PropertyUnboundLarge: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/property-unbound-large.svg", "/studio/icons/common/property-unbound-large.svg", StudioIconsCompose.javaClass) // 14x24
+    val PropertyUnbound: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/property-unbound.svg", "/studio/icons/common/property-unbound.svg", StudioIconsCompose.javaClass) // 14x20
+    val Remove: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/remove.svg", "/studio/icons/common/remove.svg", StudioIconsCompose.javaClass) // 16x16
+    val Reorder: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/reorder.svg", "/studio/icons/common/reorder.svg", StudioIconsCompose.javaClass) // 16x16
+    val ResetZoom: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/reset-zoom.svg", "/studio/icons/common/reset-zoom.svg", StudioIconsCompose.javaClass) // 16x16
+    val Screenshot: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/screenshot.svg", "/studio/icons/common/screenshot.svg", StudioIconsCompose.javaClass) // 16x16
+    val Search: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/search.svg", "/studio/icons/common/search.svg", StudioIconsCompose.javaClass) // 16x16
+    val Settings: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/settings.svg", "/studio/icons/common/settings.svg", StudioIconsCompose.javaClass) // 16x16
+    val SuccessInline: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/success-inline.svg", "/studio/icons/common/success-inline.svg", StudioIconsCompose.javaClass) // 16x16
+    val Success: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/success.svg", "/studio/icons/common/success.svg", StudioIconsCompose.javaClass) // 16x16
+    val TypoStack: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/typo-stack.svg", "/studio/icons/common/typo-stack.svg", StudioIconsCompose.javaClass) // 16x16
+    val VisibilityInline: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/visibility-inline.svg", "/studio/icons/common/visibility-inline.svg", StudioIconsCompose.javaClass) // 16x16
+    val WarningInline: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/warning-inline.svg", "/studio/icons/common/warning-inline.svg", StudioIconsCompose.javaClass) // 16x16
+    val WarningStack: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/warning-stack.svg", "/studio/icons/common/warning-stack.svg", StudioIconsCompose.javaClass) // 16x16
+    val Warning: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/warning.svg", "/studio/icons/common/warning.svg", StudioIconsCompose.javaClass) // 16x16
+    val WeakWarningStack: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/weak-warning-stack.svg", "/studio/icons/common/weak-warning-stack.svg", StudioIconsCompose.javaClass) // 16x16
+    val ZoomActual: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/zoom-actual.svg", "/studio/icons/common/zoom-actual.svg", StudioIconsCompose.javaClass) // 16x16
+    val ZoomIn: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/zoom-in.svg", "/studio/icons/common/zoom-in.svg", StudioIconsCompose.javaClass) // 16x16
+    val ZoomOut: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/zoom-out.svg", "/studio/icons/common/zoom-out.svg", StudioIconsCompose.javaClass) // 16x16
+    val ZoomSelect: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/zoom-select.svg", "/studio/icons/common/zoom-select.svg", StudioIconsCompose.javaClass) // 16x16
   }
 
   object Compose {
@@ -1047,120 +901,26 @@ object StudioIconsCompose {
     }
 
     object Toolbar {
-      val Back: IntelliJIconKey =
-        IntelliJIconKey(
-          "/studio/icons/emulator/toolbar/back.svg",
-          "/studio/icons/emulator/toolbar/back.svg",
-          StudioIconsCompose.javaClass,
-        ) // 16x16
-      val DeviceSettings: IntelliJIconKey =
-        IntelliJIconKey(
-          "/studio/icons/emulator/toolbar/device-settings.svg",
-          "/studio/icons/emulator/toolbar/device-settings.svg",
-          StudioIconsCompose.javaClass,
-        ) // 16x16
-      val Fold: IntelliJIconKey =
-        IntelliJIconKey(
-          "/studio/icons/emulator/toolbar/fold.svg",
-          "/studio/icons/emulator/toolbar/fold.svg",
-          StudioIconsCompose.javaClass,
-        ) // 16x16
-      val HardwareInput: IntelliJIconKey =
-        IntelliJIconKey(
-          "/studio/icons/emulator/toolbar/hardware-input.svg",
-          "/studio/icons/emulator/toolbar/hardware-input.svg",
-          StudioIconsCompose.javaClass,
-        ) // 16x16
-      val Home: IntelliJIconKey =
-        IntelliJIconKey(
-          "/studio/icons/emulator/toolbar/home.svg",
-          "/studio/icons/emulator/toolbar/home.svg",
-          StudioIconsCompose.javaClass,
-        ) // 16x16
-      val Overview: IntelliJIconKey =
-        IntelliJIconKey(
-          "/studio/icons/emulator/toolbar/overview.svg",
-          "/studio/icons/emulator/toolbar/overview.svg",
-          StudioIconsCompose.javaClass,
-        ) // 16x16
-      val PowerMenu: IntelliJIconKey =
-        IntelliJIconKey(
-          "/studio/icons/emulator/toolbar/power-menu.svg",
-          "/studio/icons/emulator/toolbar/power-menu.svg",
-          StudioIconsCompose.javaClass,
-        ) // 16x16
-      val Power: IntelliJIconKey =
-        IntelliJIconKey(
-          "/studio/icons/emulator/toolbar/power.svg",
-          "/studio/icons/emulator/toolbar/power.svg",
-          StudioIconsCompose.javaClass,
-        ) // 16x16
-      val ResizeDesktop: IntelliJIconKey =
-        IntelliJIconKey(
-          "/studio/icons/emulator/toolbar/resize-desktop.svg",
-          "/studio/icons/emulator/toolbar/resize-desktop.svg",
-          StudioIconsCompose.javaClass,
-        ) // 16x16
-      val ResizeFoldable: IntelliJIconKey =
-        IntelliJIconKey(
-          "/studio/icons/emulator/toolbar/resize-foldable.svg",
-          "/studio/icons/emulator/toolbar/resize-foldable.svg",
-          StudioIconsCompose.javaClass,
-        ) // 16x16
-      val ResizePhone: IntelliJIconKey =
-        IntelliJIconKey(
-          "/studio/icons/emulator/toolbar/resize-phone.svg",
-          "/studio/icons/emulator/toolbar/resize-phone.svg",
-          StudioIconsCompose.javaClass,
-        ) // 16x16
-      val ResizeTablet: IntelliJIconKey =
-        IntelliJIconKey(
-          "/studio/icons/emulator/toolbar/resize-tablet.svg",
-          "/studio/icons/emulator/toolbar/resize-tablet.svg",
-          StudioIconsCompose.javaClass,
-        ) // 16x16
-      val RotateLeft: IntelliJIconKey =
-        IntelliJIconKey(
-          "/studio/icons/emulator/toolbar/rotate-left.svg",
-          "/studio/icons/emulator/toolbar/rotate-left.svg",
-          StudioIconsCompose.javaClass,
-        ) // 16x16
-      val RotateRight: IntelliJIconKey =
-        IntelliJIconKey(
-          "/studio/icons/emulator/toolbar/rotate-right.svg",
-          "/studio/icons/emulator/toolbar/rotate-right.svg",
-          StudioIconsCompose.javaClass,
-        ) // 16x16
-      val Screenshot: IntelliJIconKey =
-        IntelliJIconKey(
-          "/studio/icons/emulator/toolbar/screenshot.svg",
-          "/studio/icons/emulator/toolbar/screenshot.svg",
-          StudioIconsCompose.javaClass,
-        ) // 16x16
-      val Session: IntelliJIconKey =
-        IntelliJIconKey(
-          "/studio/icons/emulator/toolbar/session.svg",
-          "/studio/icons/emulator/toolbar/session.svg",
-          StudioIconsCompose.javaClass,
-        ) // 16x16
-      val Snapshots: IntelliJIconKey =
-        IntelliJIconKey(
-          "/studio/icons/emulator/toolbar/snapshots.svg",
-          "/studio/icons/emulator/toolbar/snapshots.svg",
-          StudioIconsCompose.javaClass,
-        ) // 16x16
-      val VolumeDown: IntelliJIconKey =
-        IntelliJIconKey(
-          "/studio/icons/emulator/toolbar/volume-down.svg",
-          "/studio/icons/emulator/toolbar/volume-down.svg",
-          StudioIconsCompose.javaClass,
-        ) // 16x16
-      val VolumeUp: IntelliJIconKey =
-        IntelliJIconKey(
-          "/studio/icons/emulator/toolbar/volume-up.svg",
-          "/studio/icons/emulator/toolbar/volume-up.svg",
-          StudioIconsCompose.javaClass,
-        ) // 16x16
+      val Back: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/toolbar/back.svg", "/studio/icons/emulator/toolbar/back.svg", StudioIconsCompose.javaClass) // 16x16
+      val DeviceSettings: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/toolbar/device-settings.svg", "/studio/icons/emulator/toolbar/device-settings.svg", StudioIconsCompose.javaClass) // 16x16
+      val Fold: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/toolbar/fold.svg", "/studio/icons/emulator/toolbar/fold.svg", StudioIconsCompose.javaClass) // 16x16
+      val HardwareInput: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/toolbar/hardware-input.svg", "/studio/icons/emulator/toolbar/hardware-input.svg", StudioIconsCompose.javaClass) // 16x16
+      val Home: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/toolbar/home.svg", "/studio/icons/emulator/toolbar/home.svg", StudioIconsCompose.javaClass) // 16x16
+      val Overview: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/toolbar/overview.svg", "/studio/icons/emulator/toolbar/overview.svg", StudioIconsCompose.javaClass) // 16x16
+      val PowerMenu: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/toolbar/power-menu.svg", "/studio/icons/emulator/toolbar/power-menu.svg", StudioIconsCompose.javaClass) // 16x16
+      val Power: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/toolbar/power.svg", "/studio/icons/emulator/toolbar/power.svg", StudioIconsCompose.javaClass) // 16x16
+      val ResizeDesktop: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/toolbar/resize-desktop.svg", "/studio/icons/emulator/toolbar/resize-desktop.svg", StudioIconsCompose.javaClass) // 16x16
+      val ResizeFoldable: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/toolbar/resize-foldable.svg", "/studio/icons/emulator/toolbar/resize-foldable.svg", StudioIconsCompose.javaClass) // 16x16
+      val ResizePhone: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/toolbar/resize-phone.svg", "/studio/icons/emulator/toolbar/resize-phone.svg", StudioIconsCompose.javaClass) // 16x16
+      val ResizeTablet: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/toolbar/resize-tablet.svg", "/studio/icons/emulator/toolbar/resize-tablet.svg", StudioIconsCompose.javaClass) // 16x16
+      val RotateLeft: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/toolbar/rotate-left.svg", "/studio/icons/emulator/toolbar/rotate-left.svg", StudioIconsCompose.javaClass) // 16x16
+      val RotateRight: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/toolbar/rotate-right.svg", "/studio/icons/emulator/toolbar/rotate-right.svg", StudioIconsCompose.javaClass) // 16x16
+      val ScreenRecord: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/toolbar/screen-record.svg", "/studio/icons/emulator/toolbar/screen-record.svg", StudioIconsCompose.javaClass) // 16x16
+      val Screenshot: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/toolbar/screenshot.svg", "/studio/icons/emulator/toolbar/screenshot.svg", StudioIconsCompose.javaClass) // 16x16
+      val Session: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/toolbar/session.svg", "/studio/icons/emulator/toolbar/session.svg", StudioIconsCompose.javaClass) // 16x16
+      val Snapshots: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/toolbar/snapshots.svg", "/studio/icons/emulator/toolbar/snapshots.svg", StudioIconsCompose.javaClass) // 16x16
+      val VolumeDown: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/toolbar/volume-down.svg", "/studio/icons/emulator/toolbar/volume-down.svg", StudioIconsCompose.javaClass) // 16x16
+      val VolumeUp: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/toolbar/volume-up.svg", "/studio/icons/emulator/toolbar/volume-up.svg", StudioIconsCompose.javaClass) // 16x16
     }
 
     object Wear {

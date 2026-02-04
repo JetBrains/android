@@ -225,7 +225,7 @@
         <keyboard-shortcut first-keystroke="meta shift S" keymap="Mac OS X 10.5+"/>
       </action>
       <action id="android.device.screen.record" class="com.android.tools.idea.ui.screenrecording.ScreenRecorderAction"
-              icon="StudioIcons.Common.VIDEO_CAPTURE" text="Record Screen" description="Record a video of the device display">
+              icon="StudioIcons.Emulator.Toolbar.SCREEN_RECORD" text="Record Screen" description="Record a video of the device display">
         <keyboard-shortcut first-keystroke="control shift V" keymap="$default"/>
         <keyboard-shortcut first-keystroke="meta shift V" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="meta shift V" keymap="Mac OS X 10.5+"/>

@@ -43,7 +43,7 @@ import kotlinx.coroutines.launch
 
 /** Captures a screenshot of a device display. */
 class ScreenshotAction :
-  DumbAwareAction(message("screenshot.action.title"), message("screenshot.action.description"), StudioIcons.Common.SCREENSHOT) {
+  DumbAwareAction(message("screenshot.action.title"), message("screenshot.action.description"), StudioIcons.Emulator.Toolbar.SCREENSHOT) {
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 

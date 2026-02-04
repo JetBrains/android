@@ -50,7 +50,7 @@ class ScreenRecorderAction :
   DumbAwareAction(
     AndroidAdbUiBundle.message("screenrecord.action.title"),
     AndroidAdbUiBundle.message("screenrecord.action.description"),
-    StudioIcons.Common.VIDEO_CAPTURE,
+    StudioIcons.Emulator.Toolbar.SCREEN_RECORD,
   ) {
 
   private val logger = thisLogger()
