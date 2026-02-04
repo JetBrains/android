@@ -257,10 +257,6 @@ public final class StudioIcons {
   }
 
   public static final class Emulator {
-    public static final class Glasses {
-      /** 16x16 */ public static final @NotNull Icon BUTTON_1 = load("studio/icons/emulator/glasses/button-1.svg", -90572414, 2);
-    }
-
     public static final class Menu {
       /** 16x16 */ public static final @NotNull Icon MODE_DESKTOP = load("studio/icons/emulator/menu/mode-desktop.svg", 1667783545, 2);
       /** 16x16 */ public static final @NotNull Icon MODE_FOLDABLE = load("studio/icons/emulator/menu/mode-foldable.svg", -1080940418, 2);
@@ -318,8 +314,7 @@ public final class StudioIcons {
       /** 16x16 */ public static final @NotNull Icon ENVIRONMENT_NIGHT = load("studio/icons/emulator/xr/environment-night.svg", -951642188, 2);
       /** 16x16 */ public static final @NotNull Icon ENVIRONMENT = load("studio/icons/emulator/xr/environment.svg", 1722745446, 2);
       /** 16x16 */ public static final @NotNull Icon EYE_GAZE = load("studio/icons/emulator/xr/eye-gaze.svg", -1318900624, 2);
-      /** 16x16 */ public static final @NotNull Icon GLASSES_BUTTON_1 = load("studio/icons/emulator/xr/glasses-button-1.svg", 881126089, 2);
-      /** 16x16 */ public static final @NotNull Icon GLASSES_BUTTON_2 = load("studio/icons/emulator/xr/glasses-button-2.svg", -841242706, 2);
+      /** 16x16 */ public static final @NotNull Icon GLASSES_CAMERA = load("studio/icons/emulator/xr/glasses-camera.svg", 517867713, 2);
       /** 16x16 */ public static final @NotNull Icon HAND_TRACKING = load("studio/icons/emulator/xr/hand-tracking.svg", -1757146482, 2);
       /** 16x16 */ public static final @NotNull Icon MOUSE_KEYBOARD_MODE = load("studio/icons/emulator/xr/mouse-keyboard-mode.svg", -1943290912, 2);
       /** 16x16 */ public static final @NotNull Icon PAN = load("studio/icons/emulator/xr/pan.svg", 626074429, 2);
