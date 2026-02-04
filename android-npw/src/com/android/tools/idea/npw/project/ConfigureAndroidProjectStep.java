@@ -161,7 +161,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private JComboBox<AgpVersions.NewProjectWizardAgpVersion> myAndroidGradlePluginCombo;
   private FormFactorSdkControls myFormFactorSdkControls;
 
-  private static final String AI_STARTER_TEMPLATE_NAME="AI Starter";
   public ConfigureAndroidProjectStep(@NotNull NewProjectModuleModel newProjectModuleModel, @NotNull NewProjectModel projectModel) {
     super(newProjectModuleModel, message("android.wizard.project.new.configure"));
 
@@ -330,7 +329,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       myProjectModel.getApplicationName().set("My Watch Face");
     }
 
-    generateAppName.setVisible(StudioFlags.GEMINI_NEW_PROJECT_AGENT.get() && newTemplate.getName().equals(AI_STARTER_TEMPLATE_NAME));
+    generateAppName.setVisible(StudioFlags.GEMINI_NEW_PROJECT_AGENT.get() && newTemplate.getFlags().contains(TemplateFlag.NewProjectAgent));
   }
 
   @Override

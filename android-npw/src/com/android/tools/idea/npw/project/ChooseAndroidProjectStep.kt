@@ -40,6 +40,7 @@ import com.android.tools.idea.wizard.model.ModelWizard.Facade
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Template
+import com.android.tools.idea.wizard.template.TemplateFlag
 import com.android.tools.idea.wizard.template.WizardUiContext
 import com.google.common.base.Suppliers
 import com.intellij.openapi.application.ApplicationManager
@@ -252,7 +253,7 @@ class ChooseAndroidProjectStep(model: NewProjectModel) :
     val selectedIndex = leftList.selectedIndex
     if (selectedIndex == -1) {
       val newProjectModuleModel = newProjectModuleModel!!
-      val baseTemplateName = if (StudioFlags.NPW_ENABLE_ARCHITECTURE_SAMPLE_TEMPLATE.get()) "Architecture Sample" else "Empty Activity"
+      val baseTemplateName = if (StudioFlags.NPW_SHOW_NPA_TEMPLATES.get()) "Architecture Sample" else "Empty Activity"
       val templateToUse = TemplateResolver.getAllTemplates().firstOrNull { it.name == baseTemplateName }
       newProjectModuleModel.newRenderTemplate.setNullableValue(templateToUse ?: Template.NoActivity)
       model.prompt.set(geminiTextState.value)
@@ -365,7 +366,7 @@ class ChooseAndroidProjectStep(model: NewProjectModel) :
       TemplateResolver.getAllTemplates().filter {
         WizardUiContext.NewProject in it.uiContexts &&
           it.formFactor.projectChooserCategory() == this &&
-          (it.name !in setOf("Architecture Sample", "AI Starter") || StudioFlags.NPW_ENABLE_ARCHITECTURE_SAMPLE_TEMPLATE.get())
+          (!it.flags.contains(TemplateFlag.NewProjectAgent) || StudioFlags.NPW_SHOW_NPA_TEMPLATES.get())
       }
 
     private fun createFormFactors(wizardTitle: String): List<FormFactorInfo> =

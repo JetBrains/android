@@ -253,10 +253,10 @@ public final class StudioFlags {
     "Enable Navigation UI template",
     "Allows the Navigation UI template to be used.");
 
-  public static final Flag<Boolean> NPW_ENABLE_ARCHITECTURE_SAMPLE_TEMPLATE = new BooleanFlag(
-    NPW, "arch.sample.template",
-    "Enable Architecture Sample template",
-    "Allows the Architecture Sample template to be used.");
+  public static final Flag<Boolean> NPW_SHOW_NPA_TEMPLATES = new BooleanFlag(
+    NPW, "show.npa.templates",
+    "Show templates used by the New Project Agent in the regular list of templates",
+    "Allows manually testing the base templates used by the New Project Agent.");
 
   public static final Flag<String> NPW_AI_STARTER_TEMPLATE = new StringFlag(
     NPW, "ai.starter.template",
