@@ -312,6 +312,8 @@ private class LayoutOptimizer(private val rectangleSizes: List<Dimension>) {
     var splitType = splitTypeIterator.next()
     var partitionGenerator = PartitionGenerator(indices)
     var childGenerators = Array<LayoutGenerator?>(2) { null }
+    /** Controls whether descendants are cleared between iterations. May be changed to true to make debugging easier. */
+    private val clearDescendantsBetweenIterations = false
 
     fun next(): Boolean {
       for (childGenerator in childGenerators) {
@@ -330,7 +332,9 @@ private class LayoutOptimizer(private val rectangleSizes: List<Dimension>) {
       }
 
       val partitions = partitionGenerator.next()
-      clearDescendants(offset) // Clearing descendants is not strictly necessary but makes debugging easier.
+      if (clearDescendantsBetweenIterations) {
+        clearDescendants(offset) // Clearing descendants is not strictly necessary but makes debugging easier.
+      }
 
       if (partitions.second.isEmpty()) {
         val partition = partitions.first
