@@ -198,10 +198,10 @@ class LeakCanaryLogcatCommandHandlerTest {
     waitForEvent(this)
     val listOfFiles = ImmutableList.of("SingleApplicationLeak.txt")
     val messageStart =
-      LogcatMessage(LogcatHeader(LogLevel.DEBUG, 1, 2, "app1", "", "LeakCanary", Instant.ofEpochMilli(1000)), "HEAP ANALYSIS RESULT")
+      LogcatMessage(LogcatHeader(LogLevel.DEBUG, 123, 2, "app1", "", "LeakCanary", Instant.ofEpochMilli(1000)), "HEAP ANALYSIS RESULT")
     val messageRandomStrings =
       LogcatMessage(
-        LogcatHeader(LogLevel.DEBUG, 1, 2, "app1", "", "LeakCanary", Instant.ofEpochMilli(1000)),
+        LogcatHeader(LogLevel.DEBUG, 123, 2, "app1", "", "LeakCanary", Instant.ofEpochMilli(1000)),
         "adfwfdsfsdfsdf sfsdfdsfdsfsdfdsf sdfsdfsdfsdfsd sdfdsfsdfsdfsd sdfsdfsdfsdsdfsdf",
       )
 
@@ -250,6 +250,71 @@ class LeakCanaryLogcatCommandHandlerTest {
     val event = mockEventQueue.poll()
     // 0 is assigned for incomplete trace without retained bytes info
     assertTrue(event.leakcanaryAnalysis.data.contains("0 bytes retained by leaking objects"))
+
+    verifyEndEvent()
+  }
+
+  @Test
+  fun testLogcatWithShellInjection() = runTest {
+    handler = LeakCanaryLogcatCommandHandler(mockDevice, transportServiceGrpc, mockEventQueue)
+    handler.execute(Commands.Command.newBuilder().setType(Commands.Command.CommandType.START_LEAKCANARY_TASK).setPid(123).build())
+
+    // Before pushing messages wait for logcat to setup
+    waitForEvent(this)
+
+    val validLeak =
+      """
+      ====================================
+      HEAP ANALYSIS RESULT
+      ====================================
+      1 APPLICATION LEAKS
+
+      References underlined with "~~~" are likely causes.
+      Learn more at https://squ.re/leaks.
+
+      0 bytes retained by leaking objects
+      Signature: hash
+      ┬───
+      │ GC Root: System class
+      │
+      ╰→ java.lang.Object instance
+           Leaking: YES (ObjectWatcher was watching this)
+      ====================================
+      0 LIBRARY LEAKS
+
+      A Library Leak is a leak caused by a known bug in 3rd party code that you do not have control over.
+      See https://square.github.io/leakcanary/fundamentals-how-leakcanary-works/#4-categorizing-leaks
+      ====================================
+      0 UNREACHABLE OBJECTS
+
+      An unreachable object is still in memory but LeakCanary could not find a strong reference path
+      from GC roots.
+      ====================================
+      METADATA
+
+      Please include this in bug reports and Stack Overflow questions.
+      Analysis duration: 1000 ms
+      Heap dump file path: -
+      Heap dump timestamp: 0
+      Heap dump duration: Unknown
+      ====================================
+      """
+        .trimIndent()
+
+    // PID is different (999 vs 123), process name is arbitrary ("pid-29941"), BUT tag is "LeakCanary:Manual".
+    // This simulates the user doing `adb shell log -t LeakCanary:Manual ...`
+    val message1 = LogcatMessage(LogcatHeader(LogLevel.DEBUG, 999, 2, "-", "-", "LeakCanary:Manual", Instant.ofEpochMilli(1000)), validLeak)
+
+    mockLogcatService.logMessages(message1)
+    // Simulate some delay to allow coroutines to process
+    waitForEvent(this)
+    // Start event should exist in event queue.
+    assertEquals(2, mockEventQueue.size)
+    verifyStartEvent()
+
+    val event = mockEventQueue.poll()
+    // Verify the data was processed
+    assertTrue(event.leakcanaryAnalysis.data.contains("HEAP ANALYSIS RESULT"))
 
     verifyEndEvent()
   }
@@ -320,7 +385,7 @@ class LeakCanaryLogcatCommandHandlerTest {
         val fileContent = file.readText()
         val fileContentEachLine = if (oneLinePerLogEntry) fileContent.split("\n") else listOf(fileContent)
         for (leakLine in fileContentEachLine) {
-          val message = LogcatMessage(LogcatHeader(LogLevel.DEBUG, 1, 2, "app1", "", "LeakCanary", Instant.ofEpochMilli(1000)), leakLine)
+          val message = LogcatMessage(LogcatHeader(LogLevel.DEBUG, 123, 2, "app1", "", "LeakCanary", Instant.ofEpochMilli(1000)), leakLine)
           mockLogcatService.logMessages(message)
         }
         resultList.add(fileContent)

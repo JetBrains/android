@@ -71,6 +71,7 @@ class LeakCanaryLogcatCommandHandler(
 
   companion object {
     private const val LEAKCANARY_TAG = "LeakCanary"
+    private const val LEAKCANARY_MANUAL_TAG = "LeakCanary:Manual"
   }
 
   override fun shouldHandle(command: Commands.Command): Boolean {
@@ -250,6 +251,13 @@ class LeakCanaryLogcatCommandHandler(
         logcatService.readLogcat(serialNumber = device.serialNumber, sdk = device.version.androidApiLevel, maxHistoryEntries = 0).collect {
           logcatMessages ->
           logcatMessages.forEach { logcatMessage ->
+            val isAppLog = logcatMessage.header.pid == pid
+            val isInjectedLeak = logcatMessage.header.tag == LEAKCANARY_MANUAL_TAG
+
+            if (!isAppLog && !isInjectedLeak) {
+              return@forEach
+            }
+
             // Handlers are called sequentially. If a handler returns true, it means it processed the event
             // and subsequent handlers are skipped for this logcatMessage.
             var handled = detectAndHandleObjectRetainedAndAnalysis(logcatMessage)
@@ -269,6 +277,10 @@ class LeakCanaryLogcatCommandHandler(
           }
         }
       }
+  }
+
+  private fun isValidTag(tag: String): Boolean {
+    return tag == LEAKCANARY_TAG || tag == LEAKCANARY_MANUAL_TAG
   }
 
   // Returns true if any event was sent, false otherwise.
@@ -296,7 +308,7 @@ class LeakCanaryLogcatCommandHandler(
     val metaSectionPattern = "METADATA"
     var handled = false
 
-    if (LEAKCANARY_TAG != logcatMessage.header.tag) return false
+    if (!isValidTag(logcatMessage.header.tag)) return false
 
     // The following logic reads LeakCanary's logs line by line, but LeakCanary may print multiple lines as one logcat entry
     // (with one header). Therefore, we need to break the message into lines before processing.
@@ -378,7 +390,7 @@ Heap dump duration: Unknown
     val lastFramePattern = "╰→"
     val initialTabSpace = "  "
 
-    if (logcatMessage.header.tag == LEAKCANARY_TAG) {
+    if (isValidTag(logcatMessage.header.tag)) {
       prevLogTimeStampOfPartialTrace = logcatMessage.header.timestamp.epochSecond
       // The following logic reads LeakCanary's logs line by line, but LeakCanary may print multiple lines as one logcat entry
       // (with one header). Therefore, we need to break the message into lines before processing.
