@@ -20,7 +20,9 @@ import static com.google.common.util.concurrent.Uninterruptibles.getUninterrupti
 
 import com.android.SdkConstants;
 import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.DdmPreferences;
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.testFramework.LightPlatformTestCase;
 import java.nio.file.Path;
@@ -113,6 +115,18 @@ public class AdbServiceTest extends LightPlatformTestCase {
     AndroidDebugBridge bridge1 = getUninterruptibly(future);
     assertThat(bridge1.isConnected()).isTrue();
     assertThat(bridge1).isNotSameAs(bridge0);
+  }
+
+  public void testChangeListener_AddedSuccessfully() throws Exception {
+    // Prepare
+    Path adb = TestUtils.getSdk().resolve("platform-tools").resolve(SdkConstants.FN_ADB);
+
+    // Act
+    ListenableFuture<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(adb.toFile());
+    AndroidDebugBridge bridge = getUninterruptibly(future);
+
+    // Assert
+    assertThat(AndroidDebugBridge.getDebugBridgeChangeListenerCount()).isEqualTo(1);
   }
 
   public void testDeviceChangeListener_AddedSuccessfully() throws Exception {

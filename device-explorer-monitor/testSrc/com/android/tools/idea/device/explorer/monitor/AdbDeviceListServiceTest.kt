@@ -144,21 +144,22 @@ class AdbDeviceListServiceTest {
     }
 
   @Test
-  fun testDebugBridgeListenersRemovedOnDispose() = runBlocking(AndroidDispatchers.uiThread) {
-    // Prepare
-    val service = AdbDeviceService(project)
-    service.start()
-    val bridgeChangeListeners = AndroidDebugBridge.getDebugBridgeChangeListenerCount()
-    val deviceChangeListeners = AndroidDebugBridge.getDeviceChangeListenerCount()
+  fun testDebugBridgeListenersRemovedOnDispose() =
+    runBlocking(AndroidDispatchers.uiThread) {
+      // Prepare
+      val service = AdbDeviceService(project)
+      service.start()
+      assertThat(AndroidDebugBridge.getDebugBridgeChangeListenerCount()).isEqualTo(2)
+      assertThat(AndroidDebugBridge.getDeviceChangeListenerCount()).isEqualTo(2)
 
       // Act
       Disposer.dispose(service)
 
-    // Assert
-    assertThat(AndroidDebugBridge.getDebugBridgeChangeListenerCount()).isEqualTo(bridgeChangeListeners - 1)
-    assertThat(AndroidDebugBridge.getDeviceChangeListenerCount()).isEqualTo(deviceChangeListeners - 1)
-    Disposer.dispose(service)
-  }
+      // Assert
+      assertThat(AndroidDebugBridge.getDebugBridgeChangeListenerCount()).isEqualTo(1)
+      assertThat(AndroidDebugBridge.getDeviceChangeListenerCount()).isEqualTo(1)
+      Disposer.dispose(service)
+    }
 
   @Test
   fun testStartAlreadyStartedService() =
