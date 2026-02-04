@@ -2688,6 +2688,14 @@ public final class StudioFlags {
                     "Enable Debugger tools.",
                     "Enable Debugger tools.");
 
+  public static final Flag<String> NPA_ICON_IMAGE_GENERATION_MODEL_NAME =
+    new StringFlag(STUDIOBOT, "npa.icon.image.generation.model.name",
+                   "New Project agent Icon generation model name", "The model name used for generating Icons inside new project agent", "gemini-2.5-flash-image");
+
+  public static final Flag<String> NPA_MOCKUP_IMAGE_GENERATION_MODEL_NAME =
+    new StringFlag(STUDIOBOT, "npa.mockup.image.generation.model.name",
+                   "New Project agent Mockups generation model name", "The model name used for generating mockups inside new project agent", "gemini-3-pro-image-preview");
+
   public enum DasherSupportMode {
     /**
      * Don't include any special treatment for dasher users.
