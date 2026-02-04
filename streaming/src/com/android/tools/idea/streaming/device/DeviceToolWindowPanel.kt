@@ -46,6 +46,7 @@ import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -56,7 +57,9 @@ import java.util.concurrent.TimeoutException
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** Provides view of one physical device in the Running Devices tool window. */
 internal class DeviceToolWindowPanel(
@@ -240,22 +243,20 @@ internal class DeviceToolWindowPanel(
 
     @AnyThread
     fun initialize() {
-      contentDisposable?.let {
-        it.createCoroutineScope().launch {
-          val displays =
-            try {
-              deviceController?.getDisplayConfigurations() ?: return@launch
-            } catch (_: TimeoutException) {
-              thisLogger().warn("Timed out waiting for display configurations from ${deviceClient.deviceName}")
-              return@launch
-            }
-          if (displays.isEmpty()) {
-            return@launch // All displays are turned off.
+      contentDisposable?.createCoroutineScope()?.launch {
+        val displays =
+          try {
+            deviceController?.getDisplayConfigurations() ?: return@launch
+          } catch (_: TimeoutException) {
+            thisLogger().warn("Timed out waiting for display configurations from ${deviceClient.deviceName}")
+            return@launch
           }
-          EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
-            if (contentDisposable != null) {
-              reconfigureDisplayPanels(displays)
-            }
+        if (displays.isEmpty()) {
+          return@launch // All displays are turned off.
+        }
+        EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
+          if (contentDisposable != null) {
+            reconfigureDisplayPanels(displays)
           }
         }
       }
@@ -302,11 +303,17 @@ internal class DeviceToolWindowPanel(
       removeDisplayPanels { displayPanel ->
         displayPanel.displayId != PRIMARY_DISPLAY_ID && !newDisplays.any { it.displayId == displayPanel.displayId }
       }
-      val layoutRoot = computeBestLayout(centerPanel.sizeWithoutInsets, newDisplays.map { it.size })
-      val rootPanel = buildLayout(layoutRoot, newDisplays)
-      displayDescriptors = newDisplays
-      setRootPanel(rootPanel)
-      ActivityTracker.getInstance().inc()
+
+      val availableSpace = centerPanel.sizeWithoutInsets
+      contentDisposable?.createCoroutineScope()?.launch {
+        val layoutRoot = computeBestLayout(availableSpace, newDisplays.map { it.size })
+        withContext(Dispatchers.EDT) {
+          val rootPanel = buildLayout(layoutRoot, newDisplays)
+          displayDescriptors = newDisplays
+          setRootPanel(rootPanel)
+          ActivityTracker.getInstance().inc()
+        }
+      }
     }
 
     fun buildLayout(multiDisplayState: MultiDisplayState) {
