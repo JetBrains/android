@@ -45,6 +45,7 @@ constexpr char XIAOMI[] = "Xiaomi";
 
 enum class DeviceType {
   GENERIC,
+  GLASSES,
   WATCH,
   XR
 };

@@ -134,8 +134,9 @@ Size ConfigureCodec(AMediaCodec* codec, const CodecInfo& codec_info, Size max_vi
   Size video_size = ComputeVideoSize(display_info.logical_size, codec_info, max_video_resolution);
   AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_WIDTH, video_size.width);
   AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_HEIGHT, video_size.height);
+  bool useReducedFrameRate = Agent::device_type() == DeviceType::GLASSES || Agent::device_type() == DeviceType::WATCH;
   AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_FRAME_RATE,
-                        min(codec_info.max_frame_rate, Agent::device_type() == DeviceType::WATCH ? REDUCED_FRAME_RATE : MAX_FRAME_RATE));
+                        min(codec_info.max_frame_rate, useReducedFrameRate ? REDUCED_FRAME_RATE : MAX_FRAME_RATE));
   AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_BIT_RATE, bit_rate);
   media_status_t status = AMediaCodec_configure(codec, media_format, nullptr, nullptr, AMEDIACODEC_CONFIGURE_FLAG_ENCODE);
   if (status != AMEDIA_OK) {

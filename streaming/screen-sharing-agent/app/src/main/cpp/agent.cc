@@ -222,7 +222,8 @@ void Agent::Initialize(const vector<string>& args) {
 
   feature_level_ = GetFeatureLevel();
   string build_characteristics = GetSystemProperty("ro.build.characteristics");
-  device_type_ = HasBuildCharacteristic("watch", build_characteristics) ? DeviceType::WATCH :
+  device_type_ = HasBuildCharacteristic("glasses", build_characteristics) ? DeviceType::GLASSES :
+                 HasBuildCharacteristic("watch", build_characteristics) ? DeviceType::WATCH :
                  HasBuildCharacteristic("xr", build_characteristics) || (flags_ & DEVICE_IS_XR)? DeviceType::XR :
                  DeviceType::GENERIC;
   Log::D("Device type: %d", device_type_);
