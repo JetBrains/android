@@ -225,6 +225,9 @@ data class GradleAndroidModelImpl(val data: GradleAndroidModelData) : GradleAndr
   /** Returns the JVM `targetCompatibility` for the module. */
   override fun getTargetLanguageLevel(): LanguageLevel? = data.getJavaTargetLanguageLevel()
 
+  /** Returns the JVM source version for the module. */
+  override fun getJavaSourceLanguageLevel(): LanguageLevel? = data.getJavaSourceLanguageLevel()
+
   /**
    * Returns the `minSdkVersion` specified by the user (in the default config or product flavors). This is normally the merged value, but
    * for example when using preview platforms, the Gradle plugin will set minSdkVersion and targetSdkVersion to match the level of the
@@ -397,6 +400,8 @@ sealed interface GradleAndroidModel : AndroidModel {
   fun getBuildType(variant: IdeBasicVariant): IdeBuildTypeContainer?
 
   fun getTargetLanguageLevel(): LanguageLevel?
+
+  fun getJavaSourceLanguageLevel(): LanguageLevel?
 
   val filteredDebuggableVariants: Set<String>
   val selectedVariant: IdeVariantCore
