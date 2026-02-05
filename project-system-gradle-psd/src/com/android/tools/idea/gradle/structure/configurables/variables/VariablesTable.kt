@@ -131,8 +131,11 @@ private constructor(
     parentDisposable,
   )
 
-  private val iconGap = JBUI.scale(2)
-  private val editorInsets = JBUI.insets(1, 2)
+  private val iconGap
+    get() = JBUI.scale(2)
+
+  private val editorInsets
+    get() = JBUI.insets(1, 2)
 
   init {
     setProcessCursorKeys(false)

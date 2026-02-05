@@ -177,7 +177,7 @@ class ProductFlavorsPanel(val module: PsAndroidModule, val treeModel: Configurab
               flavorDimensionNameValidator,
             ) { newName, renameReferences ->
               module.parent.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_FLAVORS_DIMENSION_RENAME)
-              TODO("Renaming dimensions")
+              throw IllegalStateException("Renaming flavor dimension unsupported")
             }
           is ProductFlavorConfigurable ->
             renameWithDialog(
@@ -189,7 +189,7 @@ class ProductFlavorsPanel(val module: PsAndroidModule, val treeModel: Configurab
               NameValidator { module.validateProductFlavorName(it.orEmpty(), selectedObject.model.effectiveDimension) },
             ) { newName, alsoRenameReferences ->
               module.parent.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_FLAVORS_PRODUCTFLAVOR_RENAME)
-              if (alsoRenameReferences) TODO("Renaming references")
+              if (alsoRenameReferences) throw IllegalStateException("Renaming product flavor references unsupported")
               (selectedNode.getModel<PsProductFlavor>() ?: return@renameWithDialog).rename(newName)
             }
         }

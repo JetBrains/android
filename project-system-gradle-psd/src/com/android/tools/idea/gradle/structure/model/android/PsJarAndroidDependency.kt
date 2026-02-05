@@ -75,7 +75,7 @@ class PsDeclaredJarAndroidDependency constructor(parent: PsAndroidModule) : PsJa
     override fun prepareForModification(model: PsDeclaredJarAndroidDependency) = Unit
 
     override fun setModified(model: PsDeclaredJarAndroidDependency) {
-      TODO("NOTE: There is no need to re-index the declared dependency collection. Version is not a part of the key.")
+      // TODO("NOTE: There is no need to re-index the declared dependency collection. Version is not a part of the key.")
       model.isModified = true
       // TODO(solodkyy): Make setModified() customizable at the property level since some properties will need to call resetDependencies().
       model.parent.resetResolvedDependencies()

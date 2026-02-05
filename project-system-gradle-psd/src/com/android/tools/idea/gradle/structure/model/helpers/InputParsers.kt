@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.annotateWithError
 import com.android.tools.idea.gradle.structure.model.meta.annotated
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.pom.java.LanguageLevel
 import java.io.File
 
@@ -116,6 +117,7 @@ fun matchHashStrings(parsed: String?, resolved: String) =
 
 fun matchHashStrings(model: Any?, parsed: String?, resolved: String) = matchHashStrings(parsed, resolved)
 
-fun matchFiles(rootDir: File?, parsed: File?, resolved: File): Boolean = parsed?.let { rootDir?.resolve(parsed) } == resolved
+fun matchFiles(rootDir: File?, parsed: File?, resolved: File): Boolean =
+  FileUtil.filesEqual(parsed?.let { rootDir?.resolve(parsed) }, resolved)
 
 fun String.toIntOrString(): Any = this.toIntOrNull() ?: this

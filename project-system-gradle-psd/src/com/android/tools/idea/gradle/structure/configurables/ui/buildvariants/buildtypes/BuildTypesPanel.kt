@@ -70,7 +70,7 @@ class BuildTypesPanel(val module: PsAndroidModule, val treeModel: ConfigurablesT
   override fun getRenameAction(): AnAction? {
     return object : DumbAwareAction("Rename Build Type", "Renames a Build Type", IconUtil.editIcon) {
       override fun update(e: AnActionEvent) {
-        e.presentation.isEnabled = selectedConfigurable != null
+        e.presentation.isEnabled = selectedConfigurable.let { it != null && !setOf("debug", "release").contains(it.displayName) }
       }
 
       override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
@@ -85,6 +85,7 @@ class BuildTypesPanel(val module: PsAndroidModule, val treeModel: ConfigurablesT
           nameValidator,
         ) { newName, alsoRenameReferences ->
           module.parent.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_BUILTYPES_RENAME)
+          if (alsoRenameReferences) throw IllegalStateException("Renaming build type references unsupported")
           (selectedNode.getModel<PsBuildType>() ?: return@renameWithDialog).rename(newName)
         }
       }
