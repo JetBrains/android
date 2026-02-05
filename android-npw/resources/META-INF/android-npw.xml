@@ -39,5 +39,7 @@
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.androidProjectEntryProvider" interface="com.android.tools.idea.npw.project.AndroidProjectEntryProvider" />
     <extensionPoint qualifiedName="com.android.moduleDescriptionProvider" interface="com.android.tools.idea.npw.module.ModuleDescriptionProvider"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.npw.firebaseAiWizardLauncher"
+        interface="com.android.tools.idea.npw.ui.FirebaseAiWizardLauncher" />
   </extensionPoints>
 </idea-plugin>

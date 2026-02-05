@@ -33,6 +33,7 @@ import com.android.tools.idea.npw.module.recipes.androidProject.androidProjectRe
 import com.android.tools.idea.npw.project.DomainToPackageExpression
 import com.android.tools.idea.npw.project.setGradleWrapperExecutable
 import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
+import com.android.tools.idea.npw.ui.FirebaseAiWizardLauncher
 import com.android.tools.idea.observable.core.BoolProperty
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObjectValueProperty
@@ -132,6 +133,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val multiTemplateRenderer = MultiTemplateRenderer(::runRenderer)
   override val prompt = StringValueProperty("")
   override val imageAttachments: ObjectValueProperty<List<VirtualFile>> = ObjectValueProperty(listOf())
+  val launchFirebaseWizard = BoolValueProperty(false)
 
   private fun runRenderer(renderer: (Project) -> Unit) {
     object : Task.Backgroundable(null, message("android.compile.messages.generating.r.java.content.name"), false) {
@@ -157,6 +159,16 @@ class NewProjectModel : WizardModel(), ProjectModelData {
               // delay opening the Gemini window until after Gradle has finished.
               ToolWindowManager.getInstance(newProject).invokeLater {
                 GeminiPluginApi.getInstance().launchNewProjectAgent(newProject, prompt.get(), imageAttachments.get())
+              }
+            }
+
+            if (launchFirebaseWizard.get()) {
+              when (val launcher = FirebaseAiWizardLauncher.EP_NAME.extensions.firstOrNull()) {
+                null -> logger.warn("FirebaseAiWizardLauncher not found")
+                else ->
+                  ToolWindowManager.getInstance(newProject).invokeLater {
+                    launcher.onProjectCreated(newProject, packageName.get(), projectTemplateDataBuilder.build())
+                  }
               }
             }
           }
