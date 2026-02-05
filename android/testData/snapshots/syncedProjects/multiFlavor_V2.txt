@@ -12,8 +12,6 @@ PROJECT                       : MultiFlavor
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/MultiFlavor [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/MultiFlavor.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/build
@@ -35,8 +33,6 @@ PROJECT                       : MultiFlavor
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/MultiFlavor.app.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -91,8 +87,6 @@ PROJECT                       : MultiFlavor
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : MultiFlavor.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/app/MultiFlavor.app.androidTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -271,8 +265,6 @@ PROJECT                       : MultiFlavor
             compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/firstAbcSecondAbcDebug/compileFirstAbcSecondAbcDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/MultiFlavor.app.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -401,8 +393,6 @@ PROJECT                       : MultiFlavor
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : MultiFlavor.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/app/MultiFlavor.app.unitTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE

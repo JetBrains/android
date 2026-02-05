@@ -9,7 +9,6 @@ MODULE                        : project_sm_src
         compilerTestOutputPath        : file://<ROOT>/build/classes/test/project_sm_src [-]
         isCompilerPathInherited       : true
         isExcludeOutput               : true
-    ModuleFile                    :  [-]
     CONENT_ENTRY                  : file://<ROOT>_sm_src
         EXCLUDE_FOLDER                : file://<ROOT>_sm_src/.gradle
         EXCLUDE_FOLDER                : file://<ROOT>_sm_src/build

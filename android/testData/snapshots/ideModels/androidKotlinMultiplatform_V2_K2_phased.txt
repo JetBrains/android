@@ -9,7 +9,6 @@ MODULE                        : Kotlin_Multiplatform
         compilerTestOutputPath        : file://<ROOT>/build/classes/test/Kotlin_Multiplatform [-]
         isCompilerPathInherited       : true
         isExcludeOutput               : true
-    ModuleFile                    :  [-]
     CONENT_ENTRY                  : file://<ROOT>
         EXCLUDE_FOLDER                : file://<ROOT>/.gradle
         EXCLUDE_FOLDER                : file://<ROOT>/build

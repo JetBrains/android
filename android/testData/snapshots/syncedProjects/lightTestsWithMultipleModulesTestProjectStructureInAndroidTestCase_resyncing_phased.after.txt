@@ -8,7 +8,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         CONENT_ENTRY                  : file://<TEMP>
             EXCLUDE_FOLDER                : file://<TEMP>/.gradle
             EXCLUDE_FOLDER                : file://<TEMP>/build
@@ -28,7 +27,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -80,7 +78,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -148,7 +145,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -215,7 +211,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -279,7 +274,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -331,7 +325,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -397,7 +390,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -464,7 +456,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
