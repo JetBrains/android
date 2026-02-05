@@ -352,7 +352,6 @@ public final class AdbService implements Disposable {
       // See https://android-review.googlesource.com/c/platform/packages/modules/adb/+/1549744
       switch (AdbOptionsService.getInstance().getAdbServerMdnsBackend()) {
         case OPENSCREEN -> options.withEnv("ADB_MDNS_OPENSCREEN", "1");
-        case BONJOUR -> options.withEnv("ADB_MDNS_OPENSCREEN", "0");
         case DISABLED -> options.withEnv("ADB_MDNS", "0");
         case DEFAULT -> {
         }

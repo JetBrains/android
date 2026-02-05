@@ -168,17 +168,6 @@ class WifiAvailableDevicesDialogTest {
   }
 
   @Test
-  fun adbMacEnvironmentBroken_showsMacEnvironmentBrokenError() = runTest {
-    whenever(mockWiFiPairingService.checkMdnsSupport()).thenReturn(MdnsSupportState.AdbMacEnvironmentBroken)
-    composeTestRule.setContent { wifiAvailableDevicesDialog.WifiDialog() }
-
-    composeTestRule.onNodeWithText("macOS mDNS Environment Issue", substring = true).assertIsDisplayed()
-    composeTestRule.onNodeWithText("Open SDK Manager", substring = true).assertIsDisplayed()
-    composeTestRule.onNodeWithText("Open ADB Settings", substring = true).assertIsDisplayed()
-    composeTestRule.onNodeWithText("Learn more", substring = true).assertIsDisplayed()
-  }
-
-  @Test
   fun adbDisabled_showsMdnsDisabledError() = runTest {
     whenever(mockWiFiPairingService.checkMdnsSupport()).thenReturn(MdnsSupportState.AdbDisabled)
     composeTestRule.setContent { wifiAvailableDevicesDialog.WifiDialog() }

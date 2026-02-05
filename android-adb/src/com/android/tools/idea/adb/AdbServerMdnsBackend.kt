@@ -17,7 +17,6 @@ package com.android.tools.idea.adb
 
 enum class AdbServerMdnsBackend(val displayText: String) {
   DEFAULT("default"),
-  BONJOUR("bonjour"),
   OPENSCREEN("openscreen"),
   DISABLED("disabled");
 

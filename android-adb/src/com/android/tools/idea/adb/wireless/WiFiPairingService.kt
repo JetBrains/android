@@ -153,9 +153,6 @@ enum class MdnsSupportState {
   /** There was an error invoking ADB, so we don't know if mDNS is supported or not */
   AdbInvocationError,
 
-  /** We detected that the Mac environment is broken (either platform-tools is too old or mdns back selection is wrong). */
-  AdbMacEnvironmentBroken,
-
   /** ADB server MDNS is disabled */
   AdbDisabled,
 }

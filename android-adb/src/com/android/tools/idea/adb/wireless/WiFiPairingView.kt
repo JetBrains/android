@@ -47,8 +47,6 @@ interface WiFiPairingView {
 
   fun showQrCodePairingError(pairingMdnsService: PairingMdnsService, error: Throwable)
 
-  fun showMacMdnsEnvironmentIsBroken()
-
   fun showMdnsDisabledOnAdbServer()
 
   fun addListener(listener: Listener)

@@ -19,15 +19,11 @@ import com.android.adblib.AdbFeatures.TRACK_MDNS_SERVICE
 import com.android.adblib.MdnsServices
 import com.android.adblib.ServerStatus.Companion.UNKNOWN
 import com.android.annotations.concurrency.AnyThread
-import com.android.repository.Revision
-import com.android.tools.idea.adb.AdbOptionsService
-import com.android.tools.idea.adb.AdbServerMdnsBackend
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.InvalidDataException
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.LineSeparator
 import java.awt.Color
 import java.net.InetAddress
@@ -39,8 +35,6 @@ import kotlinx.coroutines.withContext
 class WiFiPairingServiceImpl(
   private val randomProvider: RandomProvider,
   private val adbService: AdbServiceWrapper,
-  private val adbOptionMDNSSelected: () -> AdbServerMdnsBackend = { AdbOptionsService.getInstance().adbServerMdnsBackend },
-  private val isSystemMac: () -> Boolean = { SystemInfo.isMac },
 ) : WiFiPairingService {
   private val LOG = logger<WiFiPairingServiceImpl>()
   private val studioServiceNamePrefix = "studio-"
@@ -72,11 +66,6 @@ class WiFiPairingServiceImpl(
             LOG.info("`adb mdns check` (supported) result:")
             result.stdout.take(3).forEach { LOG.info("    $it") }
 
-            // There is a mdns client but it may not work on Mac
-            if (!macSetupCanWork()) {
-              return MdnsSupportState.AdbMacEnvironmentBroken
-            }
-
             MdnsSupportState.Supported
           }
           else -> {
@@ -95,30 +84,6 @@ class WiFiPairingServiceImpl(
 
   override suspend fun isTrackMdnsServiceAvailable(): Boolean {
     return adbService.getHostFeatures().contains(TRACK_MDNS_SERVICE)
-  }
-
-  /** On Mac, the only mdns client able to work is openscreen starting with ADB 35.0.2 */
-  private suspend fun macSetupCanWork(): Boolean {
-    if (!isSystemMac()) {
-      return true
-    }
-
-    val serverStatus = adbService.getServerStatus()
-    if (serverStatus.version == UNKNOWN) {
-      return false
-    }
-
-    val currentRevision = Revision.parseRevision(serverStatus.version)
-    val requiredRevision = Revision.parseRevision("35.0.2")
-    if (currentRevision < requiredRevision) {
-      return false
-    }
-
-    if (adbOptionMDNSSelected() == AdbServerMdnsBackend.BONJOUR) {
-      return false
-    }
-
-    return true
   }
 
   override suspend fun generateQrCode(backgroundColor: Color, foregroundColor: Color): QrCodeImage {

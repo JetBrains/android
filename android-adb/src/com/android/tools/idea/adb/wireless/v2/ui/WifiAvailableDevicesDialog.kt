@@ -78,7 +78,6 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.ui.JBDimension
 import icons.StudioIconsCompose
 import javax.swing.JComponent
-import kotlin.collections.forEach
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
@@ -167,17 +166,6 @@ class WifiAvailableDevicesDialog(private val project: Project, private val wifiP
           title = "ADB Invocation Error",
           messages = listOf("There was an unexpected error during Wi-Fi pairing initialization."),
           links = listOf(Urls.learnMore to "Learn more"),
-        )
-      MdnsSupportState.AdbMacEnvironmentBroken ->
-        ErrorStateDisplay(
-          title = "macOS mDNS Environment Issue",
-          messages =
-            listOf(
-              "Please update to the latest version of \"platform-tools\" (minimum 35.0.2).",
-              "Make sure mDNS backend 'default' is selected in ADB Settings.",
-            ),
-          links =
-            listOf(Urls.openSdkManager to "Open SDK Manager", Urls.openAdbSettings to "Open ADB Settings", Urls.learnMore to "Learn more"),
         )
       MdnsSupportState.AdbDisabled ->
         ErrorStateDisplay(

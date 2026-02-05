@@ -39,7 +39,7 @@ public final class AdbOptionsService {
   static final int USER_MANAGED_ADB_PORT_MAX_VALUE = 65535;
 
   private static final String USB_BACKEND_NAME = "adb.usb.backend.name";
-  private static final String MDNS_BACKEND_NAME = "adb.mdns.backend.name3";
+  private static final String MDNS_BACKEND_NAME = "adb.mdns.backend.name4";
   private static final String BURST_MODE_NAME = "adb.burst.mode";
   private static final String LOG_ENABLED = "adb.log.enabled";
   private static final String LOG_LEVEL_NAME = "adb.log.level";
@@ -72,7 +72,7 @@ public final class AdbOptionsService {
 
   @NotNull
   public AdbServerMdnsBackend getAdbServerMdnsBackend() {
-    AdbServerMdnsBackend defaultMdnsBackend = AdbServerMdnsBackend.OPENSCREEN;
+    AdbServerMdnsBackend defaultMdnsBackend = AdbServerMdnsBackend.DEFAULT;
     String value = PropertiesComponent.getInstance().getValue(MDNS_BACKEND_NAME, defaultMdnsBackend.name());
     try {
       return AdbServerMdnsBackend.valueOf(value);

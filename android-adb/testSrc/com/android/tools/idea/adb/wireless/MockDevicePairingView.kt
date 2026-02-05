@@ -91,11 +91,6 @@ class MockDevicePairingView(project: Project, notificationService: WiFiPairingNo
     viewImpl.showQrCodePairingError(pairingMdnsService, error)
   }
 
-  override fun showMacMdnsEnvironmentIsBroken() {
-    showMacWontWorkAdbErrorTracker.produce(Unit)
-    viewImpl.showMacMdnsEnvironmentIsBroken()
-  }
-
   override fun showMdnsDisabledOnAdbServer() {
     viewImpl.showMdnsDisabledOnAdbServer()
   }

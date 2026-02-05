@@ -120,23 +120,6 @@ class WiFiPairingViewImpl(
     dlg.showQrCodePairingError(error)
   }
 
-  override fun showMacMdnsEnvironmentIsBroken() {
-    dlg.showLoadingError(
-      buildErrorHtml {
-        add("Please update to the latest version of \"platform-tools\" (minimum 35.0.2) with the ")
-        addLink("SDK manager", Urls.openSdkManager)
-        add(".")
-        newline()
-        newline()
-        add("Make sure mDNS backend 'default' is selected in ")
-        addLink("ADB Settings", Urls.openAdbSettings)
-        add(".")
-        newline()
-        newline()
-      }
-    )
-  }
-
   override fun showMdnsDisabledOnAdbServer() {
     dlg.showLoadingError(
       buildErrorHtml {
