@@ -36,7 +36,7 @@ import com.android.tools.idea.testartifacts.instrumented.AndroidInheritingClassV
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestClassBrowser;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestClassVisibilityChecker;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
-import com.intellij.execution.ExecutionBundle;
+import com.android.tools.idea.testartifacts.AndroidTestBundle;
 import com.intellij.execution.MethodListDlg;
 import com.intellij.execution.configuration.BrowseModuleValueActionListener;
 import com.intellij.execution.junit.JUnitUtil;
@@ -145,10 +145,10 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
       protected String showDialog() {
         Module module = myModuleSelector.getModule();
         if (module == null) {
-          Messages.showErrorDialog(myContentPanel, ExecutionBundle.message("module.not.specified.error.text"));
+          Messages.showErrorDialog(myContentPanel, AndroidTestBundle.message("module.not.specified.error.text"));
           return null;
         }
-        final PackageChooserDialog dialog = new PackageChooserDialog(ExecutionBundle.message("choose.package.dialog.title"),
+        final PackageChooserDialog dialog = new PackageChooserDialog(AndroidTestBundle.message("choose.package.dialog.title"),
                                                                      getModuleForPackageChooser(module));
         dialog.selectPackage(myTestPackageComponent.getComponent().getText());
         dialog.show();
@@ -172,14 +172,14 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
       protected String showDialog() {
         final String className = myTestClassComponent.getComponent().getText();
         if (className.trim().isEmpty()) {
-          Messages.showMessageDialog(getField(), ExecutionBundle.message("set.class.name.message"),
-                                     ExecutionBundle.message("cannot.browse.method.dialog.title"), Messages.getInformationIcon());
+          Messages.showMessageDialog(getField(), AndroidTestBundle.message("set.class.name.message"),
+                                     AndroidTestBundle.message("cannot.browse.method.dialog.title"), Messages.getInformationIcon());
           return null;
         }
         final PsiClass testClass = myModuleSelector.findClass(className);
         if (testClass == null) {
-          Messages.showMessageDialog(getField(), ExecutionBundle.message("class.does.not.exists.error.message", className),
-                                     ExecutionBundle.message("cannot.browse.method.dialog.title"), Messages.getInformationIcon());
+          Messages.showMessageDialog(getField(), AndroidTestBundle.message("class.does.not.exists.error.message", className),
+                                     AndroidTestBundle.message("cannot.browse.method.dialog.title"), Messages.getInformationIcon());
           return null;
         }
         final MethodListDlg dialog = new MethodListDlg(testClass, new JUnitUtil.TestMethodFilter(testClass), getField());
@@ -221,7 +221,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
       protected String showDialog() {
         Module module = myModuleSelector.getModule();
         if (module == null) {
-          Messages.showErrorDialog(myContentPanel, ExecutionBundle.message("module.not.specified.error.text"));
+          Messages.showErrorDialog(myContentPanel, AndroidTestBundle.message("module.not.specified.error.text"));
           return null;
         }
         AndroidTestExtraParamsDialog dialog = new AndroidTestExtraParamsDialog(getProject(),
@@ -287,13 +287,13 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     myContentPanel = new JPanel();
     myContentPanel.setLayout(new GridLayoutManager(7, 6, new Insets(0, 0, 0, 0), -1, -1));
     myAllInPackageTestButton = new JRadioButton();
-    myAllInPackageTestButton.setActionCommand(ExecutionBundle.message("junit.configuration.all.tests.in.package.radio"));
+    myAllInPackageTestButton.setActionCommand(AndroidTestBundle.message("junit.configuration.all.tests.in.package.radio"));
     loadButtonText(myAllInPackageTestButton, AndroidBundle.message("android.run.configuration.all.in.package.radio"));
     myContentPanel.add(myAllInPackageTestButton, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                                      GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
                                                                      null, null, null, 0, false));
     myClassTestButton = new JRadioButton();
-    myClassTestButton.setActionCommand(ExecutionBundle.message("junit.configuration.test.class.radio"));
+    myClassTestButton.setActionCommand(AndroidTestBundle.message("junit.configuration.test.class.radio"));
     myClassTestButton.setEnabled(true);
     myClassTestButton.setSelected(false);
     loadButtonText(myClassTestButton,
@@ -302,7 +302,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
                                                               GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
                                                               null, null, 0, false));
     myMethodTestButton = new JRadioButton();
-    myMethodTestButton.setActionCommand(ExecutionBundle.message("junit.configuration.test.method.radio"));
+    myMethodTestButton.setActionCommand(AndroidTestBundle.message("junit.configuration.test.method.radio"));
     myMethodTestButton.setSelected(false);
     loadButtonText(myMethodTestButton,
                    AndroidBundle.message("android.run.configuration.method.radio"));
@@ -314,7 +314,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     jBLabel1.setHorizontalTextPosition(2);
     jBLabel1.setIconTextGap(4);
     loadLabelText(jBLabel1,
-                  ExecutionBundle.message("junit.configuration.configure.junit.test.label"));
+                  AndroidTestBundle.message("junit.configuration.configure.junit.test.label"));
     myContentPanel.add(jBLabel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                      GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
                                                      0, false));

@@ -34,11 +34,10 @@ import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.AndroidTestExtraParam;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.TestRunParameters;
+import com.android.tools.idea.testartifacts.AndroidTestBundle;
 import com.google.common.collect.ImmutableList;
 import com.intellij.codeInsight.AnnotationUtil;
-import com.intellij.execution.ExecutionBundle;
 import com.intellij.execution.ExecutionException;
-import com.intellij.execution.JUnitBundle;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.JavaRunConfigurationModule;
@@ -47,7 +46,6 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.junit.JUnitUtil;
 import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.execution.testframework.TestRunnerBundle;
 import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationQuickFix;
@@ -181,7 +179,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   @Override
   public String suggestedName() {
     if (TESTING_TYPE == TEST_ALL_IN_PACKAGE) {
-      return ExecutionBundle.message("test.in.scope.presentable.text", PACKAGE_NAME);
+      return AndroidTestBundle.message("test.in.scope.presentable.text", PACKAGE_NAME);
     }
     else if (TESTING_TYPE == TEST_CLASS) {
       return JavaExecutionUtil.getShortClassName(CLASS_NAME);
@@ -195,7 +193,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       }
       return TEST_NAME_REGEX;
     }
-    return TestRunnerBundle.message("all.tests.scope.presentable.text");
+    return AndroidTestBundle.message("all.tests.scope.presentable.text");
   }
 
   public static boolean isKmpTestClass(@NotNull Module module, PsiClass psiClass) {
@@ -228,20 +226,20 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       case TEST_ALL_IN_PACKAGE:
         final PsiPackage testPackage = facade.findPackage(PACKAGE_NAME);
         if (testPackage == null) {
-          errors.add(ValidationError.warning(JUnitBundle.message("package.does.not.exist.error.message", PACKAGE_NAME)));
+          errors.add(ValidationError.warning(AndroidTestBundle.message("package.does.not.exist.error.message", PACKAGE_NAME)));
         }
         break;
       case TEST_CLASS:
         PsiClass testClass = null;
         try {
           testClass =
-            getConfigurationModule().checkModuleAndClassName(CLASS_NAME, JUnitBundle.message("no.test.class.specified.error.text"));
+            getConfigurationModule().checkModuleAndClassName(CLASS_NAME, AndroidTestBundle.message("no.test.class.specified.error.text"));
         }
         catch (RuntimeConfigurationException e) {
           errors.add(ValidationError.fromException(e));
         }
         if (testClass != null && !JUnitUtil.isTestClass(testClass) && !isKmpTestClass(module, testClass)) {
-          errors.add(ValidationError.warning(ExecutionBundle.message("class.isnt.test.class.error.message", CLASS_NAME)));
+          errors.add(ValidationError.warning(AndroidTestBundle.message("class.isnt.test.class.error.message", CLASS_NAME)));
         }
         break;
       case TEST_METHOD:
@@ -277,7 +275,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     final PsiClass testClass;
     Module moduleForAndroidTest;
     try {
-      testClass = configurationModule.checkModuleAndClassName(CLASS_NAME, JUnitBundle.message("no.test.class.specified.error.text"));
+      testClass = configurationModule.checkModuleAndClassName(CLASS_NAME, AndroidTestBundle.message("no.test.class.specified.error.text"));
       Module module = configurationModule.getModule();
       if (module == null) throw new IllegalStateException("Test module not specified and not caught in checkModuleAndClassName");
       Module androidTestModule = getModuleForAndroidTestRunConfiguration(module);
@@ -293,10 +291,10 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     }
     List<ValidationError> errors = new ArrayList<>();
     if (!JUnitUtil.isTestClass(testClass) && !isKmpTestClass(moduleForAndroidTest, testClass)) {
-      errors.add(ValidationError.warning(ExecutionBundle.message("class.isnt.test.class.error.message", CLASS_NAME)));
+      errors.add(ValidationError.warning(AndroidTestBundle.message("class.isnt.test.class.error.message", CLASS_NAME)));
     }
     if (isEmptyOrSpaces(METHOD_NAME)) {
-      errors.add(ValidationError.fatal(JUnitBundle.message("method.name.not.specified.error.message")));
+      errors.add(ValidationError.fatal(AndroidTestBundle.message("method.name.not.specified.error.message")));
     }
     final JUnitUtil.TestMethodFilter filter = new JUnitUtil.TestMethodFilter(testClass);
     boolean found = false;
@@ -310,18 +308,18 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       }
     }
     if (!found) {
-      errors.add(ValidationError.warning(JUnitBundle.message("test.method.doesnt.exist.error.message", METHOD_NAME)));
+      errors.add(ValidationError.warning(AndroidTestBundle.message("test.method.doesnt.exist.error.message", METHOD_NAME)));
     }
 
     if (!AnnotationUtil.isAnnotated(testClass, JUnitUtil.RUN_WITH, CHECK_HIERARCHY) && !testAnnotated) {
       try {
         final PsiClass testCaseClass = JUnitUtil.getTestCaseClass(moduleForAndroidTest);
         if (!testClass.isInheritor(testCaseClass, true)) {
-          errors.add(ValidationError.fatal(JUnitBundle.message("class.isnt.inheritor.of.testcase.error.message", CLASS_NAME)));
+          errors.add(ValidationError.fatal(AndroidTestBundle.message("class.isnt.inheritor.of.testcase.error.message", CLASS_NAME)));
         }
       }
       catch (JUnitUtil.NoJUnitException e) {
-        errors.add(ValidationError.warning(ExecutionBundle.message(AndroidBundle.message("cannot.find.testcase.error"))));
+        errors.add(ValidationError.warning(AndroidTestBundle.message("cannot.find.testcase.error")));
       }
     }
     return errors;
