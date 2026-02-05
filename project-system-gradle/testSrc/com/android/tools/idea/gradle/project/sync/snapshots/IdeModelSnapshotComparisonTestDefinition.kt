@@ -158,7 +158,8 @@ data class IdeModelSnapshotComparisonTestDefinition(
 
   override fun runTest(root: File, project: Project) {
     val v2snapshots = SnapshotContext(testProject.projectName, agpVersion, IDE_MODEL_SNAPSHOT_DIR)
-    val dump = project.saveAndDump(mapOf("ROOT" to root)) { project, projectDumper ->
+    val dump =
+      project.saveAndDump(mapOf("ROOT" to root), ignoreModuleFileAndType = true) { project, projectDumper ->
       projectDumper.dumpAndroidIdeModel(
         project,
         kotlinModels = { CapturePlatformModelsProjectResolverExtension.getKotlinModel(it) },
