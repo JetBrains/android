@@ -18,9 +18,9 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.export
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.testartifacts.AndroidTestBundle
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultsTreeNode
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
-import com.intellij.execution.ExecutionBundle
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.testframework.export.ExportTestResultsAction
 import com.intellij.execution.testframework.export.ExportTestResultsConfiguration
@@ -69,7 +69,7 @@ fun exportAndroidTestMatrixResultXmlFile(
       object :
         Task.Backgroundable(
           project,
-          ExecutionBundle.message("export.test.results.task.name"),
+          AndroidTestBundle.message("export.test.results.task.name"),
           false,
           PerformInBackgroundOption.ALWAYS_BACKGROUND,
         ) {
@@ -84,7 +84,7 @@ fun exportAndroidTestMatrixResultXmlFile(
 
                 val parent = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(exportFile.parentFile)
                 if (parent?.isValid != true) {
-                  return@runWriteAction Pair(null, ExecutionBundle.message("failed.to.create.output.file", exportFile.path))
+                  return@runWriteAction Pair(null, AndroidTestBundle.message("failed.to.create.output.file", exportFile.path))
                 }
 
                 val resultFile = parent.findChild(exportFile.name) ?: parent.createChildData(this, exportFile.name)
@@ -95,7 +95,13 @@ fun exportAndroidTestMatrixResultXmlFile(
             }
 
           if (!errorMessage.isNullOrBlank()) {
-            showBalloon(project, toolWindowId, MessageType.ERROR, ExecutionBundle.message("export.test.results.failed", errorMessage), null)
+            showBalloon(
+              project,
+              toolWindowId,
+              MessageType.ERROR,
+              AndroidTestBundle.message("export.test.results.failed", errorMessage),
+              null,
+            )
             return
           }
           if (resultFile == null) {
@@ -114,7 +120,7 @@ fun exportAndroidTestMatrixResultXmlFile(
               project,
               toolWindowId,
               MessageType.INFO,
-              ExecutionBundle.message("export.test.results.succeeded", exportFile.name),
+              AndroidTestBundle.message("export.test.results.succeeded", exportFile.name),
               listener,
             )
           }
@@ -165,7 +171,7 @@ private fun createTransformerHandler(
         transformer.apply {
           setParameter(
             "TITLE",
-            ExecutionBundle.message("export.test.results.filename", runConfiguration.name, runConfiguration.type.displayName),
+            AndroidTestBundle.message("export.test.results.filename", runConfiguration.name, runConfiguration.type.displayName),
           )
         }
       }
@@ -177,7 +183,7 @@ private fun createTransformerHandler(
           runConfiguration.project,
           toolWindowId,
           MessageType.ERROR,
-          ExecutionBundle.message("export.test.results.custom.template.not.found", xslFile.path),
+          AndroidTestBundle.message("export.test.results.custom.template.not.found", xslFile.path),
           null,
         )
         return null
@@ -186,7 +192,7 @@ private fun createTransformerHandler(
         transformer.apply {
           setParameter(
             "TITLE",
-            ExecutionBundle.message("export.test.results.filename", runConfiguration.name, runConfiguration.type.displayName),
+            AndroidTestBundle.message("export.test.results.filename", runConfiguration.name, runConfiguration.type.displayName),
           )
         }
       }

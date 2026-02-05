@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.export
 
+import com.android.tools.idea.testartifacts.AndroidTestBundle
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultsTreeNode
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getFullTestCaseName
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getFullTestClassName
@@ -23,7 +24,6 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.getName
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.TestStepRow
-import com.intellij.execution.ExecutionBundle
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.application.ApplicationNamesInfo
 import java.text.SimpleDateFormat
@@ -52,7 +52,11 @@ class AndroidTestResultsXmlFormatter(
       mapOf(
         "duration" to rootResultsNode.results.getTotalDuration().toMillis().toString(),
         "footerText" to
-          ExecutionBundle.message("export.test.results.footer", ApplicationNamesInfo.getInstance().fullProductName, fileGenerationDateText),
+          AndroidTestBundle.message(
+            "export.test.results.footer",
+            ApplicationNamesInfo.getInstance().fullProductName,
+            fileGenerationDateText,
+          ),
         "name" to runConfiguration.name,
       ),
     ) {

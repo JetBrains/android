@@ -16,13 +16,12 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.actions
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.testartifacts.AndroidTestBundle
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultsTreeNode
 import com.android.tools.idea.testartifacts.instrumented.testsuite.export.exportAndroidTestMatrixResultXmlFile
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.intellij.CommonBundle
-import com.intellij.execution.ExecutionBundle
 import com.intellij.execution.configurations.RunConfiguration
-import com.intellij.execution.testframework.TestRunnerBundle
 import com.intellij.execution.testframework.export.ExportTestResultsConfiguration
 import com.intellij.execution.testframework.export.ExportTestResultsDialog
 import com.intellij.icons.AllIcons
@@ -78,7 +77,7 @@ class ExportAndroidTestResultsAction :
     val devices = devices ?: return
     val exportConfig = ExportTestResultsConfiguration.getInstance(project)
     val defaultFileName =
-      ExecutionBundle.message("export.test.results.filename", PathUtil.suggestFileName(runConfiguration.name)) +
+      AndroidTestBundle.message("export.test.results.filename", PathUtil.suggestFileName(runConfiguration.name)) +
         "." +
         exportConfig.exportFormat.defaultExtension
     val exportFile = showExportTestResultsDialog(exportConfig, project, defaultFileName) ?: return
@@ -108,9 +107,9 @@ class ExportAndroidTestResultsAction :
       if (
         Messages.showOkCancelDialog(
           project,
-          ExecutionBundle.message("export.test.results.file.exists.message", file.name),
-          ExecutionBundle.message("export.test.results.file.exists.title"),
-          TestRunnerBundle.message("export.test.results.overwrite.button.text"),
+          AndroidTestBundle.message("export.test.results.file.exists.message", file.name),
+          AndroidTestBundle.message("export.test.results.file.exists.title"),
+          AndroidTestBundle.message("export.test.results.overwrite.button.text"),
           CommonBundle.getCancelButtonText(),
           Messages.getQuestionIcon(),
         ) == Messages.OK

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.testartifacts.instrumented;
 
+import com.android.tools.idea.testartifacts.AndroidTestBundle;
 import com.intellij.CommonBundle;
-import com.intellij.execution.ExecutionBundle;
 import com.intellij.execution.configuration.BrowseModuleValueActionListener;
 import com.intellij.execution.ui.ConfigurationModuleSelector;
 import com.intellij.ide.util.ClassFilter;
@@ -64,7 +64,7 @@ public abstract class AndroidClassBrowserBase<T extends JComponent> extends Brow
     final JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
     Module module = getModuleForScope();
     if (module == null) {
-      Messages.showErrorDialog(project, ExecutionBundle.message("module.not.specified.error.text"), CommonBundle.getErrorTitle());
+      Messages.showErrorDialog(project, AndroidTestBundle.message("module.not.specified.error.text"), CommonBundle.getErrorTitle());
       return null;
     }
     GlobalSearchScope scope =

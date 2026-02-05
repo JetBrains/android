@@ -19,6 +19,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.testartifacts.AndroidTestBundle
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPlaces
@@ -42,7 +43,6 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.getName
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.state.AndroidTestResultsUserPreferencesManager
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
-import com.intellij.execution.ExecutionBundle
 import com.intellij.execution.Location
 import com.intellij.execution.PsiLocation
 import com.intellij.execution.configurations.RunConfiguration
@@ -311,9 +311,9 @@ interface AndroidTestResultsTableListener {
 }
 
 private class FailedTestsNavigator(private val treetableView: AndroidTestResultsTableViewComponent) : OccurenceNavigator {
-  override fun getNextOccurenceActionName(): String = ExecutionBundle.message("next.failed.test.action.name")
+  override fun getNextOccurenceActionName(): String = AndroidTestBundle.message("next.failed.test.action.name")
 
-  override fun getPreviousOccurenceActionName(): String = ExecutionBundle.message("prev.failed.test.action.name")
+  override fun getPreviousOccurenceActionName(): String = AndroidTestBundle.message("prev.failed.test.action.name")
 
   override fun hasNextOccurence(): Boolean {
     return getNextFailedTestNode() != null
