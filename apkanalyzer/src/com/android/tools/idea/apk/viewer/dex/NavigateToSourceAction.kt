@@ -21,7 +21,7 @@ import com.android.tools.apk.analyzer.dex.tree.DexFieldNode
 import com.android.tools.apk.analyzer.dex.tree.DexMethodNode
 import com.android.tools.apk.analyzer.dex.tree.DexPackageNode
 import com.android.tools.idea.AndroidPsiUtils
-import com.intellij.execution.ExecutionBundle
+import com.android.tools.idea.apk.viewer.ApkAnalyzerBundle
 import com.intellij.icons.AllIcons
 import com.intellij.ide.util.DefaultPsiElementCellRenderer
 import com.intellij.openapi.actionSystem.ActionManager
@@ -142,7 +142,7 @@ private fun showChooser(targets: List<PsiTarget>, e: AnActionEvent) {
     JBPopupFactory.getInstance()
       .createPopupChooserBuilder(targets.map { it.navigationElement })
       .setRenderer(DefaultPsiElementCellRenderer())
-      .setTitle(ExecutionBundle.message("popup.title.choose.target.file"))
+      .setTitle(ApkAnalyzerBundle.message("popup.title.choose.target.file"))
       .setItemChosenCallback { (it as Navigatable).navigate(true) }
       .createPopup()
   val inputEvent = e.inputEvent
