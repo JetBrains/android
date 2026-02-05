@@ -130,7 +130,7 @@ class VitalsGrpcClientImpl(channel: Channel, authTokenInterceptor: ClientInterce
             AggregationPeriod.DAILY -> TimeGranularity.DAILY
             AggregationPeriod.FULL_RANGE -> TimeGranularity.FULL_RANGE
             else -> {
-              Logger.getLogger(VitalsGrpcClientImpl::class.qualifiedName).warning("${it.aggregationPeriod} is not recognized.")
+              Logger.getLogger(VitalsGrpcClientImpl::class.java.name).warning("${it.aggregationPeriod} is not recognized.")
               return@mapNotNull null
             }
           }

@@ -18,7 +18,7 @@ package com.android.tools.idea.vitals
 import com.android.tools.idea.insights.InsightsProvider
 
 object VitalsInsightsProvider : InsightsProvider {
-  override val displayName = "Android Vitals"
+  override val displayName = "Android vitals"
 
   override val supportsMultipleEvents = false
 }
