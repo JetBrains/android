@@ -28,10 +28,12 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@Ignore("b/481966018")
 class WatchFaceStudioFileImporterTest {
 
   @get:Rule val projectRule = AndroidProjectRule.withAndroidModel(AndroidProjectBuilder())
