@@ -45,7 +45,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vcs.changes.ChangeListManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -110,20 +109,11 @@ class MigrateToNonTransitiveRClassesHandler : RefactoringActionHandler {
   @UiThread override fun invoke(project: Project, elements: Array<PsiElement>, dataContext: DataContext?) = invoke(project)
 
   private fun invoke(project: Project) {
-    val pluginInfo = AndroidPluginInfo.find(project)
+    val pluginInfo = AndroidPluginInfo.findFromModel(project)
 
     // If for some reason Android Gradle Plugin version cannot be found, assume users have the correct version for the refactoring ie. 7.0.0
     val pluginVersion = pluginInfo?.pluginVersion ?: AgpVersion(7, 0, 0)
 
-    // Android Gradle Plugin version less than 4.2.0 is not supported.
-    if (!pluginVersion.isAtLeast(4, 2, 0, "alpha", 0, true)) {
-      Messages.showErrorDialog(
-        project,
-        AndroidBundle.message("android.refactoring.migrateto.nontransitiverclass.error.old.agp.message"),
-        AndroidBundle.message("android.refactoring.migrateto.nontransitiverclass.error.old.agp.title"),
-      )
-      return
-    }
     val processor = MigrateToNonTransitiveRClassesProcessor.forEntireProject(project, pluginVersion)
     processor.setPreviewUsages(true)
     processor.run()
