@@ -19,9 +19,9 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
+import com.android.tools.idea.execution.common.AndroidExecutionBundle
 import com.android.tools.idea.run.DeploymentApplicationService
 import com.google.common.util.concurrent.Uninterruptibles
-import com.intellij.execution.ExecutionBundle
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.diagnostic.Logger
@@ -132,7 +132,7 @@ fun showError(project: Project, e: ExecutionException, sessionName: String) {
     project,
     ToolWindowId.DEBUG,
     e,
-    ExecutionBundle.message("error.running.configuration.message", sessionName),
+    AndroidExecutionBundle.message("error.running.configuration.message", sessionName),
     e.message,
     Function.identity(),
     null,
