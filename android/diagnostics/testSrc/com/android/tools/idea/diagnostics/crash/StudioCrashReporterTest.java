@@ -85,7 +85,7 @@ public class StudioCrashReporterTest {
 
   @Test
   public void testIdeBrandIncludedInExceptionReport() throws Exception {
-    UsageTrackerWriter usageTracker = NullUsageTracker.INSTANCE; // TODO: android-merge; removed  as in upstream
+    UsageTrackerWriter usageTracker = NullUsageTracker.INSTANCE;
     UsageTracker.setIdeBrand(AndroidStudioEvent.IdeBrand.ANDROID_STUDIO);
     try {
       UsageTracker.setWriterForTest(usageTracker);

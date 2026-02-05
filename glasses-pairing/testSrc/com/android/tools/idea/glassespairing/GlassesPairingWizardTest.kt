@@ -37,7 +37,7 @@ import com.android.tools.idea.glassespairing.LaunchState.Booting
 import com.android.tools.idea.glassespairing.LaunchState.Launching
 import com.android.tools.idea.glassespairing.LaunchState.Ready
 import com.google.common.truth.Truth.assertThat
-import com.google.protobuf.Message // TODO: android-merge; needed for the new interface
+import com.google.protobuf.Message.Builder
 import com.google.wireless.android.play.playlog.proto.ClientAnalytics
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GlassesPairingEvent
@@ -402,19 +402,17 @@ private class TestWizardController : WizardController {
   }
 }
 
-// TODO: android-merge; the UsageTrackerWrite interface had changed upstream (no generic, different callback to override)
 private class TestTracker : UsageTrackerWriter() {
   val events = CopyOnWriteArrayList<GlassesPairingEvent.EventKind>()
 
   override fun logDetails(logEvent: ClientAnalytics.LogEvent.Builder) {}
 
-  // TODO: android-merge: changed as in upstream
-  // override fun processMessage(eventTimeMs: Long, studioEvent: AndroidStudioEvent.Builder) {
-  override fun processEvent(studioEvent: AndroidStudioEvent.Builder): Message.Builder? {
+  override fun processEvent(studioEvent: AndroidStudioEvent.Builder): Builder {
     if (studioEvent.kind == AndroidStudioEvent.EventKind.GLASSES_PAIRING_EVENT) {
       events.add(studioEvent.glassesPairingEvent.kind)
     }
-    return studioEvent // TODO: android-merge; changed as in upstream
+
+    return studioEvent
   }
 
   override fun close() {}
