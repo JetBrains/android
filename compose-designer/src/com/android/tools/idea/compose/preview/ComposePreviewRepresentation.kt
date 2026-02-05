@@ -66,7 +66,6 @@ import com.android.tools.idea.preview.PreviewInvalidationManager
 import com.android.tools.idea.preview.PreviewPreloadClasses.INTERACTIVE_CLASSES_TO_PRELOAD
 import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.RenderQualityManager
-import com.android.tools.idea.preview.SimpleRenderQualityManager
 import com.android.tools.idea.preview.actions.BuildAndRefresh
 import com.android.tools.idea.preview.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
@@ -78,7 +77,6 @@ import com.android.tools.idea.preview.find.findAnnotatedMethodsValues
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.focus.CommonFocusEssentialsModeManager
 import com.android.tools.idea.preview.focus.FocusMode
-import com.android.tools.idea.preview.getDefaultPreviewQuality
 import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.interactive.InteractivePreviewManager
 import com.android.tools.idea.preview.interactive.fpsLimitFlow
@@ -695,9 +693,7 @@ class ComposePreviewRepresentation(
   private val allowQualityChangeIfInactive = AtomicBoolean(false)
   private val qualityPolicy = DefaultRenderQualityPolicy { surface.zoomController.screenScalingFactor }
   private val qualityManager: RenderQualityManager =
-    if (StudioFlags.PREVIEW_RENDER_QUALITY.get())
-      DefaultRenderQualityManager(surface, qualityPolicy) { requestRefresh(type = ComposePreviewRefreshType.QUALITY) }
-    else SimpleRenderQualityManager { getDefaultPreviewQuality() }
+    DefaultRenderQualityManager(surface, qualityPolicy) { requestRefresh(type = ComposePreviewRefreshType.QUALITY) }
 
   private val myPsiCodeFileOutOfDateStatusReporter = PsiCodeFileOutOfDateStatusReporter.getInstance(project)
 
@@ -1118,11 +1114,7 @@ class ComposePreviewRepresentation(
       completableDeferred?.completeAlreadyDisposed()
       return
     }
-    // Make sure not to allow quality change refreshes when the flag is disabled
-    if (type == ComposePreviewRefreshType.QUALITY && !StudioFlags.PREVIEW_RENDER_QUALITY.get()) {
-      completableDeferred?.completeExceptionally(IllegalStateException("Not enabled"))
-      return
-    }
+
     // Make sure not to request refreshes when deactivated, unless it is an allowed quality refresh,
     // which is expected to happen to decrease the quality of the previews when deactivating.
     if (!lifecycleManager.isActive() && !(type == ComposePreviewRefreshType.QUALITY && allowQualityChangeIfInactive.get())) {
