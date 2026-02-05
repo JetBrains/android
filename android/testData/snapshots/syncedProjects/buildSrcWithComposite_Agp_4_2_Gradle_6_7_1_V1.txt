@@ -12,7 +12,6 @@ PROJECT                       : BuildSrcWithComposite
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/BuildSrcWithComposite [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/build
@@ -34,7 +33,6 @@ PROJECT                       : BuildSrcWithComposite
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -87,8 +85,6 @@ PROJECT                       : BuildSrcWithComposite
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : BuildSrcWithComposite.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/app/BuildSrcWithComposite.app.androidTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -348,8 +344,6 @@ PROJECT                       : BuildSrcWithComposite
             compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/BuildSrcWithComposite.app.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -519,8 +513,6 @@ PROJECT                       : BuildSrcWithComposite
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : BuildSrcWithComposite.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/app/BuildSrcWithComposite.app.unitTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -736,8 +728,6 @@ PROJECT                       : BuildSrcWithComposite
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/BuildSrcWithComposite.buildSrc [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/BuildSrcWithComposite.buildSrc.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
@@ -759,8 +749,6 @@ PROJECT                       : BuildSrcWithComposite
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/BuildSrcWithComposite.buildSrc.lib1 [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/lib1/BuildSrcWithComposite.buildSrc.lib1.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
@@ -782,8 +770,6 @@ PROJECT                       : BuildSrcWithComposite
             compilerSourceOutputPath      : file://<PROJECT>/buildSrc/lib1/build/classes/java/main
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/lib1/BuildSrcWithComposite.buildSrc.lib1.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/buildSrc/lib1/src/main
             JavaSource                    : file://<PROJECT>/buildSrc/lib1/src/main/java
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/buildSrc/lib1/src/main/resources [-]
@@ -807,8 +793,6 @@ PROJECT                       : BuildSrcWithComposite
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : BuildSrcWithComposite.buildSrc.lib1.main
-        ModuleFile                    : <PROJECT>/.idea/modules/lib1/BuildSrcWithComposite.buildSrc.lib1.test.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/buildSrc/lib1/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/buildSrc/lib1/src/test/java [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/buildSrc/lib1/src/test/resources [-]
@@ -829,8 +813,6 @@ PROJECT                       : BuildSrcWithComposite
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/BuildSrcWithComposite.buildSrc.lib2 [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/lib2/BuildSrcWithComposite.buildSrc.lib2.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
@@ -852,8 +834,6 @@ PROJECT                       : BuildSrcWithComposite
             compilerSourceOutputPath      : file://<PROJECT>/buildSrc/lib2/build/classes/java/main
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/lib2/BuildSrcWithComposite.buildSrc.lib2.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/buildSrc/lib2/src/main
             JavaSource                    : file://<PROJECT>/buildSrc/lib2/src/main/java
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/buildSrc/lib2/src/main/resources [-]
@@ -876,8 +856,6 @@ PROJECT                       : BuildSrcWithComposite
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : BuildSrcWithComposite.buildSrc.lib2.main
-        ModuleFile                    : <PROJECT>/.idea/modules/lib2/BuildSrcWithComposite.buildSrc.lib2.test.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/buildSrc/lib2/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/buildSrc/lib2/src/test/java [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/buildSrc/lib2/src/test/resources [-]
@@ -897,8 +875,6 @@ PROJECT                       : BuildSrcWithComposite
             compilerSourceOutputPath      : file://<PROJECT>/buildSrc/build/classes/java/main
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/BuildSrcWithComposite.buildSrc.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/buildSrc/src/main
             JavaSource                    : file://<PROJECT>/buildSrc/src/main/java
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/buildSrc/src/main/groovy [-]
@@ -965,8 +941,6 @@ PROJECT                       : BuildSrcWithComposite
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : BuildSrcWithComposite.buildSrc.main
-        ModuleFile                    : <PROJECT>/.idea/modules/BuildSrcWithComposite.buildSrc.test.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/buildSrc/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/buildSrc/src/test/groovy [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/buildSrc/src/test/java [-]
@@ -1030,7 +1004,6 @@ PROJECT                       : BuildSrcWithComposite
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/android-included [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         CONENT_ENTRY                  : file://<PROJECT>/android-included
             EXCLUDE_FOLDER                : file://<PROJECT>/android-included/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/android-included/build
@@ -1052,7 +1025,6 @@ PROJECT                       : BuildSrcWithComposite
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1105,8 +1077,6 @@ PROJECT                       : BuildSrcWithComposite
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : android-included.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/android-included/app/android-included.app.androidTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1276,8 +1246,6 @@ PROJECT                       : BuildSrcWithComposite
             compilerSourceOutputPath      : file://<PROJECT>/android-included/app/build/intermediates/javac/debug/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/android-included/app/android-included.app.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1416,8 +1384,6 @@ PROJECT                       : BuildSrcWithComposite
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : android-included.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/android-included/app/android-included.app.unitTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1570,7 +1536,6 @@ PROJECT                       : BuildSrcWithComposite
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1621,8 +1586,6 @@ PROJECT                       : BuildSrcWithComposite
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : android-included.lib.main
-        ModuleFile                    : <PROJECT>/.idea/modules/android-included/lib/android-included.lib.androidTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1736,8 +1699,6 @@ PROJECT                       : BuildSrcWithComposite
             compilerSourceOutputPath      : file://<PROJECT>/android-included/lib/build/intermediates/javac/debug/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/android-included/lib/android-included.lib.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1846,8 +1807,6 @@ PROJECT                       : BuildSrcWithComposite
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : android-included.lib.main
-        ModuleFile                    : <PROJECT>/.idea/modules/android-included/lib/android-included.lib.unitTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1941,7 +1900,6 @@ PROJECT                       : BuildSrcWithComposite
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/java-included [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
@@ -1966,7 +1924,6 @@ PROJECT                       : BuildSrcWithComposite
             compilerSourceOutputPath      : file://<PROJECT>/java-included/build/classes/java/main [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         CONENT_ENTRY                  : file://<PROJECT>/java-included/src/main
             JavaSource                    : file://<PROJECT>/java-included/src/main/java
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/java-included/src/main/resources [-]
@@ -1993,7 +1950,6 @@ PROJECT                       : BuildSrcWithComposite
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : java-included.main
-        ModuleFile                    :  [-]
         CONENT_ENTRY                  : file://<PROJECT>/java-included/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/java-included/src/test/java [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/java-included/src/test/resources [-]
