@@ -18,7 +18,6 @@ package com.android.tools.idea.logcat
 import com.android.tools.idea.logcat.LogcatOccurrenceNavigator.Companion.FOLLOWED_HYPERLINK_ATTRIBUTES
 import com.android.tools.idea.logcat.LogcatOccurrenceNavigator.Direction.DOWN
 import com.android.tools.idea.logcat.LogcatOccurrenceNavigator.Direction.UP
-import com.intellij.execution.ExecutionBundle
 import com.intellij.execution.filters.FileHyperlinkInfo
 import com.intellij.execution.filters.HyperlinkInfoBase
 import com.intellij.execution.impl.EditorHyperlinkSupport
@@ -73,9 +72,9 @@ internal class LogcatOccurrenceNavigator(private val project: Project, private v
   /** Go to the previous stack frame starting from the line above the caret */
   override fun goPreviousOccurence(): OccurenceInfo? = goOccurrence(UP)
 
-  override fun getNextOccurenceActionName(): String = ExecutionBundle.message("down.the.stack.trace")
+  override fun getNextOccurenceActionName(): String = LogcatBundle.message("down.the.stack.trace")
 
-  override fun getPreviousOccurenceActionName(): String = ExecutionBundle.message("up.the.stack.trace")
+  override fun getPreviousOccurenceActionName(): String = LogcatBundle.message("up.the.stack.trace")
 
   private fun goOccurrence(direction: Direction): OccurenceInfo? {
     val line = document.getLineNumber(editor.caretModel.offset)

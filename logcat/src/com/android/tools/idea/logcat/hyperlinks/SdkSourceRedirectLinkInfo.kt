@@ -16,9 +16,9 @@
 package com.android.tools.idea.logcat.hyperlinks
 
 import com.android.sdklib.AndroidApiLevel
+import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.sources.SdkSourcePositionFinder
-import com.intellij.execution.ExecutionBundle
 import com.intellij.execution.filters.FileHyperlinkInfo
 import com.intellij.execution.filters.HyperlinkInfoBase
 import com.intellij.execution.filters.OpenFileHyperlinkInfo
@@ -67,7 +67,7 @@ internal class SdkSourceRedirectLinkInfo(
       JBPopupFactory.getInstance()
         .createPopupChooserBuilder(files)
         .setRenderer(GotoFileCellRenderer(width))
-        .setTitle(ExecutionBundle.message("popup.title.choose.target.file"))
+        .setTitle(LogcatBundle.message("popup.title.choose.target.file"))
         .setItemChosenCallback { file: VirtualFile -> openFile(map.getValue(file), descriptor.withFile(file)) }
         .createPopup()
     if (hyperlinkLocationPoint != null) {
