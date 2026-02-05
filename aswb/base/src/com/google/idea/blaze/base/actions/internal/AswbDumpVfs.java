@@ -99,8 +99,8 @@ class AswbDumpVfs extends DumbAwareAction {
       for (int i = 0; i < events.size(); i++) {
         VFileEvent event = events.get(i);
         vfsDiagLogger.info("    " + event);
-        if (i > 1000) {
-          vfsDiagLogger.info("    ...more");
+        if (i > 50) {
+          vfsDiagLogger.info(String.format(Locale.ROOT, "    ...and %d more events", events.size() - i));
           break;
         }
       }
