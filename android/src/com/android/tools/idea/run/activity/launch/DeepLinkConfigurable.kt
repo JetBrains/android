@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.run.activity.launch
 
+import com.android.tools.idea.run.AndroidRunBundle
 import com.android.tools.idea.run.activity.ActivityLocatorUtils
 import com.android.tools.idea.run.editor.DeepLinkChooserDialog
-import com.intellij.execution.ExecutionBundle
 import com.intellij.ide.util.TreeClassChooser
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComponentWithBrowseButton
@@ -28,7 +28,6 @@ import com.intellij.psi.search.ProjectScope
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.panel
-import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.android.util.AndroidTreeClassChooserFactory.createInheritanceClassChooser
 import org.jetbrains.android.util.AndroidUtils
 
@@ -41,7 +40,7 @@ class DeepLinkConfigurable(project: Project, context: LaunchOptionConfigurableCo
         }
         val module = context.getModule()
         if (module == null) {
-          Messages.showErrorDialog(project, ExecutionBundle.message("module.not.specified.error.text"), "Deep Link Launcher")
+          Messages.showErrorDialog(project, AndroidRunBundle.message("module.not.specified.error.text"), "Deep Link Launcher")
           return@addActionListener
         }
         val dialog = DeepLinkChooserDialog(project, module)
@@ -63,12 +62,12 @@ class DeepLinkConfigurable(project: Project, context: LaunchOptionConfigurableCo
         val facade = JavaPsiFacade.getInstance(project)
         val activityBaseClass = facade.findClass(AndroidUtils.ACTIVITY_BASE_CLASS_NAME, ProjectScope.getAllScope(project))
         if (activityBaseClass == null) {
-          Messages.showErrorDialog(project, AndroidBundle.message("cant.find.activity.class.error"), "Specific Activity Launcher")
+          Messages.showErrorDialog(project, AndroidRunBundle.message("cant.find.activity.class.error"), "Specific Activity Launcher")
           return@addActionListener
         }
         val module = context.getModule()
         if (module == null) {
-          Messages.showErrorDialog(project, ExecutionBundle.message("module.not.specified.error.text"), "Specific Activity Launcher")
+          Messages.showErrorDialog(project, AndroidRunBundle.message("module.not.specified.error.text"), "Specific Activity Launcher")
           return@addActionListener
         }
         val initialSelection = facade.findClass(childComponent.text, module.moduleWithDependenciesScope)
