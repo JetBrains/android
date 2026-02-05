@@ -10,7 +10,6 @@ PROJECT                       : reference
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/build
@@ -32,7 +31,6 @@ PROJECT                       : reference
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -82,7 +80,6 @@ PROJECT                       : reference
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -153,7 +150,6 @@ PROJECT                       : reference
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -218,7 +214,6 @@ PROJECT                       : reference
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -286,7 +281,6 @@ PROJECT                       : reference
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -338,7 +332,6 @@ PROJECT                       : reference
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -409,7 +402,6 @@ PROJECT                       : reference
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -479,7 +471,6 @@ PROJECT                       : reference
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -542,7 +533,6 @@ PROJECT                       : reference
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
@@ -566,7 +556,6 @@ PROJECT                       : reference
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         CONENT_ENTRY                  : file://<PROJECT>/javalib/src/main
             JavaSource                    : file://<PROJECT>/javalib/src/main/java
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/javalib/src/main/resources [-]
@@ -587,7 +576,6 @@ PROJECT                       : reference
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         CONENT_ENTRY                  : file://<PROJECT>/javalib/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/javalib/src/test/java [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/javalib/src/test/resources [-]

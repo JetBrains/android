@@ -12,7 +12,6 @@ PROJECT                       : kotlinMultiPlatform
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/kotlinMultiPlatform [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/build
@@ -34,7 +33,6 @@ PROJECT                       : kotlinMultiPlatform
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -89,7 +87,6 @@ PROJECT                       : kotlinMultiPlatform
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : kotlinMultiPlatform.app.main
-        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -258,7 +255,6 @@ PROJECT                       : kotlinMultiPlatform
             compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -383,7 +379,6 @@ PROJECT                       : kotlinMultiPlatform
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : kotlinMultiPlatform.app.main
-        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -546,7 +541,6 @@ PROJECT                       : kotlinMultiPlatform
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -599,8 +593,6 @@ PROJECT                       : kotlinMultiPlatform
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : kotlinMultiPlatform.module2.main
-        ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.androidTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -725,8 +717,6 @@ PROJECT                       : kotlinMultiPlatform
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/kotlinMultiPlatform.module2.appleMain [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.appleMain.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -961,8 +951,6 @@ PROJECT                       : kotlinMultiPlatform
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : kotlinMultiPlatform.module2.appleMain
-        ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.appleTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -1383,8 +1371,6 @@ PROJECT                       : kotlinMultiPlatform
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/kotlinMultiPlatform.module2.commonMain [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.commonMain.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -1441,8 +1427,6 @@ PROJECT                       : kotlinMultiPlatform
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : kotlinMultiPlatform.module2.commonMain
-        ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.commonTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -1500,8 +1484,6 @@ PROJECT                       : kotlinMultiPlatform
             compilerSourceOutputPath      : file://<PROJECT>/module2/build/classes/kotlin/iosArm64/main/klib [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.iosArm64Main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -1731,8 +1713,6 @@ PROJECT                       : kotlinMultiPlatform
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : kotlinMultiPlatform.module2.iosArm64Main
-        ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.iosArm64Test.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -2153,8 +2133,6 @@ PROJECT                       : kotlinMultiPlatform
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/kotlinMultiPlatform.module2.iosMain [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.iosMain.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -2387,8 +2365,6 @@ PROJECT                       : kotlinMultiPlatform
             compilerSourceOutputPath      : file://<PROJECT>/module2/build/classes/kotlin/iosSimulatorArm64/main/klib [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.iosSimulatorArm64Main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -2618,8 +2594,6 @@ PROJECT                       : kotlinMultiPlatform
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : kotlinMultiPlatform.module2.iosSimulatorArm64Main
-        ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.iosSimulatorArm64Test.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -3042,8 +3016,6 @@ PROJECT                       : kotlinMultiPlatform
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : kotlinMultiPlatform.module2.iosMain
-        ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.iosTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -3465,8 +3437,6 @@ PROJECT                       : kotlinMultiPlatform
             compilerSourceOutputPath      : file://<PROJECT>/module2/build/classes/kotlin/iosX64/main/klib [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.iosX64Main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -3696,8 +3666,6 @@ PROJECT                       : kotlinMultiPlatform
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : kotlinMultiPlatform.module2.iosX64Main
-        ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.iosX64Test.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -4120,8 +4088,6 @@ PROJECT                       : kotlinMultiPlatform
             compilerSourceOutputPath      : file://<PROJECT>/module2/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -4233,8 +4199,6 @@ PROJECT                       : kotlinMultiPlatform
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/kotlinMultiPlatform.module2.nativeMain [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.nativeMain.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -4468,8 +4432,6 @@ PROJECT                       : kotlinMultiPlatform
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : kotlinMultiPlatform.module2.nativeMain
-        ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.nativeTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -4892,8 +4854,6 @@ PROJECT                       : kotlinMultiPlatform
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : kotlinMultiPlatform.module2.main
-        ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.unitTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE

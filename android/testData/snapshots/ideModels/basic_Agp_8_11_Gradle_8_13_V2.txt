@@ -12,7 +12,6 @@ MODULE                        : project
     COMPILER_MODULE_EXTENSION
         isCompilerPathInherited       : false
         isExcludeOutput               : true
-    ModuleFile                    :  [-]
     FACET                         : Android
         TypeId                        : android
         ExternalSource                : GRADLE

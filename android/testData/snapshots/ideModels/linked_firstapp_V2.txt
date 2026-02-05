@@ -9,7 +9,6 @@ MODULE                        : My_First_App
         compilerTestOutputPath        : file://<ROOT>/firstapp/build/classes/test/My_First_App [-]
         isCompilerPathInherited       : true
         isExcludeOutput               : true
-    ModuleFile                    :  [-]
     CONENT_ENTRY                  : file://<ROOT>/firstapp
         EXCLUDE_FOLDER                : file://<ROOT>/firstapp/.gradle
         EXCLUDE_FOLDER                : file://<ROOT>/firstapp/build

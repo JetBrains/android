@@ -9,7 +9,6 @@ MODULE                        : NonStandardSourceSetDependencies
         compilerTestOutputPath        : file://<ROOT>/build/classes/test/NonStandardSourceSetDependencies [-]
         isCompilerPathInherited       : true
         isExcludeOutput               : true
-    ModuleFile                    :  [-]
     CONENT_ENTRY                  : file://<ROOT>
         EXCLUDE_FOLDER                : file://<ROOT>/.gradle
         EXCLUDE_FOLDER                : file://<ROOT>/build

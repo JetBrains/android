@@ -12,7 +12,6 @@ PROJECT                       : MultiFlavor
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/MultiFlavor [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/build
@@ -32,7 +31,6 @@ PROJECT                       : MultiFlavor
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -83,7 +81,6 @@ PROJECT                       : MultiFlavor
             compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/firstXyzSecondXyzRelease/compileFirstXyzSecondXyzReleaseJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE

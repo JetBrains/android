@@ -12,8 +12,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/NonStandardSourceSetDependencies [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/NonStandardSourceSetDependencies.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/build
@@ -32,8 +30,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/NonStandardSourceSetDependencies.aarWrapperLib [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/aarWrapperLib/NonStandardSourceSetDependencies.aarWrapperLib.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
@@ -58,8 +54,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/NonStandardSourceSetDependencies.app.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -114,8 +108,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : NonStandardSourceSetDependencies.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/app/NonStandardSourceSetDependencies.app.androidTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -218,8 +210,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/NonStandardSourceSetDependencies.app.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -317,8 +307,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : NonStandardSourceSetDependencies.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/app/NonStandardSourceSetDependencies.app.unitTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -418,8 +406,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/NonStandardSourceSetDependencies.common [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/common/NonStandardSourceSetDependencies.common.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
@@ -442,8 +428,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/NonStandardSourceSetDependencies.common.commonMain [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/common/NonStandardSourceSetDependencies.common.commonMain.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -502,8 +486,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : NonStandardSourceSetDependencies.common.commonMain
-        ModuleFile                    : <PROJECT>/.idea/modules/common/NonStandardSourceSetDependencies.common.commonTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -563,8 +545,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             compilerSourceOutputPath      : file://<PROJECT>/common/build/classes/kotlin/jvm/main [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/common/NonStandardSourceSetDependencies.common.jvmMain.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -627,8 +607,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : NonStandardSourceSetDependencies.common.jvmMain
-        ModuleFile                    : <PROJECT>/.idea/modules/common/NonStandardSourceSetDependencies.common.jvmTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -693,8 +671,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/NonStandardSourceSetDependencies.desktop [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/desktop/NonStandardSourceSetDependencies.desktop.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
@@ -719,8 +695,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             compilerSourceOutputPath      : file://<PROJECT>/desktop/build/classes/java/main [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/desktop/NonStandardSourceSetDependencies.desktop.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -785,8 +759,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : NonStandardSourceSetDependencies.desktop.main
-        ModuleFile                    : <PROJECT>/.idea/modules/desktop/NonStandardSourceSetDependencies.desktop.test.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -850,8 +822,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/feature-a/NonStandardSourceSetDependencies.feature-a.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -904,8 +874,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : NonStandardSourceSetDependencies.feature-a.main
-        ModuleFile                    : <PROJECT>/.idea/modules/feature-a/NonStandardSourceSetDependencies.feature-a.androidTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1050,8 +1018,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             compilerSourceOutputPath      : file://<PROJECT>/feature-a/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/feature-a/NonStandardSourceSetDependencies.feature-a.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1169,8 +1135,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : NonStandardSourceSetDependencies.feature-a.main
-        ModuleFile                    : <PROJECT>/.idea/modules/feature-a/NonStandardSourceSetDependencies.feature-a.unitTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1315,8 +1279,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/feature-b/NonStandardSourceSetDependencies.feature-b.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1369,8 +1331,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : NonStandardSourceSetDependencies.feature-b.main
-        ModuleFile                    : <PROJECT>/.idea/modules/feature-b/NonStandardSourceSetDependencies.feature-b.androidTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1485,8 +1445,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             compilerSourceOutputPath      : file://<PROJECT>/feature-b/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/feature-b/NonStandardSourceSetDependencies.feature-b.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1603,8 +1561,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : NonStandardSourceSetDependencies.feature-b.main
-        ModuleFile                    : <PROJECT>/.idea/modules/feature-b/NonStandardSourceSetDependencies.feature-b.unitTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1719,8 +1675,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/NonStandardSourceSetDependencies.jarWrapperLib [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/jarWrapperLib/NonStandardSourceSetDependencies.jarWrapperLib.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
@@ -1742,8 +1696,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/NonStandardSourceSetDependencies.javaLibrary [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/javaLibrary/NonStandardSourceSetDependencies.javaLibrary.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
@@ -1768,8 +1720,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             compilerSourceOutputPath      : file://<PROJECT>/javaLibrary/build/classes/java/main [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/javaLibrary/NonStandardSourceSetDependencies.javaLibrary.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -1841,8 +1791,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : NonStandardSourceSetDependencies.javaLibrary.main
-        ModuleFile                    : <PROJECT>/.idea/modules/javaLibrary/NonStandardSourceSetDependencies.javaLibrary.test.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -1910,8 +1858,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             compilerSourceOutputPath      : file://<PROJECT>/javaLibrary/build/classes/java/testEnv [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/javaLibrary/NonStandardSourceSetDependencies.javaLibrary.testEnv.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -1974,8 +1920,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/NonStandardSourceSetDependencies.kmp-java [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/kmp-java/NonStandardSourceSetDependencies.kmp-java.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
@@ -1997,8 +1941,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/NonStandardSourceSetDependencies.kmp-java.sample [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/kmp-java/sample/NonStandardSourceSetDependencies.kmp-java.sample.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
@@ -2023,8 +1965,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/kmp-java/sample-test/NonStandardSourceSetDependencies.kmp-java.sample-test.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -2077,8 +2017,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : NonStandardSourceSetDependencies.kmp-java.sample-test.main
-        ModuleFile                    : <PROJECT>/.idea/modules/kmp-java/sample-test/NonStandardSourceSetDependencies.kmp-java.sample-test.androidTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -2142,8 +2080,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             compilerSourceOutputPath      : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/kmp-java/sample-test/NonStandardSourceSetDependencies.kmp-java.sample-test.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -2210,8 +2146,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : NonStandardSourceSetDependencies.kmp-java.sample-test.main
-        ModuleFile                    : <PROJECT>/.idea/modules/kmp-java/sample-test/NonStandardSourceSetDependencies.kmp-java.sample-test.unitTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -2273,8 +2207,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/NonStandardSourceSetDependencies.kmp-java.sample.commonMain [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/kmp-java/sample/NonStandardSourceSetDependencies.kmp-java.sample.commonMain.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -2333,8 +2265,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : NonStandardSourceSetDependencies.kmp-java.sample.commonMain
-        ModuleFile                    : <PROJECT>/.idea/modules/kmp-java/sample/NonStandardSourceSetDependencies.kmp-java.sample.commonTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -2394,8 +2324,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             compilerSourceOutputPath      : file://<PROJECT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/kmp-java/sample/NonStandardSourceSetDependencies.kmp-java.sample.jvmMain.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -2459,8 +2387,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : NonStandardSourceSetDependencies.kmp-java.sample.jvmMain
-        ModuleFile                    : <PROJECT>/.idea/modules/kmp-java/sample/NonStandardSourceSetDependencies.kmp-java.sample.jvmTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -2526,8 +2452,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/NonStandardSourceSetDependencies.kmp-java.sample.main [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/kmp-java/sample/NonStandardSourceSetDependencies.kmp-java.sample.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -2546,8 +2470,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : NonStandardSourceSetDependencies.kmp-java.sample.main
-        ModuleFile                    : <PROJECT>/.idea/modules/kmp-java/sample/NonStandardSourceSetDependencies.kmp-java.sample.test.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -2566,8 +2488,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/lib/NonStandardSourceSetDependencies.lib.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -2620,8 +2540,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : NonStandardSourceSetDependencies.lib.main
-        ModuleFile                    : <PROJECT>/.idea/modules/lib/NonStandardSourceSetDependencies.lib.androidTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -2744,8 +2662,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/lib/NonStandardSourceSetDependencies.lib.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -2836,8 +2752,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : NonStandardSourceSetDependencies.lib.main
-        ModuleFile                    : <PROJECT>/.idea/modules/lib/NonStandardSourceSetDependencies.lib.unitTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE

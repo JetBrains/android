@@ -12,8 +12,6 @@ PROJECT                       : project
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/project.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/build
@@ -35,8 +33,6 @@ PROJECT                       : project
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -91,8 +87,6 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.androidTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -276,8 +270,6 @@ PROJECT                       : project
             compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/basicBarDebug/compileBasicBarDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -411,8 +403,6 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.unitTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -571,8 +561,6 @@ PROJECT                       : project
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/dyn_feature/project.dyn_feature.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -626,8 +614,6 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.dyn_feature.main
-        ModuleFile                    : <PROJECT>/.idea/modules/dyn_feature/project.dyn_feature.androidTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -692,8 +678,6 @@ PROJECT                       : project
             compilerSourceOutputPath      : file://<PROJECT>/dyn_feature/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/dyn_feature/project.dyn_feature.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -757,8 +741,6 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.dyn_feature.main
-        ModuleFile                    : <PROJECT>/.idea/modules/dyn_feature/project.dyn_feature.unitTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -819,8 +801,6 @@ PROJECT                       : project
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.jav [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/jav/project.jav.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
@@ -845,8 +825,6 @@ PROJECT                       : project
             compilerSourceOutputPath      : file://<PROJECT>/jav/build/classes/java/main [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/jav/project.jav.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/jav/src/main [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/jav/src/main/java [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/jav/src/main/resources [-]
@@ -870,8 +848,6 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.jav.main
-        ModuleFile                    : <PROJECT>/.idea/modules/jav/project.jav.test.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/jav/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/jav/src/test/java [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/jav/src/test/resources [-]
@@ -897,8 +873,6 @@ PROJECT                       : project
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/lib/project.lib.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -951,8 +925,6 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.lib.main
-        ModuleFile                    : <PROJECT>/.idea/modules/lib/project.lib.androidTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1078,8 +1050,6 @@ PROJECT                       : project
             compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/lib/project.lib.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1177,8 +1147,6 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.lib.main
-        ModuleFile                    : <PROJECT>/.idea/modules/lib/project.lib.unitTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1304,8 +1272,6 @@ PROJECT                       : project
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested1/project.nested1.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1358,8 +1324,6 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.nested1.main
-        ModuleFile                    : <PROJECT>/.idea/modules/nested1/project.nested1.androidTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1423,8 +1387,6 @@ PROJECT                       : project
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested1/deep/project.nested1.deep.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1477,8 +1439,6 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.nested1.deep.main
-        ModuleFile                    : <PROJECT>/.idea/modules/nested1/deep/project.nested1.deep.androidTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1542,8 +1502,6 @@ PROJECT                       : project
             compilerSourceOutputPath      : file://<PROJECT>/nested1/deep/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested1/deep/project.nested1.deep.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1607,8 +1565,6 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.nested1.deep.main
-        ModuleFile                    : <PROJECT>/.idea/modules/nested1/deep/project.nested1.deep.unitTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1672,8 +1628,6 @@ PROJECT                       : project
             compilerSourceOutputPath      : file://<PROJECT>/nested1/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested1/project.nested1.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1737,8 +1691,6 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.nested1.main
-        ModuleFile                    : <PROJECT>/.idea/modules/nested1/project.nested1.unitTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1802,8 +1754,6 @@ PROJECT                       : project
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested2/project.nested2.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1856,8 +1806,6 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.nested2.main
-        ModuleFile                    : <PROJECT>/.idea/modules/nested2/project.nested2.androidTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1935,8 +1883,6 @@ PROJECT                       : project
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested2/deep/project.nested2.deep.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1989,8 +1935,6 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.nested2.deep.main
-        ModuleFile                    : <PROJECT>/.idea/modules/nested2/deep/project.nested2.deep.androidTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -2054,8 +1998,6 @@ PROJECT                       : project
             compilerSourceOutputPath      : file://<PROJECT>/nested2/deep/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested2/deep/project.nested2.deep.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -2119,8 +2061,6 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.nested2.deep.main
-        ModuleFile                    : <PROJECT>/.idea/modules/nested2/deep/project.nested2.deep.unitTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -2184,8 +2124,6 @@ PROJECT                       : project
             compilerSourceOutputPath      : file://<PROJECT>/nested2/build/intermediates/javac/basicDebug/compileBasicDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested2/project.nested2.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -2258,8 +2196,6 @@ PROJECT                       : project
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.nested2.trans [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/project.nested2.trans.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
@@ -2284,8 +2220,6 @@ PROJECT                       : project
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/deep2/project.nested2.trans.deep2.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -2338,8 +2272,6 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.nested2.trans.deep2.main
-        ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/deep2/project.nested2.trans.deep2.androidTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -2403,8 +2335,6 @@ PROJECT                       : project
             compilerSourceOutputPath      : file://<PROJECT>/nested2/trans/deep2/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/deep2/project.nested2.trans.deep2.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -2468,8 +2398,6 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.nested2.trans.deep2.main
-        ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/deep2/project.nested2.trans.deep2.unitTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -2535,8 +2463,6 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.nested2.main
-        ModuleFile                    : <PROJECT>/.idea/modules/nested2/project.nested2.unitTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
