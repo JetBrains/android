@@ -20,4 +20,8 @@
   </extensions>
 
   <depends>com.intellij.gradle</depends>
+  <extensions defaultExtensionNs="com.intellij">
+    <console.folding implementation="com.android.tools.utp.UtpEventMessageFolding" />
+  </extensions>
+
 </idea-plugin>

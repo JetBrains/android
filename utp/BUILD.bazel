@@ -27,6 +27,8 @@ jvm_library(
         "//platform/external-system-api:externalSystem",
         "//platform/util",
         "//platform/util-ex",
+        "//platform/core-api:core",
+        "//platform/execution-impl",
     ],
 )
 
@@ -65,6 +67,10 @@ jvm_library(
         "//platform/util:util_test_lib",
         "//platform/util-ex",
         "//platform/util-ex:util-ex_test_lib",
+        "//platform/core-api:core",
+        "//platform/core-api:core_test_lib",
+        "//platform/execution-impl",
+        "//platform/execution-impl:execution-impl_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.utp` end
