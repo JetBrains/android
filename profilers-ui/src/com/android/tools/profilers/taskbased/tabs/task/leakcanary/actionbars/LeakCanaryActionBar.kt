@@ -60,8 +60,9 @@ import org.jetbrains.jewel.ui.component.Text
 fun LeakCanaryActionBar(leakCanaryModel: LeakCanaryModel) {
   val isRecording by leakCanaryModel.isRecording.collectAsState()
   val objectRetainedCount by leakCanaryModel.objectRetainedCount.collectAsState()
-  val analysisProgress by leakCanaryModel.analysisProgress.collectAsState()
-  val isForceDumpEnabled = objectRetainedCount != 0 && analysisProgress == 0
+  val retainedObjectThreshold by leakCanaryModel.retainedObjectThreshold.collectAsState()
+  val isStopping by leakCanaryModel.isStopping.collectAsState()
+  val isForceDumpEnabled = objectRetainedCount != 0 && objectRetainedCount < retainedObjectThreshold && !isStopping
   if (isRecording) {
     Row(modifier = Modifier.fillMaxWidth().padding(TASK_ACTION_BAR_CONTENT_PADDING_DP), verticalAlignment = Alignment.CenterVertically) {
       RecordingTimer(leakCanaryModel)
@@ -72,7 +73,7 @@ fun LeakCanaryActionBar(leakCanaryModel: LeakCanaryModel) {
         DefaultButton(onClick = { leakCanaryModel.forceHeapDump() }, enabled = isForceDumpEnabled) { Text(LEAKCANARY_FORCE_DUMP) }
         Spacer(modifier = Modifier.width(8.dp))
       }
-      DefaultButton(onClick = leakCanaryModel::stopListening) { Text(ACTION_BAR_STOP_RECORDING) }
+      DefaultButton(onClick = { leakCanaryModel.requestStopRecording() }, enabled = !isStopping) { Text(ACTION_BAR_STOP_RECORDING) }
     }
   }
 }

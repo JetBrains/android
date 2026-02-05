@@ -205,15 +205,13 @@ class LeakCanaryActionBarTest : WithFakeTimer {
   }
 
   @Test
-  fun `test force heap dump button disabled when analysis is in progress`() {
+  fun `test force heap dump button disabled when object retained is equal to threshold`() {
     ideProfilerServices.enableLeakCanaryMilestone2(true)
     val mockHeapDumper: LeakCanaryHeapDumper = mock()
 
     leakCanaryModel = LeakCanaryModel(profilers, mockHeapDumper)
     leakCanaryModel.setIsRecording(true)
-    // Button is disabled when analysis is in progress, even if objects are retained.
-    leakCanaryModel.setObjectRetainedCount(1)
-    leakCanaryModel.setAnalysisProgress(50)
+    leakCanaryModel.setObjectRetainedCount(5)
 
     composeTestRule.setContent { LeakCanaryActionBar(leakCanaryModel = leakCanaryModel) }
     composeTestRule.onNodeWithText(LEAKCANARY_FORCE_DUMP).assertIsDisplayed()

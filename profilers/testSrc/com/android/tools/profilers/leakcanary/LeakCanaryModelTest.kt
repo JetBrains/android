@@ -45,6 +45,8 @@ import kotlin.test.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 
 class LeakCanaryModelTest : WithFakeTimer {
   override val timer = FakeTimer()
@@ -54,12 +56,14 @@ class LeakCanaryModelTest : WithFakeTimer {
   private lateinit var profilers: StudioProfilers
   private lateinit var stage: LeakCanaryModel
   private lateinit var ideProfilerServices: FakeIdeProfilerServices
+  private lateinit var mockHeapDumper: LeakCanaryHeapDumper
 
   @Before
   fun setup() {
     ideProfilerServices = FakeIdeProfilerServices()
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideProfilerServices, timer)
-    stage = LeakCanaryModel(profilers, null)
+    mockHeapDumper = mock(LeakCanaryHeapDumper::class.java)
+    stage = LeakCanaryModel(profilers, mockHeapDumper)
   }
 
   @Test
@@ -438,6 +442,64 @@ class LeakCanaryModelTest : WithFakeTimer {
       )
     val result = LeakCanaryModel.getLeakClassName(leak)
     assertEquals("AnotherPrevious.someField", result)
+  }
+
+  @Test
+  fun `requestStopRecording with retained objects triggers dump and waits`() {
+    // Setup command handlers to avoid errors
+    transportService.setCommandHandler(Commands.Command.CommandType.START_LEAKCANARY_TASK, FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0))
+    transportService.setCommandHandler(Commands.Command.CommandType.STOP_LEAKCANARY_TASK, FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0))
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0),
+    )
+    transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT, FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0))
+
+    stage.startListening()
+    stage.setObjectRetainedCount(1)
+    stage.setAnalysisProgress(0)
+
+    // Request stop
+    stage.requestStopRecording()
+
+    // Verify triggerAndAnalyze was called
+    verify(mockHeapDumper).triggerAndAnalyze()
+
+    // Verify stopping state
+    assertTrue(stage.isStopping.value)
+    assertTrue(stage.isRecording.value)
+
+    // Simulate analysis success event
+    val analysisEvent = FakeLeakCanaryCommandHandler.getLeakCanaryEvent(profilers, "SingleApplicationLeak.txt")
+    transportService.addEventToStream(profilers.session.streamId, analysisEvent)
+
+    // Tick to process event
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+
+    // Verify recording stopped
+    assertFalse(stage.isRecording.value)
+    assertFalse(stage.isStopping.value)
+  }
+
+  @Test
+  fun `requestStopRecording with no retained objects stops immediately`() {
+    // Setup
+    transportService.setCommandHandler(Commands.Command.CommandType.START_LEAKCANARY_TASK, FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0))
+    transportService.setCommandHandler(Commands.Command.CommandType.STOP_LEAKCANARY_TASK, FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0))
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0),
+    )
+    transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT, FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0))
+
+    stage.startListening()
+    stage.setObjectRetainedCount(0)
+
+    stage.requestStopRecording()
+
+    // Should stop immediately
+    assertFalse(stage.isRecording.value)
+    assertFalse(stage.isStopping.value)
   }
 
   private fun createTestNode(

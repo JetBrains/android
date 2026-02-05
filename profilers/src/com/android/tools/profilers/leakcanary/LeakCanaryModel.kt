@@ -81,6 +81,8 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
   val analysisProgress = _analysisProgress.asStateFlow()
   private val _isLeakCanaryPresent = MutableStateFlow(true)
   val isLeakCanaryPresent = _isLeakCanaryPresent.asStateFlow()
+  private val _isStopping = MutableStateFlow(false)
+  val isStopping = _isStopping.asStateFlow()
   val isLeakCanaryMilestone2Enabled
     get() = profilers.ideServices.featureConfig.isLeakCanaryMilestone2Enabled
 
@@ -109,7 +111,18 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
     toggleLeakCanaryTracking(profilers.session, enable = true, endSession = false)
   }
 
+  fun requestStopRecording() {
+    _isStopping.value = true
+    if (objectRetainedCount.value > 0 && analysisProgress.value == 0) {
+      forceHeapDump()
+    }
+    else if(analysisProgress.value == 0){
+      stopListening()
+    }
+  }
+
   fun stopListening() {
+    _isStopping.value = false
     setIsRecording(false)
     toggleLeakCanaryTracking(profilers.session, enable = false, endSession = true)
     deregisterLeakCanaryListeners()
@@ -306,6 +319,10 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
     // The first leak is selected, so its leakTrace is displayed by default in UI.
     if (_selectedLeak.value == null && _leaks.value.isNotEmpty()) {
       onLeakSelection(_leaks.value.first())
+    }
+
+    if (_isStopping.value) {
+      stopListening()
     }
   }
 
