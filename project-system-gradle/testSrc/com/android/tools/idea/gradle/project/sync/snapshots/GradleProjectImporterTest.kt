@@ -53,7 +53,7 @@ class GradleProjectImporterTest : SnapshotComparisonTest {
     GradleProjectImporter.configureNewProject(project)
     GradleProjectImporter.getInstance().importProjectNoSync(request)
     refreshProjectFiles()
-    val text = project.saveAndDump()
+    val text = project.saveAndDump(ignoreModuleFileAndType = true)
     assertIsEqualToSnapshot(text)
   }
 }

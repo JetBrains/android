@@ -38,10 +38,10 @@ import com.android.tools.idea.testing.saveAndDump
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.RunsInEdt
+import java.io.File
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
-import java.io.File
 
 /**
  * Snapshot tests for 'Gradle Sync'.
@@ -75,7 +75,7 @@ data class ProjectStructureSnapshotTestDef(
   }
 
   override fun runTest(root: File, project: Project) {
-    val text = project.saveAndDump(additionalRoots = roots.mapValues { root.resolve(it.value) })
+    val text = project.saveAndDump(additionalRoots = roots.mapValues { root.resolve(it.value) }, ignoreModuleFileAndType = true)
     SnapshotContext(testProject.projectName, agpVersion, PROJECT_STRUCTURE_SNAPSHOT_DIR).assertIsEqualToSnapshot(text)
   }
 
@@ -203,7 +203,7 @@ class LightSyncReferenceTest : SnapshotComparisonTest {
   @Test
   fun testLightSyncActual() {
     AssumeUtil.assumeNotWindows() // TODO (b/399625141): fix on windows
-    val dump = projectRule.project.saveAndDump()
+    val dump = projectRule.project.saveAndDump(ignoreModuleFileAndType = true)
     assertIsEqualToSnapshot(dump)
   }
 

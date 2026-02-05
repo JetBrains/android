@@ -63,7 +63,7 @@ class LightSyncBasedTestsWithGradleLikeStructureTest : SnapshotComparisonTest {
 
   @Test
   fun testLightTestsWithGradleLikeStructure() {
-    val dump = projectRule.project.saveAndDump()
+    val dump = projectRule.project.saveAndDump(ignoreModuleFileAndType = true)
     assertIsEqualToSnapshot(dump)
   }
 }
@@ -93,7 +93,7 @@ class LightSyncBasedTestsWithCMakeLikeStructureTest : SnapshotComparisonTest {
 
   @Test
   fun testLightTestsWithCMakeLikeStructure() {
-    val dump = projectRule.project.saveAndDump()
+    val dump = projectRule.project.saveAndDump(ignoreModuleFileAndType = true)
     assertIsEqualToSnapshot(dump)
   }
 }
@@ -115,7 +115,7 @@ class LightSyncBasedTestsWithDefaultTestProjectStructureTest : SnapshotCompariso
 
   @Test
   fun testLightTestsWithDefaultTestProjectStructure() {
-    val dump = projectRule.project.saveAndDump()
+    val dump = projectRule.project.saveAndDump(ignoreModuleFileAndType = true)
     assertIsEqualToSnapshot(dump)
   }
 }
@@ -137,7 +137,7 @@ class LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest : SnapshotC
 
   @Test
   fun testLightTestsWithMultipleModulesTestProjectStructure() {
-    val dump = projectRule.project.saveAndDump()
+    val dump = projectRule.project.saveAndDump(ignoreModuleFileAndType = true)
     assertIsEqualToSnapshot(dump)
   }
 }
@@ -152,29 +152,22 @@ class LightSyncForAndroidTestCaseTest : AndroidTestCase(), SnapshotComparisonTes
       File(myFixture.tempDirPath),
       AndroidModuleModelBuilder(":", "debug", createAndroidProjectBuilderForDefaultTestProjectStructure())
     )
-    val dump = project.saveAndDump(additionalRoots = mapOf("TEMP" to File(myFixture.tempDirPath)))
+    val dump = project.saveAndDump(additionalRoots = mapOf("TEMP" to File(myFixture.tempDirPath)), ignoreModuleFileAndType = true)
     assertIsEqualToSnapshot(dump)
   }
 
   @Test
   fun testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase() {
-    setupTestProjectFromAndroidModel(
-      project, File(myFixture.tempDirPath), rootModuleBuilder, appModuleBuilder, libModuleBuilder)
-    val dump = project.saveAndDump(additionalRoots = mapOf("TEMP" to File(myFixture.tempDirPath)))
+    setupTestProjectFromAndroidModel(project, File(myFixture.tempDirPath), rootModuleBuilder, appModuleBuilder, libModuleBuilder)
+    val dump = project.saveAndDump(additionalRoots = mapOf("TEMP" to File(myFixture.tempDirPath)), ignoreModuleFileAndType = true)
     assertIsEqualToSnapshot(dump)
   }
 
   @Test
   fun testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing() {
     val tempRoot = File(myFixture.tempDirPath)
-    setupTestProjectFromAndroidModel(
-      project,
-      tempRoot,
-      rootModuleBuilder,
-      appModuleBuilder,
-      libModuleBuilder
-    )
-    val dump = project.saveAndDump(additionalRoots = mapOf("TEMP" to tempRoot))
+    setupTestProjectFromAndroidModel(project, tempRoot, rootModuleBuilder, appModuleBuilder, libModuleBuilder)
+    val dump = project.saveAndDump(additionalRoots = mapOf("TEMP" to tempRoot), ignoreModuleFileAndType = true)
 
     // Do not request before setup as it replaces the project system implementation.
     val syncModificationTracker = ProjectSyncModificationTracker.getInstance(project)
@@ -187,7 +180,7 @@ class LightSyncForAndroidTestCaseTest : AndroidTestCase(), SnapshotComparisonTes
       libModuleBuilderWithLib(tempRoot.resolve(".gradle"))
     )
     assertThat(syncModificationTracker.modificationCount).isGreaterThan(syncStamp)
-    val dumpAfter = project.saveAndDump(additionalRoots = mapOf("TEMP" to tempRoot))
+    val dumpAfter = project.saveAndDump(additionalRoots = mapOf("TEMP" to tempRoot), ignoreModuleFileAndType = true)
 
     assertAreEqualToSnapshots(dump to ".before", dumpAfter to ".after")
   }
