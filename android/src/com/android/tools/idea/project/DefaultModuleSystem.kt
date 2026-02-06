@@ -144,22 +144,24 @@ class DefaultModuleSystem(override val module: Module) :
     return ImmutableList.copyOf(libraries)
   }
 
-  override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> =
-    listOf(
+  override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
+    val srcRoot = ModuleRootManager.getInstance(module).sourceRoots.firstOrNull() ?: return emptyList()
+    return listOf(
       NamedModuleTemplate(
         "main",
         AndroidModulePathsImpl(
-          ModuleRootManager.getInstance(module).sourceRoots.first().parent.toIoFile(),
-          null,
-          ModuleRootManager.getInstance(module).sourceRoots.first().toIoFile(),
-          null,
-          null,
-          null,
-          emptyList(),
-          emptyList(),
+          moduleRoot = srcRoot.parent.toIoFile(),
+          manifestDirectory = null,
+          srcRoot = srcRoot.toIoFile(),
+          unitTestRoot = null,
+          testRoot = null,
+          aidlRoot = null,
+          resDirectories = emptyList(),
+          mlModelsDirectories = emptyList(),
         ),
       )
     )
+  }
 
   override fun getPackageName(): String? {
     return getPackageName(module)
