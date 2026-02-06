@@ -23,6 +23,7 @@ import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.UserDataHolderBase
 import org.jetbrains.annotations.TestOnly
 
 interface GradleSyncInvoker {
@@ -39,6 +40,7 @@ interface GradleSyncInvoker {
     val importDefaultVariants: Boolean = false,
     val dontFocusSyncFailureOutput: Boolean = false,
     val syncTestMode: SyncTestMode = SyncTestMode.PRODUCTION,
+    val additionalUserData: UserDataHolderBase? = null,
   ) {
     val progressExecutionMode: ProgressExecutionMode
       get() = ProgressExecutionMode.IN_BACKGROUND_ASYNC
@@ -70,3 +72,10 @@ interface GradleSyncInvoker {
 
 fun GradleSyncInvoker.requestProjectSync(project: Project, trigger: GradleSyncStats.Trigger, listener: GradleSyncListener? = null) =
   requestProjectSync(project, GradleSyncInvoker.Request(trigger), listener)
+
+fun GradleSyncInvoker.requestProjectSync(
+  project: Project,
+  trigger: GradleSyncStats.Trigger,
+  additionalUserData: UserDataHolderBase,
+  listener: GradleSyncListener? = null,
+) = requestProjectSync(project, GradleSyncInvoker.Request(trigger, additionalUserData = additionalUserData), listener)
