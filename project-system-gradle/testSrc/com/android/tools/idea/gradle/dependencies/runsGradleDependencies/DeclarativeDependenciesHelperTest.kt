@@ -34,14 +34,12 @@ import com.android.tools.idea.testing.getTextForFile
 import com.android.tools.idea.testing.withDeclarative
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
-@Ignore("b/481618524")
 class DeclarativeDependenciesHelperTest {
 
   @get:Rule val projectRule = AndroidGradleProjectRule().withDeclarative()

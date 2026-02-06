@@ -29,14 +29,12 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.VfsTestUtil
 import java.util.Locale
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
-@Ignore("b/481618524")
 class AndroidLintDeclarativeTest {
 
   @get:Rule val projectRule = AndroidGradleProjectRule().withDeclarative()

@@ -46,7 +46,6 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtil.findFileByIoFile
 import java.io.File
 import org.apache.commons.lang3.StringUtils.countMatches
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -380,7 +379,6 @@ class PluginsHelperTest {
   }
 
   @Test
-  @Ignore("b/481618524")
   fun testAddPluginToDeclarativeSettings() {
     doTest(
       SIMPLE_APPLICATION_DECLARATIVE,
@@ -401,7 +399,6 @@ class PluginsHelperTest {
   }
 
   @Test
-  @Ignore("b/481618524")
   fun testAddPluginToDeclarative() {
     doTest(
       SIMPLE_APPLICATION_DECLARATIVE,
