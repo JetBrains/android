@@ -197,7 +197,7 @@ class EmulatorViewTest {
     var call = getStreamScreenshotCallAndWaitForFrame()
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 363 height: 547")
     assertAppearance("EmulatorView1")
-    assertThat(call.completion.isCancelled).isFalse() // The call has not been cancelled.
+    assertThat(call.completion.isCancelled).isFalse() // The call has not been canceled.
     assertThat(call.completion.isDone).isFalse() // The call is still ongoing.
 
     // Check zoom.
@@ -255,8 +255,8 @@ class EmulatorViewTest {
     call = getStreamScreenshotCallAndWaitForFrame()
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 454 height: 364")
     assertAppearance("EmulatorView2")
-    assertThat(previousCall.completion.isCancelled).isTrue() // The previous call is cancelled.
-    assertThat(call.completion.isCancelled).isFalse() // The latest call has not been cancelled.
+    assertThat(previousCall.completion.isCancelled).isTrue() // The previous call is canceled.
+    assertThat(call.completion.isCancelled).isFalse() // The latest call has not been canceled.
     assertThat(call.completion.isDone).isFalse() // The latest call is still ongoing.
 
     // Check rotation.
@@ -315,7 +315,7 @@ class EmulatorViewTest {
     fakeUi.layoutAndDispatchEvents()
     call = getStreamScreenshotCallAndWaitForFrame()
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 454 height: 364")
-    assertThat(view.canZoomOut()).isFalse() // zoom-in mode cancelled by the rotation.
+    assertThat(view.canZoomOut()).isFalse() // zoom-in mode canceled by the rotation.
     assertThat(view.canZoomToFit()).isFalse()
     assertAppearance("EmulatorView2")
 
