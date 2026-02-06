@@ -142,6 +142,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:junit4",
         "//tools/adt/idea/.idea/libraries:kotlin-test",
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard",
+        "//tools/vendor/google/asfp/base:asfp.base",
         "//tools/adt/idea/.idea/libraries:truth",
         "//tools/adt/idea/android:intellij.android.core",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",

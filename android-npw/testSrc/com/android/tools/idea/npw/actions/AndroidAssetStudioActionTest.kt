@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.npw.actions
 
+// Android Studio Merge: ignore vendor dependencies
+// import com.android.tools.asfp.projectSystem.AsfpProjectSystem
+import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
+import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
@@ -160,4 +164,45 @@ class AndroidAssetStudioActionTest {
       assertThat(event.presentation.isVisible).isFalse()
     }
   }
+
+  // Android Studio Merge: ignore vendor dependencies - AsfpProjectSystem lives in vendor module asfp.base, which is not part of monorepo/cannot be compiled
+  /*
+  @Test
+  fun testUpdateDisabledWithAsfpProjectSystem() {
+    val project = projectRule.project
+    projectRule.fixture.addFileToProject("AndroidManifest.xml", "<manifest package=\"com.example\"/>")
+    val stringsVirtual = projectRule.fixture.addFileToProject("res/values/strings.xml", "<resources></resources>").virtualFile
+
+    ApplicationManager.getApplication().runReadAction {
+      val action =
+        object : AndroidAssetStudioAction("Test", "Test Description") {
+          override fun createWizard(facet: AndroidFacet, template: NamedModuleTemplate, resFolder: File): ModelWizard =
+            mock(ModelWizard::class.java)
+
+          override fun showWizard(wizard: ModelWizard, facet: AndroidFacet) {}
+
+          override val wizardMinimumSize: Dimension = Dimension(0, 0)
+          override val wizardPreferredSize: Dimension = Dimension(0, 0)
+        }
+
+      val ideView = mock(IdeView::class.java)
+      val psiDir = PsiManager.getInstance(project).findDirectory(stringsVirtual.parent)
+      `when`(ideView.directories).thenReturn(arrayOf(psiDir!!))
+
+      val dataContext =
+        SimpleDataContext.builder()
+          .add(CommonDataKeys.PROJECT, project)
+          .add(CommonDataKeys.VIRTUAL_FILE, stringsVirtual)
+          .add(LangDataKeys.IDE_VIEW, ideView)
+          .build()
+
+      val event = AnActionEvent.createEvent(dataContext, null, "menu", ActionUiKind.POPUP, null)
+
+      ProjectSystemService.getInstance(project).replaceProjectSystemForTests(AsfpProjectSystem(project))
+
+      action.update(event)
+      assertThat(event.presentation.isVisible).isFalse()
+    }
+  }
+  */
 }

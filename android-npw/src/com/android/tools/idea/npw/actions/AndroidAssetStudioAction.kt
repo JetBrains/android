@@ -87,7 +87,7 @@ abstract class AndroidAssetStudioAction(text: String?, description: String?) :
 
 private fun isAvailable(event: AnActionEvent): Boolean {
   val context = getAndroidAssetStudioContext(event) ?: return false
-  return context.ideView.directories.isNotEmpty() && context.project.getProjectSystem().allowsFileCreation()
+  return context.ideView.directories.isNotEmpty()
 }
 
 private fun getModuleTemplate(project: Project, location: VirtualFile): NamedModuleTemplate? {
@@ -144,6 +144,9 @@ private data class AndroidAssetStudioContext(
 private fun getAndroidAssetStudioContext(event: AnActionEvent): AndroidAssetStudioContext? {
   val view = event.getData(LangDataKeys.IDE_VIEW) ?: return null
   val project = event.getData(CommonDataKeys.PROJECT) ?: return null
+  if (!project.getProjectSystem().allowsFileCreation()) {
+    return null
+  }
   val location = event.getData(CommonDataKeys.VIRTUAL_FILE) ?: return null
 
   val template = getModuleTemplate(project, location) ?: return null
