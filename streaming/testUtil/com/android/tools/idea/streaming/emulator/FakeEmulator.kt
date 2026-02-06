@@ -137,7 +137,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
   private val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor("FakeEmulatorControllerService", 1)
   private val coroutineDispatcher = executor.asCoroutineDispatcher()
   private var grpcServer: Server? = null
-  private val lifeCycleLock = Object()
+  private val lifeCycleLock = Any()
   private var startTime = 0L
 
   private val config = EmulatorConfiguration.readAvdDefinition(avdFolder)
@@ -1850,12 +1850,14 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           hw.initialOrientation=landscape
           hw.keyboard=yes
           hw.keyboard.lid=yes
-          hw.lcd.density = 160
-          hw.lcd.width = 450
-          hw.lcd.height = 450
-          hw.lcd.transparent = yes
-          hw.mainKeys = no
-          hw.ramSize = 3096
+          hw.lcd.density=160
+          hw.lcd.width=450
+          hw.lcd.height=450
+          hw.lcd.transparent=yes
+          environment.width=1200
+          environment.height=900
+          hw.mainKeys=no
+          hw.ramSize=3096
           hw.sdCard=yes
           hw.sensors.orientation=yes
           hw.sensors.proximity=yes
@@ -1865,41 +1867,41 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           runtime.network.speed=full
           sdcard.size=512M
           showDeviceFrame=yes
-          tag.displaynames = Android XR Glasses
-          tag.ids=android-xr-glasses
-          hw.touchpad0 = true
-          hw.touchpad0.width = 1543
-          hw.touchpad0.height = 297
-          hw.screen = no-touch
+          tag.displaynames=AI Glasses
+          tag.ids=ai-glasses
+          hw.touchpad0=true
+          hw.touchpad0.width=1543
+          hw.touchpad0.height=297
+          hw.screen=no-touch
           """
           .trimIndent()
 
       val hardwareIni =
         """
-          hw.cpu.arch = $abi
-          hw.cpu.model = qemu32
-          hw.cpu.ncore = 4
-          hw.lcd.density = 160
-          hw.lcd.width = 450
-          hw.lcd.height = 450
-          hw.initialOrientation = portrait
-          hw.ramSize = 3072
-          hw.screen = multi-touch
-          hw.dPad = false
-          hw.rotaryInput = false
-          hw.gsmModem = true
-          hw.gps = false
-          hw.battery = true
-          hw.accelerometer = false
-          hw.gyroscope = true
-          hw.audioInput = true
-          hw.audioOutput = true
-          hw.sdCard = true
-          hw.sdCard.path = $avdFolder/sdcard.img
-          hw.touchpad0 = true
-          hw.touchpad0.width = 1543
-          hw.touchpad0.height = 297
-          android.sdk.root = $sdkFolder
+          hw.cpu.arch=$abi
+          hw.cpu.model=qemu32
+          hw.cpu.ncore=4
+          hw.lcd.density=160
+          hw.lcd.width=450
+          hw.lcd.height=450
+          hw.initialOrientation=portrait
+          hw.ramSize=3072
+          hw.screen=multi-touch
+          hw.dPad=false
+          hw.rotaryInput=false
+          hw.gsmModem=true
+          hw.gps=false
+          hw.battery=true
+          hw.accelerometer=false
+          hw.gyroscope=true
+          hw.audioInput=true
+          hw.audioOutput=true
+          hw.sdCard=true
+          hw.sdCard.path=$avdFolder/sdcard.img
+          hw.touchpad0=true
+          hw.touchpad0.width=1543
+          hw.touchpad0.height=297
+          android.sdk.root=$sdkFolder
           """
           .trimIndent()
 

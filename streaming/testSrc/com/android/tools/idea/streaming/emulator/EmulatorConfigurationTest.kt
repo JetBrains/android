@@ -192,6 +192,7 @@ class EmulatorConfigurationTest {
     assertThat(config.displayWidth).isEqualTo(450)
     assertThat(config.displayHeight).isEqualTo(450)
     assertThat(config.density).isEqualTo(160)
+    assertThat(config.environmentSize).isEqualTo(Dimension(1200, 900))
     assertThat(config.additionalDisplays).isEmpty()
     assertThat(config.skinFolder).isNull()
     assertThat(config.hasOrientationSensors).isTrue()

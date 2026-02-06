@@ -46,20 +46,21 @@ class EmulatorConfiguration
 private constructor(
   val avdFolder: Path,
   val avdName: String,
-  val deviceType: DeviceType,
-  val androidVersion: AndroidVersion,
-  val displaySize: Dimension,
-  val density: Int,
-  val additionalDisplays: Map<Int, Dimension>,
-  val skinFolder: Path?,
-  val hasOrientationSensors: Boolean,
-  val hasAudioOutput: Boolean,
-  val hasTransparentDisplay: Boolean,
-  val hasTouchScreen: Boolean,
-  val initialOrientationQuadrants: Int,
-  val displayModes: List<DisplayMode>,
-  val postures: List<PostureDescriptor>,
-  val touchpadSize: Dimension?,
+  val deviceType: DeviceType = DeviceType.HANDHELD,
+  val androidVersion: AndroidVersion = AndroidVersion(0, 0),
+  val displaySize: Dimension = Dimension(),
+  val density: Int = 0,
+  val environmentSize: Dimension? = null,
+  val additionalDisplays: Map<Int, Dimension> = emptyMap(),
+  val skinFolder: Path? = null,
+  val hasOrientationSensors: Boolean = false,
+  val hasAudioOutput: Boolean = false,
+  val hasTransparentDisplay: Boolean = false,
+  val hasTouchScreen: Boolean = false,
+  val initialOrientationQuadrants: Int = 0,
+  val displayModes: List<DisplayMode> = emptyList(),
+  val postures: List<PostureDescriptor> = emptyList(),
+  val touchpadSize: Dimension? = null,
 ) {
 
   val displayWidth: Int
@@ -98,11 +99,17 @@ private constructor(
       val configIni = readKeyValueFile(configIniFile)
 
       val avdName = configIni["avd.ini.displayname"] ?: avdFolder.fileName.toString().removeSuffix(".avd").replace('_', ' ')
+
       val initialOrientation =
         when {
           "landscape".equals(configIni["hw.initialOrientation"], ignoreCase = true) -> 1
           else -> 0
         }
+
+      val w = parseInt(configIni["environment.width"], 0)
+      val h = parseInt(configIni["environment.height"], 0)
+      val environmentSize = if (w > 0 && h > 0) Dimension(w, h) else null
+
       val skinPath = getSkinPath(configIni, androidSdkRoot)
       val tagIds = configIni[ConfigKey.TAG_IDS] ?: configIni[ConfigKey.TAG_ID]
       val deviceType =
@@ -216,6 +223,7 @@ private constructor(
         androidVersion = androidVersion,
         displaySize = Dimension(displayWidth, displayHeight),
         density = density,
+        environmentSize = environmentSize,
         additionalDisplays = ImmutableMap.copyOf(additionalDisplays),
         skinFolder = skinPath,
         hasOrientationSensors = hasOrientationSensors,
@@ -231,26 +239,7 @@ private constructor(
 
     private fun getConfigBoolean(value: String?, defaultValue: Boolean): Boolean = value?.equals("yes", ignoreCase = true) ?: defaultValue
 
-    fun createStub(avdName: String, avdFolder: Path): EmulatorConfiguration {
-      return EmulatorConfiguration(
-        avdFolder,
-        avdName,
-        DeviceType.HANDHELD,
-        AndroidVersion(0, 0),
-        Dimension(),
-        0,
-        emptyMap(),
-        null,
-        hasOrientationSensors = false,
-        hasAudioOutput = false,
-        hasTransparentDisplay = false,
-        hasTouchScreen = false,
-        initialOrientationQuadrants = 0,
-        displayModes = emptyList(),
-        postures = emptyList(),
-        touchpadSize = null,
-      )
-    }
+    fun createStub(avdName: String, avdFolder: Path): EmulatorConfiguration = EmulatorConfiguration(avdFolder, avdName)
 
     private fun getSkinPath(configIni: Map<String, String>, androidSdkRoot: Path): Path? {
       if (!getConfigBoolean(configIni["showDeviceFrame"], true)) {
