@@ -12,7 +12,7 @@ PROJECT                       : Kotlin Multiplatform
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/Kotlin_Multiplatform [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        CONENT_ENTRY                  : file://<PROJECT>
+        CONTENT_ENTRY                 : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/build
         JDK                           : <NAME_CUT> JavaSDK
@@ -53,7 +53,7 @@ PROJECT                       : Kotlin Multiplatform
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib
+        CONTENT_ENTRY                 : file://<PROJECT>/androidLib
             EXCLUDE_FOLDER                : file://<PROJECT>/androidLib/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/androidLib/build
         JDK                           : <NAME_CUT> Android SDK
@@ -102,13 +102,13 @@ PROJECT                       : Kotlin Multiplatform
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/androidTest [-]
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/androidTestDebug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/androidTestModetwo [-]
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/androidTestTypeone [-]
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwo [-]
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwoDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebugAndroidTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/androidLib/src/androidTest [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/androidLib/src/androidTestDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/androidLib/src/androidTestModetwo [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/androidLib/src/androidTestTypeone [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwo [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwoDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTest/assets [-]
@@ -199,15 +199,15 @@ PROJECT                       : Kotlin Multiplatform
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/main
+        CONTENT_ENTRY                 : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebug/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/androidLib/src/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/androidLib/src/main
             JavaSource                    : file://<PROJECT>/androidLib/src/main/java
             JavaResource                  : file://<PROJECT>/androidLib/src/main/resources
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/modetwo [-]
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/typeone [-]
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/typeoneModetwo [-]
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/typeoneModetwoDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/androidLib/src/modetwo [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/androidLib/src/typeone [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/androidLib/src/typeoneModetwo [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/androidLib/src/typeoneModetwoDebug [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebug/out [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/debug/assets [-]
@@ -299,13 +299,13 @@ PROJECT                       : Kotlin Multiplatform
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebugUnitTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/test [-]
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/testDebug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/testModetwo [-]
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/testTypeone [-]
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/testTypeoneModetwo [-]
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/testTypeoneModetwoDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebugUnitTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/androidLib/src/test [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/androidLib/src/testDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/androidLib/src/testModetwo [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/androidLib/src/testTypeone [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/androidLib/src/testTypeoneModetwo [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/androidLib/src/testTypeoneModetwoDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebugUnitTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/test/assets [-]
@@ -398,7 +398,7 @@ PROJECT                       : Kotlin Multiplatform
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/app
+        CONTENT_ENTRY                 : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/app/build
         JDK                           : <NAME_CUT> Android SDK
@@ -449,9 +449,9 @@ PROJECT                       : Kotlin Multiplatform
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/androidTest [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
@@ -524,9 +524,9 @@ PROJECT                       : Kotlin Multiplatform
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/main
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/main
             JavaSource                    : file://<PROJECT>/app/src/main/java
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
@@ -599,10 +599,10 @@ PROJECT                       : Kotlin Multiplatform
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/test
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/test
             JavaSource (test)             : file://<PROJECT>/app/src/test/java
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/testDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
@@ -708,7 +708,7 @@ PROJECT                       : Kotlin Multiplatform
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/kmpFirstLib
+        CONTENT_ENTRY                 : file://<PROJECT>/kmpFirstLib
             EXCLUDE_FOLDER                : file://<PROJECT>/kmpFirstLib/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/kmpFirstLib/build
         JDK                           : <NAME_CUT> Android SDK
@@ -790,7 +790,7 @@ PROJECT                       : Kotlin Multiplatform
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:kmpFirstLib:androidMain, :kmpFirstLib:commonMain]
-        CONENT_ENTRY                  : file://<PROJECT>/kmpFirstLib/src/androidDeviceTest
+        CONTENT_ENTRY                 : file://<PROJECT>/kmpFirstLib/src/androidDeviceTest
             JavaSource (test)             : file://<PROJECT>/kmpFirstLib/src/androidDeviceTest/kotlin
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpFirstLib/src/androidDeviceTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmpFirstLib/src/androidDeviceTest/java [-]
@@ -992,7 +992,7 @@ PROJECT                       : Kotlin Multiplatform
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:kmpFirstLib:androidMain, :kmpFirstLib:commonMain]
-        CONENT_ENTRY                  : file://<PROJECT>/kmpFirstLib/src/androidHostTest
+        CONTENT_ENTRY                 : file://<PROJECT>/kmpFirstLib/src/androidHostTest
             JavaSource (test)             : file://<PROJECT>/kmpFirstLib/src/androidHostTest/kotlin
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpFirstLib/src/androidHostTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmpFirstLib/src/androidHostTest/java [-]
@@ -1107,7 +1107,7 @@ PROJECT                       : Kotlin Multiplatform
             - SourceSetName               : Kotlin_Multiplatform.kmpFirstLib.commonMain
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/kmpFirstLib/src/androidMain
+        CONTENT_ENTRY                 : file://<PROJECT>/kmpFirstLib/src/androidMain
             JavaSource                    : file://<PROJECT>/kmpFirstLib/src/androidMain/java
             JavaSource                    : file://<PROJECT>/kmpFirstLib/src/androidMain/kotlin
             JavaResource                  : file://<PROJECT>/kmpFirstLib/src/androidMain/resources
@@ -1180,7 +1180,7 @@ PROJECT                       : Kotlin Multiplatform
             Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/kmpFirstLib/src/commonMain
+        CONTENT_ENTRY                 : file://<PROJECT>/kmpFirstLib/src/commonMain
             SourceKotlin                  : file://<PROJECT>/kmpFirstLib/src/commonMain/kotlin
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmpFirstLib/src/commonMain/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
@@ -1244,7 +1244,7 @@ PROJECT                       : Kotlin Multiplatform
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:kmpFirstLib:androidMain, :kmpFirstLib:commonMain]
-        CONENT_ENTRY                  : file://<PROJECT>/kmpFirstLib/src/commonTest
+        CONTENT_ENTRY                 : file://<PROJECT>/kmpFirstLib/src/commonTest
             TestSourceKotlin (test)       : file://<PROJECT>/kmpFirstLib/src/commonTest/kotlin
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpFirstLib/src/commonTest/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
@@ -1293,7 +1293,7 @@ PROJECT                       : Kotlin Multiplatform
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/kmpJvmOnly
+        CONTENT_ENTRY                 : file://<PROJECT>/kmpJvmOnly
             EXCLUDE_FOLDER                : file://<PROJECT>/kmpJvmOnly/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/kmpJvmOnly/build
         JDK                           : <NAME_CUT> JavaSDK
@@ -1345,7 +1345,7 @@ PROJECT                       : Kotlin Multiplatform
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/kmpJvmOnly/src/commonMain
+        CONTENT_ENTRY                 : file://<PROJECT>/kmpJvmOnly/src/commonMain
             SourceKotlin                  : file://<PROJECT>/kmpJvmOnly/src/commonMain/kotlin
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmpJvmOnly/src/commonMain/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
@@ -1404,7 +1404,7 @@ PROJECT                       : Kotlin Multiplatform
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:kmpJvmOnly:commonMain, :kmpJvmOnly:jvmMain]
-        CONENT_ENTRY                  : file://<PROJECT>/kmpJvmOnly/src/commonTest [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/kmpJvmOnly/src/commonTest [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpJvmOnly/src/commonTest/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
@@ -1463,7 +1463,7 @@ PROJECT                       : Kotlin Multiplatform
             - SourceSetName               : Kotlin_Multiplatform.kmpJvmOnly.commonMain
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/kmpJvmOnly/src/jvmMain
+        CONTENT_ENTRY                 : file://<PROJECT>/kmpJvmOnly/src/jvmMain
             JavaSource                    : file://<PROJECT>/kmpJvmOnly/src/jvmMain/kotlin
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/kmpJvmOnly/src/jvmMain/java [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmpJvmOnly/src/jvmMain/resources [-]
@@ -1526,7 +1526,7 @@ PROJECT                       : Kotlin Multiplatform
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:kmpJvmOnly:commonMain, :kmpJvmOnly:jvmMain]
-        CONENT_ENTRY                  : file://<PROJECT>/kmpJvmOnly/src/jvmTest [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/kmpJvmOnly/src/jvmTest [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmpJvmOnly/src/jvmTest/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmpJvmOnly/src/jvmTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpJvmOnly/src/jvmTest/resources [-]
@@ -1578,7 +1578,7 @@ PROJECT                       : Kotlin Multiplatform
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/kmpSecondLib
+        CONTENT_ENTRY                 : file://<PROJECT>/kmpSecondLib
             EXCLUDE_FOLDER                : file://<PROJECT>/kmpSecondLib/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/kmpSecondLib/build
         JDK                           : <NAME_CUT> Android SDK
@@ -1657,7 +1657,7 @@ PROJECT                       : Kotlin Multiplatform
             - SourceSetName               : Kotlin_Multiplatform.kmpSecondLib.commonMain
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/kmpSecondLib/src/androidMain
+        CONTENT_ENTRY                 : file://<PROJECT>/kmpSecondLib/src/androidMain
             JavaSource                    : file://<PROJECT>/kmpSecondLib/src/androidMain/kotlin
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmpSecondLib/src/androidMain/resources [-]
         JDK                           : <NAME_CUT> Android SDK
@@ -1722,7 +1722,7 @@ PROJECT                       : Kotlin Multiplatform
             Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/kmpSecondLib/src/commonMain
+        CONTENT_ENTRY                 : file://<PROJECT>/kmpSecondLib/src/commonMain
             SourceKotlin                  : file://<PROJECT>/kmpSecondLib/src/commonMain/kotlin
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmpSecondLib/src/commonMain/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
@@ -1781,7 +1781,7 @@ PROJECT                       : Kotlin Multiplatform
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:kmpSecondLib:commonMain, :kmpSecondLib:jvmMain]
-        CONENT_ENTRY                  : file://<PROJECT>/kmpSecondLib/src/commonTest [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/kmpSecondLib/src/commonTest [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpSecondLib/src/commonTest/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
@@ -1840,7 +1840,7 @@ PROJECT                       : Kotlin Multiplatform
             - SourceSetName               : Kotlin_Multiplatform.kmpSecondLib.commonMain
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/kmpSecondLib/src/jvmMain
+        CONTENT_ENTRY                 : file://<PROJECT>/kmpSecondLib/src/jvmMain
             JavaSource                    : file://<PROJECT>/kmpSecondLib/src/jvmMain/kotlin
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/kmpSecondLib/src/jvmMain/java [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmpSecondLib/src/jvmMain/resources [-]
@@ -1906,7 +1906,7 @@ PROJECT                       : Kotlin Multiplatform
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:kmpSecondLib:commonMain, :kmpSecondLib:jvmMain]
-        CONENT_ENTRY                  : file://<PROJECT>/kmpSecondLib/src/jvmTest [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/kmpSecondLib/src/jvmTest [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmpSecondLib/src/jvmTest/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmpSecondLib/src/jvmTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpSecondLib/src/jvmTest/resources [-]
@@ -1938,7 +1938,7 @@ PROJECT                       : Kotlin Multiplatform
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/build-logic [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        CONENT_ENTRY                  : file://<PROJECT>/build-logic
+        CONTENT_ENTRY                 : file://<PROJECT>/build-logic
             EXCLUDE_FOLDER                : file://<PROJECT>/build-logic/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/build-logic/build
         JDK                           : <NAME_CUT> JavaSDK
@@ -1981,7 +1981,7 @@ PROJECT                       : Kotlin Multiplatform
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/build-logic/lib-foo
+        CONTENT_ENTRY                 : file://<PROJECT>/build-logic/lib-foo
             EXCLUDE_FOLDER                : file://<PROJECT>/build-logic/lib-foo/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/build-logic/lib-foo/build
         JDK                           : <NAME_CUT> Android SDK
@@ -2062,7 +2062,7 @@ PROJECT                       : Kotlin Multiplatform
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:build-logic:lib-foo:androidMain, :build-logic:lib-foo:commonMain]
-        CONENT_ENTRY                  : file://<PROJECT>/build-logic/lib-foo/src/androidDeviceTest [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/build-logic/lib-foo/src/androidDeviceTest [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/build-logic/lib-foo/src/androidDeviceTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/build-logic/lib-foo/src/androidDeviceTest/resources [-]
         JDK                           : <NAME_CUT> Android SDK
@@ -2152,7 +2152,7 @@ PROJECT                       : Kotlin Multiplatform
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:build-logic:lib-foo:androidMain, :build-logic:lib-foo:commonMain]
-        CONENT_ENTRY                  : file://<PROJECT>/build-logic/lib-foo/src/androidHostTest [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/build-logic/lib-foo/src/androidHostTest [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/build-logic/lib-foo/src/androidHostTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/build-logic/lib-foo/src/androidHostTest/resources [-]
         JDK                           : <NAME_CUT> Android SDK
@@ -2243,7 +2243,7 @@ PROJECT                       : Kotlin Multiplatform
             - SourceSetName               : build-logic.lib-foo.commonMain
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/build-logic/lib-foo/src/androidMain
+        CONTENT_ENTRY                 : file://<PROJECT>/build-logic/lib-foo/src/androidMain
             JavaSource                    : file://<PROJECT>/build-logic/lib-foo/src/androidMain/kotlin
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/build-logic/lib-foo/src/androidMain/resources [-]
         JDK                           : <NAME_CUT> Android SDK
@@ -2308,7 +2308,7 @@ PROJECT                       : Kotlin Multiplatform
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/build-logic/lib-foo/src/commonMain [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/build-logic/lib-foo/src/commonMain [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/build-logic/lib-foo/src/commonMain/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
@@ -2364,7 +2364,7 @@ PROJECT                       : Kotlin Multiplatform
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:build-logic:lib-foo:androidMain, :build-logic:lib-foo:commonMain]
-        CONENT_ENTRY                  : file://<PROJECT>/build-logic/lib-foo/src/commonTest [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/build-logic/lib-foo/src/commonTest [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/build-logic/lib-foo/src/commonTest/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true

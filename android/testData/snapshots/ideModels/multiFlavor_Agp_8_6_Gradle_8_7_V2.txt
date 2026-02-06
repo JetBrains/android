@@ -9,7 +9,7 @@ MODULE                        : MultiFlavor
         compilerTestOutputPath        : file://<ROOT>/build/classes/test/MultiFlavor [-]
         isCompilerPathInherited       : true
         isExcludeOutput               : true
-    CONENT_ENTRY                  : file://<ROOT>
+    CONTENT_ENTRY                 : file://<ROOT>
         EXCLUDE_FOLDER                : file://<ROOT>/.gradle
         EXCLUDE_FOLDER                : file://<ROOT>/build
     JDK                           : <NAME_CUT> JavaSDK

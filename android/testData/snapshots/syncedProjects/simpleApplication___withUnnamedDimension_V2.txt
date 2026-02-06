@@ -12,7 +12,7 @@ PROJECT                       : project
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        CONENT_ENTRY                  : file://<PROJECT>
+        CONTENT_ENTRY                 : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/build
         JDK                           : <NAME_CUT> JavaSDK
@@ -53,7 +53,7 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/app
+        CONTENT_ENTRY                 : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/app/build
         JDK                           : <NAME_CUT> Android SDK
@@ -125,12 +125,12 @@ PROJECT                       : project
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:app:main]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/exampleDebugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/exampleDebugAndroidTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/androidTest
             JavaSource (test)             : file://<PROJECT>/app/src/androidTest/java
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestDebug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestExample [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestExampleDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/androidTestDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/androidTestExample [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/androidTestExampleDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/exampleDebugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
@@ -324,11 +324,11 @@ PROJECT                       : project
             Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/exampleDebug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/example [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/exampleDebug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/main
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/exampleDebug/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/example [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/exampleDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/main
             JavaSource                    : file://<PROJECT>/app/src/main/java
             JavaResource                  : file://<PROJECT>/app/src/main/res
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/exampleDebug/out [-]
@@ -467,12 +467,12 @@ PROJECT                       : project
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:app:main]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/exampleDebugUnitTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/test
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/exampleDebugUnitTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/test
             JavaSource (test)             : file://<PROJECT>/app/src/test/java
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/testDebug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/testExample [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/testExampleDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/testDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/testExample [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/testExampleDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/exampleDebugUnitTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]

@@ -8,7 +8,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        CONENT_ENTRY                  : file://<TEMP>
+        CONTENT_ENTRY                 : file://<TEMP>
             EXCLUDE_FOLDER                : file://<TEMP>/.gradle
             EXCLUDE_FOLDER                : file://<TEMP>/build
         JDK                           : <NAME_CUT> JavaSDK
@@ -47,7 +47,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<TEMP>/app
+        CONTENT_ENTRY                 : file://<TEMP>/app
             EXCLUDE_FOLDER                : file://<TEMP>/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<TEMP>/app/build
         JDK                           : <NAME_CUT> Android SDK
@@ -95,10 +95,10 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<TEMP>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<TEMP>/app/build/generated/res/resValues/androidTest/debug [-]
-        CONENT_ENTRY                  : file://<TEMP>/app/src/androidTest [-]
-        CONENT_ENTRY                  : file://<TEMP>/app/src/androidTestDebug [-]
+        CONTENT_ENTRY                 : file://<TEMP>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONTENT_ENTRY                 : file://<TEMP>/app/build/generated/res/resValues/androidTest/debug [-]
+        CONTENT_ENTRY                 : file://<TEMP>/app/src/androidTest [-]
+        CONTENT_ENTRY                 : file://<TEMP>/app/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/app/build/generated/res/resValues/androidTest/debug [-]
@@ -164,10 +164,10 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<TEMP>/app/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<TEMP>/app/build/generated/res/resValues/debug [-]
-        CONENT_ENTRY                  : file://<TEMP>/app/src/debug [-]
-        CONENT_ENTRY                  : file://<TEMP>/app/src/main [-]
+        CONTENT_ENTRY                 : file://<TEMP>/app/build/generated/ap_generated_sources/debug/out [-]
+        CONTENT_ENTRY                 : file://<TEMP>/app/build/generated/res/resValues/debug [-]
+        CONTENT_ENTRY                 : file://<TEMP>/app/src/debug [-]
+        CONTENT_ENTRY                 : file://<TEMP>/app/src/main [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/app/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/app/build/generated/res/resValues/debug [-]
@@ -232,9 +232,9 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<TEMP>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
-        CONENT_ENTRY                  : file://<TEMP>/app/src/test [-]
-        CONENT_ENTRY                  : file://<TEMP>/app/src/testDebug [-]
+        CONTENT_ENTRY                 : file://<TEMP>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONTENT_ENTRY                 : file://<TEMP>/app/src/test [-]
+        CONTENT_ENTRY                 : file://<TEMP>/app/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/app/src/test/assets [-]
@@ -300,7 +300,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<TEMP>/lib
+        CONTENT_ENTRY                 : file://<TEMP>/lib
             EXCLUDE_FOLDER                : file://<TEMP>/lib/.gradle [-]
             EXCLUDE_FOLDER                : file://<TEMP>/lib/build
         JDK                           : <NAME_CUT> Android SDK
@@ -348,10 +348,10 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<TEMP>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<TEMP>/lib/build/generated/res/resValues/androidTest/debug [-]
-        CONENT_ENTRY                  : file://<TEMP>/lib/src/androidTest [-]
-        CONENT_ENTRY                  : file://<TEMP>/lib/src/androidTestDebug [-]
+        CONTENT_ENTRY                 : file://<TEMP>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONTENT_ENTRY                 : file://<TEMP>/lib/build/generated/res/resValues/androidTest/debug [-]
+        CONTENT_ENTRY                 : file://<TEMP>/lib/src/androidTest [-]
+        CONTENT_ENTRY                 : file://<TEMP>/lib/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/lib/build/generated/res/resValues/androidTest/debug [-]
@@ -415,10 +415,10 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<TEMP>/lib/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<TEMP>/lib/build/generated/res/resValues/debug [-]
-        CONENT_ENTRY                  : file://<TEMP>/lib/src/debug [-]
-        CONENT_ENTRY                  : file://<TEMP>/lib/src/main [-]
+        CONTENT_ENTRY                 : file://<TEMP>/lib/build/generated/ap_generated_sources/debug/out [-]
+        CONTENT_ENTRY                 : file://<TEMP>/lib/build/generated/res/resValues/debug [-]
+        CONTENT_ENTRY                 : file://<TEMP>/lib/src/debug [-]
+        CONTENT_ENTRY                 : file://<TEMP>/lib/src/main [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/lib/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/lib/build/generated/res/resValues/debug [-]
@@ -483,9 +483,9 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<TEMP>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
-        CONENT_ENTRY                  : file://<TEMP>/lib/src/test [-]
-        CONENT_ENTRY                  : file://<TEMP>/lib/src/testDebug [-]
+        CONTENT_ENTRY                 : file://<TEMP>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONTENT_ENTRY                 : file://<TEMP>/lib/src/test [-]
+        CONTENT_ENTRY                 : file://<TEMP>/lib/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/lib/src/test/assets [-]

@@ -12,7 +12,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/NonStandardSourceSetDependencies [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        CONENT_ENTRY                  : file://<PROJECT>
+        CONTENT_ENTRY                 : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/build
         JDK                           : <NAME_CUT> JavaSDK
@@ -33,7 +33,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/aarWrapperLib
+        CONTENT_ENTRY                 : file://<PROJECT>/aarWrapperLib
             EXCLUDE_FOLDER                : file://<PROJECT>/aarWrapperLib/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/aarWrapperLib/build
         JDK                           : <NAME_CUT> JavaSDK
@@ -74,7 +74,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/app
+        CONTENT_ENTRY                 : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/app/build
         JDK                           : <NAME_CUT> Android SDK
@@ -146,9 +146,9 @@ PROJECT                       : NonStandardSourceSetDependencies
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:app:main]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/androidTest [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
@@ -249,9 +249,9 @@ PROJECT                       : NonStandardSourceSetDependencies
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/main
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/main
             JavaSource                    : file://<PROJECT>/app/src/main/java
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
@@ -349,9 +349,9 @@ PROJECT                       : NonStandardSourceSetDependencies
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:app:main]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/test [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/testDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/test [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
@@ -415,7 +415,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/common
+        CONTENT_ENTRY                 : file://<PROJECT>/common
             EXCLUDE_FOLDER                : file://<PROJECT>/common/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/common/build
         JDK                           : <NAME_CUT> JavaSDK
@@ -467,7 +467,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/common/src/commonMain
+        CONTENT_ENTRY                 : file://<PROJECT>/common/src/commonMain
             SourceKotlin                  : file://<PROJECT>/common/src/commonMain/kotlin
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/common/src/commonMain/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
@@ -526,7 +526,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:common:commonMain, :common:jvmMain]
-        CONENT_ENTRY                  : file://<PROJECT>/common/src/commonTest [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/common/src/commonTest [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/common/src/commonTest/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
@@ -585,7 +585,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             - SourceSetName               : NonStandardSourceSetDependencies.common.commonMain
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/common/src/jvmMain
+        CONTENT_ENTRY                 : file://<PROJECT>/common/src/jvmMain
             JavaSource                    : file://<PROJECT>/common/src/jvmMain/kotlin
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/common/src/jvmMain/java [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/common/src/jvmMain/resources [-]
@@ -648,7 +648,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:common:commonMain, :common:jvmMain]
-        CONENT_ENTRY                  : file://<PROJECT>/common/src/jvmTest [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/common/src/jvmTest [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/common/src/jvmTest/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/common/src/jvmTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/common/src/jvmTest/resources [-]
@@ -680,7 +680,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/desktop
+        CONTENT_ENTRY                 : file://<PROJECT>/desktop
             EXCLUDE_FOLDER                : file://<PROJECT>/desktop/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/desktop/build
         JDK                           : <NAME_CUT> JavaSDK
@@ -731,7 +731,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/desktop/src/main
+        CONTENT_ENTRY                 : file://<PROJECT>/desktop/src/main
             JavaSource                    : file://<PROJECT>/desktop/src/main/java
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/desktop/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/desktop/src/main/resources [-]
@@ -796,7 +796,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:desktop:main]
-        CONENT_ENTRY                  : file://<PROJECT>/desktop/src/test [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/desktop/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/desktop/src/test/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/desktop/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/desktop/src/test/resources [-]
@@ -848,7 +848,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/feature-a
+        CONTENT_ENTRY                 : file://<PROJECT>/feature-a
             EXCLUDE_FOLDER                : file://<PROJECT>/feature-a/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/feature-a/build
         JDK                           : <NAME_CUT> Android SDK
@@ -918,9 +918,9 @@ PROJECT                       : NonStandardSourceSetDependencies
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:feature-a:main]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-a/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-a/src/androidTest [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-a/src/androidTestDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/feature-a/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/feature-a/src/androidTest [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/feature-a/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-a/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-a/src/androidTest/assets [-]
@@ -1063,9 +1063,9 @@ PROJECT                       : NonStandardSourceSetDependencies
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/feature-a/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-a/src/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-a/src/main
+        CONTENT_ENTRY                 : file://<PROJECT>/feature-a/build/generated/ap_generated_sources/debug/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/feature-a/src/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/feature-a/src/main
             JavaSource                    : file://<PROJECT>/feature-a/src/main/java
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-a/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
@@ -1183,9 +1183,9 @@ PROJECT                       : NonStandardSourceSetDependencies
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:feature-a:main]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-a/build/generated/ap_generated_sources/debugUnitTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-a/src/test [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-a/src/testDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/feature-a/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/feature-a/src/test [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/feature-a/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-a/build/generated/ap_generated_sources/debugUnitTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-a/src/test/assets [-]
@@ -1311,7 +1311,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b
+        CONTENT_ENTRY                 : file://<PROJECT>/feature-b
             EXCLUDE_FOLDER                : file://<PROJECT>/feature-b/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/feature-b/build
         JDK                           : <NAME_CUT> Android SDK
@@ -1393,11 +1393,11 @@ PROJECT                       : NonStandardSourceSetDependencies
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidInstrumentedTest [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidInstrumentedTestDebug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidTest [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidTestDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/src/androidInstrumentedTest [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/src/androidInstrumentedTestDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/src/androidTest [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidInstrumentedTest/assets [-]
@@ -1509,13 +1509,13 @@ PROJECT                       : NonStandardSourceSetDependencies
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/build/generated/assets/debugAssetsCopyForAGP [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidDebug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidMain
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/commonMain [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/main [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/build/generated/ap_generated_sources/debug/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/build/generated/assets/debugAssetsCopyForAGP [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/src/androidDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/src/androidMain
+        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/src/commonMain [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/src/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/src/main [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-b/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-b/build/generated/assets/debugAssetsCopyForAGP [-]
@@ -1627,12 +1627,12 @@ PROJECT                       : NonStandardSourceSetDependencies
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/build/generated/ap_generated_sources/debugUnitTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidUnitTest [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidUnitTestDebug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/commonTest [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/test [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/testDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/src/androidUnitTest [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/src/androidUnitTestDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/src/commonTest [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/src/test [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/build/generated/ap_generated_sources/debugUnitTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidUnitTest/assets [-]
@@ -1696,7 +1696,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/jarWrapperLib
+        CONTENT_ENTRY                 : file://<PROJECT>/jarWrapperLib
             EXCLUDE_FOLDER                : file://<PROJECT>/jarWrapperLib/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/jarWrapperLib/build
         JDK                           : <NAME_CUT> JavaSDK
@@ -1717,7 +1717,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/javaLibrary
+        CONTENT_ENTRY                 : file://<PROJECT>/javaLibrary
             EXCLUDE_FOLDER                : file://<PROJECT>/javaLibrary/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/javaLibrary/build
         JDK                           : <NAME_CUT> JavaSDK
@@ -1768,7 +1768,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/javaLibrary/src/main
+        CONTENT_ENTRY                 : file://<PROJECT>/javaLibrary/src/main
             JavaSource                    : file://<PROJECT>/javaLibrary/src/main/java
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/javaLibrary/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/javaLibrary/src/main/resources [-]
@@ -1840,7 +1840,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:javaLibrary:main]
-        CONENT_ENTRY                  : file://<PROJECT>/javaLibrary/src/test [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/javaLibrary/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/javaLibrary/src/test/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/javaLibrary/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/javaLibrary/src/test/resources [-]
@@ -1906,7 +1906,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/javaLibrary/src/testEnv
+        CONTENT_ENTRY                 : file://<PROJECT>/javaLibrary/src/testEnv
             JavaSource                    : file://<PROJECT>/javaLibrary/src/testEnv/java
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/javaLibrary/src/testEnv/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/javaLibrary/src/testEnv/resources [-]
@@ -1941,7 +1941,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/kmp-java
+        CONTENT_ENTRY                 : file://<PROJECT>/kmp-java
             EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/build
         JDK                           : <NAME_CUT> JavaSDK
@@ -1962,7 +1962,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample
+        CONTENT_ENTRY                 : file://<PROJECT>/kmp-java/sample
             EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/sample/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/sample/build
         JDK                           : <NAME_CUT> JavaSDK
@@ -2003,7 +2003,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test
+        CONTENT_ENTRY                 : file://<PROJECT>/kmp-java/sample-test
             EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/sample-test/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/sample-test/build
         JDK                           : <NAME_CUT> Android SDK
@@ -2052,9 +2052,9 @@ PROJECT                       : NonStandardSourceSetDependencies
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/src/androidTest [-]
-        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/src/androidTestDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/kmp-java/sample-test/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/kmp-java/sample-test/src/androidTest [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/kmp-java/sample-test/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample-test/src/androidTest/assets [-]
@@ -2117,9 +2117,9 @@ PROJECT                       : NonStandardSourceSetDependencies
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/src/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/src/main
+        CONTENT_ENTRY                 : file://<PROJECT>/kmp-java/sample-test/build/generated/ap_generated_sources/debug/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/kmp-java/sample-test/src/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/kmp-java/sample-test/src/main
             JavaSource                    : file://<PROJECT>/kmp-java/sample-test/src/main/kotlin
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/kmp-java/sample-test/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
@@ -2185,9 +2185,9 @@ PROJECT                       : NonStandardSourceSetDependencies
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/build/generated/ap_generated_sources/debugUnitTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/src/test [-]
-        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/src/testDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/kmp-java/sample-test/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/kmp-java/sample-test/src/test [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/kmp-java/sample-test/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/build/generated/ap_generated_sources/debugUnitTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample-test/src/test/assets [-]
@@ -2264,7 +2264,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample/src/commonMain
+        CONTENT_ENTRY                 : file://<PROJECT>/kmp-java/sample/src/commonMain
             SourceKotlin                  : file://<PROJECT>/kmp-java/sample/src/commonMain/kotlin
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmp-java/sample/src/commonMain/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
@@ -2323,7 +2323,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:kmp-java:sample:commonMain, :kmp-java:sample:jvmMain]
-        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample/src/commonTest [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/kmp-java/sample/src/commonTest [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample/src/commonTest/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
@@ -2382,7 +2382,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             - SourceSetName               : NonStandardSourceSetDependencies.kmp-java.sample.commonMain
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample/src/jvmMain
+        CONTENT_ENTRY                 : file://<PROJECT>/kmp-java/sample/src/jvmMain
             JavaSource                    : file://<PROJECT>/kmp-java/sample/src/jvmMain/kotlin
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/kmp-java/sample/src/jvmMain/java [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmp-java/sample/src/jvmMain/resources [-]
@@ -2446,7 +2446,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:kmp-java:sample:commonMain, :kmp-java:sample:jvmMain]
-        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample/src/jvmTest [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/kmp-java/sample/src/jvmTest [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample/src/jvmTest/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample/src/jvmTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample/src/jvmTest/resources [-]
@@ -2532,7 +2532,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/lib
+        CONTENT_ENTRY                 : file://<PROJECT>/lib
             EXCLUDE_FOLDER                : file://<PROJECT>/lib/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/lib/build
         JDK                           : <NAME_CUT> Android SDK
@@ -2602,9 +2602,9 @@ PROJECT                       : NonStandardSourceSetDependencies
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:lib:main]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTestDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/lib/src/androidTest [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/lib/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/assets [-]
@@ -2725,9 +2725,9 @@ PROJECT                       : NonStandardSourceSetDependencies
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/main
+        CONTENT_ENTRY                 : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/lib/src/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/lib/src/main
             JavaSource                    : file://<PROJECT>/lib/src/main/java
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
@@ -2818,9 +2818,9 @@ PROJECT                       : NonStandardSourceSetDependencies
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:lib:main]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/test [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/testDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/lib/src/test [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/lib/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/assets [-]

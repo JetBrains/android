@@ -12,7 +12,7 @@ PROJECT                       : MainActivity
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/MainActivity [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        CONENT_ENTRY                  : file://<PROJECT>
+        CONTENT_ENTRY                 : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/build
         JDK                           : <NAME_CUT> JavaSDK
@@ -53,7 +53,7 @@ PROJECT                       : MainActivity
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/app
+        CONTENT_ENTRY                 : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/app/build
         JDK                           : <NAME_CUT> Android SDK
@@ -125,14 +125,14 @@ PROJECT                       : MainActivity
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:app:main]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/localDebugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kapt/androidTest/local/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kaptKotlin/androidTest/local/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/localDebugAndroidTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/source/kapt/androidTest/local/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/source/kaptKotlin/androidTest/local/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/androidTest
             JavaSource (test)             : file://<PROJECT>/app/src/androidTest/java
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestDebug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestLocal [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestLocalDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/androidTestDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/androidTestLocal [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/androidTestLocalDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/localDebugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/kapt/androidTest/local/debug [-]
@@ -300,13 +300,13 @@ PROJECT                       : MainActivity
             Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/localDebug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kapt/local/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kaptKotlin/local/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/local [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/localDebug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/main
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/localDebug/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/source/kapt/local/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/source/kaptKotlin/local/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/local [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/localDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/main
             JavaSource                    : file://<PROJECT>/app/src/main/java
             JavaResource                  : file://<PROJECT>/app/src/main/res
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/localDebug/out [-]
@@ -437,14 +437,14 @@ PROJECT                       : MainActivity
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:app:main]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/localDebugUnitTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kapt/test/local/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kaptKotlin/test/local/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/test
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/localDebugUnitTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/source/kapt/test/local/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/source/kaptKotlin/test/local/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/test
             JavaSource (test)             : file://<PROJECT>/app/src/test/java
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/testDebug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/testLocal [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/testLocalDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/testDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/testLocal [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/testLocalDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/localDebugUnitTest/out [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/kapt/test/local/debug [-]
@@ -552,7 +552,7 @@ PROJECT                       : MainActivity
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/javaLib
+        CONTENT_ENTRY                 : file://<PROJECT>/javaLib
             EXCLUDE_FOLDER                : file://<PROJECT>/javaLib/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/javaLib/build
         JDK                           : <NAME_CUT> JavaSDK
@@ -593,9 +593,9 @@ PROJECT                       : MainActivity
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/javaLib/build/generated/source/kapt/main [-]
-        CONENT_ENTRY                  : file://<PROJECT>/javaLib/build/generated/source/kaptKotlin/main [-]
-        CONENT_ENTRY                  : file://<PROJECT>/javaLib/src/main
+        CONTENT_ENTRY                 : file://<PROJECT>/javaLib/build/generated/source/kapt/main [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/javaLib/build/generated/source/kaptKotlin/main [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/javaLib/src/main
             JavaSource                    : file://<PROJECT>/javaLib/src/main/java
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/javaLib/build/generated/source/kapt/main [-]
             Generated                     : true
@@ -658,9 +658,9 @@ PROJECT                       : MainActivity
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:javaLib:main]
-        CONENT_ENTRY                  : file://<PROJECT>/javaLib/build/generated/source/kapt/test [-]
-        CONENT_ENTRY                  : file://<PROJECT>/javaLib/build/generated/source/kaptKotlin/test [-]
-        CONENT_ENTRY                  : file://<PROJECT>/javaLib/src/test [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/javaLib/build/generated/source/kapt/test [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/javaLib/build/generated/source/kaptKotlin/test [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/javaLib/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/javaLib/build/generated/source/kapt/test [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/javaLib/build/generated/source/kaptKotlin/test [-]
@@ -719,7 +719,7 @@ PROJECT                       : MainActivity
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/lib
+        CONTENT_ENTRY                 : file://<PROJECT>/lib
             EXCLUDE_FOLDER                : file://<PROJECT>/lib/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/lib/build
         JDK                           : <NAME_CUT> Android SDK
@@ -789,9 +789,9 @@ PROJECT                       : MainActivity
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:lib:main]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTestDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/lib/src/androidTest [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/lib/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/assets [-]
@@ -942,9 +942,9 @@ PROJECT                       : MainActivity
             Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/main
+        CONTENT_ENTRY                 : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/lib/src/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/lib/src/main
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/assets [-]
@@ -1064,9 +1064,9 @@ PROJECT                       : MainActivity
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:lib:main]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/test [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/testDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/lib/src/test [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/lib/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/assets [-]

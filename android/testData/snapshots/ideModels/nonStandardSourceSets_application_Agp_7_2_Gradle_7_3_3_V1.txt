@@ -9,7 +9,7 @@ MODULE                        : application
         compilerTestOutputPath        : file://<ROOT>/application/build/classes/test/application [-]
         isCompilerPathInherited       : true
         isExcludeOutput               : true
-    CONENT_ENTRY                  : file://<ROOT>/application
+    CONTENT_ENTRY                 : file://<ROOT>/application
         EXCLUDE_FOLDER                : file://<ROOT>/application/.gradle
         EXCLUDE_FOLDER                : file://<ROOT>/application/build
     JDK                           : <NAME_CUT> JavaSDK

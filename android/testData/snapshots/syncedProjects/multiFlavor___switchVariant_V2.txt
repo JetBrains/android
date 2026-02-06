@@ -12,7 +12,7 @@ PROJECT                       : MultiFlavor
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/MultiFlavor [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        CONENT_ENTRY                  : file://<PROJECT>
+        CONTENT_ENTRY                 : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/build
         JDK                           : <NAME_CUT> JavaSDK
@@ -51,7 +51,7 @@ PROJECT                       : MultiFlavor
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/app
+        CONTENT_ENTRY                 : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/app/build
         JDK                           : <NAME_CUT> Android SDK
@@ -98,16 +98,16 @@ PROJECT                       : MultiFlavor
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/firstXyzSecondXyzRelease/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/firstXyzSecondXyz/release [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/firstXyz [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/firstXyzSecondXyz [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/firstXyzSecondXyzRelease [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/main
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/firstXyzSecondXyzRelease/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/res/resValues/firstXyzSecondXyz/release [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/firstXyz [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/firstXyzSecondXyz [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/firstXyzSecondXyzRelease [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/main
             JavaSource                    : file://<PROJECT>/app/src/main/java
             JavaResource                  : file://<PROJECT>/app/src/main/res
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/release [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/secondXyz [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/release [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/secondXyz [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/firstXyzSecondXyzRelease/out [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/firstXyzSecondXyz/release [-]

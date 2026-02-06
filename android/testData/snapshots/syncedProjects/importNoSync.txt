@@ -7,7 +7,7 @@ PROJECT                       : testImportNoSync
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testImportNoSync [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        CONENT_ENTRY                  : file://<PROJECT>
+        CONTENT_ENTRY                 : file://<PROJECT>
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>

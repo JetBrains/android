@@ -12,7 +12,7 @@ PROJECT                       : kotlinMultiPlatform
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/kotlinMultiPlatform [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        CONENT_ENTRY                  : file://<PROJECT>
+        CONTENT_ENTRY                 : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/build
         JDK                           : <NAME_CUT> JavaSDK
@@ -53,7 +53,7 @@ PROJECT                       : kotlinMultiPlatform
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/app
+        CONTENT_ENTRY                 : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/app/build
         JDK                           : <NAME_CUT> Android SDK
@@ -125,10 +125,10 @@ PROJECT                       : kotlinMultiPlatform
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:app:main]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/androidTest
             JavaSource (test)             : file://<PROJECT>/app/src/androidTest/java
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
@@ -294,9 +294,9 @@ PROJECT                       : kotlinMultiPlatform
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/main
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/main
             JavaSource                    : file://<PROJECT>/app/src/main/java
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
@@ -421,10 +421,10 @@ PROJECT                       : kotlinMultiPlatform
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:app:main]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/test
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/test
             JavaSource (test)             : file://<PROJECT>/app/src/test/java
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/testDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
@@ -567,7 +567,7 @@ PROJECT                       : kotlinMultiPlatform
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/module2
+        CONTENT_ENTRY                 : file://<PROJECT>/module2
             EXCLUDE_FOLDER                : file://<PROJECT>/module2/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/module2/build
         JDK                           : <NAME_CUT> Android SDK
@@ -649,12 +649,12 @@ PROJECT                       : kotlinMultiPlatform
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/module2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidInstrumentedTest [-]
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidInstrumentedTestDebug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidTest
+        CONTENT_ENTRY                 : file://<PROJECT>/module2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/module2/src/androidInstrumentedTest [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/module2/src/androidInstrumentedTestDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/module2/src/androidTest
             JavaSource (test)             : file://<PROJECT>/module2/src/androidTest/kotlin
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidTestDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/module2/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidInstrumentedTest/assets [-]
@@ -758,7 +758,7 @@ PROJECT                       : kotlinMultiPlatform
             Platform                      : Native (ios_arm64)/Native (ios_simulator_arm64)/Native (ios_x64)
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/appleMain [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/module2/src/appleMain [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/appleMain/resources [-]
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
@@ -993,7 +993,7 @@ PROJECT                       : kotlinMultiPlatform
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:module2:appleMain, :module2:commonMain, :module2:iosMain, :module2:nativeMain]
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/appleTest [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/module2/src/appleTest [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/appleTest/resources [-]
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
@@ -1412,7 +1412,7 @@ PROJECT                       : kotlinMultiPlatform
             Platform                      : JVM (21)/Native (general)
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/commonMain
+        CONTENT_ENTRY                 : file://<PROJECT>/module2/src/commonMain
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/commonMain/resources [-]
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
@@ -1469,7 +1469,7 @@ PROJECT                       : kotlinMultiPlatform
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:module2:commonMain]
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/commonTest [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/module2/src/commonTest [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/commonTest/resources [-]
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
@@ -1519,7 +1519,7 @@ PROJECT                       : kotlinMultiPlatform
             - SourceSetName               : kotlinMultiPlatform.module2.commonMain
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/iosArm64Main [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/module2/src/iosArm64Main [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/iosArm64Main/resources [-]
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
@@ -1749,7 +1749,7 @@ PROJECT                       : kotlinMultiPlatform
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:module2:appleMain, :module2:commonMain, :module2:iosArm64Main, :module2:iosMain, :module2:nativeMain]
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/iosArm64Test [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/module2/src/iosArm64Test [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/iosArm64Test/resources [-]
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
@@ -2174,7 +2174,7 @@ PROJECT                       : kotlinMultiPlatform
             Platform                      : Native (ios_arm64)/Native (ios_simulator_arm64)/Native (ios_x64)
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/iosMain [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/module2/src/iosMain [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/iosMain/resources [-]
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
@@ -2400,7 +2400,7 @@ PROJECT                       : kotlinMultiPlatform
             - SourceSetName               : kotlinMultiPlatform.module2.commonMain
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/iosSimulatorArm64Main [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/module2/src/iosSimulatorArm64Main [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/iosSimulatorArm64Main/resources [-]
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
@@ -2630,7 +2630,7 @@ PROJECT                       : kotlinMultiPlatform
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:module2:appleMain, :module2:commonMain, :module2:iosMain, :module2:iosSimulatorArm64Main, :module2:nativeMain]
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/iosSimulatorArm64Test [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/module2/src/iosSimulatorArm64Test [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/iosSimulatorArm64Test/resources [-]
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
@@ -3058,7 +3058,7 @@ PROJECT                       : kotlinMultiPlatform
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:module2:appleMain, :module2:commonMain, :module2:iosMain, :module2:nativeMain]
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/iosTest [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/module2/src/iosTest [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/iosTest/resources [-]
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
@@ -3472,7 +3472,7 @@ PROJECT                       : kotlinMultiPlatform
             - SourceSetName               : kotlinMultiPlatform.module2.commonMain
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/iosX64Main [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/module2/src/iosX64Main [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/iosX64Main/resources [-]
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
@@ -3702,7 +3702,7 @@ PROJECT                       : kotlinMultiPlatform
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:module2:appleMain, :module2:commonMain, :module2:iosMain, :module2:iosX64Main, :module2:nativeMain]
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/iosX64Test [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/module2/src/iosX64Test [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/iosX64Test/resources [-]
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
@@ -4147,13 +4147,13 @@ PROJECT                       : kotlinMultiPlatform
             - SourceSetName               : kotlinMultiPlatform.module2.commonMain
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/module2/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/module2/build/generated/assets/debugAssetsCopyForAGP [-]
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidDebug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidMain
+        CONTENT_ENTRY                 : file://<PROJECT>/module2/build/generated/ap_generated_sources/debug/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/module2/build/generated/assets/debugAssetsCopyForAGP [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/module2/src/androidDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/module2/src/androidMain
             JavaSource                    : file://<PROJECT>/module2/src/androidMain/kotlin
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/main [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/module2/src/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/module2/src/main [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/build/generated/assets/debugAssetsCopyForAGP [-]
@@ -4242,7 +4242,7 @@ PROJECT                       : kotlinMultiPlatform
             Platform                      : Native (ios_arm64)/Native (ios_simulator_arm64)/Native (ios_x64)
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/nativeMain [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/module2/src/nativeMain [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/nativeMain/resources [-]
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
@@ -4476,7 +4476,7 @@ PROJECT                       : kotlinMultiPlatform
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:module2:appleMain, :module2:commonMain, :module2:iosMain, :module2:nativeMain]
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/nativeTest [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/module2/src/nativeTest [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/nativeTest/resources [-]
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
@@ -4915,11 +4915,11 @@ PROJECT                       : kotlinMultiPlatform
             - SourceSetName               : kotlinMultiPlatform.module2.commonTest
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/module2/build/generated/ap_generated_sources/debugUnitTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidUnitTest [-]
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidUnitTestDebug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/test [-]
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/testDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/module2/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/module2/src/androidUnitTest [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/module2/src/androidUnitTestDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/module2/src/test [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/module2/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/build/generated/ap_generated_sources/debugUnitTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidUnitTest/assets [-]

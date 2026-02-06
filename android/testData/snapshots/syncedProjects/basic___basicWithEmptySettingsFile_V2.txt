@@ -35,7 +35,7 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>
+        CONTENT_ENTRY                 : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/build
         JDK                           : <NAME_CUT> Android SDK
@@ -86,12 +86,12 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/build/generated/res/resValues/androidTest/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/build/generated/source/buildConfig/androidTest/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/src/androidTest
+        CONTENT_ENTRY                 : file://<PROJECT>/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/build/generated/res/resValues/androidTest/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/build/generated/source/buildConfig/androidTest/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/src/androidTest
             JavaSource (test)             : file://<PROJECT>/src/androidTest/java
-        CONENT_ENTRY                  : file://<PROJECT>/src/androidTestDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/build/generated/res/resValues/androidTest/debug [-]
@@ -221,11 +221,11 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/build/generated/res/resValues/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/build/generated/source/buildConfig/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/src/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/src/main
+        CONTENT_ENTRY                 : file://<PROJECT>/build/generated/ap_generated_sources/debug/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/build/generated/res/resValues/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/build/generated/source/buildConfig/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/src/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/src/main
             JavaSource                    : file://<PROJECT>/src/main/java
             JavaResource                  : file://<PROJECT>/src/main/res
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/build/generated/ap_generated_sources/debug/out [-]
@@ -328,9 +328,9 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/build/generated/ap_generated_sources/debugUnitTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/src/test [-]
-        CONENT_ENTRY                  : file://<PROJECT>/src/testDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/src/test [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/build/generated/ap_generated_sources/debugUnitTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/test/assets [-]

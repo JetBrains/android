@@ -12,7 +12,7 @@ PROJECT                       : MultiFlavor
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/MultiFlavor [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        CONENT_ENTRY                  : file://<PROJECT>
+        CONTENT_ENTRY                 : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/build
         JDK                           : <NAME_CUT> JavaSDK
@@ -53,7 +53,7 @@ PROJECT                       : MultiFlavor
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/app
+        CONTENT_ENTRY                 : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/app/build
         JDK                           : <NAME_CUT> Android SDK
@@ -104,15 +104,15 @@ PROJECT                       : MultiFlavor
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/firstAbcSecondAbc/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebugAndroidTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/res/resValues/androidTest/firstAbcSecondAbc/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/androidTest
             JavaSource (test)             : file://<PROJECT>/app/src/androidTest/java
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestDebug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestFirstAbc [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbc [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbcDebug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestSecondAbc [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/androidTestDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/androidTestFirstAbc [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbc [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbcDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/androidTestSecondAbc [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/firstAbcSecondAbc/debug [-]
@@ -288,18 +288,18 @@ PROJECT                       : MultiFlavor
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/firstAbcSecondAbc/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/firstAbc [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/firstAbcSecondAbc
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebug/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/res/resValues/firstAbcSecondAbc/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/firstAbc [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/firstAbcSecondAbc
             JavaSource                    : file://<PROJECT>/app/src/firstAbcSecondAbc/java
             JavaSource                    : file://<PROJECT>/app/src/firstAbcSecondAbc/java2
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/firstAbcSecondAbcDebug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/main
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/firstAbcSecondAbcDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/main
             JavaSource                    : file://<PROJECT>/app/src/main/java
             JavaResource                  : file://<PROJECT>/app/src/main/res
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/secondAbc
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/secondAbc
             JavaSource                    : file://<PROJECT>/app/src/secondAbc/java
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebug/out [-]
             Generated                     : true
@@ -422,16 +422,16 @@ PROJECT                       : MultiFlavor
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebugUnitTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/test
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebugUnitTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/test
             JavaSource (test)             : file://<PROJECT>/app/src/test/java
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/testDebug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/testFirstAbc [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/testFirstAbcSecondAbc
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/testDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/testFirstAbc [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/testFirstAbcSecondAbc
             JavaSource (test)             : file://<PROJECT>/app/src/testFirstAbcSecondAbc/java
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug
             JavaSource (test)             : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug/java
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/testSecondAbc
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/testSecondAbc
             JavaSource (test)             : file://<PROJECT>/app/src/testSecondAbc/java
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebugUnitTest/out [-]
             Generated                     : true

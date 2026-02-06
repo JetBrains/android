@@ -12,7 +12,7 @@ PROJECT                       : project
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        CONENT_ENTRY                  : file://<PROJECT>
+        CONTENT_ENTRY                 : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/build
         JDK                           : <NAME_CUT> JavaSDK
@@ -53,7 +53,7 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/app
+        CONTENT_ENTRY                 : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/app/build
         JDK                           : <NAME_CUT> Android SDK
@@ -104,9 +104,9 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/androidTest [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
@@ -169,9 +169,9 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/main
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/main
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/assets [-]
@@ -236,9 +236,9 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/test [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/testDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/test [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
@@ -306,7 +306,7 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/benchmark
+        CONTENT_ENTRY                 : file://<PROJECT>/benchmark
             EXCLUDE_FOLDER                : file://<PROJECT>/benchmark/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/benchmark/build
         JDK                           : <NAME_CUT> Android SDK
@@ -351,9 +351,9 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/benchmark/build/generated/ap_generated_sources/benchmark/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/benchmark/src/benchmark [-]
-        CONENT_ENTRY                  : file://<PROJECT>/benchmark/src/main
+        CONTENT_ENTRY                 : file://<PROJECT>/benchmark/build/generated/ap_generated_sources/benchmark/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/benchmark/src/benchmark [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/benchmark/src/main
             JavaSource (test)             : file://<PROJECT>/benchmark/src/main/java
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/benchmark/build/generated/ap_generated_sources/benchmark/out [-]
             Generated                     : true
@@ -458,7 +458,7 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/test
+        CONTENT_ENTRY                 : file://<PROJECT>/test
             EXCLUDE_FOLDER                : file://<PROJECT>/test/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/test/build
         JDK                           : <NAME_CUT> Android SDK
@@ -503,9 +503,9 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/test/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/test/src/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/test/src/main
+        CONTENT_ENTRY                 : file://<PROJECT>/test/build/generated/ap_generated_sources/debug/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/test/src/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/test/src/main
             JavaSource (test)             : file://<PROJECT>/test/src/main/java
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/test/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
@@ -610,7 +610,7 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/test2
+        CONTENT_ENTRY                 : file://<PROJECT>/test2
             EXCLUDE_FOLDER                : file://<PROJECT>/test2/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/test2/build
         JDK                           : <NAME_CUT> Android SDK
@@ -655,9 +655,9 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/test2/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/test2/src/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/test2/src/main
+        CONTENT_ENTRY                 : file://<PROJECT>/test2/build/generated/ap_generated_sources/debug/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/test2/src/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/test2/src/main
             JavaSource (test)             : file://<PROJECT>/test2/src/main/java
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/test2/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true

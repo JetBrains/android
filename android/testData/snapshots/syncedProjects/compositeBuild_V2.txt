@@ -12,7 +12,7 @@ PROJECT                       : project
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        CONENT_ENTRY                  : file://<PROJECT>
+        CONTENT_ENTRY                 : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/build
         JDK                           : <NAME_CUT> JavaSDK
@@ -53,7 +53,7 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/app
+        CONTENT_ENTRY                 : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/app/build
         JDK                           : <NAME_CUT> Android SDK
@@ -125,10 +125,10 @@ PROJECT                       : project
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:app:main]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/androidTest
             JavaSource (test)             : file://<PROJECT>/app/src/androidTest/java
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
@@ -292,9 +292,9 @@ PROJECT                       : project
             Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/main
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/main
             JavaSource                    : file://<PROJECT>/app/src/main/java
             JavaResource                  : file://<PROJECT>/app/src/main/res
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
@@ -423,10 +423,10 @@ PROJECT                       : project
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:app:main]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/test
+        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/test
             JavaSource (test)             : file://<PROJECT>/app/src/test/java
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/testDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
@@ -573,7 +573,7 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/lib
+        CONTENT_ENTRY                 : file://<PROJECT>/lib
             EXCLUDE_FOLDER                : file://<PROJECT>/lib/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/lib/build
         JDK                           : <NAME_CUT> Android SDK
@@ -643,10 +643,10 @@ PROJECT                       : project
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:lib:main]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest
+        CONTENT_ENTRY                 : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/lib/src/androidTest
             JavaSource (test)             : file://<PROJECT>/lib/src/androidTest/java
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTestDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/lib/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/assets [-]
@@ -796,9 +796,9 @@ PROJECT                       : project
             Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/main
+        CONTENT_ENTRY                 : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/lib/src/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/lib/src/main
             JavaSource                    : file://<PROJECT>/lib/src/main/java
             JavaResource                  : file://<PROJECT>/lib/src/main/res
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
@@ -918,10 +918,10 @@ PROJECT                       : project
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:lib:main]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/test
+        CONTENT_ENTRY                 : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/lib/src/test
             JavaSource (test)             : file://<PROJECT>/lib/src/test/java
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/testDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/lib/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/assets [-]
@@ -1031,7 +1031,7 @@ PROJECT                       : project
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/TestCompositeLib1 [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib1
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/build
         JDK                           : <NAME_CUT> JavaSDK
@@ -1072,7 +1072,7 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/app
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib1/app
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/app/build
         JDK                           : <NAME_CUT> Android SDK
@@ -1123,10 +1123,10 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/app/src/androidTest
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib1/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib1/app/src/androidTest
             JavaSource (test)             : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/java
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/TestCompositeLib1/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/assets [-]
@@ -1265,9 +1265,9 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/app/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/app/src/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/app/src/main
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib1/app/build/generated/ap_generated_sources/debug/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib1/app/src/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib1/app/src/main
             JavaSource                    : file://<PROJECT>/TestCompositeLib1/app/src/main/java
             JavaResource                  : file://<PROJECT>/TestCompositeLib1/app/src/main/res
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/TestCompositeLib1/app/build/generated/ap_generated_sources/debug/out [-]
@@ -1372,10 +1372,10 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/app/src/test
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib1/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib1/app/src/test
             JavaSource (test)             : file://<PROJECT>/TestCompositeLib1/app/src/test/java
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/app/src/testDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib1/app/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/TestCompositeLib1/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/TestCompositeLib1/app/src/test/assets [-]
@@ -1517,7 +1517,7 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib1/lib
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/lib/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/lib/build
         JDK                           : <NAME_CUT> Android SDK
@@ -1566,10 +1566,10 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest
             JavaSource (test)             : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/java
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/assets [-]
@@ -1700,9 +1700,9 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib/src/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib/src/main
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debug/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib1/lib/src/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib1/lib/src/main
             JavaSource                    : file://<PROJECT>/TestCompositeLib1/lib/src/main/java
             JavaResource                  : file://<PROJECT>/TestCompositeLib1/lib/src/main/res
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debug/out [-]
@@ -1801,10 +1801,10 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib/src/test
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib1/lib/src/test
             JavaSource (test)             : file://<PROJECT>/TestCompositeLib1/lib/src/test/java
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib/src/testDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib1/lib/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/TestCompositeLib1/lib/src/test/assets [-]
@@ -1918,7 +1918,7 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/build
         JDK                           : <NAME_CUT> JavaSDK
@@ -1939,7 +1939,7 @@ PROJECT                       : project
             compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/build/classes/java/main [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/src/main
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/src/main
             JavaSource                    : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/src/main/java
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/src/main/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
@@ -1964,7 +1964,7 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : compositeNest.main
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/src/test [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/src/test/java [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/src/test/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
@@ -1989,7 +1989,7 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib2
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib2
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib2/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib2/build
         JDK                           : <NAME_CUT> JavaSDK
@@ -2010,7 +2010,7 @@ PROJECT                       : project
             compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib2/build/classes/java/main [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib2/src/main
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib2/src/main
             JavaSource                    : file://<PROJECT>/TestCompositeLib2/src/main/java
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/TestCompositeLib2/src/main/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
@@ -2036,7 +2036,7 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : composite2.main
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib2/src/test [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib2/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/TestCompositeLib2/src/test/java [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/TestCompositeLib2/src/test/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
@@ -2058,7 +2058,7 @@ PROJECT                       : project
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/TestCompositeLib3 [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib3
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/build
         JDK                           : <NAME_CUT> JavaSDK
@@ -2099,7 +2099,7 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/app
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib3/app
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/app/build
         JDK                           : <NAME_CUT> Android SDK
@@ -2150,10 +2150,10 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/app/src/androidTest
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib3/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib3/app/src/androidTest
             JavaSource (test)             : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/java
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/TestCompositeLib3/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/assets [-]
@@ -2288,9 +2288,9 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/app/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/app/src/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/app/src/main
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib3/app/build/generated/ap_generated_sources/debug/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib3/app/src/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib3/app/src/main
             JavaSource                    : file://<PROJECT>/TestCompositeLib3/app/src/main/java
             JavaResource                  : file://<PROJECT>/TestCompositeLib3/app/src/main/res
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/TestCompositeLib3/app/build/generated/ap_generated_sources/debug/out [-]
@@ -2393,10 +2393,10 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/app/src/test
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib3/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib3/app/src/test
             JavaSource (test)             : file://<PROJECT>/TestCompositeLib3/app/src/test/java
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/app/src/testDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib3/app/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/TestCompositeLib3/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/TestCompositeLib3/app/src/test/assets [-]
@@ -2534,7 +2534,7 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/lib
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib3/lib
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/lib/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/lib/build
         JDK                           : <NAME_CUT> Android SDK
@@ -2583,10 +2583,10 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib3/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest
             JavaSource (test)             : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest/java
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/TestCompositeLib3/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest/assets [-]
@@ -2713,9 +2713,9 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/lib/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/lib/src/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/lib/src/main
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib3/lib/build/generated/ap_generated_sources/debug/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib3/lib/src/debug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib3/lib/src/main
             JavaSource                    : file://<PROJECT>/TestCompositeLib3/lib/src/main/java
             JavaResource                  : file://<PROJECT>/TestCompositeLib3/lib/src/main/res
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/TestCompositeLib3/lib/build/generated/ap_generated_sources/debug/out [-]
@@ -2812,10 +2812,10 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/lib/src/test
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib3/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib3/lib/src/test
             JavaSource (test)             : file://<PROJECT>/TestCompositeLib3/lib/src/test/java
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/lib/src/testDebug [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib3/lib/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/TestCompositeLib3/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/TestCompositeLib3/lib/src/test/assets [-]
@@ -2925,7 +2925,7 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/build
         JDK                           : <NAME_CUT> JavaSDK
@@ -2946,7 +2946,7 @@ PROJECT                       : project
             compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/build/classes/java/main [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/src/main
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/src/main
             JavaSource                    : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/src/main/java
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/src/main/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
@@ -2972,7 +2972,7 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : compositeNest.main
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/src/test [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/src/test/java [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/src/test/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
@@ -2997,7 +2997,7 @@ PROJECT                       : project
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib4
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib4
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib4/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib4/build
         JDK                           : <NAME_CUT> JavaSDK
@@ -3018,7 +3018,7 @@ PROJECT                       : project
             compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib4/build/classes/java/main [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib4/src/main
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib4/src/main
             JavaSource                    : file://<PROJECT>/TestCompositeLib4/src/main/java
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/TestCompositeLib4/src/main/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
@@ -3044,7 +3044,7 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : composite4.main
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib4/src/test [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/TestCompositeLib4/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/TestCompositeLib4/src/test/java [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/TestCompositeLib4/src/test/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
