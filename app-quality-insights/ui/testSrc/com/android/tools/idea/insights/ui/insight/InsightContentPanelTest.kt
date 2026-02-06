@@ -32,6 +32,7 @@ import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.FakeAiInsightToolkit
 import com.android.tools.idea.insights.ai.StubInsightsOnboardingProvider
+import com.android.tools.idea.insights.analytics.TestAppInsightsTracker
 import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.ui.FakeGeminiPluginApi
 import com.android.tools.idea.testing.disposable
@@ -118,7 +119,7 @@ class InsightContentPanelTest {
     fakeGeminiPluginApi.available = false
     ExtensionTestUtil.maskExtensions(GeminiPluginApi.EP_NAME, listOf(fakeGeminiPluginApi), projectRule.disposable)
     currentInsightFlow = MutableStateFlow(LoadingState.Ready(AiInsight("insight", ISSUE1.sampleEvent)))
-    insightContentPanel = InsightContentPanel(mockController, scope, currentInsightFlow, projectRule.disposable)
+    insightContentPanel = InsightContentPanel(mockController, scope, currentInsightFlow, TestAppInsightsTracker, projectRule.disposable)
   }
 
   @After

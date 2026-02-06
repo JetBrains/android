@@ -64,6 +64,12 @@ interface AppInsightsTracker {
     deprecationInfo: DevServiceDeprecationInfo,
   )
 
+  fun logAgentAction(
+    action: AppQualityInsightsUsageEvent.AgentActionDetails.ActionType,
+    unanonymizedAppId: String,
+    failureType: FailureType,
+  )
+
   enum class ProductType {
     CRASHLYTICS,
     PLAY_VITALS;

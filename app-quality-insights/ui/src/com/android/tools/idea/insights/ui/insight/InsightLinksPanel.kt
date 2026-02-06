@@ -17,12 +17,13 @@ package com.android.tools.idea.insights.ui.insight
 
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
+import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AgentActionContributor
 import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.filterReady
 import com.android.tools.idea.insights.model.event.Event
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.ui.HyperlinkLabel
@@ -37,6 +38,7 @@ import kotlinx.coroutines.launch
 class InsightLinksPanel(
   private val controller: AppInsightsProjectLevelController,
   currentInsightFlow: StateFlow<LoadingState<AiInsight?>>,
+  tracker: AppInsightsTracker,
   parentDisposable: Disposable,
 ) : JPanel(BorderLayout()) {
   init {
@@ -44,11 +46,11 @@ class InsightLinksPanel(
     parentDisposable.createCoroutineScope().launch {
       currentInsightFlow
         .filterReady()
-        .combine(controller.state) { a, b -> a to b.selectedIssue }
-        .collect { (insight, issue) ->
+        .combine(controller.state) { a, b -> a to b }
+        .collect { (insight, state) ->
           leftPanel.removeAll()
-          if (insight != null && issue != null) {
-            createLinks(insight.event, issue, controller.project).forEach { leftPanel.add(it) }
+          if (insight != null && state.selectedIssue != null) {
+            createLinks(insight.event, state, controller.project, tracker).forEach { leftPanel.add(it) }
           }
         }
     }
@@ -57,9 +59,16 @@ class InsightLinksPanel(
   }
 }
 
-private fun createLinks(event: Event, issue: AppInsightsIssue, project: Project): List<HyperlinkLabel> =
+private fun createLinks(event: Event, state: AppInsightsState, project: Project, tracker: AppInsightsTracker): List<HyperlinkLabel> =
   AgentActionContributor.EP_NAME.extensions.flatMap { ex ->
-    ex.provideActions(event, issue, project).map { (name, action) ->
-      HyperlinkLabel(name).apply { addHyperlinkListener { action.invoke() } }
+    val issue = state.selectedIssue ?: return@flatMap emptyList()
+    ex.provideActions(event, issue, project).map { action ->
+      HyperlinkLabel(action.name).apply {
+        addHyperlinkListener {
+          action.action.invoke()
+          val connection = state.connections.selected ?: return@addHyperlinkListener
+          tracker.logAgentAction(action.metricsEvent, connection.appId, issue.issueDetails.fatality)
+        }
+      }
     }
   }

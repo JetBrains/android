@@ -20,6 +20,7 @@ import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.mapReady
 import com.android.tools.idea.insights.ui.AppInsightsStatusText
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
@@ -73,6 +74,7 @@ class InsightContentPanel(
   controller: AppInsightsProjectLevelController,
   scope: CoroutineScope,
   currentInsightFlow: StateFlow<LoadingState<AiInsight?>>,
+  tracker: AppInsightsTracker,
   parentDisposable: Disposable,
 ) : JPanel(), UiDataProvider, Disposable {
 
@@ -82,7 +84,7 @@ class InsightContentPanel(
 
   private val insightBottomPanel = InsightBottomPanel(controller, currentInsightFlow, this)
 
-  private val insightLinksPanel = InsightLinksPanel(controller, currentInsightFlow, this)
+  private val insightLinksPanel = InsightLinksPanel(controller, currentInsightFlow, tracker, this)
 
   private val insightPanel =
     JPanel(VerticalLayout(JBUI.scale(8))).apply {

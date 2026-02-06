@@ -26,6 +26,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.EventDetails
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.InsightSentiment.Sentiment
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEventKt.agentActionDetails
 import com.google.wireless.android.sdk.stats.DevServiceDeprecationInfo
 import com.intellij.openapi.project.Project
 
@@ -186,6 +187,20 @@ class AppInsightsTrackerImpl(private val project: Project, private val insightsP
                 .build()
           }
           .build()
+    }
+  }
+
+  override fun logAgentAction(
+    action: AppQualityInsightsUsageEvent.AgentActionDetails.ActionType,
+    unanonymizedAppId: String,
+    failureType: FailureType,
+  ) {
+    log(unanonymizedAppId) {
+      type = AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.AGENT_ACTION
+      agentActionDetails = agentActionDetails {
+        actionType = action
+        crashType = failureType.toCrashType()
+      }
     }
   }
 

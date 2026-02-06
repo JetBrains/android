@@ -95,7 +95,7 @@ private class InsightToolWindowContent(
           tracker,
         )
       } else {
-        InsightMainPanel(projectController, parentDisposable)
+        InsightMainPanel(projectController, tracker, parentDisposable)
       }
 
     component.add(comp, BorderLayout.CENTER)

@@ -73,4 +73,10 @@ object TestAppInsightsTracker : AppInsightsTracker {
     deliveryType: DevServiceDeprecationInfo.DeliveryType,
     deprecationInfo: DevServiceDeprecationInfo,
   ) = Unit
+
+  override fun logAgentAction(
+    action: AppQualityInsightsUsageEvent.AgentActionDetails.ActionType,
+    unanonymizedAppId: String,
+    failureType: FailureType,
+  ) = Unit
 }
