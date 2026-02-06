@@ -114,36 +114,42 @@ PROJECT                       : Kotlin Multiplatform
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTest/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTest/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTest/keepRules [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTest/resources [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestDebug/keepRules [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestDebug/resources [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestModetwo/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestModetwo/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestModetwo/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestModetwo/keepRules [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestModetwo/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestModetwo/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestModetwo/resources [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeone/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeone/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestTypeone/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestTypeone/keepRules [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestTypeone/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeone/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeone/resources [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwo/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwo/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwo/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwo/keepRules [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwo/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwo/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwo/resources [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwoDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwoDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwoDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwoDebug/keepRules [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwoDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwoDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwoDebug/resources [-]
@@ -207,34 +213,40 @@ PROJECT                       : Kotlin Multiplatform
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/debug/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/debug/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/debug/keepRules [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/debug/resources [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/main/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/main/baselineProfiles [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/main/keepRules [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/main/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/modetwo/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/modetwo/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/modetwo/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/modetwo/keepRules [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/modetwo/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/modetwo/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/modetwo/resources [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeone/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeone/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/typeone/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/typeone/keepRules [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/typeone/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeone/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeone/resources [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeoneModetwo/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeoneModetwo/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/typeoneModetwo/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/typeoneModetwo/keepRules [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/typeoneModetwo/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeoneModetwo/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeoneModetwo/resources [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeoneModetwoDebug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeoneModetwoDebug/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/typeoneModetwoDebug/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/typeoneModetwoDebug/keepRules [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/typeoneModetwoDebug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeoneModetwoDebug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeoneModetwoDebug/resources [-]
@@ -299,36 +311,42 @@ PROJECT                       : Kotlin Multiplatform
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/test/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/test/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/test/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/test/keepRules [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/test/resources [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testDebug/keepRules [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testDebug/resources [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testModetwo/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testModetwo/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testModetwo/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testModetwo/keepRules [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testModetwo/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testModetwo/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testModetwo/resources [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testTypeone/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testTypeone/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testTypeone/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testTypeone/keepRules [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testTypeone/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testTypeone/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testTypeone/resources [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testTypeoneModetwo/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testTypeoneModetwo/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testTypeoneModetwo/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testTypeoneModetwo/keepRules [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testTypeoneModetwo/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testTypeoneModetwo/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testTypeoneModetwo/resources [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testTypeoneModetwoDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testTypeoneModetwoDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testTypeoneModetwoDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testTypeoneModetwoDebug/keepRules [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testTypeoneModetwoDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testTypeoneModetwoDebug/resources [-]
         JDK                           : <NAME_CUT> Android SDK
@@ -439,12 +457,14 @@ PROJECT                       : Kotlin Multiplatform
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/keepRules [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/resources [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/keepRules [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/resources [-]
@@ -513,11 +533,13 @@ PROJECT                       : Kotlin Multiplatform
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/keepRules [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/resources [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/baselineProfiles [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/keepRules [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/resources [-]
@@ -585,12 +607,14 @@ PROJECT                       : Kotlin Multiplatform
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/baselineProfiles [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/keepRules [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/resources [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/keepRules [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/resources [-]
@@ -762,12 +786,15 @@ PROJECT                       : Kotlin Multiplatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             Platform                      : JVM (11)
+            - SourceSetName               : Kotlin_Multiplatform.kmpFirstLib.commonTest
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:kmpFirstLib:androidMain, :kmpFirstLib:commonMain]
         CONTENT_ENTRY                 : file://<PROJECT>/kmpFirstLib/src/androidDeviceTest
             JavaSource (test)             : file://<PROJECT>/kmpFirstLib/src/androidDeviceTest/kotlin
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpFirstLib/src/androidDeviceTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmpFirstLib/src/androidDeviceTest/java [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpFirstLib/src/androidDeviceTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpFirstLib/src/androidDeviceTest/resources [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
@@ -860,11 +887,15 @@ PROJECT                       : Kotlin Multiplatform
             Scope                         : Test
         LIBRARY                       : Gradle: com.google.guava:listenablefuture:1.0 [=]
             Scope                         : Runtime
-        LIBRARY                       : Gradle: junit:junit:4.12 [=]
+        LIBRARY                       : Gradle: junit:junit:4.13.2 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-test-junit:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-test:<KOTLIN_VERSION> [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
@@ -873,6 +904,8 @@ PROJECT                       : Kotlin Multiplatform
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.androidMain
             Scope                         : Test
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.commonMain
+            Scope                         : Test
+        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.commonTest
             Scope                         : Test
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpJvmOnly.commonMain
             Scope                         : Test
@@ -961,7 +994,9 @@ PROJECT                       : Kotlin Multiplatform
             AdditionalVisibleModuleNames  : [:kmpFirstLib:androidMain, :kmpFirstLib:commonMain]
         CONTENT_ENTRY                 : file://<PROJECT>/kmpFirstLib/src/androidHostTest
             JavaSource (test)             : file://<PROJECT>/kmpFirstLib/src/androidHostTest/kotlin
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpFirstLib/src/androidHostTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmpFirstLib/src/androidHostTest/java [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpFirstLib/src/androidHostTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpFirstLib/src/androidHostTest/resources [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
@@ -1076,6 +1111,8 @@ PROJECT                       : Kotlin Multiplatform
             JavaSource                    : file://<PROJECT>/kmpFirstLib/src/androidMain/java
             JavaSource                    : file://<PROJECT>/kmpFirstLib/src/androidMain/kotlin
             JavaResource                  : file://<PROJECT>/kmpFirstLib/src/androidMain/resources
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmpFirstLib/src/androidMain/assets [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmpFirstLib/src/androidMain/res [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -1890,6 +1927,457 @@ PROJECT                       : Kotlin Multiplatform
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpSecondLib.jvmMain
             Scope                         : Test
         BUILD_TASKS
+    MODULE                        : build-logic
+        ExternalModuleGroup           :
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :build-logic
+        LinkedProjectPath             : <PROJECT>/build-logic
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/build-logic [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/build-logic [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        CONTENT_ENTRY                 : file://<PROJECT>/build-logic
+            EXCLUDE_FOLDER                : file://<PROJECT>/build-logic/.gradle
+            EXCLUDE_FOLDER                : file://<PROJECT>/build-logic/build
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+    MODULE                        : build-logic.lib-foo
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : build-logic.lib-foo
+            main                          : build-logic.lib-foo.androidMain
+            unitTest                      : build-logic.lib-foo.androidHostTest
+            androidTest                   : build-logic.lib-foo.androidDeviceTest
+        ExternalModuleGroup           : build-logic
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :build-logic:lib-foo
+        LinkedProjectPath             : <PROJECT>/build-logic/lib-foo
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/build-logic.lib-foo [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/build-logic.lib-foo [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        FACET                         : Android
+            TypeId                        : android
+            ExternalSource                : GRADLE
+            SelectedBuildVariant          : androidMain
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/androidMain/AndroidManifest.xml
+            ResFolderRelativePath         : /src/androidMain/res
+            AssetsFolderRelativePath      : /src/androidMain/assets
+            LibsFolderRelativePath        : /libs
+            ProjectType                   : 1
+            PackTestCode                  : false
+            RunProguard                   : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Android-Gradle
+            TypeId                        : android-gradle
+            ExternalSource                : GRADLE
+        CONTENT_ENTRY                 : file://<PROJECT>/build-logic/lib-foo
+            EXCLUDE_FOLDER                : file://<PROJECT>/build-logic/lib-foo/.gradle [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/build-logic/lib-foo/build
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+        ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+                ASSEMBLE                      : <PROJECT>::build-logic:lib-foo:assembleAndroidDeviceTest, <PROJECT>::build-logic:lib-foo:assembleAndroidHostTest, <PROJECT>::build-logic:lib-foo:assembleAndroidMain
+                REBUILD                       : <PROJECT>::build-logic:lib-foo:assembleAndroidDeviceTest, <PROJECT>::build-logic:lib-foo:assembleAndroidHostTest, <PROJECT>::build-logic:lib-foo:assembleAndroidMain, <PROJECT>::build-logic:lib-foo:clean
+                COMPILE_JAVA                  : <PROJECT>::build-logic:lib-foo:compileAndroidDeviceTest, <PROJECT>::build-logic:lib-foo:compileAndroidHostTest, <PROJECT>::build-logic:lib-foo:compileAndroidMain
+                BASELINE_PROFILE_GEN          : <PROJECT>::build-logic:lib-foo:generateAndroidMainBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::build-logic:lib-foo:generateBaselineProfile
+    MODULE                        : build-logic.lib-foo.androidDeviceTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : build-logic.lib-foo
+            main                          : build-logic.lib-foo.androidMain
+            unitTest                      : build-logic.lib-foo.androidHostTest
+            androidTest                   : build-logic.lib-foo.androidDeviceTest
+        ExternalModuleGroup           : build-logic
+        ExternalModuleType            : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :build-logic:lib-foo:androidDeviceTest
+        LinkedProjectPath             : <PROJECT>/build-logic/lib-foo
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerTestOutputPath        : file://<PROJECT>/build-logic/lib-foo/build/classes/kotlin/android/deviceTest [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        FACET                         : Android
+            TypeId                        : android
+            ExternalSource                : GRADLE
+            SelectedBuildVariant          : androidMain
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/androidMain/AndroidManifest.xml
+            ResFolderRelativePath         : /src/androidMain/res
+            AssetsFolderRelativePath      : /src/androidMain/assets
+            LibsFolderRelativePath        : /libs
+            ProjectType                   : 1
+            PackTestCode                  : false
+            RunProguard                   : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+                multiPlatform                 : true
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            CompilerSettings
+                additionalArguments           :
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            ExternalProjectId             : :build-logic:lib-foo
+            IsTestModule                  : true
+            Kind                          : COMPILATION_AND_SOURCE_SET_HOLDER
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+                multiPlatform                 : true
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            Platform                      : JVM (21)
+            UseProjectSettings            : false
+            Version                       : 5
+            AdditionalVisibleModuleNames  : [:build-logic:lib-foo:androidMain, :build-logic:lib-foo:commonMain]
+        CONTENT_ENTRY                 : file://<PROJECT>/build-logic/lib-foo/src/androidDeviceTest [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/build-logic/lib-foo/src/androidDeviceTest/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/build-logic/lib-foo/src/androidDeviceTest/resources [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
+        ORDER_ENTRY                   : build-logic.lib-foo.androidMain
+            Scope                         : Test
+        ORDER_ENTRY                   : build-logic.lib-foo.commonMain
+            Scope                         : Test
+        BUILD_TASKS
+                ASSEMBLE                      : <PROJECT>::build-logic:lib-foo:assembleAndroidDeviceTest
+                REBUILD                       : <PROJECT>::build-logic:lib-foo:assembleAndroidDeviceTest, <PROJECT>::build-logic:lib-foo:clean
+                COMPILE_JAVA                  : <PROJECT>::build-logic:lib-foo:compileAndroidDeviceTest
+                BASELINE_PROFILE_GEN          : <PROJECT>::build-logic:lib-foo:generateAndroidMainBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::build-logic:lib-foo:generateBaselineProfile
+    MODULE                        : build-logic.lib-foo.androidHostTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : build-logic.lib-foo
+            main                          : build-logic.lib-foo.androidMain
+            unitTest                      : build-logic.lib-foo.androidHostTest
+            androidTest                   : build-logic.lib-foo.androidDeviceTest
+        ExternalModuleGroup           : build-logic
+        ExternalModuleType            : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :build-logic:lib-foo:androidHostTest
+        LinkedProjectPath             : <PROJECT>/build-logic/lib-foo
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerTestOutputPath        : file://<PROJECT>/build-logic/lib-foo/build/classes/kotlin/android/hostTest [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        FACET                         : Android
+            TypeId                        : android
+            ExternalSource                : GRADLE
+            SelectedBuildVariant          : androidMain
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/androidMain/AndroidManifest.xml
+            ResFolderRelativePath         : /src/androidMain/res
+            AssetsFolderRelativePath      : /src/androidMain/assets
+            LibsFolderRelativePath        : /libs
+            ProjectType                   : 1
+            PackTestCode                  : false
+            RunProguard                   : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+                multiPlatform                 : true
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            CompilerSettings
+                additionalArguments           :
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            ExternalProjectId             : :build-logic:lib-foo
+            IsTestModule                  : true
+            Kind                          : COMPILATION_AND_SOURCE_SET_HOLDER
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+                multiPlatform                 : true
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            Platform                      : JVM (21)
+            - SourceSetName               : build-logic.lib-foo.commonTest
+            UseProjectSettings            : false
+            Version                       : 5
+            AdditionalVisibleModuleNames  : [:build-logic:lib-foo:androidMain, :build-logic:lib-foo:commonMain]
+        CONTENT_ENTRY                 : file://<PROJECT>/build-logic/lib-foo/src/androidHostTest [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/build-logic/lib-foo/src/androidHostTest/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/build-logic/lib-foo/src/androidHostTest/resources [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
+        ORDER_ENTRY                   : build-logic.lib-foo.androidMain
+            Scope                         : Test
+        ORDER_ENTRY                   : build-logic.lib-foo.commonMain
+            Scope                         : Test
+        ORDER_ENTRY                   : build-logic.lib-foo.commonTest
+            Scope                         : Test
+        BUILD_TASKS
+                ASSEMBLE                      : <PROJECT>::build-logic:lib-foo:assembleAndroidHostTest
+                REBUILD                       : <PROJECT>::build-logic:lib-foo:assembleAndroidHostTest, <PROJECT>::build-logic:lib-foo:clean
+                COMPILE_JAVA                  : <PROJECT>::build-logic:lib-foo:compileAndroidHostTest
+                BASELINE_PROFILE_GEN          : <PROJECT>::build-logic:lib-foo:generateAndroidMainBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::build-logic:lib-foo:generateBaselineProfile
+    MODULE                        : build-logic.lib-foo.androidMain
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : build-logic.lib-foo
+            main                          : build-logic.lib-foo.androidMain
+            unitTest                      : build-logic.lib-foo.androidHostTest
+            androidTest                   : build-logic.lib-foo.androidDeviceTest
+        ExternalModuleGroup           : build-logic
+        ExternalModuleType            : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :build-logic:lib-foo:androidMain
+        LinkedProjectPath             : <PROJECT>/build-logic/lib-foo
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build-logic/lib-foo/build/classes/kotlin/android/main [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        FACET                         : Android
+            TypeId                        : android
+            ExternalSource                : GRADLE
+            SelectedBuildVariant          : androidMain
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/androidMain/AndroidManifest.xml
+            ResFolderRelativePath         : /src/androidMain/res
+            AssetsFolderRelativePath      : /src/androidMain/assets
+            LibsFolderRelativePath        : /libs
+            ProjectType                   : 1
+            PackTestCode                  : false
+            RunProguard                   : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+                multiPlatform                 : true
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            CompilerSettings
+                additionalArguments           :
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            ExternalProjectId             : :build-logic:lib-foo
+            IsTestModule                  : false
+            Kind                          : COMPILATION_AND_SOURCE_SET_HOLDER
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+                multiPlatform                 : true
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            Platform                      : JVM (21)
+            - SourceSetName               : build-logic.lib-foo.commonMain
+            UseProjectSettings            : false
+            Version                       : 5
+        CONTENT_ENTRY                 : file://<PROJECT>/build-logic/lib-foo/src/androidMain
+            JavaSource                    : file://<PROJECT>/build-logic/lib-foo/src/androidMain/kotlin
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/build-logic/lib-foo/src/androidMain/resources [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+        ORDER_ENTRY                   : build-logic.lib-foo.commonMain
+        Classes
+            -                             : file://<PROJECT>/build-logic/lib-foo/build/classes/kotlin/android/main
+            -                             : file://<PROJECT>/build-logic/lib-foo/build/processedResources/android/main
+        BUILD_TASKS
+                ASSEMBLE                      : <PROJECT>::build-logic:lib-foo:assembleAndroidMain
+                REBUILD                       : <PROJECT>::build-logic:lib-foo:assembleAndroidMain, <PROJECT>::build-logic:lib-foo:clean
+                COMPILE_JAVA                  : <PROJECT>::build-logic:lib-foo:compileAndroidMain
+                BASELINE_PROFILE_GEN          : <PROJECT>::build-logic:lib-foo:generateAndroidMainBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::build-logic:lib-foo:generateBaselineProfile
+    MODULE                        : build-logic.lib-foo.commonMain
+        ExternalModuleGroup           : build-logic
+        ExternalModuleType            : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :build-logic:lib-foo:commonMain
+        LinkedProjectPath             : <PROJECT>/build-logic/lib-foo
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/build-logic.lib-foo.commonMain [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/build-logic.lib-foo.commonMain [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+                multiPlatform                 : true
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            CompilerSettings
+                additionalArguments           :
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            ExternalProjectId             : :build-logic:lib-foo
+            IsTestModule                  : false
+            Kind                          : SOURCE_SET_HOLDER
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+                multiPlatform                 : true
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            Platform                      : JVM (21)
+            UseProjectSettings            : false
+            Version                       : 5
+        CONTENT_ENTRY                 : file://<PROJECT>/build-logic/lib-foo/src/commonMain [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/build-logic/lib-foo/src/commonMain/resources [-]
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+        BUILD_TASKS
+    MODULE                        : build-logic.lib-foo.commonTest
+        ExternalModuleGroup           : build-logic
+        ExternalModuleType            : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :build-logic:lib-foo:commonTest
+        LinkedProjectPath             : <PROJECT>/build-logic/lib-foo
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/build-logic.lib-foo.commonTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/build-logic.lib-foo.commonTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : build-logic.lib-foo.commonMain
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+                multiPlatform                 : true
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            CompilerSettings
+                additionalArguments           :
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            ExternalProjectId             : :build-logic:lib-foo
+            IsTestModule                  : true
+            Kind                          : SOURCE_SET_HOLDER
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+                multiPlatform                 : true
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            Platform                      : JVM (21)
+            UseProjectSettings            : false
+            Version                       : 5
+            AdditionalVisibleModuleNames  : [:build-logic:lib-foo:androidMain, :build-logic:lib-foo:commonMain]
+        CONTENT_ENTRY                 : file://<PROJECT>/build-logic/lib-foo/src/commonTest [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/build-logic/lib-foo/src/commonTest/resources [-]
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
+        ORDER_ENTRY                   : build-logic.lib-foo.androidMain
+            Scope                         : Test
+        ORDER_ENTRY                   : build-logic.lib-foo.commonMain
+            Scope                         : Test
+        BUILD_TASKS
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : Kotlin_Multiplatform.app
@@ -2043,8 +2531,6 @@ PROJECT                       : Kotlin Multiplatform
             *CLASSES                      : jar://<M2>/com/google/truth/truth/0.44/truth-0.44.jar!/
         LIBRARY                       : Gradle: com.googlecode.java-diff-utils:diffutils:1.3.0
             *CLASSES                      : jar://<M2>/com/googlecode/java-diff-utils/diffutils/1.3.0/diffutils-1.3.0.jar!/
-        LIBRARY                       : Gradle: junit:junit:4.12
-            *CLASSES                      : jar://<M2>/junit/junit/4.12/junit-4.12.jar!/
         LIBRARY                       : Gradle: junit:junit:4.13.2
             *CLASSES                      : jar://<M2>/junit/junit/4.13.2/junit-4.13.2.jar!/
         LIBRARY                       : Gradle: org.checkerframework:checker-compat-qual:2.5.5
@@ -2063,9 +2549,9 @@ PROJECT                       : Kotlin Multiplatform
             *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
     BUILD_TASKS
             CLEAN                         : <PROJECT>::androidLib:createMockableJar, <PROJECT>::androidLib:generateTypeoneModetwoDebugAndroidTestSources, <PROJECT>::androidLib:generateTypeoneModetwoDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::androidLib:assembleTypeoneModetwoDebug, <PROJECT>::androidLib:assembleTypeoneModetwoDebugAndroidTest, <PROJECT>::androidLib:assembleTypeoneModetwoDebugUnitTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::kmpFirstLib:assembleAndroidDeviceTest, <PROJECT>::kmpFirstLib:assembleAndroidHostTest, <PROJECT>::kmpFirstLib:assembleAndroidMain, <PROJECT>::kmpSecondLib:assembleAndroidMain
-            REBUILD                       : <PROJECT>::androidLib:assembleTypeoneModetwoDebug, <PROJECT>::androidLib:assembleTypeoneModetwoDebugAndroidTest, <PROJECT>::androidLib:assembleTypeoneModetwoDebugUnitTest, <PROJECT>::androidLib:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::kmpFirstLib:assembleAndroidDeviceTest, <PROJECT>::kmpFirstLib:assembleAndroidHostTest, <PROJECT>::kmpFirstLib:assembleAndroidMain, <PROJECT>::kmpFirstLib:clean, <PROJECT>::kmpSecondLib:assembleAndroidMain, <PROJECT>::kmpSecondLib:clean
-            COMPILE_JAVA                  : <PROJECT>::androidLib:compileTypeoneModetwoDebugAndroidTestSources, <PROJECT>::androidLib:compileTypeoneModetwoDebugSources, <PROJECT>::androidLib:compileTypeoneModetwoDebugUnitTestSources, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::kmpFirstLib:compileAndroidDeviceTest, <PROJECT>::kmpFirstLib:compileAndroidHostTest, <PROJECT>::kmpFirstLib:compileAndroidMain, <PROJECT>::kmpSecondLib:compileAndroidMain
+            ASSEMBLE                      : <PROJECT>::androidLib:assembleTypeoneModetwoDebug, <PROJECT>::androidLib:assembleTypeoneModetwoDebugAndroidTest, <PROJECT>::androidLib:assembleTypeoneModetwoDebugUnitTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::build-logic:lib-foo:assembleAndroidDeviceTest, <PROJECT>::build-logic:lib-foo:assembleAndroidHostTest, <PROJECT>::build-logic:lib-foo:assembleAndroidMain, <PROJECT>::kmpFirstLib:assembleAndroidDeviceTest, <PROJECT>::kmpFirstLib:assembleAndroidHostTest, <PROJECT>::kmpFirstLib:assembleAndroidMain, <PROJECT>::kmpSecondLib:assembleAndroidMain
+            REBUILD                       : <PROJECT>::androidLib:assembleTypeoneModetwoDebug, <PROJECT>::androidLib:assembleTypeoneModetwoDebugAndroidTest, <PROJECT>::androidLib:assembleTypeoneModetwoDebugUnitTest, <PROJECT>::androidLib:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::build-logic:lib-foo:assembleAndroidDeviceTest, <PROJECT>::build-logic:lib-foo:assembleAndroidHostTest, <PROJECT>::build-logic:lib-foo:assembleAndroidMain, <PROJECT>::build-logic:lib-foo:clean, <PROJECT>::kmpFirstLib:assembleAndroidDeviceTest, <PROJECT>::kmpFirstLib:assembleAndroidHostTest, <PROJECT>::kmpFirstLib:assembleAndroidMain, <PROJECT>::kmpFirstLib:clean, <PROJECT>::kmpSecondLib:assembleAndroidMain, <PROJECT>::kmpSecondLib:clean
+            COMPILE_JAVA                  : <PROJECT>::androidLib:compileTypeoneModetwoDebugAndroidTestSources, <PROJECT>::androidLib:compileTypeoneModetwoDebugSources, <PROJECT>::androidLib:compileTypeoneModetwoDebugUnitTestSources, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::build-logic:lib-foo:compileAndroidDeviceTest, <PROJECT>::build-logic:lib-foo:compileAndroidHostTest, <PROJECT>::build-logic:lib-foo:compileAndroidMain, <PROJECT>::kmpFirstLib:compileAndroidDeviceTest, <PROJECT>::kmpFirstLib:compileAndroidHostTest, <PROJECT>::kmpFirstLib:compileAndroidMain, <PROJECT>::kmpSecondLib:compileAndroidMain
             SOURCE_GEN                    : <PROJECT>::androidLib:createMockableJar, <PROJECT>::androidLib:generateTypeoneModetwoDebugAndroidTestSources, <PROJECT>::androidLib:generateTypeoneModetwoDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug

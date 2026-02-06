@@ -33,7 +33,6 @@ PROJECT                       : project_sm_src
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        CONTENT_ENTRY                 : file://<PROJECT>
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
