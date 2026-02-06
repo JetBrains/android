@@ -265,6 +265,207 @@ interface IdeSyncIssue {
     /** Disabling the library constraints results in better sync performance, this will be surfaced to the user via this issue. */
     const val TYPE_LIBRARY_CONSTRAINTS_SHOULD_BE_DISABLED = 57
 
+    /** Project uses RenderScript which is not supported on Riscv. */
+    const val TYPE_RENDERSCRIPT_NOT_SUPPORTED_ON_RISCV = 58
+
+    /** Using kotlin.sourceSets DSL to add Kotlin sources is not allowed with built-in Kotlin. */
+    const val TYPE_KOTLIN_SOURCE_SET_NOT_ALLOWED = 59
+
+    /** Found non-apk file in a configuration that should only contain apks. */
+    const val TYPE_NON_APK_RUNTIME_DEP = 60
+
+    /** Unable to find connectedCheck task name for a component. */
+    const val TYPE_CONNECTED_CHECK_TASK_NOT_FOUND = 61
+
+    /** Failed to parse XML in manifest. */
+    const val TYPE_MANIFEST_PARSE_FAILED = 62
+
+    /** User is using me.tatarka.retrolambda which is deprecated. */
+    const val TYPE_RETROLAMBDA_USED = 63
+
+    /** User is using FlatDirectoryArtifactRepository which is discouraged. */
+    const val TYPE_FLAT_DIR_REPOSITORY_USED = 64
+
+    /** Access to deprecated legacy model requires compatibility mode. */
+    const val TYPE_ACCESSING_DEPRECATED_LEGACY_MODEL = 65
+
+    /** Property cannot be set on a mergedFlavor directly. */
+    const val TYPE_CANNOT_SET_ON_MERGED_FLAVOR = 66
+
+    /** Invalid value for compileSdkPreview or compileSdkMinor. */
+    const val TYPE_COMPILE_SDK_PREVIEW_INVALID = 67
+
+    /** Invalid value for namespace. */
+    const val TYPE_NAMESPACE_INVALID = 68
+
+    /** Invalid Proguard file provided. */
+    const val TYPE_PROGUARD_FILE_INVALID = 69
+
+    /** targetSdk is set in testOptions for non-library module. */
+    const val TYPE_TEST_OPTIONS_TARGET_SDK_INVALID = 70
+
+    /** KGP is loaded in a different classloader than AGP. */
+    const val TYPE_KGP_LOADED_IN_DIFFERENT_CLASSLOADER = 71
+
+    /** Selected execution profile does not exist or none selected. */
+    const val TYPE_UNSUPPORTED_EXECUTION_PROFILE = 72
+
+    /** Invalid value for lint version override. */
+    const val TYPE_LINT_VERSION_OVERRIDE_INVALID = 73
+
+    /** Namespace and testNamespace have the same value. */
+    const val TYPE_NAMESPACE_CONFLICT = 74
+
+    /** Invalid value for version code. */
+    const val TYPE_INVALID_VERSION_CODE = 75
+
+    /** Pure splits are not supported. */
+    const val TYPE_PURE_SPLITS_NOT_SUPPORTED = 76
+
+    /** Minify is enabled in dynamic feature module. */
+    const val TYPE_MINIFY_ENABLED_IN_DYNAMIC_FEATURE = 77
+
+    /** ABI filters are declared in dynamic feature module. */
+    const val TYPE_ABI_FILTERS_IN_DYNAMIC_FEATURE = 78
+
+    /** Invalid publishing configuration. */
+    const val TYPE_INVALID_PUBLISHING_CONFIG = 79
+
+    /** Resource shrinking is not supported for this component type. */
+    const val TYPE_RESOURCE_SHRINK_NOT_SUPPORTED = 80
+
+    /** resValue is being replaced. */
+    const val TYPE_RES_VALUE_REPLACED = 81
+
+    /** BuildConfig is used when the feature is disabled. */
+    const val TYPE_BUILD_CONFIG_USED_WHEN_DISABLED = 82
+
+    /** resource values are used when the feature is disabled. */
+    const val TYPE_RES_VALUES_USED_WHEN_DISABLED = 83
+
+    /** Unrecognized SourceSet name. */
+    const val TYPE_UNRECOGNIZED_SOURCE_SET = 84
+
+    /** applicationIdSuffix is ignored because applicationId is null. */
+    const val TYPE_APPLICATION_ID_SUFFIX_IGNORED = 85
+
+    /** applicationId is set in library project. */
+    const val TYPE_APPLICATION_ID_NOT_ALLOWED_IN_LIBRARY = 86
+
+    /** applicationIdSuffix is set in library project. */
+    const val TYPE_APPLICATION_ID_SUFFIX_NOT_ALLOWED_IN_LIBRARY = 87
+
+    /** Conflicting ABI configuration. */
+    const val TYPE_CONFLICTING_ABI_CONFIG = 88
+
+    /** Cannot build selected target ABI. */
+    const val TYPE_CANNOT_BUILD_SELECTED_TARGET_ABI = 89
+
+    /** BuildType is both debuggable and has minifyEnabled set to true. */
+    const val TYPE_DEBUGGABLE_AND_MINIFIED_ENABLED = 90
+
+    /** minSdkVersion is greater than targetSdkVersion. */
+    const val TYPE_MIN_SDK_VERSION_GREATER_THAN_TARGET_SDK = 91
+
+    /** Test suite ignored because variant does not support it. */
+    const val TYPE_TEST_SUITE_IGNORED = 92
+
+    /** Java 9+ compilation requires compileSdkVersion 30 or above. */
+    const val TYPE_JAVA9_COMPILATION_REQUIRES_COMPILE_SDK30 = 93
+
+    /** '--release' option for JavaCompile is not supported. */
+    const val TYPE_JAVA_COMPILE_RELEASE_OPTION_NOT_SUPPORTED = 94
+
+    /** Java compiler has deprecated or removed support for source/target version. */
+    const val TYPE_JAVA_COMPILE_DEPRECATED_SOURCE_TARGET = 95
+
+    /** Problems found when resolving SDK location. */
+    const val TYPE_SDK_RESOLUTION_WARNING = 96
+
+    /** Unable to find matching projects for Asset Packs. */
+    const val TYPE_ASSET_PACK_PROJECT_NOT_FOUND = 97
+
+    /** R8 version mismatch. */
+    const val TYPE_R8_VERSION_MISMATCH = 98
+
+    /** R8 gradual API flag required. */
+    const val TYPE_R8_GRADUAL_API_FLAG_REQUIRED = 99
+
+    /** Unable to find matching projects for Dynamic Features. */
+    const val TYPE_DYNAMIC_FEATURE_PROJECT_NOT_FOUND = 100
+
+    /** Fused Library Plugin is using Publication Only Mode. */
+    const val TYPE_FUSED_LIBRARY_PUBLICATION_ONLY_MODE = 101
+
+    /** Invalid asset pack bundle configuration. */
+    const val TYPE_ASSET_PACK_BUNDLE_INVALID_CONFIG = 102
+
+    /** Test suite support is experimental. */
+    const val TYPE_TEST_SUITE_SUPPORT_EXPERIMENTAL = 103
+
+    /** lint.targetSdk is smaller than android.targetSdk. */
+    const val TYPE_LINT_TARGET_SDK_LESS_THAN_ANDROID_TARGET_SDK = 104
+
+    /** Access to deprecated legacy API requires compatibility mode. */
+    const val TYPE_ACCESS_TO_DEPRECATED_LEGACY_API_REQUIRES_COMPATIBILITY_MODE = 105
+
+    /** Unknown SourceKind value. */
+    const val TYPE_UNKNOWN_SOURCE_KIND = 106
+
+    /** variant.getApplicationId() is not supported by dynamic-feature plugins. */
+    const val TYPE_GET_APPLICATION_ID_NOT_SUPPORTED_IN_DYNAMIC_FEATURE = 107
+
+    /** aidl support is disabled via buildFeatures. */
+    const val TYPE_AIDL_DISABLED_VIA_BUILD_FEATURES = 108
+
+    /** renderscript support is disabled via buildFeatures. */
+    const val TYPE_RENDERSCRIPT_DISABLED_VIA_BUILD_FEATURES = 109
+
+    /** android.dataBinding.addKtx has no effect. */
+    const val TYPE_DATABINDING_KTX_NO_EFFECT = 110
+
+    /** Data Binding annotation processor version mismatch. */
+    const val TYPE_DATABINDING_ANNOTATION_PROCESSOR_VERSION_MISMATCH = 111
+
+    /** Multidex library is not needed. */
+    const val TYPE_MULTIDEX_NOT_NEEDED = 112
+
+    /** Relative path is not supported in outputFileName. */
+    const val TYPE_RELATIVE_PATH_NOT_SUPPORTED_IN_OUTPUT_FILE_NAME = 113
+
+    /** Core library desugaring requires D8 or R8. */
+    const val TYPE_CORE_LIBRARY_DESUGARING_REQUIRES_D8_OR_R8 = 114
+
+    /** Core library desugaring requires multidex. */
+    const val TYPE_CORE_LIBRARY_DESUGARING_REQUIRES_MULTIDEX = 115
+
+    /** Default Proguard file should not be specified in non-base module. */
+    const val TYPE_DEFAULT_PROGUARD_FILE_IN_NON_BASE_MODULE = 116
+
+    /** Default Proguard file should not be used as consumer configuration file. */
+    const val TYPE_DEFAULT_PROGUARD_FILE_AS_CONSUMER_FILE = 117
+
+    /** Resource shrinking requires code shrinking to be turned on. */
+    const val TYPE_RESOURCE_SHRINK_REQUIRES_CODE_SHRINK = 118
+
+    /** Multiple identical calls to Android Components API is not supported. */
+    const val TYPE_MULTIPLE_IDENTICAL_CALLS_TO_ANDROID_COMPONENTS_API = 119
+
+    /** Proguard android-optimize.txt is disallowed. */
+    const val TYPE_PROGUARD_ANDROID_OPTIMIZE_TXT_DISALLOWED = 120
+
+    /** Unknown Proguard file. */
+    const val TYPE_UNKNOWN_PROGUARD_FILE = 121
+
+    /** Variant can only have debuggable or profileable enabled. */
+    const val TYPE_DEBUGGABLE_AND_PROFILEABLE_ENABLED = 122
+
+    /** androidTest test suite not defined for this variant. */
+    const val TYPE_ANDROID_TEST_NOT_DEFINED = 123
+
+    /** Native multidex is always used for dynamic features. */
+    const val TYPE_DYNAMIC_FEATURE_MULTIDEX_SET_IN_DSL = 124
+
     // NOTE: When adding a new type here, increment the index by 1. This index may not be consistent
     // with the corresponding value in studio_stats.proto (e.g., it could be lower by 1), because of
     // an indexing issue in the past (see http://issuetracker.google.com/138278313).
