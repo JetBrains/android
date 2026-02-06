@@ -71,9 +71,6 @@ import javax.swing.JPanel
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.VisibleForTesting
 
-private const val LAYOUT_INSPECTOR_SNAPSHOT_ID = "Layout Inspector Snapshot"
-private const val SNAPSHOT_OUTDATED_ID = "snapshot.outdated"
-
 @VisibleForTesting
 val STATUS_TEXT_KEY = Key.create<StatusText>("status_text")
 
