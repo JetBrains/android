@@ -31,7 +31,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 
-class TestComposeWizard(initialPage: @Composable WizardPageScope.() -> Unit) : InternalWizardDialogScope, WizardPageScope() {
+class TestComposeWizard(initialPage: @Composable WizardPageScope.() -> Unit) : WizardDialogScope, WizardPageScope() {
 
   override val coroutineScope = CoroutineScope(SupervisorJob())
 
@@ -79,6 +79,6 @@ class TestComposeWizard(initialPage: @Composable WizardPageScope.() -> Unit) : I
 
   fun performAction(action: WizardAction) {
     checkNotNull(action.action) { "Action is disabled" }
-    action.action!!.invoke(this)
+    action.action.invoke(this)
   }
 }

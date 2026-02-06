@@ -82,7 +82,7 @@ class ComposeWizard(
     get() = pageStack.last()
 
   private val wizardDialogScope =
-    object : InternalWizardDialogScope {
+    object : WizardDialogScope {
       override val component: Component
         get() = window
 
@@ -159,10 +159,7 @@ class ComposeWizard(
 }
 
 @Composable
-internal fun WizardPageScope.WizardPageScaffold(
-  wizardDialogScope: InternalWizardDialogScope,
-  content: @Composable WizardPageScope.() -> Unit,
-) {
+internal fun WizardPageScope.WizardPageScaffold(wizardDialogScope: WizardDialogScope, content: @Composable WizardPageScope.() -> Unit) {
   Column(
     Modifier.onKeyEvent { event ->
       when {
@@ -181,7 +178,7 @@ internal fun WizardPageScope.WizardPageScaffold(
 }
 
 @Composable
-internal fun WizardPageScope.WizardButtonBar(wizardDialogScope: InternalWizardDialogScope, modifier: Modifier = Modifier) {
+internal fun WizardPageScope.WizardButtonBar(wizardDialogScope: WizardDialogScope, modifier: Modifier = Modifier) {
   with(wizardDialogScope) {
     Row(modifier, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
       for (button in leftSideButtons) {
@@ -215,9 +212,7 @@ interface WizardDialogScope {
 
   /** A CoroutineScope tied to the lifecycle of this dialog. */
   val coroutineScope: CoroutineScope
-}
 
-internal interface InternalWizardDialogScope : WizardDialogScope {
   /** A component to use as the parent for showing modal dialogs. */
   val component: Component
 }
@@ -232,7 +227,7 @@ class WizardAction(val action: (WizardDialogScope.() -> Unit)?) {
   val enabled: Boolean
     get() = action != null
 
-  internal fun InternalWizardDialogScope.invoke() {
+  internal fun WizardDialogScope.invoke() {
     catchAndShowErrors<ComposeWizard>(parent = component) { action?.invoke(this) }
   }
 
