@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.internal
 
 import com.android.tools.idea.util.EmbeddedDistributionPaths
 import java.io.File
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class ProjectDumperTest {

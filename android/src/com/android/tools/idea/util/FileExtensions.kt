@@ -19,7 +19,9 @@ package com.android.tools.idea.util
 
 import com.android.ide.common.util.PathString
 import com.android.ide.common.util.inputStream
-import com.intellij.openapi.vfs.*
+import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
 import java.io.BufferedInputStream
 import java.io.ByteArrayInputStream
 import java.io.File

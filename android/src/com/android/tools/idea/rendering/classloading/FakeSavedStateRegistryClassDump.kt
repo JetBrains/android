@@ -21,7 +21,24 @@ import org.jetbrains.org.objectweb.asm.FieldVisitor
 import org.jetbrains.org.objectweb.asm.Label
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes
-import org.jetbrains.org.objectweb.asm.Opcodes.*
+import org.jetbrains.org.objectweb.asm.Opcodes.ACC_ENUM
+import org.jetbrains.org.objectweb.asm.Opcodes.ACC_FINAL
+import org.jetbrains.org.objectweb.asm.Opcodes.ACC_PRIVATE
+import org.jetbrains.org.objectweb.asm.Opcodes.ACC_PUBLIC
+import org.jetbrains.org.objectweb.asm.Opcodes.ACC_STATIC
+import org.jetbrains.org.objectweb.asm.Opcodes.ACC_SUPER
+import org.jetbrains.org.objectweb.asm.Opcodes.ALOAD
+import org.jetbrains.org.objectweb.asm.Opcodes.ARETURN
+import org.jetbrains.org.objectweb.asm.Opcodes.DUP
+import org.jetbrains.org.objectweb.asm.Opcodes.GETFIELD
+import org.jetbrains.org.objectweb.asm.Opcodes.GETSTATIC
+import org.jetbrains.org.objectweb.asm.Opcodes.INVOKESPECIAL
+import org.jetbrains.org.objectweb.asm.Opcodes.INVOKESTATIC
+import org.jetbrains.org.objectweb.asm.Opcodes.INVOKEVIRTUAL
+import org.jetbrains.org.objectweb.asm.Opcodes.NEW
+import org.jetbrains.org.objectweb.asm.Opcodes.PUTFIELD
+import org.jetbrains.org.objectweb.asm.Opcodes.RETURN
+import org.jetbrains.org.objectweb.asm.Opcodes.V1_8
 
 /**
  * Dump to generate the bytecode to create the [FakeSavedStateRegistry] class. [FakeSavedStateRegistry] class creates a fake

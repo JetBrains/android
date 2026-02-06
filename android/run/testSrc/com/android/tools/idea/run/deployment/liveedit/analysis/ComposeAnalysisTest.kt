@@ -22,7 +22,8 @@ import com.android.tools.idea.run.deployment.liveedit.setUpComposeInProjectFixtu
 import com.android.tools.idea.testing.AndroidProjectRule
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.org.objectweb.asm.tree.MethodInsnNode
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

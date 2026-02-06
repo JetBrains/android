@@ -18,7 +18,10 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.model.IdeSyncIssue
-import com.android.tools.idea.gradle.project.sync.AndroidSyncExceptionType.*
+import com.android.tools.idea.gradle.project.sync.AndroidSyncExceptionType.AGP_VERSIONS_MISMATCH
+import com.android.tools.idea.gradle.project.sync.AndroidSyncExceptionType.AGP_VERSION_INCOMPATIBLE
+import com.android.tools.idea.gradle.project.sync.AndroidSyncExceptionType.AGP_VERSION_TOO_NEW
+import com.android.tools.idea.gradle.project.sync.AndroidSyncExceptionType.AGP_VERSION_TOO_OLD
 import java.util.regex.Pattern
 
 /** Marker interface for all exceptions that are triggered via Android specific errors in project import. */

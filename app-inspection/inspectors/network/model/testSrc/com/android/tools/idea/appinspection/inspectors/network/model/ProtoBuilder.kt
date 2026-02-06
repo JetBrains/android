@@ -20,7 +20,7 @@ import studio.network.inspection.NetworkInspectorProtocol
 import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent
 import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.GrpcCallEnded
 import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.GrpcCallStarted
-import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.GrpcMessageReceived.*
+import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.GrpcMessageReceived.newBuilder
 import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.GrpcMessageSent
 import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.GrpcMetadata
 import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.GrpcPayload

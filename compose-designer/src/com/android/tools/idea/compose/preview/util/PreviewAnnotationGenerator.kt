@@ -30,10 +30,27 @@ import com.android.tools.preview.NO_DEVICE_SPEC
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.UNDEFINED_API_LEVEL
 import com.android.tools.preview.UNSET_UI_MODE_VALUE
-import com.android.tools.preview.config.*
+import com.android.tools.preview.config.Cutout
+import com.android.tools.preview.config.DEFAULT_DEVICE_ID
+import com.android.tools.preview.config.Navigation
+import com.android.tools.preview.config.PARAMETER_API_LEVEL
+import com.android.tools.preview.config.PARAMETER_BACKGROUND_COLOR
+import com.android.tools.preview.config.PARAMETER_DEVICE
+import com.android.tools.preview.config.PARAMETER_FONT_SCALE
+import com.android.tools.preview.config.PARAMETER_GROUP
+import com.android.tools.preview.config.PARAMETER_HEIGHT_DP
+import com.android.tools.preview.config.PARAMETER_LOCALE
+import com.android.tools.preview.config.PARAMETER_NAME
+import com.android.tools.preview.config.PARAMETER_SHOW_BACKGROUND
+import com.android.tools.preview.config.PARAMETER_SHOW_SYSTEM_UI
+import com.android.tools.preview.config.PARAMETER_UI_MODE
+import com.android.tools.preview.config.PARAMETER_WALLPAPER
+import com.android.tools.preview.config.PARAMETER_WIDTH_DP
+import com.android.tools.preview.config.Preview
 import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_CHIN_SIZE_ZERO
 import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_DPI
 import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_ORIENTATION
+import com.android.tools.preview.config.toDeviceConfig
 import java.util.Locale as JavaUtilLocale
 
 /** A set of device IDs corresponding to `ReferenceDevice`s. These devices are for tooling and should not be saved by their ID. */

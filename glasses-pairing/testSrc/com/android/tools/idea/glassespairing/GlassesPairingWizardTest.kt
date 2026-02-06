@@ -33,7 +33,9 @@ import com.android.tools.adtui.compose.TestComposeWizard
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.UsageTrackerWriter
-import com.android.tools.idea.glassespairing.LaunchState.*
+import com.android.tools.idea.glassespairing.LaunchState.Booting
+import com.android.tools.idea.glassespairing.LaunchState.Launching
+import com.android.tools.idea.glassespairing.LaunchState.Ready
 import com.google.common.truth.Truth.assertThat
 import com.google.protobuf.Message // TODO: android-merge; needed for the new interface
 import com.google.wireless.android.play.playlog.proto.ClientAnalytics

@@ -18,8 +18,8 @@ package com.android.tools.adtui.instructions
 import com.google.common.truth.Truth
 import java.awt.Dimension
 import java.awt.Point
-import org.junit.Test
 import java.util.Arrays
+import org.junit.Test
 
 class InstructionsRendererTest {
 

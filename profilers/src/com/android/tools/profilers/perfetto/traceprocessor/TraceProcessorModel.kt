@@ -16,7 +16,9 @@
 package com.android.tools.profilers.perfetto.traceprocessor
 
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
-import com.android.tools.profiler.perfetto.proto.TraceProcessor.AndroidFrameEventsResult.*
+import com.android.tools.profiler.perfetto.proto.TraceProcessor.AndroidFrameEventsResult.FrameEvent
+import com.android.tools.profiler.perfetto.proto.TraceProcessor.AndroidFrameEventsResult.Layer
+import com.android.tools.profiler.perfetto.proto.TraceProcessor.AndroidFrameEventsResult.Phase
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.PowerCounterTracksResult
 import com.android.tools.profilers.cpu.ThreadState
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType

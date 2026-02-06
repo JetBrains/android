@@ -19,11 +19,11 @@ import com.android.tools.adtui.model.stdui.CommonAction
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import java.beans.PropertyChangeListener
+import java.util.Arrays
 import org.junit.ClassRule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import java.util.Arrays
 
 @RunWith(JUnit4::class)
 class CommonDropDownButtonTest {

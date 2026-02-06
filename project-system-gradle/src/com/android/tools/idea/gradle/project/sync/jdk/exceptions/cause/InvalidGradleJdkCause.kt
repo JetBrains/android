@@ -21,6 +21,7 @@ import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent.InvalidJdkRea
 import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent.InvalidJdkReason.INVALID_GRADLE_JVM_TABLE_ENTRY_JAVA_HOME
 import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent.InvalidJdkReason.INVALID_GRADLE_LOCAL_JAVA_HOME
 import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent.InvalidJdkReason.INVALID_GRADLE_PROPERTIES_JAVA_HOME
+import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent.InvalidJdkReason.INVALID_JDK_PROJECT_JDK_UNDEFINED
 import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent.InvalidJdkReason.UNDEFINED_ENVIRONMENT_VARIABLE_JAVA_HOME
 import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent.InvalidJdkReason.UNDEFINED_ENVIRONMENT_VARIABLE_STUDIO_GRADLE_JDK
 import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent.InvalidJdkReason.UNDEFINED_GRADLE_JVM_TABLE_ENTRY

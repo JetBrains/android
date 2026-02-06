@@ -16,7 +16,11 @@
 package com.android.tools.profilers
 
 import com.android.tools.profiler.proto.Common.Process.ExposureLevel
-import com.android.tools.profilers.SupportLevel.Feature.*
+import com.android.tools.profilers.SupportLevel.Feature.EVENT_MONITOR
+import com.android.tools.profilers.SupportLevel.Feature.MEMORY_GC
+import com.android.tools.profilers.SupportLevel.Feature.MEMORY_HEAP_DUMP
+import com.android.tools.profilers.SupportLevel.Feature.MEMORY_JVM_RECORDING
+import com.android.tools.profilers.SupportLevel.Feature.MEMORY_LEAK_WITH_LEAKCANARY
 import com.android.tools.profilers.cpu.CpuProfiler
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.memory.MainMemoryProfilerStage

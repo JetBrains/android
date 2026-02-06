@@ -21,9 +21,10 @@ import com.android.tools.idea.gradle.project.upgrade.ComputeGradlePluginUpgradeS
 import com.android.tools.idea.gradle.project.upgrade.ComputeGradlePluginUpgradeStateTest.Companion.Flag.FutureCompatible.FUTURE_INCOMPATIBLE
 import com.android.tools.idea.gradle.project.upgrade.ComputeGradlePluginUpgradeStateTest.Companion.Flag.RecommendPatches.NO_FUTURE_PATCHES
 import com.android.tools.idea.gradle.project.upgrade.ComputeGradlePluginUpgradeStateTest.Companion.Flag.RecommendPatches.RECOMMEND_FUTURE_PATCHES
-import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.*
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.FORCE
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.NO_UPGRADE
+import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.RECOMMEND
+import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.STRONGLY_RECOMMEND
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith

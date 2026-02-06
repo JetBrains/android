@@ -22,7 +22,6 @@ import com.google.common.truth.Truth.assertWithMessage
 import java.io.File
 import java.lang.reflect.Modifier
 import java.sql.SQLException
-import java.util.*
 import java.util.function.Consumer
 import org.junit.After
 import org.junit.Before

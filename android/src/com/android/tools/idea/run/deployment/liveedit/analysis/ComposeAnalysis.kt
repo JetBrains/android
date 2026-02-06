@@ -32,6 +32,9 @@ import org.jetbrains.org.objectweb.asm.tree.analysis.Analyzer
 import org.jetbrains.org.objectweb.asm.tree.analysis.BasicInterpreter
 import org.jetbrains.org.objectweb.asm.tree.analysis.BasicValue
 import org.jetbrains.org.objectweb.asm.tree.analysis.Frame
+import org.objectweb.asm.Opcodes.INVOKEINTERFACE
+import org.objectweb.asm.Opcodes.INVOKESTATIC
+import org.objectweb.asm.Opcodes.INVOKEVIRTUAL
 
 interface GroupTable {
   /** Map of @Composable methods to their corresponding group */

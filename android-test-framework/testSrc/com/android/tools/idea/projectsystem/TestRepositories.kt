@@ -17,7 +17,40 @@
 
 package com.android.tools.idea.projectsystem
 
-import com.android.ide.common.repository.GoogleMavenArtifactId.*
+import com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_ANNOTATION
+import com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_APPCOMPAT
+import com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_CARDVIEW
+import com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_CONSTRAINTLAYOUT
+import com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_EXIFINTERFACE
+import com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_GRIDLAYOUT
+import com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_LEANBACK
+import com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_LEGACY_SUPPORT_V13
+import com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_LEGACY_SUPPORT_V4
+import com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_MEDIAROUTER
+import com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_PALETTE
+import com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_PREFERENCE
+import com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_RECYCLERVIEW
+import com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_VECTORDRAWABLE
+import com.android.ide.common.repository.GoogleMavenArtifactId.CONSTRAINT_LAYOUT
+import com.android.ide.common.repository.GoogleMavenArtifactId.FLEXBOX_LAYOUT
+import com.android.ide.common.repository.GoogleMavenArtifactId.MATERIAL
+import com.android.ide.common.repository.GoogleMavenArtifactId.PLAY_SERVICES
+import com.android.ide.common.repository.GoogleMavenArtifactId.PLAY_SERVICES_ADS
+import com.android.ide.common.repository.GoogleMavenArtifactId.PLAY_SERVICES_MAPS
+import com.android.ide.common.repository.GoogleMavenArtifactId.PLAY_SERVICES_WEARABLE
+import com.android.ide.common.repository.GoogleMavenArtifactId.SUPPORT_ANNOTATIONS
+import com.android.ide.common.repository.GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7
+import com.android.ide.common.repository.GoogleMavenArtifactId.SUPPORT_CARDVIEW_V7
+import com.android.ide.common.repository.GoogleMavenArtifactId.SUPPORT_DESIGN
+import com.android.ide.common.repository.GoogleMavenArtifactId.SUPPORT_EXIFINTERFACE
+import com.android.ide.common.repository.GoogleMavenArtifactId.SUPPORT_GRIDLAYOUT_V7
+import com.android.ide.common.repository.GoogleMavenArtifactId.SUPPORT_LEANBACK_V17
+import com.android.ide.common.repository.GoogleMavenArtifactId.SUPPORT_MEDIAROUTER_V7
+import com.android.ide.common.repository.GoogleMavenArtifactId.SUPPORT_PALETTE_V7
+import com.android.ide.common.repository.GoogleMavenArtifactId.SUPPORT_RECYCLERVIEW_V7
+import com.android.ide.common.repository.GoogleMavenArtifactId.SUPPORT_V13
+import com.android.ide.common.repository.GoogleMavenArtifactId.SUPPORT_V4
+import com.android.ide.common.repository.GoogleMavenArtifactId.SUPPORT_VECTOR_DRAWABLE
 
 /** A collection of repos for dependencies used during testing. */
 @JvmField

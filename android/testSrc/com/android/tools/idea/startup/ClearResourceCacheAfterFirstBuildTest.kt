@@ -34,8 +34,11 @@ import com.intellij.util.application
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
-import org.junit.*
+import org.junit.After
 import org.junit.Assert.assertNull
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times

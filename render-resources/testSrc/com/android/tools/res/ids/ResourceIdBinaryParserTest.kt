@@ -15,7 +15,7 @@
  */
 package com.android.tools.res.ids
 
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class ResourceIdBinaryParserTest {

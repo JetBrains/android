@@ -31,7 +31,7 @@ import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
 import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils
 import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils.createProfilerDeviceSelection
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

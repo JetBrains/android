@@ -25,9 +25,9 @@ import com.android.tools.property.ptable.PTableItem
 import com.android.tools.property.ptable.PTableModel
 import com.android.tools.property.ptable.PTableModelUpdateListener
 import com.android.tools.property.ptable.impl.PTableModelImpl
-import org.mockito.Mockito
 import javax.swing.JPanel
 import javax.swing.event.TableModelListener
+import org.mockito.Mockito
 
 fun createModel(vararg items: PTableItem): PTableTestModel {
   return PTableTestModel(*items)

@@ -18,7 +18,7 @@
 package com.android.tools.idea.configurations
 
 import com.android.annotations.concurrency.Slow
-import com.android.ide.common.rendering.HardwareConfigHelper.*
+import com.android.ide.common.rendering.HardwareConfigHelper.isNexus
 import com.android.ide.common.rendering.api.HardwareConfig
 import com.android.sdklib.devices.Device
 import com.android.tools.configurations.Configuration

@@ -22,7 +22,7 @@ import com.android.resources.ResourceType
 import com.android.testutils.junit4.OldAgpTest
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.projectsystem.gradle.getMainModule
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.*
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_8_13
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.findAppModule

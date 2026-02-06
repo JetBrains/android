@@ -21,7 +21,9 @@ import com.android.resources.Density
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.MIN_RESIZABLE_DEVICE_API
 import com.android.sdklib.devices.Abi
-import com.android.tools.idea.gradle.run.AndroidDeviceSpecUtilTest.DeviceSpecJson.*
+import com.android.tools.idea.gradle.run.AndroidDeviceSpecUtilTest.DeviceSpecJson.MultipleDeviceSpec
+import com.android.tools.idea.gradle.run.AndroidDeviceSpecUtilTest.DeviceSpecJson.NoDeviceSpec
+import com.android.tools.idea.gradle.run.AndroidDeviceSpecUtilTest.DeviceSpecJson.TargetDeviceSpec
 import com.android.tools.idea.run.AndroidDevice
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures

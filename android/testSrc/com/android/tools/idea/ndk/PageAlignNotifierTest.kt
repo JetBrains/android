@@ -17,7 +17,8 @@ package com.android.tools.idea.ndk
 
 import com.android.ide.common.pagealign.PageAlignUtilsTest.ZipBuilder
 import com.android.ide.common.pagealign.PageAlignUtilsTest.ZipBuilder.ZipEntryOptions
-import com.android.ide.common.pagealign.PageAlignUtilsTest.ZipBuilder.ZipEntryOptions.*
+import com.android.ide.common.pagealign.PageAlignUtilsTest.ZipBuilder.ZipEntryOptions.AlignedUncompressed
+import com.android.ide.common.pagealign.PageAlignUtilsTest.ZipBuilder.ZipEntryOptions.UnalignedUncompressed
 import com.android.ide.common.pagealign.SO_FILE_16K_ALIGNED
 import com.android.ide.common.pagealign.SO_FILE_NOT_16K_ALIGNED
 import com.android.tools.idea.run.ApkFileUnit

@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.property.support
 import com.android.ide.common.rendering.api.StyleResourceValue
 import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.res.isAccessibleInXml
-import java.util.*
+import java.util.ArrayDeque
 import org.jetbrains.android.facet.AndroidFacet
 
 typealias StyleFilter = (StyleResourceValue) -> Boolean

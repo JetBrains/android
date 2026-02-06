@@ -29,9 +29,11 @@ import com.android.ide.common.repository.GoogleMavenArtifactId.NAVIGATION_UI_KTX
 import com.android.tools.idea.gradle.dependencies.DependenciesHelper
 import com.android.tools.idea.gradle.dependencies.GroupNameDependencyMatcher
 import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig
-import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.*
+import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.BuildscriptClasspathWithVariableInsertionStep
 import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.MatchedStrategy
+import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.PluginBlockInsertionStep
 import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.PluginInsertionStep
+import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.PluginManagementInsertionStep
 import com.android.tools.idea.gradle.dependencies.PluginsHelper
 import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel

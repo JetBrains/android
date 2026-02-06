@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
-import org.junit.Assert.*
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.fail
 import org.junit.Test
 
 class AnimationClockTest {

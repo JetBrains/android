@@ -17,7 +17,9 @@
 
 package com.android.tools.idea.common.surface
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.DOT_XML
+import com.android.SdkConstants.FD_RES_DRAWABLE
+import com.android.SdkConstants.FD_RES_LAYOUT
 import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.rendering.api.Bridge
 import com.android.ide.common.rendering.api.ResourceNamespace

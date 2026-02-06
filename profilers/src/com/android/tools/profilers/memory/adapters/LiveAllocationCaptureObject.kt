@@ -33,7 +33,10 @@ import com.android.tools.profilers.memory.BaseMemoryProfilerStage
 import com.android.tools.profilers.memory.CaptureSelectionAspect
 import com.android.tools.profilers.memory.MemoryProfiler.Companion.hasOnlyFullAllocationTrackingWithinRegion
 import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute
-import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute.*
+import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute.ALLOCATION_TIME
+import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute.DEALLOCATION_TIME
+import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute.LABEL
+import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute.SHALLOW_SIZE
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.ThreadFactoryBuilder

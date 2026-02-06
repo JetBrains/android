@@ -29,7 +29,7 @@ import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.analytics.TestAppInsightsTracker
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.events.actions.Action
-import com.google.common.truth.Truth.*
+import com.google.common.truth.Truth.assertThat
 import java.time.Instant
 import org.junit.Test
 

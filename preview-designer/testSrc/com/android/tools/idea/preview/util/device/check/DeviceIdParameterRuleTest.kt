@@ -22,7 +22,8 @@ import com.android.tools.preview.config.DimUnit
 import com.android.tools.preview.config.Shape
 import com.android.tools.preview.config.createDeviceInstance
 import com.intellij.openapi.actionSystem.DataProvider
-import org.junit.Assert.*
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 

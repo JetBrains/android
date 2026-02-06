@@ -18,7 +18,8 @@ package com.android.tools.idea.gradle.dsl.model.settings
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.VersionCatalogSource
-import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.VersionCatalogSource.*
+import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.VersionCatalogSource.FILES
+import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.VersionCatalogSource.IMPORTED
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder
 import com.android.tools.idea.gradle.dsl.model.ext.ResolvedPropertyModelImpl

@@ -16,7 +16,11 @@
 package com.android.gmdcodecompletion.completions.lookupelementprovider
 
 import com.android.gmdcodecompletion.ConfigurationParameterName
-import com.android.gmdcodecompletion.ConfigurationParameterName.*
+import com.android.gmdcodecompletion.ConfigurationParameterName.API_LEVEL
+import com.android.gmdcodecompletion.ConfigurationParameterName.API_PREVIEW
+import com.android.gmdcodecompletion.ConfigurationParameterName.DEVICE_ID
+import com.android.gmdcodecompletion.ConfigurationParameterName.REQUIRE64BIT
+import com.android.gmdcodecompletion.ConfigurationParameterName.SYS_IMAGE_SOURCE
 import com.android.gmdcodecompletion.GmdDeviceCatalog
 import com.android.gmdcodecompletion.MinAndTargetApiLevel
 import com.android.gmdcodecompletion.completions.GmdCodeCompletionLookupElement

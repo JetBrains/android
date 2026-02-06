@@ -18,7 +18,10 @@ package com.android.tools.adtui.stdui
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.GraphicsUtil
-import java.awt.*
+import java.awt.AlphaComposite
+import java.awt.Color
+import java.awt.Graphics
+import java.awt.Graphics2D
 import java.awt.geom.RoundRectangle2D
 import javax.swing.JComponent
 

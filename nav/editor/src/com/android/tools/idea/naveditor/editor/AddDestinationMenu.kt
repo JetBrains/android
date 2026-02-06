@@ -89,7 +89,8 @@ import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.io.File
-import java.util.*
+import java.util.Locale
+import java.util.TreeSet
 import java.util.stream.Collectors
 import javax.swing.BorderFactory
 import javax.swing.JPanel
