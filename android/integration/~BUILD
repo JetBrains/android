@@ -704,58 +704,6 @@ iml_test(
 )
 
 iml_test(
-    name = "BuildAndRunInstrumentedTest",
-    timeout = "long",
-    data = [
-        ":instrumenttestapp_project_model",
-        ":run_instrumented_test_project_deps",
-        "//prebuilts/studio/sdk:build-tools/33.0.1",
-        "//prebuilts/studio/sdk:emulator",
-        "//prebuilts/studio/sdk:platform-tools",
-        INTEGRATION_TEST_GRADLE_VERSION,
-        "@system_image_android-33_aosp_atd_x86_64//:x86_64-android-33AospAtd-images",
-    ],
-    module = ":intellij.android.core.integration",
-    tags = [
-        "studio-e2e-test",
-    ],
-    tags_linux = [
-        "block-network",
-    ],
-    tags_mac = [],
-    tags_windows = [
-        "block-network",
-        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
-    ],
-    test_class = "com.android.tools.idea.BuildAndRunInstrumentedTest",
-)
-
-iml_test(
-    name = "MultipleDevicesInstrumentedTest",
-    timeout = "long",
-    data = [
-        ":instrumenttestapp_project_model",
-        ":run_instrumented_test_project_deps",
-        "//prebuilts/studio/sdk:build-tools/33.0.1",
-        "//prebuilts/studio/sdk:emulator",
-        "//prebuilts/studio/sdk:platform-tools",
-        INTEGRATION_TEST_GRADLE_VERSION,
-        "@system_image_android-33_aosp_atd_x86_64//:x86_64-android-33AospAtd-images",
-    ],
-    module = ":intellij.android.core.integration",
-    tags = [
-        "studio-e2e-test",
-    ],
-    tags_linux = ["block-network"],
-    tags_mac = [],
-    tags_windows = [
-        "block-network",
-        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
-    ],
-    test_class = "com.android.tools.idea.MultipleDevicesInstrumentedTest",
-)
-
-iml_test(
     name = "DebugJUnitTest",
     timeout = "long",
     data = [
@@ -1003,6 +951,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.5.2",
         "@maven//:org.jetbrains.markdown_0.2.1",
     ],
+    visibility = ["//tools/adt/idea/android/integration/instrumentation:__pkg__"],
 )
 
 maven_repository(
@@ -1245,6 +1194,7 @@ studio_project_model(
     manifest_path = "tools/adt/idea/android/integration/run_instrumented_test_project_deps.manifest",
     out_dir_name = "instrumenttestapp_project_model",
     project_path = "tools/adt/idea/android/integration/testData/InstrumentedTestApp",
+    visibility = ["//tools/adt/idea/android/integration/instrumentation:__pkg__"],
 )
 
 studio_project_model(

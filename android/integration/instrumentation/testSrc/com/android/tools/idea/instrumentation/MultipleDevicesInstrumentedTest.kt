@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea
+package com.android.tools.idea.instrumentation
 
 import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
@@ -50,6 +50,7 @@ class MultipleDevicesInstrumentedTest {
           system.runStudio(project) { studio ->
             studio.waitForSyncSkippedLog()
             studio.waitForIndexingSkippedLog()
+            studio.waitForProjectInit()
 
             studio.executeAction("MakeGradleProject")
             studio.waitForBuild()

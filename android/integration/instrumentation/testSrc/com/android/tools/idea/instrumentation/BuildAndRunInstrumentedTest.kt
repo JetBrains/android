@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea
+package com.android.tools.idea.instrumentation
 
 import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
@@ -45,6 +45,7 @@ class BuildAndRunInstrumentedTest {
         system.runStudio(project, watcher.dashboardName) { studio ->
           studio.waitForSyncSkippedLog()
           studio.waitForIndexingSkippedLog()
+          studio.waitForProjectInit()
           emulator.waitForBoot()
           adb.waitForDevice(emulator)
 
