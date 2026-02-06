@@ -55,6 +55,7 @@ import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupManager
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
@@ -68,9 +69,13 @@ import java.nio.file.Path
 import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.VisibleForTesting
 
 private const val LAYOUT_INSPECTOR_SNAPSHOT_ID = "Layout Inspector Snapshot"
 private const val SNAPSHOT_OUTDATED_ID = "snapshot.outdated"
+
+@VisibleForTesting
+val STATUS_TEXT_KEY = Key.create<StatusText>("status_text")
 
 class FileEditorInspectorClient(
   private val model: InspectorModel,
@@ -147,7 +152,8 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
         when (model.pictureType) {
           AndroidWindow.ImageType.BITMAP_AS_REQUESTED -> createLayoutInspectorUi(this, project, layoutInspector)
           AndroidWindow.ImageType.SKP_PENDING,
-          AndroidWindow.ImageType.SKP -> throw IllegalStateException("SKP image type not supported")
+          AndroidWindow.ImageType.SKP -> throw IllegalStateException(
+            "SKP image type is no longer supported starting with Android Studio Panda 2")
           AndroidWindow.ImageType.UNKNOWN -> throw IllegalStateException("Unknown picture type")
         }
 
@@ -174,6 +180,7 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
 
       return object : JPanel() {
         init {
+          putClientProperty(STATUS_TEXT_KEY, status)
           status.attachTo(this)
           component = this
         }

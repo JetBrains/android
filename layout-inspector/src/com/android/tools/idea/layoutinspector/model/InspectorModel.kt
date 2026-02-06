@@ -179,9 +179,9 @@ class InspectorModel(
           // If we find that we've requested and received a png, that's what we'll use first
           AndroidWindow.ImageType.BITMAP_AS_REQUESTED
         }
-        windows.values.all { it.imageType == AndroidWindow.ImageType.SKP } -> {
+        windows.isNotEmpty() && windows.values.all { it.imageType == AndroidWindow.ImageType.SKP_PENDING } -> {
           // If all windows are SKP, use that
-          AndroidWindow.ImageType.SKP
+          AndroidWindow.ImageType.SKP_PENDING
         }
         else -> {
           AndroidWindow.ImageType.UNKNOWN
