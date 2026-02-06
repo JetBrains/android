@@ -120,13 +120,13 @@ fun getProjectSpecificIssues(testProject: TestProject) =
             "/ExternalModuleGroup",
             "/ExternalModuleVersion",
             // 2
-            "MODULE (AS36.features)/CONENT_ENTRY",
-            "MODULE (AS36.libs)/CONENT_ENTRY",
-            "MODULE (AS36.libs.java_lib)/CONENT_ENTRY",
-            "MODULE (AS36.app)/CONENT_ENTRY",
-            "MODULE (AS36.features.dynamicfeature)/CONENT_ENTRY",
-            "MODULE (AS36.features.dynamicfeature2)/CONENT_ENTRY",
-            "MODULE (AS36.libs.android_library)/CONENT_ENTRY",
+            "MODULE (AS36.features)/CONTENT_ENTRY",
+            "MODULE (AS36.libs)/CONTENT_ENTRY",
+            "MODULE (AS36.libs.java_lib)/CONTENT_ENTRY",
+            "MODULE (AS36.app)/CONTENT_ENTRY",
+            "MODULE (AS36.features.dynamicfeature)/CONTENT_ENTRY",
+            "MODULE (AS36.features.dynamicfeature2)/CONTENT_ENTRY",
+            "MODULE (AS36.libs.android_library)/CONTENT_ENTRY",
           )
         TestProject.BUILD_CONFIG_AS_BYTECODE_ENABLED ->
           setOf(
@@ -136,7 +136,7 @@ fun getProjectSpecificIssues(testProject: TestProject) =
         TestProject.TEST_SUITES ->
           setOf(
             // TODO(b/445376814): Understand why they are different
-            "MODULE (project.app.second)/CONENT_ENTRY"
+            "MODULE (project.app.second)/CONTENT_ENTRY"
           )
         else -> emptySet()
       }

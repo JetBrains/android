@@ -39,10 +39,10 @@ private fun getProjectSpecificResyncIssues(testProject: TestProject) =
     TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES ->
       setOf(
         // Kmp is not properly set up as expected.
-        "kmp-java.sample.jvmMain)/CONENT_ENTRY",
-        "kmp-java.sample.jvmTest)/CONENT_ENTRY",
-        "kmp-java.sample.main)/CONENT_ENTRY",
-        "kmp-java.sample.test)/CONENT_ENTRY",
+        "kmp-java.sample.jvmMain)/CONTENT_ENTRY",
+        "kmp-java.sample.jvmTest)/CONTENT_ENTRY",
+        "kmp-java.sample.main)/CONTENT_ENTRY",
+        "kmp-java.sample.test)/CONTENT_ENTRY",
       )
     else ->
       when (testProject) {
@@ -51,7 +51,7 @@ private fun getProjectSpecificResyncIssues(testProject: TestProject) =
         TestProject.TEST_SUITES ->
           setOf(
             // TODO(b/445376814): Understand why they are different
-            "MODULE (project.app.second)/CONENT_ENTRY"
+            "MODULE (project.app.second)/CONTENT_ENTRY"
           )
         // Phased sync creates these as top level libraries whereas in data services we have them as
         // module level (or vice versa)

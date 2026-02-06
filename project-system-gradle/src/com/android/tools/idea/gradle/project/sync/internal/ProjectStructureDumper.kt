@@ -343,7 +343,7 @@ private fun ProjectDumper.dump(library: Library) {
 }
 
 private fun ProjectDumper.dump(contentEntry: ContentEntry) {
-  head("CONENT_ENTRY") { contentEntry.url.toPrintablePath() }
+  head("CONTENT_ENTRY") { contentEntry.url.toPrintablePath() }
   nest {
     contentEntry.sourceFolders.sortedBy { it.url.toPrintablePath() }.forEach { dump(it) }
     contentEntry.excludeFolders.sortedBy { it.url.toPrintablePath() }.forEach { dump(it) }
