@@ -739,7 +739,6 @@ public class ImageUtils {
     int x2 = x1 + width;
     int y2 = y1 + height;
 
-    // Now extract the sub-image.
     if (imageType == -1) {
       imageType = image.getType();
     }
@@ -747,6 +746,11 @@ public class ImageUtils {
       imageType = BufferedImage.TYPE_INT_ARGB;
     }
 
+    if (x1 == 0 && y2 == 0 && width == image.getWidth() && height == image.getHeight() && imageType == image.getType()) {
+      return image;
+    }
+
+    // Create a cropped image.
     BufferedImage cropped = new BufferedImage(width, height, imageType);
     Graphics g = cropped.getGraphics();
     g.drawImage(image, 0, 0, width, height, x1, y1, x2, y2, null);
