@@ -150,7 +150,7 @@
       </action>
       <action id="android.streaming.xr.interaction"
               class="com.android.tools.idea.streaming.actions.StreamingXrInputModeAction$Interaction"
-              icon="StudioIcons.LayoutEditor.Motion.GESTURE"
+              icon="StudioIcons.Emulator.XR.INTERACT"
               text="Interact with Apps"
               description="Mouse and keyboard are used to interact with running apps">
         <keyboard-shortcut first-keystroke="control I" keymap="$default"/>
