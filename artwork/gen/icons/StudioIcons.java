@@ -315,7 +315,9 @@ public final class StudioIcons {
       /** 16x16 */ public static final @NotNull Icon ENVIRONMENT = load("studio/icons/emulator/xr/environment.svg", 1722745446, 2);
       /** 16x16 */ public static final @NotNull Icon EYE_GAZE = load("studio/icons/emulator/xr/eye-gaze.svg", -1318900624, 2);
       /** 16x16 */ public static final @NotNull Icon GLASSES_CAMERA = load("studio/icons/emulator/xr/glasses-camera.svg", 517867713, 2);
+      /** 16x16 */ public static final @NotNull Icon GLASSES_TOUCHBAR = load("studio/icons/emulator/xr/glasses-touchbar.svg", 1238793853, 2);
       /** 16x16 */ public static final @NotNull Icon HAND_TRACKING = load("studio/icons/emulator/xr/hand-tracking.svg", -1757146482, 2);
+      /** 16x16 */ public static final @NotNull Icon INTERACT = load("studio/icons/emulator/xr/interact.svg", -1981662969, 2);
       /** 16x16 */ public static final @NotNull Icon MOUSE_KEYBOARD_MODE = load("studio/icons/emulator/xr/mouse-keyboard-mode.svg", -1943290912, 2);
       /** 16x16 */ public static final @NotNull Icon PAN = load("studio/icons/emulator/xr/pan.svg", 626074429, 2);
       /** 16x16 */ public static final @NotNull Icon PASSTHROUGH_OFF = load("studio/icons/emulator/xr/passthrough-off.svg", -1838712925, 2);

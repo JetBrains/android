@@ -989,10 +989,22 @@ object StudioIconsCompose {
           "/studio/icons/emulator/xr/glasses-button.svg",
           StudioIconsCompose.javaClass,
           ) // 16x16
+      val GlassesTouchbar: IntelliJIconKey =
+        IntelliJIconKey(
+          "/studio/icons/emulator/xr/glasses-touchbar.svg",
+          "/studio/icons/emulator/xr/glasses-touchbar.svg",
+          StudioIconsCompose.javaClass,
+        ) // 16x16
       val HandTracking: IntelliJIconKey =
         IntelliJIconKey(
           "/studio/icons/emulator/xr/hand-tracking.svg",
           "/studio/icons/emulator/xr/hand-tracking.svg",
+          StudioIconsCompose.javaClass,
+        ) // 16x16
+      val Interact: IntelliJIconKey =
+        IntelliJIconKey(
+          "/studio/icons/emulator/xr/interact.svg",
+          "/studio/icons/emulator/xr/interact.svg",
           StudioIconsCompose.javaClass,
         ) // 16x16
       val MouseKeyboardMode: IntelliJIconKey =
