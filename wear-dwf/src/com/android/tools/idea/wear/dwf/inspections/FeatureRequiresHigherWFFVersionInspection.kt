@@ -31,6 +31,7 @@ import com.android.tools.wear.wff.WFFVersion.WFFVersion4
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
+import com.intellij.openapi.progress.runBlockingMaybeCancellable
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiFile
@@ -47,7 +48,9 @@ class FeatureRequiresHigherWFFVersionInspection : LocalInspectionTool() {
 
   override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
     val module = holder.file.getModuleSystem()?.module ?: return PsiElementVisitor.EMPTY_VISITOR
-    val currentWFFVersion = CurrentWFFVersionService.getInstance().getCurrentWFFVersion(module) ?: return PsiElementVisitor.EMPTY_VISITOR
+    val currentWFFVersion =
+      runBlockingMaybeCancellable { CurrentWFFVersionService.getInstance().getCurrentWFFVersion(module) }
+        ?: return PsiElementVisitor.EMPTY_VISITOR
     return object : WFFExpressionVisitor() {
       override fun visitFunctionId(functionId: WFFExpressionFunctionId) {
         val requiredWFFVersion = findFunction(functionId.text)?.requiredVersion ?: return

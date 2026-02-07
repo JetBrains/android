@@ -26,6 +26,7 @@ import com.android.SdkConstants.ATTR_REQUIRED
 import com.android.SdkConstants.ATTR_TARGET_ACTIVITY
 import com.android.SdkConstants.ATTR_TARGET_SDK_VERSION
 import com.android.SdkConstants.ATTR_THEME
+import com.android.SdkConstants.ATTR_VALUE
 import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.SdkConstants.TAG_ACTION
 import com.android.SdkConstants.TAG_ACTIVITY
@@ -36,6 +37,7 @@ import com.android.SdkConstants.TAG_INTENT_FILTER
 import com.android.SdkConstants.TAG_MANIFEST
 import com.android.SdkConstants.TAG_PERMISSION
 import com.android.SdkConstants.TAG_PERMISSION_GROUP
+import com.android.SdkConstants.TAG_PROPERTY
 import com.android.SdkConstants.TAG_USES_FEATURE
 import com.android.SdkConstants.TAG_USES_PERMISSION
 import com.android.SdkConstants.TAG_USES_PERMISSION_SDK_23
@@ -222,7 +224,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
 
   override fun getName() = NAME
 
-  override fun getVersion() = 10
+  override fun getVersion() = 11
 
   override fun getIndexer() = Indexer
 
@@ -319,6 +321,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
       var debuggable: String? = null
       var targetSdkLevel: String? = null
       var theme: String? = null
+      val applicationProperties = hashSetOf<PropertyRawText>()
 
       processChildTags {
         when (name) {
@@ -329,6 +332,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
               when (name) {
                 TAG_ACTIVITY -> activities.add(parseActivityTag())
                 TAG_ACTIVITY_ALIAS -> activityAliases.add(parseActivityAliasTag())
+                TAG_PROPERTY -> applicationProperties.add(parsePropertyTag())
                 else -> skipSubTreeWithExceptionCaught()
               }
             }
@@ -374,6 +378,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
         usedFeatures = usedFeatures.toSet(),
         targetSdkLevel = targetSdkLevel,
         theme = theme,
+        applicationProperties = applicationProperties.toSet(),
       )
     }
 
@@ -435,6 +440,14 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
         skipSubTreeWithExceptionCaught()
       }
       return IntentFilterRawText(actionNames = actionNames.toSet(), categoryNames = categoryNames.toSet())
+    }
+
+    private fun KXmlParser.parsePropertyTag(): PropertyRawText {
+      require(START_TAG, null, TAG_PROPERTY)
+      val name = androidName
+      val value = getAttributeValue(ANDROID_URI, ATTR_VALUE)
+      skipSubTreeWithExceptionCaught()
+      return PropertyRawText(name, value)
     }
   }
 
@@ -520,6 +533,7 @@ data class AndroidManifestRawText(
   val usedFeatures: Set<UsedFeatureRawText>,
   val targetSdkLevel: String?,
   val theme: String?,
+  val applicationProperties: Set<PropertyRawText>,
 ) {
   /**
    * Singleton responsible for serializing/de-serializing [AndroidManifestRawText]s to/from disk.
@@ -543,6 +557,7 @@ data class AndroidManifestRawText(
         writeSeq(out, usedFeatures) { UsedFeatureRawText.Externalizer.save(out, it) }
         writeNullable(out, targetSdkLevel) { writeUTF(out, it) }
         writeNullable(out, theme) { writeUTF(out, it) }
+        writeSeq(out, applicationProperties) { PropertyRawText.Externalizer.save(out, it) }
       }
     }
 
@@ -560,6 +575,7 @@ data class AndroidManifestRawText(
         usedFeatures = readSeq(`in`) { UsedFeatureRawText.Externalizer.read(`in`) }.toSet(),
         targetSdkLevel = readNullable(`in`) { readUTF(`in`) },
         theme = readNullable(`in`) { readUTF(`in`) },
+        applicationProperties = readSeq(`in`) { PropertyRawText.Externalizer.read(`in`) }.toSet(),
       )
   }
 }
@@ -697,5 +713,31 @@ data class UsedFeatureRawText(val name: String?, val required: String?) {
 
     override fun read(`in`: DataInput) =
       UsedFeatureRawText(name = readNullable(`in`) { readUTF(`in`) }, required = readNullable(`in`) { readUTF(`in`) })
+  }
+}
+
+/**
+ * Structured pieces of raw text from an AndroidManifest.xml file corresponding to a subset of property tag's attributes.
+ *
+ * @see AndroidManifestRawText
+ */
+data class PropertyRawText(val name: String?, val value: String?) {
+  /**
+   * Singleton responsible for serializing/de-serializing [PropertyRawText]s to/from disk.
+   *
+   * [AndroidManifestIndex] uses this externalizer to keep its cache within its memory limit and also to persist indexed data between IDE
+   * sessions. Any structural change to [PropertyRawText] requires an update to the schema used here, and any update to the schema requires
+   * us to increment [AndroidManifestIndex.getVersion].
+   */
+  object Externalizer : DataExternalizer<PropertyRawText> {
+    override fun save(out: DataOutput, property: PropertyRawText) {
+      property.apply {
+        writeNullable(out, name) { writeUTF(out, it) }
+        writeNullable(out, value) { writeUTF(out, it) }
+      }
+    }
+
+    override fun read(`in`: DataInput) =
+      PropertyRawText(name = readNullable(`in`) { readUTF(`in`) }, value = readNullable(`in`) { readUTF(`in`) })
   }
 }

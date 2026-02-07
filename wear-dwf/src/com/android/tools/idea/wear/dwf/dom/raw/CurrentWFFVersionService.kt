@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.wear.dwf.dom.raw
 
+import com.android.SdkConstants.WATCH_FACE_FORMAT_VERSION_PROPERTY
 import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.model.MergedManifestManager
+import com.android.tools.idea.util.androidFacet
 import com.android.tools.wear.wff.WFFVersion
 import com.android.tools.wear.wff.WFFVersion.WFFVersion1
 import com.android.tools.wear.wff.WFFVersion.WFFVersion2
-import com.android.tools.wear.wff.WFFVersionExtractor
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
@@ -33,7 +35,7 @@ import com.intellij.openapi.module.Module
 data class CurrentWFFVersion(val wffVersion: WFFVersion, val isFallback: Boolean)
 
 @Service
-class CurrentWFFVersionService(private val wffVersionExtractor: WFFVersionExtractor = WFFVersionExtractor()) {
+class CurrentWFFVersionService {
   /**
    * Returns a [CurrentWFFVersion] for a given [Module].
    *
@@ -42,10 +44,16 @@ class CurrentWFFVersionService(private val wffVersionExtractor: WFFVersionExtrac
    *
    * @see getFallbackVersion
    */
-  fun getCurrentWFFVersion(module: Module): CurrentWFFVersion? {
-    val manifestDocument = MergedManifestManager.getMergedManifestSupplier(module).now?.document ?: return null
-    val manifestVersion = wffVersionExtractor.extractFromManifest(manifestDocument)
-    return CurrentWFFVersion(wffVersion = manifestVersion ?: getFallbackVersion(module), isFallback = manifestVersion == null)
+  suspend fun getCurrentWFFVersion(module: Module): CurrentWFFVersion? = readAction {
+    val facet = module.androidFacet ?: return@readAction null
+    val manifestData = AndroidManifestIndex.getDataForMergedManifestContributors(facet).toList()
+    if (manifestData.isEmpty()) return@readAction null
+
+    val manifestVersionString =
+      manifestData.asSequence().flatMap { it.applicationProperties }.firstOrNull { it.name == WATCH_FACE_FORMAT_VERSION_PROPERTY }?.value
+    val manifestVersion = WFFVersion.fromString(manifestVersionString)
+
+    CurrentWFFVersion(wffVersion = manifestVersion ?: getFallbackVersion(module), isFallback = manifestVersion == null)
   }
 
   private fun getFallbackVersion(module: Module): WFFVersion {

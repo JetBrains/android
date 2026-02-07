@@ -28,6 +28,7 @@ import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.progress.runBlockingMaybeCancellable
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
 
@@ -85,7 +86,9 @@ class WFFExpressionAnnotator() : Annotator {
 
   private fun annotateReference(reference: WFFExpressionDataSource, holder: AnnotationHolder) {
     val currentWFFVersion =
-      reference.getModuleSystem()?.module?.let { module -> CurrentWFFVersionService.getInstance().getCurrentWFFVersion(module)?.wffVersion }
+      reference.getModuleSystem()?.module?.let { module ->
+        runBlockingMaybeCancellable { CurrentWFFVersionService.getInstance().getCurrentWFFVersion(module) }?.wffVersion
+      }
     val versionSupportsReferences = currentWFFVersion != null && currentWFFVersion >= WFFVersion4
     annotateSymbol(
       holder = holder,

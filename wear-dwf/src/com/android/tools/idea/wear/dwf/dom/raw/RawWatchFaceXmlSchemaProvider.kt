@@ -32,6 +32,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.progress.runBlockingMaybeCancellable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
@@ -73,7 +74,8 @@ class RawWatchfaceXmlSchemaProvider() : XmlSchemaProvider() {
     // We only want to initialize the service on demand when a declarative watch face file is opened
     RawWatchFaceXmlSchemaUpdater.initializeService(module.project)
     baseFile.putUserData(DWF_FILE_IN_USE, true)
-    val (schemaVersion, isFallback) = CurrentWFFVersionService.getInstance().getCurrentWFFVersion(module) ?: return null
+    val (schemaVersion, isFallback) =
+      runBlockingMaybeCancellable { CurrentWFFVersionService.getInstance().getCurrentWFFVersion(module) } ?: return null
 
     DeclarativeWatchFaceUsageTracker.getInstance().trackXmlSchemaUsed(schemaVersion, isFallback)
 

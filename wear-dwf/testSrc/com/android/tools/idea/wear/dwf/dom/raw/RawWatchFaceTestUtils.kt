@@ -25,7 +25,7 @@ import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.replaceService
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.any
-import org.mockito.kotlin.whenever
+import org.mockito.kotlin.wheneverBlocking
 
 fun manifestWithWFFVersion(version: String) =
   // language=XML
@@ -61,7 +61,7 @@ fun manifestWithWFFVersion(version: String) =
 /** Overrides the [WFFVersion] returned by [CurrentWFFVersionService]. */
 fun overrideCurrentWFFVersion(wffVersion: WFFVersion?, disposable: Disposable) {
   val mockCurrentWFFVersionService = mock<CurrentWFFVersionService>()
-  whenever(mockCurrentWFFVersionService.getCurrentWFFVersion(any()))
+  wheneverBlocking { mockCurrentWFFVersionService.getCurrentWFFVersion(any()) }
     .thenReturn(wffVersion?.let { CurrentWFFVersion(wffVersion, isFallback = false) })
   ApplicationManager.getApplication().replaceService(CurrentWFFVersionService::class.java, mockCurrentWFFVersionService, disposable)
 }

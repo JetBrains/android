@@ -36,6 +36,7 @@ import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.codeInsight.completion.InsertionContext
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.openapi.progress.runBlockingMaybeCancellable
 import com.intellij.openapi.util.TextRange
 import com.intellij.patterns.PlatformPatterns.psiElement
 import com.intellij.patterns.StandardPatterns.and
@@ -51,7 +52,8 @@ class WFFExpressionCompletionContributor : CompletionContributor() {
     object : CompletionProvider<CompletionParameters>() {
       override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, resultSet: CompletionResultSet) {
         val module = parameters.position.getModuleSystem()?.module
-        val wffVersion = module?.let { CurrentWFFVersionService.getInstance().getCurrentWFFVersion(module)?.wffVersion }
+        val wffVersion =
+          module?.let { runBlockingMaybeCancellable { CurrentWFFVersionService.getInstance().getCurrentWFFVersion(module) }?.wffVersion }
         val availableFunctions =
           if (wffVersion == null) Functions.ALL else Functions.ALL_AVAILABLE_FUNCTIONS_BY_VERSION.getValue(wffVersion)
 
@@ -65,7 +67,8 @@ class WFFExpressionCompletionContributor : CompletionContributor() {
     object : CompletionProvider<CompletionParameters>() {
       override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, resultSet: CompletionResultSet) {
         val module = parameters.position.getModuleSystem()?.module
-        val wffVersion = module?.let { CurrentWFFVersionService.getInstance().getCurrentWFFVersion(module)?.wffVersion }
+        val wffVersion =
+          module?.let { runBlockingMaybeCancellable { CurrentWFFVersionService.getInstance().getCurrentWFFVersion(module) }?.wffVersion }
 
         val availablePatternedDataSource =
           if (wffVersion == null) DataSources.ALL_PATTERNS else DataSources.ALL_AVAILABLE_PATTERNS_BY_VERSION.getValue(wffVersion)

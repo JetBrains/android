@@ -23,6 +23,7 @@ import com.android.tools.idea.wear.dwf.dom.raw.CurrentWFFVersionService
 import com.android.tools.idea.wear.dwf.dom.raw.configurations.UserConfigurationReference
 import com.android.tools.wear.wff.WFFVersion.WFFVersion4
 import com.intellij.lang.injection.InjectedLanguageManager
+import com.intellij.openapi.progress.runBlockingMaybeCancellable
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
 import com.intellij.psi.tree.IFileElementType
@@ -78,7 +79,7 @@ private fun userConfigurationReference(literalExpr: WFFExpressionLiteralExpr, wa
 private fun referenceTagRefence(literalExpr: WFFExpressionLiteralExpr, watchFaceFile: XmlFile): ReferenceTagReference? {
   if (!literalExpr.isIdOrDataSource()) return null
   val module = watchFaceFile.getModuleSystem()?.module ?: return null
-  val currentWFFVersion = CurrentWFFVersionService.getInstance().getCurrentWFFVersion(module)
+  val currentWFFVersion = runBlockingMaybeCancellable { CurrentWFFVersionService.getInstance().getCurrentWFFVersion(module) }
   if (currentWFFVersion == null || currentWFFVersion.wffVersion < WFFVersion4) return null
   return ReferenceTagReference(literalExpr, watchFaceFile)
 }
