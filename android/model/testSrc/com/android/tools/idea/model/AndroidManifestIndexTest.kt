@@ -116,6 +116,7 @@ class AndroidManifestIndexTest {
           targetSdkLevel = "28",
           theme = "@style/Theme.AppCompat",
           applicationProperties = emptySet(),
+          services = emptySet(),
         ),
       )
   }
@@ -217,6 +218,7 @@ class AndroidManifestIndexTest {
           targetSdkLevel = "28",
           theme = "@style/Theme.AppCompat",
           applicationProperties = emptySet(),
+          services = emptySet(),
         ),
       )
   }
@@ -253,6 +255,52 @@ class AndroidManifestIndexTest {
           targetSdkLevel = null,
           theme = null,
           applicationProperties = setOf(PropertyRawText("prop1", "val1"), PropertyRawText("prop2", "val2")),
+          services = emptySet(),
+        ),
+      )
+  }
+
+  @Test
+  fun indexer_manifestWithServiceAndMetaData() {
+    @Language("xml")
+    val manifestContent =
+      """
+      <?xml version='1.0' encoding='utf-8'?>
+      <manifest xmlns:android='http://schemas.android.com/apk/res/android' package='com.example'>
+        <application>
+          <service android:name='.MyService' android:enabled='true'>
+            <meta-data android:name='meta1' android:value='val1'/>
+          </service>
+          <service android:name='com.other.OtherService'>
+            <meta-data android:name='meta2' android:value='val2'/>
+          </service>
+        </application>
+      </manifest>
+      """
+        .trimIndent()
+    val manifestMap = AndroidManifestIndex.Indexer.map(FakeXmlFileContent(manifestContent))
+    assertThat(manifestMap)
+      .containsExactly(
+        "com.example",
+        AndroidManifestRawText(
+          activities = emptySet(),
+          activityAliases = emptySet(),
+          customPermissionGroupNames = emptySet(),
+          customPermissionNames = emptySet(),
+          debuggable = null,
+          enabled = null,
+          minSdkLevel = null,
+          packageName = "com.example",
+          usedPermissionNames = emptySet(),
+          usedFeatures = emptySet(),
+          targetSdkLevel = null,
+          theme = null,
+          applicationProperties = emptySet(),
+          services =
+            setOf(
+              ServiceRawText(name = ".MyService", enabled = "true", metaData = setOf(MetaDataRawText("meta1", "val1"))),
+              ServiceRawText(name = "com.other.OtherService", enabled = null, metaData = setOf(MetaDataRawText("meta2", "val2"))),
+            ),
         ),
       )
   }

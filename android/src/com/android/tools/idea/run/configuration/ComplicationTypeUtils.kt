@@ -18,16 +18,16 @@ package com.android.tools.idea.run.configuration
 import com.android.SdkConstants
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.deployer.model.component.Complication
-import com.android.tools.idea.model.MergedManifestManager
-import com.android.tools.idea.model.MergedManifestSnapshot
+import com.android.tools.idea.model.AndroidManifestIndex
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.run.ApkInfo
+import com.android.tools.idea.util.androidFacet
 import com.android.tools.manifest.parser.BinaryXmlParser
 import com.android.tools.manifest.parser.XmlNode
-import com.android.utils.forEach
 import com.android.zipflinger.ZipRepo
 import com.intellij.execution.configurations.RuntimeConfigurationWarning
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ex.ApplicationEx
+import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.module.Module
 import org.jetbrains.android.util.AndroidBundle
 
 /**
@@ -37,17 +37,38 @@ import org.jetbrains.android.util.AndroidBundle
  * to avoid dead-locks and it's the callers responsibility to retry the call later.
  */
 @WorkerThread
-fun getComplicationTypesFromManifest(module: com.intellij.openapi.module.Module, complicationName: String): List<String>? {
-  val snapshotFuture = MergedManifestManager.getMergedManifestSupplier(module).get()
-  val holdsReadLock = (ApplicationManager.getApplication() as? ApplicationEx)?.holdsReadLock() ?: false
-  if (holdsReadLock && !snapshotFuture.isDone) {
-    // We can not wait for the future to be done since we are holding the read lock.
-    // In this case, we can not calculate the result at the moment and will need to be
-    // done in a future call.
-    return null
+fun getComplicationTypesFromManifest(module: Module, complicationName: String): List<String>? {
+  val facet = module.androidFacet ?: return emptyList()
+  val complicationTypes = runReadAction {
+    val contributors = AndroidManifestIndex.getDataForMergedManifestContributors(facet)
+    val overrides = facet.getModuleSystem().getManifestOverrides()
+    val packageName = facet.getModuleSystem().getPackageName()
+
+    for (manifest in contributors) {
+      val service =
+        manifest.services.find {
+          val name = it.name ?: return@find false
+          val resolvedName = overrides.resolvePlaceholders(name)
+          val qualifiedName =
+            when {
+              packageName == null -> resolvedName
+              resolvedName.startsWith('.') -> packageName + resolvedName
+              resolvedName.contains('.') -> resolvedName
+              else -> "$packageName.$resolvedName"
+            }
+          qualifiedName == complicationName
+        }
+      if (service != null) {
+        val supportedTypes = service.metaData.find { it.name == SdkConstants.VALUE_COMPLICATION_SUPPORTED_TYPES }?.value
+        if (supportedTypes != null) {
+          return@runReadAction splitTypesString(overrides.resolvePlaceholders(supportedTypes))
+        }
+      }
+    }
+    emptyList()
   }
 
-  return extractSupportedComplicationTypes(snapshotFuture.get(), complicationName)
+  return complicationTypes
 }
 
 internal fun parseRawComplicationTypes(supportedTypesStr: List<String>): List<Complication.ComplicationType> {
@@ -105,21 +126,6 @@ private fun extractSupportedComplicationTypes(service: XmlNode): List<String> {
   val supportedTypesNode = service.children().find { it.attributes()["name"] == SdkConstants.VALUE_COMPLICATION_SUPPORTED_TYPES }
   val rawTypes = supportedTypesNode?.attributes()?.get("value") ?: ""
   return splitTypesString(rawTypes)
-}
-
-internal fun extractSupportedComplicationTypes(snapshot: MergedManifestSnapshot, complicationServiceName: String): List<String> {
-  val complicationTag =
-    snapshot.services.find { complicationServiceName == it.getAttributeNS(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME) }
-      ?: return emptyList()
-  val metaDataTags = complicationTag.getElementsByTagName(SdkConstants.TAG_META_DATA)
-  metaDataTags.forEach {
-    val metaDataType = it.attributes.getNamedItemNS(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)?.nodeValue
-    if (metaDataType == SdkConstants.VALUE_COMPLICATION_SUPPORTED_TYPES) {
-      val rawTypes = it.attributes.getNamedItemNS(SdkConstants.ANDROID_URI, SdkConstants.ATTR_VALUE)?.nodeValue ?: ""
-      return splitTypesString(rawTypes)
-    }
-  }
-  return emptyList()
 }
 
 private fun splitTypesString(types: String): List<String> {

@@ -35,9 +35,11 @@ import com.android.SdkConstants.TAG_APPLICATION
 import com.android.SdkConstants.TAG_CATEGORY
 import com.android.SdkConstants.TAG_INTENT_FILTER
 import com.android.SdkConstants.TAG_MANIFEST
+import com.android.SdkConstants.TAG_META_DATA
 import com.android.SdkConstants.TAG_PERMISSION
 import com.android.SdkConstants.TAG_PERMISSION_GROUP
 import com.android.SdkConstants.TAG_PROPERTY
+import com.android.SdkConstants.TAG_SERVICE
 import com.android.SdkConstants.TAG_USES_FEATURE
 import com.android.SdkConstants.TAG_USES_PERMISSION
 import com.android.SdkConstants.TAG_USES_PERMISSION_SDK_23
@@ -224,7 +226,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
 
   override fun getName() = NAME
 
-  override fun getVersion() = 11
+  override fun getVersion() = 12
 
   override fun getIndexer() = Indexer
 
@@ -322,6 +324,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
       var targetSdkLevel: String? = null
       var theme: String? = null
       val applicationProperties = hashSetOf<PropertyRawText>()
+      val services = hashSetOf<ServiceRawText>()
 
       processChildTags {
         when (name) {
@@ -332,6 +335,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
               when (name) {
                 TAG_ACTIVITY -> activities.add(parseActivityTag())
                 TAG_ACTIVITY_ALIAS -> activityAliases.add(parseActivityAliasTag())
+                TAG_SERVICE -> services.add(parseServiceTag())
                 TAG_PROPERTY -> applicationProperties.add(parsePropertyTag())
                 else -> skipSubTreeWithExceptionCaught()
               }
@@ -379,6 +383,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
         targetSdkLevel = targetSdkLevel,
         theme = theme,
         applicationProperties = applicationProperties.toSet(),
+        services = services.toSet(),
       )
     }
 
@@ -448,6 +453,29 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
       val value = getAttributeValue(ANDROID_URI, ATTR_VALUE)
       skipSubTreeWithExceptionCaught()
       return PropertyRawText(name, value)
+    }
+
+    private fun KXmlParser.parseServiceTag(): ServiceRawText {
+      require(START_TAG, null, TAG_SERVICE)
+      val serviceName = androidName
+      val enabled = getAttributeValue(ANDROID_URI, ATTR_ENABLED)
+      val metaDatas = hashSetOf<MetaDataRawText>()
+      processChildTags {
+        if (name == TAG_META_DATA) {
+          metaDatas.add(parseMetaDataTag())
+        } else {
+          skipSubTreeWithExceptionCaught()
+        }
+      }
+      return ServiceRawText(serviceName, enabled, metaDatas)
+    }
+
+    private fun KXmlParser.parseMetaDataTag(): MetaDataRawText {
+      require(START_TAG, null, TAG_META_DATA)
+      val name = androidName
+      val value = getAttributeValue(ANDROID_URI, ATTR_VALUE)
+      skipSubTreeWithExceptionCaught()
+      return MetaDataRawText(name, value)
     }
   }
 
@@ -534,6 +562,7 @@ data class AndroidManifestRawText(
   val targetSdkLevel: String?,
   val theme: String?,
   val applicationProperties: Set<PropertyRawText>,
+  val services: Set<ServiceRawText>,
 ) {
   /**
    * Singleton responsible for serializing/de-serializing [AndroidManifestRawText]s to/from disk.
@@ -558,6 +587,7 @@ data class AndroidManifestRawText(
         writeNullable(out, targetSdkLevel) { writeUTF(out, it) }
         writeNullable(out, theme) { writeUTF(out, it) }
         writeSeq(out, applicationProperties) { PropertyRawText.Externalizer.save(out, it) }
+        writeSeq(out, services) { ServiceRawText.Externalizer.save(out, it) }
       }
     }
 
@@ -576,6 +606,7 @@ data class AndroidManifestRawText(
         targetSdkLevel = readNullable(`in`) { readUTF(`in`) },
         theme = readNullable(`in`) { readUTF(`in`) },
         applicationProperties = readSeq(`in`) { PropertyRawText.Externalizer.read(`in`) }.toSet(),
+        services = readSeq(`in`) { ServiceRawText.Externalizer.read(`in`) }.toSet(),
       )
   }
 }
@@ -739,5 +770,48 @@ data class PropertyRawText(val name: String?, val value: String?) {
 
     override fun read(`in`: DataInput) =
       PropertyRawText(name = readNullable(`in`) { readUTF(`in`) }, value = readNullable(`in`) { readUTF(`in`) })
+  }
+}
+
+/**
+ * Structured pieces of raw text from an AndroidManifest.xml file corresponding to a subset of service tag's attributes and meta-data.
+ *
+ * @see AndroidManifestRawText
+ */
+data class ServiceRawText(val name: String?, val enabled: String?, val metaData: Set<MetaDataRawText>) {
+  object Externalizer : DataExternalizer<ServiceRawText> {
+    override fun save(out: DataOutput, value: ServiceRawText) {
+      value.apply {
+        writeNullable(out, name) { writeUTF(out, it) }
+        writeNullable(out, enabled) { writeUTF(out, it) }
+        writeSeq(out, metaData) { MetaDataRawText.Externalizer.save(out, it) }
+      }
+    }
+
+    override fun read(`in`: DataInput) =
+      ServiceRawText(
+        name = readNullable(`in`) { readUTF(`in`) },
+        enabled = readNullable(`in`) { readUTF(`in`) },
+        metaData = readSeq(`in`) { MetaDataRawText.Externalizer.read(`in`) }.toSet(),
+      )
+  }
+}
+
+/**
+ * Structured pieces of raw text from an AndroidManifest.xml file corresponding to a subset of meta-data tag's attributes.
+ *
+ * @see AndroidManifestRawText
+ */
+data class MetaDataRawText(val name: String?, val value: String?) {
+  object Externalizer : DataExternalizer<MetaDataRawText> {
+    override fun save(out: DataOutput, metaData: MetaDataRawText) {
+      metaData.apply {
+        writeNullable(out, name) { writeUTF(out, it) }
+        writeNullable(out, value) { writeUTF(out, it) }
+      }
+    }
+
+    override fun read(`in`: DataInput) =
+      MetaDataRawText(name = readNullable(`in`) { readUTF(`in`) }, value = readNullable(`in`) { readUTF(`in`) })
   }
 }

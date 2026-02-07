@@ -18,25 +18,12 @@ package com.android.tools.idea.run.configuration
 import com.android.testutils.AssumeUtil
 import com.android.tools.deployer.model.component.Complication.ComplicationType.LONG_TEXT
 import com.android.tools.deployer.model.component.Complication.ComplicationType.RANGED_VALUE
-import com.android.tools.deployer.model.component.Complication.ComplicationType.SHORT_TEXT
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase.assertEquals
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
-import com.android.tools.idea.model.MergedManifestManager
-import com.android.tools.idea.model.MergedManifestSnapshot
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findAppModule
 import com.intellij.execution.configurations.RuntimeConfigurationWarning
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.WriteAction
-import com.intellij.openapi.application.WriteIntentReadAction
-import com.intellij.openapi.application.runInEdt
-import com.intellij.openapi.util.Computable
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.UsefulTestCase.assertThrows
-import java.io.IOException
-import java.util.concurrent.CountDownLatch
-import junit.framework.TestCase
-import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -77,16 +64,6 @@ class ComplicationTypeUtilsTest {
   }
 
   @Test
-  fun testExtractSupportedComplicationTypes() {
-    val mergedManifest: MergedManifestSnapshot =
-      getMergedManifest(String.format(manifestString, "RANGED_VALUE,, , INVALID, SHORT_TEXT, LONG_TEXT"))!!
-    assertEquals(
-      listOf(RANGED_VALUE.toString(), "", "", "INVALID", SHORT_TEXT.toString(), LONG_TEXT.toString()),
-      extractSupportedComplicationTypes(mergedManifest, "google.simpleapplication.provider.IncrementingNumberComplicationProviderService"),
-    )
-  }
-
-  @Test
   fun testParseComplicationTypes() {
     val typesStr = listOf("RANGED_VALUE", "INVALID", "LONG_TEXT")
     assertEquals(listOf(RANGED_VALUE, LONG_TEXT), parseRawComplicationTypes(typesStr))
@@ -99,40 +76,9 @@ class ComplicationTypeUtilsTest {
   }
 
   @Test
-  fun testGetComplicationTypesFromManifestWhileHoldingReadLockReturnsNullIfNotReady() {
-    val module = projectRule.project.findAppModule()
-    val readLockIsReady = CountDownLatch(1)
-    val testIsComplete = CountDownLatch(1)
-
-    try {
-      // Ensure the read lock is blocked before and while setting up the manifest so the manifest merger does not have the chance to run
-      runInEdt {
-        WriteIntentReadAction.run {
-          WriteAction.run<Throwable> { addMergedManifest(manifestString.format("RANGED_VALUE, LONG_TEXT, SHORT_TEXT")) }
-          readLockIsReady.countDown()
-          testIsComplete.await()
-        }
-      }
-
-      // Wait for the read lock to be ready
-      readLockIsReady.await()
-      val complicationTypes =
-        ApplicationManager.getApplication()
-          .runReadAction(
-            Computable<List<String>?> {
-              getComplicationTypesFromManifest(module, "google.simpleapplication.provider.IncrementingNumberComplicationProviderService")
-            }
-          )
-      assertNull(complicationTypes)
-    } finally {
-      testIsComplete.countDown()
-    }
-  }
-
-  @Test
   fun testGetComplicationTypesFromManifest() {
     val module = projectRule.project.findAppModule()
-    addMergedManifest(manifestString.format("RANGED_VALUE, LONG_TEXT, SHORT_TEXT"))
+    addManifest(manifestString.format("RANGED_VALUE, LONG_TEXT, SHORT_TEXT"))
     val complicationTypes =
       getComplicationTypesFromManifest(module, "google.simpleapplication.provider.IncrementingNumberComplicationProviderService")
     assertEquals(
@@ -146,30 +92,8 @@ class ComplicationTypeUtilsTest {
     )
   }
 
-  private fun addMergedManifest(manifestContents: String) {
+  private fun addManifest(manifestContents: String) {
     val path = "app/src/main/AndroidManifest.xml"
-    val manifest: VirtualFile = projectRule.fixture.findFileInTempDir(path)
-    ApplicationManager.getApplication().invokeAndWait {
-      ApplicationManager.getApplication()
-        .runWriteAction(
-          object : Runnable {
-            override fun run() {
-              try {
-                manifest.delete(this)
-              } catch (e: IOException) {
-                TestCase.fail("Could not delete manifest")
-              }
-            }
-          }
-        )
-    }
     projectRule.fixture.addFileToProject(path, manifestContents)
-  }
-
-  @Throws(Exception::class)
-  private fun getMergedManifest(manifestContents: String): MergedManifestSnapshot? {
-    addMergedManifest(manifestContents)
-
-    return MergedManifestManager.getMergedManifest(projectRule.project.findAppModule()).get()
   }
 }

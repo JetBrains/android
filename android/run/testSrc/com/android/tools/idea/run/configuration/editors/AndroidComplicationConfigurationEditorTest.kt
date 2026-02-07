@@ -25,35 +25,29 @@ import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.deployer.model.component.Complication.ComplicationType
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.model.MergedManifestManager
-import com.android.tools.idea.model.MergedManifestSnapshot
-import com.android.tools.idea.model.TestMergedManifestSnapshotBuilder
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.android.tools.idea.run.configuration.AndroidComplicationConfigurationType
 import com.android.tools.idea.run.configuration.ComplicationSlot
 import com.android.tools.idea.run.configuration.ComplicationWatchFaceInfo
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.utils.PositionXmlParser
-import com.android.utils.concurrency.AsyncSupplier
-import com.google.common.base.Charsets
 import com.google.common.truth.Truth.assertThat
-import com.google.common.util.concurrent.Futures.immediateFuture
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.application.options.ModulesComboBox
 import com.intellij.execution.impl.ConfigurationSettingsEditorWrapper
 import com.intellij.execution.impl.RunManagerImpl
 import com.intellij.execution.impl.RunnerAndConfigurationSettingsImpl
 import com.intellij.execution.impl.SingleConfigurationConfigurable
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.options.ex.SingleConfigurableEditor
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import com.intellij.testFramework.replaceService
+import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.components.JBTextField
 import java.awt.event.ActionEvent
-import java.io.ByteArrayInputStream
 import java.nio.file.Files
 import java.nio.file.Paths
 import javax.swing.JCheckBox
@@ -69,22 +63,21 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
-import org.w3c.dom.Element
 
 class AndroidComplicationConfigurationEditorTest {
   @get:Rule val ignoreTestRule = IgnoreTestRule()
 
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
 
   private val fixture
     get() = projectRule.fixture
 
   private val module
-    get() = projectRule.module
+    get() =
+      projectRule.project.getProjectSystem().getSyncManager().let {
+        com.intellij.openapi.module.ModuleManager.getInstance(projectRule.project).findModuleByName("app") ?: projectRule.module
+      }
 
-  private lateinit var manifestSnapshot: MergedManifestSnapshot
   private lateinit var runConfiguration: AndroidComplicationConfiguration
   private lateinit var configurationConfigurable: SingleConfigurationConfigurable<AndroidComplicationConfiguration>
   private lateinit var settingsEditor: AndroidComplicationConfigurationEditor
@@ -154,19 +147,8 @@ class AndroidComplicationConfigurationEditorTest {
 
   @Before
   fun setUp() {
-    manifestSnapshot = TestMergedManifestSnapshotBuilder.builder(module).build()
+    servicesInManifest.clear()
     fixture.addComplicationServiceClass()
-
-    // List of FQ Complication names added and their supported types as String in manifest.
-    val complicationsInProject =
-      mapOf(
-        "com.example.MyIconComplication" to "ICON",
-        "com.example.MyLongShortTextComplication" to "LONG_TEXT, SHORT_TEXT",
-        "com.example.MyNoTypeComplication" to "",
-        "com.example.MyAllTypesComplication" to ComplicationType.entries.joinToString { it.name },
-      )
-
-    complicationsInProject.forEach(addComplicationToProjectAndManifest())
 
     val runConfigurationFactory = AndroidComplicationConfigurationType().configurationFactories[0]
     val runManager = RunManagerImpl.getInstanceImpl(projectRule.project)
@@ -180,11 +162,25 @@ class AndroidComplicationConfigurationEditorTest {
         AndroidComplicationConfigurationEditor::class.java
       )
     Disposer.register(projectRule.testRootDisposable, settingsEditor)
-    mockMergedManifest()
+
+    // List of FQ Complication names added and their supported types as String in manifest.
+    val complicationsInProject =
+      mapOf(
+        "com.example.MyIconComplication" to "ICON",
+        "com.example.MyLongShortTextComplication" to "LONG_TEXT, SHORT_TEXT",
+        "com.example.MyNoTypeComplication" to "",
+        "com.example.MyAllTypesComplication" to ComplicationType.entries.joinToString { it.name },
+      )
+
+    complicationsInProject.forEach { (name, type) ->
+      fixture.addComplication(name)
+      servicesInManifest.add(getServiceString(name, type))
+    }
+    updateManifest()
 
     // Don't delete. Is needed for [BaseRCSettingsConfigurable.isModified] be checked via
     // serialization.
-    configurationConfigurable.apply()
+    runInEdtAndWait { configurationConfigurable.apply() }
     modulesComboBox.isEditable = true // To allow setting fake module names in the tests.
     runBlocking { configurationConfigurable.resetAndWait() }
   }
@@ -194,40 +190,44 @@ class AndroidComplicationConfigurationEditorTest {
     configurationConfigurable.disposeUIResources()
   }
 
-  private fun addComplicationToProjectAndManifest() = { name: String, supportedTypes: String ->
+  private fun addComplicationToProjectAndManifest(): (String, String) -> Unit = { name, supportedTypes ->
     fixture.addComplication(name)
-    val newServiceInManifest = getServiceDomElement(name, supportedTypes)
-    manifestSnapshot =
-      TestMergedManifestSnapshotBuilder.builder(module).setServices(manifestSnapshot.services + newServiceInManifest).build()
+    val serviceString = getServiceString(name, supportedTypes)
+    servicesInManifest.add(serviceString)
+    updateManifest()
   }
 
-  private fun getServiceDomElement(complicationName: String, supportedTypes: String): Element {
-    val serviceString =
-      """<?xml version="1.0" encoding="utf-8"?>
-    <service xmlns:android="http://schemas.android.com/apk/res/android"
-        android:name="$complicationName">
+  private val servicesInManifest = mutableListOf<String>()
+
+  private fun updateManifest() {
+    runInEdtAndWait {
+      val manifestContent =
+        """
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+            package="google.simpleapplication">
+            <application>
+                ${servicesInManifest.joinToString("\n")}
+            </application>
+        </manifest>
+      """
+          .trimIndent()
+      val file = fixture.findFileInTempDir("app/src/main/AndroidManifest.xml")
+      if (file != null) {
+        runWriteAction { com.intellij.openapi.vfs.VfsUtil.saveText(file, manifestContent) }
+      } else {
+        fixture.addFileToProject("app/src/main/AndroidManifest.xml", manifestContent)
+      }
+    }
+  }
+
+  private fun getServiceString(complicationName: String, supportedTypes: String): String {
+    return """
+    <service android:name="$complicationName">
         <meta-data
             android:name="android.support.wearable.complications.SUPPORTED_TYPES"
             android:value="$supportedTypes"/>
     </service>
     """
-
-    val stream = ByteArrayInputStream(serviceString.toByteArray(Charsets.UTF_8))
-    val document = PositionXmlParser.parse(stream)
-    return document.documentElement
-  }
-
-  private fun mockMergedManifest() {
-    val supplier =
-      object : AsyncSupplier<MergedManifestSnapshot> {
-        override val now
-          get() = manifestSnapshot
-
-        override fun get(): ListenableFuture<MergedManifestSnapshot> = immediateFuture(manifestSnapshot)
-      }
-    val mockMergedManifestManager = mock<MergedManifestManager>()
-    whenever(mockMergedManifestManager.mergedManifest).thenReturn(supplier)
-    module.replaceService(MergedManifestManager::class.java, mockMergedManifestManager, projectRule.project)
   }
 
   @Test
@@ -600,10 +600,12 @@ class AndroidComplicationConfigurationEditorTest {
     if (componentComboBox.item == "com.example.MyAllTypesComplication") {
       return
     }
-    modulesComboBox.item = module
+    withContext(uiThread) { modulesComboBox.item = module }
     delayUntilCondition(200) { componentComboBox.item != null }
-    if (componentComboBox.item != "com.example.MyAllTypesComplication") {
-      componentComboBox.item = "com.example.MyAllTypesComplication"
+    withContext(uiThread) {
+      if (componentComboBox.item != "com.example.MyAllTypesComplication") {
+        componentComboBox.item = "com.example.MyAllTypesComplication"
+      }
     }
     val slotsTotal = runConfiguration.componentLaunchOptions.watchFaceInfo.complicationSlots.size
     waitAndAssertSlotConfiguration(all = slotsTotal, enabled = slotsTotal, checked = 0, supportedTypes = ComplicationType.entries.toSet())
@@ -647,7 +649,7 @@ class AndroidComplicationConfigurationEditorTest {
 
 private fun CodeInsightTestFixture.addComplicationServiceClass() = runBlocking {
   addFileToProject(
-    "src/lib/ComplicationDataSourceService.kt",
+    "app/src/main/java/androidx/wear/watchface/complications/datasource/ComplicationDataSourceService.kt",
     """
     package androidx.wear.watchface.complications.datasource
 
@@ -659,13 +661,14 @@ private fun CodeInsightTestFixture.addComplicationServiceClass() = runBlocking {
 
 private fun CodeInsightTestFixture.addComplication(complicationFqName: String) {
   addFileToProject(
-    "src/lib/${complicationFqName.replace(".", "/")}.java",
+    "app/src/main/java/${complicationFqName.replace(".", "/")}.java",
     """
     package ${complicationFqName.substringBeforeLast(".")}
 
     public class ${
                      complicationFqName.substringAfterLast(".")
-                   } extends androidx.wear.watchface.complications.datasource.ComplicationDataSourceService
+                   } extends androidx.wear.watchface.complications.datasource.ComplicationDataSourceService {
+    }
   """
       .trimIndent(),
   )
