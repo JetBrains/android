@@ -65,6 +65,7 @@ import com.android.testutils.FakeProcessHandle
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils.rotateByQuadrants
 import com.android.tools.adtui.util.normalizedRotation
+import com.android.tools.adtui.util.scaled
 import com.android.tools.idea.avdmanager.RunningAvdTracker
 import com.android.tools.idea.io.grpc.ForwardingServerCall.SimpleForwardingServerCall
 import com.android.tools.idea.io.grpc.ForwardingServerCallListener.SimpleForwardingServerCallListener
@@ -207,8 +208,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
 
   @Volatile var extendedControlsVisible = false
 
-  @Volatile
-  var frameNumber: UInt = 0u
+  @Volatile var frameNumber: UInt = 0u
     private set
 
   /** Ids of snapshots that were created by calling the [createIncompatibleSnapshot] method. */
@@ -519,14 +519,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
         displayHeight = it.height
       }
     }
-    val aspectRatio = displayHeight.toDouble() / displayWidth
-    val w = if (width == 0) displayWidth else min(width, displayWidth)
-    val h = if (height == 0) displayHeight else min(height, displayHeight)
-    return if (displayRotation.number % 2 == 0) {
-      Dimension(w.coerceAtMost((h / aspectRatio).toInt()), h.coerceAtMost((w * aspectRatio).toInt()))
-    } else {
-      Dimension(h.coerceAtMost((w / aspectRatio).toInt()), w.coerceAtMost((h * aspectRatio).toInt()))
-    }
+    return computeConstrainedSize(displayWidth, displayHeight, displayRotation.number, width, height)
   }
 
   private fun createVirtualSceneCameraNotification(cameraActive: Boolean, displayId: Int): Notification =
@@ -695,8 +688,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
     override fun getScreenshot(request: ImageFormat, responseObserver: StreamObserver<Image>) {
       executor.execute {
         val displayId = request.display
-        val size = getScaledAndRotatedDisplaySize(request.width, request.height, displayId)
-        val image = drawDisplayImage(size, displayId)
+        val image = createScreenshotImage(request, displayId)
         val stream = ByteArrayOutputStream()
         ImageIO.write(image, "PNG", stream)
 
@@ -720,6 +712,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
         sendScreenshot(request, responseObserver)
       }
     }
+  }
+
+  private fun createScreenshotImage(request: ImageFormat, displayId: Int): BufferedImage {
+    val size = getScaledAndRotatedDisplaySize(request.width, request.height, displayId)
+    return drawDisplayImage(size, displayId)
   }
 
   private inner class EmulatorSnapshotService(private val executor: ExecutorService) : SnapshotServiceGrpc.SnapshotServiceImplBase() {
@@ -2075,9 +2072,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
       return avdFolder
     }
 
-    @JvmStatic fun getSkinFolder(skinName: String): Path = getRootSkinFolder().resolve(skinName)
+    @JvmStatic fun getSkinFolder(skinName: String): Path = getDeviceArtFolder().resolve(skinName)
 
-    @JvmStatic fun getRootSkinFolder(): Path = TestUtils.resolveWorkspacePathUnchecked(DEVICE_ART_RESOURCES_DIR)
+    @JvmStatic fun getDeviceArtFolder(): Path = TestUtils.resolveWorkspacePathUnchecked(DEVICE_ART_RESOURCES_DIR)
 
     @JvmStatic fun grpcServerName(port: Int) = "FakeEmulator@${port}"
 
@@ -2113,6 +2110,20 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
         "android.emulation.control.EmulatorController/getXrOptions",
       )
     val IGNORE_SCREENSHOT_CALL_FILTER = DEFAULT_CALL_FILTER.or("android.emulation.control.EmulatorController/streamScreenshot")
+  }
+}
+
+/**
+ * Computes size of the largest rectangle with aspect ratio determined by [width] and [height] rotated by [rotation] quadrants that fits
+ * into [maxWidth] by [maxHeight] rectangle and also doesn't exceed [width] by [height].
+ */
+private fun computeConstrainedSize(width: Int, height: Int, rotation: Int, maxWidth: Int, maxHeight: Int): Dimension {
+  val aspectRatio = height.toDouble() / width
+  val w = if (maxWidth == 0) width else min(maxWidth, width)
+  val h = if (maxHeight == 0) height else min(maxHeight, height)
+  return when (rotation % 2) {
+    0 -> Dimension(w.coerceAtMost(h.scaled(1 / aspectRatio)), h.coerceAtMost(w.scaled(aspectRatio)))
+    else -> Dimension(h.coerceAtMost(w.scaled(1 / aspectRatio)), w.coerceAtMost(h.scaled(aspectRatio)))
   }
 }
 
