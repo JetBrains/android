@@ -521,7 +521,7 @@ jvm_library(
     "@lib//:kotlinc-compose-compiler-plugin-provided",
     "@lib//:kotlinc-analysis-api-platform-interface",
     "@lib//:kotlinc-analysis-api",
-    "//plugins/kotlin/bundled-compiler-plugins-support",
+    "//plugins/kotlin/bundled-compiler-plugins-support:compilerPlugins-support-bundled",
     "@lib//:kotlinc-kotlin-compiler-fe10",
   ],
   runtime_deps = [":core-tests"]

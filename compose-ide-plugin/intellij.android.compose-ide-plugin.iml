@@ -113,7 +113,7 @@
     <orderEntry type="module" module-name="intellij.kotlin.highlighting" />
     <orderEntry type="module" module-name="intellij.android.completion" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.compose-compiler-plugin" level="project" />
-    <orderEntry type="module" module-name="kotlin.bundled-compiler-plugins-support" />
+    <orderEntry type="module" module-name="intellij.kotlin.compilerPlugins.support.bundled" />
     <orderEntry type="module" module-name="intellij.kotlin.jvm.debugger.base.util" />
     <orderEntry type="module" module-name="kotlin.code-insight.live-templates.shared" />
     <orderEntry type="module" module-name="intellij.java.guiForms.rt" />

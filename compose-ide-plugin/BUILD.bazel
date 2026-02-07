@@ -114,7 +114,7 @@ jvm_library(
     "//plugins/kotlin/highlighting/highlighting-k2:kotlin-highlighting",
     "//android/completion",
     "@lib//:kotlinc-compose-compiler-plugin-provided",
-    "//plugins/kotlin/bundled-compiler-plugins-support",
+    "//plugins/kotlin/bundled-compiler-plugins-support:compilerPlugins-support-bundled",
     "//plugins/kotlin/jvm-debugger/base/util",
     "//plugins/kotlin/code-insight/live-templates-shared:kotlin-code-insight-live-templates-shared",
     "//platform/forms_rt:java-guiForms-rt",
