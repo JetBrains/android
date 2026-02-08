@@ -16,14 +16,21 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.adtui.actions.ZoomType
+import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.IdeEventQueue
+import com.intellij.ide.impl.HeadlessDataManager
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import java.awt.Dimension
+import java.awt.KeyboardFocusManager
+import java.awt.event.KeyEvent
 import javax.swing.JPanel
+import javax.swing.SwingUtilities
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -133,4 +140,54 @@ class ZoomableContainerTest {
     container.zoom(ZoomType.FIT)
     assertThat(zoomPercent).isEqualTo(60)
   }
+
+  @Test
+  fun testZoomShortcuts() {
+    // Necessary to properly find the zoomable controller via the data sink
+    HeadlessDataManager.fallbackToProductionDataManager(projectRule.testRootDisposable)
+
+    val fakeUi = FakeUi(container, createFakeWindow = true)
+    container.setSize(600, 600)
+    fakeUi.layout()
+
+    val focusManager = FakeKeyboardFocusManager(projectRule.testRootDisposable)
+    focusManager.setActiveWindow(SwingUtilities.getWindowAncestor(container))
+
+    // Click on the content panel to request focus
+    fakeUi.mouse.click(10, 10)
+    // Verify focus
+    assertThat(focusManager.focusOwner).isEqualTo(container)
+
+    val initialZoom = zoomPercent
+
+    zoomIn()
+    assertThat(zoomPercent).isGreaterThan(initialZoom)
+
+    val zoomAfterIn = zoomPercent
+
+    zoomOut()
+    assertThat(zoomPercent).isLessThan(zoomAfterIn)
+  }
+
+  private fun zoomIn() {
+    val dispatcher = IdeEventQueue.getInstance().keyEventDispatcher
+    dispatcher.dispatchKeyEvent(createZoomKeyEvent(pressed = true, zoomIn = true))
+    dispatcher.dispatchKeyEvent(createZoomKeyEvent(pressed = false, zoomIn = true))
+  }
+
+  private fun zoomOut() {
+    val dispatcher = IdeEventQueue.getInstance().keyEventDispatcher
+    dispatcher.dispatchKeyEvent(createZoomKeyEvent(pressed = true, zoomIn = false))
+    dispatcher.dispatchKeyEvent(createZoomKeyEvent(pressed = false, zoomIn = false))
+  }
+
+  private fun createZoomKeyEvent(pressed: Boolean, zoomIn: Boolean) =
+    KeyEvent(
+      KeyboardFocusManager.getCurrentKeyboardFocusManager().focusOwner,
+      if (pressed) KeyEvent.KEY_PRESSED else KeyEvent.KEY_RELEASED,
+      System.nanoTime(),
+      if (SystemInfo.isMac) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK,
+      if (zoomIn) KeyEvent.VK_ADD else KeyEvent.VK_MINUS,
+      if (zoomIn) '+' else '-',
+    )
 }
