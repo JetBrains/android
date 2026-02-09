@@ -53,6 +53,7 @@ jvm_library(
     "//platform/util:util-ui",
     "//android/analytics",
     "//platform/xdebugger-impl:debugger-impl",
+    "//platform/xdebugger-impl/ui",
     "//android/adt-ui-compose",
     "//android/artwork-compose",
     "//android/intellij.android.device:device",
