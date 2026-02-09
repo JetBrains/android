@@ -2307,6 +2307,16 @@ public final class StudioFlags {
                     "Enable the new Lucene-backed IntelliJ index for RAG",
                     "When enabled, the RAG index will use the new Lucene-backed IntelliJ index pipeline. Otherwise, the original crawler-based pipeline will be used.");
 
+  public static final Flag<Boolean> STUDIOBOT_WORD_DIFF_ENABLED =
+    new BooleanFlag(STUDIOBOT, "word.diff",
+                    "Enable word-level diffs",
+                    "Enables word-level diffs in the changes drawer and inline diffs.");
+
+  public static final Flag<Boolean> STUDIOBOT_INLINE_DIFF_WORD_DIFF_IGNORE_WHITESPACE =
+    new BooleanFlag(STUDIOBOT, "inline.diff.word.diff.ignore.whitespace",
+                    "Ignore whitespace in word diffs",
+                    "Whether word-level diffs in the inline diff viewer should ignore whitespace.");
+
   public static final Flag<Boolean> STUDIOBOT_IS_G1_INTEGRATION_ENABLED =
     new BooleanFlag(STUDIOBOT, "g1.integration.enabled",
                     "Enable the integration with Google one.",
