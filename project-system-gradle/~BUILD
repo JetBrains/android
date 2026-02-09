@@ -122,6 +122,7 @@ iml_module(
         "//tools/adt/idea/gradle-declarative-lang-flags:intellij.android.gradle.declarative.lang.flags",
         "@intellij//:intellij.spellchecker",
         "@intellij//:intellij.properties.backend.psi",
+        "//tools/adt/idea/.idea/libraries:google-api-client",
     ],
 )
 
@@ -668,6 +669,7 @@ iml_module(
         "@intellij//:intellij.properties.backend.psi",
         "//tools/adt/idea/.idea/libraries:equalsverifier",
         "@intellij//:tanvd.grazi",
+        "//tools/adt/idea/.idea/libraries:google-api-client",
     ],
     test_jvm_flags = ["-Didea.skip.indices.initialization=true"],
     test_resources = ["testResources"],

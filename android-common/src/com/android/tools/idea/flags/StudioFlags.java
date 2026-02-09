@@ -1107,6 +1107,19 @@ public final class StudioFlags {
     "Multiple Device Specs",
     "Allows Studio to pass multiple device spec files separately to AGP along with target device spec.");
 
+  public static final Flag<Boolean> SIGNED_BUILD_ADV_FEATURE = new BooleanFlag(
+    GRADLE_IDE,
+    "enable.adv.in.signed.build.feature",
+    "ADV Registration in signed build feature",
+    "Include information about ADV in the signed build wizard."
+  );
+
+  public static final Flag<Boolean> SIGNED_BUILD_ADV_ENFORCEMENT_STARTED = new BooleanFlag(
+    GRADLE_IDE,
+    "adv.enforcement.started",
+    "ADV enforcement has started",
+    "Update the ADV message to indicate that registration is enforced.");
+
   //endregion
 
   //region Gradle Phased Sync

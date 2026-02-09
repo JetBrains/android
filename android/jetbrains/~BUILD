@@ -48,6 +48,8 @@ iml_module(
         "@intellij//:intellij.spellchecker",
         "@intellij//:tanvd.grazi",
         "@intellij//:com.jetbrains.sh",
+        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
+        "//tools/adt/idea/artwork:intellij.android.artwork",
     ],
     test_friends = ["//tools/adt/idea/android:intellij.android.core"],
     test_jvm_flags = [

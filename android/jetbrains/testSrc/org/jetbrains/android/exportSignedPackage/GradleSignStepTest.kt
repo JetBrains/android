@@ -15,16 +15,26 @@
  */
 package org.jetbrains.android.exportSignedPackage
 
+import com.android.flags.junit.FlagRule
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.model.IdeBasicVariant
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelImpl
 import com.android.tools.idea.help.AndroidWebHelpProvider
+import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
+import com.intellij.icons.AllIcons
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.util.ui.UIUtil
+import icons.StudioIcons
 import java.io.File
 import java.nio.file.Files
+import java.util.concurrent.CompletableFuture
+import javax.swing.Icon
 import kotlin.io.path.Path
+import kotlinx.coroutines.test.runTest
 import org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard.TargetType
 import org.junit.Before
 import org.junit.Rule
@@ -41,7 +51,8 @@ class GradleSignStepTest {
   private val projectRule = ProjectRule()
   private val edtRule = EdtRule()
 
-  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(edtRule)
+  @get:Rule
+  val ruleChain: RuleChain = RuleChain.outerRule(FlagRule(StudioFlags.SIGNED_BUILD_ADV_FEATURE, true)).around(projectRule).around(edtRule)
 
   @get:Rule val testName = TestName()
 
@@ -60,6 +71,7 @@ class GradleSignStepTest {
   fun setUp() {
     whenever(myWizard.project).thenReturn(project)
     whenever(myWizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
+    whenever(myWizard.disposable).thenReturn(projectRule.disposable)
   }
 
   @Test
@@ -74,7 +86,7 @@ class GradleSignStepTest {
     val properties = PropertiesComponent.getInstance()
     val projectPath = project.basePath
     // Set Bundle to confirm it is not the same
-    val bundlePath = this.homePath + File.separator + "Bundle"
+    val bundlePath = homePath + File.separator + "Bundle"
     properties.setValue(gradleSignStep.getApkPathPropertyName(name, ExportSignedPackageWizard.BUNDLE), bundlePath)
     assertThat(gradleSignStep.getInitialPath(properties, name, ExportSignedPackageWizard.APK)).isEqualTo(projectPath)
   }
@@ -85,7 +97,7 @@ class GradleSignStepTest {
     val properties = PropertiesComponent.getInstance()
     val projectPath = project.basePath
     // Set Apk to confirm it is not the same
-    val apkPath = this.homePath + File.separator + "Apk"
+    val apkPath = homePath + File.separator + "Apk"
     properties.setValue(gradleSignStep.getApkPathPropertyName(name, ExportSignedPackageWizard.APK), apkPath)
     assertThat(gradleSignStep.getInitialPath(properties, name, ExportSignedPackageWizard.BUNDLE)).isEqualTo(projectPath)
   }
@@ -94,8 +106,8 @@ class GradleSignStepTest {
   fun testInitialDestinationApkSet() {
     val gradleSignStep = GradleSignStep(myWizard)
     val properties = PropertiesComponent.getInstance()
-    val apkPath = this.homePath + File.separator + "Apk"
-    val bundlePath = this.homePath + File.separator + "Bundle"
+    val apkPath = homePath + File.separator + "Apk"
+    val bundlePath = homePath + File.separator + "Bundle"
     properties.setValue(gradleSignStep.getApkPathPropertyName(name, ExportSignedPackageWizard.APK), apkPath)
     properties.setValue(gradleSignStep.getApkPathPropertyName(name, ExportSignedPackageWizard.BUNDLE), bundlePath)
     assertThat(gradleSignStep.getInitialPath(properties, name, ExportSignedPackageWizard.APK)).isEqualTo(apkPath)
@@ -105,8 +117,8 @@ class GradleSignStepTest {
   fun testInitialDestinationBundleSet() {
     val gradleSignStep = GradleSignStep(myWizard)
     val properties = PropertiesComponent.getInstance()
-    val apkPath = this.homePath + File.separator + "Apk"
-    val bundlePath = this.homePath + File.separator + "Bundle"
+    val apkPath = homePath + File.separator + "Apk"
+    val bundlePath = homePath + File.separator + "Bundle"
     properties.setValue(gradleSignStep.getApkPathPropertyName(name, ExportSignedPackageWizard.BUNDLE), bundlePath)
     properties.setValue(gradleSignStep.getApkPathPropertyName(name, ExportSignedPackageWizard.APK), apkPath)
     assertThat(gradleSignStep.getInitialPath(properties, name, ExportSignedPackageWizard.BUNDLE)).isEqualTo(bundlePath)
@@ -122,10 +134,69 @@ class GradleSignStepTest {
     verifyDestinationEndsWhiteSpace(ExportSignedPackageWizard.BUNDLE)
   }
 
+  @Test
+  fun testAdiRegistered() = runTest {
+    val client: AdiClient = mock()
+    whenever(client.checkPackageRegistrationStatusAsync("com.example.app", null))
+      .thenReturn(CompletableFuture.completedFuture(RegistrationState.REGISTERED))
+    val gradleSignStep = GradleSignStep(myWizard, client)
+
+    val properties = PropertiesComponent.getInstance(project)
+    properties.setList(GradleSignStep.PROPERTY_BUILD_VARIANTS, listOf("release"))
+    val bundlePath = homePath + File.separator + "Bundle"
+    properties.setValue(gradleSignStep.getApkPathPropertyName(name, ExportSignedPackageWizard.BUNDLE), bundlePath)
+
+    val testAndroidModel: GradleAndroidModelImpl = mock()
+    whenever(testAndroidModel.moduleName).thenReturn(name)
+    whenever(testAndroidModel.filteredVariantNames).thenReturn(listOf("release"))
+    val variant: IdeBasicVariant = mock()
+    whenever(variant.applicationId).thenReturn("com.example.app")
+    whenever(testAndroidModel.findBasicVariantByName("release")).thenReturn(variant)
+
+    gradleSignStep._init(testAndroidModel)
+
+    UIUtil.dispatchAllInvocationEvents()
+
+    val icon = getIconAt(gradleSignStep, 0)
+    assertThat(icon).isEqualTo(StudioIcons.Common.SUCCESS_INLINE)
+  }
+
+  @Test
+  fun testAdiNotRegistered() = runTest {
+    val client: AdiClient = mock()
+    whenever(client.checkPackageRegistrationStatusAsync("com.example.app", null))
+      .thenReturn(CompletableFuture.completedFuture(RegistrationState.NOT_REGISTERED))
+    val gradleSignStep = GradleSignStep(myWizard, client)
+
+    val properties = PropertiesComponent.getInstance(project)
+    properties.setList(GradleSignStep.PROPERTY_BUILD_VARIANTS, listOf("release"))
+    val bundlePath = homePath + File.separator + "Bundle"
+    properties.setValue(gradleSignStep.getApkPathPropertyName(name, ExportSignedPackageWizard.BUNDLE), bundlePath)
+
+    val testAndroidModel: GradleAndroidModelImpl = mock()
+    whenever(testAndroidModel.moduleName).thenReturn(name)
+    whenever(testAndroidModel.filteredVariantNames).thenReturn(listOf("release"))
+    val variant: IdeBasicVariant = mock()
+    whenever(variant.applicationId).thenReturn("com.example.app")
+    whenever(testAndroidModel.findBasicVariantByName("release")).thenReturn(variant)
+
+    gradleSignStep._init(testAndroidModel)
+
+    UIUtil.dispatchAllInvocationEvents()
+
+    val icon = getIconAt(gradleSignStep, 0)
+    assertThat(icon).isEqualTo(AllIcons.General.Note)
+  }
+
+  private fun getIconAt(step: GradleSignStep, index: Int): Icon? {
+    val element = step.myBuildVariantsList.model.getElementAt(index) as GradleSignStep.VariantItem
+    return element.icon
+  }
+
   private fun verifyDestinationEndsWhiteSpace(targetType: TargetType) {
     val gradleSignStep = GradleSignStep(myWizard)
     val properties = PropertiesComponent.getInstance(project)
-    val destinationPath = "${this.homePath}${File.separator}$targetType "
+    val destinationPath = "${homePath}${File.separator}$targetType "
     whenever(myWizard.targetType).thenReturn(targetType)
     val testAndroidModel: GradleAndroidModelImpl = mock()
     whenever(testAndroidModel.moduleName).thenReturn(name)

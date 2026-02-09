@@ -280,6 +280,11 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     myGradleSigningInfo = gradleSigningInfo;
   }
 
+  @Nullable
+  public GradleSigningInfo getGradleSigningInfo() {
+    return myGradleSigningInfo;
+  }
+
   private static Logger getLog() {
     return Logger.getInstance(ExportSignedPackageWizard.class);
   }
