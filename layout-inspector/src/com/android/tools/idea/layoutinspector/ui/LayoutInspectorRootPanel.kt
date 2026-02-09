@@ -30,7 +30,8 @@ import org.jetbrains.annotations.VisibleForTesting
  * Panel that should always be at the root of Layout Inspector hierarchy. It is responsible for providing [LayoutInspector] instance through
  * [com.intellij.ide.DataManager]
  */
-class LayoutInspectorRootPanel(content: Component, private val layoutInspector: LayoutInspector) : BorderLayoutPanel(), UiDataProvider {
+class LayoutInspectorRootPanel(content: Component, @VisibleForTesting val layoutInspector: LayoutInspector) :
+  BorderLayoutPanel(), UiDataProvider {
   companion object {
     fun get(event: AnActionEvent) = event.getData(LAYOUT_INSPECTOR_DATA_KEY)
   }

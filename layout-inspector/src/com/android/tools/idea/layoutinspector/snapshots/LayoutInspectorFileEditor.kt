@@ -71,8 +71,7 @@ import javax.swing.JPanel
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.VisibleForTesting
 
-@VisibleForTesting
-val STATUS_TEXT_KEY = Key.create<StatusText>("status_text")
+@VisibleForTesting val STATUS_TEXT_KEY = Key.create<StatusText>("status_text")
 
 class FileEditorInspectorClient(
   private val model: InspectorModel,
@@ -149,8 +148,8 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
         when (model.pictureType) {
           AndroidWindow.ImageType.BITMAP_AS_REQUESTED -> createLayoutInspectorUi(this, project, layoutInspector)
           AndroidWindow.ImageType.SKP_PENDING,
-          AndroidWindow.ImageType.SKP -> throw IllegalStateException(
-            "SKP image type is no longer supported starting with Android Studio Panda 2")
+          AndroidWindow.ImageType.SKP ->
+            throw IllegalStateException("SKP image type is no longer supported starting with Android Studio Panda 2")
           AndroidWindow.ImageType.UNKNOWN -> throw IllegalStateException("Unknown picture type")
         }
 
@@ -251,6 +250,7 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
         uiConfig = UiConfig.VERTICAL,
         centerPanel = mainPanel,
         toolbarPanel = null,
+        isFocusCycleRoot = true,
       )
 
     scope.launch { toolbarState.overlayImage.collect { renderModel.setOverlay(it) } }

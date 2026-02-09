@@ -199,6 +199,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
         uiConfig = UiConfig.VERTICAL,
         centerPanel = mainPanel,
         toolbarPanel = null,
+        isFocusCycleRoot = true,
       )
 
     scope.launch { toolbarState.isDeepInspectEnabled.collect { renderModel.setInterceptClicks(it) } }

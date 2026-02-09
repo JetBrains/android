@@ -78,6 +78,7 @@ class ToolbarState(val showTitle: Boolean = true, val leftAlightToolbar: Boolean
  * @param centerPanel optional center panel rendered in the workbench. When null the workbench only has the side panels.
  * @param toolbarPanel optional panel contain the toolbar. Can be null if callers prefer to place the toolbar outside the
  *   [LayoutInspectorRootPanel].
+ * @param isFocusCycleRoot trap the focus in the workbench. This should be false for embedded.
  */
 fun createLayoutInspectorPanel(
   project: Project,
@@ -86,6 +87,7 @@ fun createLayoutInspectorPanel(
   uiConfig: UiConfig,
   centerPanel: JComponent?,
   toolbarPanel: JPanel?,
+  isFocusCycleRoot: Boolean = false,
 ): LayoutInspectorRootPanel {
   val inspectorPanel = BorderLayoutPanel()
 
@@ -103,6 +105,7 @@ fun createLayoutInspectorPanel(
             uiConfig = uiConfig,
             centerPanel = null,
             toolbarPanel = toolbarPanel,
+            isFocusCycleRoot = isFocusCycleRoot,
           )
         val splitPanel =
           OnePixelSplitter(true, SPLITTER_KEY, 0.65f).apply {
@@ -127,6 +130,7 @@ fun createLayoutInspectorPanel(
           uiConfig = uiConfig,
           centerPanel = centerPanel,
           toolbarPanel = toolbarPanel,
+          isFocusCycleRoot = isFocusCycleRoot,
         )
       }
     }
@@ -151,9 +155,10 @@ private fun createToolsPanel(
   uiConfig: UiConfig,
   centerPanel: JComponent?,
   toolbarPanel: JPanel?,
+  isFocusCycleRoot: Boolean,
 ): JPanel {
   val workBench = createLayoutInspectorWorkbench(project, disposable, layoutInspector, uiConfig, centerPanel)
-  workBench.isFocusCycleRoot = false
+  workBench.isFocusCycleRoot = isFocusCycleRoot
 
   // Split panel used for inspection of State Reads in Compose.
   val splitPanel =

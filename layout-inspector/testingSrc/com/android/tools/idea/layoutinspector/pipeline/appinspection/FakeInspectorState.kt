@@ -864,6 +864,10 @@ class FakeInspectorState(private val viewInspector: FakeViewLayoutInspector, pri
                         .apply {
                           addAllStrings(viewStrings)
                           this.rootView = LayoutInspectorViewProtocol.RootView.newBuilder().apply { node = rootNode }.build()
+                          this.screenshot =
+                            LayoutInspectorViewProtocol.Screenshot.newBuilder()
+                              .apply { type = LayoutInspectorViewProtocol.Screenshot.Type.BITMAP }
+                              .build()
                           configurationBuilder.apply {
                             density = Density.HIGH.dpiValue
                             fontScale = 1.5f
@@ -1094,6 +1098,8 @@ class FakeInspectorState(private val viewInspector: FakeViewLayoutInspector, pri
       layoutEventBuilder.apply {
         addAllStrings(viewStrings)
         this.rootView = LayoutInspectorViewProtocol.RootView.newBuilder().apply { node = rootView }.build()
+        this.screenshot =
+          LayoutInspectorViewProtocol.Screenshot.newBuilder().apply { type = LayoutInspectorViewProtocol.Screenshot.Type.BITMAP }.build()
         if (!excludeConfiguration) {
           configurationBuilder.apply {
             density = Density.HIGH.dpiValue
