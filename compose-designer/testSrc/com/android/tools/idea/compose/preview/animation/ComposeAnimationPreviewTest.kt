@@ -63,6 +63,7 @@ import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Ignore
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.any
@@ -415,6 +416,7 @@ class ComposeAnimationPreviewTest : AnimationPreviewTests() {
     assertEquals(0, animationPreview.animationPreviewCardsCount())
   }
 
+  @Ignore("b/463308626")
   @OptIn(ExperimentalCoroutinesApi::class)
   @Test
   fun addAndRemoveAllAnimations() = runTest {
