@@ -32,6 +32,7 @@ import com.android.tools.idea.layoutinspector.ui.toolbar.actions.OverlayActionGr
 import com.android.tools.idea.layoutinspector.ui.toolbar.createLayoutInspectorToolbar
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.ui.JBColor
@@ -78,6 +79,7 @@ class ToolbarState(val showTitle: Boolean = true, val leftAlightToolbar: Boolean
  * @param centerPanel optional center panel rendered in the workbench. When null the workbench only has the side panels.
  * @param toolbarPanel optional panel contain the toolbar. Can be null if callers prefer to place the toolbar outside the
  *   [LayoutInspectorRootPanel].
+ * @param dataProviders data that should be provided from the top level JComponent.
  * @param isFocusCycleRoot trap the focus in the workbench. This should be false for embedded.
  */
 fun createLayoutInspectorPanel(
@@ -87,6 +89,7 @@ fun createLayoutInspectorPanel(
   uiConfig: UiConfig,
   centerPanel: JComponent?,
   toolbarPanel: JPanel?,
+  dataProviders: List<UiDataProvider> = emptyList(),
   isFocusCycleRoot: Boolean = false,
 ): LayoutInspectorRootPanel {
   val inspectorPanel = BorderLayoutPanel()
@@ -138,7 +141,7 @@ fun createLayoutInspectorPanel(
   val inspectorBanner = InspectorBanner(disposable, layoutInspector.notificationModel)
   inspectorPanel.add(inspectorBanner, BorderLayout.NORTH)
   inspectorPanel.add(mainPanel, BorderLayout.CENTER)
-  return LayoutInspectorRootPanel(inspectorPanel, layoutInspector)
+  return LayoutInspectorRootPanel(inspectorPanel, layoutInspector, dataProviders)
 }
 
 /**

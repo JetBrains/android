@@ -16,28 +16,50 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.testutils.waitForCondition
+import com.android.tools.adtui.swing.FakeKeyboardFocusManager
+import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.findAllDescendants
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.layoutinspector.model.NotificationModel
+import com.android.tools.idea.layoutinspector.model.SelectionOrigin
+import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.FakeInspectorState
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager
 import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurable
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
+import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
+import com.android.tools.idea.layoutinspector.util.tab
+import com.android.tools.idea.layoutinspector.util.zoomIn
+import com.android.tools.idea.layoutinspector.util.zoomOut
 import com.android.tools.idea.sdk.AndroidProjectChecker
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ui.createFakeToolWindow
 import com.android.tools.idea.testing.ui.toolWindowBalloons
+import com.android.tools.property.panel.impl.ui.InspectorPanelImpl
+import com.android.tools.property.ptable.PTable
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.ide.impl.HeadlessDataManager
+import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.openapi.wm.ext.LibraryDependentToolWindow
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.replaceService
+import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.ui.treeStructure.treetable.TreeTable
+import java.awt.Component
+import java.awt.Dimension
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import javax.swing.SwingUtilities
 import kotlin.test.fail
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
@@ -46,7 +68,6 @@ import kotlinx.coroutines.test.TestCoroutineScheduler
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -59,9 +80,11 @@ class LayoutInspectorToolWindowFactoryTest {
   private val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
   private val appInspectionRule = AppInspectionInspectorRule(projectRule)
   private val layoutInspectorRule =
-    LayoutInspectorRule(clientProviders = listOf(appInspectionRule.createInspectorClientProvider()), projectRule)
+    LayoutInspectorRule(clientProviders = listOf(appInspectionRule.createInspectorClientProvider()), projectRule) {
+      it.name == MODERN_PROCESS.name
+    }
 
-  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(appInspectionRule).around(layoutInspectorRule)!!
+  @get:Rule val ruleChain = RuleChain(projectRule, appInspectionRule, layoutInspectorRule, EdtRule())
 
   @Before
   fun setUp() {
@@ -319,4 +342,106 @@ class LayoutInspectorToolWindowFactoryTest {
       ApplicationManager.getApplication().replaceService(ShowSettingsUtil::class.java, originalService, projectRule.testRootDisposable)
     }
   }
+
+  @Test
+  fun testFocusNavigation() {
+    val project = projectRule.project
+    val disposable = projectRule.testRootDisposable
+    HeadlessDataManager.fallbackToProductionDataManager(disposable) // Necessary to properly find the zoomable controller via the data sink
+    val toolWindow = createFakeToolWindow(project, disposable, LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
+    val projectService = projectRule.mockProjectService(LayoutInspectorProjectService::class.java)
+    whenever(projectService.getLayoutInspector()).thenReturn(layoutInspectorRule.inspector)
+
+    val inspectorState = FakeInspectorState(appInspectionRule.viewInspector, appInspectionRule.composeInspector)
+    inspectorState.createFakeViewTree()
+    inspectorState.createFakeViewAttributes()
+
+    val modelUpdatedLatch = ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
+    layoutInspectorRule.inspectorModel.addModificationListener { _, _, _ -> modelUpdatedLatch.countDown() }
+    layoutInspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    waitForCondition(20, TimeUnit.SECONDS) { layoutInspectorRule.inspectorModel.windows.isNotEmpty() }
+
+    runInEdtAndWait {
+      LayoutInspectorToolWindowFactory().createToolWindowContent(project, toolWindow)
+      val standaloneUi = toolWindow.contentManager.contents.first().component
+      standaloneUi.parent.remove(standaloneUi)
+      standaloneUi.size = Dimension(800, 600)
+      val ui = FakeUi(standaloneUi, createFakeWindow = true, parentDisposable = disposable)
+      val focusManager = FakeKeyboardFocusManager(disposable)
+      focusManager.setActiveWindow(SwingUtilities.getWindowAncestor(standaloneUi))
+      val settings = layoutInspectorRule.inspector.renderSettings
+
+      // Start with focus on the standalone inspector UI
+      standaloneUi.requestFocusInWindow()
+      assertThat(focusManager.focusOwner).isEqualTo(standaloneUi)
+      assertThat(settings.scalePercent).isEqualTo(100)
+
+      val model = layoutInspectorRule.inspectorModel
+      model.setSelection(model[VIEW2], SelectionOrigin.INTERNAL)
+
+      // Wait until the properties table is displaying attributes
+      waitForCondition(30.seconds) { standaloneUi.propertyTables.let { tables -> tables.isNotEmpty() && tables.all { it.itemCount > 3 } } }
+
+      ui.tab()
+      assertThat(focusManager.focusOwner).isInstanceOf(ActionButton::class.java)
+
+      // Verify that the zoom controls shortcut keys are active from the action buttons
+      zoomOut()
+      assertThat(settings.scalePercent).isEqualTo(90)
+
+      // Move out of the component tree toolbar
+      while (focusManager.focusOwner is ActionButton) {
+        ui.tab()
+      }
+
+      // The component tree should now have focus
+      assertThat(focusManager.focusOwner).isInstanceOf(TreeTable::class.java)
+
+      // Verify that the zoom controls shortcut keys are active from the component tree
+      // TODO(b/485272696) the keystrokes should cause expand all/collapse all in the component tree
+      zoomIn()
+      assertThat(settings.scalePercent).isEqualTo(100)
+
+      // Move out of the component tree
+      ui.tab()
+
+      // An actionButton in the zoom controls
+      assertThat(focusManager.focusOwner).isInstanceOf(ActionButton::class.java)
+
+      // Verify that the zoom controls shortcut keys are active from the zoom action buttons
+      zoomOut()
+      assertThat(settings.scalePercent).isEqualTo(90)
+
+      // Move out of the zoom buttons
+      while (focusManager.focusOwner is ActionButton) {
+        ui.tab()
+      }
+
+      // The attributes table should now have focus
+      assertThat(SwingUtilities.getAncestorOfClass(InspectorPanelImpl::class.java, focusManager.focusOwner)).isNotNull()
+
+      // Verify that the zoom controls shortcut keys are active from the attributes table
+      zoomIn()
+      assertThat(settings.scalePercent).isEqualTo(100)
+
+      // Move out of the attributes table
+      while (SwingUtilities.getAncestorOfClass(InspectorPanelImpl::class.java, focusManager.focusOwner) != null) {
+        ui.tab()
+      }
+
+      // We should be back in the toolbar for the component tree
+      assertThat(focusManager.focusOwner).isInstanceOf(ActionButton::class.java)
+
+      // Verify that by moving out of the toolbar
+      while (focusManager.focusOwner is ActionButton) {
+        ui.tab()
+      }
+
+      // The Component Tree should now have focus again
+      assertThat(focusManager.focusOwner).isInstanceOf(TreeTable::class.java)
+    }
+  }
+
+  private val Component.propertyTables: List<PTable>
+    get() = findAllDescendants<PTable>().toList()
 }

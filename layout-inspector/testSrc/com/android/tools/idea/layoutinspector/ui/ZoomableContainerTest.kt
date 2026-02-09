@@ -152,11 +152,7 @@ class ZoomableContainerTest {
 
     val focusManager = FakeKeyboardFocusManager(projectRule.testRootDisposable)
     focusManager.setActiveWindow(SwingUtilities.getWindowAncestor(container))
-
-    // Click on the content panel to request focus
-    fakeUi.mouse.click(10, 10)
-    // Verify focus
-    assertThat(focusManager.focusOwner).isEqualTo(container)
+    focusManager.focusOwner = container
 
     val initialZoom = zoomPercent
 

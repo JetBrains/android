@@ -199,6 +199,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
         uiConfig = UiConfig.VERTICAL,
         centerPanel = mainPanel,
         toolbarPanel = null,
+        dataProviders = listOf(container),
         isFocusCycleRoot = true,
       )
 

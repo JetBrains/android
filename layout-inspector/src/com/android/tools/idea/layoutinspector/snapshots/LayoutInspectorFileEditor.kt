@@ -250,6 +250,7 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
         uiConfig = UiConfig.VERTICAL,
         centerPanel = mainPanel,
         toolbarPanel = null,
+        dataProviders = listOf(container),
         isFocusCycleRoot = true,
       )
 

@@ -29,8 +29,6 @@ import java.awt.BorderLayout
 import java.awt.Container
 import java.awt.LayoutManager
 import java.awt.Point
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
 import javax.swing.JLayeredPane
 import javax.swing.JPanel
 import javax.swing.JViewport
@@ -78,16 +76,6 @@ class ZoomableContainer(
     layeredPane.add(scrollPane, BorderLayout.CENTER)
 
     addToCenter(layeredPane)
-
-    // Necessary to get focus and enable keyboard shortcuts in zoom controls.
-    isFocusable = true
-    val mouseAdapter =
-      object : MouseAdapter() {
-        override fun mousePressed(e: MouseEvent) {
-          requestFocusInWindow()
-        }
-      }
-    contentPanel.addMouseListener(mouseAdapter)
   }
 
   override fun zoom(type: ZoomType): Boolean {

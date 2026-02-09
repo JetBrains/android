@@ -27,11 +27,14 @@ import org.jetbrains.annotations.VisibleForTesting
 @VisibleForTesting val LAYOUT_INSPECTOR_DATA_KEY = DataKey.create<LayoutInspector>(LayoutInspector::class.java.name)
 
 /**
- * Panel that should always be at the root of Layout Inspector hierarchy. It is responsible for providing [LayoutInspector] instance through
- * [com.intellij.ide.DataManager]
+ * Panel that should always be at the root of Layout Inspector hierarchy. It is responsible for providing access to data instances through
+ * [com.intellij.ide.DataManager] including [LayoutInspector].
  */
-class LayoutInspectorRootPanel(content: Component, @VisibleForTesting val layoutInspector: LayoutInspector) :
-  BorderLayoutPanel(), UiDataProvider {
+class LayoutInspectorRootPanel(
+  content: Component,
+  private val layoutInspector: LayoutInspector,
+  private val dataProviders: List<UiDataProvider> = emptyList(),
+) : BorderLayoutPanel(), UiDataProvider {
   companion object {
     fun get(event: AnActionEvent) = event.getData(LAYOUT_INSPECTOR_DATA_KEY)
   }
@@ -42,5 +45,6 @@ class LayoutInspectorRootPanel(content: Component, @VisibleForTesting val layout
 
   override fun uiDataSnapshot(sink: DataSink) {
     sink[LAYOUT_INSPECTOR_DATA_KEY] = layoutInspector
+    dataProviders.forEach { it.uiDataSnapshot(sink) }
   }
 }
