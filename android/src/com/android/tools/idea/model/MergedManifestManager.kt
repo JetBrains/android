@@ -40,6 +40,7 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.runBlockingMaybeCancellable
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
@@ -51,7 +52,6 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.TimeSource
 import kotlin.time.toJavaDuration
-import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -310,11 +310,10 @@ private class MergedManifestSupplier(private val module: Module) :
       return computable.compute()
     }
 
-    // b/453194430: This used to execute a non-blocking read action synchronously, but that results
-    // in busy-waiting the background thread which can peg the CPU. The suspending `readAction`
-    // allows us to get the read lock without busy waiting, and while `runBlocking` is not ideal it
-    // maintains the same blocking behavior that already existed.
-    return runBlocking { readAction { computable.compute() } }
+    // b/453194430: avoid ReadAction.nonBlocking() because it busy-waits for the read lock (burning CPU).
+    // b/472799724: avoid raw runBlocking() because it can starve the thread pool if too many requests block simultaneously.
+    @Suppress("UnstableApiUsage")
+    return runBlockingMaybeCancellable { readAction { computable.compute() } }
   }
 }
 
