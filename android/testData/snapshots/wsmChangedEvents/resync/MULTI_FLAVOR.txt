@@ -1,0 +1,137 @@
+Workspace model changed #1, phase: INITIAL_PHASE
+    Roots changed
+    Added ModuleEntity for non-Gradle module, name: <omitted_for_snapshot_consistency>
+    Added ContentRootEntity for non-Gradle module url: <omitted_for_snapshot_consistency>
+Workspace model changed #2, phase: PROJECT_MODEL_PHASE
+    Roots changed
+    Removed ModuleEntity for non-Gradle module, name: <omitted_for_snapshot_consistency>
+    Replaced: ModuleEntity for ModuleId(name=MultiFlavor.app)
+    With:     ModuleEntity for ModuleId(name=MultiFlavor.app)
+    Removed ContentRootEntity for non-Gradle module url: <omitted_for_snapshot_consistency>
+Workspace model changed #3, phase: SOURCE_SET_MODEL_PHASE
+    Roots changed
+    Replaced: ModuleEntity for ModuleId(name=MultiFlavor.app)
+    With:     ModuleEntity for ModuleId(name=MultiFlavor.app)
+    Replaced: ModuleEntity for ModuleId(name=MultiFlavor.app.androidTest)
+    With:     ModuleEntity for ModuleId(name=MultiFlavor.app.androidTest)
+    Replaced: ModuleEntity for ModuleId(name=MultiFlavor.app.main)
+    With:     ModuleEntity for ModuleId(name=MultiFlavor.app.main)
+    Replaced: ModuleEntity for ModuleId(name=MultiFlavor.app.unitTest)
+    With:     ModuleEntity for ModuleId(name=MultiFlavor.app.unitTest)
+    Replaced: ContentRootEntity url: app
+    With:     ContentRootEntity url: app
+    Removed ExcludeUrlEntity url: app/.gradle
+    Removed ExcludeUrlEntity url: app/build
+    Added GradleAndroidModelEntity for MultiFlavor.app
+    Added GradleAndroidModelEntity for MultiFlavor.app.androidTest
+    Added GradleAndroidModelEntity for MultiFlavor.app.main
+    Added GradleAndroidModelEntity for MultiFlavor.app.unitTest
+    Removed GradleAndroidModelEntity for MultiFlavor.app
+    Removed GradleAndroidModelEntity for MultiFlavor.app.androidTest
+    Removed GradleAndroidModelEntity for MultiFlavor.app.main
+    Removed GradleAndroidModelEntity for MultiFlavor.app.unitTest
+    Added JavaModuleSettingsEntity for MultiFlavor.app
+    Added JavaModuleSettingsEntity for MultiFlavor.app.androidTest
+    Added JavaModuleSettingsEntity for MultiFlavor.app.main
+    Added JavaModuleSettingsEntity for MultiFlavor.app.unitTest
+    Removed JavaModuleSettingsEntity for MultiFlavor.app
+    Removed JavaModuleSettingsEntity for MultiFlavor.app.androidTest
+    Removed JavaModuleSettingsEntity for MultiFlavor.app.main
+    Removed JavaModuleSettingsEntity for MultiFlavor.app.unitTest
+    Added GradleModuleModelEntity for MultiFlavor.app
+    Removed GradleModuleModelEntity for MultiFlavor.app
+Workspace model changed #4, phase: DEPENDENCY_MODEL_PHASE
+Workspace model changed #5, phase: ADDITIONAL_MODEL_PHASE
+    Roots changed
+    Replaced: ContentRootEntity url: app
+    With:     ContentRootEntity url: app
+    Added ExcludeUrlEntity url: app/.gradle
+    Added ExcludeUrlEntity url: app/build
+Workspace model changed #6, phase: N/A
+    Replaced: JavaProjectSettingsEntity for the IDE project
+    With:     JavaProjectSettingsEntity for the IDE project
+Workspace model changed #7, phase: N/A
+Workspace model changed #8, phase: N/A
+Workspace model changed #9, phase: N/A
+    Replaced: ModuleEntity for ModuleId(name=MultiFlavor.app)
+    With:     ModuleEntity for ModuleId(name=MultiFlavor.app)
+    Replaced: ModuleEntity for ModuleId(name=MultiFlavor.app.androidTest)
+    With:     ModuleEntity for ModuleId(name=MultiFlavor.app.androidTest)
+    Replaced: ModuleEntity for ModuleId(name=MultiFlavor.app.main)
+    With:     ModuleEntity for ModuleId(name=MultiFlavor.app.main)
+    Replaced: ModuleEntity for ModuleId(name=MultiFlavor.app.unitTest)
+    With:     ModuleEntity for ModuleId(name=MultiFlavor.app.unitTest)
+    Replaced: LibraryEntity: Gradle: androidx.annotation:annotation:1.1.0
+    With:     LibraryEntity: Gradle: androidx.annotation:annotation:1.1.0
+    Replaced: LibraryEntity: Gradle: androidx.arch.core:core-common:2.1.0
+    With:     LibraryEntity: Gradle: androidx.arch.core:core-common:2.1.0
+    Replaced: LibraryEntity: Gradle: androidx.collection:collection:1.1.0
+    With:     LibraryEntity: Gradle: androidx.collection:collection:1.1.0
+    Replaced: LibraryEntity: Gradle: androidx.constraintlayout:constraintlayout-solver:1.1.3
+    With:     LibraryEntity: Gradle: androidx.constraintlayout:constraintlayout-solver:1.1.3
+    Replaced: LibraryEntity: Gradle: androidx.lifecycle:lifecycle-common:2.1.0
+    With:     LibraryEntity: Gradle: androidx.lifecycle:lifecycle-common:2.1.0
+    Replaced: LibraryEntity: Gradle: com.google.code.findbugs:jsr305:2.0.1
+    With:     LibraryEntity: Gradle: com.google.code.findbugs:jsr305:2.0.1
+    Replaced: LibraryEntity: Gradle: com.squareup:javawriter:2.1.1
+    With:     LibraryEntity: Gradle: com.squareup:javawriter:2.1.1
+    Replaced: LibraryEntity: Gradle: javax.inject:javax.inject:1
+    With:     LibraryEntity: Gradle: javax.inject:javax.inject:1
+    Replaced: LibraryEntity: Gradle: junit:junit:4.12
+    With:     LibraryEntity: Gradle: junit:junit:4.12
+    Replaced: LibraryEntity: Gradle: net.sf.kxml:kxml2:2.3.0
+    With:     LibraryEntity: Gradle: net.sf.kxml:kxml2:2.3.0
+    Replaced: LibraryEntity: Gradle: org.hamcrest:hamcrest-core:1.3
+    With:     LibraryEntity: Gradle: org.hamcrest:hamcrest-core:1.3
+    Replaced: LibraryEntity: Gradle: org.hamcrest:hamcrest-integration:1.3
+    With:     LibraryEntity: Gradle: org.hamcrest:hamcrest-integration:1.3
+    Replaced: LibraryEntity: Gradle: org.hamcrest:hamcrest-library:1.3
+    With:     LibraryEntity: Gradle: org.hamcrest:hamcrest-library:1.3
+    Added GradleAndroidModelEntity for MultiFlavor.app
+    Added GradleAndroidModelEntity for MultiFlavor.app.androidTest
+    Added GradleAndroidModelEntity for MultiFlavor.app.main
+    Added GradleAndroidModelEntity for MultiFlavor.app.unitTest
+    Removed GradleAndroidModelEntity for MultiFlavor.app
+    Removed GradleAndroidModelEntity for MultiFlavor.app.androidTest
+    Removed GradleAndroidModelEntity for MultiFlavor.app.main
+    Removed GradleAndroidModelEntity for MultiFlavor.app.unitTest
+    Replaced: FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=MultiFlavor.app))
+    With:     FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=MultiFlavor.app))
+    Replaced: JavaModuleSettingsEntity for MultiFlavor.app
+    With:     JavaModuleSettingsEntity for MultiFlavor.app
+    Replaced: JavaModuleSettingsEntity for MultiFlavor.app.androidTest
+    With:     JavaModuleSettingsEntity for MultiFlavor.app.androidTest
+    Replaced: JavaModuleSettingsEntity for MultiFlavor.app.main
+    With:     JavaModuleSettingsEntity for MultiFlavor.app.main
+    Replaced: JavaModuleSettingsEntity for MultiFlavor.app.unitTest
+    With:     JavaModuleSettingsEntity for MultiFlavor.app.unitTest
+    Added GradleModuleModelEntity for MultiFlavor.app
+    Removed GradleModuleModelEntity for MultiFlavor.app
+    Added LibraryMavenCoordinateEntity for Gradle: androidx.annotation:annotation:1.1.0
+    Added LibraryMavenCoordinateEntity for Gradle: androidx.arch.core:core-common:2.1.0
+    Added LibraryMavenCoordinateEntity for Gradle: androidx.collection:collection:1.1.0
+    Added LibraryMavenCoordinateEntity for Gradle: androidx.constraintlayout:constraintlayout-solver:1.1.3
+    Added LibraryMavenCoordinateEntity for Gradle: androidx.lifecycle:lifecycle-common:2.1.0
+    Added LibraryMavenCoordinateEntity for Gradle: com.google.code.findbugs:jsr305:2.0.1
+    Added LibraryMavenCoordinateEntity for Gradle: com.squareup:javawriter:2.1.1
+    Added LibraryMavenCoordinateEntity for Gradle: javax.inject:javax.inject:1
+    Added LibraryMavenCoordinateEntity for Gradle: junit:junit:4.12
+    Added LibraryMavenCoordinateEntity for Gradle: net.sf.kxml:kxml2:2.3.0
+    Added LibraryMavenCoordinateEntity for Gradle: org.hamcrest:hamcrest-core:1.3
+    Added LibraryMavenCoordinateEntity for Gradle: org.hamcrest:hamcrest-integration:1.3
+    Added LibraryMavenCoordinateEntity for Gradle: org.hamcrest:hamcrest-library:1.3
+    Removed LibraryMavenCoordinateEntity for Gradle: androidx.annotation:annotation:1.1.0
+    Removed LibraryMavenCoordinateEntity for Gradle: androidx.arch.core:core-common:2.1.0
+    Removed LibraryMavenCoordinateEntity for Gradle: androidx.collection:collection:1.1.0
+    Removed LibraryMavenCoordinateEntity for Gradle: androidx.constraintlayout:constraintlayout-solver:1.1.3
+    Removed LibraryMavenCoordinateEntity for Gradle: androidx.lifecycle:lifecycle-common:2.1.0
+    Removed LibraryMavenCoordinateEntity for Gradle: com.google.code.findbugs:jsr305:2.0.1
+    Removed LibraryMavenCoordinateEntity for Gradle: com.squareup:javawriter:2.1.1
+    Removed LibraryMavenCoordinateEntity for Gradle: javax.inject:javax.inject:1
+    Removed LibraryMavenCoordinateEntity for Gradle: junit:junit:4.12
+    Removed LibraryMavenCoordinateEntity for Gradle: net.sf.kxml:kxml2:2.3.0
+    Removed LibraryMavenCoordinateEntity for Gradle: org.hamcrest:hamcrest-core:1.3
+    Removed LibraryMavenCoordinateEntity for Gradle: org.hamcrest:hamcrest-integration:1.3
+    Removed LibraryMavenCoordinateEntity for Gradle: org.hamcrest:hamcrest-library:1.3
+Workspace model changed #10, phase: N/A
+    Roots changed (special batch for previous workspace model change)

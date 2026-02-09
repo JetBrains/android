@@ -1,0 +1,33 @@
+Workspace model changed #1, phase: INITIAL_PHASE
+    Roots changed
+    Added ModuleEntity for non-Gradle module, name: <omitted_for_snapshot_consistency>
+    Added ContentRootEntity for non-Gradle module url: <omitted_for_snapshot_consistency>
+Workspace model changed #2, phase: PROJECT_MODEL_PHASE
+    Roots changed
+    Removed ModuleEntity for non-Gradle module, name: <omitted_for_snapshot_consistency>
+    Removed ContentRootEntity for non-Gradle module url: <omitted_for_snapshot_consistency>
+Workspace model changed #3, phase: SOURCE_SET_MODEL_PHASE
+    Replaced: ModuleEntity for ModuleId(name=p.test)
+    With:     ModuleEntity for ModuleId(name=p.test)
+    Removed TestModulePropertiesEntity for p.test
+Workspace model changed #4, phase: DEPENDENCY_MODEL_PHASE
+Workspace model changed #5, phase: ADDITIONAL_MODEL_PHASE
+Workspace model changed #6, phase: N/A
+Workspace model changed #7, phase: N/A
+Workspace model changed #8, phase: N/A
+    Replaced: ModuleEntity for ModuleId(name=p.main)
+    With:     ModuleEntity for ModuleId(name=p.main)
+    Replaced: ModuleEntity for ModuleId(name=p.test)
+    With:     ModuleEntity for ModuleId(name=p.test)
+    Replaced: LibraryEntity: Gradle: junit:junit:4.12
+    With:     LibraryEntity: Gradle: junit:junit:4.12
+    Replaced: LibraryEntity: Gradle: org.hamcrest:hamcrest-core:1.3
+    With:     LibraryEntity: Gradle: org.hamcrest:hamcrest-core:1.3
+    Added TestModulePropertiesEntity for p.test
+    Added ModuleMavenCoordinateEntity for p.main
+    Removed ModuleMavenCoordinateEntity for p.main
+    Added LibraryMavenCoordinateEntity for Gradle: junit:junit:4.12
+    Added LibraryMavenCoordinateEntity for Gradle: org.hamcrest:hamcrest-core:1.3
+    Removed LibraryMavenCoordinateEntity for Gradle: junit:junit:4.12
+    Removed LibraryMavenCoordinateEntity for Gradle: org.hamcrest:hamcrest-core:1.3
+Workspace model changed #9, phase: N/A
