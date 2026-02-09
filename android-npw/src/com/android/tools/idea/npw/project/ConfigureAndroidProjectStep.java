@@ -85,19 +85,19 @@ import com.intellij.ui.ContextHelpLabel;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.ModalityUiUtil;
 import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.UIUtil;
 import java.awt.BorderLayout;
-import java.awt.CardLayout;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -124,10 +124,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   public static final String ANDROID_AUTOMOTIVE_OS_ONLY = "Android Automotive OS only";
   public static final String ANDROID_AUTOMOTIVE_OS_AND_ANDROID_AUTO = "Android Automotive OS and Android Auto";
 
-  private static final String AI_STARTER_TEMPLATE_NAME = "AI Starter";
-  private static final String BUTTON_CARD = "Button";
-  private static final String LOADING_CARD = "Loading";
-
   private final NewProjectModel myProjectModel;
 
   private final ValidatorPanel myValidatorPanel;
@@ -144,6 +140,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private JButton generateAppName;
   // Create a panel to hold the text field and the button
   private JPanel appNamePanel;
+  private JBLoadingPanel loadingPanel;
 
   private JTextField myPackageName;
   private JComboBox<Language> myProjectLanguage;
@@ -462,42 +459,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
            sdkItem.getCompileSdk().isAtLeast(AndroidVersion.VersionCodes.S);
   }
 
-  private JPanel createAiAppNamePanel() {
-    generateAppName = new JButton("✨");
-    generateAppName.setFocusable(false);
-
-    final AsyncProcessIcon loadingIcon = new AsyncProcessIcon("AI Name Suggestion loading");
-
-    final CardLayout cardLayout = new CardLayout();
-    final JPanel cardPanel = new JPanel(cardLayout);
-
-    cardPanel.add(generateAppName, BUTTON_CARD);
-    cardPanel.add(loadingIcon, LOADING_CARD);
-
-    Dimension size = generateAppName.getPreferredSize();
-    cardPanel.setPreferredSize(size);
-    cardPanel.setMinimumSize(size);
-
-    Runnable onStart = () -> ModalityUiUtil.invokeLaterIfNeeded(ModalityState.any(), () -> {
-      generateAppName.setEnabled(false);
-      loadingIcon.resume();
-      cardLayout.show(cardPanel, LOADING_CARD);
-    });
-
-    Runnable onFinish = () -> ModalityUiUtil.invokeLaterIfNeeded(ModalityState.any(), () -> {
-      loadingIcon.suspend();
-      cardLayout.show(cardPanel, BUTTON_CARD);
-      generateAppName.setEnabled(true);
-    });
-
-    generateAppName.addActionListener(e -> myProjectModel.generateAppNameAsync(onStart, onFinish));
-
-    JPanel panel = new JPanel(new BorderLayout(5, 0));
-    panel.add(myAppName, BorderLayout.CENTER);
-    panel.add(cardPanel, BorderLayout.LINE_END);
-    return panel;
-  }
-
   private void createUIComponents() {
     myProjectLanguage = new LanguageComboProvider().createComponent();
     myProjectLanguageLabel = new JBLabel(UIUtil.replaceMnemonicAmpersand("&Language"));
@@ -521,9 +482,25 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     myAppName = new JTextField();
     myAppName.setToolTipText("The name that will be shown in the Android launcher for this application");
-    if (StudioFlags.GEMINI_NEW_PROJECT_AGENT.get()) {
-      appNamePanel = createAiAppNamePanel();
-    }
+    generateAppName = new JButton("✨");
+    generateAppName.setVisible(false);
+    loadingPanel = new JBLoadingPanel(new BorderLayout(), this);
+
+    generateAppName.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        Runnable onStart = loadingPanel::startLoading;
+
+        Runnable onFinish = loadingPanel::stopLoading;
+        myProjectModel.generateAppNameAsync(onStart, onFinish);
+      }
+    });
+    loadingPanel.add(generateAppName);
+    // Create a panel to hold the text field and the button
+    appNamePanel = new JPanel(new BorderLayout(5, 0)); // 5px horizontal gap
+
+    appNamePanel.add(myAppName, BorderLayout.CENTER);
+    appNamePanel.add(loadingPanel, BorderLayout.LINE_END);
 
     myPackageName = new JTextField();
     myProjectLocation = new TextFieldWithBrowseButton();
