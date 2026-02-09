@@ -36,6 +36,8 @@ service AndroidStudio {
   rpc StartCapturingScreenshots(StartCapturingScreenshotsRequest) returns (StartCapturingScreenshotsResponse) {}
 
   rpc OpenProject(OpenProjectRequest) returns (OpenProjectResponse) {}
+
+  rpc InvokeComponentByXpath(InvokeComponentByXpathRequest) returns (InvokeComponentByXpathResponse) {}
 }
 
 message GetVersionRequest {}
@@ -283,4 +285,26 @@ message OpenProjectResponse {
   }
   OpenProjectResponse.Result result = 1;
   string error_message = 2;
+}
+
+message InvokeComponentByXpathRequest {
+  string xpath = 1;
+}
+
+message InvokeComponentByXpathResponse {
+  enum Result {
+    OK = 0;
+    ERROR = 1;
+  }
+  Result result = 1;
+  string error_message = 2;
+  Ref ref = 3;
+}
+
+message Ref {
+  string id = 1;
+  string class_name = 2;
+  int32 identity_hash_code = 3;
+  string as_string = 4;
+  string rd_target = 5;
 }

@@ -478,6 +478,23 @@ public abstract class Ide implements AutoCloseable{
     }
   }
 
+  /**
+   * Invokes component using Xpath.
+   *
+   * @param xpath XPath to locate the component.
+   */
+  public void invokeComponentByXpath(String xpath) {
+    ASDriver.InvokeComponentByXpathRequest request =
+      ASDriver.InvokeComponentByXpathRequest.newBuilder().setXpath(xpath).build();
+    ASDriver.InvokeComponentByXpathResponse response = ide.invokeComponentByXpath(request);
+
+    if (response.getResult() == ASDriver.InvokeComponentByXpathResponse.Result.OK) {
+      return;
+    } else {
+      throw new IllegalStateException("Failed to invoke component by xpath: " + xpath + ". " + formatErrorMessage(response.getErrorMessage()));
+    }
+  }
+
   protected static String formatErrorMessage(String errorMessage) {
     if (StringUtil.isEmpty(errorMessage)) {
       return "Check the stderr log for the cause. See go/e2e-find-log-files for more info.";

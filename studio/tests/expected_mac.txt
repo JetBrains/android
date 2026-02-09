@@ -3250,6 +3250,7 @@ Android Studio Preview.app/Contents/plugins/keymap-visualStudio/lib/keymap-visua
 Android Studio Preview.app/Contents/plugins/markdown/lib/markdown.jar
 Android Studio Preview.app/Contents/plugins/markdown/lib/modules/intellij.markdown.backend.jar
 Android Studio Preview.app/Contents/plugins/markdown/lib/modules/intellij.markdown.frontend.jar
+Android Studio Preview.app/Contents/plugins/performanceTesting/lib/assertj.jar
 Android Studio Preview.app/Contents/plugins/performanceTesting/lib/assertj-swing.jar
 Android Studio Preview.app/Contents/plugins/performanceTesting/lib/github.oshi.core.jar
 Android Studio Preview.app/Contents/plugins/performanceTesting/lib/modules/intellij.performanceTesting.frontend.jar

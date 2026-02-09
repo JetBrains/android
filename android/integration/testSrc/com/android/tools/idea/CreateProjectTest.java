@@ -22,6 +22,7 @@ import com.android.tools.asdriver.tests.FileServer;
 import com.android.tools.asdriver.tests.MavenRepo;
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher;
 import com.android.tools.asdriver.tests.MemoryUsageReportProcessor;
+import com.android.tools.asdriver.tests.UIXpathGenerator;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.util.EmbeddedDistributionPaths;
 import com.intellij.openapi.util.SystemInfo;
@@ -99,9 +100,10 @@ public class CreateProjectTest {
         studio.invokeByIcon("welcome/createNewProjectTab.svg");
 
         // This only causes the item to be selected, so we still have to click "Next" below.
-        studio.invokeComponent("Empty Activity");
-        studio.invokeComponent("Next");
-        studio.invokeComponent("Finish");
+        studio.invokeComponentByXpath(new UIXpathGenerator().setClass("ComposeNode").setText("Empty Activity").build());
+        studio.invokeComponentByXpath(new UIXpathGenerator().setText("Next").build());
+        studio.invokeComponentByXpath(new UIXpathGenerator().setText("Finish").build());
+
         studio.waitForSync();
         studio.waitForIndex();
         studio.executeAction("MakeGradleProject");
