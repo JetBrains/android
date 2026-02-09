@@ -31,6 +31,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.DumbService
 import com.intellij.psi.xml.XmlFile
 import com.intellij.testFramework.replaceService
@@ -308,7 +309,7 @@ class RawWatchfaceXmlSchemaProviderSdk33Test : RawWatchfaceXmlSchemaProviderTest
       ) as XmlFile
 
     val provider = RawWatchfaceXmlSchemaProvider()
-    val schema = provider.getSchema("", projectRule.module, watchFaceFile)
+    val schema = runReadAction { provider.getSchema("", projectRule.module, watchFaceFile) }
 
     // AndroidManifestIndex works in dumb mode
     assertThat(schema).isNotNull()

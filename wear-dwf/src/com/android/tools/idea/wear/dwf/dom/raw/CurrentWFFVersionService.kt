@@ -39,8 +39,8 @@ class CurrentWFFVersionService {
   /**
    * Returns a [CurrentWFFVersion] for a given [Module].
    *
-   * If there is no merged manifest, the method will return `null`. If the version specified in the merged manifest is missing or invalid,
-   * it will return a fallback version.
+   * If there are no manifest files, the method will return `null`. This method will get the WFF version from the first manifest contributor
+   * that specifies it. If the version is missing or invalid, a fallback version will be returned.
    *
    * @see getFallbackVersion
    */
