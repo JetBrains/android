@@ -454,6 +454,19 @@ class UpdateReferenceImagesDialog(
           logger.info("Reference images were updated successfully")
           Messages.showInfoMessage(project, "Reference images were updated successfully.", "Update Successful")
         } else {
+          // Log the SCREENSHOT_DIALOG_UPDATE_ACTION_FAILURE event for analytics
+          // on failure to copy reference images
+          UsageTracker.log(
+            AndroidStudioEvent.newBuilder()
+              .apply {
+                kind = AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW
+                screenshotTestComposePreviewEvent =
+                  ScreenshotTestComposePreviewEvent.newBuilder()
+                    .apply { type = ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_UPDATE_ACTION_FAILURE }
+                    .build()
+              }
+              .withProjectId(project)
+          )
           val failedNames = failures.joinToString(separator = "\n") { "- ${it.previewData.methodName}.${it.previewData.previewName}" }
           logger.error("Failed to copy the following previews: $failedNames")
           Messages.showErrorDialog(project, "Failed to copy the following previews:\n\n$failedNames", "Copy Failed")
