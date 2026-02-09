@@ -5,13 +5,15 @@
 
 cd $(dirname $0)
 
-cat > ExternalKtInSrcJar.kt << EOF
-package com.example.external
+mkdir srcjar
+cat > srcjar/ExternalKtInSrcJar.kt << EOF
+package com.example.external.withoutjvmname.srcjar
 
+const val STRING = "TopLevelExternalKtInSrcJar"
 object ExternalKtInSrcJar {
   const val STRING: String = "ExternalKtInSrcJar"
 }
 EOF
 
-jar -c -f external.srcjar -C ../../.. com/example/external/ExternalKtInSrcJar.kt
-rm ExternalKtInSrcJar.kt
+jar -c -f external.srcjar -C ../../../.. com/example/external/withoutjvmname/srcjar/ExternalKtInSrcJar.kt
+rm -r srcjar

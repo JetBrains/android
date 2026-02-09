@@ -12,7 +12,8 @@ java_library(
         "//navigation_to_source/external:external_kt",
         "//navigation_to_source/external:external_srcjar",
         "//navigation_to_source/external:kt_external_gensrcjar",
-        "//navigation_to_source/external:kt_external_srcjar",
+        "//navigation_to_source/external:kt_external_srcjar_withjvmname",
+        "//navigation_to_source/external:kt_external_srcjar_withoutjvmname",
     ],
 )
 
@@ -25,6 +26,7 @@ kt_jvm_library(
         "//navigation_to_source/external:external_kt",
         "//navigation_to_source/external:external_srcjar",
         "//navigation_to_source/external:kt_external_gensrcjar",
-        "//navigation_to_source/external:kt_external_srcjar",
+        "//navigation_to_source/external:kt_external_srcjar_withjvmname",
+        "//navigation_to_source/external:kt_external_srcjar_withoutjvmname",
     ],
 )

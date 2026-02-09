@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.external
+package com.example.external.withoutjvmname
 
 /** ExternalKtSource test class  */
+const val STRING = "TopLevelExternalKtSource"
+
 class ExternalKtSource {
   fun copy(s: String?): String? {
     return s

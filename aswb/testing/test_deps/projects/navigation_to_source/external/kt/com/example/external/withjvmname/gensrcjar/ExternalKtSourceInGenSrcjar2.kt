@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.external.gensrcjar
+@file:JvmMultifileClass
+@file:JvmName("ExternalKtInGenSrcJarUtils")
+package com.example.external.withjvmname.gensrcjar
 
 /**
  * ExternalKtSourceInGenSrcjar test class. This class is build into a srcjar and build time, and
  * then built into a kotlin target from that.
  */
-object ExternalKtSourceInGenSrcjar {
+const val STRING2 = "TopLevelExternalKtSourceInGenSrcjar2"
+
+object ExternalKtSourceInGenSrcjar2 {
   const val STRING: String = "ExternalKtSourceInGenSrcjar"
 }
