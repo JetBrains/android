@@ -15,17 +15,16 @@
  */
 package com.android.tools.idea.wear.dwf.dom.raw
 
+import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.SdkConstants.TAG_WATCH_FACE
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.model.MergedManifestSnapshotComputeListener
 import com.android.tools.idea.projectsystem.AndroidModuleSystem.Type
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
-import com.android.tools.idea.stats.ManifestMergerStatsTracker.MergeResult
 import com.android.tools.idea.wear.dwf.analytics.DeclarativeWatchFaceUsageTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -39,13 +38,15 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.removeUserData
 import com.intellij.openapi.vfs.VfsUtilCore
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.findPsiFile
+import com.intellij.openapi.vfs.newvfs.BulkFileListener
+import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.FileContentUtilCore
 import com.intellij.xml.XmlSchemaProvider
 import com.intellij.xml.util.XmlUtil
-import kotlin.time.Duration
 import org.jetbrains.android.dom.isDeclarativeWatchFaceFile
 import org.jetbrains.annotations.NonNls
 
@@ -90,33 +91,28 @@ class RawWatchfaceXmlSchemaProvider() : XmlSchemaProvider() {
 }
 
 /**
- * This class attempts to fix a couple of issues regarding the use of XSD files based on a property set within a manifest file.
+ * This class attempts to fix a caching issue regarding the use of XSD files.
  *
- * The first problem is that we rely on the merged manifest to get the WFF version. The merged manifest is not available immediately, and we
- * cannot wait for its computation to end in [RawWatchfaceXmlSchemaProvider.getSchema] as that's called on the EDT. We could read the
- * manifest files directly and determine the WFF, but we'd be potentially introducing extra issues that the merged manifest already takes
- * care of.
+ * The problem is that the schema returned by [RawWatchfaceXmlSchemaProvider] is cached and the cache dependencies do not include
+ * [com.intellij.psi.util.PsiModificationTracker]. Any changes to the WFF version in the manifest will not invalid the cache. The XSD schema
+ * depends on a property set in the manifest. If that property is modified, the schema used will become obsolete.
  *
- * The second problem is that the schema returned by [RawWatchfaceXmlSchemaProvider] is cached and the cache dependencies do not include
- * [com.intellij.psi.util.PsiModificationTracker] or any changes to the merged manifest, meaning that any changes to the WFF version in the
- * merged manifest will go unnoticed. Furthermore, if the user opens Studio with a declarative watch face file as the first file to be open
- * before the merged manifest is computed, we can end up without any WFF schema being used. Once the merged manifest has finished computing,
- * the editor will not update itself.
- *
- * This class attempts to fix both problems by forcing the declarative watch face files to be reparsed whenever we detect that a new
- * successful merged manifest snapshot has been computed.
+ * This class fixes the problem by forcing the declarative watch face files to be reparsed whenever we detect that a change has occurred in
+ * an AndroidManifest.xml file, which is where the WFF version property is defined.
  */
 @Service(Service.Level.PROJECT)
-private class RawWatchFaceXmlSchemaUpdater private constructor(val project: Project) : MergedManifestSnapshotComputeListener, Disposable {
+private class RawWatchFaceXmlSchemaUpdater private constructor(val project: Project) : BulkFileListener, Disposable {
 
   init {
     val connection = ApplicationManager.getApplication().messageBus.connect()
     Disposer.register(this, connection)
-    connection.subscribe(MergedManifestSnapshotComputeListener.TOPIC, this)
+    connection.subscribe(VirtualFileManager.VFS_CHANGES, this)
   }
 
-  override fun snapshotCreationEnded(token: Any, duration: Duration, result: MergeResult) {
-    if (result != MergeResult.SUCCESS) return
+  override fun after(events: List<VFileEvent>) {
+    val isManifestChange = events.any { it.file?.name == FN_ANDROID_MANIFEST_XML }
+    if (!isManifestChange) return
+
     ApplicationManager.getApplication().invokeLater {
       val declarativeWatchFaceFiles = project.getDeclarativeWatchFaceFilesToReparse()
       if (declarativeWatchFaceFiles.isEmpty()) return@invokeLater
@@ -125,8 +121,6 @@ private class RawWatchFaceXmlSchemaUpdater private constructor(val project: Proj
       FileContentUtilCore.reparseFiles(declarativeWatchFaceFiles)
     }
   }
-
-  override fun snapshotCreationStarted(token: Any) {}
 
   override fun dispose() {}
 

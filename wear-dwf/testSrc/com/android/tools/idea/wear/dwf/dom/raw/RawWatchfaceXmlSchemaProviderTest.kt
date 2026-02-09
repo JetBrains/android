@@ -35,7 +35,6 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.DumbService
 import com.intellij.psi.xml.XmlFile
 import com.intellij.testFramework.replaceService
-import com.intellij.util.FileContentUtilCore
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -285,9 +284,6 @@ class RawWatchfaceXmlSchemaProviderSdk33Test : RawWatchfaceXmlSchemaProviderTest
     addManifestWithWFFVersion("2")
 
     // the highlighting should now be ok
-    ApplicationManager.getApplication().invokeAndWait {
-      ApplicationManager.getApplication().runWriteAction { FileContentUtilCore.reparseFiles(listOf(watchFaceFile.virtualFile)) }
-    }
     assertThat(fixture.doHighlighting(HighlightSeverity.ERROR)).isEmpty()
   }
 
