@@ -17,10 +17,12 @@ package com.android.tools.idea.streaming.emulator
 
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
+import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState.CONNECTED
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.ApplicationRule
@@ -157,6 +159,7 @@ class TouchpadPanelTest {
     val glassesPort = glasses.grpcPort
     val emulators = runBlocking { RunningEmulatorCatalog.getInstance().updateNow().await() }
     val emulatorController = emulators.find { it.emulatorId.grpcPort == glassesPort }!!
+    waitForCondition(2.seconds) { emulatorController.connectionState == CONNECTED }
     return TouchpadPanel(emulatorController, emulatorController.emulatorConfig.touchpadSize!!)
   }
 
