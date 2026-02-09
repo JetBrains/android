@@ -102,8 +102,30 @@ class PerfettoParser(private val mainProcessSelector: MainProcessSelector, priva
 
       val builder = SystemTraceCpuCaptureBuilder(model)
 
-      if (initialViewRange.isEmpty()) {
-        initialViewRange.set(model.getCaptureStartTimestampUs().toDouble(), model.getCaptureEndTimestampUs().toDouble())
+      if (initialViewRange.isEmpty) {
+        val traceStartUs = model.getCaptureStartTimestampUs().toDouble()
+        val traceEndUs = model.getCaptureEndTimestampUs().toDouble()
+
+        // Default to the full duration of the captured trace
+        val fallbackRange = Range(traceStartUs, traceEndUs)
+        initialViewRange.set(fallbackRange)
+
+        // Fetch specific start/end markers from metadata, if available to refine the view
+        val tracingStartedNs =
+          traceProcessor.getTraceMetadata(traceId, "tracing_started_ns", ideProfilerServices).firstOrNull()?.toLongOrNull()
+        val tracingDisabledNs =
+          traceProcessor.getTraceMetadata(traceId, "tracing_disabled_ns", ideProfilerServices).firstOrNull()?.toLongOrNull()
+
+        if (tracingStartedNs != null && tracingDisabledNs != null) {
+          val mdStartUs = TimeUnit.NANOSECONDS.toMicros(tracingStartedNs).toDouble()
+          val mdEndUs = TimeUnit.NANOSECONDS.toMicros(tracingDisabledNs).toDouble()
+          val metadataRange = Range(mdStartUs, mdEndUs)
+          val visibleRange = fallbackRange.getIntersection(metadataRange)
+          // Update the view range if the intersection of start/end markers from metadata and trace events is valid
+          if (!visibleRange.isEmpty) {
+            initialViewRange.set(visibleRange)
+          }
+        }
       }
       return builder.build(traceId, userSelectedProcess, initialViewRange)
     }

@@ -325,7 +325,13 @@ class TraceProcessorServiceImpl(
         LOGGER.warn("TPD Service: Trace metadata query error - ${result.failureReason} - ${result.error}")
       }
       if (result.hasTraceMetadataResult()) {
-        result.traceMetadataResult.metadataRowList.forEach { results.add(it.stringValue ?: it.int64Value.toString()) }
+        result.traceMetadataResult.metadataRowList.forEach {
+          if (it.stringValue.isNotEmpty()) {
+            results.add(it.stringValue)
+          } else {
+            results.add(it.int64Value.toString())
+          }
+        }
       }
     }
     return results

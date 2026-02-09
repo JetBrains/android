@@ -45,16 +45,13 @@ class PerfettoParserTest {
   fun `with UiState appended to trace file`() {
     val services = FakeIdeProfilerServices()
     val fakeTraceProcessorService = services.traceProcessorService as FakeTraceProcessorService
-    fakeTraceProcessorService.uiStateForTraceId[1] =
-      java.util.Base64.getEncoder()
-        .encodeToString(
-          PerfettoTrace.UiState.newBuilder()
-            .setHighlightProcess(PerfettoTrace.UiState.HighlightProcess.newBuilder().setPid(1001))
-            .setTimelineStartTs(TimeUnit.SECONDS.toNanos(1))
-            .setTimelineEndTs(TimeUnit.SECONDS.toNanos(99))
-            .build()
-            .toByteArray()
-        )
+    val uiState =
+      PerfettoTrace.UiState.newBuilder()
+        .setHighlightProcess(PerfettoTrace.UiState.HighlightProcess.newBuilder().setPid(1001))
+        .setTimelineStartTs(TimeUnit.SECONDS.toNanos(1))
+        .setTimelineEndTs(TimeUnit.SECONDS.toNanos(99))
+        .build()
+    fakeTraceProcessorService.setTraceMetadataValue(1, "ui_state", java.util.Base64.getEncoder().encodeToString(uiState.toByteArray()))
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
 
     val parser = PerfettoParser(MainProcessSelector(), services)
@@ -68,16 +65,13 @@ class PerfettoParserTest {
   fun `with UiState command line`() {
     val services = FakeIdeProfilerServices()
     val fakeTraceProcessorService = services.traceProcessorService as FakeTraceProcessorService
-    fakeTraceProcessorService.uiStateForTraceId[1] =
-      java.util.Base64.getEncoder()
-        .encodeToString(
-          PerfettoTrace.UiState.newBuilder()
-            .setHighlightProcess(PerfettoTrace.UiState.HighlightProcess.newBuilder().setCmdline("com.android.phone"))
-            .setTimelineStartTs(TimeUnit.SECONDS.toNanos(1))
-            .setTimelineEndTs(TimeUnit.SECONDS.toNanos(99))
-            .build()
-            .toByteArray()
-        )
+    val uiState =
+      PerfettoTrace.UiState.newBuilder()
+        .setHighlightProcess(PerfettoTrace.UiState.HighlightProcess.newBuilder().setCmdline("com.android.phone"))
+        .setTimelineStartTs(TimeUnit.SECONDS.toNanos(1))
+        .setTimelineEndTs(TimeUnit.SECONDS.toNanos(99))
+        .build()
+    fakeTraceProcessorService.setTraceMetadataValue(1, "ui_state", java.util.Base64.getEncoder().encodeToString(uiState.toByteArray()))
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
 
     val parser = PerfettoParser(MainProcessSelector(), services)
@@ -91,7 +85,7 @@ class PerfettoParserTest {
   fun `with invalid UiState in metadataTable`() {
     val services = FakeIdeProfilerServices()
     val fakeTraceProcessorService = services.traceProcessorService as FakeTraceProcessorService
-    fakeTraceProcessorService.uiStateForTraceId[1] = "Not a valid base64 encoded proto"
+    fakeTraceProcessorService.setTraceMetadataValue(1, "ui_state", "Not a valid base64 encoded proto")
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
 
     val parser = PerfettoParser(MainProcessSelector(), services)
@@ -99,6 +93,31 @@ class PerfettoParserTest {
 
     assertThat(capture).isInstanceOf(SystemTraceCpuCapture::class.java)
     assertThat(capture.type).isEqualTo(TraceType.PERFETTO)
+  }
+
+  @Test
+  fun `without tracing time in metadata`() {
+    val services = FakeIdeProfilerServices()
+    val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
+
+    val parser = PerfettoParser(MainProcessSelector(), services)
+    val capture = parser.parse(traceFile, 1)
+    assertThat(capture.timeline.viewRange.min).isEqualTo(TimeUnit.NANOSECONDS.toMicros(11294564625822).toDouble())
+    assertThat(capture.timeline.viewRange.max).isEqualTo(TimeUnit.NANOSECONDS.toMicros(11295256030000).toDouble())
+  }
+
+  @Test
+  fun `with tracing time in metadata`() {
+    val services = FakeIdeProfilerServices()
+    val fakeTraceProcessorService = services.traceProcessorService as FakeTraceProcessorService
+    fakeTraceProcessorService.setTraceMetadataValue(1, "tracing_started_ns", "11294564700000")
+    fakeTraceProcessorService.setTraceMetadataValue(1, "tracing_disabled_ns", "11295255900000")
+    val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
+
+    val parser = PerfettoParser(MainProcessSelector(), services)
+    val capture = parser.parse(traceFile, 1)
+    assertThat(capture.timeline.viewRange.min).isEqualTo(TimeUnit.NANOSECONDS.toMicros(11294564700000).toDouble())
+    assertThat(capture.timeline.viewRange.max).isEqualTo(TimeUnit.NANOSECONDS.toMicros(11295255900000).toDouble())
   }
 
   @Test

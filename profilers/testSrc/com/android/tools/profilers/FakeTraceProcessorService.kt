@@ -78,6 +78,7 @@ class FakeTraceProcessorService : TraceProcessorService {
   }
 
   private val loadedTraces = mutableMapOf<Long, File>()
+  private val metadataValues = mutableMapOf<Long, MutableMap<String, String>>()
 
   /**
    * If true, will always return false on loadTrace() calls, to simulate when the daemon return a failure when attempting to load a trace
@@ -85,11 +86,12 @@ class FakeTraceProcessorService : TraceProcessorService {
    */
   var forceFailLoadTrace = false
 
-  /**
-   * Setup test UiState data to be returned when parsing a trace. If the trace id is not found in this list, an empty UiState will be
-   * returned.
-   */
-  val uiStateForTraceId = mutableMapOf<Long, String>()
+  fun setTraceMetadataValue(traceId: Long, name: String, value: String) {
+    if (!metadataValues.containsKey(traceId)) {
+      metadataValues[traceId] = mutableMapOf()
+    }
+    metadataValues[traceId]!![name] = value
+  }
 
   override fun loadTrace(traceId: Long, traceFile: File, ideProfilerServices: IdeProfilerServices): Boolean {
     if (validTraces.contains(traceFile) && !forceFailLoadTrace) {
@@ -110,11 +112,7 @@ class FakeTraceProcessorService : TraceProcessorService {
   }
 
   override fun getTraceMetadata(traceId: Long, metadataName: String, ideProfilerServices: IdeProfilerServices): List<String> {
-    val metadataList = mutableListOf<String>()
-    if (metadataName.equals("ui_state") && uiStateForTraceId.containsKey(traceId)) {
-      metadataList.add(uiStateForTraceId[traceId]!!)
-    }
-    return metadataList
+    return metadataValues[traceId]?.get(metadataName)?.let { listOf(it) } ?: emptyList()
   }
 
   override fun loadCpuData(
