@@ -33,18 +33,16 @@ import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEdit
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
-import java.nio.file.Path
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2MetadataCompilerArguments
-import org.jetbrains.kotlin.cli.extensionsStorage
-import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
-import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
+import org.jetbrains.kotlin.cli.create
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.idea.base.projectStructure.languageVersionSettings
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.kotlin.psi.KtFile
+import java.nio.file.Path
 
 class GradleBuildSystemLiveEditServices :
   BuildSystemLiveEditServices<GradleProjectSystem, FacetBasedApplicationProjectContext>,
@@ -97,10 +95,8 @@ internal class GradleApplicationLiveEditServices(private val module: Module): Ap
   }
 
   override fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration {
-    val module = ktFile.module ?: return CompilerConfiguration.EMPTY
-    val compilerConfiguration = CompilerConfiguration().apply<CompilerConfiguration> {
-      @OptIn(ExperimentalCompilerApi::class)
-      extensionsStorage = CompilerPluginRegistrar.ExtensionStorage()
+    val module = ktFile.module ?: return CompilerConfiguration.create()
+    val compilerConfiguration = CompilerConfiguration.create().apply {
       put(
         CommonConfigurationKeys.MODULE_NAME,
         module.name
