@@ -27,6 +27,8 @@ import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
 import java.nio.file.Path
 import kotlin.io.path.Path
+import org.jetbrains.kotlin.fileClasses.JvmFileClassUtil
+import org.jetbrains.kotlin.psi.KtFile
 
 /**
  * A base class used to find source files for a class jar. It provides a basic workflow to fetch source files. And it allows different
@@ -54,14 +56,18 @@ constructor(
     clsFile = clsFile,
   )
 
-  fun findSourceFile(): PsiFile? {
+  fun findSourceFiles(): Set<PsiFile> {
     val sourcePaths = javaArtifactInfos.asSequence().flatMap { filterSourcePaths(it) }.toSet()
 
     if (sourcePaths.isEmpty()) {
-      return null
+      return emptySet()
     }
 
-    val matchingPsiFiles = sourcePaths.asSequence().mapNotNull { convertToVirtualFile(it) }.flatMap { getMatchingPsiFile(it) }.toSet()
+    return sourcePaths.asSequence().mapNotNull { convertToVirtualFile(it) }.flatMap { getMatchingPsiFile(it) }.toSet()
+  }
+
+  fun findSourceFile(): PsiFile? {
+    val matchingPsiFiles = findSourceFiles()
 
     if (matchingPsiFiles.size > 1) {
       logger.warn("Warning: found more than 1 matching source file for $clsFile: $matchingPsiFiles")
@@ -98,6 +104,12 @@ constructor(
   }
 
   protected fun containsClass(file: PsiFile?): Boolean {
+    if (file is KtFile) {
+      val facadeFqName = JvmFileClassUtil.getFileClassInfoNoResolve(file).facadeClassFqName
+      if (facadeFqName.asString() in qualifiedClassNames) {
+        return true
+      }
+    }
     return (file as? PsiClassOwner)?.classes?.any { it.qualifiedName in qualifiedClassNames } == true
   }
 
