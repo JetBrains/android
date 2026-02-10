@@ -33,7 +33,7 @@ private val ZOOM_LEVELS = doubleArrayOf(0.0625, 0.125, 0.25, 0.5, 1.0, 2.0, 4.0)
 /** A [BorderLayoutPanel] with zoom support. */
 abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable, PropertyChangeListener {
 
-  /** Scale factor of the host screen. */
+  /** Scale factor of the host screen. Number of physical pixels in one logical pixel. */
   protected val screenScale: Double
     get() = if (cachedScreenScale > 0.0) cachedScreenScale else getCurrentScreenScaleOr(1.0)
 

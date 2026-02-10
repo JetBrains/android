@@ -44,6 +44,7 @@ import com.android.tools.idea.streaming.core.DeviceInputListenerManager
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.streaming.emulator.FakeEmulator.Companion.IGNORE_SCREENSHOT_CALL_FILTER
 import com.android.tools.idea.streaming.emulator.FakeEmulator.GrpcCallRecord
+import com.android.tools.idea.streaming.testutil.newEmulatorDisplayPanel
 import com.android.tools.idea.streaming.xr.TRANSLATION_STEP_SIZE
 import com.android.tools.idea.testing.mockStatic
 import com.google.common.truth.Truth.assertThat

@@ -24,10 +24,10 @@ import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutI
 import com.android.tools.idea.streaming.DEVICE_TYPE_KEY
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
-import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DEVICE_ID_KEY
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.core.DeviceId
+import com.android.tools.idea.streaming.core.DisplayView
 import com.android.tools.idea.streaming.core.STREAMING_CONTENT_PANEL_KEY
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.google.common.truth.Truth.assertThat
@@ -67,7 +67,7 @@ class ToggleLayoutInspectorActionTest {
   @get:Rule val displayViewRule = EmulatorViewRule()
 
   private lateinit var fakeLayoutInspectorManager: FakeLayoutInspectorManager
-  private lateinit var displayView: AbstractDisplayView
+  private lateinit var displayView: DisplayView
 
   private lateinit var tab1: TabInfo
 
@@ -77,14 +77,14 @@ class ToggleLayoutInspectorActionTest {
   fun setUp() {
     LayoutInspectorManagerGlobalState.tabsWithLayoutInspector.clear()
 
-    tab1 = TabInfo(DeviceId.ofPhysicalDevice("tab1"), BorderLayoutPanel(), JPanel(), listOf(displayViewRule.newEmulatorView()))
+    tab1 = TabInfo(DeviceId.ofPhysicalDevice("tab1"), BorderLayoutPanel(), JPanel(), listOf(displayViewRule.newEmulatorDisplayView()))
 
     toolWindowManager = FakeToolWindowManager(displayViewRule.project, listOf(tab1))
 
     // replace ToolWindowManager with fake one
     displayViewRule.project.replaceService(ToolWindowManager::class.java, toolWindowManager, displayViewRule.disposable)
 
-    displayView = spy(displayViewRule.newEmulatorView())
+    displayView = spy(displayViewRule.newEmulatorDisplayView())
 
     // replace CustomActionsSchema with mocked one
     val mockCustomActionSchema = mock<CustomActionsSchema>()

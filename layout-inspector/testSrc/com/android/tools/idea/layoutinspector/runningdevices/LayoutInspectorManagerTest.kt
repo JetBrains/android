@@ -89,7 +89,10 @@ class LayoutInspectorManagerTest {
         content = BorderLayoutPanel(),
         container = JPanel(),
         displays =
-          listOf(displayViewRule.newEmulatorView(displayId = Display.MAIN_DISPLAY_ID), displayViewRule.newEmulatorView(displayId = 1)),
+          listOf(
+            displayViewRule.newEmulatorDisplayView(displayId = Display.MAIN_DISPLAY_ID),
+            displayViewRule.newEmulatorDisplayView(displayId = 1),
+          ),
       )
     tab2 =
       TabInfo(
@@ -97,14 +100,17 @@ class LayoutInspectorManagerTest {
         content = BorderLayoutPanel(),
         container = JPanel(),
         displays =
-          listOf(displayViewRule.newEmulatorView(displayId = Display.MAIN_DISPLAY_ID), displayViewRule.newEmulatorView(displayId = 1)),
+          listOf(
+            displayViewRule.newEmulatorDisplayView(displayId = Display.MAIN_DISPLAY_ID),
+            displayViewRule.newEmulatorDisplayView(displayId = 1),
+          ),
       )
     xrTab =
       TabInfo(
         deviceId = DeviceId.ofPhysicalDevice("tab3"),
         content = BorderLayoutPanel(),
         container = JPanel(),
-        displays = listOf(displayViewRule.newEmulatorView(avdCreator = { path -> FakeEmulator.createXrHeadsetAvd(path) })),
+        displays = listOf(displayViewRule.newEmulatorDisplayView(avdCreator = { path -> FakeEmulator.createXrHeadsetAvd(path) })),
       )
     fakeToolWindowManager = FakeToolWindowManager(displayViewRule.project, listOf(tab1, tab2, xrTab))
 
@@ -315,7 +321,7 @@ class LayoutInspectorManagerTest {
 
     // Displays are added asynchronously. Wait for them to be added.
     tab1.displays.forEach { display ->
-      waitForCondition(2.seconds) { display.allChildren().filterIsInstance<LayoutInspectorRenderer>().isNotEmpty() }
+      waitForCondition(2.seconds) { display.component.allChildren().filterIsInstance<LayoutInspectorRenderer>().isNotEmpty() }
     }
 
     assertThat(layoutInspector.inspectorModel.selectionListeners.size()).isEqualTo(6)
@@ -330,7 +336,7 @@ class LayoutInspectorManagerTest {
 
     // Displays are added asynchronously. Wait for them to be added.
     tab2.displays.forEach { display ->
-      waitForCondition(2.seconds) { display.allChildren().filterIsInstance<LayoutInspectorRenderer>().isNotEmpty() }
+      waitForCondition(2.seconds) { display.component.allChildren().filterIsInstance<LayoutInspectorRenderer>().isNotEmpty() }
     }
 
     assertThat(layoutInspector.inspectorModel.selectionListeners.size()).isEqualTo(6)
@@ -382,7 +388,7 @@ class LayoutInspectorManagerTest {
     assertThat(toggleDeepInspectAction.isSelected(createTestActionEvent(toggleDeepInspectAction))).isTrue()
 
     tab1.displays.forEach { display ->
-      val renderer = display.allChildren().filterIsInstance<EmbeddedRendererPanel>().first()
+      val renderer = display.component.allChildren().filterIsInstance<EmbeddedRendererPanel>().first()
       waitForCondition(2.seconds) { renderer.interceptClicks }
     }
 
@@ -392,7 +398,7 @@ class LayoutInspectorManagerTest {
     assertThat(toggleDeepInspectAction.isSelected(createTestActionEvent(toggleDeepInspectAction))).isFalse()
 
     tab1.displays.forEach { display ->
-      val renderer = display.allChildren().filterIsInstance<EmbeddedRendererPanel>().first()
+      val renderer = display.component.allChildren().filterIsInstance<EmbeddedRendererPanel>().first()
       waitForCondition(2.seconds) { !renderer.interceptClicks }
     }
   }
@@ -430,7 +436,7 @@ class LayoutInspectorManagerTest {
     val toggleDeepInspectAction = toolbar.actions.filterIsInstance<ToggleDeepInspectAction>().first()
     assertThat(toggleDeepInspectAction.isSelected(createTestActionEvent(toggleDeepInspectAction))).isFalse()
     tab1.displays.forEach { display ->
-      val renderer = display.allChildren().filterIsInstance<EmbeddedRendererPanel>().first()
+      val renderer = display.component.allChildren().filterIsInstance<EmbeddedRendererPanel>().first()
       assertThat(renderer.interceptClicks).isFalse()
     }
 
@@ -438,7 +444,7 @@ class LayoutInspectorManagerTest {
 
     assertThat(toggleDeepInspectAction.isSelected(createTestActionEvent(toggleDeepInspectAction))).isTrue()
     tab1.displays.forEach { display ->
-      val renderer = display.allChildren().filterIsInstance<EmbeddedRendererPanel>().first()
+      val renderer = display.component.allChildren().filterIsInstance<EmbeddedRendererPanel>().first()
       waitForCondition(2.seconds) { renderer.interceptClicks }
     }
 
@@ -492,9 +498,9 @@ class LayoutInspectorManagerTest {
 
     tab1.displays.forEach { display ->
       // Displays are added asynchronously. Wait for them to be added.
-      waitForCondition(2.seconds) { display.allChildren().filterIsInstance<LayoutInspectorRenderer>().isNotEmpty() }
+      waitForCondition(2.seconds) { display.component.allChildren().filterIsInstance<LayoutInspectorRenderer>().isNotEmpty() }
 
-      val renderer = display.allChildren().filterIsInstance<LayoutInspectorRenderer>().first()
+      val renderer = display.component.allChildren().filterIsInstance<LayoutInspectorRenderer>().first()
       Disposer.register(renderer) { isRendererDisposed.add(true) }
     }
 

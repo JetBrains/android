@@ -19,27 +19,27 @@ import com.android.adblib.ConnectedDevice
 import com.android.adblib.DeviceInfo
 import com.android.adblib.DeviceState.ONLINE
 import com.android.sdklib.deviceprovisioner.DeviceState
-import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.android.testutils.retryUntilPassing
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.emulator.EMULATOR_CONTROLLER_KEY
-import com.android.tools.idea.streaming.emulator.EmulatorConfiguration
 import com.android.tools.idea.streaming.emulator.EmulatorController
-import com.android.tools.idea.streaming.emulator.EmulatorId
-import com.android.tools.idea.streaming.emulator.EmulatorView
-import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.streaming.emulator.EmulatorDisplayView
+import com.android.tools.idea.streaming.emulator.EmulatorViewRule
+import com.android.tools.idea.streaming.emulator.FakeEmulator
+import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
-import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
-import java.nio.file.Paths
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
@@ -49,38 +49,27 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.spy
-import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.whenever
 
 class OpenWearHealthServicesPanelActionTest {
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
-  @get:Rule val fakePopupRule = JBPopupRule()
-  @get:Rule val deviceProvisionerRule = DeviceProvisionerRule()
 
-  private lateinit var emulatorController: EmulatorController
-  private lateinit var emulatorView: EmulatorView
+  private val projectRule = ProjectRule()
+  private val emulatorViewRule = EmulatorViewRule()
+  private val deviceProvisionerRule = DeviceProvisionerRule()
+  private val fakePopupRule = JBPopupRule()
+  @get:Rule val rule = RuleChain(projectRule, emulatorViewRule, deviceProvisionerRule, fakePopupRule)
+
+  private lateinit var emulatorView: EmulatorDisplayView
+  private val emulatorController: EmulatorController
+    get() = emulatorView.emulator
+
   private lateinit var actionEvent: AnActionEvent
 
   @Before
   fun setUp() {
     StudioFlags.WEAR_HEALTH_SERVICES_PANEL.override(true)
-    val emulatorConfig =
-      mock<EmulatorConfiguration>().also {
-        whenever(it.api).thenReturn(33)
-        whenever(it.deviceType).thenReturn(DeviceType.WEAR)
-      }
-    emulatorController =
-      spy(
-        EmulatorController(
-          EmulatorId(12345L, 0, null, null, "My AVD", Paths.get("avdPath"), 0, 0, emptyList()),
-          projectRule.testRootDisposable,
-        )
-      )
-    doReturn(emulatorConfig).whenever(emulatorController).emulatorConfig
-    Disposer.register(projectRule.testRootDisposable, emulatorController)
 
-    emulatorView = EmulatorView(projectRule.testRootDisposable, emulatorController, projectRule.project, 0, null, false)
+    emulatorView = emulatorViewRule.newEmulatorDisplayView(FakeEmulator::createWatchAvd)
 
     val dataContext =
       SimpleDataContext.builder()
@@ -92,7 +81,7 @@ class OpenWearHealthServicesPanelActionTest {
     actionEvent = TestActionEvent.createTestEvent(dataContext)
 
     val deviceProvisionerService: DeviceProvisionerService = mock()
-    projectRule.project.replaceService(DeviceProvisionerService::class.java, deviceProvisionerService, projectRule.testRootDisposable)
+    projectRule.project.replaceService(DeviceProvisionerService::class.java, deviceProvisionerService, projectRule.disposable)
     whenever(deviceProvisionerService.deviceProvisioner).thenReturn(deviceProvisionerRule.deviceProvisioner)
   }
 
@@ -100,16 +89,16 @@ class OpenWearHealthServicesPanelActionTest {
   fun `OpenWearHealthServicesPanelAction opens popup`() {
     val action = OpenWearHealthServicesPanelAction()
 
-    whenever(emulatorController.connectionState).thenReturn(EmulatorController.ConnectionState.CONNECTED)
+    waitForCondition(2.seconds) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
     action.actionPerformed(actionEvent)
     assertThat(fakePopupRule.fakePopupFactory.balloonCount).isEqualTo(1)
+    println("Success!")
   }
 
   @Test
   fun `OpenWearHealthServicesPanelAction is disabled when the emulator is disconnected`() {
     val action = OpenWearHealthServicesPanelAction()
     val emulator = deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice(emulatorView.deviceSerialNumber)
-    whenever(emulatorController.connectionState).thenReturn(EmulatorController.ConnectionState.DISCONNECTED)
     emulator.stateFlow.update { DeviceState.Disconnected(it.properties) }
 
     action.update(actionEvent)
@@ -120,13 +109,13 @@ class OpenWearHealthServicesPanelActionTest {
   @Test
   fun `OpenWearHealthServicesPanelAction is enabled when the emulator is connected`() {
     val action = OpenWearHealthServicesPanelAction()
+    waitForCondition(2.seconds) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
     val emulator = deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice(emulatorView.deviceSerialNumber)
     val mockDevice =
       mock<ConnectedDevice>().also {
         whenever(it.deviceInfoFlow).thenReturn(MutableStateFlow(DeviceInfo(emulatorView.deviceSerialNumber, ONLINE)))
       }
     emulator.stateFlow.update { DeviceState.Connected(it.properties, mockDevice) }
-    whenever(emulatorController.connectionState).thenReturn(EmulatorController.ConnectionState.CONNECTED)
 
     retryUntilPassing(5.seconds) {
       action.update(actionEvent)

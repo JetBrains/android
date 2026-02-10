@@ -23,6 +23,7 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
+import com.android.tools.idea.streaming.core.AbstractDevicePanel
 import com.android.tools.idea.streaming.core.AbstractDisplayPanel
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.DisplayDescriptor
@@ -32,7 +33,6 @@ import com.android.tools.idea.streaming.core.LeafNode
 import com.android.tools.idea.streaming.core.PanelState
 import com.android.tools.idea.streaming.core.SplitNode
 import com.android.tools.idea.streaming.core.SplitPanel
-import com.android.tools.idea.streaming.core.StreamingDevicePanel
 import com.android.tools.idea.streaming.core.computeBestLayout
 import com.android.tools.idea.streaming.core.htmlColored
 import com.android.tools.idea.streaming.core.installFileDropHandler
@@ -67,9 +67,9 @@ internal class DeviceToolWindowPanel(
   private val project: Project,
   val deviceHandle: DeviceHandle,
   val deviceClient: DeviceClient,
-) : StreamingDevicePanel<DeviceDisplayPanel>(DeviceId.ofPhysicalDevice(deviceClient.deviceSerialNumber), DEVICE_MAIN_TOOLBAR_ID) {
+) : AbstractDevicePanel<DeviceDisplayPanel>(DeviceId.ofPhysicalDevice(deviceClient.deviceSerialNumber), DEVICE_MAIN_TOOLBAR_ID) {
 
-  val deviceSerialNumber: String
+  override val deviceSerialNumber: String
     get() = deviceClient.deviceSerialNumber
 
   override val title: String
@@ -93,9 +93,6 @@ internal class DeviceToolWindowPanel(
 
   private val deviceController
     get() = deviceClient.deviceController
-
-  val component: JComponent
-    get() = this
 
   override val preferredFocusableComponent: JComponent
     get() = primaryDisplayView ?: this

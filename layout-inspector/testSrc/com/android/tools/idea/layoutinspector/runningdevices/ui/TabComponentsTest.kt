@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices.ui
 
-import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DeviceDisplayListener
 import com.android.tools.idea.streaming.core.DisplayOwner
+import com.android.tools.idea.streaming.core.DisplayView
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
@@ -31,14 +31,14 @@ class TabComponentsTest {
   @get:Rule val displayViewRule = EmulatorViewRule()
 
   private lateinit var displayListeners: MutableList<DeviceDisplayListener>
-  private lateinit var displayView1: AbstractDisplayView
-  private lateinit var displayView2: AbstractDisplayView
+  private lateinit var displayView1: DisplayView
+  private lateinit var displayView2: DisplayView
 
   @Before
   fun setUp() {
     displayListeners = mutableListOf()
-    displayView1 = displayViewRule.newEmulatorView()
-    displayView2 = displayViewRule.newEmulatorView()
+    displayView1 = displayViewRule.newEmulatorDisplayView()
+    displayView2 = displayViewRule.newEmulatorDisplayView()
   }
 
   @Test
@@ -57,7 +57,7 @@ class TabComponentsTest {
 
     assertThat(tabComponents.displayList.value).containsExactly(displayView1)
 
-    val newDisplay = displayViewRule.newEmulatorView()
+    val newDisplay = displayViewRule.newEmulatorDisplayView()
     displayListeners.first().displayAdded(newDisplay)
 
     assertThat(tabComponents.displayList.value).containsExactly(displayView1, newDisplay)
@@ -76,8 +76,8 @@ class TabComponentsTest {
     val content = JPanel()
     container.add(content)
 
-    content.add(displayView1)
-    content.add(displayView2)
+    content.add(displayView1.component)
+    content.add(displayView2.component)
 
     return TabComponents(
       disposable = displayViewRule.disposable,

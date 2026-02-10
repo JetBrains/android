@@ -29,7 +29,6 @@ import com.android.tools.idea.streaming.xr.AbstractXrInputController
 import com.android.tools.idea.streaming.xr.TRANSLATION_STEP_SIZE
 import com.intellij.ide.DataManager
 import com.intellij.ide.KeyboardAwareFocusOwner
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -97,31 +96,28 @@ import kotlinx.coroutines.launch
  * Common base class for [com.android.tools.idea.streaming.emulator.EmulatorView] and [com.android.tools.idea.streaming.device.DeviceView].
  */
 @Suppress("UseJBColor")
-abstract class AbstractDisplayView(project: Project, val displayId: Int, contextMenuActionGroupId: String) :
-  ZoomablePanel(), Disposable, KeyboardAwareFocusOwner {
+internal abstract class AbstractDisplayView(project: Project, override val displayId: Int, contextMenuActionGroupId: String) :
+  ZoomablePanel(), DisplayView, KeyboardAwareFocusOwner {
 
   /** Serial number of the device shown in the view. */
-  val deviceSerialNumber: String
+  override val deviceSerialNumber: String
     get() = deviceId.serialNumber
+
+  override val component: JComponent
+    get() = this
 
   /** ID of the device shown in the view. */
   abstract val deviceId: DeviceId
-  abstract val deviceType: DeviceType
-  abstract val apiLevel: Int
-  /** Area of the window occupied by the device display image in physical pixels. */
-  var displayRectangle: Rectangle? = null
+  override var displayRectangle: Rectangle? = null
     protected set
 
-  /** Orientation of the device display in quadrants counterclockwise. */
-  abstract val displayOrientationQuadrants: Int
   /** The difference between [displayOrientationQuadrants] and the orientation according to the internal Android data structures. */
-  var displayOrientationCorrectionQuadrants: Int = 0
+  override var displayOrientationCorrectionQuadrants: Int = 0
     protected set
 
   /** Size of the device's native display. */
   internal abstract val deviceDisplaySize: Dimension
-  /** The number of the last rendered display frame. */
-  var frameNumber: UInt = 0u
+  override var frameNumber: UInt = 0u
     protected set
 
   private val disconnectedStatePanel = DisconnectedStatePanel()
@@ -133,8 +129,7 @@ abstract class AbstractDisplayView(project: Project, val displayId: Int, context
 
   internal abstract val xrInputController: AbstractXrInputController?
 
-  /** Controls whether right clicks are sent to the device when the hardware input is disabled. */
-  var rightClicksAreSentToDevice: Boolean = false
+  override var rightClicksAreSentToDevice: Boolean = false
 
   protected val contextMenuHandler: PopupHandler? = createContextMenuHandler(contextMenuActionGroupId)
 
@@ -443,7 +438,7 @@ abstract class AbstractDisplayView(project: Project, val displayId: Int, context
   protected inner class Reconnector(val reconnectLabel: String, private val progressMessage: String, val reconnect: suspend () -> Unit) {
 
     /** Starts the reconnection attempt. */
-    internal fun start() {
+    fun start() {
       hideDisconnectedStateMessage()
       showLongRunningOperationIndicator(progressMessage)
       createCoroutineScope().launch { reconnect() }

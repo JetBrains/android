@@ -215,7 +215,7 @@ class SelectedTabStateTest {
 
     selectedTabState.enableLayoutInspector(UiConfig.HORIZONTAL)
 
-    val newDisplay = displayViewRule.newEmulatorView()
+    val newDisplay = displayViewRule.newEmulatorDisplayView()
     displayListeners.forEach { it.displayAdded(newDisplay) }
 
     assertThat(tabComponents.displayList.value).contains(newDisplay)
@@ -265,11 +265,11 @@ class SelectedTabStateTest {
     val content = JPanel()
     container.add(content)
 
-    val displayView1 = displayViewRule.newEmulatorView()
-    content.add(displayView1)
+    val displayView1 = displayViewRule.newEmulatorDisplayView()
+    content.add(displayView1.component)
 
-    val displayView2 = displayViewRule.newEmulatorView()
-    content.add(displayView2)
+    val displayView2 = displayViewRule.newEmulatorDisplayView()
+    content.add(displayView2.component)
 
     return TabComponents(
       disposable = displayViewRule.disposable,

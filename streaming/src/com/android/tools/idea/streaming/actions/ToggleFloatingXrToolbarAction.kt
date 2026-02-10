@@ -16,7 +16,7 @@
 package com.android.tools.idea.streaming.actions
 
 import com.android.sdklib.deviceprovisioner.DeviceType
-import com.android.tools.idea.streaming.core.StreamingDevicePanel
+import com.android.tools.idea.streaming.core.AbstractDevicePanel
 import com.intellij.ide.ActivityTracker
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -41,7 +41,7 @@ internal class ToggleFloatingXrToolbarAction : ToggleAction("Floating XR Navigat
     super.update(event)
     // Enabled only for XR devices.
     event.presentation.isEnabledAndVisible =
-      event.toolWindowContents.find { it.isSelected && (it.component as? StreamingDevicePanel<*>)?.deviceType == DeviceType.XR_HEADSET } !=
+      event.toolWindowContents.find { it.isSelected && (it.component as? AbstractDevicePanel<*>)?.deviceType == DeviceType.XR_HEADSET } !=
         null
   }
 

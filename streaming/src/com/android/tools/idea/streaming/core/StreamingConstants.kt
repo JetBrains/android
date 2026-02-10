@@ -24,7 +24,7 @@ import icons.StudioIcons
 import javax.swing.JComponent
 
 /** Constants for the Running Devices tool window. */
-@JvmField val DISPLAY_VIEW_KEY = DataKey.create<AbstractDisplayView>("DisplayView")
+@JvmField val DISPLAY_VIEW_KEY = DataKey.create<DisplayView>("DisplayView")
 
 @JvmField val STREAMING_CONTENT_PANEL_KEY = DataKey.create<JComponent>("StreamingContentPanel")
 

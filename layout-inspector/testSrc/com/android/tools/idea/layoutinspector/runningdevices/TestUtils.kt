@@ -39,7 +39,7 @@ import com.android.tools.idea.layoutinspector.tree.RootPanel
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.SingleDeviceSelectProcessAction
-import com.android.tools.idea.streaming.core.AbstractDisplayView
+import com.android.tools.idea.streaming.core.DisplayView
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.impl.ActionButton
@@ -129,7 +129,7 @@ inline fun <reified T : LayoutInspectorRenderer> verifyUiInjected(
   uiConfig: UiConfig,
   content: Component,
   container: Container,
-  displays: List<AbstractDisplayView>,
+  displays: List<DisplayView>,
 ) {
   assertThat(SwingUtilities.isDescendingFrom(content, container)).isTrue()
 
@@ -245,13 +245,13 @@ inline fun <reified T : LayoutInspectorRenderer> verifyUiInjected(
   assertThat(rootPanel).isNotNull()
 
   assertThat(displays).isNotEmpty()
-  displays.forEach { displayView -> assertThat(displayView.allChildren().filterIsInstance<T>()).hasSize(1) }
+  displays.forEach { displayView -> assertThat(displayView.component.allChildren().filterIsInstance<T>()).hasSize(1) }
 }
 
 fun findSplitter(content: Component): Splitter? =
   content.allParents().filterIsInstance<Splitter>().singleOrNull { it.name != STATE_READ_SPLITTER_NAME }
 
-fun verifyUiRemoved(content: Component, container: Container, displays: List<AbstractDisplayView>) {
+fun verifyUiRemoved(content: Component, container: Container, displays: List<DisplayView>) {
   assertThat(SwingUtilities.isDescendingFrom(content, container)).isTrue()
 
   assertThat(content.allParents().filterIsInstance<Splitter>()).hasSize(0)
@@ -267,7 +267,7 @@ fun verifyUiRemoved(content: Component, container: Container, displays: List<Abs
   assertThat(inspectorBanner).hasSize(0)
 
   assertThat(displays).isNotEmpty()
-  displays.forEach { displayView -> assertThat(displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>()).hasSize(0) }
+  displays.forEach { displayView -> assertThat(displayView.component.allChildren().filterIsInstance<LayoutInspectorRenderer>()).hasSize(0) }
 }
 
 fun verifyToolbar(container: Container, shouldContainProcessPicker: Boolean) {

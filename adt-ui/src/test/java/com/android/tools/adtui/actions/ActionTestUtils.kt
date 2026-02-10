@@ -126,7 +126,8 @@ fun createTestEvent(
   return AnActionEvent.createEvent(dataContext, presentation, place, ActionUiKind.NONE, inputEvent)
 }
 
-private fun createDataContext(component: Component?, rootContext: DataContext): DataContext {
+/** Creates a data context with [component] and with [rootContext] as the parent. */
+fun createDataContext(component: Component?, rootContext: DataContext): DataContext {
   val c = findParentByCondition(component) { it is UiDataProvider } ?: return rootContext
   val parentContext = createDataContext(c.parent, rootContext)
   return (c as UiDataProvider).toDataSnapshotProvider().toDataContext(parentContext)

@@ -21,7 +21,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.resource.data.Display
 import com.android.tools.idea.layoutinspector.runningdevices.navigateToSelectedViewFromRendererDoubleClick
-import com.android.tools.idea.streaming.core.AbstractDisplayView
+import com.android.tools.idea.streaming.core.DisplayView
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
@@ -32,18 +32,18 @@ class RenderingComponents(
   layoutInspector: LayoutInspector,
   val renderer: LayoutInspectorRenderer,
   val model: EmbeddedRendererModel,
-  private val displayView: AbstractDisplayView,
+  private val displayView: DisplayView,
 ) : Disposable {
   init {
     Disposer.register(disposable, this)
   }
 
   fun addRenderer() {
-    displayView.add(renderer)
+    displayView.component.add(renderer)
   }
 
   fun removeRenderer() {
-    displayView.remove(renderer)
+    displayView.component.remove(renderer)
   }
 
   override fun dispose() {
@@ -51,10 +51,10 @@ class RenderingComponents(
   }
 }
 
-/** Creates a [RenderingComponents] for each [AbstractDisplayView] passed as input. */
+/** Creates a [RenderingComponents] for each [DisplayView] passed as input. */
 fun createRenderingComponents(
   disposable: Disposable,
-  displayList: List<AbstractDisplayView>,
+  displayList: List<DisplayView>,
   layoutInspector: LayoutInspector,
   statsProvider: () -> SessionStatistics = { layoutInspector.currentClient.stats },
 ): List<RenderingComponents> {

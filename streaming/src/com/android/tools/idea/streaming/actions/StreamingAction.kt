@@ -39,7 +39,7 @@ internal abstract class StreamingAction(virtualDeviceAction: AnAction, physicalD
 
 fun getNotificationHolderPanel(event: AnActionEvent): NotificationHolderPanel? = getDisplayView(event)?.findNotificationHolderPanel()
 
-internal fun getDisplayView(event: AnActionEvent): AbstractDisplayView? = event.getData(DISPLAY_VIEW_KEY)
+internal fun getDisplayView(event: AnActionEvent): AbstractDisplayView? = event.getData(DISPLAY_VIEW_KEY) as AbstractDisplayView?
 
 internal fun getDeviceType(event: AnActionEvent): DeviceType? = event.getData(DEVICE_TYPE_KEY)
 

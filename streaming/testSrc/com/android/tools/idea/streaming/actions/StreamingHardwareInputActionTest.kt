@@ -33,6 +33,7 @@ import com.android.tools.idea.streaming.device.UNKNOWN_ORIENTATION
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.android.tools.idea.streaming.emulator.FakeEmulator
 import com.android.tools.idea.streaming.extractText
+import com.android.tools.idea.streaming.testutil.newEmulatorView
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.Presentation

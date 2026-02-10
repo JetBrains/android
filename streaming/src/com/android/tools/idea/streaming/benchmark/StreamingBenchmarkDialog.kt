@@ -65,7 +65,7 @@ private const val DEFAULT_READY_PROGRESS_LABEL = "Preparing to benchmark"
  * The dialog shows options for benchmarking and also shows progress while the benchmarking is underway. When benchmarking finishes, a
  * dialog displaying results is popped up.
  */
-class StreamingBenchmarkDialog(private val target: StreamingBenchmarkTarget) {
+internal class StreamingBenchmarkDialog(private val target: StreamingBenchmarkTarget) {
   private val isGettingReady = BooleanComponentPredicate(false)
   private val isRunning = BooleanComponentPredicate(false)
   private val isStopped = isGettingReady.or(isRunning).not()

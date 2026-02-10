@@ -208,7 +208,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
 
   @Volatile var extendedControlsVisible = false
 
-  @Volatile var frameNumber: UInt = 0u
+  @Volatile
+  var frameNumber: UInt = 0u
     private set
 
   /** Ids of snapshots that were created by calling the [createIncompatibleSnapshot] method. */
@@ -1608,7 +1609,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
     fun createWatchAvd(
       parentFolder: Path,
       sdkFolder: Path = getSdkFolder(parentFolder),
-      androidVersion: AndroidVersion = AndroidVersion(30, 0),
+      androidVersion: AndroidVersion = AndroidVersion(33, 0),
       skinFolder: Path? = getSkinFolder("wearos_small_round"),
     ): Path {
       val api = androidVersion.androidApiLevel.majorVersion

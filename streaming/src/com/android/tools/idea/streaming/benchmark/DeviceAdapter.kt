@@ -457,4 +457,4 @@ internal class DeviceAdapter(
   }
 }
 
-data class StreamingBenchmarkTarget(val name: String, val serialNumber: String, val view: AbstractDisplayView)
+internal data class StreamingBenchmarkTarget(val name: String, val serialNumber: String, val view: AbstractDisplayView)

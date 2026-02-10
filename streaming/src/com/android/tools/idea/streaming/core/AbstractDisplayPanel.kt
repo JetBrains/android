@@ -63,7 +63,7 @@ import org.intellij.lang.annotations.JdkConstants.AdjustableOrientation
 
 /** Represents a single display of an Android device. */
 @Suppress("LeakingThis") // Passing "this" to Disposer in constructor is safe because the dispose method is final.
-abstract class AbstractDisplayPanel<T : AbstractDisplayView>(disposableParent: Disposable, zoomToolbarVisible: Boolean) :
+internal abstract class AbstractDisplayPanel<T : AbstractDisplayView>(disposableParent: Disposable, zoomToolbarVisible: Boolean) :
   BorderLayoutPanel(), UiDataProvider, Disposable {
 
   private val scrollPane: JScrollPane

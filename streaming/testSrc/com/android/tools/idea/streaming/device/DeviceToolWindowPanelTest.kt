@@ -34,9 +34,9 @@ import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.actions.FloatingXrToolbarState
 import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
 import com.android.tools.idea.streaming.actions.ToggleFloatingXrToolbarAction
-import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DeviceDisplayListener
 import com.android.tools.idea.streaming.core.DisplayType
+import com.android.tools.idea.streaming.core.DisplayView
 import com.android.tools.idea.streaming.core.expandFloatingToolbar
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
@@ -576,11 +576,11 @@ class DeviceToolWindowPanelTest {
     val displayIds = mutableSetOf<Int>()
     panel.addDeviceDisplayListener(
       object : DeviceDisplayListener {
-        override fun displayAdded(displayView: AbstractDisplayView) {
+        override fun displayAdded(displayView: DisplayView) {
           displayIds.add(displayView.displayId)
         }
 
-        override fun displayRemoved(displayView: AbstractDisplayView) {
+        override fun displayRemoved(displayView: DisplayView) {
           displayIds.remove(displayView.displayId)
         }
       }

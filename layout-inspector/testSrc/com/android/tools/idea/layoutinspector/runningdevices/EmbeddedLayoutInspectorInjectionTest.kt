@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.runningdevices
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils.resolveWorkspacePathUnchecked
 import com.android.testutils.waitForCondition
+import com.android.tools.adtui.actions.createDataContext
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
@@ -35,15 +36,13 @@ import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetectio
 import com.android.tools.idea.layoutinspector.runningdevices.ui.SelectedTabState
 import com.android.tools.idea.layoutinspector.runningdevices.ui.TabComponents
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
-import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DeviceId
+import com.android.tools.idea.streaming.core.DevicePanel
+import com.android.tools.idea.streaming.core.DisplayView
 import com.android.tools.idea.streaming.core.STREAMING_CONTENT_PANEL_KEY
-import com.android.tools.idea.streaming.core.StreamingDevicePanel
-import com.android.tools.idea.streaming.emulator.EmulatorDisplayPanel
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.CustomizedDataContext
-import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DataContext.EMPTY_CONTEXT
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
@@ -139,10 +138,10 @@ class EmbeddedLayoutInspectorInjectionTest {
     renderAndAssertImageSimilarity(panel, selectedTabState.tabComponents)
   }
 
-  private fun createUi(): Pair<StreamingDevicePanel<EmulatorDisplayPanel>, SelectedTabState> {
+  private fun createUi(): Pair<DevicePanel<*>, SelectedTabState> {
     val panel = emulatorViewRule.newEmulatorToolWindowPanel()
 
-    val context = CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT) { sink -> panel.uiDataSnapshot(sink) }
+    val context = createDataContext(panel.component, EMPTY_CONTEXT)
     val streamingContent = STREAMING_CONTENT_PANEL_KEY.getData(context)
     assertThat(streamingContent).isNotNull()
 
@@ -160,10 +159,10 @@ class EmbeddedLayoutInspectorInjectionTest {
     return panel to selectedTabState
   }
 
-  private fun renderAndAssertImageSimilarity(panel: StreamingDevicePanel<EmulatorDisplayPanel>, tabComponents: TabComponents) {
+  private fun renderAndAssertImageSimilarity(panel: DevicePanel<*>, tabComponents: TabComponents) {
     val rootPanel = BorderLayoutPanel()
     rootPanel.size = Dimension(screenDimension.width, screenDimension.height)
-    rootPanel.addToCenter(panel)
+    rootPanel.addToCenter(panel.component)
     val fakeUi = FakeUi(rootPanel)
     waitForFrame(fakeUi, tabComponents.displayList.value)
     val image = fakeUi.render()
@@ -177,7 +176,7 @@ class EmbeddedLayoutInspectorInjectionTest {
   }
 
   /** Wait until the displays have rendered their UI */
-  private fun waitForFrame(fakeUi: FakeUi, displays: List<AbstractDisplayView>) {
+  private fun waitForFrame(fakeUi: FakeUi, displays: List<DisplayView>) {
     displays.forEach { display ->
       waitForCondition(20.seconds) {
         fakeUi.render()

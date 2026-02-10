@@ -19,13 +19,14 @@ import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.executeAction
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.streaming.core.StreamingDevicePanel
+import com.android.tools.idea.streaming.core.DevicePanel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.project.Project
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import java.nio.file.Path
+import javax.swing.JComponent
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import org.junit.rules.ExternalResource
@@ -62,17 +63,21 @@ class EmulatorViewRule : TestRule {
   val project: Project
     get() = projectRule.project
 
-  fun newEmulatorView(avdCreator: ((Path) -> Path)? = null, displayId: Int = PRIMARY_DISPLAY_ID): EmulatorView =
-    newEmulatorDisplayPanel(avdCreator, displayId).displayView
+  fun newEmulatorDisplayView(avdCreator: ((Path) -> Path)? = null, displayId: Int = PRIMARY_DISPLAY_ID): EmulatorDisplayView =
+    newEmulatorDisplayViewContainer(avdCreator, displayId).displayView
 
-  fun newEmulatorDisplayPanel(avdCreator: ((Path) -> Path)? = null, displayId: Int = PRIMARY_DISPLAY_ID): EmulatorDisplayPanel {
+  fun newEmulatorDisplayViewContainer(
+    avdCreator: ((Path) -> Path)? = null,
+    displayId: Int = PRIMARY_DISPLAY_ID,
+  ): DisplayViewContainer<EmulatorDisplayView> {
     val emulatorController = getEmulatorController(avdCreator)
-    val displayPanel = EmulatorDisplayPanel(disposable, emulatorController, project, displayId, null, false, true)
+    val displayPanel =
+      EmulatorDisplayPanel(disposable, emulatorController, project, displayId, null, zoomToolbarVisible = false, deviceFrameVisible = true)
     waitForCondition(5.seconds) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
     return displayPanel
   }
 
-  fun newEmulatorToolWindowPanel(avdCreator: ((Path) -> Path)? = null): StreamingDevicePanel<EmulatorDisplayPanel> {
+  fun newEmulatorToolWindowPanel(avdCreator: ((Path) -> Path)? = null): DevicePanel<*> {
     val emulatorController = getEmulatorController(avdCreator)
     val panel = EmulatorToolWindowPanel(disposable, project, emulatorController)
     panel.createContent(true, null)
@@ -91,11 +96,11 @@ class EmulatorViewRule : TestRule {
     return emulators.find { it.emulatorId.grpcPort == fakeEmulator.grpcPort }!!
   }
 
-  fun executeAction(actionId: String, emulatorView: EmulatorView, place: String = ActionPlaces.TOOLBAR) {
-    executeAction(actionId, emulatorView, projectRule.project, place)
+  fun executeAction(actionId: String, component: JComponent, place: String = ActionPlaces.TOOLBAR) {
+    executeAction(actionId, component, projectRule.project, place)
   }
 
-  fun getFakeEmulator(emulatorView: EmulatorView): FakeEmulator = fakeEmulators[emulatorView.emulator.emulatorId.grpcPort]
+  fun getFakeEmulator(emulatorView: EmulatorDisplayView): FakeEmulator = fakeEmulators[emulatorView.emulator.emulatorId.grpcPort]
 
   override fun apply(base: Statement, description: Description): Statement =
     flagOverrides.apply(projectRule.apply(emulatorRule.apply(base, description), description), description)

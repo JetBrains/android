@@ -33,6 +33,7 @@ import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.android.tools.idea.streaming.emulator.FakeEmulator
 import com.android.tools.idea.streaming.emulator.FakeEmulator.Companion.DEFAULT_CALL_FILTER
 import com.android.tools.idea.streaming.emulator.actions.findManageSnapshotDialog
+import com.android.tools.idea.streaming.testutil.newEmulatorView
 import com.google.common.truth.Truth.assertThat
 import com.intellij.diagnostic.ThreadDumper
 import com.intellij.openapi.actionSystem.AnAction

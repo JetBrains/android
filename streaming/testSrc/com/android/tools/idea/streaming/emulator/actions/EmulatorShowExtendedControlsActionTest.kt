@@ -19,6 +19,7 @@ import com.android.emulator.control.ThemingStyle
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
+import com.android.tools.idea.streaming.testutil.newEmulatorView
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ui.LafManager
 import com.intellij.ide.ui.laf.UIThemeLookAndFeelInfoImpl

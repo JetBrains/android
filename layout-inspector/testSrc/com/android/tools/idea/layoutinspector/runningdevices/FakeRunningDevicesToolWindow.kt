@@ -17,12 +17,12 @@ package com.android.tools.idea.layoutinspector.runningdevices
 
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
-import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DEVICE_ID_KEY
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.core.DeviceDisplayListener
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.DisplayOwner
+import com.android.tools.idea.streaming.core.DisplayView
 import com.android.tools.idea.streaming.core.STREAMING_CONTENT_PANEL_KEY
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
@@ -65,14 +65,9 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 
-data class TabInfo(
-  val deviceId: DeviceId,
-  val content: BorderLayoutPanel,
-  val container: Container,
-  val displays: List<AbstractDisplayView>,
-) {
+data class TabInfo(val deviceId: DeviceId, val content: BorderLayoutPanel, val container: Container, val displays: List<DisplayView>) {
   init {
-    displays.forEach { content.add(it) }
+    displays.forEach { content.add(it.component) }
   }
 }
 

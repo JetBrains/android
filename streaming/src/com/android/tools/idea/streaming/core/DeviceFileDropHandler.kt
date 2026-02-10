@@ -48,7 +48,12 @@ private const val DEVICE_DOWNLOAD_DIR = "/sdcard/Download"
  * @param displayView the view associated with the device
  * @param project the project associated with [displayView]
  */
-fun installFileDropHandler(dropTarget: JComponent, deviceSerialNumber: String, displayView: AbstractDisplayView, project: Project) {
+internal fun installFileDropHandler(
+  dropTarget: JComponent,
+  deviceSerialNumber: String,
+  displayView: AbstractDisplayView,
+  project: Project,
+) {
   DnDSupport.createBuilder(dropTarget)
     .enableAsNativeTarget()
     .setTargetChecker { event ->

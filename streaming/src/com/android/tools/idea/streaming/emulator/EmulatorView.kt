@@ -199,15 +199,16 @@ import org.jetbrains.annotations.VisibleForTesting
  * @param displaySize the size of the device display; a null value defaults to `emulator.emulatorConfig.displaySize`
  * @param deviceFrameVisible controls visibility of the device frame
  */
-class EmulatorView(
+internal class EmulatorView(
   disposableParent: Disposable,
-  val emulator: EmulatorController,
+  override val emulator: EmulatorController,
   project: Project,
   displayId: Int,
   private val displaySize: Dimension?,
   deviceFrameVisible: Boolean,
 ) :
   AbstractDisplayView(project, displayId, "StreamingContextMenuVirtualDevice"),
+  EmulatorDisplayView,
   ConnectionStateListener,
   EmulatorSettingsListener,
   EmulatorNotificationDispatcher.Listener {

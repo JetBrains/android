@@ -28,7 +28,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
-import com.android.tools.idea.streaming.core.AbstractDisplayView
+import com.android.tools.idea.streaming.core.DisplayView
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.android.tools.idea.streaming.emulator.FakeEmulator
 import com.google.common.truth.Truth.assertThat
@@ -82,12 +82,12 @@ class RenderingComponentsTest {
 
   @Test
   fun testAddAndRemoveRenderer() {
-    val displayView = displayViewRule.newEmulatorView()
+    val displayView = displayViewRule.newEmulatorDisplayView()
     val renderingComponents = createRenderingComponents(displayView)
     assertThat(renderingComponents.renderer.parent).isNull()
 
     renderingComponents.addRenderer()
-    assertThat(renderingComponents.renderer.parent).isInstanceOf(AbstractDisplayView::class.java)
+    assertThat(renderingComponents.renderer.parent).isInstanceOf(DisplayView::class.java)
 
     renderingComponents.removeRenderer()
     assertThat(renderingComponents.renderer.parent).isNull()
@@ -95,12 +95,12 @@ class RenderingComponentsTest {
 
   @Test
   fun testDisposeRemovesRenderer() {
-    val displayView = displayViewRule.newEmulatorView()
+    val displayView = displayViewRule.newEmulatorDisplayView()
     val renderingComponents = createRenderingComponents(displayView)
     assertThat(renderingComponents.renderer.parent).isNull()
 
     renderingComponents.addRenderer()
-    assertThat(renderingComponents.renderer.parent).isInstanceOf(AbstractDisplayView::class.java)
+    assertThat(renderingComponents.renderer.parent).isInstanceOf(DisplayView::class.java)
 
     Disposer.dispose(renderingComponents)
     assertThat(renderingComponents.renderer.parent).isNull()
@@ -109,7 +109,7 @@ class RenderingComponentsTest {
   @Test
   fun testDisposedWhenEitherParentDisposableOrDisplayViewIsDisposed() {
     val disposable1 = Disposer.newDisposable(displayViewRule.disposable)
-    val displayView1 = displayViewRule.newEmulatorView()
+    val displayView1 = displayViewRule.newEmulatorDisplayView()
     var isRenderingComponentsDisposed1 = false
 
     val renderingComponents1 = createRenderingComponents(disposable = disposable1, displayView = displayView1)
@@ -120,7 +120,7 @@ class RenderingComponentsTest {
     assertThat(isRenderingComponentsDisposed1).isTrue()
 
     val disposable2 = Disposer.newDisposable(displayViewRule.disposable)
-    val displayView2 = displayViewRule.newEmulatorView()
+    val displayView2 = displayViewRule.newEmulatorDisplayView()
     var isRenderingComponentsDisposed2 = false
 
     val renderingComponents2 = createRenderingComponents(disposable = disposable2, displayView = displayView2)
@@ -133,7 +133,7 @@ class RenderingComponentsTest {
 
   @Test
   fun testOnDeviceRenderingIsLoggedToMetrics() {
-    val xrDisplay = displayViewRule.newEmulatorView(avdCreator = { path -> FakeEmulator.createXrHeadsetAvd(path) })
+    val xrDisplay = displayViewRule.newEmulatorDisplayView(avdCreator = { path -> FakeEmulator.createXrHeadsetAvd(path) })
     val fakeSessionStats = FakeSessionStats()
     createRenderingComponents(
       disposable = displayViewRule.disposable,
@@ -147,8 +147,8 @@ class RenderingComponentsTest {
 
   @Test
   fun testOnDeviceRenderingSharesBetweenDifferentRenderers() {
-    val xrDisplay1 = displayViewRule.newEmulatorView(avdCreator = { path -> FakeEmulator.createXrHeadsetAvd(path) })
-    val xrDisplay2 = displayViewRule.newEmulatorView(avdCreator = { path -> FakeEmulator.createXrHeadsetAvd(path) })
+    val xrDisplay1 = displayViewRule.newEmulatorDisplayView(avdCreator = { path -> FakeEmulator.createXrHeadsetAvd(path) })
+    val xrDisplay2 = displayViewRule.newEmulatorDisplayView(avdCreator = { path -> FakeEmulator.createXrHeadsetAvd(path) })
 
     val fakeSessionStats = FakeSessionStats()
     val renderingComponents =
@@ -165,7 +165,7 @@ class RenderingComponentsTest {
   }
 
   private fun createRenderingComponents(
-    displayView: AbstractDisplayView,
+    displayView: DisplayView,
     disposable: Disposable = displayViewRule.disposable,
   ): RenderingComponents {
     return createRenderingComponents(disposable = disposable, displayList = listOf(displayView), layoutInspector = layoutInspector).first()

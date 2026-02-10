@@ -25,6 +25,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.DEVICE_TYPE_KEY
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
+import com.android.tools.idea.streaming.emulator.DisplayViewContainer
 import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.ui.DISPLAY_INFO_PROVIDER_KEY
 import com.android.tools.idea.ui.DisplayInfoProvider
@@ -68,11 +69,14 @@ import javax.swing.JLabel
 private const val IS_TOOLBAR_HORIZONTAL = true
 
 /** Provides view of one Android device in the Running Devices tool window. */
-abstract class StreamingDevicePanel<T : AbstractDisplayPanel<*>>(
+internal abstract class AbstractDevicePanel<T : AbstractDisplayPanel<*>>(
   val id: DeviceId,
   mainToolbarId: String,
   secondaryToolbarId: String = STREAMING_SECONDARY_TOOLBAR_ID,
-) : BorderLayoutPanel(), UiDataProvider, DisplayOwner, Disposable {
+) : BorderLayoutPanel(), DevicePanel<DisplayViewContainer<*>>, UiDataProvider, DisplayOwner, Disposable {
+
+  override val deviceSerialNumber: String
+    get() = id.serialNumber
 
   /** Plain text name of the device. */
   internal abstract val title: String
@@ -146,16 +150,11 @@ abstract class StreamingDevicePanel<T : AbstractDisplayPanel<*>>(
     addToCenter(panel)
   }
 
-  /**
-   * Adds a notification panel. If the [notificationPanel] has a close action, that action has to make sure that the notification is removed
-   * when the action is executed.
-   */
-  fun addNotification(notificationPanel: EditorNotificationPanel) {
+  override fun addNotification(notificationPanel: EditorNotificationPanel) {
     findNotificationHolderPanel()?.addNotification(notificationPanel)
   }
 
-  /** Removes the given notification panel. */
-  fun removeNotification(notificationPanel: EditorNotificationPanel) {
+  override fun removeNotification(notificationPanel: EditorNotificationPanel) {
     findNotificationHolderPanel()?.removeNotification(notificationPanel)
   }
 

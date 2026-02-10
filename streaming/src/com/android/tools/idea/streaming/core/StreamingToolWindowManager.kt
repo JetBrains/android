@@ -43,7 +43,7 @@ import com.android.tools.idea.streaming.MirroringManager
 import com.android.tools.idea.streaming.MirroringState
 import com.android.tools.idea.streaming.actions.ToggleFloatingXrToolbarAction
 import com.android.tools.idea.streaming.actions.toolWindowContents
-import com.android.tools.idea.streaming.core.StreamingDevicePanel.UiState
+import com.android.tools.idea.streaming.core.AbstractDevicePanel.UiState
 import com.android.tools.idea.streaming.device.DeviceClient
 import com.android.tools.idea.streaming.device.DeviceConfiguration
 import com.android.tools.idea.streaming.device.DeviceToolWindowPanel
@@ -157,7 +157,7 @@ private val EMULATOR_TERMINATION_TIMEOUT = 20.seconds
 
 /**
  * Manages contents of the Running Devices tool window. Listens to device connections and disconnections and maintains
- * [StreamingDevicePanel]s, one per running AVD or a mirrored physical device.
+ * [AbstractDevicePanel]s, one per running AVD or a mirrored physical device.
  */
 @UiThread
 internal class StreamingToolWindowManager @AnyThread constructor(private val toolWindow: ToolWindowEx) :
@@ -227,7 +227,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
         if (Content.TEMPORARY_REMOVED_KEY.get(content, false)) {
           return
         }
-        val panel = content.component as? StreamingDevicePanel<*> ?: return
+        val panel = content.component as? AbstractDevicePanel<*> ?: return
         if (!initialContentUpdate) {
           when (panel) {
             is EmulatorToolWindowPanel -> panel.emulator.shutdown()
@@ -265,7 +265,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
       projectProperties.setValue(DEVICE_FRAME_VISIBLE_PROPERTY, value, DEVICE_FRAME_VISIBLE_DEFAULT)
       for (contentManager in contentManagers) {
         for (i in 0 until contentManager.contentCount) {
-          (contentManager.getContent(i)?.component as? StreamingDevicePanel<*>)?.setDeviceFrameVisible(value)
+          (contentManager.getContent(i)?.component as? AbstractDevicePanel<*>)?.setDeviceFrameVisible(value)
         }
       }
     }
@@ -276,7 +276,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
       projectProperties.setValue(ZOOM_TOOLBAR_VISIBLE_PROPERTY, value, ZOOM_TOOLBAR_VISIBLE_DEFAULT)
       for (contentManager in contentManagers) {
         for (i in 0 until contentManager.contentCount) {
-          (contentManager.getContent(i)?.component as? StreamingDevicePanel<*>)?.zoomToolbarVisible = value
+          (contentManager.getContent(i)?.component as? AbstractDevicePanel<*>)?.zoomToolbarVisible = value
         }
       }
     }
@@ -464,7 +464,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
       }
       // Restore content of visible panels.
       for (content in contentManager.selectedContents) {
-        val panel = content.component as? StreamingDevicePanel<*> ?: continue
+        val panel = content.component as? AbstractDevicePanel<*> ?: continue
         if (!panel.hasContent) {
           panel.createContent(deviceFrameVisible, savedUiState[panel.id])
         }
@@ -493,7 +493,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
     recentAvdLaunches.invalidateAll()
 
     for (contentManager in contentManagers) {
-      val panel = contentManager.selectedContent?.component as? StreamingDevicePanel<*> ?: continue
+      val panel = contentManager.selectedContent?.component as? AbstractDevicePanel<*> ?: continue
       savedUiState[panel.id] = panel.destroyContent()
     }
   }
@@ -525,7 +525,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
    * Adds a device tab by adding [panel] to [targetContentManager] or to the main tool window content manager if [targetContentManager] is
    * null. Returns the added [Content] object or null in case of an error.
    */
-  private fun addPanel(panel: StreamingDevicePanel<*>, targetContentManager: ContentManager? = null): Content? {
+  private fun addPanel(panel: AbstractDevicePanel<*>, targetContentManager: ContentManager? = null): Content? {
     val contentManager = targetContentManager ?: toolWindow.contentManager
     val placeholderContent = contentManager.placeholderContent
 
@@ -619,7 +619,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
       for (i in 0 until contentManager.contentCount) {
         val content = contentManager.getContent(i) ?: break
         val panel = content.component
-        if (panel is StreamingDevicePanel<*>) {
+        if (panel is AbstractDevicePanel<*>) {
           if (content.isSelected) {
             if (!panel.hasContent) {
               // The panel became visible - create its content.
@@ -1090,7 +1090,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
       event.presentation.isEnabledAndVisible = event.toolWindowContents.find { it.isSelected && it.component.isNonXrDevicePanel() } != null
     }
 
-    private fun JComponent.isNonXrDevicePanel(): Boolean = this is StreamingDevicePanel<*> && deviceType != DeviceType.XR_HEADSET
+    private fun JComponent.isNonXrDevicePanel(): Boolean = this is AbstractDevicePanel<*> && deviceType != DeviceType.XR_HEADSET
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
   }

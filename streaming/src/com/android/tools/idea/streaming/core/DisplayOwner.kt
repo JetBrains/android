@@ -29,8 +29,8 @@ interface DisplayOwner {
 interface DeviceDisplayListener {
 
   /** Called when a new display becomes active. */
-  fun displayAdded(displayView: AbstractDisplayView)
+  fun displayAdded(displayView: DisplayView)
 
   /** Called when a display becomes inactive. */
-  fun displayRemoved(displayView: AbstractDisplayView)
+  fun displayRemoved(displayView: DisplayView)
 }

@@ -43,8 +43,8 @@ class RunningDevicesStateObserverTest {
 
   @Before
   fun setUp() {
-    tab1 = TabInfo(DeviceId.ofPhysicalDevice("tab1"), BorderLayoutPanel(), JPanel(), listOf(displayViewRule.newEmulatorView()))
-    tab2 = TabInfo(DeviceId.ofPhysicalDevice("tab2"), BorderLayoutPanel(), JPanel(), listOf(displayViewRule.newEmulatorView()))
+    tab1 = TabInfo(DeviceId.ofPhysicalDevice("tab1"), BorderLayoutPanel(), JPanel(), listOf(displayViewRule.newEmulatorDisplayView()))
+    tab2 = TabInfo(DeviceId.ofPhysicalDevice("tab2"), BorderLayoutPanel(), JPanel(), listOf(displayViewRule.newEmulatorDisplayView()))
 
     fakeToolWindowManager = FakeToolWindowManager(displayViewRule.project, emptyList())
 

@@ -17,9 +17,9 @@ package com.android.tools.idea.layoutinspector.runningdevices.ui
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DeviceDisplayListener
 import com.android.tools.idea.streaming.core.DisplayOwner
+import com.android.tools.idea.streaming.core.DisplayView
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import java.awt.Component
@@ -39,7 +39,7 @@ class TabComponents(val disposable: Disposable, val tabContentPanel: JComponent,
 
   private val lock = Any()
 
-  @GuardedBy("lock") private val _displayList = MutableStateFlow<List<AbstractDisplayView>>(emptyList())
+  @GuardedBy("lock") private val _displayList = MutableStateFlow<List<DisplayView>>(emptyList())
   /**
    * The list of [AbstractDisplayView] from running devices. Each entry corresponds to a display on the device. Layout Inspector UI is
    * rendered on top of each display.
@@ -49,12 +49,12 @@ class TabComponents(val disposable: Disposable, val tabContentPanel: JComponent,
   private val displayListener =
     object : DeviceDisplayListener {
       @UiThread
-      override fun displayAdded(displayView: AbstractDisplayView) {
+      override fun displayAdded(displayView: DisplayView) {
         synchronized(lock) { _displayList.value += displayView }
       }
 
       @UiThread
-      override fun displayRemoved(displayView: AbstractDisplayView) {
+      override fun displayRemoved(displayView: DisplayView) {
         synchronized(lock) { _displayList.value -= displayView }
       }
     }
@@ -62,7 +62,7 @@ class TabComponents(val disposable: Disposable, val tabContentPanel: JComponent,
   init {
     Disposer.register(disposable, this)
 
-    synchronized(lock) { _displayList.value = tabContentPanel.allChildren().filterIsInstance<AbstractDisplayView>() }
+    synchronized(lock) { _displayList.value = tabContentPanel.allChildren().filterIsInstance<DisplayView>() }
 
     displayOwner.addDeviceDisplayListener(displayListener)
   }

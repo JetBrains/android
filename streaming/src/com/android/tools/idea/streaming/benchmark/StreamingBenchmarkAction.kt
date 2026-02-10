@@ -16,8 +16,8 @@
 package com.android.tools.idea.streaming.benchmark
 
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
+import com.android.tools.idea.streaming.core.AbstractDevicePanel
 import com.android.tools.idea.streaming.core.AbstractDisplayView
-import com.android.tools.idea.streaming.core.StreamingDevicePanel
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -39,7 +39,7 @@ class StreamingBenchmarkAction : AnAction() {
   }
 
   private fun getTarget(project: Project?): StreamingBenchmarkTarget? {
-    val panel = project?.getEmulatorToolWindow()?.contentManager?.selectedContent?.component as? StreamingDevicePanel<*> ?: return null
+    val panel = project?.getEmulatorToolWindow()?.contentManager?.selectedContent?.component as? AbstractDevicePanel<*> ?: return null
     val view = panel.preferredFocusableComponent as? AbstractDisplayView ?: return null
     return StreamingBenchmarkTarget(panel.title, panel.id.serialNumber, view)
   }
