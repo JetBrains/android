@@ -1655,6 +1655,9 @@ public final class StudioFlags {
     "Enables a button to fix with AI render errors related to previews"
   );
 
+  public static final Flag<Boolean> COMPOSE_ENABLE_GDP_MCP_DIALOG = new BooleanFlag(
+    COMPOSE, "enable.gdp.mcp.dialog", "Enable GDP MCP server dialog",
+    "Enables the dialog prompting to enable the GDP MCP server.");
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI_AGENTIC = new BooleanFlag(
     COMPOSE, "transform.ui.with.ai.agentic", "Use agent for Transform UI with Gemini",
