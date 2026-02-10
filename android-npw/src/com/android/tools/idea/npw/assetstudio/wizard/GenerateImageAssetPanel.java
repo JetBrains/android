@@ -238,7 +238,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
     for (AndroidIconType iconType : supportedTypes) {
       ConfigureIconView view = switch (iconType) {
         case LAUNCHER -> new ConfigureAdaptiveIconPanel(this, facet, iconType, myShowGridProperty, myShowSafeZoneProperty,
-                                                        myPreviewDensityProperty, myValidatorPanel, renderer, StudioFlags.ENABLE_MONOCHROME_ICON_EDITOR_TAB.get());
+                                                        myPreviewDensityProperty, myValidatorPanel, renderer, true);
         // Tv channel icons don't support monochrome.
         case TV_CHANNEL -> new ConfigureAdaptiveIconPanel(this, facet, iconType, myShowGridProperty, myShowSafeZoneProperty,
                                                           myPreviewDensityProperty, myValidatorPanel, renderer, false);
