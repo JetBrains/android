@@ -26,7 +26,7 @@ aswb_library(
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api/maven:grpc-protobuf-lite",
         "//tools/vendor/google/aswb/plugin_api/maven:guava",
-        "@maven//:com.google.protobuf.protobuf-java",
+        "//tools/vendor/google/aswb/plugin_api/maven:protobuf-java",
     ],
 )
 
