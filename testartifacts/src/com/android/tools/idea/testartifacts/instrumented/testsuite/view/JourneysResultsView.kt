@@ -48,6 +48,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -67,6 +68,9 @@ import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.OutlinedButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.Tooltip
+import org.jetbrains.jewel.ui.component.styling.ButtonColors
+import org.jetbrains.jewel.ui.component.styling.ButtonStyle
+import org.jetbrains.jewel.ui.theme.outlinedButtonStyle
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -185,14 +189,45 @@ fun JourneyScreenshot(modifier: Modifier, path: String, onImageDoubleClicked: ((
     }
 
     if (!isLoading && !error && isHovered && onImageDoubleClicked != null) {
+      val isDark = JewelTheme.isDark
+      val overlayColor = if (isDark) Color(0, 0, 0, 200) else Color(255, 255, 255, 200)
       Box(
-        modifier =
-          Modifier.matchParentSize().background(Color(red = 255, green = 255, blue = 255, alpha = 200)).testTag("OpenScreenshotButton"),
+        modifier = Modifier.matchParentSize().background(overlayColor).testTag("OpenScreenshotButton"),
         contentAlignment = Alignment.Center,
       ) {
-        OutlinedButton(onClick = onImageDoubleClicked) { Text("Open Screenshot") }
+        OutlinedButton(onClick = onImageDoubleClicked, style = rememberOpenScreenshotButtonStyle()) { Text("Open Screenshot") }
       }
     }
+  }
+}
+
+@Composable
+private fun rememberOpenScreenshotButtonStyle(): ButtonStyle {
+  val baseStyle = JewelTheme.outlinedButtonStyle
+  val background = JewelTheme.globalColors.panelBackground
+  return remember(baseStyle, background) {
+    ButtonStyle(
+      colors =
+        ButtonColors(
+          background = SolidColor(background),
+          backgroundDisabled = baseStyle.colors.backgroundDisabled,
+          backgroundFocused = SolidColor(background),
+          backgroundPressed = SolidColor(background),
+          backgroundHovered = SolidColor(background),
+          content = baseStyle.colors.content,
+          contentDisabled = baseStyle.colors.contentDisabled,
+          contentFocused = baseStyle.colors.contentFocused,
+          contentPressed = baseStyle.colors.contentPressed,
+          contentHovered = baseStyle.colors.contentHovered,
+          border = baseStyle.colors.border,
+          borderDisabled = baseStyle.colors.borderDisabled,
+          borderFocused = baseStyle.colors.borderFocused,
+          borderPressed = baseStyle.colors.borderPressed,
+          borderHovered = baseStyle.colors.borderHovered,
+        ),
+      metrics = baseStyle.metrics,
+      focusOutlineAlignment = baseStyle.focusOutlineAlignment,
+    )
   }
 }
 
