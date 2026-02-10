@@ -151,7 +151,7 @@ internal fun WizardPageScope.ConfigurationPage(
     ConfigureDevicePanel(
       state,
       filteredImageState,
-      onDownloadButtonClick = { coroutineScope.launch { downloadSystemImage(parent, it) } },
+      onDownloadButtonClick = { coroutineScope.launch { downloadSystemImage(parent, sdkHandler, it) } },
       onSystemImageTableRowClick = {
         state.setSystemImageSelection(it)
         state.setSkin(resolve(sdkHandler, defaultDeviceSkin(state.device.deviceProfile, fileSystem), it.skins))
@@ -233,31 +233,13 @@ private fun ensureSystemImageIsPresent(sdkHandler: AndroidSdkHandler, device: Vi
     return false
   }
 
-  if (!downloadSystemImage(parent, image.`package`.path)) {
-    return false
-  }
+  device.image = downloadSystemImage(parent, sdkHandler, image.`package`.path) ?: return false
 
-  device.image = sdkHandler.toLocalImage(image)
   return true
 }
 
-// TODO: http://b/367394413 - This is a hack. Find a better way.
-private fun AndroidSdkHandler.toLocalImage(image: ISystemImage): ISystemImage {
-  if (image !is RemoteSystemImage) return image
-
-  val indicator = StudioLoggerProgressIndicator(AvdConfigurationPage::class.java)
-
-  val images = getSystemImageManager(indicator).imageMap.get(getLocalPackage(image.`package`.path, indicator))
-
-  if (images.size > 1) {
-    logger<AvdConfigurationPage>().warn("Multiple images for ${image.`package`.path}. Returning the first.")
-  }
-
-  return images.first()
-}
-
 @UiThread
-private fun downloadSystemImage(parent: Component, path: String): Boolean {
+private fun downloadSystemImage(parent: Component, sdkHandler: AndroidSdkHandler, path: String): ISystemImage? {
   catchAndShowErrors<AvdConfigurationPage>(
     parent = parent,
     message = "An unexpected error occurred downloading the system image. See idea.log for details.",
@@ -266,12 +248,22 @@ private fun downloadSystemImage(parent: Component, path: String): Boolean {
 
     if (dialog == null) {
       logger<AvdConfigurationPage>().warn("Could not create the SDK Quickfix Installation dialog")
-      return false
+      return null
     }
 
-    return dialog.showAndGet()
+    if (!dialog.showAndGet()) return null
+
+    // The dialog returns false if the user canceled, but if there's a download error, it can still return true,
+    // so we need to handle the case where no local package exists.
+    val progress = StudioLoggerProgressIndicator(AvdConfigurationPage::class.java)
+    val localPackage = sdkHandler.getLocalPackage(path, progress)
+    val images = sdkHandler.getSystemImageManager(progress).imageMap.get(localPackage)
+    if (images.size > 1) {
+      logger<AvdConfigurationPage>().warn("Multiple images for $path. Returning the first.")
+    }
+    return images.firstOrNull()
   }
-  return false
+  return null
 }
 
 object AvdConfigurationPage
