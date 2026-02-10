@@ -582,4 +582,25 @@ class ResizePanelTest {
 
     assertEquals(2603, widthTextField.value)
   }
+
+  @Test
+  fun `verify leading zeros are removed`() = runInEdtAndGet {
+    setupAndShowPanel()
+
+    // Step 1: Enter "01" (valid, 1 dp)
+    widthTextField.text = "01"
+    pressEnter(widthTextField)
+
+    // Verify it updated to 1
+    assertEquals(1, configuration.deviceSizeDp().width)
+    assertEquals("1", widthTextField.text)
+    assertNull(widthTextField.getClientProperty(OUTLINE_PROPERTY))
+
+    // Step 2: Delete "1"
+    widthTextField.document.remove(0, 1)
+    assertEquals("", widthTextField.text)
+
+    pressEnter(widthTextField)
+    assertNotEquals(0, configuration.deviceSizeDp().width)
+  }
 }
