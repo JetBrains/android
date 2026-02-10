@@ -384,7 +384,8 @@ class EmulatorView(
       }
 
     multiTouchMode =
-      mouseCoordinates != null &&
+      emulatorConfig.hasTouchScreen &&
+        mouseCoordinates != null &&
         !virtualSceneCameraActive &&
         modifiers and CTRL_DOWN_MASK != 0 &&
         !isHardwareInputEnabled() &&
