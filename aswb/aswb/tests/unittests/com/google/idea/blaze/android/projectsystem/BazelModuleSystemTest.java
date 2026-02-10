@@ -16,9 +16,7 @@
 package com.google.idea.blaze.android.projectsystem;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.google.common.collect.ImmutableList;
@@ -92,13 +90,18 @@ public class BazelModuleSystemTest extends BlazeTestCase {
   @Test
   public void testHasResolvedDependencyWithoutLocators() throws Exception {
     registerExtensionPoint(MavenArtifactLocator.EP_NAME, MavenArtifactLocator.class);
-    assertThat(BazelModuleSystem.create(module).hasResolvedDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7)).isFalse();
+    assertThat(
+            BazelModuleSystem.create(module)
+                .hasResolvedDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7))
+        .isFalse();
   }
 
   @Test
   public void testGetRegisteredDependencyQueryIdWithoutLocators() throws Exception {
     registerExtensionPoint(MavenArtifactLocator.EP_NAME, MavenArtifactLocator.class);
-    BlazeRegisteredDependencyQueryId id = BazelModuleSystem.create(module).getRegisteredDependencyQueryId(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7);
+    BlazeRegisteredDependencyQueryId id =
+        BazelModuleSystem.create(module)
+            .getRegisteredDependencyQueryId(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7);
     assertThat(id).isNotNull();
     assertThat(id.keys).isEmpty();
   }
@@ -106,10 +109,13 @@ public class BazelModuleSystemTest extends BlazeTestCase {
   @Test
   public void testGetRegisteredDependencyIdWithoutLocators() throws Exception {
     registerExtensionPoint(MavenArtifactLocator.EP_NAME, MavenArtifactLocator.class);
-    BlazeRegisteredDependencyId id = BazelModuleSystem.create(module).getRegisteredDependencyId(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7);
+    BlazeRegisteredDependencyId id =
+        BazelModuleSystem.create(module)
+            .getRegisteredDependencyId(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7);
     assertThat(id).isNotNull();
     assertThat(id).isInstanceOf(BlazeUnknownRegisteredDependencyId.class);
-    assertThat(((BlazeUnknownRegisteredDependencyId)id).id).isEqualTo(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7);
+    assertThat(((BlazeUnknownRegisteredDependencyId) id).id)
+        .isEqualTo(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7);
   }
 
   @Test
@@ -181,8 +187,7 @@ public class BazelModuleSystemTest extends BlazeTestCase {
   }
 
   private BlazeProjectData createMockBlazeProjectData() {
-    return MockBlazeProjectDataBuilder.builder(workspaceRoot)
-        .build();
+    return MockBlazeProjectDataBuilder.builder(workspaceRoot).build();
   }
 
   private static class MockFileSystem extends TempFileSystem {

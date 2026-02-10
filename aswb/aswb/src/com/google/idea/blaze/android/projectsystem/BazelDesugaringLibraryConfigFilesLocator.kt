@@ -22,9 +22,7 @@ import com.intellij.openapi.project.Project
 import java.nio.file.Path
 import kotlin.io.path.exists
 
-/**
- * Bazel implementation of [DesugaringLibraryConfigFilesLocator].
- */
+/** Bazel implementation of [DesugaringLibraryConfigFilesLocator]. */
 class BazelDesugaringLibraryConfigFilesLocator : DesugaringLibraryConfigFilesLocator {
 
   override fun getDesugarLibraryConfigFilesKnown(): Boolean {

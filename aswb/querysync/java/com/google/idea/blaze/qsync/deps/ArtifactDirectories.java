@@ -24,7 +24,8 @@ import java.nio.file.Path;
 public class ArtifactDirectories {
 
   public static final ProjectRelativeProjectPath ROOT =
-    ProjectPath.projectRelative(Path.of(QuerySyncProjectDirectory.BAZEL_ARTIFACTS.getDirectoryName()));
+      ProjectPath.projectRelative(
+          Path.of(QuerySyncProjectDirectory.BAZEL_ARTIFACTS.getDirectoryName()));
 
   /**
    * By default, all project artifacts go in this directory, at a path matching their bazel output
@@ -39,31 +40,39 @@ public class ArtifactDirectories {
   public static final ProjectRelativeProjectPath JAVADEPS = ROOT.resolveChild(Path.of("javadeps"));
 
   public static final ProjectRelativeProjectPath GENSRC = ROOT.resolveChild(Path.of("gensrc"));
-  public static final ProjectRelativeProjectPath JAVA_GEN_SRC = GENSRC.resolveChild(Path.of("java"));
-  public static final ProjectRelativeProjectPath JAVA_GEN_TESTSRC = GENSRC.resolveChild(Path.of("javatests"));
-  public static final ProjectRelativeProjectPath ANDROID_GEN_RES = GENSRC.resolveChild(Path.of("android_res"));
+  public static final ProjectRelativeProjectPath JAVA_GEN_SRC =
+      GENSRC.resolveChild(Path.of("java"));
+  public static final ProjectRelativeProjectPath JAVA_GEN_TESTSRC =
+      GENSRC.resolveChild(Path.of("javatests"));
+  public static final ProjectRelativeProjectPath ANDROID_GEN_RES =
+      GENSRC.resolveChild(Path.of("android_res"));
 
   /** Generated CC headers go in the default directory. */
   public static final ProjectRelativeProjectPath GEN_CC_HEADERS = DEFAULT;
 
   /** Application inspectors runtime jar storage. */
-  public static final ProjectRelativeProjectPath INSPECTORS = ROOT.resolveChild(Path.of("inspectors"));
+  public static final ProjectRelativeProjectPath INSPECTORS =
+      ROOT.resolveChild(Path.of("inspectors"));
 
   /** APKs storage. */
-  public static final ProjectRelativeProjectPath RUNFILES = ProjectPath.projectRelative(Path.of(".")).resolveChild(Path.of(".runfiles"));
+  public static final ProjectRelativeProjectPath RUNFILES =
+      ProjectPath.projectRelative(Path.of(".")).resolveChild(Path.of(".runfiles"));
+
   private ArtifactDirectories() {}
 
   /**
    * Constructs a project path for a given include dir flag value. This can then be used to ensure
    * that the flag passed to the IDE points to the correct location.
    */
-  public static ProjectPath forCcInclude(String includeDir, ProjectPath.ExternalRepositoryFinder externalRepositoryFinder) {
+  public static ProjectPath forCcInclude(
+      String includeDir, ProjectPath.ExternalRepositoryFinder externalRepositoryFinder) {
     Path includePath = Path.of(includeDir);
     // include paths that refer to generated locations start with the `bazel-out` (or `blaze-out`)
     // component, so paths that start with that are resolved relative to the generated headers dir
     // in the project artifact store.
     if (includePath.startsWith("blaze-out") || includePath.startsWith("bazel-out")) {
-      // Do not remove the bXXXX-out prefix since that is present in the project artifact store where
+      // Do not remove the bXXXX-out prefix since that is present in the project artifact store
+      // where
       // generated headers are kept.
       return GEN_CC_HEADERS.resolveChild(includePath);
     } else if (includePath.isAbsolute()) {

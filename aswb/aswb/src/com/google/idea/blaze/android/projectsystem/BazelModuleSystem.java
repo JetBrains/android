@@ -81,8 +81,9 @@ import org.jetbrains.annotations.TestOnly;
 
 /** Blaze implementation of {@link AndroidModuleSystem}. */
 @SuppressWarnings("NullableProblems")
-public final class BazelModuleSystem implements AndroidModuleSystem, RegisteringModuleSystem<BlazeRegisteredDependencyQueryId,BlazeRegisteredDependencyId>
-{
+public final class BazelModuleSystem
+    implements AndroidModuleSystem,
+        RegisteringModuleSystem<BlazeRegisteredDependencyQueryId, BlazeRegisteredDependencyId> {
 
   /**
    * Experiment to toggle returning a simplified view of resource module dependents to work around
@@ -103,10 +104,11 @@ public final class BazelModuleSystem implements AndroidModuleSystem, Registering
   BazelModuleSystem(Module module) {
     this.module = module;
     this.project = module.getProject();
-    Path ideProjectRoot = Path.of(
-      BlazeImportSettingsManager.getInstance(project)
-        .getImportSettings()
-        .getProjectDataDirectory());
+    Path ideProjectRoot =
+        Path.of(
+            BlazeImportSettingsManager.getInstance(project)
+                .getImportSettings()
+                .getProjectDataDirectory());
     this.pathResolver =
         ProjectPath.Resolver.create(
             WorkspaceRoot.fromProject(project).path(),
@@ -161,17 +163,18 @@ public final class BazelModuleSystem implements AndroidModuleSystem, Registering
     if (blazeProjectData == null) {
       return;
     }
-    //AndroidResourceModuleRegistry registry = AndroidResourceModuleRegistry.getInstance(project);
+    // AndroidResourceModuleRegistry registry = AndroidResourceModuleRegistry.getInstance(project);
     // TODO: Implement for query sync.
     return;
     //
     //// TODO: automagically edit deps instead of just opening the BUILD file?
     //// Need to translate Gradle coordinates into blaze targets.
     //// Will probably need to hardcode for each dependency.
-    //FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
-    //PsiElement buildTargetPsi =
-    //    BuildReferenceManager.getInstance(project).resolveLabel(targetIdeInfo.getKey().getLabel());
-    //if (buildTargetPsi != null) {
+    // FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
+    // PsiElement buildTargetPsi =
+    //
+    // BuildReferenceManager.getInstance(project).resolveLabel(targetIdeInfo.getKey().getLabel());
+    // if (buildTargetPsi != null) {
     //  // If we can find a PSI for the target,
     //  // then we can jump straight to the target in the build file.
     //  fileEditorManager.openTextEditor(
@@ -180,7 +183,7 @@ public final class BazelModuleSystem implements AndroidModuleSystem, Registering
     //          buildTargetPsi.getContainingFile().getVirtualFile(),
     //          buildTargetPsi.getTextOffset()),
     //      true);
-    //} else {
+    // } else {
     //  // If not, just the build file is good enough.
     //  ArtifactLocation buildFile = targetIdeInfo.getBuildFile();
     //  File buildIoFile =
@@ -194,7 +197,7 @@ public final class BazelModuleSystem implements AndroidModuleSystem, Registering
     //  if (buildVirtualFile != null) {
     //    fileEditorManager.openFile(buildVirtualFile, true);
     //  }
-    //}
+    // }
   }
 
   @Override
@@ -214,24 +217,24 @@ public final class BazelModuleSystem implements AndroidModuleSystem, Registering
 
     // implement for query sync (not possible now without modules).
     return null;
-    //TargetKey resourceModuleKey =
+    // TargetKey resourceModuleKey =
     //    AndroidResourceModuleRegistry.getInstance(module.getProject()).getTargetKey(module);
-    //if (resourceModuleKey == null) {
+    // if (resourceModuleKey == null) {
     //  // TODO: decide what constitutes a registered dependency for the .workspace module
     //  return null;
-    //}
+    // }
     //
-    //TargetIdeInfo resourceModuleTarget = projectData.getTargetMap().get(resourceModuleKey);
-    //if (resourceModuleTarget == null) {
+    // TargetIdeInfo resourceModuleTarget = projectData.getTargetMap().get(resourceModuleKey);
+    // if (resourceModuleTarget == null) {
     //  return null;
-    //}
+    // }
     //
-    //ImmutableSet<TargetKey> firstLevelDeps =
+    // ImmutableSet<TargetKey> firstLevelDeps =
     //    resourceModuleTarget.getDependencies().stream()
     //        .map(Dependency::getTargetKey)
     //        .collect(toImmutableSet());
     //
-    //return id.keys.stream()
+    // return id.keys.stream()
     //    .filter(it -> firstLevelDeps.contains(it))
     //    .findFirst()
     //    .map(it -> new BlazeTargetRegisteredDependencyId(it))
@@ -239,7 +242,8 @@ public final class BazelModuleSystem implements AndroidModuleSystem, Registering
   }
 
   @Override
-  public BlazeRegisteredDependencyQueryId getRegisteredDependencyQueryId(WellKnownMavenArtifactId id) {
+  public BlazeRegisteredDependencyQueryId getRegisteredDependencyQueryId(
+      WellKnownMavenArtifactId id) {
     return new BlazeRegisteredDependencyQueryId(id, locateArtifactsFor(id).toList());
   }
 
@@ -252,25 +256,30 @@ public final class BazelModuleSystem implements AndroidModuleSystem, Registering
   }
 
   @Override
-  public ListenableFuture<RegisteredDependencyCompatibilityResult<BlazeRegisteredDependencyId>> analyzeDependencyCompatibility(List<? extends BlazeRegisteredDependencyId> dependencies) {
-    ImmutableMap<BlazeRegisteredDependencyId,BlazeRegisteredDependencyId> compatible = dependencies.stream()
-        .filter(it -> it instanceof BlazeTargetRegisteredDependencyId)
-        .collect(ImmutableMap.toImmutableMap(it -> it, it -> it));
-    ImmutableList<BlazeRegisteredDependencyId> missing = dependencies.stream()
-        .filter(it -> !(it instanceof BlazeTargetRegisteredDependencyId))
-        .collect(ImmutableList.toImmutableList());
+  public ListenableFuture<RegisteredDependencyCompatibilityResult<BlazeRegisteredDependencyId>>
+      analyzeDependencyCompatibility(List<? extends BlazeRegisteredDependencyId> dependencies) {
+    ImmutableMap<BlazeRegisteredDependencyId, BlazeRegisteredDependencyId> compatible =
+        dependencies.stream()
+            .filter(it -> it instanceof BlazeTargetRegisteredDependencyId)
+            .collect(ImmutableMap.toImmutableMap(it -> it, it -> it));
+    ImmutableList<BlazeRegisteredDependencyId> missing =
+        dependencies.stream()
+            .filter(it -> !(it instanceof BlazeTargetRegisteredDependencyId))
+            .collect(ImmutableList.toImmutableList());
     RegisteredDependencyCompatibilityResult<BlazeRegisteredDependencyId> result;
     if (missing.isEmpty()) {
       result = new RegisteredDependencyCompatibilityResult<>(compatible, missing, "");
-    }
-    else {
-      result = new RegisteredDependencyCompatibilityResult<>(compatible, missing, "One or more dependencies could not be identified");
+    } else {
+      result =
+          new RegisteredDependencyCompatibilityResult<>(
+              compatible, missing, "One or more dependencies could not be identified");
     }
     return Futures.immediateFuture(result);
   }
 
   @Override
-  public boolean hasResolvedDependency(WellKnownMavenArtifactId id, DependencyScopeType scope) throws DependencyManagementException {
+  public boolean hasResolvedDependency(WellKnownMavenArtifactId id, DependencyScopeType scope)
+      throws DependencyManagementException {
     return getResolvedTarget(id) != null;
   }
 
@@ -289,6 +298,7 @@ public final class BazelModuleSystem implements AndroidModuleSystem, Registering
         .map(locator -> locator.labelFor(id))
         .filter(Objects::nonNull);
   }
+
   /**
    * Currently, the ordering of the returned list of modules is meaningless for the Blaze
    * implementation of this API. This may break legacy callers of {@link
@@ -299,21 +309,21 @@ public final class BazelModuleSystem implements AndroidModuleSystem, Registering
   public List<Module> getResourceModuleDependencies() {
     return ImmutableList.of();
     // TODO: no modules in query sync.
-    //AndroidResourceModuleRegistry resourceModuleRegistry =
+    // AndroidResourceModuleRegistry resourceModuleRegistry =
     //    AndroidResourceModuleRegistry.getInstance(project);
     //
-    //if (isWorkspaceModule) {
+    // if (isWorkspaceModule) {
     //  // The workspace module depends on every resource module.
     //  return stream(ModuleManager.getInstance(project).getModules())
     //      .filter(module -> resourceModuleRegistry.get(module) != null)
     //      .collect(toImmutableList());
-    //}
-    //AndroidResourceModule resourceModule = resourceModuleRegistry.get(module);
-    //if (resourceModule == null) {
+    // }
+    // AndroidResourceModule resourceModule = resourceModuleRegistry.get(module);
+    // if (resourceModule == null) {
     //  return ImmutableList.of();
-    //}
+    // }
     //
-    //return resourceModule.transitiveResourceDependencies.stream()
+    // return resourceModule.transitiveResourceDependencies.stream()
     //    .map(resourceModuleRegistry::getModuleContainingResourcesOf)
     //    .filter(Objects::nonNull)
     //    .collect(toImmutableList());
@@ -323,7 +333,7 @@ public final class BazelModuleSystem implements AndroidModuleSystem, Registering
   public List<Module> getDirectResourceModuleDependents() {
     return ImmutableList.of();
     // TODO: no modules in query sync.
-    //if (returnSimpleDirectResourceDependents.getValue()) {
+    // if (returnSimpleDirectResourceDependents.getValue()) {
     //  // Returns a simplified view of resource dependencies to work around b/193680790. AS2020.3
     //  // assumes an acyclic graph when iterating over dependents of a module, but ASwB has cyclic
     //  // module dependents. This implementation returns the workspace module as the only dependent
@@ -337,22 +347,22 @@ public final class BazelModuleSystem implements AndroidModuleSystem, Registering
     //      ModuleManager.getInstance(project)
     //          .findModuleByName(BlazeDataStorage.WORKSPACE_MODULE_NAME);
     //  return workspaceModule == null ? ImmutableList.of() : ImmutableList.of(workspaceModule);
-    //}
+    // }
     //
-    //BlazeProjectData projectData =
+    // BlazeProjectData projectData =
     //    BlazeProjectDataManager.getInstance(module.getProject()).getBlazeProjectData();
-    //if (projectData == null) {
+    // if (projectData == null) {
     //  return ImmutableList.of();
-    //}
+    // }
     //
-    //AndroidResourceModuleRegistry resourceModuleRegistry =
+    // AndroidResourceModuleRegistry resourceModuleRegistry =
     //    AndroidResourceModuleRegistry.getInstance(module.getProject());
-    //TargetKey resourceModuleKey = resourceModuleRegistry.getTargetKey(module);
-    //if (resourceModuleKey == null) {
+    // TargetKey resourceModuleKey = resourceModuleRegistry.getTargetKey(module);
+    // if (resourceModuleKey == null) {
     //  return ImmutableList.of();
-    //}
+    // }
     //
-    //return ReverseDependencyMap.get(module.getProject()).get(resourceModuleKey).stream()
+    // return ReverseDependencyMap.get(module.getProject()).get(resourceModuleKey).stream()
     //    .map(projectData.getTargetMap()::get)
     //    .filter(Objects::nonNull)
     //    .map(TargetIdeInfo::getKey)
@@ -392,10 +402,10 @@ public final class BazelModuleSystem implements AndroidModuleSystem, Registering
 
   public Collection<ExternalAndroidLibrary> getDependentLibraries() {
     ProjectProto.Project projectProto =
-      QuerySyncManager.getInstance(project)
-        .getCurrentSnapshot()
-        .map(QuerySyncProjectSnapshot::getProject)
-        .orElse(null);
+        QuerySyncManager.getInstance(project)
+            .getCurrentSnapshot()
+            .map(QuerySyncProjectSnapshot::getProject)
+            .orElse(null);
     if (projectProto == null) {
       return ImmutableList.of();
     }
@@ -427,6 +437,7 @@ public final class BazelModuleSystem implements AndroidModuleSystem, Registering
   private PathString toPathString(ProjectPath projectPath) {
     return new PathString(pathResolver.resolve(projectPath));
   }
+
   @Override
   public Collection<ExternalAndroidLibrary> getAndroidLibraryDependencies(
       DependencyScopeType dependencyScopeType) {
@@ -453,18 +464,18 @@ public final class BazelModuleSystem implements AndroidModuleSystem, Registering
   @Override
   public boolean getDesugarLibraryConfigFilesKnown() {
     return DesugaringLibraryConfigFilesLocator.forBuildSystem(
-        Blaze.getBuildSystemName(module.getProject()))
-      .stream()
-      .anyMatch(provider -> provider.getDesugarLibraryConfigFilesKnown());
+            Blaze.getBuildSystemName(module.getProject()))
+        .stream()
+        .anyMatch(provider -> provider.getDesugarLibraryConfigFilesKnown());
   }
 
   /** Collect desugaring library config files from every supporting extension and return the list */
   public ImmutableList<Path> getDesugarLibraryConfigFiles() {
     return DesugaringLibraryConfigFilesLocator.forBuildSystem(
-        Blaze.getBuildSystemName(module.getProject()))
-      .stream()
-      .flatMap(provider -> provider.getDesugarLibraryConfigFiles(project).stream())
-      .collect(toImmutableList());
+            Blaze.getBuildSystemName(module.getProject()))
+        .stream()
+        .flatMap(provider -> provider.getDesugarLibraryConfigFiles(project).stream())
+        .collect(toImmutableList());
   }
 
   @TestOnly
@@ -480,6 +491,7 @@ public final class BazelModuleSystem implements AndroidModuleSystem, Registering
   public static class BlazeRegisteredDependencyQueryId implements RegisteredDependencyQueryId {
     WellKnownMavenArtifactId id;
     List<Label> keys;
+
     BlazeRegisteredDependencyQueryId(WellKnownMavenArtifactId id, List<Label> keys) {
       super();
       this.id = id;
@@ -487,17 +499,20 @@ public final class BazelModuleSystem implements AndroidModuleSystem, Registering
     }
   }
 
-  abstract public static class BlazeRegisteredDependencyId implements RegisteredDependencyId {
-  }
+  public abstract static class BlazeRegisteredDependencyId implements RegisteredDependencyId {}
+
   public static class BlazeTargetRegisteredDependencyId extends BlazeRegisteredDependencyId {
     Label key;
+
     BlazeTargetRegisteredDependencyId(Label key) {
       super();
       this.key = key;
     }
   }
+
   public static class BlazeUnknownRegisteredDependencyId extends BlazeRegisteredDependencyId {
     WellKnownMavenArtifactId id;
+
     BlazeUnknownRegisteredDependencyId(WellKnownMavenArtifactId id) {
       super();
       this.id = id;
