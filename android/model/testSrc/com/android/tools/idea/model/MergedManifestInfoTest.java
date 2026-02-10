@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class MergedManifestInfoTest extends AndroidTestCase {
   public void testLastSyncTimestamp() throws Exception {
-    MergedManifestInfo mergedManifestInfo = MergedManifestInfo.create(myFacet);
+    MergedManifestInfo mergedManifestInfo = MergedManifestInfo.create(myFacet, (x) -> { throw new IllegalStateException("recursively called"); });
 
     // No refresh necessary
     assertThat(mergedManifestInfo.isUpToDate()).isTrue();

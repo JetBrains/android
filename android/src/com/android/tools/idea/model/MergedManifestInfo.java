@@ -58,6 +58,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import org.apache.commons.io.input.CharSequenceInputStream;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -201,7 +202,10 @@ public final class MergedManifestInfo {
    */
   @Slow
   @NotNull
-  public static MergedManifestInfo create(@NotNull AndroidFacet facet) {
+  public static MergedManifestInfo create(
+    @NotNull AndroidFacet facet,
+    @NotNull Function<@NotNull Module, @NotNull MergedManifestSnapshot> recursiveSnapshotGetter
+  ) {
     Project project = facet.getModule().getProject();
 
     MergedManifestContributors contributors = ProjectSystemUtil.getModuleSystem(facet).getMergedManifestContributors();
@@ -212,7 +216,7 @@ public final class MergedManifestInfo {
     ImmutableList<MergingReport.Record> loggingRecords = null;
     Actions actions = null;
 
-    ParsedMergeResult result = mergeManifests(facet, contributors);
+    ParsedMergeResult result = mergeManifests(facet, contributors, recursiveSnapshotGetter);
     if (result != null) {
       document = result.document;
       loggingRecords = result.loggingRecords;
@@ -235,7 +239,11 @@ public final class MergedManifestInfo {
 
   @Slow
   @Nullable
-  private static ParsedMergeResult mergeManifests(@NotNull AndroidFacet facet, @NotNull MergedManifestContributors manifests) {
+  private static ParsedMergeResult mergeManifests(
+    @NotNull AndroidFacet facet,
+    @NotNull MergedManifestContributors manifests,
+    @NotNull Function<@NotNull Module, @NotNull MergedManifestSnapshot> recursiveSnapshotGetter
+  ) {
     ApplicationManager.getApplication().assertReadAccessAllowed();
 
     if (manifests.primaryManifest == null) {
@@ -247,7 +255,8 @@ public final class MergedManifestInfo {
                                                       manifests.primaryManifest,
                                                       manifests.flavorAndBuildTypeManifests,
                                                       manifests.libraryManifests,
-                                                      manifests.navigationFiles);
+                                                      manifests.navigationFiles,
+                                                      recursiveSnapshotGetter);
       XmlDocument doc = mergingReport.getMergedXmlDocument(MergingReport.MergedManifestKind.MERGED);
       if (doc != null) {
         return new ParsedMergeResult(doc.getXml(), mergingReport.getLoggingRecords(), mergingReport.getActions());
@@ -321,11 +330,14 @@ public final class MergedManifestInfo {
 
   @Slow
   @NotNull
-  static MergingReport getMergedManifest(@NotNull AndroidFacet facet,
-                                         @NotNull VirtualFile primaryManifestFile,
-                                         @NotNull List<VirtualFile> flavorAndBuildTypeManifests,
-                                         @NotNull List<VirtualFile> libManifests,
-                                         @NotNull List<VirtualFile> navigationFiles) throws ManifestMerger2.MergeFailureException {
+  static MergingReport getMergedManifest(
+    @NotNull AndroidFacet facet,
+    @NotNull VirtualFile primaryManifestFile,
+    @NotNull List<VirtualFile> flavorAndBuildTypeManifests,
+    @NotNull List<VirtualFile> libManifests,
+    @NotNull List<VirtualFile> navigationFiles,
+    @NotNull Function<@NotNull Module, @NotNull MergedManifestSnapshot> recursiveSnapshotGetter
+  ) throws ManifestMerger2.MergeFailureException {
     ApplicationManager.getApplication().assertReadAccessAllowed();
 
 
@@ -373,7 +385,7 @@ public final class MergedManifestInfo {
         if (vFile != null && !libManifests.isEmpty()) {
           Module moduleContainingManifest = getAndroidModuleForFileIfManifest(facet.getModule().getProject(), vFile);
           if (moduleContainingManifest != null && !facet.getModule().equals(moduleContainingManifest)) {
-            MergedManifestSnapshot manifest = MergedManifestManager.getFreshSnapshotInCallingThread(moduleContainingManifest);
+            MergedManifestSnapshot manifest = recursiveSnapshotGetter.apply(moduleContainingManifest);
             return Optional.ofNullable(manifest.getDocument());
           }
         }

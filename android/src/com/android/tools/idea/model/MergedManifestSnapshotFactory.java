@@ -69,6 +69,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
+import java.util.function.Function;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -80,7 +81,7 @@ import org.w3c.dom.Node;
  * Factory of {@link MergedManifestSnapshot}. The created snapshots represent the merged manifest state at a
  * point in time and are immutable.
  */
-class MergedManifestSnapshotFactory {
+public class MergedManifestSnapshotFactory {
 
   /**
    * A resource value defined by the manifest. Unlike its base class, does not need to keep a reference
@@ -147,7 +148,7 @@ class MergedManifestSnapshotFactory {
    * manifest snapshot that indicates that we should not retry with bad manifest before it's changed
    */
   @NotNull
-  static MergedManifestSnapshot createEmptyMergedManifestSnapshot(
+  public static MergedManifestSnapshot createEmptyMergedManifestSnapshot(
     @NotNull Module module,
     @Nullable AndroidFacet facet,
     @Nullable Exception exception
@@ -177,9 +178,12 @@ class MergedManifestSnapshotFactory {
 
 
   @NotNull
-  static MergedManifestSnapshot createMergedManifestSnapshot(@NotNull AndroidFacet facet) {
+  static MergedManifestSnapshot createMergedManifestSnapshot(
+    @NotNull AndroidFacet facet,
+    @NotNull Function<@NotNull Module, @NotNull MergedManifestSnapshot> recursiveSnapshotGetter
+  ) {
     try {
-      MergedManifestInfo mergedManifestInfo = MergedManifestInfo.create(facet);
+      MergedManifestInfo mergedManifestInfo = MergedManifestInfo.create(facet, recursiveSnapshotGetter);
 
       Document document = mergedManifestInfo.getXmlDocument();
       Element root = document == null ? null : document.getDocumentElement();

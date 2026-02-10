@@ -68,7 +68,7 @@ private val RECOMPUTE_INTERVAL = 50.milliseconds.toJavaDuration()
  * @see [getOrCreateSnapshotInCallingThread]
  * @see [MergedManifestManager.getSnapshot]
  */
-private class MergedManifestSupplier(private val module: Module) :
+class MergedManifestSupplier(private val module: Module) :
   AsyncSupplier<MergedManifestSnapshot>, Disposable, ModificationTracker {
 
   private val delegate =
@@ -116,7 +116,10 @@ private class MergedManifestSupplier(private val module: Module) :
   override fun get(): ListenableFuture<MergedManifestSnapshot> = delegate.get()
 
   @Slow
-  private fun getOrCreateSnapshot(cachedSnapshot: MergedManifestSnapshot?): MergedManifestSnapshot {
+  fun getOrCreateSnapshot(
+    cachedSnapshot: MergedManifestSnapshot?,
+    recursiveSnapshotGetter: (Module) -> MergedManifestSnapshot = { MergedManifestManager.getFreshSnapshotInCallingThread(it) },
+  ): MergedManifestSnapshot {
     return runCancellableReadAction {
       val facet =
         module.androidFacet
@@ -127,14 +130,17 @@ private class MergedManifestSupplier(private val module: Module) :
         // Make sure the module wasn't disposed while we were waiting for the read lock.
         facet.isDisposed || module.project.isDisposed -> throw ProcessCanceledException()
         cachedSnapshot != null && snapshotUpToDate(cachedSnapshot) -> cachedSnapshot
-        else -> createMergedManifestSnapshot(facet)
+        else -> createMergedManifestSnapshot(facet, recursiveSnapshotGetter)
       }
     }
   }
 
   /** Create a [MergedManifestSnapshot] and record associated telemetry. */
   @Slow
-  private fun createMergedManifestSnapshot(facet: AndroidFacet): MergedManifestSnapshot {
+  private fun createMergedManifestSnapshot(
+    facet: AndroidFacet,
+    recursiveSnapshotGetter: (Module) -> MergedManifestSnapshot,
+  ): MergedManifestSnapshot {
     val timeMarker = timeSource.markNow()
     val token = Object()
     ApplicationManager.getApplication()
@@ -146,7 +152,7 @@ private class MergedManifestSupplier(private val module: Module) :
     var result = MergeResult.FAILED
 
     try {
-      snapshot = MergedManifestSnapshotFactory.createMergedManifestSnapshot(facet)
+      snapshot = MergedManifestSnapshotFactory.createMergedManifestSnapshot(facet, recursiveSnapshotGetter)
       result = MergeResult.SUCCESS
     } catch (e: ProcessCanceledException) {
       result = MergeResult.CANCELED
@@ -298,7 +304,7 @@ private class MergedManifestSupplier(private val module: Module) :
    * the calling thread for some legacy caller.
    */
   @AnyThread
-  private fun snapshotUpToDate(snapshot: MergedManifestSnapshot): Boolean {
+  fun snapshotUpToDate(snapshot: MergedManifestSnapshot): Boolean {
     // The only way the snapshot's merged manifest info could be null is if the facet
     // is disposed, in which case there's no need to try and recalculate it.
     val mergedManifestInfo = snapshot.mergedManifestInfo ?: return true
@@ -324,7 +330,7 @@ private class MergedManifestSupplier(private val module: Module) :
  * This class is open for mocking. Do not extend it.
  */
 class MergedManifestManager(module: Module) : Disposable {
-  private val supplier = MergedManifestSupplier(module)
+  val supplier = MergedManifestSupplier(module)
   val mergedManifest: AsyncSupplier<MergedManifestSnapshot>
     get() = supplier
 
