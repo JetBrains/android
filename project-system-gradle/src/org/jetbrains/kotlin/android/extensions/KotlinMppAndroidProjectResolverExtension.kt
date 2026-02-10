@@ -33,6 +33,7 @@ import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.AbstractDependencyData
 import com.intellij.openapi.externalSystem.model.project.ContentRootData
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType
+import com.intellij.openapi.externalSystem.model.project.LibraryDependencyData
 import com.intellij.openapi.externalSystem.model.project.LibraryPathType
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ModuleDependencyData
@@ -49,7 +50,9 @@ import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinBinaryDependency
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinDependency
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinResolvedBinaryDependency
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinSourceDependency
+import org.jetbrains.kotlin.gradle.idea.tcs.extras.isIdeaProjectLevel
 import org.jetbrains.kotlin.idea.gradle.configuration.KotlinSourceSetData
+import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMppGradleProjectResolver
 import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMppGradleProjectResolver.Context
 import org.jetbrains.kotlin.idea.gradleJava.configuration.mpp.KotlinMppGradleProjectResolverExtension
 import org.jetbrains.kotlin.idea.gradleJava.configuration.mpp.KotlinProjectArtifactDependencyResolver
@@ -111,14 +114,16 @@ class KotlinMppAndroidProjectResolverExtension : KotlinMppGradleProjectResolverE
     sourceSet: KotlinSourceSet,
     dependencies: Set<IdeaKotlinDependency>,
   ): KotlinMppGradleProjectResolverExtension.Result {
-    val compileDependenciesMap = dependencies.compileDependenciesMap
     val runtimeDependenciesMap = dependencies.runtimeDependenciesMap
-    val runtimeOnlyDependenciesMap = runtimeDependenciesMap - compileDependenciesMap.keys
 
-    // Ensure proper scope is defined for runtime only dependencies to avoid taking them into account for IDE highlight syntax
-    // and leading to potential compilation errors
-    runtimeOnlyDependenciesMap.values.forEach { dependency ->
-      sourceSetDataNode.addDependency(dependency).forEach { addedDependency -> addedDependency.data.scope = DependencyScope.RUNTIME }
+    // Ensure proper scope is defined for runtime dependencies node to avoid taking them into account for IDE highlight syntax
+    // and leading to potential compilation errors. Those nodes are removed on afterPopulateSourceSetDependencies
+    runtimeDependenciesMap.values.forEach { dependency ->
+      if (dependency is IdeaKotlinResolvedBinaryDependency) {
+        // Set as module level to avoid being added to ProjectData node
+        dependency.isIdeaProjectLevel = false
+        sourceSetDataNode.addDependency(dependency).apply { this?.data?.scope = DependencyScope.RUNTIME }
+      }
     }
     return super.beforePopulateSourceSetDependencies(context, sourceSetDataNode, sourceSet, dependencies)
   }
@@ -130,6 +135,8 @@ class KotlinMppAndroidProjectResolverExtension : KotlinMppGradleProjectResolverE
     dependencies: Set<IdeaKotlinDependency>,
     dependencyNodes: List<DataNode<out AbstractDependencyData<*>>>,
   ) {
+    removeCreatedRuntimeDependenciesNodes(dependencyNodes)
+
     val compileDependenciesMap = dependencies.compileDependenciesMap
     val runtimeDependenciesMap = dependencies.runtimeDependenciesMap
 
@@ -396,5 +403,13 @@ class KotlinMppAndroidProjectResolverExtension : KotlinMppGradleProjectResolverE
   private fun Set<IdeaKotlinDependency>.dependenciesMapByBinaryType(binaryType: String): Map<String, IdeaKotlinDependency> {
     return this.filter { dependency -> (dependency as? IdeaKotlinResolvedBinaryDependency)?.let { it.binaryType == binaryType } ?: true }
       .associateBy { it.coordinates.toString() }
+  }
+
+  /**
+   * Removes the runtime dependencies associated with [GradleSourceSetData] since the existing implementation on
+   * [KotlinMppGradleProjectResolver.Context.populateModuleDependencies] creates those nodes regardless of the binaryType.
+   */
+  private fun removeCreatedRuntimeDependenciesNodes(dependencyNodes: List<DataNode<out AbstractDependencyData<*>>>) {
+    dependencyNodes.filter { it.data is LibraryDependencyData && it.data.scope == DependencyScope.RUNTIME }.forEach { it.clear(true) }
   }
 }

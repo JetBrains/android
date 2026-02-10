@@ -433,11 +433,11 @@ class KotlinModelConverter {
       compilationInfoMap[AndroidCompilation.CompilationType.INSTRUMENTED_TEST] ?: Pair(null, null)
 
     val mainSourceSetCompileDependencies =
-      sourceSetCompileDependenciesMap[mainAndroidCompilation.defaultSourceSetName]!!.map {
+      sourceSetCompileDependenciesMap[mainAndroidCompilation.defaultSourceSetName]?.map {
         IdeDependencyCoreImpl(target = it, dependencies = null)
       }
     val mainSourceSetRuntimeDependencies =
-      sourceSetRuntimeDependenciesMap[mainAndroidCompilation.defaultSourceSetName]!!.map {
+      sourceSetRuntimeDependenciesMap[mainAndroidCompilation.defaultSourceSetName]?.map {
         IdeDependencyCoreImpl(target = it, dependencies = null)
       }
     val unitTestSourceSetCompileDependencies =
@@ -482,8 +482,8 @@ class KotlinModelConverter {
         ideSetupTaskNames = emptyList(), // For now, there is no source generation tasks
         generatedSourceFolders = emptyList(), // For now, there is no generated sourced
         isTestArtifact = false,
-        compileClasspathCore = IdeDependenciesCoreDirect(dependencies = mainSourceSetCompileDependencies),
-        runtimeClasspathCore = IdeDependenciesCoreDirect(dependencies = mainSourceSetRuntimeDependencies),
+        compileClasspathCore = IdeDependenciesCoreDirect(dependencies = mainSourceSetCompileDependencies ?: emptyList()),
+        runtimeClasspathCore = IdeDependenciesCoreDirect(dependencies = mainSourceSetRuntimeDependencies ?: emptyList()),
         unresolvedDependencies = emptyList(),
         applicationId = null,
         signingConfigName = null,
@@ -516,8 +516,8 @@ class KotlinModelConverter {
           ideSetupTaskNames = emptyList(), // For now, there is no source generation tasks
           generatedSourceFolders = emptyList(), // For now, there is no generated sourced
           isTestArtifact = true,
-          compileClasspathCore = IdeDependenciesCoreDirect(dependencies = unitTestSourceSetCompileDependencies!!),
-          runtimeClasspathCore = IdeDependenciesCoreDirect(dependencies = unitTestSourceSetRuntimeDependencies!!),
+          compileClasspathCore = IdeDependenciesCoreDirect(dependencies = unitTestSourceSetCompileDependencies ?: emptyList()),
+          runtimeClasspathCore = IdeDependenciesCoreDirect(dependencies = unitTestSourceSetRuntimeDependencies ?: emptyList()),
           unresolvedDependencies = emptyList(),
           mockablePlatformJar = unitTestAndroidCompilation.unitTestInfo.mockablePlatformJar.convertAndDeduplicate(),
           generatedClassPaths = emptyMap(),
@@ -539,8 +539,8 @@ class KotlinModelConverter {
           ideSetupTaskNames = emptyList(), // For now, there is no source generation tasks
           generatedSourceFolders = emptyList(), // For now, there is no generated sourced
           isTestArtifact = true,
-          compileClasspathCore = IdeDependenciesCoreDirect(dependencies = androidTestSourceSetCompileDependencies!!),
-          runtimeClasspathCore = IdeDependenciesCoreDirect(dependencies = androidTestSourceSetRuntimeDependencies!!),
+          compileClasspathCore = IdeDependenciesCoreDirect(dependencies = androidTestSourceSetCompileDependencies ?: emptyList()),
+          runtimeClasspathCore = IdeDependenciesCoreDirect(dependencies = androidTestSourceSetRuntimeDependencies ?: emptyList()),
           unresolvedDependencies = emptyList(),
           applicationId = androidTestAndroidCompilation.instrumentedTestInfo.namespace,
           signingConfigName = androidTestAndroidCompilation.instrumentedTestInfo.signingConfig?.name,
