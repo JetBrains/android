@@ -210,6 +210,20 @@ class UpdateReferenceImagesDialog(
       // Only act if we haven't discovered any tests yet (meaning the failure happened during build or startup)
       if (!isFirstTestDiscovered && !isCancelled) {
         logger.warn("Build or execution failed. Closing dialog.")
+
+        // Log the SCREENSHOT_DIALOG_BUILD_FAILURE event when build fails
+        UsageTracker.log(
+          AndroidStudioEvent.newBuilder()
+            .apply {
+              kind = AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW
+              screenshotTestComposePreviewEvent =
+                ScreenshotTestComposePreviewEvent.newBuilder()
+                  .apply { type = ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_BUILD_FAILURE }
+                  .build()
+            }
+            .withProjectId(project)
+        )
+
         close(CANCEL_EXIT_CODE)
 
         // Open the Run window so the user can see the build error

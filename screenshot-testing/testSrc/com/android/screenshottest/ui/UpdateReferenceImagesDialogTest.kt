@@ -296,6 +296,22 @@ class UpdateReferenceImagesDialogTest {
     )
   }
 
+  @Test
+  fun testBuildFailureLogsMetric() = runInEdtAndWait {
+    dialog.onBuildFailed()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    val usages = metricsTrackerRule.testTracker.usages
+    val failureEvent =
+      usages.find {
+        it.studioEvent.kind == AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW &&
+          it.studioEvent.screenshotTestComposePreviewEvent.type == ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_BUILD_FAILURE
+      }
+
+    assertTrue("Should have logged build failure metric", failureEvent != null)
+    assertEquals(DialogWrapper.CANCEL_EXIT_CODE, dialog.exitCode)
+  }
+
   private fun findTree(dialog: UpdateReferenceImagesDialog): CheckboxTree {
     val field = UpdateReferenceImagesDialog::class.java.getDeclaredField("tree")
     field.isAccessible = true
