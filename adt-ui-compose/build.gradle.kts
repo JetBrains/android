@@ -21,7 +21,7 @@ plugins {
   kotlin("jvm")
   id("org.jetbrains.intellij.platform.module")
   id("org.jetbrains.compose")
-  id("org.jetbrains.kotlin.plugin.compose") version "2.2.0"
+  id("org.jetbrains.kotlin.plugin.compose") version "2.3.10"
 }
 
 repositories {
@@ -38,7 +38,7 @@ kotlin { jvmToolchain(21) }
 
 dependencies {
   intellijPlatform {
-    intellijIdeaCommunity(libs.versions.idea)
+    intellijIdea(libs.versions.idea)
     testFramework(TestFrameworkType.Bundled)
     bundledPlugin("org.jetbrains.kotlin")
     // Add dependency on Compose and Jewel modules
@@ -50,14 +50,17 @@ dependencies {
     bundledModule("intellij.platform.jewel.ui")
     bundledModule("intellij.libraries.compose.foundation.desktop")
     bundledModule("intellij.libraries.skiko")
+
+    @Suppress("UnstableApiUsage")
+    composeUI()
   }
 }
 
 dependencies {
   api("androidx.lifecycle:lifecycle-runtime:2.8.7")
   testApi(compose.desktop.uiTestJUnit4)
-  testApi("org.jetbrains.jewel:jewel-int-ui-standalone:0.31.0-252.27409")
-  testApi("org.jetbrains.jewel:jewel-markdown-int-ui-standalone-styling:0.31.0-252.27409")
+  testApi("org.jetbrains.jewel:jewel-int-ui-standalone:0.33.0-253.29795")
+  testApi("org.jetbrains.jewel:jewel-markdown-int-ui-standalone-styling:0.33.0-253.29795")
   testImplementation("com.google.truth:truth:0.42")
 }
 
@@ -78,7 +81,7 @@ sourceSets {
 tasks {
   withType<KotlinCompile> {
     compilerOptions {
-      jvmTarget.set(JvmTarget.JVM_17)
+      jvmTarget.set(JvmTarget.JVM_21)
       apiVersion.set(KotlinVersion.KOTLIN_1_9)
       languageVersion.set(KotlinVersion.KOTLIN_1_9)
     }
