@@ -190,10 +190,10 @@ class SymbolPickerDialog(
   init {
     isBusy = true
     setupTable()
-    ensureFontsAndMetadataAreDownloaded(false)
-
-    setStylesBoxModel()
+    setStylesBoxModel() // We must ensure the styles box is initialized before loading the metadata to avoid a potential NPE
     setCategoriesBoxModel()
+
+    ensureFontsAndMetadataAreDownloaded(false)
 
     val stylesBoxListener = { e: ItemEvent ->
       if (e.getStateChange() != ItemEvent.DESELECTED && e.getItem() != null) {
