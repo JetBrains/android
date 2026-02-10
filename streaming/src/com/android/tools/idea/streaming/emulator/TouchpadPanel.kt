@@ -131,10 +131,10 @@ internal class TouchpadPanel(private val emulator: EmulatorController, private v
     val radius = TOUCH_FEEDBACK_RADIUS.scaled(scale)
     if (multiTouchMode) {
       val fingerDistance = FINGER_HALF_DISTANCE.scaled(scale)
-      point.x -= fingerDistance / 2
-      drawTouchFeedback(g, point, radius)
-      point.x += fingerDistance
-      drawTouchFeedback(g, point, radius)
+      val finger = Point(point.x - fingerDistance / 2, point.y)
+      drawTouchFeedback(g, finger, radius)
+      finger.x += fingerDistance
+      drawTouchFeedback(g, finger, radius)
     } else {
       drawTouchFeedback(g, point, radius)
     }
