@@ -43,6 +43,9 @@ class DeviceConfiguration(val deviceProperties: DeviceProperties, useTitleAsName
   val deviceName: String = deviceProperties.composeDeviceName(useTitleAsName)
 
   val hasOrientationSensors: Boolean = true // TODO Obtain sensor info from the device.
+
+  val hasTouchScreen: Boolean
+    get() = deviceType != DeviceType.AI_GLASSES
 }
 
 internal fun DeviceProperties?.composeDeviceName(useTitleAsName: Boolean = false): String {

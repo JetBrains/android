@@ -157,7 +157,7 @@ internal class DeviceView(
     private set
 
   override val apiLevel: Int
-    get() = deviceClient.deviceConfig.apiLevel
+    get() = deviceConfig.apiLevel
 
   private var connectionState = ConnectionState.INITIAL
     set(value) {
@@ -647,7 +647,11 @@ internal class DeviceView(
       wasInsideDisplay = isInsideDisplay(event)
     }
     multiTouchMode =
-      wasInsideDisplay && (event.modifiersEx and CTRL_DOWN_MASK) != 0 && !isHardwareInputEnabled() && xrInputController == null
+      deviceConfig.hasTouchScreen &&
+        wasInsideDisplay &&
+        (event.modifiersEx and CTRL_DOWN_MASK) != 0 &&
+        !isHardwareInputEnabled() &&
+        xrInputController == null
     if (multiTouchMode && oldMultiTouchMode) {
       repaint() // If multi-touch mode changed above, the repaint method was already called.
     }
