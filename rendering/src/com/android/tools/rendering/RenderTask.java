@@ -487,13 +487,6 @@ public class RenderTask {
     updateHardwareConfiguration();
   }
 
-  /**
-   * Clears the override width and height to be used during rendering.
-   */
-  public void clearOverrideRenderSize() {
-    //myHardwareConfigHelper.clearOverrideRenderSize(); // TODO android-merge
-    updateHardwareConfiguration();
-  }
 
   /**
    * Updates the hardware configuration of the current {@link RenderSession} and sets {@link #isSizeChanged} to true.

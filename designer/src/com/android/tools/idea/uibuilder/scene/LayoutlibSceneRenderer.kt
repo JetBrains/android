@@ -308,11 +308,6 @@ class LayoutlibSceneRenderer(
           it.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(sceneRenderConfiguration.elapsedFrameTimeMs))
         }
 
-        if (sceneRenderConfiguration.clearOverrideRenderSize) {
-          it.clearOverrideRenderSize()
-          // We reset it here because we only want to clear it once per render
-          sceneRenderConfiguration.clearOverrideRenderSize = false
-        }
         // Make sure that the task's quality is up-to-date before rendering
         val quality = sceneRenderConfiguration.quality
         it.setQuality(quality)

@@ -87,9 +87,6 @@ class LayoutlibSceneRenderConfiguration(
    */
   var cacheSuccessfulRenderImage = false
 
-  /** If true, clears any overridden sizes on RenderTask before rendering. */
-  var clearOverrideRenderSize: Boolean = false
-
   /** If true, errors during inflation and render will be logged and made available to be shown in the errors panel. */
   var logRenderErrors = true
 

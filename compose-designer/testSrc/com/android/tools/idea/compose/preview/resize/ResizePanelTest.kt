@@ -215,12 +215,13 @@ class ResizePanelTest {
   }
 
   @Test
-  fun `reverting to original sets forceUseOriginalSize`() = runInEdtAndGet {
+  fun `reverting to original sets needsInflation`() = runInEdtAndGet {
     setupAndShowPanel()
     setDifferentDevice()
-    assertFalse(sceneManager.forceNextResizeToUseOriginalSize)
+    sceneManager.sceneRenderConfiguration.needsInflation.set(false)
+    assertFalse(sceneManager.sceneRenderConfiguration.needsInflation.get())
     revertToOriginal()
-    assertTrue(sceneManager.forceNextResizeToUseOriginalSize)
+    assertTrue(sceneManager.sceneRenderConfiguration.needsInflation.get())
   }
 
   @Test

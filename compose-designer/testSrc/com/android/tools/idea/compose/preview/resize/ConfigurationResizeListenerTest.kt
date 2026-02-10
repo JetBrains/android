@@ -36,15 +36,9 @@ import com.android.tools.configurations.ConfigurationModelModule
 import com.android.tools.configurations.ConfigurationSettings
 import com.android.tools.configurations.ResourceResolverCache
 import com.android.tools.configurations.updateScreenSize
-import com.android.tools.idea.common.model.NlDataProvider
-import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneRenderConfiguration
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.preview.PreviewConfiguration
-import com.android.tools.preview.SingleComposePreviewElementInstance
-import com.android.tools.preview.UNDEFINED_DIMENSION
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
@@ -61,9 +55,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
-import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.times
@@ -296,68 +288,6 @@ class ConfigurationResizeListenerTest {
 
     // Verify that requestRenderWithNewSize was called the expected number of times.
     verify(sceneManager, times(3)).requestRenderWithNewSize(any(), any())
-    Disposer.dispose(sceneManager)
-  }
-
-  @Test
-  fun `listener uses original size when forceUseOriginalSize is true and in shrink mode`() = runTest {
-    val viewObj = mock<View>()
-    val layoutParams = ViewGroup.LayoutParams(11, 12)
-    whenever(viewObj.layoutParams).thenReturn(layoutParams) // viewObj returns our real LayoutParams
-
-    val previewElement =
-      SingleComposePreviewElementInstance.forTesting<Unit>(
-        "test",
-        configuration = PreviewConfiguration.cleanAndGet(width = UNDEFINED_DIMENSION, height = 100),
-      )
-
-    val model = mock<NlModel>()
-    `when`(model.dataProvider)
-      .thenReturn(
-        object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
-          override fun getData(dataId: String) = previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
-        }
-      )
-
-    val sceneManager =
-      createSceneManager(false).also { sm ->
-        whenever(sm.model).thenReturn(model)
-        whenever(sm.forceNextResizeToUseOriginalSize).doAnswer { true }
-        whenever(sm.viewObject).thenReturn(viewObj)
-        whenever(sm.executeInRenderSessionAsync(any(), any(), any())).then {
-          val callback = it.getArgument(0, Runnable::class.java)
-          callback.run()
-          CompletableFuture.completedFuture(null)
-        }
-      }
-
-    val initialWidth = 500
-    val initialHeight = 600
-    val configuration = createConfiguration(initialWidth, initialHeight)
-
-    val dispatcher = StandardTestDispatcher(testScheduler)
-    val listener = ConfigurationResizeListener(sceneManager, configuration, dispatcher)
-    Disposer.register(sceneManager, listener)
-    configuration.addListener(listener)
-
-    advanceUntilIdle()
-
-    // Act
-    val newWidth = initialWidth + 100
-    val newHeight = initialHeight + 100
-    configuration.updateScreenSize(newWidth, newHeight)
-    advanceUntilIdle()
-
-    // Verify that the viewObj's LayoutParams were changed to WRAP_CONTENT
-    assertEquals(ViewGroup.LayoutParams.WRAP_CONTENT, viewObj.layoutParams.width)
-    assertEquals(100, viewObj.layoutParams.height)
-
-    // Verify the flag was reset on the sceneManager
-    verify(sceneManager).forceNextResizeToUseOriginalSize = false
-
-    // Verify requestRenderWithNewSize was called with the newDeviceSize from configuration.
-    verify(sceneManager).requestRenderWithNewSize(newWidth, newHeight)
-
     Disposer.dispose(sceneManager)
   }
 

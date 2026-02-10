@@ -210,8 +210,7 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
    */
   private fun revertResizing() {
     dimensionInputsAction.resetErrors()
-    currentSceneManager?.sceneRenderConfiguration?.clearOverrideRenderSize = true
-    currentSceneManager?.forceNextResizeToUseOriginalSize = true
+    currentSceneManager?.sceneRenderConfiguration?.needsInflation?.set(true)
     currentConfiguration?.setEffectiveDevice(originalDeviceSnapshot, originalDeviceStateSnapshot)
     dimensionInputsAction.updateTextFieldsFromConfiguration()
     ComposeResizeToolingUsageTracker.logResizeReverted(

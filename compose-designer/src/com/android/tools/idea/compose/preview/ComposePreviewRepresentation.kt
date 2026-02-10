@@ -273,9 +273,9 @@ fun configureLayoutlibSceneManager(
       config.quality = quality
       config.customContentHierarchyParser = if (runVisualAnalysis) accessibilityBasedHierarchyParser else null
       config.layoutScannerConfig.isLayoutScannerEnabled = runVisualAnalysis
-      // During configure of SceneManager, always clear the override render size in SceneManagers,
-      // as they are reused and may have old resize data.
-      config.clearOverrideRenderSize = true
+      // During configure of SceneManager, always force re-inflation. This ensures that the
+      // RenderTask is recreated, clearing any old resize data or state.
+      config.needsInflation.set(true)
       config.disableAnimation = disableAnimation
       config.useLoadViewFallbacks = useLoadViewFallbacks
     }

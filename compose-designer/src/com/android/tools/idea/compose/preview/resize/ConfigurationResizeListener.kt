@@ -17,15 +17,10 @@ package com.android.tools.idea.compose.preview.resize
 
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.ConfigurationListener
-import com.android.tools.configurations.ConversionUtil
 import com.android.tools.configurations.deviceSizePx
-import com.android.tools.configurations.dpi
 import com.android.tools.idea.common.util.updateLayoutParams
-import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.executeInRenderSession
-import com.android.tools.preview.ComposePreviewElement
-import com.android.tools.preview.UNDEFINED_DIMENSION
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.Logger
@@ -92,16 +87,7 @@ class ConfigurationResizeListener(
   private suspend fun requestRender(newDeviceSize: Dimension) {
     if (!sceneManager.sceneRenderConfiguration.showDecorations) {
       val viewObj = sceneManager.viewObject ?: return
-      sceneManager.executeInRenderSession(false) {
-        if (sceneManager.forceNextResizeToUseOriginalSize) {
-          applyOriginalSize(viewObj)
-          // Reset the flag immediately after acting on it to ensure it only affects this single
-          // operation.
-          sceneManager.forceNextResizeToUseOriginalSize = false
-        } else {
-          updateLayoutParams(viewObj, newDeviceSize.width, newDeviceSize.height)
-        }
-      }
+      sceneManager.executeInRenderSession(false) { updateLayoutParams(viewObj, newDeviceSize.width, newDeviceSize.height) }
     }
     sceneManager.requestRenderWithNewSize(newDeviceSize.width, newDeviceSize.height)
 
@@ -120,28 +106,6 @@ class ConfigurationResizeListener(
           surface.zoomController.zoomToFit()
         }
       }
-    }
-  }
-
-  /**
-   * Calculates the original size of the preview element and applies it to the view object. This is used when reverting the preview to its
-   * original state.
-   *
-   * If the preview element has `UNDEFINED_DIMENSION` for its width or height, this will be interpreted as `WRAP_CONTENT` for the
-   * corresponding dimension.
-   */
-  private fun applyOriginalSize(viewObj: Any) {
-    val previewElement = sceneManager.model.dataProvider?.previewElement()
-    if (previewElement is ComposePreviewElement<*>) {
-      val density = configuration.dpi()
-      val originalWidthPx =
-        previewElement.configuration.width.takeIf { it != UNDEFINED_DIMENSION }?.let { ConversionUtil.dpToPx(it, density) }
-      val originalHeightPx =
-        previewElement.configuration.height.takeIf { it != UNDEFINED_DIMENSION }?.let { ConversionUtil.dpToPx(it, density) }
-
-      updateLayoutParams(viewObj, originalWidthPx, originalHeightPx)
-    } else {
-      error("Invalid preview element")
     }
   }
 
