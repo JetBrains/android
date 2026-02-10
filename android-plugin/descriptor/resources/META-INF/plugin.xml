@@ -124,4 +124,5 @@
   <xi:include href="/META-INF/screenshot-testing-gradle.xml" />
 <!--  <xi:include href="/META-INF/android-declarative-focus.xml" />-->
 <!--  <xi:include href="/META-INF/marketing.xml" />-->
+  <xi:include href="/META-INF/tracer.xml" />
 </idea-plugin>

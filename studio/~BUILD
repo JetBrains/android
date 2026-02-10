@@ -290,6 +290,7 @@ studio_plugin(
             "//tools/adt/idea/samples-browser:samples-browser",
             "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates",
             "//tools/adt/idea/threading-checker:intellij.android.threading-checker",
+            "//tools/adt/idea/tracer:intellij.android.tracer",
             "//tools/adt/idea/android-transport:intellij.android.transport",
             "//tools/adt/idea/wear-pairing:intellij.android.wear-pairing",
             "//tools/adt/idea/wear-preview-elements:intellij.android.wear-preview-elements",

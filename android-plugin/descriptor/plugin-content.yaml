@@ -109,6 +109,7 @@
   - name: intellij.android.screenshot-test.gradle
   - name: intellij.android.sdkUpdates
   - name: intellij.android.threading-checker
+  - name: intellij.android.tracer
   - name: intellij.android.transport
   - name: intellij.android.newProjectWizard
   - name: intellij.android.wear-pairing

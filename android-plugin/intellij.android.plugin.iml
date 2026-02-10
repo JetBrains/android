@@ -86,5 +86,6 @@
     <orderEntry type="module" module-name="intellij.platform.analysis" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.codeStyle" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.tracer" scope="RUNTIME" />
   </component>
 </module>

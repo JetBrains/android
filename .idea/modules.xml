@@ -449,6 +449,7 @@
       <module fileurl="file://$PROJECT_DIR$/intellij.android.testutils/intellij.android.testutils.iml" filepath="$PROJECT_DIR$/intellij.android.testutils/intellij.android.testutils.iml" />
       <module fileurl="file://$PROJECT_DIR$/threading-checker/intellij.android.threading-checker.iml" filepath="$PROJECT_DIR$/threading-checker/intellij.android.threading-checker.iml" />
       <module fileurl="file://$PROJECT_DIR$/threading-checker/intellij.android.threading-checker.tests.iml" filepath="$PROJECT_DIR$/threading-checker/intellij.android.threading-checker.tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/tracer/intellij.android.tracer.iml" filepath="$PROJECT_DIR$/tracer/intellij.android.tracer.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-transport/intellij.android.transport.iml" filepath="$PROJECT_DIR$/android-transport/intellij.android.transport.iml" />
       <module fileurl="file://$PROJECT_DIR$/transport-database/intellij.android.transportDatabase.iml" filepath="$PROJECT_DIR$/transport-database/intellij.android.transportDatabase.iml" />
       <module fileurl="file://$PROJECT_DIR$/updater-ui/intellij.android.updater.ui.iml" filepath="$PROJECT_DIR$/updater-ui/intellij.android.updater.ui.iml" />
