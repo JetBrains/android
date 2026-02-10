@@ -2783,6 +2783,10 @@ public final class StudioFlags {
                     "Open Studio Bot tool window on first launch",
                     "Automatically open Studio Bot tool window on first Studio launch");
 
+  public static final Flag<Boolean> STUDIOBOT_NEW_SUB_AGENT_MODE_ENABLED =
+    new BooleanFlag(STUDIOBOT, "new.subagent.mode",
+                    "Enable new Sub-Agent mode",
+                    "This enable the new sub-agent infrastructure,bringing in the task and run_skill tool");
   // endregion STUDIO_BOT
 
   // region EXPERIMENTAL_UI
