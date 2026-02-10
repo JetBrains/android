@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.base.io;
 
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
@@ -88,5 +89,31 @@ public interface AbsolutePathPatcher {
       String fixedPath = fixPath(path);
       return path.equals(fixedPath) ? file : new File(fixedPath);
     }
+
+    /**
+     * Expands a path into all its possible aliases (e.g., canonical and symlinked).
+     *
+     * <p>Returns a set containing the original path, the fixed path, and the restored path.
+     */
+    public static ImmutableSet<String> expandPath(String path) {
+      ImmutableSet.Builder<String> builder = ImmutableSet.builder();
+      builder.add(path);
+      builder.add(fixPath(path));
+      builder.add(restorePath(path));
+      return builder.build();
+    }
+
+    /** Restores the given path string to its original system-dependent form, if applicable. */
+    public static String restorePath(String path) {
+      for (AbsolutePathPatcher pathPatcher : AbsolutePathPatcher.EP_NAME.getExtensions()) {
+        path = pathPatcher.restorePath(path);
+      }
+      return path;
+    }
   }
+
+  /**
+   * Restores the path to its original system-dependent form (e.g., adding /Volumes on macOS).
+   */
+  String restorePath(String path);
 }
