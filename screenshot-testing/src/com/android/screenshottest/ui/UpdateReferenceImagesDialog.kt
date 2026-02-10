@@ -140,14 +140,13 @@ class UpdateReferenceImagesDialog(
 
   fun updateDialogWithTestResult(previewDetails: PreviewDetails, isChecked: Boolean) {
     ApplicationManager.getApplication().invokeLater {
-      if (!isFirstTestDiscovered) {
-        isFirstTestDiscovered = true
-        populateCenterPanel()
-      }
-
       val (testId, className, methodName, previewName, testResult, destImagePath, srcImagePath, diffImagePath, diffPercent) = previewDetails
 
       if (methodName.isNotBlank() && previewName.isNotBlank()) {
+        if (!isFirstTestDiscovered) {
+          isFirstTestDiscovered = true
+          populateCenterPanel()
+        }
 
         val root = tree.model.root as CheckedTreeNode
         val model = tree.model as DefaultTreeModel
