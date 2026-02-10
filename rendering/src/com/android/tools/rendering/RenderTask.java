@@ -499,10 +499,6 @@ public class RenderTask {
     }
   }
 
-  public boolean isRenderSizeOverridden() {
-    //return myHardwareConfigHelper.isRenderSizeOverridden(); // TODO android-merge uncomment
-    throw new RuntimeException(); // TODO android-merge remove
-  }
 
 
   /**
