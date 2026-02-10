@@ -190,6 +190,18 @@ class UpdateReferenceImagesDialog(
     // failure or that no tests were found to run. Close the dialog and show an error.
     ApplicationManager.getApplication().invokeLater {
       if (!isFirstTestDiscovered) {
+        // Log the SCREENSHOT_DIALOG_TEST_RESULTS_EMPTY event
+        UsageTracker.log(
+          AndroidStudioEvent.newBuilder()
+            .apply {
+              kind = AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW
+              screenshotTestComposePreviewEvent =
+                ScreenshotTestComposePreviewEvent.newBuilder()
+                  .apply { type = ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_TEST_RESULTS_EMPTY }
+                  .build()
+            }
+            .withProjectId(project)
+        )
         logger.error("No tests were discovered in the test suite")
         close(CANCEL_EXIT_CODE)
         Messages.showErrorDialog(project, "Error while generating screenshots", "Failed to generate screenshots")

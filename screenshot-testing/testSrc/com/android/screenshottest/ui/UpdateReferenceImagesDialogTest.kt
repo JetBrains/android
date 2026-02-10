@@ -177,8 +177,19 @@ class UpdateReferenceImagesDialogTest {
     dialog.onTestSuiteFinished()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
+    val usages = metricsTrackerRule.testTracker.usages
+    val emptyResultEvent =
+      usages.find {
+        it.studioEvent.kind == AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW &&
+          it.studioEvent.screenshotTestComposePreviewEvent.type ==
+            ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_TEST_RESULTS_EMPTY
+      }
+
     // Verify the logger was called with expected message
     verify(mockLogger).error(contains("No tests were discovered"))
+
+    // Verify metric was logged
+    assertTrue("Should have logged empty results metric", emptyResultEvent != null)
 
     // Verify dialog was closed
     assertEquals(DialogWrapper.CANCEL_EXIT_CODE, dialog.exitCode)
