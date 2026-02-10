@@ -14,8 +14,8 @@
   <xi:include href="/META-INF/gradle-dsl.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
   <dependencies>
-    <module name="intellij.gradle"/>
     <module name="intellij.java.backend"/>
+    <module name="intellij.gradle"/>
   </dependencies>
 
   <content>

@@ -14,9 +14,6 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
-  <dependencies>
-    <module name="intellij.gradle"/>
-  </dependencies>
   <extensions defaultExtensionNs="com.intellij">
     <registryKey key="gradle.declarative.ide.support" defaultValue="false" description="Declarative IDE support"/>
   </extensions>

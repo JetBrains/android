@@ -1,6 +1,9 @@
 <idea-plugin>
   <dependencies>
+    <!-- region Generated dependencies - run `Generate Product Layouts` to regenerate -->
     <module name="intellij.gradle"/>
+    <module name="intellij.gradle.toolingExtension"/>
+    <!-- endregion -->
   </dependencies>
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
     <projectResolve implementation="com.android.tools.idea.gradle.dcl.lang.sync.GradleSchemaProjectResolver"/>

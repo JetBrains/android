@@ -25,10 +25,13 @@
   <vendor>JetBrains, Google</vendor>
 
   <dependencies>
-    <plugin id="com.intellij.java" />
-    <module name="intellij.java.backend" />
-    <module name="intellij.gradle" />
-    <plugin id="org.jetbrains.kotlin" />
+    <plugin id="com.intellij.java"/>
+    <module name="intellij.java.backend"/>
+    <plugin id="org.jetbrains.kotlin"/>
+    <!-- region Generated dependencies - run `Generate Product Layouts` to regenerate -->
+    <plugin id="com.intellij.gradle"/>
+    <module name="intellij.gradle"/>
+    <!-- endregion -->
   </dependencies>
 
   <content>
