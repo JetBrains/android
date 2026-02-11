@@ -34,6 +34,7 @@
     <a href="https://androidstudio.googleblog.com/2025/09/android-studio-otter-202521-canary-1.html">Android Studio Otter Canary 1</a>.]]>
   </change-notes>
 
+
   <extensions defaultExtensionNs="com.intellij">
     <dependencySupport coordinate="androidx.compose.runtime:runtime" kind="java" displayName="Jetpack Compose"/>
 

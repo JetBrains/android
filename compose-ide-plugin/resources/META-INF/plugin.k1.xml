@@ -15,6 +15,9 @@
   -->
 
 <idea-plugin>
+  <dependencies>
+    <module name="kotlin.base.fe10.project-structure"/>
+  </dependencies>
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
     <quickFixContributor implementation="com.android.tools.compose.intentions.ComposeUnresolvedFunctionFixContributor"/>
     <quickFixContributor implementation="com.android.tools.compose.intentions.AddComposableAnnotationQuickFix$Contributor"/>

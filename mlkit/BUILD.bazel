@@ -61,6 +61,7 @@ jvm_library(
     "//xml/dom-openapi:dom",
     "//jps/model-api:model",
     "//plugins/kotlin/base/project-structure",
+    "//plugins/kotlin/base/fe10/project-structure",
     "//platform/forms_rt:java-guiForms-rt",
   ]
 )
@@ -118,6 +119,7 @@ jvm_library(
     "//xml/dom-openapi:dom_test_lib",
     "//jps/model-api:model_test_lib",
     "//plugins/kotlin/base/project-structure:project-structure_test_lib",
+    "//plugins/kotlin/base/fe10/project-structure:project-structure_test_lib",
     "//platform/forms_rt:java-guiForms-rt_test_lib",
   ]
 )

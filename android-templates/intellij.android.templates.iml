@@ -67,5 +67,9 @@
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.analysis-api" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.analysis-api-platform-interface" level="project" />
     <orderEntry type="module" module-name="intellij.platform.util.classLoader" />
+    <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.ide" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl.flags" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.flags" scope="TEST" />
+    <orderEntry type="module" module-name="kotlin.base.fe10.project-structure" />
   </component>
 </module>

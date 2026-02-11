@@ -62,6 +62,7 @@ jvm_library(
     "//xml/xml-psi-api:psi",
     "//xml/xml-psi-impl:psi-impl",
     "//plugins/kotlin/base/project-structure",
+    "//plugins/kotlin/base/fe10/project-structure",
     "//plugins/kotlin/base/util",
   ]
 )
@@ -116,6 +117,7 @@ jvm_library(
     "//xml/xml-psi-api:psi_test_lib",
     "//xml/xml-psi-impl:psi-impl_test_lib",
     "//plugins/kotlin/base/project-structure:project-structure_test_lib",
+    "//plugins/kotlin/base/fe10/project-structure:project-structure_test_lib",
     "//plugins/kotlin/base/util:util_test_lib",
   ]
 )

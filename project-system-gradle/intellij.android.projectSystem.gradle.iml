@@ -168,6 +168,7 @@
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.analysis-api-k2" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.analysis-api-fe10" level="project" />
     <orderEntry type="module" module-name="intellij.kotlin.base.projectStructure" />
+    <orderEntry type="module" module-name="kotlin.base.fe10.project-structure" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.flags" />
     <orderEntry type="module" module-name="intellij.android.gmaven" />
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang" />

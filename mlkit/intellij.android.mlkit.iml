@@ -56,6 +56,7 @@
     <orderEntry type="module" module-name="intellij.xml.dom" />
     <orderEntry type="module" module-name="intellij.platform.jps.model" />
     <orderEntry type="module" module-name="intellij.kotlin.base.projectStructure" />
+    <orderEntry type="module" module-name="kotlin.base.fe10.project-structure" />
     <orderEntry type="module" module-name="intellij.java.guiForms.rt" />
   </component>
 </module>
