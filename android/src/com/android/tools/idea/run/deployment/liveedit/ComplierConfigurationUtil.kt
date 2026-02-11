@@ -113,15 +113,6 @@ fun KaCompilationOptionsBuilder.configureLanguageVersionSettings(languageVersion
       jvmUseInvokeDynamicForLambdas(true)
     }
   }
-
-  // Link via signatures and not descriptors.
-  //
-  // This ensures that even if the project has descriptors for basic types from multiple stdlib
-  // versions, they all end up mapping to the basic types from the stdlib used for the current
-  // compilation.
-  //
-  // See b/256957527 for details.
-  jvmLinkViaSignatures(true)
 }
 
 fun getCompilerConfiguration(
