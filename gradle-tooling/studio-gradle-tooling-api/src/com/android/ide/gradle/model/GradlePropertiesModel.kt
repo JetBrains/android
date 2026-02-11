@@ -32,4 +32,6 @@ interface GradlePropertiesModel {
 
   /** Whether to use Gradle managed devices. */
   val useCustomManagedDevices: Boolean?
+
+  val buildInKotlinDefaultEnabled: Boolean?
 }

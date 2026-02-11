@@ -1150,6 +1150,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       disableAgpUpgradePrompt = gradlePropertiesModel.disableAgpUpgradePrompt ?: false,
       useCustomManagedDevices = gradlePropertiesModel.useCustomManagedDevices ?: false,
       highlightGradualR8Api = false,
+      builtInKotlinDefaultEnabled = false,
     )
   }
 

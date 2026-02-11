@@ -679,6 +679,7 @@ MODULE                        : My_First_App.app
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
         GenerateManifestClass         : false
+        BuiltInKotlinDefaultEnabled   : true
     - basicVariant:               : debug
         applicationId                 : com.example.firstapp
         testApplicationId             : com.example.firstapp.test
@@ -1749,6 +1750,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
         GenerateManifestClass         : false
+        BuiltInKotlinDefaultEnabled   : true
     - basicVariant:               : debug
         testApplicationId             : com.example.mysharedlibrary.test
         buildType                     : debug

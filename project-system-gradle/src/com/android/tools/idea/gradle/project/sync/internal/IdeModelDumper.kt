@@ -815,6 +815,9 @@ private fun ideModelDumper(projectDumper: ProjectDumper) =
           if (agpFlags.disableAgpUpgradePrompt) {
             prop("DisableAgpUpgradePrompt") { agpFlags.disableAgpUpgradePrompt.toString() }
           }
+          if (agpFlags.builtInKotlinDefaultEnabled) {
+            prop("BuiltInKotlinDefaultEnabled") { agpFlags.builtInKotlinDefaultEnabled.toString() }
+          }
         }
       }
 

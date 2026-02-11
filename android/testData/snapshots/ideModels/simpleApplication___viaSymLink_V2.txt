@@ -122,6 +122,7 @@ MODULE                        : project_sm_src.app
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
         GenerateManifestClass         : false
+        BuiltInKotlinDefaultEnabled   : true
     - basicVariant:               : debug
         applicationId                 : google.simpleapplication
         testApplicationId             : google.simpleapplication.test

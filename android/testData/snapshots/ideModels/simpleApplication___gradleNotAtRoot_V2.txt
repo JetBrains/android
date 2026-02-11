@@ -105,6 +105,7 @@ MODULE                        : gradle_project.app
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
         GenerateManifestClass         : false
+        BuiltInKotlinDefaultEnabled   : true
     - basicVariant:               : debug
         applicationId                 : google.simpleapplication
         testApplicationId             : google.simpleapplication.test

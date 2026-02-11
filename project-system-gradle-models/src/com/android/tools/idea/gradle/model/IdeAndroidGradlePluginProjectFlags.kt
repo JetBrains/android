@@ -68,4 +68,7 @@ interface IdeAndroidGradlePluginProjectFlags {
 
   /** Whether Studio needs to highlight gradual R8 */
   val highlightGradualR8Api: Boolean
+
+  /** Whether built-in Kotlin is enabled by default in this Gradle build */
+  val builtInKotlinDefaultEnabled: Boolean
 }

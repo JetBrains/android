@@ -1532,6 +1532,11 @@ fun modelCacheV2Impl(
         } else {
           false // do not do any checks/highlighting if there is no gradual R8
         },
+      builtInKotlinDefaultEnabled =
+        AndroidGradlePluginProjectFlags.BooleanFlag.BUILT_IN_KOTLIN_DEFAULT_ENABLED.getValue(
+          flags,
+          gradlePropertiesModel.buildInKotlinDefaultEnabled ?: agpVersion.isAtLeast(9, 0, 0),
+        ),
     )
   }
 

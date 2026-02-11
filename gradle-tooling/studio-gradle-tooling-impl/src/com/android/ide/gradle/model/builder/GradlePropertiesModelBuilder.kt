@@ -39,6 +39,7 @@ class GradlePropertiesModelBuilder : ToolingModelBuilder {
       generateManifestClass = getGradlePropertyBooleanValue(GENERATE_MANIFEST_CLASS_PROPERTY, project),
       disableAgpUpgradePrompt = getGradlePropertyBooleanValue(DISABLE_AGP_UPGRADE_PROMPT, project),
       getGradlePropertyBooleanValue(USE_CUSTOM_MANAGED_DEVICES, project),
+      buildInKotlinDefaultEnabled = getGradlePropertyBooleanValue(BUILT_IN_KOTLIN, project),
     )
   }
 
@@ -79,3 +80,5 @@ private const val EXCLUDE_LIBRARY_COMPONENTS_FROM_CONSTRAINTS_PROPERTY_EXPERIMEN
 private const val GENERATE_MANIFEST_CLASS_PROPERTY = "android.generateManifestClass"
 private const val DISABLE_AGP_UPGRADE_PROMPT = "android.disableAgpUpgradePrompt"
 private const val USE_CUSTOM_MANAGED_DEVICES = "android.experimental.testOptions.managedDevices.customDevice"
+
+private const val BUILT_IN_KOTLIN = "android.builtInKotlin"

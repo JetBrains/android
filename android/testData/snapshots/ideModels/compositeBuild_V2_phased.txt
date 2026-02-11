@@ -1008,6 +1008,7 @@ MODULE                        : project.app
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
         GenerateManifestClass         : false
+        BuiltInKotlinDefaultEnabled   : true
     - basicVariant:               : debug
         applicationId                 : com.test.compositeapp
         testApplicationId             : com.test.compositeapp.test
@@ -2111,6 +2112,7 @@ MODULE                        : project.lib
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
         GenerateManifestClass         : false
+        BuiltInKotlinDefaultEnabled   : true
     - basicVariant:               : debug
         testApplicationId             : com.test.composite0.test
         buildType                     : debug
