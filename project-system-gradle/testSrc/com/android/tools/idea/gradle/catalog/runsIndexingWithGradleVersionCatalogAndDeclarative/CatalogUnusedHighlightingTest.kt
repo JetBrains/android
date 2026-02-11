@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.catalog.runsIndexingWithGradleVersionCatal
 import com.android.tools.idea.gradle.dsl.model.EP_NAME
 import com.android.tools.idea.gradle.dsl.model.VersionCatalogFilesModel
 import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.intellij.gradle.java.toml.codeInspection.UnusedVersionCatalogEntryInspection
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.module.Module
@@ -34,13 +35,13 @@ import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.testFramework.utils.editor.commitToPsi
 import com.intellij.testFramework.utils.editor.reloadFromDisk
 import com.intellij.testFramework.utils.vfs.createFile
-import org.jetbrains.plugins.gradle.codeInspection.toml.UnusedVersionCatalogEntryInspection
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import java.io.File
 import kotlin.io.path.absolutePathString
+import kotlin.jvm.java
 
 @RunsInEdt
 class CatalogUnusedHighlightingTest {
