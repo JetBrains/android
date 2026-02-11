@@ -16,7 +16,9 @@
 package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.AndroidDebugBridge
+import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.services.ShellCommandOutput
+import com.android.sdklib.AndroidApiLevel
 import com.android.testutils.TestResources
 import com.android.tools.deployer.model.component.Complication
 import com.android.tools.idea.execution.common.AppRunSettings
@@ -451,6 +453,16 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
   }
 
   @Test
+  fun testApiLevel36ThrowsException() {
+    assertFailsWith<ComplicationsRequireLowerApiException> { runConfigurationOnApi(36) }
+  }
+
+  @Test
+  fun testApiLevel35DoesNotThrowException() {
+    runConfigurationOnApi(35)
+  }
+
+  @Test
   fun testGetComplicationSourceTypes() {
     val types =
       getComplicationSourceTypes(
@@ -458,5 +470,60 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
         "com.example.android.wearable.watchface.provider.IncrementingNumberComplicationProviderService",
       )
     assertThat(types).isEqualTo(listOf("SHORT_TEXT", "LONG_TEXT"))
+  }
+
+  private fun runConfigurationOnApi(api: Int) {
+    val configSettings =
+      RunManager.getInstance(project)
+        .createConfiguration("run complication", AndroidComplicationConfigurationType().configurationFactories.single())
+    val env = ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), runner, configSettings, project)
+
+    val deviceState =
+      fakeAdbRule.connectDevice(
+        deviceId = "test_device_$api",
+        manufacturer = "Google",
+        deviceModel = "Pixel7",
+        release = "11.0.0",
+        sdk = AndroidApiLevel(api),
+        hostConnectionType = DeviceState.HostConnectionType.USB,
+      )
+    deviceState.setActivityManager { args: List<String>, shellCommandOutput: ShellCommandOutput ->
+      val wholeCommand = args.joinToString(" ")
+      when (wholeCommand) {
+        checkVersion -> shellCommandOutput.writeStdout("Broadcast completed: result=1, data=\"2\"")
+        setComplicationSlot1 -> shellCommandOutput.writeStdout("Broadcast completed: result=1")
+        showWatchFace -> shellCommandOutput.writeStdout("Broadcast completed: result=1")
+      }
+    }
+
+    val device = AndroidDebugBridge.getBridge()!!.devices.single()
+    val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
+    val watchFaceApp =
+      createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName), activitiesName = emptyList())
+    val settings =
+      object : AppRunSettings {
+        override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
+        override val componentLaunchOptions =
+          ComplicationLaunchOptions().apply {
+            watchFaceInfo = TestWatchFaceInfo
+            componentName = this@AndroidComplicationConfigurationExecutorTest.componentName
+            chosenSlots = listOf(AndroidComplicationConfiguration.ChosenSlot(1, Complication.ComplicationType.SHORT_TEXT))
+          }
+      }
+    val appInstaller = TestApplicationInstaller(hashMapOf(Pair(appId, app), Pair(TestWatchFaceInfo.appId, watchFaceApp)))
+    val executor =
+      Mockito.spy(
+        AndroidComplicationConfigurationExecutor(
+          env,
+          FakeAndroidDevice.forDevices(listOf(device)),
+          settings,
+          TestApksProvider(appId),
+          TestApplicationProjectContext(appId),
+          appInstaller,
+        )
+      )
+    doReturn(listOf("SHORT_TEXT")).whenever(executor).getComplicationSourceTypes(any())
+
+    getRunContentDescriptorForTests { executor.run(EmptyProgressIndicator()) }
   }
 }

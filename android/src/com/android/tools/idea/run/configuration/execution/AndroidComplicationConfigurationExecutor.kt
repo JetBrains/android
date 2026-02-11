@@ -72,6 +72,10 @@ class AndroidComplicationConfigurationExecutor(
     if (version < COMPLICATION_RECOMMENDED_DEBUG_SURFACE_VERSION) {
       console.printlnError(AndroidBundle.message("android.run.configuration.debug.surface.warn"))
     }
+    if (device.version.featureLevel >= 36) {
+      // TODO(b/457659109): support Wear 6
+      throw ComplicationsRequireLowerApiException(isDebug)
+    }
     ProgressManager.checkCanceled()
 
     complicationLaunchOptions.verifyProviderTypes(parseRawComplicationTypes(getComplicationSourceTypes(apkProvider.getApks(device))))
