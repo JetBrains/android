@@ -47,7 +47,7 @@ import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_8_4
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_8_6
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_8_7
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_8_9
-import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_9_1
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_9_1_0
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_FOR_DEV
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
@@ -174,7 +174,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_8_10_2 -> Version.parse("1.6.21")
         VERSION_8_11_1 -> Version.parse("1.6.21")
         VERSION_8_13 -> Version.parse("1.6.21")
-        VERSION_9_1,
+        VERSION_9_1_0,
         VERSION_FOR_DEV -> Version.parse("2.2.10")
       }
 
@@ -205,7 +205,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_8_11_1,
         VERSION_8_13 -> Version.parse("2.4.1")
         // AGP 9.0's built-in-Kotlin was not supported by safeargs' Kotlin detection
-        VERSION_9_1,
+        VERSION_9_1_0,
         VERSION_FOR_DEV -> Version.parse("2.9.6")
       }
 
@@ -235,7 +235,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_8_10_2,
         VERSION_8_11_1,
         VERSION_8_13,
-        VERSION_9_1,
+        VERSION_9_1_0,
         VERSION_FOR_DEV -> Version.parse("1.6.1.0")
       }
 
@@ -264,7 +264,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_8_10_2,
         VERSION_8_11_1,
         VERSION_8_13,
-        VERSION_9_1,
+        VERSION_9_1_0,
         VERSION_FOR_DEV -> Version.parse("2.5.2")
       }
 
@@ -293,7 +293,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_8_10_2,
         VERSION_8_11_1,
         VERSION_8_13,
-        VERSION_9_1,
+        VERSION_9_1_0,
         VERSION_FOR_DEV -> Version.parse("2.1.1")
       }
 
@@ -322,7 +322,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_8_10_2,
         VERSION_8_11_1,
         VERSION_8_13 -> Version.parse("1.4.1")
-        VERSION_9_1,
+        VERSION_9_1_0,
         VERSION_FOR_DEV -> Version.parse("2.0.0")
       }
 
@@ -351,7 +351,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_8_10_2,
         VERSION_8_11_1,
         VERSION_8_13,
-        VERSION_9_1,
+        VERSION_9_1_0,
         VERSION_FOR_DEV -> Version.parse("0.10.4")
       }
 
@@ -380,7 +380,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_8_10_2,
         VERSION_8_11_1,
         VERSION_8_13,
-        VERSION_9_1,
+        VERSION_9_1_0,
         VERSION_FOR_DEV -> Version.parse("4.3.10")
       }
 
@@ -409,7 +409,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_8_10_2,
         VERSION_8_11_1,
         VERSION_8_13 -> Version.parse("2.40.1")
-        VERSION_9_1,
+        VERSION_9_1_0,
         VERSION_FOR_DEV -> Version.parse("2.57.2")
       }
 
@@ -438,7 +438,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_8_10_2,
         VERSION_8_11_1,
         VERSION_8_13,
-        VERSION_9_1,
+        VERSION_9_1_0,
         VERSION_FOR_DEV -> Version.parse("0.9.0")
       }
 
@@ -467,7 +467,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_8_10_2,
         VERSION_8_11_1,
         VERSION_8_13,
-        VERSION_9_1,
+        VERSION_9_1_0,
         VERSION_FOR_DEV -> Version.parse("1.2.4")
       }
 
@@ -497,7 +497,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_8_10_2,
         VERSION_8_11_1,
         VERSION_8_13 -> UNDEFINED_VERSION
-        VERSION_9_1,
+        VERSION_9_1_0,
         VERSION_FOR_DEV -> Version.parse("2.3.2")
       }
 
