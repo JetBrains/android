@@ -17,6 +17,7 @@
 
 package com.google.idea.blaze.base.qsync
 
+import com.google.idea.common.experiments.BoolExperiment
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Joiner
 import com.google.common.collect.ImmutableMap
@@ -234,6 +235,9 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
       val existingPostQuerySyncData = result.existingPostQuerySyncData
       if (existingPostQuerySyncData == null || userPreferences.refreshQueryDataOnStartup) {
         syncStatsScope(context) { context -> syncQueryData(context, existingPostQuerySyncData) }
+        if (userPreferences.commitProjectStructureAfterQuery) {
+          updateProjectStructureAndSnapshot(context)
+        }
       } else {
         updateCurrentSnapshot(context) {
           applySyncResult(assertProjectLoaded().analyzePostQuerySyncData(context, existingPostQuerySyncData))
@@ -284,6 +288,9 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     operation(title = "Updating project structure", subTitle = "Re-importing project", operationType = OperationType.SYNC) { context ->
       val result = reloadProjectIfDefinitionHasChanged(context)
       syncStatsScope(context) { context -> syncQueryData(context, postQuerySyncData = null) }
+      if (userPreferences.commitProjectStructureAfterQuery) {
+        updateProjectStructureAndSnapshot(context)
+      }
       autoEnableCodeAnalysis(context)
     }
 
@@ -298,6 +305,9 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     operation(title = "Updating project structure", subTitle = "Refreshing project", operationType = OperationType.SYNC) { context ->
       val result = reloadProjectIfDefinitionHasChanged(context)
       syncStatsScope(context) { context -> syncQueryData(context, result.existingPostQuerySyncData) }
+      if (userPreferences.commitProjectStructureAfterQuery) {
+        updateProjectStructureAndSnapshot(context)
+      }
       autoEnableCodeAnalysis(context)
     }
 
