@@ -15,32 +15,8 @@
  */
 package com.android.tools.idea.profilers
 
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.run.profiler.CpuProfilerConfig
-import com.android.tools.idea.run.profiler.CpuProfilerConfigsState
-import com.android.tools.nativeSymbolizer.SymbolFilesLocator
-import com.android.tools.profilers.tasks.ProfilerTaskType
-import com.google.common.truth.Truth.assertThat
-import com.intellij.mock.MockProjectEx
-import com.intellij.mock.MockPsiManager
-import com.intellij.openapi.module.EmptyModuleManager
-import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
-import com.intellij.psi.PsiManager
-import com.intellij.testFramework.ApplicationRule
-import com.intellij.testFramework.DisposableRule
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
-import org.junit.After
-import org.junit.AfterClass
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.Mockito
-import org.mockito.kotlin.whenever
 import com.android.ide.common.repository.GoogleMavenArtifactId
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.DependencyType
@@ -51,9 +27,34 @@ import com.android.tools.idea.projectsystem.RegisteredDependencyQueryId
 import com.android.tools.idea.projectsystem.RegisteringModuleSystem
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.AndroidRunConfigurationModule
+import com.android.tools.idea.run.profiler.CpuProfilerConfig
+import com.android.tools.idea.run.profiler.CpuProfilerConfigsState
+import com.android.tools.nativeSymbolizer.SymbolFilesLocator
+import com.android.tools.profilers.tasks.ProfilerTaskType
+import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
 import com.intellij.execution.RunnerAndConfigurationSettings
+import com.intellij.mock.MockProjectEx
+import com.intellij.mock.MockPsiManager
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.module.EmptyModuleManager
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
+import com.intellij.psi.PsiManager
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.PlatformTestUtil
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
+import org.junit.After
+import org.junit.AfterClass
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.Mockito
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
@@ -61,6 +62,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.spy
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 class IntellijProfilerServicesTest {
 
@@ -162,7 +164,7 @@ class IntellijProfilerServicesTest {
     CpuProfilerConfigsState.getInstance(project).taskConfigs = configsToSave
 
     // Updated config should be reflected
-    val resultNew = intellijProfilerServices.getTaskCpuProfilerConfigs(9);
+    val resultNew = intellijProfilerServices.getTaskCpuProfilerConfigs(9)
     assertThat(resultNew.size).isEqualTo(2)
     assertThat(resultNew[0].name).isEqualTo("HelloTest1")
     assertThat(resultNew[1].name).isEqualTo("HelloTest2")
@@ -207,49 +209,80 @@ class IntellijProfilerServicesTest {
   @Test
   fun testAddDependencyDoesNothingIfDependencyAlreadyExists() {
     val artifact = GoogleMavenArtifactId.LEAKCANARY
-    val (servicesSpy, androidModuleSystem, registeringModuleSystem, _) = setupDependencyMocks()
-    doReturn(false).whenever(servicesSpy).showConfirmationDialog(any(), any(), any())
-    whenever(androidModuleSystem.hasResolvedDependency(any())).thenReturn(true)
-    whenever(androidModuleSystem.hasResolvedDependency(any(), any())).thenReturn(true)
+    val mocks = setupDependencyMocks()
+    doReturn(false).whenever(mocks.services).showConfirmationDialog(any(), any(), any())
+    whenever(mocks.androidModuleSystem.hasResolvedDependency(any())).thenReturn(true)
 
-    servicesSpy.addDependency(artifact, DependencyType.DEBUG_IMPLEMENTATION)
+    mocks.services.addDependency(artifact, DependencyType.DEBUG_IMPLEMENTATION)
+    ApplicationManager.getApplication().invokeAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
 
-    verify(servicesSpy, never()).showConfirmationDialog(any(), any(), any())
-    verify(registeringModuleSystem, never()).registerDependency(any<GoogleMavenArtifactId>(), any())
+    verify(mocks.services, never()).showConfirmationDialog(any(), any(), any())
+    verify(mocks.registeringModuleSystem, never()).registerDependency(any<GoogleMavenArtifactId>(), any())
   }
 
   @Test
   fun testAddDependencyShowsDialogIfDependencyIsMissing() {
     val artifact = GoogleMavenArtifactId.LEAKCANARY
-    val (servicesSpy, androidModuleSystem, registeringModuleSystem, _) = setupDependencyMocks()
-    whenever(androidModuleSystem.hasResolvedDependency(any(), any())).thenReturn(false)
-    doReturn(false).whenever(servicesSpy).showConfirmationDialog(any(), any(), any())
+    val mocks = setupDependencyMocks()
+    whenever(mocks.androidModuleSystem.hasResolvedDependency(any())).thenReturn(false)
+    doReturn(false).whenever(mocks.services).showConfirmationDialog(any(), any(), any())
 
-    servicesSpy.addDependency(artifact, DependencyType.DEBUG_IMPLEMENTATION)
+    mocks.services.addDependency(artifact, DependencyType.DEBUG_IMPLEMENTATION)
+    ApplicationManager.getApplication().invokeAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
 
-    verify(servicesSpy).showConfirmationDialog(any(), eq(artifact), eq(DependencyType.DEBUG_IMPLEMENTATION))
-    verify(registeringModuleSystem, never()).registerDependency(any<GoogleMavenArtifactId>(), any())
+    verify(mocks.services).showConfirmationDialog(any(), eq(artifact), eq(DependencyType.DEBUG_IMPLEMENTATION))
+    verify(mocks.registeringModuleSystem, never()).registerDependency(any<GoogleMavenArtifactId>(), any())
   }
 
   @Test
   fun testAddDependencyAddsDependencyAndSyncsIfDialogConfirmed() {
     val artifact = GoogleMavenArtifactId.LEAKCANARY
-    val (servicesSpy, androidModuleSystem, registeringModuleSystem, syncManager) = setupDependencyMocks()
-    whenever(androidModuleSystem.hasResolvedDependency(any(), any())).thenReturn(false)
-    doReturn(true).whenever(servicesSpy).showConfirmationDialog(any(), any(), any())
+    val mocks = setupDependencyMocks()
+    whenever(mocks.androidModuleSystem.hasResolvedDependency(any())).thenReturn(false)
+    doReturn(true).whenever(mocks.services).showConfirmationDialog(any(), any(), any())
+    whenever(mocks.syncManager.requestSyncProject(any())).thenReturn(mock())
 
-    servicesSpy.addDependency(artifact, DependencyType.IMPLEMENTATION)
+    mocks.services.addDependency(artifact, DependencyType.IMPLEMENTATION)
+    ApplicationManager.getApplication().invokeAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
 
-    verify(servicesSpy).showConfirmationDialog(any(), eq(artifact), eq(DependencyType.IMPLEMENTATION))
-    verify(registeringModuleSystem).registerDependency(eq(artifact), eq(DependencyType.IMPLEMENTATION))
-    verify(syncManager).requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
+    verify(mocks.services).showConfirmationDialog(any(), eq(artifact), eq(DependencyType.IMPLEMENTATION))
+    verify(mocks.registeringModuleSystem).registerDependency(eq(artifact), eq(DependencyType.IMPLEMENTATION))
+    verify(mocks.syncManager).requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
+  }
+
+  @Test
+  fun testAddDependencyReturnsFalseIfModuleIsNull() {
+    val artifact = GoogleMavenArtifactId.LEAKCANARY
+    val mocks = setupDependencyMocks()
+    whenever(mocks.configurationModule.module).thenReturn(null)
+
+    val future = mocks.services.addDependency(artifact, DependencyType.IMPLEMENTATION)
+    ApplicationManager.getApplication().invokeAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+
+    assertThat(future.get()).isFalse()
+    verify(mocks.services, never()).showConfirmationDialog(any(), any(), any())
+  }
+
+  @Test
+  fun testAddDependencyReturnsFalseIfRegisteringModuleSystemIsNull() {
+    val artifact = GoogleMavenArtifactId.LEAKCANARY
+    val mocks = setupDependencyMocks()
+    whenever(mocks.androidModuleSystem.getRegisteringModuleSystem()).thenReturn(null)
+
+    val future = mocks.services.addDependency(artifact, DependencyType.IMPLEMENTATION)
+    ApplicationManager.getApplication().invokeAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+
+    assertThat(future.get()).isFalse()
+    verify(mocks.services, never()).showConfirmationDialog(any(), any(), any())
   }
 
   private data class DependencyMocks(
     val services: IntellijProfilerServices,
     val androidModuleSystem: AndroidModuleSystem,
     val registeringModuleSystem: RegisteringModuleSystem<RegisteredDependencyQueryId, RegisteredDependencyId>,
-    val syncManager: ProjectSystemSyncManager
+    val syncManager: ProjectSystemSyncManager,
+    val runManager: RunManager,
+    val configurationModule: AndroidRunConfigurationModule,
   )
 
   private fun setupDependencyMocks(): DependencyMocks {
@@ -264,13 +297,15 @@ class IntellijProfilerServicesTest {
     val configurationModule = mock<AndroidRunConfigurationModule>()
     val module = mock<Module>()
 
-    whenever(project.getService(ProjectSystemService::class.java)).thenReturn(projectSystemService)
+    // Register services on the project so static helpers like ProjectSystemUtil can find them
+    (project as MockProjectEx).registerService(ProjectSystemService::class.java, projectSystemService)
+    (project as MockProjectEx).registerService(RunManager::class.java, runManager)
+
     whenever(projectSystemService.projectSystem).thenReturn(androidProjectSystem)
     whenever(androidProjectSystem.getModuleSystem(any())).thenReturn(androidModuleSystem)
     whenever(androidProjectSystem.getSyncManager()).thenReturn(syncManager)
     whenever(androidModuleSystem.getRegisteringModuleSystem()).thenReturn(registeringModuleSystem)
 
-    whenever(project.getService(RunManager::class.java)).thenReturn(runManager)
     whenever(runManager.selectedConfiguration).thenReturn(configurationSettings)
     whenever(configurationSettings.configuration).thenReturn(androidConfiguration)
     whenever(androidConfiguration.configurationModule).thenReturn(configurationModule)
@@ -284,7 +319,7 @@ class IntellijProfilerServicesTest {
     val servicesSpy = spy(actualInstance)
     spiesToDispose.add(actualInstance)
 
-    return DependencyMocks(servicesSpy, androidModuleSystem, registeringModuleSystem, syncManager)
+    return DependencyMocks(servicesSpy, androidModuleSystem, registeringModuleSystem, syncManager, runManager, configurationModule)
   }
 
   private fun mockProjectAttributes(project: Project) {

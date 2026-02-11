@@ -934,7 +934,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         myTaskHomeTabModel.resetSelectionStateAndClearStartupTaskConfigs();
       }
 
-      if (isStartupTask && !startupProfilingStarted() && mySessionsManager.isSessionAlive()) {
+      boolean isLeakCanaryTask = selectedTaskType == ProfilerTaskType.LEAKCANARY;
+      // If the task is not LeakCanary, check if startup profiling has started successfully.
+      boolean hasStartupProfilingFailed = !isLeakCanaryTask && !startupProfilingStarted();
+
+      if (isStartupTask && hasStartupProfilingFailed && mySessionsManager.isSessionAlive()) {
         mySessionsManager.endSelectedSession();
         myIdeServices.showNotification(TaskNotifications.STARTUP_TASK_FAILURE);
         return;

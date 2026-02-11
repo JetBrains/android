@@ -66,8 +66,17 @@ object TaskSelectionVerificationUtils {
    * enabled and selectable in the task starting point dropdown. It is also used to determine whether the user is able to start the task
    * from process start.
    */
-  fun isTaskStartFromProcessStartEnabled(selectedTaskType: ProfilerTaskType, selectedProcess: Common.Process, profilers: StudioProfilers) =
-    isSelectedProcessPreferred(selectedProcess, profilers) && profilers.ideServices.isTaskSupportedOnStartup(selectedTaskType)
+  fun isTaskStartFromProcessStartEnabled(
+    selectedTaskType: ProfilerTaskType,
+    selectedProcess: Common.Process,
+    profilers: StudioProfilers,
+  ): Boolean {
+    val isProcessPreferred = isSelectedProcessPreferred(selectedProcess, profilers)
+    val isTaskSupported =
+      profilers.ideServices.isTaskSupportedOnStartup(selectedTaskType) ||
+        (selectedTaskType == ProfilerTaskType.LEAKCANARY && profilers.ideServices.featureConfig.isLeakCanaryMilestone2Enabled)
+    return isProcessPreferred && isTaskSupported
+  }
 
   /**
    * Determines if starting a task from now is enabled. This method is utilized to determine whether the NOW option is enabled and

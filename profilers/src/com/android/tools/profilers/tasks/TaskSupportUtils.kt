@@ -31,6 +31,7 @@ object TaskSupportUtils {
 
   fun getProcessStartMinApi(taskType: ProfilerTaskType): Int =
     when (taskType) {
+      ProfilerTaskType.LEAKCANARY -> 24
       ProfilerTaskType.SYSTEM_TRACE,
       ProfilerTaskType.CALLSTACK_SAMPLE,
       ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> 26

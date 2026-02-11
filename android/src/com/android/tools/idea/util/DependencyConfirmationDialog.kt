@@ -39,7 +39,7 @@ class DependencyConfirmationDialog(
   project: Project,
   private val module: Module,
   private val artifact: GoogleMavenArtifactId,
-  private val configuration: DependencyType
+  private val configuration: DependencyType,
 ) : DialogWrapper(project, false) {
 
   init {
@@ -59,64 +59,72 @@ class DependencyConfirmationDialog(
     }
   }
 
-  private val DependencyType.configurationName get() = when(this) {
-    DependencyType.ANNOTATION_PROCESSOR -> "annotationProcessor"
-    DependencyType.DEBUG_IMPLEMENTATION -> "debugImplementation"
-    DependencyType.IMPLEMENTATION -> "implementation"
-  }
+  private val DependencyType.configurationName
+    get() =
+      when (this) {
+        DependencyType.ANNOTATION_PROCESSOR -> "annotationProcessor"
+        DependencyType.DEBUG_IMPLEMENTATION -> "debugImplementation"
+        DependencyType.IMPLEMENTATION -> "implementation"
+      }
 
   override fun createCenterPanel(): JComponent {
     val panel = JBPanel<JBPanel<*>>(BorderLayout())
 
-    val content = JBPanel<JBPanel<*>>().apply {
-      layout = BoxLayout(this, BoxLayout.Y_AXIS)
-      border = JBUI.Borders.empty(10)
-    }
+    val content = JBPanel<JBPanel<*>>().apply { layout = BoxLayout(this, BoxLayout.Y_AXIS) }
 
-    val summary = JBLabel("Performing this action will make the following changes to your project:").apply {
-      border = JBUI.Borders.emptyBottom(10)
-      alignmentX = Component.LEFT_ALIGNMENT
-    }
+    val summary =
+      JBLabel("Performing this action will make the following changes to your project:").apply {
+        border = JBUI.Borders.emptyBottom(10)
+        alignmentX = Component.LEFT_ALIGNMENT
+      }
     content.add(summary)
 
     // The dark rounded box holding the code snippet details
-    val detailsContainer = JBPanel<JBPanel<*>>().apply {
-      layout = BoxLayout(this, BoxLayout.Y_AXIS)
-      border = BorderFactory.createCompoundBorder(
-        JBUI.Borders.customLine(JBColor.border(), 1),
-        JBUI.Borders.empty(15)
-      )
-      background = UIUtil.getPanelBackground()
-      alignmentX = Component.LEFT_ALIGNMENT
-    }
+    val detailsContainer =
+      JBPanel<JBPanel<*>>().apply {
+        layout = BoxLayout(this, BoxLayout.Y_AXIS)
+        border =
+          BorderFactory.createCompoundBorder(
+            JBUI.Borders.customLine(JBColor.border(), 1),
+            JBUI.Borders.empty(15), // Slightly increased overall padding
+          )
+        background = UIUtil.getPanelBackground()
+        alignmentX = Component.LEFT_ALIGNMENT
+      }
 
     // Define a monospace font to replicate the HTML <pre> tag behavior
     val codeFont = JBFont.create(Font(Font.MONOSPACED, Font.PLAIN, JBFont.label().size))
 
-    val fileLabel = JBLabel("${module.name}/build.gradle").apply {
-      font = codeFont.asBold()
-      alignmentX = Component.LEFT_ALIGNMENT
-    }
+    // Line 1: build.gradle (bold, monospace)
+    val fileLabel =
+      JBLabel("${module.name}/build.gradle").apply {
+        font = codeFont.asBold()
+        alignmentX = Component.LEFT_ALIGNMENT
+      }
     detailsContainer.add(fileLabel)
 
-    val actionLabel = JBLabel("Add the library dependency:").apply {
-      font = codeFont
-      border = JBUI.Borders.empty(10, 40, 5, 0)
-      alignmentX = Component.LEFT_ALIGNMENT
-    }
+    val actionLabel =
+      JBLabel("Add the library dependency:").apply {
+        font = codeFont
+        border = JBUI.Borders.empty(10, 40, 5, 0)
+        alignmentX = Component.LEFT_ALIGNMENT
+      }
     detailsContainer.add(actionLabel)
 
-    val dependencyText = SimpleColoredComponent().apply {
-      font = codeFont
-      append("${configuration.configurationName} ", SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, null))
-      append("'$artifact:+'", SimpleTextAttributes(SimpleTextAttributes.STYLE_BOLD, JBColor.GREEN))
-      border = JBUI.Borders.emptyLeft(60)
-      alignmentX = Component.LEFT_ALIGNMENT
-    }
+    val dependencyText =
+      SimpleColoredComponent().apply {
+        font = codeFont
+        append("${configuration.configurationName} ", SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, null))
+        append("'$artifact:+'", SimpleTextAttributes(SimpleTextAttributes.STYLE_BOLD, JBColor.GREEN))
+        // Indent further by 40px on the left
+        border = JBUI.Borders.emptyLeft(60)
+        alignmentX = Component.LEFT_ALIGNMENT
+      }
     detailsContainer.add(dependencyText)
 
     content.add(detailsContainer)
     panel.add(content, BorderLayout.CENTER)
+
     return panel
   }
 }
