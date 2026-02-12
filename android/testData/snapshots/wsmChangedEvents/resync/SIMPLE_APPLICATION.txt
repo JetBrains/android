@@ -31,14 +31,6 @@ Workspace model changed #3, phase: SOURCE_SET_MODEL_PHASE
     Removed GradleAndroidModelEntity for p.app.androidTest
     Removed GradleAndroidModelEntity for p.app.main
     Removed GradleAndroidModelEntity for p.app.unitTest
-    Added JavaModuleSettingsEntity for p.app
-    Added JavaModuleSettingsEntity for p.app.androidTest
-    Added JavaModuleSettingsEntity for p.app.main
-    Added JavaModuleSettingsEntity for p.app.unitTest
-    Removed JavaModuleSettingsEntity for p.app
-    Removed JavaModuleSettingsEntity for p.app.androidTest
-    Removed JavaModuleSettingsEntity for p.app.main
-    Removed JavaModuleSettingsEntity for p.app.unitTest
     Added GradleModuleModelEntity for p.app
 Workspace model changed #4, phase: DEPENDENCY_MODEL_PHASE
 Workspace model changed #5, phase: ADDITIONAL_MODEL_PHASE
@@ -103,14 +95,6 @@ Workspace model changed #9, phase: N/A
     Removed GradleAndroidModelEntity for p.app.unitTest
     Replaced: FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=p.app))
     With:     FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=p.app))
-    Replaced: JavaModuleSettingsEntity for p.app
-    With:     JavaModuleSettingsEntity for p.app
-    Replaced: JavaModuleSettingsEntity for p.app.androidTest
-    With:     JavaModuleSettingsEntity for p.app.androidTest
-    Replaced: JavaModuleSettingsEntity for p.app.main
-    With:     JavaModuleSettingsEntity for p.app.main
-    Replaced: JavaModuleSettingsEntity for p.app.unitTest
-    With:     JavaModuleSettingsEntity for p.app.unitTest
     Added GradleModuleModelEntity for p.app
     Removed GradleModuleModelEntity for p.app
     Added LibraryMavenCoordinateEntity for Gradle: android.arch.core:common:1.1.1

@@ -93,6 +93,7 @@ import com.intellij.platform.workspace.storage.EntitySource
 import com.intellij.platform.workspace.storage.EntityStorage
 import com.intellij.platform.workspace.storage.ImmutableEntityStorage
 import com.intellij.platform.workspace.storage.MutableEntityStorage
+import com.intellij.pom.java.LanguageLevel
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_RESOURCE_ROOT_ENTITY_TYPE_ID
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_SOURCE_ROOT_ENTITY_TYPE_ID
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_TEST_RESOURCE_ROOT_ENTITY_TYPE_ID
@@ -579,7 +580,9 @@ private fun SyncContributorAndroidProjectContext.getModuleGroup(
 /** Set up the javaSettings for the holder module. This does not set any compiler output paths as the holder modules don't have any. */
 private fun SyncContributorAndroidProjectContext.setJavaSettingsForHolderModule(holderModuleEntity: ModuleEntityBuilder) {
   holderModuleEntity.javaSettings =
-    JavaModuleSettingsEntity(inheritedCompilerOutput = false, excludeOutput = context.isDelegatedBuild, entitySource = projectEntitySource)
+    JavaModuleSettingsEntity(inheritedCompilerOutput = false, excludeOutput = context.isDelegatedBuild, entitySource = projectEntitySource) {
+      languageLevelId = androidProject.javaCompileOptions?.sourceCompatibility?.let { LanguageLevel.parse(it) }?.name
+    }
 }
 
 // entity creation
@@ -706,6 +709,7 @@ private fun SyncContributorAndroidProjectContext.createJavaModuleSettingsEntity(
       if (sourceSetArtifactName != IdeArtifactName.MAIN) artifact?.classesFolders?.firstOrNull()?.toVirtualFileUrl() else null
     this.compilerOutput = sourceCompilerOutput
     this.compilerOutputForTests = testCompilerOutput
+    this.languageLevelId = androidProject.javaCompileOptions?.sourceCompatibility?.let { LanguageLevel.parse(it) }?.name
   }
 }
 

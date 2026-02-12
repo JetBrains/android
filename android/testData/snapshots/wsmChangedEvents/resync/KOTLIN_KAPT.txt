@@ -56,22 +56,6 @@ Workspace model changed #3, phase: SOURCE_SET_MODEL_PHASE
     Removed GradleAndroidModelEntity for MainActivity.lib.main
     Removed GradleAndroidModelEntity for MainActivity.lib.unitTest
     Removed TestModulePropertiesEntity for MainActivity.javaLib.test
-    Added JavaModuleSettingsEntity for MainActivity.app
-    Added JavaModuleSettingsEntity for MainActivity.app.androidTest
-    Added JavaModuleSettingsEntity for MainActivity.app.main
-    Added JavaModuleSettingsEntity for MainActivity.app.unitTest
-    Added JavaModuleSettingsEntity for MainActivity.lib
-    Added JavaModuleSettingsEntity for MainActivity.lib.androidTest
-    Added JavaModuleSettingsEntity for MainActivity.lib.main
-    Added JavaModuleSettingsEntity for MainActivity.lib.unitTest
-    Removed JavaModuleSettingsEntity for MainActivity.app
-    Removed JavaModuleSettingsEntity for MainActivity.app.androidTest
-    Removed JavaModuleSettingsEntity for MainActivity.app.main
-    Removed JavaModuleSettingsEntity for MainActivity.app.unitTest
-    Removed JavaModuleSettingsEntity for MainActivity.lib
-    Removed JavaModuleSettingsEntity for MainActivity.lib.androidTest
-    Removed JavaModuleSettingsEntity for MainActivity.lib.main
-    Removed JavaModuleSettingsEntity for MainActivity.lib.unitTest
     Added GradleModuleModelEntity for MainActivity.app
     Added GradleModuleModelEntity for MainActivity.lib
     Removed GradleModuleModelEntity for MainActivity.app
@@ -164,22 +148,6 @@ Workspace model changed #8, phase: N/A
     Added TestModulePropertiesEntity for MainActivity.javaLib.test
     Added ModuleMavenCoordinateEntity for MainActivity.javaLib.main
     Removed ModuleMavenCoordinateEntity for MainActivity.javaLib.main
-    Replaced: JavaModuleSettingsEntity for MainActivity.app
-    With:     JavaModuleSettingsEntity for MainActivity.app
-    Replaced: JavaModuleSettingsEntity for MainActivity.app.androidTest
-    With:     JavaModuleSettingsEntity for MainActivity.app.androidTest
-    Replaced: JavaModuleSettingsEntity for MainActivity.app.main
-    With:     JavaModuleSettingsEntity for MainActivity.app.main
-    Replaced: JavaModuleSettingsEntity for MainActivity.app.unitTest
-    With:     JavaModuleSettingsEntity for MainActivity.app.unitTest
-    Replaced: JavaModuleSettingsEntity for MainActivity.lib
-    With:     JavaModuleSettingsEntity for MainActivity.lib
-    Replaced: JavaModuleSettingsEntity for MainActivity.lib.androidTest
-    With:     JavaModuleSettingsEntity for MainActivity.lib.androidTest
-    Replaced: JavaModuleSettingsEntity for MainActivity.lib.main
-    With:     JavaModuleSettingsEntity for MainActivity.lib.main
-    Replaced: JavaModuleSettingsEntity for MainActivity.lib.unitTest
-    With:     JavaModuleSettingsEntity for MainActivity.lib.unitTest
     Added GradleModuleModelEntity for MainActivity.app
     Added GradleModuleModelEntity for MainActivity.javaLib
     Added GradleModuleModelEntity for MainActivity.lib

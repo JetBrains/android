@@ -30,14 +30,6 @@ Workspace model changed #3, phase: SOURCE_SET_MODEL_PHASE
     Removed GradleAndroidModelEntity for MultiFlavor.app.androidTest
     Removed GradleAndroidModelEntity for MultiFlavor.app.main
     Removed GradleAndroidModelEntity for MultiFlavor.app.unitTest
-    Added JavaModuleSettingsEntity for MultiFlavor.app
-    Added JavaModuleSettingsEntity for MultiFlavor.app.androidTest
-    Added JavaModuleSettingsEntity for MultiFlavor.app.main
-    Added JavaModuleSettingsEntity for MultiFlavor.app.unitTest
-    Removed JavaModuleSettingsEntity for MultiFlavor.app
-    Removed JavaModuleSettingsEntity for MultiFlavor.app.androidTest
-    Removed JavaModuleSettingsEntity for MultiFlavor.app.main
-    Removed JavaModuleSettingsEntity for MultiFlavor.app.unitTest
     Added GradleModuleModelEntity for MultiFlavor.app
     Removed GradleModuleModelEntity for MultiFlavor.app
 Workspace model changed #4, phase: DEPENDENCY_MODEL_PHASE
@@ -97,14 +89,6 @@ Workspace model changed #9, phase: N/A
     Removed GradleAndroidModelEntity for MultiFlavor.app.unitTest
     Replaced: FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=MultiFlavor.app))
     With:     FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=MultiFlavor.app))
-    Replaced: JavaModuleSettingsEntity for MultiFlavor.app
-    With:     JavaModuleSettingsEntity for MultiFlavor.app
-    Replaced: JavaModuleSettingsEntity for MultiFlavor.app.androidTest
-    With:     JavaModuleSettingsEntity for MultiFlavor.app.androidTest
-    Replaced: JavaModuleSettingsEntity for MultiFlavor.app.main
-    With:     JavaModuleSettingsEntity for MultiFlavor.app.main
-    Replaced: JavaModuleSettingsEntity for MultiFlavor.app.unitTest
-    With:     JavaModuleSettingsEntity for MultiFlavor.app.unitTest
     Added GradleModuleModelEntity for MultiFlavor.app
     Removed GradleModuleModelEntity for MultiFlavor.app
     Added LibraryMavenCoordinateEntity for Gradle: androidx.annotation:annotation:1.1.0

@@ -36,6 +36,7 @@ import org.junit.runners.Parameterized
 
 private fun getProjectSpecificResyncIssues(testProject: TestProject) =
   when (testProject.template) {
+    TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
     TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES ->
       setOf(
         // Kmp is not properly set up as expected.
@@ -43,6 +44,8 @@ private fun getProjectSpecificResyncIssues(testProject: TestProject) =
         "kmp-java.sample.jvmTest)/CONTENT_ENTRY",
         "kmp-java.sample.main)/CONTENT_ENTRY",
         "kmp-java.sample.test)/CONTENT_ENTRY",
+        "MODULE (kotlinMultiPlatform.module2)/COMPILER_MODULE_EXTENSION",
+        "MODULE (NonStandardSourceSetDependencies.feature-b)/COMPILER_MODULE_EXTENSION"
       )
     else ->
       when (testProject) {

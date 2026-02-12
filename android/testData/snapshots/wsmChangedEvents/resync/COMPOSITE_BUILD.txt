@@ -110,54 +110,6 @@ Workspace model changed #3, phase: SOURCE_SET_MODEL_PHASE
     Removed TestModulePropertiesEntity for TestCompositeLib3.TestCompositeLibNested_3.test
     Removed TestModulePropertiesEntity for TestCompositeLib4.test
     Removed TestModulePropertiesEntity for includedLib1.TestCompositeLibNested_1.test
-    Added JavaModuleSettingsEntity for TestCompositeLib3.app
-    Added JavaModuleSettingsEntity for TestCompositeLib3.app.androidTest
-    Added JavaModuleSettingsEntity for TestCompositeLib3.app.main
-    Added JavaModuleSettingsEntity for TestCompositeLib3.app.unitTest
-    Added JavaModuleSettingsEntity for TestCompositeLib3.lib
-    Added JavaModuleSettingsEntity for TestCompositeLib3.lib.androidTest
-    Added JavaModuleSettingsEntity for TestCompositeLib3.lib.main
-    Added JavaModuleSettingsEntity for TestCompositeLib3.lib.unitTest
-    Added JavaModuleSettingsEntity for includedLib1.app
-    Added JavaModuleSettingsEntity for includedLib1.app.androidTest
-    Added JavaModuleSettingsEntity for includedLib1.app.main
-    Added JavaModuleSettingsEntity for includedLib1.app.unitTest
-    Added JavaModuleSettingsEntity for includedLib1.lib
-    Added JavaModuleSettingsEntity for includedLib1.lib.androidTest
-    Added JavaModuleSettingsEntity for includedLib1.lib.main
-    Added JavaModuleSettingsEntity for includedLib1.lib.unitTest
-    Added JavaModuleSettingsEntity for p.app
-    Added JavaModuleSettingsEntity for p.app.androidTest
-    Added JavaModuleSettingsEntity for p.app.main
-    Added JavaModuleSettingsEntity for p.app.unitTest
-    Added JavaModuleSettingsEntity for p.lib
-    Added JavaModuleSettingsEntity for p.lib.androidTest
-    Added JavaModuleSettingsEntity for p.lib.main
-    Added JavaModuleSettingsEntity for p.lib.unitTest
-    Removed JavaModuleSettingsEntity for TestCompositeLib3.app
-    Removed JavaModuleSettingsEntity for TestCompositeLib3.app.androidTest
-    Removed JavaModuleSettingsEntity for TestCompositeLib3.app.main
-    Removed JavaModuleSettingsEntity for TestCompositeLib3.app.unitTest
-    Removed JavaModuleSettingsEntity for TestCompositeLib3.lib
-    Removed JavaModuleSettingsEntity for TestCompositeLib3.lib.androidTest
-    Removed JavaModuleSettingsEntity for TestCompositeLib3.lib.main
-    Removed JavaModuleSettingsEntity for TestCompositeLib3.lib.unitTest
-    Removed JavaModuleSettingsEntity for includedLib1.app
-    Removed JavaModuleSettingsEntity for includedLib1.app.androidTest
-    Removed JavaModuleSettingsEntity for includedLib1.app.main
-    Removed JavaModuleSettingsEntity for includedLib1.app.unitTest
-    Removed JavaModuleSettingsEntity for includedLib1.lib
-    Removed JavaModuleSettingsEntity for includedLib1.lib.androidTest
-    Removed JavaModuleSettingsEntity for includedLib1.lib.main
-    Removed JavaModuleSettingsEntity for includedLib1.lib.unitTest
-    Removed JavaModuleSettingsEntity for p.app
-    Removed JavaModuleSettingsEntity for p.app.androidTest
-    Removed JavaModuleSettingsEntity for p.app.main
-    Removed JavaModuleSettingsEntity for p.app.unitTest
-    Removed JavaModuleSettingsEntity for p.lib
-    Removed JavaModuleSettingsEntity for p.lib.androidTest
-    Removed JavaModuleSettingsEntity for p.lib.main
-    Removed JavaModuleSettingsEntity for p.lib.unitTest
     Added GradleModuleModelEntity for TestCompositeLib3.app
     Added GradleModuleModelEntity for TestCompositeLib3.lib
     Added GradleModuleModelEntity for includedLib1.app
@@ -307,54 +259,6 @@ Workspace model changed #9, phase: N/A
     Removed ModuleMavenCoordinateEntity for TestCompositeLib3.TestCompositeLibNested_3.main
     Removed ModuleMavenCoordinateEntity for TestCompositeLib4.main
     Removed ModuleMavenCoordinateEntity for includedLib1.TestCompositeLibNested_1.main
-    Replaced: JavaModuleSettingsEntity for TestCompositeLib3.app
-    With:     JavaModuleSettingsEntity for TestCompositeLib3.app
-    Replaced: JavaModuleSettingsEntity for TestCompositeLib3.app.androidTest
-    With:     JavaModuleSettingsEntity for TestCompositeLib3.app.androidTest
-    Replaced: JavaModuleSettingsEntity for TestCompositeLib3.app.main
-    With:     JavaModuleSettingsEntity for TestCompositeLib3.app.main
-    Replaced: JavaModuleSettingsEntity for TestCompositeLib3.app.unitTest
-    With:     JavaModuleSettingsEntity for TestCompositeLib3.app.unitTest
-    Replaced: JavaModuleSettingsEntity for TestCompositeLib3.lib
-    With:     JavaModuleSettingsEntity for TestCompositeLib3.lib
-    Replaced: JavaModuleSettingsEntity for TestCompositeLib3.lib.androidTest
-    With:     JavaModuleSettingsEntity for TestCompositeLib3.lib.androidTest
-    Replaced: JavaModuleSettingsEntity for TestCompositeLib3.lib.main
-    With:     JavaModuleSettingsEntity for TestCompositeLib3.lib.main
-    Replaced: JavaModuleSettingsEntity for TestCompositeLib3.lib.unitTest
-    With:     JavaModuleSettingsEntity for TestCompositeLib3.lib.unitTest
-    Replaced: JavaModuleSettingsEntity for includedLib1.app
-    With:     JavaModuleSettingsEntity for includedLib1.app
-    Replaced: JavaModuleSettingsEntity for includedLib1.app.androidTest
-    With:     JavaModuleSettingsEntity for includedLib1.app.androidTest
-    Replaced: JavaModuleSettingsEntity for includedLib1.app.main
-    With:     JavaModuleSettingsEntity for includedLib1.app.main
-    Replaced: JavaModuleSettingsEntity for includedLib1.app.unitTest
-    With:     JavaModuleSettingsEntity for includedLib1.app.unitTest
-    Replaced: JavaModuleSettingsEntity for includedLib1.lib
-    With:     JavaModuleSettingsEntity for includedLib1.lib
-    Replaced: JavaModuleSettingsEntity for includedLib1.lib.androidTest
-    With:     JavaModuleSettingsEntity for includedLib1.lib.androidTest
-    Replaced: JavaModuleSettingsEntity for includedLib1.lib.main
-    With:     JavaModuleSettingsEntity for includedLib1.lib.main
-    Replaced: JavaModuleSettingsEntity for includedLib1.lib.unitTest
-    With:     JavaModuleSettingsEntity for includedLib1.lib.unitTest
-    Replaced: JavaModuleSettingsEntity for p.app
-    With:     JavaModuleSettingsEntity for p.app
-    Replaced: JavaModuleSettingsEntity for p.app.androidTest
-    With:     JavaModuleSettingsEntity for p.app.androidTest
-    Replaced: JavaModuleSettingsEntity for p.app.main
-    With:     JavaModuleSettingsEntity for p.app.main
-    Replaced: JavaModuleSettingsEntity for p.app.unitTest
-    With:     JavaModuleSettingsEntity for p.app.unitTest
-    Replaced: JavaModuleSettingsEntity for p.lib
-    With:     JavaModuleSettingsEntity for p.lib
-    Replaced: JavaModuleSettingsEntity for p.lib.androidTest
-    With:     JavaModuleSettingsEntity for p.lib.androidTest
-    Replaced: JavaModuleSettingsEntity for p.lib.main
-    With:     JavaModuleSettingsEntity for p.lib.main
-    Replaced: JavaModuleSettingsEntity for p.lib.unitTest
-    With:     JavaModuleSettingsEntity for p.lib.unitTest
     Added GradleModuleModelEntity for TestCompositeLib2
     Added GradleModuleModelEntity for TestCompositeLib3.TestCompositeLibNested_3
     Added GradleModuleModelEntity for TestCompositeLib3.app

@@ -31,14 +31,6 @@ Workspace model changed #3, phase: SOURCE_SET_MODEL_PHASE
     Removed GradleAndroidModelEntity for withGradleMetadata.app.androidTest
     Removed GradleAndroidModelEntity for withGradleMetadata.app.main
     Removed GradleAndroidModelEntity for withGradleMetadata.app.unitTest
-    Added JavaModuleSettingsEntity for withGradleMetadata.app
-    Added JavaModuleSettingsEntity for withGradleMetadata.app.androidTest
-    Added JavaModuleSettingsEntity for withGradleMetadata.app.main
-    Added JavaModuleSettingsEntity for withGradleMetadata.app.unitTest
-    Removed JavaModuleSettingsEntity for withGradleMetadata.app
-    Removed JavaModuleSettingsEntity for withGradleMetadata.app.androidTest
-    Removed JavaModuleSettingsEntity for withGradleMetadata.app.main
-    Removed JavaModuleSettingsEntity for withGradleMetadata.app.unitTest
     Added GradleModuleModelEntity for withGradleMetadata.app
 Workspace model changed #4, phase: DEPENDENCY_MODEL_PHASE
 Workspace model changed #5, phase: ADDITIONAL_MODEL_PHASE
@@ -87,14 +79,6 @@ Workspace model changed #9, phase: N/A
     Removed GradleAndroidModelEntity for withGradleMetadata.app.unitTest
     Replaced: FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=withGradleMetadata.app))
     With:     FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=withGradleMetadata.app))
-    Replaced: JavaModuleSettingsEntity for withGradleMetadata.app
-    With:     JavaModuleSettingsEntity for withGradleMetadata.app
-    Replaced: JavaModuleSettingsEntity for withGradleMetadata.app.androidTest
-    With:     JavaModuleSettingsEntity for withGradleMetadata.app.androidTest
-    Replaced: JavaModuleSettingsEntity for withGradleMetadata.app.main
-    With:     JavaModuleSettingsEntity for withGradleMetadata.app.main
-    Replaced: JavaModuleSettingsEntity for withGradleMetadata.app.unitTest
-    With:     JavaModuleSettingsEntity for withGradleMetadata.app.unitTest
     Added GradleModuleModelEntity for withGradleMetadata.app
     Removed GradleModuleModelEntity for withGradleMetadata.app
     Added LibraryMavenCoordinateEntity for Gradle: org.gradle.sample:library:1.1

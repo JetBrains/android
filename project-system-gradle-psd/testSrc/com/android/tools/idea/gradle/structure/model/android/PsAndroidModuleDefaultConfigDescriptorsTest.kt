@@ -32,7 +32,10 @@ import com.android.tools.idea.testing.BuildEnvironment
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.requestSyncAndWait
 import com.google.common.truth.Expect
+import com.intellij.psi.search.FilenameIndex
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.util.indexing.FileBasedIndex
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.notNullValue
 import org.hamcrest.CoreMatchers.nullValue
@@ -402,6 +405,8 @@ class PsAndroidModuleDefaultConfigDescriptorsTest {
   }
 
   private fun PsTestProject.doTestProGuardKnownValues() {
+    FileBasedIndex.getInstance().requestRebuild(FilenameIndex.NAME)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     val appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule, notNullValue())
 
