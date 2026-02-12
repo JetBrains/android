@@ -48,7 +48,7 @@ class PreviewItemPanelTest {
         previewName = "preview",
         testResult = AndroidTestCaseResult.PASSED,
       )
-    val panel = PreviewItemPanel(details)
+    val panel = PreviewItemPanel(details, projectRule.project)
     assertEquals(details, panel.previewData)
   }
 
@@ -62,7 +62,7 @@ class PreviewItemPanelTest {
         previewName = "preview",
         testResult = AndroidTestCaseResult.PASSED,
       )
-    val panel = PreviewItemPanel(details, showDetails = false)
+    val panel = PreviewItemPanel(details, projectRule.project, showDetails = false)
 
     // Expect only 1 component (the image panel)
     assertEquals(1, panel.componentCount)
@@ -79,7 +79,7 @@ class PreviewItemPanelTest {
         testResult = AndroidTestCaseResult.FAILED,
         diffPercent = "0.01", // 99% match
       )
-    val panel = PreviewItemPanel(details, showDetails = true)
+    val panel = PreviewItemPanel(details, projectRule.project, showDetails = true)
 
     val labels = findAllLabels(panel)
 
@@ -103,7 +103,7 @@ class PreviewItemPanelTest {
         testResult = AndroidTestCaseResult.FAILED,
         srcImagePath = null,
       )
-    val panel = PreviewItemPanel(details)
+    val panel = PreviewItemPanel(details, projectRule.project)
     panel.showImageForView(ScreenshotViewType.NEW)
 
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -123,7 +123,7 @@ class PreviewItemPanelTest {
         testResult = AndroidTestCaseResult.PASSED,
         diffImagePath = null,
       )
-    val panel = PreviewItemPanel(details)
+    val panel = PreviewItemPanel(details, projectRule.project)
     panel.showImageForView(ScreenshotViewType.DIFF)
 
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -143,7 +143,7 @@ class PreviewItemPanelTest {
         testResult = AndroidTestCaseResult.FAILED,
         diffImagePath = null,
       )
-    val panel = PreviewItemPanel(details)
+    val panel = PreviewItemPanel(details, projectRule.project)
     panel.showImageForView(ScreenshotViewType.DIFF)
 
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -163,7 +163,7 @@ class PreviewItemPanelTest {
         testResult = AndroidTestCaseResult.PASSED,
         destImagePath = null,
       )
-    val panel = PreviewItemPanel(details)
+    val panel = PreviewItemPanel(details, projectRule.project)
     panel.showImageForView(ScreenshotViewType.REFERENCE)
 
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -192,6 +192,7 @@ class PreviewItemPanelTest {
     val panel =
       PreviewItemPanel(
         previewData = details,
+        project = projectRule.project,
         appExecutorService = MoreExecutors.newDirectExecutorService(),
         createImageIcon = { _ ->
           imageCreationCount++
@@ -224,7 +225,7 @@ class PreviewItemPanelTest {
         previewName = "preview1",
         testResult = AndroidTestCaseResult.PASSED,
       )
-    val panel = PreviewItemPanel(details1)
+    val panel = PreviewItemPanel(details1, projectRule.project)
 
     val details2 =
       PreviewDetails(
@@ -270,6 +271,7 @@ class PreviewItemPanelTest {
     val panel =
       PreviewItemPanel(
         previewData = details,
+        project = projectRule.project,
         appExecutorService = executor,
         createImageIcon = { path ->
           imageCreationCount++
@@ -291,7 +293,8 @@ class PreviewItemPanelTest {
     val path = temporaryFolder.newFile("image.png").absolutePath
     val details = PreviewDetails(testId = "id", className = "Class", methodName = "m", previewName = "p", srcImagePath = path)
 
-    val panel = PreviewItemPanel(previewData = details, appExecutorService = executor, createImageIcon = { mock() })
+    val panel =
+      PreviewItemPanel(previewData = details, project = projectRule.project, appExecutorService = executor, createImageIcon = { mock() })
 
     panel.updateData(details, ScreenshotViewType.NEW) { callbackCount++ }
 
@@ -317,6 +320,7 @@ class PreviewItemPanelTest {
     val panel =
       PreviewItemPanel(
         previewData = details,
+        project = projectRule.project,
         showDetails = false, // Disable details to avoid finding the "Match: " label
         appExecutorService = MoreExecutors.newDirectExecutorService(),
         createImageIcon = { _ ->

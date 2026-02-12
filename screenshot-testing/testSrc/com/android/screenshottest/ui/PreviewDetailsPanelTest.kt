@@ -41,7 +41,7 @@ class PreviewDetailsPanelTest {
 
   @Test
   fun testSwitchToSinglePreview() = runInEdtAndWait {
-    val panel = PreviewDetailsPanel()
+    val panel = PreviewDetailsPanel(projectRule.project)
     val details =
       PreviewDetails(
         testId = "test1",
@@ -65,7 +65,7 @@ class PreviewDetailsPanelTest {
 
   @Test
   fun testSwitchToMultiplePreviews() = runInEdtAndWait {
-    val panel = PreviewDetailsPanel()
+    val panel = PreviewDetailsPanel(projectRule.project)
     val details1 =
       PreviewDetails(
         testId = "test1",
@@ -98,7 +98,7 @@ class PreviewDetailsPanelTest {
 
   @Test
   fun testMultiplePreviewsWithSingleItemAndNoToolbar() = runInEdtAndWait {
-    val panel = PreviewDetailsPanel()
+    val panel = PreviewDetailsPanel(projectRule.project)
     val details =
       PreviewDetails(
         testId = "test1",
@@ -121,7 +121,7 @@ class PreviewDetailsPanelTest {
 
   @Test
   fun testJBListVirtualization() = runInEdtAndWait {
-    val panel = PreviewDetailsPanel()
+    val panel = PreviewDetailsPanel(projectRule.project)
     val detailsList =
       (1..10).map { i ->
         PreviewDetails(
@@ -147,7 +147,7 @@ class PreviewDetailsPanelTest {
 
   @Test
   fun testPlaceholdersForNullPaths() = runInEdtAndWait {
-    val panel = PreviewDetailsPanel()
+    val panel = PreviewDetailsPanel(projectRule.project)
     val details =
       PreviewDetails(
         testId = "test1",
@@ -183,7 +183,7 @@ class PreviewDetailsPanelTest {
 
   @Test
   fun testPlaceholdersForFailedTest() = runInEdtAndWait {
-    val panel = PreviewDetailsPanel()
+    val panel = PreviewDetailsPanel(projectRule.project)
     val details =
       PreviewDetails(
         testId = "test1",
@@ -207,7 +207,7 @@ class PreviewDetailsPanelTest {
 
   @Test
   fun testToolbarActionsCreated() = runInEdtAndWait {
-    val panel = PreviewDetailsPanel()
+    val panel = PreviewDetailsPanel(projectRule.project)
     val details =
       PreviewDetails(
         testId = "test1",
@@ -234,7 +234,7 @@ class PreviewDetailsPanelTest {
 
   @Test
   fun testDuplicateMethodNamesInDifferentClasses() = runInEdtAndWait {
-    val panel = PreviewDetailsPanel()
+    val panel = PreviewDetailsPanel(projectRule.project)
     val details1 =
       PreviewDetails(
         testId = "test1",
@@ -277,7 +277,7 @@ class PreviewDetailsPanelTest {
 
   @Test
   fun testScreenshotAttributesView_withNullDestImagePath() = runInEdtAndWait {
-    val panel = PreviewDetailsPanel()
+    val panel = PreviewDetailsPanel(projectRule.project)
     val details =
       PreviewDetails(
         testId = "test1",
@@ -296,7 +296,7 @@ class PreviewDetailsPanelTest {
 
   @Test
   fun testScreenshotAttributesView_withNonExistentDestImagePath() = runInEdtAndWait {
-    val panel = PreviewDetailsPanel()
+    val panel = PreviewDetailsPanel(projectRule.project)
     val details =
       PreviewDetails(
         testId = "test1",

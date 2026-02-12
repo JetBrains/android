@@ -248,7 +248,7 @@ class UpdateReferenceImagesDialog(
 
     rightPaneCardLayout = CardLayout()
     rightPaneContent = JPanel(rightPaneCardLayout)
-    previewDetailsPanel = PreviewDetailsPanel()
+    previewDetailsPanel = PreviewDetailsPanel(project)
 
     rightPaneContent.add(placeholderLabel, "placeholder")
     rightPaneContent.add(previewDetailsPanel, "details")
