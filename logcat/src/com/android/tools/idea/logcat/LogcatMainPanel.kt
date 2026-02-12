@@ -149,6 +149,7 @@ import com.intellij.openapi.editor.ex.util.EditorUtil
 import com.intellij.openapi.editor.impl.ContextMenuPopupHandler
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogBuilder
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.JBColor
 import com.intellij.ui.dsl.builder.panel
@@ -597,6 +598,12 @@ constructor(
     scrollPane.addMouseWheelListener(mouseListener)
     scrollPane.verticalScrollBar.addMouseListener(mouseListener)
     scrollPane.verticalScrollBar.addMouseMotionListener(mouseListener)
+
+    Disposer.register(this) {
+      scrollPane.removeMouseListener(mouseListener)
+      scrollPane.verticalScrollBar.removeMouseListener(mouseListener)
+      scrollPane.verticalScrollBar.removeMouseMotionListener(mouseListener)
+    }
   }
 
   override suspend fun processMessages(messages: List<LogcatMessage>) {
