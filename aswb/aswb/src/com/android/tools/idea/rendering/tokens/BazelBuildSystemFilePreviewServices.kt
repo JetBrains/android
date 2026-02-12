@@ -46,6 +46,7 @@ internal class BazelBuildSystemFilePreviewServices :
           val preferredTarget = buildTargetReference.toPreferredLabel() ?: return null
           return buildServices.getBuildOutcome(preferredTarget)
         },
+      desugarConfigsProvider = { error("Unexpected to be used") },
     )
   }
 

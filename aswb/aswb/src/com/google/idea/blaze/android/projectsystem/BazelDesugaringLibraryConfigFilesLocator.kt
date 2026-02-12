@@ -17,6 +17,7 @@ package com.google.idea.blaze.android.projectsystem
 
 import com.google.common.collect.ImmutableList
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
+import com.google.idea.blaze.base.scope.BlazeContext
 import com.google.idea.blaze.base.settings.BuildSystemName
 import com.intellij.openapi.project.Project
 import java.nio.file.Path
@@ -29,8 +30,8 @@ class BazelDesugaringLibraryConfigFilesLocator : DesugaringLibraryConfigFilesLoc
     return true
   }
 
-  override fun getDesugarLibraryConfigFiles(project: Project): ImmutableList<Path> {
-    val workspaceRoot = WorkspaceRoot.fromProjectSafe(project)?.path() ?: return ImmutableList.of()
+  override fun fetchDesugarLibraryConfigFiles(project: Project, context: BlazeContext): List<Path> {
+    val workspaceRoot = WorkspaceRoot.fromProjectSafe(project)?.path() ?: return emptyList()
     val configFile = workspaceRoot.resolve("bazel-bin/external/rules_android+/tools/android/full_desugar_jdk_libs_config.json")
     return if (configFile.exists()) {
       ImmutableList.of(configFile)

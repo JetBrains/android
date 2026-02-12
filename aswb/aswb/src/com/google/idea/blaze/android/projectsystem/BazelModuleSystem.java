@@ -463,19 +463,7 @@ public final class BazelModuleSystem
   /** Check every supporting extension point if they contain desugaring library config files */
   @Override
   public boolean getDesugarLibraryConfigFilesKnown() {
-    return DesugaringLibraryConfigFilesLocator.forBuildSystem(
-            Blaze.getBuildSystemName(module.getProject()))
-        .stream()
-        .anyMatch(provider -> provider.getDesugarLibraryConfigFilesKnown());
-  }
-
-  /** Collect desugaring library config files from every supporting extension and return the list */
-  public ImmutableList<Path> getDesugarLibraryConfigFiles() {
-    return DesugaringLibraryConfigFilesLocator.forBuildSystem(
-            Blaze.getBuildSystemName(module.getProject()))
-        .stream()
-        .flatMap(provider -> provider.getDesugarLibraryConfigFiles(project).stream())
-        .collect(toImmutableList());
+    return true;
   }
 
   @TestOnly

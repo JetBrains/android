@@ -54,6 +54,10 @@ public class ArtifactDirectories {
   public static final ProjectRelativeProjectPath INSPECTORS =
       ROOT.resolveChild(Path.of("inspectors"));
 
+  /** R8 desugar configuration storage. */
+  public static final ProjectRelativeProjectPath DESUGAR_CONFIGS =
+      ROOT.resolveChild(Path.of("desugar_configs"));
+
   /** APKs storage. */
   public static final ProjectRelativeProjectPath RUNFILES =
       ProjectPath.projectRelative(Path.of(".")).resolveChild(Path.of(".runfiles"));

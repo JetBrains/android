@@ -31,6 +31,7 @@ class BazelBuildSystemLiveEditServices : BuildSystemLiveEditServices<BazelProjec
     return BazelApplicationLiveEditServices(
       project = bazelApplicationProjectContext.project,
       buildOutcomeProvider = liveEditData::getBuildOutcomeBlocking,
+      desugarConfigsProvider = { liveEditData.getDesugarConfigs() },
     )
   }
 
