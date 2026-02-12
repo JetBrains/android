@@ -46,6 +46,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtil.findFileByIoFile
 import java.io.File
 import org.apache.commons.lang3.StringUtils.countMatches
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -378,6 +379,7 @@ class PluginsHelperTest {
     )
   }
 
+  @Ignore("b/481734567 - Enable with new declarative changes")
   @Test
   fun testAddPluginToDeclarativeSettings() {
     doTest(
@@ -398,6 +400,7 @@ class PluginsHelperTest {
     )
   }
 
+  @Ignore("b/481734567 - Enable with new declarative changes")
   @Test
   fun testAddPluginToDeclarative() {
     doTest(

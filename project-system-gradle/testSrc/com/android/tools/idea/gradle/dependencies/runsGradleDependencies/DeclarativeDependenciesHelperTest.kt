@@ -34,11 +34,13 @@ import com.android.tools.idea.testing.getTextForFile
 import com.android.tools.idea.testing.withDeclarative
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
+@Ignore("b/481734567 - Enable with new declarative changes")
 @RunWith(JUnit4::class)
 class DeclarativeDependenciesHelperTest {
 

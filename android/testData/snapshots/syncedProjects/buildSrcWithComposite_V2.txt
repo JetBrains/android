@@ -1525,11 +1525,11 @@ PROJECT                       : BuildSrcWithComposite
             IsModuleLevel                 : true
             LIBRARY                       : Gradle: gradle-api-<GRADLE_VERSION>.jar
                 *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/generated-gradle-jars/gradle-api-<GRADLE_VERSION>.jar!/
-        LIBRARY                       : Gradle: gradle-installation-beacon-<GRADLE_VERSION>.jar [=]
+        LIBRARY                       : Gradle: gradle-installation-beacon-9.4.0.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY                       : Gradle: gradle-installation-beacon-<GRADLE_VERSION>.jar
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/gradle-installation-beacon-<GRADLE_VERSION>.jar!/
+            LIBRARY                       : Gradle: gradle-installation-beacon-9.4.0.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/gradle-installation-beacon-9.4.0.jar!/
         LIBRARY                       : Gradle: groovy-4.0.29.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
@@ -1585,15 +1585,15 @@ PROJECT                       : BuildSrcWithComposite
             IsModuleLevel                 : true
             LIBRARY                       : Gradle: javaparser-core-3.27.1.jar
                 *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/javaparser-core-3.27.1.jar!/
-        LIBRARY                       : Gradle: kotlin-reflect-2.2.21.jar [=]
+        LIBRARY                       : Gradle: kotlin-reflect-2.3.0.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY                       : Gradle: kotlin-reflect-2.2.21.jar
+            LIBRARY                       : Gradle: kotlin-reflect-2.3.0.jar
                 *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-reflect-<KOTLIN_VERSION>.jar!/
-        LIBRARY                       : Gradle: kotlin-stdlib-2.2.21.jar [=]
+        LIBRARY                       : Gradle: kotlin-stdlib-2.3.0.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY                       : Gradle: kotlin-stdlib-2.2.21.jar
+            LIBRARY                       : Gradle: kotlin-stdlib-2.3.0.jar
                 *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
         Classes
             -                             : file://<PROJECT>/buildSrc/build/classes/java/main
@@ -1629,11 +1629,11 @@ PROJECT                       : BuildSrcWithComposite
             IsModuleLevel                 : true
             LIBRARY                       : Gradle: gradle-api-<GRADLE_VERSION>.jar
                 *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/generated-gradle-jars/gradle-api-<GRADLE_VERSION>.jar!/
-        LIBRARY                       : Gradle: gradle-installation-beacon-<GRADLE_VERSION>.jar [=]
+        LIBRARY                       : Gradle: gradle-installation-beacon-9.4.0.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY                       : Gradle: gradle-installation-beacon-<GRADLE_VERSION>.jar
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/gradle-installation-beacon-<GRADLE_VERSION>.jar!/
+            LIBRARY                       : Gradle: gradle-installation-beacon-9.4.0.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/gradle-installation-beacon-9.4.0.jar!/
         LIBRARY                       : Gradle: groovy-4.0.29.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
@@ -1689,15 +1689,15 @@ PROJECT                       : BuildSrcWithComposite
             IsModuleLevel                 : true
             LIBRARY                       : Gradle: javaparser-core-3.27.1.jar
                 *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/javaparser-core-3.27.1.jar!/
-        LIBRARY                       : Gradle: kotlin-reflect-2.2.21.jar [=]
+        LIBRARY                       : Gradle: kotlin-reflect-2.3.0.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY                       : Gradle: kotlin-reflect-2.2.21.jar
+            LIBRARY                       : Gradle: kotlin-reflect-2.3.0.jar
                 *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-reflect-<KOTLIN_VERSION>.jar!/
-        LIBRARY                       : Gradle: kotlin-stdlib-2.2.21.jar [=]
+        LIBRARY                       : Gradle: kotlin-stdlib-2.3.0.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY                       : Gradle: kotlin-stdlib-2.2.21.jar
+            LIBRARY                       : Gradle: kotlin-stdlib-2.3.0.jar
                 *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
         BUILD_TASKS
     MODULE                        : java-included

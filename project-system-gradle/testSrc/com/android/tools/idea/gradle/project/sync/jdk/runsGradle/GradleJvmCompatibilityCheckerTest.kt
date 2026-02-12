@@ -88,7 +88,7 @@ class GradleJvmCompatibilityCheckerTest {
   }
 
   fun Project.assertDialogUpdatesGradleJvmVersion() {
-    val gradleVersion = GradleVersion.version(SdkConstants.GRADLE_LATEST_VERSION)
+    val gradleVersion = GradleVersion.version(SdkConstants.GRADLE_LATEST_VERSION).baseVersion
     val gradleJvmCompatibility = GradleJvmCompatibilityResolver.resolve(this, gradleVersion)
     val expectedDialogMessage =
       "The project's Gradle version Gradle ${gradleVersion.version} is incompatible with the Gradle JVM version 11. To fix this, " +
