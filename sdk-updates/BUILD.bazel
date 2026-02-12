@@ -58,7 +58,8 @@ resourcegroup(
 jvm_library(
   name = "sdkUpdates-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = ["@lib//:kotlin-stdlib"]
 )
 
 jvm_library(
@@ -72,6 +73,7 @@ jvm_library(
     "@lib//:studio-test-platform",
     "@lib//:junit4",
     "//libraries/guava",
+    "@lib//:kotlin-stdlib",
     "@lib//:kotlin-test",
     "//android/sdk-updates",
     "//android/android:core",

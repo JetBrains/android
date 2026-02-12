@@ -37,6 +37,7 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "//libraries/guava",
     "//libraries/fastutil",
+    "@lib//:kotlin-stdlib",
     "@lib//:java_compatibility",
     "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
     "//android/adt-ui-model",
@@ -86,6 +87,7 @@ jvm_library(
     "//libraries/kotlinx/coroutines/test",
     "//libraries/mockito",
     "@lib//:mockito-kotlin",
+    "@lib//:kotlin-stdlib",
     "@lib//:truth",
     "@lib//:java_compatibility",
     "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
@@ -134,6 +136,7 @@ jvm_library(
     "//platform/platform-impl/ui",
     "@lib//:android-adt-ui-ibm-db2-jcc",
     "//libraries/jspecify",
+    "//platform/project-frame",
   ],
   exports = ["@lib//:android-adt-ui-ibm-db2-jcc"]
 )
