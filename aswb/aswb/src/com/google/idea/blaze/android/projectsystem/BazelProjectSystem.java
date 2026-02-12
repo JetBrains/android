@@ -33,15 +33,20 @@ import com.android.tools.idea.projectsystem.SourceProvidersFactory;
 import com.android.tools.idea.projectsystem.SourceProvidersImpl;
 import com.android.tools.idea.res.AndroidInnerClassFinder;
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder;
+import com.android.tools.idea.run.ApplicationIdProvider;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.idea.blaze.android.resources.BlazeLightResourceClassService;
+import com.google.idea.blaze.android.run.BazelApplicationIdProvider;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.qsync.project.BlazeProjectDataStorage;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.UserDataHolder;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElementFinder;
@@ -56,12 +61,15 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Base class to implement common methods in {@link AndroidProjectSystem} for blaze with different
  * sdk
  */
 public class BazelProjectSystem implements AndroidProjectSystem {
+  public static final Key<BazelApplicationIdProvider> RUN_CONFIG_APPLICATION_ID_PROVIDER =
+      Key.create("run_config_application_id_provider");
   protected final Project project;
   protected final ProjectSystemSyncManager syncManager;
   protected final List<PsiElementFinder> myFinders;
@@ -226,6 +234,15 @@ public class BazelProjectSystem implements AndroidProjectSystem {
       applicationIds.addAll(model.getAllApplicationIds());
     }
     return Collections.unmodifiableSet(applicationIds);
+  }
+
+  @Override
+  public @Nullable ApplicationIdProvider getApplicationIdProvider(
+      @NotNull RunConfiguration runConfiguration) {
+    if (runConfiguration instanceof UserDataHolder ud) {
+      return ud.getUserData(RUN_CONFIG_APPLICATION_ID_PROVIDER);
+    }
+    return null;
   }
 
   @NotNull

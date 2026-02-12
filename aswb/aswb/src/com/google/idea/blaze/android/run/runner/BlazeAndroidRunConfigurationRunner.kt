@@ -36,6 +36,7 @@ import com.android.tools.idea.run.configuration.execution.WatchFaceLaunchOptions
 import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.editor.DeployTargetState
 import com.google.common.util.concurrent.Futures
+import com.google.idea.blaze.android.projectsystem.BazelProjectSystem
 import com.google.idea.blaze.android.run.BazelAndroidRunContext
 import com.google.idea.blaze.android.run.binary.BlazeAndroidBinaryRunConfigurationState
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo
@@ -127,7 +128,9 @@ class BlazeAndroidRunConfigurationRunner(
               blockingExtract(context, buildOutputs)
               fetchAdditionalData(context)
             }
-            launchStrategy.createBlazeAndroidRunContext(environment, deployInfo, liveEditDataExtractor, runConfig)
+            launchStrategy.createBlazeAndroidRunContext(environment, deployInfo, liveEditDataExtractor, runConfig).also {
+              runConfig.putUserData(BazelProjectSystem.RUN_CONFIG_APPLICATION_ID_PROVIDER, it.applicationIdProvider)
+            }
           } ?: throw ExecutionException("APK build failed")
 
         val state = runConfig.handler.getState()
