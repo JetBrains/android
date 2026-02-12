@@ -111,10 +111,12 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
       resolver: IdeLibraryModelResolverImpl,
       modelFactory: (GradleAndroidModelData) -> GradleAndroidModelImpl,
     ) {
+      val storage = (modelsProvider as IdeModifiableModelsProviderImpl).actualStorageBuilder
       val mainModuleData = mainModuleDataNode.data
       val mainIdeModule = modelsProvider.findIdeModule(mainModuleData) ?: return
-
       val gradleAndroidModelData = nodeToImport.data
+      val coreModel = modelFactory(gradleAndroidModelData)
+      setGradleAndroidModelFromDataNode(storage, storage.resolve(ModuleId(mainIdeModule.name))!!, coreModel, resolver)
 
       mainModuleDataNode.linkAndroidModuleGroup(project, modelsProvider)
 
@@ -125,11 +127,8 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
         val androidFacet =
           modelsProvider.getModifiableFacetModel(module).getFacetByType(AndroidFacet.ID) ?: createAndroidFacet(module, facetModel)
         // Configure that Android facet from the information in the GradleAndroidModel.
-        val coreModel = modelFactory(gradleAndroidModelData)
         configureFacet(androidFacet, module, coreModel)
-        val storage = (modelsProvider as IdeModifiableModelsProviderImpl).actualStorageBuilder
 
-        setGradleAndroidModelFromDataNode(storage, storage.resolve(ModuleId(module.name))!!, coreModel, resolver)
         // We need to get back the mapped dependency model instead of recreate it from the core
         val dependencyModel = storage.getGradleAndroidModel(module)!!
         moduleValidator.validate(module, dependencyModel)

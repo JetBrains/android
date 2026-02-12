@@ -20,6 +20,8 @@ import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
 import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelImpl
+import com.android.tools.idea.projectsystem.gradle.getHolderModule
+import com.android.tools.idea.projectsystem.gradle.isLinkedAndroidModule
 import com.intellij.openapi.module.Module
 import com.intellij.platform.workspace.jps.entities.ModuleEntity
 import com.intellij.platform.workspace.jps.entities.modifyModuleEntity
@@ -77,4 +79,8 @@ internal fun updateGradleAndroidModelMapping(storage: MutableEntityStorage, modu
 internal val ModuleEntity.gradleAndroidModel: GradleAndroidModelEntity? by WorkspaceEntity.extension()
 
 fun EntityStorage.getGradleAndroidModel(module: Module): GradleAndroidModel? =
-  module.findModuleEntity(this)?.let { getExternalMapping(GRADLE_ANDROID_MODEL_KEY).getDataByEntity(it) }
+  if (module.isLinkedAndroidModule()) {
+    module.getHolderModule().findModuleEntity(this)?.let { getExternalMapping(GRADLE_ANDROID_MODEL_KEY).getDataByEntity(it) }
+  } else {
+    null
+  }

@@ -47,6 +47,7 @@ import com.android.tools.idea.gradle.project.upgrade.AgpVersionChecker
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.gradle.util.LocalProperties
+import com.android.tools.idea.projectsystem.gradle.isHolderModule
 import com.android.tools.idea.sdk.IdeSdks
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger
 import com.intellij.execution.RunConfigurationProducerService
@@ -438,8 +439,10 @@ private suspend fun attachCachedModelsOrTriggerSyncBody(project: Project, gradle
           AndroidFacet::getInstance,
           { model, storage ->
             module.findModuleEntity(storage)?.let { entity ->
-              val coreModel = data.gradleAndroidModelFactory(model)
-              setGradleAndroidModelFromDataNode(storage, entity, coreModel, data.libraryResolver)
+              if (module.isHolderModule()) {
+                val coreModel = data.gradleAndroidModelFactory(model)
+                setGradleAndroidModelFromDataNode(storage, entity, coreModel, data.libraryResolver)
+              }
             }
           },
           validate = GradleAndroidModelData::validate,

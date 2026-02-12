@@ -32,21 +32,9 @@ Workspace model changed #3, phase: SOURCE_SET_MODEL_PHASE
     Replaced: ModuleEntity for ModuleId(name=MainActivity.lib.unitTest)
     With:     ModuleEntity for ModuleId(name=MainActivity.lib.unitTest)
     Added GradleAndroidModelEntity for MainActivity.app
-    Added GradleAndroidModelEntity for MainActivity.app.androidTest
-    Added GradleAndroidModelEntity for MainActivity.app.main
-    Added GradleAndroidModelEntity for MainActivity.app.unitTest
     Added GradleAndroidModelEntity for MainActivity.lib
-    Added GradleAndroidModelEntity for MainActivity.lib.androidTest
-    Added GradleAndroidModelEntity for MainActivity.lib.main
-    Added GradleAndroidModelEntity for MainActivity.lib.unitTest
     Removed GradleAndroidModelEntity for MainActivity.app
-    Removed GradleAndroidModelEntity for MainActivity.app.androidTest
-    Removed GradleAndroidModelEntity for MainActivity.app.main
-    Removed GradleAndroidModelEntity for MainActivity.app.unitTest
     Removed GradleAndroidModelEntity for MainActivity.lib
-    Removed GradleAndroidModelEntity for MainActivity.lib.androidTest
-    Removed GradleAndroidModelEntity for MainActivity.lib.main
-    Removed GradleAndroidModelEntity for MainActivity.lib.unitTest
     Removed TestModulePropertiesEntity for MainActivity.javaLib.test
     Added GradleModuleModelEntity for MainActivity.app
     Added GradleModuleModelEntity for MainActivity.lib
@@ -109,21 +97,9 @@ Workspace model changed #8, phase: N/A
     Replaced: LibraryEntity: Gradle: org.jetbrains:annotations:13.0
     With:     LibraryEntity: Gradle: org.jetbrains:annotations:13.0
     Added GradleAndroidModelEntity for MainActivity.app
-    Added GradleAndroidModelEntity for MainActivity.app.androidTest
-    Added GradleAndroidModelEntity for MainActivity.app.main
-    Added GradleAndroidModelEntity for MainActivity.app.unitTest
     Added GradleAndroidModelEntity for MainActivity.lib
-    Added GradleAndroidModelEntity for MainActivity.lib.androidTest
-    Added GradleAndroidModelEntity for MainActivity.lib.main
-    Added GradleAndroidModelEntity for MainActivity.lib.unitTest
     Removed GradleAndroidModelEntity for MainActivity.app
-    Removed GradleAndroidModelEntity for MainActivity.app.androidTest
-    Removed GradleAndroidModelEntity for MainActivity.app.main
-    Removed GradleAndroidModelEntity for MainActivity.app.unitTest
     Removed GradleAndroidModelEntity for MainActivity.lib
-    Removed GradleAndroidModelEntity for MainActivity.lib.androidTest
-    Removed GradleAndroidModelEntity for MainActivity.lib.main
-    Removed GradleAndroidModelEntity for MainActivity.lib.unitTest
     Replaced: FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=MainActivity.app))
     With:     FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=MainActivity.app))
     Replaced: FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=MainActivity.lib))

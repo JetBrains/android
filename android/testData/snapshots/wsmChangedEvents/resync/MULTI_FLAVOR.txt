@@ -19,13 +19,7 @@ Workspace model changed #3, phase: SOURCE_SET_MODEL_PHASE
     Replaced: ModuleEntity for ModuleId(name=MultiFlavor.app.unitTest)
     With:     ModuleEntity for ModuleId(name=MultiFlavor.app.unitTest)
     Added GradleAndroidModelEntity for MultiFlavor.app
-    Added GradleAndroidModelEntity for MultiFlavor.app.androidTest
-    Added GradleAndroidModelEntity for MultiFlavor.app.main
-    Added GradleAndroidModelEntity for MultiFlavor.app.unitTest
     Removed GradleAndroidModelEntity for MultiFlavor.app
-    Removed GradleAndroidModelEntity for MultiFlavor.app.androidTest
-    Removed GradleAndroidModelEntity for MultiFlavor.app.main
-    Removed GradleAndroidModelEntity for MultiFlavor.app.unitTest
     Added GradleModuleModelEntity for MultiFlavor.app
     Removed GradleModuleModelEntity for MultiFlavor.app
 Workspace model changed #4, phase: DEPENDENCY_MODEL_PHASE
@@ -71,13 +65,7 @@ Workspace model changed #9, phase: N/A
     Replaced: LibraryEntity: Gradle: org.hamcrest:hamcrest-library:1.3
     With:     LibraryEntity: Gradle: org.hamcrest:hamcrest-library:1.3
     Added GradleAndroidModelEntity for MultiFlavor.app
-    Added GradleAndroidModelEntity for MultiFlavor.app.androidTest
-    Added GradleAndroidModelEntity for MultiFlavor.app.main
-    Added GradleAndroidModelEntity for MultiFlavor.app.unitTest
     Removed GradleAndroidModelEntity for MultiFlavor.app
-    Removed GradleAndroidModelEntity for MultiFlavor.app.androidTest
-    Removed GradleAndroidModelEntity for MultiFlavor.app.main
-    Removed GradleAndroidModelEntity for MultiFlavor.app.unitTest
     Replaced: FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=MultiFlavor.app))
     With:     FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=MultiFlavor.app))
     Added GradleModuleModelEntity for MultiFlavor.app

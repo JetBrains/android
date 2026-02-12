@@ -429,10 +429,11 @@ internal class AndroidSourceRootSyncSourceSetPhaseContributor : GradleSyncContri
           linkModuleGroup(this, knownArtifactsModuleEntitiesByArtifact, testSuiteSourceSetModules)
           // There seems to be a bug in workspace model implementation that requires doing this to update list of changed props
           this.facets = facets
+        }.also {
+          updateGradleAndroidModelMapping(updatedStorage, it)
         }
         (knownArtifactsModuleEntities + testSuiteSourceSetModules).forEach { newModuleEntity ->
-          val finalEntity = updatedStorage addEntity newModuleEntity
-          updateGradleAndroidModelMapping(updatedStorage, finalEntity)
+          updatedStorage addEntity newModuleEntity
         }
       }
     }
@@ -545,14 +546,13 @@ private fun SyncContributorAndroidProjectContext.linkModuleGroup(
       it.name to { moduleInstance -> moduleInstance.putUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP, androidModuleGroup) }
     }
   )
+
   val entitySource = createProjectEntitySource(GradleSyncPhase.SOURCE_SET_MODEL_PHASE)
-  linkedModules.forEach { entity ->
-    val gradleAndroidModelData = gradleAndroidModelDataFactory(entity.name)
-    entity.gradleAndroidModel =
-      GradleAndroidModelEntity(entitySource = entitySource, gradleAndroidModel = GradleAndroidModelImpl(gradleAndroidModelData))
-    entity.gradleModuleModel =
-      GradleModuleModelEntity(entitySource = entitySource, gradleModuleModel = gradleModuleModelFactory(entity.name))
-  }
+  val gradleAndroidModelData = gradleAndroidModelDataFactory(holderModuleEntity.name)
+  holderModuleEntity.gradleAndroidModel =
+    GradleAndroidModelEntity(entitySource = entitySource, gradleAndroidModel = GradleAndroidModelImpl(gradleAndroidModelData))
+  holderModuleEntity.gradleModuleModel =
+    GradleModuleModelEntity(entitySource = entitySource, gradleModuleModel = gradleModuleModelFactory(holderModuleEntity.name))
 }
 
 private fun SyncContributorAndroidProjectContext.getModuleGroup(

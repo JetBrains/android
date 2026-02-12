@@ -38,6 +38,7 @@ import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
 import com.android.tools.idea.gradle.project.entities.attachDependenciesToModuleEntity
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelImpl
 import com.android.tools.idea.gradle.project.sync.BuildId
 import com.android.tools.idea.gradle.project.sync.patchForKapt
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
@@ -275,14 +276,11 @@ private fun SyncContributorAndroidProjectDependenciesContext.populateDependencie
       }
 
   classpathsToProcess.forEach { (name, classpath, scope) -> classpath.populateDependenciesForModule(scope, name) }
-
-  val allKnownModuleEntities =
-    listOfNotNull(moduleNameToEntityMap[androidProjectContext.resolveHolderModuleName()]) +
-      knownModuleNames.mapNotNull { moduleNameToEntityMap[it] }
-
-  allKnownModuleEntities.forEach { entity ->
-    attachDependenciesToModuleEntity(updatedEntities, entity, IdeVariantImpl(ideVariant, ideLibraryModelResolver))
+  val resolvedVariant = IdeVariantImpl(ideVariant, ideLibraryModelResolver)
+  val holderModuleEntity = checkNotNull(moduleNameToEntityMap[androidProjectContext.resolveHolderModuleName()]) {
+    "Can't find module ${androidProjectContext.resolveHolderModuleName()}"
   }
+  attachDependenciesToModuleEntity(updatedEntities, holderModuleEntity, resolvedVariant)
 }
 
 // Helpers, maps, etc.
