@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service
 
-import com.android.tools.idea.gradle.project.entities.GradleModuleModelEntity
-import com.android.tools.idea.gradle.project.entities.gradleModuleModel
+import com.android.tools.idea.gradle.project.entities.setGradleModuleModelFromDataNode
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.sync.setup.Facets
@@ -31,8 +30,7 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
-import com.intellij.platform.workspace.jps.entities.ModuleId
-import com.intellij.platform.workspace.jps.entities.modifyModuleEntity
+import java.util.function.Function
 import org.jetbrains.plugins.gradle.util.GradleConstants
 
 /** Applies Gradle settings to the modules of Gradle project. */
@@ -50,7 +48,14 @@ constructor() : ModuleModelDataService<GradleModuleModel>() {
     modelsByModuleName: MutableMap<String?, DataNode<GradleModuleModel>>,
   ) {
     for (module in modelsProvider.modules) {
-      val model = modelsByModuleName[module.name]?.data ?: continue
+      val dataNode = modelsByModuleName[module.name] ?: continue
+      // In the case of duplicated module names, the final module name may have been updated.
+      // Make sure to update the data node with the new name.
+      // The lookup map above is built after such renames occur, so it should be fine to use it.
+      dataNode.visitData(Function<GradleModuleModel, GradleModuleModel> {
+        it.copy(moduleNameField = module.name)
+      })
+      val model = dataNode.data
 
       val facet =
         findFacet(module, modelsProvider, GradleFacet.getFacetTypeId())
@@ -67,9 +72,7 @@ constructor() : ModuleModelDataService<GradleModuleModel>() {
       facet.updateLastKnownAgpVersion(model)
 
       val storage = (modelsProvider as IdeModifiableModelsProviderImpl).actualStorageBuilder
-      storage.modifyModuleEntity(storage.resolve(ModuleId(module.name))!!) {
-        this.gradleModuleModel = GradleModuleModelEntity(entitySource = this@modifyModuleEntity.entitySource, gradleModuleModel = model)
-      }
+      setGradleModuleModelFromDataNode(storage, module, model)
     }
   }
 

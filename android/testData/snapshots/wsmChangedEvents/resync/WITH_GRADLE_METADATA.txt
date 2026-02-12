@@ -8,20 +8,14 @@ Workspace model changed #2, phase: PROJECT_MODEL_PHASE
     Replaced: ModuleEntity for ModuleId(name=withGradleMetadata.app)
     With:     ModuleEntity for ModuleId(name=withGradleMetadata.app)
     Removed ContentRootEntity for non-Gradle module url: <omitted_for_snapshot_consistency>
-    Removed GradleModuleModelEntity for withGradleMetadata.app
 Workspace model changed #3, phase: SOURCE_SET_MODEL_PHASE
     Roots changed
-    Replaced: ModuleEntity for ModuleId(name=withGradleMetadata.app)
-    With:     ModuleEntity for ModuleId(name=withGradleMetadata.app)
     Replaced: ModuleEntity for ModuleId(name=withGradleMetadata.app.androidTest)
     With:     ModuleEntity for ModuleId(name=withGradleMetadata.app.androidTest)
     Replaced: ModuleEntity for ModuleId(name=withGradleMetadata.app.main)
     With:     ModuleEntity for ModuleId(name=withGradleMetadata.app.main)
     Replaced: ModuleEntity for ModuleId(name=withGradleMetadata.app.unitTest)
     With:     ModuleEntity for ModuleId(name=withGradleMetadata.app.unitTest)
-    Added GradleAndroidModelEntity for withGradleMetadata.app
-    Removed GradleAndroidModelEntity for withGradleMetadata.app
-    Added GradleModuleModelEntity for withGradleMetadata.app
 Workspace model changed #4, phase: DEPENDENCY_MODEL_PHASE
 Workspace model changed #5, phase: ADDITIONAL_MODEL_PHASE
 Workspace model changed #6, phase: N/A
@@ -54,12 +48,8 @@ Workspace model changed #9, phase: N/A
     With:     LibraryEntity: Gradle: org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2
     Replaced: LibraryEntity: Gradle: org.jetbrains:annotations:13.0
     With:     LibraryEntity: Gradle: org.jetbrains:annotations:13.0
-    Added GradleAndroidModelEntity for withGradleMetadata.app
-    Removed GradleAndroidModelEntity for withGradleMetadata.app
     Replaced: FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=withGradleMetadata.app))
     With:     FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=withGradleMetadata.app))
-    Added GradleModuleModelEntity for withGradleMetadata.app
-    Removed GradleModuleModelEntity for withGradleMetadata.app
     Added LibraryMavenCoordinateEntity for Gradle: org.gradle.sample:library:1.1
     Added LibraryMavenCoordinateEntity for Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.5.30
     Added LibraryMavenCoordinateEntity for Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.30

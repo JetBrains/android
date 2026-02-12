@@ -20,6 +20,7 @@ package com.android.tools.idea.gradle.project.entities.impl
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
 import com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity
 import com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntityBuilder
+import com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntityId
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelImpl
 import com.intellij.platform.workspace.jps.entities.ModuleEntity
 import com.intellij.platform.workspace.jps.entities.ModuleEntityBuilder
@@ -48,6 +49,8 @@ internal class GradleAndroidModelEntityImpl(private val dataSource: GradleAndroi
                                                                           ConnectionId.ConnectionType.ONE_TO_ONE, false)
     private val connections = listOf<ConnectionId>(MODULE_CONNECTION_ID)
   }
+
+  override val symbolicId: GradleAndroidModelEntityId = super.symbolicId
 
   override val module: ModuleEntity
     get() = snapshot.instrumentation.getParent(MODULE_CONNECTION_ID, this) as? ModuleEntity ?: error(

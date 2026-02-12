@@ -30,11 +30,14 @@ import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnown
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestSuiteImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
+import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
 import com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity
+import com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntityId
 import com.android.tools.idea.gradle.project.entities.GradleModuleModelEntity
 import com.android.tools.idea.gradle.project.entities.attachDependenciesToModuleEntity
 import com.android.tools.idea.gradle.project.entities.gradleAndroidModel
 import com.android.tools.idea.gradle.project.entities.gradleModuleModel
+import com.android.tools.idea.gradle.project.entities.modifyGradleAndroidModelEntity
 import com.android.tools.idea.gradle.project.entities.updateGradleAndroidModelMapping
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelImpl
@@ -286,7 +289,7 @@ internal class AndroidSourceRootSyncExtension : GradleSyncExtension {
       with(it) {
         val moduleName = resolveHolderModuleName()
         val syncEntity = syncStorage.resolve(ModuleId(moduleName)) ?: return@forEach
-        val projectEntity = projectStorage.resolve(ModuleId(moduleName))?.gradleAndroidModel ?: return@forEach
+        val projectEntity = projectStorage.resolve(GradleAndroidModelEntityId(ModuleId(moduleName))) ?: return@forEach
         if (syncEntity.gradleAndroidModel?.gradleAndroidModel?.selectedVariantName != projectEntity.gradleAndroidModel.selectedVariantName) return@forEach
 
         projectEntity.resolvedVariant?.let {

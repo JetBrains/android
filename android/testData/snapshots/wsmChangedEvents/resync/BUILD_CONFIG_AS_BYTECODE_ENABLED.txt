@@ -8,20 +8,14 @@ Workspace model changed #2, phase: PROJECT_MODEL_PHASE
     Replaced: ModuleEntity for ModuleId(name=p.app)
     With:     ModuleEntity for ModuleId(name=p.app)
     Removed ContentRootEntity for non-Gradle module url: <omitted_for_snapshot_consistency>
-    Removed GradleModuleModelEntity for p.app
 Workspace model changed #3, phase: SOURCE_SET_MODEL_PHASE
     Roots changed
-    Replaced: ModuleEntity for ModuleId(name=p.app)
-    With:     ModuleEntity for ModuleId(name=p.app)
     Replaced: ModuleEntity for ModuleId(name=p.app.androidTest)
     With:     ModuleEntity for ModuleId(name=p.app.androidTest)
     Replaced: ModuleEntity for ModuleId(name=p.app.main)
     With:     ModuleEntity for ModuleId(name=p.app.main)
     Replaced: ModuleEntity for ModuleId(name=p.app.unitTest)
     With:     ModuleEntity for ModuleId(name=p.app.unitTest)
-    Added GradleAndroidModelEntity for p.app
-    Removed GradleAndroidModelEntity for p.app
-    Added GradleModuleModelEntity for p.app
 Workspace model changed #4, phase: DEPENDENCY_MODEL_PHASE
 Workspace model changed #5, phase: ADDITIONAL_MODEL_PHASE
 Workspace model changed #6, phase: N/A
@@ -70,12 +64,8 @@ Workspace model changed #9, phase: N/A
     With:     LibraryEntity: Gradle: org.jetbrains.kotlin:kotlin-stdlib:2.2.10
     Replaced: LibraryEntity: Gradle: org.jetbrains:annotations:13.0
     With:     LibraryEntity: Gradle: org.jetbrains:annotations:13.0
-    Added GradleAndroidModelEntity for p.app
-    Removed GradleAndroidModelEntity for p.app
     Replaced: FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=p.app))
     With:     FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=p.app))
-    Added GradleModuleModelEntity for p.app
-    Removed GradleModuleModelEntity for p.app
     Added LibraryMavenCoordinateEntity for Gradle: android.arch.core:common:1.1.1
     Added LibraryMavenCoordinateEntity for Gradle: android.arch.lifecycle:common:1.1.1
     Added LibraryMavenCoordinateEntity for Gradle: com.android.support.constraint:constraint-layout-solver:1.0.2

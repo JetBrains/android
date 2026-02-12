@@ -21,9 +21,8 @@ import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
-import com.android.tools.idea.gradle.project.entities.GradleModuleModelEntity
-import com.android.tools.idea.gradle.project.entities.gradleModuleModel
 import com.android.tools.idea.gradle.project.entities.setGradleAndroidModelFromDataNode
+import com.android.tools.idea.gradle.project.entities.setGradleModuleModelFromDataNode
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NativeHeaderRootType
 import com.android.tools.idea.gradle.project.facet.ndk.NativeSourceRootType
@@ -87,11 +86,9 @@ import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.platform.PROJECT_LOADED_FROM_CACHE_BUT_HAS_NO_MODULES
 import com.intellij.platform.backend.workspace.workspaceModel
-import com.intellij.platform.workspace.jps.entities.modifyModuleEntity
 import com.intellij.platform.workspace.storage.MutableEntityStorage
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.workspaceModel.ide.JpsProjectLoadingManager
-import com.intellij.workspaceModel.ide.legacyBridge.findModuleEntity
 import java.io.File
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
@@ -438,11 +435,9 @@ private suspend fun attachCachedModelsOrTriggerSyncBody(project: Project, gradle
           getModelForMaybeSourceSetDataNode(),
           AndroidFacet::getInstance,
           { model, storage ->
-            module.findModuleEntity(storage)?.let { entity ->
-              if (module.isHolderModule()) {
-                val coreModel = data.gradleAndroidModelFactory(model)
-                setGradleAndroidModelFromDataNode(storage, entity, coreModel, data.libraryResolver)
-              }
+            if (module.isHolderModule()) {
+              val coreModel = data.gradleAndroidModelFactory(model)
+              setGradleAndroidModelFromDataNode(storage, module, coreModel, data.libraryResolver)
             }
           },
           validate = GradleAndroidModelData::validate,
@@ -452,12 +447,7 @@ private suspend fun attachCachedModelsOrTriggerSyncBody(project: Project, gradle
           ::getModelFromDataNode,
           GradleFacet::getInstance,
           { model, storage ->
-            module.findModuleEntity(storage)?.let { entity ->
-              storage.modifyModuleEntity(entity) {
-                this.gradleModuleModel =
-                  GradleModuleModelEntity(entitySource = this@modifyModuleEntity.entitySource, gradleModuleModel = model)
-              }
-            }
+            setGradleModuleModelFromDataNode(storage, module, model)
           },
         ),
         prepare(NDK_MODEL, ::getModelFromDataNode, NdkFacet::getInstance, { model, _ -> setNdkModuleModel(model) }),
