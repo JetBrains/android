@@ -462,7 +462,7 @@ data class IdeVariantCoreImpl(
   }
 }
 
-class IdeVariantImpl(private val core: IdeVariantCoreImpl, resolver: IdeLibraryModelResolverImpl) : IdeVariant, IdeVariantCore {
+class IdeVariantImpl(val core: IdeVariantCoreImpl, resolver: IdeLibraryModelResolverImpl) : IdeVariant, IdeVariantCore {
   override val minSdkVersion: IdeApiVersionImpl = core.minSdkVersion
   override val targetSdkVersion: IdeApiVersionImpl? = core.targetSdkVersion
   override val maxSdkVersion: Int? = core.maxSdkVersion

@@ -280,7 +280,10 @@ private fun SyncContributorAndroidProjectDependenciesContext.populateDependencie
   val holderModuleEntity = checkNotNull(moduleNameToEntityMap[androidProjectContext.resolveHolderModuleName()]) {
     "Can't find module ${androidProjectContext.resolveHolderModuleName()}"
   }
-  attachDependenciesToModuleEntity(updatedEntities, holderModuleEntity, resolvedVariant)
+  val coreModelWithDependencies = GradleAndroidModelImpl(
+    androidProjectContext.gradleAndroidModelDataFactory(holderModuleEntity.name, resolvedVariant.core)
+  )
+  attachDependenciesToModuleEntity(updatedEntities, holderModuleEntity, coreModelWithDependencies, resolvedVariant)
 }
 
 // Helpers, maps, etc.

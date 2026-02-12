@@ -56,13 +56,15 @@ internal fun setGradleAndroidModelFromDataNode(
     },
   )
 }
-
-internal fun attachDependenciesToModuleEntity(storage: MutableEntityStorage, moduleEntity: ModuleEntity, resolvedVariant: IdeVariantImpl) {
+internal fun attachDependenciesToModuleEntity(storage: MutableEntityStorage, moduleEntity: ModuleEntity, coreModel: GradleAndroidModelImpl, resolvedVariant: IdeVariantImpl) {
   val gradleAndroidModel = moduleEntity.gradleAndroidModel ?: return
   updateGradleAndroidModelMapping(
     storage,
     storage.modifyModuleEntity(moduleEntity) {
-      storage.modifyGradleAndroidModelEntity(gradleAndroidModel) { this.resolvedVariant = resolvedVariant }
+      storage.modifyGradleAndroidModelEntity(gradleAndroidModel) {
+        this.gradleAndroidModel = coreModel
+        this.resolvedVariant = resolvedVariant
+      }
     },
   )
 }

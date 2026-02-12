@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.model.impl.IdeTestSuiteImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity
 import com.android.tools.idea.gradle.project.entities.GradleModuleModelEntity
+import com.android.tools.idea.gradle.project.entities.attachDependenciesToModuleEntity
 import com.android.tools.idea.gradle.project.entities.gradleAndroidModel
 import com.android.tools.idea.gradle.project.entities.gradleModuleModel
 import com.android.tools.idea.gradle.project.entities.updateGradleAndroidModelMapping
@@ -61,6 +62,7 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType
 import com.intellij.openapi.externalSystem.model.project.IExternalSystemSourceType
 import com.intellij.openapi.externalSystem.service.project.manage.SourceFolderManager
+import com.intellij.openapi.externalSystem.util.Order
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModulePointerManager
 import com.intellij.openapi.progress.checkCanceled
@@ -119,6 +121,7 @@ import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncContributor
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncExtension
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase
 import org.jetbrains.plugins.gradle.service.syncAction.impl.bridge.GradleBridgeEntitySource
+import org.jetbrains.plugins.gradle.service.syncAction.impl.extensions.GradleBaseSyncExtension
 import org.jetbrains.plugins.gradle.service.syncAction.virtualFileUrl
 import org.jetbrains.plugins.gradle.util.GradleConstants
 
@@ -202,15 +205,15 @@ internal class SyncContributorAndroidProjectContext(
         "Holder module is not populated via Android Gradle source sets for ${projectModel.path}"
       }
 
-  internal val gradleAndroidModelDataFactory: (String) -> GradleAndroidModelData
-    get() = { moduleName ->
+  internal val gradleAndroidModelDataFactory: (String, IdeVariantCoreImpl?) -> GradleAndroidModelData
+    get() = { moduleName, resolvedVariant ->
       val ideAndroidProject = ideAndroidProject.copy(baseFeature = baseFeature)
       GradleAndroidModelData.create(
         moduleName = moduleName,
         rootDirPath = File(externalProject.projectDir.path),
         ideAndroidProject.patchForKapt(kaptGradleModel),
         ideDeclaredDependencies,
-        ideAndroidProject.coreVariants.map { it as IdeVariantCoreImpl }.patchForKapt(kaptGradleModel),
+        resolvedVariant?.let { listOf(it) } ?: ideAndroidProject.coreVariants.map { it as IdeVariantCoreImpl }.patchForKapt(kaptGradleModel),
         variantName,
       )
     }
@@ -270,7 +273,29 @@ private val SOURCE_SET_UPDATE_RESULT_KEY: Key<SourceSetUpdateResult> = Key.creat
 
 private val MODULE_ACTION_KEY: Key<Map<String, List<ModuleAction>>> = Key.create("AndroidSourceRootSyncContributor.moduleActionKey")
 
+@Order(GradleBaseSyncExtension.ORDER - 100)
 internal class AndroidSourceRootSyncExtension : GradleSyncExtension {
+  override fun updateProjectModel(context: ProjectResolverContext,
+                                  syncStorage: MutableEntityStorage,
+                                  projectStorage: MutableEntityStorage,
+                                  phase: GradleSyncPhase) {
+    if (!context.isPhasedSyncEnabled || phase < GradleSyncPhase.SOURCE_SET_MODEL_PHASE) return
+
+    val sourceSetResult = checkNotNull(context.getUserData(SOURCE_SET_UPDATE_RESULT_KEY)) { "No result from source set phase!" }
+    sourceSetResult.allAndroidProjectContexts.forEach {
+      with(it) {
+        val moduleName = resolveHolderModuleName()
+        val syncEntity = syncStorage.resolve(ModuleId(moduleName)) ?: return@forEach
+        val projectEntity = projectStorage.resolve(ModuleId(moduleName))?.gradleAndroidModel ?: return@forEach
+        if (syncEntity.gradleAndroidModel?.gradleAndroidModel?.selectedVariantName != projectEntity.gradleAndroidModel.selectedVariantName) return@forEach
+
+        projectEntity.resolvedVariant?.let {
+          val coreModelWithDependencies = GradleAndroidModelImpl(gradleAndroidModelDataFactory(moduleName, it.core))
+          attachDependenciesToModuleEntity(syncStorage, syncEntity, coreModelWithDependencies,it)
+        }
+      }
+    }
+  }
 
   override suspend fun updateBridgeModel(context: ProjectResolverContext, phase: GradleSyncPhase) {
     performModuleActions(context)
@@ -548,7 +573,8 @@ private fun SyncContributorAndroidProjectContext.linkModuleGroup(
   )
 
   val entitySource = createProjectEntitySource(GradleSyncPhase.SOURCE_SET_MODEL_PHASE)
-  val gradleAndroidModelData = gradleAndroidModelDataFactory(holderModuleEntity.name)
+  val resolvedVariant: IdeVariantCoreImpl? = null
+  val gradleAndroidModelData = gradleAndroidModelDataFactory(holderModuleEntity.name, resolvedVariant)
   holderModuleEntity.gradleAndroidModel =
     GradleAndroidModelEntity(entitySource = entitySource, gradleAndroidModel = GradleAndroidModelImpl(gradleAndroidModelData))
   holderModuleEntity.gradleModuleModel =
