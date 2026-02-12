@@ -63,7 +63,7 @@ public class CreateProjectTest {
     // error saying that no SDK has been configured, so we configure it first.
     system.getInstallation().setGlobalSdk(system.getSdk());
     // See class-level comments
-    system.getInstallation().addVmOption("-Dgradle.ide.agp.version.to.use=8.13.0");
+    system.getInstallation().addVmOption("-Dgradle.ide.agp.version.to.use=9.0.0");
     system.getInstallation().addVmOption("-Dnpw.new.project.compile.sdk=34");
 
     String distributionPath = "tools/external/gradle/";
