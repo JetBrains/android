@@ -25,6 +25,11 @@ Projects:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
+            com.android.build.api.dsl.AndroidLibrarySourceSet
+                Name                          : com.android.build.api.dsl.AndroidLibrarySourceSet
+                MemberFunctions
+                Properties
+                Supertypes                    : com.android.build.api.dsl.AndroidSourceSet,org.gradle.api.Named,kotlin.Any
             com.android.build.api.dsl.AndroidSourceSet
                 Name                          : com.android.build.api.dsl.AndroidSourceSet
                 MemberFunctions
@@ -740,10 +745,6 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.AbstractAppExtension
                       Parameters
                       Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
-                    - MemberFunctionName            : sourceSets
-                      Receiver ReferenceType        : com.android.build.gradle.AbstractAppExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
@@ -751,10 +752,6 @@ Projects:
             com.android.build.gradle.AndroidConfig
                 Name                          : com.android.build.gradle.AndroidConfig
                 MemberFunctions
-                    - MemberFunctionName            : sourceSets
-                      Receiver ReferenceType        : com.android.build.gradle.AndroidConfig
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
                 Supertypes                    : kotlin.Any
             com.android.build.gradle.AppExtension
@@ -768,10 +765,6 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.AppExtension
                       Parameters
                       Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
-                    - MemberFunctionName            : sourceSets
-                      Receiver ReferenceType        : com.android.build.gradle.AppExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
@@ -787,10 +780,6 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.BaseExtension
                       Parameters
                       Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
-                    - MemberFunctionName            : sourceSets
-                      Receiver ReferenceType        : com.android.build.gradle.BaseExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
@@ -829,7 +818,7 @@ Projects:
                     - MemberFunctionName            : sourceSets
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtension
                       Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidLibrarySourceSet
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
@@ -884,7 +873,7 @@ Projects:
                     - MemberFunctionName            : sourceSets
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtensionInternal
                       Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidLibrarySourceSet
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
@@ -896,31 +885,13 @@ Projects:
             com.android.build.gradle.TestedAndroidConfig
                 Name                          : com.android.build.gradle.TestedAndroidConfig
                 MemberFunctions
-                    - MemberFunctionName            : sourceSets
-                      Receiver ReferenceType        : com.android.build.gradle.TestedAndroidConfig
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
                 Supertypes                    : com.android.build.gradle.AndroidConfig,kotlin.Any
-            com.android.build.gradle.TestedExtension
-                Name                          : com.android.build.gradle.TestedExtension
+            com.android.build.gradle.api.AndroidLibrarySourceSet
+                Name                          : com.android.build.gradle.api.AndroidLibrarySourceSet
                 MemberFunctions
-                    - MemberFunctionName            : buildOutputs
-                      Receiver ReferenceType        : com.android.build.gradle.TestedExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_BaseVariantOutput
-                    - MemberFunctionName            : signingConfigs
-                      Receiver ReferenceType        : com.android.build.gradle.TestedExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
-                    - MemberFunctionName            : sourceSets
-                      Receiver ReferenceType        : com.android.build.gradle.TestedExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
-                    - PropertyName                  : namespace
-                      Property SimpleType           : STRING
-                Supertypes                    : com.android.build.gradle.BaseExtension,com.android.build.gradle.AndroidConfig,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable,com.android.build.gradle.TestedAndroidConfig,com.android.build.api.dsl.TestedExtension
+                Supertypes                    : com.android.build.gradle.api.AndroidSourceSet,com.android.build.api.dsl.AndroidSourceSet,org.gradle.api.Named,kotlin.Any,com.android.build.api.dsl.AndroidLibrarySourceSet
             com.android.build.gradle.api.AndroidSourceSet
                 Name                          : com.android.build.gradle.api.AndroidSourceSet
                 MemberFunctions
@@ -1629,6 +1600,17 @@ Projects:
                           - Name                          : name
                             Value SimpleType              : STRING
                       Block ReferenceType           : com.android.build.api.dsl.Prefab
+                Properties
+                Supertypes                    :
+            org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidLibrarySourceSet
+                Name                          : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidLibrarySourceSet
+                MemberFunctions
+                    - MemberFunctionName            : androidLibrarySourceSet
+                      Receiver ReferenceType        : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidLibrarySourceSet
+                      Parameters
+                          - Name                          : name
+                            Value SimpleType              : STRING
+                      Block ReferenceType           : com.android.build.gradle.api.AndroidLibrarySourceSet
                 Properties
                 Supertypes                    :
             org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
@@ -2540,6 +2522,11 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
+            com.android.build.api.dsl.AndroidLibrarySourceSet
+                Name                          : com.android.build.api.dsl.AndroidLibrarySourceSet
+                MemberFunctions
+                Properties
+                Supertypes                    : com.android.build.api.dsl.AndroidSourceSet,org.gradle.api.Named,kotlin.Any
             com.android.build.api.dsl.AndroidSourceSet
                 Name                          : com.android.build.api.dsl.AndroidSourceSet
                 MemberFunctions
@@ -3255,10 +3242,6 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.AbstractAppExtension
                       Parameters
                       Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
-                    - MemberFunctionName            : sourceSets
-                      Receiver ReferenceType        : com.android.build.gradle.AbstractAppExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
@@ -3266,10 +3249,6 @@ Settings:
             com.android.build.gradle.AndroidConfig
                 Name                          : com.android.build.gradle.AndroidConfig
                 MemberFunctions
-                    - MemberFunctionName            : sourceSets
-                      Receiver ReferenceType        : com.android.build.gradle.AndroidConfig
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
                 Supertypes                    : kotlin.Any
             com.android.build.gradle.AppExtension
@@ -3283,10 +3262,6 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.AppExtension
                       Parameters
                       Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
-                    - MemberFunctionName            : sourceSets
-                      Receiver ReferenceType        : com.android.build.gradle.AppExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
@@ -3302,10 +3277,6 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.BaseExtension
                       Parameters
                       Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
-                    - MemberFunctionName            : sourceSets
-                      Receiver ReferenceType        : com.android.build.gradle.BaseExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
@@ -3344,7 +3315,7 @@ Settings:
                     - MemberFunctionName            : sourceSets
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtension
                       Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidLibrarySourceSet
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
@@ -3399,7 +3370,7 @@ Settings:
                     - MemberFunctionName            : sourceSets
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtensionInternal
                       Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidLibrarySourceSet
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
@@ -3411,31 +3382,13 @@ Settings:
             com.android.build.gradle.TestedAndroidConfig
                 Name                          : com.android.build.gradle.TestedAndroidConfig
                 MemberFunctions
-                    - MemberFunctionName            : sourceSets
-                      Receiver ReferenceType        : com.android.build.gradle.TestedAndroidConfig
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
                 Supertypes                    : com.android.build.gradle.AndroidConfig,kotlin.Any
-            com.android.build.gradle.TestedExtension
-                Name                          : com.android.build.gradle.TestedExtension
+            com.android.build.gradle.api.AndroidLibrarySourceSet
+                Name                          : com.android.build.gradle.api.AndroidLibrarySourceSet
                 MemberFunctions
-                    - MemberFunctionName            : buildOutputs
-                      Receiver ReferenceType        : com.android.build.gradle.TestedExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_BaseVariantOutput
-                    - MemberFunctionName            : signingConfigs
-                      Receiver ReferenceType        : com.android.build.gradle.TestedExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
-                    - MemberFunctionName            : sourceSets
-                      Receiver ReferenceType        : com.android.build.gradle.TestedExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
-                    - PropertyName                  : namespace
-                      Property SimpleType           : STRING
-                Supertypes                    : com.android.build.gradle.BaseExtension,com.android.build.gradle.AndroidConfig,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable,com.android.build.gradle.TestedAndroidConfig,com.android.build.api.dsl.TestedExtension
+                Supertypes                    : com.android.build.gradle.api.AndroidSourceSet,com.android.build.api.dsl.AndroidSourceSet,org.gradle.api.Named,kotlin.Any,com.android.build.api.dsl.AndroidLibrarySourceSet
             com.android.build.gradle.api.AndroidSourceSet
                 Name                          : com.android.build.gradle.api.AndroidSourceSet
                 MemberFunctions
@@ -4144,6 +4097,17 @@ Settings:
                           - Name                          : name
                             Value SimpleType              : STRING
                       Block ReferenceType           : com.android.build.api.dsl.Prefab
+                Properties
+                Supertypes                    :
+            org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidLibrarySourceSet
+                Name                          : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidLibrarySourceSet
+                MemberFunctions
+                    - MemberFunctionName            : androidLibrarySourceSet
+                      Receiver ReferenceType        : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidLibrarySourceSet
+                      Parameters
+                          - Name                          : name
+                            Value SimpleType              : STRING
+                      Block ReferenceType           : com.android.build.gradle.api.AndroidLibrarySourceSet
                 Properties
                 Supertypes                    :
             org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
