@@ -7,7 +7,7 @@ This document describes how an AI agent can interact specifically with the Compo
 ### 1. Fast Preview Availability
 - **Fast Preview**: Check `FastPreviewManager.getInstance(project).isAvailable`. If it's disabled (e.g., due to an unsupported Kotlin version), refreshes will default to a full Gradle build, which is much slower.
 
-### 3. Rendering Tools
+### 2. Rendering Tools
 - **ComposeRenderer**: Uses `Layoutlib` to render Composables in isolation.
 - **`RenderComposePreviewTool`**: The standard tool used by AI agents to grab the current visual state of a specific `@Preview`.
 
