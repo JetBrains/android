@@ -18,11 +18,11 @@ package com.android.tools.idea.gradle.project.sync.errors
 import com.android.utils.JavaVersionUtil
 
 /**
- * A [RuntimeJavaCompiledVersionIssueChecker] for [UnsupportedClassVersionError] with messages following this format: "<class> has been
+ * A [AgpRuntimeJavaCompiledVersionIssueChecker] for [UnsupportedClassVersionError] with messages following this format: "<class> has been
  * compiled by a more recent version of the Java Runtime (class file version <JDK version used in AGP>), this version of the Java Runtime
  * only recognizes class file versions up to <Maximum version supported by Gradle JDK>"
  */
-class UnsupportedClassVersionIssueChecker : RuntimeJavaCompiledVersionIssueChecker() {
+class UnsupportedClassVersionIssueChecker : AgpRuntimeJavaCompiledVersionIssueChecker() {
 
   override val expectedErrorRegex =
     Regex(
