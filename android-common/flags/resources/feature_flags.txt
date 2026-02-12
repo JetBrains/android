@@ -182,7 +182,6 @@ studiobot.ai.fix.error.editor.action=PREVIEW
 studiobot.ai.rename.action=COMPLETE:2024
 studiobot.ai.rethink.action=COMPLETE:2024
 studiobot.aicode=INTERNAL
-studiobot.ask.mode.in.dropdown.enabled=INTERNAL
 studiobot.ask.user.tool.enabled=PREVIEW
 studiobot.askgemini.include.build.files.in.context=PREVIEW
 studiobot.attachments=COMPLETE:2025

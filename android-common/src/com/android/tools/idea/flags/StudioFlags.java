@@ -2285,11 +2285,6 @@ public final class StudioFlags {
                     "Enable the integration with Google one.",
                     "When enabled, the studio-bot will show UI and upgrade paths corresponding to the Google one subscription held by the user.");
 
-  public static final Flag<Boolean> STUDIOBOT_IS_ASK_MODE_IN_DROPDOWN_ENABLED =
-    new BooleanFlag(STUDIOBOT, "ask.mode.in.dropdown.enabled",
-                    "Enable Ask mode in dropdown",
-                    "If enabled, Ask mode is available as a dropdown option instead of a separate tab.");
-
   public static final Flag<Boolean> STUDIOBOT_IS_SKILLS_ENABLED =
     new BooleanFlag(STUDIOBOT, "skills.enabled",
                     "Enable Studio Bot Skills.",
