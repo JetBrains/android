@@ -27,12 +27,10 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureException
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.settings.DatabaseInspectorProjectSettings
 import com.android.tools.idea.testing.WaitForIndexRule
-import com.android.tools.idea.testing.flags.overrideForTest
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.testFramework.DisposableRule
@@ -109,7 +107,6 @@ class DatabaseInspectorClientTest {
               SqliteInspectorProtocol.AdditionalDriver.newBuilder().setDriverClass("Driver").setConnectionClass("Connection")
             )
         )
-    StudioFlags.APP_INSPECTION_ENABLE_ADDITIONAL_SQL_DRIVER.overrideForTest(true, disposable)
     val settings = DatabaseInspectorProjectSettings.getInstance(project)
     settings.additionalDriverClass = "Driver"
     settings.additionalConnectionClass = "Connection"
@@ -136,31 +133,9 @@ class DatabaseInspectorClientTest {
   }
 
   @Test
-  fun testStartTrackingDatabaseConnectionSendsMessage_withAdditionalDatabase_noFlagOverride() = runBlocking {
-    // Prepare
-    val emptyResponse = Response.newBuilder()
-    val settings = DatabaseInspectorProjectSettings.getInstance(project)
-    settings.additionalDriverClass = "Driver"
-    settings.additionalConnectionClass = "Connection"
-
-    val appInspectorMessenger = FakeAppInspectorMessenger(scope, emptyResponse)
-    val databaseInspectorClient = createDatabaseInspectorClient(appInspectorMessenger)
-
-    val trackDatabasesCommand = Command.newBuilder().setTrackDatabases(TrackDatabasesCommand.getDefaultInstance()).build()
-
-    // Act
-    databaseInspectorClient.startTrackingDatabaseConnections()
-
-    // Assert
-    assertThat(appInspectorMessenger.command).isEqualTo(trackDatabasesCommand)
-    assertThat(ideServices.notifications).isEmpty()
-  }
-
-  @Test
   fun testStartTrackingDatabaseConnectionSendsMessage_withAdditionalDatabase_notifiesError(): Unit = runBlocking {
     // Prepare
     val emptyResponse = Response.newBuilder()
-    StudioFlags.APP_INSPECTION_ENABLE_ADDITIONAL_SQL_DRIVER.overrideForTest(true, disposable)
     val settings = DatabaseInspectorProjectSettings.getInstance(project)
     settings.additionalDriverClass = "Driver"
     settings.additionalConnectionClass = "Connection"
@@ -189,7 +164,6 @@ class DatabaseInspectorClientTest {
 
   @Test
   fun testStartTrackingDatabaseConnectionSendsMessage_ignoreFrameworkApi() = runBlocking {
-    StudioFlags.APP_INSPECTION_ENABLE_ADDITIONAL_SQL_DRIVER.overrideForTest(true, disposable)
     val settings = DatabaseInspectorProjectSettings.getInstance(project)
     settings.isIgnoreFrameworkApi = true
 

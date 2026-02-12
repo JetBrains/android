@@ -18,6 +18,7 @@ appinsights.fix.with.agent=PREVIEW
 # appinsights.gemini.assisted.context.fetch=PREVIEW
 # Replaced by fix.with.agent
 # appinsights.suggest.a.fix=PREVIEW
+appinspection.additional.sql.drivers.enable=PREVIEW
 appinspection.enable.tool.window=COMPLETE:2020
 appinspection.use.experimental.database.inspector=COMPLETE:2025
 backgroundtask.inspector.enable.backgroundtask.inspector.tab=COMPLETE:2021
