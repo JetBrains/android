@@ -24,3 +24,16 @@ fun Throwable.findCauseMessage(predicate: Throwable.() -> Boolean): String? {
 
   return null
 }
+
+fun Throwable.findWrapperOf(predicate: Throwable.() -> Boolean): Throwable? {
+  var current: Throwable? = this
+  while (current != null) {
+    val child = current.cause
+    if (child != null && child.predicate()) {
+      return current
+    }
+    current = child
+  }
+
+  return null
+}
