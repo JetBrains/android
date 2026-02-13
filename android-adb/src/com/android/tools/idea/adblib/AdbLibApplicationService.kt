@@ -162,7 +162,12 @@ class AdbLibApplicationService : Disposable {
     }
 
     suspend fun closeAndJoin() {
-      adbServerController.stop()
+      try {
+        adbServerController.stop()
+      } catch (_: CancellationException) {
+        // This is expected as `adbServerController.stop()` throws a `CancellationException`
+        // if `adbServerController` has been previously closed.
+      }
       dispose()
       session.scope.coroutineContext[Job]?.join()
     }
@@ -256,13 +261,22 @@ class AdbLibApplicationService : Disposable {
      * In production the [configuration] is set only once and never reset, but in tests we need a way to update it since
      * [AdbLibApplicationService] itself is a singleton.
      */
-    fun resetForTests() {
+    @JvmStatic
+    fun reinitializeForTests() {
       if (isInstanceCreated && ApplicationManager.getApplication().isUnitTestMode) {
         // Shutdown and cleanup
         runBlocking { instance.configuration.closeAndJoin() }
 
         // Create a new configuration
         instance.configuration = Configuration(instance.host, instance.adbFileLocationTracker)
+      }
+    }
+
+    @JvmStatic
+    fun disposeForTests() {
+      if (isInstanceCreated && ApplicationManager.getApplication().isUnitTestMode) {
+        // Shutdown and cleanup
+        runBlocking { instance.configuration.closeAndJoin() }
       }
     }
 

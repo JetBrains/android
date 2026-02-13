@@ -20,9 +20,8 @@ import static com.google.common.util.concurrent.Uninterruptibles.getUninterrupti
 
 import com.android.SdkConstants;
 import com.android.ddmlib.AndroidDebugBridge;
-import com.android.ddmlib.DdmPreferences;
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.adblib.AdbLibApplicationService;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.testFramework.LightPlatformTestCase;
 import java.nio.file.Path;
@@ -30,9 +29,16 @@ import java.util.concurrent.ExecutionException;
 
 public class AdbServiceTest extends LightPlatformTestCase {
   @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    AdbLibApplicationService.reinitializeForTests();
+  }
+
+  @Override
   protected void tearDown() throws Exception {
     try {
       AdbService.getInstance().terminateDdmlib();
+      AdbLibApplicationService.disposeForTests();
     }
     catch (Throwable e) {
       addSuppressedException(e);
