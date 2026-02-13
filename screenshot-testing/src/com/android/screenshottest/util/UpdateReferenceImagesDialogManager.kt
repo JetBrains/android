@@ -16,9 +16,6 @@
 package com.android.screenshottest.util
 
 import com.android.screenshottest.ui.UpdateReferenceImagesDialog
-import com.android.tools.analytics.UsageTracker
-import com.android.tools.analytics.withProjectId
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ScreenshotTestComposePreviewEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
@@ -42,17 +39,7 @@ class UpdateReferenceImagesDialogManager(private val project: Project) : Disposa
     if (existingDialog != null && existingDialog.isVisible) {
       existingDialog.toFront()
       // Log that the user tried to open the dialog but it was already open
-      UsageTracker.log(
-        AndroidStudioEvent.newBuilder()
-          .apply {
-            kind = AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW
-            screenshotTestComposePreviewEvent =
-              ScreenshotTestComposePreviewEvent.newBuilder()
-                .apply { type = ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_ALREADY_OPEN }
-                .build()
-          }
-          .withProjectId(project)
-      )
+      logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_ALREADY_OPEN, project)
       return null
     }
 
@@ -65,17 +52,7 @@ class UpdateReferenceImagesDialogManager(private val project: Project) : Disposa
     activeDialog = newDialog
 
     // Log the SCREENSHOT_DIALOG_OPEN event
-    UsageTracker.log(
-      AndroidStudioEvent.newBuilder()
-        .apply {
-          kind = AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW
-          screenshotTestComposePreviewEvent =
-            ScreenshotTestComposePreviewEvent.newBuilder()
-              .apply { type = ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_OPEN }
-              .build()
-        }
-        .withProjectId(project)
-    )
+    logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_OPEN, project)
 
     Disposer.register(newDialog.disposable) {
       synchronized(this) {
