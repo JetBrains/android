@@ -104,11 +104,11 @@ public class Sherlock extends Ide {
    * initialize a class despite already being in the shutdown process. The specific failure is:
    * "Sorry but parent [...] has already been disposed [...] so the child [...] will never be
    * disposed".
-   *
+   * <p>
    * We hit this specifically when a test only needs to verify that Android Studio started
    * correctly, which means we close Android Studio so quickly that we didn't give initialization
    * time to finish.
-   *
+   * <p>
    * This is not intended to be a permanent solution. However, at least the impact is minimal;
    * we end up waiting ~5 extra seconds for initialization to complete before quitting.
    */
@@ -142,7 +142,7 @@ public class Sherlock extends Ide {
       }
     }
     catch (Throwable t) {
-      if (t.getMessage() == PAST_DEADLINE) {
+      if (PAST_DEADLINE.equals(t.getMessage())) {
         install.getStdout().waitForMatchingLine(".*Exiting Studio.", 10, TimeUnit.SECONDS);
         return;
       }
