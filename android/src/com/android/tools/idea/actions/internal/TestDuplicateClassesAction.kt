@@ -93,18 +93,6 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
         setOf(
           "androidx.annotation",
           "com.android.tools.journeys.proto", // b/476493309
-          // b/476493791 below here
-          "com.google.api",
-          "com.google.apps.card.v1",
-          "com.google.cloud.audit",
-          "com.google.cloud.location",
-          "com.google.cloud",
-          "com.google.geo.type",
-          "com.google.logging.type",
-          "com.google.longrunning",
-          "com.google.shopping.type",
-          // end b/476493791
-          "com.google.type",
           "kotlinx.atomicfu.locks",
           "kotlinx.atomicfu",
         ),
