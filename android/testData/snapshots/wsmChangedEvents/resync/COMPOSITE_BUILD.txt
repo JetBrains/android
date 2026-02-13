@@ -82,30 +82,6 @@ Workspace model changed #3, phase: SOURCE_SET_MODEL_PHASE
     With:     ModuleEntity for ModuleId(name=p.lib.main)
     Replaced: ModuleEntity for ModuleId(name=p.lib.unitTest)
     With:     ModuleEntity for ModuleId(name=p.lib.unitTest)
-    Replaced: ContentRootEntity url: TestCompositeLib1/app
-    With:     ContentRootEntity url: TestCompositeLib1/app
-    Replaced: ContentRootEntity url: TestCompositeLib1/lib
-    With:     ContentRootEntity url: TestCompositeLib1/lib
-    Replaced: ContentRootEntity url: TestCompositeLib3/app
-    With:     ContentRootEntity url: TestCompositeLib3/app
-    Replaced: ContentRootEntity url: TestCompositeLib3/lib
-    With:     ContentRootEntity url: TestCompositeLib3/lib
-    Replaced: ContentRootEntity url: app
-    With:     ContentRootEntity url: app
-    Replaced: ContentRootEntity url: lib
-    With:     ContentRootEntity url: lib
-    Removed ExcludeUrlEntity url: TestCompositeLib1/app/.gradle
-    Removed ExcludeUrlEntity url: TestCompositeLib1/app/build
-    Removed ExcludeUrlEntity url: TestCompositeLib1/lib/.gradle
-    Removed ExcludeUrlEntity url: TestCompositeLib1/lib/build
-    Removed ExcludeUrlEntity url: TestCompositeLib3/app/.gradle
-    Removed ExcludeUrlEntity url: TestCompositeLib3/app/build
-    Removed ExcludeUrlEntity url: TestCompositeLib3/lib/.gradle
-    Removed ExcludeUrlEntity url: TestCompositeLib3/lib/build
-    Removed ExcludeUrlEntity url: app/.gradle
-    Removed ExcludeUrlEntity url: app/build
-    Removed ExcludeUrlEntity url: lib/.gradle
-    Removed ExcludeUrlEntity url: lib/build
     Removed TestModulePropertiesEntity for TestCompositeLib2.test
     Removed TestModulePropertiesEntity for TestCompositeLib3.TestCompositeLibNested_3.test
     Removed TestModulePropertiesEntity for TestCompositeLib4.test
@@ -118,31 +94,6 @@ Workspace model changed #3, phase: SOURCE_SET_MODEL_PHASE
     Added GradleModuleModelEntity for p.lib
 Workspace model changed #4, phase: DEPENDENCY_MODEL_PHASE
 Workspace model changed #5, phase: ADDITIONAL_MODEL_PHASE
-    Roots changed
-    Replaced: ContentRootEntity url: TestCompositeLib1/app
-    With:     ContentRootEntity url: TestCompositeLib1/app
-    Replaced: ContentRootEntity url: TestCompositeLib1/lib
-    With:     ContentRootEntity url: TestCompositeLib1/lib
-    Replaced: ContentRootEntity url: TestCompositeLib3/app
-    With:     ContentRootEntity url: TestCompositeLib3/app
-    Replaced: ContentRootEntity url: TestCompositeLib3/lib
-    With:     ContentRootEntity url: TestCompositeLib3/lib
-    Replaced: ContentRootEntity url: app
-    With:     ContentRootEntity url: app
-    Replaced: ContentRootEntity url: lib
-    With:     ContentRootEntity url: lib
-    Added ExcludeUrlEntity url: TestCompositeLib1/app/.gradle
-    Added ExcludeUrlEntity url: TestCompositeLib1/app/build
-    Added ExcludeUrlEntity url: TestCompositeLib1/lib/.gradle
-    Added ExcludeUrlEntity url: TestCompositeLib1/lib/build
-    Added ExcludeUrlEntity url: TestCompositeLib3/app/.gradle
-    Added ExcludeUrlEntity url: TestCompositeLib3/app/build
-    Added ExcludeUrlEntity url: TestCompositeLib3/lib/.gradle
-    Added ExcludeUrlEntity url: TestCompositeLib3/lib/build
-    Added ExcludeUrlEntity url: app/.gradle
-    Added ExcludeUrlEntity url: app/build
-    Added ExcludeUrlEntity url: lib/.gradle
-    Added ExcludeUrlEntity url: lib/build
 Workspace model changed #6, phase: N/A
     Replaced: JavaProjectSettingsEntity for the IDE project
     With:     JavaProjectSettingsEntity for the IDE project

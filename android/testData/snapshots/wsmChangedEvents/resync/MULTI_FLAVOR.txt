@@ -18,10 +18,6 @@ Workspace model changed #3, phase: SOURCE_SET_MODEL_PHASE
     With:     ModuleEntity for ModuleId(name=MultiFlavor.app.main)
     Replaced: ModuleEntity for ModuleId(name=MultiFlavor.app.unitTest)
     With:     ModuleEntity for ModuleId(name=MultiFlavor.app.unitTest)
-    Replaced: ContentRootEntity url: app
-    With:     ContentRootEntity url: app
-    Removed ExcludeUrlEntity url: app/.gradle
-    Removed ExcludeUrlEntity url: app/build
     Added GradleAndroidModelEntity for MultiFlavor.app
     Added GradleAndroidModelEntity for MultiFlavor.app.androidTest
     Added GradleAndroidModelEntity for MultiFlavor.app.main
@@ -34,11 +30,6 @@ Workspace model changed #3, phase: SOURCE_SET_MODEL_PHASE
     Removed GradleModuleModelEntity for MultiFlavor.app
 Workspace model changed #4, phase: DEPENDENCY_MODEL_PHASE
 Workspace model changed #5, phase: ADDITIONAL_MODEL_PHASE
-    Roots changed
-    Replaced: ContentRootEntity url: app
-    With:     ContentRootEntity url: app
-    Added ExcludeUrlEntity url: app/.gradle
-    Added ExcludeUrlEntity url: app/build
 Workspace model changed #6, phase: N/A
     Replaced: JavaProjectSettingsEntity for the IDE project
     With:     JavaProjectSettingsEntity for the IDE project

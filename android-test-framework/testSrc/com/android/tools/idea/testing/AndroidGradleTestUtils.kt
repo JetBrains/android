@@ -1834,7 +1834,7 @@ private fun setupTestProjectFromAndroidModelCore(
       // Here we are setting up the modules per each source set (with the holder module as the
       // parent)
       moduleDataNode.findAll(GradleSourceSetData.KEY).forEach { data ->
-        val sourceSetEntitySource = AndroidGradleSourceSetEntitySource(projectEntitySource, data.data.internalName)
+        val sourceSetEntitySource = AndroidGradleSourceSetEntitySource(linkedProjectRootPath, data.data.internalName)
         entityChanges addEntity
           ModuleEntity(
               name = data.data.internalName,

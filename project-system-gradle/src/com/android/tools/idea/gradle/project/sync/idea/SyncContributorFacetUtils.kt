@@ -31,6 +31,7 @@ import com.intellij.platform.workspace.jps.entities.ModuleEntityBuilder
 import com.intellij.platform.workspace.jps.entities.ModuleId
 import java.io.File
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase
 import org.jetbrains.plugins.gradle.util.GradleConstants
 
 internal fun SyncContributorAndroidProjectContext.createAndroidGradleFacet(moduleEntity: ModuleEntityBuilder) {
@@ -83,7 +84,12 @@ private fun SyncContributorAndroidProjectContext.createFacet(
   configuration: FacetConfiguration,
   moduleEntity: ModuleEntityBuilder,
 ) {
-  val facet = FacetEntity(facetId.parentId, facetId.name, facetId.type, projectEntitySource)
+  val facet = FacetEntity(
+    facetId.parentId,
+    facetId.name,
+    facetId.type,
+    createProjectEntitySource(GradleSyncPhase.SOURCE_SET_MODEL_PHASE)
+  )
   // Set external source for facet, as this is not serialized
   registerModuleAction(moduleEntity.name) { module ->
     val facet = FacetManager.getInstance(module).getFacetByType(facetTypeId) ?: return@registerModuleAction
