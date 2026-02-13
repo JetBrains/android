@@ -493,7 +493,7 @@ PROJECT                       : project
         BUILD_TASKS
                 ASSEMBLE                      : :jlib:assemble, :jlib:testClasses
                 REBUILD                       : :jlib:assemble, :jlib:clean, :jlib:testClasses
-                COMPILE_JAVA                  : :jlib:compileJava, :jlib:testClasses
+                COMPILE_JAVA                  : :jlib:compileJava, :jlib:compileTestJava
     MODULE                        : project.jlib.main
         ExternalModuleGroup           : project
         ExternalModuleType            : sourceSet
@@ -514,9 +514,9 @@ PROJECT                       : project
         LIBRARY                       : Gradle: junit:junit:4.12 [=]
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
         BUILD_TASKS
-                ASSEMBLE                      : :jlib:assemble, :jlib:testClasses
-                REBUILD                       : :jlib:assemble, :jlib:clean, :jlib:testClasses
-                COMPILE_JAVA                  : :jlib:compileJava, :jlib:testClasses
+                ASSEMBLE                      : :jlib:assemble
+                REBUILD                       : :jlib:assemble, :jlib:clean
+                COMPILE_JAVA                  : :jlib:compileJava
     MODULE                        : project.jlib.test
         ExternalModuleGroup           : project
         ExternalModuleType            : sourceSet
@@ -540,9 +540,9 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
         ORDER_ENTRY                   : project.jlib.main
         BUILD_TASKS
-                ASSEMBLE                      : :jlib:assemble, :jlib:testClasses
-                REBUILD                       : :jlib:assemble, :jlib:clean, :jlib:testClasses
-                COMPILE_JAVA                  : :jlib:compileJava, :jlib:testClasses
+                ASSEMBLE                      : :jlib:testClasses
+                REBUILD                       : :jlib:clean, :jlib:testClasses
+                COMPILE_JAVA                  : :jlib:compileTestJava
     MODULE                        : project.jlib0
         ExternalModuleGroup           : project
         ExternalModuleVersion         : unspecified
@@ -566,7 +566,7 @@ PROJECT                       : project
         BUILD_TASKS
                 ASSEMBLE                      : :jlib0:assemble, :jlib0:testClasses
                 REBUILD                       : :jlib0:assemble, :jlib0:clean, :jlib0:testClasses
-                COMPILE_JAVA                  : :jlib0:compileJava, :jlib0:testClasses
+                COMPILE_JAVA                  : :jlib0:compileJava, :jlib0:compileTestJava
     MODULE                        : project.jlib0.main
         ExternalModuleGroup           : project
         ExternalModuleType            : sourceSet
@@ -588,9 +588,9 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
         ORDER_ENTRY                   : project.jlib.main
         BUILD_TASKS
-                ASSEMBLE                      : :jlib0:assemble, :jlib0:testClasses
-                REBUILD                       : :jlib0:assemble, :jlib0:clean, :jlib0:testClasses
-                COMPILE_JAVA                  : :jlib0:compileJava, :jlib0:testClasses
+                ASSEMBLE                      : :jlib0:assemble
+                REBUILD                       : :jlib0:assemble, :jlib0:clean
+                COMPILE_JAVA                  : :jlib0:compileJava
     MODULE                        : project.jlib0.test
         ExternalModuleGroup           : project
         ExternalModuleType            : sourceSet
@@ -615,9 +615,9 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.jlib.main
         ORDER_ENTRY                   : project.jlib0.main
         BUILD_TASKS
-                ASSEMBLE                      : :jlib0:assemble, :jlib0:testClasses
-                REBUILD                       : :jlib0:assemble, :jlib0:clean, :jlib0:testClasses
-                COMPILE_JAVA                  : :jlib0:compileJava, :jlib0:testClasses
+                ASSEMBLE                      : :jlib0:testClasses
+                REBUILD                       : :jlib0:clean, :jlib0:testClasses
+                COMPILE_JAVA                  : :jlib0:compileTestJava
     MODULE                        : project.jlib1
         ExternalModuleGroup           : project
         ExternalModuleVersion         : unspecified
@@ -1179,7 +1179,7 @@ PROJECT                       : project
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
             ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::jlib0:assemble, <PROJECT>::jlib0:testClasses, <PROJECT>::jlib:assemble, <PROJECT>::jlib:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest
             REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::jlib0:assemble, <PROJECT>::jlib0:clean, <PROJECT>::jlib0:testClasses, <PROJECT>::jlib:assemble, <PROJECT>::jlib:clean, <PROJECT>::jlib:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::jlib0:compileJava, <PROJECT>::jlib0:testClasses, <PROJECT>::jlib:compileJava, <PROJECT>::jlib:testClasses, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources, <PROJECT>::lib:compileDebugUnitTestSources
+            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::jlib0:compileJava, <PROJECT>::jlib0:compileTestJava, <PROJECT>::jlib:compileJava, <PROJECT>::jlib:compileTestJava, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources, <PROJECT>::lib:compileDebugUnitTestSources
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug

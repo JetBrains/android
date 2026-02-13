@@ -152,7 +152,7 @@ PROJECT                       : My Application
         BUILD_TASKS
                 ASSEMBLE                      : :lib:assemble, :lib:testClasses
                 REBUILD                       : :lib:assemble, :lib:clean, :lib:testClasses
-                COMPILE_JAVA                  : :lib:compileJava, :lib:testClasses
+                COMPILE_JAVA                  : :lib:compileJava, :lib:compileTestJava
     MODULE                        : My_Application.lib.main
         ExternalModuleGroup           : My Application
         ExternalModuleType            : sourceSet
@@ -184,9 +184,9 @@ PROJECT                       : My Application
             -                             : file://<PROJECT>/lib/build/classes/java/main
             -                             : file://<PROJECT>/lib/build/resources/main
         BUILD_TASKS
-                ASSEMBLE                      : :lib:assemble, :lib:testClasses
-                REBUILD                       : :lib:assemble, :lib:clean, :lib:testClasses
-                COMPILE_JAVA                  : :lib:compileJava, :lib:testClasses
+                ASSEMBLE                      : :lib:assemble
+                REBUILD                       : :lib:assemble, :lib:clean
+                COMPILE_JAVA                  : :lib:compileJava
     MODULE                        : My_Application.lib.test
         ExternalModuleGroup           : My Application
         ExternalModuleType            : sourceSet
@@ -218,9 +218,9 @@ PROJECT                       : My Application
                 *CLASSES                      : jar://<PROJECT>/lib2/liba.jar!/
         ORDER_ENTRY                   : My_Application.lib.main
         BUILD_TASKS
-                ASSEMBLE                      : :lib:assemble, :lib:testClasses
-                REBUILD                       : :lib:assemble, :lib:clean, :lib:testClasses
-                COMPILE_JAVA                  : :lib:compileJava, :lib:testClasses
+                ASSEMBLE                      : :lib:testClasses
+                REBUILD                       : :lib:clean, :lib:testClasses
+                COMPILE_JAVA                  : :lib:compileTestJava
     MODULE                        : My_Application.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : My_Application
@@ -378,7 +378,7 @@ PROJECT                       : My Application
             CLEAN                         : <PROJECT>::createMockableJar, <PROJECT>::generateDebugAndroidTestSources, <PROJECT>::generateDebugSources
             ASSEMBLE                      : <PROJECT>::assembleDebug, <PROJECT>::assembleDebugAndroidTest, <PROJECT>::assembleDebugUnitTest, <PROJECT>::lib:assemble, <PROJECT>::lib:testClasses
             REBUILD                       : <PROJECT>::assembleDebug, <PROJECT>::assembleDebugAndroidTest, <PROJECT>::assembleDebugUnitTest, <PROJECT>::clean, <PROJECT>::lib:assemble, <PROJECT>::lib:clean, <PROJECT>::lib:testClasses
-            COMPILE_JAVA                  : <PROJECT>::compileDebugAndroidTestSources, <PROJECT>::compileDebugSources, <PROJECT>::compileDebugUnitTestSources, <PROJECT>::lib:compileJava, <PROJECT>::lib:testClasses
+            COMPILE_JAVA                  : <PROJECT>::compileDebugAndroidTestSources, <PROJECT>::compileDebugSources, <PROJECT>::compileDebugUnitTestSources, <PROJECT>::lib:compileJava, <PROJECT>::lib:compileTestJava
             SOURCE_GEN                    : <PROJECT>::createMockableJar, <PROJECT>::generateDebugAndroidTestSources, <PROJECT>::generateDebugSources
             BUNDLE                        : :bundleDebug
             APK_FROM_BUNDLE               : :extractApksForDebug

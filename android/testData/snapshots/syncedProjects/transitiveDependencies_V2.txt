@@ -512,7 +512,7 @@ PROJECT                       : project
         BUILD_TASKS
                 ASSEMBLE                      : :javalib1:assemble, :javalib1:testClasses
                 REBUILD                       : :javalib1:assemble, :javalib1:clean, :javalib1:testClasses
-                COMPILE_JAVA                  : :javalib1:compileJava, :javalib1:testClasses
+                COMPILE_JAVA                  : :javalib1:compileJava, :javalib1:compileTestJava
     MODULE                        : project.javalib1.main
         ExternalModuleGroup           : project
         ExternalModuleType            : sourceSet
@@ -540,9 +540,9 @@ PROJECT                       : project
             -                             : file://<PROJECT>/javalib1/build/classes/java/main
             -                             : file://<PROJECT>/javalib1/build/resources/main
         BUILD_TASKS
-                ASSEMBLE                      : :javalib1:assemble, :javalib1:testClasses
-                REBUILD                       : :javalib1:assemble, :javalib1:clean, :javalib1:testClasses
-                COMPILE_JAVA                  : :javalib1:compileJava, :javalib1:testClasses
+                ASSEMBLE                      : :javalib1:assemble
+                REBUILD                       : :javalib1:assemble, :javalib1:clean
+                COMPILE_JAVA                  : :javalib1:compileJava
     MODULE                        : project.javalib1.test
         ExternalModuleGroup           : project
         ExternalModuleType            : sourceSet
@@ -570,9 +570,9 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.javalib1.main
         ORDER_ENTRY                   : project.javalib2.main
         BUILD_TASKS
-                ASSEMBLE                      : :javalib1:assemble, :javalib1:testClasses
-                REBUILD                       : :javalib1:assemble, :javalib1:clean, :javalib1:testClasses
-                COMPILE_JAVA                  : :javalib1:compileJava, :javalib1:testClasses
+                ASSEMBLE                      : :javalib1:testClasses
+                REBUILD                       : :javalib1:clean, :javalib1:testClasses
+                COMPILE_JAVA                  : :javalib1:compileTestJava
     MODULE                        : project.javalib2
         ExternalModuleGroup           : project
         ExternalModuleVersion         : unspecified
@@ -596,7 +596,7 @@ PROJECT                       : project
         BUILD_TASKS
                 ASSEMBLE                      : :javalib2:assemble, :javalib2:testClasses
                 REBUILD                       : :javalib2:assemble, :javalib2:clean, :javalib2:testClasses
-                COMPILE_JAVA                  : :javalib2:compileJava, :javalib2:testClasses
+                COMPILE_JAVA                  : :javalib2:compileJava, :javalib2:compileTestJava
     MODULE                        : project.javalib2.main
         ExternalModuleGroup           : project
         ExternalModuleType            : sourceSet
@@ -618,9 +618,9 @@ PROJECT                       : project
             -                             : file://<PROJECT>/javalib2/build/classes/java/main
             -                             : file://<PROJECT>/javalib2/build/resources/main
         BUILD_TASKS
-                ASSEMBLE                      : :javalib2:assemble, :javalib2:testClasses
-                REBUILD                       : :javalib2:assemble, :javalib2:clean, :javalib2:testClasses
-                COMPILE_JAVA                  : :javalib2:compileJava, :javalib2:testClasses
+                ASSEMBLE                      : :javalib2:assemble
+                REBUILD                       : :javalib2:assemble, :javalib2:clean
+                COMPILE_JAVA                  : :javalib2:compileJava
     MODULE                        : project.javalib2.test
         ExternalModuleGroup           : project
         ExternalModuleType            : sourceSet
@@ -642,9 +642,9 @@ PROJECT                       : project
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : project.javalib2.main
         BUILD_TASKS
-                ASSEMBLE                      : :javalib2:assemble, :javalib2:testClasses
-                REBUILD                       : :javalib2:assemble, :javalib2:clean, :javalib2:testClasses
-                COMPILE_JAVA                  : :javalib2:compileJava, :javalib2:testClasses
+                ASSEMBLE                      : :javalib2:testClasses
+                REBUILD                       : :javalib2:clean, :javalib2:testClasses
+                COMPILE_JAVA                  : :javalib2:compileTestJava
     MODULE                        : project.library1
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.library1
@@ -1663,7 +1663,7 @@ PROJECT                       : project
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::library1:createMockableJar, <PROJECT>::library1:generateDebugAndroidTestSources, <PROJECT>::library1:generateDebugSources, <PROJECT>::library2:createMockableJar, <PROJECT>::library2:generateDebugAndroidTestSources, <PROJECT>::library2:generateDebugSources
             ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::javalib1:assemble, <PROJECT>::javalib1:testClasses, <PROJECT>::javalib2:assemble, <PROJECT>::javalib2:testClasses, <PROJECT>::library1:assembleDebug, <PROJECT>::library1:assembleDebugAndroidTest, <PROJECT>::library1:assembleDebugUnitTest, <PROJECT>::library2:assembleDebug, <PROJECT>::library2:assembleDebugAndroidTest, <PROJECT>::library2:assembleDebugUnitTest
             REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::javalib1:assemble, <PROJECT>::javalib1:clean, <PROJECT>::javalib1:testClasses, <PROJECT>::javalib2:assemble, <PROJECT>::javalib2:clean, <PROJECT>::javalib2:testClasses, <PROJECT>::library1:assembleDebug, <PROJECT>::library1:assembleDebugAndroidTest, <PROJECT>::library1:assembleDebugUnitTest, <PROJECT>::library1:clean, <PROJECT>::library2:assembleDebug, <PROJECT>::library2:assembleDebugAndroidTest, <PROJECT>::library2:assembleDebugUnitTest, <PROJECT>::library2:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::javalib1:compileJava, <PROJECT>::javalib1:testClasses, <PROJECT>::javalib2:compileJava, <PROJECT>::javalib2:testClasses, <PROJECT>::library1:compileDebugAndroidTestSources, <PROJECT>::library1:compileDebugSources, <PROJECT>::library1:compileDebugUnitTestSources, <PROJECT>::library2:compileDebugAndroidTestSources, <PROJECT>::library2:compileDebugSources, <PROJECT>::library2:compileDebugUnitTestSources
+            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::javalib1:compileJava, <PROJECT>::javalib1:compileTestJava, <PROJECT>::javalib2:compileJava, <PROJECT>::javalib2:compileTestJava, <PROJECT>::library1:compileDebugAndroidTestSources, <PROJECT>::library1:compileDebugSources, <PROJECT>::library1:compileDebugUnitTestSources, <PROJECT>::library2:compileDebugAndroidTestSources, <PROJECT>::library2:compileDebugSources, <PROJECT>::library2:compileDebugUnitTestSources
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::library1:createMockableJar, <PROJECT>::library1:generateDebugAndroidTestSources, <PROJECT>::library1:generateDebugSources, <PROJECT>::library2:createMockableJar, <PROJECT>::library2:generateDebugAndroidTestSources, <PROJECT>::library2:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug

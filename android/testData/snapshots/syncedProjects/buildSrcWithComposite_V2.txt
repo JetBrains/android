@@ -1723,7 +1723,7 @@ PROJECT                       : BuildSrcWithComposite
         BUILD_TASKS
                 ASSEMBLE                      : <PROJECT>::java-included:assemble, <PROJECT>::java-included:testClasses
                 REBUILD                       : <PROJECT>::java-included:assemble, <PROJECT>::java-included:clean, <PROJECT>::java-included:testClasses
-                COMPILE_JAVA                  : <PROJECT>::java-included:compileJava, <PROJECT>::java-included:testClasses
+                COMPILE_JAVA                  : <PROJECT>::java-included:compileJava, <PROJECT>::java-included:compileTestJava
     MODULE                        : java-included.main
         ExternalModuleGroup           : com.test.java.included
         ExternalModuleType            : sourceSet
@@ -1745,9 +1745,9 @@ PROJECT                       : BuildSrcWithComposite
             -                             : file://<PROJECT>/java-included/build/classes/java/main
             -                             : file://<PROJECT>/java-included/build/resources/main
         BUILD_TASKS
-                ASSEMBLE                      : <PROJECT>::java-included:assemble, <PROJECT>::java-included:testClasses
-                REBUILD                       : <PROJECT>::java-included:assemble, <PROJECT>::java-included:clean, <PROJECT>::java-included:testClasses
-                COMPILE_JAVA                  : <PROJECT>::java-included:compileJava, <PROJECT>::java-included:testClasses
+                ASSEMBLE                      : <PROJECT>::java-included:assemble
+                REBUILD                       : <PROJECT>::java-included:assemble, <PROJECT>::java-included:clean
+                COMPILE_JAVA                  : <PROJECT>::java-included:compileJava
     MODULE                        : java-included.test
         ExternalModuleGroup           : com.test.java.included
         ExternalModuleType            : sourceSet
@@ -1769,9 +1769,9 @@ PROJECT                       : BuildSrcWithComposite
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : java-included.main
         BUILD_TASKS
-                ASSEMBLE                      : <PROJECT>::java-included:assemble, <PROJECT>::java-included:testClasses
-                REBUILD                       : <PROJECT>::java-included:assemble, <PROJECT>::java-included:clean, <PROJECT>::java-included:testClasses
-                COMPILE_JAVA                  : <PROJECT>::java-included:compileJava, <PROJECT>::java-included:testClasses
+                ASSEMBLE                      : <PROJECT>::java-included:testClasses
+                REBUILD                       : <PROJECT>::java-included:clean, <PROJECT>::java-included:testClasses
+                COMPILE_JAVA                  : <PROJECT>::java-included:compileTestJava
     RUN_CONFIGURATION             : android-included.app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : android-included.app
@@ -2028,7 +2028,7 @@ PROJECT                       : BuildSrcWithComposite
             CLEAN                         : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources, <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
             ASSEMBLE                      : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugAndroidTest, <PROJECT>::android-included:app:assembleDebugUnitTest, <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:assembleDebugUnitTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::java-included:assemble, <PROJECT>::java-included:testClasses
             REBUILD                       : <PROJECT>::android-included:app:assembleDebug, <PROJECT>::android-included:app:assembleDebugAndroidTest, <PROJECT>::android-included:app:assembleDebugUnitTest, <PROJECT>::android-included:app:clean, <PROJECT>::android-included:lib:assembleDebug, <PROJECT>::android-included:lib:assembleDebugAndroidTest, <PROJECT>::android-included:lib:assembleDebugUnitTest, <PROJECT>::android-included:lib:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::java-included:assemble, <PROJECT>::java-included:clean, <PROJECT>::java-included:testClasses
-            COMPILE_JAVA                  : <PROJECT>::android-included:app:compileDebugAndroidTestSources, <PROJECT>::android-included:app:compileDebugSources, <PROJECT>::android-included:app:compileDebugUnitTestSources, <PROJECT>::android-included:lib:compileDebugAndroidTestSources, <PROJECT>::android-included:lib:compileDebugSources, <PROJECT>::android-included:lib:compileDebugUnitTestSources, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::java-included:compileJava, <PROJECT>::java-included:testClasses
+            COMPILE_JAVA                  : <PROJECT>::android-included:app:compileDebugAndroidTestSources, <PROJECT>::android-included:app:compileDebugSources, <PROJECT>::android-included:app:compileDebugUnitTestSources, <PROJECT>::android-included:lib:compileDebugAndroidTestSources, <PROJECT>::android-included:lib:compileDebugSources, <PROJECT>::android-included:lib:compileDebugUnitTestSources, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::java-included:compileJava, <PROJECT>::java-included:compileTestJava
             SOURCE_GEN                    : <PROJECT>::android-included:app:createMockableJar, <PROJECT>::android-included:app:generateDebugAndroidTestSources, <PROJECT>::android-included:app:generateDebugSources, <PROJECT>::android-included:lib:createMockableJar, <PROJECT>::android-included:lib:generateDebugAndroidTestSources, <PROJECT>::android-included:lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
             BUNDLE                        : <PROJECT>::android-included:app:bundleDebug, <PROJECT>::app:bundleDebug
             APK_FROM_BUNDLE               : <PROJECT>::android-included:app:extractApksForDebug, <PROJECT>::app:extractApksForDebug
