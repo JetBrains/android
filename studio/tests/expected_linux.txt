@@ -3123,7 +3123,6 @@ android-studio/plugins/gemini/lib/lucene-sandbox-10.3.0.jar
 android-studio/plugins/gemini/lib/mcp-sdk-libraries.jar
 android-studio/plugins/gemini/lib/openai-java-client-okhttp-4.0.0.jar
 android-studio/plugins/gemini/lib/openai-java-core-4.0.0.jar
-android-studio/plugins/gemini/lib/sqlite-jdbc-3.43.0.0.jar
 android-studio/plugins/gemini/resources/kb_zip/dac.zip
 android-studio/plugins/git4insights/lib/git4insights.jar
 android-studio/plugins/gradle-declarative/lib/gradle-declarative.jar

@@ -107,15 +107,6 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
           "com.google.type",
           "kotlinx.atomicfu.locks",
           "kotlinx.atomicfu",
-          // b/476502383 below here
-          "org.sqlite.core",
-          "org.sqlite.date",
-          "org.sqlite.javax",
-          "org.sqlite.jdbc3",
-          "org.sqlite.jdbc4",
-          "org.sqlite.util",
-          "org.sqlite",
-          // end b/476502383
         ),
 
       // The below are all coming from the platform: we can't do anything about them directly.
