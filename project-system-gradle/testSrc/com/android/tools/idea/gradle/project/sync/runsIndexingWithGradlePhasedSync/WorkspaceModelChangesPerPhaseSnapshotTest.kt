@@ -26,6 +26,7 @@ import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.testing.requestSyncAndWait
+import com.android.utils.combineAsCamelCase
 import com.intellij.java.impl.dependencySubstitution.LibraryMavenCoordinateEntity
 import com.intellij.java.impl.dependencySubstitution.ModuleMavenCoordinateEntity
 import com.intellij.java.workspace.entities.JavaModuleSettingsEntity
@@ -53,6 +54,7 @@ import com.intellij.util.messages.MessageBusConnection
 import com.intellij.workspaceModel.ide.toPath
 import kotlin.io.path.Path
 import kotlin.io.path.relativeToOrSelf
+//import org.jetbrains.kotlinx.dataframe.impl.toCamelCaseByDelimiters // TODO: android-merge; dataframe-core is only in the ultimate part of the monorepo, not on community/android's classpath; the import is unused here
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncExtension
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase
@@ -80,7 +82,7 @@ class WorkspaceModelChangesPerPhaseSnapshotTest(val testProject: TestProject) : 
 
   override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/wsmChangedEvents/resync"
 
-  override fun getName() = testProject.name
+  override fun getName() = testProject.name.lowercase().split("_").combineAsCamelCase()
 
   @Before
   fun disableDependencyResolutionPhase() { // Disable this for now as we're not optimizing dependency resolution yet
