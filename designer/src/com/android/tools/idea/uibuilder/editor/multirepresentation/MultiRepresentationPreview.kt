@@ -251,7 +251,7 @@ open class MultiRepresentationPreview(
         } catch (ex: CancellationException) {
           throw ex
         } catch (t: Throwable) {
-          LOG.error("Unexpected error while updating representations", t)
+          LOG.warn("Unexpected error while updating representations", t)
         } finally {
           isUpdating.set(false)
         }

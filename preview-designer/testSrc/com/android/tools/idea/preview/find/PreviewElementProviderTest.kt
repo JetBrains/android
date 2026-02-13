@@ -21,15 +21,19 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SimpleModificationTracker
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.LightVirtualFile
-import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
 
 class PreviewElementProviderTest {
+
+  @get:Rule val applicationRule = ApplicationRule()
+
   @Test
   fun testFilteredProvider() = runBlocking {
     val staticPreviewProvider =
@@ -79,15 +83,50 @@ class PreviewElementProviderTest {
   fun testFileProvider() = runBlocking {
     val project = mock<Project>()
     val virtualFile = LightVirtualFile()
+    val psiFile = mock<PsiFile>()
+    whenever(psiFile.isValid).thenReturn(true)
+    whenever(psiFile.virtualFile).thenReturn(virtualFile)
     val psiFilePointer = mock<SmartPsiElementPointer<PsiFile>>()
     whenever(psiFilePointer.project).thenReturn(project)
-    whenever(psiFilePointer.virtualFile).thenReturn(virtualFile)
+    whenever(psiFilePointer.element).thenReturn(psiFile)
 
     val previewElements = listOf(TestPreviewElement(), TestPreviewElement())
     val filePreviewElementFinder = mock<FilePreviewElementFinder<TestPreviewElement>>()
     whenever(filePreviewElementFinder.findPreviewElements(project, virtualFile)).thenReturn(previewElements)
 
     val provider = FilePreviewElementProvider(psiFilePointer, filePreviewElementFinder)
-    assertEquals(previewElements, provider.previewElements().toList())
+    Assert.assertEquals(previewElements, provider.previewElements().toList())
+  }
+
+  @Test
+  fun testFileProviderInvalidFile() = runBlocking {
+    val project = mock<Project>()
+    val virtualFile = LightVirtualFile()
+    val psiFile = mock<PsiFile>()
+    whenever(psiFile.isValid).thenReturn(false)
+    whenever(psiFile.virtualFile).thenReturn(virtualFile)
+    val psiFilePointer = mock<SmartPsiElementPointer<PsiFile>>()
+    whenever(psiFilePointer.project).thenReturn(project)
+    whenever(psiFilePointer.element).thenReturn(psiFile)
+
+    val previewElements = listOf(TestPreviewElement(), TestPreviewElement())
+    val filePreviewElementFinder = mock<FilePreviewElementFinder<TestPreviewElement>>()
+    whenever(filePreviewElementFinder.findPreviewElements(project, virtualFile)).thenReturn(previewElements)
+
+    val provider = FilePreviewElementProvider(psiFilePointer, filePreviewElementFinder)
+    Assert.assertEquals(0, provider.previewElements().count())
+  }
+
+  @Test
+  fun testFileProviderNullElement() = runBlocking {
+    val project = mock<Project>()
+    val psiFilePointer = mock<SmartPsiElementPointer<PsiFile>>()
+    whenever(psiFilePointer.project).thenReturn(project)
+    whenever(psiFilePointer.element).thenReturn(null)
+
+    val filePreviewElementFinder = mock<FilePreviewElementFinder<TestPreviewElement>>()
+
+    val provider = FilePreviewElementProvider(psiFilePointer, filePreviewElementFinder)
+    Assert.assertEquals(0, provider.previewElements().count())
   }
 }
