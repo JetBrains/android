@@ -51,6 +51,7 @@ import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ex.CustomEditInspectionToolsSettingsAction
 import com.intellij.codeInspection.ex.DisableInspectionToolAction
 import com.intellij.codeInspection.ex.InspectionProfileImpl
+import com.intellij.gradle.java.groovy.config.GradleFileType
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.lang.annotation.AnnotationHolder
@@ -78,7 +79,6 @@ import com.intellij.xml.util.XmlStringUtil
 import java.util.EnumSet
 import javax.swing.Icon
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.plugins.gradle.config.GradleFileType
 import org.toml.lang.psi.TomlFileType
 
 class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResult>() {

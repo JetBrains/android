@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.gradle.service.resolve;
 
+import com.intellij.gradle.java.groovy.service.resolve.GradleMethodContextContributor;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiType;
 import groovy.lang.Closure;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.service.resolve.GradleMethodContextContributor;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
-import org.jetbrains.plugins.groovy.lang.psi.impl.GroovyPsiManager;
 import org.jetbrains.plugins.groovy.lang.psi.impl.statements.expressions.TypesUtil;
 import org.jetbrains.plugins.groovy.lang.resolve.delegatesTo.DelegatesToInfo;
 

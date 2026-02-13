@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFileType
 import com.android.tools.lint.detector.api.Issue
 import com.intellij.codeInsight.intention.PriorityAction
 import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils
+import com.intellij.gradle.java.groovy.config.GradleFileType
 import com.intellij.icons.AllIcons
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.ide.highlighter.XmlFileType
@@ -29,7 +30,6 @@ import com.intellij.modcommand.Presentation
 import com.intellij.psi.PsiBinaryFile
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.plugins.gradle.config.GradleFileType
 import org.jetbrains.plugins.groovy.GroovyFileType
 import org.toml.lang.psi.TomlFileType
 

@@ -178,6 +178,7 @@ jvm_library(
     "//plugins/kotlin/base/scripting/scripting.shared",
     "//platform/util-class-loader:util-classLoader",
     "//platform/forms_rt:java-guiForms-rt",
+    "//plugins/gradle/java/groovy",
   ]
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle` end

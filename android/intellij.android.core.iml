@@ -269,5 +269,6 @@
     <orderEntry type="module" module-name="intellij.platform.debugger.impl.shared" />
     <orderEntry type="module" module-name="intellij.xml.emmet" />
     <orderEntry type="module" module-name="intellij.libraries.jspecify" />
+    <orderEntry type="module" module-name="intellij.gradle.java.groovy" />
   </component>
 </module>

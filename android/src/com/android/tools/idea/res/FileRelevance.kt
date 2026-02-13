@@ -23,6 +23,7 @@ import com.android.tools.idea.fileTypes.FontFileType
 import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
 import com.android.tools.idea.lang.aidl.AidlFileType
 import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType
+import com.intellij.gradle.java.groovy.config.GradleFileType
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.lang.properties.PropertiesFileType
@@ -32,7 +33,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import org.intellij.images.fileTypes.ImageFileTypeManager
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.plugins.gradle.config.GradleFileType
 
 fun isGradleFile(psiFile: PsiFile): Boolean {
   if (GradleFileType.isGradleFile(psiFile)) return true

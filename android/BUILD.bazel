@@ -256,6 +256,7 @@ jvm_library(
     "//platform/xdebugger-impl/shared",
     "//xml/emmet",
     "//libraries/jspecify",
+    "//plugins/gradle/java/groovy",
     ":plugins_maven_artifactResolver-m31_provided",
   ],
   exports = ["//android/build-common"]
