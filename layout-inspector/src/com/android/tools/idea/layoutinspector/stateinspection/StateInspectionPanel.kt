@@ -19,7 +19,6 @@ import com.android.adblib.utils.createChildScope
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.stdui.Chunk
 import com.android.tools.adtui.stdui.EmptyStatePanel
-import com.android.tools.adtui.stdui.IconChunk
 import com.android.tools.adtui.stdui.LabelData
 import com.android.tools.adtui.stdui.NewLineChunk
 import com.android.tools.adtui.stdui.TextChunk
@@ -29,7 +28,6 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.intellij.execution.filters.HyperlinkInfo
 import com.intellij.execution.impl.EditorHyperlinkListener
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces.UNKNOWN
 import com.intellij.openapi.actionSystem.ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
@@ -214,7 +212,6 @@ private class InnerStateInspectionPanel(
       emptyPanel.removeAll()
     } else {
       val chunks = mutableListOf<Chunk>()
-      chunks.add(IconChunk(AllIcons.General.WarningDialog))
       message.split("\n").forEach {
         chunks.add(TextChunk(it))
         chunks.add(NewLineChunk)
