@@ -48,8 +48,6 @@ import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeLater
-import com.intellij.openapi.externalSystem.importing.ImportSpecBuilder
-import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
@@ -72,7 +70,6 @@ import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmCriteria
 import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
 import org.jetbrains.plugins.gradle.settings.DistributionType
 import org.jetbrains.plugins.gradle.settings.GradleSettings
-import org.jetbrains.plugins.gradle.util.GradleConstants
 
 class CreateGradleWrapperQuickFix : BuildIssueQuickFix {
   override val id = "migrate.gradle.wrapper"
@@ -373,7 +370,7 @@ class UpdateDaemonJvmCriteriaCompatibleGradleVersionQuickFix(
     val daemonJvmCriteria = GradleDaemonJvmCriteria(javaVersion.feature.toString(), null)
     return GradleDaemonJvmHelper.updateProjectDaemonJvmCriteria(project, externalProjectPath, daemonJvmCriteria).thenAccept {
       if (it) {
-        ExternalSystemUtil.refreshProject(externalProjectPath, ImportSpecBuilder(project, GradleConstants.SYSTEM_ID))
+        project.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_QF_APPLY_COMPATIBLE_GRADLE_JVM.toReason())
       }
     }
   }
@@ -396,7 +393,7 @@ class UpdateGradleJdkConfigurationCompatibleGradleVersionQuickFix(
       .launch {
         val javaVersion = compatibleJavaVersion(project)
         GradleJdkConfigurationUtils.tryConfigureGradleJdkWithVersion(project, externalProjectPath, javaVersion.feature) {
-          ExternalSystemUtil.refreshProject(externalProjectPath, ImportSpecBuilder(project, GradleConstants.SYSTEM_ID))
+          project.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_QF_APPLY_COMPATIBLE_GRADLE_JVM.toReason())
         }
       }
       .asCompletableFuture()
