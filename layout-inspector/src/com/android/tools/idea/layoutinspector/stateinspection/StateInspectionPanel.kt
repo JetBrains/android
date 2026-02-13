@@ -17,15 +17,11 @@ package com.android.tools.idea.layoutinspector.stateinspection
 
 import com.android.adblib.utils.createChildScope
 import com.android.tools.adtui.common.AdtSecondaryPanel
-import com.android.tools.adtui.stdui.Chunk
-import com.android.tools.adtui.stdui.EmptyStatePanel
-import com.android.tools.adtui.stdui.LabelData
-import com.android.tools.adtui.stdui.NewLineChunk
-import com.android.tools.adtui.stdui.TextChunk
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
+import com.google.common.html.HtmlEscapers
 import com.intellij.execution.filters.HyperlinkInfo
 import com.intellij.execution.impl.EditorHyperlinkListener
 import com.intellij.openapi.Disposable
@@ -57,11 +53,13 @@ import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
+import javax.swing.SwingConstants
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
+internal const val EMPTY_STATE_NAME = "EmptyState"
 internal val STATE_READ_EDITOR_KEY = Key.create<Editor>("StateReadEditor")
 const val RECOMPOSITION_TEXT_LABEL_NAME = "RecompositionTextLabel"
 const val STATE_READ_TEXT_LABEL_NAME = "StateReadTextLabel"
@@ -211,14 +209,11 @@ private class InnerStateInspectionPanel(
       contentLayout.show(contentPanel, KEY_EDITOR)
       emptyPanel.removeAll()
     } else {
-      val chunks = mutableListOf<Chunk>()
-      message.split("\n").forEach {
-        chunks.add(TextChunk(it))
-        chunks.add(NewLineChunk)
-      }
-      val emptyStatePanel = EmptyStatePanel(LabelData(*chunks.dropLast(1).toTypedArray()))
+      val html = "<html><p>${HtmlEscapers.htmlEscaper().escape(message).replace("\n", "</p><p>")}</p></html>"
+      val label = JBLabel(html, SwingConstants.CENTER)
+      label.name = EMPTY_STATE_NAME
       emptyPanel.removeAll()
-      emptyPanel.add(emptyStatePanel, BorderLayout.CENTER)
+      emptyPanel.add(label, BorderLayout.CENTER)
       contentLayout.show(contentPanel, KEY_EMPTY)
     }
   }

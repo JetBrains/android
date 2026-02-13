@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.stateinspection
 
 import com.android.tools.adtui.common.AdtUiUtils.getActionMask
-import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
@@ -121,16 +120,16 @@ class StateInspectionPanelTest {
     val panel = StateInspectionPanel(model, projectRule.project, { stats }, testScope, disposable)
     model.show.value = true
     advanceUntilIdle()
-    assertThat(panel.findDescendant<EmptyStatePanel>()).isNull()
+    assertThat(panel.findDescendant<JLabel> { it.name == EMPTY_STATE_NAME }).isNull()
 
     model.content.value = StateInspectionContent(emptyStateText = "Hello\nWorld")
     advanceUntilIdle()
-    val emptyState = panel.getDescendant<EmptyStatePanel>()
-    assertThat(emptyState.reasonText).isEqualTo("Hello World")
+    val emptyState = panel.findDescendant<JLabel> { it.name == EMPTY_STATE_NAME }
+    assertThat(emptyState?.text).isEqualTo("<html><p>Hello</p><p>World</p></html>")
 
     model.show.value = false
     testDispatcher.scheduler.advanceUntilIdle()
-    assertThat(panel.findDescendant<EmptyStatePanel>()).isNull()
+    assertThat(panel.findDescendant<JLabel> { it.name == EMPTY_STATE_NAME }).isNull()
   }
 
   @Test
