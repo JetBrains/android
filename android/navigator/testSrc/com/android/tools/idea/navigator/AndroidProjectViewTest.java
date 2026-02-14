@@ -268,6 +268,20 @@ public class AndroidProjectViewTest {
   }
 
   @Test
+  public void testGoogleServicesJsonInAndroidView() throws Exception {
+    projectRule.loadProject(SIMPLE_APPLICATION);
+    FileUtils.createFile(new File(projectRule.getProject().getBasePath(), "/app/google-services.json"), "");
+
+    refreshProjectFiles();
+    AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(projectRule.getProject());
+    myPane = createPane();
+    TestAndroidTreeStructure structure = new TestAndroidTreeStructure(projectRule.getProject(), projectRule.getFixture().getTestRootDisposable());
+
+    Set<List<String>> allNodes = getAllNodes(structure);
+    assertThat(allNodes).contains(Arrays.asList("app (Android)", "google-services.json"));
+  }
+
+  @Test
   public void testAndroidViewIsDefault() throws Exception {
     IdeInfo ideInfo = Mockito.spy(IdeInfo.getInstance());
     AndroidProjectViewSettingsImpl settings = new AndroidProjectViewSettingsImpl();
