@@ -102,7 +102,6 @@ jvm_library(
     "//plugins/kotlin/base/scripting/scripting.k1",
     "//plugins/kotlin/base/scripting/scripting.k1:scripting.k1_test_lib",
     "//plugins/kotlin/base/scripting/scripting.k2:kotlin-base-scripting",
-    "//plugins/kotlin/base/scripting/scripting.k2:kotlin-base-scripting_test_lib",
     "//platform/diagnostic/telemetry",
     "//platform/diagnostic/telemetry:telemetry_test_lib",
     "//platform/backend/workspace",
