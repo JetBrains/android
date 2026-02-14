@@ -101,7 +101,6 @@ jvm_library(
     "//platform/execution",
     "//platform/xdebugger-api:debugger",
     "//platform/xdebugger-impl:debugger-impl",
-    "//platform/xdebugger-impl:debugger-impl_test_lib",
     "//platform/platform-util-io:ide-util-io",
     "//java/execution/impl",
     "//java/debugger/openapi:java-debugger",
