@@ -110,6 +110,7 @@ jvm_library(
     "//platform/backend/workspace",
     "//plugins/gradle",
     "//plugins/kotlin/plugin/k1",
+    "//images:images-tests_test_lib",
   ],
   runtime_deps = [":gradle-dsl-tests"]
 )

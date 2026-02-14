@@ -136,7 +136,6 @@ jvm_library(
     "//platform/platform-api:ide",
     "//platform/ide-core",
     "//images",
-    "//images:images_test_lib",
     "//platform/indexing-impl",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
