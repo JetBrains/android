@@ -31,6 +31,7 @@
     <!-- region Generated dependencies - run `Generate Product Layouts` to regenerate -->
     <plugin id="com.intellij.gradle"/>
     <module name="intellij.gradle"/>
+    <module name="intellij.gradle.java"/>
     <!-- endregion -->
   </dependencies>
 
