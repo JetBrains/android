@@ -90,7 +90,6 @@ jvm_library(
     "//platform/util",
     "//platform/util:util-ui",
     "//android/android-templates:templates",
-    "//android/android-templates:templates_test_lib",
   ],
   runtime_deps = [":assistant-test"]
 )

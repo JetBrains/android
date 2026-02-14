@@ -162,7 +162,6 @@ jvm_library(
     "//android/project-system-gradle-upgrade:projectSystem-gradle-upgrade",
     "//android/render-resources",
     "//android/android-templates:templates",
-    "//android/android-templates:templates_test_lib",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//java/testFramework",
     "//platform/analysis-api:analysis",

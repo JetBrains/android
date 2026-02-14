@@ -525,6 +525,7 @@ jvm_library(
     "@lib//:kotlinc-analysis-api",
     "//plugins/kotlin/bundled-compiler-plugins-support:compilerPlugins-support-bundled",
     "@lib//:kotlinc-kotlin-compiler-fe10",
+    "//android/android-templates:templates-tests_test_lib",
   ],
   runtime_deps = [":core-tests"]
 )

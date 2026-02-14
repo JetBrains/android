@@ -69,13 +69,29 @@ jvm_library(
     "//platform/util-class-loader:util-classLoader",
   ]
 )
+### auto-generated section `build intellij.android.templates` end
+
+### auto-generated section `build intellij.android.templates.tests` start
+create_kotlinc_options(
+  name = "custom_templates-tests",
+  opt_in = [
+    "org.jetbrains.kotlin.idea.base.util.K1ModeProjectStructureApi",
+    "org.jetbrains.kotlin.K1Deprecation",
+  ]
+)
 
 jvm_library(
-  name = "templates_test_lib",
+  name = "templates-tests",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True)
+)
+
+jvm_library(
+  name = "templates-tests_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
-  kotlinc_opts = ":custom_templates",
-  associates = [":templates"],
+  kotlinc_opts = ":custom_templates-tests",
+  associates = ["//android/android-templates:templates"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
@@ -150,24 +166,16 @@ jvm_library(
     "//android/gradle-declarative-lang-ide",
     "//android/gradle-dsl-flags",
     "//android/gradle-declarative-lang-flags",
-  ]
+  ],
+  runtime_deps = [":templates-tests"]
 )
-### auto-generated section `build intellij.android.templates` end
+### auto-generated section `build intellij.android.templates.tests` end
 
-### auto-generated section `test intellij.android.templates` start
+### auto-generated section `test intellij.android.templates.tests` start
 load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
-  name = "templates_test",
-  runtime_deps = [":templates_test_lib"]
+  name = "templates-tests_test",
+  runtime_deps = [":templates-tests_test_lib"]
 )
-### auto-generated section `test intellij.android.templates` end
-
-### auto-generated section `build intellij.android.templates.tests` start
-jvm_library(
-  name = "templates-tests",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = ["//platform/ide-core-impl"]
-)
-### auto-generated section `build intellij.android.templates.tests` end
+### auto-generated section `test intellij.android.templates.tests` end
