@@ -278,6 +278,7 @@ class FakeWindowPeer implements WindowPeer {
   }
 
   @Override
-  public void repositionSecurityWarning() {
+  public GraphicsConfiguration getAppropriateGraphicsConfiguration(GraphicsConfiguration gc) {
+    return gc;
   }
 }
