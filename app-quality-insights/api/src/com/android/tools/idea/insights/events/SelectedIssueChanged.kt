@@ -26,7 +26,7 @@ import com.android.tools.idea.insights.events.actions.Action
 import com.android.tools.idea.insights.model.issue.AppInsightsIssue
 import com.android.tools.idea.insights.toCrashType
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
-import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 
 /** Issue selection changed. */
 data class SelectedIssueChanged(val issue: AppInsightsIssue?, val selectionSource: IssueSelectionSource) : ChangeEvent {
@@ -49,8 +49,7 @@ data class SelectedIssueChanged(val issue: AppInsightsIssue?, val selectionSourc
           .build()
       )
     }
-    Logger.getInstance(SelectedIssueChanged::class.java)
-      .info("Changing selection from ${(state.issues as? LoadingState.Ready)?.value?.value?.selected} to $issue")
+    thisLogger().info("Changing selection from ${state.issues.valueOrNull()?.value?.selected?.id} to ${issue?.id}")
     return StateTransition(
       state.copy(
         issues = state.issues.map { Timed(value = it.value.select(issue), time = it.time) },
