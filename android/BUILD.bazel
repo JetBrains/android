@@ -532,6 +532,7 @@ jvm_library(
     "//plugins/kotlin/base/fir/analysis-api-platform:kotlin-analysis-platform-tests_test_lib",
     "//plugins/kotlin/base/fir/project-structure:kotlin-projectStructure-tests_test_lib",
     "//plugins/kotlin/base/scripting/scripting.k2:kotlin-base-scripting-tests_test_lib",
+    "//plugins/kotlin/code-insight/kotlin.code-insight.k1:kotlin-code-insight-k1-tests_test_lib",
   ],
   runtime_deps = [":core-tests"]
 )
