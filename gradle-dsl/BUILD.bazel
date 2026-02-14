@@ -111,6 +111,7 @@ jvm_library(
     "//plugins/gradle",
     "//plugins/kotlin/plugin/k1",
     "//images:images-tests_test_lib",
+    "//RegExpSupport:regexp-tests_test_lib",
   ],
   runtime_deps = [":gradle-dsl-tests"]
 )

@@ -527,6 +527,7 @@ jvm_library(
     "@lib//:kotlinc-kotlin-compiler-fe10",
     "//android/android-templates:templates-tests_test_lib",
     "//images:images-tests_test_lib",
+    "//RegExpSupport:regexp-tests_test_lib",
   ],
   runtime_deps = [":core-tests"]
 )
