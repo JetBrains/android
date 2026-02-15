@@ -28,7 +28,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposePanel
 import androidx.compose.ui.unit.dp
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.logScreenshotTestEvent
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.ScreenshotTestComposePreviewEvent
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -36,6 +38,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.util.concurrency.AppExecutorUtil
@@ -55,7 +58,7 @@ import org.jetbrains.jewel.ui.component.SegmentedControlButtonData
 import org.jetbrains.jewel.ui.component.Text
 
 /** This is a placeholder for showing Screenshot Test Results. */
-class ScreenshotResultView {
+class ScreenshotResultView(private val project: Project? = null) {
 
   val myView: JPanel = JPanel(BorderLayout())
 
@@ -116,6 +119,9 @@ class ScreenshotResultView {
 
   @VisibleForTesting
   fun selectTab(tab: String) {
+    if (selectedTab != tab) {
+      logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_VIEW_TYPE_CHANGED, project)
+    }
     selectedTab = tab
     val cardLayout = contentPanel.layout as CardLayout
     cardLayout.show(contentPanel, tab)

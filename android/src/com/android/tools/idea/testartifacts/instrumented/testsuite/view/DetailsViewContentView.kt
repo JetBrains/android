@@ -118,7 +118,7 @@ class DetailsViewContentView(
     tabs.addTab(myJourneyScreenshotsTab)
 
     // Screenshot tab
-    myScreenshotResultView = ScreenshotResultView()
+    myScreenshotResultView = ScreenshotResultView(project)
     myScreenshotTab = TabInfo(myScreenshotResultView.getComponent())
     myScreenshotTab.setText("Screenshot")
     myScreenshotTab.setTooltipText("Show screenshot information")
