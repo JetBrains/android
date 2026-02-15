@@ -158,6 +158,7 @@
     <orderEntry type="module" module-name="intellij.kotlin.codeInsight.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.kotlin.codeInsight.lineMarkers.tests" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.code-insight.live-templates.k1.tests" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.codeInsight.liveTemplates.tests" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.core" />
 </module>
