@@ -16,6 +16,7 @@
 package com.android.screenshottest.util
 
 import com.android.screenshottest.ui.UpdateReferenceImagesDialog
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.logScreenshotTestEvent
 import com.google.wireless.android.sdk.stats.ScreenshotTestComposePreviewEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service

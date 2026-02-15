@@ -31,6 +31,7 @@ iml_module(
         "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
         "//tools/adt/idea/artwork-compose:intellij.android.artwork-compose",
         "//tools/adt/idea/testartifacts:libjourneys-java-proto",
+        "//tools/adt/idea/analytics",
     ],
 )
 

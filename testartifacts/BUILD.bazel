@@ -58,6 +58,7 @@ jvm_library(
         "//android/adt-ui-compose",
         "//android/artwork-compose",
         "//platform/lang-api:lang",
+        "//android/analytics",
     ],
 )
 
@@ -104,6 +105,7 @@ jvm_library(
         "//android/adt-ui-compose:adt-ui-compose_test_lib",
         "//android/artwork-compose:artwork-compose_test_lib",
         "//platform/lang-api:lang_test_lib",
+        "//android/analytics:analytics_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.testartifacts` end

@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.screenshottest.util
+package com.android.tools.idea.testartifacts.instrumented.testsuite.util
 
 import com.android.tools.idea.metrics.MetricsTrackerRule
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ScreenshotTestComposePreviewEvent
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -31,17 +30,17 @@ class ScreenshotTestAnalyticsTest {
   @get:Rule val metricsTrackerRule = MetricsTrackerRule()
 
   @Test
-  fun testLogScreenshotTestEvent() {
+  fun logScreenshotTestEvent_logsCorrectEvent() {
     val project = projectRule.project
     val eventType = ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_OPEN
 
     logScreenshotTestEvent(eventType, project)
 
     val usages = metricsTrackerRule.testTracker.usages
-    assertTrue("Usage should not be empty", usages.isNotEmpty())
+    assertThat(usages).isNotEmpty()
 
     val lastEvent = usages.last().studioEvent
-    assertEquals(AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW, lastEvent.kind)
-    assertEquals(eventType, lastEvent.screenshotTestComposePreviewEvent.type)
+    assertThat(lastEvent.kind).isEqualTo(AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW)
+    assertThat(lastEvent.screenshotTestComposePreviewEvent.type).isEqualTo(eventType)
   }
 }

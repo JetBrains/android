@@ -62,5 +62,6 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui.compose" />
     <orderEntry type="module" module-name="intellij.android.artwork-compose" />
     <orderEntry type="module" module-name="intellij.platform.lang" />
+    <orderEntry type="module" module-name="intellij.android.analytics" />
   </component>
 </module>

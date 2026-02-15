@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.screenshottest.util
+package com.android.tools.idea.testartifacts.instrumented.testsuite.util
 
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
