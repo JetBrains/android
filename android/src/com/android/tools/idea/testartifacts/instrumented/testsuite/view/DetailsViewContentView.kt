@@ -24,9 +24,11 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Journey
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkLinkListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.getName
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.logScreenshotTestEvent
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.html.HtmlEscapers
 import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
+import com.google.wireless.android.sdk.stats.ScreenshotTestComposePreviewEvent
 import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.ide.ui.LafManagerListener
@@ -430,6 +432,9 @@ class DetailsViewContentView(
 
   class MyTabSelectionHandler(val view: DetailsViewContentView) : JBTabs.SelectionChangeHandler {
     override fun execute(info: TabInfo, requestFocus: Boolean, doChangeSelection: ActiveRunnable): ActionCallback {
+      if (view.lastTabSelectedByUser != info && info == view.myScreenshotAttributesTab) {
+        logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_ATTRIBUTES_VIEWED, view.project)
+      }
       view.lastTabSelectedByUser = info
       return doChangeSelection.run()
     }
