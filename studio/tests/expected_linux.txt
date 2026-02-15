@@ -3100,8 +3100,8 @@ android-studio/plugins/gemini/lib/aida_proto.jar
 android-studio/plugins/gemini/lib/aida_protobuf.jar
 android-studio/plugins/gemini/lib/aiplugin.jar
 android-studio/plugins/gemini/lib/annotation-jvm-1.7.1.jar
-android-studio/plugins/gemini/lib/anthropic-java-client-okhttp-2.8.1.jar
-android-studio/plugins/gemini/lib/anthropic-java-core-2.8.1.jar
+android-studio/plugins/gemini/lib/anthropic-java-client-okhttp-2.14.0.jar
+android-studio/plugins/gemini/lib/anthropic-java-core-2.14.0.jar
 android-studio/plugins/gemini/lib/gemini.so.jar
 android-studio/plugins/gemini/lib/gemini_plugin_proto.jar
 android-studio/plugins/gemini/lib/google-api-services-cloudresourcemanager-v1beta1-rev20240128-2.0.0.jar
@@ -3121,8 +3121,8 @@ android-studio/plugins/gemini/lib/lucene-queries-10.3.0.jar
 android-studio/plugins/gemini/lib/lucene-queryparser-10.3.0.jar
 android-studio/plugins/gemini/lib/lucene-sandbox-10.3.0.jar
 android-studio/plugins/gemini/lib/mcp-sdk-libraries.jar
-android-studio/plugins/gemini/lib/openai-java-client-okhttp-4.0.0.jar
-android-studio/plugins/gemini/lib/openai-java-core-4.0.0.jar
+android-studio/plugins/gemini/lib/openai-java-client-okhttp-4.21.0.jar
+android-studio/plugins/gemini/lib/openai-java-core-4.21.0.jar
 android-studio/plugins/gemini/resources/kb_zip/dac.zip
 android-studio/plugins/git4insights/lib/git4insights.jar
 android-studio/plugins/gradle-declarative/lib/gradle-declarative.jar
