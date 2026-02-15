@@ -541,6 +541,7 @@ jvm_library(
     "//plugins/kotlin/gradle/gradle-java/k1:kotlin-gradle-gradle-java-k1-tests_test_lib",
     "//plugins/kotlin/gradle/gradle-java/k2:kotlin-gradle-java-tests_test_lib",
     "//plugins/kotlin/gradle/scripting/kotlin.gradle.scripting.k1:kotlin-gradle-scripting-k1-tests_test_lib",
+    "//plugins/kotlin/gradle/scripting/kotlin.gradle.scripting.k2:kotlin-gradle-scripting-tests_test_lib",
   ],
   runtime_deps = [":core-tests"]
 )
