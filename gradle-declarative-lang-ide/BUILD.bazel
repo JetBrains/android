@@ -42,6 +42,7 @@ jvm_library(
     "//plugins/gradle",
     "//plugins/gradle/plugin",
     "//plugins/gradle/java",
+    "//plugins/gradle/java/plugin",
   ]
 )
 ### auto-generated section `build intellij.android.gradle.declarative.lang.ide` end
