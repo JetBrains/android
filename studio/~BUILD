@@ -1,6 +1,7 @@
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@rules_java//java:defs.bzl", "java_binary")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
+load("//tools/adt/idea/studio:searchable-options/android-studio/content.bzl", "SEARCHABLE_OPTIONS")
 load("//tools/adt/idea/studio:studio.bzl", "android_studio", "android_studio_configuration", "studio_plugin")
 load("//tools/adt/idea/studio/rules:app-icon.bzl", "app_icon")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
@@ -974,6 +975,8 @@ android_studio(
     legacy_default_configuration = STUDIO_CONFIG,
     platform = "@intellij//:intellij-sdk",
     plugins = STUDIO_BASE_PLUGINS,
+    searchable_options_metadata = SEARCHABLE_OPTIONS,
+    searchable_options_plugin_lst = STUDIO_BASE_PLUGINS,
     selector = "AndroidStudio",
     update_message_template = ":update_message.html",
     version_code_name = STUDIO_CODENAME,
@@ -997,6 +1000,10 @@ android_studio(
     plugins = STUDIO_BASE_PLUGINS + [
         "//tools/vendor/google/automation:com.android.tools.idea.automation",
     ],
+    searchable_options_deps = {
+        "nightly": [":android-studio.nightly.searchable-options"],
+        "canary": [":android-studio.canary.searchable-options"],
+    },
     selector = "AndroidStudio",
     update_message_template = "//tools/adt/idea/studio:update_message.html",
     version_code_name = STUDIO_CODENAME,
@@ -1824,4 +1831,16 @@ iml_module(
         "@intellij//:intellij.xml.langInjection.xpath",
         "@intellij//:intellij.yaml.backend",
     ],
+)
+
+exports_files([
+    "searchable-options/update_searchable_options.py",
+    "searchable-options/searchable_options_test.py",
+])
+
+# This target finds all the update_searchable_options target of all the
+# android_studio definitions in the workspace and run them sequentially.
+sh_binary(
+    name = "update_searchable_options",
+    srcs = ["//tools/adt/idea/studio:searchable-options/update_searchable_options.sh"],
 )

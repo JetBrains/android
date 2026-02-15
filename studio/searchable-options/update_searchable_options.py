@@ -64,37 +64,53 @@ def generate_searchable_options(work_dir, out_dir, ide_path, plugins):
     content = json.loads(content_file.read())
 
   os.makedirs(out_dir, exist_ok=True)
-  bzl = {}
   for plugin_dir, id in plugin_list.items():
-    if plugins and id not in plugins:
+    if id not in plugins:
       continue
     if id and id in content:
       for entry in content[id]:
         name = entry["file"]
         shutil.move(os.path.join(options_dir, name), out_dir)
-        bzl[name] = id
-
-  with open(os.path.join(out_dir, "content.bzl"), "w") as f:
-    f.write("# This file is generated automatically. Do not modify.\n")
-    f.write("SEARCHABLE_OPTIONS = {\n")
-    for k,v in bzl.items():
-      f.write("    \"%s\": \"%s\",\n" % (k,v))
-    f.write("}\n")
 
   return plugin_list
 
 
-def update_searchable_options(work_dir, workspace_dir, out, ide_path, plugins):
-  so_dir = os.path.join(workspace_dir, out)
-  files = glob.glob(os.path.join(so_dir, "*.json"))
-  for file in files:
-    os.remove(file)
-
-  content_file = os.path.join(so_dir, "content.bzl")
+def update_searchable_options(work_dir, workspace_dir, out, ide_path, configurations, plugins):
+  content_file = os.path.join(os.path.join(workspace_dir, out), "content.bzl")
   if os.path.exists(content_file):
     os.remove(content_file)
+  else:
+    os.makedirs(os.path.join(workspace_dir, out), exist_ok=True)
 
-  generate_searchable_options(work_dir, so_dir, ide_path, plugins)
+  with open(os.path.join(os.path.join(workspace_dir,out),"content.bzl"), "w") as f:
+    package_name = "/".join(out.split("/")[:-2])
+    sub_dir = "/".join(out.split("/")[-2:])
+    f.write("# This file is generated automatically. Do not modify.\n")
+    f.write("SEARCHABLE_OPTIONS = {\n")
+    for configuration in configurations:
+      so_dir = os.path.join(os.path.join(workspace_dir, out), "%s-searchable-options" % configuration)
+      config_work_dir = os.path.join(work_dir, configuration)
+      ide_path_prefix = "%s.%s" % (ide_path,configuration)
+
+      files = glob.glob(os.path.join(so_dir, "*.json"))
+      for file in files:
+        os.remove(file)
+
+      plugin_list = generate_searchable_options(config_work_dir, so_dir, ide_path_prefix, plugins)
+
+      with open(os.path.join(os.path.join(config_work_dir,"options"), "content.json"), "r") as content_file:
+        content = json.loads(content_file.read())
+      f.write("    \"%s\": {\n" % configuration)
+      for plugin_dir, id in plugin_list.items():
+        if id not in plugins:
+          continue
+        if id and id in content:
+          for entry in content[id]:
+            name = entry["file"]
+            f.write("        \"//%s:%s/%s-searchable-options/%s\": \"%s\",\n" % (package_name,sub_dir,configuration,name,id))
+      f.write("    },\n")
+
+    f.write("}\n")
 
 
 def find_workspace():
@@ -126,6 +142,12 @@ if __name__ == "__main__":
       required=True,
       help="The path (prefix) to the ide artifacts")
   parser.add_argument(
+      "--ide-configuration",
+      dest="configurations",
+      nargs="*",
+      required=True,
+      help="The ide artifacts configurations")
+  parser.add_argument(
       "--plugins",
       dest="plugins",
       nargs="*",
@@ -135,4 +157,5 @@ if __name__ == "__main__":
   tmp_dir = tempfile.mkdtemp()
   args = parser.parse_args()
   workspace = args.workspace if args.workspace else find_workspace()
-  update_searchable_options(tmp_dir, workspace, args.out, args.ide, args.plugins)
+  if args.plugins:
+      update_searchable_options(tmp_dir, workspace, args.out, args.ide, args.configurations, args.plugins)

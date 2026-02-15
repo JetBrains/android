@@ -1,6 +1,7 @@
 """This file contains Bazel build rules for the Android Studio release distribution"""
 
 load("@rules_java//java:defs.bzl", "java_binary")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load("//build/bazel/rules/gathering:prebuilt_package_metadata.bzl", "prebuilt_package_metadata")
 load("//build/bazel/rules/gathering:write_package_metadata.bzl", "write_package_metadata")
 load("//tools/adt/idea/studio/rules:app-icon.bzl", "AppIconInfo", "replace_app_icon")
@@ -262,11 +263,6 @@ def _studio_plugin_impl(ctx):
     plugin_jars = _pack_modules(ctx, ctx.attr.jars, ctx.attr.modules)
     plugin_jars = plugin_jars + [(f.basename, f) for f in ctx.files.libs]
 
-    # Pack searchable-options metadata.
-    so_jars = ctx.attr.searchable_options[_SearchableOptionsInfo].so_jars
-    if plugin_id in so_jars:
-        plugin_jars.append((ctx.attr.directory + ".so.jar", so_jars[plugin_id]))
-
     # Ensure plugin id is known at build time
     _check_plugin(
         ctx,
@@ -342,10 +338,6 @@ _studio_plugin = rule(
         "directory": attr.string(),
         "compress": attr.bool(),
         "deps": attr.label_list(providers = [PluginInfo]),
-        "searchable_options": attr.label(
-            default = Label("//tools/adt/idea/searchable-options"),
-            providers = [_SearchableOptionsInfo],
-        ),
         "_singlejar": attr.label(
             default = Label("@bazel_tools//tools/jdk:singlejar"),
             cfg = "exec",
@@ -377,6 +369,8 @@ _studio_plugin = rule(
 
 def _searchable_options_impl(ctx):
     searchable_options = {}
+    for dep in ctx.attr.deps:
+        searchable_options.update(dep[_SearchableOptionsInfo].so_jars)
     searchable_options_src = {}
     for dep, plugin in ctx.attr.searchable_options.items():
         if plugin not in searchable_options_src:
@@ -397,6 +391,10 @@ def _searchable_options_impl(ctx):
 _searchable_options = rule(
     attrs = {
         "searchable_options": attr.label_keyed_string_dict(allow_files = True),
+        "deps": attr.label_list(
+            default = [],
+            providers = [_SearchableOptionsInfo],
+        ),
         "compress": attr.bool(),
         "strip_prefix": attr.string(),
         "_zipper": attr.label(
@@ -410,11 +408,12 @@ _searchable_options = rule(
     implementation = _searchable_options_impl,
 )
 
-def searchable_options(name, files, **kwargs):
+def searchable_options(name, files, deps = [], **kwargs):
     _searchable_options(
         name = name,
         compress = is_release(),
         searchable_options = files,
+        deps = deps,
         **kwargs
     )
 
@@ -753,8 +752,14 @@ def _stamp_platform(ctx, platform, platform_files, added_plugins):
     args.add("--build_txt", stamped_build_txt)
     args.add("--stamp_product_info")
     args.add("--replace_selector", system_selector)
+
+    so_jars = ctx.attr.searchable_options[_SearchableOptionsInfo].so_jars if getattr(ctx.attr, "searchable_options", None) else {}
     for p in added_plugins:
-        args.add_all("--added_plugin", [p[PluginInfo].plugin_id] + platform.get(p[PluginInfo].plugin_files).keys())
+        plugin_keys = platform.get(p[PluginInfo].plugin_files).keys()
+        if p[PluginInfo].plugin_id in so_jars:
+            plugin_keys.append("plugins/%s/lib/%s.so.jar" % (p[PluginInfo].directory, p[PluginInfo].directory))
+        args.add_all("--added_plugin", [p[PluginInfo].plugin_id] + plugin_keys)
+
     args.use_param_file("@%s")
     args.set_param_file_format("multiline")
     _stamp(ctx, args, [ctx.info_file, stamped_build_txt], product_info_json, stamped_product_info_json)
@@ -853,7 +858,13 @@ def _android_studio_os(ctx, platform, added_plugins, out):
 
     license_files = []
     for p in ctx.attr.plugins:
-        this_plugin_files = platform.get(p[PluginInfo].plugin_files)
+        this_plugin_files = dict(platform.get(p[PluginInfo].plugin_files))
+
+        # Pack searchable-options metadata.
+        so_jars = ctx.attr.searchable_options[_SearchableOptionsInfo].so_jars
+        if p[PluginInfo].plugin_id in so_jars:
+            this_plugin_files.update({"plugins/%s/lib/%s.so.jar" % (p[PluginInfo].directory, p[PluginInfo].directory): so_jars[p[PluginInfo].plugin_id]})
+
         this_plugin_files = _stamp_plugin(ctx, platform, platform_files, this_plugin_files, p[PluginInfo].overwrite_plugin_version)
 
         license_files.append(p[PluginInfo].license_files)
@@ -951,6 +962,7 @@ _android_studio = rule(
         "jre": attr.label(providers = [StudioDataInfo]),
         "platform": attr.label(providers = [IntellijInfo]),
         "plugins": attr.label_list(providers = [PluginInfo]),
+        "searchable_options": attr.label(providers = [_SearchableOptionsInfo]),
         "vm_options": attr.string_list(),
         "vm_options_linux": attr.string_list(),
         "vm_options_mac": attr.string_list(),
@@ -1039,6 +1051,12 @@ _android_studio = rule(
 #                                substitutions are available to message templates:
 #                                 {full_version} - See _form_version_full below.
 #                                 {channel} - The channel derived from version_type.
+#       searchable_options_metadata: (Optional) A dictionary mapping configuration names to a dictionary
+#                                    mapping searchable options files to plugin ID, use this if adding
+#                                    a new plugin not in searchable_options_deps passed.
+#       searchable_options_deps: (Optional) A dictionary mapping configuration names to targets providing
+#                                _SearchableOptionsInfo.
+#       searchable_options_plugin_lst: (Optional) A list of plugin IDs to compute searchable options for.
 #
 # Regarding versioning information:
 # - The "version_*" parameters (like "version_micro_path" and
@@ -1076,6 +1094,9 @@ def android_studio(
         name,
         plugins,
         configurations,
+        searchable_options_metadata = {},
+        searchable_options_deps = {},
+        searchable_options_plugin_lst = [],
         legacy_default_configuration = None,
         generate_package_metadata = False,
         **kwargs):
@@ -1094,6 +1115,64 @@ def android_studio(
             configured_targets[""] = configuration
             default_configuration = configuration
 
+        # create searchable_options targets for each configuration
+        searchable_options(
+            name = "%s.%s.searchable-options" % (name, config_name),
+            files = searchable_options_metadata[config_name] if config_name in searchable_options_metadata else {},
+            deps = searchable_options_deps[config_name] if config_name in searchable_options_deps else [],
+            visibility = ["//visibility:public"],
+        )
+
+        # create searchable_options_test target for studio, that check searchable_options of each configuration
+        py_test(
+            name = "%s.%s.searchable_options_test" % (name, config_name),
+            srcs = [
+                "//tools/adt/idea/studio:searchable-options/searchable_options_test.py",
+                "//tools/adt/idea/studio:searchable-options/update_searchable_options.py",
+            ],
+            args = [
+                "--ide %s/%s.%s" % (native.package_name(), name, config_name),
+            ] + (["--plugins %s" % " ".join([Label(plugin).name for plugin in searchable_options_plugin_lst])] if searchable_options_plugin_lst else []),
+            data = [
+                ":%s.%s.linux.zip" % (name, config_name),
+                ":%s.%s.mac.zip" % (name, config_name),
+                ":%s.%s.mac_arm.zip" % (name, config_name),
+                ":%s.%s.plugin.lst" % (name, config_name),
+            ],
+            imports = ["%s/tools/adt/idea/studio/searchable-options" % ("/".join([".."] * len(native.package_name().split("/"))) if native.package_name() else ".")],
+            main = "searchable_options_test.py",
+            tags = [
+                "block_network",
+                "noci:studio-win",
+            ],
+        )
+
+    # create update_searchable_options target for studio, that generates searchable_options for each configuration
+    py_binary(
+        name = "%s.update_searchable_options" % name,
+        srcs = ["//tools/adt/idea/studio:searchable-options/update_searchable_options.py"],
+        args = [
+            "--out %s/searchable-options/%s" % (native.package_name(), name),
+            "--ide %s/%s" % (native.package_name(), name),
+            "--ide-configuration " + " ".join([Label(configuration).name for configuration in configurations]),
+        ] + (["--plugins %s" % " ".join([Label(plugin).name for plugin in searchable_options_plugin_lst])] if searchable_options_plugin_lst else []),
+        data = [
+            file % (name, Label(configuration).name)
+            for configuration in configurations
+            for file in (
+                ":%s.%s.linux.zip",
+                ":%s.%s.mac.zip",
+                ":%s.%s.mac_arm.zip",
+                ":%s.%s.plugin.lst",
+            )
+        ],
+        main = "update_searchable_options.py",
+        tags = [
+            "block_network",
+            "noci:studio-win",
+        ],
+    )
+
     for suffix, configuration in configured_targets.items():
         _android_studio(
             name = name + suffix,
@@ -1108,6 +1187,7 @@ def android_studio(
                 "//conditions:default": "",
             }),
             plugins = plugins,
+            searchable_options = ":%s.%s.searchable-options" % (name, Label(configuration).name),
             **kwargs
         )
         native.filegroup(
@@ -1168,12 +1248,6 @@ def _intellij_plugin_import_impl(ctx):
 
     plugin_jars = []
 
-    # Pack searchable-options metadata.
-    if ctx.attr.searchable_options:
-        so_jars = ctx.attr.searchable_options[_SearchableOptionsInfo].so_jars
-        if id in so_jars:
-            plugin_jars.append((ctx.attr.target_dir + ".so.jar", so_jars[id]))
-
     plugin_files_linux = _studio_plugin_os(ctx, LINUX, plugin_jars, plugin_dir) | files
     plugin_files_mac = _studio_plugin_os(ctx, MAC, plugin_jars, plugin_dir) | files
     plugin_files_mac_arm = _studio_plugin_os(ctx, MAC_ARM, plugin_jars, plugin_dir) | files
@@ -1222,7 +1296,6 @@ _intellij_plugin_import = rule(
         "resources_dirs": attr.string_list(),
         # buildifier: disable=native-java-info (@rules_java is not usable in this file yet)
         "exports": attr.label_list(providers = [JavaInfo], mandatory = True),
-        "searchable_options": attr.label(providers = [_SearchableOptionsInfo]),
         "compress": attr.bool(),
         "overwrite_plugin_version": attr.bool(),
         "_check_plugin": attr.label(
