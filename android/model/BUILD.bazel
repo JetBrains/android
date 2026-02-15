@@ -49,7 +49,6 @@ jvm_library(
     "//xml/xml-psi-impl:psi-impl",
     "@lib//:jimfs",
     "//plugins/kotlin/refactorings/kotlin.refactorings.move.k2:kotlin-refactorings-move",
-    "//plugins/kotlin/refactorings/kotlin.refactorings.move.k2:kotlin-refactorings-move_test_lib",
     "//java/testFramework",
     "//libraries/guava",
   ],

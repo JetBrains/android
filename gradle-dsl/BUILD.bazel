@@ -127,6 +127,7 @@ jvm_library(
     "//plugins/kotlin/gradle/scripting/kotlin.gradle.scripting.k1:kotlin-gradle-scripting-k1-tests_test_lib",
     "//plugins/kotlin/gradle/scripting/kotlin.gradle.scripting.k2:kotlin-gradle-scripting-tests_test_lib",
     "//plugins/kotlin/highlighting/highlighting-k2:kotlin-highlighting-tests_test_lib",
+    "//plugins/kotlin/refactorings/kotlin.refactorings.move.k2:kotlin-refactorings-move-tests_test_lib",
   ],
   runtime_deps = [":gradle-dsl-tests"]
 )

@@ -165,6 +165,7 @@
     <orderEntry type="module" module-name="kotlin.gradle.scripting.k1.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.kotlin.gradle.scripting.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.kotlin.highlighting.tests" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.refactorings.move.tests" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.core" />
 </module>
