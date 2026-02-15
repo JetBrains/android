@@ -118,6 +118,7 @@ jvm_library(
     "//plugins/kotlin/base/scripting/scripting.k2:kotlin-base-scripting-tests_test_lib",
     "//plugins/kotlin/code-insight/kotlin.code-insight.k1:kotlin-code-insight-k1-tests_test_lib",
     "//plugins/kotlin/code-insight/kotlin.code-insight.k2:kotlin-codeInsight-tests_test_lib",
+    "//plugins/kotlin/code-insight/line-markers:kotlin-codeInsight-lineMarkers-tests_test_lib",
   ],
   runtime_deps = [":gradle-dsl-tests"]
 )
