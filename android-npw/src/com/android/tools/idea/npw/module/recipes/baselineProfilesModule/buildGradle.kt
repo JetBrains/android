@@ -23,9 +23,8 @@ import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 import com.android.tools.idea.npw.module.recipes.minSdk
 import com.android.tools.idea.npw.module.recipes.targetSdk
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
-import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
-//import com.android.tools.idea.wizard.template.common.AGP_VERSION_WITH_BUILT_IN_KOTLIN //todo android-merge
+import com.android.tools.idea.wizard.template.TemplateKotlinSupport
 import com.android.tools.idea.wizard.template.renderIf
 import com.intellij.openapi.module.Module
 
@@ -67,14 +66,14 @@ fun baselineProfilesBuildGradle(
     } else ""
 
   val kotlinOptionsBlock =
-    //renderIf(language == Language.Kotlin && agpVersion < AGP_VERSION_WITH_BUILT_IN_KOTLIN) { // todo android-merge uncomment renderIf block
+    renderIf(newModule.projectTemplateData.kotlinSupport == TemplateKotlinSupport.LEGACY_KOTLIN_GRADLE_PLUGIN_BEFORE_AGP9) {
       """
       kotlinOptions {
           jvmTarget = "11"
         }
       """
         .trimIndent()
-    //}
+    }
 
   val gmdDefinition =
     renderIf(useGmd != null) {

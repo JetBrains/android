@@ -46,10 +46,12 @@ import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.TemplateConstraint
 import com.android.tools.idea.wizard.template.TemplateFlag
+import com.android.tools.idea.wizard.template.TemplateKotlinSupport
 import com.android.tools.idea.wizard.template.ViewBindingSupport
 import com.android.tools.idea.wizard.template.WizardParameterData
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext
+import com.google.wireless.android.sdk.stats.kotlinSupport
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
@@ -72,7 +74,8 @@ private class ExistingNewModuleModelData(
   override val moduleName: StringValueProperty = StringValueProperty(facet.module.name)
   override val moduleTemplateDataBuilder =
     ModuleTemplateDataBuilder(
-      projectTemplateDataBuilder = ProjectTemplateDataBuilder(false),
+      projectTemplateDataBuilder =
+        ProjectTemplateDataBuilder(false).apply { kotlinSupport = TemplateKotlinSupport.IMPLICIT_BUILT_IN_KOTLIN },
       isNewModule = false,
       viewBindingSupport = existingProjectModelData.viewBindingSupport.getValueOr(ViewBindingSupport.SUPPORTED_4_0_MORE),
     )
@@ -282,6 +285,8 @@ private constructor(
           ExistingNewModuleModelData(
             ExistingProjectModelData(facet.module.project, projectSyncInvoker).apply {
               initialPackageSuggestion?.let { packageName.set(it) }
+              projectTemplateDataBuilder.kotlinSupport =
+                TemplateKotlinSupport.IMPLICIT_BUILT_IN_KOTLIN // Don't try to add explicit kotlin support, if needed it it already working
             },
             facet,
             template,

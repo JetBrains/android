@@ -30,6 +30,7 @@ import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
+import com.android.tools.idea.wizard.template.TemplateKotlinSupport
 import com.google.common.truth.Truth.assertThat
 import java.io.File
 import org.junit.Test
@@ -61,6 +62,7 @@ class BaselineProfilesMacrobenchmarkCommonTest {
     whenever(projectTemplateDataMock.language).thenReturn(Language.Kotlin)
     whenever(projectTemplateDataMock.kotlinVersion).thenReturn("1.8.10")
     whenever(projectTemplateDataMock.androidXSupport).thenReturn(true)
+    whenever(projectTemplateDataMock.kotlinSupport).thenReturn(TemplateKotlinSupport.IMPLICIT_BUILT_IN_KOTLIN)
 
     whenever(newModuleData.projectTemplateData).thenReturn(projectTemplateDataMock)
     whenever(newModuleData.rootDir).thenReturn(File(""))

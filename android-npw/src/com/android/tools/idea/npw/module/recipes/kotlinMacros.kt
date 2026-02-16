@@ -18,7 +18,7 @@ package com.android.tools.idea.npw.module.recipes
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
-//import com.android.tools.idea.wizard.template.common.AGP_VERSION_WITH_BUILT_IN_KOTLIN // todo android-merge
+import com.android.tools.idea.wizard.template.TemplateKotlinSupport
 import org.jetbrains.kotlin.config.ApiVersion
 
 fun RecipeExecutor.addKotlinDependencies(androidX: Boolean, targetApi: Int) {
@@ -36,9 +36,16 @@ fun RecipeExecutor.setKotlinVersion(kotlinVersion: String) {
 fun RecipeExecutor.addKotlinIfNeeded(data: ProjectTemplateData, targetApi: Int, noKtx: Boolean = false) {
   if (data.language == Language.Kotlin) {
     setKotlinVersion(data.kotlinVersion)
-    //if (data.agpVersion < AGP_VERSION_WITH_BUILT_IN_KOTLIN) { // todo android-merge uncomment if block
-      addPlugin("org.jetbrains.kotlin.android", "org.jetbrains.kotlin:kotlin-gradle-plugin", data.kotlinVersion)
-    //}
+    when (data.kotlinSupport) {
+      TemplateKotlinSupport.NO_KOTLIN -> throw IllegalStateException()
+      TemplateKotlinSupport.LEGACY_KOTLIN_GRADLE_PLUGIN_BEFORE_AGP9 ->
+        addPlugin("org.jetbrains.kotlin.android", "org.jetbrains.kotlin:kotlin-gradle-plugin", data.kotlinVersion)
+      TemplateKotlinSupport.EXPLICIT_BUILT_IN_KOTLIN ->
+        addPlugin("com.android.built-in-kotlin", "com.android.tools.build:gradle-kotlin", data.agpVersion.toString())
+      TemplateKotlinSupport.IMPLICIT_BUILT_IN_KOTLIN -> {
+        /* Nothing to do */
+      }
+    }
     addKotlinDependencies(data.androidXSupport && !noKtx, targetApi)
 
     val kotlinVersion = ApiVersion.parse(data.kotlinVersion)

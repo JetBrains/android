@@ -70,6 +70,7 @@ fun RecipeExecutor.generateDynamicFeatureModule(
       useAndroidX = useAndroidX,
       baseFeatureName = baseFeature.name,
       useVersionCatalog = useVersionCatalog,
+      kotlinSupport = projectData.kotlinSupport,
     ),
     moduleOut.resolve(buildFile),
   )

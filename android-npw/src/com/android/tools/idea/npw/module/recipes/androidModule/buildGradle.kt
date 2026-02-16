@@ -21,6 +21,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.npw.module.recipes.androidConfig
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 import com.android.tools.idea.wizard.template.CppStandardType
+import com.android.tools.idea.wizard.template.TemplateKotlinSupport
 import com.android.tools.idea.wizard.template.renderIf
 
 fun buildGradle(
@@ -42,6 +43,7 @@ fun buildGradle(
   cppStandard: CppStandardType = CppStandardType.`Toolchain Default`,
   useVersionCatalog: Boolean,
   hasCode: Boolean = true,
+  kotlinSupport: TemplateKotlinSupport,
 ): String {
   val androidConfigBlock =
     androidConfig(
@@ -60,6 +62,7 @@ fun buildGradle(
       enableCpp = enableCpp,
       cppStandard = cppStandard,
       hasCode = hasCode,
+      kotlinSupport = kotlinSupport,
     )
 
   if (isDynamicFeature) {
