@@ -178,7 +178,6 @@ class ComposePreviewRepresentationTest {
 
   @After
   fun tearDown() {
-    StudioFlags.COMPOSE_UI_CHECK_FOR_WEAR.clearOverride()
     StudioFlags.COMPOSE_PREVIEW_RESIZING.clearOverride()
     composePreviewEssentialsModeEnabled = false
   }
@@ -875,8 +874,6 @@ class ComposePreviewRepresentationTest {
 
   @Test
   fun testWearUiCheckMode() {
-    StudioFlags.COMPOSE_UI_CHECK_FOR_WEAR.overrideForTest(true, projectRule.fixture.testRootDisposable)
-
     val testPsiFile = runWriteActionAndWait {
       fixture.addFileToProjectAndInvalidate(
         "Test.kt",
