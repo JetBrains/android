@@ -1504,12 +1504,6 @@ public final class StudioFlags {
     "If enabled, Preview Essentials Mode will be enabled."
   );
 
-  public static final Flag<Boolean> ADD_PREVIEW_IMAGE_TO_AI_REQUEST_FOR_CODE_GENERATION = new BooleanFlag(
-    PREVIEW_COMMON, "add.image.to.ai.request.for.preview",
-    "Add preview image to AI request for code generation",
-    "If enabled, adds current preview image to an AI request for code generation."
-  );
-
   public static final Flag<Boolean> FIND_PREVIEWS_FROM_PREVIEW_SOURCESET = new BooleanFlag(
     PREVIEW_COMMON, "find.previews.from.sourceset",
     "Find previews from a file and also from preview-sourceset",
@@ -1634,11 +1628,6 @@ public final class StudioFlags {
     COMPOSE, "preview.generate.preview.action.agentic", "Use agents to generate Compose Previews",
     "Uses agentic approach when generating Compose Previews corresponding to the selected @Composable."
   );
-
-  public static final Flag<Boolean> COMPOSE_PREVIEW_GENERATE_EXTRA_PARAMETER_CONTEXT = new BooleanFlag(
-    COMPOSE, "preview.generate.extra.parameter.context", "Enable additional parameter context when generating Compose Previews",
-    "Enables an experiment of adding extra context when generating Compose Previews. The extra context will include information that should help instantiate parameters required by the Composable method used in the preview."
-    );
 
   public static final Flag<Boolean> COMPOSE_UI_CHECK_FOR_WEAR = new BooleanFlag(
     COMPOSE, "ui.check.mode.wear", "Enable UI Check mode for Compose preview for Wear OS",
