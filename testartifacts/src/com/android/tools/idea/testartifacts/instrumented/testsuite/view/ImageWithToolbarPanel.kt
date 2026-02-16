@@ -45,7 +45,12 @@ import kotlin.math.max
 import kotlin.math.min
 
 /** A self-contained panel that displays an image with a title and a toolbar for zoom controls. */
-class ImageWithToolbarPanel(val title: ScreenshotViewType, showToolbar: Boolean, showTitle: Boolean) : JPanel(BorderLayout(0, 4)) {
+class ImageWithToolbarPanel(
+  val title: ScreenshotViewType,
+  showToolbar: Boolean,
+  showTitle: Boolean,
+  private val onActionTriggered: (() -> Unit)? = null,
+) : JPanel(BorderLayout(0, 4)) {
   private val imageLabel =
     object : JBLabel() {
         private var gridVisible = false
@@ -151,7 +156,10 @@ class ImageWithToolbarPanel(val title: ScreenshotViewType, showToolbar: Boolean,
   @VisibleForTesting
   val zoomInAction =
     object : AnAction("Zoom In", null, AllIcons.General.ZoomIn) {
-      override fun actionPerformed(e: AnActionEvent) = zoomIn()
+      override fun actionPerformed(e: AnActionEvent) {
+        onActionTriggered?.invoke()
+        zoomIn()
+      }
 
       override fun update(e: AnActionEvent) {
         e.presentation.isEnabled = canZoomIn()
@@ -160,7 +168,10 @@ class ImageWithToolbarPanel(val title: ScreenshotViewType, showToolbar: Boolean,
   @VisibleForTesting
   val zoomOutAction =
     object : AnAction("Zoom Out", null, AllIcons.General.ZoomOut) {
-      override fun actionPerformed(e: AnActionEvent) = zoomOut()
+      override fun actionPerformed(e: AnActionEvent) {
+        onActionTriggered?.invoke()
+        zoomOut()
+      }
 
       override fun update(e: AnActionEvent) {
         e.presentation.isEnabled = canZoomOut()
@@ -169,7 +180,10 @@ class ImageWithToolbarPanel(val title: ScreenshotViewType, showToolbar: Boolean,
   @VisibleForTesting
   val oneToOneAction =
     object : AnAction("1:1", "Actual Size", AllIcons.General.ActualZoom) {
-      override fun actionPerformed(e: AnActionEvent) = setActualSize()
+      override fun actionPerformed(e: AnActionEvent) {
+        onActionTriggered?.invoke()
+        setActualSize()
+      }
 
       override fun update(e: AnActionEvent) {
         e.presentation.isEnabled = hasImage() && currentScale != 1.0
@@ -178,7 +192,10 @@ class ImageWithToolbarPanel(val title: ScreenshotViewType, showToolbar: Boolean,
   @VisibleForTesting
   val fitToScreenAction =
     object : AnAction("Fit to Screen", "Fit image to screen", AllIcons.General.FitContent) {
-      override fun actionPerformed(e: AnActionEvent) = fitToScreen()
+      override fun actionPerformed(e: AnActionEvent) {
+        onActionTriggered?.invoke()
+        fitToScreen()
+      }
 
       override fun update(e: AnActionEvent) {
         e.presentation.isEnabled = hasImage() && !isAutoFitting
@@ -189,7 +206,10 @@ class ImageWithToolbarPanel(val title: ScreenshotViewType, showToolbar: Boolean,
     object : ToggleAction("Grid", "Toggle Grid Overlay", AllIcons.Graph.Grid) {
       override fun isSelected(e: AnActionEvent): Boolean = isGridVisible()
 
-      override fun setSelected(e: AnActionEvent, state: Boolean) = setGridVisible(state)
+      override fun setSelected(e: AnActionEvent, state: Boolean) {
+        onActionTriggered?.invoke()
+        setGridVisible(state)
+      }
 
       override fun update(e: AnActionEvent) {
         e.presentation.isEnabled = hasImage()
@@ -206,7 +226,10 @@ class ImageWithToolbarPanel(val title: ScreenshotViewType, showToolbar: Boolean,
       ) {
       override fun isSelected(e: AnActionEvent): Boolean = isChessboardVisible()
 
-      override fun setSelected(e: AnActionEvent, state: Boolean) = setChessboardVisible(state)
+      override fun setSelected(e: AnActionEvent, state: Boolean) {
+        onActionTriggered?.invoke()
+        setChessboardVisible(state)
+      }
 
       override fun update(e: AnActionEvent) {
         e.presentation.isEnabled = hasImage()

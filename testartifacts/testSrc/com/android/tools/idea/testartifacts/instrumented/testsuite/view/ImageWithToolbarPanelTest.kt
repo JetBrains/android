@@ -18,6 +18,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.components.JBLabel
 import java.awt.Dimension
 import java.awt.GraphicsEnvironment
@@ -289,5 +290,19 @@ class ImageWithToolbarPanelTest {
 
     assertEquals(ScreenshotViewType.NEW.displayText, imageLabel.accessibleContext.accessibleName)
     assertEquals("Image preview for ${ScreenshotViewType.NEW.displayText}", imageLabel.accessibleContext.accessibleDescription)
+  }
+
+  @Test
+  fun testOnActionTriggered() {
+    var callCount = 0
+    val panel = ImageWithToolbarPanel(ScreenshotViewType.NEW, showToolbar = true, showTitle = true) { callCount++ }
+
+    val image = BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB)
+    panel.setImage(image)
+
+    val event = TestActionEvent.createTestEvent()
+
+    panel.zoomInAction.actionPerformed(event)
+    assertEquals("Callback should be triggered by zoomInAction", 1, callCount)
   }
 }

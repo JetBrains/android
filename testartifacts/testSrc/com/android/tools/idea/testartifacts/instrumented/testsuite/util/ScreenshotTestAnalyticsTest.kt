@@ -20,6 +20,10 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ScreenshotTestComposePreviewEvent
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.testFramework.TestActionEvent
 import org.junit.Rule
 import org.junit.Test
 
@@ -42,5 +46,72 @@ class ScreenshotTestAnalyticsTest {
     val lastEvent = usages.last().studioEvent
     assertThat(lastEvent.kind).isEqualTo(AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW)
     assertThat(lastEvent.screenshotTestComposePreviewEvent.type).isEqualTo(eventType)
+  }
+
+  @Test
+  fun toolbarAnalyticsOnlyLogsOncePerSession() {
+    val analytics = ScreenshotToolbarAnalytics(projectRule.project)
+
+    analytics.logAction()
+    analytics.logAction()
+    analytics.logAction()
+
+    val usages = metricsTrackerRule.testTracker.usages
+    val toolbarEvents =
+      usages.filter {
+        it.studioEvent.screenshotTestComposePreviewEvent.type == ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_TOOLBAR_ACTION
+      }
+
+    assertThat(toolbarEvents).hasSize(1)
+  }
+
+  @Test
+  fun loggedActionTriggersAnalyticsAndDelegate() {
+    var delegateCalled = false
+    val delegate =
+      object : AnAction() {
+        override fun actionPerformed(e: AnActionEvent) {
+          delegateCalled = true
+        }
+      }
+    val analytics = ScreenshotToolbarAnalytics(projectRule.project)
+    val loggedAction = LoggedAction(delegate, analytics)
+
+    loggedAction.actionPerformed(TestActionEvent.createTestEvent())
+
+    assertThat(delegateCalled).isTrue()
+    val usages = metricsTrackerRule.testTracker.usages
+    assertThat(
+        usages.any {
+          it.studioEvent.screenshotTestComposePreviewEvent.type == ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_TOOLBAR_ACTION
+        }
+      )
+      .isTrue()
+  }
+
+  @Test
+  fun loggedToggleActionTriggersAnalyticsAndDelegate() {
+    var delegateValue = false
+    val delegate =
+      object : ToggleAction("test", "desc", null) {
+        override fun isSelected(e: AnActionEvent): Boolean = delegateValue
+
+        override fun setSelected(e: AnActionEvent, state: Boolean) {
+          delegateValue = state
+        }
+      }
+    val analytics = ScreenshotToolbarAnalytics(projectRule.project)
+    val loggedToggle = LoggedToggleAction(delegate, analytics)
+
+    loggedToggle.setSelected(TestActionEvent.createTestEvent(), true)
+
+    assertThat(delegateValue).isTrue()
+    val usages = metricsTrackerRule.testTracker.usages
+    assertThat(
+        usages.any {
+          it.studioEvent.screenshotTestComposePreviewEvent.type == ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_TOOLBAR_ACTION
+        }
+      )
+      .isTrue()
   }
 }

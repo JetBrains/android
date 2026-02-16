@@ -18,6 +18,9 @@ package com.android.screenshottest.ui
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.LoggedAction
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.LoggedToggleAction
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotToolbarAnalytics
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.ImageWithToolbarPanel
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.ScreenshotAttributesView
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.ScreenshotViewType
@@ -95,81 +98,129 @@ class PreviewDetailsPanel(private val project: Project? = null) : JPanel(CardLay
       setCellRenderer(methodGroupRenderer)
     }
 
+  private val toolbarAnalytics = ScreenshotToolbarAnalytics(project)
+
   // Panels for the "All" view (3-way split) in single preview mode.
-  private val newImagePanel = ImageWithToolbarPanel(ScreenshotViewType.NEW, showToolbar = false, showTitle = true)
-  private val diffImagePanel = ImageWithToolbarPanel(ScreenshotViewType.DIFF, showToolbar = false, showTitle = true)
-  private val refImagePanel = ImageWithToolbarPanel(ScreenshotViewType.REFERENCE, showToolbar = false, showTitle = true)
+  private val newImagePanel =
+    ImageWithToolbarPanel(ScreenshotViewType.NEW, showToolbar = false, showTitle = true, onActionTriggered = toolbarAnalytics::logAction)
+  private val diffImagePanel =
+    ImageWithToolbarPanel(ScreenshotViewType.DIFF, showToolbar = false, showTitle = true, onActionTriggered = toolbarAnalytics::logAction)
+  private val refImagePanel =
+    ImageWithToolbarPanel(
+      ScreenshotViewType.REFERENCE,
+      showToolbar = false,
+      showTitle = true,
+      onActionTriggered = toolbarAnalytics::logAction,
+    )
 
   private val multiViewPanels = listOf(newImagePanel, diffImagePanel, refImagePanel)
 
   // Panels for the individual tabbed views in single preview mode.
-  private val newImagePanelSingle = ImageWithToolbarPanel(ScreenshotViewType.NEW, showToolbar = true, showTitle = false)
-  private val diffImagePanelSingle = ImageWithToolbarPanel(ScreenshotViewType.DIFF, showToolbar = true, showTitle = false)
-  private val refImagePanelSingle = ImageWithToolbarPanel(ScreenshotViewType.REFERENCE, showToolbar = true, showTitle = false)
+  private val newImagePanelSingle =
+    ImageWithToolbarPanel(ScreenshotViewType.NEW, showToolbar = true, showTitle = false, onActionTriggered = toolbarAnalytics::logAction)
+  private val diffImagePanelSingle =
+    ImageWithToolbarPanel(ScreenshotViewType.DIFF, showToolbar = true, showTitle = false, onActionTriggered = toolbarAnalytics::logAction)
+  private val refImagePanelSingle =
+    ImageWithToolbarPanel(
+      ScreenshotViewType.REFERENCE,
+      showToolbar = true,
+      showTitle = false,
+      onActionTriggered = toolbarAnalytics::logAction,
+    )
 
   // Common actions for the "All" view toolbar.
   private val commonZoomInAction =
-    object : AnAction("Zoom In", null, AllIcons.General.ZoomIn) {
-      override fun actionPerformed(e: AnActionEvent) = multiViewPanels.forEach { it.zoomIn() }
+    LoggedAction(
+      object : AnAction("Zoom In", null, AllIcons.General.ZoomIn) {
+        override fun actionPerformed(e: AnActionEvent) {
+          multiViewPanels.forEach { it.zoomIn() }
+        }
 
-      override fun update(e: AnActionEvent) {
-        e.presentation.isEnabled = multiViewPanels.any { it.canZoomIn() }
-      }
-    }
+        override fun update(e: AnActionEvent) {
+          e.presentation.isEnabled = multiViewPanels.any { it.canZoomIn() }
+        }
+      },
+      toolbarAnalytics,
+    )
 
   private val commonZoomOutAction =
-    object : AnAction("Zoom Out", null, AllIcons.General.ZoomOut) {
-      override fun actionPerformed(e: AnActionEvent) = multiViewPanels.forEach { it.zoomOut() }
+    LoggedAction(
+      object : AnAction("Zoom Out", null, AllIcons.General.ZoomOut) {
+        override fun actionPerformed(e: AnActionEvent) {
+          multiViewPanels.forEach { it.zoomOut() }
+        }
 
-      override fun update(e: AnActionEvent) {
-        e.presentation.isEnabled = multiViewPanels.any { it.canZoomOut() }
-      }
-    }
+        override fun update(e: AnActionEvent) {
+          e.presentation.isEnabled = multiViewPanels.any { it.canZoomOut() }
+        }
+      },
+      toolbarAnalytics,
+    )
 
   private val commonOneToOneAction =
-    object : AnAction("1:1", "Actual Size", AllIcons.General.ActualZoom) {
-      override fun actionPerformed(e: AnActionEvent) = multiViewPanels.forEach { it.setActualSize() }
+    LoggedAction(
+      object : AnAction("1:1", "Actual Size", AllIcons.General.ActualZoom) {
+        override fun actionPerformed(e: AnActionEvent) {
+          multiViewPanels.forEach { it.setActualSize() }
+        }
 
-      override fun update(e: AnActionEvent) {
-        e.presentation.isEnabled = multiViewPanels.any { it.hasImage() && it.currentScale != 1.0 }
-      }
-    }
+        override fun update(e: AnActionEvent) {
+          e.presentation.isEnabled = multiViewPanels.any { it.hasImage() && it.currentScale != 1.0 }
+        }
+      },
+      toolbarAnalytics,
+    )
 
   private val commonFitToScreenAction =
-    object : AnAction("Fit to Screen", "Fit image to screen", AllIcons.General.FitContent) {
-      override fun actionPerformed(e: AnActionEvent) = multiViewPanels.forEach { it.fitToScreen() }
+    LoggedAction(
+      object : AnAction("Fit to Screen", "Fit image to screen", AllIcons.General.FitContent) {
+        override fun actionPerformed(e: AnActionEvent) {
+          multiViewPanels.forEach { it.fitToScreen() }
+        }
 
-      override fun update(e: AnActionEvent) {
-        e.presentation.isEnabled = multiViewPanels.any { it.hasImage() && !it.isAutoFitting }
-      }
-    }
+        override fun update(e: AnActionEvent) {
+          e.presentation.isEnabled = multiViewPanels.any { it.hasImage() && !it.isAutoFitting }
+        }
+      },
+      toolbarAnalytics,
+    )
 
   private val commonToggleGridViewAction =
-    object : ToggleAction("Grid", "Toggle Grid Overlay", AllIcons.Graph.Grid) {
-      override fun isSelected(e: AnActionEvent): Boolean = multiViewPanels.firstOrNull()?.isGridVisible() ?: false
+    LoggedToggleAction(
+      object : ToggleAction("Grid", "Toggle Grid Overlay", AllIcons.Graph.Grid) {
+        override fun isSelected(e: AnActionEvent): Boolean = multiViewPanels.firstOrNull()?.isGridVisible() ?: false
 
-      override fun setSelected(e: AnActionEvent, state: Boolean) = multiViewPanels.forEach { it.setGridVisible(state) }
+        override fun setSelected(e: AnActionEvent, state: Boolean) {
+          multiViewPanels.forEach { it.setGridVisible(state) }
+        }
 
-      override fun update(e: AnActionEvent) {
-        e.presentation.isEnabled = multiViewPanels.any { it.hasImage() }
-      }
-    }
+        override fun update(e: AnActionEvent) {
+          e.presentation.isEnabled = multiViewPanels.any { it.hasImage() }
+        }
+      },
+      toolbarAnalytics,
+    )
 
   private val commonToggleChessboardAction =
-    object :
-      ToggleAction(
-        "Chessboard",
-        "Toggle Chessboard Background",
-        IconLoader.getIcon(CHESSBOARD_ICON_PATH, PreviewDetailsPanel::class.java),
-      ) {
-      override fun isSelected(e: AnActionEvent): Boolean = multiViewPanels.firstOrNull()?.isChessboardVisible() ?: false
+    LoggedToggleAction(
+      object :
+        ToggleAction(
+          "Chessboard",
+          "Toggle Chessboard Background",
+          IconLoader.getIcon(CHESSBOARD_ICON_PATH, PreviewDetailsPanel::class.java),
+        ) {
+        override fun isSelected(e: AnActionEvent): Boolean = multiViewPanels.firstOrNull()?.isChessboardVisible() ?: false
 
-      override fun setSelected(e: AnActionEvent, state: Boolean) = multiViewPanels.forEach { it.setChessboardVisible(state) }
+        override fun setSelected(e: AnActionEvent, state: Boolean) {
+          multiViewPanels.forEach { it.setChessboardVisible(state) }
+        }
 
-      override fun update(e: AnActionEvent) {
-        e.presentation.isEnabled = multiViewPanels.any { it.hasImage() }
-      }
-    }
+        override fun update(e: AnActionEvent) {
+          e.presentation.isEnabled = multiViewPanels.any { it.hasImage() }
+        }
+      },
+      toolbarAnalytics,
+    )
 
   init {
     val scrollPane =

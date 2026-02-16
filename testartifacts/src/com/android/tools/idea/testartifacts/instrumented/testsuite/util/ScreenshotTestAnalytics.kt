@@ -19,6 +19,9 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ScreenshotTestComposePreviewEvent
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.project.Project
 
 /** Logs a screenshot test event with the specified type. */
@@ -32,4 +35,48 @@ fun logScreenshotTestEvent(type: ScreenshotTestComposePreviewEvent.Type, project
       .withProjectId(project)
 
   UsageTracker.log(studioEvent)
+}
+
+/** A helper class to handle toolbar action logging once per session. */
+class ScreenshotToolbarAnalytics(private val project: Project?) {
+  private var hasLogged = false
+
+  fun logAction() {
+    if (!hasLogged) {
+      logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_TOOLBAR_ACTION, project)
+      hasLogged = true
+    }
+  }
+}
+
+/** Wraps an [AnAction] to log analytics before delegating the action. */
+class LoggedAction(private val delegate: AnAction, private val toolbarAnalytics: ScreenshotToolbarAnalytics) : AnAction() {
+  init {
+    copyFrom(delegate)
+  }
+
+  override fun actionPerformed(e: AnActionEvent) {
+    toolbarAnalytics.logAction()
+    delegate.actionPerformed(e)
+  }
+
+  override fun update(e: AnActionEvent) {
+    delegate.update(e)
+  }
+}
+
+/** Wraps a [ToggleAction] to log analytics before delegating the toggle. */
+class LoggedToggleAction(private val delegate: ToggleAction, private val toolbarAnalytics: ScreenshotToolbarAnalytics) :
+  ToggleAction(delegate.templatePresentation.text, delegate.templatePresentation.description, delegate.templatePresentation.icon) {
+
+  override fun isSelected(e: AnActionEvent): Boolean = delegate.isSelected(e)
+
+  override fun setSelected(e: AnActionEvent, state: Boolean) {
+    toolbarAnalytics.logAction()
+    delegate.setSelected(e, state)
+  }
+
+  override fun update(e: AnActionEvent) {
+    delegate.update(e)
+  }
 }
