@@ -377,6 +377,10 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_TRACEBOX =
     new BooleanFlag(PROFILER, "tracebox", "Tracebox", "Tracebox for versions M,N,O,P of Android");
 
+  public static final Flag<Boolean> PROFILER_LEAKCANARY_STUDIOBOT = new BooleanFlag(
+    PROFILER, "leakcanary.studiobot", "LeakCanary AI Integration",
+    "Enables AI analysis for memory leaks detected by LeakCanary.");
+
   public static final Flag<Boolean> PROFILER_SYSTEM_TRACE_IN_EDITOR = new BooleanFlag(
     PROFILER, "system.trace.in.editor", "Open System Trace in Editor",
     "Opens System Trace files in a new editor tab");

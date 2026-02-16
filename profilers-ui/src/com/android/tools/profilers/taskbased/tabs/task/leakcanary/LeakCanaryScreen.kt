@@ -121,6 +121,8 @@ fun LeakCanaryScreen(leakCanaryModel: LeakCanaryModel, ideProfilerComponents: Id
             onOpenStatesChange = { newStates -> openStates = newStates },
             onCopy = { leakCanaryModel.trackUiAction(LeakCanaryUiAction.COPY_TRACE_CLICKED) },
             trackUiAction = leakCanaryModel::trackUiAction,
+            onAnalyzeLeakWithStudioBot = { leak -> leak?.let { leakCanaryModel.analyzeLeakWithStudioBot(it) } },
+            isLeakCanaryStudioBotEnabled = leakCanaryModel.isLeakCanaryStudioBotEnabled,
           )
         },
         modifier = Modifier.weight(1f),

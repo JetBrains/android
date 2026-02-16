@@ -18,6 +18,7 @@ package com.android.tools.profilers
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.tools.idea.codenavigation.CodeNavigator
 import com.android.tools.idea.projectsystem.DependencyType
+import com.android.tools.leakcanarylib.data.Leak
 import com.android.tools.profilers.analytics.FeatureTracker
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService
@@ -223,4 +224,12 @@ interface IdeProfilerServices {
     CompletableFuture.completedFuture(false)
 
   fun isDebuggerAttached(deviceId: String, pid: Int): Boolean
+
+  /**
+   * Stages a prompt in the AI assistant (e.g. Studio Bot) chat window for analyzing a LeakCanary leak.
+   *
+   * @param rawTrace The raw text of the leak trace to be analyzed.
+   * @param leak The Leak object context (used for display text or other metadata). Can be null if manually entered.
+   */
+  fun analyzeLeakWithStudioBot(rawTrace: String, leak: Leak?) {}
 }

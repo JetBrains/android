@@ -25,6 +25,7 @@ import com.android.tools.idea.codenavigation.IntelliJNavSource;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
+import com.android.tools.idea.profilers.leakcanary.LeakCanaryAiHandler;
 import com.android.tools.idea.profilers.perfetto.traceprocessor.TraceProcessorServiceImpl;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
 import com.android.tools.idea.profilers.stacktrace.IntelliJNativeFrameSymbolizer;
@@ -36,6 +37,7 @@ import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
+import com.android.tools.leakcanarylib.data.Leak;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.NativeSymbolizerKt;
 import com.android.tools.nativeSymbolizer.SymbolFilesLocator;
@@ -642,6 +644,11 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     ProfilerBuildAndLaunch.buildAndLaunchAction(myProject, profileableMode, device);
   }
 
+  @Override
+  public void analyzeLeakWithStudioBot(@NotNull String rawTrace, @Nullable Leak leak) {
+    LeakCanaryAiHandler.getInstance(myProject).analyzeLeakWithStudioBot(rawTrace, leak);
+  }
+
   /**
    * Implementation of {@link FeatureConfig} with values used in production.
    */
@@ -680,6 +687,11 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     @Override
     public boolean isLeakCanaryEnabled() {
       return StudioFlags.PROFILER_LEAKCANARY.get();
+    }
+
+    @Override
+    public boolean isLeakCanaryStudioBotEnabled() {
+      return StudioFlags.PROFILER_LEAKCANARY_STUDIOBOT.get();
     }
 
     @Override

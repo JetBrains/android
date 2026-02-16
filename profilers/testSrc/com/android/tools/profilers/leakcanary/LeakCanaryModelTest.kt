@@ -21,6 +21,8 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
+import com.android.tools.leakcanarylib.data.Analysis
+import com.android.tools.leakcanarylib.data.AnalysisSuccess
 import com.android.tools.leakcanarylib.data.GcRootType
 import com.android.tools.leakcanarylib.data.Leak
 import com.android.tools.leakcanarylib.data.LeakTrace
@@ -50,6 +52,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 
 class LeakCanaryModelTest : WithFakeTimer {
   override val timer = FakeTimer()
@@ -461,6 +464,80 @@ class LeakCanaryModelTest : WithFakeTimer {
     val result = LeakCanaryModel.getLeakClassName(leak)
     assertEquals("AnotherPrevious.someField", result)
   }
+
+  @Test
+  fun `test getLeakingFullClassName finds node with YES status`() {
+    val node1 = createTestNode(className = "NotLeaking", leakingStatus = LeakingStatus.NO)
+    val node2 = createTestNode(className = "LeakingVictim", leakingStatus = LeakingStatus.YES)
+    val node3 = createTestNode(className = "AlsoLeaking", leakingStatus = LeakingStatus.YES)
+    val leakTrace = LeakTrace(GcRootType.NATIVE_STACK, nodes = listOf(node1, node2, node3))
+    val leak = Leak(
+      type = LeakType.APPLICATION_LEAKS,
+      retainedByteSize = 100,
+      signature = "sig",
+      leakTraceCount = 1,
+      displayedLeakTrace = listOf(leakTrace)
+    )
+
+    assertEquals("LeakingVictim", LeakCanaryModel.getLeakingFullClassName(leak))
+  }
+
+  @Test
+  fun `test getAnchorFullClassName finds last node with NO status`() {
+    val node1 = createTestNode(className = "Root", leakingStatus = LeakingStatus.NO)
+    val node2 = createTestNode(className = "Anchor", leakingStatus = LeakingStatus.NO)
+    val node3 = createTestNode(className = "Unknown", leakingStatus = LeakingStatus.UNKNOWN)
+    val node4 = createTestNode(className = "Leaking", leakingStatus = LeakingStatus.YES)
+    val leakTrace = LeakTrace(GcRootType.NATIVE_STACK, nodes = listOf(node1, node2, node3, node4))
+    val leak = Leak(
+      type = LeakType.APPLICATION_LEAKS,
+      retainedByteSize = 100,
+      signature = "sig",
+      leakTraceCount = 1,
+      displayedLeakTrace = listOf(leakTrace)
+    )
+
+    assertEquals("Anchor", LeakCanaryModel.getAnchorFullClassName(leak))
+  }
+
+  @Test
+  fun `test getAnchorFullClassName returns empty if no NO status nodes`() {
+    val node1 = createTestNode(className = "Unknown", leakingStatus = LeakingStatus.UNKNOWN)
+    val node2 = createTestNode(className = "Leaking", leakingStatus = LeakingStatus.YES)
+    val leakTrace = LeakTrace(GcRootType.NATIVE_STACK, nodes = listOf(node1, node2))
+    val leak = Leak(
+      type = LeakType.APPLICATION_LEAKS,
+      retainedByteSize = 100,
+      signature = "sig",
+      leakTraceCount = 1,
+      displayedLeakTrace = listOf(leakTrace)
+    )
+
+    assertEquals("", LeakCanaryModel.getAnchorFullClassName(leak))
+  }
+
+  @Test
+  fun `analyzeLeakWithStudioBot delegates to ideServices`() {
+    val leak = mock(Leak::class.java)
+    `when`(leak.toString()).thenReturn("trace")
+    stage.analyzeLeakWithStudioBot(leak)
+    assertEquals("trace", ideProfilerServices.lastLeakRawTrace)
+    assertEquals<Leak?>(leak, ideProfilerServices.lastLeak)
+  }
+
+  @Test
+  fun `manual leak parsing and adding to leaks`() {
+    val file = TestUtils.resolveWorkspacePath("${FakeLeakCanaryCommandHandler.TEST_DATA_PATH}/SingleApplicationLeak.txt").toFile()
+    val rawTrace = file.readText()
+
+    val analysis = Analysis.fromString(rawTrace)
+    assertTrue(analysis is AnalysisSuccess)
+    stage.addLeaks(analysis.leaks)
+
+    assertEquals(1, stage.leaks.value.size)
+    assertEquals("androidx.constraintlayout.widget.ConstraintLayout", stage.leaks.value[0].displayedLeakTrace[0].nodes.last().className)
+  }
+
 
   @Test
   fun `requestStopRecording with retained objects triggers dump and waits`() {

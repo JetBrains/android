@@ -134,6 +134,7 @@ object TaskBasedUxStrings {
   const val LEAKCANARY_COLLAPSE_ALL = "Collapse all nodes"
   const val LEAKCANARY_EXPAND_ALL_SHORTCUT = "Ctrl+NumPad+"
   const val LEAKCANARY_COLLAPSE_ALL_SHORTCUT = "Ctrl+NumPad-"
+  const val LEAKCANARY_FIX_WITH_AGENT = "Fix with Agent"
   const val LEAKCANARY_COPY_TO_CLIPBOARD = "Copy trace to clipboard"
   const val LEAKCANARY_ANALYSIS = "Analyzing results:"
   const val LEAKCANARY_WAITING_HEAP_DUMP = "Waiting to dump heap until"

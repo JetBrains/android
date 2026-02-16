@@ -28,6 +28,7 @@ public interface FeatureConfig {
   boolean isTaskBasedUxEnabled();
   boolean isTraceboxEnabled();
   boolean isLeakCanaryEnabled();
+  boolean isLeakCanaryStudioBotEnabled();
   boolean isSystemTraceInEditorEnabled();
   boolean isMethodTraceInEditorEnabled();
   boolean isProfilerHomeTabV2Enabled();

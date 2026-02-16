@@ -99,6 +99,8 @@ fun LeakDetailsPanel(
   onOpenStatesChange: (List<Boolean>) -> Unit,
   onCopy: () -> Unit,
   trackUiAction: (LeakCanaryUiAction) -> Unit = {},
+  onAnalyzeLeakWithStudioBot: (Leak?) -> Unit = {},
+  isLeakCanaryStudioBotEnabled: Boolean = false,
 ) {
   val emptyLeakMessage = if (isRecording) LEAKCANARY_LEAK_DETAIL_EMPTY_INITIAL_MESSAGE else LEAKCANARY_NO_LEAK_FOUND_MESSAGE
   val traceNodes = selectedLeak?.displayedLeakTrace?.firstOrNull()?.nodes ?: emptyList()
@@ -122,7 +124,7 @@ fun LeakDetailsPanel(
   } else {
     val scrollState = rememberScrollState()
     Column(modifier = Modifier.fillMaxSize()) {
-      LeakActionToolbar(selectedLeak = selectedLeak, onExpandAll = onExpandAll, onCollapseAll = onCollapseAll, onCopy = onCopy)
+        LeakActionToolbar(selectedLeak = selectedLeak, onExpandAll = onExpandAll, onCollapseAll = onCollapseAll, onCopy = onCopy, onAnalyzeLeakWithStudioBot = { onAnalyzeLeakWithStudioBot(selectedLeak) }, isStudioBotEnabled = isLeakCanaryStudioBotEnabled)
       ToolWindowHorizontalDivider()
       Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState).padding(10.dp)) {

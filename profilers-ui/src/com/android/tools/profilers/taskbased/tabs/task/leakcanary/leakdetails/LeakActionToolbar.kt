@@ -19,12 +19,15 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.android.tools.leakcanarylib.data.Leak
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings
@@ -34,6 +37,7 @@ import java.awt.datatransfer.StringSelection
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IconButton
+import org.jetbrains.jewel.ui.component.OutlinedButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.Tooltip
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
@@ -41,14 +45,31 @@ import org.jetbrains.jewel.ui.icons.AllIconsKeys
 /** A composable for the content of the leak action toolbar. */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun LeakActionToolbar(selectedLeak: Leak, onExpandAll: () -> Unit, onCollapseAll: () -> Unit, onCopy: () -> Unit) {
+fun LeakActionToolbar(
+  selectedLeak: Leak?,
+  onExpandAll: () -> Unit,
+  onCollapseAll: () -> Unit,
+  onCopy: () -> Unit,
+  isStudioBotEnabled: Boolean,
+  onAnalyzeLeakWithStudioBot: () -> Unit,
+) {
   Row(
     modifier =
-      Modifier.padding(horizontal = TaskBasedUxDimensions.TASK_ACTION_BAR_ACTION_HORIZONTAL_SPACE_DP)
+      Modifier.padding(
+          horizontal = TaskBasedUxDimensions.TASK_ACTION_BAR_ACTION_HORIZONTAL_SPACE_DP,
+        vertical = TaskBasedUxDimensions.LEAKCANARY_ACTION_BAR_VERTICAL_PADDING_DP,
+        )
         .fillMaxWidth()
-        .height(TaskBasedUxDimensions.TABLE_HEADER_ROW_HEIGHT_DP),
+        .height(TaskBasedUxDimensions.LEAKCANARY_ACTION_BAR_HEIGHT_DP),
     horizontalArrangement = Arrangement.End,
+    verticalAlignment = Alignment.CenterVertically,
   ) {
+    if (isStudioBotEnabled) {
+      OutlinedButton(onClick = onAnalyzeLeakWithStudioBot, enabled = selectedLeak != null) {
+        Text(TaskBasedUxStrings.LEAKCANARY_FIX_WITH_AGENT)
+      }
+      Spacer(Modifier.width(8.dp))
+    }
     Tooltip(
       tooltip = {
         Column(horizontalAlignment = Alignment.Start) {
@@ -57,7 +78,7 @@ fun LeakActionToolbar(selectedLeak: Leak, onExpandAll: () -> Unit, onCollapseAll
         }
       }
     ) {
-      IconButton(onClick = onExpandAll) {
+      IconButton(onClick = onExpandAll, enabled = selectedLeak != null) {
         Icon(
           key = StudioIconsCompose.Profiler.Toolbar.ExpandSession,
           contentDescription = TaskBasedUxStrings.LEAKCANARY_EXPAND_ALL,
@@ -73,7 +94,7 @@ fun LeakActionToolbar(selectedLeak: Leak, onExpandAll: () -> Unit, onCollapseAll
         }
       }
     ) {
-      IconButton(onClick = onCollapseAll) {
+      IconButton(onClick = onCollapseAll, enabled = selectedLeak != null) {
         Icon(
           key = StudioIconsCompose.Profiler.Toolbar.CollapseSession,
           contentDescription = TaskBasedUxStrings.LEAKCANARY_COLLAPSE_ALL,

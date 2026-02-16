@@ -20,6 +20,7 @@ import com.android.tools.idea.codenavigation.CodeNavigator;
 import com.android.tools.idea.codenavigation.FakeNavSource;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.transport.EventStreamServer;
+import com.android.tools.leakcanarylib.data.Leak;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.FakeTracePreProcessor;
@@ -116,6 +117,8 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
    */
   private boolean myTaskBasedUxEnabled = true;
 
+  private boolean myLeakCanaryStudioBotEnabled = false;
+
   /**
    * Whether we should be load tracebox.
    */
@@ -131,6 +134,9 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myMethodTraceInEditorEnabled = false;
 
   private boolean myProfilerHomeTabV2Enabled = false;
+
+  private String myLastLeakRawTrace;
+  private Leak myLastLeak;
 
   /**
    * Whether power and battery data tracks should be visible in system trace and if shown,
@@ -272,6 +278,11 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isLeakCanaryEnabled() {
         return myLeakCanaryEnabled;
+      }
+
+      @Override
+      public boolean isLeakCanaryStudioBotEnabled() {
+        return myLeakCanaryStudioBotEnabled;
       }
 
       @Override
@@ -485,6 +496,10 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
     mySystemTraceInEditorEnabled = enabled;
   }
 
+  public void enableLeakCanaryStudioBot(boolean enabled) {
+    myLeakCanaryStudioBotEnabled = enabled;
+  }
+
   public void enableMethodTraceInEditor(boolean enabled) {
     myMethodTraceInEditorEnabled = enabled;
   }
@@ -501,5 +516,21 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
 
   @Override
   public void closeTaskTab(@NotNull ProfilerTaskType taskType) {
+  }
+
+  @Override
+  public void analyzeLeakWithStudioBot(@NotNull String rawTrace, @Nullable Leak leak) {
+    myLastLeakRawTrace = rawTrace;
+    myLastLeak = leak;
+  }
+
+  @Nullable
+  public String getLastLeakRawTrace() {
+    return myLastLeakRawTrace;
+  }
+
+  @Nullable
+  public Leak getLastLeak() {
+    return myLastLeak;
   }
 }
