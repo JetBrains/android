@@ -331,7 +331,7 @@ class TaskHomeTabModelTest {
     val e = assertThrows(AssertionError::class.java) { taskHomeTabModel.onEnterTaskButtonClick() }
     // Make sure that it attempted to stop the current/ongoing task (Callstack Sample)
     assertThat(e.message)
-      .isEqualTo("There was an error with the Callstack Sample task. Error message: Cannot stop the task as the InterimStage was null.")
+      .isEqualTo("There was an error with the Callstack Sample task. Error message: Cannot stop the task as the stage was null.")
   }
 
   @Test

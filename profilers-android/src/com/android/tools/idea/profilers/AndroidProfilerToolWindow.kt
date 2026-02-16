@@ -285,6 +285,8 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     val createdTaskTab = window.getContentManager().selectedContent!!
 
     createdTaskTab.setDisposer { onTaskTabClose() }
+
+    registerSessionEndListener()
   }
 
   /** Closes the Profiler task tab for a specified task type. */
@@ -296,28 +298,41 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
   }
 
   private fun onTaskTabClose() {
-    // On close of the task tab, end the current session/task if its ongoing and reset the current session selection.
-    // If the current task/session is ongoing/alive, terminate it and reset the selected session to reflect that the closed task is
-    // no longer selected.
     val sessionsManager = profilers.sessionsManager
+
+    // On close of the task tab, end the current session/task if its ongoing
+    // Once the session end event is received, reset the selected session
+    // to reflect that the closed task is no longer selected
     if (sessionsManager.isSessionAlive) {
-      // Reset the session selection when the ongoing task's session is ended and processed by the SessionsManager.
-      sessionsManager.addDependency(this).onChange(SessionAspect.ONGOING_SESSION_NEWLY_ENDED) {
-        // Remove this aspect listener to prevent repetitive/future calls.
-        sessionsManager.removeDependencies(this)
-        // Reflect the selected task being removed by resetting the session selection.
-        sessionsManager.resetSessionSelection()
-      }
-      // Stop the task which will also stop the underlying session.
-      currentTaskHandler!!.stopTask()
-    }
-    // If the task is already terminated on close, there is no need to end ongoing session.
-    else {
-      // Reflect the selected task being removed by resetting the session selection.
+      currentTaskHandler?.takeIf { it.canStop() }?.stopTask()
+    } else {
+      // Perform session cleanup and deregister listener.
+      sessionsManager.removeDependencies(this)
       sessionsManager.resetSessionSelection()
     }
+
     currentTaskHandler!!.exit()
     currentTaskHandler = null
+  }
+
+  private fun registerSessionEndListener() {
+    val sessionsManager = profilers.sessionsManager
+
+    sessionsManager.removeDependencies(this)
+    sessionsManager.addDependency(this).onChange(SessionAspect.ONGOING_SESSION_NEWLY_ENDED) {
+      // In an edge-case scenario if another session is started we do not want to clean up the new session.
+      // This check prevents the session cleanup logic to be fired if a new session has started.
+      if (sessionsManager.isSessionAlive) return@onChange
+
+      currentTaskHandler?.takeIf { it.canStop() }?.stopTask()
+
+      // If the task tab is closed, reset the selected session.
+      // Also see [onTaskTabClose].
+      if (findTaskTab() == null) {
+        sessionsManager.removeDependencies(this)
+        sessionsManager.resetSessionSelection()
+      }
+    }
   }
 
   /** Opens an existing Profiler task tab. There is at most one existing task tab at any time that can be opened. */
