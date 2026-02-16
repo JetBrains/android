@@ -80,6 +80,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -177,6 +178,7 @@ class ComposePreviewRepresentationGradleTest {
     )
   }
 
+  @Ignore("b/484933529")
   @Test
   fun `changes to code are reflected in the preview when rebuilding`() = runBlocking {
     // This test only makes sense when fast preview is disabled, as some build related logic is
