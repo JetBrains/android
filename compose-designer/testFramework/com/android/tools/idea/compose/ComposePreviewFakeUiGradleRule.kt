@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose
 
+import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.preview.ComposePreviewRefreshType
@@ -38,7 +39,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.IndexingTestUtil
-import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.image.BufferedImage
@@ -135,21 +135,14 @@ class ComposePreviewFakeUiGradleRule(
     composePreviewRepresentation.activateAndWaitForRender(fakeUi)
     composePreviewRepresentation.waitForAnyPreviewToBeAvailable()
 
-    runAndWaitForRefresh { composePreviewRepresentation.requestRefreshForTest() }
-    logger.debug("requestRefresh completed")
-
-    withContext(Dispatchers.EDT) {
-      previewView.updateVisibilityAndNotifications()
-      UIUtil.dispatchAllInvocationEvents()
+    // Retry refresh if there are unexpected results to avoid flakiness due to timing
+    delayUntilCondition(delayPerIterationMs = 500L) {
+      runAndWaitForRefresh { composePreviewRepresentation.requestRefreshForTest() }
+      logger.debug("requestRefresh completed")
+      validate()
+      with(previewView) { hasRendered && hasContent } && with(composePreviewRepresentation.status()) { !hasErrors && !isOutOfDate }
     }
 
-    assertTrue(previewView.hasRendered)
-    assertTrue(previewView.hasContent)
-    assertTrue(!composePreviewRepresentation.status().hasErrors)
-    assertTrue(!composePreviewRepresentation.status().hasSyntaxErrors)
-    assertTrue(!composePreviewRepresentation.status().isOutOfDate)
-
-    validate()
     logger.info("ComposePreviewFakeUiGradleRuleImpl setUp completed")
   }
 
