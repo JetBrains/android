@@ -20,6 +20,7 @@ import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
 import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
+import com.android.tools.compose.COMPOSE_PREVIEW_WRAPPER_ANNOTATION_FQN
 import com.android.tools.compose.MULTIPLATFORM_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.MULTIPLATFORM_PREVIEW_PARAMETER_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNode
@@ -56,6 +57,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.mapNotNull
 import org.jetbrains.uast.UAnnotation
+import org.jetbrains.uast.UClassLiteralExpression
 import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UMethod
 
@@ -123,6 +125,11 @@ suspend fun getPreviewNodes(composableMethod: UMethod, overrideGroupName: String
     rootSearchElement = composableMethod,
   )
 
+@RequiresReadLock
+fun UAnnotation.isPreviewWrapper(): Boolean {
+  return qualifiedName == COMPOSE_PREVIEW_WRAPPER_ANNOTATION_FQN
+}
+
 /**
  * Given a root search [UElement], return a sequence of [PreviewNode] that are part of that element's MultiPreview graph.
  *
@@ -138,6 +145,7 @@ private suspend fun getPreviewNodes(
   if (readAction { !composableMethod.isComposable() }) return emptyFlow()
   val composableFqn = readAction { composableMethod.qualifiedName }
   val multiPreviewNodesByFqn = mutableMapOf<String, MultiPreviewNode>()
+  val previewWrapperProviderFqn = getPreviewWrapperProviderFqn(composableMethod)
 
   return flow {
     rootSearchElement
@@ -146,14 +154,24 @@ private suspend fun getPreviewNodes(
           if (includeAllNodes)
             onTraversal@{ node ->
               val annotationFqn = readAction { (node.element as? UAnnotation)?.qualifiedName } ?: return@onTraversal
-              val multiPreviewNode = node.toMultiPreviewNode(multiPreviewNodesByFqn, composableFqn) ?: return@onTraversal
-              multiPreviewNodesByFqn[annotationFqn] = multiPreviewNode
+
+              // We don't go deeper into multi previews if the annotation is Preview wrapper.
+              if (readAction { (node.element as? UAnnotation)?.isPreviewWrapper() } != true) {
+                val multiPreviewNode = node.toMultiPreviewNode(multiPreviewNodesByFqn, composableFqn) ?: return@onTraversal
+                multiPreviewNodesByFqn[annotationFqn] = multiPreviewNode
+              }
             }
           else null
       ) {
         readAction { it.isPreviewAnnotation() }
       }
-      .mapNotNull { it.toPreviewElement(composableMethod = composableMethod, overrideGroupName = overrideGroupName) }
+      .mapNotNull {
+        it.toPreviewElement(
+          composableMethod = composableMethod,
+          overrideGroupName = overrideGroupName,
+          previewWrapperProviderFqn = previewWrapperProviderFqn,
+        )
+      }
       .collect { emit(it) }
 
     if (includeAllNodes) {
@@ -161,6 +179,21 @@ private suspend fun getPreviewNodes(
       emit(composableMethod.toMultiPreviewNode(multiPreviewNodesByFqn))
     }
   }
+}
+
+/**
+ * Returns the fully qualified name (FQN) of the PreviewWrapperProvider class associated with the given [composableMethod], if any.
+ *
+ * The PreviewWrapperProvider is determined by looking for an annotation that is marked as a PreviewWrapper (see [isPreviewWrapper]). If
+ * such an annotation is found, the value of its `wrapper` attribute is extracted. This attribute is expected to be a class literal,
+ * representing the wrapper provider class that should be used to wrap the composable when generating the preview.
+ *
+ * @param composableMethod The [UMethod] representing the composable function being inspected.
+ * @return The fully qualified name of the PreviewWrapperProvider class, or `null` if no wrapper is specified.
+ */
+private suspend fun getPreviewWrapperProviderFqn(composableMethod: UMethod): String? {
+  val previewWrapperAnnotation = composableMethod.uAnnotations.find { readAction { it.isPreviewWrapper() } }
+  return readAction { (previewWrapperAnnotation?.findAttributeValue("wrapper") as? UClassLiteralExpression)?.type?.canonicalText }
 }
 
 /**
@@ -192,10 +225,15 @@ internal fun UAnnotation.getContainingComposableUMethod() = this.getContainingUM
 /** Returns true when the UMethod is not null, and it is annotated with @Composable */
 private fun UMethod?.isComposable() = this.isAnnotatedWith(COMPOSABLE_ANNOTATION_FQ_NAME)
 
-/** Converts a given [NodeInfo] of type [UAnnotationSubtreeInfo] to a [ComposePreviewElement]. */
+/**
+ * Converts a given [NodeInfo] of type [UAnnotationSubtreeInfo] to a [ComposePreviewElement].
+ *
+ * @param previewWrapperProviderFqn the fully qualified name of the PreviewWrapperProvider class, or `null` if no wrapper is specified.
+ */
 private suspend fun NodeInfo<UAnnotationSubtreeInfo>.toPreviewElement(
   composableMethod: UMethod,
   overrideGroupName: String?,
+  previewWrapperProviderFqn: String? = null,
 ): ComposePreviewElement<*>? {
   val annotation = element as UAnnotation
   if (readAction { !annotation.isPreviewAnnotation() }) return null
@@ -216,6 +254,7 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.toPreviewElement(
       overrideGroupName,
       buildPreviewName = nameHelper::buildPreviewName,
       buildParameterName = nameHelper::buildParameterName,
+      previewWrapperProviderFqn = previewWrapperProviderFqn,
     )
   }
 }

@@ -71,6 +71,12 @@ data class PreviewParameter(val name: String, val index: Int, val providerClassF
  */
 interface ComposePreviewElement<T> : MethodPreviewElement<T>, ConfigurablePreviewElement<T> {
   /**
+   * Fully qualified name of a class that serves as a wrapper for displaying or processing the method represented by this preview element.
+   * This class typically provides an outer container or additional capabilities for the preview.
+   */
+  val previewWrapperProviderFqn: String?
+
+  /**
    * [ComposePreviewElementInstance]s that this [ComposePreviewElement] can be resolved into. A single [ComposePreviewElement] can produce
    * multiple [ComposePreviewElementInstance]s for example if @Composable method has parameters.
    */
@@ -103,6 +109,9 @@ abstract class ComposePreviewElementInstance<T> : ComposePreviewElement<T>, XmlS
         // [COMPOSE_VIEW_ADAPTER] view attribute containing the FQN of the @Composable name to call
         .toolsAttribute("composableName", methodFqn)
 
+    // Add PreviewWrapper
+    previewWrapperProviderFqn?.let { xmlBuilder.toolsAttribute("previewWrapperProviderClass", it) }
+
     when (val background = displaySettings.background) {
       is PreviewDisplaySettings.Background.Default -> xmlBuilder.androidAttribute(ATTR_BACKGROUND, DEFAULT_PREVIEW_BACKGROUND)
       is PreviewDisplaySettings.Background.Color -> xmlBuilder.androidAttribute(ATTR_BACKGROUND, background.color)
@@ -127,10 +136,11 @@ abstract class ComposePreviewElementInstance<T> : ComposePreviewElement<T>, XmlS
     return methodFqn == other.methodFqn &&
       instanceId == other.instanceId &&
       displaySettings == other.displaySettings &&
-      configuration == other.configuration
+      configuration == other.configuration &&
+      previewWrapperProviderFqn == other.previewWrapperProviderFqn
   }
 
-  override fun hashCode(): Int = Objects.hash(methodFqn, displaySettings, configuration, instanceId)
+  override fun hashCode(): Int = Objects.hash(methodFqn, displaySettings, configuration, instanceId, previewWrapperProviderFqn)
 }
 
 /** Definition of a single preview element instance. This represents a `Preview` with no parameters. */
@@ -140,11 +150,19 @@ class SingleComposePreviewElementInstance<T>(
   override val previewElementDefinition: T?,
   override val previewBody: T?,
   override val configuration: PreviewConfiguration,
+  override val previewWrapperProviderFqn: String? = null,
 ) : ComposePreviewElementInstance<T>() {
   override val instanceId: String = methodFqn
 
   override fun createDerivedInstance(displaySettings: PreviewDisplaySettings, config: PreviewConfiguration) =
-    SingleComposePreviewElementInstance(methodFqn, displaySettings, previewElementDefinition, previewBody, config)
+    SingleComposePreviewElementInstance(
+      methodFqn,
+      displaySettings,
+      previewElementDefinition,
+      previewBody,
+      config,
+      previewWrapperProviderFqn,
+    )
 
   companion object {
     @JvmStatic
@@ -207,7 +225,15 @@ class ParametrizedComposePreviewElementInstance<T>(
     displaySettings: PreviewDisplaySettings,
     config: PreviewConfiguration,
   ): ParametrizedComposePreviewElementInstance<T> {
-    val singleInstance = SingleComposePreviewElementInstance(methodFqn, displaySettings, previewElementDefinition, previewBody, config)
+    val singleInstance =
+      SingleComposePreviewElementInstance(
+        methodFqn,
+        displaySettings,
+        previewElementDefinition,
+        previewBody,
+        config,
+        previewWrapperProviderFqn,
+      )
     return ParametrizedComposePreviewElementInstance(singleInstance, null, providerClassFqn, index, maxIndex, null)
   }
 
@@ -396,6 +422,7 @@ open class ParametrizedComposePreviewElementTemplate<T>(
         null,
         null,
         PreviewConfiguration.cleanAndGet(),
+        previewWrapperProviderFqn,
       )
     )
   }
