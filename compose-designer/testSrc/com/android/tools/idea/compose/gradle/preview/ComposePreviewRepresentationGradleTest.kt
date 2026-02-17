@@ -80,7 +80,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -178,12 +177,13 @@ class ComposePreviewRepresentationGradleTest {
     )
   }
 
-  @Ignore("b/484933529")
   @Test
   fun `changes to code are reflected in the preview when rebuilding`() = runBlocking {
     // This test only makes sense when fast preview is disabled, as some build related logic is
     // being tested.
     FastPreviewManager.getInstance(project).disable()
+
+    projectRule.buildAndRefresh(failOnTimeout = false)
     val firstRender = projectRule.findSceneViewRenderWithName("TwoElementsPreview")
 
     // Make a change to the preview
@@ -196,8 +196,8 @@ class ComposePreviewRepresentationGradleTest {
     }
 
     projectRule.buildAndRefresh(failOnTimeout = false)
-
     val secondRender = projectRule.findSceneViewRenderWithName("TwoElementsPreview")
+
     assertTrue(
       "Second image expected at least 10% higher but were second=${secondRender.height} first=${firstRender.height}",
       secondRender.height > (firstRender.height * 1.10),
@@ -215,8 +215,8 @@ class ComposePreviewRepresentationGradleTest {
     }
 
     projectRule.buildAndRefresh(failOnTimeout = false)
-
     val thirdRender = projectRule.findSceneViewRenderWithName("TwoElementsPreview")
+
     ImageDiffUtil.assertImageSimilar("testImage", firstRender, thirdRender, 10.0, 20)
   }
 
