@@ -38,7 +38,10 @@ import com.android.tools.idea.gradle.util.GradleBuilds.CLEAN_TASK_NAME
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.projectsystem.gradle.buildRootDir
+import com.android.tools.idea.projectsystem.gradle.getGradleBuildIdentityPath
+import com.android.tools.idea.projectsystem.gradle.getGradleIdentityPath
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
+import com.android.tools.idea.projectsystem.gradle.isLinkedAndroidModule
 import com.android.tools.idea.projectsystem.gradle.isMainModule
 import com.android.tools.idea.projectsystem.gradle.isUnitTestModule
 import com.google.common.annotations.VisibleForTesting
@@ -104,7 +107,6 @@ import java.util.concurrent.TimeUnit.SECONDS
 import org.gradle.tooling.BuildAction
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
-import org.jetbrains.kotlin.idea.base.projectStructure.externalProjectPath
 
 /**
  * Invokes Gradle tasks directly. Results of tasks execution are displayed in both the "Messages" tool window and the new "Gradle Console"
@@ -145,11 +147,19 @@ internal constructor(
       val buildMode = ASSEMBLE
       // If we have to build the whole project, i.e. we have one module and it's the root project's, then we need to extract all the modules
       // and get their build tasks.
+      // This looks different for Android projects, vs. Java.
       val tasks =
-        if (modules.size == 1 && modules.first().externalProjectPath == project.basePath) {
+        // 1st case: Java projects => we don't special case handle here and just build the modules that were passed.
+        if (modules.all { !it.isLinkedAndroidModule() }) {
+          taskFinder.findTasksToExecute(modules, buildMode)
+        }
+        // 2nd case: Android Projects.
+        // 2.1. Verify if we are running from the project root module, and in which case we need to explicitly invoke build on all the
+        // modules of the project.
+        else if (modules.size == 1 && modules.single().getGradleIdentityPath() == modules.single().getGradleBuildIdentityPath()) {
           taskFinder.findTasksToExecute(project.modules, buildMode)
         } else if (modules.size > 1) {
-          // Ife we have a list of modules to build, there we do not need to expand any further because we have all the necessary
+          // If we have a list of modules to build, there we do not need to expand any further because we have all the necessary
           // modules to build already.
           taskFinder.findTasksToExecute(modules, buildMode)
         } else {

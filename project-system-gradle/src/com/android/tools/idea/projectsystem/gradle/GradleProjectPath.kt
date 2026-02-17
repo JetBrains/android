@@ -71,7 +71,7 @@ fun GradleProjectPath.toSourceSetPath(sourceSet: IdeModuleSourceSet): GradleSour
 }
 
 /** Returns Gradle identity path (composite build-aware path) of the Gradle build this module belongs to e.g. ":" or ":includedBuild". */
-private fun Module.getGradleBuildIdentityPath(): String? {
+internal fun Module.getGradleBuildIdentityPath(): String? {
   fun computeValue(): String? {
     val mainModuleDataNode = CachedModuleDataFinder.findMainModuleData(this) ?: return null
     if (!mainModuleDataNode.data.isIncludedBuild) return ":"
