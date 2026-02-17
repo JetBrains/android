@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.ThreadFactoryBuilder
@@ -45,6 +44,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
@@ -62,7 +62,7 @@ import org.junit.Rule
 import org.junit.Test
 
 const val UI_THREAD = "UI thread"
-const val WORKER_THREAD = "Worker thread"
+const val WORKER_THREAD = "DefaultDispatcher"
 const val IO_THREAD = "IO thread"
 
 class CoroutineUtilsTest {
@@ -127,7 +127,7 @@ class CoroutineUtilsTest {
       /** Fake method that is aware of coroutines and enforces its own threading rules. */
       @AnyThread
       private suspend fun suspendComputeData(): String =
-        withContext(workerThread) {
+        withContext(Dispatchers.Default) {
           checkThread(WORKER_THREAD)
           "computed"
         }
@@ -139,7 +139,7 @@ class CoroutineUtilsTest {
         launch(uiThread) {
           checkThread(UI_THREAD)
           // This suspends the coroutine, releasing the IO thread until computation is done on the worker thread.
-          val computedData: String = withContext(workerThread) { computeData() }
+          val computedData: String = withContext(Dispatchers.Default) { computeData() }
           val anotherData = suspendComputeData()
 
           checkThread(UI_THREAD)
@@ -264,11 +264,11 @@ class CoroutineUtilsTest {
 
     // Wait until we know the read action has the lock
     readActionIsReady.await()
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       val writeActionExecuted = CompletableDeferred<Boolean>()
       try {
         val smartReadJob =
-          launch(workerThread) {
+          launch(Dispatchers.Default) {
             assertThat(writeActionExecuted.isCompleted).isFalse()
             runWriteActionAndWait { writeActionExecuted.complete(true) }
             assertThat(writeActionExecuted.isCompleted).isTrue()
@@ -373,7 +373,7 @@ class CoroutineUtilsTest {
     val countDownLatch = CountDownLatch(10)
     runBlocking {
       val collectJob =
-        launch(workerThread) {
+        launch(Dispatchers.Default) {
           disposableFlow.collect {
             flowReceiverCount.incrementAndGet()
             countDownLatch.countDown()
@@ -405,7 +405,7 @@ class CoroutineUtilsTest {
     val flowReceiverCount = AtomicInteger(0)
     val countDownLatch = CountDownLatch(expectedModeChanges)
     val job =
-      GlobalScope.launch(workerThread) {
+      GlobalScope.launch(Dispatchers.Default) {
         smartModeFlow.collect {
           flowReceiverCount.incrementAndGet()
           countDownLatch.countDown()

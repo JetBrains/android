@@ -17,7 +17,6 @@ package com.android.tools.idea.wearwhs.view
 
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.wearwhs.EventTrigger
 import com.android.tools.idea.wearwhs.WearWhsBundle.message
@@ -35,6 +34,7 @@ import javax.swing.SwingUtilities
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -75,7 +75,7 @@ internal class WearHealthServicesPanelController(
 
   fun showWearHealthServicesToolPopup(parentDisposable: Disposable, position: RelativePoint) {
     val panelUiScope = parentDisposable.createCoroutineScope(uiThread)
-    val panelWorkerScope = parentDisposable.createCoroutineScope(workerThread)
+    val panelWorkerScope = parentDisposable.createCoroutineScope(Dispatchers.Default)
     val panel =
       createWearHealthServicesPanel(
         stateManager,

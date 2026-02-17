@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.concurrency
 
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText
@@ -27,6 +26,7 @@ import com.intellij.psi.PsiManager
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.SharingStarted
@@ -63,7 +63,7 @@ class FlowsTest {
 
     runBlocking {
       val flowReady = CompletableDeferred<Unit>()
-      launch(workerThread) {
+      launch(Dispatchers.Default) {
         withTimeout(20.seconds) {
           try {
             psiFileChangeFlow(projectRule.project, this@runBlocking) { flowReady.complete(Unit) }

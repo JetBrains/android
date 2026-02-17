@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection
 
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
 import com.android.tools.idea.layoutinspector.pipeline.fakeDevice
@@ -32,6 +31,7 @@ import com.intellij.testFramework.ProjectRule
 import kotlin.test.fail
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
@@ -71,7 +71,7 @@ class HandshakeExecutorTest {
     syncChannel = Channel()
 
     scope = projectRule.project.coroutineScope
-    workDispatcher = AndroidDispatchers.workerThread
+    workDispatcher = Dispatchers.Default
     mockClient = mock()
     val mockStub = mock<TransportServiceBlockingStub>()
     `when`(mockClient.transportStub).thenReturn(mockStub)

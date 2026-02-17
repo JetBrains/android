@@ -38,6 +38,7 @@ import java.util.concurrent.TimeUnit
 import javax.swing.JButton
 import javax.swing.JLabel
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -70,7 +71,7 @@ class WearHealthServicesPanelControllerTest {
   @Before
   fun setup() {
     uiScope = AndroidCoroutineScope(projectRule.testRootDisposable, AndroidDispatchers.uiThread)
-    workerScope = AndroidCoroutineScope(projectRule.testRootDisposable, AndroidDispatchers.workerThread)
+    workerScope = AndroidCoroutineScope(projectRule.testRootDisposable, Dispatchers.Default)
     deviceManager = FakeDeviceManager()
 
     stateManager =

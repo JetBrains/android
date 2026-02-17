@@ -38,6 +38,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
 import javax.swing.Icon
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 /** The number of updates per second our simulated object models receive. */
@@ -82,7 +83,7 @@ class NetworkInspectorTabProvider : SingleAppInspectorTabProvider() {
           codeNavigationProvider,
           client,
           FpsTimer(UPDATES_PER_SECOND),
-          AndroidDispatchers.workerThread,
+          Dispatchers.Default,
           AndroidDispatchers.uiThread,
           usageTracker,
           ideServices,

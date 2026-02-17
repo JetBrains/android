@@ -18,7 +18,6 @@
 package com.android.tools.idea.wearwhs.view
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.mapState
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wearwhs.EventTrigger
@@ -34,6 +33,7 @@ import com.intellij.openapi.util.Disposer
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.fail
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -84,7 +84,7 @@ class WearHealthServicesStateManagerTest {
   fun setUp() = runBlocking {
     loggedEvents.clear()
 
-    val testWorkerScope = AndroidCoroutineScope(projectRule.testRootDisposable, AndroidDispatchers.workerThread)
+    val testWorkerScope = AndroidCoroutineScope(projectRule.testRootDisposable, Dispatchers.Default)
     deviceManager = FakeDeviceManager(capabilities)
     stateManager =
       WearHealthServicesStateManagerImpl(

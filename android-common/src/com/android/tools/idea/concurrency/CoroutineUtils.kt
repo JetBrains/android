@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.concurrency
 
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.utils.reflection.qualifiedName
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -92,18 +91,6 @@ object AndroidDispatchers {
     get() =
       Executor { block -> AndroidExecutors.getInstance().uiThreadExecutor(ModalityState.defaultModalityState(), block) }
         .asCoroutineDispatcher()
-
-  /**
-   * [CoroutineDispatcher] that dispatches to a background worker thread.
-   *
-   * @see AndroidExecutors.workerThreadExecutor
-   */
-  @Deprecated(
-    "Prefer using Dispatchers.Default. See https://plugins.jetbrains.com/docs/intellij/coroutine-dispatchers.html",
-    replaceWith = ReplaceWith(expression = "Dispatchers.Default", imports = ["kotlinx.coroutines.Dispatchers"]),
-  )
-  val workerThread: CoroutineDispatcher
-    get() = AndroidExecutors.getInstance().workerThreadExecutor.asCoroutineDispatcher()
 }
 
 private val LOG: Logger
@@ -153,7 +140,7 @@ fun SupervisorJob(disposable: Disposable): Job {
 /**
  * Returns a [CoroutineScope] containing:
  * - a [SupervisorJob] tied to the [Disposable] lifecycle of [disposable]
- * - [AndroidDispatchers.workerThread]
+ * - [Dispatchers.Default]
  * - a [CoroutineExceptionHandler] that logs unhandled exception at `ERROR` level.
  *
  * The optional [context] parameter can be used to override the [Job], [CoroutineDispatcher] and [CoroutineExceptionHandler] of the
@@ -168,7 +155,7 @@ fun SupervisorJob(disposable: Disposable): Job {
 )
 @Suppress("FunctionName") // Mirroring coroutines API, with many functions that look like constructors.
 fun AndroidCoroutineScope(disposable: Disposable, context: CoroutineContext = EmptyCoroutineContext): CoroutineScope {
-  return CoroutineScope(SupervisorJob() + workerThread + androidCoroutineExceptionHandler + context).apply {
+  return CoroutineScope(SupervisorJob() + Dispatchers.Default + androidCoroutineExceptionHandler + context).apply {
     cancelJobOnDispose(disposable, coroutineContext.job)
   }
 }
@@ -263,7 +250,7 @@ fun CoroutineScope.launchWithProgress(
     return scope.isActive
   }
 
-  scope.launch(workerThread) {
+  scope.launch(Dispatchers.Default) {
     while (checkProgressIndicatorState()) {
       delay(500)
     }
@@ -476,7 +463,7 @@ fun smartModeFlow(project: Project, parentDisposable: Disposable, logger: Logger
         },
       )
 
-    onConnected?.let { launch(workerThread) { it() } }
+    onConnected?.let { launch(Dispatchers.Default) { it() } }
 
     val isInDumbMode = DumbService.getInstance(project).isDumb
     logger?.debug { "SmartModeFlow setup complete wasInDumbMode=${wasInDumbMode.get()} isInDumbMode=${isInDumbMode}" }
@@ -507,7 +494,7 @@ fun psiFileChangeFlow(
         this.disposable,
       )
 
-      onConnected?.let { onConnected -> launch(workerThread) { onConnected() } }
+      onConnected?.let { onConnected -> launch(Dispatchers.Default) { onConnected() } }
     }
     // Avoid repeated change events for no modifications
     .distinctUntilChangedBy { psiManager.modificationTracker.modificationCount }

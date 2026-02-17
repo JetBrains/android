@@ -63,9 +63,7 @@ import com.android.tools.idea.avdmanager.ui.DeviceUiAction
 import com.android.tools.idea.avdmanager.ui.EditDeviceAction
 import com.android.tools.idea.avdmanager.ui.ExportDeviceAction
 import com.android.tools.idea.avdmanager.ui.ImportDevicesAction
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.sdk.getOrSetupValidSdk
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent
@@ -92,7 +90,7 @@ import org.jetbrains.jewel.ui.component.Icon
  */
 suspend fun showAddDeviceDialog(project: Project?, parent: Component?): AvdInfo? {
   val sdkHandler = getOrSetupValidSdk(project, "An Android SDK is required to create an AVD.") ?: return null
-  val source = withContext(workerThread) { LocalVirtualDeviceSource.create(sdkHandler) }
+  val source = withContext(Dispatchers.Default) { LocalVirtualDeviceSource.create(sdkHandler) }
   return withContext(uiThread) {
     var avdInfo: AvdInfo? = null
     val wizard = AddDeviceWizard(source, project, accelerationCheck = { checkAcceleration(source.sdkHandler) }, onAdd = { avdInfo = it })
@@ -126,7 +124,7 @@ internal class AddDeviceWizard(
     val density = LocalDensity.current
 
     var accelerationError by remember { mutableStateOf(AccelerationErrorCode.ALREADY_INSTALLED) }
-    LaunchedEffect(Unit) { withContext(AndroidDispatchers.workerThread) { accelerationError = accelerationCheck() } }
+    LaunchedEffect(Unit) { withContext(Dispatchers.Default) { accelerationError = accelerationCheck() } }
 
     val deviceTableShowDetailsState = getOrCreateState { DeviceTableShowDetailsState() }
     val lazyListState = getOrCreateState { LazyListState() }

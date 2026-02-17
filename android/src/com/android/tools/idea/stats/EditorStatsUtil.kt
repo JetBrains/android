@@ -33,7 +33,6 @@ import com.android.resources.ResourceFolderType.NAVIGATION
 import com.android.resources.ResourceFolderType.RAW
 import com.android.resources.ResourceFolderType.TRANSITION
 import com.android.resources.ResourceFolderType.VALUES
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.getFolderType
 import com.google.wireless.android.sdk.stats.EditorFileType
@@ -76,6 +75,7 @@ import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import java.util.Locale
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
@@ -107,7 +107,7 @@ suspend fun getEditorFileTypeForAnalytics(file: VirtualFile, project: Project?):
     "Kotlin" ->
       when {
         file.extension == "kts" -> KOTLIN_SCRIPT
-        withContext(workerThread) { isComposeEnabled(file, project) } -> KOTLIN_COMPOSE
+        withContext(Dispatchers.Default) { isComposeEnabled(file, project) } -> KOTLIN_COMPOSE
         else -> KOTLIN
       }
     "Groovy" -> GROOVY

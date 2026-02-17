@@ -120,6 +120,7 @@ import javax.swing.JPopupMenu
 import kotlin.io.path.pathString
 import kotlin.io.path.writeText
 import kotlin.test.fail
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import org.junit.Ignore
 import org.junit.Rule
@@ -1274,6 +1275,7 @@ class LogcatMainPanelTest {
         hyperlinkDetector,
         foldingDetector,
         zoneId,
+        executor.asCoroutineDispatcher(),
       )
       .also { Disposer.register(disposable) { runInEdtAndWait { Disposer.dispose(it) } } }
   }

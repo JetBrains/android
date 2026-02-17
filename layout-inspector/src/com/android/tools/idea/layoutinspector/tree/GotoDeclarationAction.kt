@@ -32,6 +32,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.pom.Navigatable
 import com.intellij.ui.EditorNotificationPanel.Status
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -82,7 +83,7 @@ object GotoDeclaration {
 
   @Slow
   private suspend fun findNavigatable(model: InspectorModel, client: InspectorClient, notificationModel: NotificationModel): Navigatable? =
-    withContext(AndroidDispatchers.workerThread) {
+    withContext(Dispatchers.Default) {
       val resourceLookup = model.resourceLookup
       val node = model.selection ?: return@withContext null
       val navigatable =

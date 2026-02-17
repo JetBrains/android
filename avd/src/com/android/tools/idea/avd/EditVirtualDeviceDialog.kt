@@ -99,7 +99,7 @@ internal class EditVirtualDeviceDialog(
   companion object {
     suspend fun show(project: Project?, parent: Component?, avdInfo: AvdInfo, mode: Mode): Boolean {
       val skins =
-        withContext(AndroidDispatchers.workerThread) {
+        withContext(Dispatchers.Default) {
           SkinComboBoxModel.merge(listOf(NoSkin.INSTANCE), SkinCollector.updateAndCollect()).toImmutableList()
         }
       val baseDevice = DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevice(avdInfo.deviceName, avdInfo.deviceManufacturer)

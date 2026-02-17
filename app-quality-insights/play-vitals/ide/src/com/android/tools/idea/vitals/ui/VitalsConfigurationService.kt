@@ -58,6 +58,7 @@ import com.intellij.util.IncorrectOperationException
 import java.time.Clock
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -225,7 +226,7 @@ class VitalsConfigurationManager(
           AppInsightsProjectLevelControllerImpl(
             provider = VitalsInsightsProvider,
             uiScope,
-            AndroidDispatchers.workerThread,
+            Dispatchers.Default,
             clientDeferred.await(),
             queryConnectionsFlow.mapConnectionsToVariantConnectionsIfReady(),
             offlineStatusManager,

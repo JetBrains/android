@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.build
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.editors.fast.BlockingDaemonClient
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration
@@ -37,6 +36,7 @@ import com.intellij.openapi.util.Disposer
 import java.util.concurrent.CountDownLatch
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -87,7 +87,7 @@ class RenderingBuildStatusManagerTest {
       val buildTargetReference = BuildTargetReference.gradleOnly(projectRule.fixture.module)
       val asyncScope = AndroidCoroutineScope(projectRule.fixture.testRootDisposable)
       val latch = CountDownLatch(11)
-      asyncScope.launch(AndroidDispatchers.workerThread) {
+      asyncScope.launch(Dispatchers.Default) {
         fastPreviewManager.compileRequest(psiFile, buildTargetReference)
         latch.countDown()
       }
@@ -97,12 +97,12 @@ class RenderingBuildStatusManagerTest {
 
       // Launch additional requests
       repeat(10) {
-        asyncScope.launch(AndroidDispatchers.workerThread) {
+        asyncScope.launch(Dispatchers.Default) {
           fastPreviewManager.compileRequest(psiFile, buildTargetReference)
           latch.countDown()
         }
       }
-      asyncScope.launch(AndroidDispatchers.workerThread) { repeat(10) { blockingDaemon.completeOneRequest() } }
+      asyncScope.launch(Dispatchers.Default) { repeat(10) { blockingDaemon.completeOneRequest() } }
       latch.await()
       Assert.assertFalse(statusManager.isBuilding)
     }

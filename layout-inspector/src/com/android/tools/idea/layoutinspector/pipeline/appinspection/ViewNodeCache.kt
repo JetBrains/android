@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import java.util.concurrent.ConcurrentHashMap
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
@@ -75,7 +75,7 @@ abstract class ViewNodeCache<D>(protected val model: InspectorModel) {
     // we might override values with those that don't match our last snapshot.
     if (!allowFetching) return null
 
-    return withContext(AndroidDispatchers.workerThread) {
+    return withContext(Dispatchers.Default) {
       val data = fetchDataFor(root, node)
       if (data != null) {
         setDataFor(root.drawId, node.drawId, data)

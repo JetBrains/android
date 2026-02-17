@@ -18,7 +18,6 @@ package com.android.tools.inspectors.common.ui.dataviewer
 import com.android.tools.adtui.stdui.ResizableImage
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.intellij.openapi.Disposable
 import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.components.BorderLayoutPanel
@@ -27,6 +26,7 @@ import java.io.ByteArrayInputStream
 import javax.imageio.ImageIO
 import javax.swing.JLabel
 import javax.swing.SwingConstants
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -39,7 +39,7 @@ class IntellijImageDataViewer(imageBytes: ByteArray, parentDisposable: Disposabl
   private val panel = BorderLayoutPanel()
 
   init {
-    AndroidCoroutineScope(parentDisposable, workerThread).launch {
+    AndroidCoroutineScope(parentDisposable, Dispatchers.Default).launch {
       val image = ImageIO.read(ByteArrayInputStream(imageBytes))
       withContext(uiThread) {
         val contents =

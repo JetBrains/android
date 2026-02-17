@@ -20,7 +20,6 @@ import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.execution.common.debug.utils.showError
 import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider.Companion.getApplicationProjectContext
@@ -35,6 +34,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -150,7 +150,7 @@ internal class ReattachingDebuggerListener<S : AndroidDebuggerState>(
   override fun clientChanged(client: Client, changeMask: Int) {
     if (isClientForDebug(client, changeMask) && !masterProcessHandler.isProcessTerminating && !masterProcessHandler.isProcessTerminated) {
       addProcessedClientPid(client.clientData.pid)
-      AndroidCoroutineScope(project).launch(workerThread) {
+      AndroidCoroutineScope(project).launch(Dispatchers.Default) {
         LOG.info("Attaching debugger to a client, PID: ${client.clientData.pid}")
         val session =
           DebugSessionStarter.attachDebuggerToStartedProcess(

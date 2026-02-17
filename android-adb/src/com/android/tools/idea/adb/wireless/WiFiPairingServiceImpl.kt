@@ -19,7 +19,6 @@ import com.android.adblib.AdbFeatures.TRACK_MDNS_SERVICE
 import com.android.adblib.MdnsServices
 import com.android.adblib.ServerStatus.Companion.UNKNOWN
 import com.android.annotations.concurrency.AnyThread
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.logger
@@ -32,10 +31,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
 @AnyThread
-class WiFiPairingServiceImpl(
-  private val randomProvider: RandomProvider,
-  private val adbService: AdbServiceWrapper,
-) : WiFiPairingService {
+class WiFiPairingServiceImpl(private val randomProvider: RandomProvider, private val adbService: AdbServiceWrapper) : WiFiPairingService {
   private val LOG = logger<WiFiPairingServiceImpl>()
   private val studioServiceNamePrefix = "studio-"
 
@@ -87,7 +83,7 @@ class WiFiPairingServiceImpl(
   }
 
   override suspend fun generateQrCode(backgroundColor: Color, foregroundColor: Color): QrCodeImage {
-    return withContext(AndroidDispatchers.workerThread) {
+    return withContext(Dispatchers.Default) {
       val serviceName = studioServiceNamePrefix + randomProvider.createRandomInstanceName()
       val password = randomProvider.createRandomPassword()
       val pairingString = createPairingString(serviceName, password)

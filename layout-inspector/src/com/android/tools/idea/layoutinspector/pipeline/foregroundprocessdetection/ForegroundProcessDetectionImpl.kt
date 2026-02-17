@@ -19,7 +19,6 @@ import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.transport.TransportClient
@@ -42,6 +41,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
@@ -120,7 +120,7 @@ class ForegroundProcessDetectionImpl(
   private val metrics: ForegroundProcessDetectionMetrics,
   private val scope: CoroutineScope,
   private val streamManager: TransportStreamManager,
-  private val workDispatcher: CoroutineDispatcher = AndroidDispatchers.workerThread,
+  private val workDispatcher: CoroutineDispatcher = Dispatchers.Default,
   @TestOnly private val onDeviceDisconnected: (DeviceDescriptor) -> Unit = {},
   @TestOnly private val pollingIntervalMs: Long = 2000,
 ) : ForegroundProcessDetection, Disposable {
@@ -458,7 +458,7 @@ class ForegroundProcessDetectionImpl(
 
 /** Send a command to the transport. */
 internal suspend fun TransportClient.sendCommand(commandType: Commands.Command.CommandType, streamId: Long) =
-  withContext(AndroidDispatchers.workerThread) {
+  withContext(Dispatchers.Default) {
     val command = Commands.Command.newBuilder().setType(commandType).setStreamId(streamId).build()
     // This is a potentially long-running operation, should not be executed on the main thread.
     transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build())

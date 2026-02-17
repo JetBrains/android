@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.concurrency
 
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.problems.ProblemListener
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 sealed class SyntaxErrorUpdate(val file: VirtualFile) {
@@ -59,7 +59,7 @@ fun syntaxErrorFlow(project: Project, parentDisposable: Disposable, logger: Logg
         },
       )
 
-    onConnected?.let { launch(workerThread) { it() } }
+    onConnected?.let { launch(Dispatchers.Default) { it() } }
   }
 
 /**

@@ -24,7 +24,6 @@ import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescript
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.pipeline.fakeDevice
@@ -45,6 +44,7 @@ import java.util.concurrent.atomic.AtomicLong
 import kotlin.test.fail
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
@@ -113,7 +113,7 @@ class ForegroundProcessDetectionTest {
     startTrackingSyncChannel = Channel()
     stopTrackingSyncChannel = Channel()
 
-    workDispatcher = AndroidDispatchers.workerThread
+    workDispatcher = Dispatchers.Default
     transportClient = TransportClient(grpcServerRule.name)
 
     coroutineScope = AndroidCoroutineScope(projectRule.disposable)

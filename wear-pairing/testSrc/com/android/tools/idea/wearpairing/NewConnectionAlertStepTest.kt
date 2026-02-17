@@ -19,7 +19,6 @@ import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.observable.BatchInvoker
 import com.android.tools.idea.observable.TestInvokeStrategy
 import com.android.tools.idea.wizard.model.ModelWizard
@@ -28,6 +27,7 @@ import com.intellij.testFramework.LightPlatform4TestCase
 import com.intellij.ui.components.JBLabel
 import java.awt.Dimension
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import org.mockito.Mockito
@@ -79,7 +79,7 @@ class NewConnectionAlertStepTest : LightPlatform4TestCase() {
   fun shouldShowIfWearMayNeedFactoryReset() {
     val previousPairedPhone = phoneDevice.copy(deviceID = "id4")
     val iDevice = Mockito.mock(IDevice::class.java)
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       WearPairingManager.getInstance().createPairedDeviceBridge(previousPairedPhone, iDevice, wearDevice, iDevice, connect = false)
     }
 

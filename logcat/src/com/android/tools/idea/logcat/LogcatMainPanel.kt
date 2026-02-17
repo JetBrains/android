@@ -177,6 +177,7 @@ import javax.swing.JPanel
 import kotlin.io.path.exists
 import kotlin.io.path.pathString
 import kotlin.math.max
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -263,6 +264,7 @@ constructor(
   hyperlinkDetector: HyperlinkDetector?,
   foldingDetector: FoldingDetector?,
   zoneId: ZoneId = ZoneId.systemDefault(),
+  private val workerDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : BorderLayoutPanel(), LogcatPresenter, SplittingTabsStateProvider, UiDataProvider, Disposable {
 
   constructor(
@@ -324,11 +326,11 @@ constructor(
 
   @VisibleForTesting
   internal val messageProcessor =
-    MessageProcessor(this, ::formatMessages, logcatFilterParser.parse(headerPanel.filter, headerPanel.filterMatchCase))
+    MessageProcessor(this, ::formatMessages, logcatFilterParser.parse(headerPanel.filter, headerPanel.filterMatchCase), workerDispatcher)
 
   private val toolbar = ActionManager.getInstance().createActionToolbar("LogcatMainPanel", createToolbarActions(project), false)
   private val hyperlinkDetector = hyperlinkDetector ?: EditorHyperlinkDetector(project, editor, this, ModalityState.stateForComponent(this))
-  private val foldingDetector = foldingDetector ?: EditorFoldingDetector(project, editor)
+  private val foldingDetector = foldingDetector ?: EditorFoldingDetector(project, editor, workerDispatcher = workerDispatcher)
   private val logcatService = LogcatService.getInstance(project)
   private var ignoreCaretAtBottom = false // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
   private val connectedDevice = AtomicReference<Device?>()
@@ -475,7 +477,7 @@ constructor(
         )
     }
 
-    coroutineScope.launch(Dispatchers.Default) {
+    coroutineScope.launch(workerDispatcher) {
       deviceComboBox.trackSelected().collect { item ->
         messageProcessor.context(item)
         pausedBanner.isVisible = false
@@ -704,7 +706,7 @@ constructor(
   @UiThread
   override fun reloadMessages() {
     clearDocument()
-    coroutineScope.launch(Dispatchers.Default) {
+    coroutineScope.launch(workerDispatcher) {
       messageProcessor.appendMessages(messageBacklog.get().messages)
       withContext(Dispatchers.EDT) { noLogsBanner.isVisible = isLogsMissing() }
     }
@@ -814,7 +816,7 @@ constructor(
   }
 
   override fun clearMessageView() {
-    coroutineScope.launch(Dispatchers.Default) {
+    coroutineScope.launch(workerDispatcher) {
       val device = connectedDevice.get()
       val systemMessages = mutableListOf<LogcatMessage>()
       if (device != null) {

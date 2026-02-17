@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.layoutinspector.common.MostRecentExecutor
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -44,6 +43,7 @@ import com.intellij.ui.EditorNotificationPanel.Status
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @VisibleForTesting const val SHOW_ERROR_MESSAGES_IN_DIALOG = false
@@ -168,7 +168,7 @@ private constructor(
    * A process can be selected when a device does not support foreground process detection.
    */
   fun stopInspector() {
-    coroutineScope.launch(AndroidDispatchers.workerThread) {
+    coroutineScope.launch(Dispatchers.Default) {
       val selectedDevice = deviceModel?.selectedDevice
       if (selectedDevice != null) {
         foregroundProcessDetection?.stopPollingSelectedDevice()

@@ -19,7 +19,6 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.core.findComponentForAction
@@ -39,6 +38,7 @@ import com.intellij.openapi.util.getOrCreateUserData
 import com.intellij.ui.awt.RelativePoint
 import javax.swing.JComponent
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 
 private val PANEL_CONTROLLER_KEY = Key.create<WearHealthServicesPanelController>("WearHealthServicesPanelController")
 
@@ -71,7 +71,7 @@ class OpenWearHealthServicesPanelAction :
 
     val panelController =
       emulatorController.getOrCreateUserData(PANEL_CONTROLLER_KEY) {
-        val workerScope: CoroutineScope = AndroidCoroutineScope(emulatorController, workerThread)
+        val workerScope: CoroutineScope = AndroidCoroutineScope(emulatorController, Dispatchers.Default)
         val uiScope: CoroutineScope = AndroidCoroutineScope(emulatorController, uiThread)
         val adbSessionProvider = { AdbLibService.getSession(project) }
         val serialNumber = displayView.deviceSerialNumber

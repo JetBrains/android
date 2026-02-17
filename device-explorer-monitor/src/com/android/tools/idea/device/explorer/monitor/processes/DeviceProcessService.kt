@@ -42,6 +42,7 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.ThreadingAssertions
 import java.nio.file.Path
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 @UiThread
@@ -61,7 +62,7 @@ constructor(
   })
 
   /** The [CoroutineDispatcher] used for asynchronous work that **cannot** happen on the EDT thread. */
-  private val workerThreadDispatcher: CoroutineDispatcher = AndroidDispatchers.workerThread
+  private val workerThreadDispatcher: CoroutineDispatcher = Dispatchers.Default
   private val uiThreadDispatcher: CoroutineDispatcher = AndroidDispatchers.uiThread
 
   suspend fun fetchProcessList(device: AdbDevice): List<ProcessInfo> {
