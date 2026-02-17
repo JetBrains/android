@@ -2682,6 +2682,11 @@ public final class StudioFlags {
                     "Enable next edit/action prediction debug settings",
                     "Enable next edit/action prediction debug settings");
 
+  public static final Flag<Boolean> GEMINI_NEXT_PREDICTION_CONSOLIDATED_SETTINGS =
+    new BooleanFlag(STUDIOBOT, "gemini.next.prediction.consolidated.settings",
+                    "Enable next edit/action prediction consolidated settings UI",
+                    "Enable next edit/action prediction consolidated settings UI");
+
   public static final Flag<Boolean> STUDIOBOT_AGENT_EXPERIMENTAL_BUILD_PROMPT =
     new BooleanFlag(STUDIOBOT, "agent.experimental.build.prompt",
                     "Enable build-related instructions in the prompt",
