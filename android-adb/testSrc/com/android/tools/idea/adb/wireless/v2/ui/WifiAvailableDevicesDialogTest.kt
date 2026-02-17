@@ -230,7 +230,13 @@ class WifiAvailableDevicesDialogTest {
 
     composeTestRule.onNode(hasTestTag(WARNING_TOOLTIP_TEST_TAG), useUnmergedTree = true).lingerMouseHover(composeTestRule)
 
-    composeTestRule.onNodeWithText("Check for device software updates to improve Wi-Fi pairing.").assertIsDisplayed()
+    composeTestRule.onNodeWithText("ADB Wi-Fi 1.0 Device").assertIsDisplayed()
+    composeTestRule
+      .onNodeWithText(
+        "ADB Wi-Fi v1.0 has limited pairing capability. Update device to the latest API to use ADB Wi-Fi 2.0 or higher. Note: Some hardware may not support the latest API version."
+      )
+      .assertIsDisplayed()
+    composeTestRule.onNodeWithText("Learn More").assertIsDisplayed()
   }
 
   @Test
@@ -253,7 +259,13 @@ class WifiAvailableDevicesDialogTest {
 
     composeTestRule.onNode(hasTestTag(WARNING_TOOLTIP_TEST_TAG), useUnmergedTree = true).lingerMouseHover(composeTestRule)
 
-    composeTestRule.onNodeWithText("Check for device software updates to improve Wi-Fi pairing.").assertIsDisplayed()
+    composeTestRule.onNodeWithText("ADB Wi-Fi 1.0 Device").assertIsDisplayed()
+    composeTestRule
+      .onNodeWithText(
+        "ADB Wi-Fi v1.0 has limited pairing capability. Update device to the latest API to use ADB Wi-Fi 2.0 or higher. Note: Some hardware may not support the latest API version."
+      )
+      .assertIsDisplayed()
+    composeTestRule.onNodeWithText("Learn More").assertIsDisplayed()
   }
 
   @Test

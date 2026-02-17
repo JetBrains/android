@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.input.rememberTextFieldState
@@ -49,6 +50,7 @@ import com.android.adblib.MdnsTlsService
 import com.android.adblib.MdnsTrackServiceInfo
 import com.android.sdklib.deviceprovisioner.SetChange
 import com.android.sdklib.deviceprovisioner.trackSetChanges
+import com.android.tools.adtui.compose.LingeringTooltip
 import com.android.tools.adtui.compose.StudioComposePanel
 import com.android.tools.adtui.compose.table.RowFilter
 import com.android.tools.adtui.compose.table.Table
@@ -89,7 +91,6 @@ import org.jetbrains.jewel.ui.component.CircularProgressIndicator
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.OutlinedButton
 import org.jetbrains.jewel.ui.component.Text
-import org.jetbrains.jewel.ui.component.Tooltip
 import org.jetbrains.jewel.ui.component.styling.LocalLinkStyle
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
@@ -107,7 +108,7 @@ class WifiAvailableDevicesDialog(private val project: Project, private val wifiP
   private val model = WifiPairableDeviceModel()
 
   private val panelPreferredSize: JBDimension
-    get() = JBDimension(700, 600)
+    get() = JBDimension(700, 650)
 
   private val rootView: JComponent = StudioComposePanel { WifiDialog() }
 
@@ -356,23 +357,49 @@ class WifiAvailableDevicesDialog(private val project: Project, private val wifiP
 
   private val columns =
     listOf<TableColumn<MdnsTlsService>>(
-      TableColumn<MdnsTlsService>("", TableColumnWidth.Fixed(16.dp)) { device, _ ->
-        if (device.service.needsUpdate()) {
-          Tooltip(
-            tooltip = { Text("Check for device software updates to improve Wi-Fi pairing.") },
-            modifier = Modifier.testTag(WARNING_TOOLTIP_TEST_TAG),
-          ) {
-            Icon(StudioIconsCompose.Common.Warning, contentDescription = "device needs update warning icon")
+      TableColumn<MdnsTlsService>("Name", TableColumnWidth.Weighted(2f)) { device, _ ->
+        Text(text = buildDeviceNameOrPlaceholder(device.service), maxLines = 2)
+      },
+      TableColumn<MdnsTlsService>("ADB Wi-Fi", TableColumnWidth.Weighted(1f)) { device, _ ->
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Text(text = device.service.getMdnsServiceVersion())
+          if (device.service.needsUpdate()) {
+            Spacer(Modifier.width(4.dp))
+            LingeringTooltip(
+              tooltip = {
+                Column(Modifier.width(300.dp)) {
+                  Text("ADB Wi-Fi 1.0 Device", fontWeight = FontWeight.Bold)
+                  Spacer(Modifier.height(8.dp))
+                  Text(
+                    "ADB Wi-Fi v1.0 has limited pairing capability. Update device to the latest API to use ADB Wi-Fi 2.0 or higher. Note: Some hardware may not support the latest API version."
+                  )
+                  Spacer(Modifier.height(8.dp))
+                  Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                      buildAnnotatedString {
+                        withLink(
+                          LinkAnnotation.Url(
+                            url = Urls.learnMore,
+                            styles = TextLinkStyles(style = SpanStyle(color = LocalLinkStyle.current.colors.content)),
+                            linkInteractionListener = { WifiPairingLinkHandler.handleLinkActivation(Urls.learnMore) },
+                          )
+                        ) {
+                          append("Learn More")
+                        }
+                      }
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    Icon(AllIconsKeys.Ide.External_link_arrow, contentDescription = "Learn More")
+                  }
+                }
+              },
+              modifier = Modifier.testTag(WARNING_TOOLTIP_TEST_TAG),
+            ) {
+              Icon(StudioIconsCompose.Common.Warning, contentDescription = "device needs update warning icon")
+            }
           }
         }
       },
-      TableTextColumn<MdnsTlsService>(
-        "Name",
-        TableColumnWidth.Weighted(2f),
-        attribute = { buildDeviceNameOrPlaceholder(it.service) },
-        maxLines = 2,
-      ),
-      TableTextColumn<MdnsTlsService>("ADB Wi-Fi", attribute = { it.service.getMdnsServiceVersion() }),
       TableTextColumn("IP Address & Port", TableColumnWidth.Weighted(2f), attribute = { "${it.service.ipv4}:${it.service.port}" }),
       TableTextColumn<MdnsTlsService>("API", attribute = { it.service.buildVersionSdkFull.takeUnless { it.isNullOrEmpty() } ?: "Unknown" }),
       TableColumn("", TableColumnWidth.Weighted(1f)) { device, _ ->

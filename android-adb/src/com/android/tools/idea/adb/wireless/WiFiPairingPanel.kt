@@ -17,20 +17,23 @@ package com.android.tools.idea.adb.wireless
 
 import com.android.annotations.concurrency.UiThread
 import com.android.utils.HtmlBuilder
+import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.Disposable
-import com.intellij.ui.EditorNotificationPanel
+import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.JBUI.CurrentTheme.Banner
+import icons.StudioIcons
 import java.awt.BorderLayout
-import java.awt.Graphics
-import java.awt.Graphics2D
-import java.awt.RenderingHints
+import java.awt.Font
+import java.awt.GridBagConstraints
+import java.awt.GridBagLayout
 import java.util.function.Consumer
+import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.SwingConstants
 import javax.swing.event.HyperlinkListener
 
 @UiThread
@@ -51,8 +54,6 @@ internal class WiFiPairingPanel(
 
   val rootComponent: JComponent by lazy {
     JPanel(BorderLayout()).apply {
-      createWarningBanner()?.let { add(it, BorderLayout.NORTH) }
-
       val headerContent = createHeaderPanel()
       val centerContent =
         JPanel(BorderLayout()).apply {
@@ -61,6 +62,7 @@ internal class WiFiPairingPanel(
           border = JBUI.Borders.empty(8, 12)
           add(headerContent, BorderLayout.NORTH)
           add(loadingPanel, BorderLayout.CENTER)
+          createNotificationBanner()?.let { add(it, BorderLayout.SOUTH) }
         }
       add(centerContent, BorderLayout.CENTER)
     }
@@ -87,8 +89,8 @@ internal class WiFiPairingPanel(
 
   var qrCodeScanAgainInvoked: () -> Unit = {}
 
-  private fun createWarningBanner(): JComponent? {
-    return WarningBanner().takeIf { mdnsServiceUnderPairing != null && mdnsServiceUnderPairing.needsUpdate() }
+  private fun createNotificationBanner(): JComponent? {
+    return DeviceNeedsUpdateBanner().takeIf { mdnsServiceUnderPairing != null && mdnsServiceUnderPairing.needsUpdate() }
   }
 
   private fun createHeaderPanel(): JComponent {
@@ -145,22 +147,54 @@ internal class WiFiPairingPanel(
   }
 }
 
-private class WarningBanner : EditorNotificationPanel(Status.Warning) {
+private class DeviceNeedsUpdateBanner : JPanel(BorderLayout()) {
   init {
-    text = "Check for device software updates to improve Wi-Fi pairing."
-    isOpaque = true
-  }
+    isOpaque = false
+    border = JBUI.Borders.emptyTop(10)
 
-  override fun paintBorder(g: Graphics) {
-    super.paintBorder(g)
-    with(g as Graphics2D) {
-      setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-      setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY)
-      g.color = Banner.WARNING_BORDER_COLOR
-      drawRect((-5).scaled, 0, width + 10.scaled, height - 1.scaled)
-    }
-  }
+    val container =
+      JPanel(BorderLayout()).apply {
+        background = JBUI.CurrentTheme.Banner.WARNING_BACKGROUND
+        border =
+          BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(JBUI.CurrentTheme.Banner.WARNING_BORDER_COLOR, 1, true),
+            JBUI.Borders.empty(10),
+          )
+      }
 
-  private val Int.scaled: Int
-    get() = JBUI.scale(this)
+    val iconLabel =
+      JBLabel(StudioIcons.Common.WARNING).apply {
+        verticalAlignment = SwingConstants.TOP
+        border = JBUI.Borders.emptyRight(10)
+      }
+
+    val textPanel =
+      JPanel(GridBagLayout()).apply {
+        isOpaque = false
+        val gbc =
+          GridBagConstraints().apply {
+            gridx = 0
+            gridy = 0
+            weightx = 1.0
+            fill = GridBagConstraints.HORIZONTAL
+            anchor = GridBagConstraints.WEST
+          }
+
+        add(JBLabel("ADB Wi-Fi v1.0 device").apply { font = font.deriveFont(Font.BOLD) }, gbc)
+
+        gbc.gridy++
+        gbc.insets = JBUI.insetsTop(5)
+        val message =
+          "ADB Wi-Fi v1.0 has limited pairing capability. Update device to the latest API to use ADB Wi-Fi 2.0 or higher. Note: Some hardware may not support the latest API version."
+        add(JBLabel("<html>$message</html>"), gbc)
+
+        gbc.gridy++
+        add(ActionLink("Learn more") { BrowserUtil.browse(Urls.learnMore) }, gbc)
+      }
+
+    container.add(iconLabel, BorderLayout.WEST)
+    container.add(textPanel, BorderLayout.CENTER)
+
+    add(container, BorderLayout.CENTER)
+  }
 }

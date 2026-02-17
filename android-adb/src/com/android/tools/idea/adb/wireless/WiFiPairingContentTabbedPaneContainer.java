@@ -16,6 +16,7 @@
 package com.android.tools.idea.adb.wireless;
 
 import com.android.annotations.concurrency.UiThread;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBLabel;
@@ -47,8 +48,12 @@ public class WiFiPairingContentTabbedPaneContainer {
 
   public WiFiPairingContentTabbedPaneContainer() {
     setupUI();
-    EditorPaneUtils.setTitlePanelBorder(myTopRow);
-    EditorPaneUtils.setBottomPanelBorder(myBottomRow);
+    if (!StudioFlags.ADB_WIFI_V2_DIALOG.get()) {
+      // v2 dialog doesn't use the title and bottom panels to communicate pairing progress to the user.
+      // remove the panels to save space.
+      EditorPaneUtils.setTitlePanelBorder(myTopRow);
+      EditorPaneUtils.setBottomPanelBorder(myBottomRow);
+    }
     myAsyncProcessIcon.suspend();
     myAsyncProcessIcon.setVisible(false);
   }
