@@ -944,6 +944,25 @@ android_studio_configuration(
     version_type = STUDIO_VERSION,
 )
 
+STUDIO_BASE_PLUGINS = [
+    "//tools/adt/idea/studio:org.jetbrains.android",
+    "//tools/adt/idea/studio:com.android.tools.apk",
+    "//tools/adt/idea/studio:com.android.tools.ndk",
+    "//tools/adt/idea/studio:com.android.tools.design",
+    "//tools/adt/idea/studio:androidx.compose.plugins.idea",
+    "//tools/adt/idea/studio:com.google.services.git4insights",
+    "//tools/adt/idea/studio:com.google.services.firebase",
+    "//tools/adt/idea/studio:com.google.tools.ij.aiplugin",
+    "//tools/adt/idea/studio:com.google.gct.directaccess",
+    "//tools/adt/idea/studio:com.google.gct.testing",
+    "//tools/adt/idea/studio:com.android.tools.idea.smali",
+    "//tools/adt/idea/studio:com.google.gct.test.recorder",
+    "//tools/adt/idea/studio:com.google.urlassistant",
+    "//tools/adt/idea/studio:com.google.targetsdkversionassistant",
+    "//tools/adt/idea/studio:com.android.tools.gradle.dcl",
+    "//tools/adt/idea/studio:com.android.tools.gradle.dsl",
+]
+
 android_studio(
     name = "android-studio",
     codesign_entitlements = "codesign/entitlements.xml",
@@ -956,26 +975,31 @@ android_studio(
     jre = "//prebuilts/studio/jdk:jdk-bundle",
     legacy_default_configuration = STUDIO_CONFIG,
     platform = "@intellij//:intellij-sdk",
-    plugins = [
-        ":org.jetbrains.android",
-        ":com.android.tools.apk",
-        ":com.android.tools.ndk",
-        ":com.android.tools.design",
-        ":androidx.compose.plugins.idea",
-        ":com.google.services.git4insights",
-        ":com.google.services.firebase",
-        ":com.google.tools.ij.aiplugin",
-        ":com.google.gct.directaccess",
-        ":com.google.gct.testing",
-        ":com.android.tools.idea.smali",
-        ":com.google.gct.test.recorder",
-        ":com.google.urlassistant",
-        ":com.google.targetsdkversionassistant",
-        ":com.android.tools.gradle.dcl",
-        ":com.android.tools.gradle.dsl",
-    ],
+    plugins = STUDIO_BASE_PLUGINS,
     selector = "AndroidStudio",
     update_message_template = ":update_message.html",
+    version_code_name = STUDIO_CODENAME,
+    version_micro_patch = STUDIO_MICRO_PATCH,
+    version_release_number = STUDIO_RELEASE_NUMBER,
+    visibility = ["//visibility:public"],
+)
+
+# Customized build of Android Studio that includes the automation plugin
+android_studio(
+    name = "android-studio-agent",
+    codesign_entitlements = "//tools/adt/idea/studio:codesign/entitlements.xml",
+    configurations = [
+        "//tools/adt/idea/studio:nightly",
+    ],
+    generate_package_metadata = True,
+    jre = "//prebuilts/studio/jdk:jdk-bundle",
+    legacy_default_configuration = STUDIO_CONFIG,
+    platform = "@intellij//:intellij-sdk",
+    plugins = STUDIO_BASE_PLUGINS + [
+        "//tools/vendor/google/automation:com.android.tools.idea.automation",
+    ],
+    selector = "AndroidStudio",
+    update_message_template = "//tools/adt/idea/studio:update_message.html",
     version_code_name = STUDIO_CODENAME,
     version_micro_patch = STUDIO_MICRO_PATCH,
     version_release_number = STUDIO_RELEASE_NUMBER,

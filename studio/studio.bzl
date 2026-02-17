@@ -623,7 +623,7 @@ def _stamp_exe(ctx, extra, srcs, src, out):
 
 def _declare_stamped_file(ctx, files, platform, path):
     original = files[path]
-    stamped = ctx.actions.declare_file(original.basename + ".%s.stamped.%s" % (platform.name, original.extension))
+    stamped = ctx.actions.declare_file(ctx.attr.name + "." + original.basename + ".%s.stamped.%s" % (platform.name, original.extension))
     files[path] = stamped
     return original, stamped
 
