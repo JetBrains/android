@@ -1484,11 +1484,6 @@ public final class StudioFlags {
   // region Preview Common
   private static final FlagGroup PREVIEW_COMMON = new FlagGroup(FLAGS, "preview", "Preview");
 
-  public static final Flag<Boolean> PREVIEW_RENDER_QUALITY = new BooleanFlag(
-    PREVIEW_COMMON, "render.quality", "Enable the usage of a render quality management mechanism for Preview tools",
-    "If enabled, different Previews will be rendered with different qualities according to zoom level, layout and scroll position"
-  );
-
   public static final Flag<Long> PREVIEW_RENDER_QUALITY_DEBOUNCE_TIME = new LongFlag(
     PREVIEW_COMMON, "render.quality.debounce.time", "Render quality debounce time",
     "Milliseconds to wait before adjusting the quality of Previews, after a scroll or zoom change happens",
@@ -1618,21 +1613,11 @@ public final class StudioFlags {
     "If enabled, limits the number of allocations that user code can do in a single render action"
     );
 
-  public static final Flag<Boolean> COMPOSE_INVALIDATE_ON_RESOURCE_CHANGE = new BooleanFlag(
-    COMPOSE, "preview.invalidate.on.resource.change", "When a resource changes, invalidate the current preview",
-    "Invalidates the preview is there is a resource change"
-    );
-
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_GENERATE_PREVIEW_AGENTIC = new BooleanFlag(
     COMPOSE, "preview.generate.preview.action.agentic", "Use agents to generate Compose Previews",
     "Uses agentic approach when generating Compose Previews corresponding to the selected @Composable."
   );
-
-  public static final Flag<Boolean> COMPOSE_UI_CHECK_FOR_WEAR = new BooleanFlag(
-    COMPOSE, "ui.check.mode.wear", "Enable UI Check mode for Compose preview for Wear OS",
-    "Enable UI Check mode in Compose preview for running ATF checks and Visual Linting on Wear OS devices."
-    );
 
   public static final Flag<Boolean> COMPOSE_UI_CHECK_FIX_WITH_AI = new BooleanFlag(
     COMPOSE, "ui.check.fix.with.ai", "Enable fix with AI button to fix UI Check errors",
