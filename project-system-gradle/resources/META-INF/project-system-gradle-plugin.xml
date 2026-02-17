@@ -84,6 +84,7 @@
     <projectService serviceImplementation="org.jetbrains.android.exportSignedPackage.GenerateSignedApkSettings"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.dependencies.GradleDependencyManager"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.jdk.GradleJdkValidationManager"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.jdk.GradleJvmCompatibilityChecker"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.GradleProjectInfo"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.Info"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTrackerManager"/>

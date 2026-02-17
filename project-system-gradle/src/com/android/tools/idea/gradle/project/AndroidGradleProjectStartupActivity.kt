@@ -42,6 +42,7 @@ import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProje
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.findAndSetupSelectedCachedVariantData
 import com.android.tools.idea.gradle.project.sync.idea.getSelectedVariantAndAbis
+import com.android.tools.idea.gradle.project.sync.jdk.GradleJvmCompatibilityChecker.Companion.isProjectUsingIncompatibleGradleJvm
 import com.android.tools.idea.gradle.project.upgrade.AgpVersionChecker
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID
@@ -148,8 +149,10 @@ private suspend fun performActivity(project: Project) {
   val gradleProjectInfo = GradleProjectInfo.getInstance(project)
   val info = Info.getInstance(project)
 
-  fun shouldSyncOrAttachModels(): Boolean {
+  suspend fun shouldSyncOrAttachModels(): Boolean {
     if (gradleProjectInfo.isSkipStartupActivity) return false
+
+    if (project.isProjectUsingIncompatibleGradleJvm()) return false
 
     // Opening an IDEA project with Android modules (AS and IDEA - i.e. previously synced).
     if (info.androidModules.isNotEmpty()) return true
@@ -180,8 +183,8 @@ private suspend fun performActivity(project: Project) {
         SyncDueMessage.maybeShow(project)
       }
     }
-    subscribeToGradleSettingChanges(project)
   }
+  subscribeToGradleSettingChanges(project)
 
   gradleProjectInfo.isSkipStartupActivity = false
 }
@@ -446,9 +449,7 @@ private suspend fun attachCachedModelsOrTriggerSyncBody(project: Project, gradle
           GRADLE_MODULE_MODEL,
           ::getModelFromDataNode,
           GradleFacet::getInstance,
-          { model, storage ->
-            setGradleModuleModelFromDataNode(storage, module, model)
-          },
+          { model, storage -> setGradleModuleModelFromDataNode(storage, module, model) },
         ),
         prepare(NDK_MODEL, ::getModelFromDataNode, NdkFacet::getInstance, { model, _ -> setNdkModuleModel(model) }),
       )
@@ -470,7 +471,7 @@ private fun <T> getModelFromDataNode(moduleDataNode: DataNode<*>, dataKey: Key<T
     .singleOrNull() // None or one node is expected here.
     ?.data
 
-private fun additionalProjectSetup(project: Project) {
+private suspend fun additionalProjectSetup(project: Project) {
   AndroidPluginInfo.findFromModel(project)?.let { info ->
     project.getService(AssistantInvoker::class.java).maybeForceOrRecommendPluginUpgrade(project, info)
   }
