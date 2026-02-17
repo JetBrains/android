@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.widget
 
+import com.android.tools.idea.ui.resourcemanager.widget.DetailedPreview.Companion.PREVIEW_ICON_SIZE
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
