@@ -115,8 +115,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
     _isStopping.value = true
     if (objectRetainedCount.value > 0 && analysisProgress.value == 0) {
       forceHeapDump()
-    }
-    else if(analysisProgress.value == 0){
+    } else if (analysisProgress.value == 0) {
       stopListening()
     }
   }
@@ -352,7 +351,13 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
           }
         }
       }
-    profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(cmd).build())
+    profilers.ideServices.poolExecutor.execute {
+      try {
+        profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(cmd).build())
+      } catch (e: Exception) {
+        logger.warn("Failed to toggle LeakCanary tracking", e)
+      }
+    }
   }
 
   // Setting it to UNKNOWN_STAGE since stage usage is avoided in task-based ux.
