@@ -46,7 +46,8 @@ fun createFakeToolWindow(
   return toolWindow
 }
 
-class FakeToolWindow(
+class FakeToolWindow
+internal constructor(
   private val windowFactory: ToolWindowFactory,
   private var icon: Icon,
   private val manager: ToolWindowManager,
@@ -129,7 +130,7 @@ class FakeToolWindow(
   }
 
   private fun notifyStateChanged(changeType: ToolWindowManagerListener.ToolWindowManagerEventType) {
-    project.messageBus.syncPublisher(ToolWindowManagerListener.TOPIC).stateChanged(manager, this, changeType)
+    @Suppress("UnstableApiUsage") project.messageBus.syncPublisher(ToolWindowManagerListener.TOPIC).stateChanged(manager, this, changeType)
   }
 }
 
