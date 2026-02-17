@@ -818,6 +818,7 @@ fun AndroidProjectStubBuilder.createMainSourceProviderForDefaultTestProjectStruc
     customSourceDirectories = emptyList(),
     baselineProfileDirectories = emptyList(),
     keepRulesDirectoriesField = emptyList(),
+    aarKeepRulesDirectoriesField = emptyList(),
   )
 }
 
@@ -900,6 +901,7 @@ private fun sourceProvider(
     customSourceDirectories = listOf(/*IdeCustomSourceDirectoryImpl("custom", rootDir, "custom")*/ ),
     baselineProfileDirectories = listOf("baselineProfiles"),
     keepRulesDirectoriesField = listOf("keepRules"),
+    aarKeepRulesDirectoriesField = listOf("aarKeepRules"),
   )
 }
 

@@ -478,7 +478,7 @@ class LintModelFactory : LintModelModuleLoader {
       resDirectories = provider.resDirectories,
       assetsDirectories = provider.assetsDirectories,
       keepRulesDirectories = provider.keepRulesDirectories,
-      aarKeepRulesDirectories = emptyList(), // todo android-merge added emptyList() to satisfy compiler
+      aarKeepRulesDirectories = provider.aarKeepRulesDirectories ?: listOf<File>(),
       unitTestOnly = providerContainer.isUnitTest(),
       instrumentationTestOnly = providerContainer.isInstrumentationTest(),
       debugOnly = debugOnly,
@@ -499,7 +499,7 @@ class LintModelFactory : LintModelModuleLoader {
       resDirectories = provider.resDirectories,
       assetsDirectories = provider.assetsDirectories,
       keepRulesDirectories = provider.keepRulesDirectories,
-      aarKeepRulesDirectories = emptyList(), // todo android-merge added emptyList() to satisfy compiler
+      aarKeepRulesDirectories = provider.aarKeepRulesDirectories ?: listOf<File>(),
       unitTestOnly = unitTestOnly,
       instrumentationTestOnly = instrumentationTestOnly,
       debugOnly = debugOnly,

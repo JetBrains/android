@@ -89,6 +89,7 @@ class NewAndroidComponentActionTest {
                   customSourceDirectories = emptyList(),
                   baselineProfileDirectories = emptyList(),
                   keepRulesDirectoriesField = emptyList(),
+                  aarKeepRulesDirectoriesField = emptyList(),
                 )
               },
             ),

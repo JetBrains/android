@@ -2100,6 +2100,7 @@ MODULE                        : kotlinMultiPlatform.module2
             JniLibsDirectories            : <ROOT>/module2/src/androidMain/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/module2/src/main/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/module2/src/main/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/module2/src/main/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -2120,6 +2121,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     JniLibsDirectories            : <ROOT>/module2/src/androidInstrumentedTest/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/module2/src/androidTest/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/module2/src/androidTest/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/module2/src/androidTest/aarKeepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -2139,6 +2141,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     JniLibsDirectories            : <ROOT>/module2/src/androidUnitTest/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/module2/src/test/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/module2/src/test/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/module2/src/test/aarKeepRules [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -2166,6 +2169,7 @@ MODULE                        : kotlinMultiPlatform.module2
             JniLibsDirectories            : <ROOT>/module2/src/androidDebug/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/module2/src/debug/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/module2/src/debug/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/module2/src/debug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -2186,6 +2190,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     JniLibsDirectories            : <ROOT>/module2/src/androidInstrumentedTestDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/module2/src/androidTestDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/module2/src/androidTestDebug/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/module2/src/androidTestDebug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -2206,6 +2211,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     JniLibsDirectories            : <ROOT>/module2/src/androidUnitTestDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/module2/src/testDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/module2/src/testDebug/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/module2/src/testDebug/aarKeepRules [-]
         BuildType
             Name                          : release
             IsDebuggable                  : false
@@ -2232,6 +2238,7 @@ MODULE                        : kotlinMultiPlatform.module2
             JniLibsDirectories            : <ROOT>/module2/src/androidRelease/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/module2/src/release/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/module2/src/release/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/module2/src/release/aarKeepRules [-]
     SigningConfigs
         SigningConfig
             Name                          : debug

@@ -194,6 +194,10 @@ fun modelCacheV2Impl(
         if (modelVersions[ModelFeature.HAS_KEEP_RULES_SOURCES])
           provider.keepRulesDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf()
         else mutableListOf(),
+      aarKeepRulesDirectoriesField =
+        if (modelVersions[ModelFeature.HAS_AAR_KEEP_RULES_SOURCES])
+          provider.aarKeepRulesDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf()
+        else mutableListOf(),
     )
   }
 
@@ -233,6 +237,7 @@ fun modelCacheV2Impl(
       customSourceDirectories = emptyList(),
       baselineProfileDirectories = emptyList(),
       keepRulesDirectoriesField = emptyList(),
+      aarKeepRulesDirectoriesField = emptyList(),
     )
   }
 
@@ -267,6 +272,7 @@ fun modelCacheV2Impl(
         },
       baselineProfileDirectories = emptyList(),
       keepRulesDirectoriesField = emptyList(),
+      aarKeepRulesDirectoriesField = emptyList(),
     )
   }
 
