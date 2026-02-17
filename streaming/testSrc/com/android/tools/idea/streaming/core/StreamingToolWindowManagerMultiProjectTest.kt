@@ -162,5 +162,5 @@ class StreamingToolWindowManagerMultiProjectTest {
   }
 
   private fun createToolWindow(project: Project): FakeToolWindow =
-    createFakeToolWindow(windowFactory, RUNNING_DEVICES_TOOL_WINDOW_ID, StudioIcons.Shell.ToolWindows.EMULATOR, project, testRootDisposable)
+    createFakeToolWindow(project, testRootDisposable, RUNNING_DEVICES_TOOL_WINDOW_ID, StudioIcons.Shell.ToolWindows.EMULATOR, windowFactory)
 }

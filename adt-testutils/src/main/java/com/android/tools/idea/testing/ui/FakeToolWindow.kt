@@ -27,16 +27,17 @@ import com.intellij.openapi.wm.ToolWindowType
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.openapi.wm.impl.InternalDecorator
 import com.intellij.testFramework.replaceService
+import com.intellij.util.ui.EmptyIcon
 import javax.swing.Icon
 import org.mockito.kotlin.mock
 
 /** Creates a [FakeToolWindow] for testing. */
 fun createFakeToolWindow(
-  windowFactory: ToolWindowFactory,
-  toolWindowId: String,
-  icon: Icon,
   project: Project,
   parentDisposable: Disposable,
+  toolWindowId: String,
+  icon: Icon = EmptyIcon.ICON_16,
+  windowFactory: ToolWindowFactory = SimpleToolWindowFactory(),
 ): FakeToolWindow {
   val windowManager = FakeToolWindowManager(windowFactory, toolWindowId, icon, project)
   project.replaceService(ToolWindowManager::class.java, windowManager, parentDisposable)
@@ -145,4 +146,9 @@ private class FakeToolWindowManager(windowFactory: ToolWindowFactory, private va
   override fun invokeLater(runnable: Runnable) {
     ApplicationManager.getApplication().invokeLater(runnable)
   }
+}
+
+class SimpleToolWindowFactory : ToolWindowFactory {
+
+  override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {}
 }
