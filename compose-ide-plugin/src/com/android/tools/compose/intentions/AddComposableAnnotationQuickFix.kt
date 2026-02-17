@@ -16,7 +16,6 @@
 package com.android.tools.compose.intentions
 
 import androidx.compose.compiler.plugins.kotlin.ComposeClassIds
-import androidx.compose.compiler.plugins.kotlin.k1.ComposeErrors
 import com.android.tools.compose.ComposeBundle
 import com.android.tools.compose.expectedComposableAnnotationHolder
 import com.intellij.codeInsight.intention.IntentionAction
@@ -32,8 +31,6 @@ import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixFactory
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.quickfixes.KotlinQuickFixAction
 import org.jetbrains.kotlin.idea.quickfix.KotlinSingleIntentionActionFactory
-import org.jetbrains.kotlin.idea.quickfix.QuickFixContributor
-import org.jetbrains.kotlin.idea.quickfix.QuickFixes
 import org.jetbrains.kotlin.idea.util.addAnnotation
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
@@ -177,16 +174,6 @@ private constructor(element: KtModifierListOwner, private val displayText: Strin
       // Second case - this is a type of a property (with a functional type).
       val propertyName = (parent as? KtProperty)?.name ?: return null
       return ComposeBundle.message("add.composable.to.property.type", propertyName)
-    }
-  }
-
-  class Contributor : QuickFixContributor {
-    override fun registerQuickFixes(quickFixes: QuickFixes) {
-      // COMPOSABLE_INVOCATION: error goes on the Composable call in a non-Composable function
-      quickFixes.register(ComposeErrors.COMPOSABLE_INVOCATION, ComposableInvocationFactory)
-
-      // COMPOSABLE_EXPECTED: error goes on the non-Composable function with Composable calls
-      quickFixes.register(ComposeErrors.COMPOSABLE_EXPECTED, ComposableExpectedFactory)
     }
   }
 }

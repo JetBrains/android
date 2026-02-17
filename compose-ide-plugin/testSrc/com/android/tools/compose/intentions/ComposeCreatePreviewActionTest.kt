@@ -21,13 +21,11 @@ import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.impl.ShowIntentionActionsHandler
-import com.intellij.openapi.command.WriteCommandAction
 import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubPreviewAnnotation
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 
-/** Test for [ComposeCreatePreviewActionK1] and [ComposeCreatePreviewActionK2] */
+/** Test for [ComposeCreatePreviewActionK2] */
 class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureAdtTestCase() {
   override fun setUp() {
     super.setUp()
@@ -36,28 +34,16 @@ class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureAdtTestCase() {
   }
 
   private fun executeCommandAction(action: IntentionAction) {
-    if (KotlinPluginModeProvider.isK2Mode()) {
-      // In K2, analysis APIs must be used out of write action. This rule is enforced to avoid
-      // invalid analysis result. ShowIntentionActionsHandler.chooseActionAndInvoke(..) will
-      // internally run `ComposeCreatePreviewActionK2::perform(..)` on a background thread
-      // and update PSIs on EDT.
-      ShowIntentionActionsHandler.chooseActionAndInvoke(
+    // In K2, analysis APIs must be used out of write action. This rule is enforced to avoid
+    // invalid analysis result. ShowIntentionActionsHandler.chooseActionAndInvoke(..) will
+    // internally run `ComposeCreatePreviewActionK2::perform(..)` on a background thread
+    // and update PSIs on EDT.
+    ShowIntentionActionsHandler.chooseActionAndInvoke(
         myFixture.file,
         myFixture.editor,
         action,
         action.text,
       )
-    } else {
-      WriteCommandAction.runWriteCommandAction(
-        myFixture.project,
-        Runnable {
-          // Within unit tests ListPopupImpl.showInBestPositionFor doesn't open popup and acts like
-          // fist item was selected.
-          // In our case wrap in Container will be selected.
-          action.invoke(myFixture.project, myFixture.editor, myFixture.file)
-        },
-      )
-    }
   }
 
   fun testCursorAtAnnotation() {
@@ -106,7 +92,6 @@ class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureAdtTestCase() {
 
   fun testCursorAtWhitespace() {
     // Only K2 supports ComposeCreatePreviewAction for the cursor right after @Composable.
-    if (!KotlinPluginModeProvider.isK2Mode()) return
 
     myFixture.loadNewFile(
       "src/com/example/Test.kt",
@@ -250,7 +235,6 @@ class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureAdtTestCase() {
 
   fun testPartialSelection() {
     // Only K2 supports ComposeCreatePreviewAction for the partially selected composable function.
-    if (!KotlinPluginModeProvider.isK2Mode()) return
 
     myFixture.loadNewFile(
       "src/com/example/Test.kt",
