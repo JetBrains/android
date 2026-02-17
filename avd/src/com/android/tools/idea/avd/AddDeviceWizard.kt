@@ -76,6 +76,7 @@ import com.intellij.util.ui.JBUI
 import icons.StudioIconsCompose
 import java.awt.Component
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.jewel.foundation.LocalComponent
@@ -226,7 +227,7 @@ internal class AddDeviceWizard(
   }
 
   private suspend fun finish(device: VirtualDevice): Boolean {
-    val avdInfo = withContext(AndroidDispatchers.diskIoThread) { VirtualDevices(source.avdManager).add(device) }
+    val avdInfo = withContext(Dispatchers.IO) { VirtualDevices(source.avdManager).add(device) }
     if (avdInfo != null) {
       onAdd(avdInfo)
     }

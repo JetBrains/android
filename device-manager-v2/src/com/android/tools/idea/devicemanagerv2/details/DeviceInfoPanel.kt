@@ -31,7 +31,6 @@ import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
 import com.android.sdklib.internal.avd.ConfigKey
 import com.android.tools.adtui.device.ScreenDiagram
 import com.android.tools.adtui.util.getHumanizedSize
-import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.diagnostic.logger
@@ -57,6 +56,7 @@ import javax.swing.LayoutStyle
 import javax.swing.plaf.basic.BasicGraphicsUtils
 import kotlin.reflect.KProperty
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
@@ -253,7 +253,7 @@ internal fun DeviceInfoPanel.populateDeviceInfo(properties: DeviceProperties) {
 internal suspend fun DeviceInfoPanel.populateSizeOnDiskLabel(properties: DeviceProperties) {
   if (properties is LocalEmulatorProperties) {
     try {
-      sizeOnDisk = withContext(diskIoThread) { getHumanizedSize(properties.avdPath.recursiveSize()) }
+      sizeOnDisk = withContext(Dispatchers.IO) { getHumanizedSize(properties.avdPath.recursiveSize()) }
     } catch (e: IOException) {
       logger<DeviceInfoPanel>().warn("Unable to compute size of device ${properties.avdName}")
     }

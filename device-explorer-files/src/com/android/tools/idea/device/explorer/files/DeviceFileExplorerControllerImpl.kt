@@ -22,7 +22,6 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.analytics.UsageTracker.log
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.device.explorer.common.DeviceExplorerControllerListener
@@ -86,6 +85,7 @@ import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
@@ -556,7 +556,7 @@ class DeviceFileExplorerControllerImpl(
       }
       tracker.processDirectory()
 
-      withContext(diskIoThread) {
+      withContext(Dispatchers.IO) {
         // Ensure directory is created locally
         FileUtils.mkdirs(localDirectoryPath.toFile())
       }
@@ -1129,7 +1129,7 @@ class DeviceFileExplorerControllerImpl(
       val entry = treeNode.entry
       val localPath = fileManager.getDefaultLocalPathForEntry(entry)
       val baseDir =
-        withContext(diskIoThread) {
+        withContext(Dispatchers.IO) {
           FileUtils.mkdirs(localPath.parent.toFile())
           VfsUtil.findFileByIoFile(localPath.parent.toFile(), true) ?: throw Exception("Unable to locate file \"${localPath.parent}\"")
         }
@@ -1146,7 +1146,7 @@ class DeviceFileExplorerControllerImpl(
       val entry = treeNode.entry
       val localPath = fileManager.getDefaultLocalPathForEntry(entry)
       val localDir =
-        withContext(diskIoThread) {
+        withContext(Dispatchers.IO) {
           FileUtils.mkdirs(localPath.toFile())
           VfsUtil.findFileByIoFile(localPath.toFile(), true) ?: throw Exception("Unable to locate directory \"${localPath.parent}\"")
         }

@@ -17,7 +17,6 @@ package com.android.tools.idea.device.explorer.files
 
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.runWriteActionAndWait
 import com.android.tools.idea.device.explorer.common.DeviceExplorerSettings
@@ -47,6 +46,7 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
@@ -81,7 +81,7 @@ constructor(private val project: Project, private val defaultDownloadPathSupplie
   }
 
   override suspend fun downloadFileEntry(entry: DeviceFileEntry, localPath: Path, progress: DownloadProgress): VirtualFile {
-    withContext(diskIoThread) { FileUtils.mkdirs(localPath.parent.toFile()) }
+    withContext(Dispatchers.IO) { FileUtils.mkdirs(localPath.parent.toFile()) }
     return withWriteSafeContextWithCurrentModality {
       // findFileByIoFile should be called from the write thread, in a write-safe context
       VfsUtil.findFileByIoFile(localPath.toFile(), true)?.let {

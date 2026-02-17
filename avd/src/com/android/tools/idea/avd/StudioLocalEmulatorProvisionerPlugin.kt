@@ -51,7 +51,6 @@ import com.android.sdklib.internal.avd.ColdBoot
 import com.android.tools.idea.avd.EditVirtualDeviceDialog.Mode
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.RunningAvdTracker
-import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.deviceprovisioner.StudioDefaultDeviceActionPresentation
@@ -269,7 +268,7 @@ class StudioLocalEmulatorDeviceHandle(
       override val presentation = defaultPresentation.fromContext().enabledIfStopped()
 
       override suspend fun wipeData() {
-        withContext(diskIoThread) {
+        withContext(Dispatchers.IO) {
           if (!avdManagerConnection.wipeUserData(avdInfo)) {
             withContext(uiThread) {
               Messages.showErrorDialog(
@@ -288,7 +287,7 @@ class StudioLocalEmulatorDeviceHandle(
       override val presentation = defaultPresentation.fromContext().enabledIfStopped()
 
       override suspend fun delete() {
-        withContext(diskIoThread) {
+        withContext(Dispatchers.IO) {
           if (!avdManagerConnection.deleteAvd(avdInfo)) {
             withContext(uiThread) {
               if (

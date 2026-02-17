@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.device.explorer.files
 
-import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.device.explorer.files.FileTransferWorkEstimator.Companion.directoryWorkUnits
 import com.android.tools.idea.device.explorer.files.FileTransferWorkEstimator.Companion.fileWorkUnits
@@ -24,6 +23,7 @@ import com.android.tools.idea.device.explorer.files.fs.ThrottledProgress
 import java.io.File
 import java.nio.file.Path
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -90,7 +90,7 @@ class FileTransferWorkEstimator {
   }
 
   suspend fun estimateUploadWork(path: Path, progress: FileTransferWorkEstimatorProgress): FileTransferWorkEstimate = coroutineScope {
-    withContext(diskIoThread) {
+    withContext(Dispatchers.IO) {
       val workEstimate = FileTransferWorkEstimate()
       estimateUploadWorkWorker(path.toFile(), workEstimate, progress)
       workEstimate
