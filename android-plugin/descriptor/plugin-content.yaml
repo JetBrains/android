@@ -21,7 +21,6 @@
   modules:
   - name: intellij.android.kotlin.idea
   - name: intellij.android.kotlin.idea.common
-  - name: intellij.android.kotlin.idea.k1
   - name: intellij.android.kotlin.idea.k2
   - name: intellij.android.kotlin.output.parser
 - name: lib/android-profilers.jar

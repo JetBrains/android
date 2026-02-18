@@ -326,7 +326,6 @@
       <module fileurl="file://$PROJECT_DIR$/jps-model/intellij.android.jps.model.iml" filepath="$PROJECT_DIR$/jps-model/intellij.android.jps.model.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-kotlin/idea-android/intellij.android.kotlin.idea.iml" filepath="$PROJECT_DIR$/android-kotlin/idea-android/intellij.android.kotlin.idea.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-kotlin/idea-android/common/intellij.android.kotlin.idea.common.iml" filepath="$PROJECT_DIR$/android-kotlin/idea-android/common/intellij.android.kotlin.idea.common.iml" />
-      <module fileurl="file://$PROJECT_DIR$/android-kotlin/idea-android/k1/intellij.android.kotlin.idea.k1.iml" filepath="$PROJECT_DIR$/android-kotlin/idea-android/k1/intellij.android.kotlin.idea.k1.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-kotlin/idea-android/k2/intellij.android.kotlin.idea.k2.iml" filepath="$PROJECT_DIR$/android-kotlin/idea-android/k2/intellij.android.kotlin.idea.k2.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-kotlin/idea-android/idea-android-output-parser/intellij.android.kotlin.output.parser.iml" filepath="$PROJECT_DIR$/android-kotlin/idea-android/idea-android-output-parser/intellij.android.kotlin.output.parser.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-kotlin/idea-android/intellij.android.kotlin.tests.iml" filepath="$PROJECT_DIR$/android-kotlin/idea-android/intellij.android.kotlin.tests.iml" />

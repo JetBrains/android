@@ -33,7 +33,6 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/adt/idea/android:intellij.android.core",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea.common",
-        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea.k1",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea.k2",
     ],
 )
@@ -62,29 +61,6 @@ iml_module(
         "//prebuilts/r8",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
         "//tools/adt/idea/gmaven:intellij.android.gmaven",
-    ],
-)
-
-# managed by go/iml_to_build
-iml_module(
-    name = "intellij.android.kotlin.idea.k1",
-    srcs = ["idea-android/k1/src"],
-    iml_files = ["idea-android/k1/intellij.android.kotlin.idea.k1.iml"],
-    resources = ["idea-android/k1/resources"],
-    visibility = ["//visibility:public"],
-    # do not sort: must match IML order
-    deps = [
-        "@intellij//:intellij-sdk",
-        "@intellij//:com.intellij.java",
-        "@intellij//:org.jetbrains.kotlin",
-        "//tools/base/common:studio.android.sdktools.common",
-        "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api",
-        "//tools/adt/idea/android-common:intellij.android.common",
-        "//tools/adt/idea/android:intellij.android.core",
-        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea.common",
-        "//tools/adt/idea/lint:intellij.lint",
-        "//tools/base/lint:studio.android.sdktools.lint-api",
-        "//tools/base/lint:studio.android.sdktools.lint-checks",
     ],
 )
 
@@ -135,7 +111,6 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea.common",
-        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea.k1",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea.k2",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
         "//tools/base/common:studio.android.sdktools.common",

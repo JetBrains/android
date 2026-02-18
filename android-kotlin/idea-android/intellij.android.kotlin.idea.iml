@@ -34,7 +34,6 @@
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.jps.model" />
     <orderEntry type="module" module-name="intellij.android.kotlin.idea.common" />
-    <orderEntry type="module" module-name="intellij.android.kotlin.idea.k1" />
     <orderEntry type="module" module-name="intellij.android.kotlin.idea.k2" />
     <orderEntry type="module" module-name="intellij.java.psi" />
     <orderEntry type="module" module-name="intellij.platform.analysis" />

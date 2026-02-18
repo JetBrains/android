@@ -553,8 +553,6 @@ jvm_library(
     "//android/android-kotlin/idea-android:android-kotlin-idea_test_lib",
     "//android/android-kotlin/idea-android/common",
     "//android/android-kotlin/idea-android/common:common_test_lib",
-    "//android/android-kotlin/idea-android/k1",
-    "//android/android-kotlin/idea-android/k1:k1_test_lib",
     "//android/android-kotlin/idea-android/k2",
     "//android/android-kotlin/idea-android/k2:k2_test_lib",
     "//android/android-lint:lint",
