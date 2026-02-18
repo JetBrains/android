@@ -370,6 +370,6 @@ public class MergedManifestSnapshotFactory {
     value = getAttributeValue(activity, ANDROID_URI, ATTRIBUTE_UI_OPTIONS);
     String uiOptions = StringUtil.isNotEmpty(value) ? value : null;
 
-    return new ActivityAttributesSnapshot(activity, icon, label, name, parentActivity, theme, uiOptions);
+    return new ActivityAttributesSnapshot(icon, label, name, parentActivity, theme, uiOptions);
   }
 }
