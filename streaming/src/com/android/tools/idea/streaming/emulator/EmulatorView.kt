@@ -646,7 +646,8 @@ internal class EmulatorView(
     g.drawImage(screenshot.image, displayTransform, null)
 
     frameNumber = screenshotShape.frameNumber
-    deviceScaleFactor = min(deviceDisplaySize.width, deviceDisplaySize.height) * screenScale / min(displayRect.width, displayRect.height)
+    deviceScaleFactor =
+      min(deviceDisplaySize.width, deviceDisplaySize.height) * screenScalingFactor / min(displayRect.width, displayRect.height)
 
     notifyFrameListeners(displayRect, screenshot.image)
 
@@ -709,12 +710,8 @@ internal class EmulatorView(
 
       val maxImageSize = maxSize.rotatedByQuadrants(orientationQuadrants)
 
-      val currentReceiver = screenshotReceiver
-      if (
-        currentReceiver != null &&
-          currentReceiver.maxImageSize == maxImageSize &&
-          currentReceiver.orientationQuadrants == orientationQuadrants
-      ) {
+      val receiver = screenshotReceiver
+      if (receiver != null && receiver.maxImageSize == maxImageSize && receiver.orientationQuadrants == orientationQuadrants) {
         return // Keep the current screenshot feed because it is identical.
       }
 
@@ -726,9 +723,9 @@ internal class EmulatorView(
           .setWidth(maxImageSize.width)
           .setHeight(maxImageSize.height)
           .build()
-      val receiver = ScreenshotReceiver(maxImageSize, orientationQuadrants)
-      screenshotReceiver = receiver
-      screenshotFeed = emulator.streamScreenshot(imageFormat, receiver)
+      val newReceiver = ScreenshotReceiver(maxImageSize, orientationQuadrants)
+      screenshotReceiver = newReceiver
+      screenshotFeed = emulator.streamScreenshot(imageFormat, newReceiver)
     }
   }
 
@@ -887,8 +884,8 @@ internal class EmulatorView(
     }
     val skin = lastScreenshot?.skinLayout ?: return null
     val displayRect = displayRectangle ?: return null
-    val x = point.x.scaled(screenScale)
-    val y = point.y.scaled(screenScale)
+    val x = point.x.scaled(screenScalingFactor)
+    val y = point.y.scaled(screenScalingFactor)
     if (displayRect.contains(point)) {
       return null
     }
@@ -1267,29 +1264,29 @@ internal class EmulatorView(
       val imageHeight: Int
       when (displayOrientationQuadrants) {
         0 -> {
-          normalizedX = x.scaled(screenScale) - displayRectangle.x
-          normalizedY = y.scaled(screenScale) - displayRectangle.y
+          normalizedX = x.scaled(screenScalingFactor) - displayRectangle.x
+          normalizedY = y.scaled(screenScalingFactor) - displayRectangle.y
           imageWidth = displayRectangle.width
           imageHeight = displayRectangle.height
         }
 
         1 -> {
-          normalizedX = displayRectangle.y + displayRectangle.height - y.scaled(screenScale)
-          normalizedY = x.scaled(screenScale) - displayRectangle.x
+          normalizedX = displayRectangle.y + displayRectangle.height - y.scaled(screenScalingFactor)
+          normalizedY = x.scaled(screenScalingFactor) - displayRectangle.x
           imageWidth = displayRectangle.height
           imageHeight = displayRectangle.width
         }
 
         2 -> {
-          normalizedX = displayRectangle.x + displayRectangle.width - x.scaled(screenScale)
-          normalizedY = displayRectangle.y + displayRectangle.height - y.scaled(screenScale)
+          normalizedX = displayRectangle.x + displayRectangle.width - x.scaled(screenScalingFactor)
+          normalizedY = displayRectangle.y + displayRectangle.height - y.scaled(screenScalingFactor)
           imageWidth = displayRectangle.width
           imageHeight = displayRectangle.height
         }
 
         3 -> {
-          normalizedX = y.scaled(screenScale) - displayRectangle.y
-          normalizedY = displayRectangle.x + displayRectangle.width - x.scaled(screenScale)
+          normalizedX = y.scaled(screenScalingFactor) - displayRectangle.y
+          normalizedY = displayRectangle.x + displayRectangle.width - x.scaled(screenScalingFactor)
           imageWidth = displayRectangle.height
           imageHeight = displayRectangle.width
         }
@@ -1356,7 +1353,8 @@ internal class EmulatorView(
       return Touch.newBuilder().setX(x).setY(y).setIdentifier(identifier).setPressure(pressure).setExpiration(NEVER_EXPIRE)
     }
 
-    private fun isInsideDisplay(event: MouseEvent) = displayRectangle?.contains(event.x * screenScale, event.y * screenScale) ?: false
+    private fun isInsideDisplay(event: MouseEvent) =
+      displayRectangle?.contains(event.x * screenScalingFactor, event.y * screenScalingFactor) ?: false
 
     private fun buttonsToAndroid(buttons: Int): Int {
       return (if (buttons and BUTTON1_DOWN_MASK != 0) ANDROID_BUTTON_PRIMARY else 0) or
@@ -1381,12 +1379,14 @@ internal class EmulatorView(
       val frameOriginationTime: Long = message.timestampUs / 1000
       val displayMode: DisplayMode? = emulatorConfig.displayModes.firstOrNull { it.displayModeId == imageFormat.displayMode }
 
+      val width = imageFormat.width
+      val height = imageFormat.height
       if (EMBEDDED_EMULATOR_TRACE_SCREENSHOTS.get()) {
         val latency = arrivalTime - frameOriginationTime
         val foldedState = if (imageFormat.hasFoldedDisplay()) " foldedDisplay={${shortDebugString(imageFormat.foldedDisplay)}}" else ""
         val mode = if (emulatorConfig.displayModes.size > 1) " ${imageFormat.displayMode}" else ""
         LOG.info(
-          "Screenshot for display ${imageFormat.display}: ${message.seq} ${imageFormat.width}x${imageFormat.height}" +
+          "Screenshot for display ${imageFormat.display}: ${message.seq} ${width}x$height" +
             "$mode$foldedState ${imageRotation * 90}° $latency ms latency"
         )
       }
@@ -1395,17 +1395,17 @@ internal class EmulatorView(
         return // This screenshot feed has already been canceled.
       }
 
-      if (imageFormat.width == 0 || imageFormat.height == 0) {
+      if (width == 0 || height == 0) {
         expectedFrameNumber++
-        val adjective = if (imageFormat.width == 0 && imageFormat.height == 0) "empty" else "degenerate"
-        LOG.error("Invalid ImageMessage for display ${imageFormat.display}: $adjective ${imageFormat.width}x${imageFormat.height} image")
+        val adjective = if (width == 0 && height == 0) "empty" else "degenerate"
+        LOG.error("Invalid ImageMessage for display ${imageFormat.display}: $adjective ${width}x$height image")
         return // Ignore invalid screenshot.
       }
 
-      if (message.image.size() != imageFormat.width * imageFormat.height * 3) {
+      if (message.image.size() != width * height * 3) {
         LOG.error(
-          "Inconsistent ImageMessage for display ${imageFormat.display}: ${imageFormat.width}x${imageFormat.height}" +
-            " image contains ${message.image.size()} bytes instead of ${imageFormat.width * imageFormat.height * 3}"
+          "Inconsistent ImageMessage for display ${imageFormat.display}: ${width}x$height" +
+            " image contains ${message.image.size()} bytes instead of ${width * height * 3}"
         )
         return
       }
@@ -1437,21 +1437,21 @@ internal class EmulatorView(
       alarm.cancelAllRequests()
       val recycledImage = recycledImage.getAndSet(null)?.get()
       val image =
-        if (recycledImage?.width == imageFormat.width && recycledImage.height == imageFormat.height) {
+        if (recycledImage?.width == width && recycledImage.height == height) {
           val pixels = (recycledImage.raster.dataBuffer as DataBufferInt).data
           ImageConverter.unpackRgb888(message.image, pixels)
           recycledImage
         } else {
-          val pixels = IntArray(imageFormat.width * imageFormat.height)
+          val pixels = IntArray(width * height)
           ImageConverter.unpackRgb888(message.image, pixels)
           val buffer = DataBufferInt(pixels, pixels.size)
-          val sampleModel = SinglePixelPackedSampleModel(DataBuffer.TYPE_INT, imageFormat.width, imageFormat.height, SAMPLE_MODEL_BIT_MASKS)
+          val sampleModel = SinglePixelPackedSampleModel(DataBuffer.TYPE_INT, width, height, SAMPLE_MODEL_BIT_MASKS)
           val raster = Raster.createWritableRaster(sampleModel, buffer, ZERO_POINT)
           @Suppress("UndesirableClassUsage") BufferedImage(COLOR_MODEL, raster, false, null)
         }
 
       val lostFrames = if (expectedFrameNumber > 0) message.seq - expectedFrameNumber else 0
-      stats?.recordFrameArrival(arrivalTime - frameOriginationTime, lostFrames, imageFormat.width * imageFormat.height)
+      stats?.recordFrameArrival(arrivalTime - frameOriginationTime, lostFrames, width * height)
       expectedFrameNumber = message.seq + 1
 
       if (displayMode != null && !checkAspectRatioConsistency(imageFormat, displayMode)) {
@@ -1469,8 +1469,7 @@ internal class EmulatorView(
 
       notifySourceFrameListeners(image)
 
-      val displayShape =
-        DisplayShape(imageFormat.width, imageFormat.height, imageRotation, activeDisplayRegion, displayMode, message.seq.toUInt())
+      val displayShape = DisplayShape(width, height, imageRotation, activeDisplayRegion, displayMode, message.seq.toUInt())
       val screenshot = Screenshot(displayShape, image, frameOriginationTime)
       val skinLayout = skinLayoutCache.getCached(displayShape, currentPosture?.posture)
       if (skinLayout == null) {

@@ -22,7 +22,6 @@ import com.android.testutils.ImageDiffUtil
 import com.android.testutils.ProcessHandleProviderRule
 import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
-import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.actions.executeAction
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeMouse
@@ -41,6 +40,7 @@ import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.core.AndroidInputEvent
 import com.android.tools.idea.streaming.core.DeviceInputListener
 import com.android.tools.idea.streaming.core.DeviceInputListenerManager
+import com.android.tools.idea.streaming.core.ZoomType
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.streaming.emulator.FakeEmulator.Companion.IGNORE_SCREENSHOT_CALL_FILTER
 import com.android.tools.idea.streaming.emulator.FakeEmulator.GrpcCallRecord
@@ -208,46 +208,46 @@ class EmulatorViewTest {
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 454 height: 738")
     val skinHeight = 3245
     assertThat(view.scale).isWithin(1e-4).of(fakeUi.root.height * fakeUi.screenScale / skinHeight)
-    assertThat(view.canZoomIn()).isTrue()
-    assertThat(view.canZoomOut()).isFalse()
-    assertThat(view.canZoomToActual()).isTrue()
-    assertThat(view.canZoomToFit()).isFalse()
+    assertThat(view.canZoom(ZoomType.IN)).isTrue()
+    assertThat(view.canZoom(ZoomType.OUT)).isFalse()
+    assertThat(view.canZoom(ZoomType.ACTUAL)).isTrue()
+    assertThat(view.canZoom(ZoomType.FIT)).isFalse()
 
     view.zoom(ZoomType.IN)
     fakeUi.layoutAndDispatchEvents()
     call = getStreamScreenshotCallAndWaitForFrame()
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 720 height: 1481")
-    assertThat(view.canZoomIn()).isTrue()
-    assertThat(view.canZoomOut()).isTrue()
-    assertThat(view.canZoomToActual()).isTrue()
-    assertThat(view.canZoomToFit()).isTrue()
+    assertThat(view.canZoom(ZoomType.IN)).isTrue()
+    assertThat(view.canZoom(ZoomType.OUT)).isTrue()
+    assertThat(view.canZoom(ZoomType.ACTUAL)).isTrue()
+    assertThat(view.canZoom(ZoomType.FIT)).isTrue()
 
     view.zoom(ZoomType.ACTUAL)
     fakeUi.layoutAndDispatchEvents()
     call = getStreamScreenshotCallAndWaitForFrame()
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 1440 height: 2960")
-    assertThat(view.canZoomIn()).isTrue()
-    assertThat(view.canZoomOut()).isTrue()
-    assertThat(view.canZoomToActual()).isFalse()
-    assertThat(view.canZoomToFit()).isTrue()
+    assertThat(view.canZoom(ZoomType.IN)).isTrue()
+    assertThat(view.canZoom(ZoomType.OUT)).isTrue()
+    assertThat(view.canZoom(ZoomType.ACTUAL)).isFalse()
+    assertThat(view.canZoom(ZoomType.FIT)).isTrue()
 
     view.zoom(ZoomType.OUT)
     fakeUi.layoutAndDispatchEvents()
     call = getStreamScreenshotCallAndWaitForFrame()
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 720 height: 1481")
-    assertThat(view.canZoomIn()).isTrue()
-    assertThat(view.canZoomOut()).isTrue()
-    assertThat(view.canZoomToActual()).isTrue()
-    assertThat(view.canZoomToFit()).isTrue()
+    assertThat(view.canZoom(ZoomType.IN)).isTrue()
+    assertThat(view.canZoom(ZoomType.OUT)).isTrue()
+    assertThat(view.canZoom(ZoomType.ACTUAL)).isTrue()
+    assertThat(view.canZoom(ZoomType.FIT)).isTrue()
 
     view.zoom(ZoomType.FIT)
     fakeUi.layoutAndDispatchEvents()
     call = getStreamScreenshotCallAndWaitForFrame()
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 454 height: 738")
-    assertThat(view.canZoomIn()).isTrue()
-    assertThat(view.canZoomOut()).isFalse()
-    assertThat(view.canZoomToActual()).isTrue()
-    assertThat(view.canZoomToFit()).isFalse()
+    assertThat(view.canZoom(ZoomType.IN)).isTrue()
+    assertThat(view.canZoom(ZoomType.OUT)).isFalse()
+    assertThat(view.canZoom(ZoomType.ACTUAL)).isTrue()
+    assertThat(view.canZoom(ZoomType.FIT)).isFalse()
 
     // Check resizing.
     val previousCall = call
@@ -306,8 +306,8 @@ class EmulatorViewTest {
     fakeUi.layoutAndDispatchEvents()
     call = getStreamScreenshotCallAndWaitForFrame()
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 740 height: 360")
-    assertThat(view.canZoomOut()).isTrue()
-    assertThat(view.canZoomToFit()).isTrue()
+    assertThat(view.canZoom(ZoomType.OUT)).isTrue()
+    assertThat(view.canZoom(ZoomType.FIT)).isTrue()
     emulatorViewRule.executeAction("android.device.rotate.right", view)
     call = fakeEmulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setPhysicalModel")
@@ -316,8 +316,8 @@ class EmulatorViewTest {
     fakeUi.layoutAndDispatchEvents()
     call = getStreamScreenshotCallAndWaitForFrame()
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 454 height: 364")
-    assertThat(view.canZoomOut()).isFalse() // zoom-in mode canceled by the rotation.
-    assertThat(view.canZoomToFit()).isFalse()
+    assertThat(view.canZoom(ZoomType.OUT)).isFalse() // zoom-in mode canceled by the rotation.
+    assertThat(view.canZoom(ZoomType.FIT)).isFalse()
     assertAppearance("EmulatorView2")
 
     // Check mouse input in portrait orientation.

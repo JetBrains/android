@@ -20,7 +20,6 @@ import com.android.adblib.DevicePropertyNames.RO_BUILD_CHARACTERISTICS
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
-import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.actions.createTestEvent
 import com.android.tools.adtui.actions.executeAction
 import com.android.tools.adtui.actions.updateAndGetActionPresentation
@@ -37,6 +36,7 @@ import com.android.tools.idea.streaming.actions.ToggleFloatingXrToolbarAction
 import com.android.tools.idea.streaming.core.DeviceDisplayListener
 import com.android.tools.idea.streaming.core.DisplayType
 import com.android.tools.idea.streaming.core.DisplayView
+import com.android.tools.idea.streaming.core.ZoomType
 import com.android.tools.idea.streaming.core.expandFloatingToolbar
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP

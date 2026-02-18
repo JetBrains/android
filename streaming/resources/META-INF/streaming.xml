@@ -253,6 +253,49 @@
               icon="StudioIcons.Emulator.Toolbar.DEVICE_SETTINGS" text="Device UI Shortcuts" description="Shortcuts to common Android settings"/>
     </group>
 
+    <group id="android.streaming.zoom">
+      <action id="android.streaming.zoom.in"
+          icon="AllIcons.General.Add"
+          class="com.android.tools.idea.streaming.actions.ZoomAction$In"
+          text="Zoom In"
+          description="Zoom in" >
+        <keyboard-shortcut keymap="$default" first-keystroke="control ADD" />
+        <keyboard-shortcut keymap="$default" first-keystroke="control EQUALS" />
+        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta ADD" replace-all="true"/>
+        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta EQUALS" />
+      </action>
+      <action id="android.streaming.zoom.out"
+          icon="AllIcons.General.Remove"
+          class="com.android.tools.idea.streaming.actions.ZoomAction$Out"
+          text="Zoom Out"
+          description="Zoom out">
+        <keyboard-shortcut keymap="$default" first-keystroke="control MINUS" />
+        <keyboard-shortcut keymap="$default" first-keystroke="control SUBTRACT" />
+        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta MINUS" replace-all="true"/>
+        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta SUBTRACT" />
+      </action>
+      <action id="android.streaming.zoom.actual"
+          icon="AllIcons.General.ActualZoom"
+          class="com.android.tools.idea.streaming.actions.ZoomAction$Actual"
+          text="Zoom to Actual Size (100%)"
+          description="Zoom to actual size">
+        <keyboard-shortcut keymap="$default" first-keystroke="control PERIOD" />
+        <keyboard-shortcut keymap="$default" first-keystroke="control NUMPAD0" />
+        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta PERIOD" replace-all="true"/>
+        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta NUMPAD0" />
+      </action>
+      <action id="android.streaming.zoom.fit"
+          icon="AllIcons.General.FitContent"
+          class="com.android.tools.idea.streaming.actions.ZoomAction$Fit"
+          text="Zoom to Fit in Window"
+          description="Zoom the view to fit in the available space">
+        <keyboard-shortcut keymap="$default" first-keystroke="control SLASH" />
+        <keyboard-shortcut keymap="$default" first-keystroke="control DIVIDE" />
+        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta SLASH" replace-all="true"/>
+        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta DIVIDE" />
+      </action>
+    </group>
+
     <action id="android.streaming.benchmark" class="com.android.tools.idea.streaming.benchmark.StreamingBenchmarkAction"
             icon="StudioIcons.Shell.Menu.PROFILER" text="Benchmark Streaming Device"
             description="Benchmark embedded emulator or mirroring of physical device" internal="true">

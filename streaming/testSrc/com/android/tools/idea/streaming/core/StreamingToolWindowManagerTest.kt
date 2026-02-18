@@ -29,7 +29,6 @@ import com.android.sdklib.deviceprovisioner.ReservationState
 import com.android.sdklib.deviceprovisioner.TemplateActivationAction
 import com.android.sdklib.deviceprovisioner.testing.LightweightDeviceProvisionerRule
 import com.android.testutils.waitForCondition
-import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.actions.createTestEvent
 import com.android.tools.adtui.actions.executeAction
 import com.android.tools.adtui.actions.updateAndGetActionPresentation

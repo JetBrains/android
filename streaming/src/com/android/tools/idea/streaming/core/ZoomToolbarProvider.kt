@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.streaming.core
 
-import com.android.tools.adtui.actions.ZoomActualAction
-import com.android.tools.adtui.actions.ZoomInAction
-import com.android.tools.adtui.actions.ZoomOutAction
-import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.editor.EditorActionsFloatingToolbarProvider
 import com.android.tools.editor.EditorActionsToolbarActionGroups
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import javax.swing.JComponent
 
@@ -36,13 +33,15 @@ internal class ZoomToolbarProvider private constructor(component: JComponent, pa
   override fun getActionGroups() =
     object : EditorActionsToolbarActionGroups {
       override val zoomControlsGroup: ActionGroup
-        get() =
-          DefaultActionGroup().apply {
-            add(ZoomInAction.getInstance())
-            add(ZoomOutAction.getInstance())
-            add(ZoomActualAction.getInstance())
-            add(ZoomToFitAction.getInstance())
+        get() {
+          return DefaultActionGroup().apply {
+            val actionManager = ActionManager.getInstance()
+            add(actionManager.getAction("android.streaming.zoom.in"))
+            add(actionManager.getAction("android.streaming.zoom.out"))
+            add(actionManager.getAction("android.streaming.zoom.actual"))
+            add(actionManager.getAction("android.streaming.zoom.fit"))
           }
+        }
     }
 
   companion object {
