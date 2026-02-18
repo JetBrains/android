@@ -44,7 +44,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.annotations.concurrency.UiThread
@@ -56,6 +55,8 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.util.Screensh
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils.loadImageMetadata
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.util.ColorProgressBar
+import com.intellij.ui.JBColor
 import java.awt.Desktop
 import java.io.File
 import javax.swing.JComponent
@@ -138,8 +139,9 @@ class ScreenshotAttributesView {
    *
    * @param currentState The current state of the view.
    */
+  @VisibleForTesting
   @Composable
-  private fun ScreenshotAttributesUi(currentState: ScreenshotAttributesState) {
+  fun ScreenshotAttributesUi(currentState: ScreenshotAttributesState) {
     var refMetadata by remember { mutableStateOf(ImageMetadata()) }
     var newMetadata by remember { mutableStateOf(ImageMetadata()) }
 
@@ -302,7 +304,7 @@ private fun FileInfoRow(attribute: String, refValue: String, newValue: String, c
  */
 @Composable
 private fun CodeSnippet(text: String, modifier: Modifier = Modifier) {
-  Text(text = text, modifier = modifier.padding(horizontal = 8.dp, vertical = 4.dp), fontFamily = FontFamily.Monospace)
+  Text(text = text, modifier = modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = JewelTheme.editorTextStyle)
 }
 
 /**
@@ -319,7 +321,8 @@ private fun ClickableFileLink(path: String, modifier: Modifier = Modifier) {
     val clipboardManager = LocalClipboardManager.current
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
-    val color = if (isHovered) JewelTheme.colorPalette.blue[6].copy(alpha = 0.8f) else JewelTheme.colorPalette.blue[6]
+    val blue7 = JewelTheme.colorPalette.blueOrNull(7) ?: Color(JBColor.BLUE.rgb)
+    val color = if (isHovered) blue7.copy(alpha = 0.8f) else blue7
 
     ContextMenuArea(items = { listOf(ContextMenuItem("Copy Path") { clipboardManager.setText(AnnotatedString(path)) }) }) {
       BlueText(
@@ -339,13 +342,19 @@ private fun ClickableFileLink(path: String, modifier: Modifier = Modifier) {
 }
 
 /**
- * Blue text.
+ * Blue text component with theme-safe color retrieval.
  *
  * @param text The text.
  * @param modifier The modifier.
+ * @param color The color. Defaults to the 7th shade of blue from the Jewel palette, falling back to the standard platform link blue if
+ *   unavailable.
  */
 @Composable
-private fun BlueText(text: String, modifier: Modifier = Modifier, color: Color = JewelTheme.colorPalette.blue[6]) {
+private fun BlueText(
+  text: String,
+  modifier: Modifier = Modifier,
+  color: Color = JewelTheme.colorPalette.blueOrNull(7) ?: Color(JBColor.BLUE.rgb),
+) {
   Text(text = text, color = color, modifier = modifier)
 }
 
@@ -394,12 +403,13 @@ private fun RedText(text: String, modifier: Modifier = Modifier) {
 }
 
 /**
- * Green text.
+ * Green text component with theme-safe color retrieval.
  *
  * @param text The text.
  * @param modifier The modifier.
  */
 @Composable
 private fun GreenText(text: String, modifier: Modifier = Modifier) {
-  JewelTheme.colorPalette.greenOrNull(7)?.let { Text(text = text, color = it, modifier = modifier) }
+  val green7 = JewelTheme.colorPalette.greenOrNull(7) ?: Color(ColorProgressBar.GREEN.rgb)
+  Text(text = text, color = green7, modifier = modifier)
 }
