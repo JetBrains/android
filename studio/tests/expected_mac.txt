@@ -3116,13 +3116,7 @@ Android Studio Preview.app/Contents/plugins/gemini/lib/libfeedback_java_proto.ja
 Android Studio Preview.app/Contents/plugins/gemini/lib/libgoogle_auth_intellij_lib.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/libserviceusage_v1_java_lib.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/libv1internal_java_rest.jar
-Android Studio Preview.app/Contents/plugins/gemini/lib/lucene-backward-codecs-10.3.0.jar
-Android Studio Preview.app/Contents/plugins/gemini/lib/lucene-facet-10.3.0.jar
-Android Studio Preview.app/Contents/plugins/gemini/lib/lucene-highlighter-10.3.0.jar
-Android Studio Preview.app/Contents/plugins/gemini/lib/lucene-memory-10.3.0.jar
-Android Studio Preview.app/Contents/plugins/gemini/lib/lucene-queries-10.3.0.jar
-Android Studio Preview.app/Contents/plugins/gemini/lib/lucene-queryparser-10.3.0.jar
-Android Studio Preview.app/Contents/plugins/gemini/lib/lucene-sandbox-10.3.0.jar
+Android Studio Preview.app/Contents/plugins/gemini/lib/lucene-aiplugin-shaded.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/mcp-sdk-libraries.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/openai-java-client-okhttp-4.21.0.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/openai-java-core-4.21.0.jar
