@@ -29,4 +29,23 @@ jvm_library(
     ":plugins_maven_artifactResolver-m31_provided",
   ]
 )
+
+jvm_library(
+  name = "android-kotlin-output-parser_test_lib",
+  module_name = "intellij.android.kotlin.output.parser",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    ":android-kotlin-output-parser",
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "//libraries/guava:guava_test_lib",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "//android/android:core_test_lib",
+    "//plugins/maven/artifact-resolver-m31:artifactResolver-m31",
+    "//plugins/maven/artifact-resolver-m31:artifactResolver-m31_test_lib",
+    "//platform/util:util_test_lib",
+    "//platform/util-rt:util-rt_test_lib",
+  ]
+)
 ### auto-generated section `build intellij.android.kotlin.output.parser` end

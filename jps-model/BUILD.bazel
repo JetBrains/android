@@ -13,4 +13,17 @@ jvm_library(
     "//platform/util",
   ]
 )
+
+jvm_library(
+  name = "jps-model_test_lib",
+  module_name = "intellij.android.jps.model",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    ":jps-model",
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "//platform/util:util_test_lib",
+  ]
+)
 ### auto-generated section `build intellij.android.jps.model` end

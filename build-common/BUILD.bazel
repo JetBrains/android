@@ -18,4 +18,21 @@ jvm_library(
     "//platform/util-rt",
   ]
 )
+
+jvm_library(
+  name = "build-common_test_lib",
+  module_name = "intellij.android.buildCommon",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    ":build-common",
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "//libraries/guava:guava_test_lib",
+    "//platform/ide-core:ide-core_test_lib",
+    "//platform/util:util_test_lib",
+    "//platform/util/base:base_test_lib",
+    "//platform/util-rt:util-rt_test_lib",
+  ]
+)
 ### auto-generated section `build intellij.android.buildCommon` end

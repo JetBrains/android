@@ -33,15 +33,21 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "//libraries/guava",
+    "//libraries/guava:guava_test_lib",
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
     "//libraries/mockito",
+    "//libraries/mockito:mockito_test_lib",
     "@lib//:mockito-kotlin",
     "@lib//:truth",
     "//plugins/gradle:gradle-common",
+    "//plugins/gradle:gradle-common_test_lib",
     "//platform/external-system-api:externalSystem",
+    "//platform/external-system-api:externalSystem_test_lib",
     "//platform/util",
+    "//platform/util:util_test_lib",
     "//platform/util-ex",
+    "//platform/util-ex:util-ex_test_lib",
   ]
 )
 ### auto-generated section `build intellij.android.utp` end

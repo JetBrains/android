@@ -33,6 +33,32 @@ jvm_library(
     "//platform/util:util-ui",
   ]
 )
+
+jvm_library(
+  name = "connection-assistant_test_lib",
+  module_name = "intellij.android.connection-assistant",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    ":connection-assistant",
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "//libraries/guava:guava_test_lib",
+    "//libraries/protobuf:protobuf_test_lib",
+    "//android/android-adb:adb_test_lib",
+    "//android/analytics:analytics_test_lib",
+    "//android/assistant:assistant_test_lib",
+    "//android/android-common:common_test_lib",
+    "//android/android:core_test_lib",
+    "//platform/util/concurrency:concurrency_test_lib",
+    "//platform/core-api:core_test_lib",
+    "//platform/editor-ui-api:editor-ui_test_lib",
+    "//platform/extensions:extensions_test_lib",
+    "//platform/ide-core:ide-core_test_lib",
+    "//platform/util:util_test_lib",
+    "//platform/util:util-ui_test_lib",
+  ]
+)
 ### auto-generated section `build intellij.android.connection-assistant` end
 
 ### auto-generated section `build intellij.android.connection-assistant-test` start
@@ -60,23 +86,34 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
     "//libraries/mockito",
+    "//libraries/mockito:mockito_test_lib",
     "@lib//:mockito-kotlin",
     "@lib//:truth",
     "@lib//:jaxb-api",
     "//android/android-adb:adb",
+    "//android/android-adb:adb_test_lib",
     "//android/assistant",
+    "//android/assistant:assistant_test_lib",
     "//android/android-common:common",
+    "//android/android-common:common_test_lib",
     "//android/android:core",
+    "//android/android:core_test_lib",
+    "//android/adt-testutils",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//android/connection-assistant",
+    "//android/connection-assistant:connection-assistant_test_lib",
+    "//android/android-test-framework:testFramework",
     "//android/android-test-framework:testFramework_test_lib",
     "//platform/core-api:core",
+    "//platform/core-api:core_test_lib",
     "//platform/platform-impl:ide-impl",
-    "//platform/platform-impl:ide-impl_test_lib",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
   ],
-  runtime_deps = [":connection-assistant-test"]
+  runtime_deps = [
+    ":connection-assistant-test",
+    "//platform/platform-impl:ide-impl_test_lib",
+  ]
 )
 ### auto-generated section `build intellij.android.connection-assistant-test` end
 

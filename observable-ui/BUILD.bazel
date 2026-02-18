@@ -30,6 +30,7 @@ jvm_library(
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "//libraries/guava",
+    "//libraries/guava:guava_test_lib",
     "@lib//:junit4",
     "@lib//:truth",
     "//android/adt-ui",
@@ -37,13 +38,18 @@ jvm_library(
     "//android/observable",
     "//android/observable:observable_test_lib",
     "//platform/core-api:core",
+    "//platform/core-api:core_test_lib",
     "//platform/core-ui",
+    "//platform/core-ui:core-ui_test_lib",
     "//platform/platform-api:ide",
+    "//platform/platform-api:ide_test_lib",
     "//platform/platform-impl:ide-impl",
+    "//android/adt-testutils",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
-  ]
+  ],
+  runtime_deps = ["//platform/platform-impl:ide-impl_test_lib"]
 )
 ### auto-generated section `build intellij.android.observable.ui` end
 

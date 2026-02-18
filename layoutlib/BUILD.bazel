@@ -24,6 +24,22 @@ jvm_library(
     "//android/layoutlib-loader",
   ]
 )
+
+jvm_library(
+  name = "layoutlib_test_lib",
+  module_name = "intellij.android.layoutlib",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    ":layoutlib",
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "//libraries/guava:guava_test_lib",
+    "//libraries/asm-tools:asm-tools_test_lib",
+    "//libraries/asm:asm_test_lib",
+    "//android/layoutlib-loader:layoutlib-loader_test_lib",
+  ]
+)
 ### auto-generated section `build intellij.android.layoutlib` end
 
 ### auto-generated section `build intellij.android.layoutlib.tests` start
@@ -44,11 +60,14 @@ jvm_library(
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "//libraries/asm",
+    "//libraries/asm:asm_test_lib",
     "//libraries/guava",
+    "//libraries/guava:guava_test_lib",
     "@lib//:junit4",
     "@lib//:kotlin-test",
     "@lib//:layoutlib",
     "//android/layoutlib",
+    "//android/layoutlib:layoutlib_test_lib",
   ],
   runtime_deps = [":layoutlib-tests"]
 )

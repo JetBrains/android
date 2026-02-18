@@ -13,4 +13,17 @@ jvm_library(
     "@lib//:kotlin-stdlib",
   ]
 )
+
+jvm_library(
+  name = "android-gradle-tooling-api_test_lib",
+  module_name = "intellij.android.gradle-tooling.api",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True),
+  kotlinc_opts = "@community//:k8",
+  runtime_deps = [
+    ":android-gradle-tooling-api",
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+  ]
+)
 ### auto-generated section `build intellij.android.gradle-tooling.api` end

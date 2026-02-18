@@ -16,4 +16,18 @@ jvm_library(
     "//android/render-resources",
   ]
 )
+
+jvm_library(
+  name = "visual-lint_test_lib",
+  module_name = "intellij.android.visual-lint",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    ":visual-lint",
+    "//libraries/guava:guava_test_lib",
+    "@lib//:studio-platform-provided",
+    "//android/rendering:rendering_test_lib",
+    "//android/render-resources:render-resources_test_lib",
+  ]
+)
 ### auto-generated section `build intellij.android.visual-lint` end

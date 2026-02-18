@@ -12,4 +12,17 @@ jvm_library(
     "//libraries/kotlinx/coroutines/core",
   ]
 )
+
+jvm_library(
+  name = "preview-fast-compile_test_lib",
+  module_name = "intellij.android.preview-fast-compile",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    ":preview-fast-compile",
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "//libraries/kotlinx/coroutines/core:core_test_lib",
+  ]
+)
 ### auto-generated section `build intellij.android.preview-fast-compile` end

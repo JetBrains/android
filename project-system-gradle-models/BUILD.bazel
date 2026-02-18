@@ -21,6 +21,20 @@ jvm_library(
     "@lib//:kotlin-stdlib",
   ]
 )
+
+jvm_library(
+  name = "projectSystem-gradle-models_test_lib",
+  module_name = "intellij.android.projectSystem.gradle.models",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True),
+  kotlinc_opts = ":custom_projectSystem-gradle-models",
+  runtime_deps = [
+    ":projectSystem-gradle-models",
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "//libraries/guava:guava_test_lib",
+  ]
+)
 ### auto-generated section `build intellij.android.projectSystem.gradle.models` end
 
 ### auto-generated section `build intellij.android.projectSystem.gradle.models.tests` start

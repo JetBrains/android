@@ -26,6 +26,26 @@ jvm_library(
     "//platform/util",
   ]
 )
+
+jvm_library(
+  name = "native-symbolizer_test_lib",
+  module_name = "intellij.android.native-symbolizer",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    ":native-symbolizer",
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "//android/android-common:common_test_lib",
+    "//android/android:core_test_lib",
+    "//android/project-system:project-system_test_lib",
+    "//platform/core-api:core_test_lib",
+    "//platform/extensions:extensions_test_lib",
+    "//platform/lang-core:lang-core_test_lib",
+    "//platform/projectModel-api:projectModel_test_lib",
+    "//platform/util:util_test_lib",
+  ]
+)
 ### auto-generated section `build intellij.android.native-symbolizer` end
 
 ### auto-generated section `build intellij.android.native-symbolizer.tests` start
@@ -62,21 +82,35 @@ jvm_library(
     "@lib//:junit4",
     "@lib//:truth",
     "//android/android-common:common",
+    "//android/android-common:common_test_lib",
     "//android/android:core",
+    "//android/android:core_test_lib",
     "//android/native-symbolizer",
+    "//android/native-symbolizer:native-symbolizer_test_lib",
     "//android/project-system",
+    "//android/project-system:project-system_test_lib",
     "//android/project-system-gradle-models:projectSystem-gradle-models",
+    "//android/project-system-gradle-models:projectSystem-gradle-models_test_lib",
+    "//android/adt-testutils",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//android/jps-model",
+    "//android/jps-model:jps-model_test_lib",
+    "//android/android-test-framework:testFramework",
     "//android/android-test-framework:testFramework_test_lib",
+    "//android/intellij.android.testutils:testutils",
     "//android/intellij.android.testutils:testutils_test_lib",
     "//java/testFramework",
+    "//java/testFramework:testFramework_test_lib",
     "//platform/core-api:core",
+    "//platform/core-api:core_test_lib",
     "//platform/lang-core",
+    "//platform/lang-core:lang-core_test_lib",
     "//platform/projectModel-api:projectModel",
+    "//platform/projectModel-api:projectModel_test_lib",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
+    "//platform/util:util_test_lib",
   ],
   runtime_deps = [":native-symbolizer-tests"]
 )

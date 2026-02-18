@@ -28,18 +28,23 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "//libraries/guava",
+    "//libraries/guava:guava_test_lib",
     "@lib//:jetbrains-annotations",
     "@lib//:junit4",
     "//android/observable",
     "//android/observable:observable_test_lib",
     "@lib//:truth",
     "//platform/core-api:core",
+    "//platform/core-api:core_test_lib",
     "//platform/platform-api:ide",
+    "//platform/platform-api:ide_test_lib",
     "//platform/ide-core",
     "//platform/util",
+    "//platform/util:util_test_lib",
     "//platform/util-rt",
     "//platform/util-rt:util-rt_test_lib",
-  ]
+  ],
+  runtime_deps = ["//platform/ide-core:ide-core_test_lib"]
 )
 ### auto-generated section `build intellij.android.wizard.model` end
 

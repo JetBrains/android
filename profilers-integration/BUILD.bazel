@@ -19,6 +19,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
     "@lib//:truth",
+    "//android/as-driver/utils",
     "//android/as-driver/utils:utils_test_lib",
   ],
   runtime_deps = [":profilers-integration"]

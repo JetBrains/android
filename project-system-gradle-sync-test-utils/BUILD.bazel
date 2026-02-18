@@ -29,4 +29,18 @@ jvm_library(
     "//plugins/gradle/tooling-extension-api:toolingExtension",
   ]
 )
+
+jvm_library(
+  name = "projectSystem-gradle-sync-testUtils_test_lib",
+  module_name = "intellij.android.projectSystem.gradle.sync.testUtils",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True),
+  kotlinc_opts = ":custom_projectSystem-gradle-sync-testUtils",
+  runtime_deps = [
+    ":projectSystem-gradle-sync-testUtils",
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "//plugins/gradle/tooling-extension-api:toolingExtension_test_lib",
+  ]
+)
 ### auto-generated section `build intellij.android.projectSystem.gradle.sync.testUtils` end

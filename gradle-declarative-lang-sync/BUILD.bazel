@@ -23,4 +23,20 @@ jvm_library(
     "//android/gradle-declarative-lang-flags",
   ]
 )
+
+jvm_library(
+  name = "gradle-declarative-lang-sync_test_lib",
+  module_name = "intellij.android.gradle.declarative.lang.sync",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    ":gradle-declarative-lang-sync",
+    "//libraries/guava:guava_test_lib",
+    "//platform/external-system-rt:externalSystem-rt_test_lib",
+    "//plugins/gradle/tooling-extension-api:toolingExtension_test_lib",
+    "//platform/util:util_test_lib",
+    "//plugins/gradle:gradle_test_lib",
+    "//android/gradle-declarative-lang-flags:gradle-declarative-lang-flags_test_lib",
+  ]
+)
 ### auto-generated section `build intellij.android.gradle.declarative.lang.sync` end

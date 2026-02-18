@@ -22,6 +22,7 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "//libraries/kotlin/reflect",
+    "//libraries/kotlin/reflect:reflect_test_lib",
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
     "@lib//:truth",

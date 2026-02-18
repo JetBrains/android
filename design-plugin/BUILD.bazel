@@ -20,4 +20,25 @@ jvm_library(
     "//android/nav/editor/gradle",
   ]
 )
+
+jvm_library(
+  name = "design-plugin_test_lib",
+  module_name = "intellij.android.design-plugin",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    ":design-plugin",
+    "@lib//:studio-test-platform",
+    "//android/compose-designer:compose-designer_test_lib",
+    "//android/designer:designer_test_lib",
+    "//android/designer/gradle:gradle_test_lib",
+    "//android/designer/customview:customview_test_lib",
+    "//android/glance-designer:glance-designer_test_lib",
+    "//android/layoutlib:layoutlib_test_lib",
+    "//android/nav/editor:editor_test_lib",
+    "//android/wear-designer:wear-designer_test_lib",
+    "//android/design-plugin/descriptor:descriptor_test_lib",
+    "//android/nav/editor/gradle:gradle_test_lib",
+  ]
+)
 ### auto-generated section `build intellij.android.design-plugin` end

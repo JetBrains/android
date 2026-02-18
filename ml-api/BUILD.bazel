@@ -21,6 +21,26 @@ jvm_library(
     "//platform/util",
   ]
 )
+
+jvm_library(
+  name = "ml-api_test_lib",
+  module_name = "intellij.android.ml-api",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    ":ml-api",
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:junit4",
+    "//platform/extensions:extensions_test_lib",
+    "//platform/core-api:core_test_lib",
+    "//platform/util:util_test_lib",
+    "@lib//:truth",
+    "@lib//:kotlin-test",
+    "//android/adt-testutils",
+    "//android/adt-testutils:adt-testutils_test_lib",
+  ]
+)
 ### auto-generated section `build intellij.android.ml-api` end
 
 ### auto-generated section `build intellij.android.ml-api-tests` start
@@ -34,11 +54,15 @@ jvm_library(
   name = "ml-api-tests_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["src/testSrc/kotlin/**/*.kt", "src/testSrc/kotlin/**/*.java", "src/testSrc/kotlin/**/*.form"], allow_empty = True),
-  associates = ["//android/ml-api"],
+  associates = [
+    "//android/ml-api",
+    "//android/ml-api:ml-api_test_lib",
+  ],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "//libraries/mockito",
+    "//libraries/mockito:mockito_test_lib",
     "@lib//:mockito-kotlin",
     "@lib//:truth",
     "@lib//:kotlin-stdlib",
@@ -46,11 +70,16 @@ jvm_library(
     "@lib//:kotlinc-kotlin-compiler-common",
     "@lib//:junit4",
     "//platform/core-api:core",
+    "//platform/core-api:core_test_lib",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "//platform/indexing-api:indexing",
+    "//platform/indexing-api:indexing_test_lib",
     "//platform/indexing-impl",
+    "//platform/indexing-impl:indexing-impl_test_lib",
     "//java/java-frontback-psi-impl:frontback-psi-impl",
+    "//java/java-frontback-psi-impl:frontback-psi-impl_test_lib",
+    "//android/adt-testutils",
     "//android/adt-testutils:adt-testutils_test_lib",
   ],
   runtime_deps = [":ml-api-tests"]

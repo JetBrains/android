@@ -23,6 +23,29 @@ jvm_library(
     "//platform/util/jdom",
   ]
 )
+
+jvm_library(
+  name = "projectSystem-gradle-repositorySearch_test_lib",
+  module_name = "intellij.android.projectSystem.gradle.repositorySearch",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    ":projectSystem-gradle-repositorySearch",
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "//libraries/guava:guava_test_lib",
+    "//libraries/gson:gson_test_lib",
+    "//libraries/protobuf:protobuf_test_lib",
+    "//android/android:core_test_lib",
+    "//android/gmaven:gmaven_test_lib",
+    "//platform/core-api:core_test_lib",
+    "//platform/core-impl:core-impl_test_lib",
+    "//platform/ide-core:ide-core_test_lib",
+    "//platform/platform-util-io:ide-util-io_test_lib",
+    "//platform/util:util_test_lib",
+    "//platform/util/jdom:jdom_test_lib",
+  ]
+)
 ### auto-generated section `build intellij.android.projectSystem.gradle.repositorySearch` end
 
 ### auto-generated section `build intellij.android.projectSystem.gradle.repositorySearch.tests` start
@@ -43,9 +66,12 @@ jvm_library(
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "//libraries/guava",
+    "//libraries/guava:guava_test_lib",
     "@lib//:junit4",
     "//android/project-system-gradle-repository-search:projectSystem-gradle-repositorySearch",
+    "//android/project-system-gradle-repository-search:projectSystem-gradle-repositorySearch_test_lib",
     "//libraries/hamcrest",
+    "//libraries/hamcrest:hamcrest_test_lib",
   ],
   runtime_deps = [":projectSystem-gradle-repositorySearch-tests"]
 )

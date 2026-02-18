@@ -34,9 +34,12 @@ jvm_library(
     "@lib//:android-server-flags-libserver-flag-test-proto",
     "@lib//:kotlin-stdlib",
     "//libraries/protobuf",
+    "//libraries/protobuf:protobuf_test_lib",
     "@lib//:junit4",
     "//platform/util",
+    "//platform/util:util_test_lib",
     "//platform/core-api:core",
+    "//platform/core-api:core_test_lib",
   ]
 )
 ### auto-generated section `build intellij.android.server-flags` end

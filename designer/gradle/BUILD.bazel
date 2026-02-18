@@ -23,4 +23,20 @@ jvm_library(
     "//android/designer",
   ]
 )
+
+jvm_library(
+  name = "gradle_test_lib",
+  module_name = "intellij.android.designer.gradle",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    ":gradle",
+    "//platform/core-api:core_test_lib",
+    "//platform/util:util_test_lib",
+    "@lib//:studio-platform-provided",
+    "//android/project-system:project-system_test_lib",
+    "//android/project-system-gradle:projectSystem-gradle_test_lib",
+    "//android/designer:designer_test_lib",
+  ]
+)
 ### auto-generated section `build intellij.android.designer.gradle` end

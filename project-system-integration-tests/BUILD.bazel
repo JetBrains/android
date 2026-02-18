@@ -19,7 +19,10 @@ jvm_library(
     "@lib//:junit4",
     "@lib//:truth",
     "//android/android:core",
+    "//android/android:core_test_lib",
+    "//android/intellij.android.testutils:testutils",
     "//android/intellij.android.testutils:testutils_test_lib",
+    "//android/as-driver/utils",
     "//android/as-driver/utils:utils_test_lib",
   ],
   runtime_deps = [":projectSystem-integration-tests"]

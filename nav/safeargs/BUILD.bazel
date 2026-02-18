@@ -19,4 +19,18 @@ jvm_library(
     "//android/nav/safeargs/common/gradle",
   ]
 )
+
+jvm_library(
+  name = "safeargs_test_lib",
+  module_name = "intellij.android.nav.safeargs",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    ":safeargs",
+    "//android/nav/safeargs/common:common_test_lib",
+    "//android/nav/safeargs/k1:k1_test_lib",
+    "//android/nav/safeargs/k2:k2_test_lib",
+    "//android/nav/safeargs/common/gradle:gradle_test_lib",
+  ]
+)
 ### auto-generated section `build intellij.android.nav.safeargs` end

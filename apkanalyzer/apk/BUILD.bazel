@@ -25,4 +25,22 @@ jvm_library(
     "//platform/lang-api:lang",
   ]
 )
+
+jvm_library(
+  name = "apk_test_lib",
+  module_name = "intellij.android.apkanalyzer.apk",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    ":apk",
+    "//android/apkanalyzer:apkanalyzer_test_lib",
+    "//android/project-system-apk:projectSystem-apk_test_lib",
+    "//android/project-system:project-system_test_lib",
+    "//android/android:core_test_lib",
+    "//platform/core-api:core_test_lib",
+    "//platform/lang-core:lang-core_test_lib",
+    "//platform/projectModel-api:projectModel_test_lib",
+    "//platform/lang-api:lang_test_lib",
+  ]
+)
 ### auto-generated section `build intellij.android.apkanalyzer.apk` end

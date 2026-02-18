@@ -17,17 +17,25 @@ jvm_library(
     "@lib//:studio-test-platform",
     "@lib//:junit4",
     "@lib//:truth",
+    "//android/android:core-tests",
     "//android/android:core-tests_test_lib",
+    "//android/android-test-framework:testFramework",
     "//android/android-test-framework:testFramework_test_lib",
     "//java/testFramework",
+    "//java/testFramework:testFramework_test_lib",
     "//platform/analysis-api:analysis",
+    "//platform/analysis-api:analysis_test_lib",
     "//platform/core-api:core",
+    "//platform/core-api:core_test_lib",
     "//platform/ide-core",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "@lib//:javapoet",
   ],
-  runtime_deps = [":completion"]
+  runtime_deps = [
+    ":completion",
+    "//platform/ide-core:ide-core_test_lib",
+  ]
 )
 ### auto-generated section `build intellij.android.core.completion` end
 

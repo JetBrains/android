@@ -31,8 +31,11 @@ jvm_library(
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "//libraries/kotlinx/coroutines/core",
+    "//libraries/kotlinx/coroutines/core:core_test_lib",
     "//libraries/protobuf",
+    "//libraries/protobuf:protobuf_test_lib",
     "//libraries/guava",
+    "//libraries/guava:guava_test_lib",
     "@lib//:junit4",
     "@lib//:truth",
     "//android/app-inspection/api",
@@ -43,8 +46,10 @@ jvm_library(
     "//android/codenavigation:codenavigation_test_lib",
     "//android/inspectors-common/api",
     "//android/inspectors-common/api:api_test_lib",
+    "//android/adt-testutils",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//platform/util",
+    "//platform/util:util_test_lib",
   ]
 )
 ### auto-generated section `build intellij.android.app-inspection.inspectors.backgroundtask.model` end

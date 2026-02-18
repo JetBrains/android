@@ -22,6 +22,29 @@ jvm_library(
     "//platform/rd-platform-community:rd-community",
   ]
 )
+
+jvm_library(
+  name = "android-material_test_lib",
+  module_name = "intellij.android.android-material",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    ":android-material",
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "//libraries/guava:guava_test_lib",
+    "//libraries/gson:gson_test_lib",
+    "//android/android-common:common_test_lib",
+    "//android/android:core_test_lib",
+    "//platform/util/concurrency:concurrency_test_lib",
+    "//platform/core-api:core_test_lib",
+    "//platform/ide-core:ide-core_test_lib",
+    "//platform/util:util_test_lib",
+    "//platform/util/base:base_test_lib",
+    "//platform/util-ex:util-ex_test_lib",
+    "//platform/rd-platform-community:rd-community_test_lib",
+  ]
+)
 ### auto-generated section `build intellij.android.android-material` end
 
 ### auto-generated section `build intellij.android.android-material.tests` start
@@ -45,7 +68,10 @@ jvm_library(
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   resources = [":android-material-tests_test_resources"],
-  associates = ["//android/android-material"],
+  associates = [
+    "//android/android-material",
+    "//android/android-material:android-material_test_lib",
+  ],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
@@ -54,25 +80,39 @@ jvm_library(
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-test",
     "//libraries/mockito",
+    "//libraries/mockito:mockito_test_lib",
     "@lib//:mockito-kotlin",
     "@lib//:truth",
+    "//android/adt-testutils",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//android/android:core",
+    "//android/android:core_test_lib",
+    "//android/android-test-framework:testFramework",
     "//android/android-test-framework:testFramework_test_lib",
     "//platform/core-api:core",
+    "//platform/core-api:core_test_lib",
     "//platform/core-impl",
+    "//platform/core-impl:core-impl_test_lib",
     "//platform/ide-core",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
+    "//platform/util:util_test_lib",
     "//platform/util-ex",
+    "//platform/util-ex:util-ex_test_lib",
     "//platform/util-rt",
     "//platform/util-rt:util-rt_test_lib",
     "//libraries/gson",
+    "//libraries/gson:gson_test_lib",
     "//android/android-common:common",
+    "//android/android-common:common_test_lib",
     "//java/testFramework",
+    "//java/testFramework:testFramework_test_lib",
   ],
-  runtime_deps = [":android-material-tests"]
+  runtime_deps = [
+    ":android-material-tests",
+    "//platform/ide-core:ide-core_test_lib",
+  ]
 )
 ### auto-generated section `build intellij.android.android-material.tests` end
 

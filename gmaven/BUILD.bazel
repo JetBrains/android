@@ -15,4 +15,19 @@ jvm_library(
     "@lib//:kotlin-stdlib",
   ]
 )
+
+jvm_library(
+  name = "gmaven_test_lib",
+  module_name = "intellij.android.gmaven",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    ":gmaven",
+    "//android/android:core_test_lib",
+    "//libraries/guava:guava_test_lib",
+    "//platform/core-api:core_test_lib",
+    "//platform/util:util_test_lib",
+    "@lib//:studio-platform-provided",
+  ]
+)
 ### auto-generated section `build intellij.android.gmaven` end

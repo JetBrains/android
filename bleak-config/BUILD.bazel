@@ -22,9 +22,13 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
     "//android/bleak",
+    "//android/bleak:bleak_test_lib",
     "//platform/util",
+    "//platform/util:util_test_lib",
     "//platform/util/base",
+    "//platform/util/base:base_test_lib",
     "//platform/util/trove",
+    "//platform/util/trove:trove_test_lib",
   ],
   runtime_deps = [":bleak-config"]
 )

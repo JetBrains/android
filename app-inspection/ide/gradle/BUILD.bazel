@@ -28,4 +28,26 @@ jvm_library(
     "//platform/ide-core",
   ]
 )
+
+jvm_library(
+  name = "gradle_test_lib",
+  module_name = "intellij.android.app-inspection.ide.gradle",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    ":gradle",
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "//libraries/kotlinx/coroutines/core:core_test_lib",
+    "//android/app-inspection/ide:ide_test_lib",
+    "//android/app-inspection/inspector/api:api_test_lib",
+    "//platform/util:util_test_lib",
+    "//android/app-inspection/inspector/ide:ide_test_lib",
+    "//android/android-common:common_test_lib",
+    "//android/project-system:project-system_test_lib",
+    "//android/project-system-gradle:projectSystem-gradle_test_lib",
+    "//platform/core-api:core_test_lib",
+    "//platform/ide-core:ide-core_test_lib",
+  ]
+)
 ### auto-generated section `build intellij.android.app-inspection.ide.gradle` end

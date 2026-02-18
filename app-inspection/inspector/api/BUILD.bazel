@@ -27,15 +27,20 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "//libraries/protobuf",
+    "//libraries/protobuf:protobuf_test_lib",
     "//libraries/kotlinx/coroutines/core",
+    "//libraries/kotlinx/coroutines/core:core_test_lib",
     "@lib//:junit4",
     "@lib//:truth",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:google-protobuf-java-util",
     "//android/android-common:common",
+    "//android/android-common:common_test_lib",
     "//platform/util",
+    "//platform/util:util_test_lib",
     "//platform/editor-ui-api:editor-ui",
+    "//platform/editor-ui-api:editor-ui_test_lib",
   ]
 )
 ### auto-generated section `build intellij.android.app-inspection.inspector.api` end

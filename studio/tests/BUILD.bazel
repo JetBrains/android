@@ -18,6 +18,8 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
     "//libraries/kotlinx/coroutines/core",
+    "//libraries/kotlinx/coroutines/core:core_test_lib",
+    "//android/intellij.android.testutils:testutils",
     "//android/intellij.android.testutils:testutils_test_lib",
   ],
   runtime_deps = [":tests"]

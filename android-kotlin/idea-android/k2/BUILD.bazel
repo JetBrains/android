@@ -43,4 +43,31 @@ jvm_library(
     "//plugins/kotlin/code-insight/api",
   ]
 )
+
+jvm_library(
+  name = "k2_test_lib",
+  module_name = "intellij.android.kotlin.idea.k2",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True),
+  kotlinc_opts = ":custom_k2",
+  runtime_deps = [
+    ":k2",
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlinc-analysis-api-provided",
+    "@lib//:kotlinc-analysis-api-k2-provided",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "//android/android-common:common_test_lib",
+    "//android/android:core_test_lib",
+    "//android/android-kotlin/idea-android/common:common_test_lib",
+    "//java/java-psi-api:psi_test_lib",
+    "//platform/analysis-api:analysis_test_lib",
+    "//platform/core-api:core_test_lib",
+    "//platform/core-impl:core-impl_test_lib",
+    "//platform/editor-ui-api:editor-ui_test_lib",
+    "//platform/extensions:extensions_test_lib",
+    "//platform/util:util_test_lib",
+    "//plugins/kotlin/code-insight/api:api_test_lib",
+  ]
+)
 ### auto-generated section `build intellij.android.kotlin.idea.k2` end

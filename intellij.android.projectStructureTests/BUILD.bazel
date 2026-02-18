@@ -16,11 +16,15 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
     "//jps/model-api:model",
+    "//jps/model-api:model_test_lib",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "//platform/util/jdom",
+    "//platform/util/jdom:jdom_test_lib",
     "//jps/model-serialization",
+    "//jps/model-serialization:model-serialization_test_lib",
     "//java/java-runtime:rt",
+    "//java/java-runtime:rt_test_lib",
   ],
   runtime_deps = [":projectStructureTests"]
 )

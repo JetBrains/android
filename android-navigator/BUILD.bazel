@@ -59,6 +59,57 @@ jvm_library(
     "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
   ]
 )
+
+jvm_library(
+  name = "navigator_test_lib",
+  module_name = "intellij.android.navigator",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    ":navigator",
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "//libraries/guava:guava_test_lib",
+    "//libraries/commons/io:io_test_lib",
+    "@lib//:kotlinc-kotlin-jps-common-provided",
+    "//libraries/protobuf:protobuf_test_lib",
+    "//android/analytics:analytics_test_lib",
+    "//android/apkanalyzer:apkanalyzer_test_lib",
+    "//android/artwork:artwork_test_lib",
+    "//android/android-common:common_test_lib",
+    "//java/debugger/openapi:java-debugger_test_lib",
+    "//android/android:core_test_lib",
+    "//android/jps-model:jps-model_test_lib",
+    "//android/android-lang:lang_test_lib",
+    "//android/project-system:project-system_test_lib",
+    "//android/project-system-gradle:projectSystem-gradle_test_lib",
+    "//android/smali:smali_test_lib",
+    "//plugins/gradle:gradle-common_test_lib",
+    "//java/debugger/impl:impl_test_lib",
+    "//java/java-impl:impl_test_lib",
+    "//java/java-psi-api:psi_test_lib",
+    "//platform/analysis-api:analysis_test_lib",
+    "//platform/core-ui:core-ui_test_lib",
+    "//platform/core-api:core_test_lib",
+    "//platform/core-impl:core-impl_test_lib",
+    "//platform/editor-ui-api:editor-ui_test_lib",
+    "//platform/extensions:extensions_test_lib",
+    "//platform/platform-api:ide_test_lib",
+    "//platform/ide-core:ide-core_test_lib",
+    "//platform/platform-impl:ide-impl_test_lib",
+    "//jps/model-api:model_test_lib",
+    "//platform/lang-api:lang_test_lib",
+    "//platform/lang-core:lang-core_test_lib",
+    "//platform/lang-impl:lang-impl_test_lib",
+    "//platform/projectModel-api:projectModel_test_lib",
+    "//platform/structure-view-impl:structureView-impl_test_lib",
+    "//platform/util:util_test_lib",
+    "//platform/util/base:base_test_lib",
+    "//platform/util-rt:util-rt_test_lib",
+    "//plugins/kotlin/base/util:util_test_lib",
+    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable_test_lib",
+  ]
+)
 ### auto-generated section `build intellij.android.navigator` end
 
 ### auto-generated section `build intellij.android.navigator.testutils` start
@@ -86,20 +137,33 @@ jvm_library(
     "@lib//:truth",
     "@lib//:junit4",
     "//android/android:core",
+    "//android/android:core_test_lib",
     "//android/android-navigator:navigator",
+    "//android/android-navigator:navigator_test_lib",
     "//android/android-test-framework:testFramework",
     "//android/android-test-framework:testFramework_test_lib",
     "//platform/core-api:core",
+    "//platform/core-api:core_test_lib",
     "//platform/core-ui",
+    "//platform/core-ui:core-ui_test_lib",
     "//platform/editor-ui-api:editor-ui",
+    "//platform/editor-ui-api:editor-ui_test_lib",
     "//platform/extensions",
+    "//platform/extensions:extensions_test_lib",
     "//platform/platform-api:ide",
+    "//platform/platform-api:ide_test_lib",
     "//platform/ide-core",
     "//platform/lang-api:lang",
+    "//platform/lang-api:lang_test_lib",
     "//platform/lang-impl",
+    "//platform/lang-impl:lang-impl_test_lib",
     "//platform/util",
+    "//platform/util:util_test_lib",
   ],
-  runtime_deps = [":navigator-testutils"]
+  runtime_deps = [
+    ":navigator-testutils",
+    "//platform/ide-core:ide-core_test_lib",
+  ]
 )
 ### auto-generated section `build intellij.android.navigator.testutils` end
 
