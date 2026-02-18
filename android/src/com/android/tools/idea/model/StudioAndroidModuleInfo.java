@@ -23,17 +23,15 @@ import static com.android.tools.idea.util.DumbServiceUtilKt.uiSafeRunReadActionI
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.module.AndroidModuleInfo;
-import com.android.utils.concurrency.AsyncSupplier;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.util.concurrency.SameThreadExecutor;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetScopedService;
 import com.android.tools.sdk.AndroidPlatform;
@@ -110,17 +108,6 @@ public class StudioAndroidModuleInfo extends AndroidFacetScopedService implement
     return ProjectSystemUtil.getModuleSystem(facet).getPackageName();
   }
 
-  @NotNull
-  private static <T> ListenableFuture<T> getFromMergedManifest(@NotNull AndroidFacet facet,
-                                                               @NotNull Function<MergedManifestSnapshot, T> getter) {
-    AsyncSupplier<MergedManifestSnapshot> manifestSupplier = MergedManifestManager.getMergedManifestSupplier(facet.getModule());
-    MergedManifestSnapshot cachedManifest = manifestSupplier.getNow();
-    if (cachedManifest != null) {
-      return Futures.immediateFuture(getter.apply(cachedManifest));
-    }
-    return Futures.transform(manifestSupplier.get(), getter, SameThreadExecutor.INSTANCE);
-  }
-
   /**
    * Returns the minSdkVersion that we pass to the runtime. This is normally the same as
    * {@link #getMinSdkVersion()}, but with preview platforms the minSdkVersion, targetSdkVersion
@@ -137,13 +124,8 @@ public class StudioAndroidModuleInfo extends AndroidFacetScopedService implement
     }
 
     Project project = facet.getModule().getProject();
-    if (!DumbService.isDumb(project)) {
-      AndroidVersion minSdkVersion = DumbService.getInstance(project)
-        .runReadActionInSmartMode(() -> queryMinSdkAndTargetSdkFromManifestIndex(facet).getMinSdk());
-      return Futures.immediateFuture(minSdkVersion);
-    }
-
-    return getFromMergedManifest(facet, MergedManifestSnapshot::getMinSdkVersion);
+    return Futures.submit(() -> ReadAction.nonBlocking(() -> queryMinSdkAndTargetSdkFromManifestIndex(facet).getMinSdk())
+      .inSmartMode(project).executeSynchronously(), AppExecutorUtil.getAppExecutorService());
   }
 
   @Override
@@ -166,7 +148,7 @@ public class StudioAndroidModuleInfo extends AndroidFacetScopedService implement
       AndroidManifestIndexQueryUtils.logManifestIndexQueryError(e);
     }
 
-    return MergedManifestManager.getSnapshot(facet).getMinSdkVersion();
+    return AndroidVersion.DEFAULT;
   }
 
   @Override
@@ -179,8 +161,6 @@ public class StudioAndroidModuleInfo extends AndroidFacetScopedService implement
       if (targetSdkVersion != null) {
         return targetSdkVersion;
       }
-
-      // Else: not specified in gradle files; fall back to manifest
     }
 
     try {
@@ -194,7 +174,7 @@ public class StudioAndroidModuleInfo extends AndroidFacetScopedService implement
       AndroidManifestIndexQueryUtils.logManifestIndexQueryError(e);
     }
 
-    return MergedManifestManager.getSnapshot(facet).getTargetSdkVersion();
+    return AndroidVersion.DEFAULT;
   }
 
   @Override
