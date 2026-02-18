@@ -15,7 +15,6 @@ jvm_library(
   resources = [":safeargs_resources"],
   runtime_deps = [
     "//android/nav/safeargs/common",
-    "//android/nav/safeargs/k1",
     "//android/nav/safeargs/k2",
     "//android/nav/safeargs/common/gradle",
   ]
@@ -29,7 +28,6 @@ jvm_library(
   runtime_deps = [
     ":safeargs",
     "//android/nav/safeargs/common:common_test_lib",
-    "//android/nav/safeargs/k1:k1_test_lib",
     "//android/nav/safeargs/k2:k2_test_lib",
     "//android/nav/safeargs/common/gradle:gradle_test_lib",
   ]

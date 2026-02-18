@@ -9,7 +9,6 @@ iml_module(
     # do not sort: must match IML order
     runtime_deps = [
         "//tools/adt/idea/nav/safeargs/common:intellij.android.nav.safeargs.common",
-        "//tools/adt/idea/nav/safeargs/k1:intellij.android.nav.safeargs.k1",
         "//tools/adt/idea/nav/safeargs/k2:intellij.android.nav.safeargs.k2",
         "//tools/adt/idea/nav/safeargs/common/gradle:intellij.android.nav.safeargs.common.gradle",
     ],

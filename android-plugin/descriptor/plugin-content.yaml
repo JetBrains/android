@@ -89,7 +89,6 @@
   - name: intellij.android.nav.safeargs
   - name: intellij.android.nav.safeargs.common
   - name: intellij.android.nav.safeargs.common.gradle
-  - name: intellij.android.nav.safeargs.k1
   - name: intellij.android.nav.safeargs.k2
   - name: intellij.android.android-material
   - name: intellij.android.observable.ui
