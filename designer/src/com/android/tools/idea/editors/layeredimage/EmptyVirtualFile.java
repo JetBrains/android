@@ -53,8 +53,7 @@ final class EmptyVirtualFile extends VirtualFile {
   }
 
   @Override
-  @NotNull
-  public byte[] contentsToByteArray() throws IOException {
+  public byte @NotNull [] contentsToByteArray() throws IOException {
     return EMPTY_ARRAY;
   }
 
