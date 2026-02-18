@@ -865,7 +865,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
     /** One element is added to this queue for every response message sent to the client. */
     val responseMessageCounter = LinkedBlockingDeque<Unit>()
 
-    /** Completed or cancelled when the gRPC call is completed or cancelled. */
+    /** Completed or canceled when the gRPC call is completed or canceled. */
     val completion: SettableFuture<Unit> = SettableFuture.create()
 
     fun waitForResponse(timeout: Duration) {
@@ -879,7 +879,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
     fun waitForCancellation(timeout: Duration) {
       try {
         waitForCompletion(timeout)
-        fail("The $methodName call was not cancelled")
+        fail("The $methodName call was not canceled")
       } catch (_: CancellationException) {
         // Expected.
       }
