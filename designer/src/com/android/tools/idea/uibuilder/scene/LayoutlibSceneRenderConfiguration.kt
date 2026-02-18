@@ -31,7 +31,6 @@ import com.android.tools.rendering.RenderService
 import com.android.tools.rendering.RenderService.RenderTaskBuilder
 import com.android.tools.rendering.RenderTask
 import com.android.tools.rendering.ViewLoader
-import com.android.tools.rendering.api.RenderModelModule
 import com.android.tools.rendering.imagepool.ImagePool
 import com.intellij.openapi.util.Disposer
 import java.util.concurrent.atomic.AtomicBoolean
@@ -186,15 +185,7 @@ class LayoutlibSceneRenderConfiguration(
   var sessionClockProvider: () -> SessionClock = ::RealTimeSessionClock
 
   /** No-op in production, intended to be used for testing purposes only. */
-  private var wrapRenderModule: (RenderModelModule) -> RenderModelModule = identity()
-
-  /** No-op in production, intended to be used for testing purposes only. */
   private var wrapRenderTaskBuilder: (RenderTaskBuilder) -> RenderTaskBuilder = identity()
-
-  @TestOnly
-  fun setRenderModuleWrapperForTest(wrapper: (RenderModelModule) -> RenderModelModule) {
-    wrapRenderModule = wrapper
-  }
 
   @TestOnly
   fun setRenderTaskBuilderWrapperForTest(wrapper: (RenderTaskBuilder) -> RenderTaskBuilder) {
@@ -205,7 +196,7 @@ class LayoutlibSceneRenderConfiguration(
   internal suspend fun createRenderTask(configuration: Configuration, renderService: RenderService, logger: RenderLogger): RenderTask? {
     val taskBuilder =
       renderService
-        .taskBuilder(model.buildTarget, configuration, logger) { wrapRenderModule(it) }
+        .taskBuilder(model.buildTarget, configuration, logger) { it }
         .withPsiFile(PsiXmlFile(model.file))
         .withLayoutScanner(layoutScannerConfig.isLayoutScannerEnabled)
         .withForceMonochromeIcon(StudioFlags.FORCE_MONOCHROME_ADAPTIVE_ICON.get())

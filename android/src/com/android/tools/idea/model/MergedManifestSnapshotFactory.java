@@ -87,14 +87,16 @@ public class MergedManifestSnapshotFactory {
    * A resource value defined by the manifest. Unlike its base class, does not need to keep a reference
    * to an XML DOM node in order to resolve the resource value to a {@link ResourceReference}.
    */
-  private static class ManifestResourceValue extends ResourceValueImpl {
+  public static class ManifestResourceValue extends ResourceValueImpl {
     @Nullable private final ResourceReference myReference;
 
-    ManifestResourceValue(@NotNull ResourceNamespace namespace,
-                          @NotNull ResourceType type,
-                          @NotNull String name,
-                          @Nullable String value,
-                          @Nullable ResourceReference reference) {
+    public ManifestResourceValue(
+      @NotNull ResourceNamespace namespace,
+      @NotNull ResourceType type,
+      @NotNull String name,
+      @Nullable String value,
+      @Nullable ResourceReference reference
+    ) {
       super(namespace, type, name, value);
       myReference = reference;
     }

@@ -16,8 +16,6 @@
 package com.android.tools.idea.rendering
 
 import com.android.ide.common.rendering.api.AssetRepository
-import com.android.tools.idea.model.MergedManifestException
-import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.module.ModuleKeyManager
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -41,9 +39,6 @@ import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.CheckedDisposable
 import com.intellij.openapi.util.Disposer
-import java.util.concurrent.ExecutionException
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.getInstance
 
@@ -65,21 +60,17 @@ class AndroidFacetRenderModelModule(private val buildTarget: AndroidBuildTargetR
     get() = uiSafeRunReadActionInSmartMode(facet.module.project, ::getRenderModelManifest)
 
   private fun getRenderModelManifest(): RenderModelManifest? {
+    // It's possible we don't actually need to catch and rethrow these exceptions any more
     try {
-      return RenderMergedManifest(MergedManifestManager.getMergedManifest(facet.module).get(1, TimeUnit.SECONDS))
+      return RenderIndexedManifest(facet)
     } catch (e: InterruptedException) {
       throw ProcessCanceledException(e)
-    } catch (e: TimeoutException) {
-      LOG.warn(e)
-    } catch (e: ExecutionException) {
-      when (val cause = e.cause) {
-        is ProcessCanceledException -> throw cause
-        is MergedManifestException -> LOG.warn(e)
-        else -> LOG.error(e)
-      }
+    } catch (e: ProcessCanceledException) {
+      throw e
+    } catch (e: Exception) {
+      LOG.error(e)
+      return null
     }
-
-    return null
   }
 
   override val resourceRepositoryManager: StudioResourceRepositoryManager
