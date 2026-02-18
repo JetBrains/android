@@ -27,6 +27,7 @@ import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ToolWindowType
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType
 import com.intellij.openapi.wm.impl.InternalDecorator
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.content.ContentManagerListener
@@ -87,7 +88,7 @@ internal constructor(
     if (!visible) {
       windowFactory.createToolWindowContent(project, this)
       visible = true
-      notifyStateChanged(ToolWindowManagerListener.ToolWindowManagerEventType.ShowToolWindow)
+      notifyStateChanged(ToolWindowManagerEventType.ShowToolWindow)
       runnable?.run()
     }
   }
@@ -95,14 +96,15 @@ internal constructor(
   override fun hide(runnable: Runnable?) {
     if (visible) {
       visible = false
-      notifyStateChanged(ToolWindowManagerListener.ToolWindowManagerEventType.HideToolWindow)
+      notifyStateChanged(ToolWindowManagerEventType.HideToolWindow)
       runnable?.run()
     }
   }
 
-  override fun activate(runnable: Runnable?) {
+  override fun activate(runnable: Runnable?, autoFocusContents: Boolean, forced: Boolean) {
     active = true
-    super.activate(runnable)
+    notifyStateChanged(ToolWindowManagerEventType.ActivateToolWindow)
+    runnable?.run()
   }
 
   override fun isVisible() = visible
@@ -138,8 +140,12 @@ internal constructor(
     contentManager.addContentManagerListener(listener)
   }
 
-  private fun notifyStateChanged(changeType: ToolWindowManagerListener.ToolWindowManagerEventType) {
-    @Suppress("UnstableApiUsage") project.messageBus.syncPublisher(ToolWindowManagerListener.TOPIC).stateChanged(manager, this, changeType)
+  private fun notifyStateChanged(changeType: ToolWindowManagerEventType) {
+    val publisher = project.messageBus.syncPublisher(ToolWindowManagerListener.TOPIC)
+    @Suppress("UnstableApiUsage") publisher.stateChanged(manager, this, changeType)
+    if (changeType == ToolWindowManagerEventType.ShowToolWindow) {
+      publisher.toolWindowShown(this)
+    }
   }
 }
 
