@@ -17,40 +17,35 @@ package com.android.tools.idea.layoutinspector
 
 import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
+import com.android.tools.idea.testing.ui.createFakeToolWindow
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.wm.ToolWindow
-import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
-import com.intellij.testFramework.replaceService
-import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
+import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
+@RunsInEdt
 class ShowLayoutInspectorActionTest {
 
   private val projectRule = ProjectRule()
   private val applicationRule = ApplicationRule()
   private val disposableRule = DisposableRule()
 
-  @get:Rule val chain = RuleChain(applicationRule, projectRule, disposableRule)
-
-  private lateinit var fakeToolWindowManager: FakeToolWindowManager
+  @get:Rule val chain = RuleChain(applicationRule, projectRule, disposableRule, EdtRule())
 
   @Before
   fun setUp() {
-    fakeToolWindowManager = FakeToolWindowManager(projectRule.project)
-    projectRule.project.replaceService(ToolWindowManager::class.java, fakeToolWindowManager, disposableRule.disposable)
-
     // This line avoids the error: UnindexedFilesScannerExecutorImpl is initialized during dispose
     IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
   }
@@ -58,26 +53,28 @@ class ShowLayoutInspectorActionTest {
   @Test
   fun testActivateLayoutInspectorToolWindow() =
     withEmbeddedLayoutInspector(false) {
+      val layoutInspectorToolWindow = createFakeToolWindow(projectRule.project, disposableRule.disposable, LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
       val showLayoutInspectorAction = ShowLayoutInspectorAction()
-      assertThat(fakeToolWindowManager.layoutInspectorToolWindow.isActive).isFalse()
+      assertThat(layoutInspectorToolWindow.isActive).isFalse()
       showLayoutInspectorAction.actionPerformed(createFakeEvent(projectRule.project, showLayoutInspectorAction))
-      assertThat(fakeToolWindowManager.layoutInspectorToolWindow.isActive).isTrue()
+      assertThat(layoutInspectorToolWindow.isActive).isTrue()
     }
 
   @Test
   fun testActivateRunningDevicesToolWindow() = withEmbeddedLayoutInspector {
+    val runningDevicesToolWindow = createFakeToolWindow(projectRule.project, disposableRule.disposable, RUNNING_DEVICES_TOOL_WINDOW_ID)
     val showLayoutInspectorAction = ShowLayoutInspectorAction()
-    assertThat(fakeToolWindowManager.runningDevicesToolWindow.isActive).isFalse()
+    assertThat(runningDevicesToolWindow.isActive).isFalse()
     showLayoutInspectorAction.actionPerformed(createFakeEvent(projectRule.project, showLayoutInspectorAction))
-    assertThat(fakeToolWindowManager.runningDevicesToolWindow.isActive).isTrue()
+    assertThat(runningDevicesToolWindow.isActive).isTrue()
   }
 }
 
 private fun createFakeEvent(project: Project, anAction: AnAction) =
   createEvent(
     anAction,
-    { it: String ->
-      when (it) {
+    { keyName: String ->
+      when (keyName) {
         CommonDataKeys.PROJECT.name -> project
         else -> null
       }
@@ -87,28 +84,3 @@ private fun createFakeEvent(project: Project, anAction: AnAction) =
     ActionUiKind.NONE,
     null,
   )
-
-private class FakeToolWindowManager(project: Project) : ToolWindowHeadlessManagerImpl(project) {
-  var runningDevicesToolWindow = FakeToolWindow(project)
-  var layoutInspectorToolWindow = FakeToolWindow(project)
-
-  override fun getToolWindow(id: String?): ToolWindow? {
-    return when (id) {
-      RUNNING_DEVICES_TOOL_WINDOW_ID -> runningDevicesToolWindow
-      LAYOUT_INSPECTOR_TOOL_WINDOW_ID -> layoutInspectorToolWindow
-      else -> super.getToolWindow(id)
-    }
-  }
-}
-
-private class FakeToolWindow(project: Project) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
-  private var isActive = false
-
-  override fun activate(runnable: Runnable?) {
-    isActive = true
-  }
-
-  override fun isActive(): Boolean {
-    return isActive
-  }
-}
