@@ -201,14 +201,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
 
     private fun invokeGradleTasks(buildAction: BuildAction<*>?): GradleInvocationResult {
       val project = myRequest.project
-      val executionSettings =
-        myRequest.data.executionSettings
-          ?: GradleProjectSystemUtil.getOrCreateGradleExecutionSettings(project).apply {
-            this.withVmOptions(myRequest.jvmArguments)
-              .withArguments(myRequest.commandLineArguments)
-              .withEnvironmentVariables(myRequest.env)
-              .passParentEnvs(myRequest.isPassParentEnvs)
-          }
+      val executionSettings = myRequest.toExecutionSettings()
       val model = AtomicReference<Any?>(null)
       val gradleRootProjectPath = myRequest.rootProjectPath.path
       val executeTasksFunction = Function { connection: ProjectConnection ->
