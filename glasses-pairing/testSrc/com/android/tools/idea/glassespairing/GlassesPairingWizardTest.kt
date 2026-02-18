@@ -45,6 +45,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
@@ -131,18 +132,30 @@ class GlassesPairingWizardTest {
 
       pairingFlow.value = PairingState.Launching("Pixel 9", Booting, "AI Glasses", Booting)
 
-      composeTestRule.onNodeWithText("Starting devices...").assertIsDisplayed()
+      composeTestRule.onNodeWithText("Starting Pixel 9 and AI Glasses...").assertIsDisplayed()
       composeTestRule.onNodeWithText("Waiting for AI Glasses to boot").assertIsDisplayed()
 
-      pairingFlow.value = PairingState.Pairing("Pairing in progress...")
+      pairingFlow.value = PairingState.Pairing("Initiating pairing with Pixel 9 and AI Glasses...")
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithText("Establishing pairing...").assertIsDisplayed()
+      composeTestRule.onNodeWithText("Initiating pairing with Pixel 9 and AI Glasses...").assertIsDisplayed()
+
+      pairingFlow.value = PairingState.AwaitingAuthorization("Pixel 9")
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithText("Accept Companion app Permissions on Pixel 9").assertIsDisplayed()
+
+      pairingFlow.value = PairingState.GlassesCoreConnecting("Pixel 9")
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithText("Accept XR Services Permissions on Pixel 9").assertIsDisplayed()
+
+      pairingFlow.value = PairingState.GlassesCoreConnected("Pixel 9")
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithText("Finishing pairing with Pixel 9...").assertIsDisplayed()
+
+      pairingFlow.value = PairingState.Complete("Pixel 9", "AI Glasses")
 
       composeTestRule.waitForIdle()
-      composeTestRule.onNodeWithText("Pairing in progress...").assertIsDisplayed()
-
-      pairingFlow.value = PairingState.Complete
-
-      composeTestRule.waitForIdle()
-      composeTestRule.onNodeWithText("Pairing complete.").assertIsDisplayed()
+      composeTestRule.onNodeWithText("Successfully paired Pixel 9 with AI Glasses").assertIsDisplayed()
 
       // Verify success event
       assertThat(tracker.events).contains(GlassesPairingEvent.EventKind.SHOW_SUCCESSFUL_PAIRING)
@@ -197,6 +210,77 @@ class GlassesPairingWizardTest {
       }
 
     assertThat(duration).isLessThan(9.seconds)
+  }
+
+  @OptIn(ExperimentalTime::class)
+  @Test
+  fun testPairingTimeout() = runTest {
+    val coroutineScope = CoroutineScope(UnconfinedTestDispatcher(testScheduler))
+    val tracker = TestTracker()
+    UsageTracker.setWriterForTest(tracker)
+
+    try {
+      val phone =
+        FakeDeviceProvisionerPlugin.FakeDeviceHandle(
+          "p1",
+          coroutineScope,
+          DeviceState.Disconnected(
+            DeviceProperties.buildForTest {
+              icon = EmptyIcon.DEFAULT
+              manufacturer = "Google"
+              model = "Pixel 9"
+              deviceType = DeviceType.HANDHELD
+              androidVersion = AndroidVersion(36, 1)
+            }
+          ),
+        )
+      val glasses =
+        FakeDeviceProvisionerPlugin.FakeDeviceHandle(
+          "g1",
+          coroutineScope,
+          DeviceState.Disconnected(
+            DeviceProperties.buildForTest {
+              icon = EmptyIcon.DEFAULT
+              manufacturer = "Google"
+              model = "AI Glasses"
+              deviceType = DeviceType.AI_GLASSES
+              androidVersion = AndroidVersion(36, 1)
+            }
+          ),
+        )
+      val devicesFlow = MutableStateFlow(listOf(phone, glasses))
+
+      fun pair(g: DeviceHandle, p: DeviceHandle): Flow<PairingState> = flow { delay(Long.MAX_VALUE) }
+
+      val glassesWizard = GlassesPairingWizard(null, coroutineScope, devicesFlow, glasses, ::pair, { true })
+      val wizard = TestComposeWizard { with(glassesWizard) { SelectDevicePage() } }
+
+      composeTestRule.setContent { wizard.Content() }
+
+      // Disable auto advance so we can control it explicitly
+      composeTestRule.mainClock.autoAdvance = false
+
+      composeTestRule.onNodeWithText("Google Pixel 9").performClick()
+      composeTestRule.onNodeWithText("Next").performClick()
+
+      // Give it time to start the flow
+      composeTestRule.mainClock.advanceTimeBy(1000)
+      testScheduler.advanceTimeBy(1000)
+
+      // Now advance by 10 minutes to trigger the timeout
+      testScheduler.advanceTimeBy(10.minutes.inWholeMilliseconds + 1000)
+      composeTestRule.mainClock.advanceTimeBy(10.minutes.inWholeMilliseconds + 1000)
+      composeTestRule.mainClock.advanceTimeByFrame()
+
+      composeTestRule.onNodeWithText("Pairing timed out").assertIsDisplayed()
+      composeTestRule.onNodeWithText("The pairing process timed out.").assertIsDisplayed()
+
+      composeTestRule.onNodeWithText("Cancel").performClick()
+      wizard.awaitClose()
+    } finally {
+      coroutineScope.cancel()
+      UsageTracker.cleanAfterTesting()
+    }
   }
 
   @Test
@@ -254,30 +338,33 @@ class GlassesPairingWizardTest {
       pairingFlow.value =
         PairingState.Error(
           heading = "Error pairing AI Glasses",
-          detailText = "Failed to create companion device association with glasses device.",
+          detailText = "Failed to create companion device association between Pixel 9 and AI Glasses.",
         )
       composeTestRule.waitForIdle()
       composeTestRule.onNodeWithText("Error pairing AI Glasses").assertIsDisplayed()
-      composeTestRule.onNodeWithText("Failed to create companion device association with glasses device.").assertIsDisplayed()
+      composeTestRule.onNodeWithText("Failed to create companion device association between Pixel 9 and AI Glasses.").assertIsDisplayed()
       tracker.events.clear()
 
       // 2. Test WORKER_GLASSES_CORE_CONNECTION_FAILED
       pairingFlow.value =
         PairingState.Error(
           heading = "Error pairing AI Glasses",
-          detailText = "Failed to connect to device. Please make sure to accept all permissions on the phone.",
+          detailText = "Failed to connect AI Glasses to XR Services on Pixel 9. Please make sure to accept all permissions on Pixel 9.",
         )
       composeTestRule.waitForIdle()
       composeTestRule
-        .onNodeWithText("Failed to connect to device. Please make sure to accept all permissions on the phone.")
+        .onNodeWithText("Failed to connect AI Glasses to XR Services on Pixel 9. Please make sure to accept all permissions on Pixel 9.")
         .assertIsDisplayed()
       tracker.events.clear()
 
       // 3. Test WORKER_BOND_FAILED
       pairingFlow.value =
-        PairingState.Error(heading = "Error pairing AI Glasses", detailText = "Failed to bluetooth bond to glasses device.")
+        PairingState.Error(
+          heading = "Error pairing AI Glasses",
+          detailText = "Failed to create a Bluetooth bond between Pixel 9 and AI Glasses.",
+        )
       composeTestRule.waitForIdle()
-      composeTestRule.onNodeWithText("Failed to bluetooth bond to glasses device.").assertIsDisplayed()
+      composeTestRule.onNodeWithText("Failed to create a Bluetooth bond between Pixel 9 and AI Glasses.").assertIsDisplayed()
 
       composeTestRule.onNodeWithText("Cancel").performClick()
       wizard.awaitClose()

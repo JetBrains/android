@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.android.adblib.ConnectedDevice
 import com.android.adblib.serialNumber
 import com.android.adblib.tools.aiglasses.AiGlassesPairing
 import com.android.adblib.tools.aiglasses.ShellCommandException
@@ -60,6 +61,8 @@ import com.intellij.util.ui.JBUI
 import icons.StudioIconsCompose
 import java.awt.Component
 import java.awt.Dimension
+import java.io.IOException
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -197,10 +200,21 @@ internal constructor(
   private val pairingFlow: StateFlow<PairingState> =
     pairingTrigger
       .flatMapLatest {
-        pair(it.glasses, it.phone).catch { cause ->
-          GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.UNSPECIFIED)
-          emit(PairingState.Error("Unexpected error: $cause"))
-        }
+        flow {
+            try {
+              // We use a large timeout (10 minutes) to account for potential slow cold boots of both devices,
+              // which can take significant time on some machines/configurations (e.g no GPU, cold boot, etc),
+              // in addition to time for the user to navigate the pairing flow.
+              withTimeout(10.minutes) { pair(it.glasses, it.phone).collect { emit(it) } }
+            } catch (cause: TimeoutCancellationException) {
+              GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ERROR_TIMEOUT)
+              emit(PairingState.Error("Pairing timed out", "The pairing process timed out."))
+            }
+          }
+          .catch { cause ->
+            GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.UNSPECIFIED)
+            emit(PairingState.Error("Unexpected error: $cause"))
+          }
       }
       .distinctUntilChanged()
       .onEach {
@@ -334,7 +348,7 @@ internal sealed class PairingState {
     val glassesName: String,
     val glassesLaunchState: LaunchState,
   ) : PairingState() {
-    override val heading: String = "Starting devices..."
+    override val heading: String = "Starting $phoneName and $glassesName..."
 
     override val detailText
       get() =
@@ -360,16 +374,16 @@ internal sealed class PairingState {
     override val heading: String = "Establishing pairing..."
   }
 
-  data object AwaitingAuthorization : PairingState() {
-    override val heading: String = "Accept Companion app Permissions on Companion device"
+  data class AwaitingAuthorization(val phoneName: String) : PairingState() {
+    override val heading: String = "Accept Companion app Permissions on $phoneName"
   }
 
-  data object GlassesCoreConnecting : PairingState() {
-    override val heading: String = "Accept XR Services Permissions on Companion device"
+  data class GlassesCoreConnecting(val phoneName: String) : PairingState() {
+    override val heading: String = "Accept XR Services Permissions on $phoneName"
   }
 
-  data object GlassesCoreConnected : PairingState() {
-    override val heading: String = "Finishing pairing..."
+  data class GlassesCoreConnected(val phoneName: String) : PairingState() {
+    override val heading: String = "Finishing pairing with $phoneName..."
   }
 
   data class Error(override val heading: String, override val detailText: String, val logDetail: String? = null) : PairingState() {
@@ -378,8 +392,8 @@ internal sealed class PairingState {
     fun toLogMessage() = "$heading: $detailText${logDetail?.let { " [$it]" } ?: "" }"
   }
 
-  data object Complete : PairingState() {
-    override val heading: String = "Pairing complete."
+  data class Complete(val phoneName: String, val glassesName: String) : PairingState() {
+    override val heading: String = "Successfully paired $phoneName with $glassesName"
   }
 }
 
@@ -432,11 +446,11 @@ internal fun pairGlassesToPhone(glasses: DeviceHandle, phone: DeviceHandle): Flo
         launchGlassesAndPhone(glasses, phone)
       } catch (_: TimeoutCancellationException) {
         GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ERROR_TIMEOUT)
-        emit(PairingState.Error("Timed out waiting for devices to start."))
+        emit(PairingState.Error("Timed out waiting for both $phoneName and $glassesName to start."))
         return@flow
       } catch (e: DeviceActionException) {
         GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ERROR_LAUNCH_FAILED)
-        emit(PairingState.Error(e.message ?: "Failed to launch devices."))
+        emit(PairingState.Error(e.message ?: "Failed to launch both $phoneName and $glassesName."))
         return@flow
       }
 
@@ -453,129 +467,28 @@ internal fun pairGlassesToPhone(glasses: DeviceHandle, phone: DeviceHandle): Flo
         return@flow
       }
 
-      with(AiGlassesPairing(phoneDevice.session)) {
-        if ((glassesDevice.getPairedBluetoothDeviceCount() ?: 0) > 0) {
-          GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ERROR_ALREADY_PAIRED)
-          emit(PairingState.Error("Glasses already paired", "Wipe data on $glassesName to pair a new device."))
-          return@flow
-        }
-
-        if (!phoneDevice.hasGlassesCompanionApp()) {
-          GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ERROR_NO_COMPANION_APP)
-          emit(PairingState.Error("$phoneName does not have support for Glasses."))
-          return@flow
-        }
-
-        if ((phoneDevice.getPairedBluetoothDeviceCount() ?: 0) > 0) {
-          phoneDevice.launchCompanionApp()
-          try {
-            phoneDevice.sendUnpairCommand()
-          } catch (e: ShellCommandException) {}
-        }
-
-        // Reset any prior pairing attempts
-        phoneDevice.clearGlassesPackages()
-        delay(3.seconds)
-
-        emit(PairingState.Pairing("Initiating pairing..."))
-
-        if ((phoneDevice.getPairedBluetoothDeviceCount() ?: 0) > 0) {
-          GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_WARNING_PHONE_ALREADY_PAIRED)
-          emit(PairingState.Pairing("Warning: $phoneName already has a Bluetooth pairing; glasses pairing will likely fail."))
-          delay(3.seconds)
-        }
-
-        val glassesBluetoothAddress = glassesDevice.getBluetoothAddress()
-        if (glassesBluetoothAddress == null) {
-          GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ERROR_BLUETOOTH_ADDRESS)
-          emit(PairingState.Error("Failed to retrieve Bluetooth address of $glassesName."))
-          return@flow
-        }
-
-        val phoneBluetoothAddress = phoneDevice.getBluetoothAddress()
-        // If phoneBluetoothAddress is null, we may not have access to it; we just have to proceed
-        // and hope for the best.
-        if (phoneBluetoothAddress == glassesBluetoothAddress) {
-          GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ERROR_BLUETOOTH_ADDRESS)
-          emit(
-            PairingState.Error(
-              heading = "Network simulation error",
-              detailText =
-                "The same Bluetooth address has been assigned to both $phoneName and $glassesName. " +
-                  "Please perform a Cold Boot on one device and try again.",
-            )
+      try {
+        runPairingSequence(phoneDevice, glassesDevice, phoneName, glassesName, logger)
+      } catch (cause: ShellCommandException) {
+        GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ERROR_SHELL_COMMAND)
+        emit(
+          PairingState.Error(
+            heading = "Pairing failed",
+            detailText =
+              "An error occurred while communicating with $phoneName. Please check the device state on $phoneName.\n\nERROR: ${cause.message}",
+            logDetail = cause.message,
           )
-          return@flow
-        }
-
-        phoneDevice
-          .pairToGlasses(glassesBluetoothAddress, true)
-          .onEach { pairingState ->
-            logger.debug("Polling pairing state: $pairingState")
-            when (pairingState) {
-              "PAIRED" -> emit(PairingState.Complete)
-              "UI_CDM_ASSOCIATING" -> emit(PairingState.AwaitingAuthorization)
-              "WORKER_CONNECTING" -> emit(PairingState.GlassesCoreConnecting)
-              "WORKER_GLASSES_CORE_CONNECTED" -> emit(PairingState.GlassesCoreConnected)
-              in AiGlassesPairing.TERMINAL_STATES ->
-                emit(
-                  PairingState.Error(
-                    heading = "Error pairing $glassesName",
-                    detailText =
-                      when (pairingState) {
-                        "UI_CDM_ASSOCIATION_FAILED" -> {
-                          GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ERROR_COMPANION_CDM_FAILED)
-                          "Failed to create companion device association with glasses device."
-                        }
-                        "WORKER_BOND_FAILED" -> {
-                          GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ERROR_BOND_FAILED)
-                          "Failed to create a Bluetooth bond to glasses device."
-                        }
-                        "WORKER_CONNECTION_FAILED" -> {
-                          GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ERROR_CONNECTION_FAILED)
-                          "Failed to connect to device."
-                        }
-                        "WORKER_GLASSES_CORE_CONNECTION_FAILED" -> {
-                          GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ERROR_CONNECTION_FAILED)
-                          "Failed to connect to device. Please make sure to accept all permissions on the phone."
-                        }
-                        "WORKER_CANCELLED" -> {
-                          GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ERROR_WORKER_CANCELLED)
-                          "Pairing was cancelled."
-                        }
-                        else -> "Error pairing device."
-                      },
-                    logDetail = pairingState,
-                  )
-                )
-              else -> emit(PairingState.Pairing("Pairing in progress..."))
-            }
-          }
-          .catch { cause ->
-            if (cause is ShellCommandException) {
-              GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ERROR_SHELL_COMMAND)
-              emit(
-                PairingState.Error(
-                  heading = "Pairing failed",
-                  detailText = "An error occurred while communicating with the device. Please check the device state.",
-                  logDetail = cause.message,
-                )
-              )
-            } else if (cause is java.io.IOException) {
-              GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ERROR_IO_FAILED)
-              emit(
-                PairingState.Error(
-                  heading = "Connection lost",
-                  detailText =
-                    "The connection to one or both of the devices was lost. Pairing may have still succeeded; please check the phone.",
-                  logDetail = cause.message,
-                )
-              )
-            } else {
-              throw cause
-            }
-          }
-          .first { it in AiGlassesPairing.TERMINAL_STATES }
+        )
+      } catch (cause: IOException) {
+        GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ERROR_IO_FAILED)
+        emit(
+          PairingState.Error(
+            heading = "Connection lost",
+            detailText =
+              "The connection to one or both of $phoneName and $glassesName was lost. Pairing may have still succeeded; please check $phoneName.",
+            logDetail = cause.message,
+          )
+        )
       }
     }
     .distinctUntilChanged()
@@ -585,22 +498,151 @@ internal fun pairGlassesToPhone(glasses: DeviceHandle, phone: DeviceHandle): Flo
         is PairingState.Pairing -> {}
         is PairingState.Launching ->
           if (logger.isDebugEnabled) {
-            logger.debug("Launching devices: ${it.phoneState()};  ${it.glassesState()}")
+            logger.debug("Launching $phoneName and $glassesName: ${it.phoneState()};  ${it.glassesState()}")
           }
-        PairingState.AwaitingAuthorization -> {
+        is PairingState.AwaitingAuthorization -> {
           GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_AWAITING_AUTHORIZATION)
-          logger.debug("Awaiting authorization")
+          logger.debug("Awaiting authorization on $phoneName")
         }
-        PairingState.GlassesCoreConnecting -> {
+        is PairingState.GlassesCoreConnecting -> {
           GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_GLASSES_CORE_CONNECTING)
-          logger.debug("Connecting to glasses services")
+          logger.debug("Connecting to XR Services on $phoneName")
         }
-        PairingState.GlassesCoreConnected -> {
+        is PairingState.GlassesCoreConnected -> {
           GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_GLASSES_CORE_CONNECTED)
-          logger.debug("Glasses services connection successful")
+          logger.debug("XR Services connection successful on $phoneName")
         }
-        PairingState.Complete -> logger.info("Successfully paired $phoneName with $glassesName")
+        is PairingState.Complete -> logger.info("Successfully paired $phoneName with $glassesName")
         is PairingState.Error -> logger.warn(it.toLogMessage())
       }
     }
+}
+
+private suspend fun FlowCollector<PairingState>.runPairingSequence(
+  phoneDevice: ConnectedDevice,
+  glassesDevice: ConnectedDevice,
+  phoneName: String,
+  glassesName: String,
+  logger: com.intellij.openapi.diagnostic.Logger,
+) {
+  with(AiGlassesPairing(phoneDevice.session)) {
+    val glassesPairedCount =
+      try {
+        glassesDevice.getPairedBluetoothDeviceCount() ?: 0
+      } catch (e: ShellCommandException) {
+        throw ShellCommandException("Getting paired device count failed: ${e.message}")
+      }
+
+    if (glassesPairedCount > 0) {
+      GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ERROR_ALREADY_PAIRED)
+      emit(PairingState.Error("$glassesName is already paired", "Wipe data on $glassesName to pair a new phone device."))
+      return
+    }
+
+    val hasCompanionApp =
+      try {
+        phoneDevice.hasGlassesCompanionApp()
+      } catch (e: ShellCommandException) {
+        throw ShellCommandException("Checking for Glasses Companion app installed failed: ${e.message}")
+      }
+
+    if (!hasCompanionApp) {
+      GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ERROR_NO_COMPANION_APP)
+      emit(PairingState.Error("$phoneName does not have support for AI Glasses."))
+      return
+    }
+
+    if ((phoneDevice.getPairedBluetoothDeviceCount() ?: 0) > 0) {
+      phoneDevice.launchCompanionApp()
+      try {
+        phoneDevice.sendUnpairCommand()
+      } catch (e: ShellCommandException) {}
+    }
+
+    // Reset any prior pairing attempts
+    phoneDevice.clearGlassesPackages()
+    delay(3.seconds)
+
+    emit(PairingState.Pairing("Initiating pairing with $phoneName and $glassesName..."))
+
+    if ((phoneDevice.getPairedBluetoothDeviceCount() ?: 0) > 0) {
+      GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_WARNING_PHONE_ALREADY_PAIRED)
+      emit(PairingState.Pairing("Warning: $phoneName already has a Bluetooth pairing; pairing with $glassesName will likely fail."))
+      delay(3.seconds)
+    }
+
+    val glassesBluetoothAddress =
+      try {
+        glassesDevice.getBluetoothAddress()
+      } catch (e: ShellCommandException) {
+        throw ShellCommandException("Getting Bluetooth address of $glassesName failed: ${e.message}")
+      }
+
+    if (glassesBluetoothAddress == null) {
+      GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ERROR_BLUETOOTH_ADDRESS)
+      emit(PairingState.Error("Failed to retrieve Bluetooth address of $glassesName."))
+      return
+    }
+
+    val phoneBluetoothAddress = phoneDevice.getBluetoothAddress()
+    // If phoneBluetoothAddress is null, we may not have access to it; we just have to proceed
+    // and hope for the best.
+    if (phoneBluetoothAddress == glassesBluetoothAddress) {
+      GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ERROR_BLUETOOTH_ADDRESS)
+      emit(
+        PairingState.Error(
+          heading = "Network simulation error",
+          detailText =
+            "The same Bluetooth address has been assigned to both $phoneName and $glassesName. " +
+              "Please perform a Cold Boot of either $phoneName or $glassesName and try again.",
+        )
+      )
+      return
+    }
+
+    phoneDevice
+      .pairToGlasses(glassesBluetoothAddress, true)
+      .onEach { pairingState ->
+        logger.debug("Polling pairing state: $pairingState")
+        when (pairingState) {
+          "PAIRED" -> emit(PairingState.Complete(phoneName, glassesName))
+          "UI_CDM_ASSOCIATING" -> emit(PairingState.AwaitingAuthorization(phoneName))
+          "WORKER_CONNECTING" -> emit(PairingState.GlassesCoreConnecting(phoneName))
+          "WORKER_GLASSES_CORE_CONNECTED" -> emit(PairingState.GlassesCoreConnected(phoneName))
+          in AiGlassesPairing.TERMINAL_STATES ->
+            emit(
+              PairingState.Error(
+                heading = "Error pairing $glassesName",
+                detailText =
+                  when (pairingState) {
+                    "UI_CDM_ASSOCIATION_FAILED" -> {
+                      GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ERROR_COMPANION_CDM_FAILED)
+                      "Failed to create companion device association between $phoneName and $glassesName."
+                    }
+                    "WORKER_BOND_FAILED" -> {
+                      GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ERROR_BOND_FAILED)
+                      "Failed to create a Bluetooth bond between $phoneName and $glassesName."
+                    }
+                    "WORKER_CONNECTION_FAILED" -> {
+                      GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ERROR_CONNECTION_FAILED)
+                      "Failed to connect $glassesName to XR Services on $phoneName."
+                    }
+                    "WORKER_GLASSES_CORE_CONNECTION_FAILED" -> {
+                      GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ERROR_CONNECTION_FAILED)
+                      "Failed to connect $glassesName to XR Services on $phoneName. Please make sure to accept all permissions on $phoneName."
+                    }
+                    "WORKER_CANCELLED" -> {
+                      GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ERROR_WORKER_CANCELLED)
+                      "Pairing $glassesName with $phoneName was cancelled."
+                    }
+                    else -> "Error pairing $glassesName with $phoneName."
+                  },
+                logDetail = pairingState,
+              )
+            )
+          else -> emit(PairingState.Pairing("Pairing in progress..."))
+        }
+      }
+      .first { it in AiGlassesPairing.TERMINAL_STATES }
+  }
 }
