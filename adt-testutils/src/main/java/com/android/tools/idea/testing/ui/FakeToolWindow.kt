@@ -20,7 +20,9 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
+import com.intellij.openapi.wm.ToolWindowBalloonShowOptions
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ToolWindowType
@@ -42,6 +44,7 @@ fun createFakeToolWindow(
 ): FakeToolWindow {
   val windowManager = FakeToolWindowManager(windowFactory, toolWindowId, icon, project)
   project.replaceService(ToolWindowManager::class.java, windowManager, parentDisposable)
+  Disposer.register(parentDisposable) { toolWindowBalloons.clear() }
   val toolWindow = windowManager.toolWindow
   assertThat(windowFactory.shouldBeAvailable(project)).isTrue()
   windowFactory.init(toolWindow)
@@ -142,10 +145,15 @@ internal constructor(
 
 private class FakeToolWindowManager(windowFactory: ToolWindowFactory, private val toolWindowId: String, icon: Icon, project: Project) :
   ToolWindowHeadlessManagerImpl(project) {
+
   var toolWindow = FakeToolWindow(windowFactory, icon, this, project)
 
   override fun getToolWindow(id: String?): ToolWindow? {
     return if (id == toolWindowId) toolWindow else super.getToolWindow(id)
+  }
+
+  override fun notifyByBalloon(options: ToolWindowBalloonShowOptions) {
+    toolWindowBalloons.add(options)
   }
 
   override fun invokeLater(runnable: Runnable) {
@@ -157,3 +165,5 @@ class SimpleToolWindowFactory : ToolWindowFactory {
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {}
 }
+
+val toolWindowBalloons = mutableListOf<ToolWindowBalloonShowOptions>()

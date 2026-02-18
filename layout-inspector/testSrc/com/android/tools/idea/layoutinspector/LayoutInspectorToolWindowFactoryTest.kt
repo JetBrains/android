@@ -27,18 +27,16 @@ import com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurab
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.sdk.AndroidProjectChecker
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.ui.createFakeToolWindow
+import com.android.tools.idea.testing.ui.toolWindowBalloons
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.ShowSettingsUtil
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.wm.ToolWindow
-import com.intellij.openapi.wm.ToolWindowBalloonShowOptions
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.openapi.wm.ext.LibraryDependentToolWindow
 import com.intellij.testFramework.replaceService
-import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import java.util.concurrent.CountDownLatch
 import kotlin.test.fail
 import kotlin.time.Duration.Companion.seconds
@@ -57,45 +55,6 @@ import org.mockito.kotlin.whenever
 private val MODERN_PROCESS = DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
 class LayoutInspectorToolWindowFactoryTest {
-
-  private class FakeToolWindowManager(project: Project, private val toolWindow: ToolWindow) : ToolWindowHeadlessManagerImpl(project) {
-    var notificationText = ""
-
-    override fun getToolWindow(id: String?): ToolWindow {
-      return toolWindow
-    }
-
-    override fun notifyByBalloon(options: ToolWindowBalloonShowOptions) {
-      notificationText = options.htmlBody
-    }
-  }
-
-  private class FakeToolWindow(project: Project, private val listener: ToolWindowManagerListener) :
-    ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
-    var shouldBeAvailable = true
-    var visible = false
-    val manager = FakeToolWindowManager(project, this)
-
-    override fun setAvailable(available: Boolean, runnable: Runnable?) {
-      shouldBeAvailable = available
-    }
-
-    override fun isAvailable() = shouldBeAvailable
-
-    override fun show(runnable: Runnable?) {
-      visible = true
-      listener.stateChanged(manager)
-    }
-
-    override fun hide(runnable: Runnable?) {
-      visible = false
-      listener.stateChanged(manager)
-    }
-
-    override fun isVisible(): Boolean {
-      return visible
-    }
-  }
 
   private val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
   private val appInspectionRule = AppInspectionInspectorRule(projectRule)
@@ -121,13 +80,14 @@ class LayoutInspectorToolWindowFactoryTest {
   @Test
   fun launcherDisabledWhenToolWindowIsMinimized() {
     val listener = LayoutInspectorToolWindowManagerListener(layoutInspectorRule.launcher)
-    val toolWindow = FakeToolWindow(layoutInspectorRule.project, listener)
+    val toolWindow = createFakeToolWindow(layoutInspectorRule.project, projectRule.testRootDisposable, LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
+    layoutInspectorRule.project.messageBus.connect(projectRule.testRootDisposable).subscribe(ToolWindowManagerListener.TOPIC, listener)
 
     toolWindow.show()
-    assertThat(toolWindow.visible).isTrue()
+    assertThat(toolWindow.isVisible).isTrue()
 
     toolWindow.hide()
-    assertThat(toolWindow.visible).isFalse()
+    assertThat(toolWindow.isVisible).isFalse()
     assertThat(layoutInspectorRule.launcher.enabled).isFalse()
 
     toolWindow.show()
@@ -138,11 +98,12 @@ class LayoutInspectorToolWindowFactoryTest {
   fun testCollapseToolWindowShowsInspectionNotificationWhenInspectorIsRunning() {
     val listener = LayoutInspectorToolWindowManagerListener(layoutInspectorRule.launcher)
 
-    val toolWindow = FakeToolWindow(layoutInspectorRule.project, listener)
+    val toolWindow = createFakeToolWindow(layoutInspectorRule.project, projectRule.testRootDisposable, LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
+    layoutInspectorRule.project.messageBus.connect(projectRule.testRootDisposable).subscribe(ToolWindowManagerListener.TOPIC, listener)
 
     toolWindow.show()
     toolWindow.hide()
-    assertThat(toolWindow.manager.notificationText).isEmpty()
+    assertThat(toolWindowBalloons).isEmpty()
 
     toolWindow.show()
 
@@ -152,19 +113,23 @@ class LayoutInspectorToolWindowFactoryTest {
     waitForCondition(2.seconds) { layoutInspectorRule.launcher.activeClient.isConnected }
 
     toolWindow.hide()
-    assertThat(toolWindow.manager.notificationText).isNotEmpty()
+    assertThat(toolWindowBalloons).hasSize(1)
+    assertThat(toolWindowBalloons[0].toolWindowId).isEqualTo(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
+    assertThat(toolWindowBalloons[0].htmlBody).isNotEmpty()
 
     // Message is shown each time.
-    toolWindow.manager.notificationText = ""
     toolWindow.show()
     toolWindow.hide()
-    assertThat(toolWindow.manager.notificationText).isNotEmpty()
+    assertThat(toolWindowBalloons).hasSize(2)
+    assertThat(toolWindowBalloons[1].toolWindowId).isEqualTo(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
+    assertThat(toolWindowBalloons[1].htmlBody).isNotEmpty()
   }
 
   @Test
   fun clientCanBeDisconnectedWhileMinimized() {
     val listener = LayoutInspectorToolWindowManagerListener(layoutInspectorRule.launcher)
-    val toolWindow = FakeToolWindow(layoutInspectorRule.project, listener)
+    val toolWindow = createFakeToolWindow(layoutInspectorRule.project, projectRule.testRootDisposable, LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
+    layoutInspectorRule.project.messageBus.connect(projectRule.testRootDisposable).subscribe(ToolWindowManagerListener.TOPIC, listener)
 
     toolWindow.show()
 
