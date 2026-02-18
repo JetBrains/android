@@ -22,11 +22,11 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.device.explorer.monitor.DeviceService
 import com.android.tools.idea.device.explorer.monitor.DeviceServiceListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Service.Level.PROJECT
 import com.intellij.openapi.diagnostic.logger
@@ -36,6 +36,7 @@ import java.io.File
 import java.io.FileNotFoundException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
@@ -137,7 +138,7 @@ class AdbDeviceService @NonInjectable constructor(private val adbSupplier: () ->
   private inner class DebugBridgeChangeListener : AndroidDebugBridge.IDebugBridgeChangeListener {
     override fun bridgeChanged(bridge: AndroidDebugBridge?) {
       LOGGER.info("Debug bridge changed")
-      coroutineScope.launch(AndroidDispatchers.uiThread) {
+      coroutineScope.launch(Dispatchers.EDT) {
         if (this@AdbDeviceService.bridge != null) {
           devices.clear()
         }
@@ -167,7 +168,7 @@ class AdbDeviceService @NonInjectable constructor(private val adbSupplier: () ->
 
     override fun deviceChanged(device: IDevice, changeMask: Int) {
       LOGGER.debug(String.format("Device changed: %s", device))
-      coroutineScope.launch(AndroidDispatchers.uiThread) {
+      coroutineScope.launch(Dispatchers.EDT) {
         devices[device.serialNumber]?.let {
           if (isMaskBitSet(changeMask, IDevice.CHANGE_CLIENT_LIST)) {
             listeners.forEach { l -> l.deviceProcessListUpdated(it) }
@@ -181,7 +182,7 @@ class AdbDeviceService @NonInjectable constructor(private val adbSupplier: () ->
     override fun clientChanged(client: Client, changeMask: Int) {
       val device = client.device
       LOGGER.debug(String.format("Client changed: %s", device))
-      coroutineScope.launch(AndroidDispatchers.uiThread) {
+      coroutineScope.launch(Dispatchers.EDT) {
         devices[device.serialNumber]?.let {
           if (isMaskBitSet(changeMask, Client.CHANGE_INFO)) {
             listeners.forEach { l -> l.deviceProcessListUpdated(it) }

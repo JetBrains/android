@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.UiThread
 import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.compile.fast.isSuccess
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.fastPreviewCompileFlow
 import com.android.tools.idea.module.module
@@ -35,6 +34,7 @@ import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.runWhenSmartAndSynced
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
@@ -242,7 +242,7 @@ private class RenderingBuildStatusManagerImpl(
               scope.launch {
                 val result =
                   runCatching { buildResult.await() }.getOrElse { BuildListener.BuildResult(BuildStatus.FAILED, EverythingGlobalScope()) }
-                withContext(AndroidDispatchers.uiThread) { projectBuildStatusFlow.value = handleBuildResult(result) }
+                withContext(Dispatchers.EDT) { projectBuildStatusFlow.value = handleBuildResult(result) }
               }
               ProjectBuildStatus.Building
             }

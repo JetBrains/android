@@ -16,7 +16,6 @@
 package com.android.tools.idea.execution.common.debug.utils
 
 import com.android.ddmlib.Client
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.execution.common.debug.AndroidDebugger
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
 import com.android.tools.idea.execution.common.debug.DebugSessionStarter.attachDebuggerToClientAndShowTab
@@ -26,6 +25,7 @@ import com.intellij.execution.ExecutionException
 import com.intellij.execution.ExecutionManager
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.process.ProcessOutputTypes
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
@@ -33,6 +33,7 @@ import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.xdebugger.XDebugSession
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 object AndroidConnectDebugger {
@@ -94,7 +95,7 @@ object AndroidConnectDebugger {
       return false
     }
     val executor = DefaultDebugExecutor.getDebugExecutorInstance()
-    return withContext(AndroidDispatchers.uiThread) {
+    return withContext(Dispatchers.EDT) {
       // Switch to the debug tab associated with the existing debug session, and open the debug tool window.
       if (content.manager == null) return@withContext false
       content.manager!!.setSelectedContent(content)

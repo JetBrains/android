@@ -51,7 +51,6 @@ import com.android.sdklib.internal.avd.ColdBoot
 import com.android.tools.idea.avd.EditVirtualDeviceDialog.Mode
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.RunningAvdTracker
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.deviceprovisioner.StudioDefaultDeviceActionPresentation
 import com.android.tools.idea.glassespairing.GlassesPairingWizard
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
@@ -238,7 +237,7 @@ class StudioLocalEmulatorDeviceHandle(
 
       override suspend fun repair() {
         val path = AvdManagerConnection.getRequiredSystemImagePath(avdInfo) ?: return
-        withContext(uiThread) { SdkQuickfixUtils.createDialogForPaths(project, listOf(path))?.showAndGet() }
+        withContext(Dispatchers.EDT) { SdkQuickfixUtils.createDialogForPaths(project, listOf(path))?.showAndGet() }
         refreshDevices()
       }
     }
@@ -269,7 +268,7 @@ class StudioLocalEmulatorDeviceHandle(
       override suspend fun wipeData() {
         withContext(Dispatchers.IO) {
           if (!avdManagerConnection.wipeUserData(avdInfo)) {
-            withContext(uiThread) {
+            withContext(Dispatchers.EDT) {
               Messages.showErrorDialog(
                 project,
                 "Failed to wipe data. Please check that the emulator and its files are not in use and try again.",
@@ -288,7 +287,7 @@ class StudioLocalEmulatorDeviceHandle(
       override suspend fun delete() {
         withContext(Dispatchers.IO) {
           if (!avdManagerConnection.deleteAvd(avdInfo)) {
-            withContext(uiThread) {
+            withContext(Dispatchers.EDT) {
               if (
                 MessageDialogBuilder.okCancel(
                     "Could Not Delete All AVD Files",

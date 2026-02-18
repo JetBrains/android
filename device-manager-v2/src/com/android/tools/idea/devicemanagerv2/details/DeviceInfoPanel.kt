@@ -31,8 +31,8 @@ import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
 import com.android.sdklib.internal.avd.ConfigKey
 import com.android.tools.adtui.device.ScreenDiagram
 import com.android.tools.adtui.util.getHumanizedSize
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
@@ -294,12 +294,12 @@ private val EXCLUDED_LOCAL_AVD_PROPERTIES =
 
 /** Launches a coroutine to monitor the device properties and update details when they change. */
 internal fun DeviceInfoPanel.trackDeviceProperties(scope: CoroutineScope, handle: DeviceHandle) {
-  scope.launch(uiThread) { handle.stateFlow.map { it.properties }.distinctUntilChanged().collect { populateDeviceInfo(it) } }
+  scope.launch(Dispatchers.EDT) { handle.stateFlow.map { it.properties }.distinctUntilChanged().collect { populateDeviceInfo(it) } }
 }
 
 /** Launches coroutines to monitor the state of the device power, storage, and size on disk. */
 internal fun DeviceInfoPanel.trackDevicePowerAndStorage(scope: CoroutineScope, handle: DeviceHandle) {
-  scope.launch(uiThread) {
+  scope.launch(Dispatchers.EDT) {
     handle.stateFlow
       .distinctUntilChangedBy { it.connectedDevice }
       .collectLatest { state ->
@@ -307,7 +307,7 @@ internal fun DeviceInfoPanel.trackDevicePowerAndStorage(scope: CoroutineScope, h
 
         val device = state.connectedDevice
         if (device != null) {
-          device.scope.launch(uiThread) {
+          device.scope.launch(Dispatchers.EDT) {
             device.deviceInfoFlow
               .map { it.deviceState == DeviceState.ONLINE }
               .distinctUntilChanged()

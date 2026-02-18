@@ -27,7 +27,6 @@ import com.android.ddmlib.NullOutputReceiver
 import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.model.component.WearComponent
 import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.run.ApkProvisionException
@@ -44,10 +43,12 @@ import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.ExecutionUiService
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.util.AndroidBundle
@@ -152,7 +153,7 @@ suspend fun createRunContentDescriptor(
   environment: ExecutionEnvironment,
 ): RunContentDescriptor {
   console.attachToProcess(processHandler)
-  return withContext(uiThread) {
+  return withContext(Dispatchers.EDT) {
     ExecutionUiService.getInstance().showRunContent(DefaultExecutionResult(console, processHandler), environment)
   }
 }

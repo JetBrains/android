@@ -19,7 +19,6 @@ import com.android.ddmlib.IDevice
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.observable.BindingsManager
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolValueProperty
@@ -887,7 +886,7 @@ class DevicesConnectionStep(
   }
 
   private fun showDeviceError(header: String, description: String, errorMessage: String) {
-    coroutineScope.launch(uiThread) {
+    coroutineScope.launch(Dispatchers.EDT) {
       forceDispose()
       val body = createWarningPanel(errorMessage)
       body.add(

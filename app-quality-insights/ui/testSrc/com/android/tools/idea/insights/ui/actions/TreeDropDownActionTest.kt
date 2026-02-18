@@ -20,7 +20,6 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.FakeComponentPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.MultiSelection
 import com.android.tools.idea.insights.model.common.GroupAware
 import com.android.tools.idea.insights.model.common.WithCount
@@ -34,6 +33,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.application.EDT
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.ui.CheckedTreeNode
 import com.intellij.ui.components.JBLabel
@@ -46,6 +46,7 @@ import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
 import kotlin.test.fail
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -98,7 +99,7 @@ class TreeDropDownActionTest {
 
   @Test
   fun `open popup shows correct selection`(): Unit =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val panel = JPanel(BorderLayout())
       val fakeUi = FakeUi(panel)
 
@@ -148,7 +149,7 @@ class TreeDropDownActionTest {
 
   @Test
   fun `empty selection disables the action`() =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val panel = JPanel(BorderLayout())
       val fakeUi = FakeUi(panel)
 
@@ -191,7 +192,7 @@ class TreeDropDownActionTest {
 
   @Test
   fun `search filters correctly`(): Unit =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val panel = JPanel(BorderLayout())
       val fakeUi = FakeUi(panel)
 
@@ -272,7 +273,7 @@ class TreeDropDownActionTest {
 
   @Test
   fun `single child is expanded`(): Unit =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val panel = JPanel(BorderLayout())
       val fakeUi = FakeUi(panel)
 
@@ -308,7 +309,7 @@ class TreeDropDownActionTest {
 
   @Test
   fun `popup shows items in descending order of total count and respects filters`(): Unit =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val panel = JPanel(BorderLayout())
       val fakeUi = FakeUi(panel)
 
@@ -361,7 +362,7 @@ class TreeDropDownActionTest {
 
   @Test
   fun `popup shows unavailable message when items exceed limit`(): Unit =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val panel = JPanel(BorderLayout())
       val items = (1..MAX_DROPDOWN_ITEMS + 1).asSequence().map { WithCount(1, SimpleValue("$it", "Title")) }.toList()
 
@@ -398,7 +399,7 @@ class TreeDropDownActionTest {
 
   @Test
   fun `secondary group selection causes updates in primary and vice versa`() =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val panel = JPanel(BorderLayout())
       val flow =
         MutableStateFlow(MultiSelection(setOf(VALUE1, VALUE2, VALUE3, VALUE4, VALUE5), listOf(VALUE1, VALUE2, VALUE3, VALUE4, VALUE5)))

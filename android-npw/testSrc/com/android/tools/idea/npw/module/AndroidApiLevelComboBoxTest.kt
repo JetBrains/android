@@ -19,10 +19,11 @@ import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API
 import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API
 import com.android.sdklib.SdkVersionInfo.RECOMMENDED_MIN_SDK_VERSION
 import com.android.tools.adtui.device.FormFactor
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem
 import com.google.common.collect.Lists
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.application.EDT
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -31,7 +32,7 @@ class AndroidApiLevelComboBoxTest {
 
   @Test
   fun testDefaultSelectedItem() =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val formFactor = FormFactor.MOBILE
       assertEquals("none", PropertiesComponent.getInstance().getValue(getPropertiesComponentMinSdkKey(formFactor), "none"))
       val items: MutableList<VersionItem> =

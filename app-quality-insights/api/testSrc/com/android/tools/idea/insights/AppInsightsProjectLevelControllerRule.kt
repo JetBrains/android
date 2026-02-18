@@ -17,7 +17,6 @@ package com.android.tools.idea.insights
 
 import com.android.testutils.time.FakeClock
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.FakeAiInsightToolkit
@@ -52,6 +51,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ExtensionTestUtil
@@ -109,7 +109,7 @@ class AppInsightsProjectLevelControllerRule(
 
   override fun before(description: Description) {
     val offlineStatusManager = OfflineStatusManagerImpl()
-    scope = AndroidCoroutineScope(disposable, AndroidDispatchers.uiThread)
+    scope = AndroidCoroutineScope(disposable, Dispatchers.EDT)
     clock = FakeClock(NOW)
     cache = AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER)
     client = spy(TestAppInsightsClient(cache))

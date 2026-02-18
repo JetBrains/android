@@ -16,7 +16,6 @@
 package com.android.tools.idea.sqlite.repository
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
@@ -160,7 +159,7 @@ class DatabaseRepositoryImpl(private val project: Project, taskExecutor: Executo
           "SET ${AndroidSqlLexer.getValidName(targetColumnName)} = ? " +
           "WHERE ${whereExpression.expression}"
 
-      withContext(uiThread) {
+      withContext(Dispatchers.EDT) {
         val sqliteStatement = createSqliteStatement(project, updateStatement, listOf(newValue) + whereExpression.parameters)
         withContext(workerDispatcher) { databaseConnection.execute(sqliteStatement).await() }
       }

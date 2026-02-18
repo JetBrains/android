@@ -19,7 +19,6 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.execution.common.debug.utils.showError
 import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider.Companion.getApplicationProjectContext
@@ -30,6 +29,7 @@ import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.project.Project
@@ -168,7 +168,7 @@ internal class ReattachingDebuggerListener<S : AndroidDebuggerState>(
         processHandlerForOpenedTab.subscribeOnDebugProcess(session.debugProcess.processHandler)
 
         session.runContentDescriptor.processHandler = processHandlerForOpenedTab
-        withContext(AndroidDispatchers.uiThread) {
+        withContext(Dispatchers.EDT) {
           try {
             session.showSessionTab()
           } catch (e: Throwable) {

@@ -24,7 +24,6 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.deployer.model.component.Complication.ComplicationType
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
@@ -38,6 +37,7 @@ import com.intellij.execution.impl.ConfigurationSettingsEditorWrapper
 import com.intellij.execution.impl.RunManagerImpl
 import com.intellij.execution.impl.RunnerAndConfigurationSettingsImpl
 import com.intellij.execution.impl.SingleConfigurationConfigurable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.options.ex.SingleConfigurableEditor
 import com.intellij.openapi.ui.ComboBox
@@ -56,6 +56,7 @@ import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.ListCellRenderer
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -600,9 +601,9 @@ class AndroidComplicationConfigurationEditorTest {
     if (componentComboBox.item == "com.example.MyAllTypesComplication") {
       return
     }
-    withContext(uiThread) { modulesComboBox.item = module }
+    withContext(Dispatchers.EDT) { modulesComboBox.item = module }
     delayUntilCondition(200) { componentComboBox.item != null }
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       if (componentComboBox.item != "com.example.MyAllTypesComplication") {
         componentComboBox.item = "com.example.MyAllTypesComplication"
       }
@@ -633,10 +634,10 @@ class AndroidComplicationConfigurationEditorTest {
       return FakeUi(slotPanelDialog).findAllComponents<JLabel>().map { it.text }
     }
 
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       val dialog = object : SingleConfigurableEditor(projectRule.project, configurationConfigurable, null, IdeModalityType.IDE) {}
 
-      delayUntilCondition(200) { withContext(uiThread) { getAvailableTypes(dialog) }.size == 2 }
+      delayUntilCondition(200) { withContext(Dispatchers.EDT) { getAvailableTypes(dialog) }.size == 2 }
       createModalDialogAndInteractWithIt({ dialog.show() }) { assertThat(getAvailableTypes(dialog)).containsExactly("Top", "Right") }
     }
   }

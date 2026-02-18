@@ -16,7 +16,6 @@
 package com.android.tools.idea.run.configuration.editors
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ScopeType
@@ -28,6 +27,7 @@ import com.android.tools.idea.run.configuration.AndroidWearConfiguration
 import com.intellij.application.options.ModulesComboBox
 import com.intellij.execution.ui.ConfigurationModuleSelector
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.options.SettingsEditor
@@ -87,7 +87,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
   private val moduleListener: ActionListener = ActionListener {
     scope.launch(Dispatchers.Default) {
       if (project.getProjectSystem().getSyncManager().isSyncInProgress()) {
-        withContext(uiThread) {
+        withContext(Dispatchers.EDT) {
           component?.parent?.parent?.apply {
             removeAll()
             layout = BorderLayout()

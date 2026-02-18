@@ -19,7 +19,6 @@ import com.android.tools.adtui.actions.createTestActionEvent
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.FakeComponentPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.AppInsight
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
 import com.android.tools.idea.insights.ISSUE1
@@ -27,12 +26,14 @@ import com.android.tools.idea.insights.ISSUE2
 import com.android.tools.idea.insights.analysis.Cause
 import com.android.tools.idea.insights.ui.formatNumberToPrettyString
 import com.google.common.truth.Truth
+import com.intellij.openapi.application.EDT
 import com.intellij.testFramework.ProjectRule
 import com.intellij.ui.components.JBList
 import com.intellij.ui.speedSearch.ListWithFilter
 import java.awt.event.MouseEvent
 import javax.swing.JPanel
 import kotlin.test.fail
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
@@ -53,7 +54,7 @@ class AppInsightsGutterIconActionTest(private val insights: List<AppInsight>) {
 
   @Test
   fun `gutter popup shows correct information`() =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val sortedGroupedInsights = insights.groupBy { it.providerName }.toSortedMap()
 
       val displayPanel = JPanel()

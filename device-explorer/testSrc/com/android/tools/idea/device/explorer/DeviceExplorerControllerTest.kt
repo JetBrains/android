@@ -20,16 +20,17 @@ import com.android.fakeadbserver.DeviceState
 import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutures
 import com.android.tools.idea.device.explorer.mocks.MockDeviceExplorerTabController
 import com.android.tools.idea.device.explorer.mocks.MockDeviceExplorerView
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -65,7 +66,7 @@ class DeviceExplorerControllerTest {
 
   @Test
   fun controllerIsSetAsProjectKey() =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       // Prepare Act
       val controller = createController()
 
@@ -75,7 +76,7 @@ class DeviceExplorerControllerTest {
 
   @Test
   fun startControllerWithNoDeviceConnected() =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       // Prepare
       val controller = createController()
 
@@ -90,7 +91,7 @@ class DeviceExplorerControllerTest {
 
   @Test
   fun startControllerWithDeviceConnected() =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       // Prepare
       val controller = createController()
       connectDevice("test_device_01")
@@ -107,7 +108,7 @@ class DeviceExplorerControllerTest {
 
   @Test
   fun deviceSelection() =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       // Prepare
       val controller = createController()
       connectDevice("test_device_01")
@@ -128,7 +129,7 @@ class DeviceExplorerControllerTest {
 
   @Test
   fun simulatePackageFilterSelection() =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       // Prepare
       val controller = createController()
       controller.setup()

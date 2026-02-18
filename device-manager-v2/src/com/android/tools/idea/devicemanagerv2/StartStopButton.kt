@@ -22,11 +22,12 @@ import com.android.sdklib.deviceprovisioner.DeviceState.Disconnected
 import com.android.sdklib.deviceprovisioner.PairGlassesAction
 import com.android.sdklib.deviceprovisioner.RepairDeviceAction
 import com.android.tools.adtui.categorytable.IconButton
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.deviceprovisioner.runCatchingDeviceActionException
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.VIRTUAL_LAUNCH_ACTION
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.VIRTUAL_STOP_ACTION
+import com.intellij.openapi.application.EDT
 import icons.StudioIcons
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -105,7 +106,7 @@ internal class StartStopButton(
           }
           .distinctUntilChanged()
           .collect {
-            withContext(uiThread) {
+            withContext(Dispatchers.EDT) {
               toolTipText = if (it.enabled) it.label else it.detail
               baseIcon = it.icon
               isEnabled = it.enabled

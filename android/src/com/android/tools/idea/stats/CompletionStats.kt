@@ -18,7 +18,6 @@ package com.android.tools.idea.stats
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.toProto
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.stats.CompletionStats.reportCompletionStats
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.EditorCompletionStats
@@ -28,11 +27,13 @@ import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.codeInsight.lookup.LookupEvent
 import com.intellij.codeInsight.lookup.LookupListener
 import com.intellij.codeInsight.lookup.LookupManagerListener
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import org.HdrHistogram.SingleWriterRecorder
 import org.jetbrains.android.AndroidPluginDisposable
@@ -176,7 +177,7 @@ object CompletionStats {
 
     // Capture a local reference to the file type in the current thread in case the reference changes by the time the below executes.
     val currentFileType = activeFileType
-    coroutineScope.async(uiThread) {
+    coroutineScope.async(Dispatchers.EDT) {
       val fileType = currentFileType.await()
       val histogram = histograms.computeIfAbsent(fileType) { SingleWriterRecorder(1) }
       // This runs on the EDT to ensure a single writer, but is thread-safe with respect to a background thread reading the histogram.

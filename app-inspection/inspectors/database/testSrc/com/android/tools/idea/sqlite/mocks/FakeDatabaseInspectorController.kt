@@ -17,7 +17,6 @@ package com.android.tools.idea.sqlite.mocks
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.sqlite.DatabaseInspectorClientCommandsChannel
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
@@ -25,8 +24,10 @@ import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.repository.DatabaseRepository
+import com.intellij.openapi.application.EDT
 import javax.naming.OperationNotSupportedException
 import javax.swing.JComponent
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 open class FakeDatabaseInspectorController(private val repository: DatabaseRepository, val model: DatabaseInspectorModel) :
@@ -38,12 +39,12 @@ open class FakeDatabaseInspectorController(private val repository: DatabaseRepos
   override fun setUp() {}
 
   override suspend fun addSqliteDatabase(databaseId: SqliteDatabaseId) =
-    withContext(uiThread) { model.addDatabaseSchema(databaseId, SqliteSchema(emptyList())) }
+    withContext(Dispatchers.EDT) { model.addDatabaseSchema(databaseId, SqliteSchema(emptyList())) }
 
   override suspend fun runSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement) {}
 
   override suspend fun closeDatabase(databaseId: SqliteDatabaseId): Unit =
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       repository.closeDatabase(databaseId)
       model.removeDatabaseSchema(databaseId)
     }

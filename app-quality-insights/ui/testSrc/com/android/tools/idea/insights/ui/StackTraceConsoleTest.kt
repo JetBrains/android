@@ -17,7 +17,6 @@ package com.android.tools.idea.insights.ui
 
 import com.android.testutils.delayUntilCondition
 import com.android.testutils.ignore.IgnoreTestRule
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE2
@@ -37,11 +36,13 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.filters.ExceptionFilters
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.editor.impl.FoldingModelImpl
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -63,7 +64,7 @@ class StackTraceConsoleTest {
   @Before
   fun setUp() {
     stackTraceConsole =
-      runBlocking(AndroidDispatchers.uiThread) {
+      runBlocking(Dispatchers.EDT) {
         StackTraceConsole(controllerRule.controller, projectRule.project, controllerRule.tracker).apply {
           ExceptionFilters.getFilters(GlobalSearchScope.allScope(projectRule.project)).onEach { consoleView.addMessageFilter(it) }
 

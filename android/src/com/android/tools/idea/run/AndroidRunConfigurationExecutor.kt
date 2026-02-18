@@ -20,7 +20,6 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.DeployerException
 import com.android.tools.deployer.model.App
 import com.android.tools.idea.backup.BackupManager
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.deploy.DeploymentConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
@@ -62,6 +61,7 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.execution.ui.RunContentManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.runBlockingCancellable
@@ -70,6 +70,7 @@ import com.intellij.xdebugger.impl.XDebugSessionImpl
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -355,7 +356,7 @@ class AndroidRunConfigurationExecutor(
     val existingRunContentDescriptor =
       processHandlers
         .mapNotNull {
-          withContext(uiThread) {
+          withContext(Dispatchers.EDT) {
             RunContentManager.getInstance(project).findContentDescriptor(env.executor, it)?.takeIf { !it.isHiddenContent }
           }
         }
@@ -410,7 +411,7 @@ class AndroidRunConfigurationExecutor(
       existingRunContentDescriptor?.processHandler?.detachProcess()
       val processHandler = AndroidProcessHandler(applicationId).apply { devices.forEach { addTargetDevice(it) } }
       AndroidSessionInfo.create(processHandler, devices, applicationId)
-      withContext(uiThread) { createRunContentDescriptor(processHandler, createConsole(), env) }
+      withContext(Dispatchers.EDT) { createRunContentDescriptor(processHandler, createConsole(), env) }
     } else {
       HiddenRunContentDescriptor(existingRunContentDescriptor)
     }
@@ -439,7 +440,7 @@ class AndroidRunConfigurationExecutor(
     val existingRunContentDescriptor =
       processHandlers
         .mapNotNull {
-          withContext(uiThread) {
+          withContext(Dispatchers.EDT) {
             RunContentManager.getInstance(project).findContentDescriptor(env.executor, it)?.takeIf { !it.isHiddenContent }
           }
         }
@@ -494,7 +495,7 @@ class AndroidRunConfigurationExecutor(
       } else {
         val processHandler = AndroidProcessHandler(applicationId).apply { devices.forEach { addTargetDevice(it) } }
         AndroidSessionInfo.create(processHandler, devices, applicationId)
-        withContext(uiThread) { createRunContentDescriptor(processHandler, createConsole(), env) }
+        withContext(Dispatchers.EDT) { createRunContentDescriptor(processHandler, createConsole(), env) }
       }
     } else {
       HiddenRunContentDescriptor(existingRunContentDescriptor)

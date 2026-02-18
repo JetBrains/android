@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.vitals.ui
 
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE2
@@ -28,10 +27,12 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.vitals.VitalsInsightsProvider
 import com.google.common.truth.Truth
 import com.intellij.execution.filters.ExceptionFilters
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.editor.impl.FoldingModelImpl
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.search.GlobalSearchScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
@@ -48,7 +49,7 @@ class VitalsStackTraceConsoleTest {
   @Test
   fun `when issue is selected, correct stack trace is printed`() {
     val stackTraceConsole =
-      runBlocking(AndroidDispatchers.uiThread) {
+      runBlocking(Dispatchers.EDT) {
         StackTraceConsole(controllerRule.controller, projectRule.project, controllerRule.tracker).apply {
           ExceptionFilters.getFilters(GlobalSearchScope.allScope(projectRule.project)).onEach { consoleView.addMessageFilter(it) }
 

@@ -16,13 +16,13 @@
 package com.android.tools.idea.device.explorer.files.mocks
 
 import com.android.tools.idea.FutureValuesTracker
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.device.explorer.files.DeviceExplorerFileManager
 import com.android.tools.idea.device.explorer.files.DeviceExplorerFileManagerImpl
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem
 import com.android.tools.idea.device.explorer.files.fs.DownloadProgress
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
@@ -31,6 +31,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.io.delete
 import java.nio.file.Path
 import java.util.function.Supplier
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class MockDeviceExplorerFileManager(private val myProject: Project, defaultPath: Supplier<Path>) : DeviceExplorerFileManager, Disposable {
@@ -46,7 +47,7 @@ class MockDeviceExplorerFileManager(private val myProject: Project, defaultPath:
   var openFileInEditorError: RuntimeException? = null
 
   override suspend fun downloadFileEntry(entry: DeviceFileEntry, localPath: Path, progress: DownloadProgress): VirtualFile =
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       downloadFileEntryTracker.produce(entry)
       myDevices.add(entry.fileSystem)
       try {

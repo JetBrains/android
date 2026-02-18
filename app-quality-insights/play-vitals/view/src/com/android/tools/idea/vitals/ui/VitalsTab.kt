@@ -17,7 +17,6 @@ package com.android.tools.idea.vitals.ui
 
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.mapState
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.Selection
@@ -43,6 +42,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ex.ActionUtil
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.ui.JBColor
@@ -53,6 +53,7 @@ import java.time.Clock
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -192,7 +193,7 @@ class VitalsTab(
     val actionToolbar = AppInsightsToolbar("AppInsights", group, true).apply { targetComponent = this@VitalsTab }
     actionToolbar.component.border = SideBorder(JBColor.border(), SideBorder.BOTTOM)
     ActionToolbarUtil.makeToolbarNavigable(actionToolbar)
-    scope.launch(AndroidDispatchers.uiThread) {
+    scope.launch(Dispatchers.EDT) {
       offlineStateFlow.collect { mode ->
         ActionToolbarUtil.findActionButton(actionToolbar, timestampAction)?.let { button ->
           if (mode == ConnectionMode.OFFLINE && !project.service<AppInsightsSettings>().isOfflineNotificationDismissed) {

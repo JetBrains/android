@@ -17,13 +17,13 @@ package com.android.tools.idea.profilers
 
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.profilers.taskbased.home.OpenHomeTabListener
 import com.android.tools.profilers.taskbased.pastrecordings.OpenPastRecordingsTabListener
 import com.android.tools.profilers.taskbased.task.CreateProfilerTaskTabListener
 import com.android.tools.profilers.taskbased.task.OpenProfilerTaskTabListener
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -33,6 +33,7 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.content.ContentFactory
 import icons.StudioIcons
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.Nls
@@ -76,7 +77,7 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
           CreateProfilerTaskTabListener.TOPIC,
           CreateProfilerTaskTabListener { taskType, args ->
             AndroidCoroutineScope(toolWindow.disposable).launch {
-              withContext(AndroidDispatchers.uiThread) {
+              withContext(Dispatchers.EDT) {
                 profilerToolWindow.createTaskTab(taskType, args)
                 toolWindow.activate(null)
               }
@@ -91,7 +92,7 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
           OpenProfilerTaskTabListener.TOPIC,
           OpenProfilerTaskTabListener {
             AndroidCoroutineScope(toolWindow.disposable).launch {
-              withContext(AndroidDispatchers.uiThread) {
+              withContext(Dispatchers.EDT) {
                 profilerToolWindow.openTaskTab()
                 toolWindow.activate(null)
               }
@@ -106,7 +107,7 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
           OpenHomeTabListener.TOPIC,
           OpenHomeTabListener {
             AndroidCoroutineScope(toolWindow.disposable).launch {
-              withContext(AndroidDispatchers.uiThread) {
+              withContext(Dispatchers.EDT) {
                 profilerToolWindow.openHomeTab()
                 toolWindow.activate(null)
               }
@@ -121,7 +122,7 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
           OpenPastRecordingsTabListener.TOPIC,
           OpenPastRecordingsTabListener {
             AndroidCoroutineScope(toolWindow.disposable).launch {
-              withContext(AndroidDispatchers.uiThread) {
+              withContext(Dispatchers.EDT) {
                 profilerToolWindow.openPastRecordingsTab()
                 toolWindow.activate(null)
               }

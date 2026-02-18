@@ -19,7 +19,6 @@ import com.android.testutils.delayUntilCondition
 import com.android.testutils.time.FakeClock
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
 import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
 import com.android.tools.idea.insights.DEFAULT_FETCHED_DEVICES
@@ -113,7 +112,7 @@ class VitalsTabTest {
 
   @Test
   fun `tab shows correct information on startup`() =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val tab = createTab()
 
       controllerRule.consumeInitialState(
@@ -235,7 +234,7 @@ class VitalsTabTest {
 
   @Test
   fun `empty stats should show empty text in place of distribution panel`() =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val tab = createTab()
       val fakeUi = FakeUi(tab)
 
@@ -260,7 +259,7 @@ class VitalsTabTest {
 
   @Test
   fun `empty device stats but non-empty os stats result in empty device section`() =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val tab = createTab()
       val fakeUi = FakeUi(tab)
 
@@ -283,7 +282,7 @@ class VitalsTabTest {
 
   @Test
   fun `empty os stats but non-empty device stats result in empty os section`() =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val tab = createTab()
       val fakeUi = FakeUi(tab)
 
@@ -306,7 +305,7 @@ class VitalsTabTest {
 
   @Test
   fun `missing sample event does not cause crash when shown`() =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val tab = createTab()
       val fakeUi = FakeUi(tab)
 
@@ -330,7 +329,7 @@ class VitalsTabTest {
 
   @Test
   fun `tab not visible does not trigger insight fetch`() =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       controllerRule.consumeInitialState(
         LoadingState.Ready(
           IssueResponse(

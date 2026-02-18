@@ -22,198 +22,198 @@ import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.EmptyIcon
+import com.android.testutils.delayUntilCondition
 import com.android.tools.analytics.UsageTrackerRule
-import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.TestMessagesDialog
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.VIRTUAL_LAUNCH_ACTION
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.VIRTUAL_STOP_ACTION
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.RuleChain
 import icons.StudioIcons
 import javax.swing.SwingUtilities
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.asExecutor
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import org.junit.Rule
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class StartStopButtonTest {
 
-  private val testScope = TestScope()
-  private val testDispatcher = UnconfinedTestDispatcher(testScope.testScheduler)
   private val usageTrackerRule = UsageTrackerRule()
 
   // Replace executors with the test dispatcher, so that we can use advanceUntilIdle to
   // execute all consequences of test actions before making assertions.
-  @get:Rule
-  val ruleChain =
-    RuleChain(
-      ApplicationRule(),
-      usageTrackerRule,
-      AndroidExecutorsRule(
-        workerThreadExecutor = testDispatcher.asExecutor(),
-        diskIoThreadExecutor = testDispatcher.asExecutor(),
-        uiThreadExecutor = { _, runnable -> testScope.launch { runnable.run() } },
-      ),
-    )
+  @get:Rule val ruleChain = RuleChain(ApplicationRule(), usageTrackerRule)
 
   @Test
-  fun enabled(): Unit =
-    testScope.runTest {
-      val handle =
-        FakeDeviceHandle(
-          this.createChildScope(),
-          initialProperties =
-            DeviceProperties.buildForTest {
-              isVirtual = true
-              icon = EmptyIcon.DEFAULT
-            },
-        )
-      assertThat(handle.state).isInstanceOf(DeviceState.Disconnected::class.java)
-      handle.activationAction.presentation.update { it.copy(enabled = true) }
-      handle.deactivationAction.presentation.update { it.copy(enabled = false) }
-      handle.pairGlassesAction.presentation.update { it.copy(enabled = false) }
-      val button = StartStopButton(handle, handle.activationAction, handle.deactivationAction, null, handle.pairGlassesAction)
+  fun enabled(): Unit = runTest {
+    val handle =
+      FakeDeviceHandle(
+        this.createChildScope(),
+        initialProperties =
+          DeviceProperties.buildForTest {
+            isVirtual = true
+            icon = EmptyIcon.DEFAULT
+          },
+      )
+    assertThat(handle.state).isInstanceOf(DeviceState.Disconnected::class.java)
+    handle.activationAction.presentation.update { it.copy(enabled = true) }
+    handle.deactivationAction.presentation.update { it.copy(enabled = false) }
+    handle.pairGlassesAction.presentation.update { it.copy(enabled = false) }
+    val button = StartStopButton(handle, handle.activationAction, handle.deactivationAction, null, handle.pairGlassesAction)
 
-      assertThat(button.isEnabled).isTrue()
-      assertThat(button.baseIcon).isEqualTo(StudioIcons.Avd.RUN)
+    assertThat(button.isEnabled).isTrue()
+    assertThat(button.baseIcon).isEqualTo(StudioIcons.Avd.RUN)
 
-      SwingUtilities.invokeAndWait { button.doClick() }
+    withContext(Dispatchers.EDT) { button.doClick() }
+    advanceUntilIdle()
+
+    assertThat(handle.activationAction.invoked).isEqualTo(1)
+
+    handle.activationAction.presentation.update { it.copy(enabled = false) }
+    handle.deactivationAction.presentation.update { it.copy(enabled = true) }
+
+    delayUntilCondition(200) {
       advanceUntilIdle()
-
-      assertThat(handle.activationAction.invoked).isEqualTo(1)
-
-      handle.activationAction.presentation.update { it.copy(enabled = false) }
-      handle.deactivationAction.presentation.update { it.copy(enabled = true) }
-      advanceUntilIdle()
-
-      assertThat(button.baseIcon).isEqualTo(StudioIcons.Avd.STOP)
-      assertThat(button.isEnabled).isTrue()
-      assertThat(usageTrackerRule.deviceManagerEventKinds()).containsExactly(VIRTUAL_LAUNCH_ACTION)
-
-      SwingUtilities.invokeAndWait { button.doClick() }
-      advanceUntilIdle()
-
-      assertThat(handle.deactivationAction.invoked).isEqualTo(1)
-
-      handle.activationAction.presentation.update { it.copy(enabled = true) }
-      handle.deactivationAction.presentation.update { it.copy(enabled = false) }
-      advanceUntilIdle()
-
-      assertThat(button.baseIcon).isEqualTo(StudioIcons.Avd.RUN)
-      assertThat(usageTrackerRule.deviceManagerEventKinds()).containsExactly(VIRTUAL_LAUNCH_ACTION, VIRTUAL_STOP_ACTION)
-
-      handle.scope.cancel()
+      button.baseIcon == StudioIcons.Avd.STOP && button.isEnabled
     }
+
+    assertThat(button.baseIcon).isEqualTo(StudioIcons.Avd.STOP)
+    assertThat(button.isEnabled).isTrue()
+    assertThat(usageTrackerRule.deviceManagerEventKinds()).containsExactly(VIRTUAL_LAUNCH_ACTION)
+
+    withContext(Dispatchers.EDT) { button.doClick() }
+    advanceUntilIdle()
+
+    assertThat(handle.deactivationAction.invoked).isEqualTo(1)
+
+    handle.activationAction.presentation.update { it.copy(enabled = true) }
+    handle.deactivationAction.presentation.update { it.copy(enabled = false) }
+
+    delayUntilCondition(200) {
+      advanceUntilIdle()
+      button.baseIcon == StudioIcons.Avd.RUN
+    }
+
+    assertThat(button.baseIcon).isEqualTo(StudioIcons.Avd.RUN)
+    assertThat(usageTrackerRule.deviceManagerEventKinds()).containsExactly(VIRTUAL_LAUNCH_ACTION, VIRTUAL_STOP_ACTION)
+
+    handle.scope.cancel()
+  }
 
   @Test
-  fun activationError(): Unit =
-    testScope.runTest {
-      val handle =
-        FakeDeviceHandle(
-          this.createChildScope(),
-          initialProperties =
-            DeviceProperties.buildForTest {
-              isVirtual = true
-              icon = EmptyIcon.DEFAULT
-            },
-        )
-      handle.activationAction.presentation.update { it.copy(enabled = true) }
-      handle.activationAction.exception = DeviceActionException("Activation error")
-      handle.deactivationAction.presentation.update { it.copy(enabled = false) }
+  fun activationError() = runTest {
+    val handle =
+      FakeDeviceHandle(
+        this.createChildScope(),
+        initialProperties =
+          DeviceProperties.buildForTest {
+            isVirtual = true
+            icon = EmptyIcon.DEFAULT
+          },
+      )
+    handle.activationAction.presentation.update { it.copy(enabled = true) }
+    handle.activationAction.exception = DeviceActionException("Activation error")
+    handle.deactivationAction.presentation.update { it.copy(enabled = false) }
 
-      val button = StartStopButton(handle, handle.activationAction, handle.deactivationAction, null, handle.pairGlassesAction)
+    val button = StartStopButton(handle, handle.activationAction, handle.deactivationAction, null, handle.pairGlassesAction)
 
-      val dialog = TestMessagesDialog(Messages.OK)
-      TestDialogManager.setTestDialog(dialog)
+    val dialog = TestMessagesDialog(Messages.OK)
+    TestDialogManager.setTestDialog(dialog)
 
-      SwingUtilities.invokeAndWait { button.doClick() }
+    withContext(Dispatchers.EDT) { button.doClick() }
+
+    delayUntilCondition(200) {
       advanceUntilIdle()
-
-      assertThat(dialog.displayedMessage).isEqualTo("Activation error")
-      handle.scope.cancel()
+      dialog.displayedMessage == "Activation error"
     }
+    assertThat(dialog.displayedMessage).isEqualTo("Activation error")
+    handle.scope.cancel()
+  }
 
   @Test
-  fun pairableDevice() =
-    testScope.runTest {
-      val handle =
-        FakeDeviceHandle(
-          this.createChildScope(),
-          initialProperties =
-            DeviceProperties.buildForTest {
-              isVirtual = true
-              deviceType = DeviceType.AI_GLASSES
-              icon = EmptyIcon.DEFAULT
-            },
-        )
-      assertThat(handle.state).isInstanceOf(DeviceState.Disconnected::class.java)
-      handle.activationAction.presentation.update { it.copy(enabled = true) }
-      handle.deactivationAction.presentation.update { it.copy(enabled = false) }
-      handle.pairGlassesAction.presentation.update { it.copy(enabled = true) }
+  fun pairableDevice() = runTest {
+    val handle =
+      FakeDeviceHandle(
+        this.createChildScope(),
+        initialProperties =
+          DeviceProperties.buildForTest {
+            isVirtual = true
+            deviceType = DeviceType.AI_GLASSES
+            icon = EmptyIcon.DEFAULT
+          },
+      )
+    assertThat(handle.state).isInstanceOf(DeviceState.Disconnected::class.java)
+    handle.activationAction.presentation.update { it.copy(enabled = true) }
+    handle.deactivationAction.presentation.update { it.copy(enabled = false) }
+    handle.pairGlassesAction.presentation.update { it.copy(enabled = true) }
 
-      val button = StartStopButton(handle, handle.activationAction, handle.deactivationAction, null, handle.pairGlassesAction)
+    val button = StartStopButton(handle, handle.activationAction, handle.deactivationAction, null, handle.pairGlassesAction)
 
-      advanceUntilIdle()
-      SwingUtilities.invokeAndWait {}
+    advanceUntilIdle()
+    SwingUtilities.invokeAndWait {}
 
-      assertThat(button.isEnabled).isTrue()
-      assertThat(button.baseIcon).isEqualTo(StudioIcons.Common.LINK)
+    assertThat(button.isEnabled).isTrue()
+    assertThat(button.baseIcon).isEqualTo(StudioIcons.Common.LINK)
 
-      SwingUtilities.invokeAndWait { button.doClick() }
-      advanceUntilIdle()
+    withContext(Dispatchers.EDT) { button.doClick() }
+    advanceUntilIdle()
 
-      assertThat(handle.pairGlassesAction.invoked).isEqualTo(1)
-      handle.scope.cancel()
-    }
+    assertThat(handle.pairGlassesAction.invoked).isEqualTo(1)
+    handle.scope.cancel()
+  }
 
   @Test
-  fun repairableDevice() =
-    testScope.runTest {
-      val scope = createChildScope()
-      val handle = FakeDeviceHandle(scope)
-      val button =
-        StartStopButton(handle, handle.activationAction, handle.deactivationAction, handle.repairDeviceAction, handle.pairGlassesAction)
-      // Disable activation, since StartStopButton favors it over repair
-      handle.activationAction.presentation.update { it.copy(enabled = false) }
-      handle.deactivationAction.presentation.update { it.copy(enabled = false) }
+  fun repairableDevice() = runTest {
+    val scope = createChildScope()
+    val handle = FakeDeviceHandle(scope)
+    val button =
+      StartStopButton(handle, handle.activationAction, handle.deactivationAction, handle.repairDeviceAction, handle.pairGlassesAction)
+    // Disable activation, since StartStopButton favors it over repair
+    handle.activationAction.presentation.update { it.copy(enabled = false) }
+    handle.deactivationAction.presentation.update { it.copy(enabled = false) }
 
-      class TestError : DeviceError {
-        override val severity = DeviceError.Severity.ERROR
-        override val message = "error"
-      }
-
-      assertThat(button.baseIcon).isEqualTo(StudioIcons.Avd.RUN)
-
-      handle.stateFlow.update {
-        DeviceState.Disconnected(
-          DeviceProperties.buildForTest { icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE },
-          isTransitioning = false,
-          "Disconnected",
-          error = TestError(),
-        )
-      }
-      handle.repairDeviceAction.presentation.update { it.copy(enabled = true, icon = AllIcons.Actions.Download) }
-
-      advanceUntilIdle()
-      assertThat(button.baseIcon).isEqualTo(AllIcons.Actions.Download)
-
-      handle.repairDeviceAction.presentation.update { it.copy(enabled = false) }
-
-      advanceUntilIdle()
-      assertThat(button.baseIcon).isEqualTo(StudioIcons.Avd.RUN)
-
-      scope.cancel()
+    class TestError : DeviceError {
+      override val severity = DeviceError.Severity.ERROR
+      override val message = "error"
     }
+
+    assertThat(button.baseIcon).isEqualTo(StudioIcons.Avd.RUN)
+
+    handle.stateFlow.update {
+      DeviceState.Disconnected(
+        DeviceProperties.buildForTest { icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE },
+        isTransitioning = false,
+        "Disconnected",
+        error = TestError(),
+      )
+    }
+    handle.repairDeviceAction.presentation.update { it.copy(enabled = true, icon = AllIcons.Actions.Download) }
+
+    delayUntilCondition(200) {
+      advanceUntilIdle()
+      button.baseIcon == AllIcons.Actions.Download
+    }
+    assertThat(button.baseIcon).isEqualTo(AllIcons.Actions.Download)
+
+    handle.repairDeviceAction.presentation.update { it.copy(enabled = false) }
+
+    delayUntilCondition(200) {
+      advanceUntilIdle()
+      button.baseIcon == StudioIcons.Avd.RUN
+    }
+    assertThat(button.baseIcon).isEqualTo(StudioIcons.Avd.RUN)
+
+    scope.cancel()
+  }
 }

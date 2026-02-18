@@ -21,7 +21,6 @@ import com.android.fakeadbserver.DeviceState
 import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.AndroidVersion
 import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.editors.liveedit.ui.DeviceGetter
 import com.android.tools.idea.editors.liveedit.ui.LiveEditDeviceMap
 import com.android.tools.idea.editors.liveedit.ui.LiveEditIssueNotificationAction
@@ -34,9 +33,11 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.testFramework.TestActionEvent
 import kotlin.test.assertEquals
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -106,7 +107,7 @@ internal class LiveEditIssueNotificationActionTest {
 
     // Event two. Pretending we are running device window. We should have the shorten status.
     val file = projectRule.fixture.configureByText("A.kt", "")
-    runBlocking(uiThread) { projectRule.fixture.openFileInEditor(file.virtualFile) }
+    runBlocking(Dispatchers.EDT) { projectRule.fixture.openFileInEditor(file.virtualFile) }
 
     val toolWindow: ToolWindow = mock()
     whenever(toolWindow.id).thenReturn(RUNNING_DEVICES_TOOL_WINDOW_ID)

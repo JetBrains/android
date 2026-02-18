@@ -16,7 +16,6 @@
 package com.android.tools.idea.sqlite.controllers
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureCancellation
@@ -61,6 +60,7 @@ import com.google.common.util.concurrent.SettableFuture
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin
 import com.intellij.mock.MockVirtualFile
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.DisposableRule
@@ -72,6 +72,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.concurrency.EdtExecutorService
+import kotlinx.coroutines.Dispatchers
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -171,7 +172,7 @@ class TableControllerTest {
   @Before
   fun setUp() {
     sqliteUtil.setUp()
-    runDispatching(AndroidDispatchers.uiThread) {
+    runDispatching(Dispatchers.EDT) {
       databaseRepository.addDatabaseConnection(realDatabaseConnectionId, realDatabaseConnection)
       databaseRepository.addDatabaseConnection(mockDatabaseConnectionId, mockDatabaseConnection)
       databaseRepository.addDatabaseConnection(fileDatabaseId, mockDatabaseConnection)

@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.vitals.ui
 
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.ui.ResizedSimpleColoredComponent
 import com.android.tools.idea.insights.ui.formatListRenderer
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.DocumentAdapter
@@ -52,6 +52,7 @@ import javax.swing.JTextArea
 import javax.swing.ListSelectionModel
 import javax.swing.event.DocumentEvent
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 private val VITALS_POPUP_ITEM_BORDER = JBUI.Borders.empty(1, 8)
@@ -193,7 +194,7 @@ class VitalsConnectionSelectorPopup(
       object : KeyAdapter() {
         override fun keyTyped(e: KeyEvent) {
           searchTextField.requestFocusInWindow()
-          scope.launch(AndroidDispatchers.uiThread) { searchTextField.dispatchEvent(e) }
+          scope.launch(Dispatchers.EDT) { searchTextField.dispatchEvent(e) }
         }
       }
     )

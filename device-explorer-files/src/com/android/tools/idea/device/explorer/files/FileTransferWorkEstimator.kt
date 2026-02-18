@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.device.explorer.files
 
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.device.explorer.files.FileTransferWorkEstimator.Companion.directoryWorkUnits
 import com.android.tools.idea.device.explorer.files.FileTransferWorkEstimator.Companion.fileWorkUnits
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry
 import com.android.tools.idea.device.explorer.files.fs.ThrottledProgress
+import com.intellij.openapi.application.EDT
 import java.io.File
 import java.nio.file.Path
 import kotlinx.coroutines.CancellationException
@@ -128,7 +128,7 @@ class FileTransferWorkEstimator {
       val directoryCount = estimate.directoryCount
 
       // Report progress on the EDT executor
-      launch(uiThread) { progress.progress(fileCount, directoryCount) }
+      launch(Dispatchers.EDT) { progress.progress(fileCount, directoryCount) }
     }
   }
 

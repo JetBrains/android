@@ -20,7 +20,6 @@ import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.analytics.UsageTracker.log
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.device.explorer.common.DeviceExplorerControllerListener
 import com.android.tools.idea.device.explorer.common.DeviceExplorerSettings
 import com.android.tools.idea.device.explorer.common.DeviceExplorerTabController
@@ -29,9 +28,11 @@ import com.android.tools.idea.device.explorer.ui.DeviceExplorerViewListener
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceExplorerEvent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @UiThread
@@ -41,7 +42,7 @@ class DeviceExplorerController(
   private val view: DeviceExplorerView,
   private val tabControllers: List<DeviceExplorerTabController>,
 ) : Disposable, DeviceExplorerControllerListener {
-  private val uiThreadScope = AndroidCoroutineScope(this, AndroidDispatchers.uiThread)
+  private val uiThreadScope = AndroidCoroutineScope(this, Dispatchers.EDT)
   private val viewListener: DeviceExplorerViewListener = ViewListener()
 
   init {

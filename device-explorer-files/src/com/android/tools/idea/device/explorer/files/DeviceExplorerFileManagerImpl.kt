@@ -17,7 +17,6 @@ package com.android.tools.idea.device.explorer.files
 
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.runWriteActionAndWait
 import com.android.tools.idea.device.explorer.common.DeviceExplorerSettings
 import com.android.tools.idea.device.explorer.files.DeviceExplorerFilesUtils.findFile
@@ -29,6 +28,7 @@ import com.android.utils.FileUtils
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.actions.OpenFileAction
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.TransactionGuard
 import com.intellij.openapi.application.TransactionGuardImpl
 import com.intellij.openapi.diagnostic.thisLogger
@@ -179,7 +179,7 @@ constructor(private val project: Project, private val defaultDownloadPathSupplie
 
   override suspend fun openFile(localPath: Path) {
     val file = findFile(localPath, true)
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       file.name.let { fileName ->
         file.fileType.takeIf { it != FileTypes.UNKNOWN }
           ?: FileTypeManager.getInstance().getFileTypeByFileName(fileName).takeIf { it != FileTypes.UNKNOWN }

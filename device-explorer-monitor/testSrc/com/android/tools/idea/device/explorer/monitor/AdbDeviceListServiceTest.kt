@@ -23,16 +23,17 @@ import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
 import com.android.tools.idea.FutureValuesTracker
 import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.adb.AdbService
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDeviceService
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.replaceService
 import java.io.File
 import java.io.FileNotFoundException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -68,7 +69,7 @@ class AdbDeviceListServiceTest {
 
   @Test
   fun testFindingDeviceBeforeServiceStarts() =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       // Prepare
       val service = AdbDeviceService(project)
 
@@ -84,7 +85,7 @@ class AdbDeviceListServiceTest {
 
   @Test
   fun testFindingDeviceAfterServiceStarts() =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       // Prepare
       val service = AdbDeviceService(project)
       val tracker = FutureValuesTracker<IDevice?>()
@@ -117,7 +118,7 @@ class AdbDeviceListServiceTest {
 
   @Test
   fun testNotFindingDevice() =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       // Prepare
       val service = AdbDeviceService(project)
 
@@ -131,7 +132,7 @@ class AdbDeviceListServiceTest {
 
   @Test
   fun testNotFindingDeviceWithNullSerialNumber() =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       // Prepare
       val service = AdbDeviceService(project)
 
@@ -145,7 +146,7 @@ class AdbDeviceListServiceTest {
 
   @Test
   fun testDebugBridgeListenersRemovedOnDispose() =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       // Prepare
       val service = AdbDeviceService(project)
       service.start()
@@ -163,7 +164,7 @@ class AdbDeviceListServiceTest {
 
   @Test
   fun testStartAlreadyStartedService() =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       // Prepare
       val service = AdbDeviceService(project)
 
@@ -185,7 +186,7 @@ class AdbDeviceListServiceTest {
 
     // Act // Assert
     exceptionRule.expect(FileNotFoundException::class.java)
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       try {
         service.start()
       } catch (e: Exception) {
@@ -206,7 +207,7 @@ class AdbDeviceListServiceTest {
 
     // Act // Assert
     exceptionRule.expect(RuntimeException::class.java)
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       try {
         service.start()
       } catch (e: Exception) {
@@ -227,7 +228,7 @@ class AdbDeviceListServiceTest {
 
     // Act // Assert
     exceptionRule.expect(RuntimeException::class.java)
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       try {
         service.start()
       } catch (e: Exception) {

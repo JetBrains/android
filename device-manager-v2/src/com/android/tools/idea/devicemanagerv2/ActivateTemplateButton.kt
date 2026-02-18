@@ -17,10 +17,11 @@ package com.android.tools.idea.devicemanagerv2
 
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.tools.adtui.categorytable.IconButton
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.deviceprovisioner.launchCatchingDeviceActionException
+import com.intellij.openapi.application.EDT
 import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 internal class ActivateTemplateButton(scope: CoroutineScope, private val template: DeviceTemplate) : IconButton(StudioIcons.Avd.RUN) {
@@ -32,6 +33,6 @@ internal class ActivateTemplateButton(scope: CoroutineScope, private val templat
       }
     }
 
-    scope.launch(AndroidDispatchers.uiThread) { trackActionPresentation(template.activationAction) }
+    scope.launch(Dispatchers.EDT) { trackActionPresentation(template.activationAction) }
   }
 }

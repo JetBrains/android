@@ -25,6 +25,7 @@ import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
@@ -38,6 +39,7 @@ import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.ClassUtil
 import javax.swing.JComponent
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -84,7 +86,7 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
         }
 
         if (navigatable != null) {
-          withContext(AndroidDispatchers.uiThread) { navigatable.navigate(true) }
+          withContext(Dispatchers.EDT) { navigatable.navigate(true) }
         }
       }
 

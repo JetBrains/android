@@ -17,17 +17,18 @@ package com.android.tools.idea.run.configuration.editors
 
 import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.TreeWalker
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfiguration
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType
 import com.android.tools.idea.run.configuration.addWatchFace
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.SimpleListCellRenderer
 import javax.swing.JList
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Before
@@ -79,7 +80,7 @@ class AndroidWearConfigurationEditorTest {
 
   @Test
   fun testComponentComboBoxEnabled() = runBlocking {
-    val watchFaceClass = withContext(uiThread) { projectRule.fixture.addWatchFace().qualifiedName }
+    val watchFaceClass = withContext(Dispatchers.EDT) { projectRule.fixture.addWatchFace().qualifiedName }
 
     runConfiguration.setModule(projectRule.module)
     runConfiguration.componentLaunchOptions.componentName = watchFaceClass

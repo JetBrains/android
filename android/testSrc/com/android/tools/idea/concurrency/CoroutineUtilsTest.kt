@@ -18,12 +18,12 @@ package com.android.tools.idea.concurrency
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.progress.util.ProgressIndicatorBase
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Disposer
@@ -136,7 +136,7 @@ class CoroutineUtilsTest {
       fun buttonClicked() {
         checkThread(UI_THREAD)
 
-        launch(uiThread) {
+        launch(Dispatchers.EDT) {
           checkThread(UI_THREAD)
           // This suspends the coroutine, releasing the IO thread until computation is done on the worker thread.
           val computedData: String = withContext(Dispatchers.Default) { computeData() }
@@ -198,7 +198,7 @@ class CoroutineUtilsTest {
     class FooManager : UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware {
       override fun dispose() {}
 
-      suspend fun updateUi() = withContext(uiThread) { uiUpdated.set(true) }
+      suspend fun updateUi() = withContext(Dispatchers.EDT) { uiUpdated.set(true) }
 
       fun computeAndUpdateUi() = launch {
         checkThread(WORKER_THREAD)

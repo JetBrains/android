@@ -16,7 +16,6 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.CONNECTION1
 import com.android.tools.idea.insights.FAKE_6_DAYS_AGO
@@ -26,7 +25,9 @@ import com.android.tools.idea.insights.TEST_FILTERS
 import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.EDT
 import com.intellij.testFramework.ProjectRule
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -47,9 +48,9 @@ class DistributionsContainerPanelTest {
         currentIssueDetails = LoadingState.Loading,
       )
     val flow = MutableSharedFlow<AppInsightsState>()
-    val panel = DistributionsContainerPanel(AndroidCoroutineScope(projectRule.disposable, AndroidDispatchers.uiThread), flow)
+    val panel = DistributionsContainerPanel(AndroidCoroutineScope(projectRule.disposable, Dispatchers.EDT), flow)
 
-    withContext(AndroidDispatchers.uiThread) {
+    withContext(Dispatchers.EDT) {
       flow.emit(initialState)
       assertThat(panel.emptyText.text).isEqualTo("Loading...")
 

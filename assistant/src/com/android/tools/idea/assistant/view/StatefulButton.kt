@@ -19,10 +19,10 @@ import com.android.tools.idea.assistant.AssistActionState
 import com.android.tools.idea.assistant.AssistActionStateManager
 import com.android.tools.idea.assistant.StatefulButtonNotifier
 import com.android.tools.idea.assistant.datamodel.ActionData
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.coroutineScope
 import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonPainter
 import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonUI
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.JBColor
@@ -46,6 +46,7 @@ import javax.swing.JPanel
 import javax.swing.SwingUtilities
 import javax.swing.UIManager
 import javax.swing.plaf.FontUIResource
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
@@ -108,7 +109,7 @@ class StatefulButton(action: ActionData, listener: ActionListener, stateManager:
       buttonPanel.add(loadingIcon)
       project.coroutineScope.launch {
         myStateManager.init(project, action)
-        withContext(uiThread) {
+        withContext(Dispatchers.EDT) {
           myButton.isVisible = false
           myMessage = myStateManager.getStateDisplay(project, action, mySuccessMessage)
           if (myMessage != null) {

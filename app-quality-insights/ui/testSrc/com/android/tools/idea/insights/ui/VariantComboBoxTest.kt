@@ -16,7 +16,6 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.testutils.delayUntilCondition
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE_VARIANT
@@ -26,7 +25,9 @@ import com.android.tools.idea.insights.TEST_FILTERS
 import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.EDT
 import java.time.Instant
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
@@ -38,7 +39,7 @@ class VariantComboBoxTest {
 
   @Test
   fun `selection of header row is disabled in combobox`() =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val flow = MutableSharedFlow<AppInsightsState>(1)
       val comboBox = VariantComboBox(flow, projectRule.testRootDisposable)
 
@@ -67,7 +68,7 @@ class VariantComboBoxTest {
 
   @Test
   fun `combo box shows disabled text when no variants are available`() =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val flow = MutableSharedFlow<AppInsightsState>(1)
       val comboBox = VariantComboBox(flow, projectRule.testRootDisposable)
 
@@ -85,7 +86,7 @@ class VariantComboBoxTest {
 
   @Test
   fun `combo box shows disabled text when variants fail to load`() =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val flow = MutableSharedFlow<AppInsightsState>(1)
       val comboBox = VariantComboBox(flow, projectRule.testRootDisposable)
 
@@ -103,7 +104,7 @@ class VariantComboBoxTest {
 
   @Test
   fun `combo box shows offline text when AQI is offline`() =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val flow = MutableSharedFlow<AppInsightsState>(1)
       val comboBox = VariantComboBox(flow, projectRule.testRootDisposable)
 
@@ -121,7 +122,7 @@ class VariantComboBoxTest {
 
   @Test
   fun `combo box shows loading text when in between requests`() =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val flow = MutableSharedFlow<AppInsightsState>(1)
       val comboBox = VariantComboBox(flow, projectRule.testRootDisposable)
 
@@ -139,7 +140,7 @@ class VariantComboBoxTest {
 
   @Test
   fun `combo box shows selection of variants when they exist`() =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val flow = MutableSharedFlow<AppInsightsState>(1)
       val comboBox = VariantComboBox(flow, projectRule.testRootDisposable)
 
@@ -170,7 +171,7 @@ class VariantComboBoxTest {
 
   @Test
   fun `combo box title is shortened`() =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val flow = MutableSharedFlow<AppInsightsState>(1)
       val comboBox = VariantComboBox(flow, projectRule.testRootDisposable)
 

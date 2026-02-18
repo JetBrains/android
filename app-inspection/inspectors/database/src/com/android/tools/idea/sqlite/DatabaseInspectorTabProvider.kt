@@ -24,7 +24,6 @@ import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.FrameworkInspectorLaunchParams
 import com.android.tools.idea.appinspection.inspector.ide.SingleAppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.SingleAppInspectorTabProvider
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.live.handleError
@@ -32,11 +31,13 @@ import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.settings.DatabaseInspectorSettings
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
 import javax.swing.Icon
 import javax.swing.JComponent
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.ide.PooledThreadExecutor
@@ -126,7 +127,7 @@ class DatabaseInspectorTabProvider : SingleAppInspectorTabProvider() {
           databaseInspectorProjectService.startAppInspectionSession(dbClient, ideServices, processDescriptor)
           dbClient.startTrackingDatabaseConnections()
           messenger.awaitForDisposal()
-          withContext(AndroidDispatchers.uiThread) { databaseInspectorProjectService.stopAppInspectionSession(processDescriptor) }
+          withContext(Dispatchers.EDT) { databaseInspectorProjectService.stopAppInspectionSession(processDescriptor) }
         }
       }
     }

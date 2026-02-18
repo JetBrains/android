@@ -27,15 +27,16 @@ import com.android.tools.adtui.categorytable.IconButton
 import com.android.tools.adtui.categorytable.RowKey.ValueRowKey
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findAllDescendants
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.DataKey
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.ProjectRule
 import com.intellij.ui.EditorNotificationPanel
 import icons.StudioIcons
 import javax.swing.JPanel
 import javax.swing.SortOrder
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
@@ -218,7 +219,7 @@ class DeviceManagerPanelTest {
   fun <T : Any> CategoryTable<T>.visibleKeys() = values.mapNotNull { primaryKey(it).takeIf { isRowVisibleByKey(it) } }
 
   private fun runTestWithFixture(block: suspend Fixture.() -> Unit) = runTest {
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       val fixture = Fixture(projectRule.project, this@runTest)
       fixture.block()
       fixture.scope.cancel()
