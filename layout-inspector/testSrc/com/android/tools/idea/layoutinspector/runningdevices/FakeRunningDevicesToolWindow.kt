@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices
 
-import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.streaming.core.DEVICE_ID_KEY
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
@@ -24,17 +23,14 @@ import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.DisplayOwner
 import com.android.tools.idea.streaming.core.DisplayView
 import com.android.tools.idea.streaming.core.STREAMING_CONTENT_PANEL_KEY
-import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.EmptyActionGroup
 import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.BusyObject
 import com.intellij.openapi.util.Comparing
@@ -43,10 +39,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.wm.ToolWindow
-import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.testFramework.PlatformTestUtil
-import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import com.intellij.ui.content.AlertIcon
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentFactory
@@ -71,109 +64,166 @@ data class TabInfo(val deviceId: DeviceId, val content: BorderLayoutPanel, val c
   }
 }
 
-class FakeToolWindowManager(project: Project, tabs: List<TabInfo>) : ToolWindowHeadlessManagerImpl(project) {
-  var toolWindow = FakeToolWindow(project, tabs, this)
-
-  override fun getToolWindow(id: String?): ToolWindow? {
-    return if (id == RUNNING_DEVICES_TOOL_WINDOW_ID) toolWindow else super.getToolWindow(id)
+fun addContent(toolWindow: ToolWindow, tabInfo: TabInfo) {
+  val fakeComponent = FakeRunningDevicesComponent(tabInfo)
+  val fakeContent = FakeContent(toolWindow.disposable, toolWindow.contentManager, fakeComponent)
+  toolWindow.contentManager.addContent(fakeContent)
+  if (toolWindow.contentManager.selectedContent == null) {
+    toolWindow.contentManager.setSelectedContent(fakeContent)
   }
+  PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+}
 
-  fun addContent(tabInfo: TabInfo) {
-    toolWindow.addContent(tabInfo)
+fun removeContent(toolWindow: ToolWindow, tabInfo: TabInfo) {
+  val content = findContent(toolWindow, tabInfo) ?: return
+  val wasSelected = toolWindow.contentManager.isSelected(content)
+  val index = toolWindow.contentManager.getIndexOfContent(content)
+  toolWindow.contentManager.removeContent(content, true)
+
+  if (wasSelected) {
+    val first = toolWindow.contentManager.contents.firstOrNull()
+    if (first != null) {
+      toolWindow.contentManager.setSelectedContent(first)
+    }
   }
+  PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+}
 
-  fun removeContent(tabInfo: TabInfo) {
-    toolWindow.removeContent(tabInfo)
-  }
+fun setSelectedContent(toolWindow: ToolWindow, tabInfo: TabInfo) {
+  val content = findContent(toolWindow, tabInfo)
+  toolWindow.contentManager.setSelectedContent(content!!)
+  PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+}
 
-  fun setSelectedContent(tabInfo: TabInfo) {
-    toolWindow.setSelectedContent(tabInfo)
-  }
-
-  override fun invokeLater(runnable: Runnable) {
-    runnable.run()
+private fun findContent(toolWindow: ToolWindow, tabInfo: TabInfo): Content? {
+  return toolWindow.contentManager.contents.find {
+    val component = it.component
+    component is FakeRunningDevicesComponent && component.tabInfo.deviceId == tabInfo.deviceId
   }
 }
 
-class FakeToolWindow(project: Project, tabs: List<TabInfo>, private val manager: ToolWindowManager) :
-  ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
-  private val fakeContentManager = FakeContentManager()
-  private var visible = false
-
+class FakeContent(private val disposable: Disposable, private val contentManager: ContentManager, private val fakeComponent: JComponent) :
+  Content {
   init {
-    Disposer.register(disposable, fakeContentManager)
-
-    val contents =
-      tabs.map {
-        val fakeComponent = FakeRunningDevicesComponent(it)
-        FakeContent(disposable, fakeContentManager, fakeComponent)
-      }
-
-    contents.forEach {
-      fakeContentManager.addContent(it)
-      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    }
+    Disposer.register(disposable, this)
   }
 
-  override fun addContentManagerListener(listener: ContentManagerListener) {
-    fakeContentManager.addContentManagerListener(listener)
+  override fun <T : Any?> getUserData(key: Key<T>): T? = null
+
+  override fun <T : Any?> putUserData(key: Key<T>, value: T?) {}
+
+  override fun dispose() {}
+
+  override fun getComponent() = fakeComponent
+
+  override fun getPreferredFocusableComponent() = fakeComponent
+
+  override fun setComponent(component: JComponent?) {}
+
+  override fun setPreferredFocusableComponent(component: JComponent?) {}
+
+  override fun setPreferredFocusedComponent(computable: Computable<out JComponent>?) {}
+
+  override fun setIcon(icon: Icon?) {}
+
+  override fun getIcon() = StudioIcons.LayoutInspector.Toolbar.SNAPSHOT
+
+  override fun setDisplayName(displayName: String?) {}
+
+  override fun getDisplayName() = "Fake Content"
+
+  override fun setTabName(tabName: String?) {}
+
+  override fun getTabName() = "Fake Tab"
+
+  override fun getToolwindowTitle() = "Fake Tool Window"
+
+  override fun setToolwindowTitle(toolwindowTitle: String?) {}
+
+  override fun getDisposer() = disposable
+
+  override fun setDisposer(disposer: Disposable) {}
+
+  override fun setShouldDisposeContent(value: Boolean) {}
+
+  override fun getDescription() = "Fake description"
+
+  override fun setDescription(description: String?) {}
+
+  override fun addPropertyChangeListener(l: PropertyChangeListener?) {}
+
+  override fun removePropertyChangeListener(l: PropertyChangeListener?) {}
+
+  override fun getManager() = contentManager
+
+  override fun isSelected() = contentManager.selectedContent == this
+
+  override fun release() {}
+
+  override fun isValid() = true
+
+  override fun setPinned(locked: Boolean) {}
+
+  override fun isPinned() = false
+
+  override fun setPinnable(pinnable: Boolean) {}
+
+  override fun isPinnable() = true
+
+  override fun isCloseable() = true
+
+  override fun setCloseable(closeable: Boolean) {}
+
+  override fun setActions(actions: ActionGroup?, place: String?, contextComponent: JComponent?) {}
+
+  override fun getActions() = EmptyActionGroup()
+
+  override fun setSearchComponent(comp: JComponent?) {}
+
+  override fun getSearchComponent() = null
+
+  override fun getPlace() = "fake place"
+
+  override fun getActionsContextComponent() = JPanel()
+
+  override fun setAlertIcon(icon: AlertIcon?) {}
+
+  override fun getAlertIcon() = null
+
+  override fun fireAlert() {}
+
+  override fun getBusyObject() = null
+
+  override fun setBusyObject(`object`: BusyObject?) {}
+
+  override fun getSeparator() = "fake separator"
+
+  override fun setSeparator(separator: String?) {}
+
+  override fun setPopupIcon(icon: Icon?) {}
+
+  override fun getPopupIcon() = StudioIcons.LayoutInspector.Toolbar.CLEAR_OVERLAY
+
+  override fun setExecutionId(executionId: Long) {}
+
+  override fun getExecutionId() = 1L
+}
+
+class FakeRunningDevicesComponent(val tabInfo: TabInfo) : JPanel(), UiDataProvider, DisplayOwner {
+  init {
+    tabInfo.container.add(tabInfo.content)
   }
 
-  override fun getContentManager(): ContentManager {
-    return fakeContentManager
+  override fun uiDataSnapshot(sink: DataSink) {
+    sink[SERIAL_NUMBER_KEY] = tabInfo.deviceId.serialNumber
+    sink[STREAMING_CONTENT_PANEL_KEY] = tabInfo.content
+    sink[DISPLAY_VIEW_KEY] = tabInfo.displays.first()
+    sink[DEVICE_ID_KEY] = tabInfo.deviceId
   }
 
-  override fun getContentManagerIfCreated(): ContentManager? {
-    return fakeContentManager
-  }
+  override fun addDeviceDisplayListener(listener: DeviceDisplayListener) {}
 
-  fun addContent(tabInfo: TabInfo) {
-    val fakeComponent = FakeRunningDevicesComponent(tabInfo)
-    val fakeContent = FakeContent(disposable, fakeContentManager, fakeComponent)
-    fakeContentManager.addContent(fakeContent)
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-  }
-
-  fun removeContent(tabInfo: TabInfo) {
-    val content = findContent(tabInfo)
-    fakeContentManager.removeContent(content!!, true)
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-  }
-
-  fun setSelectedContent(tabInfo: TabInfo) {
-    val content = findContent(tabInfo)
-    fakeContentManager.setSelectedContent(content!!)
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-  }
-
-  private fun findContent(tabInfo: TabInfo): Content? {
-    return fakeContentManager.contents.find {
-      val component = it.component
-      if (component !is UiDataProvider) return@find false
-
-      val dataContext = DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, component)
-
-      SERIAL_NUMBER_KEY.getData(dataContext) == tabInfo.deviceId.serialNumber
-    }
-  }
-
-  override fun show(runnable: Runnable?) {
-    visible = true
-    notifyStateChanged()
-    runnable?.run()
-  }
-
-  override fun hide(runnable: Runnable?) {
-    visible = false
-    notifyStateChanged()
-    runnable?.run()
-  }
-
-  override fun isVisible() = visible
-
-  private fun notifyStateChanged() {
-    project.messageBus.syncPublisher(ToolWindowManagerListener.TOPIC).stateChanged(manager)
-  }
+  override fun removeDeviceDisplayListener(listener: DeviceDisplayListener) {}
 }
 
 /** Fake implementation of ContentManager taken from ToolWindowHeadlessManagerImpl#MockContentManager */
@@ -409,128 +459,4 @@ class FakeContentManager : ContentManager {
   override fun getFactory(): ContentFactory {
     return ApplicationManager.getApplication().getService(ContentFactory::class.java)
   }
-}
-
-class FakeContent(private val disposable: Disposable, private val contentManager: ContentManager, private val fakeComponent: JComponent) :
-  Content {
-  init {
-    Disposer.register(disposable, this)
-  }
-
-  override fun <T : Any?> getUserData(key: Key<T>): T? = null
-
-  override fun <T : Any?> putUserData(key: Key<T>, value: T?) {}
-
-  override fun dispose() {}
-
-  override fun getComponent() = fakeComponent
-
-  override fun getPreferredFocusableComponent() = fakeComponent
-
-  override fun setComponent(component: JComponent?) {}
-
-  override fun setPreferredFocusableComponent(component: JComponent?) {}
-
-  override fun setPreferredFocusedComponent(computable: Computable<out JComponent>?) {}
-
-  override fun setIcon(icon: Icon?) {}
-
-  override fun getIcon() = StudioIcons.LayoutInspector.Toolbar.SNAPSHOT
-
-  override fun setDisplayName(displayName: String?) {}
-
-  override fun getDisplayName() = "Fake Content"
-
-  override fun setTabName(tabName: String?) {}
-
-  override fun getTabName() = "Fake Tab"
-
-  override fun getToolwindowTitle() = "Fake Tool Window"
-
-  override fun setToolwindowTitle(toolwindowTitle: String?) {}
-
-  override fun getDisposer() = disposable
-
-  override fun setDisposer(disposer: Disposable) {}
-
-  override fun setShouldDisposeContent(value: Boolean) {}
-
-  override fun getDescription() = "Fake description"
-
-  override fun setDescription(description: String?) {}
-
-  override fun addPropertyChangeListener(l: PropertyChangeListener?) {}
-
-  override fun removePropertyChangeListener(l: PropertyChangeListener?) {}
-
-  override fun getManager() = contentManager
-
-  override fun isSelected() = contentManager.selectedContent == this
-
-  override fun release() {}
-
-  override fun isValid() = true
-
-  override fun setPinned(locked: Boolean) {}
-
-  override fun isPinned() = false
-
-  override fun setPinnable(pinnable: Boolean) {}
-
-  override fun isPinnable() = true
-
-  override fun isCloseable() = true
-
-  override fun setCloseable(closeable: Boolean) {}
-
-  override fun setActions(actions: ActionGroup?, place: String?, contextComponent: JComponent?) {}
-
-  override fun getActions() = EmptyActionGroup()
-
-  override fun setSearchComponent(comp: JComponent?) {}
-
-  override fun getSearchComponent() = null
-
-  override fun getPlace() = "fake place"
-
-  override fun getActionsContextComponent() = JPanel()
-
-  override fun setAlertIcon(icon: AlertIcon?) {}
-
-  override fun getAlertIcon() = null
-
-  override fun fireAlert() {}
-
-  override fun getBusyObject() = null
-
-  override fun setBusyObject(`object`: BusyObject?) {}
-
-  override fun getSeparator() = "fake separator"
-
-  override fun setSeparator(separator: String?) {}
-
-  override fun setPopupIcon(icon: Icon?) {}
-
-  override fun getPopupIcon() = StudioIcons.LayoutInspector.Toolbar.CLEAR_OVERLAY
-
-  override fun setExecutionId(executionId: Long) {}
-
-  override fun getExecutionId() = 1L
-}
-
-class FakeRunningDevicesComponent(private val tabInfo: TabInfo) : JPanel(), UiDataProvider, DisplayOwner {
-  init {
-    tabInfo.container.add(tabInfo.content)
-  }
-
-  override fun uiDataSnapshot(sink: DataSink) {
-    sink[SERIAL_NUMBER_KEY] = tabInfo.deviceId.serialNumber
-    sink[STREAMING_CONTENT_PANEL_KEY] = tabInfo.content
-    sink[DISPLAY_VIEW_KEY] = tabInfo.displays.first()
-    sink[DEVICE_ID_KEY] = tabInfo.deviceId
-  }
-
-  override fun addDeviceDisplayListener(listener: DeviceDisplayListener) {}
-
-  override fun removeDeviceDisplayListener(listener: DeviceDisplayListener) {}
 }

@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices
 
+import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
+import com.android.tools.idea.testing.ui.createFakeToolWindow
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.replaceService
 import com.intellij.util.ui.components.BorderLayoutPanel
 import javax.swing.JPanel
 import org.junit.Before
@@ -36,7 +37,7 @@ class RunningDevicesStateObserverTest {
 
   @get:Rule val displayViewRule = EmulatorViewRule()
 
-  private lateinit var fakeToolWindowManager: FakeToolWindowManager
+  private lateinit var fakeToolWindow: ToolWindowEx
 
   private lateinit var tab1: TabInfo
   private lateinit var tab2: TabInfo
@@ -46,20 +47,17 @@ class RunningDevicesStateObserverTest {
     tab1 = TabInfo(DeviceId.ofPhysicalDevice("tab1"), BorderLayoutPanel(), JPanel(), listOf(displayViewRule.newEmulatorDisplayView()))
     tab2 = TabInfo(DeviceId.ofPhysicalDevice("tab2"), BorderLayoutPanel(), JPanel(), listOf(displayViewRule.newEmulatorDisplayView()))
 
-    fakeToolWindowManager = FakeToolWindowManager(displayViewRule.project, emptyList())
-
-    // replace ToolWindowManager with fake one
-    displayViewRule.project.replaceService(ToolWindowManager::class.java, fakeToolWindowManager, displayViewRule.disposable)
+    fakeToolWindow = createFakeToolWindow(displayViewRule.project, displayViewRule.disposable, RUNNING_DEVICES_TOOL_WINDOW_ID)
   }
 
   @Test
   fun testListenerIsCalledWithExistingState() {
     val runningDevicesStateObserver = RunningDevicesStateObserver.getInstance(displayViewRule.project)
 
-    fakeToolWindowManager.toolWindow.show()
+    fakeToolWindow.show()
 
-    fakeToolWindowManager.addContent(tab1)
-    fakeToolWindowManager.addContent(tab2)
+    addContent(fakeToolWindow, tab1)
+    addContent(fakeToolWindow, tab2)
 
     val observedVisibleTabs = mutableListOf<List<DeviceId>>()
     val observedExistingTabs = mutableListOf<List<DeviceId>>()
@@ -85,7 +83,7 @@ class RunningDevicesStateObserverTest {
   fun testListenerIsCalledWhenAddingAndRemovingContent() {
     val runningDevicesStateObserver = RunningDevicesStateObserver.getInstance(displayViewRule.project)
 
-    fakeToolWindowManager.toolWindow.show()
+    fakeToolWindow.show()
 
     val observedVisibleTabs = mutableListOf<List<DeviceId>>()
     val observedExistingTabs = mutableListOf<List<DeviceId>>()
@@ -103,13 +101,13 @@ class RunningDevicesStateObserverTest {
 
     runningDevicesStateObserver.addListener(listener)
 
-    fakeToolWindowManager.addContent(tab1)
+    addContent(fakeToolWindow, tab1)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-    fakeToolWindowManager.addContent(tab2)
+    addContent(fakeToolWindow, tab2)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-    fakeToolWindowManager.removeContent(tab1)
+    removeContent(fakeToolWindow, tab1)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     assertThat(observedVisibleTabs).containsExactly(emptyList<DeviceId>(), listOf(tab1.deviceId), listOf(tab2.deviceId))
@@ -135,25 +133,25 @@ class RunningDevicesStateObserverTest {
         }
       }
 
-    fakeToolWindowManager.toolWindow.show()
+    fakeToolWindow.show()
 
     runningDevicesStateObserver.addListener(listener)
 
-    fakeToolWindowManager.toolWindow.show()
+    fakeToolWindow.show()
 
-    fakeToolWindowManager.addContent(tab1)
+    addContent(fakeToolWindow, tab1)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-    fakeToolWindowManager.addContent(tab2)
+    addContent(fakeToolWindow, tab2)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-    fakeToolWindowManager.setSelectedContent(tab2)
+    setSelectedContent(fakeToolWindow, tab2)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-    fakeToolWindowManager.setSelectedContent(tab1)
+    setSelectedContent(fakeToolWindow, tab1)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-    fakeToolWindowManager.setSelectedContent(tab1)
+    setSelectedContent(fakeToolWindow, tab1)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     assertThat(observedVisibleTabs)
@@ -178,17 +176,19 @@ class RunningDevicesStateObserverTest {
 
     runningDevicesStateObserver.addListener(listener)
 
-    fakeToolWindowManager.toolWindow.show()
-    fakeToolWindowManager.toolWindow.hide()
+    fakeToolWindow.show()
+    fakeToolWindow.hide()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     assertThat(observedVisibleTabs).containsExactly(emptyList<DeviceId>())
 
-    fakeToolWindowManager.addContent(tab1)
+    addContent(fakeToolWindow, tab1)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    fakeToolWindowManager.setSelectedContent(tab1)
+    setSelectedContent(fakeToolWindow, tab1)
 
-    fakeToolWindowManager.toolWindow.show()
-    fakeToolWindowManager.toolWindow.hide()
+    fakeToolWindow.show()
+    fakeToolWindow.hide()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     assertThat(observedVisibleTabs).containsExactly(emptyList<DeviceId>(), listOf(tab1.deviceId), emptyList<DeviceId>())
   }
