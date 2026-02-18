@@ -23,12 +23,12 @@ import com.android.tools.idea.streaming.MirroringState
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule
 import com.android.tools.idea.testing.AndroidExecutorsRule
-import com.android.tools.idea.testing.ui.FakeToolWindow
 import com.android.tools.idea.testing.ui.createFakeToolWindow
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.wm.ToolWindow
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQueue
 import com.intellij.testFramework.ProjectRule
@@ -55,8 +55,8 @@ class StreamingToolWindowManagerMultiProjectTest {
   @get:Rule val ruleChain = RuleChain(agentRule, project2Rule, androidExecutorsRule, EdtRule())
 
   private val windowFactory: StreamingToolWindowFactory by lazy { StreamingToolWindowFactory() }
-  private val toolWindow1: FakeToolWindow by lazy { createToolWindow(project1) }
-  private val toolWindow2: FakeToolWindow by lazy { createToolWindow(project2) }
+  private val toolWindow1: ToolWindow by lazy { createToolWindow(project1) }
+  private val toolWindow2: ToolWindow by lazy { createToolWindow(project2) }
   private val contentManager1: ContentManager by lazy { toolWindow1.contentManager }
   private val contentManager2: ContentManager by lazy { toolWindow2.contentManager }
 
@@ -161,6 +161,6 @@ class StreamingToolWindowManagerMultiProjectTest {
     assertThat(mirroringManager2.mirroringHandles.value[pixel7Handle2]?.mirroringState).isEqualTo(MirroringState.ACTIVE)
   }
 
-  private fun createToolWindow(project: Project): FakeToolWindow =
+  private fun createToolWindow(project: Project): ToolWindow =
     createFakeToolWindow(project, testRootDisposable, RUNNING_DEVICES_TOOL_WINDOW_ID, StudioIcons.Shell.ToolWindows.EMULATOR, windowFactory)
 }

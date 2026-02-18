@@ -44,11 +44,11 @@ import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.android.tools.idea.streaming.emulator.FakeEmulator
-import com.android.tools.idea.testing.ui.FakeToolWindow
 import com.android.tools.idea.testing.ui.createFakeToolWindow
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.wm.ToolWindow
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
@@ -80,7 +80,7 @@ class LayoutInspectorManagerTest {
   private lateinit var tab2: TabInfo
   private lateinit var xrTab: TabInfo
 
-  private lateinit var fakeToolWindow: FakeToolWindow
+  private lateinit var fakeToolWindow: ToolWindow
   private lateinit var fakeForegroundProcessDetection: FakeForegroundProcessDetection
   private lateinit var layoutInspectorManager: LayoutInspectorManager
 
