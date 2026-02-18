@@ -27,6 +27,7 @@ import com.intellij.openapi.wm.ToolWindowType
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.openapi.wm.impl.InternalDecorator
 import com.intellij.testFramework.replaceService
+import com.intellij.ui.content.ContentManagerListener
 import com.intellij.util.ui.EmptyIcon
 import javax.swing.Icon
 import org.mockito.kotlin.mock
@@ -128,6 +129,10 @@ internal constructor(
 
   override fun setIcon(icon: Icon) {
     this.icon = icon
+  }
+
+  override fun addContentManagerListener(listener: ContentManagerListener) {
+    contentManager.addContentManagerListener(listener)
   }
 
   private fun notifyStateChanged(changeType: ToolWindowManagerListener.ToolWindowManagerEventType) {
