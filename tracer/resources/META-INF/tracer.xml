@@ -19,4 +19,7 @@
       <add-to-group group-id="Internal.Android"/>
     </action>
   </actions>
+  <applicationListeners>
+    <listener class="com.android.tools.idea.tracer.StudioTracingController" topic="com.intellij.ide.AppLifecycleListener" />
+  </applicationListeners>
 </idea-plugin>
