@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.wear.preview.util.device
 
-import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.kotlin.getFullyQualifiedNameOnWriteActionForK2
 import com.android.tools.idea.preview.util.device.DeviceSpecInjectionContributor
 import com.android.tools.idea.wear.preview.TILE_PREVIEW_ANNOTATION_FQ_NAME
@@ -24,7 +23,6 @@ import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 
 class WearTileDeviceSpecInjectionContributor : DeviceSpecInjectionContributor() {
@@ -40,13 +38,7 @@ class WearTileDeviceSpecInjectionContributor : DeviceSpecInjectionContributor() 
     when (psiElement.language) {
       is KotlinLanguage -> {
         psiElement.parentOfType<KtAnnotationEntry>()?.let { parent ->
-          if (KotlinPluginModeProvider.isK2Mode()) {
-            parent.getFullyQualifiedNameOnWriteActionForK2() == TILE_PREVIEW_ANNOTATION_FQ_NAME
-          } else {
-            psiElement
-              .parentOfType<KtAnnotationEntry>()
-              ?.fqNameMatches(TILE_PREVIEW_ANNOTATION_FQ_NAME)
-          }
+          parent.getFullyQualifiedNameOnWriteActionForK2() == TILE_PREVIEW_ANNOTATION_FQ_NAME
         } ?: false
       }
       is JavaLanguage -> {
