@@ -105,7 +105,7 @@ public interface BlazeTestEventsHandler {
     if (label == null) {
       return null;
     }
-    TargetInfo targetInfo = TargetFinder.findTargetInfo(project, label);
+    TargetInfo targetInfo = TargetFinder.findTargetInfo(project, Label.of(label.toString()));
     return targetInfo != null ? targetInfo.getKind() : null;
   }
 

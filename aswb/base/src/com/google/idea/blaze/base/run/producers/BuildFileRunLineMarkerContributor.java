@@ -89,7 +89,7 @@ public class BuildFileRunLineMarkerContributor extends RunLineMarkerContributor 
     // - dirty file status somehow?
     // - override RunLineMarkerProvider, supporting collectSlowLineMarkers
     ListenableFuture<TargetInfo> future =
-        TargetFinder.findTargetInfoFuture(element.getProject(), data.label);
+        TargetFinder.findTargetInfoFuture(element.getProject(), com.google.idea.blaze.common.Label.of(data.label.toString()));
     try {
       TargetInfo target = future.get(2, SECONDS);
       return target != null && HANDLED_RULE_TYPES.contains(target.getRuleType());

@@ -99,7 +99,7 @@ public class BlazeCommandRunConfigurationTest extends BlazeTestCase {
 
   private static class MockTargetFinder implements TargetFinder {
     @Override
-    public Future<TargetInfo> findTarget(Project project, Label label) {
+    public Future<TargetInfo> findTarget(Project project, com.google.idea.blaze.common.Label label) {
       return Futures.immediateFuture(null);
     }
   }

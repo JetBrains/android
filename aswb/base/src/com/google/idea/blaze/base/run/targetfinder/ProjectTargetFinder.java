@@ -28,13 +28,13 @@ import java.util.concurrent.Future;
 class ProjectTargetFinder implements TargetFinder {
 
   @Override
-  public Future<TargetInfo> findTarget(Project project, Label label) {
+  public Future<TargetInfo> findTarget(Project project, com.google.idea.blaze.common.Label label) {
     BlazeProjectData projectData =
         BlazeProjectDataManager.getInstance(project).getBlazeProjectData();
     TargetInfo ret = null;
     if (projectData != null) {
       BuildTarget buildTarget = projectData.getBuildTarget(label);
-      ret = buildTarget != null ? new TargetInfo(label, buildTarget.kind()) : null;
+      ret = buildTarget != null ? new TargetInfo(Label.create(label), buildTarget.kind()) : null;
     }
     return Futures.immediateFuture(ret);
   }

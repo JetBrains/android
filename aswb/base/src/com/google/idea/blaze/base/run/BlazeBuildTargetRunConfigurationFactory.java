@@ -45,7 +45,7 @@ public class BlazeBuildTargetRunConfigurationFactory extends BlazeRunConfigurati
 
   @Nullable
   private static TargetInfo findProjectTarget(Project project, Label label) {
-    TargetInfo targetInfo = TargetFinder.findTargetInfo(project, label);
+    TargetInfo targetInfo = TargetFinder.findTargetInfo(project, com.google.idea.blaze.common.Label.of(label.toString()));
     if (targetInfo == null) {
       return null;
     }
