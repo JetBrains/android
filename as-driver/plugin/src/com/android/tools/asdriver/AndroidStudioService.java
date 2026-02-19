@@ -934,6 +934,31 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
     responseObserver.onNext(builder.build());
     responseObserver.onCompleted();
   }
+
+  /**
+   * Searches for a component matching the provided XPath.
+   *
+   * @param request Request containing xpath to invoke component.
+   * @param responseObserver Default gRPC response observer.
+   */
+  @Override
+  public void waitForComponentByXpath(ASDriver.WaitForComponentByXpathRequest request, StreamObserver<ASDriver.InvokeComponentByXpathResponse> responseObserver) {
+    ASDriver.InvokeComponentByXpathResponse.Builder builder = ASDriver.InvokeComponentByXpathResponse.newBuilder();
+    try {
+      StudioInteractionService studioInteractionService = new StudioInteractionService();
+      studioInteractionService.waitForComponentByXpath(request.getXpath(), request.getIsEnabled());
+      builder.setResult(ASDriver.InvokeComponentByXpathResponse.Result.OK);
+    }
+    catch (Throwable e) {
+      e.printStackTrace();
+      builder.setResult(ASDriver.InvokeComponentByXpathResponse.Result.ERROR);
+      if (!StringUtil.isEmpty(e.getMessage())) {
+        builder.setErrorMessage(e.getMessage());
+      }
+    }
+    responseObserver.onNext(builder.build());
+    responseObserver.onCompleted();
+  }
   private List<ASDriver.ComponentMatcher> createExactTextComponentMatcher(String text) {
     return List.of(
       ASDriver.ComponentMatcher.newBuilder()
