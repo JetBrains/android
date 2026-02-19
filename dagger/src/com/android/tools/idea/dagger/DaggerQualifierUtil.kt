@@ -34,28 +34,9 @@ import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.types.KaClassType
 import org.jetbrains.kotlin.asJava.elements.KtLightElement
 import org.jetbrains.kotlin.builtins.jvm.JavaToKotlinClassMap
-import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
-import org.jetbrains.kotlin.idea.caches.resolve.analyze as analyzeK1
 import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqNameUnsafe
 import org.jetbrains.kotlin.psi.KtAnnotated
-import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtDeclaration
-import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.constants.AnnotationValue
-import org.jetbrains.kotlin.resolve.constants.ArrayValue
-import org.jetbrains.kotlin.resolve.constants.BooleanValue
-import org.jetbrains.kotlin.resolve.constants.ConstantValue
-import org.jetbrains.kotlin.resolve.constants.DoubleValue
-import org.jetbrains.kotlin.resolve.constants.EnumValue
-import org.jetbrains.kotlin.resolve.constants.FloatValue
-import org.jetbrains.kotlin.resolve.constants.IntegerValueConstant
-import org.jetbrains.kotlin.resolve.constants.KClassValue
-import org.jetbrains.kotlin.resolve.constants.NullValue
-import org.jetbrains.kotlin.resolve.constants.StringValue
-import org.jetbrains.kotlin.resolve.descriptorUtil.annotationClass
-import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 
 /**
  * Contains a serialized representation of a qualifier annotation.
@@ -79,44 +60,6 @@ import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
  * @see [serializeAttrValueToString]
  */
 internal data class QualifierInfo(val fqName: String, val attributes: Map<String, String>)
-
-private fun isConstantValueSerializableAsString(constant: ConstantValue<*>): Boolean {
-  return constant is StringValue ||
-    constant is BooleanValue ||
-    constant is DoubleValue ||
-    constant is FloatValue ||
-    constant is IntegerValueConstant<*> ||
-    constant is NullValue
-}
-
-/**
- * Converts a [ConstantValue] to a [String].
- *
- * [ConstantValue] can be an enum, primitive type or an annotation, String, or Class object. It can
- * also be an array of these types.
- *
- * Returns `null` if we can't reliably serialize value.
- */
-private fun serializeAttrValueToString(value: ConstantValue<*>): String? =
-  when (value) {
-    is ArrayValue ->
-      value.value.map { serializeAttrValueToString(it) ?: return null }.joinToString()
-    is KClassValue -> {
-      val kotlinFqName =
-        (value.value as? KClassValue.Value.NormalClass)
-          ?.value
-          ?.classId
-          ?.asSingleFqName()
-          ?.asString()
-      // Try to map Kotlin fqcn to Java fqcn, e.g kotlin.String -> java.lang.String.
-      kotlinFqName?.let {
-        JavaToKotlinClassMap.mapKotlinToJava(FqNameUnsafe(it))?.asSingleFqName()?.asString() ?: it
-      }
-    }
-    is AnnotationValue -> value.value.fqName?.asString()
-    is EnumValue -> "${value.enumClassId.asSingleFqName().asString()}.${value.enumEntryName}"
-    else -> if (isConstantValueSerializableAsString(value)) value.value.toString() else null
-  }
 
 /**
  * Converts a [JvmAnnotationAttributeValue] to a [String].
@@ -189,7 +132,7 @@ internal fun <T : PsiModifierListOwner> Collection<T>.filterByQualifier(
   qualifierInfo: QualifierInfo?
 ): Collection<T> {
   return this.filter {
-    // If it's [KtLightElement], we search for [QualifierInfo] in `kotlinOrigin` of element, e.g
+    // If it's [KtLightElement], we search for [QualifierInfo] in `kotlinOrigin` of element, e.g.
     // QualifierInfo could belong not to field, but to accessor.
     val otherQualifierInfo =
       if (it is KtLightElement<*, *>) (it.kotlinOrigin as? PsiElement)?.getQualifierInfo()
@@ -198,39 +141,12 @@ internal fun <T : PsiModifierListOwner> Collection<T>.filterByQualifier(
   }
 }
 
-private fun KtAnnotated.getQualifierInfoFromKtAnnotated(): QualifierInfo? {
-  return if (KotlinPluginModeProvider.isK2Mode()) {
-    getQualifierInfoFromKtAnnotatedK2()
-  } else {
-    getQualifierInfoFromKtAnnotatedK1()
-  }
-}
-
-private fun KtAnnotated.getQualifierInfoFromKtAnnotatedK1(): QualifierInfo? {
-  val annotationDescriptors = annotationEntries.mapNotNull { it.getDescriptor() }
-  val qualifiers = annotationDescriptors.filter { it.isQualifier }
-  // It is always an error to apply multiple qualifiers. Qualifier is valid only if it's single.
-  if (qualifiers.size == 1) {
-    val qualifier = qualifiers.single()
-    val qualifierFqName = qualifier.fqName?.asString() ?: return null
-    val qualifierAttributes =
-      qualifier.allValueArguments
-        .map {
-          it.key.asString() to
-            (serializeAttrValueToString(it.value) ?: return@getQualifierInfoFromKtAnnotatedK1 null)
-        }
-        .toMap()
-    return QualifierInfo(qualifierFqName, qualifierAttributes)
-  }
-  return null
-}
-
 @OptIn(KaAllowAnalysisOnEdt::class)
-private fun KtAnnotated.getQualifierInfoFromKtAnnotatedK2(): QualifierInfo? {
+private fun KtAnnotated.getQualifierInfoFromKtAnnotated(): QualifierInfo? {
   allowAnalysisOnEdt {
     analyze(this) {
       val ktDeclarationSymbol =
-        (this@getQualifierInfoFromKtAnnotatedK2 as? KtDeclaration)?.symbol ?: return null
+        (this@getQualifierInfoFromKtAnnotated as? KtDeclaration)?.symbol ?: return null
       val qualifier =
         ktDeclarationSymbol.annotations.singleOrNull { isQualifier(it.classId) } ?: return null
 
@@ -264,12 +180,6 @@ private fun PsiModifierListOwner.getQualifierInfoFromPsiModifierListOwner(): Qua
   }
   return null
 }
-
-private fun KtAnnotationEntry.getDescriptor() =
-  analyzeK1(BodyResolveMode.PARTIAL).get(BindingContext.ANNOTATION, this)
-
-private val AnnotationDescriptor.isQualifier: Boolean
-  get() = annotationClass?.annotations?.hasAnnotation(DaggerClasses.Qualifier.fqName) == true
 
 private fun KaSession.isQualifier(annotationClassId: ClassId?): Boolean =
   annotationClassId
