@@ -63,12 +63,6 @@ import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.analysis.api.KaPlatformInterface
 import org.jetbrains.kotlin.analysis.api.platform.declarations.createDeclarationProvider
-import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
-import org.jetbrains.kotlin.idea.base.facet.platform.platform
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
-import org.jetbrains.kotlin.idea.base.projectStructure.productionSourceInfo
-import org.jetbrains.kotlin.idea.base.util.K1ModeProjectStructureApi
-import org.jetbrains.kotlin.idea.core.KotlinIndicesHelper
 import org.jetbrains.kotlin.name.FqName
 import java.io.File
 
@@ -112,7 +106,7 @@ private fun StringParameter.getErrorMessageForViolatedConstraint(c: Constraint, 
  * Validate the given value for this parameter and list the constraints that the given value violates.
  * @return All constraints of this parameter that are violated by the proposed value.
  */
-@OptIn(K1ModeProjectStructureApi::class) // For the K1 code paths only.
+@OptIn(KaPlatformInterface::class)
 @VisibleForTesting
 fun StringParameter.validateStringType(
   project: Project?, module: Module?, provider: SourceProvider?, packageName: String?, value: String?, relatedValues: Set<Any> = setOf()
@@ -147,25 +141,16 @@ fun StringParameter.validateStringType(
         val activityClass = JavaPsiFacade.getInstance(project).findClass(SdkConstants.CLASS_ACTIVITY, GlobalSearchScope.allScope(project))
         aClass != null && activityClass != null && aClass.isInheritor(activityClass, true)
       }
-    KOTLIN_FUNCTION -> {
-      project ?: return false
-      @OptIn(KaPlatformInterface::class)
-      if (KotlinPluginModeProvider.isK2Mode()) {
+      KOTLIN_FUNCTION -> {
+        project ?: return false
         val packageFqName = if (packageName != null) FqName(packageName) else FqName.ROOT
         val declarationProvider = project.createDeclarationProvider(searchScope, contextualModule = null)
         val topLevelCallableNames = declarationProvider.getTopLevelCallableNamesInPackage(packageFqName)
         topLevelCallableNames.any { it.identifierOrNullIfSpecial == value }
-      } else {
-        module ?: return false
-        val moduleInfo = module.productionSourceInfo!!
-        val platform = module.platform
-        val facade = KotlinCacheService.getInstance(project).getResolutionFacadeByModuleInfo(moduleInfo, platform)!!
-        val helper = KotlinIndicesHelper(facade, searchScope, { true })
-        helper.getTopLevelCallablesByName(value).isNotEmpty()
       }
-    }
-    CLASS -> project != null && existsClassFile(project, searchScope, provider, fqName)
-      PACKAGE, APP_PACKAGE -> project != null && existsPackage(project, provider, value)
+      CLASS -> project != null && existsClassFile(project, searchScope, provider, fqName)
+      PACKAGE,
+      APP_PACKAGE -> project != null && existsPackage(project, provider, value)
       MODULE -> project != null && ModuleManager.getInstance(project).findModuleByName(value) != null
       LAYOUT -> {
         if (provider != null)
