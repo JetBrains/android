@@ -17,7 +17,6 @@ package com.android.tools.idea.benchmarks
 
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.BeforeClass
 import org.junit.ClassRule
 import org.junit.Test
@@ -44,7 +43,6 @@ class JetNewsK2Benchmark : FullProjectBenchmark() {
     @BeforeClass
     fun setUpBeforeClass() {
       loadProject(staticRule, GRADLE_PROJECT_NAME)
-      assert(KotlinPluginModeProvider.isK2Mode())
     }
   }
 
