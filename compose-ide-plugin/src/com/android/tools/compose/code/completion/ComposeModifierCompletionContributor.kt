@@ -218,7 +218,6 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     // For K2, we have to create a code fragment to run analysis API on it.
     // See https://b.corp.google.com/issues/330760992#comment3 for more information.
     val newExpression = KtPsiFactory(originalFile.project).createExpressionCodeFragment(newExpressionAsString, originalFile)
-
     return requireNotNull(newExpression.getChildOfType<KtDotQualifiedExpression>()).lastChild as KtSimpleNameExpression
   }
 
