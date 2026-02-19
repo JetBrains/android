@@ -33,9 +33,7 @@ import com.intellij.ui.picker.ColorListener
 import com.intellij.util.ui.ColorIcon
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.codeinsight.utils.getInitializerOrGetterInitializer
-import org.jetbrains.kotlin.idea.inspections.AbstractRangeInspection.Companion.constantValueOrNull
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtCallExpression
@@ -358,11 +356,7 @@ private inline fun <reified T> getArgumentNameValuePair(
 }
 
 private inline fun <reified T> KtExpression.evaluateToConstantOrNull(): T? {
-  return if (KotlinPluginModeProvider.isK2Mode()) {
-    analyze(this) { evaluate()?.value as? T ?: return null }
-  } else {
-    constantValueOrNull()?.value as? T ?: return null
-  }
+  return analyze(this) { evaluate()?.value as? T ?: return null }
 }
 
 private fun Int.toHexString(): String =

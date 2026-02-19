@@ -35,14 +35,11 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.contextOfType
 import com.intellij.psi.util.parentOfType
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.psi.imports.addImport
 import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.kotlin.idea.base.util.allScope
-import org.jetbrains.kotlin.idea.caches.resolve.resolveImportReference
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.idea.stubindex.KotlinFullClassNameIndex
-import org.jetbrains.kotlin.idea.util.ImportInsertHelper
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtClassOrObject
@@ -144,20 +141,9 @@ private data class ClassWithDeclarationsToSuggest(
           // Add import in addition to filling in the completion.
           val psiDocumentManager = PsiDocumentManager.getInstance(context.project)
           val ktFile = context.file as KtFile
-          if (KotlinPluginModeProvider.isK2Mode()) {
-            ktFile.addImport(FqName(classToImport))
-            psiDocumentManager.commitAllDocuments()
-            psiDocumentManager.doPostponedOperationsAndUnblockDocument(context.document)
-          } else {
-            val modifierDescriptor =
-              ktFile.resolveImportReference(FqName(classToImport)).singleOrNull()
-            if (modifierDescriptor != null) {
-              ImportInsertHelper.getInstance(context.project)
-                .importDescriptor(ktFile, modifierDescriptor)
-              psiDocumentManager.commitAllDocuments()
-              psiDocumentManager.doPostponedOperationsAndUnblockDocument(context.document)
-            }
-          }
+          ktFile.addImport(FqName(classToImport))
+          psiDocumentManager.commitAllDocuments()
+          psiDocumentManager.doPostponedOperationsAndUnblockDocument(context.document)
         }
 
     return object : LookupElementDecorator<LookupElement>(builder) {

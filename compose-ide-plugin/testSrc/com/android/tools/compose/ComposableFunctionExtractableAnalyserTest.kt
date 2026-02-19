@@ -28,7 +28,6 @@ import java.util.Collections
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.k2.refactoring.extractFunction.ExtractableCodeDescriptor as K2ExtractableCodeDescriptor
 import org.jetbrains.kotlin.idea.k2.refactoring.extractFunction.ExtractableCodeDescriptorWithConflicts as K2ExtractableCodeDescriptorWithConflicts
 import org.jetbrains.kotlin.idea.k2.refactoring.extractFunction.ExtractionGeneratorConfiguration as K2ExtractionGeneratorConfiguration
@@ -37,15 +36,8 @@ import org.jetbrains.kotlin.idea.k2.refactoring.extractFunction.KotlinFirExtract
 import org.jetbrains.kotlin.idea.k2.refactoring.introduce.extractionEngine.ExtractionEngineHelper as K2ExtractionEngineHelper
 import org.jetbrains.kotlin.idea.k2.refactoring.introduceConstant.KotlinIntroduceConstantHandler as K2KotlinIntroduceConstantHandler
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractFunction.EXTRACT_FUNCTION
-import org.jetbrains.kotlin.idea.refactoring.introduce.extractFunction.ExtractKotlinFunctionHandler
-import org.jetbrains.kotlin.idea.refactoring.introduce.extractionEngine.ExtractableCodeDescriptor
-import org.jetbrains.kotlin.idea.refactoring.introduce.extractionEngine.ExtractableCodeDescriptorWithConflicts
-import org.jetbrains.kotlin.idea.refactoring.introduce.extractionEngine.ExtractionEngineHelper
-import org.jetbrains.kotlin.idea.refactoring.introduce.extractionEngine.ExtractionGeneratorConfiguration
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractionEngine.ExtractionGeneratorOptions
-import org.jetbrains.kotlin.idea.refactoring.introduce.extractionEngine.ExtractionResult
 import org.jetbrains.kotlin.idea.refactoring.introduce.introduceConstant.INTRODUCE_CONSTANT
-import org.jetbrains.kotlin.idea.refactoring.introduce.introduceConstant.KotlinIntroduceConstantHandler
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -60,44 +52,6 @@ class ComposableFunctionExtractableAnalyserTest {
   fun setUp() {
     (fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
     fixture.stubComposableAnnotation()
-  }
-
-  private class ExtractionHelper : ExtractionEngineHelper(EXTRACT_FUNCTION) {
-
-    override fun configureAndRun(
-      project: Project,
-      editor: Editor,
-      descriptorWithConflicts: ExtractableCodeDescriptorWithConflicts,
-      onFinish: (ExtractionResult) -> Unit,
-    ) {
-      val newDescriptor =
-        descriptorWithConflicts.descriptor.copy(
-          suggestedNames = Collections.singletonList("newComposableFunction")
-        )
-      doRefactor(
-        ExtractionGeneratorConfiguration(newDescriptor, ExtractionGeneratorOptions.DEFAULT),
-        onFinish,
-      )
-    }
-  }
-
-  private class InteractiveExtractionHelper : ExtractionEngineHelper(INTRODUCE_CONSTANT) {
-    override fun validate(descriptor: ExtractableCodeDescriptor) =
-      KotlinIntroduceConstantHandler.InteractiveExtractionHelper.validate(descriptor)
-
-    override fun configureAndRun(
-      project: Project,
-      editor: Editor,
-      descriptorWithConflicts: ExtractableCodeDescriptorWithConflicts,
-      onFinish: (ExtractionResult) -> Unit,
-    ) {
-      KotlinIntroduceConstantHandler.InteractiveExtractionHelper.configureAndRun(
-        project,
-        editor,
-        descriptorWithConflicts,
-        onFinish,
-      )
-    }
   }
 
   private class K2ExtractionHelper : K2ExtractionEngineHelper(EXTRACT_FUNCTION) {
@@ -166,12 +120,7 @@ class ComposableFunctionExtractableAnalyserTest {
           .trimIndent(),
       )
 
-    val handler =
-      if (KotlinPluginModeProvider.isK2Mode()) {
-        KotlinFirExtractFunctionHandler(helper = K2ExtractionHelper())
-      } else {
-        ExtractKotlinFunctionHandler(helper = ExtractionHelper())
-      }
+    val handler = KotlinFirExtractFunctionHandler(helper = K2ExtractionHelper())
 
     application.invokeAndWait {
       IndexingTestUtil.waitUntilIndexesAreReady(fixture.project)
@@ -223,12 +172,7 @@ class ComposableFunctionExtractableAnalyserTest {
           .trimIndent(),
       )
 
-    val handler =
-      if (KotlinPluginModeProvider.isK2Mode()) {
-        KotlinFirExtractFunctionHandler(helper = K2ExtractionHelper())
-      } else {
-        ExtractKotlinFunctionHandler(helper = ExtractionHelper())
-      }
+    val handler = KotlinFirExtractFunctionHandler(helper = K2ExtractionHelper())
 
     application.invokeAndWait {
       IndexingTestUtil.waitUntilIndexesAreReady(fixture.project)
@@ -282,12 +226,7 @@ class ComposableFunctionExtractableAnalyserTest {
           .trimIndent(),
       )
 
-    val handler =
-      if (KotlinPluginModeProvider.isK2Mode()) {
-        K2KotlinIntroduceConstantHandler(helper = K2InteractiveExtractionHelper())
-      } else {
-        KotlinIntroduceConstantHandler(helper = InteractiveExtractionHelper())
-      }
+    val handler = K2KotlinIntroduceConstantHandler(helper = K2InteractiveExtractionHelper())
 
     application.invokeAndWait {
       IndexingTestUtil.waitUntilIndexesAreReady(fixture.project)
@@ -295,7 +234,6 @@ class ComposableFunctionExtractableAnalyserTest {
       NonBlockingReadActionImpl.waitForAsyncTaskCompletion()
     }
 
-    val constValName = if (KotlinPluginModeProvider.isK2Mode()) "string" else "s"
     fixture.checkResult(
       // language=kotlin
       """
@@ -303,11 +241,11 @@ class ComposableFunctionExtractableAnalyserTest {
 
       import androidx.compose.runtime.Composable
 
-      private const val $constValName = "foo"
+      private const val string = "foo"
 
       @Composable
       fun sourceFunction() {
-        print($constValName)
+        print(string)
       }
       """
         .trimIndent()

@@ -30,7 +30,6 @@ import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.util.application
 import org.jetbrains.android.compose.addComposeRuntimeDep
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.psi.KtProperty
 import org.junit.Before
 import org.junit.Rule
@@ -916,13 +915,11 @@ class ComposeCompletionContributorTest {
         .trimIndent(),
     )
 
-    val parameterWithComposeAnnotation =
-      if (KotlinPluginModeProvider.isK2Mode()) "@Composable (() -> Unit)" else "() -> Unit"
     val expectedLookupItems =
       listOf(
-        "FoobarOne(requiredArg: $parameterWithComposeAnnotation, ...) (com.example)",
+        "FoobarOne(requiredArg: @Composable (() -> Unit), ...) (com.example)",
         "FoobarTwo(...) (com.example)",
-        "FoobarThree(requiredArg: $parameterWithComposeAnnotation, optionalArg: Int = ...) (com.example) Unit",
+        "FoobarThree(requiredArg: @Composable (() -> Unit), optionalArg: Int = ...) (com.example) Unit",
         "FoobarFour(optionalArg: Int = ...) (com.example) Unit",
         "FoobarFive(requiredArg: () -> Unit, ...) (com.example)",
         "FoobarSix(...) (com.example)",

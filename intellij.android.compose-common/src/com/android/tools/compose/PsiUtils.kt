@@ -34,10 +34,8 @@ import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.resolution.singleFunctionCallOrNull
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.psi.hasInlineModifier
 import org.jetbrains.kotlin.idea.references.mainReference
-import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
@@ -58,7 +56,6 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPropertyAccessor
-import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.allConstructors
@@ -75,13 +72,9 @@ private val COMPOSABLE_CLASS_ID =
 
 @OptIn(KaAllowAnalysisOnEdt::class)
 fun PsiElement.isComposableFunction(): Boolean =
-  if (KotlinPluginModeProvider.isK2Mode()) {
-    (this as? KtNamedFunction)?.getAnnotationWithCaching(composableFunctionKey) { annotationEntry ->
-      allowAnalysisOnEdt { analyze(annotationEntry) { isComposableAnnotation(annotationEntry) } }
-    } != null
-  } else {
-    this.getComposableAnnotation() != null
-  }
+  (this as? KtNamedFunction)?.getAnnotationWithCaching(composableFunctionKey) { annotationEntry ->
+    allowAnalysisOnEdt { analyze(annotationEntry) { isComposableAnnotation(annotationEntry) } }
+  } != null
 
 /**
  * Checks of a given lambda argument is a 'Composable'.
@@ -228,18 +221,7 @@ private fun KtElement.possibleComposableScope(): KtExpression? =
     )
     ?.takeIf { it !is KtClassInitializer }
 
-private fun KtModifierListOwner.hasComposableAnnotation(): Boolean =
-  if (KotlinPluginModeProvider.isK2Mode()) {
-    hasAnnotation(COMPOSABLE_CLASS_ID)
-  } else {
-    when (this) {
-      is KtFunction ->
-        descriptor?.annotations?.findAnnotation(COMPOSABLE_CLASS_ID.asSingleFqName()) != null
-      is KtTypeReference,
-      is KtPropertyAccessor -> annotationEntries.any { it.isComposableAnnotation() }
-      else -> false
-    }
-  }
+private fun KtModifierListOwner.hasComposableAnnotation(): Boolean = hasAnnotation(COMPOSABLE_CLASS_ID)
 
 private fun KtValueArgument.toFunction(): KtFunction? {
   val callee = parentOfType<KtCallExpression>()?.calleeExpression?.mainReference?.resolve()

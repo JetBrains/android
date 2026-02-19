@@ -19,7 +19,6 @@ import androidx.compose.compiler.plugins.kotlin.ComposeCommandLineProcessor
 import androidx.compose.compiler.plugins.kotlin.ComposePluginRegistrar
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.project.Project
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.compiler.configuration.KotlinCommonCompilerArgumentsHolder
 
 private val composeCompilerPluginPath by lazy {
@@ -34,10 +33,8 @@ private val suppressKotlinVersionCheckOption =
   }=true"
 
 internal fun setUpCompilerArgumentsForComposeCompilerPlugin(project: Project) {
-  if (KotlinPluginModeProvider.isK2Mode()) {
-    KotlinCommonCompilerArgumentsHolder.getInstance(project).update {
-      this.pluginClasspaths = arrayOf(composeCompilerPluginPath.toString())
-      this.pluginOptions = arrayOf(suppressKotlinVersionCheckOption)
-    }
+  KotlinCommonCompilerArgumentsHolder.getInstance(project).update {
+    this.pluginClasspaths = arrayOf(composeCompilerPluginPath.toString())
+    this.pluginOptions = arrayOf(suppressKotlinVersionCheckOption)
   }
 }

@@ -19,7 +19,6 @@ import com.android.ide.common.vectordrawable.VdPreview
 import com.android.tools.compose.ComposeSettings
 import com.android.tools.compose.aa.code.getComposableFunctionRenderParts
 import com.android.tools.compose.code.ComposableFunctionRenderParts
-import com.android.tools.compose.code.getComposableFunctionRenderParts
 import com.android.tools.compose.isComposableFunction
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.google.common.base.CaseFormat
@@ -36,22 +35,15 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
-import com.intellij.util.asSafely
 import icons.StudioIcons
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.types.KaFunctionType
-import org.jetbrains.kotlin.analysis.api.symbols.KaValueParameterSymbol
-import org.jetbrains.kotlin.builtins.isFunctionType
-import org.jetbrains.kotlin.descriptors.FunctionDescriptor
-import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.kotlin.idea.completion.LookupElementFactory
-import org.jetbrains.kotlin.idea.core.completion.DescriptorBasedDeclarationLookupObject
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.idea.util.CallType
 import org.jetbrains.kotlin.idea.util.CallTypeAndReceiver
@@ -63,34 +55,12 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.psiUtil.getNextSiblingIgnoringWhitespace
 import org.jetbrains.kotlin.psi.psiUtil.getPrevSiblingIgnoringWhitespace
-import org.jetbrains.kotlin.resolve.calls.components.hasDefaultValue
-import org.jetbrains.kotlin.resolve.calls.results.argumentValueType
 import org.jetbrains.kotlin.types.typeUtil.isUnit
 import java.io.BufferedReader
 import javax.swing.Icon
 import javax.swing.ImageIcon
 
 private val COMPOSABLE_FUNCTION_ICON = StudioIcons.Compose.Editor.COMPOSABLE_FUNCTION
-
-private fun LookupElement.getFunctionDescriptor(): FunctionDescriptor? {
-  return this.`object`
-    .asSafely<DescriptorBasedDeclarationLookupObject>()
-    ?.descriptor
-    ?.asSafely<FunctionDescriptor>()
-}
-
-private fun ValueParameterDescriptor.isLambdaWithNoParameters() =
-  // The only type in the list is the return type (can be Unit).
-  type.isFunctionType && argumentValueType.arguments.size == 1
-
-/** true iff [valueParameterSymbol]'s type arguments contains only the return type (can be Unit). */
-private fun KaSession.isLambdaWithNoParameters(
-  valueParameterSymbol: KaValueParameterSymbol
-) = with(valueParameterSymbol) { (returnType as? KaFunctionType)?.typeArguments?.size == 1 }
-
-/** true iff the last parameter is required, and a lambda type with no parameters. */
-private fun ValueParameterDescriptor.isRequiredLambdaWithNoParameters() =
-  !hasDefaultValue() && isLambdaWithNoParameters() && varargElementType == null
 
 private fun InsertionContext.getParent(): PsiElement? = file.findElementAt(startOffset)?.parent
 
@@ -190,9 +160,6 @@ class ComposeCompletionContributor : CompletionContributor() {
    * insertion more easily.
    */
   private fun LookupElement.isVariantWithTrailingLambda(functionInfo: FunctionInfo): Boolean {
-    // This variant is only returned in K2.
-    if (!KotlinPluginModeProvider.isK2Mode()) return false
-
     // If there's no required or varargs lambda at the end, don't worry about this case.
     if (!functionInfo.endsInRequiredLambda && !functionInfo.endsInVarargLambda) return false
 
@@ -220,19 +187,12 @@ private class ComposableFunctionLookupElement(
   override fun renderElement(presentation: LookupElementPresentation) {
     super.renderElement(presentation)
 
-    if (KotlinPluginModeProvider.isK2Mode()) {
-      val element = psiElement
-      analyze(element) {
-        val functionSymbol = element.symbol
-        val typeText = presentation.typeText.takeUnless { functionSymbol.returnType.isUnitType }
-        presentation.setTypeText(typeText, null)
-        presentation.rewriteSignature(getComposableFunctionRenderParts(functionSymbol))
-      }
-    } else {
-      val descriptor = getFunctionDescriptor() ?: return
-      val typeText = presentation.typeText.takeUnless { descriptor.returnType?.isUnit() == true }
+    val element = psiElement
+    analyze(element) {
+      val functionSymbol = element.symbol
+      val typeText = presentation.typeText.takeUnless { functionSymbol.returnType.isUnitType }
       presentation.setTypeText(typeText, null)
-      presentation.rewriteSignature(descriptor.getComposableFunctionRenderParts())
+      presentation.rewriteSignature(getComposableFunctionRenderParts(functionSymbol))
     }
 
     presentation.icon = COMPOSABLE_FUNCTION_ICON

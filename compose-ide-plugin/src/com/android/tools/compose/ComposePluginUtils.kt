@@ -17,7 +17,6 @@
 package com.android.tools.compose
 
 import androidx.compose.compiler.plugins.kotlin.ComposeClassIds
-import androidx.compose.compiler.plugins.kotlin.k1.hasComposableAnnotation
 import com.android.tools.idea.kotlin.hasAnnotation
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
@@ -39,12 +38,6 @@ import org.jetbrains.kotlin.analysis.api.symbols.KaPropertySymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaValueParameterSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.receiverType
 import org.jetbrains.kotlin.analysis.api.types.KaType
-import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
-import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
-import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
-import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
-import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
@@ -54,10 +47,6 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.psiUtil.getChildrenOfType
-import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameOrNull
-import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
-import org.jetbrains.kotlin.types.AbbreviatedType
-import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.util.OperatorNameConventions
 
@@ -93,40 +82,26 @@ internal fun KtValueArgument.matchingParamTypeFqName(callee: KtNamedFunction): S
 }
 
 internal fun KtDeclaration.returnTypeFqName(): String? =
-  if (KotlinPluginModeProvider.isK2Mode()) {
-    if (this !is KtCallableDeclaration) null
+  if (this !is KtCallableDeclaration) null
     else analyze(this) { asFqNameString(this@returnTypeFqName.returnType) }
-  } else {
-    (resolveToDescriptorIfAny() as? CallableDescriptor)?.returnType?.fqName?.asString()
-  }
 
 @OptIn(KaAllowAnalysisOnEdt::class)
-internal fun KtElement.callReturnTypeFqName() =
-  if (KotlinPluginModeProvider.isK2Mode()) {
-    allowAnalysisOnEdt {
-      analyze(this) {
-        val call =
+internal fun KtElement.callReturnTypeFqName() = allowAnalysisOnEdt {
+  analyze(this) {
+    val call =
           this@callReturnTypeFqName.resolveToCall()?.calls?.firstOrNull()
             as? KaCallableMemberCall<*, *>
-        call?.let { asFqNameString(it.symbol.returnType) }
-      }
-    }
-  } else {
-    resolveToCall(BodyResolveMode.PARTIAL)?.resultingDescriptor?.returnType?.fqName?.asString()
+    call?.let { asFqNameString(it.symbol.returnType) }
   }
+}
 
 @OptIn(KaExperimentalApi::class)
 internal fun KaSession.asFqNameString(type: KaType) =
   type.fullyExpandedType.render(position = Variance.INVARIANT)
 
-internal fun KtFunction.hasComposableAnnotation() =
-  if (KotlinPluginModeProvider.isK2Mode()) {
-    hasAnnotation(ComposeClassIds.Composable)
-  } else {
-    descriptor?.hasComposableAnnotation() == true
-  }
+internal fun KtFunction.hasComposableAnnotation() = hasAnnotation(ComposeClassIds.Composable)
 
-internal fun KaSession.isComposableInvocation(callableSymbol: KaCallableSymbol): Boolean {
+internal fun isComposableInvocation(callableSymbol: KaCallableSymbol): Boolean {
   fun hasComposableAnnotation(annotated: KaAnnotated?) =
     annotated != null && ComposeClassIds.Composable in annotated.annotations
 
@@ -149,10 +124,3 @@ internal fun KaSession.isComposableInvocation(callableSymbol: KaCallableSymbol):
     else -> hasComposableAnnotation(callableSymbol)
   }
 }
-
-private val KotlinType.fqName: FqName?
-  get() =
-    when (this) {
-      is AbbreviatedType -> abbreviation.fqName
-      else -> constructor.declarationDescriptor?.fqNameOrNull()
-    }

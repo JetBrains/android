@@ -27,10 +27,7 @@ import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.types.KaType
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
-import org.jetbrains.kotlin.idea.base.utils.fqname.fqName
 import org.jetbrains.kotlin.idea.caches.resolve.resolveMainReference
-import org.jetbrains.kotlin.idea.structuralsearch.resolveExprType
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtBinaryExpression
@@ -42,8 +39,6 @@ import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPropertyAccessor
-import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.typeUtil.supertypes
 
 private val STATE_TYPES = setOf("", "Int", "Long", "Float", "Double")
 private val STATE_CLASSES_BY_ACCESSOR =
@@ -126,22 +121,17 @@ private fun KtNameReferenceExpression.isImplicitStateRead(): Boolean =
   (resolveMainReference() as? KtProperty)?.delegateExpression?.isStateType(GENERIC_STATE_CLASS_ID)
   ?: false
 
-private fun KotlinType.isStateType(stateTypeFqName: String) =
-  (fqName?.asString() == stateTypeFqName ||
-   supertypes().any { it.fqName?.asString() == stateTypeFqName })
+
 
 private fun KaSession.isStateType(type: KaType, stateClassId: ClassId): Boolean =
   type.isSubtypeOf(stateClassId)
 
 @OptIn(KaAllowAnalysisOnEdt::class)
 private fun KtExpression.isStateType(stateClassId: ClassId): Boolean =
-  if (KotlinPluginModeProvider.isK2Mode()) {
     allowAnalysisOnEdt {
       analyze(this) { expressionType?.let { isStateType(it, stateClassId) } ?: false }
-    }
-  } else {
-    resolveExprType()?.isStateType(stateClassId.asFqNameString()) ?: false
-  }
+
+}
 
 private fun KtNameReferenceExpression.isAssignee(): Boolean {
   return parentOfType<KtBinaryExpression>()

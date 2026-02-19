@@ -37,7 +37,6 @@ import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAct
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider.Companion.isK2Mode
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtFunction
 import org.junit.Before
@@ -427,14 +426,12 @@ class ComposeModifierCompletionContributorTest {
     myFixture.lookup.currentItem =
       myFixture.lookupElements!!.find { it.lookupString.contains("extensionFunction") }
     myFixture.finishLookup('\n')
-    // TODO(302558638): Fix this redundant import issue for K1.
-    val redundantImport = if (!isK2Mode()) "import androidx.compose.ui.Modifier\n      " else ""
     myFixture.checkResult(
       """
       package com.example
 
       import androidx.compose.runtime.Composable
-      ${redundantImport}import androidx.compose.ui.extensionFunction
+      import androidx.compose.ui.extensionFunction
       import androidx.compose.ui.Modifier as Modifier1
 
       @Composable
@@ -568,20 +565,11 @@ class ComposeModifierCompletionContributorTest {
     // K1 imports `Modifier` for `Modifier.extensionFunction()` below, but we already have
     // `Modifier1`, so we don't actually need it. K2 fixes this issue.
     val imports =
-      if (isK2Mode()) {
-        """
+      """
       import androidx.compose.runtime.Composable
       import androidx.compose.ui.extensionFunction
       import androidx.compose.ui.Modifier as Modifier1
       """
-      } else {
-        """
-      import androidx.compose.runtime.Composable
-      import androidx.compose.ui.Modifier
-      import androidx.compose.ui.extensionFunction
-      import androidx.compose.ui.Modifier as Modifier1
-      """
-      }
 
     myFixture.checkResult(
       """
@@ -589,7 +577,7 @@ class ComposeModifierCompletionContributorTest {
       $imports
       @Composable
       fun myWidget() {
-          val myModifier:Modifier1 = ${if (isK2Mode()) "Modifier1" else "Modifier"}.extensionFunction()
+          val myModifier:Modifier1 = Modifier1.extensionFunction()
       }
       """
         .trimIndent()

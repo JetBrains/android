@@ -33,7 +33,6 @@ import com.intellij.codeInsight.completion.PrioritizedLookupElement
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementDecorator
 import com.intellij.codeInsight.lookup.LookupElementPresentation
-import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiDocumentManager
@@ -47,32 +46,12 @@ import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.symbols.KaCallableSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.markers.KaNamedSymbol
-import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithVisibility
 import org.jetbrains.kotlin.idea.base.analysis.api.utils.KtSymbolFromIndexProvider
 import org.jetbrains.kotlin.idea.base.analysis.api.utils.shortenReferencesInRange
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider.Companion.isK2Mode
 import org.jetbrains.kotlin.idea.base.psi.imports.addImport
-import org.jetbrains.kotlin.idea.caches.resolve.analyze
-import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
-import org.jetbrains.kotlin.idea.caches.resolve.resolveImportReference
-import org.jetbrains.kotlin.idea.completion.BasicLookupElementFactory
-import org.jetbrains.kotlin.idea.completion.CollectRequiredTypesContextVariablesProvider
-import org.jetbrains.kotlin.idea.completion.CompletionSession
-import org.jetbrains.kotlin.idea.completion.InsertHandlerProvider
-import org.jetbrains.kotlin.idea.completion.LookupElementFactory
 import org.jetbrains.kotlin.idea.completion.impl.k2.ImportStrategyDetector
 import org.jetbrains.kotlin.idea.completion.impl.k2.lookups.factories.KotlinFirLookupElementFactory
-import org.jetbrains.kotlin.idea.core.KotlinIndicesHelper
-import org.jetbrains.kotlin.idea.core.isVisible
-import org.jetbrains.kotlin.idea.core.util.getResolveScope
 import org.jetbrains.kotlin.idea.references.mainReference
-import org.jetbrains.kotlin.idea.util.CallType
-import org.jetbrains.kotlin.idea.util.CallTypeAndReceiver
-import org.jetbrains.kotlin.idea.util.ImportInsertHelper
-import org.jetbrains.kotlin.idea.util.getResolutionScope
-import org.jetbrains.kotlin.idea.util.receiverTypesWithIndex
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
@@ -93,10 +72,6 @@ import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
 import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 import org.jetbrains.kotlin.psi.psiUtil.getReceiverExpression
-import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameOrNull
-import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
-import org.jetbrains.kotlin.types.AbbreviatedType
-import org.jetbrains.kotlin.types.KotlinType
 
 /**
  * Enhances code completion for Modifier (androidx.compose.ui.Modifier)
@@ -197,64 +172,8 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     ProgressManager.checkCanceled()
 
     val nameExpression = createNameExpression(element)
-    if (isK2Mode()) {
-      analyze(nameExpression) {
-        fillCompletionVariants(
-          parameters,
-          nameExpression,
-          isMethodCalledOnImportedModifier,
-          resultSet,
-        )
-      }
-      return
-    }
-
-    // For K1
-    val extensionFunctions =
-      getExtensionFunctionsForModifier(nameExpression, element, resultSet.prefixMatcher)
-
-    ProgressManager.checkCanceled()
-    val (returnsModifier, others) =
-      extensionFunctions.partition { it.returnType?.fqName?.asString() == COMPOSE_MODIFIER_FQN }
-    val lookupElementFactory =
-      createLookupElementFactory(parameters.editor, nameExpression, parameters)
-
-    val isNewModifier =
-      !isMethodCalledOnImportedModifier && element.parentOfType<KtDotQualifiedExpression>() == null
-    // Prioritise functions that return Modifier over other extension function.
-    resultSet.addAllElements(
-      returnsModifier.toLookupElements(lookupElementFactory, 2.0, insertModifier = isNewModifier)
-    )
-    // If user didn't type Modifier don't suggest extensions that doesn't return Modifier.
-    if (isMethodCalledOnImportedModifier) {
-      resultSet.addAllElements(
-        others.toLookupElements(lookupElementFactory, 0.0, insertModifier = isNewModifier)
-      )
-    }
-
-    ProgressManager.checkCanceled()
-
-    // If method is called on modifier [KotlinCompletionContributor] will add extensions function
-    // one more time, we need to filter them out.
-    if (isMethodCalledOnImportedModifier) {
-      val extensionFunctionsNames = extensionFunctions.map { it.name.asString() }.toSet()
-      resultSet.runRemainingContributors(parameters) { completionResult ->
-        consumerCompletionResultFromRemainingContributor(
-          completionResult,
-          extensionFunctionsNames,
-          element,
-          resultSet,
-        )
-      }
-    }
+    analyze(nameExpression) { fillCompletionVariants(parameters, nameExpression, isMethodCalledOnImportedModifier, resultSet) }
   }
-
-  private val KotlinType.fqName: FqName?
-    get() =
-      when (this) {
-        is AbbreviatedType -> abbreviation.fqName
-        else -> constructor.declarationDescriptor?.fqNameOrNull()
-      }
 
   @VisibleForTesting
   fun consumerCompletionResultFromRemainingContributor(
@@ -306,18 +225,6 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     }
   }
 
-  private fun List<CallableDescriptor>.toLookupElements(
-    lookupElementFactory: LookupElementFactory,
-    weight: Double,
-    insertModifier: Boolean,
-  ) = flatMap { descriptor ->
-    lookupElementFactory
-      .createStandardLookupElementsForDescriptor(descriptor, useReceiverTypes = true)
-      .map {
-        PrioritizedLookupElement.withPriority(ModifierLookupElement(it, insertModifier), weight)
-      }
-  }
-
   @Suppress("UnstableApiUsage")
   private fun KaSession.toLookupElement(
     symbol: KaCallableSymbol,
@@ -337,70 +244,17 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     )
   }
 
-  /**
-   * Creates LookupElementFactory that is similar to the one kotlin-plugin uses during completion
-   * session. Code partially copied from [CompletionSession].
-   */
-  private fun createLookupElementFactory(
-    editor: Editor,
-    nameExpression: KtSimpleNameExpression,
-    parameters: CompletionParameters,
-  ): LookupElementFactory {
-    val bindingContext = nameExpression.analyze(BodyResolveMode.PARTIAL_WITH_DIAGNOSTICS)
-    val file = parameters.originalFile as KtFile
-    val resolutionFacade = file.getResolutionFacade()
-
-    val moduleDescriptor = resolutionFacade.moduleDescriptor
-
-    val callTypeAndReceiver = CallTypeAndReceiver.detect(nameExpression)
-    val receiverTypes =
-      callTypeAndReceiver.receiverTypesWithIndex(
-        bindingContext,
-        nameExpression,
-        moduleDescriptor,
-        resolutionFacade,
-        stableSmartCastsOnly =
-          true, /* we don't include smart cast receiver types for "unstable" receiver value to mark members grayed */
-        withImplicitReceiversWhenExplicitPresent = true,
-      )
-
-    val inDescriptor =
-      nameExpression.getResolutionScope(bindingContext, resolutionFacade).ownerDescriptor
-
-    val insertHandler = InsertHandlerProvider(CallType.DOT, parameters.editor, ::emptyList)
-    val basicLookupElementFactory = BasicLookupElementFactory(nameExpression.project, insertHandler)
-
-    return LookupElementFactory(
-      basicLookupElementFactory,
-      editor,
-      receiverTypes,
-      callTypeAndReceiver.callType,
-      inDescriptor,
-      CollectRequiredTypesContextVariablesProvider(),
-    )
-  }
-
-  /**
-   * Creates "Modifier.call" expression as it would be if user typed "Modifier.<caret>" themselves.
-   */
+  /** Creates "Modifier.call" expression as it would be if user typed "Modifier.<caret>" themselves. */
   private fun createNameExpression(originalElement: PsiElement): KtSimpleNameExpression {
     val originalFile = originalElement.containingFile as KtFile
 
     val newExpressionAsString = "$COMPOSE_MODIFIER_FQN.call"
 
-    val newExpression =
-      if (isK2Mode()) {
-        // For K2, we have to create a code fragment to run analysis API on it.
-        // See https://b.corp.google.com/issues/330760992#comment3 for more information.
-        KtPsiFactory(originalFile.project)
+    // For K2, we have to create a code fragment to run analysis API on it.
+    // See https://b.corp.google.com/issues/330760992#comment3 for more information.
+    val newExpression = KtPsiFactory(originalFile.project)
           .createExpressionCodeFragment(newExpressionAsString, originalFile)
-      } else {
-        requireNotNull(
-          KtPsiFactory.contextual(originalFile)
-            .createFile("temp.kt", "val x = $newExpressionAsString")
-            .getChildOfType<KtProperty>()
-        )
-      }
+
     return requireNotNull(newExpression.getChildOfType<KtDotQualifiedExpression>()).lastChild
       as KtSimpleNameExpression
   }
@@ -438,42 +292,6 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       )
       .filter(visibilityChecker::isVisible)
       .toList()
-  }
-
-  private fun getExtensionFunctionsForModifier(
-    nameExpression: KtSimpleNameExpression,
-    originalPosition: PsiElement,
-    prefixMatcher: PrefixMatcher,
-  ): Collection<CallableDescriptor> {
-    val file = nameExpression.containingFile as KtFile
-    val searchScope = getResolveScope(file)
-    val resolutionFacade = file.getResolutionFacade()
-    val bindingContext = nameExpression.analyze(BodyResolveMode.PARTIAL_FOR_COMPLETION)
-
-    val callTypeAndReceiver = CallTypeAndReceiver.detect(nameExpression)
-    fun isVisible(descriptor: DeclarationDescriptor): Boolean {
-      if (descriptor is DeclarationDescriptorWithVisibility) {
-        return descriptor.isVisible(
-          originalPosition,
-          callTypeAndReceiver.receiver as? KtExpression,
-          bindingContext,
-          resolutionFacade,
-        )
-      }
-
-      return true
-    }
-
-    val indicesHelper = KotlinIndicesHelper(resolutionFacade, searchScope, ::isVisible, file = file)
-
-    val nameFilter = { name: String -> prefixMatcher.prefixMatches(name) }
-    return indicesHelper.getCallableTopLevelExtensions(
-      callTypeAndReceiver,
-      nameExpression,
-      bindingContext,
-      null,
-      nameFilter,
-    )
   }
 
   private val PsiElement.isModifierProperty: Boolean
@@ -547,35 +365,6 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     }
 
     override fun handleInsert(context: InsertionContext) {
-      if (isK2Mode()) {
-        handleInsertK2(context)
-        return
-      }
-
-      val psiDocumentManager = PsiDocumentManager.getInstance(context.project)
-      // Compose plugin inserts Modifier if completion character is '\n', doesn't happened with
-      // '\t'. Looks like a bug.
-      if (insertModifier && context.completionChar != '\n') {
-        context.document.insertString(context.startOffset, callOnModifierObject)
-        context.offsetMap.addOffset(
-          CompletionInitializationContext.START_OFFSET,
-          context.startOffset + callOnModifierObject.length,
-        )
-        psiDocumentManager.commitAllDocuments()
-        psiDocumentManager.doPostponedOperationsAndUnblockDocument(context.document)
-      }
-      val ktFile = context.file as KtFile
-      val modifierDescriptor =
-        ktFile.resolveImportReference(FqName(COMPOSE_MODIFIER_FQN)).singleOrNull()
-      modifierDescriptor?.let {
-        ImportInsertHelper.getInstance(context.project).importDescriptor(ktFile, it)
-      }
-      psiDocumentManager.commitAllDocuments()
-      psiDocumentManager.doPostponedOperationsAndUnblockDocument(context.document)
-      super.handleInsert(context)
-    }
-
-    private fun handleInsertK2(context: InsertionContext) {
       val psiDocumentManager = PsiDocumentManager.getInstance(context.project)
       val ktFile = context.file as KtFile
       if (insertModifier) {
