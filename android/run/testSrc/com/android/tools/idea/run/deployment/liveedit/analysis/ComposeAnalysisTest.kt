@@ -150,7 +150,6 @@ class ComposeAnalysisTest {
     assertEquals("test", test.name)
 
     val outer = groupTable.assertGroup(-270222928)
-
     groupTable.assertRestartLambda(outer)
     assertEquals("outer", outer.name)
 
@@ -194,7 +193,6 @@ class ComposeAnalysisTest {
     assertEquals("test", test.name)
 
     val outer = groupTable.assertGroup(-270222928)
-
     groupTable.assertRestartLambda(outer)
     assertEquals("outer", outer.name)
 

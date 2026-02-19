@@ -189,7 +189,6 @@ class ComposableCompileTest {
 
     Assert.assertTrue(-1369675262 in output.groupIds)
     val groupIdForNestedLambda = 2076812637
-
     Assert.assertTrue(groupIdForNestedLambda in output.groupIds)
   }
 
