@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.project
 
-import com.android.AndroidProjectTypes
 import com.android.SdkConstants.VALUE_TRUE
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.instantapp.InstantApps
 import com.android.tools.idea.model.MergedManifestModificationTracker
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -259,11 +257,7 @@ class AndroidRunConfigurations {
       } ?: return LOG.debug { "addAndroidRunConfiguration: Create run configuration $configurationName - project s already disposed." }
     val configuration = settings.configuration as AndroidRunConfiguration
     configuration.setModule(module)
-    if (facet.configuration.projectType == AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP) {
-      configuration.setLaunchUrl(InstantApps.getDefaultInstantAppUrl(facet))
-    } else {
-      configuration.MODE = AndroidRunConfiguration.LAUNCH_DEFAULT_ACTIVITY
-    }
+    configuration.MODE = AndroidRunConfiguration.LAUNCH_DEFAULT_ACTIVITY
 
     configuration.deployTargetContext.targetSelectionMode = TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX
 

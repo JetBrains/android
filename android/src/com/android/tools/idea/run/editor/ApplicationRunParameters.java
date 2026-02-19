@@ -2,8 +2,6 @@
 
 package com.android.tools.idea.run.editor;
 
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
-
 import com.android.tools.idea.backup.BackupManager;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.AndroidModel;
@@ -11,7 +9,6 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
 import com.android.tools.idea.run.RunConfigSection;
-import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
 import com.android.tools.idea.run.activity.launch.DefaultActivityLaunch;
 import com.android.tools.idea.run.activity.launch.LaunchOption;
 import com.android.tools.idea.run.activity.launch.LaunchOptionConfigurableContext;
@@ -61,14 +58,10 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ApplicationRunParameters<T extends AndroidRunConfiguration> implements ConfigurationSpecificEditor<T>, ActionListener {
-  // TODO(b/474499463): Remove this.
-  private static final boolean SUPPORT_INSTANT_APP = false;
-
   private JPanel myPanel;
 
   // Deploy options
@@ -82,7 +75,6 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
   private ConfigurableCardPanel myLaunchOptionsCardPanel;
   private LabeledComponent<JBTextField> myAmOptionsLabeledComponent;
   private JComponent myDynamicFeaturesParametersComponent;
-  private JBCheckBox myInstantAppDeployCheckBox;
   private JBCheckBox myAllUsersCheckbox;
   private JBCheckBox myAlwaysInstallWithPmCheckbox;
   private JBCheckBox myAssumeVerified;
@@ -135,8 +127,6 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
 
     myAmOptionsLabeledComponent.getComponent().getEmptyText().setText("Options to 'am start' command");
 
-    myInstantAppDeployCheckBox.addActionListener(this);
-
     LaunchOptionConfigurableContext context = new LaunchOptionConfigurableContext() {
       @Nullable
       @Override
@@ -156,7 +146,6 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
 
     myLaunchOptionCombo.setSelectedItem(DefaultActivityLaunch.INSTANCE);
 
-    myInstantAppDeployCheckBox.setVisible(SUPPORT_INSTANT_APP);
     myAlwaysInstallWithPmCheckbox.setVisible(
       StudioFlags.OPTIMISTIC_INSTALL_SUPPORT_LEVEL.get() != StudioFlags.OptimisticInstallSupportLevel.DISABLED);
     myAssumeVerified.setVisible(StudioFlags.INSTALL_WITH_ASSUME_VERIFIED.get());
@@ -195,15 +184,6 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
       LaunchOption option = (LaunchOption)myLaunchOptionCombo.getSelectedItem();
       myAmOptionsLabeledComponent.setVisible(option != NoLaunch.INSTANCE);
       myLaunchOptionsCardPanel.select(myConfigurables.get(option.getId()), true);
-    }
-    else if (source == myInstantAppDeployCheckBox) {
-      if (myModuleSelector.getModule() != null) {
-        boolean instantAppDeploy = myInstantAppDeployCheckBox.isSelected();
-        myDynamicFeaturesParameters.updateBasedOnInstantState(myModuleSelector.getModule(), instantAppDeploy);
-        if (myRestoreRunConfigSection != null) {
-          myRestoreRunConfigSection.updateBasedOnInstantState(instantAppDeploy);
-        }
-      }
     }
   }
 
@@ -296,12 +276,6 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     final Spacer spacer3 = new Spacer();
     myPanel.add(spacer3, new GridConstraints(13, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
                                              GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
-    myInstantAppDeployCheckBox = new JBCheckBox();
-    myInstantAppDeployCheckBox.setText("Deploy as instant app");
-    myPanel.add(myInstantAppDeployCheckBox, new GridConstraints(1, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                                null, null, null, 0, false));
     myAlwaysInstallWithPmCheckbox = new JBCheckBox();
     myAlwaysInstallWithPmCheckbox.setText("Always install with package manager (disables deploy optimizations on Android 11 and later)");
     myPanel.add(myAlwaysInstallWithPmCheckbox, new GridConstraints(5, 0, 1, 4, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
@@ -355,10 +329,9 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     InstallOption installOption = getDeployOption(configuration.DEPLOY, configuration.DEPLOY_APK_FROM_BUNDLE, configuration.ARTIFACT_NAME);
     myDeployOptionCombo.setSelectedItem(installOption);
 
-    myInstantAppDeployCheckBox.setSelected(myInstantAppDeployCheckBox.isEnabled() && configuration.DEPLOY_AS_INSTANT);
     Module currentModule = myModuleSelector.getModule();
     if (currentModule != null) {
-      myDynamicFeaturesParameters.updateBasedOnInstantState(currentModule, myInstantAppDeployCheckBox.isSelected());
+      myDynamicFeaturesParameters.updateBasedOnInstantState(currentModule, false);
     }
 
     if (installOption == InstallOption.CUSTOM_ARTIFACT) {
@@ -405,7 +378,6 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     InstallOption installOption = (InstallOption)myDeployOptionCombo.getSelectedItem();
     configuration.DEPLOY = installOption != InstallOption.NOTHING;
     configuration.DEPLOY_APK_FROM_BUNDLE = installOption == InstallOption.APK_FROM_BUNDLE;
-    configuration.DEPLOY_AS_INSTANT = myInstantAppDeployCheckBox.isSelected();
     configuration.ARTIFACT_NAME = "";
     if (installOption == InstallOption.CUSTOM_ARTIFACT) {
       Object item = myCustomArtifactLabeledComponent.getComponent().getSelectedItem();
@@ -540,35 +512,15 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     Module currentModule = myModuleSelector.getModule();
 
     if (currentModule == null) {
-      // Disable and deselect instant deploy checkbox if <no module> is selected.
-      myInstantAppDeployCheckBox.setEnabled(false);
-      myInstantAppDeployCheckBox.setSelected(false);
       return;
     }
 
-    // Lock and hide subset of UI when attached to an instantApp
-    AndroidFacet facet = AndroidFacet.getInstance(currentModule);
     AndroidModel model = AndroidModel.get(currentModule);
-    boolean isInstantApp = facet != null && facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP;
-    if (isInstantApp) {
-      myLaunchOptionCombo.setSelectedItem(DeepLinkLaunch.INSTANCE);
-      myDeployOptionCombo.setSelectedItem(InstallOption.DEFAULT_APK);
-    }
-    else {
-      // Enable instant app deploy checkbox if module is instant enabled
-      myInstantAppDeployCheckBox.setEnabled(model != null && model.isInstantAppCompatible());
-      // If the module is not instant-eligible, uncheck the checkbox.
-      if (model == null || !model.isInstantAppCompatible()) {
-        myInstantAppDeployCheckBox.setSelected(false);
-      }
+    myLaunchOptionCombo.setSelectedItem(DefaultActivityLaunch.INSTANCE);
 
-      myLaunchOptionCombo.setSelectedItem(DefaultActivityLaunch.INSTANCE);
-    }
-
-    myDeployOptionCombo.setEnabled(!isInstantApp);
-    myCustomArtifactLabeledComponent.setEnabled(!isInstantApp);
-
-    myLaunchOptionCombo.setEnabled(!isInstantApp);
+    myDeployOptionCombo.setEnabled(true);
+    myCustomArtifactLabeledComponent.setEnabled(true);
+    myLaunchOptionCombo.setEnabled(true);
     myDynamicFeaturesParameters.setActiveModule(currentModule,
                                                 (model != null && model.isInstantAppCompatible()
                                                  && StudioFlags.UAB_ENABLE_NEW_INSTANT_APP_RUN_CONFIGURATIONS.get())

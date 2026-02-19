@@ -176,15 +176,6 @@ class NewAndroidComponentActionTest {
   }
 
   @Test
-  fun instantTypePresentationShouldBeDisabledForIapp() {
-    mySelectedAndroidFacet.configuration.projectType = AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP
-
-    NewAndroidComponentAction(Category.Other, "templateName", 0).update(myActionEvent)
-
-    assertThat(myActionEvent.presentation.isEnabled).isFalse()
-  }
-
-  @Test
   fun libraryTypePresentationShouldBeEnabledForIapp() {
     mySelectedAndroidFacet.configuration.projectType = AndroidProjectTypes.PROJECT_TYPE_LIBRARY
 

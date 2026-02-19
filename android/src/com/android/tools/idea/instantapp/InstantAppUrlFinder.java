@@ -97,20 +97,6 @@ public final class InstantAppUrlFinder {
     return "";
   }
 
-  public boolean matchesUrl(@NotNull String url) {
-    for (Element activity : myActivities) {
-      Node node = activity.getFirstChild();
-      while (node != null) {
-        InstantAppIntentFilterWrapper wrapper = new InstantAppIntentFilterWrapper(myResolver, node);
-        if (wrapper.matchesUrl(url)) {
-          return true;
-        }
-        node = node.getNextSibling();
-      }
-    }
-    return false;
-  }
-
   @VisibleForTesting
   public static class InstantAppIntentFilterWrapper {
     @NotNull AttributesResolver myResolver;

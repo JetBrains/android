@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.model;
 
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
 import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryMinSdkAndTargetSdkFromManifestIndex;
 import static com.android.tools.idea.util.DumbServiceUtilKt.uiSafeRunReadActionInSmartMode;
@@ -56,18 +55,7 @@ public class StudioAndroidModuleInfo extends AndroidFacetScopedService implement
   public static AndroidModuleInfo getInstance(@NotNull AndroidFacet facet) {
     AndroidModuleInfo androidModuleInfo = facet.getUserData(KEY);
     if (androidModuleInfo == null) {
-      if (facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP) {
-        // If this is an AIA app module the info about the app module is actually held in the base split module. Try to set up a
-        // redirection to the AndroidModuleInfo of the base split.
-        Module baseFeature = findBaseFeature(facet);
-        if (baseFeature != null) {
-          androidModuleInfo = getInstance(baseFeature);
-        }
-      }
-
-      if (androidModuleInfo == null) {
-        androidModuleInfo = new StudioAndroidModuleInfo(facet);
-      }
+      androidModuleInfo = new StudioAndroidModuleInfo(facet);
       facet.putUserData(KEY, androidModuleInfo);
     }
     return androidModuleInfo;

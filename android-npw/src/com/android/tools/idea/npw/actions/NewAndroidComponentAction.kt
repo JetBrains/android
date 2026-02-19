@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.actions
 
-import com.android.AndroidProjectTypes
 import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.model.AndroidModel
@@ -128,8 +127,7 @@ constructor(
       }
       else -> {
         val facet = AndroidFacet.getInstance(module)
-        val isProjectReady =
-          facet != null && AndroidModel.get(facet) != null && facet.configuration.projectType != AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP
+        val isProjectReady = facet != null && AndroidModel.get(facet) != null
         presentation.isEnabled = isProjectReady
       }
     }

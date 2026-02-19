@@ -16,8 +16,6 @@
 package com.android.tools.idea.instantapp;
 
 import com.android.AndroidProjectTypes;
-import com.android.ddmlib.IDevice;
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.intellij.openapi.module.Module;
@@ -27,8 +25,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class InstantApps {
 
@@ -77,35 +73,5 @@ public class InstantApps {
       }
     }
     return baseFeature;
-  }
-
-  /**
-   * Finds the default URL to use for a modules.
-   *
-   * @param facet the {@link AndroidFacet} of the module.
-   * @return The URL to launch the instant app as a {@link String}.
-   */
-  @NotNull
-  public static String getDefaultInstantAppUrl(@NotNull AndroidFacet facet) {
-    String defaultUrl = "";
-
-    List<Module> featureModules = findFeatureModules(facet);
-    for (Module module : featureModules) {
-      String foundUrl = new InstantAppUrlFinder(module).getDefaultUrl();
-      if (isNotEmpty(foundUrl)) {
-        defaultUrl = foundUrl;
-        break;
-      }
-    }
-    return defaultUrl;
-  }
-
-  public static boolean isInstantAppApplicationModule(@NotNull AndroidFacet androidFacet) {
-    return androidFacet.getProperties().PROJECT_TYPE  == AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
-  }
-
-  public static boolean isPostO(IDevice device) {
-    // This will accept both O (API 26) and O Previews (API 25 codename Oreo).
-    return device.getVersion().isAtLeast(25, "O");
   }
 }

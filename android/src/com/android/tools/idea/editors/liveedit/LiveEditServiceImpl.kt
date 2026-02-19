@@ -16,7 +16,6 @@
 
 package com.android.tools.idea.editors.liveedit
 
-import com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.tools.adtui.toolwindow.ContentManagerHierarchyAdapter
@@ -300,11 +299,6 @@ class LiveEditServiceImpl(val project: Project, var executor: Executor, override
       if (facet != null) {
         if (!LaunchUtils.canDebugApp(facet)) {
           LOGGER.log("Not Live Editable: Non-debuggable")
-          return false
-        }
-
-        if (facet.configuration.projectType == PROJECT_TYPE_INSTANTAPP) {
-          LOGGER.log("Not Live Editable: Instant App")
           return false
         }
       }
