@@ -51,13 +51,11 @@ import com.intellij.usageView.UsageInfo
 import com.intellij.usages.UsageGroup
 import com.intellij.usages.UsageInfo2UsageAdapter
 import com.intellij.usages.UsageTarget
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.inspections.UnusedSymbolInspection
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertTrue
-import org.jetbrains.kotlin.idea.k2.codeinsight.inspections.UnusedSymbolInspection as K2UnusedSymbolInspection
 
 @RunsInEdt
 class MigrateToNonTransitiveRClassesProcessorTest {
@@ -555,11 +553,9 @@ class MigrateToNonTransitiveRClassesProcessorTest {
 
   @Test
   fun testWholeProject() {
-    val unusedSymbolInspection = if (KotlinPluginModeProvider.isK2Mode()) {
-      K2UnusedSymbolInspection()
-    } else {
+    val unusedSymbolInspection =
       UnusedSymbolInspection()
-    }
+
     projectRule.fixture.enableInspections(unusedSymbolInspection as InspectionProfileEntry)
     projectRule.replaceService(GradleSyncInvoker::class.java, GradleSyncInvoker.FakeInvoker())
 
@@ -667,11 +663,9 @@ class MigrateToNonTransitiveRClassesProcessorTest {
       projectRule.fixture.findFileInTempDir("app/src/main/java/com/other/folder/AppOtherPackageKotlinClass.kt"))
     val highlightInfos = projectRule.fixture.doHighlighting(HighlightSeverity.WARNING)
 
-    val expectedHighlightDescription = if (KotlinPluginModeProvider.isK2Mode()) {
+    val expectedHighlightDescription =
       "Property \"ids\" is never used"
-    } else {
-      "[UNUSED_VARIABLE] Variable 'ids' is never used"
-    }
+
     assertTrue(highlightInfos.any { it.description == expectedHighlightDescription })
 
     projectRule.fixture.checkResult(
