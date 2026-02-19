@@ -15,10 +15,10 @@
  */
 package com.android.tools.adtui.toolwindow.splittingtabs.state
 
+import com.android.tools.idea.testing.ui.createFakeToolWindow
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.project.Project
+import com.intellij.openapi.wm.ToolWindow
 import com.intellij.testFramework.ProjectRule
-import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import javax.swing.JLabel
 import javax.swing.JPanel
 import org.junit.Rule
@@ -98,24 +98,20 @@ class SplittingTabsStateManagerTest {
     assertThat(stateManager.getToolWindowState("toolWindow2")).isEqualTo(toolWindow2State)
   }
 
-  private fun createToolWindowWithStates(id: String, selectedIndex: Int, vararg contents: ContentInfo): FakeToolWindow {
-    return FakeToolWindow(projectRule.project, id).apply {
+  private fun createToolWindowWithStates(id: String, selectedIndex: Int, vararg contents: ContentInfo): ToolWindow {
+    return createFakeToolWindow(projectRule.project, projectRule.project, id).apply {
       val factory = contentManager.factory
       contents.forEach { contentManager.addContent(factory.createContent(JLabelWithState(it.clientState), it.tabName, false)) }
       contentManager.setSelectedContent(contentManager.contents[selectedIndex])
     }
   }
 
-  private fun createToolWindowWithoutStates(id: String, selectedIndex: Int, vararg tabNames: String): FakeToolWindow {
-    return FakeToolWindow(projectRule.project, id).apply {
+  private fun createToolWindowWithoutStates(id: String, selectedIndex: Int, vararg tabNames: String): ToolWindow {
+    return createFakeToolWindow(projectRule.project, projectRule.project, id).apply {
       val factory = contentManager.factory
       tabNames.forEach { contentManager.addContent(factory.createContent(JPanel(), it, false)) }
       contentManager.setSelectedContent(contentManager.contents[selectedIndex])
     }
-  }
-
-  private class FakeToolWindow(project: Project, val toolWindowId: String) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
-    override fun getId(): String = toolWindowId
   }
 
   private data class ContentInfo(val tabName: String, val clientState: String)
