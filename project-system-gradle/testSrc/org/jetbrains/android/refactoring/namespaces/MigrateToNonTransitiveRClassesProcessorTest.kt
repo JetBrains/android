@@ -573,7 +573,6 @@ class MigrateToNonTransitiveRClassesProcessorTest {
   @Test
   fun testWholeProject() {
     val unusedSymbolInspection = UnusedSymbolInspection()
-
     projectRule.fixture.enableInspections(unusedSymbolInspection as InspectionProfileEntry)
     projectRule.replaceService(GradleSyncInvoker::class.java, GradleSyncInvoker.FakeInvoker())
 
@@ -686,7 +685,6 @@ class MigrateToNonTransitiveRClassesProcessorTest {
     val highlightInfos = projectRule.fixture.doHighlighting(HighlightSeverity.WARNING)
 
     val expectedHighlightDescription = "Property \"ids\" is never used"
-
     assertTrue(highlightInfos.any { it.description == expectedHighlightDescription })
 
     projectRule.fixture.checkResult(
