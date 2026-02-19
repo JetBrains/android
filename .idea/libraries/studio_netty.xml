@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="studio-netty">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../bazel-bin/tools/base/bazel/studio-netty.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
