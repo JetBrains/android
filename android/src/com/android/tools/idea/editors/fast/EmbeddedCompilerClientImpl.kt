@@ -20,7 +20,6 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
-import com.android.tools.idea.run.deployment.liveedit.analyzeSingleDepthInlinedFunctions
 import com.android.tools.idea.run.deployment.liveedit.getCompilerConfiguration
 import com.android.tools.idea.run.deployment.liveedit.isKotlinPluginBundled
 import com.android.tools.idea.run.deployment.liveedit.k2.OutputFileForKtCompiledFile
@@ -33,7 +32,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.util.ProgressWrapper
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
@@ -51,7 +49,6 @@ import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.components.KaCompiledFile
 import org.jetbrains.kotlin.backend.common.output.OutputFile
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtFile
 import java.nio.file.Files
@@ -112,98 +109,41 @@ class EmbeddedCompilerClientImpl private constructor(
    * Compiles the given list of inputs. All inputs must belong to the same module.
    * The output will be generated in the given [outputDirectory] and progress will be updated in the given [ProgressIndicator].
    */
+  @OptIn(KaExperimentalApi::class)
   private suspend fun compileModuleKtFiles(applicationLiveEditServices: ApplicationLiveEditServices, moduleForAllInputs: Module, inputs: List<KtFile>, outputDirectory: Path) = withContext(AndroidDispatchers.workerThread) {
     log.debug("compileModuleKtFiles($inputs, $outputDirectory)")
 
-    if (KotlinPluginModeProvider.isK2Mode()) {
-      compileKtFilesForK2(moduleForAllInputs, inputs, outputDirectory)
-      return@withContext
-    }
-
-    val generationState =
       readAction {
+        // Verify that the files are valid and the module has not been disposed.
+        if (moduleForAllInputs.isDisposed) throw LiveEditUpdateException.moduleIsDisposed(moduleForAllInputs)
+        inputs.forEach {
+          if (!it.isValid) throw LiveEditUpdateException.fileNotValid(it)
+          it.module?.let { module -> if (module.isDisposed) throw LiveEditUpdateException.moduleIsDisposed(module) }
+        }
+
+        val pathToCompileOutput = mutableMapOf<String, OutputFileForKtCompiledFile>()
+        val filesAlreadyCompiled = mutableSetOf<VirtualFile>()
         runWithCompileLock {
           beforeCompilationStarts()
-
-          log.debug("fetchResolution")
-          val resolution = fetchResolution(project, inputs)
-          ProgressManager.checkCanceled()
-          log.debug("analyze")
-          val analysisResult = analyze(inputs, resolution)
-          val inlineCandidates = inputs
-            .flatMap { analyzeSingleDepthInlinedFunctions(it, analysisResult.bindingContext, inlineCandidateCache) }
-            .toSet()
-          ProgressManager.checkCanceled()
           log.debug("backCodeGen")
-          try {
-            backendCodeGen(applicationLiveEditServices, project, analysisResult, inputs, moduleForAllInputs, inlineCandidates)
-          }
-          catch (e: LiveEditUpdateException) {
-            if (e.isCompilationError() || e.cause.isCompilationError()) {
-              log.debug("backCodeGen compilation exception ", e)
-              throw e
-            }
+          inputs.forEach { inputFile ->
+            if (inputFile.virtualFile in filesAlreadyCompiled) return@forEach
 
-            if (e.error != LiveEditUpdateException.Error.UNABLE_TO_INLINE) {
-              log.debug("backCodeGen exception ", e)
-              throw e
-            }
+            val configuration = getCompilerConfiguration(moduleForAllInputs, inputFile)
 
-            // Add any extra source file this compilation need in order to support the input file calling an inline function
-            // from another source file then perform a compilation again.
-            log.debug("inline analysis")
-            val inputFilesWithInlines = inputs.flatMap {
-              performInlineSourceDependencyAnalysis(resolution, it, analysisResult.bindingContext)
-            }
-
-            // We need to perform the analysis once more with the new set of input files.
-            log.debug("inline analysis with inlines ${inputFilesWithInlines.joinToString(",") { it.name }}")
-            val newAnalysisResult = resolution.analyzeWithAllCompilerChecks(inputFilesWithInlines)
-
-            // We will need to start using the new analysis for code gen.
-            log.debug("backCodeGen retry")
-            backendCodeGen(applicationLiveEditServices, project, newAnalysisResult, inputFilesWithInlines, moduleForAllInputs, inlineCandidates)
-          }
-        }
-      }
-    log.debug("backCodeGen completed")
-
-    generationState.factory.asList().forEach { it.writeTo(outputDirectory) }
-  }
-
-  @OptIn(KaExperimentalApi::class)
-  private suspend fun compileKtFilesForK2(moduleForAllInputs: Module, inputs: List<KtFile>, outputDirectory: Path) {
-    readAction {
-      // Verify that the files are valid and the module has not been disposed.
-      if (moduleForAllInputs.isDisposed) throw LiveEditUpdateException.moduleIsDisposed(moduleForAllInputs)
-      inputs.forEach {
-        if (!it.isValid) throw LiveEditUpdateException.fileNotValid(it)
-        it.module?.let { module -> if (module.isDisposed) throw LiveEditUpdateException.moduleIsDisposed(module) }
-      }
-
-      val pathToCompileOutput = mutableMapOf<String, OutputFileForKtCompiledFile>()
-      val filesAlreadyCompiled = mutableSetOf<VirtualFile>()
-      runWithCompileLock {
-        beforeCompilationStarts()
-        log.debug("backCodeGen")
-        inputs.forEach { inputFile ->
-          if (inputFile.virtualFile in filesAlreadyCompiled) return@forEach
-
-          val configuration = getCompilerConfiguration(moduleForAllInputs, inputFile)
-
-          @OptIn(KaExperimentalApi::class)
+            @OptIn(KaExperimentalApi::class)
           val result = backendCodeGenForK2(inputFile, moduleForAllInputs, configuration)
-          log.debug("backCodeGen for ${inputFile.virtualFilePath} completed")
-          @OptIn(KaExperimentalApi::class)
+            log.debug("backCodeGen for ${inputFile.virtualFilePath} completed")
+            @OptIn(KaExperimentalApi::class)
           addIfNotDuplicated(pathToCompileOutput, result.output.map { OutputFileForKtCompiledFile(it) })
 
-          filesAlreadyCompiled.addAll(result.output.getSourceVirtualFiles())
+            filesAlreadyCompiled.addAll(result.output.getSourceVirtualFiles())
+          }
         }
-      }
 
-      pathToCompileOutput.forEach { (_, output) -> output.writeTo(outputDirectory) }
+        pathToCompileOutput.forEach { (_, output) -> output.writeTo(outputDirectory) }
+      }
     }
-  }
 
   @OptIn(KaExperimentalApi::class)
   private fun List<KaCompiledFile>.getSourceVirtualFiles() =

@@ -24,7 +24,9 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.initialCache
 import com.android.tools.idea.run.deployment.liveedit.analysis.modifyKtFile
 import com.android.tools.idea.run.deployment.liveedit.analysis.postDeploymentStateCompile
 import com.android.tools.idea.testing.AndroidProjectRule
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
+import kotlin.test.assertContains
+import kotlin.test.assertEquals
+import kotlin.test.fail
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
@@ -33,9 +35,6 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import kotlin.test.assertContains
-import kotlin.test.assertEquals
-import kotlin.test.fail
 
 @RunWith(JUnit4::class)
 class BasicCompileTest {
@@ -298,11 +297,7 @@ class BasicCompileTest {
     """)
 
     val output = compile(file, cache)
-    if (KotlinPluginModeProvider.isK2Mode()) {
-      Assert.assertNotNull(output.irClasses.singleOrNull { it.name == "CustomJvmName__RenamedFileKt" })
-    } else {
-      Assert.assertNotNull(output.irClasses.singleOrNull { it.name == "CustomJvmName" }) // CustomJvmName.class doesn't change
-    }
+    Assert.assertNotNull(output.irClasses.singleOrNull { it.name == "CustomJvmName__RenamedFileKt" })
     Assert.assertTrue(output.classesMap["CustomJvmName__RenamedFileKt"]!!.isNotEmpty())
   }
 
@@ -556,13 +551,12 @@ class BasicCompileTest {
     """)
       compile(file)
       Assert.fail("A.kt contains a call to an invisible function invisibleFunction()")
-    }
-    catch (e: LiveEditUpdateException) {
-      if (KotlinPluginModeProvider.isK2Mode()) {
-        Assert.assertTrue(e.message!!.contains("[INVISIBLE_REFERENCE] Cannot access 'fun invisibleFunction(): Unit': it is protected in '/Child'. A.kt at line 10"))
-      } else {
-        Assert.assertTrue(e.message?.contains("Analyze Error. INVISIBLE_MEMBER") == true)
-      }
+    } catch (e: LiveEditUpdateException) {
+      Assert.assertTrue(
+        e.message!!.contains(
+          "[INVISIBLE_REFERENCE] Cannot access 'fun invisibleFunction(): Unit': it is protected in 'Child'. A.kt at line 10"
+        )
+      )
     }
   }
 }

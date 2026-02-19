@@ -21,7 +21,6 @@ import com.android.tools.idea.res.isGradleFile
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.gradleBuildFile
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.iwiDisabled
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.kotlinEap
-import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.noComposePlugIn
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonKotlin
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonKotlinIsJava
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonKotlinIsXml
@@ -34,8 +33,6 @@ import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
-import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.util.projectStructure.module
 import org.jetbrains.kotlin.psi.KtFile
 
@@ -49,10 +46,6 @@ internal fun prebuildChecks(project: Project, changedFiles: List<PsiFile>) {
   for (file in changedFiles) {
     checkSupportedFiles(file)
   }
-
-  // Check that Jetpack Compose plugin is enabled otherwise inline linking will fail with
-  // unclear BackendException
-  checkJetpackCompose(project)
 
   // Make sure user hasn't updated to the EAP Kotlin plugin.
   checkKotlinPluginBundled()
@@ -95,25 +88,6 @@ internal fun checkSupportedFiles(file: PsiFile) {
     throw virtualFileNotExist(virtualFile, file)
   }
 
-}
-
-internal fun checkJetpackCompose(project: Project) {
-  // K2 uses compose compiler plugin provided by `KotlinCompilerPluginsProvider`.
-  // It returns the compose compiler plugin only when the project has
-  // `-Xplugin=.. compose compiler plugin ..` option.
-  if (KotlinPluginModeProvider.isK2Mode()) return
-
-  val pluginExtensions = project.extensionArea.getExtensionPoint<IrGenerationExtension>(IrGenerationExtension.name).extensions
-  var found = false
-  for (extension in pluginExtensions) {
-    if (extension.javaClass.name == "com.android.tools.compose.ComposePluginIrGenerationExtension") {
-      found = true
-      break
-    }
-  }
-  if (!found) {
-    throw noComposePlugIn()
-  }
 }
 
 internal fun checkKotlinPluginBundled() {

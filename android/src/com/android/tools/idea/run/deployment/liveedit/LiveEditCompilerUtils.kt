@@ -24,7 +24,6 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.config.JvmClosureGenerationScheme
 import org.jetbrains.kotlin.config.LanguageVersionSettings
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.psi.getLineNumber
 import org.jetbrains.kotlin.psi.KtFile
 import java.util.LinkedList
@@ -77,11 +76,6 @@ fun CompilerConfiguration.setOptions(languageVersionSettings: LanguageVersionSet
 
   // Needed so we can diff changes to method parameters and parameter annotations.
   put(JVMConfigurationKeys.PARAMETERS_METADATA, true)
-
-  // Not 100% sure what causes the issue but not seeing this in the IR backend causes exceptions.
-  if (KotlinPluginModeProvider.isK1Mode()) {
-    put(JVMConfigurationKeys.DO_NOT_CLEAR_BINDING_CONTEXT, true)
-  }
 
   when(StudioFlags.CLOSURE_SCHEME.get()!!) {
     StudioFlags.ClosureScheme.CLASS -> {

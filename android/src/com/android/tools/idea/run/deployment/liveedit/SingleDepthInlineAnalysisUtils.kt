@@ -17,19 +17,7 @@ package com.android.tools.idea.run.deployment.liveedit
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.intellij.openapi.diagnostic.Logger
 import org.jetbrains.kotlin.codegen.inline.InlineCache
-import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.descriptors.PropertyDescriptor
-import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
-import org.jetbrains.kotlin.idea.base.utils.fqname.getKotlinFqName
-import org.jetbrains.kotlin.idea.codeInsight.DescriptorToSourceUtilsIde
-import org.jetbrains.kotlin.psi.*
-import org.jetbrains.kotlin.psi.psiUtil.containingClass
-import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
-import org.jetbrains.kotlin.resolve.inline.InlineUtil
-import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedSimpleFunctionDescriptor
-import java.util.HashSet
-import java.util.LinkedHashSet
+import org.jetbrains.kotlin.psi.KtFile
 
 /**
  * This is a cache of class name (fully qualify name such as java/lang/String) to a inlinable source (bytecode on disk or in memory)
@@ -95,102 +83,5 @@ data class SourceInlineCandidate (val sourceFile: KtFile, val className : String
       return true
     }
     return false
-  }
-}
-
-/**
- * Given a KtFile (likely a file that has just been modified and ready for Live Edit updates), compute a list of all SourceInlineCandidate
- * that would be needed to the KtFile to successfully compile.
- *
- * In other words, given a A.kt. Compute the set of (B_0.kt, B_1.kt, ..... B_n.kt) where each B_x.kt is a source file from the current
- * project (JAR file dependency ignored) which contains at least one inline function that A.kt references. Each B_n.kt in the result is
- * represented by a SourceInlineCandidate object which the compilation can use to successfully compile A.kt.
- *
- * Note that this function is NOT recursive and only compute inline functions of one depth level. The returned KtFiles
- * themselves can also reference inline functions from another source file that are not part of the return set.
- */
-fun analyzeSingleDepthInlinedFunctions(
-  file: KtFile,
-  bindingContext: BindingContext,
-  cache: SourceInlineCandidateCache): Set<SourceInlineCandidate> {
-  val referencedClasses = LinkedHashSet<SourceInlineCandidate>()
-  analyzeElementWithOneLevelInline(file, bindingContext, referencedClasses, cache)
-  return referencedClasses
-}
-
-// This is mostly org.jetbrains.kotlin.idea.core.util.inlineAnalysisUtils but non recursive and fitted with Live edit specific abstraction
-private fun analyzeElementWithOneLevelInline(
-  element: KtFile,
-  bindingContext: BindingContext,
-  requestedClasses: LinkedHashSet<SourceInlineCandidate>,
-  cache: SourceInlineCandidateCache){
-  val project = element.project
-  val declarationsWithBody = HashSet<KtDeclarationWithBody>()
-  element.accept(object : KtTreeVisitorVoid() {
-    override fun visitExpression(expression: KtExpression) {
-      super.visitExpression(expression)
-      val call = bindingContext.get(BindingContext.CALL, expression) ?: return
-      val resolvedCall = bindingContext.get(BindingContext.RESOLVED_CALL, call)
-      checkResolveCall(resolvedCall)
-    }
-    override fun visitDestructuringDeclaration(destructuringDeclaration: KtDestructuringDeclaration) {
-      super.visitDestructuringDeclaration(destructuringDeclaration)
-      for (entry in destructuringDeclaration.entries) {
-        val resolvedCall = bindingContext.get(BindingContext.COMPONENT_RESOLVED_CALL, entry)
-        checkResolveCall(resolvedCall)
-      }
-    }
-    override fun visitForExpression(expression: KtForExpression) {
-      super.visitForExpression(expression)
-      checkResolveCall(bindingContext.get(BindingContext.LOOP_RANGE_ITERATOR_RESOLVED_CALL, expression.loopRange))
-      checkResolveCall(bindingContext.get(BindingContext.LOOP_RANGE_HAS_NEXT_RESOLVED_CALL, expression.loopRange))
-      checkResolveCall(bindingContext.get(BindingContext.LOOP_RANGE_NEXT_RESOLVED_CALL, expression.loopRange))
-    }
-    private fun checkResolveCall(resolvedCall: ResolvedCall<*>?) {
-      if (resolvedCall == null) return
-      val descriptor = resolvedCall.resultingDescriptor
-      if (descriptor is DeserializedSimpleFunctionDescriptor) return
-      isAdditionalResolveNeededForDescriptor(descriptor)
-      if (descriptor is PropertyDescriptor) {
-        for (accessor in descriptor.accessors) {
-          isAdditionalResolveNeededForDescriptor(accessor)
-        }
-      }
-    }
-    private fun isAdditionalResolveNeededForDescriptor(descriptor: CallableDescriptor) {
-      if (!(InlineUtil.isInline(descriptor))) {
-        return
-      }
-      val declaration = DescriptorToSourceUtilsIde.getAnyDeclaration(project, descriptor)
-      if (declaration != null && declaration is KtDeclarationWithBody) {
-        declarationsWithBody.add(declaration)
-        return
-      }
-    }
-  })
-  for (declaration in declarationsWithBody) {
-    declaration.javaClass
-    val containingClass = declaration.containingClass()
-    // Note that any external (outside this source file) function that is getting referenced must have a user defined name.
-    // Otherwise, it will be impossible to reference.
-    // There are two cases
-    // 1) It is a top level function that does not belong to a class.
-    if (containingClass == null) {
-      val name = declaration.containingKtFile.javaFileFacadeFqName.toString().replace(".", "/")
-      val file = declaration.containingKtFile
-      if (element != file) {
-        requestedClasses.add(cache.computeIfAbsent(name) {
-          SourceInlineCandidate(file, it)
-        })
-      }
-    } else {
-      val name = containingClass.getKotlinFqName().toString().replace(".", "/")
-      val file = declaration.containingKtFile
-      if (element != file) {
-        requestedClasses.add(cache.computeIfAbsent(name) {
-          SourceInlineCandidate(file, it)
-        })
-      }
-    }
   }
 }

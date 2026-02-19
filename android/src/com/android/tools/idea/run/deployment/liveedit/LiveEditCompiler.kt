@@ -34,7 +34,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.backend.common.output.OutputFile
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.konan.file.isBitcode
 import org.jetbrains.kotlin.psi.KtFile
@@ -94,11 +93,9 @@ class LiveEditCompiler(val project: Project, private val irClassCache: IrClassCa
         }
         try {
           // Compiler pass
-          val compilerOutput = if (KotlinPluginModeProvider.isK2Mode()) {
+          val compilerOutput =
             LiveEditCompilerForK2(project, file.module!!)
-          } else {
-            LiveEditCompilerForK1(project, inlineCandidateCache)
-          }.compileKtFile(applicationLiveEditServices(), file, input)
+          .compileKtFile(applicationLiveEditServices(), file, input)
 
           // Run this validation *after* compilation so that PSI validation doesn't run until the class is in a state that compiles. This
           // allows the user time to undo incompatible changes without triggering an error, similar to how differ validation works.
