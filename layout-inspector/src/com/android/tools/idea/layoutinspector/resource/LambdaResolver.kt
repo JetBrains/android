@@ -29,8 +29,6 @@ import java.util.IdentityHashMap
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.resolution.singleFunctionCallOrNull
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
-import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.lexer.KtSingleValueToken
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
@@ -48,7 +46,6 @@ import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
 import org.jetbrains.kotlin.psi.psiUtil.getStrictParentOfType
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
-import org.jetbrains.kotlin.resolve.calls.util.getParameterForArgument
 
 /**
  * Compose lambda name prefix.
@@ -59,16 +56,6 @@ import org.jetbrains.kotlin.resolve.calls.util.getParameterForArgument
 private const val LAMBDA_PREFIX = "lambda-"
 private const val COMPOSABLE_ANNOTATION = "androidx.compose.runtime.Composable"
 private val COMPOSABLE_ANNOTATION_FQNAME = FqName(COMPOSABLE_ANNOTATION)
-
-/**
- * Runs the block in an analysis session, if the K2 plugin is in use, or under a null session if K1.
- */
-private inline fun <T> analyzeIfK2(startElement: KtElement, block: KaSession?.() -> T) =
-  if (KotlinPluginModeProvider.isK2Mode()) {
-    analyze(startElement) { block() }
-  } else {
-    (null as KaSession?).block()
-  }
 
 /** Service to find the [SourceLocation] of a lambda found in Compose. */
 class LambdaResolver(project: Project) : ComposeResolver(project) {
@@ -106,7 +93,7 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
       ktFile.virtualFile?.let { FileDocumentManager.getInstance().getDocument(it) }
         ?: return unknown(fileName, ktFile)
 
-    analyzeIfK2(ktFile) {
+    analyze(ktFile) {
       val possible = findPossibleLambdas(ktFile, doc, functionName, startLine, endLine)
       val lambda = selectLambdaFromSynthesizedName(possible, lambdaName)
       val checkedStartLine = min(startLine - 1, doc.lineCount)
@@ -131,7 +118,7 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
    *
    * @return a map from a lambda or callable reference to the nesting level from a top element.
    */
-  private fun KaSession?.findPossibleLambdas(
+  private fun KaSession.findPossibleLambdas(
     ktFile: KtFile,
     doc: Document,
     functionName: String,
@@ -235,7 +222,7 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
    * Select the most likely lambda from the [lambdas] found from line numbers, by using the
    * synthetic name [lambdaName].
    */
-  private fun KaSession?.selectLambdaFromSynthesizedName(
+  private fun KaSession.selectLambdaFromSynthesizedName(
     lambdas: Map<KtExpression, Int>,
     lambdaName: String,
   ): KtExpression? {
@@ -331,7 +318,7 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
      * - class, method, or variable.
      */
     fun forEachLambda(
-      analysisSession: KaSession?,
+      analysisSession: KaSession,
       startElement: KtElement,
       excludeTopElements: Boolean = false,
       callable: (KtExpression, Int, Boolean, () -> Unit) -> Unit,
@@ -394,10 +381,10 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
       foundComposableSibling = foundComposableSiblingBefore
     }
 
-    private fun KaSession?.hasComposableAnnotation(expression: KtLambdaExpression): Boolean {
+    private fun KaSession.hasComposableAnnotation(expression: KtLambdaExpression): Boolean {
       val argument = expression.parent as? KtValueArgument ?: return false
       val call = argument.getStrictParentOfType<KtCallExpression>() ?: return false
-      if (this != null) {
+
         // K2 plugin - use Analysis API in existing analysis session.
         return call
           .resolveToCall()
@@ -405,19 +392,14 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
           ?.argumentMapping
           ?.get(argument.getArgumentExpression())
           ?.symbol
-          ?.let { ClassId.topLevel(COMPOSABLE_ANNOTATION_FQNAME) in it.annotations } == true
-      } else {
-        // K1 plugin - use old descriptor API.
-        val resolvedCall = call.resolveToCall() ?: return false
-        val parameter = resolvedCall.getParameterForArgument(argument) ?: return false
-        return parameter.type.annotations.hasAnnotation(COMPOSABLE_ANNOTATION_FQNAME)
-      }
+        ?.let { ClassId.topLevel(COMPOSABLE_ANNOTATION_FQNAME) in it.annotations } == true
+
     }
   }
 
   private data class VisitorData(
-    /** K2 Analysis API session (null for K1 plugin). */
-    val analysisSession: KaSession?,
+    /** K2 Analysis API session. */
+    val analysisSession: KaSession,
     val excludeTopElements: Boolean,
     val callable: (KtExpression, Int, Boolean, () -> Unit) -> Unit,
   )
