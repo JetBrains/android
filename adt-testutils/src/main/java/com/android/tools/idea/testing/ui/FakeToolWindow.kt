@@ -151,14 +151,12 @@ internal constructor(
   }
 }
 
-private class FakeToolWindowManager(windowFactory: ToolWindowFactory, private val toolWindowId: String, icon: Icon, project: Project) :
+private class FakeToolWindowManager(windowFactory: ToolWindowFactory, toolWindowId: String, icon: Icon, project: Project) :
   ToolWindowHeadlessManagerImpl(project) {
 
-  var toolWindow = FakeToolWindow(windowFactory, icon, this, project, toolWindowId)
+  val toolWindow = FakeToolWindow(windowFactory, icon, this, project, toolWindowId)
 
-  override fun getToolWindow(id: String?): ToolWindow? {
-    return if (id == toolWindowId) toolWindow else super.getToolWindow(id)
-  }
+  override fun getToolWindow(id: String?): ToolWindow? = if (id == toolWindow.id) toolWindow else super.getToolWindow(id)
 
   override fun notifyByBalloon(options: ToolWindowBalloonShowOptions) {
     toolWindowBalloons.add(options)
