@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.messages
 
+import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.FakeLogcatPresenter
 import com.android.tools.idea.logcat.LogcatPresenter
@@ -33,6 +34,7 @@ import com.intellij.testFramework.RuleChain
 import java.time.Clock
 import java.time.Instant
 import java.util.concurrent.Executors
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Rule
@@ -48,6 +50,7 @@ class MessageProcessorTest {
 
   private val fakeLogcatPresenter = FakeLogcatPresenter()
   private val messageFormatter = ::formatMessages
+  private val executor = Executors.newCachedThreadPool()
 
   @After
   fun tearDown() {
@@ -142,10 +145,10 @@ class MessageProcessorTest {
     messageProcessor.onIdle {}
     messageProcessor.appendMessages(batch2)
 
-    messageProcessor.onIdle {
-      @Suppress("ConvertLambdaToReference") // Calling inOrder() confuses IDEA.
-      assertThat(fakeLogcatPresenter.lineBatches).containsExactly(batch1.mapMessages(), batch2.mapMessages()).inOrder()
-    }
+    delayUntilCondition(200) { fakeLogcatPresenter.lineBatches.size == 2 }
+
+    @Suppress("ConvertLambdaToReference") // Calling inOrder() confuses IDEA.
+    assertThat(fakeLogcatPresenter.lineBatches).containsExactly(batch1.mapMessages(), batch2.mapMessages()).inOrder()
   }
 
   @Test
@@ -179,7 +182,17 @@ class MessageProcessorTest {
     maxTimePerBatchMs: Int = MAX_TIME_PER_BATCH_MS,
     maxMessagesPerBatch: Int = StudioFlags.LOGCAT_MAX_MESSAGES_PER_BATCH.get(),
     autoStart: Boolean = true,
-  ) = MessageProcessor(logcatPresenter, formatMessagesInto, logcatFilter = null, clock, maxTimePerBatchMs, maxMessagesPerBatch, autoStart)
+  ) =
+    MessageProcessor(
+      logcatPresenter,
+      formatMessagesInto,
+      logcatFilter = null,
+      clock,
+      maxTimePerBatchMs,
+      maxMessagesPerBatch,
+      autoStart,
+      executor.asCoroutineDispatcher(),
+    )
 }
 
 private fun formatMessages(textAccumulator: TextAccumulator, messages: List<LogcatMessage>) {
