@@ -43,7 +43,6 @@ import java.io.InputStream
 import java.nio.charset.Charset
 import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Ignore
@@ -993,9 +992,6 @@ class InferAnnotationsTest {
 
   @Test
   fun annotationSourceKotlin() {
-    if (KotlinPluginModeProvider.isK1Mode()) {
-      return
-    }
     // Tests passing annotation constraints and making sure that
     // we stringify these properly to Kotlin
     checkKotlin(

@@ -24,8 +24,6 @@ import com.intellij.psi.util.InheritanceUtil
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
-import org.jetbrains.kotlin.asJava.toLightClass
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtClass
 
@@ -43,21 +41,15 @@ internal fun PsiElement?.isSubtypeOf(baseClassName: String): Boolean {
   return when (this) {
     is KtClass -> {
       val ktClass = this
-      if (KotlinPluginModeProvider.isK2Mode()) {
-        allowAnalysisOnEdt {
-          analyze(ktClass) {
-            val symbol = ktClass.classSymbol ?: return false
-            val type = buildClassType(symbol)
-            // android.app.Activity -> android/app/Activity
-            val classId = ClassId.fromString(baseClassName.replace(".", "/"), isLocal = false)
-            val superType = buildClassType(classId)
-            type.isSubtypeOf(superType)
-          }
+      allowAnalysisOnEdt {
+        analyze(ktClass) {
+          val symbol = ktClass.classSymbol ?: return false
+          val type = buildClassType(symbol)
+          // android.app.Activity -> android/app/Activity
+          val classId = ClassId.fromString(baseClassName.replace(".", "/"), isLocal = false)
+          val superType = buildClassType(classId)
+          type.isSubtypeOf(superType)
         }
-      } else {
-        ktClass.toLightClass()?.let { ulc ->
-          InheritanceUtil.isInheritor(ulc, baseClassName)
-        } == true
       }
     }
     is PsiClass -> InheritanceUtil.isInheritor(this, baseClassName)
