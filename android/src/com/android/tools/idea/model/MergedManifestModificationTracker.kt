@@ -49,7 +49,7 @@ class MergedManifestModificationTracker(val module: Module) : ModificationTracke
   }
 
   /**
-   * This is invoked when MergedManifestRefreshListener detects a manifest contributor has been changed for this module or one of its
+   * This is invoked when [MergedManifestModificationListener] detects a manifest contributor has been changed for this module or one of its
    * transitive dependencies
    */
   fun manifestChanged() {
