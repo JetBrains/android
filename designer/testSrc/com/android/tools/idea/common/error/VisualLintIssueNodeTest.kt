@@ -23,10 +23,10 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.testing.ui.createFakeToolWindow
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.visual.ConfigurationSet
 import com.android.tools.idea.uibuilder.visual.TestVisualizationContentProvider
-import com.android.tools.idea.uibuilder.visual.VisualizationTestToolWindowManager
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory
 import com.android.tools.idea.uibuilder.visual.visuallint.ViewVisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
@@ -34,7 +34,6 @@ import com.android.tools.visuallint.VisualLintErrorType
 import com.android.utils.HtmlBuilder
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
-import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.assertInstanceOf
 import kotlin.test.assertNotNull
@@ -45,10 +44,10 @@ import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
 
+@RunsInEdt
 class VisualLintIssueNodeTest {
   @JvmField @Rule val rule = AndroidProjectRule.withSdk().onEdt()
 
-  @RunsInEdt
   @Test
   fun testNavigatable() {
     val model =
@@ -82,9 +81,7 @@ class VisualLintIssueNodeTest {
 
     // This navigation should open Validation Tool and set configuration set to
     // ConfigurationSet.WindowSizeDevices
-    val toolManager = VisualizationTestToolWindowManager(rule.project, rule.fixture.testRootDisposable)
-    rule.projectRule.replaceProjectService(ToolWindowManager::class.java, toolManager)
-    val toolWindow = ToolWindowManager.getInstance(rule.project).getToolWindow(VisualizationToolWindowFactory.TOOL_WINDOW_ID)!!
+    val toolWindow = createFakeToolWindow(rule.project, rule.fixture.testRootDisposable, VisualizationToolWindowFactory.TOOL_WINDOW_ID)
     TestVisualizationContentProvider.createVisualizationForm(rule.project, toolWindow)
     toolWindow.isAvailable = true
 
@@ -151,9 +148,7 @@ class VisualLintIssueNodeTest {
 
     // This navigation should open Validation Tool and set configuration set to
     // ConfigurationSet.WearDevices
-    val toolManager = VisualizationTestToolWindowManager(rule.project, rule.fixture.testRootDisposable)
-    rule.projectRule.replaceProjectService(ToolWindowManager::class.java, toolManager)
-    val toolWindow = ToolWindowManager.getInstance(rule.project).getToolWindow(VisualizationToolWindowFactory.TOOL_WINDOW_ID)!!
+    val toolWindow = createFakeToolWindow(rule.project, rule.fixture.testRootDisposable, VisualizationToolWindowFactory.TOOL_WINDOW_ID)
     TestVisualizationContentProvider.createVisualizationForm(rule.project, toolWindow)
     toolWindow.isAvailable = true
 
