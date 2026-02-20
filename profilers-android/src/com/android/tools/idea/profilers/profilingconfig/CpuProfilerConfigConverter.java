@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,8 @@ import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
 import com.android.tools.profilers.cpu.config.AtraceConfiguration;
+import com.android.tools.profilers.cpu.config.LeakCanaryConfiguration;
+import com.android.tools.profilers.cpu.config.LeakCanaryMode;
 import com.android.tools.profilers.cpu.config.PerfettoNativeAllocationsConfiguration;
 import com.android.tools.profilers.cpu.config.PerfettoSystemTraceConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
@@ -36,6 +38,7 @@ import com.android.tools.profilers.cpu.config.SimpleperfConfiguration;
 import com.android.tools.profilers.cpu.config.UnspecifiedConfiguration;
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel;
 import com.android.tools.profilers.tasks.ProfilerTaskType;
+import com.android.tools.profiler.proto.Commands.StartLeakCanaryTaskData;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.Unmodifiable;
 import java.util.List;
@@ -89,6 +92,14 @@ public class CpuProfilerConfigConverter {
           cpuProfilerConfig.setBufferSizeMb(SYSTEM_TRACE_BUFFER_SIZE_MB);
         }
         break;
+      case LEAKCANARY:
+        LeakCanaryConfiguration leakCanaryConfiguration = (LeakCanaryConfiguration)config;
+        cpuProfilerConfig = new CpuProfilerConfig(leakCanaryConfiguration.getName(), CpuProfilerConfig.Technology.LEAKCANARY);
+        cpuProfilerConfig.setUseStudioLeakCanaryMode(
+          leakCanaryConfiguration.getMode() == StartLeakCanaryTaskData.LeakCanaryMode.ON_HOST
+        );
+        cpuProfilerConfig.setLeakCanaryThreshold(leakCanaryConfiguration.getThreshold());
+        break;
       case UNSPECIFIED:
         UnspecifiedConfiguration unspecifiedConfiguration = (UnspecifiedConfiguration)config;
         cpuProfilerConfig = new CpuProfilerConfig(unspecifiedConfiguration.getName(), CpuProfilerConfig.Technology.SAMPLED_JAVA);
@@ -139,6 +150,13 @@ public class CpuProfilerConfigConverter {
       case NATIVE_ALLOCATIONS:
         configuration = new PerfettoNativeAllocationsConfiguration(name);
         ((PerfettoNativeAllocationsConfiguration)configuration).setMemorySamplingIntervalBytes(config.getSamplingRateBytes());
+        break;
+      case LEAKCANARY:
+        configuration = new LeakCanaryConfiguration(name);
+        ((LeakCanaryConfiguration)configuration).setSource(config.getUseStudioLeakCanaryMode() ?
+                                                           LeakCanaryMode.STUDIO : LeakCanaryMode.NATIVE);
+        ((LeakCanaryConfiguration)configuration).setThreshold(config.getLeakCanaryThreshold());
+        break;
     }
 
     return configuration;
@@ -169,6 +187,7 @@ public class CpuProfilerConfigConverter {
       case CALLSTACK_SAMPLE -> configName = SAMPLED_NATIVE_CONFIG_NAME;
       case SYSTEM_TRACE  -> configName = SYSTEM_TRACE_CONFIG_NAME;
       case NATIVE_ALLOCATIONS -> configName = NATIVE_ALLOCATIONS_CONFIG_NAME;
+      case LEAKCANARY -> configName = "LeakCanary";
     }
     return configName;
   }
@@ -179,6 +198,7 @@ public class CpuProfilerConfigConverter {
       case SAMPLED_NATIVE -> ProfilerTaskType.CALLSTACK_SAMPLE;
       case SYSTEM_TRACE -> ProfilerTaskType.SYSTEM_TRACE;
       case NATIVE_ALLOCATIONS -> ProfilerTaskType.NATIVE_ALLOCATIONS;
+      case LEAKCANARY -> ProfilerTaskType.LEAKCANARY;
     };
   }
 }

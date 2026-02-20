@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,14 @@
  */
 package com.android.tools.profilers.tasks.args.singleartifact.leakcanary
 
+import com.android.tools.profiler.proto.Commands
 import com.android.tools.profilers.leakcanary.LeakCanarySessionArtifact
 import com.android.tools.profilers.tasks.args.singleartifact.SingleArtifactTaskArgs
 
-class LeakCanaryTaskArgs(override val isFromStartup: Boolean, val artifact: LeakCanarySessionArtifact?) : SingleArtifactTaskArgs {
+class LeakCanaryTaskArgs(
+  override val isFromStartup: Boolean,
+  val artifact: LeakCanarySessionArtifact?,
+  val leakCanaryMode: Commands.StartLeakCanaryTaskData.LeakCanaryMode = Commands.StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE,
+) : SingleArtifactTaskArgs {
   fun getLeakCanaryArtifact() = artifact
 }

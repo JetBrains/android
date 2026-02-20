@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ public class CpuProfilerConfig {
   public static final String SAMPLED_NATIVE_CONFIG_NAME = "Callstack Sample";
   public static final String SYSTEM_TRACE_CONFIG_NAME = "System Trace";
   public static final String NATIVE_ALLOCATIONS_CONFIG_NAME = "Native Allocations";
+  public static final String LEAKCANARY_CONFIG_NAME = "LeakCanary";
 
   @NotNull private String myName;
   @NotNull private Technology myTechnology;
@@ -35,6 +36,9 @@ public class CpuProfilerConfig {
   private int mySamplingRateBytes = 2048;
   // Defaults to false, records only wall clock time if not set otherwise.
   private boolean myDualClock = false;
+  private boolean myUseStudioLeakCanaryMode = true;
+  // True -> ON_HOST, False -> ON_DEVICE
+  private int myLeakCanaryThreshold = 5;
 
   /**
    * Default constructor to be used by {@link CpuProfilerConfigsState}.
@@ -113,6 +117,24 @@ public class CpuProfilerConfig {
     return this;
   }
 
+  public boolean getUseStudioLeakCanaryMode() {
+    return myUseStudioLeakCanaryMode;
+  }
+
+  public CpuProfilerConfig setUseStudioLeakCanaryMode(boolean useStudioLeakCanaryMode) {
+    myUseStudioLeakCanaryMode = useStudioLeakCanaryMode;
+    return this;
+  }
+
+  public int getLeakCanaryThreshold() {
+    return myLeakCanaryThreshold;
+  }
+
+  public CpuProfilerConfig setLeakCanaryThreshold(int threshold) {
+    myLeakCanaryThreshold = threshold;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -123,12 +145,14 @@ public class CpuProfilerConfig {
            Objects.equals(myName, config.myName) &&
            myTechnology == config.myTechnology &&
            mySamplingRateBytes == config.mySamplingRateBytes &&
-           myDualClock == config.myDualClock;
+           myDualClock == config.myDualClock &&
+           myUseStudioLeakCanaryMode == config.myUseStudioLeakCanaryMode &&
+           myLeakCanaryThreshold == config.myLeakCanaryThreshold;
   }
 
   @Override
   public int hashCode() {
-    return HashCodes.mix(myName.hashCode(), myTechnology.hashCode(), mySamplingIntervalUs, myBufferSizeMb, mySamplingRateBytes);
+    return HashCodes.mix(myName.hashCode(), myTechnology.hashCode(), mySamplingIntervalUs, myBufferSizeMb, mySamplingRateBytes, myUseStudioLeakCanaryMode ? 1 : 0, myLeakCanaryThreshold);
   }
 
   public enum Technology {
@@ -165,6 +189,13 @@ public class CpuProfilerConfig {
       @Override
       public String getName() {
         return NATIVE_ALLOCATIONS_CONFIG_NAME;
+      }
+    },
+    LEAKCANARY {
+      @NotNull
+      @Override
+      public String getName() {
+        return LEAKCANARY_CONFIG_NAME;
       }
     };
 

@@ -18,15 +18,18 @@ package com.android.tools.profilers.leakcanary
 import com.android.tools.idea.transport.TransportFileManager
 import com.android.tools.idea.transport.poller.TransportEventListener
 import com.android.tools.profiler.proto.Commands
+import com.android.tools.profiler.proto.Commands.StartLeakCanaryTaskData
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
 import com.android.tools.profilers.SupportLevel
+import com.android.tools.profilers.cpu.config.LeakCanaryConfiguration
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
 import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StartTaskSelectionErrorCode
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.leakcanary.LeakCanaryTaskArgs
+import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerUtils
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.SingleArtifactTaskHandler
 import fleet.util.logging.logger
 import java.util.Timer
@@ -66,9 +69,12 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
   // Timeout for the JVMTI agent to attach. Cold attachment can take 3-5s on slower devices.
   private val AGENT_ATTACH_TIMEOUT_MS = 7000L
 
+  private var pendingArgs: LeakCanaryTaskArgs? = null
+
   override fun setupStage() {
     val studioProfilers = sessionsManager.studioProfilers
     val stage = LeakCanaryModel(studioProfilers)
+    pendingArgs?.let { stage.setLeakCanaryMode(it.leakCanaryMode) }
     // Set the new stage to be the current stage in the Profiler.
     studioProfilers.stage = stage
     // Set the new stage to be this task handler's stage, which can now be used ot start and stop captures.
@@ -76,8 +82,27 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
   }
 
   override fun enter(args: TaskArgs): Boolean {
+    if (args is LeakCanaryTaskArgs) {
+      pendingArgs = args
+    }
     logEnterStage()
-    return super.enter(args)
+    val result = super.enter(args)
+    pendingArgs = null
+    return result
+  }
+
+  override fun startTask(args: TaskArgs) {
+    if (stage == null) {
+      handleError("Cannot start the task as the InterimStage was null")
+      return
+    }
+
+    if (args.isFromStartup) {
+      TaskHandlerUtils.executeTaskAction(action = { stage!!.startListening() }, errorHandler = ::handleError)
+      return
+    }
+
+    super.startTask(args)
   }
 
   override fun startCapture(stage: LeakCanaryModel) {
@@ -109,7 +134,13 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
     return artifact is LeakCanarySessionArtifact
   }
 
-  override fun createStartTaskArgs(isStartupTask: Boolean) = LeakCanaryTaskArgs(false, null)
+  override fun createStartTaskArgs(isStartupTask: Boolean): LeakCanaryTaskArgs {
+    val featureLevel = profilers.device?.featureLevel ?: 0
+    val configs = sessionsManager.studioProfilers.ideServices.getTaskCpuProfilerConfigs(featureLevel)
+    val leakCanaryConfig = configs.filterIsInstance<LeakCanaryConfiguration>().firstOrNull()
+    val mode = leakCanaryConfig?.mode ?: StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE
+    return LeakCanaryTaskArgs(isStartupTask, null, mode)
+  }
 
   override fun createLoadingTaskArgs(artifact: SessionArtifact<*>) = LeakCanaryTaskArgs(false, artifact as LeakCanarySessionArtifact)
 

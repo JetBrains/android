@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -139,6 +139,8 @@ object TaskBasedUxStrings {
   const val LEAKCANARY_WAITING_HEAP_DUMP = "Waiting to dump heap until"
   const val LEAKCANARY_RETAINED_OBJECT = "retained object"
   const val LEAKCANARY_FORCE_DUMP = "Force dump"
+  const val LEAKCANARY_BANNER_MESSAGE = "On-device customizations are being bypassed. Switch to App Customization to enable them."
+  const val LEAKCANARY_EDIT_CONFIGURATION = "Edit configuration"
 
   fun getTaskTooltip(taskType: ProfilerTaskType) =
     when (taskType) {

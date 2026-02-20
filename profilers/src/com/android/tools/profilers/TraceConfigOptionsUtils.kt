@@ -43,6 +43,10 @@ object TraceConfigOptionsUtils {
         configBuilder.perfettoOptions = PerfettoConfig.TraceConfig.getDefaultInstance()
       }
 
+      TraceType.LEAKCANARY -> {
+        configBuilder.leakcanaryOptions = Trace.LeakCanaryOptions.getDefaultInstance()
+      }
+
       TraceType.UNSPECIFIED -> {}
     }
   }

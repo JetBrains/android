@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,8 @@ import com.android.tools.profiler.proto.Transport
 import com.android.tools.profilers.ModelStage
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.cpu.config.LeakCanaryConfiguration
+import com.android.tools.profilers.cpu.config.LeakCanaryMode
 import com.android.tools.profilers.tasks.analytics.TaskFinishedState
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
@@ -86,8 +88,72 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
   val isLeakCanaryMilestone2Enabled
     get() = profilers.ideServices.featureConfig.isLeakCanaryMilestone2Enabled
 
-  // TODO: Use a real setting once settings UI is implemented.
   @VisibleForTesting var leakcanaryMode = StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE
+
+  private val _isBannerVisible = MutableStateFlow(false)
+  val isBannerVisible = _isBannerVisible.asStateFlow()
+
+  /** Sets the current LeakCanary mode (e.g., ON_DEVICE or ON_HOST) and updates the banner visibility accordingly. */
+  fun setLeakCanaryMode(mode: StartLeakCanaryTaskData.LeakCanaryMode) {
+    logger.info("LeakCanary running in ${mode.name} mode")
+    leakcanaryMode = mode
+    updateBannerVisibility()
+  }
+
+  /**
+   * Reads the current LeakCanary configuration from the profiler settings and updates the running mode and threshold. If the user has
+   * explicitly modified the settings from their defaults, it will also dismiss the new feature banner permanently.
+   */
+  fun updateModeFromSettings() {
+    val featureLevel = profilers.device?.featureLevel ?: 0
+    val configs = profilers.ideServices.getTaskCpuProfilerConfigs(featureLevel)
+    val config = configs.filterIsInstance<LeakCanaryConfiguration>().firstOrNull()
+    if (config != null) {
+      setLeakCanaryMode(config.mode)
+      if (config.source == LeakCanaryMode.STUDIO) {
+        _retainedObjectThreshold.value = config.threshold
+      }
+
+      // If the user has explicitly changed the settings from the default, suppress the banner permanently.
+      if (config.source != LeakCanaryMode.STUDIO || config.threshold != 5) {
+        setBannerDoNotShowAgain()
+      }
+    }
+  }
+
+  /**
+   * Evaluates all conditions to determine if the educational feature banner should be displayed.
+   *
+   * The banner is only shown if ALL the following conditions are met:
+   * 1. The Milestone 2 feature flag is enabled.
+   * 2. The user has not permanently suppressed the banner (by dismissing it or changing settings).
+   * 3. The current mode is Studio mode (ON_HOST).
+   */
+  private fun shouldShowEducationalBanner(): Boolean {
+    val doNotShowAgain = profilers.ideServices.persistentProfilerPreferences.getBoolean(KEY_LEAKCANARY_BANNER_DO_NOT_SHOW, false)
+    val isStudioMode = leakcanaryMode == StartLeakCanaryTaskData.LeakCanaryMode.ON_HOST
+
+    if (!isLeakCanaryMilestone2Enabled || !isStudioMode || doNotShowAgain) {
+      return false
+    }
+    return true
+  }
+
+  /** Updates whether the milestone 2 feature banner should be displayed to the user. */
+  private fun updateBannerVisibility() {
+    _isBannerVisible.value = shouldShowEducationalBanner()
+  }
+
+  /** Temporarily dismisses the feature banner for the current session. */
+  fun dismissBanner() {
+    _isBannerVisible.value = false
+  }
+
+  /** Permanently hides the feature banner across all sessions by updating user preferences. */
+  fun setBannerDoNotShowAgain() {
+    profilers.ideServices.persistentProfilerPreferences.setBoolean(KEY_LEAKCANARY_BANNER_DO_NOT_SHOW, true)
+    updateBannerVisibility()
+  }
 
   override fun onEnter() {
     sessionData = profilers.session
@@ -104,13 +170,14 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
   }
 
   fun startListening() {
+    if (isLeakCanaryMilestone2Enabled) {
+      updateModeFromSettings()
+    }
     profilers.updater.register(this)
     setIsRecording(true)
     if (!isLeakCanaryMilestone2Enabled) {
       checkLeakCanaryPresence()
-    } else {
-      // TODO: While adding settings change (adding UI for choosing between on_device, on_host shark), code should be changed to pick the
-      // user inputed threshold for on_host shark flow.
+    } else if (leakcanaryMode == StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE) {
       _retainedObjectThreshold.value = profilers.ideServices.temporaryProfilerPreferences.getInt("LEAKCANARY_THRESHOLD", 5)
     }
     setObjectRetainedCount(0)
@@ -470,6 +537,8 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
         "${referenceField?.className ?: ""}.${referenceField?.referenceName ?: ""}"
       } ?: leakTrace.nodes.last().className
     }
+
+    private const val KEY_LEAKCANARY_BANNER_DO_NOT_SHOW = "leakcanary.banner.donotshow"
   }
 
   override fun update(elapsedNs: Long) {

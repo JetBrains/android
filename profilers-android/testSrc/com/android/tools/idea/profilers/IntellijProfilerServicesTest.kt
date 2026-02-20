@@ -85,6 +85,7 @@ class IntellijProfilerServicesTest {
 
   @Before
   fun before() {
+    StudioFlags.PROFILER_LEAKCANARY_MILESTONE2.override(false)
     project = Mockito.spy(MockProjectEx(disposableRule.disposable))
     mockProjectAttributes(project)
     intellijProfilerServices = IntellijProfilerServices(project, Mockito.mock(SymbolFilesLocator::class.java))
@@ -103,6 +104,7 @@ class IntellijProfilerServicesTest {
       StudioFlags.PROFILER_TRACEBOX.clearOverride()
       StudioFlags.PROFILER_TASK_BASED_UX.clearOverride()
       StudioFlags.PROFILER_LEAKCANARY.clearOverride()
+      StudioFlags.PROFILER_LEAKCANARY_MILESTONE2.clearOverride()
     }
   }
 

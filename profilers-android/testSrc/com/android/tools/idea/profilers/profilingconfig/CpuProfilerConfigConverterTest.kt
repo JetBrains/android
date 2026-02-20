@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,8 @@ import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration
 import com.android.tools.profilers.cpu.config.AtraceConfiguration
 import com.android.tools.profilers.cpu.config.ImportedConfiguration
+import com.android.tools.profilers.cpu.config.LeakCanaryConfiguration
+import com.android.tools.profilers.cpu.config.LeakCanaryMode
 import com.android.tools.profilers.cpu.config.PerfettoNativeAllocationsConfiguration
 import com.android.tools.profilers.cpu.config.PerfettoSystemTraceConfiguration
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration
@@ -376,6 +378,39 @@ class CpuProfilerConfigConverterTest {
     assertThat(cpuProfilerConfig.technology).isEqualTo(CpuProfilerConfig.Technology.SYSTEM_TRACE)
     assertThat(cpuProfilerConfig.samplingIntervalUs).isEqualTo(ProfilingConfiguration.DEFAULT_SAMPLING_INTERVAL_US)
     assertThat(cpuProfilerConfig.bufferSizeMb).isEqualTo(ProfilingConfiguration.SYSTEM_TRACE_BUFFER_SIZE_MB)
+  }
+
+  @Test
+  fun toProfilingConfigurationLeakCanary() {
+    val config =
+      CpuProfilerConfig().apply {
+        name = "MyConfiguration"
+        technology = CpuProfilerConfig.Technology.LEAKCANARY
+        useStudioLeakCanaryMode = true
+        leakCanaryThreshold = 10
+      }
+
+    val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.N)
+    assertThat(profilingConfiguration).isInstanceOf(LeakCanaryConfiguration::class.java)
+    assertThat((profilingConfiguration as LeakCanaryConfiguration).name).isEqualTo(config.name)
+    assertThat(profilingConfiguration.traceType).isEqualTo(TraceType.LEAKCANARY)
+    assertThat(profilingConfiguration.source).isEqualTo(LeakCanaryMode.STUDIO)
+    assertThat(profilingConfiguration.threshold).isEqualTo(10)
+  }
+
+  @Test
+  fun toCpuProfilerConfigLeakCanary() {
+    val configuration =
+      LeakCanaryConfiguration("MyConfiguration").apply {
+        source = LeakCanaryMode.STUDIO
+        threshold = 10
+      }
+
+    val cpuProfilerConfig = CpuProfilerConfigConverter.fromProfilingConfiguration(configuration)
+    assertThat(cpuProfilerConfig.name).isEqualTo(configuration.name)
+    assertThat(cpuProfilerConfig.technology).isEqualTo(CpuProfilerConfig.Technology.LEAKCANARY)
+    assertThat(cpuProfilerConfig.useStudioLeakCanaryMode).isTrue()
+    assertThat(cpuProfilerConfig.leakCanaryThreshold).isEqualTo(10)
   }
 
   @Test

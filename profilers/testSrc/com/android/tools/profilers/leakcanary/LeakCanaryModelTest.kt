@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,9 @@ import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.WithFakeTimer
+import com.android.tools.profilers.cpu.config.LeakCanaryConfiguration
+import com.android.tools.profilers.cpu.config.LeakCanaryMode
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.intellij.testFramework.UsefulTestCase.assertEmpty
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -57,10 +60,16 @@ class LeakCanaryModelTest : WithFakeTimer {
   private lateinit var stage: LeakCanaryModel
   private lateinit var ideProfilerServices: FakeIdeProfilerServices
   private lateinit var mockHeapDumper: LeakCanaryHeapDumper
+  private val extraConfigs = mutableListOf<ProfilingConfiguration>()
 
   @Before
   fun setup() {
-    ideProfilerServices = FakeIdeProfilerServices()
+    ideProfilerServices =
+      object : FakeIdeProfilerServices() {
+        override fun getTaskCpuProfilerConfigs(apiLevel: Int): List<ProfilingConfiguration> {
+          return super.getTaskCpuProfilerConfigs(apiLevel) + extraConfigs
+        }
+      }
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideProfilerServices, timer)
     mockHeapDumper = mock(LeakCanaryHeapDumper::class.java)
     stage = LeakCanaryModel(profilers, mockHeapDumper)
@@ -347,8 +356,43 @@ class LeakCanaryModelTest : WithFakeTimer {
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0),
     )
 
+    stage.setLeakCanaryMode(Commands.StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE)
     stage.startListening()
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    assertEquals(10, stage.retainedObjectThreshold.value)
+  }
+
+  @Test
+  fun `checkLeakCanaryThreshold reads from config in Studio mode`() {
+    val config = LeakCanaryConfiguration("LeakCanary")
+    config.source = LeakCanaryMode.STUDIO
+    config.threshold = 10
+    extraConfigs.add(config)
+
+    stage.updateModeFromSettings()
+    assertEquals(10, stage.retainedObjectThreshold.value)
+
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.START_LEAKCANARY_TASK,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0),
+    )
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0),
+    )
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0, retainedObjectThreshold = 5),
+    )
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.STOP_LEAKCANARY_TASK,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0),
+    )
+
+    stage.startListening()
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+
+    // Threshold should still be 10 (from config), not 5 (from command which shouldn't run)
     assertEquals(10, stage.retainedObjectThreshold.value)
   }
 

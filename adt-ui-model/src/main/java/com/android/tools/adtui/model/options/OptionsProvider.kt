@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,11 @@ import javax.swing.JComponent
  * This interface defines an object that supplies accessor/mutator methods via the {@link Property} attribute. The interface is used as the
  * "this" object when resolving accessor / mutator calls. Eg accessor.invoke(optionsProvider).
  */
-interface OptionsProvider
+interface OptionsProvider {
+  fun isVisible(propertyName: String): Boolean = true
+
+  fun getDescription(propertyName: String, enumValue: Any): String? = null
+}
 
 /**
  * Data class that is used to store metadata related to each {@link Property} attribute. This class is responsible for managing the
@@ -76,6 +80,12 @@ data class PropertyInfo(val provider: OptionsProvider, val methodName: String) {
     set(value) {
       mutator?.invoke(provider, value)
     }
+
+  var indent: Boolean = false
+
+  var parent: String = ""
+  var parentValue: String = ""
+  var children: List<PropertyInfo> = emptyList()
 }
 
 /**

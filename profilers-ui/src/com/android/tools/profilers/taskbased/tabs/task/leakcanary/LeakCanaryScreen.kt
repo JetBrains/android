@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,17 +36,22 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.dp
+import com.android.tools.profilers.IdeProfilerComponents
+import com.android.tools.profilers.cpu.CpuProfilerStage
+import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel
 import com.android.tools.profilers.leakcanary.LeakCanaryModel
 import com.android.tools.profilers.taskbased.common.dividers.ToolWindowHorizontalDivider
 import com.android.tools.profilers.taskbased.tabs.task.leakcanary.actionbars.LeakCanaryActionBar
+import com.android.tools.profilers.taskbased.tabs.task.leakcanary.banner.LeakCanaryBanner
 import com.android.tools.profilers.taskbased.tabs.task.leakcanary.leakdetails.LeakDetailsPanel
 import com.android.tools.profilers.taskbased.tabs.task.leakcanary.leaklist.LeakListView
 import org.jetbrains.jewel.ui.component.HorizontalSplitLayout
 import org.jetbrains.jewel.ui.component.rememberSplitLayoutState
 
 @Composable
-fun LeakCanaryScreen(leakCanaryModel: LeakCanaryModel) {
+fun LeakCanaryScreen(leakCanaryModel: LeakCanaryModel, ideProfilerComponents: IdeProfilerComponents) {
   val selectedLeak by leakCanaryModel.selectedLeak.collectAsState()
+  val isBannerVisible by leakCanaryModel.isBannerVisible.collectAsState()
   val traceNodes = selectedLeak?.displayedLeakTrace?.firstOrNull()?.nodes ?: emptyList()
   var openStates by remember(selectedLeak) { mutableStateOf(List(traceNodes.size) { false }) }
 
@@ -75,6 +80,18 @@ fun LeakCanaryScreen(leakCanaryModel: LeakCanaryModel) {
         }
       }
   ) {
+    if (isBannerVisible) {
+      LeakCanaryBanner(
+        onBannerClose = leakCanaryModel::dismissBanner,
+        onBannerDoNotAskAgainClick = leakCanaryModel::setBannerDoNotShowAgain,
+        onEditConfigurationClick = {
+          val dummyStage = CpuProfilerStage(leakCanaryModel.studioProfilers)
+          val configModel = CpuProfilerConfigModel(leakCanaryModel.studioProfilers, dummyStage)
+          ideProfilerComponents.openTaskConfigurationsDialog(configModel, leakCanaryModel.studioProfilers.ideServices)
+          leakCanaryModel.updateModeFromSettings()
+        },
+      )
+    }
     LeakCanaryActionBar(leakCanaryModel)
     ToolWindowHorizontalDivider()
 

@@ -38,12 +38,13 @@ class CpuProfilerConfigsStateTest {
   fun testTaskConfigWhenItsEmpty() {
     val result = myConfigsState.savedTaskConfigsIfPresentOrDefault
     // Default task configs added when task config is empty
-    assertThat(result.size).isEqualTo(5)
-    assertThat(result[0].name).isEqualTo("Callstack Sample")
-    assertThat(result[1].name).isEqualTo("Java/Kotlin Method Trace")
-    assertThat(result[2].name).isEqualTo("Java/Kotlin Method Sample (legacy)")
-    assertThat(result[3].name).isEqualTo("Native Allocations")
-    assertThat(result[4].name).isEqualTo("System Trace")
+    assertThat(result.size).isEqualTo(6)
+    assertThat(result[0].name).isEqualTo("LeakCanary")
+    assertThat(result[1].name).isEqualTo("Callstack Sample")
+    assertThat(result[2].name).isEqualTo("Java/Kotlin Method Trace")
+    assertThat(result[3].name).isEqualTo("Java/Kotlin Method Sample (legacy)")
+    assertThat(result[4].name).isEqualTo("Native Allocations")
+    assertThat(result[5].name).isEqualTo("System Trace")
   }
 
   @Test
@@ -68,12 +69,13 @@ class CpuProfilerConfigsStateTest {
     myConfigsState.taskConfigs = configsToSave
     // Verify task config
     val result = myConfigsState.savedTaskConfigsIfPresentOrDefault
-    assertThat(result.size).isEqualTo(5)
-    assertThat(result[0].name).isEqualTo("Callstack Sample")
-    assertThat(result[1].name).isEqualTo("Java/Kotlin Method Trace")
-    assertThat(result[2].name).isEqualTo("Java/Kotlin Method Sample (legacy)")
-    assertThat(result[3].name).isEqualTo("Native Allocations")
-    assertThat(result[4].name).isEqualTo("System Trace")
+    assertThat(result.size).isEqualTo(6)
+    assertThat(result[0].name).isEqualTo("LeakCanary")
+    assertThat(result[1].name).isEqualTo("Callstack Sample")
+    assertThat(result[2].name).isEqualTo("Java/Kotlin Method Trace")
+    assertThat(result[3].name).isEqualTo("Java/Kotlin Method Sample (legacy)")
+    assertThat(result[4].name).isEqualTo("Native Allocations")
+    assertThat(result[5].name).isEqualTo("System Trace")
   }
 
   @Test

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package com.android.tools.adtui.options
 
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.adtui.model.options.Dropdown
 import com.android.tools.adtui.model.options.OptionsProperty
 import com.android.tools.adtui.model.options.OptionsProvider
 import com.android.tools.adtui.model.options.Slider
@@ -186,6 +187,23 @@ class OptionsPanelTest {
     assertThat(labels).hasSize(1) // Group, Name,  Description, Unit
     assertThat(labels[0].text).isEqualTo("Unknown return type (${BoolBindingProvider::class.java.name}) for property \"other\"")
   }
+
+  @Test
+  fun intDropdownValuesTest() {
+    val panel = OptionsPanel()
+    val provider = IntDropdownValuesProvider()
+    val walker = TreeWalker(panel)
+    panel.setOption(provider, false, false)
+    val comboBox = walker.descendants().filterIsInstance(com.intellij.openapi.ui.ComboBox::class.java).first()
+    assertThat(comboBox.itemCount).isEqualTo(4)
+    assertThat(comboBox.getItemAt(0).toString()).isEqualTo("1")
+    assertThat(comboBox.getItemAt(1).toString()).isEqualTo("2")
+    assertThat(comboBox.getItemAt(2).toString()).isEqualTo("5")
+    assertThat(comboBox.getItemAt(3).toString()).isEqualTo("10")
+
+    comboBox.selectedIndex = 2
+    assertThat(provider.intTestOne).isEqualTo(5)
+  }
 }
 
 class UnknownBindingProvider : OptionsProvider {
@@ -208,4 +226,8 @@ class StringBindingProvider : OptionsProvider {
 
 class SliderBindingProvider : OptionsProvider {
   @OptionsProperty(name = "Name1", group = "Slider", description = "Desc", unit = "Unit") @Slider(0, 100, 10) var sliderTest = 100
+}
+
+class IntDropdownValuesProvider : OptionsProvider {
+  @OptionsProperty(name = "Name1", group = "Int", description = "Desc", unit = "Unit") @Dropdown(values = [1, 2, 5, 10]) var intTestOne = 1
 }

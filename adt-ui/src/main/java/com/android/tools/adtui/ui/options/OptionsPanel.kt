@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,22 +18,30 @@ package com.android.tools.adtui.ui.options
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.model.options.DEFAULT_GROUP
 import com.android.tools.adtui.model.options.DEFAULT_ORDER
+import com.android.tools.adtui.model.options.Dropdown
 import com.android.tools.adtui.model.options.OptionsBinder
 import com.android.tools.adtui.model.options.OptionsProperty
 import com.android.tools.adtui.model.options.OptionsProvider
 import com.android.tools.adtui.model.options.PropertyInfo
 import com.android.tools.adtui.model.options.Slider
 import com.intellij.openapi.ui.VerticalFlowLayout
+import com.intellij.ui.ColorUtil
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
 import com.intellij.util.ui.JBUI
+import java.awt.Component
+import java.awt.FlowLayout
 import java.awt.Font
+import java.awt.GridBagConstraints
+import java.awt.GridBagLayout
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.util.Locale
+import javax.swing.DefaultListCellRenderer
 import javax.swing.JComponent
 import javax.swing.JLabel
+import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.JSeparator
 import javax.swing.JSlider
@@ -114,6 +122,20 @@ class OptionsPanel : JComponent() {
         if (!propertyMetadata.unit.isBlank()) {
           info.unit = propertyMetadata.unit
         }
+        if (!propertyMetadata.parent.isBlank()) {
+          info.parent = propertyMetadata.parent
+          info.parentValue = propertyMetadata.parentValue
+        }
+      }
+    }
+
+    // Link children to parents
+    properties.values.forEach { info ->
+      if (info.parent.isNotEmpty()) {
+        val parentInfo = properties[cleanMethodName(info.parent)]
+        if (parentInfo != null) {
+          parentInfo.children = parentInfo.children + info
+        }
       }
     }
 
@@ -128,10 +150,17 @@ class OptionsPanel : JComponent() {
       } else if (method.parameterCount == 0 && method.returnType != Void.TYPE) {
         info.accessor = method
         info.binder = info.binder ?: binders[info.accessor?.returnType]
+        if (info.binder == null && info.accessor?.returnType?.isEnum == true) {
+          info.binder = EnumBinder { updateOptionProvider() }
+        }
       }
       if (method.getAnnotation(Slider::class.java) != null) {
         val slider = method.getAnnotation(Slider::class.java)
         info.binder = SliderBinder(slider.min, slider.max, slider.step)
+      }
+      if (method.getAnnotation(Dropdown::class.java) != null) {
+        val dropdown = method.getAnnotation(Dropdown::class.java)
+        info.binder = DropdownBinder(dropdown.values.toList())
       }
     }
     buildHeader(properties["name"])
@@ -153,6 +182,7 @@ class OptionsPanel : JComponent() {
     headerLabel.font = headerLabel.font.deriveFont(Font.BOLD)
     headerLabel.setSize(100, 100)
     headerPanel.add(headerLabel)
+    headerPanel.border = JBUI.Borders.emptyBottom(15)
     add(headerPanel)
   }
 
@@ -160,22 +190,40 @@ class OptionsPanel : JComponent() {
     // Group by groups
     val sortedProperties = properties.sortedWith(compareBy<PropertyInfo> { it.order })
     for (property in sortedProperties) {
-      if (property.accessor == null) {
+      if (property.accessor == null) continue
+
+      // Skip properties that have a parent, they are handled by the parent
+      if (property.parent.isNotEmpty()) {
         continue
       }
-      var groupPanel = buildOrGetGroup(property.group)
-      // Name property is not displayed for TaskBasedUx
-      if (!(isTaskBasedUx && property.methodName == "name")) {
-        groupPanel.add(buildComponent(property))
+
+      // Check visibility
+      if (option?.isVisible(property.methodName) == false) {
+        continue
       }
-      if (!property.description.isBlank()) {
-        buildOrGetGroup(property.group)
-          .add(
-            JLabel(property.description).apply {
-              border = JBUI.Borders.emptyLeft(20)
-              foreground = JBColor(0x4E4E4E, 0xB5B5B5)
-            }
-          )
+
+      val groupPanel = buildOrGetGroup(property.group)
+
+      if (!(isTaskBasedUx && property.methodName == "name")) {
+        val component = buildComponent(property)
+
+        // Apply indentation if the property metadata specifies it
+        if (property.indent) {
+          component.border = JBUI.Borders.merge(component.border, JBUI.Borders.emptyLeft(20), true)
+        }
+
+        groupPanel.add(component)
+      }
+
+      if (property.description.isNotEmpty()) {
+        groupPanel.add(
+          JLabel(property.description).apply {
+            // Match the horizontal position of the control (120px label + component indent)
+            val leftPadding = if (property.indent) 140 else 120
+            border = JBUI.Borders.emptyLeft(leftPadding)
+            foreground = JBColor(0x4E4E4E, 0xB5B5B5)
+          }
+        )
       }
     }
     for (panel in groups.values) {
@@ -291,5 +339,156 @@ private class StringBinder : OptionsBinder {
         TabularLayout.Constraint(0, 1),
       )
     }
+  }
+}
+
+private class EnumBinder(private val onUpdate: () -> Unit) : OptionsBinder {
+  override fun bind(data: PropertyInfo, readonly: Boolean): JComponent {
+    val returnType = data.accessor!!.returnType
+    val enumConstants = returnType.enumConstants
+    val buttonGroup = javax.swing.ButtonGroup()
+
+    // Vertical layout for radio buttons and their descriptions
+    val radioPanel = JPanel(VerticalFlowLayout(VerticalFlowLayout.TOP, 0, 0, true, false))
+
+    enumConstants.forEachIndexed { index, constant ->
+      val radioButton =
+        javax.swing.JRadioButton(constant.toString()).apply {
+          isSelected = constant == data.value
+          isEnabled = !readonly
+          addActionListener {
+            data.value = constant
+            // Trigger a refresh of the panel to update visibility of other components
+            onUpdate()
+          }
+        }
+      buttonGroup.add(radioButton)
+      radioPanel.add(radioButton)
+
+      // Look up description for this specific enum value
+      val description = data.provider.getDescription(data.methodName, constant)
+      if (description != null) {
+        radioPanel.add(
+          JLabel(description).apply {
+            border = JBUI.Borders.emptyLeft(28) // Increased indent to align with text
+            foreground = JBColor(0x4E4E4E, 0xB5B5B5)
+            font = font.deriveFont(font.size2D - 1f) // Slightly smaller font for sub-labels
+          }
+        )
+      }
+
+      // Render children properties that should appear under this enum value
+      val children = data.children.filter { it.parentValue == (constant as Enum<*>).name && data.provider.isVisible(it.methodName) }
+
+      children.forEach { child ->
+        val childComponent =
+          child.binder?.bind(child, readonly)
+            ?: JLabel("Unknown return type (${child.accessor?.returnType?.name}) for property \"${child.name}\"")
+        childComponent.isEnabled = !readonly
+        childComponent.border = JBUI.Borders.merge(childComponent.border, JBUI.Borders.emptyLeft(28), true)
+        radioPanel.add(childComponent)
+
+        if (child.description.isNotEmpty()) {
+          val descLabel =
+            JLabel(child.description).apply {
+              border = JBUI.Borders.empty(0, 28, 10, 0)
+              foreground = JBColor(0x4E4E4E, 0xB5B5B5)
+            }
+          radioPanel.add(descLabel)
+        } else {
+          childComponent.border = JBUI.Borders.merge(childComponent.border, JBUI.Borders.emptyBottom(10), true)
+        }
+      }
+
+      // Add spacing after each option block, except the last one
+      if (index < enumConstants.size - 1) {
+        radioPanel.add(javax.swing.Box.createVerticalStrut(10))
+      }
+    }
+
+    return JPanel(TabularLayout("Fit,10px,*,Fit", "Fit,Fit")).apply {
+      border = JBUI.Borders.emptyTop(12)
+      add(JLabel(data.name), TabularLayout.Constraint(0, 0))
+
+      val separatorPanel = JPanel(GridBagLayout())
+      val gbc = GridBagConstraints()
+      gbc.fill = GridBagConstraints.HORIZONTAL
+      gbc.weightx = 1.0
+      separatorPanel.add(JSeparator(), gbc)
+      add(separatorPanel, TabularLayout.Constraint(0, 2))
+
+      radioPanel.border = JBUI.Borders.emptyTop(10)
+      add(radioPanel, TabularLayout.Constraint(1, 0, 1, 4))
+    }
+  }
+}
+
+private class DropdownBinder(private val values: List<Int>) : OptionsBinder {
+
+  override fun bind(data: PropertyInfo, readonly: Boolean): JComponent {
+    // Consume description so EnumBinder doesn't render it
+    val description = data.description
+    data.description = ""
+
+    val unit = data.unit.ifEmpty { "" }
+    val displayValues = values.map { DisplayInt(it, unit) }.toTypedArray()
+
+    return JPanel(TabularLayout("Fit,10px,*", "Fit,Fit")).apply {
+      border = JBUI.Borders.emptyTop(12)
+      add(JLabel(data.name), TabularLayout.Constraint(0, 0))
+
+      val comboBox =
+        com.intellij.openapi.ui.ComboBox(displayValues).apply {
+          selectedItem = displayValues.find { it.value == data.value }
+          isEnabled = !readonly
+          setRenderer(
+            object : DefaultListCellRenderer() {
+              override fun getListCellRendererComponent(
+                list: JList<*>?,
+                value: Any?,
+                index: Int,
+                isSelected: Boolean,
+                cellHasFocus: Boolean,
+              ): Component {
+                val component = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus) as JLabel
+                if (value is DisplayInt) {
+                  // index -1 indicates the selected item displayed in the combo box button
+                  if (index == -1) {
+                    val colorHex = ColorUtil.toHex(JBColor(0x4E4E4E, 0xB5B5B5))
+                    component.text = "<html>${value.value} <span style='color:#$colorHex'>${value.unit}</span></html>"
+                  } else {
+                    component.text = value.toString()
+                  }
+                }
+                return component
+              }
+            }
+          )
+          addActionListener { data.value = (selectedItem as DisplayInt).value }
+        }
+
+      // Wrap in FlowLayout to prevent stretching if the column is wider (due to description)
+      val wrapper =
+        JPanel(FlowLayout(FlowLayout.LEFT, 0, 0)).apply {
+          add(comboBox)
+          isOpaque = false
+        }
+      add(wrapper, TabularLayout.Constraint(0, 2))
+
+      if (description.isNotEmpty()) {
+        val descLabel =
+          JLabel("<html>$description</html>").apply {
+            foreground = JBColor(0x4E4E4E, 0xB5B5B5)
+            font = font.deriveFont(font.size2D - 1f)
+          }
+        add(descLabel, TabularLayout.Constraint(1, 2))
+      }
+    }
+  }
+}
+
+private data class DisplayInt(val value: Int, val unit: String) {
+  override fun toString(): String {
+    return "$value"
   }
 }
