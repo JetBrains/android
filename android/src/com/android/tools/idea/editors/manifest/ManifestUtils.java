@@ -55,6 +55,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 import javax.xml.parsers.ParserConfigurationException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -137,7 +138,7 @@ public class ManifestUtils {
   }
 
   @Nullable
-  public static Node getSourceNode(@NotNull Module module, @NotNull Actions.Record record) {
+  public static Node getSourceNode(@NotNull Module module, @NotNull Actions.Record record, Function<Module,MergedManifestSnapshot> getter) {
     SourceFilePosition sourceFilePosition = record.getActionLocation();
     SourceFile sourceFile = sourceFilePosition.getFile();
     File file = sourceFile.getSourceFile();
@@ -147,7 +148,7 @@ public class ManifestUtils {
       assert vFile != null;
       Module fileModule = ModuleUtilCore.findModuleForFile(vFile, module.getProject());
       if (fileModule != null && !fileModule.equals(module)) { // redirect to library merged manifest?
-        MergedManifestSnapshot manifest = MergedManifestManager.getSnapshot(fileModule);
+        MergedManifestSnapshot manifest = getter.apply(fileModule);
         Document document = manifest.getDocument();
         assert document != null;
         Element root = document.getDocumentElement();
