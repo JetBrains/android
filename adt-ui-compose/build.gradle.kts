@@ -74,6 +74,8 @@ sourceSets {
     kotlin {
       srcDirs("testSrc")
       exclude("com/android/tools/adtui/compose/ComposeTestSuite.kt")
+      exclude("com/android/tools/adtui/compose/TestComposeWizard.kt")
+      exclude("com/android/tools/adtui/compose/ComposeWizardTest.kt")
     }
   }
 }
