@@ -34,8 +34,9 @@ import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueId
 import com.android.tools.idea.insights.model.stacktrace.StacktraceGroup
 import com.android.tools.idea.testing.disposable
+import com.android.tools.idea.testing.ui.FakeToolWindow
+import com.android.tools.idea.testing.ui.createFakeToolWindow
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.replaceService
@@ -60,7 +61,7 @@ class AiInsightToolkitTest {
   private lateinit var fakeGeminiPluginApi: FakeGeminiPluginApi
 
   private lateinit var scope: CoroutineScope
-  private lateinit var geminiToolWindow: FakeGeminiToolWindow
+  private lateinit var geminiToolWindow: FakeToolWindow
   private lateinit var deprecationDataProvider: DevServicesDeprecationDataProvider
 
   @Before
@@ -69,9 +70,7 @@ class AiInsightToolkitTest {
     ExtensionTestUtil.maskExtensions(GeminiPluginApi.EP_NAME, listOf(fakeGeminiPluginApi), projectRule.disposable)
 
     scope = AndroidCoroutineScope(projectRule.disposable)
-    geminiToolWindow = FakeGeminiToolWindow(projectRule.project)
-    val manager = FakeToolWindowManager(projectRule.project, geminiToolWindow)
-    projectRule.project.replaceService(ToolWindowManager::class.java, manager, projectRule.disposable)
+    geminiToolWindow = createFakeToolWindow(projectRule.project, projectRule.disposable, "Gemini")
     deprecationDataProvider = mock<DevServicesDeprecationDataProvider>()
     whenever(deprecationDataProvider.getCurrentDeprecationData(any(), any()))
       .thenReturn(DevServicesDeprecationData("", "", "", false, SUPPORTED))
