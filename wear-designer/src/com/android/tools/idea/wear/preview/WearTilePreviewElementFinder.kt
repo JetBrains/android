@@ -30,6 +30,7 @@ import com.android.tools.idea.preview.find.toSmartPsiPointer
 import com.android.tools.wear.preview.previewAnnotationToWearTilePreviewElement
 import com.android.utils.cache.ChangeTracker
 import com.android.utils.cache.ChangeTrackerCachedValue
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.smartReadAction
@@ -41,6 +42,7 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolder
 import com.intellij.openapi.util.removeUserData
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiMethod
@@ -61,6 +63,8 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.resolution.singleConstructorCallOrNull
+import org.jetbrains.kotlin.analysis.api.resolution.symbol
 import org.jetbrains.kotlin.analysis.api.types.KaClassType
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
@@ -321,13 +325,29 @@ private fun Project.javaKotlinAndDumbChangeTrackers() =
  * preview can be using a Multi-Preview declared in another module or library.
  */
 @Slow
-private suspend fun CoroutineScope.isTileAnnotationUsed(project: Project, vFile: VirtualFile): Boolean {
+@VisibleForTesting
+internal suspend fun CoroutineScope.isTileAnnotationUsed(project: Project, vFile: VirtualFile): Boolean {
   val module = vFile.getModule(project) ?: return false
   return cachedAsyncValue(module, isTileAnnotationUsedCacheKey, project.javaKotlinAndDumbChangeTrackers()) {
     smartReadAction(project) {
       val scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module)
-      KotlinAnnotationsIndex[TILE_PREVIEW_ANNOTATION_NAME, project, scope].any() ||
-        JavaAnnotationIndex.getInstance().getAnnotations(TILE_PREVIEW_ANNOTATION_NAME, project, scope).any()
+      if (JavaPsiFacade.getInstance(project).findClass(TILE_PREVIEW_ANNOTATION_FQ_NAME, scope) == null) {
+        return@smartReadAction false
+      }
+
+      val isUsedInKotlinIndex =
+        KotlinAnnotationsIndex[TILE_PREVIEW_ANNOTATION_NAME, project, scope].any {
+          analyze(it) {
+            it.resolveToCall()?.singleConstructorCallOrNull()?.symbol?.containingClassId?.asSingleFqName()?.asString() ==
+              TILE_PREVIEW_ANNOTATION_FQ_NAME
+          }
+        }
+      if (isUsedInKotlinIndex) return@smartReadAction true
+      val isUsedInJavaIndex =
+        JavaAnnotationIndex.getInstance().getAnnotations(TILE_PREVIEW_ANNOTATION_NAME, project, scope).any {
+          it.qualifiedName == TILE_PREVIEW_ANNOTATION_FQ_NAME
+        }
+      return@smartReadAction isUsedInJavaIndex
     }
   }
 }
