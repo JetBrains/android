@@ -27,6 +27,6 @@ fun LeakListView(leakCanaryModel: LeakCanaryModel) {
     val leaks by leakCanaryModel.leaks.collectAsState()
     val isRecording by leakCanaryModel.isRecording.collectAsState()
     val selectedLeak by leakCanaryModel.selectedLeak.collectAsState()
-    LeakListContent(leaks, selectedLeak, isRecording, leakCanaryModel::onLeakSelection)
+    LeakListContent(leaks, selectedLeak, isRecording, leakCanaryModel.isLeakCanaryMilestone2Enabled, leakCanaryModel::onLeakSelection)
   }
 }

@@ -610,6 +610,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return myStreamIdToStreams.getOrDefault(streamId, Common.Stream.getDefaultInstance());
   }
 
+  public long getStreamId(@NotNull Common.Device device) {
+    Long streamId = myDeviceToStreamIds.get(device);
+    return streamId == null ? 0L : streamId;
+  }
+
   @Override
   public void update(long elapsedNs) {
     myEventPollingInternvalNs += elapsedNs;

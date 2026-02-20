@@ -103,8 +103,13 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
   fun startListening() {
     profilers.updater.register(this)
     setIsRecording(true)
-    checkLeakCanaryPresence()
-    checkLeakCanaryThreshold() // TODO(b/460283628): We need to check threshold only when milestone1 flow is selected.
+    if (!isLeakCanaryMilestone2Enabled) {
+      checkLeakCanaryPresence()
+    } else {
+      // TODO: While adding settings change (adding UI for choosing between on_device, on_host shark), code should be changed to pick the
+      // user inputed threshold for on_host shark flow.
+      _retainedObjectThreshold.value = profilers.ideServices.temporaryProfilerPreferences.getInt("LEAKCANARY_THRESHOLD", 5)
+    }
     setObjectRetainedCount(0)
     setAnalysisProgress(0)
     registerLeakCanaryListeners()
@@ -191,36 +196,6 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
         },
       )
     profilers.transportPoller.registerListener(objectCountListener)
-  }
-
-  private fun checkLeakCanaryThreshold() {
-    val command =
-      Commands.Command.newBuilder()
-        .apply {
-          streamId = profilers.session.streamId
-          pid = profilers.session.pid
-          type = Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD
-        }
-        .build()
-
-    profilers.ideServices.poolExecutor.execute {
-      val response = profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build())
-
-      val listener =
-        TransportEventListener(
-          eventKind = Common.Event.Kind.LEAKCANARY_THRESHOLD,
-          executor = profilers.ideServices.poolExecutor,
-          filter = { it.commandId == response.commandId },
-          streamId = { profilers.session.streamId },
-          processId = { profilers.session.pid },
-          callback = { event ->
-            val threshold = event.leakcanaryThreshold.threshold
-            profilers.ideServices.mainExecutor.execute { _retainedObjectThreshold.value = threshold }
-            true // Unregister listener
-          },
-        )
-      profilers.transportPoller.registerListener(listener)
-    }
   }
 
   private fun checkLeakCanaryPresence() {

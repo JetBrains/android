@@ -178,19 +178,26 @@ object TaskSelectionVerificationUtils {
     selectedProcess: Common.Process,
     taskHandlers: Map<ProfilerTaskType, ProfilerTaskHandler>,
   ): StartTaskSelectionError {
-    assert(!canTaskStartFromNow(selectedTaskType, selectedDevice, selectedProcess, taskHandlers))
+    // LeakCanary's pre-start check is asynchronous and stateful, meaning its state can change
+    // independently of the UI thread. Due to the highly reactive nature of the UI, there is a tiny
+    // race condition where the IDE might query this error method a millisecond after the state flips
+    // to PRESENT (meaning the task *can* start). We bypass the assertion for LeakCanary to prevent
+    // Android Studio from crashing in debug mode during this race condition.
+    if (selectedTaskType != ProfilerTaskType.LEAKCANARY) {
+      assert(!canTaskStartFromNow(selectedTaskType, selectedDevice, selectedProcess, taskHandlers))
+    }
     assert(areSelectionsValid(selectedTaskType, selectedDevice, selectedProcess))
     if (!isDeviceSelectionOnline(selectedDevice!!)) {
       return StartTaskSelectionError(StartTaskSelectionErrorCode.DEVICE_SELECTION_IS_OFFLINE)
     }
 
+    if (selectedProcess.state == Common.Process.State.DEAD) {
+      return StartTaskSelectionError(StartTaskSelectionErrorCode.TASK_FROM_NOW_USING_DEAD_PROCESS)
+    }
+
     val supportsDeviceAndProcess = taskHandlers[selectedTaskType]!!.checkSupportForDeviceAndProcess(selectedDevice.device, selectedProcess)
     if (supportsDeviceAndProcess != null) {
       return supportsDeviceAndProcess
-    }
-
-    if (selectedProcess.state == Common.Process.State.DEAD) {
-      return StartTaskSelectionError(StartTaskSelectionErrorCode.TASK_FROM_NOW_USING_DEAD_PROCESS)
     }
 
     return StartTaskSelectionError(StartTaskSelectionErrorCode.GENERAL_ERROR)
@@ -211,7 +218,14 @@ object TaskSelectionVerificationUtils {
     profilers: StudioProfilers,
   ): StartTaskSelectionError {
     // The rest of the code can now assume there is some error.
-    assert(!canStartTask(selectedTaskType, selectedDevice, selectedProcess, profilingProcessStartingPoint, profilers))
+    // LeakCanary's pre-start check is asynchronous and stateful, meaning its state can change
+    // independently of the UI thread. Due to the highly reactive nature of the UI, there is a tiny
+    // race condition where the IDE might query this error method a millisecond after the state flips
+    // to PRESENT (meaning the task *can* start). We bypass the assertion for LeakCanary to prevent
+    // Android Studio from crashing in debug mode during this race condition.
+    if (selectedTaskType != ProfilerTaskType.LEAKCANARY) {
+      assert(!canStartTask(selectedTaskType, selectedDevice, selectedProcess, profilingProcessStartingPoint, profilers))
+    }
     return if (!isDeviceSelectionValid(selectedDevice)) {
       StartTaskSelectionError(StartTaskSelectionErrorCode.INVALID_DEVICE)
     } else if (!isProcessSelectionValid(selectedProcess)) {
@@ -256,6 +270,9 @@ data class StartTaskSelectionError(val startTaskSelectionErrorCode: StartTaskSel
     DEVICE_SELECTION_IS_OFFLINE,
     TASK_REQUIRES_DEBUGGABLE_PROCESS,
     NO_STARTING_POINT_SELECTED,
+    LEAKCANARY_NOT_FOUND,
+    LEAKCANARY_CHECK_IN_PROGRESS,
+    LEAKCANARY_CHECK_TIMEOUT,
     // Generalized error to cover the rest of task start errors.
     GENERAL_ERROR,
   }

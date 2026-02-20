@@ -335,17 +335,12 @@ class LeakCanaryModelTest : WithFakeTimer {
 
   @Test
   fun `checkLeakCanaryThreshold updates state`() {
+    ideProfilerServices.enableLeakCanaryMilestone2(true)
+    ideProfilerServices.temporaryProfilerPreferences.setInt("LEAKCANARY_THRESHOLD", 10)
+
     transportService.setCommandHandler(
       Commands.Command.CommandType.START_LEAKCANARY_TASK,
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0),
-    )
-    transportService.setCommandHandler(
-      Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
-      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0),
-    )
-    transportService.setCommandHandler(
-      Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD,
-      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0, retainedObjectThreshold = 10),
     )
     transportService.setCommandHandler(
       Commands.Command.CommandType.STOP_LEAKCANARY_TASK,
@@ -447,13 +442,22 @@ class LeakCanaryModelTest : WithFakeTimer {
   @Test
   fun `requestStopRecording with retained objects triggers dump and waits`() {
     // Setup command handlers to avoid errors
-    transportService.setCommandHandler(Commands.Command.CommandType.START_LEAKCANARY_TASK, FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0))
-    transportService.setCommandHandler(Commands.Command.CommandType.STOP_LEAKCANARY_TASK, FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0))
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.START_LEAKCANARY_TASK,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0),
+    )
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.STOP_LEAKCANARY_TASK,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0),
+    )
     transportService.setCommandHandler(
       Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD,
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0),
     )
-    transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT, FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0))
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0),
+    )
 
     stage.startListening()
     stage.setObjectRetainedCount(1)
@@ -484,13 +488,22 @@ class LeakCanaryModelTest : WithFakeTimer {
   @Test
   fun `requestStopRecording with no retained objects stops immediately`() {
     // Setup
-    transportService.setCommandHandler(Commands.Command.CommandType.START_LEAKCANARY_TASK, FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0))
-    transportService.setCommandHandler(Commands.Command.CommandType.STOP_LEAKCANARY_TASK, FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0))
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.START_LEAKCANARY_TASK,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0),
+    )
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.STOP_LEAKCANARY_TASK,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0),
+    )
     transportService.setCommandHandler(
       Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD,
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0),
     )
-    transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT, FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0))
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0),
+    )
 
     stage.startListening()
     stage.setObjectRetainedCount(0)
