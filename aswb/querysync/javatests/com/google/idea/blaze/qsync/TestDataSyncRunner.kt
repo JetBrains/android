@@ -85,6 +85,7 @@ class TestDataSyncRunner(private val context: Context<*>, private val javaPackag
             BuildGraphData.ProtoRules.forTests(),
           )
           .parse(),
+      projectStructureData = initializeProjectStructureData(buildGraphData),
       artifactState = ArtifactTracker.State.EMPTY,
       project = project,
       incompleteTargets = emptySet(),

@@ -238,7 +238,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
         }
       } else {
         updateCurrentSnapshot(context) {
-          applySyncResult(assertProjectLoaded().analyzePostQuerySyncData(context, existingPostQuerySyncData))
+          applySyncResult(assertProjectLoaded().computeCoreSyncResult(context, existingPostQuerySyncData))
         }
       }
       val buildTriggered = autoEnableCodeAnalysis(context, startup = true)
@@ -479,6 +479,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     if (
       lastProjectUpdateFromSnapshot.queryData == newSnapshot.queryData &&
         lastProjectUpdateFromSnapshot.graph == newSnapshot.graph &&
+        lastProjectUpdateFromSnapshot.projectStructureData == newSnapshot.projectStructureData &&
         lastProjectUpdateFromArtifactState == newArtifactState
     ) {
       context.output(PrintOutput("No changes found. Not updating the project structure."))
@@ -486,7 +487,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     }
     val loadedProject = assertProjectLoaded()
     val snapshot = currentSnapshot.getOrDefault(QuerySyncProjectSnapshot.EMPTY)
-    val result = loadedProject.createProjectStructure(context, snapshot.queryData, snapshot.graph)
+    val result = loadedProject.createProjectStructure(context, snapshot.queryData, snapshot.graph, snapshot.projectStructureData)
     val updatedSnapshot =
       onNewSnapshot(
         context,
@@ -495,6 +496,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
           artifactState = result.artifactState,
           queryData = snapshot.queryData,
           graph = snapshot.graph,
+          projectStructureData = snapshot.projectStructureData,
           project = result.projectStructure,
           incompleteTargets = emptySet(),
         ),
@@ -819,5 +821,5 @@ fun QuerySyncManager.updateCurrentSnapshot(context: BlazeContext, mutator: Query
 }
 
 fun QuerySyncProjectSnapshot.applySyncResult(coreSyncResult: QuerySyncProject.CoreSyncResult): QuerySyncProjectSnapshot {
-  return copy(queryData = coreSyncResult.postQuerySyncData, graph = coreSyncResult.graph)
+  return copy(queryData = coreSyncResult.postQuerySyncData, graph = coreSyncResult.graph, projectStructureData = coreSyncResult.projectStructureData)
 }

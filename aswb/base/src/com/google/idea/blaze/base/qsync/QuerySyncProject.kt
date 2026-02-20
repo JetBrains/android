@@ -43,6 +43,7 @@ import com.google.idea.blaze.qsync.project.PostQuerySyncData
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
+import com.google.idea.blaze.qsync.project.ProjectStructureData
 import com.google.idea.blaze.qsync.project.TargetsToBuild
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import com.intellij.openapi.project.Project
@@ -115,7 +116,9 @@ class QuerySyncProject(
       return projectData
     }
 
-  @JvmRecord data class CoreSyncResult(val postQuerySyncData: PostQuerySyncData, val graph: BuildGraphData)
+
+
+  @JvmRecord data class CoreSyncResult(val postQuerySyncData: PostQuerySyncData, val graph: BuildGraphData, val projectStructureData: ProjectStructureData)
 
   @Throws(BuildException::class)
   fun syncCore(context: BlazeContext, lastQuery: PostQuerySyncData?): CoreSyncResult {
@@ -123,12 +126,13 @@ class QuerySyncProject(
     val postQuerySyncData =
       if (lastQuery == null) projectQuerier.fullQuery(projectDefinition, context)
       else projectQuerier.update(projectDefinition, lastQuery, context)
-    return analyzePostQuerySyncData(context, postQuerySyncData)
+    return computeCoreSyncResult(context, postQuerySyncData)
   }
 
-  fun analyzePostQuerySyncData(context: BlazeContext, postQuerySyncData: PostQuerySyncData): CoreSyncResult {
+  fun computeCoreSyncResult(context: BlazeContext, postQuerySyncData: PostQuerySyncData): CoreSyncResult {
     val graph = buildGraphData(postQuerySyncData, context)
-    return CoreSyncResult(postQuerySyncData, graph)
+    val projectStructureData = projectBuilder.readProjectStructure(context, postQuerySyncData, graph)
+    return CoreSyncResult(postQuerySyncData, graph, projectStructureData)
   }
 
   /**
@@ -220,10 +224,10 @@ class QuerySyncProject(
 
   class CreateProjectStructureResult(val projectStructure: ProjectProto.Project, val artifactState: ArtifactTracker.State)
 
-  fun createProjectStructure(context: BlazeContext, queryData: PostQuerySyncData, graph: BuildGraphData): CreateProjectStructureResult {
+  fun createProjectStructure(context: BlazeContext, queryData: PostQuerySyncData, graph: BuildGraphData, projectStructureData: ProjectStructureData): CreateProjectStructureResult {
     val artifactTrackerState = artifactTracker.getStateSnapshot()
     val newProjectStructure =
-      projectBuilder.createBlazeProjectStructure(context, queryData, graph, artifactTrackerState, projectProtoUpdateOperations)
+      projectBuilder.createBlazeProjectStructure(context, queryData, graph, projectStructureData, artifactTrackerState, projectProtoUpdateOperations)
     return CreateProjectStructureResult(newProjectStructure, artifactTrackerState)
   }
 

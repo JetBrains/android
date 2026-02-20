@@ -25,16 +25,36 @@ import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.PostQuerySyncData
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
+import com.google.idea.blaze.qsync.project.ProjectStructureData
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import java.nio.file.Path
 
-/** Project refresher creates an appropriate [RefreshOperation] based on the project and current VCS state. */
+/**
+ * Responsible for constructing the [ProjectProto.Project] for the IDE.
+ *
+ * It orchestrates the reading of the project structure (either from the build graph or via
+ * directory traversal) and conversion to the proto format.
+ */
 class ProjectBuilder(
   private val packageReader: PackageReader,
   private val parallelPackageReader: PackageReader.ParallelReader,
+  private val projectStructureReader: ProjectStructureReader,
   private val workspaceRoot: Path,
+  private val readProjectStructureFromDirectory: Boolean,
 ) {
+
+  fun readProjectStructure(
+    context: Context<*>,
+    postQuerySyncData: PostQuerySyncData,
+    graph: BuildGraphData,
+  ): ProjectStructureData {
+    return if (readProjectStructureFromDirectory) {
+      projectStructureReader.read(context, workspaceRoot, postQuerySyncData.projectDefinition())
+    } else {
+      GraphToProjectConverter.initializeProjectStructureData(graph)
+    }
+  }
 
   /**
    * Creates a [QuerySyncProjectSnapshot], which includes an expected IDE project structure, from the `postQuerySyncData` and a function
@@ -45,6 +65,7 @@ class ProjectBuilder(
     context: Context<*>,
     postQuerySyncData: PostQuerySyncData,
     graph: BuildGraphData,
+    projectStructureData: ProjectStructureData,
     artifactTrackerState: ArtifactTracker.State,
     projectProtoUpdates: Collection<ProjectProtoUpdateOperation>,
   ): ProjectProto.Project {
@@ -61,11 +82,7 @@ class ProjectBuilder(
     val externalRepositoryFinder = ProjectPath.ExternalRepositoryFinder.createAndPrepare(workspaceRoot)
 
     val update = ProjectProtoUpdate(ProjectProto.Project.getDefaultInstance())
-   graphToProjectConverter.configureProject(
-      GraphToProjectConverter.initializeProjectStructureData(graph),
-      externalRepositoryFinder,
-      update,
-    )
+    graphToProjectConverter.configureProject(projectStructureData, externalRepositoryFinder, update)
     graphToProjectConverter.configureProject(graph, externalRepositoryFinder, update)
     ConfigureCcSources().update(update, graph, context)
     for (updateOperation in projectProtoUpdates) {
