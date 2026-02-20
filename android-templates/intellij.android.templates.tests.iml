@@ -89,6 +89,7 @@
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.flags" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.flags" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.templates" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.codeStyle" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.templates" />
 </module>

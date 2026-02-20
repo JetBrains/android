@@ -86,5 +86,7 @@
     <orderEntry type="module" module-name="intellij.android.designer" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.designer.gradle" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.common" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.platform.analysis" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.codeStyle" scope="TEST" />
   </component>
 </module>

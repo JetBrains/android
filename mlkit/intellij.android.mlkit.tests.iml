@@ -50,5 +50,6 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.observable" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
+    <orderEntry type="module" module-name="intellij.platform.lang.core" scope="TEST" />
   </component>
 </module>

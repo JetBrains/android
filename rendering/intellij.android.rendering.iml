@@ -29,5 +29,6 @@
     <orderEntry type="module" module-name="intellij.platform.util.base" />
     <orderEntry type="module" module-name="intellij.platform.util.rt" />
     <orderEntry type="library" name="layoutlib" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.fastutil" />
   </component>
 </module>

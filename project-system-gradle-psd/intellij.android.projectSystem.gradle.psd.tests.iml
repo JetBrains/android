@@ -57,5 +57,7 @@
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.ide" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinx.datetime" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.flags" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.lang" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.lang.core" scope="TEST" />
   </component>
 </module>

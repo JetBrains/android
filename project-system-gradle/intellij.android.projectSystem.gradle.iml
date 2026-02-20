@@ -181,5 +181,7 @@
     <orderEntry type="module" module-name="intellij.platform.util.classLoader" />
     <orderEntry type="module" module-name="intellij.java.guiForms.rt" />
     <orderEntry type="module" module-name="intellij.gradle.java.groovy" />
+    <orderEntry type="module" module-name="intellij.android.observable" />
+    <orderEntry type="module" module-name="intellij.platform.locking.impl" />
   </component>
 </module>

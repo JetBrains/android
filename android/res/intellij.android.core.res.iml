@@ -88,5 +88,7 @@
     <orderEntry type="module" module-name="intellij.kotlin.base.plugin" scope="TEST" />
     <orderEntry type="module" module-name="intellij.kotlin.refactorings" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="javapoet" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.fastutil" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.concurrency" scope="TEST" />
   </component>
 </module>
