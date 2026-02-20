@@ -33,6 +33,7 @@ import com.intellij.psi.PsiManager
 import com.intellij.testFramework.LoggedErrorProcessor
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
+import java.util.Collections
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -155,7 +156,6 @@ class CoroutineUtilsTest {
     textUpdated.await(2, TimeUnit.SECONDS)
   }
 
-  @Ignore("b/485747956")
   @Test
   fun exceptionHandler() {
     class FooManager : UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware {
@@ -166,7 +166,7 @@ class CoroutineUtilsTest {
       fun compute2() = launch(CoroutineName("computing")) { error("expected failure") }
     }
 
-    val messages = mutableListOf<String>()
+    val messages = Collections.synchronizedList(mutableListOf<String>())
 
     LoggedErrorProcessor.executeWith<RuntimeException>(
       object : LoggedErrorProcessor() {
@@ -179,11 +179,13 @@ class CoroutineUtilsTest {
       val fooManager = FooManager()
       Disposer.register(projectRule.project, fooManager)
 
-      fooManager.compute1()
-      fooManager.compute2()
+      val job1 = fooManager.compute1()
+      val job2 = fooManager.compute2()
 
-      workerExecutor.shutdown()
-      workerExecutor.awaitTermination(2, TimeUnit.SECONDS)
+      runBlocking {
+        job1.join()
+        job2.join()
+      }
       assertThat(messages).containsExactly("expected failure", "computing")
     }
   }
