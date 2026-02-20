@@ -180,7 +180,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-common_2.2.0",  # Used by com.android.tools.idea.benchmarks.tests.JetNewsBenchmarkTest
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-common_2.2.21",  # Used by com.android.tools.idea.benchmarks.tests.JetNewsBenchmarkTest
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-common_2.3.0",  # Used by com.android.tools.idea.benchmarks.tests.JetNewsBenchmarkTest
-        "@maven//:org.jetbrains.kotlin.plugin.parcelize.org.jetbrains.kotlin.plugin.parcelize.gradle.plugin_2.3.20-Beta1",  # Used by com.android.tools.idea.benchmarks.tests.JetNewsBenchmarkTest
+        "@maven//:org.jetbrains.kotlin.plugin.parcelize.org.jetbrains.kotlin.plugin.parcelize.gradle.plugin_2.3.20-RC",  # Used by com.android.tools.idea.benchmarks.tests.JetNewsBenchmarkTest
         "@maven//:org.mockito.mockito-core_5.12.0",
     ],
 )
