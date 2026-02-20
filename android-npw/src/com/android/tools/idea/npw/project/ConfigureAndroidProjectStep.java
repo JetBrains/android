@@ -35,6 +35,7 @@ import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gemini.GeminiPluginApi;
 import com.android.tools.idea.gradle.plugin.AgpVersions;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.npw.model.AgpVersionSelector;
@@ -337,7 +338,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       myProjectModel.getApplicationName().set("My Watch Face");
     }
 
-    generateAppNamePanel.setVisible(StudioFlags.GEMINI_NEW_PROJECT_AGENT.get() && newTemplate.getFlags().contains(TemplateFlag.NewProjectAgent));
+    generateAppNamePanel.setVisible(StudioFlags.GEMINI_NEW_PROJECT_AGENT.get() && newTemplate.getFlags().contains(TemplateFlag.NewProjectAgent) && GeminiPluginApi.Companion.getInstance().isAvailable());
   }
 
   @Override
