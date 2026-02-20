@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.ai
 
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.insights.CONNECTION1
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.testing.ui.FakeToolWindow
@@ -41,7 +41,7 @@ class GeminiAiInsightsOnboardingProviderTest {
 
   @Before
   fun setUp() {
-    scope = AndroidCoroutineScope(projectRule.disposable)
+    scope = projectRule.disposable.createCoroutineScope()
     geminiToolWindow = createFakeToolWindow(projectRule.project, projectRule.disposable, GEMINI_TOOL_WINDOW_ID)
   }
 
