@@ -91,8 +91,19 @@ class CpuTreeNodeTest {
 
     companion object {
       /**
-       * Creates a test to be used for testing. The shape of the tree is as follows: 0123456789012345678901234567890 A
-       * |-----------------------------| +- B |-------| | +-D |-| | +-E |-| +- C |-----| | +-F |-| +- B |------| +-E |--| +-G |---|
+       * <pre>
+       * Creates a test to be used for testing. The shape of the tree is as follows:
+       * 0123456789012345678901234567890
+       * A          |-----------------------------|
+       * +- B        |-------|
+       * |  +-D        |-|
+       * |  +-E            |-|
+       * +- C                    |-----|
+       * |  +-F                  |-|
+       * +- B                             |------|
+       * +-E                           |--|
+       * +-G                              |---|
+       * </pre>
        */
       fun createTree(): CaptureNode {
         val root = newNode("A", 0, 30)
@@ -157,7 +168,14 @@ class CpuTreeNodeTest {
       traverseAndCheck(createComplexTree(), expectedNodes)
     }
 
-    /** The structure of the tree: main [0..20] -> A [0..10] -> B [2..7] -> C [3..4] -> B [15..20] */
+    /**
+     * <pre>
+     * The structure of the tree:
+     * main [0..20]
+     * -> A [0..10] -> B [2..7] -> C [3..4]
+     * -> B [15..20]
+     * </pre>
+     */
     @Test
     fun testNodeHasManyDirectCallers() {
       val expectedNodes =
@@ -198,7 +216,12 @@ class CpuTreeNodeTest {
       assertThat(node.children.none { it.id == root.data.id }).isTrue()
     }
 
-    /** The structure of the tree: main [0..20] -> A [0..15] -> B [3..13] -> B [5..10] -> B [5..7] */
+    /**
+     * <pre>
+     * The structure of the tree:
+     * main [0..20] -> A [0..15] -> B [3..13] -> B [5..10] -> B [5..7]
+     * </pre>
+     */
     @Test
     fun testDirectRecursion() {
       val expectedNodes =
@@ -223,7 +246,12 @@ class CpuTreeNodeTest {
       traverseAndCheck(root, expectedNodes)
     }
 
-    /** The structure of the tree: main [0..30] -> A [5..25] -> B [5..20] -> A [10..20] -> B [15..16] */
+    /**
+     * <pre>
+     * The structure of the tree:
+     * main [0..30] -> A [5..25] -> B [5..20] -> A [10..20] -> B [15..16]
+     * </pre>
+     */
     @Test
     fun testIndirectRecursion() {
       val expectedNodes =
@@ -251,7 +279,14 @@ class CpuTreeNodeTest {
       traverseAndCheck(root, expectedNodes)
     }
 
-    /** The structure of the tree: main [0..40] -> A [0..25] -> B [0..20] -> C [5..15] -> D [30..40] -> C [30..35] -> B [30..33] */
+    /**
+     * <pre>
+     * The structure of the tree:
+     * main [0..40]
+     * -> A [0..25] -> B [0..20] -> C [5..15]
+     * -> D [30..40] -> C [30..35] -> B [30..33]
+     * </pre>
+     */
     @Test
     fun testStaticRecursion() {
       val expectedNodes =
@@ -286,11 +321,17 @@ class CpuTreeNodeTest {
     }
 
     /**
-     * The structure of the tree: main -> A [0..100] -> A [0..40] -> A [0..20] -> B [21..40] -> A [25..28] -> B [45..100] -> A [50..70] -> B
-     * [55..65]
+     * <pre>
+     * The structure of the tree:
+     * main
+     * -> A [0..100]  -> A [0..40]  -> A [0..20]
+     * -> B [21..40]  -> A [25..28]
+     * -> B [45..100] -> A [50..70] -> B [55..65]
      *
-     * From the structure of call tree above, we can infer that the top of the call stack looks like (including the timestamps and method
-     * name): 0 - A - 20 - A - 21 - B - 25 - A - 28 - B - 40 - A - 45 - B - 50 - A - 55 - B - 65 - A - 70 - B - 100
+     * From the structure of call tree above, we can infer that the top of the call stack looks like
+     * (including the timestamps and method name):
+     * 0 - A - 20 - A - 21 - B - 25 - A - 28 - B - 40 - A - 45 - B - 50 - A - 55 - B - 65 - A - 70 - B - 100
+     * </pre>
      */
     @Test
     fun testPartialRangeWithMixedTwoMethods() {
@@ -317,9 +358,17 @@ class CpuTreeNodeTest {
     }
 
     /**
-     * The structure of the tree: main [0..100] -> A* [0..50] -> B* [0..50] -> A [51..100] -> B [51..75] -> B* [76..99]
+     * <pre>
+     * The structure of the tree:
+     * main [0..100]
+     * -> A* [0..50]
+     * -> B* [0..50]
+     * -> A  [51..100]
+     * -> B  [51..75]
+     * -> B* [76..99]
      *
      * where A* and B* unmatched nodes.
+     * </pre>
      */
     @Test
     fun testWithUnmatchedNodes() {

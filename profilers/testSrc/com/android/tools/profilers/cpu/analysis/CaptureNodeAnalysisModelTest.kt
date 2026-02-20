@@ -94,10 +94,18 @@ class CaptureNodeAnalysisModelTest {
     private const val EPSILON = 0.001
     /**
      * Build a capture node tree with different timestamp.
-     *
-     * Name Start-End (us) Duration
+     * <pre>
+     * Name    Start-End (us) Duration
      * -------------------------------
-     * Root ( 0-99) 99 |-Foo ( 0-35) 35 |-Bar ( 0-10) 10 |-Bar (20-35) 15 |-Foo (40-90) 50 |-Bar (40-45) 5 |-Bar (50-51) 1 |-Bar (55-90) 35
+     * Root    ( 0-99)        99
+     * |-Foo   ( 0-35)        35
+     *   |-Bar ( 0-10)        10
+     *   |-Bar (20-35)        15
+     * |-Foo   (40-90)        50
+     *   |-Bar (40-45)         5
+     *   |-Bar (50-51)         1
+     *   |-Bar (55-90)        35
+     * </pre>
      */
     private val BAR_11 =
       CaptureNode(SingleNameModel("Bar")).apply {
