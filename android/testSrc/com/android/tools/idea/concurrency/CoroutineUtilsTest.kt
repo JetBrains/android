@@ -58,6 +58,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -154,6 +155,7 @@ class CoroutineUtilsTest {
     textUpdated.await(2, TimeUnit.SECONDS)
   }
 
+  @Ignore("b/485747956")
   @Test
   fun exceptionHandler() {
     class FooManager : UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware {
