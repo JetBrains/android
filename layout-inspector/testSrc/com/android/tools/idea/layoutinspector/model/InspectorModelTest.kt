@@ -37,6 +37,8 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.runInEdtAndWait
 import java.util.Collections
 import java.util.IdentityHashMap
 import java.util.concurrent.CountDownLatch
@@ -232,6 +234,7 @@ class InspectorModelTest {
     val origNodes = model.root.flattenedList().associateBy { it.drawId }
 
     model.update(newWindow, listOf(ROOT), 0)
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
     assertThat(isModified).isTrue()
     assertThat(model.selection).isNull()
     assertThat(model.hoveredNode).isNull()
@@ -276,6 +279,7 @@ class InspectorModelTest {
     val origNodes = model.root.flattenedList().associateBy { it.drawId }
 
     model.update(newWindow, listOf(ROOT), 0)
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
     assertThat(model.maxRecomposition.count).isEqualTo(35)
     assertThat(model.maxRecomposition.skips).isEqualTo(52)
     assertThat(isModified).isTrue()
@@ -325,6 +329,7 @@ class InspectorModelTest {
 
     // remove a window
     model.update(null, listOf(VIEW2), 0)
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
     assertThat(children(model.root).map { it.drawId }).isEqualTo(listOf(VIEW2))
     assertThat(model[VIEW1]).isNull()
     assertThat(model[VIEW3]).isNotNull()
