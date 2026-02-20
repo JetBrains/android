@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.run.editor;
 
-import static com.android.tools.idea.instantapp.InstantApps.findFeatureModules;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.instantapp.InstantAppUrlFinder;
 import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.module.Module;
@@ -66,14 +64,6 @@ public class DeepLinkChooserDialog extends DialogWrapper {
       XmlFile manifest = getAndroidManifestPsi(module);
       if (manifest != null) {
         deepLinks.addAll(getAllDeepLinks(manifest.getRootTag()));
-      }
-
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        List<Module> featureModules = findFeatureModules(facet);
-        for (Module featureModule : featureModules) {
-          deepLinks.addAll(new InstantAppUrlFinder(featureModule).getAllUrls());
-        }
       }
     }
     myList = new JBList((Object[])ArrayUtil.toStringArray(deepLinks));

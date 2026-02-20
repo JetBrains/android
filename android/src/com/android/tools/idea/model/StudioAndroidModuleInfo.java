@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.model;
 
-import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
 import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryMinSdkAndTargetSdkFromManifestIndex;
 import static com.android.tools.idea.util.DumbServiceUtilKt.uiSafeRunReadActionInSmartMode;
 

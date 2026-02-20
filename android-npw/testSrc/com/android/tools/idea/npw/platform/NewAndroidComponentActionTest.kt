@@ -194,15 +194,6 @@ class NewAndroidComponentActionTest {
   }
 
   @Test
-  fun featureTypePresentationShouldBeEnabledForIapp() {
-    mySelectedAndroidFacet.configuration.projectType = AndroidProjectTypes.PROJECT_TYPE_FEATURE
-
-    NewAndroidComponentAction(Category.Other, "templateName", 0).update(myActionEvent)
-
-    assertThat(myActionEvent.presentation.isEnabled).isTrue()
-  }
-
-  @Test
   fun verifyTemplateDialog() {
     mySelectedAndroidFacet.configuration.projectType = AndroidProjectTypes.PROJECT_TYPE_APP
 
