@@ -54,7 +54,7 @@ class DeclarativeAnnotator : Annotator {
     if (element !is DeclarativeElement) return
 
     fun getSchema(): BuildDeclarativeSchemas? {
-      val schema = DeclarativeService.getInstance(element.project).getDeclarativeSchema() ?: return null
+      val schema = DeclarativeService.getInstance(element.project).getDeclarativeSchema(element) ?: return null
       return schema
     }
 

@@ -52,6 +52,10 @@ enum class DeclarativeTestProject(
   DECLARATIVE_ANDROID(
     TestProjectToSnapshotPaths.DECLARATIVE_ANDROID,
     isCompatibleWith = { it == AGP_DECLARATIVE_GRADLE_SNAPSHOT || it == AGP_CURRENT },
+  ),
+  DECLARATIVE_ANDROID_INCLUDED_BUILD(
+    TestProjectToSnapshotPaths.DECLARATIVE_ANDROID_INCLUDED_BUILD,
+    isCompatibleWith = { it == AGP_DECLARATIVE_GRADLE_SNAPSHOT || it == AGP_CURRENT },
   );
 
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"

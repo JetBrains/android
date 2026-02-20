@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.declarative
 
+import com.android.tools.idea.gradle.dcl.lang.ide.BuildDeclarativeSchemas
 import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeService
 import com.android.tools.idea.gradle.dcl.lang.sync.BlockFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.BuildDeclarativeSchema
@@ -44,6 +45,7 @@ import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.SnapshotContext
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.intellij.openapi.project.Project
+import com.jetbrains.rd.util.first
 import java.io.File
 
 /**
@@ -90,7 +92,7 @@ enum class ArrayStatus {
 }
 
 fun Project.dumpDeclarativeSchemaModel(): String {
-  val schema = DeclarativeService.getInstance(this).getDeclarativeSchema()
+  val schemas = DeclarativeService.getInstance(this).getAllDeclarativeSchema()
   return buildString {
     var prefix = ""
     var arrayStatus = ArrayStatus.NO_ARRAY
@@ -240,8 +242,23 @@ fun Project.dumpDeclarativeSchemaModel(): String {
       nest("RootFunctions:") { topLevelFunctions.entries.sortedBy { it.key }.forEach { nest(it.key) { it.value.dump() } } }
     }
 
-    nest("Projects:") { schema?.projects?.sortedBy { it.getRootReceiver().name.name }?.forEach { nest("ProjectSchema:") { it.dump() } } }
+    fun BuildDeclarativeSchemas.writeSchema() {
+      nest("Projects:") { this.projects.sortedBy { it.getRootReceiver().name.name }.forEach { nest("ProjectSchema:") { it.dump() } } }
 
-    nest("Settings:") { schema?.settings?.sortedBy { it.getRootReceiver().name.name }?.forEach { nest("Settings Schema:") { it.dump() } } }
+      nest("Settings:") { this.settings.sortedBy { it.getRootReceiver().name.name }.forEach { nest("Settings Schema:") { it.dump() } } }
+    }
+
+    if (schemas.size == 1) {
+      schemas.first().value.writeSchema()
+    } else {
+      // assuming parent project has the shortest path and all others are embedded.
+      val parent = schemas.keys.minByOrNull { it.length }!!
+      nest("Main Project:") { schemas[parent]!!.writeSchema() }
+      schemas.forEach {
+        if (it.key != parent) {
+          nest("Internal Project ${it.key.drop(parent.length + 1)}:") { it.value.writeSchema() }
+        }
+      }
+    }
   }
 }

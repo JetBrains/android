@@ -71,7 +71,7 @@ private fun findProperty(clazz: PsiClass, propertyName: String): PsiElement? {
 }
 
 private fun findDslElementClassName(path: List<String>, element: DeclarativeIdentifier): String? {
-  val schema = DeclarativeService.getInstance(element.project).getDeclarativeSchema() ?: return null
+  val schema = DeclarativeService.getInstance(element.project).getDeclarativeSchema(element) ?: return null
   val fileName = element.containingFile.name
 
   fun extractFqName(receivers: List<EntryWithContext>): String =

@@ -25,6 +25,7 @@ import java.io.File
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.serialization.SchemaSerialization
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
 
 val TEST_DATA_RELATIVE_PATH = "tools/adt/idea/gradle-declarative-lang-ide/testData/schemas"
@@ -58,6 +59,6 @@ fun registerTestDeclarativeServicePatchedSchema(project: Project, disposable: Di
 private fun registerTestDeclarativeService(project: Project, schemaPath: String, disposable: Disposable) {
   val mockService = mock(DeclarativeService::class.java)
   val schema = createTestDeclarativeSchemas(schemaPath)
-  whenever(mockService.getDeclarativeSchema()).thenReturn(schema)
+  whenever(mockService.getDeclarativeSchema(any())).thenReturn(schema)
   project.replaceService(DeclarativeService::class.java, mockService, disposable)
 }

@@ -27,8 +27,13 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VfsUtilCore.urlToPath
+import com.intellij.psi.PsiElement
+import com.intellij.workspaceModel.ide.legacyBridge.findModuleEntity
 import java.io.Serializable
+import org.jetbrains.plugins.gradle.model.projectModel.gradleModuleEntity
 import org.jetbrains.plugins.gradle.util.GradleConstants
 
 @Service(Service.Level.PROJECT)
@@ -38,16 +43,45 @@ class DeclarativeService(val project: Project) {
     fun getInstance(project: Project) = project.service<DeclarativeService>()
   }
 
-  fun getDeclarativeSchema(): BuildDeclarativeSchemas? {
+  @Suppress("UnstableApiUsage")
+  fun getDeclarativeSchema(context: PsiElement): BuildDeclarativeSchemas? {
     if (!DeclarativeIdeSupport.isEnabled()) return null
-    val externalProjectPath: String = project.basePath ?: return null
-    val projectInfo = ProjectDataManager.getInstance().getExternalProjectData(project, GradleConstants.SYSTEM_ID, externalProjectPath)
+    val module = ModuleUtilCore.findModuleForPsiElement(context) ?: return null
+    val rootProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(module) ?: return null
+    val projectInfo = ProjectDataManager.getInstance().getExternalProjectData(project, GradleConstants.SYSTEM_ID, rootProjectPath)
+
     val projectStructure = projectInfo?.externalProjectStructure ?: return null
     val projectSchemas = ExternalSystemApiUtil.find(projectStructure, GradleSchemaProjectResolver.DECLARATIVE_PROJECT_SCHEMAS)
     val settingsSchemas = ExternalSystemApiUtil.find(projectStructure, GradleSchemaProjectResolver.DECLARATIVE_SETTINGS_SCHEMAS)
-    return if (projectSchemas != null && settingsSchemas != null)
-      BuildDeclarativeSchemas(settingsSchemas.data.settings, projectSchemas.data.projects)
-    else null
+
+    val buildId = module.findModuleEntity()?.gradleModuleEntity?.gradleProjectId?.buildId ?: return null
+    val snapshot = com.intellij.platform.backend.workspace.WorkspaceModel.getInstance(project).currentSnapshot
+    val urlStr = snapshot.resolve(buildId)?.url?.url
+    val externalProjectPath = urlStr?.let { urlToPath(it) } ?: project.basePath
+
+    val projects = projectSchemas?.data?.projectsByBuildPath?.get(externalProjectPath) ?: emptySet()
+    val settings = settingsSchemas?.data?.settingsByBuildPath?.get(externalProjectPath) ?: emptySet()
+
+    return if (projects.isNotEmpty() || settings.isNotEmpty()) BuildDeclarativeSchemas(settings, projects) else null
+  }
+
+  fun getAllDeclarativeSchema(): Map<String, BuildDeclarativeSchemas> {
+    val rootProjectPath = project.basePath ?: return mapOf()
+    val projectInfo = ProjectDataManager.getInstance().getExternalProjectData(project, GradleConstants.SYSTEM_ID, rootProjectPath)
+
+    val projectStructure = projectInfo?.externalProjectStructure ?: return mapOf()
+    val projectSchemas = ExternalSystemApiUtil.find(projectStructure, GradleSchemaProjectResolver.DECLARATIVE_PROJECT_SCHEMAS)
+    val settingsSchemas = ExternalSystemApiUtil.find(projectStructure, GradleSchemaProjectResolver.DECLARATIVE_SETTINGS_SCHEMAS)
+
+    val keys = projectSchemas?.data?.projectsByBuildPath?.keys
+
+    return keys
+      ?.mapNotNull { path ->
+        val projects = projectSchemas.data.projectsByBuildPath[path] ?: emptySet()
+        val settings = settingsSchemas?.data?.settingsByBuildPath?.get(path) ?: emptySet()
+        if (projects.isNotEmpty() || settings.isNotEmpty()) Pair(path, BuildDeclarativeSchemas(settings, projects)) else null
+      }
+      ?.toMap() ?: mapOf()
   }
 }
 

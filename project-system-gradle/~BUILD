@@ -197,6 +197,7 @@ iml_module(
                 "//prebuilts/studio/jdk/jdk11:jdk_runtime_files",
                 "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
                 "//prebuilts/studio/jdk:jdk21",
+                "//tools/base/build-system:declarative_gradle_runtime",
                 "//tools/base/build-system:declarative_android_gradle_plugin.zip",
                 "//tools/base/firebase/testlab/testlab-gradle-plugin:maven_dependencies",
                 "//tools/base/firebase/testlab/testlab-gradle-plugin:testlab-gradle-plugin",
