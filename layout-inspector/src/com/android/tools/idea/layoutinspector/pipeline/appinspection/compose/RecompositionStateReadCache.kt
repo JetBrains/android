@@ -73,7 +73,7 @@ class RecompositionStateReadCache(
         client.updateSettings(keepRecompositionCounts = true)
         when (observing) {
           is ObservedNodes.None -> clear()
-          is ObservedNodes.Some -> cache.removeAllExcept(observing.nodes.map { it.anchorHash })
+          is ObservedNodes.Some -> cache.removeAllExcept(observing.nodeAnchors)
           is ObservedNodes.All -> {}
         }
       }
@@ -263,9 +263,9 @@ class RecompositionStateReadCache(
       super.get(Key(anchorHash, this.recomposition))
     }
 
-    fun removeAllExcept(anchorsToKeep: List<Int>) {
+    fun removeAllExcept(anchorsToKeep: Set<Int>) {
       val anchors = top.keys.toMutableSet()
-      anchors.removeAll(anchorsToKeep.toSet())
+      anchors.removeAll(anchorsToKeep)
       anchors.forEach { anchorHash ->
         val topNode = top[anchorHash] ?: return@forEach
         dropAllPriorTo(anchorHash, topNode)

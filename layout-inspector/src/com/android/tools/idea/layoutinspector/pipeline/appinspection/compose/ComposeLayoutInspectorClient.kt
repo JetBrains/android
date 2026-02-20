@@ -535,7 +535,7 @@ class ComposeLayoutInspectorClient(
                   is None -> noneBuilder
                   is All -> allBuilder.maxStateReads = maxStateReads
                   is Some -> {
-                    byIdBuilder.addAllComposableToObserve(observations.nodes.map { it.anchorHash })
+                    byIdBuilder.addAllComposableToObserve(observations.nodeAnchors)
                     byIdBuilder.maxStateReads = maxStateReads
                   }
                 }

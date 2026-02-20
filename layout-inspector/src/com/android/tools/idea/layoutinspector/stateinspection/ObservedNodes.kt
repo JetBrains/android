@@ -23,5 +23,11 @@ sealed class ObservedNodes {
 
   object All : ObservedNodes()
 
-  data class Some(val nodes: Set<ComposeViewNode>) : ObservedNodes()
+  /**
+   * Observe some composables.
+   *
+   * @param nodeAnchors refer to [ComposeViewNode.anchorHash] which is a unique id identifying a Composable in the compose runtime. It
+   *   remains constant for the duration of the session.
+   */
+  data class Some(val nodeAnchors: Set<Int>) : ObservedNodes()
 }
