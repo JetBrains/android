@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.logcat.messages
 
-import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.FakeLogcatPresenter
 import com.android.tools.idea.logcat.LogcatPresenter
@@ -37,7 +36,6 @@ import java.util.concurrent.Executors
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import org.junit.After
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
@@ -47,15 +45,16 @@ private val timestamp = Instant.ofEpochMilli(1000)
 
 /** Tests for [MessageProcessor] */
 class MessageProcessorTest {
-  @get:Rule val rule = RuleChain(ApplicationRule(), AndroidExecutorsRule(Executors.newCachedThreadPool()))
+  private val executor = Executors.newCachedThreadPool()
+  @get:Rule val rule = RuleChain(ApplicationRule(), AndroidExecutorsRule(workerThreadExecutor = executor))
 
   private val fakeLogcatPresenter = FakeLogcatPresenter()
   private val messageFormatter = ::formatMessages
-  private val executor = Executors.newCachedThreadPool()
 
   @After
   fun tearDown() {
     Disposer.dispose(fakeLogcatPresenter)
+    executor.shutdown()
   }
 
   @Test
@@ -136,7 +135,6 @@ class MessageProcessorTest {
     }
   }
 
-  @Ignore("b/486159698")
   @Test
   fun appendMessages_batchesSplitOnEmptyChannel() = runBlocking {
     val messageProcessor = messageProcessor(fakeLogcatPresenter)
@@ -146,12 +144,10 @@ class MessageProcessorTest {
     messageProcessor.appendMessages(batch1)
     messageProcessor.onIdle {}
     messageProcessor.appendMessages(batch2)
-    messageProcessor.onIdle {}
-
-    delayUntilCondition(200) { fakeLogcatPresenter.lineBatches.size == 2 }
-
-    @Suppress("ConvertLambdaToReference") // Calling inOrder() confuses IDEA.
-    assertThat(fakeLogcatPresenter.lineBatches).containsExactly(batch1.mapMessages(), batch2.mapMessages()).inOrder()
+    messageProcessor.onIdle {
+      @Suppress("ConvertLambdaToReference") // Calling inOrder() confuses IDEA.
+      assertThat(fakeLogcatPresenter.lineBatches).containsExactly(batch1.mapMessages(), batch2.mapMessages()).inOrder()
+    }
   }
 
   @Test
