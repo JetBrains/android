@@ -111,6 +111,10 @@ internal class StateInspectionModelImpl(
     createAction(AllIcons.General.HideToolWindow, HIDE_DESCRIPTION_KEY, { model.stateReadsModel.stopShowingStateReads() })
 
   private enum class InactiveState(private val messageId: String, private val detailsId: String) {
+    NOTHING_SELECTED(
+      messageId = "layout.inspector.recomposition.nothing.selected",
+      detailsId = "layout.inspector.recomposition.nothing.selected.details",
+    ),
     WAITING(messageId = "layout.inspector.recomposition.waiting", detailsId = "layout.inspector.recomposition.waiting.details"),
     VIEW(messageId = "layout.inspector.recomposition.view", detailsId = "layout.inspector.recomposition.view.details"),
     NOT_OBSERVED(
@@ -156,6 +160,7 @@ internal class StateInspectionModelImpl(
     val requested = model.stateReadsModel.stateReadRequested.value
     if (requested != null) {
       when {
+        view == null -> showInactiveState(InactiveState.NOTHING_SELECTED)
         view !is ComposeViewNode -> showInactiveState(InactiveState.VIEW)
         !model.stateReadsModel.isNodeObserved(view) -> showInactiveState(InactiveState.NOT_OBSERVED)
         view.anchorHash == synchronized(lock) { currentKey?.composable?.anchorHash } -> {} // Keep current recomposition

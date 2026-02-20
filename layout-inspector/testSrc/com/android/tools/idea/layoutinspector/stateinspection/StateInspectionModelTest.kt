@@ -188,6 +188,17 @@ class StateInspectionModelTest {
     assertThat(content.updates).isEqualTo(4)
     assertThat(results).isEqualTo(1)
 
+    // Remove the selection:
+    inspectorModel.setSelection(null, SelectionOrigin.INTERNAL)
+    testScheduler.advanceUntilIdle()
+    content = model.content.value
+
+    // There is no state reads to show:
+    assertThat(model.show.value).isTrue()
+    assertThat(content.updates).isEqualTo(5)
+    assertThat(content.recompositionText).isEqualTo("Nothing is selected")
+    assertThat(content.emptyStateText).isEqualTo("Select a compose node to see recomposition state reads.")
+
     // Selecting a ViewNode:
     inspectorModel.setSelection(view1, SelectionOrigin.INTERNAL)
     testScheduler.advanceUntilIdle()
@@ -195,7 +206,7 @@ class StateInspectionModelTest {
 
     // There are no state reads for View nodes:
     assertThat(model.show.value).isTrue()
-    assertThat(content.updates).isEqualTo(5)
+    assertThat(content.updates).isEqualTo(6)
     assertThat(content.recompositionText).isEqualTo("Not a compose node")
     assertThat(content.emptyStateText)
       .isEqualTo(
@@ -217,7 +228,7 @@ class StateInspectionModelTest {
 
     // Now the previously shown state reads are shown again:
     assertThat(model.show.value).isTrue()
-    assertThat(content.updates).isEqualTo(6)
+    assertThat(content.updates).isEqualTo(7)
     assertThat(content.recompositionText).isEqualTo("Recomposition 2")
     assertThat(content.emptyStateText).isEmpty()
     assertThat(content.stateReadsText).isEqualTo("State Reads: 1")
@@ -245,7 +256,7 @@ class StateInspectionModelTest {
 
     // There are no state reads for a non observed node:
     assertThat(model.show.value).isTrue()
-    assertThat(content.updates).isEqualTo(7)
+    assertThat(content.updates).isEqualTo(8)
     assertThat(content.recompositionText).isEqualTo("Node is not observed")
     assertThat(content.emptyStateText)
       .isEqualTo("The selected composable is not being observed.\n" + "Select a different node to see recomposition state reads.")
@@ -264,7 +275,7 @@ class StateInspectionModelTest {
 
     // We are now waiting for state reads for compose2:
     assertThat(model.show.value).isTrue()
-    assertThat(content.updates).isEqualTo(8)
+    assertThat(content.updates).isEqualTo(9)
     assertThat(content.recompositionText).isEqualTo("Waiting for interactions")
     assertThat(content.emptyStateText)
       .isEqualTo("The selected composable has not recomposed yet.\n" + "Try interacting with the app to cause recompositions.")
