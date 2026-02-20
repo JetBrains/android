@@ -144,6 +144,7 @@ class MessageProcessorTest {
     messageProcessor.appendMessages(batch1)
     messageProcessor.onIdle {}
     messageProcessor.appendMessages(batch2)
+    messageProcessor.onIdle {}
 
     delayUntilCondition(200) { fakeLogcatPresenter.lineBatches.size == 2 }
 
