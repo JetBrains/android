@@ -17,6 +17,7 @@ package com.android.tools.idea.tracer
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.tracer.Tracing
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
@@ -34,9 +35,9 @@ import kotlinx.coroutines.withContext
 class FlushTraceAction : DumbAwareAction("Flush Perfetto Trace") {
 
   override fun update(e: AnActionEvent) {
-    // TODO(b/467364934): Use the feature flag to control the feature, not enablement.
-    val enabled = StudioFlags.STUDIO_TRACE_LIBRARY_ENABLED.get()
-    e.presentation.isEnabledAndVisible = enabled
+    val featureEnabled = StudioFlags.STUDIO_TRACE_LIBRARY_ENABLED.get()
+    e.presentation.isVisible = featureEnabled
+    e.presentation.isEnabled = featureEnabled && PropertiesComponent.getInstance().getBoolean(TRACING_ENABLED_KEY, false)
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT

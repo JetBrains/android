@@ -15,9 +15,11 @@
   -->
 <idea-plugin>
   <actions>
-    <action internal="true" id="Android.FlushTrace" class="com.android.tools.idea.tracer.FlushTraceAction">
+    <group id="Internal.Android.Perfetto" class="com.android.tools.idea.tracer.PerfettoTracingGroup" text="Perfetto Tracing" popup="true" internal="true">
       <add-to-group group-id="Internal.Android"/>
-    </action>
+      <action internal="true" id="Android.ToggleTracing" class="com.android.tools.idea.tracer.ToggleTracingAction"/>
+      <action internal="true" id="Android.FlushTrace" class="com.android.tools.idea.tracer.FlushTraceAction"/>
+    </group>
   </actions>
   <applicationListeners>
     <listener class="com.android.tools.idea.tracer.StudioTracingController" topic="com.intellij.ide.AppLifecycleListener" />

@@ -19,6 +19,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.tracer.Tracing
 import com.android.tools.tracer.TracingConfigProvider
 import com.intellij.ide.AppLifecycleListener
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.thisLogger
 import java.io.File
@@ -38,8 +39,8 @@ class StudioTracingController : AppLifecycleListener, TracingConfigProvider {
 
   override fun appWillBeClosed(isRestart: Boolean) = Tracing.close()
 
-  // TODO(b/467364934): Use the feature flag to control the feature, not enablement.
-  override fun isTracingEnabled(): Boolean = StudioFlags.STUDIO_TRACE_LIBRARY_ENABLED.get()
+  override fun isTracingEnabled(): Boolean =
+    StudioFlags.STUDIO_TRACE_LIBRARY_ENABLED.get() && PropertiesComponent.getInstance().getBoolean(TRACING_ENABLED_KEY, false)
 
   override fun getTraceDirectory(): File = PathManager.getTempDir().toFile()
 }
