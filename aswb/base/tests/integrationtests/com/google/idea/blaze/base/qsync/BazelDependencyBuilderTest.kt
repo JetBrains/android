@@ -80,18 +80,19 @@ class BazelDependencyBuilderTest : BlazeIntegrationTestCase() {
           projectExcludes = emptySet(),
           deriveTargetsFromDirectories = false,
           targetPatterns = emptyList(),
-          systemExcludes = emptySet(),
-          testSources = emptySet(),
+          isAndroidWorkspace = false,
           languageClasses = emptySet(),
+          testSources = emptySet(),
+          systemExcludes = emptySet(),
         ),
         snapshotHolder,
         WorkspaceRoot(temporaryFolder.getRoot()),
-        Optional.empty<BlazeVcsHandlerProvider.BlazeVcsHandler?>(),
+        null,
         MockArtifactCache(temporaryFolder.newFolder().toPath()),
         ImmutableSet.of("always_build_rule1", "always_build_rule2"),
       )
 
-    val generatedAspectName = String.format("qs-%s.bzl", dependencyBuilder.getProjectHash())
+    val generatedAspectName = String.format("qs-%s.bzl", dependencyBuilder.projectHash)
     val invocationFiles =
       dependencyBuilder.getInvocationFiles(
         ImmutableSet.of(of("//target1:target1"), of("//target2:target2")),
@@ -100,19 +101,19 @@ class BazelDependencyBuilderTest : BlazeIntegrationTestCase() {
           ImmutableList.of("dir1", "dir2"),
           ImmutableList.of("dir1/sub1"),
           ImmutableList.of("always_build_rule1", "always_build_rule2"),
+          ImmutableList.of(),
           true,
           false,
         ),
       )
-    Truth.assertThat(invocationFiles.aspectFileLabel).isEqualTo(String.format("//.aswb:qs-%s.bzl", dependencyBuilder.getProjectHash()))
+    Truth.assertThat(invocationFiles.aspectFileLabel).isEqualTo(String.format("//.aswb:qs-%s.bzl", dependencyBuilder.projectHash))
     Truth.assertThat(
         String(invocationFiles.files.get(Path.of(".aswb", generatedAspectName))!!.openStream().readAllBytes(), StandardCharsets.UTF_8)
       )
       .isEqualTo(
         """
         load(':build_dependencies.bzl', _collect_dependencies = 'collect_dependencies', _package_dependencies = 'package_dependencies')
-        _config = struct(
-          include = [
+        _config = struct(  include = [
             "dir1",
             "dir2",
           ],
@@ -123,13 +124,14 @@ class BazelDependencyBuilderTest : BlazeIntegrationTestCase() {
             "always_build_rule1",
             "always_build_rule2",
           ],
+          supported_build_rules = [
+          ],
           generate_aidl_classes = True,
           use_generated_srcjars = False,
         )
 
         collect_dependencies = _collect_dependencies(_config)
         package_dependencies = _package_dependencies(_config)
-
         """
           .trimIndent()
       )
@@ -139,7 +141,7 @@ class BazelDependencyBuilderTest : BlazeIntegrationTestCase() {
   @Throws(IOException::class)
   fun generatesValidTargetPatternFile() {
     experimentService.setExperiment(BazelDependencyBuilder.buildUseTargetPatternFile, true)
-    MockProjectViewManager(getProject()).setProjectView(ProjectViewSet(emptyList()))
+    MockProjectViewManager(getProject()).setProjectView(ProjectViewSet.EMPTY)
     val dependencyBuilder =
       BazelDependencyBuilder(
         getProject(),
@@ -149,19 +151,26 @@ class BazelDependencyBuilderTest : BlazeIntegrationTestCase() {
           projectExcludes = emptySet(),
           deriveTargetsFromDirectories = false,
           targetPatterns = emptyList(),
-          systemExcludes = emptySet(),
-          testSources = emptySet(),
+          isAndroidWorkspace = false,
           languageClasses = emptySet(),
+          testSources = emptySet(),
+          systemExcludes = emptySet(),
         ),
         snapshotHolder,
         WorkspaceRoot(temporaryFolder.getRoot()),
-        Optional.empty<BlazeVcsHandlerProvider.BlazeVcsHandler?>(),
+        null,
         MockArtifactCache(temporaryFolder.newFolder().toPath()),
         ImmutableSet.of("always_build_rule1", "always_build_rule2"),
       )
 
-    val targets = ImmutableSet.of<Label>(of("//target1:target1"), of("//target2:target2"))
-    val generatedTargetPatternName = of(String.format("//.aswb:targets-%s.txt", dependencyBuilder.getProjectHash())).name
+    val targets =
+      ImmutableSet.of<Label>(
+        of("//target1:target1"),
+        of("//target2:target2"),
+        of("//target3:target3"),
+        of("//target4:target4"),
+      )
+    val generatedTargetPatternName = of(String.format("//.aswb:targets-%s.txt", dependencyBuilder.projectHash)).name
 
     val invocationInfo =
       dependencyBuilder.getInvocationInfo(
@@ -169,7 +178,7 @@ class BazelDependencyBuilderTest : BlazeIntegrationTestCase() {
         targets,
         LocalBazelInvoker.CAPABILITIES,
         ImmutableSet.of(OutputGroup.ARTIFACT_INFO_FILE),
-        replaceOutputGroups,
+        true,
       )
     val invocationFiles = invocationInfo.invocationWorkspaceFiles
     Truth.assertThat(
@@ -179,6 +188,8 @@ class BazelDependencyBuilderTest : BlazeIntegrationTestCase() {
         """
         //target1:target1
         //target2:target2
+        //target3:target3
+        //target4:target4
         """
           .trimIndent()
       )
