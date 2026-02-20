@@ -33,22 +33,35 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.mock.MockModule
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.TestDialog
 import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.VfsTestUtil
 import com.intellij.testFramework.replaceService
+import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.ui.EditorNotificationPanel
+import com.intellij.ui.EditorNotifications
+import com.intellij.ui.EditorNotificationsImpl
 import java.util.Calendar
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
+import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.ArgumentCaptor
 import org.mockito.Mock
+import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.spy
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 /** Tests for [AndroidGradleProjectStartupActivity]. */
@@ -149,6 +162,44 @@ class AndroidGradleProjectStartupActivityTest {
         .map { it.javaClass.name }
         .toList()
     assertThat(ignoredProducersService).containsAllIn(allJUnitProducers)
+  }
+
+  @Test
+  fun `test sync banner is displayed when gradle JVM was modified`() {
+    val testFileEditor = spy(FileEditorManager.getInstance(myProject))
+    myProject.replaceService(FileEditorManager::class.java, testFileEditor, myProjectRule.testRootDisposable)
+    GradleSettings.getInstance(myProject).linkProject(GradleProjectSettings().apply { externalProjectPath = myProject.basePath!! })
+
+    runInEdtAndWait {
+      // Open simple file to visualize the banner
+      val simpleFile = VfsTestUtil.createFile(myProject.baseDir, "text.txt")
+      myProjectRule.fixture.openFileInEditor(simpleFile)
+      // Complete editor notification tasks since PlatformTestUtil.dispatchAllEventsInIdeEventQueue isn't sufficient
+      (EditorNotifications.getInstance(myProject) as EditorNotificationsImpl).completeAsyncTasks()
+
+      verify(testFileEditor, never()).addTopComponent(any(), any())
+    }
+
+    // Update project Gradle JVM
+    GradleSettings.getInstance(myProject)
+      .setLinkedProjectsSettings(
+        listOf(
+          GradleProjectSettings().apply {
+            gradleJvm = "#JAVA_HOME"
+            externalProjectPath = myProject.basePath!!
+          }
+        )
+      )
+
+    runInEdtAndWait {
+      // Complete editor notification tasks since PlatformTestUtil.dispatchAllEventsInIdeEventQueue isn't sufficient
+      (EditorNotifications.getInstance(myProject) as EditorNotificationsImpl).completeAsyncTasks()
+
+      val captureNotification = ArgumentCaptor.forClass(EditorNotificationPanel::class.java)
+      verify(testFileEditor).addTopComponent(any(), captureNotification.capture())
+      assertThat(captureNotification.value.text)
+        .isEqualTo("Gradle JDK configuration has changed. A project sync may be necessary for the IDE to apply those changes.")
+    }
   }
 
   @Test

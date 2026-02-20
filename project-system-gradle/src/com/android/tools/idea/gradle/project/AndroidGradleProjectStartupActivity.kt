@@ -88,6 +88,7 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.platform.PROJECT_LOADED_FROM_CACHE_BUT_HAS_NO_MODULES
 import com.intellij.platform.backend.workspace.workspaceModel
 import com.intellij.platform.workspace.storage.MutableEntityStorage
+import com.intellij.ui.EditorNotifications
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.workspaceModel.ide.JpsProjectLoadingManager
 import java.io.File
@@ -197,6 +198,8 @@ private fun subscribeToGradleSettingChanges(project: Project) {
     object : GradleSettingsListener {
       override fun onGradleJvmChange(oldGradleJvm: String?, newGradleJvm: String?, linkedProjectPath: String) {
         GradleSyncStateHolder.getInstance(project).recordGradleJvmConfigurationChanged()
+        // Notify editor to display sync banner
+        EditorNotifications.getInstance(project).updateAllNotifications()
       }
     },
   )
