@@ -47,25 +47,6 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
       "org.jetbrains.android" to
         setOf(
           "com.google.devrel.gmscore.tools.apk.arsc", // b/476427677
-          // b/476430566 below here
-          "io.opencensus.common",
-          "io.opencensus.metrics",
-          "io.opencensus.metrics.data",
-          "io.opencensus.metrics.export",
-          "io.opencensus.resource",
-          "io.opencensus.stats",
-          "io.opencensus.tags",
-          "io.opencensus.tags.unsafe",
-          "io.opencensus.trace",
-          "io.opencensus.trace.config",
-          "io.opencensus.trace.export",
-          "io.opencensus.trace.internal",
-          "io.opencensus.trace.propagation",
-          "io.opencensus.trace.samplers",
-          "io.opencensus.trace.unsafe",
-          "io.opencensus.internal",
-          "io.opencensus.tags.propagation",
-          // end b/476430566
           "com.android.annotations.concurrency",
           "com.android.annotations",
           "com.android.tools.instrumentation.threading.agent.callback",
