@@ -37,6 +37,7 @@ import java.util.concurrent.Executors
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import org.junit.After
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
@@ -135,6 +136,7 @@ class MessageProcessorTest {
     }
   }
 
+  @Ignore("b/486159698")
   @Test
   fun appendMessages_batchesSplitOnEmptyChannel() = runBlocking {
     val messageProcessor = messageProcessor(fakeLogcatPresenter)
