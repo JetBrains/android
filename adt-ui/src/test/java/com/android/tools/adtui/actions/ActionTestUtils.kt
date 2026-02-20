@@ -23,6 +23,7 @@ import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.AnActionResult
 import com.intellij.openapi.actionSystem.CustomizedDataContext
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataContext.EMPTY_CONTEXT
@@ -32,8 +33,7 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.UiDataProvider
-import com.intellij.openapi.actionSystem.ex.ActionUtil.performActionDumbAwareWithCallbacks
-import com.intellij.openapi.actionSystem.ex.ActionUtil.performDumbAwareUpdate
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext.getProjectContext
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.project.Project
@@ -56,9 +56,9 @@ fun executeAction(
   place: String = ActionPlaces.TOOLBAR,
   modifiers: Int = CTRL_DOWN_MASK,
   extra: DataSnapshotProvider? = null,
-) {
+): AnActionResult {
   val action = ActionManager.getInstance().getAction(actionId)
-  executeAction(action, source, project, place = place, modifiers = modifiers, extra = extra)
+  return executeAction(action, source, project, place = place, modifiers = modifiers, extra = extra)
 }
 
 /** Executes an action. */
@@ -69,16 +69,16 @@ fun executeAction(
   place: String = ActionPlaces.TOOLBAR,
   modifiers: Int = CTRL_DOWN_MASK,
   extra: DataSnapshotProvider? = null,
-) {
+): AnActionResult {
   val event = createTestEvent(source, project, place = place, modifiers = modifiers, extra = extra)
-  executeAction(action, event)
+  return executeAction(action, event)
 }
 
 /** Executes an action. */
-fun executeAction(action: AnAction, event: AnActionEvent) {
-  performDumbAwareUpdate(action, event, true)
-  assertThat(event.presentation.isEnabledAndVisible).isTrue()
-  performActionDumbAwareWithCallbacks(action, event)
+fun executeAction(action: AnAction, event: AnActionEvent): AnActionResult {
+  val result = ActionUtil.performAction(action, event)
+  assertThat(result.isPerformed)
+  return result
 }
 
 /** Calls update on the action and returns [Presentation]. */
@@ -107,7 +107,7 @@ fun updateAndGetActionPresentation(
 
 /** Calls update on the action and returns [Presentation]. */
 fun updateAndGetActionPresentation(action: AnAction, event: AnActionEvent): Presentation {
-  performDumbAwareUpdate(action, event, false)
+  ActionUtil.updateAction(action, event)
   return event.presentation
 }
 
@@ -193,7 +193,7 @@ private fun AnAction.toText(dataContext: DataContext): String {
     return SEPARATOR_TEXT
   }
   val event = createTestActionEvent(this, dataContext = dataContext)
-  update(event)
+  ActionUtil.updateAction(this, event)
   // Add a visual representation to selected actions.
   return "${if (Toggleable.isSelected(event.presentation)) "✔ " else ""}${event.presentation.text}"
 }
@@ -209,12 +209,12 @@ fun createTestActionEvent(action: AnAction, inputEvent: InputEvent? = null, data
 suspend fun DefaultActionGroup.findActionByText(text: String): AnAction? {
   return allChildActionsOrStubs().find {
     val testEvent = TestActionEvent.createTestEvent()
-    readAction { it.update(testEvent) }
+    readAction { ActionUtil.updateAction(it, testEvent) }
     (testEvent.presentation.text ?: it.templateText) == text
   }
 }
 
-/** Returns all the [AnAction] contains in the [DefaultActionGroup] and any sub-groups. */
+/** Returns all the [AnAction] contains in the [DefaultActionGroup] and any subgroups. */
 private fun DefaultActionGroup.allChildActionsOrStubs(): Collection<AnAction> {
   return childActionsOrStubs.flatMap { if (it is DefaultActionGroup) it.allChildActionsOrStubs().asSequence() else sequenceOf(it) }
 }
