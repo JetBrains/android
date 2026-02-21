@@ -73,6 +73,7 @@ internal constructor(
   private var available = true
   private var visible = false
   private var active = false
+  private var focused = false
   private var type = ToolWindowType.DOCKED
   private val decorator = mock<InternalDecorator>()
 
@@ -109,9 +110,12 @@ internal constructor(
 
   override fun activate(runnable: Runnable?, autoFocusContents: Boolean, forced: Boolean) {
     active = true
+    focused = autoFocusContents
     notifyStateChanged(ToolWindowManagerEventType.ActivateToolWindow)
     runnable?.run()
   }
+
+  fun isFocused(): Boolean = visible && focused
 
   override fun isVisible() = visible
 

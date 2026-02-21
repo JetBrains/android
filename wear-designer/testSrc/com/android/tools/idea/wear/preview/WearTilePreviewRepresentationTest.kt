@@ -31,15 +31,16 @@ import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
+import com.android.tools.idea.testing.ui.createFakeToolWindow
 import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
-import com.android.tools.idea.util.TestToolWindowManager
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.PreviewDisplaySettings.Background
 import com.android.tools.preview.PreviewElement
 import com.android.tools.wear.preview.WearTilePreviewElement
 import com.google.common.truth.Truth.assertThat
+import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
@@ -50,10 +51,8 @@ import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.TestActionEvent
-import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
@@ -108,7 +107,7 @@ class WearTilePreviewRepresentationTest {
     runInEdtAndWait { TestProjectSystem(project).useInTests() }
     logger.info("setup complete")
 
-    project.replaceService(ToolWindowManager::class.java, TestToolWindowManager(project), fixture.testRootDisposable)
+    createFakeToolWindow(project, fixture.testRootDisposable, ProblemsView.ID)
 
     // Create VisualLintService early to avoid it being created at the time of project disposal
     VisualLintService.getInstance(project)
