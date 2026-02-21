@@ -42,6 +42,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.TestOnly
 
 private const val MAX_EXPRESSION_LENGTH = 80
 private const val STATE_READ_START_LINE = "State read value: "
@@ -64,8 +65,8 @@ data class StateInspectionContent(
   val stackTraceText: String = "",
   /** Specifies which composable that we are showing state reads for. */
   val composableInspected: ComposableDefinition? = null,
-  /** An update count. Can be used to indicate action mode changes, and for tests */
-  val updates: Int = 0,
+  /** An update count. Only meant for tests */
+  @TestOnly val updates: Int = 0,
 )
 
 /** Model for the [StateInspectionPanel]. */
@@ -75,6 +76,9 @@ internal interface StateInspectionModel {
 
   /** The content to show in the [StateInspectionPanel]. */
   val content: StateFlow<StateInspectionContent>
+
+  /** The total number of recompositions of the composable being inspected. */
+  val recompositions: StateFlow<Int>
 
   /** An action to navigate to the state reads for the previous recomposition */
   val prevAction: AnAction
@@ -103,6 +107,9 @@ internal class StateInspectionModelImpl(
   private val _content = MutableStateFlow(StateInspectionContent())
   override val content = _content.asStateFlow()
 
+  private val _recompositions = MutableStateFlow(0)
+  override val recompositions = _recompositions.asStateFlow()
+
   override val prevAction = createAction(AllIcons.Actions.Play_back, PREV_DESCRIPTION_KEY, ::gotoPrevRecomposition, ::hasPrevComposition)
 
   override val nextAction = createAction(AllIcons.Actions.Play_forward, NEXT_DESCRIPTION_KEY, ::gotoNextRecomposition, ::hasNextComposition)
@@ -129,7 +136,7 @@ internal class StateInspectionModelImpl(
 
   private val listener = SelectionListener { _, view, _ -> updateStateOfSelection(view) }
 
-  private val updateListener = InspectorModel.ModificationListener { _, _, _ -> incrementUpdates() }
+  private val updateListener = InspectorModel.ModificationListener { _, _, _ -> recompositionUpdate() }
 
   init {
     model.addSelectionListener(listener)
@@ -152,8 +159,8 @@ internal class StateInspectionModelImpl(
     }
   }
 
-  private fun incrementUpdates() {
-    _content.value = _content.value.let { oldContent -> oldContent.copy(updates = oldContent.updates + 1) }
+  private fun recompositionUpdate() {
+    _recompositions.value = model.selection?.recompositions?.count ?: 0
   }
 
   private fun updateStateOfSelection(view: ViewNode?) {
@@ -175,6 +182,7 @@ internal class StateInspectionModelImpl(
       val node = result.key.composable
       hasStateReadsForPreviousRecomposition = result.hasStateReadsForPreviousRecomposition
       _show.value = true
+      _recompositions.value = model.selection?.recompositions?.count ?: 0
       _content.value =
         StateInspectionContent(
           recompositionText = generateRecompositionText(result.key),
@@ -212,6 +220,7 @@ internal class StateInspectionModelImpl(
       }
       currentKey = null
       _show.value = true
+      _recompositions.value = model.selection?.recompositions?.count ?: 0
       _content.value =
         StateInspectionContent(
           recompositionText = state.message(),
@@ -229,6 +238,7 @@ internal class StateInspectionModelImpl(
     synchronized(lock) {
       currentKey = null
       _show.value = false
+      _recompositions.value = 0
       _content.value = StateInspectionContent()
     }
   }

@@ -31,6 +31,7 @@ import com.android.tools.idea.layoutinspector.model.COMPOSE2
 import com.android.tools.idea.layoutinspector.model.COMPOSE3
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.ROOT
+import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.FakeInspectorStateReads
 import com.android.tools.idea.layoutinspector.window
@@ -245,5 +246,6 @@ class StateInspectionPanelIntegrationTest {
       }
     model.update(window, listOf(ROOT), 0)
     model.stateReadsModel.requestStateReadFor(model[COMPOSE1] as ComposeViewNode)
+    model.setSelection(model[COMPOSE1], SelectionOrigin.INTERNAL)
   }
 }

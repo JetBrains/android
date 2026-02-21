@@ -188,6 +188,7 @@ private class InnerStateInspectionPanel(
     border = JBUI.Borders.empty()
 
     parentScope.launch { model.content.collect { update(it) } }
+    parentScope.launch { model.recompositions.collect { updateButtons(next) } }
   }
 
   override fun dispose() {

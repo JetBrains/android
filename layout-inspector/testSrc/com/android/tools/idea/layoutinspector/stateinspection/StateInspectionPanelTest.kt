@@ -358,6 +358,7 @@ class StateInspectionPanelTest {
   class TestStateInspectionModel : StateInspectionModel {
     override val show = MutableStateFlow(false)
     override val content = MutableStateFlow(StateInspectionContent())
+    override val recompositions = MutableStateFlow(0)
     override val prevAction = TestAction()
     override val nextAction = TestAction()
     override val minimizeAction = TestAction()
