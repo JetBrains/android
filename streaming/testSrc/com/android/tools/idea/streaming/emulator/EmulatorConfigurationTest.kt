@@ -88,7 +88,7 @@ class EmulatorConfigurationTest {
     assertThat(config.skinFolder?.toString()?.replace('\\', '/')).isEqualTo("${baseDir}/Android/Sdk/skins/pixel_tablet")
     assertThat(config.hasAudioOutput).isTrue()
     assertThat(config.hasOrientationSensors).isTrue()
-    assertThat(config.initialOrientationQuadrants).isEqualTo(1)
+    assertThat(config.initialOrientationQuadrants).isEqualTo(0)
     assertThat(config.displayModes).isEmpty()
     assertThat(config.postures).isEmpty()
   }
@@ -115,7 +115,7 @@ class EmulatorConfigurationTest {
     assertThat(config.skinFolder).isNull()
     assertThat(config.hasAudioOutput).isTrue()
     assertThat(config.hasOrientationSensors).isFalse()
-    assertThat(config.initialOrientationQuadrants).isEqualTo(1)
+    assertThat(config.initialOrientationQuadrants).isEqualTo(0)
     assertThat(config.displayModes).isEmpty()
     assertThat(config.postures).isEmpty()
   }
@@ -199,7 +199,7 @@ class EmulatorConfigurationTest {
     assertThat(config.hasAudioOutput).isTrue()
     assertThat(config.hasTransparentDisplay).isTrue()
     assertThat(config.hasTouchScreen).isFalse()
-    assertThat(config.initialOrientationQuadrants).isEqualTo(1)
+    assertThat(config.initialOrientationQuadrants).isEqualTo(0)
     assertThat(config.displayModes).isEmpty()
     assertThat(config.postures).isEmpty()
     assertThat(config.touchpadSize).isEqualTo(Dimension(1543, 297))
