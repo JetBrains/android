@@ -19,50 +19,78 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModelImpl
 import com.android.tools.idea.help.AndroidWebHelpProvider
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RunsInEdt
 import java.io.File
 import java.nio.file.Files
 import kotlin.io.path.Path
 import org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard.TargetType
-import org.mockito.Mockito
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
+import org.junit.rules.TestName
+import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.whenever
 
-class GradleSignStepTest : LightPlatformTestCase() {
-  private var myWizard = Mockito.mock(ExportSignedPackageWizard::class.java)
+@RunsInEdt
+class GradleSignStepTest {
+  private val projectRule = ProjectRule()
+  private val edtRule = EdtRule()
 
-  override fun setUp() {
-    super.setUp()
+  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(edtRule)
+
+  @get:Rule val testName = TestName()
+
+  private var myWizard: ExportSignedPackageWizard = mock()
+
+  private val project
+    get() = projectRule.project
+
+  private val name
+    get() = testName.methodName
+
+  private val homePath
+    get() = project.basePath!!
+
+  @Before
+  fun setUp() {
     whenever(myWizard.project).thenReturn(project)
     whenever(myWizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
   }
 
+  @Test
   fun testGetHelpId() {
     val gradleSignStep = GradleSignStep(myWizard)
     assertThat(gradleSignStep.helpId).startsWith(AndroidWebHelpProvider.HELP_PREFIX + "studio/publish/app-signing")
   }
 
+  @Test
   fun testInitialDestinationApkNotSet() {
     val gradleSignStep = GradleSignStep(myWizard)
     val properties = PropertiesComponent.getInstance()
-    val projectPath = project.baseDir.path
+    val projectPath = project.basePath
     // Set Bundle to confirm it is not the same
     val bundlePath = this.homePath + File.separator + "Bundle"
     properties.setValue(gradleSignStep.getApkPathPropertyName(name, ExportSignedPackageWizard.BUNDLE), bundlePath)
     assertThat(gradleSignStep.getInitialPath(properties, name, ExportSignedPackageWizard.APK)).isEqualTo(projectPath)
   }
 
+  @Test
   fun testInitialDestinationBundleNotSet() {
     val gradleSignStep = GradleSignStep(myWizard)
     val properties = PropertiesComponent.getInstance()
-    val projectPath = project.baseDir.path
+    val projectPath = project.basePath
     // Set Apk to confirm it is not the same
     val apkPath = this.homePath + File.separator + "Apk"
     properties.setValue(gradleSignStep.getApkPathPropertyName(name, ExportSignedPackageWizard.APK), apkPath)
     assertThat(gradleSignStep.getInitialPath(properties, name, ExportSignedPackageWizard.BUNDLE)).isEqualTo(projectPath)
   }
 
+  @Test
   fun testInitialDestinationApkSet() {
     val gradleSignStep = GradleSignStep(myWizard)
     val properties = PropertiesComponent.getInstance()
@@ -73,6 +101,7 @@ class GradleSignStepTest : LightPlatformTestCase() {
     assertThat(gradleSignStep.getInitialPath(properties, name, ExportSignedPackageWizard.APK)).isEqualTo(apkPath)
   }
 
+  @Test
   fun testInitialDestinationBundleSet() {
     val gradleSignStep = GradleSignStep(myWizard)
     val properties = PropertiesComponent.getInstance()
@@ -83,10 +112,12 @@ class GradleSignStepTest : LightPlatformTestCase() {
     assertThat(gradleSignStep.getInitialPath(properties, name, ExportSignedPackageWizard.BUNDLE)).isEqualTo(bundlePath)
   }
 
+  @Test
   fun testApkDestinationEndsWhiteSpace() {
     verifyDestinationEndsWhiteSpace(ExportSignedPackageWizard.APK)
   }
 
+  @Test
   fun testBundleDestinationEndsWhiteSpace() {
     verifyDestinationEndsWhiteSpace(ExportSignedPackageWizard.BUNDLE)
   }
@@ -96,7 +127,7 @@ class GradleSignStepTest : LightPlatformTestCase() {
     val properties = PropertiesComponent.getInstance(project)
     val destinationPath = "${this.homePath}${File.separator}$targetType "
     whenever(myWizard.targetType).thenReturn(targetType)
-    val testAndroidModel = Mockito.mock(GradleAndroidModelImpl::class.java)
+    val testAndroidModel: GradleAndroidModelImpl = mock()
     whenever(testAndroidModel.moduleName).thenReturn(name)
     whenever(testAndroidModel.filteredVariantNames).thenReturn(listOf("debug", "release"))
     properties.setValue(gradleSignStep.getApkPathPropertyName(name, targetType), destinationPath)
