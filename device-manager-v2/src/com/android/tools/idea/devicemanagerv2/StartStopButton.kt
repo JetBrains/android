@@ -27,6 +27,7 @@ import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.VIRTUA
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.VIRTUAL_STOP_ACTION
 import com.intellij.openapi.application.EDT
 import icons.StudioIcons
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -41,6 +42,7 @@ internal class StartStopButton(
   deactivationAction: DeactivationAction,
   repairDeviceAction: RepairDeviceAction?,
   pairGlassesAction: PairGlassesAction?,
+  private val uiContext: CoroutineContext = Dispatchers.EDT,
 ) : IconButton(StudioIcons.Avd.RUN) {
   init {
     val activationPresentation = activationAction.presentation
@@ -106,7 +108,7 @@ internal class StartStopButton(
           }
           .distinctUntilChanged()
           .collect {
-            withContext(Dispatchers.EDT) {
+            withContext(uiContext) {
               toolTipText = if (it.enabled) it.label else it.detail
               baseIcon = it.icon
               isEnabled = it.enabled
