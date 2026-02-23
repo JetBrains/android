@@ -24,7 +24,9 @@ import com.android.tools.property.panel.api.SelectedComponentPanel
 class SelectedViewBuilder(private val model: InspectorPropertiesModel) : InspectorBuilder<InspectorPropertyItem> {
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<InspectorPropertyItem>) {
-    val panel = SelectedComponentPanel(SelectedViewModel(model.selectedView))
-    inspector.addComponent(panel, null)
+    val view = model.selectedView
+    if (view != null) {
+      inspector.addComponent(SelectedComponentPanel(SelectedViewModel(model.selectedView)), null)
+    }
   }
 }
