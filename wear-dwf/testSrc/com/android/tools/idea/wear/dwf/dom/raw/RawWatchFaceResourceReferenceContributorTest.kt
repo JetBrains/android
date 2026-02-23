@@ -31,26 +31,34 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-class RawWatchFaceDrawableReferenceContributorTest {
+class RawWatchFaceResourceReferenceContributorTest {
   @get:Rule val projectRule = AndroidProjectRule.onDisk().initAndroid(true)
 
   private val fixture
     get() = projectRule.fixture
 
+  private val icon = "style_wfs_40fc6b01_0756_400d_8903_20a8808c8115_1"
+  private val resource = "wfs_0_c779e5a8_9290_400f_a0ad_761627ba3685"
+  private val drawables = listOf(icon, resource, "some_drawable")
+
+  private val fonts = listOf("font1", "font2", "roboto")
+
   @Before
   fun setup() {
     projectRule.fixture.testDataPath = resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/").toString()
+
+    for (drawable in drawables) {
+      fixture.addFileToProject("res/drawable/$drawable.png", "")
+    }
+    for (font in fonts) {
+      fixture.addFileToProject("res/font/$font.png", "")
+    }
+    projectRule.waitForResourceRepositoryUpdates()
   }
 
   @Test
   fun `raw watch face drawable attribute references are not provided when the flag is disabled`() {
     StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.overrideForTest(false, projectRule.testRootDisposable)
-    val icon = "style_wfs_40fc6b01_0756_400d_8903_20a8808c8115_1"
-    val resource = "wfs_0_c779e5a8_9290_400f_a0ad_761627ba3685"
-    fixture.addFileToProject("res/drawable/$icon.png", "")
-    fixture.addFileToProject("res/drawable/$resource.png", "")
-    projectRule.waitForResourceRepositoryUpdates()
-
     val watchFaceFile = fixture.copyFileToProject("res/raw/watch_face_example.xml")
     fixture.configureFromExistingVirtualFile(watchFaceFile)
 
@@ -69,12 +77,6 @@ class RawWatchFaceDrawableReferenceContributorTest {
 
   @Test
   fun `raw watch face drawable attributes have PSI references`() {
-    val icon = "style_wfs_40fc6b01_0756_400d_8903_20a8808c8115_1"
-    val resource = "wfs_0_c779e5a8_9290_400f_a0ad_761627ba3685"
-    fixture.addFileToProject("res/drawable/$icon.png", "")
-    fixture.addFileToProject("res/drawable/$resource.png", "")
-    projectRule.waitForResourceRepositoryUpdates()
-
     val watchFaceFile = fixture.copyFileToProject("res/raw/watch_face_example.xml")
     fixture.configureFromExistingVirtualFile(watchFaceFile)
 
@@ -121,13 +123,6 @@ class RawWatchFaceDrawableReferenceContributorTest {
   @Test
   fun `drawables do not show up as completion variants if the flag is disabled`() {
     StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.overrideForTest(false, projectRule.testRootDisposable)
-    val drawables =
-      listOf("style_wfs_40fc6b01_0756_400d_8903_20a8808c8115_1", "wfs_0_c779e5a8_9290_400f_a0ad_761627ba3685", "some_other_drawable")
-    for (drawable in drawables) {
-      fixture.addFileToProject("res/drawable/$drawable.png", "")
-    }
-    projectRule.waitForResourceRepositoryUpdates()
-
     val watchFaceFile = fixture.copyFileToProject("res/raw/watch_face_example.xml")
     fixture.configureFromExistingVirtualFile(watchFaceFile)
 
@@ -143,13 +138,6 @@ class RawWatchFaceDrawableReferenceContributorTest {
 
   @Test
   fun `drawables show up as completion variants`() {
-    val drawables =
-      listOf("style_wfs_40fc6b01_0756_400d_8903_20a8808c8115_1", "wfs_0_c779e5a8_9290_400f_a0ad_761627ba3685", "some_other_drawable")
-    for (drawable in drawables) {
-      fixture.addFileToProject("res/drawable/$drawable.png", "")
-    }
-    projectRule.waitForResourceRepositoryUpdates()
-
     val watchFaceFile = fixture.copyFileToProject("res/raw/watch_face_example.xml")
     fixture.configureFromExistingVirtualFile(watchFaceFile)
 
@@ -164,5 +152,94 @@ class RawWatchFaceDrawableReferenceContributorTest {
     runInEdt { fixture.moveCaret(" defaultImageResource=\"|") }
     val defaultImageResourceAttributeCompletions = fixture.complete(CompletionType.BASIC).map { it.lookupString }
     assertThat(defaultImageResourceAttributeCompletions).containsExactlyElementsIn(drawables)
+  }
+
+  @Test
+  // Regression test for b/477170943
+  fun `font attribute references have PSI references`() {
+    val font = "my_custom_font"
+    fixture.addFileToProject("res/font/$font.ttf", "")
+    projectRule.waitForResourceRepositoryUpdates()
+
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watchface.xml",
+        """
+      <WatchFace width="450" height="450">
+        <Scene>
+          <PartText x="0" y="0" width="100" height="100">
+            <Text align="CENTER">
+              <Font family="$font" size="20" />
+            </Text>
+          </PartText>
+        </Scene>
+      </WatchFace>
+      """
+          .trimIndent(),
+      )
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    val familyAttributeReference = runInEdtAndGet {
+      fixture.moveCaret("family=\"$font|\"")
+      fixture.file.findReferenceAt(fixture.caretOffset)
+    }
+    assertThat(familyAttributeReference).isNotNull()
+    val resourceReference = runReadAction { familyAttributeReference?.resolve() as? ResourceReferencePsiElement }?.resourceReference
+    assertThat(resourceReference?.resourceType).isEqualTo(ResourceType.FONT)
+    assertThat(resourceReference?.resourceUrl?.name).isEqualTo(font)
+  }
+
+  @Test
+  // Regression test for b/477170943
+  fun `SYNC_TO_DEVICE does not have a PSI reference`() {
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watchface.xml",
+        """
+        <WatchFace width="450" height="450">
+          <Scene>
+            <PartText x="0" y="0" width="100" height="100">
+              <Text align="CENTER">
+                <Font family="SYNC_TO_DEVICE" size="20" />
+              </Text>
+            </PartText>
+          </Scene>
+        </WatchFace>
+        """
+          .trimIndent(),
+      )
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    val familyAttributeReference = runInEdtAndGet {
+      fixture.moveCaret("family=\"SYNC_TO_DEVICE|\"")
+      fixture.file.findReferenceAt(fixture.caretOffset)
+    }
+    assertThat(familyAttributeReference).isNull()
+  }
+
+  @Test
+  // Regression test for b/477170943
+  fun `fonts show up as completion variants`() {
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watchface.xml",
+        """
+        <WatchFace width="450" height="450">
+          <Scene>
+            <PartText x="0" y="0" width="100" height="100">
+              <Text align="CENTER">
+                <Font family="" size="20" />
+              </Text>
+            </PartText>
+          </Scene>
+        </WatchFace>
+        """
+          .trimIndent(),
+      )
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    runInEdt { fixture.moveCaret("family=\"|") }
+    val completions = fixture.complete(CompletionType.BASIC).map { it.lookupString }
+    assertThat(completions).containsExactlyElementsIn(fonts + "SYNC_TO_DEVICE")
   }
 }

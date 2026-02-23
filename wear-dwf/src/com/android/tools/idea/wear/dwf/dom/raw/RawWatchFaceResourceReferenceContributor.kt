@@ -26,6 +26,7 @@ import com.android.tools.idea.res.getResourceItems
 import com.android.tools.idea.res.psi.ResourceRepositoryToPsiResolver
 import com.android.tools.idea.res.resolve
 import com.android.tools.idea.wear.dwf.WFFConstants.DRAWABLE_RESOURCE_ATTRIBUTES
+import com.android.tools.idea.wear.dwf.WFFConstants.FONT_RESOURCE_ATTRIBUTES
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.patterns.XmlAttributeValuePattern
 import com.intellij.patterns.XmlPatterns
@@ -42,24 +43,26 @@ import org.jetbrains.android.dom.isDeclarativeWatchFaceFile
 import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.facet.AndroidFacet
 
+private const val SYNC_TO_DEVICE = "SYNC_TO_DEVICE"
+
 /**
- * A [PsiReferenceContributor] that is responsible for converting drawable resources referenced in Declarative Watch Face files (in
- * `res/raw`) into [PsiReference]s. The drawables referenced in the XML file do not have a `@drawable` prefix. Furthermore, the attributes
- * are not defined through [org.jetbrains.android.dom.AndroidDomElement]s as we use an [com.intellij.xml.XmlSchemaProvider].
+ * A [PsiReferenceContributor] that is responsible for converting drawable and font resources referenced in Declarative Watch Face files (in
+ * `res/raw`) into [PsiReference]s. The resources referenced in the XML file do not have a `@drawable` or `@font` prefix. Furthermore, the
+ * attributes are not defined through [org.jetbrains.android.dom.AndroidDomElement]s as we use an [com.intellij.xml.XmlSchemaProvider].
  *
- * Drawable resources can be referenced in the [DRAWABLE_RESOURCE_ATTRIBUTES] attributes. These attributes can be used by multiple different
- * tags.
+ * Drawable resources can be referenced in the [DRAWABLE_RESOURCE_ATTRIBUTES] attributes. Font resources can be referenced in the
+ * [FONT_RESOURCE_ATTRIBUTES] attributes.
  *
  * @see RawWatchfaceXmlSchemaProvider
  * @see <a href="https://developer.android.com/reference/wear-os/wff/watch-face?version=1">Watch Face Format reference</a>
  */
-class RawWatchFaceDrawableReferenceContributor : PsiReferenceContributor() {
+class RawWatchFaceResourceReferenceContributor : PsiReferenceContributor() {
   override fun registerReferenceProviders(registrar: PsiReferenceRegistrar) {
-    registrar.registerReferenceProvider(XmlPatterns.xmlAttributeValue(), RawWatchFaceDrawableReferenceProvider())
+    registrar.registerReferenceProvider(XmlPatterns.xmlAttributeValue(), RawWatchFaceResourceReferenceProvider())
   }
 }
 
-private class RawWatchFaceDrawableReferenceProvider : PsiReferenceProvider() {
+private class RawWatchFaceResourceReferenceProvider : PsiReferenceProvider() {
   override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<out PsiReference?> {
     if (!StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.get()) return PsiReference.EMPTY_ARRAY
 
@@ -69,17 +72,24 @@ private class RawWatchFaceDrawableReferenceProvider : PsiReferenceProvider() {
     val attributeValue = element as XmlAttributeValue
     if (attributeValue.value.isEmpty()) return PsiReference.EMPTY_ARRAY
 
-    // Images within a Complication can reference a complication data source using []
-    if (attributeValue.value.startsWith("[")) return PsiReference.EMPTY_ARRAY
-
     val attributeName = XmlAttributeValuePattern.getLocalName(attributeValue)
-    if (attributeName !in DRAWABLE_RESOURCE_ATTRIBUTES) return PsiReference.EMPTY_ARRAY
+    val resourceType =
+      when (attributeName) {
+        in DRAWABLE_RESOURCE_ATTRIBUTES -> ResourceType.DRAWABLE
+        in FONT_RESOURCE_ATTRIBUTES -> ResourceType.FONT
+        else -> return PsiReference.EMPTY_ARRAY
+      }
 
-    return arrayOf(RawWatchFaceDrawablePsiReference(attributeValue))
+    // Images within a Complication can reference a complication data source using []
+    if (resourceType == ResourceType.DRAWABLE && attributeValue.value.startsWith("[")) return PsiReference.EMPTY_ARRAY
+
+    if (resourceType == ResourceType.FONT && attributeValue.value == SYNC_TO_DEVICE) return PsiReference.EMPTY_ARRAY
+
+    return arrayOf(RawWatchFaceResourcePsiReference(attributeValue, resourceType))
   }
 }
 
-private class RawWatchFaceDrawablePsiReference(private val attributeValue: XmlAttributeValue) :
+private class RawWatchFaceResourcePsiReference(private val attributeValue: XmlAttributeValue, private val resourceType: ResourceType) :
   PsiReferenceBase<XmlAttributeValue>(attributeValue) {
 
   override fun resolve(): PsiElement? {
@@ -88,8 +98,8 @@ private class RawWatchFaceDrawablePsiReference(private val attributeValue: XmlAt
     val resourceValue =
       ResourceValue.parse(attributeValue.value, /* withLiterals */ true, /* withPrefix */ false, /* requireValid */ true) ?: return null
     val resourceName = resourceValue.resourceName ?: return null
-    val resourceType = resourceValue.type ?: ResourceType.DRAWABLE
-    val resourceUrl = ResourceUrl.create(/* namespace */ null, resourceType, resourceName)
+    val actualResourceType = resourceValue.type ?: resourceType
+    val resourceUrl = ResourceUrl.create(/* namespace */ null, actualResourceType, resourceName)
     val resourceReference = resourceUrl.resolve(attributeValue) ?: return null
     return ResourceRepositoryToPsiResolver.resolveReference(resourceReference, attributeValue, facet).firstOrNull()?.element
   }
@@ -102,11 +112,18 @@ private class RawWatchFaceDrawablePsiReference(private val attributeValue: XmlAt
         ?.getResourceItems(
           // The namespace RES_AUTO as declarative watch faces can only reference project resources
           ResourceNamespace.RES_AUTO,
-          ResourceType.DRAWABLE,
+          resourceType,
           ResourceVisibility.PUBLIC,
         )
-        ?.mapNotNull { ResourceValue.reference(if (withPrefix) "@drawable/$it" else it, withPrefix) } ?: emptyList()
+        ?.mapNotNull {
+          val prefix = if (resourceType == ResourceType.DRAWABLE) "@drawable/" else "@font/"
+          ResourceValue.reference(if (withPrefix) "$prefix$it" else it, withPrefix)
+        } ?: emptyList()
 
-    return resourceValues.map { LookupElementBuilder.create(it.toString()) }.toTypedArray()
+    val variants = resourceValues.map { LookupElementBuilder.create(it.toString()) }.toMutableList()
+    if (resourceType == ResourceType.FONT) {
+      variants.add(LookupElementBuilder.create(SYNC_TO_DEVICE))
+    }
+    return variants.toTypedArray()
   }
 }
