@@ -349,11 +349,12 @@ class ScreenSharingAgentTest {
 
   private fun runEventLogger(block: () -> Unit) {
     try {
+      adb.logcat {}
       adb.runCommand("shell", START_COMMAND, emulator = emulator) {
         val logLine = Pattern.quote("Starting: Intent { flg=0x${NO_ANIMATIONS.toString(16)} cmp=$APP_PKG/.$ACTIVITY }")
         waitForLog(logLine, LONG_DEVICE_OPERATION_TIMEOUT)
       }
-      adb.logcat { waitForLog(".*: RESUMED", SHORT_DEVICE_OPERATION_TIMEOUT) }
+      adb.logcat(clear = false) { waitForLog(".*: RESUMED", SHORT_DEVICE_OPERATION_TIMEOUT) }
       block()
     } finally {
       adb.runCommand("shell", CLEAR_DATA_COMMAND, emulator = emulator) { waitForLog("Success", SHORT_DEVICE_OPERATION_TIMEOUT) }
@@ -492,8 +493,10 @@ class ScreenSharingAgentTest {
           else -> throw IllegalArgumentException("Only alphanumeric characters are supported!")
         }
 
-    private fun Adb.logcat(block: Adb.() -> Unit) {
-      runCommand("logcat", "-c", emulator = emulator).waitForProcess(SHORT_DEVICE_OPERATION_TIMEOUT)
+    private fun Adb.logcat(clear: Boolean = true, block: Adb.() -> Unit) {
+      if (clear) {
+        runCommand("logcat", "-c", emulator = emulator).waitForProcess(SHORT_DEVICE_OPERATION_TIMEOUT)
+      }
       runCommand("logcat", "$EVENT_LOGGER_TAG:D", "$AGENT_TAG:D", "*:S", emulator = emulator) { block() }
     }
 
