@@ -27,7 +27,7 @@ import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
-import com.google.idea.blaze.base.targetmaps.SourceToTargetMap;
+import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.common.experiments.BoolExperiment;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -75,7 +75,7 @@ final class BuildFileUtils {
       return null;
     }
     Label label =
-        SourceToTargetMap.getInstance(project).getTargetsToBuildForSourceFile(file).stream()
+        QuerySyncManager.getInstance(project).getSourceToTargetMap().getTargetsToBuildForSourceFile(file).stream()
             .filter(l -> l.blazePackage().equals(packagePath))
             .findFirst()
             .orElse(null);

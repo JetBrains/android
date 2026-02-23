@@ -17,7 +17,6 @@
 
 package com.google.idea.blaze.base.qsync
 
-import com.google.idea.common.experiments.BoolExperiment
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Joiner
 import com.google.common.collect.ImmutableMap
@@ -43,7 +42,6 @@ import com.google.idea.blaze.base.settings.BlazeUserSettings
 import com.google.idea.blaze.base.sync.SyncListener
 import com.google.idea.blaze.base.sync.SyncMode
 import com.google.idea.blaze.base.sync.SyncResult
-import com.google.idea.blaze.base.targetmaps.SourceToTargetMap
 import com.google.idea.blaze.base.util.SaveUtil
 import com.google.idea.blaze.common.AtomicFileWriter
 import com.google.idea.blaze.common.Label
@@ -219,7 +217,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
 
   fun assertProjectLoaded() = checkNotNull(loadedProject) { "Project not loaded yet" }
 
-  val sourceToTargetMap: SourceToTargetMap
+  val sourceToTargetMap: QuerySyncSourceToTargetMap
     get() = assertProjectLoaded().sourceToTargetMap
 
   @CanIgnoreReturnValue

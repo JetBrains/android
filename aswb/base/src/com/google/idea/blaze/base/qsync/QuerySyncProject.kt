@@ -28,7 +28,6 @@ import com.google.idea.blaze.base.scope.BlazeContext
 import com.google.idea.blaze.base.settings.BlazeImportSettings
 import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver
-import com.google.idea.blaze.base.targetmaps.SourceToTargetMap
 import com.google.idea.blaze.base.util.SaveUtil
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.Label
@@ -115,8 +114,6 @@ class QuerySyncProject(
       }
       return projectData
     }
-
-  fun getSourceToTargetMap(): SourceToTargetMap = sourceToTargetMap
 
   @JvmRecord data class CoreSyncResult(val postQuerySyncData: PostQuerySyncData, val graph: BuildGraphData)
 
