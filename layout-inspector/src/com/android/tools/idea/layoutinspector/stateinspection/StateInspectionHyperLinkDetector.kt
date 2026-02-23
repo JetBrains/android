@@ -26,6 +26,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.util.Expirable
 import com.intellij.psi.search.GlobalSearchScope
+import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -48,6 +49,7 @@ internal open class StateInspectionHyperLinkDetector(
   private val editorHyperlinkSupport = EditorHyperlinkSupport.get(editor)
   private val filter = CompositeFilter(project)
   private val expirableToken = Expirable { editor.isDisposed }
+  private val filterLoadState = AtomicReference<FilterLoadState>(FilterLoadState.LOADING)
 
   @TestOnly val filterJob: Job
 
@@ -65,6 +67,10 @@ internal open class StateInspectionHyperLinkDetector(
         filters.forEach { filter.addFilter(it) }
 
         replaceClickLinkAction()
+
+        if (filterLoadState.getAndSet(FilterLoadState.LOADED) == FilterLoadState.DETECT_LINKS_REQUESTED_WHILE_LOADING) {
+          detectHyperlinks()
+        }
       }
 
     // addEditorHyperlinkListener is marked @ApiStatus.Internal, but there doesn't seem
@@ -73,6 +79,12 @@ internal open class StateInspectionHyperLinkDetector(
   }
 
   override fun detectHyperlinks() {
+    // The filters are computed in the background.
+    // If we don't have all the filters yet, wait until we do.
+    if (filterLoadState.compareAndSet(FilterLoadState.LOADING, FilterLoadState.DETECT_LINKS_REQUESTED_WHILE_LOADING)) {
+      return
+    }
+
     // The state reads is static content, so we will always detect links in the entire document:
     val startLine = 0
     val endLine = editor.document.getLineNumber(editor.document.textLength)
@@ -89,5 +101,11 @@ internal open class StateInspectionHyperLinkDetector(
       manager.replaceAction(CLICK_LINK_ACTION_ID, ClickLinkActionWithLogging())
     }
     editor.putUserData(CLICK_LINK_LOGGING_KEY, activatedLinkListener)
+  }
+
+  private enum class FilterLoadState {
+    LOADING,
+    DETECT_LINKS_REQUESTED_WHILE_LOADING,
+    LOADED,
   }
 }

@@ -116,6 +116,10 @@ class StateInspectionPanelIntegrationTest {
 
     waitForCondition(10.seconds) { recompositionText.text == "Recomposition 3" }
 
+    // Check that the HyperLinkDetector processed the content with all available filters.
+    val editor = panel.getUserData(STATE_READ_EDITOR_KEY)!!
+    assertThat(editor.markupModel.allHighlighters.size).isEqualTo(3)
+
     // Layout the swing components since InnerStateInspectionPanel was just created.
     ui.layout()
 
