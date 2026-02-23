@@ -142,7 +142,7 @@ class InspectorPropertiesModel(parentDisposable: Disposable) : PropertiesModel<I
     if (properties.sameKeys(table) && view.drawId == propertiesForDrawId) {
       var childElementChanges = false
       for (property in table.values) {
-        if (properties[property.namespace, property.name].updateValue(property)) {
+        if (properties.getOrNull(property.namespace, property.name)?.updateValue(property) ?: true) {
           childElementChanges = true
         }
       }
