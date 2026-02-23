@@ -58,7 +58,7 @@ import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreeCellRenderer
 import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
-import kotlinx.coroutines.CoroutineDispatcher
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -100,10 +100,10 @@ class BackgroundTaskTreeTableView(
   client: BackgroundTaskInspectorClient,
   selectionModel: EntrySelectionModel,
   scope: CoroutineScope,
-  uiDispatcher: CoroutineDispatcher,
+  uiContext: CoroutineContext,
 ) {
   val component: JComponent
-  val treeModel = BackgroundTaskTreeModel(client, scope, uiDispatcher)
+  val treeModel = BackgroundTaskTreeModel(client, scope, uiContext)
   val expandedPaths = mutableSetOf<TreePath>()
 
   init {

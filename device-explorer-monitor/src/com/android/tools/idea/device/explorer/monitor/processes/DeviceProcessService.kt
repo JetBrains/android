@@ -22,7 +22,6 @@ import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.InstallException
 import com.android.tools.idea.backup.BackupManager
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDevice
 import com.android.tools.idea.execution.common.debug.AndroidDebugger
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
@@ -33,6 +32,7 @@ import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
@@ -62,8 +62,8 @@ constructor(
   })
 
   /** The [CoroutineDispatcher] used for asynchronous work that **cannot** happen on the EDT thread. */
-  private val workerThreadDispatcher: CoroutineDispatcher = Dispatchers.Default
-  private val uiThreadDispatcher: CoroutineDispatcher = AndroidDispatchers.uiThread
+  private val workerThreadDispatcher = Dispatchers.Default
+  private val uiThreadDispatcher = Dispatchers.EDT
 
   suspend fun fetchProcessList(device: AdbDevice): List<ProcessInfo> {
     // Run this in a worker thread in case the device/adb is not responsive

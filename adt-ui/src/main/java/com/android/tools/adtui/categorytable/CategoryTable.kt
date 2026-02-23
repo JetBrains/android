@@ -41,13 +41,13 @@ import javax.swing.event.ChangeEvent
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.TableColumnModelEvent
 import javax.swing.event.TableColumnModelListener
+import kotlin.coroutines.CoroutineContext
 import kotlinx.collections.immutable.minus
 import kotlinx.collections.immutable.mutate
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.collections.immutable.plus
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -71,7 +71,7 @@ import kotlinx.coroutines.launch
 class CategoryTable<T : Any>(
   val columns: ColumnList<T>,
   val primaryKey: (T) -> Any = { it },
-  private val coroutineDispatcher: CoroutineDispatcher = defaultCoroutineDispatcher,
+  private val coroutineContext: CoroutineContext = defaultCoroutineDispatcher,
   colors: Colors = defaultColors,
   private val rowDataProvider: ValueRowDataProvider<T> = NullValueRowDataProvider,
   val emptyStatePanel: JComponent? = null,
@@ -196,7 +196,7 @@ class CategoryTable<T : Any>(
   }
 
   private fun createComponentScope(): CoroutineScope {
-    return CoroutineScope(SupervisorJob() + coroutineDispatcher)
+    return CoroutineScope(SupervisorJob() + coroutineContext)
   }
 
   override fun addNotify() {

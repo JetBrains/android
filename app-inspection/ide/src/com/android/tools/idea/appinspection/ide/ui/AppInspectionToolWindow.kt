@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
@@ -105,7 +104,7 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
       AppInspectionDiscoveryService.instance.apiServices,
       ideServices,
       scope,
-      AndroidDispatchers.uiThread,
+      Dispatchers.EDT,
       isPreferredProcess = { RecentProcess.isRecentProcess(it, project) },
     )
   val component: JComponent = appInspectionView.component

@@ -17,16 +17,17 @@ package com.android.tools.idea.devicemanagerv2.details
 
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.devicemanagerv2.DeviceManagerPanel
 import com.android.tools.idea.devicemanagerv2.PairingStatus
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTabbedPane
 import com.intellij.util.ui.JBUI
 import javax.swing.JComponent
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 
@@ -75,7 +76,7 @@ private constructor(val scope: CoroutineScope, heading: String, mainComponent: J
           PairedDevicesPanel.create(
             PairedDevicesPanel.StudioPairingManager(project),
             scope,
-            uiThread,
+            Dispatchers.EDT,
             handle,
             devicesFlow,
             pairedDevicesFlow,

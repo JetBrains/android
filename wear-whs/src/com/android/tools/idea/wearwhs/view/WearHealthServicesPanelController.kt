@@ -16,13 +16,13 @@
 package com.android.tools.idea.wearwhs.view
 
 import com.android.tools.adtui.common.secondaryPanelBackground
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.wearwhs.EventTrigger
 import com.android.tools.idea.wearwhs.WearWhsBundle.message
 import com.intellij.notification.Notification
 import com.intellij.notification.Notifications
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.ui.popup.Balloon
 import com.intellij.openapi.ui.popup.JBPopupFactory
@@ -74,7 +74,7 @@ internal class WearHealthServicesPanelController(
   }
 
   fun showWearHealthServicesToolPopup(parentDisposable: Disposable, position: RelativePoint) {
-    val panelUiScope = parentDisposable.createCoroutineScope(uiThread)
+    val panelUiScope = parentDisposable.createCoroutineScope(Dispatchers.EDT)
     val panelWorkerScope = parentDisposable.createCoroutineScope(Dispatchers.Default)
     val panel =
       createWearHealthServicesPanel(

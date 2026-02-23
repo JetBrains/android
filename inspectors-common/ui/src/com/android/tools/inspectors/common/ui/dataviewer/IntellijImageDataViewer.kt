@@ -17,8 +17,8 @@ package com.android.tools.inspectors.common.ui.dataviewer
 
 import com.android.tools.adtui.stdui.ResizableImage
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.BorderLayout.CENTER
@@ -41,7 +41,7 @@ class IntellijImageDataViewer(imageBytes: ByteArray, parentDisposable: Disposabl
   init {
     AndroidCoroutineScope(parentDisposable, Dispatchers.Default).launch {
       val image = ImageIO.read(ByteArrayInputStream(imageBytes))
-      withContext(uiThread) {
+      withContext(Dispatchers.EDT) {
         val contents =
           if (image != null) {
             ResizableImage(image).apply { toolTipText = "Dimension: ${image.width} x ${image.height}" }

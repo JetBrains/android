@@ -22,13 +22,13 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entr
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WorkEntry
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
-import kotlinx.coroutines.CoroutineDispatcher
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 typealias BackgroundTaskOnFilteredListener = (filter: String?) -> Unit
 
-class BackgroundTaskTreeModel(private val client: BackgroundTaskInspectorClient, scope: CoroutineScope, uiDispatcher: CoroutineDispatcher) :
+class BackgroundTaskTreeModel(private val client: BackgroundTaskInspectorClient, scope: CoroutineScope, uiContext: CoroutineContext) :
   DefaultTreeModel(DefaultMutableTreeNode()) {
   private val nodeMap = mutableMapOf<BackgroundTaskEntry, DefaultMutableTreeNode>()
   private val parentFinder: (BackgroundTaskEntry) -> DefaultMutableTreeNode
@@ -73,7 +73,7 @@ class BackgroundTaskTreeModel(private val client: BackgroundTaskInspectorClient,
     }
 
     client.addEntryUpdateEventListener { type, entry ->
-      scope.launch(uiDispatcher) {
+      scope.launch(uiContext) {
         when (type) {
           EntryUpdateEventType.ADD -> {
             DefaultMutableTreeNode(entry).let { newNode ->

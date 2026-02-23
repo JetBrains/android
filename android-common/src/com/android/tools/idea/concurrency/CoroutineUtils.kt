@@ -123,7 +123,7 @@ val androidCoroutineExceptionHandler = CoroutineExceptionHandler { ctx, throwabl
  * @see androidCoroutineExceptionHandler
  */
 fun Disposable.createCoroutineScope(
-  dispatcher: CoroutineDispatcher = Dispatchers.Default,
+  dispatcher: CoroutineContext = Dispatchers.Default,
   extraContext: CoroutineContext = EmptyCoroutineContext,
 ): CoroutineScope {
   val job = SupervisorJob()

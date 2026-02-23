@@ -20,7 +20,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServic
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
 import com.intellij.ui.JBSplitter
-import kotlinx.coroutines.CoroutineDispatcher
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -30,14 +30,13 @@ class BackgroundTaskInspectorTab(
   ideServices: AppInspectionIdeServices,
   uiComponentsProvider: UiComponentsProvider,
   scope: CoroutineScope,
-  uiDispatcher: CoroutineDispatcher,
+  uiContext: CoroutineContext,
 ) {
 
   @VisibleForTesting val selectionModel = EntrySelectionModel()
 
-  private val entriesView = BackgroundTaskEntriesView(this, client, selectionModel, scope, uiDispatcher)
-  private val detailsView =
-    EntryDetailsView(this, client, ideServices, selectionModel, entriesView, uiComponentsProvider, scope, uiDispatcher)
+  private val entriesView = BackgroundTaskEntriesView(this, client, selectionModel, scope, uiContext)
+  private val detailsView = EntryDetailsView(this, client, ideServices, selectionModel, entriesView, uiComponentsProvider, scope, uiContext)
 
   var isDetailsViewVisible = false
     set(value) {

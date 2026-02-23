@@ -42,7 +42,6 @@ import com.android.tools.adtui.stdui.ActionData
 import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.devicemanagerv2.DeviceTableColumns.columns
 import com.android.tools.idea.devicemanagerv2.details.DeviceDetailsPanel
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
@@ -62,6 +61,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.RoamingType
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
@@ -78,8 +78,9 @@ import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Component
 import javax.swing.JPanel
-import kotlinx.coroutines.CoroutineDispatcher
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -101,7 +102,7 @@ internal class DeviceManagerPanel
 constructor(
   val project: Project?,
   val panelScope: CoroutineScope,
-  val uiDispatcher: CoroutineDispatcher,
+  val uiContext: CoroutineContext,
   private val devices: StateFlow<List<DeviceHandle>>,
   private val templates: StateFlow<List<DeviceTemplate>>,
   private val notificationBanners: Flow<List<EditorNotificationPanel>>,
@@ -118,7 +119,7 @@ constructor(
   ) : this(
     project,
     AndroidCoroutineScope(AndroidPluginDisposable.getProjectInstance(project)),
-    uiThread,
+    Dispatchers.EDT,
     deviceProvisioner.devices,
     deviceProvisioner.templates,
     deviceProvisioner.notificationBanners(),
@@ -135,7 +136,7 @@ constructor(
   ) : this(
     null,
     parentScope.createChildScope(isSupervisor = true),
-    uiThread,
+    Dispatchers.EDT,
     deviceProvisioner.devices,
     deviceProvisioner.templates,
     deviceProvisioner.notificationBanners(),
@@ -181,7 +182,7 @@ constructor(
     CategoryTable(
       columns(project, panelScope),
       DeviceRowData::key,
-      uiDispatcher,
+      uiContext,
       rowDataProvider = ::provideRowData,
       emptyStatePanel = emptyStatePanel,
     )
@@ -230,12 +231,12 @@ constructor(
     // second component will be the details panel if/when it's created
     add(splitter, BorderLayout.CENTER)
 
-    panelScope.launch(uiDispatcher) { trackDevices() }
-    panelScope.launch(uiDispatcher) { trackDeviceTemplates() }
-    panelScope.launch(uiDispatcher) { trackNotificationBanners() }
+    panelScope.launch(uiContext) { trackDevices() }
+    panelScope.launch(uiContext) { trackDeviceTemplates() }
+    panelScope.launch(uiContext) { trackNotificationBanners() }
 
     // Keep the device details synced with the selected row.
-    panelScope.launch(uiDispatcher) {
+    panelScope.launch(uiContext) {
       deviceTable.selection.asFlow().collect { selectedRows ->
         if (deviceDetailsPanelRow != null) {
           (selectedRows.singleOrNull() as? ValueRowKey)?.let { selectedRow ->
@@ -315,7 +316,7 @@ constructor(
                 .map { pairedDevices -> DeviceRowData.create(handle, pairedDevices) }
             }
             .collect {
-              withContext(uiDispatcher) {
+              withContext(uiContext) {
                 if (deviceTable.addOrUpdateRow(it, beforeKey = handle.sourceTemplate)) {
                   handle.sourceTemplate?.let {
                     if (templateInstantiationCount.add(it, 1) == 0) {
@@ -331,7 +332,7 @@ constructor(
         }
         .join()
 
-      withContext(uiDispatcher) {
+      withContext(uiContext) {
         if (deviceDetailsPanelRow?.handle == handle) {
           deviceDetailsPanelRow = null
           deviceDetailsPanel = null

@@ -67,8 +67,8 @@ import java.awt.Dimension
 import java.awt.event.HierarchyEvent.SHOWING_CHANGED
 import javax.swing.JPanel
 import javax.swing.JSeparator
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
@@ -98,7 +98,7 @@ constructor(
   private val ideServices: AppInspectionIdeServices,
   private val getTabProviders: () -> Collection<AppInspectorTabProvider>,
   private val scope: CoroutineScope,
-  private val uiDispatcher: CoroutineDispatcher,
+  private val uiContext: CoroutineContext,
   private val artifactService: InspectorArtifactService,
   isPreferredProcess: (ProcessDescriptor) -> Boolean = { false },
 ) : Disposable {
@@ -168,7 +168,7 @@ constructor(
     apiServices: AppInspectionApiServices,
     ideServices: AppInspectionIdeServices,
     scope: CoroutineScope,
-    uiDispatcher: CoroutineDispatcher,
+    uiContext: CoroutineContext,
     isPreferredProcess: (ProcessDescriptor) -> Boolean = { false },
   ) : this(
     project,
@@ -176,7 +176,7 @@ constructor(
     ideServices,
     { AppInspectorTabProvider.EP_NAME.extensionList },
     scope,
-    uiDispatcher,
+    uiContext,
     InspectorArtifactService.instance,
     isPreferredProcess,
   )
@@ -312,7 +312,7 @@ constructor(
           }
         }
 
-      withContext(uiDispatcher) {
+      withContext(uiContext) {
         val tab = provider.createTab(project, ideServices, process, messengers, tabShell)
         tabShell.setComponent(tab.component)
         tabShell.putUserData(TAB_KEY, tab)
@@ -336,14 +336,14 @@ constructor(
       // This happens when trying to launch an inspector on a process/device that no longer exists.
       // In that case, we can safely
       // ignore the attempt. We can count on the UI to be refreshed soon to remove the option.
-      withContext(uiDispatcher) {
+      withContext(uiContext) {
         tabShell.setComponent(EmptyStatePanel(AppInspectionBundle.message("process.does.not.exist", process.name), provider.learnMoreUrl))
       }
     } catch (e: AppInspectionLaunchException) {
       // This happens if a user is already interacting with an inspector in another window, or if
       // Studio got killed suddenly and
       // the old inspector is still running.
-      withContext(uiDispatcher) {
+      withContext(uiContext) {
         tabShell.setComponent(
           EmptyStatePanel(
             AppInspectionBundle.message("inspector.launch.error", provider.displayName),
@@ -363,7 +363,7 @@ constructor(
         )
       }
     } catch (e: AppInspectionAppProguardedException) {
-      withContext(uiDispatcher) { tabShell.setComponent(EmptyStatePanel(APP_PROGUARDED_MESSAGE, provider.learnMoreUrl)) }
+      withContext(uiContext) { tabShell.setComponent(EmptyStatePanel(APP_PROGUARDED_MESSAGE, provider.learnMoreUrl)) }
     } catch (e: Exception) {
       Logger.getInstance(AppInspectionView::class.java).error(e)
     }
@@ -386,10 +386,10 @@ constructor(
 
       val tabs =
         tabTargetsList.map { tabTargets ->
-          withContext(uiDispatcher) { AppInspectorTabShell(tabTargets) }.also { shell -> launchInspectorForTab(process, shell, force) }
+          withContext(uiContext) { AppInspectorTabShell(tabTargets) }.also { shell -> launchInspectorForTab(process, shell, force) }
         }
 
-      withContext(uiDispatcher) {
+      withContext(uiContext) {
         inspectorTabs.clear()
         tabs.sorted().forEach { tab -> inspectorTabs.add(tab) }
         updateUi()
@@ -443,7 +443,7 @@ constructor(
     val process = currentProcess!!
     when (target.messenger.awaitForDisposal()) {
       is AppInspectorForcefullyDisposedException -> {
-        withContext(uiDispatcher) {
+        withContext(uiContext) {
           tabShell.setComponent(
             EmptyStatePanel(AppInspectionBundle.message("inspector.forcefully.stopped", provider.displayName), provider.learnMoreUrl)
           )
@@ -455,10 +455,10 @@ constructor(
         // the user hits restart, which requests launching a new inspector, it won't reuse
         // the existing client. (Users probably would never hit restart fast enough but it's
         // possible to trigger in tests.)
-        withContext(uiDispatcher) { showCrashNotification(provider.displayName, process, tabShell) }
+        withContext(uiContext) { showCrashNotification(provider.displayName, process, tabShell) }
       }
       else -> {
-        withContext(uiDispatcher) {
+        withContext(uiContext) {
           tabShell.setComponent(
             EmptyStatePanel(AppInspectionBundle.message("inspector.stopped", provider.displayName), provider.learnMoreUrl)
           )
@@ -474,7 +474,7 @@ constructor(
   ) {
     messengers.filterIsInstance(AppInspectorMessengerTarget.Resolved::class.java).forEach { target -> target.messenger.awaitForDisposal() }
 
-    withContext(uiDispatcher) {
+    withContext(uiContext) {
       tabShell.setComponent(EmptyStatePanel(AppInspectionBundle.message("inspector.stopped", provider.displayName), provider.learnMoreUrl))
     }
   }

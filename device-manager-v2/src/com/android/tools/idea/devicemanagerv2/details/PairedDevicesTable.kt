@@ -31,7 +31,7 @@ import com.android.tools.idea.wearpairing.WearPairingManager
 import com.intellij.util.ui.JBEmptyBorder
 import icons.StudioIcons
 import javax.swing.Icon
-import kotlinx.coroutines.CoroutineDispatcher
+import kotlin.coroutines.CoroutineContext
 
 /** Immutable data class for the PairingTable. */
 internal data class PairedDeviceData(
@@ -54,8 +54,8 @@ internal data class PairedDeviceData(
 }
 
 internal object PairedDevicesTable {
-  fun create(dispatcher: CoroutineDispatcher): CategoryTable<PairedDeviceData> =
-    CategoryTable(listOf(Type, Name, WearConnectionStatus), { it.handle }, dispatcher)
+  fun create(context: CoroutineContext): CategoryTable<PairedDeviceData> =
+    CategoryTable(listOf(Type, Name, WearConnectionStatus), { it.handle }, context)
 
   object Type : Column<PairedDeviceData, Icon?, IconLabel> {
     override val name = DeviceManagerBundle.message("column.title.type")
