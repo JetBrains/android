@@ -17,10 +17,10 @@ package com.android.tools.idea.npw.builder
 
 import com.android.SdkConstants
 import com.android.tools.idea.npw.builders.GradleSettingsBuilder
-import org.gradle.util.GradleVersion
 import java.net.URI
 import java.net.URL
 import kotlin.test.assertEquals
+import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.frameworkSupport.settingsScript.getFoojayPluginVersion
 import org.junit.Test
 
@@ -37,6 +37,18 @@ class GradleSettingsBuilderTest {
   fun testBuildGradleSettingsWithJustProjectName() {
     val gradleSettings = GradleSettingsBuilder("test", false) {}.build()
     assertEquals("rootProject.name = \"test\"", gradleSettings)
+  }
+
+  @Test
+  fun testBuildGradleSettingsWithProjectNameUsingSpecialCharacters() {
+    val gradleSettings = GradleSettingsBuilder("My 'App' \$", false) {}.build()
+    assertEquals("rootProject.name = \"My \\'App\\' \\$\"", gradleSettings)
+  }
+
+  @Test
+  fun testBuildKotlinGradleSettingsWithProjectNameUsingSpecialCharacters() {
+    val gradleSettings = GradleSettingsBuilder("My 'App' \$", true) {}.build()
+    assertEquals("rootProject.name = \"My \\'App\\' \\$\"", gradleSettings)
   }
 
   @Test
