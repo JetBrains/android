@@ -17,7 +17,6 @@ package com.google.idea.blaze.android.run.runner
 
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.ApkVerifierTracker
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.execution.common.AndroidSessionInfo
@@ -49,12 +48,14 @@ import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.RunContentDescriptor
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.runBlockingCancellable
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -245,7 +246,7 @@ class BlazeAndroidConfigurationExecutor(
   }
 
   private suspend fun createConsole(processHandler: ProcessHandler): ConsoleView =
-    withContext(uiThread) { consoleProvider.createAndAttach(project, processHandler, env.executor) }
+    withContext(Dispatchers.EDT) { consoleProvider.createAndAttach(project, processHandler, env.executor) }
 
   private fun printLaunchTaskStartedMessage(consoleView: ConsoleView) {
     val date = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT).format(Date())

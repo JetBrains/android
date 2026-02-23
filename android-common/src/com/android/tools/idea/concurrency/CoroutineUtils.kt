@@ -18,7 +18,6 @@ package com.android.tools.idea.concurrency
 import com.android.utils.reflection.qualifiedName
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.components.Service
@@ -40,7 +39,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeAnyChangeAbstractAdapter
 import com.intellij.util.concurrency.AppExecutorUtil
-import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
@@ -74,24 +72,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.annotations.VisibleForTesting
-
-/** [CoroutineDispatcher]s equivalent to executors defined in [AndroidExecutors]. */
-object AndroidDispatchers {
-  /**
-   * [CoroutineDispatcher] that dispatches to the UI thread with [ModalityState.defaultModalityState].
-   *
-   * @see AndroidExecutors.uiThreadExecutor
-   */
-  @Deprecated(
-    "Prefer using Dispatchers.EDT. See https://plugins.jetbrains.com/docs/intellij/coroutine-dispatchers.html",
-    replaceWith =
-      ReplaceWith(expression = "Dispatchers.EDT", imports = ["kotlinx.coroutines.Dispatchers", "com.intellij.openapi.application.EDT"]),
-  )
-  val uiThread: CoroutineDispatcher
-    get() =
-      Executor { block -> AndroidExecutors.getInstance().uiThreadExecutor(ModalityState.defaultModalityState(), block) }
-        .asCoroutineDispatcher()
-}
 
 private val LOG: Logger
   get() = Logger.getInstance("com.android.tools.idea.concurrency.CoroutinesUtils.kt")

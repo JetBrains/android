@@ -82,7 +82,7 @@ constructor(private val project: Project, private val defaultDownloadPathSupplie
 
   override suspend fun downloadFileEntry(entry: DeviceFileEntry, localPath: Path, progress: DownloadProgress): VirtualFile {
     withContext(Dispatchers.IO) { FileUtils.mkdirs(localPath.parent.toFile()) }
-    return withWriteSafeContextWithCurrentModality {
+    return withContext(Dispatchers.EDT) {
       // findFileByIoFile should be called from the write thread, in a write-safe context
       VfsUtil.findFileByIoFile(localPath.toFile(), true)?.let {
         runWriteActionAndWait {
@@ -95,7 +95,7 @@ constructor(private val project: Project, private val defaultDownloadPathSupplie
   }
 
   override suspend fun deleteFile(virtualFile: VirtualFile) {
-    withWriteSafeContextWithCurrentModality {
+    withContext(Dispatchers.EDT) {
       ApplicationManager.getApplication().runWriteAction {
         // must be called from a write action
         deleteVirtualFile(virtualFile)

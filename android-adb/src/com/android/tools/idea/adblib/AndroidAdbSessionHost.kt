@@ -17,7 +17,6 @@ package com.android.tools.idea.adblib
 
 import com.android.adblib.AdbSessionHost
 import com.android.adblib.tools.AdbLibToolsProperties
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.androidCoroutineExceptionHandler
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.application.subscribe
@@ -36,7 +35,7 @@ import java.util.concurrent.TimeUnit
 /**
  * Implementation of [AdbSessionHost] that integrates with the IntelliJ/Android Studio platform.
  *
- * See also [AndroidAdbLoggerFactory] and [AndroidDispatchers].
+ * See also [AndroidAdbLoggerFactory].
  */
 internal class AndroidAdbSessionHost : AdbSessionHost() {
   private val log = thisLogger()
