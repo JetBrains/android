@@ -15,8 +15,25 @@
  */
 package com.android.tools.idea.npw.module.recipes
 
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import java.io.File
+
+const val keepRules =
+  """
+# Add project specific R8 rules here.
+# AGP will combine all keep rule files in src/main/keepRules to pass to R8
+#
+# For more details, see
+#   https://d.android.com/r/tools/r8/keep-rules
+
+# If your project uses WebView with JS, uncomment the following
+# and specify the fully qualified class name to the JavaScript interface
+# class:
+#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
+#   public *;
+#}
+ """
 
 const val proguardRules =
   """
@@ -43,10 +60,21 @@ const val proguardRules =
 #-renamesourcefileattribute SourceFile
  """
 
-fun RecipeExecutor.proguardRecipe(projectOut: File, isLibraryProject: Boolean = false) {
-  save(proguardRules, projectOut.resolve("proguard-rules.pro"))
-
+fun RecipeExecutor.proguardRecipe(projectOut: File, version: AgpVersion, isLibraryProject: Boolean = false) {
+  if (version < AgpVersion.parse("9.0.0")) {
+    save(proguardRules, projectOut.resolve("proguard-rules.pro"))
+  } else {
+    val keepRulesFolder = projectOut.resolve("src/main/keepRules")
+    keepRulesFolder.mkdirs()
+    save(keepRules, keepRulesFolder.resolve("rules.keep"))
+  }
   if (isLibraryProject) {
-    save("", projectOut.resolve("consumer-rules.pro"))
+    val aarKeepRulesFolder = projectOut.resolve("src/main/keepRules")
+    aarKeepRulesFolder.mkdirs()
+    if (version < AgpVersion.parse("9.0.0")) {
+      save("", projectOut.resolve("consumer-rules.pro"))
+    } else {
+      save("", projectOut.resolve("consumer-rules.keep"))
+    }
   }
 }

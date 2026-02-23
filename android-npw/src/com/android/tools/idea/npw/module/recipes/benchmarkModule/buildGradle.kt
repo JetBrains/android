@@ -75,7 +75,7 @@ ${renderIf(!isAgpPre81) { """
             // Since debuggable can"t be modified by gradle for library modules,
             // it must be done in a manifest - see src/androidTest/AndroidManifest.xml
             minifyEnabled true
-            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "benchmark-proguard-rules.pro"
+            ${renderIf(agpVersion < AgpVersion.parse("9.0.0")) { "proguardFiles getDefaultProguardFile(\"proguard-android-optimize.txt\"), \"benchmark-proguard-rules.pro\"" }}
         }
         $releaseBlock
     }

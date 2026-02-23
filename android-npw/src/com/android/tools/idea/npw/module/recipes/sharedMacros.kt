@@ -72,32 +72,24 @@ fun generateManifest(
   """
 }
 
-fun proguardConfig(
-  // Incubating, see
-  // https://google.github.io/android-gradle-dsl/current/com.android.build.gradle.internal.dsl.BuildType.html
-  postprocessing: Boolean = false
-) =
-  if (postprocessing) {
+fun proguardConfig(useLegacyMinifyEnabled: Boolean) =
+  if (useLegacyMinifyEnabled) {
     """
     buildTypes {
         release {
-            postprocessing {
-                removeUnusedCode false
-                removeUnusedResources false
-                obfuscate false
-                optimizeCode false
-                proguardFile 'proguard-rules.pro'
-            }
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
     """
   } else {
     """
     buildTypes {
-       release {
-           minifyEnabled false
-           proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-       }
+        release {
+            optimization {
+                enable false
+            }
+        }
     }
     """
   }
@@ -153,8 +145,10 @@ fun androidConfig(
     renderIf(hasTests) {
       "testInstrumentationRunner \"${getMaterialComponentName("android.support.test.runner.AndroidJUnitRunner", useAndroidX)}\""
     }
-  val proguardConsumerBlock = renderIf(canUseProguard && isLibraryProject) { "consumerProguardFiles \"consumer-rules.pro\"" }
-  val proguardConfigBlock = renderIf(canUseProguard && !isLibraryProject) { proguardConfig() }
+  val useLegacyProguardApi = agpVersion < AgpVersion.parse("9.0.0")
+  val proguardConsumerBlock =
+    renderIf(canUseProguard && isLibraryProject && useLegacyProguardApi) { "consumerProguardFiles \"consumer-rules.pro\"" }
+  val proguardConfigBlock = renderIf(canUseProguard && !isLibraryProject) { proguardConfig(useLegacyProguardApi) }
   val lintOptionsBlock =
     renderIf(addLintOptions) {
       """

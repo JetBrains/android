@@ -127,6 +127,7 @@ internal fun String.gradleToKtsIfKts(isKts: Boolean): String =
         .toKtsProperty("versionName")
         .toKtsProperty("testInstrumentationRunner")
         .toKtsProperty("minifyEnabled")
+        .toKtsProperty("enable")
         .toKtsFunction("proguardFiles")
         .toKtsFunction("consumerProguardFiles")
         .toKtsFunction("implementation") // For dynamic app: implementation project(":app") -> implementation(project(":app"))

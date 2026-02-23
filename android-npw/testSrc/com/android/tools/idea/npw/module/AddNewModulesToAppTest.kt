@@ -153,7 +153,7 @@ abstract class AddNewModulesToAppTest(private val dslLanguage: DslLanguage, priv
     val moduleName = "mylibrary"
     generateModuleFiles(project, libModuleModel, moduleName, dslLanguage)
 
-    checkBuildGradleNoProguardFiles(moduleName)
+    checkBuildGradleHasNoProguardFiles(moduleName)
     assembleDebugProject()
   }
 
@@ -174,7 +174,7 @@ abstract class AddNewModulesToAppTest(private val dslLanguage: DslLanguage, priv
     val moduleName = "myapp"
     generateModuleFiles(project, appModuleModel, moduleName, dslLanguage)
 
-    checkBuildGradleHasProguardFiles(moduleName)
+    checkBuildGradleHasNoProguardFiles(moduleName)
     assembleDebugProject()
   }
 
@@ -301,17 +301,10 @@ abstract class AddNewModulesToAppTest(private val dslLanguage: DslLanguage, priv
     return text
   }
 
-  private fun checkBuildGradleNoProguardFiles(moduleName: String) {
+  private fun checkBuildGradleHasNoProguardFiles(moduleName: String) {
     val text = readBuildFile(moduleName)
-    assertFalse("Generated build.gradle should not contain 'proguardFiles'", text.contains("proguardFiles"))
-    assertFalse("Generated build.gradle should not contain 'getDefaultProguardFile'", text.contains("getDefaultProguardFile"))
-    assertTrue("Generated build.gradle for library should contain 'consumerProguardFiles'", text.contains("consumerProguardFiles"))
-  }
-
-  private fun checkBuildGradleHasProguardFiles(moduleName: String) {
-    val text = readBuildFile(moduleName)
-    assertTrue("Generated build.gradle should contain 'proguardFiles'", text.contains("proguardFiles"))
-    assertTrue("Generated build.gradle should contain 'getDefaultProguardFile'", text.contains("getDefaultProguardFile"))
+    assertFalse("Generated build.gradle should contain 'proguardFiles'", text.contains("proguardFiles"))
+    assertFalse("Generated build.gradle should contain 'getDefaultProguardFile'", text.contains("getDefaultProguardFile"))
     assertFalse("Generated build.gradle for application should not contain 'consumerProguardFiles'", text.contains("consumerProguardFiles"))
   }
 }

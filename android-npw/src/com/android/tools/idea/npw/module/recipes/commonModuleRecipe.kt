@@ -107,7 +107,7 @@ fun RecipeExecutor.generateCommonModule(
     addInstrumentedTests(packageName, useAndroidX, isLibraryProject, instrumentedTestOut, language)
     addTestDependencies()
   }
-  proguardRecipe(moduleOut, data.isLibrary)
+  proguardRecipe(moduleOut, agpVersion, data.isLibrary)
 
   if (!isLibraryProject) {
     when (iconsGenerationStyle) {

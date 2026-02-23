@@ -15,29 +15,40 @@
  */
 package com.android.tools.idea.npw.module.recipes.benchmarkModule
 
+fun benchmarkKeepRules() =
+  """
+  # Add benchmark module specific R8 rules here.
+  # AGP will combine all keep rule files in src/main/keepRules to pass to R8
+  #
+  # For more details, see
+  #   https://d.android.com/r/tools/r8/keep-rules
+
+  -dontobfuscate
+
+  -ignorewarnings
+
+  -keepattributes *Annotation*
+
+  -dontnote junit.framework.**
+  -dontnote junit.runner.**
+
+  -dontwarn androidx.test.**
+  -dontwarn org.junit.**
+  -dontwarn org.hamcrest.**
+  -dontwarn com.squareup.javawriter.JavaWriter
+
+  -keepclasseswithmembers @org.junit.runner.RunWith public class *
+  """
+    .trimIndent()
+
 fun benchmarkProguardRules() =
   """
-  # Add project specific ProGuard rules here.
+  # Add benchmark module specific ProGuard rules here.
   # You can control the set of applied configuration files using the
   # proguardFiles setting in build.gradle.
   #
   # For more details, see
-  #   http://developer.android.com/guide/developing/tools/proguard.html
-
-  # If your project uses WebView with JS, uncomment the following
-  # and specify the fully qualified class name to the JavaScript interface
-  # class:
-  #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-  #   public *;
-  #}
-
-  # Uncomment this to preserve the line number information for
-  # debugging stack traces.
-  #-keepattributes SourceFile,LineNumberTable
-
-  # If you keep the line number information, uncomment this to
-  # hide the original source file name.
-  #-renamesourcefileattribute SourceFile
+  #   https://d.android.com/r/tools/r8/keep-rules
 
   -dontobfuscate
 
