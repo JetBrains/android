@@ -534,6 +534,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Rotate Right" }).isNull()
     assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Home" }).isNull()
     assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Overview" }).isNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Hardware Input" }).isNull()
 
     panel.destroyContent()
     assertThat(panel.primaryDisplayView).isNull()
