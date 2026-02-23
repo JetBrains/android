@@ -16,14 +16,11 @@
 package com.android.tools.idea.tracer
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.tracer.Tracing
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.project.DumbAware
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class ToggleTracingAction : ToggleAction("Enable Tracing"), DumbAware {
   override fun isSelected(e: AnActionEvent): Boolean {
@@ -32,7 +29,7 @@ class ToggleTracingAction : ToggleAction("Enable Tracing"), DumbAware {
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     PropertiesComponent.getInstance().setValue(TRACING_ENABLED_KEY, state, false)
-    studioTracingScope.launch(Dispatchers.IO) { Tracing.initialize(StudioTracingController()) }
+    StudioTracingController.initializeTracing()
   }
 
   override fun update(e: AnActionEvent) {

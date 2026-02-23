@@ -26,21 +26,27 @@ import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-/** Controller that manages the lifecycle and configuration of [Tracing] for Android Studio. */
-class StudioTracingController : AppLifecycleListener, TracingConfigProvider {
-
-  override fun appStarted() {
-    val log = thisLogger()
-    studioTracingScope.launch(Dispatchers.IO) {
-      Tracing.initialize(this@StudioTracingController)
-      log.info("Tracing Driver initialized and ${if (isTracingEnabled()) "enabled" else "disabled"}.")
-    }
-  }
-
-  override fun appWillBeClosed(isRestart: Boolean) = Tracing.close()
-
+private object StudioTracingConfig : TracingConfigProvider {
   override fun isTracingEnabled(): Boolean =
     StudioFlags.STUDIO_TRACE_LIBRARY_ENABLED.get() && PropertiesComponent.getInstance().getBoolean(TRACING_ENABLED_KEY, false)
 
   override fun getTraceDirectory(): File = PathManager.getTempDir().toFile()
+}
+
+/** Controller that manages the lifecycle and configuration of [Tracing] for Android Studio. */
+class StudioTracingController : AppLifecycleListener {
+
+  override fun appStarted() = initializeTracing()
+
+  override fun appWillBeClosed(isRestart: Boolean) = Tracing.close()
+
+  companion object {
+    internal fun initializeTracing() {
+      val log = thisLogger()
+      studioTracingScope.launch(Dispatchers.IO) {
+        Tracing.initialize(StudioTracingConfig)
+        log.info("Tracing Driver initialized and ${if (StudioTracingConfig.isTracingEnabled()) "enabled" else "disabled"}.")
+      }
+    }
+  }
 }
