@@ -1,6 +1,23 @@
 Workspace model changed #1, phase: INITIAL_PHASE
+    Roots changed
+    Added ModuleEntity for non-Gradle module, name: <omitted_for_snapshot_consistency>
+    Added ContentRootEntity for non-Gradle module url: <omitted_for_snapshot_consistency>
 Workspace model changed #2, phase: PROJECT_MODEL_PHASE
+    Roots changed
+    Removed ModuleEntity for non-Gradle module, name: <omitted_for_snapshot_consistency>
+    Replaced: ModuleEntity for ModuleId(name=MultiFlavor.app)
+    With:     ModuleEntity for ModuleId(name=MultiFlavor.app)
+    Removed ContentRootEntity for non-Gradle module url: <omitted_for_snapshot_consistency>
 Workspace model changed #3, phase: SOURCE_SET_MODEL_PHASE
+    Roots changed
+    Replaced: ModuleEntity for ModuleId(name=MultiFlavor.app.androidTest)
+    With:     ModuleEntity for ModuleId(name=MultiFlavor.app.androidTest)
+    Replaced: ModuleEntity for ModuleId(name=MultiFlavor.app.main)
+    With:     ModuleEntity for ModuleId(name=MultiFlavor.app.main)
+    Replaced: ModuleEntity for ModuleId(name=MultiFlavor.app.unitTest)
+    With:     ModuleEntity for ModuleId(name=MultiFlavor.app.unitTest)
+    Replaced: GradleModuleModelEntity for MultiFlavor.app
+    With:     GradleModuleModelEntity for MultiFlavor.app
 Workspace model changed #4, phase: DEPENDENCY_MODEL_PHASE
 Workspace model changed #5, phase: ADDITIONAL_MODEL_PHASE
 Workspace model changed #6, phase: N/A
@@ -9,22 +26,14 @@ Workspace model changed #6, phase: N/A
 Workspace model changed #7, phase: N/A
 Workspace model changed #8, phase: N/A
 Workspace model changed #9, phase: N/A
-    Replaced: ModuleEntity for ModuleId(name=MultiFlavor)
-    With:     ModuleEntity for ModuleId(name=MultiFlavor)
     Replaced: ModuleEntity for ModuleId(name=MultiFlavor.app)
     With:     ModuleEntity for ModuleId(name=MultiFlavor.app)
-    Replaced: ContentRootEntity url: 
-    With:     ContentRootEntity url: 
-    Replaced: ContentRootEntity url: app
-    With:     ContentRootEntity url: app
-    Added ExcludeUrlEntity url: .gradle
-    Added ExcludeUrlEntity url: app/.gradle
-    Added ExcludeUrlEntity url: app/build
-    Added ExcludeUrlEntity url: build
-    Removed ExcludeUrlEntity url: .gradle
-    Removed ExcludeUrlEntity url: app/.gradle
-    Removed ExcludeUrlEntity url: app/build
-    Removed ExcludeUrlEntity url: build
+    Replaced: ModuleEntity for ModuleId(name=MultiFlavor.app.androidTest)
+    With:     ModuleEntity for ModuleId(name=MultiFlavor.app.androidTest)
+    Replaced: ModuleEntity for ModuleId(name=MultiFlavor.app.main)
+    With:     ModuleEntity for ModuleId(name=MultiFlavor.app.main)
+    Replaced: ModuleEntity for ModuleId(name=MultiFlavor.app.unitTest)
+    With:     ModuleEntity for ModuleId(name=MultiFlavor.app.unitTest)
     Replaced: LibraryEntity: Gradle: androidx.annotation:annotation:1.1.0
     With:     LibraryEntity: Gradle: androidx.annotation:annotation:1.1.0
     Replaced: LibraryEntity: Gradle: androidx.arch.core:core-common:2.1.0
@@ -53,6 +62,8 @@ Workspace model changed #9, phase: N/A
     With:     LibraryEntity: Gradle: org.hamcrest:hamcrest-library:1.3
     Replaced: FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=MultiFlavor.app))
     With:     FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=MultiFlavor.app))
+    Replaced: GradleModuleModelEntity for MultiFlavor.app
+    With:     GradleModuleModelEntity for MultiFlavor.app
     Added LibraryMavenCoordinateEntity for Gradle: androidx.annotation:annotation:1.1.0
     Added LibraryMavenCoordinateEntity for Gradle: androidx.arch.core:core-common:2.1.0
     Added LibraryMavenCoordinateEntity for Gradle: androidx.collection:collection:1.1.0
@@ -79,9 +90,5 @@ Workspace model changed #9, phase: N/A
     Removed LibraryMavenCoordinateEntity for Gradle: org.hamcrest:hamcrest-core:1.3
     Removed LibraryMavenCoordinateEntity for Gradle: org.hamcrest:hamcrest-integration:1.3
     Removed LibraryMavenCoordinateEntity for Gradle: org.hamcrest:hamcrest-library:1.3
-    Added(newEntity=GradleModuleEntity-:-2)
-    Added(newEntity=GradleModuleEntity-:-3)
-    Removed(oldEntity=GradleModuleEntity-:-0)
-    Removed(oldEntity=GradleModuleEntity-:-1)
 Workspace model changed #10, phase: N/A
     Roots changed (special batch for previous workspace model change)

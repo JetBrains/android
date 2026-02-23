@@ -1,0 +1,196 @@
+Workspace model changed #1, phase: INITIAL_PHASE
+    Roots changed
+    Added ModuleEntity for non-Gradle module, name: <omitted_for_snapshot_consistency>
+    Added ContentRootEntity for non-Gradle module url: <omitted_for_snapshot_consistency>
+Workspace model changed #2, phase: PROJECT_MODEL_PHASE
+    Roots changed
+    Removed ModuleEntity for non-Gradle module, name: <omitted_for_snapshot_consistency>
+    Replaced: ModuleEntity for ModuleId(name=TestCompositeLib3.app)
+    With:     ModuleEntity for ModuleId(name=TestCompositeLib3.app)
+    Replaced: ModuleEntity for ModuleId(name=TestCompositeLib3.lib)
+    With:     ModuleEntity for ModuleId(name=TestCompositeLib3.lib)
+    Replaced: ModuleEntity for ModuleId(name=includedLib1.app)
+    With:     ModuleEntity for ModuleId(name=includedLib1.app)
+    Replaced: ModuleEntity for ModuleId(name=includedLib1.lib)
+    With:     ModuleEntity for ModuleId(name=includedLib1.lib)
+    Replaced: ModuleEntity for ModuleId(name=p.app)
+    With:     ModuleEntity for ModuleId(name=p.app)
+    Replaced: ModuleEntity for ModuleId(name=p.lib)
+    With:     ModuleEntity for ModuleId(name=p.lib)
+    Removed ContentRootEntity for non-Gradle module url: <omitted_for_snapshot_consistency>
+Workspace model changed #3, phase: SOURCE_SET_MODEL_PHASE
+    Roots changed
+    Replaced: ModuleEntity for ModuleId(name=TestCompositeLib2.test)
+    With:     ModuleEntity for ModuleId(name=TestCompositeLib2.test)
+    Replaced: ModuleEntity for ModuleId(name=TestCompositeLib3.TestCompositeLibNested_3.test)
+    With:     ModuleEntity for ModuleId(name=TestCompositeLib3.TestCompositeLibNested_3.test)
+    Replaced: ModuleEntity for ModuleId(name=TestCompositeLib3.app.androidTest)
+    With:     ModuleEntity for ModuleId(name=TestCompositeLib3.app.androidTest)
+    Replaced: ModuleEntity for ModuleId(name=TestCompositeLib3.app.main)
+    With:     ModuleEntity for ModuleId(name=TestCompositeLib3.app.main)
+    Replaced: ModuleEntity for ModuleId(name=TestCompositeLib3.app.unitTest)
+    With:     ModuleEntity for ModuleId(name=TestCompositeLib3.app.unitTest)
+    Replaced: ModuleEntity for ModuleId(name=TestCompositeLib3.lib.androidTest)
+    With:     ModuleEntity for ModuleId(name=TestCompositeLib3.lib.androidTest)
+    Replaced: ModuleEntity for ModuleId(name=TestCompositeLib3.lib.main)
+    With:     ModuleEntity for ModuleId(name=TestCompositeLib3.lib.main)
+    Replaced: ModuleEntity for ModuleId(name=TestCompositeLib3.lib.unitTest)
+    With:     ModuleEntity for ModuleId(name=TestCompositeLib3.lib.unitTest)
+    Replaced: ModuleEntity for ModuleId(name=TestCompositeLib4.test)
+    With:     ModuleEntity for ModuleId(name=TestCompositeLib4.test)
+    Replaced: ModuleEntity for ModuleId(name=includedLib1.TestCompositeLibNested_1.test)
+    With:     ModuleEntity for ModuleId(name=includedLib1.TestCompositeLibNested_1.test)
+    Replaced: ModuleEntity for ModuleId(name=includedLib1.app.androidTest)
+    With:     ModuleEntity for ModuleId(name=includedLib1.app.androidTest)
+    Replaced: ModuleEntity for ModuleId(name=includedLib1.app.main)
+    With:     ModuleEntity for ModuleId(name=includedLib1.app.main)
+    Replaced: ModuleEntity for ModuleId(name=includedLib1.app.unitTest)
+    With:     ModuleEntity for ModuleId(name=includedLib1.app.unitTest)
+    Replaced: ModuleEntity for ModuleId(name=includedLib1.lib.androidTest)
+    With:     ModuleEntity for ModuleId(name=includedLib1.lib.androidTest)
+    Replaced: ModuleEntity for ModuleId(name=includedLib1.lib.main)
+    With:     ModuleEntity for ModuleId(name=includedLib1.lib.main)
+    Replaced: ModuleEntity for ModuleId(name=includedLib1.lib.unitTest)
+    With:     ModuleEntity for ModuleId(name=includedLib1.lib.unitTest)
+    Replaced: ModuleEntity for ModuleId(name=p.app.androidTest)
+    With:     ModuleEntity for ModuleId(name=p.app.androidTest)
+    Replaced: ModuleEntity for ModuleId(name=p.app.main)
+    With:     ModuleEntity for ModuleId(name=p.app.main)
+    Replaced: ModuleEntity for ModuleId(name=p.app.unitTest)
+    With:     ModuleEntity for ModuleId(name=p.app.unitTest)
+    Replaced: ModuleEntity for ModuleId(name=p.lib.androidTest)
+    With:     ModuleEntity for ModuleId(name=p.lib.androidTest)
+    Replaced: ModuleEntity for ModuleId(name=p.lib.main)
+    With:     ModuleEntity for ModuleId(name=p.lib.main)
+    Replaced: ModuleEntity for ModuleId(name=p.lib.unitTest)
+    With:     ModuleEntity for ModuleId(name=p.lib.unitTest)
+    Removed TestModulePropertiesEntity for TestCompositeLib2.test
+    Removed TestModulePropertiesEntity for TestCompositeLib3.TestCompositeLibNested_3.test
+    Removed TestModulePropertiesEntity for TestCompositeLib4.test
+    Removed TestModulePropertiesEntity for includedLib1.TestCompositeLibNested_1.test
+Workspace model changed #4, phase: DEPENDENCY_MODEL_PHASE
+Workspace model changed #5, phase: ADDITIONAL_MODEL_PHASE
+Workspace model changed #6, phase: N/A
+    Replaced: JavaProjectSettingsEntity for the IDE project
+    With:     JavaProjectSettingsEntity for the IDE project
+Workspace model changed #7, phase: N/A
+Workspace model changed #8, phase: N/A
+Workspace model changed #9, phase: N/A
+    Replaced: ModuleEntity for ModuleId(name=TestCompositeLib2.main)
+    With:     ModuleEntity for ModuleId(name=TestCompositeLib2.main)
+    Replaced: ModuleEntity for ModuleId(name=TestCompositeLib2.test)
+    With:     ModuleEntity for ModuleId(name=TestCompositeLib2.test)
+    Replaced: ModuleEntity for ModuleId(name=TestCompositeLib3.TestCompositeLibNested_3.main)
+    With:     ModuleEntity for ModuleId(name=TestCompositeLib3.TestCompositeLibNested_3.main)
+    Replaced: ModuleEntity for ModuleId(name=TestCompositeLib3.TestCompositeLibNested_3.test)
+    With:     ModuleEntity for ModuleId(name=TestCompositeLib3.TestCompositeLibNested_3.test)
+    Replaced: ModuleEntity for ModuleId(name=TestCompositeLib3.app)
+    With:     ModuleEntity for ModuleId(name=TestCompositeLib3.app)
+    Replaced: ModuleEntity for ModuleId(name=TestCompositeLib3.app.androidTest)
+    With:     ModuleEntity for ModuleId(name=TestCompositeLib3.app.androidTest)
+    Replaced: ModuleEntity for ModuleId(name=TestCompositeLib3.app.main)
+    With:     ModuleEntity for ModuleId(name=TestCompositeLib3.app.main)
+    Replaced: ModuleEntity for ModuleId(name=TestCompositeLib3.app.unitTest)
+    With:     ModuleEntity for ModuleId(name=TestCompositeLib3.app.unitTest)
+    Replaced: ModuleEntity for ModuleId(name=TestCompositeLib3.lib)
+    With:     ModuleEntity for ModuleId(name=TestCompositeLib3.lib)
+    Replaced: ModuleEntity for ModuleId(name=TestCompositeLib3.lib.androidTest)
+    With:     ModuleEntity for ModuleId(name=TestCompositeLib3.lib.androidTest)
+    Replaced: ModuleEntity for ModuleId(name=TestCompositeLib3.lib.main)
+    With:     ModuleEntity for ModuleId(name=TestCompositeLib3.lib.main)
+    Replaced: ModuleEntity for ModuleId(name=TestCompositeLib3.lib.unitTest)
+    With:     ModuleEntity for ModuleId(name=TestCompositeLib3.lib.unitTest)
+    Replaced: ModuleEntity for ModuleId(name=TestCompositeLib4.main)
+    With:     ModuleEntity for ModuleId(name=TestCompositeLib4.main)
+    Replaced: ModuleEntity for ModuleId(name=TestCompositeLib4.test)
+    With:     ModuleEntity for ModuleId(name=TestCompositeLib4.test)
+    Replaced: ModuleEntity for ModuleId(name=includedLib1.TestCompositeLibNested_1.main)
+    With:     ModuleEntity for ModuleId(name=includedLib1.TestCompositeLibNested_1.main)
+    Replaced: ModuleEntity for ModuleId(name=includedLib1.TestCompositeLibNested_1.test)
+    With:     ModuleEntity for ModuleId(name=includedLib1.TestCompositeLibNested_1.test)
+    Replaced: ModuleEntity for ModuleId(name=includedLib1.app)
+    With:     ModuleEntity for ModuleId(name=includedLib1.app)
+    Replaced: ModuleEntity for ModuleId(name=includedLib1.app.androidTest)
+    With:     ModuleEntity for ModuleId(name=includedLib1.app.androidTest)
+    Replaced: ModuleEntity for ModuleId(name=includedLib1.app.main)
+    With:     ModuleEntity for ModuleId(name=includedLib1.app.main)
+    Replaced: ModuleEntity for ModuleId(name=includedLib1.app.unitTest)
+    With:     ModuleEntity for ModuleId(name=includedLib1.app.unitTest)
+    Replaced: ModuleEntity for ModuleId(name=includedLib1.lib)
+    With:     ModuleEntity for ModuleId(name=includedLib1.lib)
+    Replaced: ModuleEntity for ModuleId(name=includedLib1.lib.androidTest)
+    With:     ModuleEntity for ModuleId(name=includedLib1.lib.androidTest)
+    Replaced: ModuleEntity for ModuleId(name=includedLib1.lib.main)
+    With:     ModuleEntity for ModuleId(name=includedLib1.lib.main)
+    Replaced: ModuleEntity for ModuleId(name=includedLib1.lib.unitTest)
+    With:     ModuleEntity for ModuleId(name=includedLib1.lib.unitTest)
+    Replaced: ModuleEntity for ModuleId(name=p.app)
+    With:     ModuleEntity for ModuleId(name=p.app)
+    Replaced: ModuleEntity for ModuleId(name=p.app.androidTest)
+    With:     ModuleEntity for ModuleId(name=p.app.androidTest)
+    Replaced: ModuleEntity for ModuleId(name=p.app.main)
+    With:     ModuleEntity for ModuleId(name=p.app.main)
+    Replaced: ModuleEntity for ModuleId(name=p.app.unitTest)
+    With:     ModuleEntity for ModuleId(name=p.app.unitTest)
+    Replaced: ModuleEntity for ModuleId(name=p.lib)
+    With:     ModuleEntity for ModuleId(name=p.lib)
+    Replaced: ModuleEntity for ModuleId(name=p.lib.androidTest)
+    With:     ModuleEntity for ModuleId(name=p.lib.androidTest)
+    Replaced: ModuleEntity for ModuleId(name=p.lib.main)
+    With:     ModuleEntity for ModuleId(name=p.lib.main)
+    Replaced: ModuleEntity for ModuleId(name=p.lib.unitTest)
+    With:     ModuleEntity for ModuleId(name=p.lib.unitTest)
+    Replaced: LibraryEntity: Gradle: android.arch.core:common:1.1.1
+    With:     LibraryEntity: Gradle: android.arch.core:common:1.1.1
+    Replaced: LibraryEntity: Gradle: android.arch.lifecycle:common:1.1.1
+    With:     LibraryEntity: Gradle: android.arch.lifecycle:common:1.1.1
+    Replaced: LibraryEntity: Gradle: com.android.support.constraint:constraint-layout-solver:1.0.2
+    With:     LibraryEntity: Gradle: com.android.support.constraint:constraint-layout-solver:1.0.2
+    Replaced: LibraryEntity: Gradle: com.android.support:collections:28.0.0
+    With:     LibraryEntity: Gradle: com.android.support:collections:28.0.0
+    Replaced: LibraryEntity: Gradle: com.android.support:support-annotations:28.0.0
+    With:     LibraryEntity: Gradle: com.android.support:support-annotations:28.0.0
+    Replaced: LibraryEntity: Gradle: org.jetbrains.kotlin:kotlin-stdlib:2.2.10
+    With:     LibraryEntity: Gradle: org.jetbrains.kotlin:kotlin-stdlib:2.2.10
+    Replaced: LibraryEntity: Gradle: org.jetbrains:annotations:13.0
+    With:     LibraryEntity: Gradle: org.jetbrains:annotations:13.0
+    Replaced: FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=TestCompositeLib3.app))
+    With:     FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=TestCompositeLib3.app))
+    Replaced: FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=TestCompositeLib3.lib))
+    With:     FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=TestCompositeLib3.lib))
+    Replaced: FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=includedLib1.app))
+    With:     FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=includedLib1.app))
+    Replaced: FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=includedLib1.lib))
+    With:     FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=includedLib1.lib))
+    Replaced: FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=p.app))
+    With:     FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=p.app))
+    Replaced: FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=p.lib))
+    With:     FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=p.lib))
+    Added TestModulePropertiesEntity for TestCompositeLib2.test
+    Added TestModulePropertiesEntity for TestCompositeLib3.TestCompositeLibNested_3.test
+    Added TestModulePropertiesEntity for TestCompositeLib4.test
+    Added TestModulePropertiesEntity for includedLib1.TestCompositeLibNested_1.test
+    Added ModuleMavenCoordinateEntity for TestCompositeLib2.main
+    Added ModuleMavenCoordinateEntity for TestCompositeLib3.TestCompositeLibNested_3.main
+    Added ModuleMavenCoordinateEntity for TestCompositeLib4.main
+    Added ModuleMavenCoordinateEntity for includedLib1.TestCompositeLibNested_1.main
+    Removed ModuleMavenCoordinateEntity for TestCompositeLib2.main
+    Removed ModuleMavenCoordinateEntity for TestCompositeLib3.TestCompositeLibNested_3.main
+    Removed ModuleMavenCoordinateEntity for TestCompositeLib4.main
+    Removed ModuleMavenCoordinateEntity for includedLib1.TestCompositeLibNested_1.main
+    Added LibraryMavenCoordinateEntity for Gradle: android.arch.core:common:1.1.1
+    Added LibraryMavenCoordinateEntity for Gradle: android.arch.lifecycle:common:1.1.1
+    Added LibraryMavenCoordinateEntity for Gradle: com.android.support.constraint:constraint-layout-solver:1.0.2
+    Added LibraryMavenCoordinateEntity for Gradle: com.android.support:collections:28.0.0
+    Added LibraryMavenCoordinateEntity for Gradle: com.android.support:support-annotations:28.0.0
+    Added LibraryMavenCoordinateEntity for Gradle: org.jetbrains.kotlin:kotlin-stdlib:2.2.10
+    Added LibraryMavenCoordinateEntity for Gradle: org.jetbrains:annotations:13.0
+    Removed LibraryMavenCoordinateEntity for Gradle: android.arch.core:common:1.1.1
+    Removed LibraryMavenCoordinateEntity for Gradle: android.arch.lifecycle:common:1.1.1
+    Removed LibraryMavenCoordinateEntity for Gradle: com.android.support.constraint:constraint-layout-solver:1.0.2
+    Removed LibraryMavenCoordinateEntity for Gradle: com.android.support:collections:28.0.0
+    Removed LibraryMavenCoordinateEntity for Gradle: com.android.support:support-annotations:28.0.0
+    Removed LibraryMavenCoordinateEntity for Gradle: org.jetbrains.kotlin:kotlin-stdlib:2.2.10
+    Removed LibraryMavenCoordinateEntity for Gradle: org.jetbrains:annotations:13.0
+Workspace model changed #10, phase: N/A
+    Roots changed (special batch for previous workspace model change)

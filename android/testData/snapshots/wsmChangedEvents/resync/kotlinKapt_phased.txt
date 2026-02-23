@@ -1,45 +1,59 @@
 Workspace model changed #1, phase: INITIAL_PHASE
+    Roots changed
+    Added ModuleEntity for non-Gradle module, name: <omitted_for_snapshot_consistency>
+    Added ContentRootEntity for non-Gradle module url: <omitted_for_snapshot_consistency>
 Workspace model changed #2, phase: PROJECT_MODEL_PHASE
+    Roots changed
+    Removed ModuleEntity for non-Gradle module, name: <omitted_for_snapshot_consistency>
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.app)
+    With:     ModuleEntity for ModuleId(name=MainActivity.app)
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.lib)
+    With:     ModuleEntity for ModuleId(name=MainActivity.lib)
+    Removed ContentRootEntity for non-Gradle module url: <omitted_for_snapshot_consistency>
 Workspace model changed #3, phase: SOURCE_SET_MODEL_PHASE
+    Roots changed
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.app.androidTest)
+    With:     ModuleEntity for ModuleId(name=MainActivity.app.androidTest)
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.app.main)
+    With:     ModuleEntity for ModuleId(name=MainActivity.app.main)
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.app.unitTest)
+    With:     ModuleEntity for ModuleId(name=MainActivity.app.unitTest)
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.javaLib.test)
+    With:     ModuleEntity for ModuleId(name=MainActivity.javaLib.test)
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.lib.androidTest)
+    With:     ModuleEntity for ModuleId(name=MainActivity.lib.androidTest)
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.lib.main)
+    With:     ModuleEntity for ModuleId(name=MainActivity.lib.main)
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.lib.unitTest)
+    With:     ModuleEntity for ModuleId(name=MainActivity.lib.unitTest)
+    Removed TestModulePropertiesEntity for MainActivity.javaLib.test
+    Replaced: GradleModuleModelEntity for MainActivity.app
+    With:     GradleModuleModelEntity for MainActivity.app
 Workspace model changed #4, phase: DEPENDENCY_MODEL_PHASE
 Workspace model changed #5, phase: ADDITIONAL_MODEL_PHASE
 Workspace model changed #6, phase: N/A
 Workspace model changed #7, phase: N/A
 Workspace model changed #8, phase: N/A
-    Replaced: ModuleEntity for ModuleId(name=MainActivity)
-    With:     ModuleEntity for ModuleId(name=MainActivity)
     Replaced: ModuleEntity for ModuleId(name=MainActivity.app)
     With:     ModuleEntity for ModuleId(name=MainActivity.app)
-    Replaced: ModuleEntity for ModuleId(name=MainActivity.javaLib)
-    With:     ModuleEntity for ModuleId(name=MainActivity.javaLib)
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.app.androidTest)
+    With:     ModuleEntity for ModuleId(name=MainActivity.app.androidTest)
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.app.main)
+    With:     ModuleEntity for ModuleId(name=MainActivity.app.main)
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.app.unitTest)
+    With:     ModuleEntity for ModuleId(name=MainActivity.app.unitTest)
     Replaced: ModuleEntity for ModuleId(name=MainActivity.javaLib.main)
     With:     ModuleEntity for ModuleId(name=MainActivity.javaLib.main)
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.javaLib.test)
+    With:     ModuleEntity for ModuleId(name=MainActivity.javaLib.test)
     Replaced: ModuleEntity for ModuleId(name=MainActivity.lib)
     With:     ModuleEntity for ModuleId(name=MainActivity.lib)
-    Replaced: ContentRootEntity url: 
-    With:     ContentRootEntity url: 
-    Replaced: ContentRootEntity url: app
-    With:     ContentRootEntity url: app
-    Replaced: ContentRootEntity url: javaLib
-    With:     ContentRootEntity url: javaLib
-    Replaced: ContentRootEntity url: lib
-    With:     ContentRootEntity url: lib
-    Added ExcludeUrlEntity url: .gradle
-    Added ExcludeUrlEntity url: app/.gradle
-    Added ExcludeUrlEntity url: app/build
-    Added ExcludeUrlEntity url: build
-    Added ExcludeUrlEntity url: javaLib/.gradle
-    Added ExcludeUrlEntity url: javaLib/build
-    Added ExcludeUrlEntity url: lib/.gradle
-    Added ExcludeUrlEntity url: lib/build
-    Removed ExcludeUrlEntity url: .gradle
-    Removed ExcludeUrlEntity url: app/.gradle
-    Removed ExcludeUrlEntity url: app/build
-    Removed ExcludeUrlEntity url: build
-    Removed ExcludeUrlEntity url: javaLib/.gradle
-    Removed ExcludeUrlEntity url: javaLib/build
-    Removed ExcludeUrlEntity url: lib/.gradle
-    Removed ExcludeUrlEntity url: lib/build
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.lib.androidTest)
+    With:     ModuleEntity for ModuleId(name=MainActivity.lib.androidTest)
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.lib.main)
+    With:     ModuleEntity for ModuleId(name=MainActivity.lib.main)
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.lib.unitTest)
+    With:     ModuleEntity for ModuleId(name=MainActivity.lib.unitTest)
     Replaced: LibraryEntity: Gradle: androidx.annotation:annotation:1.0.0
     With:     LibraryEntity: Gradle: androidx.annotation:annotation:1.0.0
     Replaced: LibraryEntity: Gradle: androidx.arch.core:core-common:2.0.0
@@ -74,8 +88,11 @@ Workspace model changed #8, phase: N/A
     With:     FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=MainActivity.app))
     Replaced: FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=MainActivity.lib))
     With:     FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=MainActivity.lib))
+    Added TestModulePropertiesEntity for MainActivity.javaLib.test
     Added ModuleMavenCoordinateEntity for MainActivity.javaLib.main
     Removed ModuleMavenCoordinateEntity for MainActivity.javaLib.main
+    Replaced: GradleModuleModelEntity for MainActivity.app
+    With:     GradleModuleModelEntity for MainActivity.app
     Added LibraryMavenCoordinateEntity for Gradle: androidx.annotation:annotation:1.0.0
     Added LibraryMavenCoordinateEntity for Gradle: androidx.arch.core:core-common:2.0.0
     Added LibraryMavenCoordinateEntity for Gradle: androidx.collection:collection:1.0.0
@@ -106,13 +123,5 @@ Workspace model changed #8, phase: N/A
     Removed LibraryMavenCoordinateEntity for Gradle: org.hamcrest:hamcrest-library:1.3
     Removed LibraryMavenCoordinateEntity for Gradle: org.jetbrains.kotlin:kotlin-stdlib:2.2.10
     Removed LibraryMavenCoordinateEntity for Gradle: org.jetbrains:annotations:13.0
-    Added(newEntity=GradleModuleEntity-:-4)
-    Added(newEntity=GradleModuleEntity-:-5)
-    Added(newEntity=GradleModuleEntity-:-6)
-    Added(newEntity=GradleModuleEntity-:-7)
-    Removed(oldEntity=GradleModuleEntity-:-0)
-    Removed(oldEntity=GradleModuleEntity-:-1)
-    Removed(oldEntity=GradleModuleEntity-:-2)
-    Removed(oldEntity=GradleModuleEntity-:-3)
 Workspace model changed #9, phase: N/A
     Roots changed (special batch for previous workspace model change)

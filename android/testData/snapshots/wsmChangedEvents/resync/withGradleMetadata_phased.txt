@@ -1,6 +1,21 @@
 Workspace model changed #1, phase: INITIAL_PHASE
+    Roots changed
+    Added ModuleEntity for non-Gradle module, name: <omitted_for_snapshot_consistency>
+    Added ContentRootEntity for non-Gradle module url: <omitted_for_snapshot_consistency>
 Workspace model changed #2, phase: PROJECT_MODEL_PHASE
+    Roots changed
+    Removed ModuleEntity for non-Gradle module, name: <omitted_for_snapshot_consistency>
+    Replaced: ModuleEntity for ModuleId(name=withGradleMetadata.app)
+    With:     ModuleEntity for ModuleId(name=withGradleMetadata.app)
+    Removed ContentRootEntity for non-Gradle module url: <omitted_for_snapshot_consistency>
 Workspace model changed #3, phase: SOURCE_SET_MODEL_PHASE
+    Roots changed
+    Replaced: ModuleEntity for ModuleId(name=withGradleMetadata.app.androidTest)
+    With:     ModuleEntity for ModuleId(name=withGradleMetadata.app.androidTest)
+    Replaced: ModuleEntity for ModuleId(name=withGradleMetadata.app.main)
+    With:     ModuleEntity for ModuleId(name=withGradleMetadata.app.main)
+    Replaced: ModuleEntity for ModuleId(name=withGradleMetadata.app.unitTest)
+    With:     ModuleEntity for ModuleId(name=withGradleMetadata.app.unitTest)
 Workspace model changed #4, phase: DEPENDENCY_MODEL_PHASE
 Workspace model changed #5, phase: ADDITIONAL_MODEL_PHASE
 Workspace model changed #6, phase: N/A
@@ -9,22 +24,14 @@ Workspace model changed #6, phase: N/A
 Workspace model changed #7, phase: N/A
 Workspace model changed #8, phase: N/A
 Workspace model changed #9, phase: N/A
-    Replaced: ModuleEntity for ModuleId(name=withGradleMetadata)
-    With:     ModuleEntity for ModuleId(name=withGradleMetadata)
     Replaced: ModuleEntity for ModuleId(name=withGradleMetadata.app)
     With:     ModuleEntity for ModuleId(name=withGradleMetadata.app)
-    Replaced: ContentRootEntity url: 
-    With:     ContentRootEntity url: 
-    Replaced: ContentRootEntity url: app
-    With:     ContentRootEntity url: app
-    Added ExcludeUrlEntity url: .gradle
-    Added ExcludeUrlEntity url: app/.gradle
-    Added ExcludeUrlEntity url: app/build
-    Added ExcludeUrlEntity url: build
-    Removed ExcludeUrlEntity url: .gradle
-    Removed ExcludeUrlEntity url: app/.gradle
-    Removed ExcludeUrlEntity url: app/build
-    Removed ExcludeUrlEntity url: build
+    Replaced: ModuleEntity for ModuleId(name=withGradleMetadata.app.androidTest)
+    With:     ModuleEntity for ModuleId(name=withGradleMetadata.app.androidTest)
+    Replaced: ModuleEntity for ModuleId(name=withGradleMetadata.app.main)
+    With:     ModuleEntity for ModuleId(name=withGradleMetadata.app.main)
+    Replaced: ModuleEntity for ModuleId(name=withGradleMetadata.app.unitTest)
+    With:     ModuleEntity for ModuleId(name=withGradleMetadata.app.unitTest)
     Replaced: LibraryEntity: Gradle: org.gradle.sample:library:1.1
     With:     LibraryEntity: Gradle: org.gradle.sample:library:1.1
     Replaced: LibraryEntity: Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.5.30
@@ -59,9 +66,5 @@ Workspace model changed #9, phase: N/A
     Removed LibraryMavenCoordinateEntity for Gradle: org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2
     Removed LibraryMavenCoordinateEntity for Gradle: org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2
     Removed LibraryMavenCoordinateEntity for Gradle: org.jetbrains:annotations:13.0
-    Added(newEntity=GradleModuleEntity-:-2)
-    Added(newEntity=GradleModuleEntity-:-3)
-    Removed(oldEntity=GradleModuleEntity-:-0)
-    Removed(oldEntity=GradleModuleEntity-:-1)
 Workspace model changed #10, phase: N/A
     Roots changed (special batch for previous workspace model change)
