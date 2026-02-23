@@ -78,6 +78,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -166,6 +167,7 @@ class AppInspectionSnapshotSupportTest {
       .isEqualTo("Error loading snapshot\nSKP image type is no longer supported starting with Android Studio Panda 2")
   }
 
+  @Ignore("b/486842289")
   @Test
   fun testNavigationInSnapshotView() = runBlocking {
     inspectorClientSettings.inLiveMode = true

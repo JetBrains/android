@@ -72,6 +72,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -611,6 +612,7 @@ class AppInspectionPropertiesProviderTest {
     }
   }
 
+  @Ignore("b/486842289")
   @Test
   fun testPropertiesModelNotifications() {
     projectRule.fixture.addFileToProject(

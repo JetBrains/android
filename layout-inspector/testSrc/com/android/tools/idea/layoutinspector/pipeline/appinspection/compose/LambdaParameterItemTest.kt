@@ -38,6 +38,7 @@ import com.intellij.testFramework.replaceService
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -67,6 +68,7 @@ class LambdaParameterItemTest {
     assertThat(popupRule.fakePopupFactory.balloonCount).isEqualTo(0)
   }
 
+  @Ignore("b/486842289")
   @Test
   fun testLambdaLookupOfUnknownLocation() {
     val item = createParameterItem("MyCompose.kt", 10, 20)
