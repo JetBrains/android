@@ -21,6 +21,9 @@ import com.google.common.truth.Truth
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.NoopContext
 import com.google.idea.blaze.qsync.project.ProjectProto
+import com.google.idea.common.experiments.ExperimentService
+import com.google.idea.common.experiments.MockExperimentService
+import com.google.idea.testing.IntellijRule
 import java.io.FileOutputStream
 import java.io.IOException
 import java.nio.charset.StandardCharsets
@@ -41,6 +44,7 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class ArtifactDirectoryUpdateTest {
+  @get:Rule val intellij: IntellijRule = IntellijRule()
   @get:Rule var tmpDir: TemporaryFolder = TemporaryFolder()
 
   val buildTimestamp = Instant.now()
@@ -53,6 +57,10 @@ class ArtifactDirectoryUpdateTest {
   @Before
   @Throws(Exception::class)
   fun initDirs() {
+    val mockExperimentService = MockExperimentService()
+    mockExperimentService.setExperiment(FileTransform.hardlinkArtifacts, true)
+    intellij.registerApplicationService(ExperimentService::class.java, mockExperimentService)
+
     root = tmpDir.root.toPath().resolve("artifact_dir")
     workspaceRoot = tmpDir.root.toPath().resolve("workspace")
     Files.createDirectory(workspaceRoot)

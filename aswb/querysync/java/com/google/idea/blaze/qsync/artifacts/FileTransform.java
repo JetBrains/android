@@ -18,7 +18,7 @@ public interface FileTransform {
   ImmutableSet<Path> copyWithTransform(CachedArtifact src, Path dest)
       throws BuildException, IOException;
 
-  BoolExperiment hardlinkArtifacts = new BoolExperiment("qsync.artifact.hardlink.enabled", true);
+  BoolExperiment hardlinkArtifacts = new BoolExperiment("qsync.artifact.hardlink.enabled", false);
 
   FileTransform COPY =
       (src, dest) -> {
