@@ -275,7 +275,7 @@ public final class StudioIcons {
       /** 16x16 */ public static final @NotNull Icon POSTURE_OPEN = load("studio/icons/emulator/menu/posture-open.svg", -1102094041, 2);
       /** 16x16 */ public static final @NotNull Icon POSTURE_REAR_DISPLAY = load("studio/icons/emulator/menu/posture-rear-display.svg", -1179940746, 2);
       /** 16x16 */ public static final @NotNull Icon POSTURE_TENT = load("studio/icons/emulator/menu/posture-tent.svg", -854201469, 2);
-      /** 16x16 */ public static final @NotNull Icon VIRTUAL_SENSORS = load("studio/icons/emulator/menu/virtual_sensors.svg", 819501391, 2);
+      /** 16x16 */ public static final @NotNull Icon VIRTUAL_SENSORS = load("studio/icons/emulator/menu/virtual_sensors.svg", 773940485, 2);
     }
 
     public static final class Snapshots {
