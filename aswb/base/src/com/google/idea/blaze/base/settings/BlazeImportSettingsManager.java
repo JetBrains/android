@@ -25,7 +25,6 @@ import com.google.idea.blaze.base.projectview.parser.ProjectViewParser;
 import com.google.idea.blaze.base.projectview.section.sections.UseQuerySyncSection;
 import com.google.idea.blaze.base.projectview.section.sections.WorkspaceLocationSection;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
-import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.scopes.ToolWindowScopeRunner;
 import com.google.idea.blaze.common.PrintOutput;
@@ -54,13 +53,10 @@ import javax.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
-/**
- * Manages storage for the project's {@link BlazeImportSettings}.
- */
+/** Manages storage for the project's {@link BlazeImportSettings}. */
 @State(name = "BlazeImportSettings", storages = @Storage(file = StoragePathMacros.WORKSPACE_FILE))
 public class BlazeImportSettingsManager implements PersistentStateComponent<BlazeImportSettings> {
   private static final Logger logger = Logger.getInstance(BlazeImportSettingsManager.class);
-
 
   private final AtomicReference<BlazeImportSettings> importSettings = new AtomicReference<>(null);
 
@@ -92,62 +88,88 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
     synchronized (this) {
       final var result = importSettings.get();
       if (result != null) return result;
-      BlazeImportSettingsManager.getInstance(project).initImportSettings(
-        Optional.ofNullable(BlazeImportSettingsManager.getInstance(project).loadedImportSettings));
+      BlazeImportSettingsManager.getInstance(project)
+          .initImportSettings(
+              Optional.ofNullable(
+                  BlazeImportSettingsManager.getInstance(project).loadedImportSettings));
       return importSettings.get();
     }
   }
 
   private void initImportSettings(Optional<BlazeImportSettings> loadedImportSettings) {
-    final var projectBasePath = project.getBasePath();
+    loadImportSettings(
+            project.getBasePath(),
+            project.getName(),
+            loadedImportSettings.map(BlazeImportSettings::getProjectName),
+            loadedImportSettings.map(BlazeImportSettings::getLocationHash),
+            loadedImportSettings.map(BlazeImportSettings::getWorkspaceRoot))
+        .ifPresent(this.importSettings::set);
+  }
+
+  public static Optional<BlazeImportSettings> loadImportSettings(
+      String projectBasePath,
+      String projectName,
+      Optional<String> loadedProjectName,
+      Optional<String> loadedLocationHash,
+      Optional<String> loadedWorkspaceRoot) {
     if (projectBasePath == null) {
       // For example the default project accessed from the Settings dialog.
-      return;
+      return Optional.empty();
     }
-    final var defaultProjectType = BlazeImportSettings.ProjectType.QUERY_SYNC;
-    // Loaded import settings are previous settings stored in `.idea` directory. Any values that changed in `.bazelproject` file take
+    // Loaded import settings are previous settings stored in `.idea` directory. Any values that
+    // changed in `.bazelproject` file take
     // precedence over previously stored values.
 
-    final var projectName =
-      loadedImportSettings
-        .map(BlazeImportSettings::getProjectName)
-        .flatMap(it -> isNullOrEmpty(it) ? Optional.empty() : Optional.of(it))
-        .orElse(project.getName());
+    final var effectiveProjectName =
+        loadedProjectName
+            .flatMap(it -> isNullOrEmpty(it) ? Optional.empty() : Optional.of(it))
+            .orElse(projectName);
     final var locationHash =
-      loadedImportSettings.map(BlazeImportSettings::getLocationHash).orElseGet(() -> createLocationHash(projectName));
+        loadedLocationHash.orElseGet(() -> createLocationHash(effectiveProjectName));
 
     final var projectViewFile =
-      Stream.of(Path.of(projectBasePath, ".blazeproject"), Path.of(projectBasePath, ".bazelproject"))
-        .filter(Files::exists)
-        .findFirst();
+        Stream.of(
+                Path.of(projectBasePath, ".blazeproject"),
+                Path.of(projectBasePath, ".bazelproject"))
+            .filter(Files::exists)
+            .findFirst();
     if (projectViewFile.isEmpty()) {
-      return;
+      return Optional.empty();
     }
 
     final var projectViewFilePath = projectViewFile.get();
     final var topLevelProjectViewFile = parseTopLevelProjectViewFile(projectViewFilePath.toFile());
     final var topLevelProjectView = Objects.requireNonNull(topLevelProjectViewFile).projectView;
 
-    final var projectViewWorkspaceLocation = Optional.ofNullable(topLevelProjectView.getScalarValue(WorkspaceLocationSection.KEY));
+    final var projectViewWorkspaceLocation =
+        Optional.ofNullable(topLevelProjectView.getScalarValue(WorkspaceLocationSection.KEY));
 
-    final var workspaceLocation = projectViewWorkspaceLocation.or(() -> loadedImportSettings.map(BlazeImportSettings::getWorkspaceRoot));
+    final var workspaceLocation = projectViewWorkspaceLocation.or(() -> loadedWorkspaceRoot);
     if (workspaceLocation.isEmpty()) {
-      return;
+      return Optional.empty();
     }
-    final var buildSystem = projectViewFilePath.endsWith(".bazelproject") ? BuildSystemName.Bazel : BuildSystemName.Blaze;
+    final var buildSystem =
+        projectViewFilePath.endsWith(".bazelproject")
+            ? BuildSystemName.Bazel
+            : BuildSystemName.Blaze;
 
     String workspaceRoot = workspaceLocation.get();
     final var importSettings =
-      new BlazeImportSettings(workspaceRoot, projectName, projectBasePath, locationHash, projectViewFilePath.toString(),
-                              buildSystem);
+        new BlazeImportSettings(
+            workspaceRoot,
+            effectiveProjectName,
+            projectBasePath,
+            locationHash,
+            projectViewFilePath.toString(),
+            buildSystem);
 
-    this.importSettings.set(importSettings);
+    return Optional.of(importSettings);
   }
 
-  private ProjectViewSet.ProjectViewFile parseTopLevelProjectViewFile(File projectViewFile) {
+  private static ProjectViewSet.ProjectViewFile parseTopLevelProjectViewFile(File projectViewFile) {
     ProjectViewParser parser = new ProjectViewParser(BlazeContext.create(), null);
-    parser.parseProjectViewFile(projectViewFile,
-                                List.of(WorkspaceLocationSection.PARSER, UseQuerySyncSection.PARSER));
+    parser.parseProjectViewFile(
+        projectViewFile, List.of(WorkspaceLocationSection.PARSER, UseQuerySyncSection.PARSER));
     ProjectViewSet projectViewSet = parser.getResult();
     return projectViewSet.getTopLevelProjectViewFile();
   }
@@ -155,8 +177,7 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
   public void initProjectView() {
     try {
       reloadProjectView();
-    }
-    catch (BuildException e) {
+    } catch (BuildException e) {
       throw new RuntimeException(e);
     }
   }
@@ -174,57 +195,75 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
 
   public ProjectViewSet reloadProjectView() throws BuildException {
     try {
-      // Some IDE actions reload the project view in the EDT. Even though it is not right to do it needs to be handled.
+      // Some IDE actions reload the project view in the EDT. Even though it is not right to do it
+      // needs to be handled.
       if (ApplicationManager.getApplication().isDispatchThread()) {
         new Task.Modal(project, "Parsing project view files", false) {
           @Override
           public void run(@NotNull ProgressIndicator indicator) {
             try {
               reloadProjectViewUnderProgressAndWait();
-            }
-            catch (ExecutionException | InterruptedException e) {
+            } catch (ExecutionException | InterruptedException e) {
               throw new RuntimeException(e);
             }
           }
         }.queue();
-      }
-      else {
+      } else {
         reloadProjectViewUnderProgressAndWait();
       }
       return projectViewSet.get();
-    }
-    catch (InterruptedException e) {
+    } catch (InterruptedException e) {
       throw new BuildException(e);
-    }
-    catch (ExecutionException e) {
+    } catch (ExecutionException e) {
       throw new RuntimeException(e);
     }
   }
 
-  private void reloadProjectViewUnderProgressAndWait() throws InterruptedException, ExecutionException {
+  private void reloadProjectViewUnderProgressAndWait()
+      throws InterruptedException, ExecutionException {
     // Not logging reading project view files as syncing.
     ProgressiveTaskWithProgressIndicator.builder(project, "Parsing project view files")
-      .setCancelable(false)
-      .submitTaskWithResult(((Function<ProgressIndicator, Boolean>)indicator ->
-        ToolWindowScopeRunner.runTaskWithToolWindow(project, "Parsing project view files",
-                                                    "Parsing project view files", QuerySyncManager.TaskOrigin.AUTOMATIC,
-                                                    BlazeUserSettings.getInstance(), context -> {
-            final var importSettings = getImportSettings();
-            var loadedProjectView = ProjectViewManager.getInstance(project).doLoadProjectView(context, importSettings);
-            final var migrated = migrateImportSettingsToProjectViewFile(
-              importSettings,
-              Objects.requireNonNull(loadedProjectView.getTopLevelProjectViewFile())
-            );
-            if (migrated) {
-              context.output(PrintOutput.output("Some project settings have been migrated to .bazelproject file. Re-parsing..."));
-              loadedProjectView = ProjectViewManager.getInstance(project).doLoadProjectView(context, importSettings);
-            }
-            projectViewSet.set(loadedProjectView);
-            final var workspaceLocation = loadedProjectView.getScalarValue(WorkspaceLocationSection.KEY);
-            workspaceLocation.ifPresentOrElse(importSettings::setWorkspaceRoot,
-                                              () -> logger.error(new RuntimeException("Workspace location migration failed.")));
-          }
-        ))::apply).get();
+        .setCancelable(false)
+        .submitTaskWithResult(
+            ((Function<ProgressIndicator, Boolean>)
+                    indicator ->
+                        ToolWindowScopeRunner.runTaskWithToolWindow(
+                            project,
+                            "Parsing project view files",
+                            "Parsing project view files",
+                            QuerySyncManager.TaskOrigin.AUTOMATIC,
+                            BlazeUserSettings.getInstance(),
+                            context -> {
+                              final var importSettings = getImportSettings();
+                              var loadedProjectView =
+                                  ProjectViewManager.getInstance(project)
+                                      .doLoadProjectView(context, importSettings);
+                              final var migrated =
+                                  migrateImportSettingsToProjectViewFile(
+                                      importSettings,
+                                      Objects.requireNonNull(
+                                          loadedProjectView.getTopLevelProjectViewFile()));
+                              if (migrated) {
+                                context.output(
+                                    PrintOutput.output(
+                                        "Some project settings have been migrated to .bazelproject"
+                                            + " file. Re-parsing..."));
+                                loadedProjectView =
+                                    ProjectViewManager.getInstance(project)
+                                        .doLoadProjectView(context, importSettings);
+                              }
+                              projectViewSet.set(loadedProjectView);
+                              final var workspaceLocation =
+                                  loadedProjectView.getScalarValue(WorkspaceLocationSection.KEY);
+                              workspaceLocation.ifPresentOrElse(
+                                  importSettings::setWorkspaceRoot,
+                                  () ->
+                                      logger.error(
+                                          new RuntimeException(
+                                              "Workspace location migration failed.")));
+                            }))
+                ::apply)
+        .get();
   }
 
   public static String createLocationHash(String projectName) {
