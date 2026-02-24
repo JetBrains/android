@@ -19,6 +19,7 @@ import androidx.compose.foundation.ContextMenuArea
 import androidx.compose.foundation.ContextMenuItem
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -43,6 +44,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -94,10 +97,12 @@ class ScreenshotAttributesView {
   var state by mutableStateOf(ScreenshotAttributesState())
     private set
 
+  private val panel: JComponent by lazy { StudioComposePanel { ScreenshotAttributesUi(state) } }
+
   /** Returns the Swing component for this view. */
   @UiThread
   fun getComponent(): JComponent {
-    return StudioComposePanel { ScreenshotAttributesUi(state) }
+    return panel
   }
 
   /**
@@ -148,8 +153,51 @@ class ScreenshotAttributesView {
     LaunchedEffect(currentState.refLocation) { refMetadata = loadImageMetadata(currentState.refLocation.takeIf { it != NOT_APPLICABLE }) }
     LaunchedEffect(currentState.newLocation) { newMetadata = loadImageMetadata(currentState.newLocation.takeIf { it != NOT_APPLICABLE }) }
 
+    LaunchedEffect(currentState, refMetadata, newMetadata) {
+      val matchText =
+        currentState.matchPercentage?.let { "Match: $it" }
+          ?: if (currentState.testResult == AndroidTestCaseResult.FAILED) "Match: 0.00%"
+          else "Match: ${currentState.testResult?.name ?: NOT_APPLICABLE}"
+
+      val description =
+        """
+        $matchText
+        Preview: ${currentState.methodName}
+        Related Composables: ${currentState.className}
+        Preview configuration: @Preview(${currentState.methodName})
+        File info:
+        Reference dimensions: ${refMetadata.dimensions}, New dimensions: ${newMetadata.dimensions}
+        Reference size: ${refMetadata.size}, New size: ${newMetadata.size}
+        Reference date: ${refMetadata.date}, New date: ${newMetadata.date}
+        Reference location: ${currentState.refLocation}, New location: ${currentState.newLocation}
+      """
+          .trimIndent()
+    }
+
     val scrollState = rememberScrollState()
-    Row(modifier = Modifier.fillMaxSize()) {
+
+    val matchText =
+      currentState.matchPercentage?.let { "Match: $it" }
+        ?: if (currentState.testResult == AndroidTestCaseResult.FAILED) "Match: 0.00%"
+        else "Match: ${currentState.testResult?.name ?: NOT_APPLICABLE}"
+
+    val summarySemanticsDescription =
+      """
+      $matchText
+      Preview: ${currentState.methodName}
+      Related Composables: ${currentState.className}
+      Preview configuration: @Preview(${currentState.methodName})
+      Reference dimensions: ${refMetadata.dimensions}, New dimensions: ${newMetadata.dimensions}
+      Reference size: ${refMetadata.size}, New size: ${newMetadata.size}
+      Reference date: ${refMetadata.date}, New date: ${newMetadata.date}
+      Reference location: ${currentState.refLocation}, New location: ${currentState.newLocation}
+    """
+        .trimIndent()
+
+    Row(
+      modifier =
+        Modifier.fillMaxSize().focusable(true).semantics(mergeDescendants = true) { contentDescription = summarySemanticsDescription }
+    ) {
       Column(modifier = Modifier.weight(1f).padding(16.dp).verticalScroll(scrollState), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Section("Summary") {
           KeyValueRow("Match") {

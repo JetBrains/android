@@ -15,10 +15,13 @@
  */
 package com.android.screenshottest.ui
 
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,6 +29,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposePanel
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.unit.dp
 import com.android.screenshottest.util.ImageData
 import com.android.screenshottest.util.copyReferenceImages
@@ -320,6 +325,7 @@ class UpdateReferenceImagesDialog(
 
   private fun createPreviewToolbar(): JComponent {
     return ComposePanel().apply {
+      isFocusable = true
       setContent {
         SwingBridgeTheme {
           val availableViews =
@@ -333,7 +339,21 @@ class UpdateReferenceImagesDialog(
               availableViews.map { viewId ->
                 SegmentedControlButtonData(
                   selected = viewId == selectedViewType,
-                  content = { _ -> Text(text = viewId.displayText) },
+                  content = { _ ->
+                    Text(
+                      text = viewId.displayText,
+                      modifier =
+                        Modifier.selectable(
+                            selected = viewId == selectedViewType,
+                            onClick = {
+                              selectedViewType = viewId
+                              updateRightPane(tree)
+                            },
+                            role = Role.RadioButton,
+                          )
+                          .focusable(true),
+                    )
+                  },
                   onSelect = {
                     selectedViewType = viewId
                     updateRightPane(tree)
@@ -342,7 +362,7 @@ class UpdateReferenceImagesDialog(
               }
             }
           Row(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp).selectableGroup(),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
           ) {

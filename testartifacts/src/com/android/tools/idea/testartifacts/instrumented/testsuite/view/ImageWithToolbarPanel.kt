@@ -246,6 +246,7 @@ class ImageWithToolbarPanel(
   }
 
   init {
+    getAccessibleContext().accessibleName = "Image Panel wrapper for ${title.displayText}"
     border = JBUI.Borders.empty(if (showTitle) 10 else 0, 10, 10, 10)
 
     val actionGroup =
