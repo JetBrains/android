@@ -115,7 +115,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     myFacet = facets.get(0);
 
     addStep(new ChooseBundleOrApkStep(this));
-    addStep(new KeystoreStep(this, true, facets));
+    addStep(new KeystoreStep(this, facets));
     addStep(new GradleSignStep(this));
     init();
   }

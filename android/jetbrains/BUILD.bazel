@@ -247,6 +247,10 @@ jvm_library(
         "//platform/util/concurrency:concurrency_test_lib",
         "//platform/statistics",
         "//platform/statistics:statistics_test_lib",
+        "//platform/util-ex",
+        "//platform/util-ex:util-ex_test_lib",
+        "//libraries/bouncy-castle-provider",
+        "//libraries/bouncy-castle-provider:bouncy-castle-provider_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.core.jetbrains` end
