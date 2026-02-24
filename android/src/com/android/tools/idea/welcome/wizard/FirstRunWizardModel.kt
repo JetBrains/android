@@ -20,6 +20,7 @@ import com.android.repository.api.RemotePackage
 import com.android.repository.api.RepoManager
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.observable.ObservableValue
 import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
@@ -118,11 +119,13 @@ class FirstRunWizardModel(
 
     components.add(AndroidPlatformSdkComponentTreeNode.createSubtree(remotePackages, installUpdates))
 
-    val installationIntention =
-      if (installUpdates) AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITH_UPDATES
-      else AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITHOUT_UPDATES
-    if (mode === FirstRunWizardMode.NEW_INSTALL && AehdSdkComponentTreeNode.canRun()) {
-      components.add(AehdSdkComponentTreeNode(installationIntention))
+    if (!StudioFlags.EMULATOR_AEHD_TO_WHPX_CONVERSION.get()) {
+      val installationIntention =
+        if (installUpdates) AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITH_UPDATES
+        else AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITHOUT_UPDATES
+      if (mode === FirstRunWizardMode.NEW_INSTALL && AehdSdkComponentTreeNode.canRun()) {
+        components.add(AehdSdkComponentTreeNode(installationIntention))
+      }
     }
     if (createAvd) {
       val avdSdkComponent = AndroidVirtualDeviceSdkComponentTreeNode(remotePackages, installUpdates)
