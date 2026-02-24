@@ -274,10 +274,6 @@ public final class StudioFlags {
     NPW, "new.kotlin.multiplatform.module", "New Kotlin Multiplatform Module",
     "Show template to create a new Kotlin Multiplatform module in the new module wizard.");
 
-  public static final Flag<Boolean> NPW_EMPTY_CAL_APP_TEMPLATE = new BooleanFlag(
-    NPW, "emptycalapp.template", "Enable Empty CAL App Template",
-    "Enable Empty Car App Library App template in the New Project Wizard.");
-
   static class AndroidApiFlag extends CustomTypeFlag<AndroidApiLevel> {
     public AndroidApiFlag(FlagGroup group, String name, String displayName, String description, AndroidApiLevel defaultValue) {
       super(AndroidApiLevel.class, group, name, displayName, description, defaultValue, AndroidApiFlagConverter, examples);

@@ -750,11 +750,6 @@ class TemplateDiffTest(private val testMode: TestMode) {
     checkCreateTemplate("Media Service", withKotlin())
   }
 
-  @Test
-  fun testEmptyCarAppLibraryAppWithKotlin() {
-    checkCreateTemplate("Empty Car App Library App", withKotlin())
-  }
-
   @Ignore("b/418047552")
   @Test
   fun testXRBasicHeadsetActivity() {

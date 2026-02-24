@@ -31,7 +31,6 @@ class TemplateResolver {
       return EP_NAME.extensions.flatMap {
         it.getTemplates().filter { template ->
           when (template.name) {
-            "Empty Car App Library App" -> StudioFlags.NPW_EMPTY_CAL_APP_TEMPLATE.get()
             "Gemini API Starter with Firebase" -> StudioFlags.NPW_ENABLE_GEMINI_FIREBASE_TEMPLATE.get()
             "Basic Headset Activity" -> StudioFlags.NPW_ENABLE_XR_TEMPLATE.get()
             "Basic AI Glasses Activity" -> StudioFlags.NPW_ENABLE_AI_GLASSES_TEMPLATE.get()
