@@ -1889,5 +1889,7 @@ MODULE                        : project.app
                 pluginVersion                 : <CUT>
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : project.app.androidTest
+MODULE                        : project.app.first
 MODULE                        : project.app.main
+MODULE                        : project.app.second
 MODULE                        : project.app.unitTest

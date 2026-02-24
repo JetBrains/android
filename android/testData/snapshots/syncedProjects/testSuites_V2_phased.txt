@@ -25,6 +25,7 @@ PROJECT                       : project
             main                          : project.app.main
             unitTest                      : project.app.unitTest
             androidTest                   : project.app.androidTest
+            testSuites                    : project.app.first, project.app.second
         ExternalModuleGroup           : project
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :app
@@ -77,6 +78,7 @@ PROJECT                       : project
             main                          : project.app.main
             unitTest                      : project.app.unitTest
             androidTest                   : project.app.androidTest
+            testSuites                    : project.app.first, project.app.second
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :app:androidTest
         LinkedProjectPath             : <PROJECT>/app
@@ -257,12 +259,61 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app:generateDebugAndroidTestSources
                 BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
+    MODULE                        : project.app.first
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : project.app
+            main                          : project.app.main
+            unitTest                      : project.app.unitTest
+            androidTest                   : project.app.androidTest
+            testSuites                    : project.app.first, project.app.second
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :app:first
+        LinkedProjectPath             : <PROJECT>/app
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/project.app.first [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.app.first [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : project.app.main
+        FACET                         : Android
+            TypeId                        : android
+            ExternalSource                : GRADLE
+            SelectedBuildVariant          : debug
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ResFolderRelativePath         : /src/main/res
+            AssetsFolderRelativePath      : /src/main/assets
+            LibsFolderRelativePath        : /libs
+            ProjectType                   : 0
+            PackTestCode                  : false
+            RunProguard                   : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/first
+            JavaResource (test)           : file://<PROJECT>/app/src/first
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+        ORDER_ENTRY                   : <Module source>
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/project.app.first
+        BUILD_TASKS
+                REBUILD                       : :app:clean
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : project.app.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.app
             main                          : project.app.main
             unitTest                      : project.app.unitTest
             androidTest                   : project.app.androidTest
+            testSuites                    : project.app.first, project.app.second
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :app:main
         LinkedProjectPath             : <PROJECT>/app
@@ -381,12 +432,62 @@ PROJECT                       : project
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
                 BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
+    MODULE                        : project.app.second
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : project.app
+            main                          : project.app.main
+            unitTest                      : project.app.unitTest
+            androidTest                   : project.app.androidTest
+            testSuites                    : project.app.first, project.app.second
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :app:second
+        LinkedProjectPath             : <PROJECT>/app
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/project.app.second [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.app.second [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : project.app.main
+        FACET                         : Android
+            TypeId                        : android
+            ExternalSource                : GRADLE
+            SelectedBuildVariant          : debug
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ResFolderRelativePath         : /src/main/res
+            AssetsFolderRelativePath      : /src/main/assets
+            LibsFolderRelativePath        : /libs
+            ProjectType                   : 0
+            PackTestCode                  : false
+            RunProguard                   : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        CONTENT_ENTRY                 : file://<PROJECT>/app/src/second
+            JavaSource (test)             : file://<PROJECT>/app/src/second/kotlin
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/second/java [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+        ORDER_ENTRY                   : <Module source>
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/project.app.second
+        BUILD_TASKS
+                REBUILD                       : :app:clean
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : project.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.app
             main                          : project.app.main
             unitTest                      : project.app.unitTest
             androidTest                   : project.app.androidTest
+            testSuites                    : project.app.first, project.app.second
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :app:unitTest
         LinkedProjectPath             : <PROJECT>/app
