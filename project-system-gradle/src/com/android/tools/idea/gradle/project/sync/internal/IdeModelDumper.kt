@@ -684,6 +684,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) =
         }
         ideSourceProvider.baselineProfileDirectories.forEach { prop("BaselineProfileDirectories") { it.path.toPrintablePath() } }
         ideSourceProvider.keepRulesDirectories.forEach { prop("KeepRulesDirectories") { it.path.toPrintablePath() } }
+        ideSourceProvider.aarKeepRulesDirectories.forEach { prop("AarKeepRulesDirectories") { it.path.toPrintablePath() } }
       }
 
       private fun dump(extraSourceProvider: IdeExtraSourceProvider) {

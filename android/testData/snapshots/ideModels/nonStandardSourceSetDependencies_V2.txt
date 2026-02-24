@@ -2569,6 +2569,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
             JniLibsDirectories            : <ROOT>/feature-a/src/main/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/feature-a/src/main/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/feature-a/src/main/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/feature-a/src/main/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -2584,6 +2585,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     JniLibsDirectories            : <ROOT>/feature-a/src/androidTest/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/feature-a/src/androidTest/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/feature-a/src/androidTest/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/feature-a/src/androidTest/aarKeepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -2598,6 +2600,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     JniLibsDirectories            : <ROOT>/feature-a/src/test/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/feature-a/src/test/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/feature-a/src/test/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/feature-a/src/test/aarKeepRules [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -2620,6 +2623,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
             JniLibsDirectories            : <ROOT>/feature-a/src/debug/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/feature-a/src/debug/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/feature-a/src/debug/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/feature-a/src/debug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -2635,6 +2639,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     JniLibsDirectories            : <ROOT>/feature-a/src/androidTestDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/feature-a/src/androidTestDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/feature-a/src/androidTestDebug/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/feature-a/src/androidTestDebug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -2650,6 +2655,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     JniLibsDirectories            : <ROOT>/feature-a/src/testDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/feature-a/src/testDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/feature-a/src/testDebug/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/feature-a/src/testDebug/aarKeepRules [-]
         BuildType
             Name                          : release
             IsDebuggable                  : false
@@ -2671,6 +2677,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
             JniLibsDirectories            : <ROOT>/feature-a/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/feature-a/src/release/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/feature-a/src/release/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/feature-a/src/release/aarKeepRules [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -3645,6 +3652,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
             JniLibsDirectories            : <ROOT>/feature-b/src/androidMain/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/feature-b/src/main/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/feature-b/src/main/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/feature-b/src/main/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -3665,6 +3673,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     JniLibsDirectories            : <ROOT>/feature-b/src/androidInstrumentedTest/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/feature-b/src/androidTest/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/feature-b/src/androidTest/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/feature-b/src/androidTest/aarKeepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -3684,6 +3693,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     JniLibsDirectories            : <ROOT>/feature-b/src/androidUnitTest/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/feature-b/src/test/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/feature-b/src/test/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/feature-b/src/test/aarKeepRules [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -3711,6 +3721,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
             JniLibsDirectories            : <ROOT>/feature-b/src/androidDebug/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/feature-b/src/debug/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/feature-b/src/debug/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/feature-b/src/debug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -3731,6 +3742,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     JniLibsDirectories            : <ROOT>/feature-b/src/androidInstrumentedTestDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/feature-b/src/androidTestDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/feature-b/src/androidTestDebug/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/feature-b/src/androidTestDebug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -3751,6 +3763,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     JniLibsDirectories            : <ROOT>/feature-b/src/androidUnitTestDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/feature-b/src/testDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/feature-b/src/testDebug/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/feature-b/src/testDebug/aarKeepRules [-]
         BuildType
             Name                          : release
             IsDebuggable                  : false
@@ -3777,6 +3790,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
             JniLibsDirectories            : <ROOT>/feature-b/src/androidRelease/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/feature-b/src/release/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/feature-b/src/release/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/feature-b/src/release/aarKeepRules [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -4618,6 +4632,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
             JniLibsDirectories            : <ROOT>/kmp-java/sample-test/src/main/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/kmp-java/sample-test/src/main/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/kmp-java/sample-test/src/main/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/kmp-java/sample-test/src/main/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -4633,6 +4648,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     JniLibsDirectories            : <ROOT>/kmp-java/sample-test/src/androidTest/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/kmp-java/sample-test/src/androidTest/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/kmp-java/sample-test/src/androidTest/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/kmp-java/sample-test/src/androidTest/aarKeepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -4647,6 +4663,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     JniLibsDirectories            : <ROOT>/kmp-java/sample-test/src/test/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/kmp-java/sample-test/src/test/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/kmp-java/sample-test/src/test/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/kmp-java/sample-test/src/test/aarKeepRules [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -4669,6 +4686,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
             JniLibsDirectories            : <ROOT>/kmp-java/sample-test/src/debug/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/kmp-java/sample-test/src/debug/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/kmp-java/sample-test/src/debug/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/kmp-java/sample-test/src/debug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -4684,6 +4702,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     JniLibsDirectories            : <ROOT>/kmp-java/sample-test/src/androidTestDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/kmp-java/sample-test/src/androidTestDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/kmp-java/sample-test/src/androidTestDebug/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/kmp-java/sample-test/src/androidTestDebug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -4699,6 +4718,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     JniLibsDirectories            : <ROOT>/kmp-java/sample-test/src/testDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/kmp-java/sample-test/src/testDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/kmp-java/sample-test/src/testDebug/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/kmp-java/sample-test/src/testDebug/aarKeepRules [-]
         BuildType
             Name                          : release
             IsDebuggable                  : false
@@ -4720,6 +4740,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
             JniLibsDirectories            : <ROOT>/kmp-java/sample-test/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/kmp-java/sample-test/src/release/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/kmp-java/sample-test/src/release/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/kmp-java/sample-test/src/release/aarKeepRules [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -4925,6 +4946,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
             JniLibsDirectories            : <ROOT>/lib/src/main/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/lib/src/main/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/lib/src/main/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/lib/src/main/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -4940,6 +4962,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     JniLibsDirectories            : <ROOT>/lib/src/androidTest/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/lib/src/androidTest/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/lib/src/androidTest/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/lib/src/androidTest/aarKeepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -4954,6 +4977,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     JniLibsDirectories            : <ROOT>/lib/src/test/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/lib/src/test/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/lib/src/test/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/lib/src/test/aarKeepRules [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -4976,6 +5000,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
             JniLibsDirectories            : <ROOT>/lib/src/debug/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/lib/src/debug/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/lib/src/debug/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/lib/src/debug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -4991,6 +5016,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     JniLibsDirectories            : <ROOT>/lib/src/androidTestDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/lib/src/androidTestDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/lib/src/androidTestDebug/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/lib/src/androidTestDebug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -5006,6 +5032,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     JniLibsDirectories            : <ROOT>/lib/src/testDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/lib/src/testDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/lib/src/testDebug/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/lib/src/testDebug/aarKeepRules [-]
         BuildType
             Name                          : release
             ProguardFiles                 : <ROOT>/lib/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-<AGP_VERSION> [-]
@@ -5029,6 +5056,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
             JniLibsDirectories            : <ROOT>/lib/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/lib/src/release/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/lib/src/release/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/lib/src/release/aarKeepRules [-]
     SigningConfigs
         SigningConfig
             Name                          : debug

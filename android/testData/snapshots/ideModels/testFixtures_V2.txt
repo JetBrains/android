@@ -2044,6 +2044,7 @@ MODULE                        : project.lib
             JniLibsDirectories            : <ROOT>/lib/src/main/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/lib/src/main/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/lib/src/main/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/lib/src/main/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -2059,6 +2060,7 @@ MODULE                        : project.lib
                     JniLibsDirectories            : <ROOT>/lib/src/androidTest/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/lib/src/androidTest/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/lib/src/androidTest/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/lib/src/androidTest/aarKeepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -2073,6 +2075,7 @@ MODULE                        : project.lib
                     JniLibsDirectories            : <ROOT>/lib/src/test/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/lib/src/test/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/lib/src/test/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/lib/src/test/aarKeepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _test_fixtures_
                 SourceProvider
@@ -2087,6 +2090,7 @@ MODULE                        : project.lib
                     JniLibsDirectories            : <ROOT>/lib/src/testFixtures/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/lib/src/testFixtures/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/lib/src/testFixtures/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/lib/src/testFixtures/aarKeepRules [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -2109,6 +2113,7 @@ MODULE                        : project.lib
             JniLibsDirectories            : <ROOT>/lib/src/debug/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/lib/src/debug/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/lib/src/debug/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/lib/src/debug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -2124,6 +2129,7 @@ MODULE                        : project.lib
                     JniLibsDirectories            : <ROOT>/lib/src/androidTestDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/lib/src/androidTestDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/lib/src/androidTestDebug/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/lib/src/androidTestDebug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -2139,6 +2145,7 @@ MODULE                        : project.lib
                     JniLibsDirectories            : <ROOT>/lib/src/testDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/lib/src/testDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/lib/src/testDebug/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/lib/src/testDebug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _test_fixtures_
@@ -2154,6 +2161,7 @@ MODULE                        : project.lib
                     JniLibsDirectories            : <ROOT>/lib/src/testFixturesDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/lib/src/testFixturesDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/lib/src/testFixturesDebug/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/lib/src/testFixturesDebug/aarKeepRules [-]
         BuildType
             Name                          : release
             IsDebuggable                  : false
@@ -2175,6 +2183,7 @@ MODULE                        : project.lib
             JniLibsDirectories            : <ROOT>/lib/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/lib/src/release/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/lib/src/release/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/lib/src/release/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _test_fixtures_
@@ -2190,6 +2199,7 @@ MODULE                        : project.lib
                     JniLibsDirectories            : <ROOT>/lib/src/testFixturesRelease/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/lib/src/testFixturesRelease/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/lib/src/testFixturesRelease/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/lib/src/testFixturesRelease/aarKeepRules [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
