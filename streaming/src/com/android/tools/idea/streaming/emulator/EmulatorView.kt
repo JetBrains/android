@@ -671,16 +671,16 @@ internal class EmulatorView(
     // The roundScale call below is used to avoid scaling by a fractional factor larger than 1 or
     // by a factor that is only slightly below 1.
     val maxSize = computeMaxImageSize()
-    val maxWidth = maxSize.width
-    val maxHeight = maxSize.height
+    val maxWidth = maxSize.width.toDouble()
+    val maxHeight = maxSize.height.toDouble()
     return if (skin == null) {
-      val scale = roundScale(min(maxWidth.toDouble() / screenshotShape.width, maxHeight.toDouble() / screenshotShape.height))
+      val scale = roundScale(min(maxWidth / screenshotShape.width, maxHeight / screenshotShape.height))
       val w = screenshotShape.width.scaled(scale)
       val h = screenshotShape.height.scaled(scale)
       Rectangle((physicalWidth - w) / 2, (physicalHeight - h) / 2, w, h)
     } else {
       val frameRectangle = skin.frameRectangle
-      val scale = roundScale(min(maxWidth.toDouble() / frameRectangle.width, maxHeight.toDouble() / frameRectangle.height))
+      val scale = roundScale(min(maxWidth / frameRectangle.width, maxHeight / frameRectangle.height))
       val fw = frameRectangle.width.scaled(scale)
       val fh = frameRectangle.height.scaled(scale)
       val w = screenshotShape.width.scaled(scale)
@@ -1582,48 +1582,44 @@ internal class EmulatorView(
   }
 
   private class Screenshot(val displayShape: DisplayShape, val image: BufferedImage, val frameOriginationTime: Long) {
-    lateinit var skinLayout: SkinLayout
+    var skinLayout: SkinLayout? = null
+    var skinLayoutSet = false
     var painted = false
   }
 
   /** Stores the last computed scaled [SkinLayout] together with the corresponding display dimensions, orientation and posture. */
   private class SkinLayoutCache(val emulator: EmulatorController) {
+    var orientation = -1
     var width = 0
     var height = 0
-    var orientation = -1
     var posture: PostureValue? = null
     var skinLayout: SkinLayout? = null
 
     @Synchronized
     fun getCached(display: DisplayShape, posture: PostureValue?): SkinLayout? {
       return when {
-        display.width == width && display.height == height && display.orientation == orientation && posture == this.posture -> skinLayout
+        matchesParameters(display, posture) -> skinLayout
         else -> null
       }
     }
 
     @Slow
     @Synchronized
-    fun get(display: DisplayShape, posture: PostureValue?): SkinLayout {
+    fun get(display: DisplayShape, posture: PostureValue?): SkinLayout? {
       var layout = skinLayout
-      if (
-        display.width != width ||
-          display.height != height ||
-          display.orientation != orientation ||
-          posture == this.posture ||
-          layout == null
-      ) {
-        layout =
-          emulator.getSkin(posture)?.createScaledLayout(display.width, display.height, display.orientation)
-            ?: SkinLayout(display.width, display.height)
+      if (!matchesParameters(display, posture)) {
+        layout = emulator.getSkin(posture)?.createScaledLayout(display.width, display.height, display.orientation)
+        orientation = display.orientation
         width = display.width
         height = display.height
-        orientation = display.orientation
         this.posture = posture
         skinLayout = layout
       }
       return layout
     }
+
+    private fun matchesParameters(display: DisplayShape, posture: PostureValue?): Boolean =
+      display.orientation == orientation && display.width == width && display.height == height && posture == this.posture
   }
 
   private data class DisplayShape(
