@@ -405,6 +405,30 @@ iml_module(
                 "//prebuilts/studio/jdk:jdk21",
             ],
         },
+        "runs_indexing_with_gradle_snapshots.complete": {
+            "test_filter": ".runsIndexingWithGradleSnapshots",
+            "additional_jvm_args": [
+                "-Didea.skip.indices.initialization=false",
+                "-Dflags.configuration.level=COMPLETE",
+            ],
+            "tags": [
+                "cpu:4",
+                "noci:studio-win",
+            ],
+            "shard_count": 5,
+            "data": [
+                "//tools/base/build-system:android_gradle_plugin.zip",
+                "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+                "//tools/base/build-system:declarative_android_gradle_plugin.zip",
+                "//tools/base/build-system:gradle-distrib",
+                "//tools/base/build-system:gradle-runtime-maven",
+                "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+                "//tools/data-binding:data_binding_runtime.zip",
+                "//prebuilts/studio/jdk/jdk11:jdk_runtime_files",
+                "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
+                "//prebuilts/studio/jdk:jdk21",
+            ],
+        },
         "runs_gradle_snapshots": {
             "test_filter": ".runsGradleSnapshots",
             "tags": [
