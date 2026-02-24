@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights.client
 
+import com.android.flags.Flag
 import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
@@ -589,5 +590,44 @@ class GeminiAiInsightClientTest {
     assertThat(fakeGeminiPluginApi.receivedPrompt?.formatForTests()).isEqualTo(expectedPromptText)
 
     assertThat(insight.rawInsight).isEqualTo("a /b /c /Hello World1 .kt,\na/b/c/Hello World 2.kt\n")
+  }
+
+  /** Ensure that when context isn't allowed, we never try to get it no matter how our flags are set. */
+  @Test
+  fun testCodeContextNotIncluded() = runBlocking {
+    val allFlags =
+      StudioFlags.FLAGS.registeredFlags.filter { it.group == StudioFlags.APP_INSIGHTS && it.get() is Boolean } as Collection<Flag<Boolean>>
+    try {
+      // Disable code context
+      fakeGeminiPluginApi.contextAllowed = false
+      // Get all combinations of our flags
+      val combinations = allFlags.fold(setOf<Set<Flag<Boolean>>>(setOf())) { acc, flag -> acc + acc.map { it + flag } }
+      combinations.forEach { enabledFlags ->
+        allFlags.forEach { it.override(it in enabledFlags) }
+
+        // Fail if we try to get context
+        val codeContextResolver =
+          object : FakeCodeContextResolver(listOf()) {
+            override suspend fun getSource(fileNames: List<String>): CodeContextData {
+              throw Exception("Tried to get code context")
+            }
+          }
+        val client = GeminiAiInsightClient(projectRule.project, codeContextResolver)
+
+        val request =
+          GeminiCrashInsightRequest(
+            connection = CONNECTION1,
+            issueId = ISSUE1.id,
+            variantId = null,
+            deviceName = "DeviceName",
+            apiLevel = "ApiLevel",
+            event = ISSUE1.sampleEvent,
+          )
+
+        client.fetchCrashInsight(request)
+      }
+    } finally {
+      allFlags.forEach { it.clearOverride() }
+    }
   }
 }

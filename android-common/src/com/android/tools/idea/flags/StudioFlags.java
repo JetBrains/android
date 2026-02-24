@@ -46,6 +46,7 @@ import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
+import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * A collection of all feature flags used by Android Studio. These flags can be used to gate
@@ -1945,7 +1946,7 @@ public final class StudioFlags {
   // endregion Firebase Test Lab
 
   // region App Insights
-  private static final FlagGroup APP_INSIGHTS = new FlagGroup(FLAGS, "appinsights", "App Insights");
+  @VisibleForTesting public static final FlagGroup APP_INSIGHTS = new FlagGroup(FLAGS, "appinsights", "App Insights");
 
   public static final Flag<Boolean> GEMINI_ASSISTED_CONTEXT_FETCH =
     new BooleanFlag(

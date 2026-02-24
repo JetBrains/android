@@ -140,7 +140,11 @@ class GeminiAiInsightClient(
         return it
       }
       val contextData =
-        if (!request.connection.isMatchingProject()) {
+        if (
+          !request.connection.isMatchingProject() ||
+            !GeminiPluginApi.getInstance().isAvailable() ||
+            !GeminiPluginApi.getInstance().isContextAllowed(project)
+        ) {
           CodeContextData.empty(project)
         } else if (StudioFlags.GEMINI_ASSISTED_CONTEXT_FETCH.get()) {
           queryForRelevantContext(request)
@@ -180,8 +184,6 @@ class GeminiAiInsightClient(
       }
 
   private suspend fun queryForRelevantContext(request: GeminiCrashInsightRequest): CodeContextData {
-    if (!GeminiPluginApi.getInstance().isAvailable() || !GeminiPluginApi.getInstance().isContextAllowed(project))
-      return CodeContextData(emptyList())
     val prompt =
       buildLlmPrompt(project) {
         systemMessage { text(CONTEXT_PREAMBLE, emptyList()) }
