@@ -865,18 +865,6 @@ MODULE                        : project
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
-                        _internal-unified-test-platform-android-driver-instrumentation        : <empty>
-                        _internal-unified-test-platform-android-test-plugin         : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-apk-installer          : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-coverage     : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
-                        _internal-unified-test-platform-core    : <empty>
-                        _internal-unified-test-platform-launcher          : <empty>
                         androidApis                   : <empty>
                         androidJdkImage               : <empty>
                         androidTestAnnotationProcessor          : <empty>
@@ -1086,6 +1074,18 @@ MODULE                        : project
                         testReleaseIntransitiveDependenciesMetadata       : <empty>
                         testReleaseRuntimeOnly        : <empty>
                         testRuntimeOnly               : <empty>
+                        unified-test-platform-android-device-provider-ddmlib        : <empty>
+                        unified-test-platform-android-driver-instrumentation        : <empty>
+                        unified-test-platform-android-test-plugin         : <empty>
+                        unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
+                        unified-test-platform-android-test-plugin-host-apk-installer          : <empty>
+                        unified-test-platform-android-test-plugin-host-coverage     : <empty>
+                        unified-test-platform-android-test-plugin-host-device-info  : <empty>
+                        unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
+                        unified-test-platform-android-test-plugin-host-logcat       : <empty>
+                        unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
+                        unified-test-platform-core    : <empty>
+                        unified-test-platform-launcher          : <empty>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -1107,18 +1107,6 @@ MODULE                        : project
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
-                        _internal-unified-test-platform-android-driver-instrumentation        : <empty>
-                        _internal-unified-test-platform-android-test-plugin         : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-apk-installer          : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-coverage     : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
-                        _internal-unified-test-platform-core    : <empty>
-                        _internal-unified-test-platform-launcher          : <empty>
                         androidApis                   : <empty>
                         androidJdkImage               : <empty>
                         androidTestAnnotationProcessor          : <empty>
@@ -1320,6 +1308,18 @@ MODULE                        : project
                         testReleaseIntransitiveDependenciesMetadata       : <empty>
                         testReleaseRuntimeOnly        : <empty>
                         testRuntimeOnly               : <empty>
+                        unified-test-platform-android-device-provider-ddmlib        : <empty>
+                        unified-test-platform-android-driver-instrumentation        : <empty>
+                        unified-test-platform-android-test-plugin         : <empty>
+                        unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
+                        unified-test-platform-android-test-plugin-host-apk-installer          : <empty>
+                        unified-test-platform-android-test-plugin-host-coverage     : <empty>
+                        unified-test-platform-android-test-plugin-host-device-info  : <empty>
+                        unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
+                        unified-test-platform-android-test-plugin-host-logcat       : <empty>
+                        unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
+                        unified-test-platform-core    : <empty>
+                        unified-test-platform-launcher          : <empty>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -1341,18 +1341,6 @@ MODULE                        : project
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
-                        _internal-unified-test-platform-android-driver-instrumentation        : <empty>
-                        _internal-unified-test-platform-android-test-plugin         : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-apk-installer          : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-coverage     : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
-                        _internal-unified-test-platform-core    : <empty>
-                        _internal-unified-test-platform-launcher          : <empty>
                         androidApis                   : <empty>
                         androidJdkImage               : <empty>
                         androidTestAnnotationProcessor          : <empty>
@@ -1554,6 +1542,18 @@ MODULE                        : project
                         testReleaseIntransitiveDependenciesMetadata       : <empty>
                         testReleaseRuntimeOnly        : <empty>
                         testRuntimeOnly               : <empty>
+                        unified-test-platform-android-device-provider-ddmlib        : <empty>
+                        unified-test-platform-android-driver-instrumentation        : <empty>
+                        unified-test-platform-android-test-plugin         : <empty>
+                        unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
+                        unified-test-platform-android-test-plugin-host-apk-installer          : <empty>
+                        unified-test-platform-android-test-plugin-host-coverage     : <empty>
+                        unified-test-platform-android-test-plugin-host-device-info  : <empty>
+                        unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
+                        unified-test-platform-android-test-plugin-host-logcat       : <empty>
+                        unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
+                        unified-test-platform-core    : <empty>
+                        unified-test-platform-launcher          : <empty>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -1575,18 +1575,6 @@ MODULE                        : project
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
-                        _internal-unified-test-platform-android-driver-instrumentation        : <empty>
-                        _internal-unified-test-platform-android-test-plugin         : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-apk-installer          : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-coverage     : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
-                        _internal-unified-test-platform-core    : <empty>
-                        _internal-unified-test-platform-launcher          : <empty>
                         androidApis                   : <empty>
                         androidJdkImage               : <empty>
                         androidTestAnnotationProcessor          : <empty>
@@ -1788,6 +1776,18 @@ MODULE                        : project
                         testReleaseIntransitiveDependenciesMetadata       : <empty>
                         testReleaseRuntimeOnly        : <empty>
                         testRuntimeOnly               : <empty>
+                        unified-test-platform-android-device-provider-ddmlib        : <empty>
+                        unified-test-platform-android-driver-instrumentation        : <empty>
+                        unified-test-platform-android-test-plugin         : <empty>
+                        unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
+                        unified-test-platform-android-test-plugin-host-apk-installer          : <empty>
+                        unified-test-platform-android-test-plugin-host-coverage     : <empty>
+                        unified-test-platform-android-test-plugin-host-device-info  : <empty>
+                        unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
+                        unified-test-platform-android-test-plugin-host-logcat       : <empty>
+                        unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
+                        unified-test-platform-core    : <empty>
+                        unified-test-platform-launcher          : <empty>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
