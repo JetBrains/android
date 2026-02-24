@@ -20,7 +20,6 @@ import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.gemini.buildLlmPrompt
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.InsightSource
-import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
@@ -30,98 +29,7 @@ import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.issue.IssueId
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.toList
-import org.jetbrains.annotations.VisibleForTesting
-
-/** Guidelines for the model to provide context and fine tune the response. */
-@VisibleForTesting
-private val GEMINI_PREAMBLE =
-  """
-  Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
-  For headings, use H3 only. Initial explanation should not be under a heading.
-  Begin with the explanation directly. Do not add fillers at the start of response.
-  """
-    .trimIndent()
-
-private val SHORT_GEMINI_PREAMBLE =
-  """
-  Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
-  Do no include headings. Begin with the explanation directly. Do not add fillers at the start of
-  response. Respond in no more than four sentences.
-  """
-    .trimIndent()
-
-private val GEMINI_INSIGHT_PROMPT_FORMAT =
-  """
-  Explain this exception from my app running on %s with Android version %s:
-  Exception:
-  ```
-  %s
-  ```
-  """
-    .trimIndent()
-
-private val GEMINI_INSIGHT_WITH_CODE_CONTEXT_PROMPT_FORMAT =
-  """
-  Explain this exception from my app running on %s with Android version %s.
-  Please reference the provided source code if they are helpful.
-  Exception:
-  ```
-  %s
-  ```
-  """
-    .trimIndent()
-
-private val GEMINI_INSIGHT_CODE_CONTEXT_WITH_FIX_MULTI_FILES_PROMPT =
-  """
-    Explain this exception from my app running on %s with Android version %s.
-    Please reference the provided source code if they are helpful.
-    If you think you can guess which files the fix for this crash should be performed in,
-    please include at the end of the response the extract phrase \"$FILE_PHRASE\${'$'}files,
-    where files is a comma separated list of the fully qualified path of the source files
-    in which you think the fix should likely be performed.
-    Exception:
-    ```
-    %s
-    ```
-  """
-    .trimIndent()
-
-private val GEMINI_INSIGHT_CODE_CONTEXT_WITH_FIX_PROMPT =
-  """
-    Explain this exception from my app running on %s with Android version %s.
-    Please reference the provided source code if they are helpful.
-    If you think you can guess which single file the fix for this crash should be performed in,
-    please include at the end of the response the extract phrase \"$FILE_PHRASE\${'$'}file,
-    where file is the fully qualified path of the source file in which you think the fix should likely be performed.
-    Exception:
-    ```
-    %s
-    ```
-  """
-    .trimIndent()
-
-private val CONTEXT_PREAMBLE =
-  """
-  Respond with a comma separated list of the paths of the files, in descending order of relevance.
-  If the file is a Java or Kotlin file, convert its package name to path.
-  """
-    .trimIndent()
-
-private val CONTEXT_PROMPT =
-  """
-  What are the files relevant for fixing this exception?
-  ```
-  %s
-  ```
-  """
-    .trimIndent()
-
-const val FILE_PHRASE = "The fix should likely be in "
-
-// Extra space reserved for system preamble
-private const val CONTEXT_WINDOW_PADDING = 150
 
 class GeminiAiInsightClient(
   private val project: Project,
@@ -130,43 +38,38 @@ class GeminiAiInsightClient(
 ) : AiInsightClient {
   private val logger = Logger.getInstance("com.android.tools.idea.insights.client.GeminiAiInsightClient")
 
-  override suspend fun fetchCrashInsight(request: GeminiCrashInsightRequest): AiInsight =
-    if (java.lang.Boolean.getBoolean("appinsights.generate.fake.insight")) {
-      // Simulate a delay that would come generating an actual insight
-      delay(2000)
-      AiInsight(createPrompt(request, emptyList()), request.event, insightSource = InsightSource.STUDIO_BOT)
-    } else {
-      getCachedInsight(request)?.let {
-        return it
-      }
-      val contextData =
-        if (
-          !request.connection.isMatchingProject() ||
-            !GeminiPluginApi.getInstance().isAvailable() ||
-            !GeminiPluginApi.getInstance().isContextAllowed(project)
-        ) {
-          CodeContextData.empty(project)
-        } else if (StudioFlags.GEMINI_ASSISTED_CONTEXT_FETCH.get()) {
-          queryForRelevantContext(request)
-        } else {
-          codeContextResolver.getSource(request.connection, request.event.stacktraceGroup)
-        }
-
-      val userPrompt = createPrompt(request, contextData.codeContext)
-      val finalPrompt =
-        buildLlmPrompt(project) {
-          // Enterprise GCA drops systemMessages, so this has to be a userMessage.
-          userMessage { text(if (StudioFlags.AQI_FIX_WITH_AGENT.get()) SHORT_GEMINI_PREAMBLE else GEMINI_PREAMBLE, emptyList()) }
-          userMessage { text(userPrompt, emptyList()) }
-        }
-      logger.debug("This is the final prompt:\n$userPrompt")
-
-      val response = GeminiPluginApi.getInstance().generate(project, finalPrompt).toList().joinToString("\n")
-
-      AiInsight(response, request.event, insightSource = InsightSource.STUDIO_BOT, codeContextData = contextData).also {
-        cache.putAiInsight(request.connection, request.issueId, request.variantId, it)
-      }
+  override suspend fun fetchCrashInsight(request: GeminiCrashInsightRequest): AiInsight {
+    getCachedInsight(request)?.let {
+      return it
     }
+    val contextData =
+      if (
+        !request.connection.isMatchingProject() ||
+          !GeminiPluginApi.getInstance().isAvailable() ||
+          !GeminiPluginApi.getInstance().isContextAllowed(project)
+      ) {
+        CodeContextData.empty(project)
+      } else if (StudioFlags.GEMINI_ASSISTED_CONTEXT_FETCH.get()) {
+        queryForRelevantContext(request)
+      } else {
+        codeContextResolver.getSource(request.connection, request.event.stacktraceGroup)
+      }
+
+    val userPrompt = createPrompt(request, contextData.codeContext)
+    val finalPrompt =
+      buildLlmPrompt(project) {
+        // Enterprise GCA drops systemMessages, so this has to be a userMessage.
+        userMessage { text(if (StudioFlags.AQI_FIX_WITH_AGENT.get()) SHORT_GEMINI_PREAMBLE else GEMINI_PREAMBLE, emptyList()) }
+        userMessage { text(userPrompt, emptyList()) }
+      }
+    logger.debug("This is the final prompt:\n$userPrompt")
+
+    val response = GeminiPluginApi.getInstance().generate(project, finalPrompt).toList().joinToString("\n")
+
+    return AiInsight(response, request.event, insightSource = InsightSource.STUDIO_BOT, codeContextData = contextData).also {
+      cache.putAiInsight(request.connection, request.issueId, request.variantId, it)
+    }
+  }
 
   override fun insightFeedbackUpdated(connection: Connection, issueId: IssueId, variantId: String?, feedback: InsightFeedback) {
     val cachedInsight = getCachedInsight(GeminiCrashInsightRequest(connection, issueId, variantId, "", "", Event.EMPTY)) ?: return
@@ -202,39 +105,6 @@ class GeminiAiInsightClient(
   }
 
   private fun String.cleanNewLineAndSpace() = replace("\n", "").replace(" ", "")
-
-  private fun getPromptWithContext() =
-    if (StudioFlags.SUGGEST_A_FIX.get()) {
-      if (StudioFlags.STUDIOBOT_TRANSFORM_SESSION_DIFF_EDITOR_VIEWER_ENABLED.get()) {
-        GEMINI_INSIGHT_CODE_CONTEXT_WITH_FIX_MULTI_FILES_PROMPT
-      } else {
-        GEMINI_INSIGHT_CODE_CONTEXT_WITH_FIX_PROMPT
-      }
-    } else {
-      GEMINI_INSIGHT_WITH_CODE_CONTEXT_PROMPT_FORMAT
-    }
-
-  private fun createPrompt(request: GeminiCrashInsightRequest, context: List<CodeContext>): String {
-    val promptWithContext = getPromptWithContext()
-    val initialPrompt =
-      String.format(
-          if (context.isEmpty()) GEMINI_INSIGHT_PROMPT_FORMAT else promptWithContext,
-          request.deviceName,
-          request.apiLevel,
-          request.event.prettyStackTrace(),
-        )
-        .trim()
-    var availableContextSpace = GeminiPluginApi.getInstance().MAX_QUERY_CHARS - CONTEXT_WINDOW_PADDING - initialPrompt.count()
-    val prompt =
-      context
-        .takeWhile { ctx ->
-          val nextContextString = "\n${ctx.filePath}:\n```\n${ctx.content}\n```"
-          availableContextSpace -= nextContextString.count()
-          availableContextSpace >= 0
-        }
-        .fold(initialPrompt) { acc, (path, content) -> "$acc\n${path}:\n```\n$content\n```" }
-    return prompt
-  }
 }
 
 fun createGeminiInsightRequest(connection: Connection, issueId: IssueId, variantId: String?, event: Event) =

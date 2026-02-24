@@ -16,10 +16,14 @@
 package com.android.tools.idea.insights.client
 
 import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.ai.InsightSource
+import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.issue.IssueId
+import com.intellij.openapi.project.Project
+import kotlinx.coroutines.delay
 
 data class GeminiCrashInsightRequest(
   val connection: Connection,
@@ -40,4 +44,26 @@ interface AiInsightClient {
   suspend fun fetchCrashInsight(request: GeminiCrashInsightRequest): AiInsight
 
   fun insightFeedbackUpdated(connection: Connection, issueId: IssueId, variantId: String?, feedback: InsightFeedback)
+
+  companion object {
+    fun getClient(project: Project, codeContextResolver: CodeContextResolver) =
+      // Returns a stub client for E2E test environment.
+      if (java.lang.Boolean.getBoolean("appinsights.generate.fake.insight")) {
+        StubAiInsightClient()
+      } else {
+        GeminiAiInsightClient(project, codeContextResolver)
+      }
+  }
+}
+
+/** Stub client that does not call Gemini. It returns the prompt that would have been sent to Gemini. */
+class StubAiInsightClient : AiInsightClient {
+
+  override suspend fun fetchCrashInsight(request: GeminiCrashInsightRequest): AiInsight {
+    // Simulate a delay that would come generating an actual insight
+    delay(2000)
+    return AiInsight(createPrompt(request, emptyList()), request.event, insightSource = InsightSource.STUDIO_BOT)
+  }
+
+  override fun insightFeedbackUpdated(connection: Connection, issueId: IssueId, variantId: String?, feedback: InsightFeedback) = Unit
 }
