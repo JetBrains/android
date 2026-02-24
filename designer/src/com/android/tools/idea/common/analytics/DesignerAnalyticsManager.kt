@@ -24,16 +24,20 @@ import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 
 /** Handles analytics that are common across design tools. Acts as an interface between [DesignSurface] and [CommonUsageTracker]. */
-open class DesignerAnalyticsManager(protected var surface: DesignSurface<*>) {
+open class DesignerAnalyticsManager(protected var surface: DesignSurface<*>, private val scope: CoroutineScope) {
 
   open val surfaceType = LayoutEditorState.Surfaces.UNKNOWN_SURFACES
 
   private var panelState: DesignerEditorPanel.State = DesignerEditorPanel.State.DEACTIVATED
 
-  var editorFileType: EditorFileType = EditorFileType.UNKNOWN
+  var editorFileType: Deferred<EditorFileType> = CompletableDeferred(EditorFileType.UNKNOWN)
     private set
 
   val editorMode
@@ -73,7 +77,7 @@ open class DesignerAnalyticsManager(protected var surface: DesignSurface<*>) {
    * will not log any events.
    */
   fun setEditorFileTypeWithoutTracking(file: VirtualFile, project: Project) {
-    this.editorFileType = runBlocking { getEditorFileTypeForAnalytics(file, project) }
+    this.editorFileType = scope.async(Dispatchers.Default) { getEditorFileTypeForAnalytics(file, project) }
   }
 
   fun trackSelectEditorMode(panelState: DesignerEditorPanel.State) =

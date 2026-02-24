@@ -54,6 +54,7 @@ import static com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewOptio
 import static com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewOption.SIGNED_NUMBER;
 import static com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewOption.TIME_EDITOR;
 import static com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewOption.VERTICAL_LINEAR_LAYOUT;
+import static kotlinx.coroutines.CoroutineScopeKt.CoroutineScope;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -65,6 +66,7 @@ import com.android.tools.idea.common.editor.DesignerEditorPanel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.configurations.Configuration;
+import com.android.tools.idea.concurrency.CoroutineUtilsKt;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.palette.NlPaletteModel;
 import com.android.tools.idea.uibuilder.palette.Palette;
@@ -82,6 +84,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import kotlin.coroutines.EmptyCoroutineContext;
+import kotlinx.coroutines.CoroutineScope;
+import kotlinx.coroutines.Dispatchers;
 import org.intellij.lang.annotations.Language;
 import com.android.tools.dom.attrs.AttributeDefinition;
 import com.android.tools.dom.attrs.AttributeDefinitions;
@@ -207,7 +212,9 @@ public class NlUsageTrackerImplTest extends BaseUsageTrackerImplTest {
     NlDesignSurface surface = mock(NlDesignSurface.class);
     when(surface.getLayoutType()).thenReturn(LayoutFileType.INSTANCE);
     when(surface.getScreenViewProvider()).thenReturn(NlScreenViewProvider.RENDER_AND_BLUEPRINT);
-    NlAnalyticsManager analyticsManager = new NlAnalyticsManager(surface);
+    CoroutineScope
+      scope = CoroutineUtilsKt.createCoroutineScope(myFixture.getTestRootDisposable(), Dispatchers.getDefault(), EmptyCoroutineContext.INSTANCE);
+    NlAnalyticsManager analyticsManager = new NlAnalyticsManager(surface, scope);
     analyticsManager.setEditorModeWithoutTracking(DesignerEditorPanel.State.SPLIT);
     when(surface.getAnalyticsManager()).thenReturn(analyticsManager);
     ZoomController zoomControllerFake = createZoomControllerFake(0.50, null);

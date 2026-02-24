@@ -19,6 +19,7 @@ import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.ide.common.rendering.api.ResourceNamespace.Resolver.EMPTY_RESOLVER;
+import static kotlinx.coroutines.CoroutineScopeKt.CoroutineScope;
 import static org.mockito.Mockito.when;
 
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -31,9 +32,13 @@ import com.android.resources.Density;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.configurations.Configuration;
+import com.android.tools.idea.concurrency.CoroutineUtilsKt;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import kotlin.coroutines.EmptyCoroutineContext;
+import kotlinx.coroutines.CoroutineScope;
+import kotlinx.coroutines.Dispatchers;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.Mockito;
@@ -47,7 +52,9 @@ public class SceneKeepDimensTest extends SceneTest {
   protected void setUp() throws Exception {
     super.setUp();
     NlDesignSurface nlSurface = (NlDesignSurface)myModel.getSurface();
-    NlAnalyticsManager analyticsManager = new NlAnalyticsManager(nlSurface);
+    CoroutineScope
+      scope = CoroutineUtilsKt.createCoroutineScope(myFixture.getTestRootDisposable(), Dispatchers.getDefault(), EmptyCoroutineContext.INSTANCE);
+    NlAnalyticsManager analyticsManager = new NlAnalyticsManager(nlSurface, scope);
     when(nlSurface.getAnalyticsManager()).thenReturn(analyticsManager);
   }
 

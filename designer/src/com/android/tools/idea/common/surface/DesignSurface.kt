@@ -168,7 +168,7 @@ abstract class DesignSurface<T : SceneManager>(
   }
 
   /** Responsible for converting this surface state and send it for tracking (if logging is enabled). */
-  open val analyticsManager: DesignerAnalyticsManager = DesignerAnalyticsManager(this)
+  open val analyticsManager: DesignerAnalyticsManager = DesignerAnalyticsManager(this, scope)
 
   private val hasZoomControls: Boolean = zoomControlsPolicy != ZoomControlsPolicy.HIDDEN
 
