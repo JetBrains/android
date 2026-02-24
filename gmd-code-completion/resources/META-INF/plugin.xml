@@ -15,8 +15,16 @@
   -->
 <!--suppress PluginXmlReferencesModuleReachability (an Android Studio descriptor that no JPS module owns; it must not add android edges to intellij.idea.community.main) -->
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+  <id>com.android.gmdcodecompletion</id>
+  <name>GMD Code Completion</name>
+  <vendor>Google</vendor>
+
   <depends>org.intellij.groovy</depends>
   <depends>org.jetbrains.kotlin</depends>
+  <depends>org.jetbrains.android</depends>
+  <depends>com.android.tools.gradle.dsl</depends>
+  <depends>com.google.services.firebase</depends>
+  <depends>com.intellij.java</depends>
 
   <extensions defaultExtensionNs="com.intellij">
     <completion.contributor language="any"

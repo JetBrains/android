@@ -32,7 +32,7 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
-        "//tools/studio/google/cloud/testing/firebase-testing",
+        "//prebuilts/tools/common/m2:google_api_services_testing",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/base/sdklib:studio.android.sdktools.sdklib",
@@ -44,5 +44,11 @@ iml_module(
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
         "//tools/adt/idea/.idea/libraries:google-api-client",
         "//tools/adt/idea/render-resources:intellij.android.render-resources",
+        "//tools/analytics-library/tracker:analytics-tracker",
+        "//tools/adt/idea/artwork:intellij.android.artwork",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/adt/idea/.idea/libraries:cloudresourcemanager",
+        "//tools/vendor/google/firebase",
+        "//tools/adt/idea/analytics",
     ],
 )

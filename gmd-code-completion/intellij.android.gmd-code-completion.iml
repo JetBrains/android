@@ -8,9 +8,28 @@
       <sourceFolder url="file://$MODULE_DIR$/resources" type="java-resource" />
     </content>
     <orderEntry type="inheritedJdk" />
-    <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
+    <orderEntry type="library" name="kotlin-stdlib" level="project" />
+    <orderEntry type="library" name="jetbrains-annotations" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.guava" />
+    <orderEntry type="module" module-name="intellij.platform.util" />
+    <orderEntry type="module" module-name="intellij.platform.projectModel" />
+    <orderEntry type="module" module-name="intellij.platform.core" />
+    <orderEntry type="module" module-name="intellij.platform.core.ui" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="firebase-testing" />
+    <orderEntry type="module-library">
+      <library name="google_api_services_testing">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../../../../../prebuilts/tools/common/m2/repository/com/google/apis/google-api-services-storage/v1-rev20230301-2.0.0/google-api-services-storage-v1-rev20230301-2.0.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../prebuilts/tools/common/m2/repository/com/google/apis/google-api-services-toolresults/v1beta3-rev20230410-2.0.0/google-api-services-toolresults-v1beta3-rev20230410-2.0.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../prebuilts/tools/common/m2/repository/com/google/apis/google-api-services-testing/v1-rev20250327-2.0.0/google-api-services-testing-v1-rev20250327-2.0.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="library" name="studio-platform" level="project" />
@@ -18,11 +37,13 @@
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
     <orderEntry type="module" module-name="google-login" />
     <orderEntry type="library" name="studio-plugin-org.intellij.groovy" level="project" />
-    <orderEntry type="library" name="studio-plugin-org.jetbrains.kotlin" level="project" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" />
     <orderEntry type="library" name="google-api-client" level="project" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
-    <orderEntry type="library" scope="TEST" name="junit4" level="project" />
+    <orderEntry type="module" module-name="intellij.android.artwork" />
+    <orderEntry type="library" name="cloudresourcemanager" level="project" />
+    <orderEntry type="module" module-name="firebase" />
+    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.mockito" scope="TEST" />
     <orderEntry type="library" name="studio-platform" level="project" />
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />

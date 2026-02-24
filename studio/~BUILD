@@ -670,14 +670,12 @@ studio_plugin(
 )
 
 studio_plugin(
-    name = "com.google.gct.testing",
-    directory = "firebase-testing",
+    name = "com.android.gmdcodecompletion",
+    directory = "gmd-code-completion",
     libs = [
-        "//prebuilts/tools/common/m2:JSch",
         "//prebuilts/tools/common/m2:google_api_services_testing",
     ],
     modules = {
-        "firebase-testing.jar": ["//tools/studio/google/cloud/testing/firebase-testing:firebase-testing"],
         "gmd-code-completion.jar": ["//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion"],
     },
     visibility = ["//visibility:public"],
@@ -954,7 +952,7 @@ STUDIO_BASE_PLUGINS = [
     "//tools/adt/idea/studio:com.google.services.firebase",
     "//tools/adt/idea/studio:com.google.tools.ij.aiplugin",
     "//tools/adt/idea/studio:com.google.gct.directaccess",
-    "//tools/adt/idea/studio:com.google.gct.testing",
+    "//tools/adt/idea/studio:com.android.gmdcodecompletion",
     "//tools/adt/idea/studio:com.android.tools.idea.smali",
     "//tools/adt/idea/studio:com.google.gct.test.recorder",
     "//tools/adt/idea/studio:com.google.urlassistant",
@@ -1251,7 +1249,6 @@ iml_module(
         "//tools/vendor/google/git4insights",
         "//tools/vendor/google/firebase",
         "//tools/studio/google/cloud/testing/directaccess",
-        "//tools/studio/google/cloud/testing/firebase-testing",
         "//tools/vendor/google/login:google-login",
         "//tools/adt/idea/smali:intellij.android.smali",
         "//tools/studio/google/cloud/testing/test-recorder",

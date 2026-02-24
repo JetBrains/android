@@ -3097,12 +3097,10 @@ Android Studio Preview.app/Contents/plugins/editorconfig-plugin/lib/editorconfig
 Android Studio Preview.app/Contents/plugins/editorconfig-plugin/lib/modules/intellij.editorconfig.backend.jar
 Android Studio Preview.app/Contents/plugins/editorconfig-plugin/lib/modules/intellij.editorconfig.common.jar
 Android Studio Preview.app/Contents/plugins/editorconfig-plugin/lib/modules/intellij.editorconfig.frontend.jar
-Android Studio Preview.app/Contents/plugins/firebase-testing/lib/firebase-testing.jar
-Android Studio Preview.app/Contents/plugins/firebase-testing/lib/gmd-code-completion.jar
-Android Studio Preview.app/Contents/plugins/firebase-testing/lib/google-api-services-storage-v1-rev20230301-2.0.0.jar
-Android Studio Preview.app/Contents/plugins/firebase-testing/lib/google-api-services-testing-v1-rev20250327-2.0.0.jar
-Android Studio Preview.app/Contents/plugins/firebase-testing/lib/google-api-services-toolresults-v1beta3-rev20230410-2.0.0.jar
-Android Studio Preview.app/Contents/plugins/firebase-testing/lib/jsch-0.1.55.jar
+Android Studio Preview.app/Contents/plugins/gmd-code-completion/lib/gmd-code-completion.jar
+Android Studio Preview.app/Contents/plugins/gmd-code-completion/lib/google-api-services-storage-v1-rev20230301-2.0.0.jar
+Android Studio Preview.app/Contents/plugins/gmd-code-completion/lib/google-api-services-testing-v1-rev20250327-2.0.0.jar
+Android Studio Preview.app/Contents/plugins/gmd-code-completion/lib/google-api-services-toolresults-v1beta3-rev20230410-2.0.0.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/firebase.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/firebase.so.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/firebase_kt_proto.jar
