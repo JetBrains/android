@@ -788,8 +788,6 @@ MODULE: project.lib
                 ./lib/src/main/baselineProfiles
             KeepRulesDirectories:
                 ./lib/src/main/keepRules
-            AarKeepRulesDirectories:
-                ./lib/src/main/aarKeepRules
         Active:
             main
                 Manifest:
@@ -811,8 +809,6 @@ MODULE: project.lib
                     ./lib/src/main/baselineProfiles
                 KeepRulesDirectories:
                     ./lib/src/main/keepRules
-                AarKeepRulesDirectories:
-                    ./lib/src/main/aarKeepRules
             debug
                 Manifest:
                     ./lib/src/debug/AndroidManifest.xml
@@ -833,8 +829,6 @@ MODULE: project.lib
                     ./lib/src/debug/baselineProfiles
                 KeepRulesDirectories:
                     ./lib/src/debug/keepRules
-                AarKeepRulesDirectories:
-                    ./lib/src/debug/aarKeepRules
         All:
             main
                 Manifest:
@@ -856,8 +850,6 @@ MODULE: project.lib
                     ./lib/src/main/baselineProfiles
                 KeepRulesDirectories:
                     ./lib/src/main/keepRules
-                AarKeepRulesDirectories:
-                    ./lib/src/main/aarKeepRules
             debug
                 Manifest:
                     ./lib/src/debug/AndroidManifest.xml
@@ -878,8 +870,6 @@ MODULE: project.lib
                     ./lib/src/debug/baselineProfiles
                 KeepRulesDirectories:
                     ./lib/src/debug/keepRules
-                AarKeepRulesDirectories:
-                    ./lib/src/debug/aarKeepRules
             release
                 Manifest:
                     ./lib/src/release/AndroidManifest.xml
@@ -900,8 +890,6 @@ MODULE: project.lib
                     ./lib/src/release/baselineProfiles
                 KeepRulesDirectories:
                     ./lib/src/release/keepRules
-                AarKeepRulesDirectories:
-                    ./lib/src/release/aarKeepRules
         HostTest:
             UnitTest
                 test
@@ -924,8 +912,6 @@ MODULE: project.lib
                         ./lib/src/test/baselineProfiles
                     KeepRulesDirectories:
                         ./lib/src/test/keepRules
-                    AarKeepRulesDirectories:
-                        ./lib/src/test/aarKeepRules
                 testDebug
                     Manifest:
                         ./lib/src/testDebug/AndroidManifest.xml
@@ -946,8 +932,6 @@ MODULE: project.lib
                         ./lib/src/testDebug/baselineProfiles
                     KeepRulesDirectories:
                         ./lib/src/testDebug/keepRules
-                    AarKeepRulesDirectories:
-                        ./lib/src/testDebug/aarKeepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -970,8 +954,6 @@ MODULE: project.lib
                         ./lib/src/androidTest/baselineProfiles
                     KeepRulesDirectories:
                         ./lib/src/androidTest/keepRules
-                    AarKeepRulesDirectories:
-                        ./lib/src/androidTest/aarKeepRules
                 androidTestDebug
                     Manifest:
                         ./lib/src/androidTestDebug/AndroidManifest.xml
@@ -992,8 +974,6 @@ MODULE: project.lib
                         ./lib/src/androidTestDebug/baselineProfiles
                     KeepRulesDirectories:
                         ./lib/src/androidTestDebug/keepRules
-                    AarKeepRulesDirectories:
-                        ./lib/src/androidTestDebug/aarKeepRules
         TestFixtures:
             testFixtures
                 Manifest:
@@ -1015,8 +995,6 @@ MODULE: project.lib
                     ./lib/src/testFixtures/baselineProfiles
                 KeepRulesDirectories:
                     ./lib/src/testFixtures/keepRules
-                AarKeepRulesDirectories:
-                    ./lib/src/testFixtures/aarKeepRules
             testFixturesDebug
                 Manifest:
                     ./lib/src/testFixturesDebug/AndroidManifest.xml
@@ -1037,8 +1015,6 @@ MODULE: project.lib
                     ./lib/src/testFixturesDebug/baselineProfiles
                 KeepRulesDirectories:
                     ./lib/src/testFixturesDebug/keepRules
-                AarKeepRulesDirectories:
-                    ./lib/src/testFixturesDebug/aarKeepRules
     by IdeaSourceProviders:
         Manifests:
             file://./lib/src/main/AndroidManifest.xml

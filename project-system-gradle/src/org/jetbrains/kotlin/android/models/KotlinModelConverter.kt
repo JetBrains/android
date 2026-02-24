@@ -170,7 +170,6 @@ class KotlinModelConverter {
       baselineProfileDirectories = emptyList(),
       customSourceDirectories = emptyList(),
       keepRulesDirectoriesField = emptyList(),
-      aarKeepRulesDirectoriesField = emptyList(),
     )
   }
 

@@ -478,7 +478,8 @@ class LintModelFactory : LintModelModuleLoader {
       resDirectories = provider.resDirectories,
       assetsDirectories = provider.assetsDirectories,
       keepRulesDirectories = provider.keepRulesDirectories,
-      aarKeepRulesDirectories = provider.aarKeepRulesDirectories ?: listOf<File>(),
+      // TODO: android-merge; our studio-platform.jar still requires aarKeepRulesDirectories, which this revert removed from IdeSourceProvider
+      aarKeepRulesDirectories = emptyList(),
       unitTestOnly = providerContainer.isUnitTest(),
       instrumentationTestOnly = providerContainer.isInstrumentationTest(),
       debugOnly = debugOnly,
@@ -499,7 +500,8 @@ class LintModelFactory : LintModelModuleLoader {
       resDirectories = provider.resDirectories,
       assetsDirectories = provider.assetsDirectories,
       keepRulesDirectories = provider.keepRulesDirectories,
-      aarKeepRulesDirectories = provider.aarKeepRulesDirectories ?: listOf<File>(),
+      // TODO: android-merge; our studio-platform.jar still requires aarKeepRulesDirectories, which this revert removed from IdeSourceProvider
+      aarKeepRulesDirectories = emptyList(),
       unitTestOnly = unitTestOnly,
       instrumentationTestOnly = instrumentationTestOnly,
       debugOnly = debugOnly,

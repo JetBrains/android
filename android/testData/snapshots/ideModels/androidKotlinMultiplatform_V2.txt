@@ -1292,7 +1292,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             JniLibsDirectories            : <ROOT>/androidLib/src/main/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/androidLib/src/main/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/androidLib/src/main/keepRules [-]
-            AarKeepRulesDirectories       : <ROOT>/androidLib/src/main/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -1308,7 +1307,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     JniLibsDirectories            : <ROOT>/androidLib/src/androidTest/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/androidTest/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/androidLib/src/androidTest/keepRules [-]
-                    AarKeepRulesDirectories       : <ROOT>/androidLib/src/androidTest/aarKeepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -1323,7 +1321,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     JniLibsDirectories            : <ROOT>/androidLib/src/test/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/test/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/androidLib/src/test/keepRules [-]
-                    AarKeepRulesDirectories       : <ROOT>/androidLib/src/test/aarKeepRules [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -1346,7 +1343,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             JniLibsDirectories            : <ROOT>/androidLib/src/debug/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/androidLib/src/debug/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/androidLib/src/debug/keepRules [-]
-            AarKeepRulesDirectories       : <ROOT>/androidLib/src/debug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -1362,7 +1358,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     JniLibsDirectories            : <ROOT>/androidLib/src/androidTestDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/androidTestDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/androidLib/src/androidTestDebug/keepRules [-]
-                    AarKeepRulesDirectories       : <ROOT>/androidLib/src/androidTestDebug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -1378,7 +1373,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     JniLibsDirectories            : <ROOT>/androidLib/src/testDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/testDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/androidLib/src/testDebug/keepRules [-]
-                    AarKeepRulesDirectories       : <ROOT>/androidLib/src/testDebug/aarKeepRules [-]
         BuildType
             Name                          : release
             IsDebuggable                  : false
@@ -1400,7 +1394,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             JniLibsDirectories            : <ROOT>/androidLib/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/androidLib/src/release/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/androidLib/src/release/keepRules [-]
-            AarKeepRulesDirectories       : <ROOT>/androidLib/src/release/aarKeepRules [-]
     ProductFlavors
         ProductFlavor
             Name                          : typeone
@@ -1418,7 +1411,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             JniLibsDirectories            : <ROOT>/androidLib/src/typeone/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/androidLib/src/typeone/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/androidLib/src/typeone/keepRules [-]
-            AarKeepRulesDirectories       : <ROOT>/androidLib/src/typeone/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -1434,7 +1426,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     JniLibsDirectories            : <ROOT>/androidLib/src/androidTestTypeone/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/androidTestTypeone/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/androidLib/src/androidTestTypeone/keepRules [-]
-                    AarKeepRulesDirectories       : <ROOT>/androidLib/src/androidTestTypeone/aarKeepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -1449,7 +1440,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     JniLibsDirectories            : <ROOT>/androidLib/src/testTypeone/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/testTypeone/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/androidLib/src/testTypeone/keepRules [-]
-                    AarKeepRulesDirectories       : <ROOT>/androidLib/src/testTypeone/aarKeepRules [-]
         ProductFlavor
             Name                          : typetwo
             Dimension                     : type
@@ -1466,7 +1456,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             JniLibsDirectories            : <ROOT>/androidLib/src/typetwo/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/androidLib/src/typetwo/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/androidLib/src/typetwo/keepRules [-]
-            AarKeepRulesDirectories       : <ROOT>/androidLib/src/typetwo/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -1482,7 +1471,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     JniLibsDirectories            : <ROOT>/androidLib/src/androidTestTypetwo/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/androidTestTypetwo/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/androidLib/src/androidTestTypetwo/keepRules [-]
-                    AarKeepRulesDirectories       : <ROOT>/androidLib/src/androidTestTypetwo/aarKeepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -1497,7 +1485,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     JniLibsDirectories            : <ROOT>/androidLib/src/testTypetwo/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/testTypetwo/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/androidLib/src/testTypetwo/keepRules [-]
-                    AarKeepRulesDirectories       : <ROOT>/androidLib/src/testTypetwo/aarKeepRules [-]
         ProductFlavor
             Name                          : modeone
             Dimension                     : mode
@@ -1514,7 +1501,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             JniLibsDirectories            : <ROOT>/androidLib/src/modeone/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/androidLib/src/modeone/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/androidLib/src/modeone/keepRules [-]
-            AarKeepRulesDirectories       : <ROOT>/androidLib/src/modeone/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -1530,7 +1516,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     JniLibsDirectories            : <ROOT>/androidLib/src/androidTestModeone/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/androidTestModeone/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/androidLib/src/androidTestModeone/keepRules [-]
-                    AarKeepRulesDirectories       : <ROOT>/androidLib/src/androidTestModeone/aarKeepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -1545,7 +1530,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     JniLibsDirectories            : <ROOT>/androidLib/src/testModeone/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/testModeone/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/androidLib/src/testModeone/keepRules [-]
-                    AarKeepRulesDirectories       : <ROOT>/androidLib/src/testModeone/aarKeepRules [-]
         ProductFlavor
             Name                          : modetwo
             Dimension                     : mode
@@ -1562,7 +1546,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             JniLibsDirectories            : <ROOT>/androidLib/src/modetwo/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/androidLib/src/modetwo/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/androidLib/src/modetwo/keepRules [-]
-            AarKeepRulesDirectories       : <ROOT>/androidLib/src/modetwo/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -1578,7 +1561,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     JniLibsDirectories            : <ROOT>/androidLib/src/androidTestModetwo/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/androidTestModetwo/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/androidLib/src/androidTestModetwo/keepRules [-]
-                    AarKeepRulesDirectories       : <ROOT>/androidLib/src/androidTestModetwo/aarKeepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -1593,7 +1575,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     JniLibsDirectories            : <ROOT>/androidLib/src/testModetwo/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/testModetwo/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/androidLib/src/testModetwo/keepRules [-]
-                    AarKeepRulesDirectories       : <ROOT>/androidLib/src/testModetwo/aarKeepRules [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -1666,7 +1647,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     JniLibsDirectories            : <ROOT>/androidLib/src/typeoneModetwoDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/typeoneModetwoDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/androidLib/src/typeoneModetwoDebug/keepRules [-]
-                    AarKeepRulesDirectories       : <ROOT>/androidLib/src/typeoneModetwoDebug/aarKeepRules [-]
                 MultiFlavorSourceProvider
                     Name                          : typeoneModetwo
                     Manifest                      : <ROOT>/androidLib/src/typeoneModetwo/AndroidManifest.xml [-]
@@ -1679,7 +1659,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     JniLibsDirectories            : <ROOT>/androidLib/src/typeoneModetwo/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/typeoneModetwo/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/androidLib/src/typeoneModetwo/keepRules [-]
-                    AarKeepRulesDirectories       : <ROOT>/androidLib/src/typeoneModetwo/aarKeepRules [-]
                 Dependencies
                     compileClasspath
                     runtimeClasspath
@@ -1725,7 +1704,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     JniLibsDirectories            : <ROOT>/androidLib/src/androidTestTypeoneModetwo/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/androidTestTypeoneModetwo/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/androidLib/src/androidTestTypeoneModetwo/keepRules [-]
-                    AarKeepRulesDirectories       : <ROOT>/androidLib/src/androidTestTypeoneModetwo/aarKeepRules [-]
                 Dependencies
                     compileClasspath
                         module                        : <ROOT>-:androidLib-MAIN
@@ -1779,7 +1757,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     JniLibsDirectories            : <ROOT>/androidLib/src/testTypeoneModetwo/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/testTypeoneModetwo/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/androidLib/src/testTypeoneModetwo/keepRules [-]
-                    AarKeepRulesDirectories       : <ROOT>/androidLib/src/testTypeoneModetwo/aarKeepRules [-]
                 Dependencies
                     compileClasspath
                         module                        : <ROOT>-:androidLib-MAIN

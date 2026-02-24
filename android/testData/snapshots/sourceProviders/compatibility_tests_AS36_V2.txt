@@ -2132,8 +2132,6 @@ MODULE: AS36.libs.android_library
                 ./libs/android_library/src/main/baselineProfiles
             KeepRulesDirectories:
                 ./libs/android_library/src/main/keepRules
-            AarKeepRulesDirectories:
-                ./libs/android_library/src/main/aarKeepRules
         Active:
             main
                 Manifest:
@@ -2155,8 +2153,6 @@ MODULE: AS36.libs.android_library
                     ./libs/android_library/src/main/baselineProfiles
                 KeepRulesDirectories:
                     ./libs/android_library/src/main/keepRules
-                AarKeepRulesDirectories:
-                    ./libs/android_library/src/main/aarKeepRules
             debug
                 Manifest:
                     ./libs/android_library/src/debug/AndroidManifest.xml
@@ -2177,8 +2173,6 @@ MODULE: AS36.libs.android_library
                     ./libs/android_library/src/debug/baselineProfiles
                 KeepRulesDirectories:
                     ./libs/android_library/src/debug/keepRules
-                AarKeepRulesDirectories:
-                    ./libs/android_library/src/debug/aarKeepRules
         All:
             main
                 Manifest:
@@ -2200,8 +2194,6 @@ MODULE: AS36.libs.android_library
                     ./libs/android_library/src/main/baselineProfiles
                 KeepRulesDirectories:
                     ./libs/android_library/src/main/keepRules
-                AarKeepRulesDirectories:
-                    ./libs/android_library/src/main/aarKeepRules
             debug
                 Manifest:
                     ./libs/android_library/src/debug/AndroidManifest.xml
@@ -2222,8 +2214,6 @@ MODULE: AS36.libs.android_library
                     ./libs/android_library/src/debug/baselineProfiles
                 KeepRulesDirectories:
                     ./libs/android_library/src/debug/keepRules
-                AarKeepRulesDirectories:
-                    ./libs/android_library/src/debug/aarKeepRules
             release
                 Manifest:
                     ./libs/android_library/src/release/AndroidManifest.xml
@@ -2244,8 +2234,6 @@ MODULE: AS36.libs.android_library
                     ./libs/android_library/src/release/baselineProfiles
                 KeepRulesDirectories:
                     ./libs/android_library/src/release/keepRules
-                AarKeepRulesDirectories:
-                    ./libs/android_library/src/release/aarKeepRules
         HostTest:
             UnitTest
                 test
@@ -2268,8 +2256,6 @@ MODULE: AS36.libs.android_library
                         ./libs/android_library/src/test/baselineProfiles
                     KeepRulesDirectories:
                         ./libs/android_library/src/test/keepRules
-                    AarKeepRulesDirectories:
-                        ./libs/android_library/src/test/aarKeepRules
                 testDebug
                     Manifest:
                         ./libs/android_library/src/testDebug/AndroidManifest.xml
@@ -2290,8 +2276,6 @@ MODULE: AS36.libs.android_library
                         ./libs/android_library/src/testDebug/baselineProfiles
                     KeepRulesDirectories:
                         ./libs/android_library/src/testDebug/keepRules
-                    AarKeepRulesDirectories:
-                        ./libs/android_library/src/testDebug/aarKeepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -2314,8 +2298,6 @@ MODULE: AS36.libs.android_library
                         ./libs/android_library/src/androidTest/baselineProfiles
                     KeepRulesDirectories:
                         ./libs/android_library/src/androidTest/keepRules
-                    AarKeepRulesDirectories:
-                        ./libs/android_library/src/androidTest/aarKeepRules
                 androidTestDebug
                     Manifest:
                         ./libs/android_library/src/androidTestDebug/AndroidManifest.xml
@@ -2336,8 +2318,6 @@ MODULE: AS36.libs.android_library
                         ./libs/android_library/src/androidTestDebug/baselineProfiles
                     KeepRulesDirectories:
                         ./libs/android_library/src/androidTestDebug/keepRules
-                    AarKeepRulesDirectories:
-                        ./libs/android_library/src/androidTestDebug/aarKeepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:

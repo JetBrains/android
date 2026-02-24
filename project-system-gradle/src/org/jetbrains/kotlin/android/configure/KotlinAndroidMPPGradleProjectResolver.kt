@@ -186,7 +186,6 @@ fun IdeVariantCoreImpl.patchFromMppModel(androidProject: IdeAndroidProjectImpl, 
           customSourceDirectories = emptyList(),
           baselineProfileDirectories = emptyList(),
           keepRulesDirectoriesField = emptyList(),
-          aarKeepRulesDirectoriesField = emptyList(),
         )
 
     return thisOrNewProvider.appendDirectories(

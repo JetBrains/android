@@ -2647,8 +2647,6 @@ MODULE: project.lib
                 ./lib/src/main/baselineProfiles
             KeepRulesDirectories:
                 ./lib/src/main/keepRules
-            AarKeepRulesDirectories:
-                ./lib/src/main/aarKeepRules
         Active:
             main
                 Manifest:
@@ -2670,8 +2668,6 @@ MODULE: project.lib
                     ./lib/src/main/baselineProfiles
                 KeepRulesDirectories:
                     ./lib/src/main/keepRules
-                AarKeepRulesDirectories:
-                    ./lib/src/main/aarKeepRules
             debug
                 Manifest:
                     ./lib/src/debug/AndroidManifest.xml
@@ -2692,8 +2688,6 @@ MODULE: project.lib
                     ./lib/src/debug/baselineProfiles
                 KeepRulesDirectories:
                     ./lib/src/debug/keepRules
-                AarKeepRulesDirectories:
-                    ./lib/src/debug/aarKeepRules
         All:
             main
                 Manifest:
@@ -2715,8 +2709,6 @@ MODULE: project.lib
                     ./lib/src/main/baselineProfiles
                 KeepRulesDirectories:
                     ./lib/src/main/keepRules
-                AarKeepRulesDirectories:
-                    ./lib/src/main/aarKeepRules
             debug
                 Manifest:
                     ./lib/src/debug/AndroidManifest.xml
@@ -2737,8 +2729,6 @@ MODULE: project.lib
                     ./lib/src/debug/baselineProfiles
                 KeepRulesDirectories:
                     ./lib/src/debug/keepRules
-                AarKeepRulesDirectories:
-                    ./lib/src/debug/aarKeepRules
             release
                 Manifest:
                     ./lib/src/release/AndroidManifest.xml
@@ -2759,8 +2749,6 @@ MODULE: project.lib
                     ./lib/src/release/baselineProfiles
                 KeepRulesDirectories:
                     ./lib/src/release/keepRules
-                AarKeepRulesDirectories:
-                    ./lib/src/release/aarKeepRules
         HostTest:
             UnitTest
                 test
@@ -2783,8 +2771,6 @@ MODULE: project.lib
                         ./lib/src/test/baselineProfiles
                     KeepRulesDirectories:
                         ./lib/src/test/keepRules
-                    AarKeepRulesDirectories:
-                        ./lib/src/test/aarKeepRules
                 testDebug
                     Manifest:
                         ./lib/src/testDebug/AndroidManifest.xml
@@ -2805,8 +2791,6 @@ MODULE: project.lib
                         ./lib/src/testDebug/baselineProfiles
                     KeepRulesDirectories:
                         ./lib/src/testDebug/keepRules
-                    AarKeepRulesDirectories:
-                        ./lib/src/testDebug/aarKeepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -2829,8 +2813,6 @@ MODULE: project.lib
                         ./lib/src/androidTest/baselineProfiles
                     KeepRulesDirectories:
                         ./lib/src/androidTest/keepRules
-                    AarKeepRulesDirectories:
-                        ./lib/src/androidTest/aarKeepRules
                 androidTestDebug
                     Manifest:
                         ./lib/src/androidTestDebug/AndroidManifest.xml
@@ -2851,8 +2833,6 @@ MODULE: project.lib
                         ./lib/src/androidTestDebug/baselineProfiles
                     KeepRulesDirectories:
                         ./lib/src/androidTestDebug/keepRules
-                    AarKeepRulesDirectories:
-                        ./lib/src/androidTestDebug/aarKeepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -3363,8 +3343,6 @@ MODULE: project.nested1
                 ./nested1/src/main/baselineProfiles
             KeepRulesDirectories:
                 ./nested1/src/main/keepRules
-            AarKeepRulesDirectories:
-                ./nested1/src/main/aarKeepRules
         Active:
             main
                 Manifest:
@@ -3386,8 +3364,6 @@ MODULE: project.nested1
                     ./nested1/src/main/baselineProfiles
                 KeepRulesDirectories:
                     ./nested1/src/main/keepRules
-                AarKeepRulesDirectories:
-                    ./nested1/src/main/aarKeepRules
             debug
                 Manifest:
                     ./nested1/src/debug/AndroidManifest.xml
@@ -3408,8 +3384,6 @@ MODULE: project.nested1
                     ./nested1/src/debug/baselineProfiles
                 KeepRulesDirectories:
                     ./nested1/src/debug/keepRules
-                AarKeepRulesDirectories:
-                    ./nested1/src/debug/aarKeepRules
         All:
             main
                 Manifest:
@@ -3431,8 +3405,6 @@ MODULE: project.nested1
                     ./nested1/src/main/baselineProfiles
                 KeepRulesDirectories:
                     ./nested1/src/main/keepRules
-                AarKeepRulesDirectories:
-                    ./nested1/src/main/aarKeepRules
             debug
                 Manifest:
                     ./nested1/src/debug/AndroidManifest.xml
@@ -3453,8 +3425,6 @@ MODULE: project.nested1
                     ./nested1/src/debug/baselineProfiles
                 KeepRulesDirectories:
                     ./nested1/src/debug/keepRules
-                AarKeepRulesDirectories:
-                    ./nested1/src/debug/aarKeepRules
             release
                 Manifest:
                     ./nested1/src/release/AndroidManifest.xml
@@ -3475,8 +3445,6 @@ MODULE: project.nested1
                     ./nested1/src/release/baselineProfiles
                 KeepRulesDirectories:
                     ./nested1/src/release/keepRules
-                AarKeepRulesDirectories:
-                    ./nested1/src/release/aarKeepRules
         HostTest:
             UnitTest
                 test
@@ -3499,8 +3467,6 @@ MODULE: project.nested1
                         ./nested1/src/test/baselineProfiles
                     KeepRulesDirectories:
                         ./nested1/src/test/keepRules
-                    AarKeepRulesDirectories:
-                        ./nested1/src/test/aarKeepRules
                 testDebug
                     Manifest:
                         ./nested1/src/testDebug/AndroidManifest.xml
@@ -3521,8 +3487,6 @@ MODULE: project.nested1
                         ./nested1/src/testDebug/baselineProfiles
                     KeepRulesDirectories:
                         ./nested1/src/testDebug/keepRules
-                    AarKeepRulesDirectories:
-                        ./nested1/src/testDebug/aarKeepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -3545,8 +3509,6 @@ MODULE: project.nested1
                         ./nested1/src/androidTest/baselineProfiles
                     KeepRulesDirectories:
                         ./nested1/src/androidTest/keepRules
-                    AarKeepRulesDirectories:
-                        ./nested1/src/androidTest/aarKeepRules
                 androidTestDebug
                     Manifest:
                         ./nested1/src/androidTestDebug/AndroidManifest.xml
@@ -3567,8 +3529,6 @@ MODULE: project.nested1
                         ./nested1/src/androidTestDebug/baselineProfiles
                     KeepRulesDirectories:
                         ./nested1/src/androidTestDebug/keepRules
-                    AarKeepRulesDirectories:
-                        ./nested1/src/androidTestDebug/aarKeepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -4055,8 +4015,6 @@ MODULE: project.nested1.deep
                 ./nested1/deep/src/main/baselineProfiles
             KeepRulesDirectories:
                 ./nested1/deep/src/main/keepRules
-            AarKeepRulesDirectories:
-                ./nested1/deep/src/main/aarKeepRules
         Active:
             main
                 Manifest:
@@ -4078,8 +4036,6 @@ MODULE: project.nested1.deep
                     ./nested1/deep/src/main/baselineProfiles
                 KeepRulesDirectories:
                     ./nested1/deep/src/main/keepRules
-                AarKeepRulesDirectories:
-                    ./nested1/deep/src/main/aarKeepRules
             debug
                 Manifest:
                     ./nested1/deep/src/debug/AndroidManifest.xml
@@ -4100,8 +4056,6 @@ MODULE: project.nested1.deep
                     ./nested1/deep/src/debug/baselineProfiles
                 KeepRulesDirectories:
                     ./nested1/deep/src/debug/keepRules
-                AarKeepRulesDirectories:
-                    ./nested1/deep/src/debug/aarKeepRules
         All:
             main
                 Manifest:
@@ -4123,8 +4077,6 @@ MODULE: project.nested1.deep
                     ./nested1/deep/src/main/baselineProfiles
                 KeepRulesDirectories:
                     ./nested1/deep/src/main/keepRules
-                AarKeepRulesDirectories:
-                    ./nested1/deep/src/main/aarKeepRules
             debug
                 Manifest:
                     ./nested1/deep/src/debug/AndroidManifest.xml
@@ -4145,8 +4097,6 @@ MODULE: project.nested1.deep
                     ./nested1/deep/src/debug/baselineProfiles
                 KeepRulesDirectories:
                     ./nested1/deep/src/debug/keepRules
-                AarKeepRulesDirectories:
-                    ./nested1/deep/src/debug/aarKeepRules
             release
                 Manifest:
                     ./nested1/deep/src/release/AndroidManifest.xml
@@ -4167,8 +4117,6 @@ MODULE: project.nested1.deep
                     ./nested1/deep/src/release/baselineProfiles
                 KeepRulesDirectories:
                     ./nested1/deep/src/release/keepRules
-                AarKeepRulesDirectories:
-                    ./nested1/deep/src/release/aarKeepRules
         HostTest:
             UnitTest
                 test
@@ -4191,8 +4139,6 @@ MODULE: project.nested1.deep
                         ./nested1/deep/src/test/baselineProfiles
                     KeepRulesDirectories:
                         ./nested1/deep/src/test/keepRules
-                    AarKeepRulesDirectories:
-                        ./nested1/deep/src/test/aarKeepRules
                 testDebug
                     Manifest:
                         ./nested1/deep/src/testDebug/AndroidManifest.xml
@@ -4213,8 +4159,6 @@ MODULE: project.nested1.deep
                         ./nested1/deep/src/testDebug/baselineProfiles
                     KeepRulesDirectories:
                         ./nested1/deep/src/testDebug/keepRules
-                    AarKeepRulesDirectories:
-                        ./nested1/deep/src/testDebug/aarKeepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -4237,8 +4181,6 @@ MODULE: project.nested1.deep
                         ./nested1/deep/src/androidTest/baselineProfiles
                     KeepRulesDirectories:
                         ./nested1/deep/src/androidTest/keepRules
-                    AarKeepRulesDirectories:
-                        ./nested1/deep/src/androidTest/aarKeepRules
                 androidTestDebug
                     Manifest:
                         ./nested1/deep/src/androidTestDebug/AndroidManifest.xml
@@ -4259,8 +4201,6 @@ MODULE: project.nested1.deep
                         ./nested1/deep/src/androidTestDebug/baselineProfiles
                     KeepRulesDirectories:
                         ./nested1/deep/src/androidTestDebug/keepRules
-                    AarKeepRulesDirectories:
-                        ./nested1/deep/src/androidTestDebug/aarKeepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -4747,8 +4687,6 @@ MODULE: project.nested2
                 ./nested2/src/main/baselineProfiles
             KeepRulesDirectories:
                 ./nested2/src/main/keepRules
-            AarKeepRulesDirectories:
-                ./nested2/src/main/aarKeepRules
         Active:
             main
                 Manifest:
@@ -4770,8 +4708,6 @@ MODULE: project.nested2
                     ./nested2/src/main/baselineProfiles
                 KeepRulesDirectories:
                     ./nested2/src/main/keepRules
-                AarKeepRulesDirectories:
-                    ./nested2/src/main/aarKeepRules
             basic
                 Manifest:
                     ./nested2/src/basic/AndroidManifest.xml
@@ -4792,8 +4728,6 @@ MODULE: project.nested2
                     ./nested2/src/basic/baselineProfiles
                 KeepRulesDirectories:
                     ./nested2/src/basic/keepRules
-                AarKeepRulesDirectories:
-                    ./nested2/src/basic/aarKeepRules
             debug
                 Manifest:
                     ./nested2/src/debug/AndroidManifest.xml
@@ -4814,8 +4748,6 @@ MODULE: project.nested2
                     ./nested2/src/debug/baselineProfiles
                 KeepRulesDirectories:
                     ./nested2/src/debug/keepRules
-                AarKeepRulesDirectories:
-                    ./nested2/src/debug/aarKeepRules
             basicDebug
                 Manifest:
                     ./nested2/src/basicDebug/AndroidManifest.xml
@@ -4836,8 +4768,6 @@ MODULE: project.nested2
                     ./nested2/src/basicDebug/baselineProfiles
                 KeepRulesDirectories:
                     ./nested2/src/basicDebug/keepRules
-                AarKeepRulesDirectories:
-                    ./nested2/src/basicDebug/aarKeepRules
         All:
             main
                 Manifest:
@@ -4859,8 +4789,6 @@ MODULE: project.nested2
                     ./nested2/src/main/baselineProfiles
                 KeepRulesDirectories:
                     ./nested2/src/main/keepRules
-                AarKeepRulesDirectories:
-                    ./nested2/src/main/aarKeepRules
             basic
                 Manifest:
                     ./nested2/src/basic/AndroidManifest.xml
@@ -4881,8 +4809,6 @@ MODULE: project.nested2
                     ./nested2/src/basic/baselineProfiles
                 KeepRulesDirectories:
                     ./nested2/src/basic/keepRules
-                AarKeepRulesDirectories:
-                    ./nested2/src/basic/aarKeepRules
             basicDebug
                 Manifest:
                     ./nested2/src/basicDebug/AndroidManifest.xml
@@ -4903,8 +4829,6 @@ MODULE: project.nested2
                     ./nested2/src/basicDebug/baselineProfiles
                 KeepRulesDirectories:
                     ./nested2/src/basicDebug/keepRules
-                AarKeepRulesDirectories:
-                    ./nested2/src/basicDebug/aarKeepRules
             debug
                 Manifest:
                     ./nested2/src/debug/AndroidManifest.xml
@@ -4925,8 +4849,6 @@ MODULE: project.nested2
                     ./nested2/src/debug/baselineProfiles
                 KeepRulesDirectories:
                     ./nested2/src/debug/keepRules
-                AarKeepRulesDirectories:
-                    ./nested2/src/debug/aarKeepRules
             paid
                 Manifest:
                     ./nested2/src/paid/AndroidManifest.xml
@@ -4947,8 +4869,6 @@ MODULE: project.nested2
                     ./nested2/src/paid/baselineProfiles
                 KeepRulesDirectories:
                     ./nested2/src/paid/keepRules
-                AarKeepRulesDirectories:
-                    ./nested2/src/paid/aarKeepRules
             release
                 Manifest:
                     ./nested2/src/release/AndroidManifest.xml
@@ -4969,8 +4889,6 @@ MODULE: project.nested2
                     ./nested2/src/release/baselineProfiles
                 KeepRulesDirectories:
                     ./nested2/src/release/keepRules
-                AarKeepRulesDirectories:
-                    ./nested2/src/release/aarKeepRules
         HostTest:
             UnitTest
                 test
@@ -4993,8 +4911,6 @@ MODULE: project.nested2
                         ./nested2/src/test/baselineProfiles
                     KeepRulesDirectories:
                         ./nested2/src/test/keepRules
-                    AarKeepRulesDirectories:
-                        ./nested2/src/test/aarKeepRules
                 testBasic
                     Manifest:
                         ./nested2/src/testBasic/AndroidManifest.xml
@@ -5015,8 +4931,6 @@ MODULE: project.nested2
                         ./nested2/src/testBasic/baselineProfiles
                     KeepRulesDirectories:
                         ./nested2/src/testBasic/keepRules
-                    AarKeepRulesDirectories:
-                        ./nested2/src/testBasic/aarKeepRules
                 testDebug
                     Manifest:
                         ./nested2/src/testDebug/AndroidManifest.xml
@@ -5037,8 +4951,6 @@ MODULE: project.nested2
                         ./nested2/src/testDebug/baselineProfiles
                     KeepRulesDirectories:
                         ./nested2/src/testDebug/keepRules
-                    AarKeepRulesDirectories:
-                        ./nested2/src/testDebug/aarKeepRules
                 testBasicDebug
                     Manifest:
                         ./nested2/src/testBasicDebug/AndroidManifest.xml
@@ -5079,8 +4991,6 @@ MODULE: project.nested2
                         ./nested2/src/androidTest/baselineProfiles
                     KeepRulesDirectories:
                         ./nested2/src/androidTest/keepRules
-                    AarKeepRulesDirectories:
-                        ./nested2/src/androidTest/aarKeepRules
                 androidTestBasic
                     Manifest:
                         ./nested2/src/androidTestBasic/AndroidManifest.xml
@@ -5101,8 +5011,6 @@ MODULE: project.nested2
                         ./nested2/src/androidTestBasic/baselineProfiles
                     KeepRulesDirectories:
                         ./nested2/src/androidTestBasic/keepRules
-                    AarKeepRulesDirectories:
-                        ./nested2/src/androidTestBasic/aarKeepRules
                 androidTestDebug
                     Manifest:
                         ./nested2/src/androidTestDebug/AndroidManifest.xml
@@ -5123,8 +5031,6 @@ MODULE: project.nested2
                         ./nested2/src/androidTestDebug/baselineProfiles
                     KeepRulesDirectories:
                         ./nested2/src/androidTestDebug/keepRules
-                    AarKeepRulesDirectories:
-                        ./nested2/src/androidTestDebug/aarKeepRules
                 androidTestBasicDebug
                     Manifest:
                         ./nested2/src/androidTestBasicDebug/AndroidManifest.xml
@@ -6022,8 +5928,6 @@ MODULE: project.nested2.deep
                 ./nested2/deep/src/main/baselineProfiles
             KeepRulesDirectories:
                 ./nested2/deep/src/main/keepRules
-            AarKeepRulesDirectories:
-                ./nested2/deep/src/main/aarKeepRules
         Active:
             main
                 Manifest:
@@ -6045,8 +5949,6 @@ MODULE: project.nested2.deep
                     ./nested2/deep/src/main/baselineProfiles
                 KeepRulesDirectories:
                     ./nested2/deep/src/main/keepRules
-                AarKeepRulesDirectories:
-                    ./nested2/deep/src/main/aarKeepRules
             debug
                 Manifest:
                     ./nested2/deep/src/debug/AndroidManifest.xml
@@ -6067,8 +5969,6 @@ MODULE: project.nested2.deep
                     ./nested2/deep/src/debug/baselineProfiles
                 KeepRulesDirectories:
                     ./nested2/deep/src/debug/keepRules
-                AarKeepRulesDirectories:
-                    ./nested2/deep/src/debug/aarKeepRules
         All:
             main
                 Manifest:
@@ -6090,8 +5990,6 @@ MODULE: project.nested2.deep
                     ./nested2/deep/src/main/baselineProfiles
                 KeepRulesDirectories:
                     ./nested2/deep/src/main/keepRules
-                AarKeepRulesDirectories:
-                    ./nested2/deep/src/main/aarKeepRules
             debug
                 Manifest:
                     ./nested2/deep/src/debug/AndroidManifest.xml
@@ -6112,8 +6010,6 @@ MODULE: project.nested2.deep
                     ./nested2/deep/src/debug/baselineProfiles
                 KeepRulesDirectories:
                     ./nested2/deep/src/debug/keepRules
-                AarKeepRulesDirectories:
-                    ./nested2/deep/src/debug/aarKeepRules
             release
                 Manifest:
                     ./nested2/deep/src/release/AndroidManifest.xml
@@ -6134,8 +6030,6 @@ MODULE: project.nested2.deep
                     ./nested2/deep/src/release/baselineProfiles
                 KeepRulesDirectories:
                     ./nested2/deep/src/release/keepRules
-                AarKeepRulesDirectories:
-                    ./nested2/deep/src/release/aarKeepRules
         HostTest:
             UnitTest
                 test
@@ -6158,8 +6052,6 @@ MODULE: project.nested2.deep
                         ./nested2/deep/src/test/baselineProfiles
                     KeepRulesDirectories:
                         ./nested2/deep/src/test/keepRules
-                    AarKeepRulesDirectories:
-                        ./nested2/deep/src/test/aarKeepRules
                 testDebug
                     Manifest:
                         ./nested2/deep/src/testDebug/AndroidManifest.xml
@@ -6180,8 +6072,6 @@ MODULE: project.nested2.deep
                         ./nested2/deep/src/testDebug/baselineProfiles
                     KeepRulesDirectories:
                         ./nested2/deep/src/testDebug/keepRules
-                    AarKeepRulesDirectories:
-                        ./nested2/deep/src/testDebug/aarKeepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -6204,8 +6094,6 @@ MODULE: project.nested2.deep
                         ./nested2/deep/src/androidTest/baselineProfiles
                     KeepRulesDirectories:
                         ./nested2/deep/src/androidTest/keepRules
-                    AarKeepRulesDirectories:
-                        ./nested2/deep/src/androidTest/aarKeepRules
                 androidTestDebug
                     Manifest:
                         ./nested2/deep/src/androidTestDebug/AndroidManifest.xml
@@ -6226,8 +6114,6 @@ MODULE: project.nested2.deep
                         ./nested2/deep/src/androidTestDebug/baselineProfiles
                     KeepRulesDirectories:
                         ./nested2/deep/src/androidTestDebug/keepRules
-                    AarKeepRulesDirectories:
-                        ./nested2/deep/src/androidTestDebug/aarKeepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -6714,8 +6600,6 @@ MODULE: project.nested2.trans.deep2
                 ./nested2/trans/deep2/src/main/baselineProfiles
             KeepRulesDirectories:
                 ./nested2/trans/deep2/src/main/keepRules
-            AarKeepRulesDirectories:
-                ./nested2/trans/deep2/src/main/aarKeepRules
         Active:
             main
                 Manifest:
@@ -6737,8 +6621,6 @@ MODULE: project.nested2.trans.deep2
                     ./nested2/trans/deep2/src/main/baselineProfiles
                 KeepRulesDirectories:
                     ./nested2/trans/deep2/src/main/keepRules
-                AarKeepRulesDirectories:
-                    ./nested2/trans/deep2/src/main/aarKeepRules
             debug
                 Manifest:
                     ./nested2/trans/deep2/src/debug/AndroidManifest.xml
@@ -6759,8 +6641,6 @@ MODULE: project.nested2.trans.deep2
                     ./nested2/trans/deep2/src/debug/baselineProfiles
                 KeepRulesDirectories:
                     ./nested2/trans/deep2/src/debug/keepRules
-                AarKeepRulesDirectories:
-                    ./nested2/trans/deep2/src/debug/aarKeepRules
         All:
             main
                 Manifest:
@@ -6782,8 +6662,6 @@ MODULE: project.nested2.trans.deep2
                     ./nested2/trans/deep2/src/main/baselineProfiles
                 KeepRulesDirectories:
                     ./nested2/trans/deep2/src/main/keepRules
-                AarKeepRulesDirectories:
-                    ./nested2/trans/deep2/src/main/aarKeepRules
             debug
                 Manifest:
                     ./nested2/trans/deep2/src/debug/AndroidManifest.xml
@@ -6804,8 +6682,6 @@ MODULE: project.nested2.trans.deep2
                     ./nested2/trans/deep2/src/debug/baselineProfiles
                 KeepRulesDirectories:
                     ./nested2/trans/deep2/src/debug/keepRules
-                AarKeepRulesDirectories:
-                    ./nested2/trans/deep2/src/debug/aarKeepRules
             release
                 Manifest:
                     ./nested2/trans/deep2/src/release/AndroidManifest.xml
@@ -6826,8 +6702,6 @@ MODULE: project.nested2.trans.deep2
                     ./nested2/trans/deep2/src/release/baselineProfiles
                 KeepRulesDirectories:
                     ./nested2/trans/deep2/src/release/keepRules
-                AarKeepRulesDirectories:
-                    ./nested2/trans/deep2/src/release/aarKeepRules
         HostTest:
             UnitTest
                 test
@@ -6850,8 +6724,6 @@ MODULE: project.nested2.trans.deep2
                         ./nested2/trans/deep2/src/test/baselineProfiles
                     KeepRulesDirectories:
                         ./nested2/trans/deep2/src/test/keepRules
-                    AarKeepRulesDirectories:
-                        ./nested2/trans/deep2/src/test/aarKeepRules
                 testDebug
                     Manifest:
                         ./nested2/trans/deep2/src/testDebug/AndroidManifest.xml
@@ -6872,8 +6744,6 @@ MODULE: project.nested2.trans.deep2
                         ./nested2/trans/deep2/src/testDebug/baselineProfiles
                     KeepRulesDirectories:
                         ./nested2/trans/deep2/src/testDebug/keepRules
-                    AarKeepRulesDirectories:
-                        ./nested2/trans/deep2/src/testDebug/aarKeepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -6896,8 +6766,6 @@ MODULE: project.nested2.trans.deep2
                         ./nested2/trans/deep2/src/androidTest/baselineProfiles
                     KeepRulesDirectories:
                         ./nested2/trans/deep2/src/androidTest/keepRules
-                    AarKeepRulesDirectories:
-                        ./nested2/trans/deep2/src/androidTest/aarKeepRules
                 androidTestDebug
                     Manifest:
                         ./nested2/trans/deep2/src/androidTestDebug/AndroidManifest.xml
@@ -6918,8 +6786,6 @@ MODULE: project.nested2.trans.deep2
                         ./nested2/trans/deep2/src/androidTestDebug/baselineProfiles
                     KeepRulesDirectories:
                         ./nested2/trans/deep2/src/androidTestDebug/keepRules
-                    AarKeepRulesDirectories:
-                        ./nested2/trans/deep2/src/androidTestDebug/aarKeepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:

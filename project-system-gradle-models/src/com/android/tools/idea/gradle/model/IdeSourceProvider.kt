@@ -40,7 +40,6 @@ constructor(
   private val customSourceDirectoriesField: List<IdeCustomSourceDirectoryImpl>,
   private val baselineProfileDirectoriesField: List<FileImpl>,
   private val keepRulesDirectoriesField: List<FileImpl>,
-  private val aarKeepRulesDirectoriesField: List<FileImpl>,
 ) : Serializable {
 
   constructor(
@@ -60,7 +59,6 @@ constructor(
     customSourceDirectories: List<IdeCustomSourceDirectoryImpl>,
     baselineProfileDirectories: List<File>,
     keepRulesDirectories: List<FileImpl>,
-    aarKeepRulesDirectories: List<FileImpl>,
   ) : this(
     nameField = name,
     folderField = folder?.toImpl(),
@@ -78,7 +76,6 @@ constructor(
     customSourceDirectoriesField = customSourceDirectories,
     baselineProfileDirectoriesField = baselineProfileDirectories.toImpl(),
     keepRulesDirectoriesField = keepRulesDirectories.toImpl(),
-    aarKeepRulesDirectoriesField = aarKeepRulesDirectories.toImpl(),
   )
 
   constructor(
@@ -98,7 +95,6 @@ constructor(
     customSourceDirectories: List<IdeCustomSourceDirectoryImpl>,
     baselineProfileDirectories: List<String>,
     keepRulesDirectoriesField: List<String>,
-    aarKeepRulesDirectoriesField: List<String>,
   ) : this(
     name,
     folder,
@@ -116,7 +112,6 @@ constructor(
     customSourceDirectories,
     baselineProfileDirectories.translate(folder),
     keepRulesDirectoriesField.translate(folder),
-    aarKeepRulesDirectoriesField.translate(folder),
   )
 
   // Used for serialization by the IDE.
@@ -138,7 +133,6 @@ constructor(
       customSourceDirectoriesField = mutableListOf(),
       baselineProfileDirectoriesField = mutableListOf(),
       keepRulesDirectoriesField = mutableListOf(),
-      aarKeepRulesDirectoriesField = mutableListOf(),
     )
 
   fun appendDirectories(
@@ -154,7 +148,6 @@ constructor(
     mlModelsDirectories: List<File> = emptyList(),
     baselineProfileDirectories: List<File> = emptyList(),
     keepRulesDirectories: List<File> = emptyList(),
-    aarKeepRulesDirectories: List<File> = emptyList(),
   ): IdeSourceProvider =
     copy(
       javaDirectoriesField = javaDirectoriesField + javaDirectories.map { normalize(folderField, it) },
@@ -169,7 +162,6 @@ constructor(
       mlModelsDirectoriesField = mlModelsDirectoriesField + mlModelsDirectories.map { normalize(folderField, it) },
       baselineProfileDirectoriesField = baselineProfileDirectoriesField + baselineProfileDirectories.map { normalize(folderField, it) },
       keepRulesDirectoriesField = keepRulesDirectoriesField + keepRulesDirectories.map { normalize(folderField, it) },
-      aarKeepRulesDirectoriesField = aarKeepRulesDirectoriesField + aarKeepRulesDirectories.map { normalize(folderField, it) },
     )
 
   val name: String
@@ -216,9 +208,6 @@ constructor(
 
   val keepRulesDirectories: List<FileImpl>
     get() = keepRulesDirectoriesField
-
-  val aarKeepRulesDirectories: List<FileImpl>
-    get() = aarKeepRulesDirectoriesField
 }
 
 private fun normalize(folder: File?, file: File): FileImpl =

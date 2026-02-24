@@ -193,7 +193,6 @@ class TestSuiteUtilsTest {
           listOf(IdeCustomSourceDirectoryImpl(sourceTypeName = TEST_SUITE_ASSETS_CUSTOM_SOURCE_DIRECTORY, myFolder = folder, path = ".")),
         baselineProfileDirectories = emptyList(),
         keepRulesDirectoriesField = emptyList(),
-        aarKeepRulesDirectoriesField = emptyList(),
       ),
       testSuite.sources.first().sourceProvider,
     )

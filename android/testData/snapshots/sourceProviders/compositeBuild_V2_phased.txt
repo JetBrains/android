@@ -788,8 +788,6 @@ MODULE: project.lib
                 ./lib/src/main/baselineProfiles
             KeepRulesDirectories:
                 ./lib/src/main/keepRules
-            AarKeepRulesDirectories:
-                ./lib/src/main/aarKeepRules
         Active:
             main
                 Manifest:
@@ -811,8 +809,6 @@ MODULE: project.lib
                     ./lib/src/main/baselineProfiles
                 KeepRulesDirectories:
                     ./lib/src/main/keepRules
-                AarKeepRulesDirectories:
-                    ./lib/src/main/aarKeepRules
             debug
                 Manifest:
                     ./lib/src/debug/AndroidManifest.xml
@@ -833,8 +829,6 @@ MODULE: project.lib
                     ./lib/src/debug/baselineProfiles
                 KeepRulesDirectories:
                     ./lib/src/debug/keepRules
-                AarKeepRulesDirectories:
-                    ./lib/src/debug/aarKeepRules
         All:
             main
                 Manifest:
@@ -856,8 +850,6 @@ MODULE: project.lib
                     ./lib/src/main/baselineProfiles
                 KeepRulesDirectories:
                     ./lib/src/main/keepRules
-                AarKeepRulesDirectories:
-                    ./lib/src/main/aarKeepRules
             debug
                 Manifest:
                     ./lib/src/debug/AndroidManifest.xml
@@ -878,8 +870,6 @@ MODULE: project.lib
                     ./lib/src/debug/baselineProfiles
                 KeepRulesDirectories:
                     ./lib/src/debug/keepRules
-                AarKeepRulesDirectories:
-                    ./lib/src/debug/aarKeepRules
             release
                 Manifest:
                     ./lib/src/release/AndroidManifest.xml
@@ -900,8 +890,6 @@ MODULE: project.lib
                     ./lib/src/release/baselineProfiles
                 KeepRulesDirectories:
                     ./lib/src/release/keepRules
-                AarKeepRulesDirectories:
-                    ./lib/src/release/aarKeepRules
         HostTest:
             UnitTest
                 test
@@ -924,8 +912,6 @@ MODULE: project.lib
                         ./lib/src/test/baselineProfiles
                     KeepRulesDirectories:
                         ./lib/src/test/keepRules
-                    AarKeepRulesDirectories:
-                        ./lib/src/test/aarKeepRules
                 testDebug
                     Manifest:
                         ./lib/src/testDebug/AndroidManifest.xml
@@ -946,8 +932,6 @@ MODULE: project.lib
                         ./lib/src/testDebug/baselineProfiles
                     KeepRulesDirectories:
                         ./lib/src/testDebug/keepRules
-                    AarKeepRulesDirectories:
-                        ./lib/src/testDebug/aarKeepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -970,8 +954,6 @@ MODULE: project.lib
                         ./lib/src/androidTest/baselineProfiles
                     KeepRulesDirectories:
                         ./lib/src/androidTest/keepRules
-                    AarKeepRulesDirectories:
-                        ./lib/src/androidTest/aarKeepRules
                 androidTestDebug
                     Manifest:
                         ./lib/src/androidTestDebug/AndroidManifest.xml
@@ -992,8 +974,6 @@ MODULE: project.lib
                         ./lib/src/androidTestDebug/baselineProfiles
                     KeepRulesDirectories:
                         ./lib/src/androidTestDebug/keepRules
-                    AarKeepRulesDirectories:
-                        ./lib/src/androidTestDebug/aarKeepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -2284,8 +2264,6 @@ MODULE: includedLib1.lib
                 ./TestCompositeLib1/lib/src/main/baselineProfiles
             KeepRulesDirectories:
                 ./TestCompositeLib1/lib/src/main/keepRules
-            AarKeepRulesDirectories:
-                ./TestCompositeLib1/lib/src/main/aarKeepRules
         Active:
             main
                 Manifest:
@@ -2307,8 +2285,6 @@ MODULE: includedLib1.lib
                     ./TestCompositeLib1/lib/src/main/baselineProfiles
                 KeepRulesDirectories:
                     ./TestCompositeLib1/lib/src/main/keepRules
-                AarKeepRulesDirectories:
-                    ./TestCompositeLib1/lib/src/main/aarKeepRules
             debug
                 Manifest:
                     ./TestCompositeLib1/lib/src/debug/AndroidManifest.xml
@@ -2329,8 +2305,6 @@ MODULE: includedLib1.lib
                     ./TestCompositeLib1/lib/src/debug/baselineProfiles
                 KeepRulesDirectories:
                     ./TestCompositeLib1/lib/src/debug/keepRules
-                AarKeepRulesDirectories:
-                    ./TestCompositeLib1/lib/src/debug/aarKeepRules
         All:
             main
                 Manifest:
@@ -2352,8 +2326,6 @@ MODULE: includedLib1.lib
                     ./TestCompositeLib1/lib/src/main/baselineProfiles
                 KeepRulesDirectories:
                     ./TestCompositeLib1/lib/src/main/keepRules
-                AarKeepRulesDirectories:
-                    ./TestCompositeLib1/lib/src/main/aarKeepRules
             debug
                 Manifest:
                     ./TestCompositeLib1/lib/src/debug/AndroidManifest.xml
@@ -2374,8 +2346,6 @@ MODULE: includedLib1.lib
                     ./TestCompositeLib1/lib/src/debug/baselineProfiles
                 KeepRulesDirectories:
                     ./TestCompositeLib1/lib/src/debug/keepRules
-                AarKeepRulesDirectories:
-                    ./TestCompositeLib1/lib/src/debug/aarKeepRules
             release
                 Manifest:
                     ./TestCompositeLib1/lib/src/release/AndroidManifest.xml
@@ -2396,8 +2366,6 @@ MODULE: includedLib1.lib
                     ./TestCompositeLib1/lib/src/release/baselineProfiles
                 KeepRulesDirectories:
                     ./TestCompositeLib1/lib/src/release/keepRules
-                AarKeepRulesDirectories:
-                    ./TestCompositeLib1/lib/src/release/aarKeepRules
         HostTest:
             UnitTest
                 test
@@ -2420,8 +2388,6 @@ MODULE: includedLib1.lib
                         ./TestCompositeLib1/lib/src/test/baselineProfiles
                     KeepRulesDirectories:
                         ./TestCompositeLib1/lib/src/test/keepRules
-                    AarKeepRulesDirectories:
-                        ./TestCompositeLib1/lib/src/test/aarKeepRules
                 testDebug
                     Manifest:
                         ./TestCompositeLib1/lib/src/testDebug/AndroidManifest.xml
@@ -2442,8 +2408,6 @@ MODULE: includedLib1.lib
                         ./TestCompositeLib1/lib/src/testDebug/baselineProfiles
                     KeepRulesDirectories:
                         ./TestCompositeLib1/lib/src/testDebug/keepRules
-                    AarKeepRulesDirectories:
-                        ./TestCompositeLib1/lib/src/testDebug/aarKeepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -2466,8 +2430,6 @@ MODULE: includedLib1.lib
                         ./TestCompositeLib1/lib/src/androidTest/baselineProfiles
                     KeepRulesDirectories:
                         ./TestCompositeLib1/lib/src/androidTest/keepRules
-                    AarKeepRulesDirectories:
-                        ./TestCompositeLib1/lib/src/androidTest/aarKeepRules
                 androidTestDebug
                     Manifest:
                         ./TestCompositeLib1/lib/src/androidTestDebug/AndroidManifest.xml
@@ -2488,8 +2450,6 @@ MODULE: includedLib1.lib
                         ./TestCompositeLib1/lib/src/androidTestDebug/baselineProfiles
                     KeepRulesDirectories:
                         ./TestCompositeLib1/lib/src/androidTestDebug/keepRules
-                    AarKeepRulesDirectories:
-                        ./TestCompositeLib1/lib/src/androidTestDebug/aarKeepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -3780,8 +3740,6 @@ MODULE: TestCompositeLib3.lib
                 ./TestCompositeLib3/lib/src/main/baselineProfiles
             KeepRulesDirectories:
                 ./TestCompositeLib3/lib/src/main/keepRules
-            AarKeepRulesDirectories:
-                ./TestCompositeLib3/lib/src/main/aarKeepRules
         Active:
             main
                 Manifest:
@@ -3803,8 +3761,6 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/main/baselineProfiles
                 KeepRulesDirectories:
                     ./TestCompositeLib3/lib/src/main/keepRules
-                AarKeepRulesDirectories:
-                    ./TestCompositeLib3/lib/src/main/aarKeepRules
             debug
                 Manifest:
                     ./TestCompositeLib3/lib/src/debug/AndroidManifest.xml
@@ -3825,8 +3781,6 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/debug/baselineProfiles
                 KeepRulesDirectories:
                     ./TestCompositeLib3/lib/src/debug/keepRules
-                AarKeepRulesDirectories:
-                    ./TestCompositeLib3/lib/src/debug/aarKeepRules
         All:
             main
                 Manifest:
@@ -3848,8 +3802,6 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/main/baselineProfiles
                 KeepRulesDirectories:
                     ./TestCompositeLib3/lib/src/main/keepRules
-                AarKeepRulesDirectories:
-                    ./TestCompositeLib3/lib/src/main/aarKeepRules
             debug
                 Manifest:
                     ./TestCompositeLib3/lib/src/debug/AndroidManifest.xml
@@ -3870,8 +3822,6 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/debug/baselineProfiles
                 KeepRulesDirectories:
                     ./TestCompositeLib3/lib/src/debug/keepRules
-                AarKeepRulesDirectories:
-                    ./TestCompositeLib3/lib/src/debug/aarKeepRules
             release
                 Manifest:
                     ./TestCompositeLib3/lib/src/release/AndroidManifest.xml
@@ -3892,8 +3842,6 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/release/baselineProfiles
                 KeepRulesDirectories:
                     ./TestCompositeLib3/lib/src/release/keepRules
-                AarKeepRulesDirectories:
-                    ./TestCompositeLib3/lib/src/release/aarKeepRules
         HostTest:
             UnitTest
                 test
@@ -3916,8 +3864,6 @@ MODULE: TestCompositeLib3.lib
                         ./TestCompositeLib3/lib/src/test/baselineProfiles
                     KeepRulesDirectories:
                         ./TestCompositeLib3/lib/src/test/keepRules
-                    AarKeepRulesDirectories:
-                        ./TestCompositeLib3/lib/src/test/aarKeepRules
                 testDebug
                     Manifest:
                         ./TestCompositeLib3/lib/src/testDebug/AndroidManifest.xml
@@ -3938,8 +3884,6 @@ MODULE: TestCompositeLib3.lib
                         ./TestCompositeLib3/lib/src/testDebug/baselineProfiles
                     KeepRulesDirectories:
                         ./TestCompositeLib3/lib/src/testDebug/keepRules
-                    AarKeepRulesDirectories:
-                        ./TestCompositeLib3/lib/src/testDebug/aarKeepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -3962,8 +3906,6 @@ MODULE: TestCompositeLib3.lib
                         ./TestCompositeLib3/lib/src/androidTest/baselineProfiles
                     KeepRulesDirectories:
                         ./TestCompositeLib3/lib/src/androidTest/keepRules
-                    AarKeepRulesDirectories:
-                        ./TestCompositeLib3/lib/src/androidTest/aarKeepRules
                 androidTestDebug
                     Manifest:
                         ./TestCompositeLib3/lib/src/androidTestDebug/AndroidManifest.xml
@@ -3984,8 +3926,6 @@ MODULE: TestCompositeLib3.lib
                         ./TestCompositeLib3/lib/src/androidTestDebug/baselineProfiles
                     KeepRulesDirectories:
                         ./TestCompositeLib3/lib/src/androidTestDebug/keepRules
-                    AarKeepRulesDirectories:
-                        ./TestCompositeLib3/lib/src/androidTestDebug/aarKeepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:

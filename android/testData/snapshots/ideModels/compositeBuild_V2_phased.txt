@@ -2147,7 +2147,6 @@ MODULE                        : project.lib
             JniLibsDirectories            : <ROOT>/lib/src/main/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/lib/src/main/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/lib/src/main/keepRules [-]
-            AarKeepRulesDirectories       : <ROOT>/lib/src/main/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -2163,7 +2162,6 @@ MODULE                        : project.lib
                     JniLibsDirectories            : <ROOT>/lib/src/androidTest/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/lib/src/androidTest/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/lib/src/androidTest/keepRules [-]
-                    AarKeepRulesDirectories       : <ROOT>/lib/src/androidTest/aarKeepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -2178,7 +2176,6 @@ MODULE                        : project.lib
                     JniLibsDirectories            : <ROOT>/lib/src/test/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/lib/src/test/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/lib/src/test/keepRules [-]
-                    AarKeepRulesDirectories       : <ROOT>/lib/src/test/aarKeepRules [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -2201,7 +2198,6 @@ MODULE                        : project.lib
             JniLibsDirectories            : <ROOT>/lib/src/debug/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/lib/src/debug/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/lib/src/debug/keepRules [-]
-            AarKeepRulesDirectories       : <ROOT>/lib/src/debug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -2217,7 +2213,6 @@ MODULE                        : project.lib
                     JniLibsDirectories            : <ROOT>/lib/src/androidTestDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/lib/src/androidTestDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/lib/src/androidTestDebug/keepRules [-]
-                    AarKeepRulesDirectories       : <ROOT>/lib/src/androidTestDebug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -2233,7 +2228,6 @@ MODULE                        : project.lib
                     JniLibsDirectories            : <ROOT>/lib/src/testDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/lib/src/testDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/lib/src/testDebug/keepRules [-]
-                    AarKeepRulesDirectories       : <ROOT>/lib/src/testDebug/aarKeepRules [-]
         BuildType
             Name                          : release
             ProguardFiles                 : <ROOT>/lib/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-<AGP_VERSION> [-]
@@ -2257,7 +2251,6 @@ MODULE                        : project.lib
             JniLibsDirectories            : <ROOT>/lib/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/lib/src/release/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/lib/src/release/keepRules [-]
-            AarKeepRulesDirectories       : <ROOT>/lib/src/release/aarKeepRules [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -4253,7 +4246,6 @@ MODULE                        : includedLib1.lib
             JniLibsDirectories            : <ROOT>/TestCompositeLib1/lib/src/main/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/TestCompositeLib1/lib/src/main/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/TestCompositeLib1/lib/src/main/keepRules [-]
-            AarKeepRulesDirectories       : <ROOT>/TestCompositeLib1/lib/src/main/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -4269,7 +4261,6 @@ MODULE                        : includedLib1.lib
                     JniLibsDirectories            : <ROOT>/TestCompositeLib1/lib/src/androidTest/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/TestCompositeLib1/lib/src/androidTest/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/TestCompositeLib1/lib/src/androidTest/keepRules [-]
-                    AarKeepRulesDirectories       : <ROOT>/TestCompositeLib1/lib/src/androidTest/aarKeepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -4284,7 +4275,6 @@ MODULE                        : includedLib1.lib
                     JniLibsDirectories            : <ROOT>/TestCompositeLib1/lib/src/test/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/TestCompositeLib1/lib/src/test/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/TestCompositeLib1/lib/src/test/keepRules [-]
-                    AarKeepRulesDirectories       : <ROOT>/TestCompositeLib1/lib/src/test/aarKeepRules [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -4307,7 +4297,6 @@ MODULE                        : includedLib1.lib
             JniLibsDirectories            : <ROOT>/TestCompositeLib1/lib/src/debug/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/TestCompositeLib1/lib/src/debug/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/TestCompositeLib1/lib/src/debug/keepRules [-]
-            AarKeepRulesDirectories       : <ROOT>/TestCompositeLib1/lib/src/debug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -4323,7 +4312,6 @@ MODULE                        : includedLib1.lib
                     JniLibsDirectories            : <ROOT>/TestCompositeLib1/lib/src/androidTestDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/TestCompositeLib1/lib/src/androidTestDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/TestCompositeLib1/lib/src/androidTestDebug/keepRules [-]
-                    AarKeepRulesDirectories       : <ROOT>/TestCompositeLib1/lib/src/androidTestDebug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -4339,7 +4327,6 @@ MODULE                        : includedLib1.lib
                     JniLibsDirectories            : <ROOT>/TestCompositeLib1/lib/src/testDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/TestCompositeLib1/lib/src/testDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/TestCompositeLib1/lib/src/testDebug/keepRules [-]
-                    AarKeepRulesDirectories       : <ROOT>/TestCompositeLib1/lib/src/testDebug/aarKeepRules [-]
         BuildType
             Name                          : release
             ProguardFiles                 : <ROOT>/TestCompositeLib1/lib/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-<AGP_VERSION> [-]
@@ -4363,7 +4350,6 @@ MODULE                        : includedLib1.lib
             JniLibsDirectories            : <ROOT>/TestCompositeLib1/lib/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/TestCompositeLib1/lib/src/release/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/TestCompositeLib1/lib/src/release/keepRules [-]
-            AarKeepRulesDirectories       : <ROOT>/TestCompositeLib1/lib/src/release/aarKeepRules [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -6364,7 +6350,6 @@ MODULE                        : TestCompositeLib3.lib
             JniLibsDirectories            : <ROOT>/TestCompositeLib3/lib/src/main/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/TestCompositeLib3/lib/src/main/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/TestCompositeLib3/lib/src/main/keepRules [-]
-            AarKeepRulesDirectories       : <ROOT>/TestCompositeLib3/lib/src/main/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -6380,7 +6365,6 @@ MODULE                        : TestCompositeLib3.lib
                     JniLibsDirectories            : <ROOT>/TestCompositeLib3/lib/src/androidTest/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/TestCompositeLib3/lib/src/androidTest/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/TestCompositeLib3/lib/src/androidTest/keepRules [-]
-                    AarKeepRulesDirectories       : <ROOT>/TestCompositeLib3/lib/src/androidTest/aarKeepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -6395,7 +6379,6 @@ MODULE                        : TestCompositeLib3.lib
                     JniLibsDirectories            : <ROOT>/TestCompositeLib3/lib/src/test/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/TestCompositeLib3/lib/src/test/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/TestCompositeLib3/lib/src/test/keepRules [-]
-                    AarKeepRulesDirectories       : <ROOT>/TestCompositeLib3/lib/src/test/aarKeepRules [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -6418,7 +6401,6 @@ MODULE                        : TestCompositeLib3.lib
             JniLibsDirectories            : <ROOT>/TestCompositeLib3/lib/src/debug/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/TestCompositeLib3/lib/src/debug/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/TestCompositeLib3/lib/src/debug/keepRules [-]
-            AarKeepRulesDirectories       : <ROOT>/TestCompositeLib3/lib/src/debug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -6434,7 +6416,6 @@ MODULE                        : TestCompositeLib3.lib
                     JniLibsDirectories            : <ROOT>/TestCompositeLib3/lib/src/androidTestDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/TestCompositeLib3/lib/src/androidTestDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/TestCompositeLib3/lib/src/androidTestDebug/keepRules [-]
-                    AarKeepRulesDirectories       : <ROOT>/TestCompositeLib3/lib/src/androidTestDebug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -6450,7 +6431,6 @@ MODULE                        : TestCompositeLib3.lib
                     JniLibsDirectories            : <ROOT>/TestCompositeLib3/lib/src/testDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/TestCompositeLib3/lib/src/testDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/TestCompositeLib3/lib/src/testDebug/keepRules [-]
-                    AarKeepRulesDirectories       : <ROOT>/TestCompositeLib3/lib/src/testDebug/aarKeepRules [-]
         BuildType
             Name                          : release
             ProguardFiles                 : <ROOT>/TestCompositeLib3/lib/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-<AGP_VERSION> [-]
@@ -6474,7 +6454,6 @@ MODULE                        : TestCompositeLib3.lib
             JniLibsDirectories            : <ROOT>/TestCompositeLib3/lib/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/TestCompositeLib3/lib/src/release/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/TestCompositeLib3/lib/src/release/keepRules [-]
-            AarKeepRulesDirectories       : <ROOT>/TestCompositeLib3/lib/src/release/aarKeepRules [-]
     SigningConfigs
         SigningConfig
             Name                          : debug

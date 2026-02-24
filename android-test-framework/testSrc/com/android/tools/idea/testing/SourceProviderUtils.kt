@@ -94,7 +94,6 @@ fun Project.dumpSourceProviders(): String {
           dumpPaths("MlModelsDirectories") { it.mlModelsDirectories }
           dumpPaths("BaselineProfileDirectories") { it.baselineProfileDirectories }
           dumpPaths("KeepRulesDirectories") { it.keepRulesDirectories }
-          dumpPaths("AarKeepRulesDirectories") { it.aarKeepRulesDirectories }
           customSourceDirectories.forEach { it.dump() }
         }
       }
