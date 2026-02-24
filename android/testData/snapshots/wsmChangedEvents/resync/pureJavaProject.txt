@@ -10,8 +10,8 @@ Workspace model changed #8, phase: N/A
     With:     ModuleEntity for ModuleId(name=p)
     Replaced: ModuleEntity for ModuleId(name=p.main)
     With:     ModuleEntity for ModuleId(name=p.main)
-    Replaced: ContentRootEntity url: 
-    With:     ContentRootEntity url: 
+    Replaced: ContentRootEntity url: <empty>
+    With:     ContentRootEntity url: <empty>
     Added ExcludeUrlEntity url: .gradle
     Added ExcludeUrlEntity url: build
     Removed ExcludeUrlEntity url: .gradle

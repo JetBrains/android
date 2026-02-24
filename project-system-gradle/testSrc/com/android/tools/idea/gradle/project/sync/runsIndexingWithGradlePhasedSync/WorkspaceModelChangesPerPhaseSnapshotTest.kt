@@ -54,7 +54,6 @@ import com.intellij.util.messages.MessageBusConnection
 import com.intellij.workspaceModel.ide.toPath
 import kotlin.io.path.Path
 import kotlin.io.path.relativeToOrSelf
-//import org.jetbrains.kotlinx.dataframe.impl.toCamelCaseByDelimiters // TODO: android-merge; dataframe-core is only in the ultimate part of the monorepo, not on community/android's classpath; the import is unused here
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncExtension
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase
@@ -72,8 +71,8 @@ import org.junit.runners.Parameterized
  * These changes are undesired in a re-sync causing performance issues and excessive re-processing. This test mainly exists to detect these
  * undesired changes and reduce the number of them to avoid needless processing.
  *
- * This test is expected to be brittle around platform changes but the entire point of its existence to avoid regressing the state
- * captured by it.
+ * This test is expected to be brittle around platform changes but the entire point of its existence to avoid regressing the state captured
+ * by it.
  */
 @Suppress("UnstableApiUsage")
 @RunWith(Parameterized::class)
@@ -90,8 +89,9 @@ class WorkspaceModelChangesPerPhaseSnapshotTest(val testProject: TestProject) : 
   }
 
   sealed class Change {
-    data class WorkspaceModelChange(val event: VersionedStorageChange): Change()
-    data class RootsChanged(val event: ModuleRootEvent): Change()
+    data class WorkspaceModelChange(val event: VersionedStorageChange) : Change()
+
+    data class RootsChanged(val event: ModuleRootEvent) : Change()
   }
 
   @Test
@@ -117,7 +117,7 @@ class WorkspaceModelChangesPerPhaseSnapshotTest(val testProject: TestProject) : 
             is Change.WorkspaceModelChange -> {
               // First dump all the known classes
               appendLine("Workspace model changed #${wsmIndex++}, phase: ${phase?.name ?: "N/A"}")
-              if (previousRootsChangedEvent is Change.RootsChanged ) {
+              if (previousRootsChangedEvent is Change.RootsChanged) {
                 append("    Roots changed")
                 if ((event.event as VersionedStorageChangeInternal).getAllChanges().toList().isEmpty()) {
                   appendLine(" (special batch for previous workspace model change)")
@@ -135,14 +135,11 @@ class WorkspaceModelChangesPerPhaseSnapshotTest(val testProject: TestProject) : 
               // Then the remaining unknown classes.
               dumpUnknownClasses(event.event)
             }
-
           }
         }
       }
       .apply {
-        check(previousRootsChangedEvent == null) {
-          "Unexpected state, roots change events shouldn't be the final entry in events."
-        }
+        check(previousRootsChangedEvent == null) { "Unexpected state, roots change events shouldn't be the final entry in events." }
       }
       .lines()
       .filter { it.isNotEmpty() }
@@ -151,20 +148,20 @@ class WorkspaceModelChangesPerPhaseSnapshotTest(val testProject: TestProject) : 
 
   private fun StringBuilder.dumpUnknownClasses(event: VersionedStorageChange) {
     // Need to use internal API to be able to get the unknown classes, but it's crucial for this test
-    (event as VersionedStorageChangeInternal).getAllChanges().map { change ->
-      val entity = when (change) {
-        is EntityChange.Removed -> change.oldEntity
-        is EntityChange.Replaced -> change.oldEntity
-        is EntityChange.Added -> change.newEntity
+    (event as VersionedStorageChangeInternal)
+      .getAllChanges()
+      .map { change ->
+        val entity =
+          when (change) {
+            is EntityChange.Removed -> change.oldEntity
+            is EntityChange.Replaced -> change.oldEntity
+            is EntityChange.Added -> change.newEntity
+          }
+        change to entity.getEntityInterface()
       }
-      change to entity.getEntityInterface()
-    }.sortedBy { (change, entityClazz) ->
-      change.toString()
-    }.filter { (change, entityClazz) ->
-      !knownClasses.contains(entityClazz)
-    }.forEach { (change, entityClazz) ->
-      appendLine("    $change")
-    }
+      .sortedBy { (change, entityClazz) -> change.toString() }
+      .filter { (change, entityClazz) -> !knownClasses.contains(entityClazz) }
+      .forEach { (change, entityClazz) -> appendLine("    $change") }
   }
 
   private fun setUpPhaseAndWorkspaceModelListener(
@@ -200,9 +197,8 @@ class WorkspaceModelChangesPerPhaseSnapshotTest(val testProject: TestProject) : 
         override fun rootsChanged(event: ModuleRootEvent) {
           workspaceModelChangeEvents.add(Change.RootsChanged(event) to currentPhase)
         }
-      }
+      },
     )
-
   }
 
   companion object {
@@ -231,10 +227,14 @@ class WorkspaceModelChangesPerPhaseSnapshotTest(val testProject: TestProject) : 
         EntityChangeDumper(ContentRootEntity::class.java) { contentRootEntity ->
           if (contentRootEntity.module.exModuleOptions?.externalSystem == GradleConstants.SYSTEM_ID.id) {
             // Try to relativize the URL to the root project path
-            val url = contentRootEntity.module.exModuleOptions?.rootProjectPath?.let {
-              contentRootEntity.url.toPath().relativeToOrSelf(Path(it))
-            } ?:  contentRootEntity.url
-            "ContentRootEntity url: $url"
+            val url =
+              contentRootEntity.module.exModuleOptions?.rootProjectPath?.let { contentRootEntity.url.toPath().relativeToOrSelf(Path(it)) }
+                ?: contentRootEntity.url.toPath()
+            if (url.toString().isEmpty()) {
+              "ContentRootEntity url: <empty>"
+            } else {
+              "ContentRootEntity url: $url"
+            }
           } else {
             "ContentRootEntity for non-Gradle module url: <omitted_for_snapshot_consistency>"
           }
@@ -242,14 +242,18 @@ class WorkspaceModelChangesPerPhaseSnapshotTest(val testProject: TestProject) : 
         EntityChangeDumper(ExcludeUrlEntity::class.java) { excludeUrlEntity ->
           if (excludeUrlEntity.contentRoot?.module?.exModuleOptions?.externalSystem == GradleConstants.SYSTEM_ID.id) {
             // Try to relativize the URL to the root project path
-            val url = excludeUrlEntity.contentRoot?.module?.exModuleOptions?.rootProjectPath?.let {
-              excludeUrlEntity.url.toPath().relativeToOrSelf(Path(it))
-            } ?: excludeUrlEntity.url
-            "ExcludeUrlEntity url: $url"
+            val url =
+              excludeUrlEntity.contentRoot?.module?.exModuleOptions?.rootProjectPath?.let {
+                excludeUrlEntity.url.toPath().relativeToOrSelf(Path(it))
+              } ?: excludeUrlEntity.url.toPath()
+            if (url.toString().isEmpty()) {
+              "ExcludeUrlEntity url: <empty>"
+            } else {
+              "ExcludeUrlEntity url: $url"
+            }
           } else {
             "ExcludeUrlEntity for non-Gradle module, url: <omitted_for_snapshot_consistency>"
           }
-
         },
         EntityChangeDumper(LibraryEntity::class.java) {
           buildString {
@@ -268,7 +272,7 @@ class WorkspaceModelChangesPerPhaseSnapshotTest(val testProject: TestProject) : 
           // TODO(b/384022658): In this project specifically, two different gradle projects can end up with the same module name
           //  (depends on the execution ordering of something TBD), meaning a re-sync might end up shuffling the GradleAndroidModel
           //  entity around. Filtering this case out to avoid test flakiness.
-          projectFilter = { it != TestProject.COMPOSITE_BUILD }
+          projectFilter = { it != TestProject.COMPOSITE_BUILD },
         ),
         EntityChangeDumper(FacetEntity::class.java),
         EntityChangeDumper(TestModulePropertiesEntity::class.java) { "TestModulePropertiesEntity for ${it.module.name}" },
@@ -286,28 +290,24 @@ class WorkspaceModelChangesPerPhaseSnapshotTest(val testProject: TestProject) : 
 private class EntityChangeDumper<out T : WorkspaceEntity>(
   val clazz: Class<out T>,
   private val projectFilter: (TestProject) -> Boolean = { true },
-  private val entityToString: (T) -> String = Companion.entityToString
+  private val entityToString: (T) -> String = Companion.entityToString,
 ) {
   fun dump(event: VersionedStorageChange, testProject: TestProject): String {
-    return event
-      .getChanges(clazz)
-      .filter { projectFilter(testProject) }
-      .sortedBy(::toString)
-      .joinToString("\n", transform = ::toString)
+    return event.getChanges(clazz).filter { projectFilter(testProject) }.sortedBy(::toString).joinToString("\n", transform = ::toString)
   }
 
   private fun toString(change: EntityChange<out T>): String =
     when (change) {
-      is EntityChange.Removed ->
-        "    Removed ${entityToString(change.oldEntity)}"
+      is EntityChange.Removed -> "    Removed ${entityToString(change.oldEntity)}"
       is EntityChange.Replaced ->
         """
         |    Replaced: ${entityToString(change.oldEntity)}
         |    With:     ${entityToString(change.newEntity)}
-        """.trimMargin()
-      is EntityChange.Added ->
-        "    Added ${entityToString(change.newEntity)}"
+        """
+          .trimMargin()
+      is EntityChange.Added -> "    Added ${entityToString(change.newEntity)}"
     }
+
   companion object {
     val entityToString: (WorkspaceEntity) -> String = {
       buildString {

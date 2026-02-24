@@ -16,8 +16,8 @@ Workspace model changed #8, phase: N/A
     With:     ModuleEntity for ModuleId(name=MainActivity.javaLib.main)
     Replaced: ModuleEntity for ModuleId(name=MainActivity.lib)
     With:     ModuleEntity for ModuleId(name=MainActivity.lib)
-    Replaced: ContentRootEntity url: 
-    With:     ContentRootEntity url: 
+    Replaced: ContentRootEntity url: <empty>
+    With:     ContentRootEntity url: <empty>
     Replaced: ContentRootEntity url: app
     With:     ContentRootEntity url: app
     Replaced: ContentRootEntity url: javaLib

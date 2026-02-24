@@ -43,8 +43,8 @@ Workspace model changed #9, phase: N/A
     With:     ModuleEntity for ModuleId(name=p.app)
     Replaced: ModuleEntity for ModuleId(name=p.lib)
     With:     ModuleEntity for ModuleId(name=p.lib)
-    Replaced: ContentRootEntity url: 
-    With:     ContentRootEntity url: 
+    Replaced: ContentRootEntity url: <empty>
+    With:     ContentRootEntity url: <empty>
     Replaced: ContentRootEntity url: TestCompositeLib1
     With:     ContentRootEntity url: TestCompositeLib1
     Replaced: ContentRootEntity url: TestCompositeLib1/TestCompositeLibNested_1

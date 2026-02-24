@@ -13,8 +13,8 @@ Workspace model changed #9, phase: N/A
     With:     ModuleEntity for ModuleId(name=MultiFlavor)
     Replaced: ModuleEntity for ModuleId(name=MultiFlavor.app)
     With:     ModuleEntity for ModuleId(name=MultiFlavor.app)
-    Replaced: ContentRootEntity url: 
-    With:     ContentRootEntity url: 
+    Replaced: ContentRootEntity url: <empty>
+    With:     ContentRootEntity url: <empty>
     Replaced: ContentRootEntity url: app
     With:     ContentRootEntity url: app
     Added ExcludeUrlEntity url: .gradle
