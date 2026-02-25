@@ -76,6 +76,7 @@ fun executeAction(
 
 /** Executes an action. */
 fun executeAction(action: AnAction, event: AnActionEvent): AnActionResult {
+  assertThat(updateAndGetActionPresentation(action, event).isEnabledAndVisible).isTrue()
   val result = ActionUtil.performAction(action, event)
   assertThat(result.isPerformed)
   return result

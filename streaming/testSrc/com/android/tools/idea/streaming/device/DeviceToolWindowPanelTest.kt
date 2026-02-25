@@ -160,7 +160,7 @@ class DeviceToolWindowPanelTest {
 
   @Test
   fun testAppearanceAndToolbarActions() {
-    device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
+    device = agentRule.connectDevice("Pixel 4", 31, Dimension(1080, 2280))
     assertThat(panel.primaryDisplayView).isNull()
 
     panel.createContent(false)
