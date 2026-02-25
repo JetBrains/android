@@ -87,6 +87,7 @@ public class SherlockInstallation extends IdeInstallation<Sherlock> {
     }
 
     bundlePlugin(TestUtils.getBinPath("tools/adt/idea/as-driver/asdriver.plugin-sherlock-sdk.zip"));
+    setConsentGranted(true);
   }
 
   @Override
@@ -117,6 +118,7 @@ public class SherlockInstallation extends IdeInstallation<Sherlock> {
     try {
       pid = waitForDriverPid(getIdeaLog());
     } catch (InterruptedException e) {
+      debugEmitLogs();
       checkForJdwpError(this);
       throw e;
     }
