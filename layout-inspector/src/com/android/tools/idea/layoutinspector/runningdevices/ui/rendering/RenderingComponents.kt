@@ -21,6 +21,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.resource.data.Display
 import com.android.tools.idea.layoutinspector.runningdevices.navigateToSelectedViewFromRendererDoubleClick
+import com.android.tools.idea.layoutinspector.runningdevices.ui.AiGlassesDisplayPair
 import com.android.tools.idea.streaming.core.DisplayView
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
@@ -31,7 +32,7 @@ class RenderingComponents(
   disposable: Disposable,
   val renderer: LayoutInspectorRenderer,
   val model: EmbeddedRendererModel,
-  private val displayView: DisplayView,
+  val displayView: DisplayView,
 ) : Disposable {
   init {
     Disposer.register(disposable, this)
@@ -55,6 +56,7 @@ fun createRenderingComponents(
   disposable: Disposable,
   displayList: List<DisplayView>,
   layoutInspector: LayoutInspector,
+  aiGlassesData: AiGlassesDisplayPair? = null,
   statsProvider: () -> SessionStatistics = { layoutInspector.currentClient.stats },
 ): List<RenderingComponents> {
   val isXrDevice = displayList.any { it.deviceType == DeviceType.XR_HEADSET }
@@ -65,9 +67,28 @@ fun createRenderingComponents(
   return if (useOnDeviceRendering) {
     createOnDeviceRenderingComponents(disposable = disposable, layoutInspector = layoutInspector, displayList = displayList)
   } else {
-    displayList.map { displayView ->
-      createEmbeddedRenderingComponents(disposable = disposable, layoutInspector = layoutInspector, displayView = displayView)
-    }
+    val renderingComponents =
+      displayList.map { displayView ->
+        createEmbeddedRenderingComponents(disposable = disposable, layoutInspector = layoutInspector, displayView = displayView)
+      }
+
+    val glassesRenderingComponents =
+      if (aiGlassesData != null) {
+        // The glasses DisplayView belongs to its own Running Devices tab and is a completely standalone device. Therefore, it's display id
+        // is 0 (main display).
+        // The glasses UI is being rendered by the phone on a secondary virtual display.
+        // For this reason we need to assign by hand the correct display id to the rendering components.
+        createEmbeddedRenderingComponents(
+          disposable = disposable,
+          layoutInspector = layoutInspector,
+          displayView = aiGlassesData.displayView,
+          displayId = aiGlassesData.appDisplayId,
+        )
+      } else {
+        null
+      }
+
+    renderingComponents + listOfNotNull(glassesRenderingComponents)
   }
 }
 

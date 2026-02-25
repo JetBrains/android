@@ -27,6 +27,8 @@ import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
+import com.android.tools.idea.layoutinspector.resource.data.Display
+import com.android.tools.idea.layoutinspector.runningdevices.ui.AiGlassesDisplayPair
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.streaming.core.DisplayView
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
@@ -162,6 +164,28 @@ class RenderingComponentsTest {
     assertThat(renderingComponents).hasSize(2)
     assertThat(renderingComponents[0].model).isEqualTo(renderingComponents[1].model)
     assertThat(renderingComponents[0].renderer).isNotEqualTo(renderingComponents[1].renderer)
+  }
+
+  @Test
+  fun testCreateRenderingComponentsWithAiGlassesData() {
+    val displayView1 = displayViewRule.newEmulatorDisplayView(displayId = Display.MAIN_DISPLAY_ID)
+    val displayView2 = displayViewRule.newEmulatorDisplayView(displayId = 1)
+
+    val aiGlassesDisplayView = displayViewRule.newEmulatorDisplayView(displayId = Display.MAIN_DISPLAY_ID)
+    val aiGlassesData = AiGlassesDisplayPair(aiGlassesDisplayView, appDisplayId = 2)
+
+    val renderingComponents =
+      createRenderingComponents(
+        disposable = displayViewRule.disposable,
+        displayList = listOf(displayView1, displayView2),
+        layoutInspector = layoutInspector,
+        aiGlassesData = aiGlassesData,
+      )
+
+    assertThat(renderingComponents).hasSize(3)
+
+    val glassesRenderingComponents = renderingComponents.find { it.model.displayId == 2 }
+    assertThat(glassesRenderingComponents!!.displayView).isEqualTo(aiGlassesDisplayView)
   }
 
   private fun createRenderingComponents(

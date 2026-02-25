@@ -38,6 +38,7 @@ import com.intellij.util.containers.ContainerUtil;
 import java.awt.Rectangle;
 import java.awt.event.InputEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -565,6 +566,15 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
     }
 
     @Override
+    public @NotNull List<@NotNull Content> getContentsRecursively() {
+      List<Content> result = new ArrayList<>(Arrays.asList(getContents()));
+      for (MockContentManager child : myNestedManagers) {
+        result.addAll(child.getContentsRecursively());
+      }
+      return result;
+    }
+
+    @Override
     public int getIndexOfContent(@NotNull Content content) {
       return myContents.indexOf(content);
     }
@@ -576,7 +586,14 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
 
     @Override
     public Content @NotNull [] getSelectedContents() {
-      return mySelected != null ? new Content[]{mySelected} : new Content[0];
+      List<Content> result = new ArrayList<>();
+      if (mySelected != null) {
+        result.add(mySelected);
+      }
+      for (MockContentManager child : myNestedManagers) {
+        result.addAll(Arrays.asList(child.getSelectedContents()));
+      }
+      return result.toArray(new Content[0]);
     }
 
     @Override

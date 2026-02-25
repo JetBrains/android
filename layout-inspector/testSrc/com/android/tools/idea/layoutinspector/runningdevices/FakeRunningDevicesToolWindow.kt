@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices
 
+import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.tools.idea.streaming.DEVICE_TYPE_KEY
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.streaming.core.DEVICE_ID_KEY
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
@@ -49,7 +51,13 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 
-data class TabInfo(val deviceId: DeviceId, val content: BorderLayoutPanel, val container: Container, val displays: List<DisplayView>) {
+data class TabInfo(
+  val deviceId: DeviceId,
+  val content: BorderLayoutPanel,
+  val container: Container,
+  val displays: List<DisplayView>,
+  val deviceType: DeviceType = DeviceType.HANDHELD,
+) {
   init {
     displays.forEach { content.add(it.component) }
   }
@@ -93,6 +101,12 @@ private fun findContent(toolWindow: ToolWindow, tabInfo: TabInfo): Content? {
   }
 }
 
+fun ToolWindow.getContent(deviceId: DeviceId): Content {
+  return contentManager.contents.first {
+    it.component is FakeRunningDevicesComponent && (it.component as FakeRunningDevicesComponent).tabInfo.deviceId == deviceId
+  }
+}
+
 class FakeContent(disposable: Disposable, contentManager: ContentManager, fakeComponent: JComponent) :
   ContentImpl(fakeComponent, "Fake Content", true) {
   init {
@@ -111,6 +125,7 @@ class FakeRunningDevicesComponent(val tabInfo: TabInfo) : JPanel(), UiDataProvid
     sink[STREAMING_CONTENT_PANEL_KEY] = tabInfo.content
     sink[DISPLAY_VIEW_KEY] = tabInfo.displays.first()
     sink[DEVICE_ID_KEY] = tabInfo.deviceId
+    sink[DEVICE_TYPE_KEY] = tabInfo.deviceType
   }
 
   override fun addDeviceDisplayListener(listener: DeviceDisplayListener) {}
