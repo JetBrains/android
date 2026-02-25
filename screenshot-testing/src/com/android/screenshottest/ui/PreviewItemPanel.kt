@@ -15,12 +15,10 @@
  */
 package com.android.screenshottest.ui
 
-import com.android.tools.analytics.UsageTracker
-import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.logScreenshotTestEvent
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.ScreenshotViewType
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ScreenshotTestComposePreviewEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -172,7 +170,8 @@ class PreviewItemPanel(
       ScreenshotViewType.NEW -> {
         previewData.srcImagePath?.let { loadImage(it, previewData.testId, onImageLoaded) }
           ?: run {
-            logRenderFailure()
+            // Log the SCREENSHOT_DIALOG_RENDER_FAILURE event
+            logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_RENDER_FAILURE, project)
             showError(NO_NEW_IMAGE_TEXT)
           }
       }
@@ -246,26 +245,12 @@ class PreviewItemPanel(
           } else {
             logger.error("Couldn't load image from path: $newPath")
             // Log the SCREENSHOT_DIALOG_RENDER_FAILURE event
-            logRenderFailure()
+            logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_RENDER_FAILURE, project)
             showError(COULD_NOT_LOAD_IMAGE_TEXT)
           }
         }
       }
     }
-  }
-
-  private fun logRenderFailure() {
-    UsageTracker.log(
-      AndroidStudioEvent.newBuilder()
-        .apply {
-          kind = AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW
-          screenshotTestComposePreviewEvent =
-            ScreenshotTestComposePreviewEvent.newBuilder()
-              .apply { type = ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_RENDER_FAILURE }
-              .build()
-        }
-        .withProjectId(project)
-    )
   }
 
   private fun createImageIconImpl(path: String): JBImageIcon? {

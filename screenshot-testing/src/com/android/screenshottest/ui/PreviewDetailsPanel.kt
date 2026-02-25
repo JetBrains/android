@@ -15,17 +15,15 @@
  */
 package com.android.screenshottest.ui
 
-import com.android.tools.analytics.UsageTracker
-import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.LoggedAction
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.LoggedToggleAction
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotToolbarAnalytics
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.logScreenshotTestEvent
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.ImageWithToolbarPanel
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.ScreenshotAttributesView
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.ScreenshotViewType
 import com.google.common.annotations.VisibleForTesting
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ScreenshotTestComposePreviewEvent
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
@@ -396,7 +394,8 @@ class PreviewDetailsPanel(private val project: Project? = null) : JPanel(CardLay
     if (filePath == null) {
       targetPanel.setImage(null)
       if (placeholder == NO_NEW_IMAGE_TEXT) {
-        logRenderFailure()
+        // Log the SCREENSHOT_DIALOG_RENDER_FAILURE event if image doesn't exist
+        logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_RENDER_FAILURE, project)
       }
       return
     }
@@ -408,32 +407,17 @@ class PreviewDetailsPanel(private val project: Project? = null) : JPanel(CardLay
             ImageIO.read(file)
           } else {
             // Log the SCREENSHOT_DIALOG_RENDER_FAILURE event if file doesn't exist
-            logRenderFailure()
+            logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_RENDER_FAILURE, project)
             null
           }
         } catch (e: Exception) {
           LOG.error("Error loading screenshot image from path: $filePath", e)
           // Log the SCREENSHOT_DIALOG_RENDER_FAILURE event on exception
-          logRenderFailure()
+          logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_RENDER_FAILURE, project)
           null // Log the error, the placeholder text will be shown.
         }
       UIUtil.invokeLaterIfNeeded { targetPanel.setImage(image) }
     }
-  }
-
-  // TODO(b/477054327): Centralize the metrics publishing logic to a separate class
-  private fun logRenderFailure() {
-    UsageTracker.log(
-      AndroidStudioEvent.newBuilder()
-        .apply {
-          kind = AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW
-          screenshotTestComposePreviewEvent =
-            ScreenshotTestComposePreviewEvent.newBuilder()
-              .apply { type = ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_RENDER_FAILURE }
-              .build()
-        }
-        .withProjectId(project)
-    )
   }
 
   private fun updateScreenshotAttributesView(previewData: PreviewDetails) {

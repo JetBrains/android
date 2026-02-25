@@ -34,11 +34,9 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.unit.dp
 import com.android.screenshottest.util.ImageData
 import com.android.screenshottest.util.copyReferenceImages
-import com.android.tools.analytics.UsageTracker
-import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.logScreenshotTestEvent
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.ScreenshotViewType
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ScreenshotTestComposePreviewEvent
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.application.ApplicationManager
@@ -115,17 +113,7 @@ class UpdateReferenceImagesDialog(
     isCancelled = true
     buildProcessHandler?.destroyProcess()
     // Log the SCREENSHOT_DIALOG_CLOSE event
-    UsageTracker.log(
-      AndroidStudioEvent.newBuilder()
-        .apply {
-          kind = AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW
-          screenshotTestComposePreviewEvent =
-            ScreenshotTestComposePreviewEvent.newBuilder()
-              .apply { type = ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_CLOSE }
-              .build()
-        }
-        .withProjectId(project)
-    )
+    logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_CLOSE, project)
     super.doCancelAction()
   }
 
@@ -196,17 +184,7 @@ class UpdateReferenceImagesDialog(
     ApplicationManager.getApplication().invokeLater {
       if (!isFirstTestDiscovered) {
         // Log the SCREENSHOT_DIALOG_TEST_RESULTS_EMPTY event
-        UsageTracker.log(
-          AndroidStudioEvent.newBuilder()
-            .apply {
-              kind = AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW
-              screenshotTestComposePreviewEvent =
-                ScreenshotTestComposePreviewEvent.newBuilder()
-                  .apply { type = ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_TEST_RESULTS_EMPTY }
-                  .build()
-            }
-            .withProjectId(project)
-        )
+        logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_TEST_RESULTS_EMPTY, project)
         logger.error("No tests were discovered in the test suite")
         close(CANCEL_EXIT_CODE)
         Messages.showErrorDialog(project, "Error while generating screenshots", "Failed to generate screenshots")
@@ -228,17 +206,7 @@ class UpdateReferenceImagesDialog(
         logger.warn("Build or execution failed. Closing dialog.")
 
         // Log the SCREENSHOT_DIALOG_BUILD_FAILURE event when build fails
-        UsageTracker.log(
-          AndroidStudioEvent.newBuilder()
-            .apply {
-              kind = AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW
-              screenshotTestComposePreviewEvent =
-                ScreenshotTestComposePreviewEvent.newBuilder()
-                  .apply { type = ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_BUILD_FAILURE }
-                  .build()
-            }
-            .withProjectId(project)
-        )
+        logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_BUILD_FAILURE, project)
 
         close(CANCEL_EXIT_CODE)
 
@@ -484,34 +452,14 @@ class UpdateReferenceImagesDialog(
       ApplicationManager.getApplication().invokeLater {
         if (failures.isEmpty()) {
           // Log the UPDATE_CLICKED event for analytics on successful copy of reference images.
-          UsageTracker.log(
-            AndroidStudioEvent.newBuilder()
-              .apply {
-                kind = AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW
-                screenshotTestComposePreviewEvent =
-                  ScreenshotTestComposePreviewEvent.newBuilder()
-                    .apply { type = ScreenshotTestComposePreviewEvent.Type.UPDATE_CLICKED }
-                    .build()
-              }
-              .withProjectId(project)
-          )
+          logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.UPDATE_CLICKED, project)
           close(OK_EXIT_CODE)
           logger.info("Reference images were updated successfully")
           Messages.showInfoMessage(project, "Reference images were updated successfully.", "Update Successful")
         } else {
           // Log the SCREENSHOT_DIALOG_UPDATE_ACTION_FAILURE event for analytics
           // on failure to copy reference images
-          UsageTracker.log(
-            AndroidStudioEvent.newBuilder()
-              .apply {
-                kind = AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW
-                screenshotTestComposePreviewEvent =
-                  ScreenshotTestComposePreviewEvent.newBuilder()
-                    .apply { type = ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_UPDATE_ACTION_FAILURE }
-                    .build()
-              }
-              .withProjectId(project)
-          )
+          logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_UPDATE_ACTION_FAILURE, project)
           val failedNames = failures.joinToString(separator = "\n") { "- ${it.previewData.methodName}.${it.previewData.previewName}" }
           logger.error("Failed to copy the following previews: $failedNames")
           Messages.showErrorDialog(project, "Failed to copy the following previews:\n\n$failedNames", "Copy Failed")

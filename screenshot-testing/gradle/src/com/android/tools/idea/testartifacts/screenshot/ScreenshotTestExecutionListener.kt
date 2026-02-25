@@ -16,10 +16,8 @@
 package com.android.tools.idea.testartifacts.screenshot
 
 import com.android.screenshottest.producers.IS_SCREENSHOT_TEST_CONFIGURATION
-import com.android.tools.analytics.UsageTracker
-import com.android.tools.analytics.withProjectId
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.logScreenshotTestEvent
 import com.android.tools.idea.testartifacts.testsuite.GradleRunConfigurationExtension
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ScreenshotTestComposePreviewEvent
 import com.intellij.execution.ExecutionListener
 import com.intellij.execution.process.ProcessHandler
@@ -36,17 +34,7 @@ class ScreenshotTestExecutionListener : ExecutionListener {
           GradleRunConfigurationExtension.BooleanOptions.SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey
         ) == true
     ) {
-      UsageTracker.log(
-        AndroidStudioEvent.newBuilder()
-          .apply {
-            kind = AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW
-            screenshotTestComposePreviewEvent =
-              ScreenshotTestComposePreviewEvent.newBuilder()
-                .apply { type = ScreenshotTestComposePreviewEvent.Type.VALIDATE_CLICKED }
-                .build()
-          }
-          .withProjectId(env.project)
-      )
+      logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.VALIDATE_CLICKED, env.project)
     }
   }
 }
