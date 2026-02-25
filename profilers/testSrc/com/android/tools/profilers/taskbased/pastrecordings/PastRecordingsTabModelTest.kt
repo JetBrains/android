@@ -207,6 +207,55 @@ class PastRecordingsTabModelTest {
     Truth.assertThat(openTaskTabCalled).isFalse()
   }
 
+  @Test
+  fun `test onEnterTaskButtonClick bypasses current task checks when system trace in editor enabled`() {
+    // 1. Create a specific Profilers instance to intercept methods.
+    var openTaskTabCalled = false
+    val testProfilers =
+      object : StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideProfilerServices, myTimer) {
+        override fun openTaskTab() {
+          openTaskTabCalled = true
+        }
+
+        override fun getCurrentTaskHandler(): ProfilerTaskHandler? {
+          // Returning a non-null handler simulates an active task tab.
+          // This would normally prompt the user to close the currently open task.
+          return ProfilerTaskHandlerFactory.createTaskHandlers(sessionsManager)[ProfilerTaskType.CALLSTACK_SAMPLE]
+        }
+      }
+
+    // 2. Initialize task handlers for the test profiler
+    val taskHandlers = ProfilerTaskHandlerFactory.createTaskHandlers(testProfilers.sessionsManager)
+    taskHandlers.forEach { (type, handler) -> testProfilers.addTaskHandler(type, handler) }
+
+    // 3. Create a model instance using the test profiler
+    val testModel = PastRecordingsTabModel(testProfilers)
+
+    // 4. Create a session and an artifact
+    val session = Common.Session.getDefaultInstance()
+    val perfettoConfig = Trace.TraceConfiguration.newBuilder().setPerfettoOptions(TraceConfig.getDefaultInstance()).build()
+    val systemTraceArtifact = SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(testProfilers, session, 1L, 1L, perfettoConfig)
+    val sessionItem =
+      SessionArtifactUtils.createSessionItem(testProfilers, session, 1L, ProfilerTaskType.SYSTEM_TRACE, listOf(systemTraceArtifact))
+
+    // 5. Select the recording in the list
+    testModel.recordingListModel.onRecordingSelection(sessionItem)
+
+    // Enable unified preview
+    ideProfilerServices.enableSystemTraceInEditor(true)
+
+    // Because the unified preview is enabled and we are opening a system trace task, it should bypass the current task checks
+    // and directly call doEnterTaskButton (which sets the session).
+    // It should not throw any assertion error or show the prompt to close the current task.
+    testModel.onEnterTaskButtonClick()
+
+    // Verify openTaskTab was NOT called.
+    Truth.assertThat(openTaskTabCalled).isFalse()
+
+    // Verify doEnterTaskButton was executed by checking the session.
+    Truth.assertThat(testProfilers.session).isEqualTo(session)
+  }
+
   private fun setCurrentTaskHandler(taskType: ProfilerTaskType) {
     myProfilers.setCurrentTaskHandlerFetcher { myProfilers.taskHandlers.toList().first { it.first == taskType }.second }
   }

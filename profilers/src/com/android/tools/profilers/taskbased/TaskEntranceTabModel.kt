@@ -44,6 +44,13 @@ abstract class TaskEntranceTabModel(val profilers: StudioProfilers) {
   open fun onEnterTaskButtonClick() {
     val isTaskOngoing = profilers.sessionsManager.isSessionAlive
 
+    val isSystemTraceTask =
+      when (this) {
+        is PastRecordingsTabModel -> selectedRecording?.getTaskType() == ProfilerTaskType.SYSTEM_TRACE
+        is TaskHomeTabModel -> selectedTaskType == ProfilerTaskType.SYSTEM_TRACE
+        else -> false
+      }
+
     when (this) {
       // Disable start button until the previous task has started successfully.
       is TaskHomeTabModel -> {
@@ -54,14 +61,20 @@ abstract class TaskEntranceTabModel(val profilers: StudioProfilers) {
       is PastRecordingsTabModel -> {
         val selectedSession = selectedRecording!!.session
         if (
-          selectedSession == profilers.session &&
-            !(profilers.ideServices.featureConfig.isSystemTraceInEditorEnabled &&
-              selectedRecording!!.getTaskType() == ProfilerTaskType.SYSTEM_TRACE)
+          selectedSession == profilers.session && !(profilers.ideServices.featureConfig.isSystemTraceInEditorEnabled && isSystemTraceTask)
         ) {
           profilers.openTaskTab()
           return
         }
       }
+    }
+
+    // If the system trace in editor feature is enabled and we're opening a past system trace task, we bypass the checks that
+    // stop the current task and just execute doEnterTaskButton directly. This is because the past system trace task will
+    // open in its own editor window and will not conflict with the existing task in the Profiler window.
+    if (profilers.ideServices.featureConfig.isSystemTraceInEditorEnabled && this is PastRecordingsTabModel && isSystemTraceTask) {
+      doEnterTaskButton()
+      return
     }
 
     val currentTaskHandler = profilers.currentTaskHandler
