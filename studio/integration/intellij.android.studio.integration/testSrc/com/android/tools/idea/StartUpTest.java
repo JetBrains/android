@@ -21,7 +21,13 @@ import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import com.android.tools.testlib.Display;
 import com.android.tools.testlib.TestFileSystem;
+
 import com.intellij.openapi.util.SystemInfo;
+
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -29,9 +35,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 public class StartUpTest {
 
@@ -58,85 +61,97 @@ public class StartUpTest {
         assertThat(javaHome).doesNotContain("/Contents/Home");
         javaHome += "/Contents/Home";
       }
-      // Java Home will point to the run files directory(which is a symlink) for the test's AndroidStudioInstallation instance
-      // The Ide will resolve java.home property to a real path
-      // So to verify that both paths refer to the same directory, we use Files.isSameFile() to compare them
-      assertThat(Files.isSameFile(Path.of(studio.getSystemProperty("java.home"), "bin/java"), Path.of(javaHome, "bin/java"))).isTrue();
+            // Java Home will point to the run files directory(which is a symlink) for the test's
+            // AndroidStudioInstallation instance
+            // The Ide will resolve java.home property to a real path
+            // So to verify that both paths refer to the same directory, we use Files.isSameFile()
+            // to compare them
+            assertThat(
+                            Files.isSameFile(
+                                    Path.of(studio.getSystemProperty("java.home"), "bin/java"),
+                                    Path.of(javaHome, "bin/java")))
+                    .isTrue();
 
-      // Wait for plugin manager to load all plugins
-      Matcher matcher = install.getIdeaLog().waitForMatchingLine(".*PluginManager - Loaded bundled plugins:(.*)", 10, TimeUnit.SECONDS);
+            // Wait for plugin manager to load all plugins
+            Matcher matcher =
+                    install.getIdeaLog()
+                            .waitForMatchingLine(
+                                    ".*PluginManager - Loaded bundled plugins:(.*)",
+                                    10,
+                                    TimeUnit.SECONDS);
       String[] plugins = matcher.group(1).split(",");
       for (int i = 0; i < plugins.length; i++) {
         plugins[i] = plugins[i].replaceAll(" (.*) \\(.*\\)", "$1").strip();
       }
 
-      List<String> expectedPlugins = new ArrayList<>(Arrays.asList(
-        "Android",
-        "Android APK Support",
-        "Android Design Tools",
-        "Android SDK Upgrade Assistant",
-        "Android Studio Driver",
-        "Android NDK Support",
-        "App Links Assistant",
-        "Artifacts Repository Search",
-        "C/C++ Language Support via Classic Engine",
-        "CIDR Base",
-        "CIDR Debugger",
-        "Clangd Support",
-        "Code Coverage for Java",
-        "Configuration Script",
-        "Copyright",
-        "Eclipse Keymap",
-        "EditorConfig",
-        "Device Streaming",
-        "DevKit Runtime",
-        "Firebase Services",
-        "Firebase Testing",
-        "Gemini",
-        "Git for App Insights",
-        "Git",
-        "Modal Commit Interface",
-        "GitHub",
-        "GitLab",
-        "Gradle",
-        "Gradle Declarative Support",
-        "Gradle DSL Parser Support",
-        "Gradle for Java",
-        "Groovy",
-        "HTML Tools",
-        "IDEA CORE",
-        "Images",
-        "JSON",
-        "Natural Languages",
-        "JUnit",
-        "Java",
-        "Java Bytecode Decompiler",
-        "Java IDE Customization",
-        "Compose Multiplatform",
-        "Java Internationalization",
-        "Java Stream Debugger",
-        "Jetpack Compose",
-        "Kotlin",
-        "Machine Learning Code Completion",
-        "Markdown",
-        "Mercurial",
-        "NetBeans Keymap",
-        "Performance Testing",
-        "Properties",
-        "Shell Script",
-        "Smali Support",
-        "Subversion",
-        "Task Management",
-        "Terminal",
-        "Test Recorder",
-        "TestNG",
-        "TextMate Bundles",
-        "Toml",
-        "Turbo Complete",
-        "Visual Studio Keymap",
-        "WebP Support",
-        "YAML"
-      ));
+            List<String> expectedPlugins =
+                    new ArrayList<>(
+                            Arrays.asList(
+                                    "Android",
+                                    "Android APK Support",
+                                    "Android Design Tools",
+                                    "Android SDK Upgrade Assistant",
+                                    "Android Studio Driver",
+                                    "Android NDK Support",
+                                    "App Links Assistant",
+                                    "Artifacts Repository Search",
+                                    "C/C++ Language Support via Classic Engine",
+                                    "CIDR Base",
+                                    "CIDR Debugger",
+                                    "Clangd Support",
+                                    "Code Coverage for Java",
+                                    "Configuration Script",
+                                    "Copyright",
+                                    "Eclipse Keymap",
+                                    "EditorConfig",
+                                    "Device Streaming",
+                                    "DevKit Runtime",
+                                    "Firebase Services",
+                                    "GMD Code Completion",
+                                    "Gemini",
+                                    "Git for App Insights",
+                                    "Git",
+                                    "Modal Commit Interface",
+                                    "GitHub",
+                                    "GitLab",
+                                    "Gradle",
+                                    "Gradle Declarative Support",
+                                    "Gradle DSL Parser Support",
+                                    "Gradle for Java",
+                                    "Groovy",
+                                    "HTML Tools",
+                                    "IDEA CORE",
+                                    "Images",
+                                    "JSON",
+                                    "Natural Languages",
+                                    "JUnit",
+                                    "Java",
+                                    "Java Bytecode Decompiler",
+                                    "Java IDE Customization",
+                                    "Compose Multiplatform",
+                                    "Java Internationalization",
+                                    "Java Stream Debugger",
+                                    "Jetpack Compose",
+                                    "Kotlin",
+                                    "Machine Learning Code Completion",
+                                    "Markdown",
+                                    "Mercurial",
+                                    "NetBeans Keymap",
+                                    "Performance Testing",
+                                    "Properties",
+                                    "Shell Script",
+                                    "Smali Support",
+                                    "Subversion",
+                                    "Task Management",
+                                    "Terminal",
+                                    "Test Recorder",
+                                    "TestNG",
+                                    "TextMate Bundles",
+                                    "Toml",
+                                    "Turbo Complete",
+                                    "Visual Studio Keymap",
+                                    "WebP Support",
+                                    "YAML"));
 
       assertThat(plugins).asList().containsExactlyElementsIn(expectedPlugins);
 
