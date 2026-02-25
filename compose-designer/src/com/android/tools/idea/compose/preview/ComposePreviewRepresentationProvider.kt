@@ -136,7 +136,8 @@ class ComposePreviewRepresentationProvider(
   override suspend fun accept(project: Project, psiFile: PsiFile): Boolean {
     // We need to be in smart mode to be able to access the index for the annotations.
     if (DumbService.isDumb(project)) return false
-    return psiFile.virtualFile.isKotlinFileType() &&
+    val virtualFile = psiFile.virtualFile ?: psiFile.viewProvider.virtualFile
+    return virtualFile.isKotlinFileType() &&
       (smartReadAction(project) {
         (psiFile.getModuleSystem()?.usesCompose == true || isCompatibleComposableClassAvailable(psiFile)) && !psiFile.isInLibrary()
       })
@@ -144,8 +145,9 @@ class ComposePreviewRepresentationProvider(
 
   /** Creates a [ComposePreviewRepresentation] for the input [psiFile]. */
   override suspend fun createRepresentation(psiFile: PsiFile): ComposePreviewRepresentation {
-    val hasPreviewMethods = filePreviewElementProvider().hasPreviewElements(psiFile.project, psiFile.virtualFile)
-    thisLogger().debug { "${psiFile.virtualFile.path} hasPreviewMethods=${hasPreviewMethods}" }
+    val virtualFile = psiFile.virtualFile ?: psiFile.viewProvider.virtualFile
+    val hasPreviewMethods = filePreviewElementProvider().hasPreviewElements(psiFile.project, virtualFile)
+    thisLogger().debug { "${virtualFile.path} hasPreviewMethods=${hasPreviewMethods}" }
 
     val globalState = AndroidEditorSettings.getInstance().globalState
     val preferredVisibility =
@@ -160,7 +162,7 @@ class ComposePreviewRepresentationProvider(
 
   override val displayName = message("representation.name")
 
-  private fun PsiFile.isInLibrary() = ProjectRootManager.getInstance(project).fileIndex.isInLibrary(virtualFile)
+  private fun PsiFile.isInLibrary() = ProjectRootManager.getInstance(project).fileIndex.isInLibrary(virtualFile ?: viewProvider.virtualFile)
 }
 
 private fun isCompatibleComposableClassAvailable(file: PsiFile): Boolean {
