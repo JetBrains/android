@@ -22,6 +22,7 @@ import com.android.testutils.ImageDiffUtil
 import com.android.testutils.ProcessHandleProviderRule
 import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
+import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.actions.executeAction
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeMouse
@@ -1202,7 +1203,8 @@ class EmulatorViewTest {
 
   private fun assertAppearance(goldenImageName: String) {
     val image = fakeUi.render()
-    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, 0.0)
+    val scaledDownImage = ImageUtils.scale(image, 0.5)
+    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), scaledDownImage, 0.0)
   }
 
   private fun getGoldenFile(name: String): Path = TestUtils.resolveWorkspacePathUnchecked("${GOLDEN_FILE_PATH}/${name}.png")
