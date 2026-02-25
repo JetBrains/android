@@ -36,7 +36,7 @@ IntellijInfo = provider(
     },
 )
 
-_StudioDataInfo = provider(
+StudioDataInfo = provider(
     doc = "Holds IDE distribution files split by platform",
     fields = {
         "linux": "Linux files",
@@ -206,8 +206,8 @@ WIN = struct(
 def _resource_deps(res_dirs, res, platform):
     files = []
     for dir, dep in zip(res_dirs, res):
-        if _StudioDataInfo in dep:
-            dep_data = dep[_StudioDataInfo]
+        if StudioDataInfo in dep:
+            dep_data = dep[StudioDataInfo]
             files += [(dir + "/" + dep_data.mappings[f], f) for f in platform.get(dep_data).to_list()]
         else:
             files += [(dir + "/" + f.basename, f) for f in dep.files.to_list()]
@@ -453,7 +453,7 @@ def studio_plugin(
 
 def _studio_data_impl(ctx):
     for dep in ctx.attr.files_linux + ctx.attr.files_mac + ctx.attr.files_mac_arm + ctx.attr.files_win:
-        if _StudioDataInfo in dep:
+        if StudioDataInfo in dep:
             fail("studio_data does not belong on a platform specific attribute, please add " + str(dep.label) + " to \"files\" directly")
 
     files = []
@@ -463,8 +463,8 @@ def _studio_data_impl(ctx):
     linux = []
     mappings = {}
     for dep in ctx.attr.files:
-        if _StudioDataInfo in dep:
-            dep_data = dep[_StudioDataInfo]
+        if StudioDataInfo in dep:
+            dep_data = dep[StudioDataInfo]
             linux.append(dep_data.linux)
             mac.append(dep_data.mac)
             mac_arm.append(dep_data.mac_arm)
@@ -484,7 +484,7 @@ def _studio_data_impl(ctx):
     dwin = depset(files + ctx.files.files_win, order = "preorder", transitive = win)
 
     return [
-        _StudioDataInfo(
+        StudioDataInfo(
             linux = dlinux,
             mac = dmac,
             mac_arm = dmac_arm,
@@ -504,7 +504,7 @@ _studio_data = rule(
         "mappings": attr.string_dict(mandatory = True),
     },
     executable = False,
-    provides = [_StudioDataInfo],
+    provides = [StudioDataInfo],
     implementation = _studio_data_impl,
 )
 
@@ -816,7 +816,7 @@ def _android_studio_os(ctx, platform, added_plugins, out):
     plugin_files = platform.get(ctx.attr.platform[IntellijInfo].plugins)
 
     if ctx.attr.jre:
-        jre_data = ctx.attr.jre[_StudioDataInfo]
+        jre_data = ctx.attr.jre[StudioDataInfo]
         jre_files = [(jre_data.mappings[f], f) for f in platform.get(jre_data).to_list()]
         all_files.update({platform_prefix + platform.base_path + platform.jre + k: v for k, v in jre_files})
 
@@ -948,7 +948,7 @@ _android_studio = rule(
         "codesign_entitlements": attr.label(allow_single_file = True),
         "compress": attr.bool(),
         "essential_plugins": attr.string_list(),
-        "jre": attr.label(providers = [_StudioDataInfo]),
+        "jre": attr.label(providers = [StudioDataInfo]),
         "platform": attr.label(providers = [IntellijInfo]),
         "plugins": attr.label_list(providers = [PluginInfo]),
         "vm_options": attr.string_list(),
@@ -1281,7 +1281,7 @@ def _intellij_platform_impl_os(ctx, platform, data, zip_out):
     return base_files, plugin_files
 
 def _intellij_platform_impl(ctx):
-    studio_data = ctx.attr.studio_data[_StudioDataInfo]
+    studio_data = ctx.attr.studio_data[StudioDataInfo]
     base_files_linux, plugin_files_linux = _intellij_platform_impl_os(ctx, LINUX, studio_data, ctx.outputs.linux_zip)
     base_files_win, plugin_files_win = _intellij_platform_impl_os(ctx, WIN, studio_data, ctx.outputs.win_zip)
     base_files_mac, plugin_files_mac = _intellij_platform_impl_os(ctx, MAC, studio_data, ctx.outputs.mac_zip)
@@ -1318,7 +1318,7 @@ _intellij_platform = rule(
         # buildifier: disable=native-java-info (@rules_java is not usable in this file yet)
         "exports": attr.label_list(providers = [JavaInfo]),
         "data": attr.label_list(allow_files = True),
-        "studio_data": attr.label(providers = [_StudioDataInfo]),
+        "studio_data": attr.label(providers = [StudioDataInfo]),
         "compress": attr.bool(),
         "_zipper": attr.label(
             default = Label("@bazel_tools//tools/zip:zipper"),
