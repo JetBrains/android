@@ -98,7 +98,7 @@ class TestComposePreviewView : ComposePreviewView, JPanel {
 
   override fun onRefreshCancelledByTheUser() {}
 
-  override fun onRefreshCompleted() {
+  override fun onRefreshCompleted(t: Throwable?) {
     onRefreshCompletedCallback()
     synchronized(nextRefreshLock) {
         val current = nextRefreshListener

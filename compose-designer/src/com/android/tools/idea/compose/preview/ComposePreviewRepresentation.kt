@@ -1053,7 +1053,7 @@ class ComposePreviewRepresentation(
         } else {
           element
         }
-      } ?: return
+      } ?: throw Throwable("null or invalid PsiFile reference found when attempting to refresh previews")
 
     // Restore
     stateManager.restoreState()
@@ -1280,9 +1280,9 @@ class ComposePreviewRepresentation(
             // the job that is returned as the invokeOnComplete is run concurrently with the next
             // refresh request and there can be race conditions.
             if (invalidateIfCancelled) invalidate()
-            // Make sure to propagate cancellations
-            throw t
           } else requestLogger.warn("Request failed", t)
+          // Rethrow any exception to the refreshJob
+          throw t
         } finally {
           // Force updating toolbar icons after refresh
           ActivityTracker.getInstance().inc()
@@ -1296,7 +1296,7 @@ class ComposePreviewRepresentation(
         composeWorkBench.onRefreshCancelledByTheUser()
       } else {
         if (it != null) invalidate()
-        composeWorkBench.onRefreshCompleted()
+        composeWorkBench.onRefreshCompleted(it)
       }
 
       if (it == null && previewModeManager.mode.value is PreviewMode.UiCheck) {

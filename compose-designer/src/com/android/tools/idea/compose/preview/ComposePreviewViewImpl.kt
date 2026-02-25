@@ -99,8 +99,14 @@ interface ComposePreviewView : PreviewRepresentationView {
   /** Called when a refresh in progress was cancelled by the user. */
   fun onRefreshCancelledByTheUser()
 
-  /** Called when a refresh has completed. */
-  fun onRefreshCompleted()
+  /**
+   * Called when a refresh has completed. If the refresh failed due to an exception, then [t] will be non-null. Otherwise, it will be null.
+   * Note that a render error in a preview is not considered a failed refresh, as the refresh process success depends on whether the process
+   * completed gracefully or not; it's not measured against the render result of each preview.
+   *
+   * So, non-null values of [t] correspond to unexpected errors.
+   */
+  fun onRefreshCompleted(t: Throwable?)
 
   /**
    * Called when a Layoutlib native crash is detected. It will show a notification to the user allowing to re-enable the disabled Layoutlib.
@@ -306,6 +312,7 @@ internal class ComposePreviewViewImpl(
       val vFile = psiFilePointer.virtualFile
       if (vFile == null) {
         thisLogger().warn("virtualFile is null for $psiFilePointer element=${psiFilePointer.element} file=${psiFilePointer.containingFile}")
+        if (!hasRendered) showModalErrorMessage(message("panel.error.reopen.file"))
       } else {
         notificationPanel.updateNotifications(vFile, parentEditor, project)
       }
@@ -327,11 +334,12 @@ internal class ComposePreviewViewImpl(
   }
 
   override fun onRefreshCancelledByTheUser() {
-    if (!hasRendered) showModalErrorMessage(message("panel.refresh.cancelled"), buildAndRefreshAction) else onRefreshCompleted()
+    if (!hasRendered) showModalErrorMessage(message("panel.refresh.cancelled"), buildAndRefreshAction) else onRefreshCompleted(null)
   }
 
-  override fun onRefreshCompleted() {
+  override fun onRefreshCompleted(t: Throwable?) {
     updateVisibilityAndNotifications()
+    if (t != null && !hasRendered) showModalErrorMessage(message("panel.error.reopen.file"))
   }
 
   override fun onLayoutlibNativeCrash(onLayoutlibReEnable: () -> Unit) {
