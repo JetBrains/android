@@ -22,8 +22,6 @@ import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.InsightSource
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
-import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
-import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.issue.IssueId
@@ -31,17 +29,10 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.flow.toList
 
-class GeminiAiInsightClient(
-  private val project: Project,
-  private val codeContextResolver: CodeContextResolver,
-  private val cache: AiInsightCache = AiInsightCache(),
-) : AiInsightClient {
+class GeminiAiInsightClient(private val project: Project, private val codeContextResolver: CodeContextResolver) : AiInsightClient {
   private val logger = Logger.getInstance("com.android.tools.idea.insights.client.GeminiAiInsightClient")
 
   override suspend fun fetchCrashInsight(request: GeminiCrashInsightRequest): AiInsight {
-    getCachedInsight(request)?.let {
-      return it
-    }
     val contextData =
       if (
         !request.connection.isMatchingProject() ||
@@ -66,25 +57,8 @@ class GeminiAiInsightClient(
 
     val response = GeminiPluginApi.getInstance().generate(project, finalPrompt).toList().joinToString("\n")
 
-    return AiInsight(response, request.event, insightSource = InsightSource.STUDIO_BOT, codeContextData = contextData).also {
-      cache.putAiInsight(request.connection, request.issueId, request.variantId, it)
-    }
+    return AiInsight(response, request.event, insightSource = InsightSource.STUDIO_BOT, codeContextData = contextData)
   }
-
-  override fun insightFeedbackUpdated(connection: Connection, issueId: IssueId, variantId: String?, feedback: InsightFeedback) {
-    val cachedInsight = getCachedInsight(GeminiCrashInsightRequest(connection, issueId, variantId, "", "", Event.EMPTY)) ?: return
-
-    cache.putAiInsight(connection, issueId, variantId, cachedInsight.copy(feedback = feedback))
-  }
-
-  // Always prefer the insight generated with context regardless of current context sharing setting.
-  private fun getCachedInsight(request: GeminiCrashInsightRequest): AiInsight? =
-    cache.getAiInsight(request.connection, request.issueId, request.variantId, ContextSharingState.ALLOWED)
-      ?: if (ContextSharingState.getContextSharingState(project) == ContextSharingState.DISABLED) {
-        cache.getAiInsight(request.connection, request.issueId, request.variantId, ContextSharingState.DISABLED)
-      } else {
-        null
-      }
 
   private suspend fun queryForRelevantContext(request: GeminiCrashInsightRequest): CodeContextData {
     val prompt =

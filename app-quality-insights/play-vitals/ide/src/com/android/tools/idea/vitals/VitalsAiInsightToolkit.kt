@@ -16,17 +16,12 @@
 package com.android.tools.idea.vitals
 
 import com.android.tools.idea.insights.LoadingState
-import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.AiInsightToolkit
 import com.android.tools.idea.insights.ai.InsightsOnboardingProvider
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.client.AiInsightClient
-import com.android.tools.idea.insights.client.createGeminiInsightRequest
-import com.android.tools.idea.insights.client.runGrpcCatchingWithSupervisorScope
-import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.issue.FailureType
-import com.android.tools.idea.insights.model.issue.IssueId
 import com.intellij.openapi.project.Project
 
 class VitalsAiInsightToolkit(
@@ -35,22 +30,13 @@ class VitalsAiInsightToolkit(
   codeContextResolver: CodeContextResolver,
   aiInsightClient: AiInsightClient,
 ) : AiInsightToolkit(project, codeContextResolver, aiInsightClient) {
-  override suspend fun fetchInsight(
-    connection: Connection,
-    issueId: IssueId,
-    variantId: String?,
-    failureType: FailureType,
-    event: Event,
-  ): LoadingState.Done<AiInsight> {
+
+  override suspend fun validateFetchInsightPrecondition(failureType: FailureType, event: Event) =
     when {
-      failureType != FailureType.FATAL -> return LoadingState.UnsupportedOperation("Insights are currently not available for ANRs")
-      event.isNativeCrash() -> return LoadingState.UnsupportedOperation("Insights are currently not available for native crashes")
+      failureType != FailureType.FATAL -> LoadingState.UnsupportedOperation("Insights are currently not available for ANRs")
+      event.isNativeCrash() -> LoadingState.UnsupportedOperation("Insights are currently not available for native crashes")
+      else -> null
     }
-    val failure = LoadingState.UnknownFailure("Unable to fetch insight for the selected issue.")
-    return runGrpcCatchingWithSupervisorScope(failure) {
-      LoadingState.Ready(aiInsightClient.fetchCrashInsight(createGeminiInsightRequest(connection, issueId, variantId, event)))
-    }
-  }
 }
 
 private const val ANDROID_NATIVE_CRASH_HEADER = "*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***"

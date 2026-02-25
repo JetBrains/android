@@ -20,10 +20,8 @@ import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.ai.codecontext.FakeCodeContextResolver
 import com.android.tools.idea.insights.client.GeminiAiInsightClient
-import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.issue.FailureType
-import com.android.tools.idea.insights.model.issue.IssueId
 import com.intellij.openapi.project.Project
 
 open class FakeAiInsightToolkit(
@@ -34,13 +32,8 @@ open class FakeAiInsightToolkit(
 
   private val fetchInsightCall = CallInProgress<LoadingState.Done<AiInsight>>()
 
-  override suspend fun fetchInsight(
-    connection: Connection,
-    issueId: IssueId,
-    variantId: String?,
-    failureType: FailureType,
-    event: Event,
-  ): LoadingState.Done<AiInsight> = fetchInsightCall.initiateCall()
+  override suspend fun validateFetchInsightPrecondition(failureType: FailureType, event: Event): LoadingState.Done<AiInsight> =
+    fetchInsightCall.initiateCall()
 
   suspend fun completeFetchInsightCallWith(value: LoadingState.Done<AiInsight>) = fetchInsightCall.completeWith(value)
 }

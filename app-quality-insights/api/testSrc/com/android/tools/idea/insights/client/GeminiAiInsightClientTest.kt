@@ -20,11 +20,8 @@ import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.gemini.formatForTests
-import com.android.tools.idea.insights.AI_INSIGHT_WITH_CODE_CONTEXT
 import com.android.tools.idea.insights.CONNECTION1
-import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
 import com.android.tools.idea.insights.ISSUE1
-import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.FakeGeminiPluginApi
 import com.android.tools.idea.insights.ai.InsightSource
 import com.android.tools.idea.insights.ai.codecontext.CodeContext
@@ -138,131 +135,6 @@ class GeminiAiInsightClientTest {
   @Test
   fun `test gemini client with code context`() = runBlocking {
     val client = GeminiAiInsightClient(projectRule.project, codeContextResolver)
-
-    val request =
-      GeminiCrashInsightRequest(
-        connection = CONNECTION1,
-        issueId = ISSUE1.id,
-        variantId = null,
-        deviceName = "DeviceName",
-        apiLevel = "ApiLevel",
-        event = ISSUE1.sampleEvent,
-      )
-
-    expectedPromptText =
-      """
-      |USER
-      |Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
-      |For headings, use H3 only. Initial explanation should not be under a heading.
-      |Begin with the explanation directly. Do not add fillers at the start of response.
-      |
-      |USER
-      |Explain this exception from my app running on DeviceName with Android version ApiLevel.
-      |Please reference the provided source code if they are helpful.
-      |Exception:
-      |```
-      |retrofit2.HttpException: HTTP 401 
-      |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.build(ResponseWrapper.kt:23)
-      |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.fetchOrError(ResponseWrapper.kt:31)
-      |```
-      |a/b/c/HelloWorld1.kt:
-      |```
-      |package a.b.c
-      |
-      |fun helloWorld() {
-      |  println("Hello World")
-      |}
-      |```
-      |a/b/c/HelloWorld2.kt:
-      |```
-      |package a.b.c
-      |
-      |fun helloWorld2() {
-      |  println("Hello World 2")
-      |}
-      |```
-      """
-        .trimMargin()
-    val insight = client.fetchCrashInsight(request)
-
-    assertThat(fakeGeminiPluginApi.receivedPrompt?.formatForTests()).isEqualTo(expectedPromptText)
-
-    assertThat(insight.rawInsight).isEqualTo("a/b/c/HelloWorld1.kt,a/b/c/HelloWorld2.kt")
-    assertThat(insight.insightSource).isEqualTo(InsightSource.STUDIO_BOT)
-  }
-
-  @Test
-  fun `client reuses cached insights`() = runBlocking {
-    fakeGeminiPluginApi.contextAllowed = false
-    val cache = AiInsightCache()
-    cache.putAiInsight(CONNECTION1, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
-    val client = GeminiAiInsightClient(projectRule.project, codeContextResolver, cache)
-
-    (codeContextResolver as FakeCodeContextResolver).codeContext = emptyList()
-
-    val request =
-      GeminiCrashInsightRequest(
-        connection = CONNECTION1,
-        issueId = ISSUE1.id,
-        variantId = null,
-        deviceName = "DeviceName",
-        apiLevel = "ApiLevel",
-        event = ISSUE1.sampleEvent,
-      )
-
-    assertThat(client.fetchCrashInsight(request)).isEqualTo(DEFAULT_AI_INSIGHT.copy(isCached = true))
-  }
-
-  @Test
-  fun `client caches new insight`() = runBlocking {
-    val cache = AiInsightCache()
-    val client = GeminiAiInsightClient(projectRule.project, codeContextResolver, cache)
-
-    (codeContextResolver as FakeCodeContextResolver).codeContext = emptyList()
-    fakeGeminiPluginApi.generateResponse = ""
-
-    val request =
-      GeminiCrashInsightRequest(
-        connection = CONNECTION1,
-        issueId = ISSUE1.id,
-        variantId = null,
-        deviceName = "DeviceName",
-        apiLevel = "ApiLevel",
-        event = ISSUE1.sampleEvent,
-      )
-
-    assertThat(client.fetchCrashInsight(request)).isEqualTo(AiInsight("", ISSUE1.sampleEvent, insightSource = InsightSource.STUDIO_BOT))
-    assertThat(cache.getAiInsight(CONNECTION1, ISSUE1.id, null, ContextSharingState.DISABLED))
-      .isEqualTo(AiInsight("", ISSUE1.sampleEvent, isCached = true, insightSource = InsightSource.STUDIO_BOT))
-  }
-
-  @Test
-  fun `client prefers insight generated with code context regardless of context sharing setting`() = runBlocking {
-    fakeGeminiPluginApi.contextAllowed = false
-    val cache = AiInsightCache()
-    cache.putAiInsight(CONNECTION1, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
-    cache.putAiInsight(CONNECTION1, ISSUE1.id, null, AI_INSIGHT_WITH_CODE_CONTEXT)
-    val client = GeminiAiInsightClient(projectRule.project, codeContextResolver, cache)
-
-    val request =
-      GeminiCrashInsightRequest(
-        connection = CONNECTION1,
-        issueId = ISSUE1.id,
-        variantId = null,
-        deviceName = "DeviceName",
-        apiLevel = "ApiLevel",
-        event = ISSUE1.sampleEvent,
-      )
-
-    assertThat(client.fetchCrashInsight(request)).isEqualTo(AI_INSIGHT_WITH_CODE_CONTEXT.copy(isCached = true))
-  }
-
-  @Test
-  fun `when context sharing is enabled, client does not serve cached insight generated without context`() = runBlocking {
-    fakeGeminiPluginApi.contextAllowed = true
-    val cache = AiInsightCache()
-    cache.putAiInsight(CONNECTION1, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
-    val client = GeminiAiInsightClient(projectRule.project, codeContextResolver, cache)
 
     val request =
       GeminiCrashInsightRequest(

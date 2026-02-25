@@ -15,23 +15,33 @@
  */
 package com.android.tools.idea.insights.ai
 
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.flags.junit.FlagRule
+import com.android.tools.idea.concurrency.createCoroutineScope
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
+import com.android.tools.idea.gemini.formatForTests
 import com.android.tools.idea.gservices.DevServicesDeprecationData
 import com.android.tools.idea.gservices.DevServicesDeprecationDataProvider
 import com.android.tools.idea.gservices.DevServicesDeprecationStatus.SUPPORTED
 import com.android.tools.idea.gservices.DevServicesDeprecationStatus.UNSUPPORTED
+import com.android.tools.idea.insights.AI_INSIGHT_WITH_CODE_CONTEXT
+import com.android.tools.idea.insights.CONNECTION1
 import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
+import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
+import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
 import com.android.tools.idea.insights.ai.codecontext.FakeCodeContextResolver
+import com.android.tools.idea.insights.client.AiInsightCache
+import com.android.tools.idea.insights.client.AiInsightClient
 import com.android.tools.idea.insights.client.FakeAiInsightClient
+import com.android.tools.idea.insights.client.GeminiAiInsightClient
+import com.android.tools.idea.insights.client.createGeminiInsightRequest
 import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.issue.FailureType
-import com.android.tools.idea.insights.model.issue.IssueId
 import com.android.tools.idea.insights.model.stacktrace.StacktraceGroup
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.testing.ui.FakeToolWindow
@@ -41,6 +51,7 @@ import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.replaceService
 import com.intellij.util.application
+import kotlin.test.fail
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -55,6 +66,7 @@ import org.mockito.kotlin.whenever
 class AiInsightToolkitTest {
 
   @get:Rule val projectRule = ProjectRule()
+  @get:Rule val flagRule = FlagRule(StudioFlags.AQI_FIX_WITH_AGENT, false)
 
   private val conn = mock<Connection>().apply { doReturn(true).whenever(this).isMatchingProject() }
 
@@ -69,7 +81,7 @@ class AiInsightToolkitTest {
     fakeGeminiPluginApi = FakeGeminiPluginApi()
     ExtensionTestUtil.maskExtensions(GeminiPluginApi.EP_NAME, listOf(fakeGeminiPluginApi), projectRule.disposable)
 
-    scope = AndroidCoroutineScope(projectRule.disposable)
+    scope = projectRule.disposable.createCoroutineScope()
     geminiToolWindow = createFakeToolWindow(projectRule.project, projectRule.disposable, "Gemini")
     deprecationDataProvider = mock<DevServicesDeprecationDataProvider>()
     whenever(deprecationDataProvider.getCurrentDeprecationData(any(), any()))
@@ -79,7 +91,7 @@ class AiInsightToolkitTest {
 
   @Test
   fun `code context resolver returns empty result when context sharing is off`() = runBlocking {
-    val toolKit = createToolkit(FakeCodeContextResolver(listOf(CodeContext("a/b/c", "blah"))))
+    val toolKit = createToolkit(codeContextResolver = FakeCodeContextResolver(listOf(CodeContext("a/b/c", "blah"))))
 
     fakeGeminiPluginApi.contextAllowed = false
     assertThat(toolKit.getSource(conn, StacktraceGroup())).isEqualTo(CodeContextData.DISABLED)
@@ -91,7 +103,7 @@ class AiInsightToolkitTest {
   @Test
   fun `code context resolver returns empty result when connection does not match project`() = runBlocking {
     doReturn(false).whenever(conn).isMatchingProject()
-    val toolKit = createToolkit(FakeCodeContextResolver(listOf(CodeContext("a/b/c", "blah"))))
+    val toolKit = createToolkit(codeContextResolver = FakeCodeContextResolver(listOf(CodeContext("a/b/c", "blah"))))
     fakeGeminiPluginApi.contextAllowed = true
 
     assertThat(toolKit.getSource(conn, StacktraceGroup()).isEmpty()).isTrue()
@@ -103,7 +115,7 @@ class AiInsightToolkitTest {
       .thenReturn(DevServicesDeprecationData("Gemini", "desc", "url", true, UNSUPPORTED))
     whenever(deprecationDataProvider.getCurrentDeprecationData(eq("aqi/insights"), any()))
       .thenReturn(DevServicesDeprecationData("", "", "", false, SUPPORTED))
-    val toolkit = createToolkit(FakeCodeContextResolver(emptyList()))
+    val toolkit = createToolkit()
 
     val data = toolkit.insightDeprecationData
     assertThat(data.isUnsupported()).isTrue()
@@ -119,7 +131,7 @@ class AiInsightToolkitTest {
       .thenReturn(DevServicesDeprecationData("", "", "", false, SUPPORTED))
     whenever(deprecationDataProvider.getCurrentDeprecationData(eq("aqi/insights"), any()))
       .thenReturn(DevServicesDeprecationData("AQI", "desc", "url", true, UNSUPPORTED))
-    val toolkit = createToolkit(FakeCodeContextResolver(emptyList()))
+    val toolkit = createToolkit()
 
     val data = toolkit.insightDeprecationData
     assertThat(data.isUnsupported()).isTrue()
@@ -129,17 +141,138 @@ class AiInsightToolkitTest {
     assertThat(data.showUpdateAction).isTrue()
   }
 
-  private fun createToolkit(codeContextResolver: CodeContextResolver) =
-    object : AiInsightToolkit(projectRule.project, codeContextResolver, FakeAiInsightClient) {
+  @Test
+  fun `toolkit reuses cached insights`() = runBlocking {
+    val cache = AiInsightCache()
+    cache.putAiInsight(CONNECTION1, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
+    val toolkit = createToolkit(cache)
+
+    val insight = toolkit.fetchInsight(CONNECTION1, ISSUE1.id, null, ISSUE1.issueDetails.fatality, ISSUE1.sampleEvent)
+    assertThat(insight.valueOrNull()).isEqualTo(expectedInsight())
+  }
+
+  @Test
+  fun `toolkit caches new insight`() = runBlocking {
+    val cache = AiInsightCache()
+    val toolkit = createToolkit(cache)
+
+    val insight = toolkit.fetchInsight(CONNECTION1, ISSUE1.id, null, ISSUE1.issueDetails.fatality, ISSUE1.sampleEvent)
+    assertThat(insight.valueOrNull()).isEqualTo(expectedInsight())
+    assertThat(cache.getAiInsight(CONNECTION1, ISSUE1.id, null, ContextSharingState.DISABLED))
+      .isEqualTo(expectedInsight().copy(isCached = true))
+  }
+
+  @Test
+  fun `toolkit prefers insight generated with code context regardless of context sharing setting`() = runBlocking {
+    fakeGeminiPluginApi.contextAllowed = false
+    val cache = AiInsightCache()
+    cache.putAiInsight(CONNECTION1, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
+    cache.putAiInsight(CONNECTION1, ISSUE1.id, null, AI_INSIGHT_WITH_CODE_CONTEXT)
+    val toolkit = createToolkit(cache)
+    val insight = toolkit.fetchInsight(CONNECTION1, ISSUE1.id, null, ISSUE1.issueDetails.fatality, ISSUE1.sampleEvent)
+
+    assertThat(insight.valueOrNull()).isEqualTo(AI_INSIGHT_WITH_CODE_CONTEXT.copy(isCached = true))
+  }
+
+  @Test
+  fun `when context sharing is enabled, toolkit does not serve cached insight generated without context`() = runBlocking {
+    fakeGeminiPluginApi.contextAllowed = true
+    val cache = AiInsightCache()
+    cache.putAiInsight(CONNECTION1, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
+
+    val codeContextData =
+      listOf(
+        CodeContext(
+          "a/b/c/HelloWorld1.kt",
+          """
+          |package a.b.c
+          |
+          |fun helloWorld() {
+          |  println("Hello World")
+          |}
+          """
+            .trimMargin(),
+        ),
+        CodeContext(
+          "a/b/c/HelloWorld2.kt",
+          """
+          |package a.b.c
+          |
+          |fun helloWorld2() {
+          |  println("Hello World 2")
+          |}
+          """
+            .trimMargin(),
+        ),
+      )
+
+    val toolkit =
+      createToolkit(cache, aiInsightClient = GeminiAiInsightClient(projectRule.project, FakeCodeContextResolver(codeContextData)))
+
+    val expectedPromptText =
+      """
+      |USER
+      |Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
+      |For headings, use H3 only. Initial explanation should not be under a heading.
+      |Begin with the explanation directly. Do not add fillers at the start of response.
+      |
+      |USER
+      |Explain this exception from my app running on Google Pixel 4a with Android version 12.
+      |Please reference the provided source code if they are helpful.
+      |Exception:
+      |```
+      |retrofit2.HttpException: HTTP 401 
+      |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.build(ResponseWrapper.kt:23)
+      |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.fetchOrError(ResponseWrapper.kt:31)
+      |```
+      |a/b/c/HelloWorld1.kt:
+      |```
+      |package a.b.c
+      |
+      |fun helloWorld() {
+      |  println("Hello World")
+      |}
+      |```
+      |a/b/c/HelloWorld2.kt:
+      |```
+      |package a.b.c
+      |
+      |fun helloWorld2() {
+      |  println("Hello World 2")
+      |}
+      |```
+      """
+        .trimMargin()
+    val loadingState = toolkit.fetchInsight(CONNECTION1, ISSUE1.id, null, ISSUE1.issueDetails.fatality, ISSUE1.sampleEvent)
+
+    assertThat(fakeGeminiPluginApi.receivedPrompt?.formatForTests()).isEqualTo(expectedPromptText)
+
+    val insight = loadingState.valueOrNull() ?: fail("LoadingState did not have an insight")
+    assertThat(insight.insightSource).isEqualTo(InsightSource.STUDIO_BOT)
+  }
+
+  @Test
+  fun `toolkit checks condition before fetching insight`() = runBlocking {
+    val toolkit = createToolkit { _, _ -> LoadingState.UnsupportedOperation(null) }
+
+    assertThat(toolkit.fetchInsight(CONNECTION1, ISSUE1.id, null, ISSUE1.issueDetails.fatality, ISSUE1.sampleEvent))
+      .isInstanceOf(LoadingState.UnsupportedOperation::class.java)
+  }
+
+  private fun createToolkit(
+    cache: AiInsightCache = AiInsightCache(),
+    codeContextResolver: CodeContextResolver = FakeCodeContextResolver(emptyList()),
+    aiInsightClient: AiInsightClient = FakeAiInsightClient,
+    fetchInsightCondition: (FailureType, Event) -> LoadingState.Done<AiInsight>? = { _, _ -> null },
+  ) =
+    object : AiInsightToolkit(projectRule.project, codeContextResolver, aiInsightClient, cache) {
       override val aiInsightOnboardingProvider: InsightsOnboardingProvider
         get() = StubInsightsOnboardingProvider()
 
-      override suspend fun fetchInsight(
-        connection: Connection,
-        issueId: IssueId,
-        variantId: String?,
-        failureType: FailureType,
-        event: Event,
-      ) = LoadingState.Ready(DEFAULT_AI_INSIGHT)
+      override suspend fun validateFetchInsightPrecondition(failureType: FailureType, event: Event) =
+        fetchInsightCondition(failureType, event)
     }
+
+  private suspend fun expectedInsight() =
+    FakeAiInsightClient.fetchCrashInsight(createGeminiInsightRequest(CONNECTION1, ISSUE1.id, null, ISSUE1.sampleEvent))
 }

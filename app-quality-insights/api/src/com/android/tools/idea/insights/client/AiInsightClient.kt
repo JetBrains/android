@@ -18,7 +18,6 @@ package com.android.tools.idea.insights.client
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.InsightSource
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
-import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.issue.IssueId
@@ -43,8 +42,6 @@ interface AiInsightClient {
    */
   suspend fun fetchCrashInsight(request: GeminiCrashInsightRequest): AiInsight
 
-  fun insightFeedbackUpdated(connection: Connection, issueId: IssueId, variantId: String?, feedback: InsightFeedback)
-
   companion object {
     fun getClient(project: Project, codeContextResolver: CodeContextResolver) =
       // Returns a stub client for E2E test environment.
@@ -64,6 +61,4 @@ class StubAiInsightClient : AiInsightClient {
     delay(2000)
     return AiInsight(createPrompt(request, emptyList()), request.event, insightSource = InsightSource.STUDIO_BOT)
   }
-
-  override fun insightFeedbackUpdated(connection: Connection, issueId: IssueId, variantId: String?, feedback: InsightFeedback) = Unit
 }
