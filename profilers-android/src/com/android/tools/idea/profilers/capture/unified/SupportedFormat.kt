@@ -29,6 +29,10 @@ object PerfettoTraceFormat : SupportedFormat {
     if (PerfettoCaptureFileType.EXTENSIONS.contains(file.extension)) {
       return true
     }
+    val extension = file.extension?.lowercase()
+    if (extension != "trace") {
+      return false
+    }
     val ioFile =
       try {
         file.toNioPath().toFile()
