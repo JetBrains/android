@@ -19,6 +19,7 @@ import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.findAllDescendants
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.DEVICE_1
@@ -65,20 +66,22 @@ import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorVie
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Screenshot
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.property.panel.impl.ui.InspectorPanelImpl
+import com.android.tools.property.ptable.PTable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.treeStructure.treetable.TreeTable
+import java.awt.Component
 import java.awt.Dimension
 import java.awt.event.KeyEvent
 import java.util.concurrent.TimeUnit
 import javax.swing.SwingUtilities
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -167,7 +170,6 @@ class AppInspectionSnapshotSupportTest {
       .isEqualTo("Error loading snapshot\nSKP image type is no longer supported starting with Android Studio Panda 2")
   }
 
-  @Ignore("b/486842289")
   @Test
   fun testNavigationInSnapshotView() = runBlocking {
     inspectorClientSettings.inLiveMode = true
@@ -198,6 +200,11 @@ class AppInspectionSnapshotSupportTest {
       editorComponent.requestFocusInWindow()
       assertThat(focusManager.focusOwner).isEqualTo(editorComponent)
       assertThat(settings.scalePercent).isEqualTo(100)
+
+      // Wait until the properties table is displaying attributes
+      waitForCondition(30.seconds) {
+        editorComponent.propertyTables.let { tables -> tables.isNotEmpty() && tables.all { it.itemCount > 3 } }
+      }
 
       // Move to the next focusable component, which should be the toolbar for the component tree
       ui.tab()
@@ -535,4 +542,7 @@ class AppInspectionSnapshotSupportTest {
   private fun FakeUi.tab() {
     keyboard.pressAndRelease(KeyEvent.VK_TAB)
   }
+
+  private val Component.propertyTables: List<PTable>
+    get() = findAllDescendants<PTable>().toList()
 }
