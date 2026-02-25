@@ -237,6 +237,7 @@ studiobot.message.queue.enabled=PREVIEW
 studiobot.new.project.agent=COMPLETE:2026
 studiobot.open.files.context=PREVIEW
 studiobot.permission.model=PREVIEW
+studiobot.planning.mode.enabled=INTERNAL
 studiobot.project.facts.context.enabled=INTERNAL
 studiobot.prompt.library.chat.lookup=COMPLETE:2025
 studiobot.prompt.library.rules=COMPLETE:2025
