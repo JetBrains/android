@@ -62,6 +62,7 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.psi.PsiClass
+import com.intellij.testFramework.IndexingTestUtil
 import java.awt.Rectangle
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.CountDownLatch
@@ -72,7 +73,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -612,7 +612,6 @@ class AppInspectionPropertiesProviderTest {
     }
   }
 
-  @Ignore("b/486842289")
   @Test
   fun testPropertiesModelNotifications() {
     projectRule.fixture.addFileToProject(
@@ -647,6 +646,9 @@ class AppInspectionPropertiesProviderTest {
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     waitForCondition(TIMEOUT, TIMEOUT_UNIT) { generatedCount == 2 }
     assertThat(valuesChanged).isEqualTo(0)
+
+    // Make sure indexing is done before using the PSI to get attributes
+    IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
 
     val targetNode = inspectorRule.inspectorModel[3]!!
     inspectorRule.inspectorModel.setSelection(targetNode, SelectionOrigin.COMPONENT_TREE)
