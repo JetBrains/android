@@ -192,4 +192,34 @@ class RunningDevicesStateObserverTest {
 
     assertThat(observedVisibleTabs).containsExactly(emptyList<DeviceId>(), listOf(tab1.deviceId), emptyList<DeviceId>())
   }
+
+  @Test
+  fun testObserverIsNotifiedOfExistingTabsAtCreation() {
+    addContent(fakeToolWindow, tab1)
+    addContent(fakeToolWindow, tab2)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    val observedVisibleTabs = mutableListOf<List<DeviceId>>()
+    val observedExistingTabs = mutableListOf<List<DeviceId>>()
+
+    val listener =
+      object : RunningDevicesStateObserver.Listener {
+        override fun onVisibleTabsChanged(visibleTabs: List<DeviceId>) {
+          observedVisibleTabs.add(visibleTabs)
+        }
+
+        override fun onExistingTabsChanged(existingTabs: List<DeviceId>) {
+          observedExistingTabs.add(existingTabs)
+        }
+      }
+
+    val runningDevicesStateObserver = RunningDevicesStateObserver.getInstance(displayViewRule.project)
+    runningDevicesStateObserver.addListener(listener)
+    // Show to trigger ToolWindowManagerListener.stateChanged
+    fakeToolWindow.show()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    assertThat(observedVisibleTabs).containsExactly(emptyList<DeviceId>(), listOf(tab1.deviceId))
+    assertThat(observedExistingTabs).containsExactly(emptyList<DeviceId>(), listOf(tab1.deviceId, tab2.deviceId))
+  }
 }

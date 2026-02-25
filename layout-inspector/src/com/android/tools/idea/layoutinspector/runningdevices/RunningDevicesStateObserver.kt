@@ -123,8 +123,8 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
   fun addListener(listener: Listener) {
     ApplicationManager.getApplication().assertIsDispatchThread()
 
-    listener.onVisibleTabsChanged(visibleTabs)
     listener.onExistingTabsChanged(existingTabs)
+    listener.onVisibleTabsChanged(visibleTabs)
 
     listeners.add(listener)
   }
@@ -152,6 +152,13 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
 
   /** [ContentManagerListener] used to observe the content of the Running Devices Tool Window. */
   private inner class RunningDevicesContentManagerListener(toolWindow: ToolWindow) : ContentManagerHierarchyAdapter(toolWindow) {
+    init {
+      invokeLater {
+        updateExistingTabs()
+        updateVisibleTabs()
+      }
+    }
+
     override fun contentAdded(event: ContentManagerEvent) {
       // listeners are executed in order, if listeners before this one launched calls using
       // invokeLater, they should be executed first.
