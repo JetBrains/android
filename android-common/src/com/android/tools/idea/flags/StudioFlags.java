@@ -3015,6 +3015,17 @@ public final class StudioFlags {
     );
   // endregion Android Lint
 
+  // region Marketing Data Collection
+  private static final FlagGroup MARKETING_DATA_COLLECTION = new FlagGroup(FLAGS, "marketing.data.collection", "Marketing Data Collection");
+  public static final Flag<Boolean> MARKETING_DATA_COLLECTION_ENABLED =
+    new BooleanFlag(
+      MARKETING_DATA_COLLECTION,
+      "enabled",
+      "Enable Marketing Data Collection",
+      "Enables the collection of usage data for Gemini marketing activation."
+    );
+  // endregion AGP Test Suites
+
   private StudioFlags() { }
 
   private static Boolean isUnitTestMode() {
