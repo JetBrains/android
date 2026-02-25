@@ -212,7 +212,7 @@ class SourceCodeEditorProviderTest(private val asyncMode: EditorCreationMode) {
     val editor = buildEditor(sourceCodeProvider, file.project, file.virtualFile)
     val preview = (editor as TextEditorWithMultiRepresentationPreview<*>).preview
 
-    preview.awaitForRepresentationsUpdated()
+    preview.onInit()
 
     assertThat(preview.representationNames).isEmpty()
     representation.isAccept = true
@@ -234,13 +234,14 @@ class SourceCodeEditorProviderTest(private val asyncMode: EditorCreationMode) {
     // We run the initialization of the test in dumb mode to ensure that the right logic triggers
     // in SourceCodeEditor after the project goes into smart mode.
     DumbModeTestUtils.runInDumbModeSynchronously(projectRule.project) {
-      val representation = TestPreviewRepresentationProvider("Representation1", true)
+      val representation = TestPreviewRepresentationProvider("Representation1", false)
       val sourceCodeProvider = SourceCodeEditorProvider.forTesting(listOf(representation))
       ApplicationManager.getApplication().invokeAndWait {
         val editor =
           sourceCodeProvider.createEditor(file.project, file.virtualFile).also { Disposer.register(fixture.testRootDisposable, it) }
         preview = (editor as TextEditorWithMultiRepresentationPreview<*>).preview
       }
+      runBlocking { preview!!.onInit() }
       assertThat(preview!!.representationNames).isEmpty()
       representation.isAccept = true
     }

@@ -237,6 +237,8 @@ open class MultiRepresentationPreview(
   // Indicates that representation is potentially being updated. Used for tracking end of processing
   // in tests.
   private val isUpdating = AtomicBoolean(false)
+  // Becomes true when the file containing the preview representations is opened
+  private val isInitialized = AtomicBoolean(false)
 
   init {
     launch(Dispatchers.Default) {
@@ -348,6 +350,10 @@ open class MultiRepresentationPreview(
    * Updates the representations and returns a [Deferred] that will be completed when the update is done. To be used in the derived classes.
    */
   protected fun updateRepresentationsAsync(): Deferred<Unit> {
+    // We don't want to update the representations until the tab has been opened. Otherwise, we risk running multiple preview searches
+    // concurrently. When there are many tabs open this can lead to thread starvation. Instead, we only want to update the representations
+    // once a tab has been opened.
+    if (!isInitialized.get()) return CompletableDeferred(Unit)
     val promise = CompletableDeferred<Unit>()
     updateCallbacksLock.withLock {
       if (allowNewUpdateCallbacks) {
@@ -481,6 +487,7 @@ open class MultiRepresentationPreview(
    * [onDeactivate] might be called multiple times.
    */
   suspend fun onInit() {
+    isInitialized.set(true)
     updateRepresentationsAsync().await()
   }
 

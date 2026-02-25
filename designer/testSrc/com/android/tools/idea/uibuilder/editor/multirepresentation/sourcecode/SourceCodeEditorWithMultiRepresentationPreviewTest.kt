@@ -50,6 +50,7 @@ class SourceCodeEditorWithMultiRepresentationPreviewTest {
           Disposer.register(projectRule.testRootDisposable, it)
         }
       }
+    editor.selectNotify()
 
     // Wait for representations to be fully initialized
     waitUntil { editor.preview.representationNames.isNotEmpty() }
@@ -88,6 +89,7 @@ class SourceCodeEditorWithMultiRepresentationPreviewTest {
       withContext(Dispatchers.EDT) {
         (editorProvider.createEditor(file.project, file.virtualFile) as TextEditorWithMultiRepresentationPreview<*>)
       }
+    editor.selectNotify()
 
     // Wait for representations to be fully initialized
     waitUntil { editor.preview.representationNames.isNotEmpty() }

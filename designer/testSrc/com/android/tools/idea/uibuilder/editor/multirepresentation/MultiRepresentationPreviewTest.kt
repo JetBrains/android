@@ -39,6 +39,7 @@ import javax.swing.JPanel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -664,8 +665,7 @@ class MultiRepresentationPreviewTest {
 
     multiPreview = UpdatableMultiRepresentationPreview(sampleFile, myFixture.editor, listOf(provider))
 
-    // Essentially the same as Init but async
-    val promise = multiPreview.updateRepresentationsInTestAsync()
+    val deferred = async(Dispatchers.Default) { multiPreview.onInit() }
 
     // Wait until the representation is requested and dispose the parent
     createRepresentationLatch.await()
@@ -674,7 +674,7 @@ class MultiRepresentationPreviewTest {
     // The createRepresentationm
     parentDisposedLatch.countDown()
 
-    promise.await()
+    deferred.await()
     multiPreview.awaitForRepresentationsUpdated()
 
     assertTrue(Disposer.isDisposed(representation))
@@ -716,7 +716,7 @@ class MultiRepresentationPreviewTest {
       Logger.setFactory { failingOnErrorLogger }
 
       multiPreview = UpdatableMultiRepresentationPreview(sampleFile, myFixture.editor, listOf(provider))
-      multiPreview.updateRepresentationsInTestAsync()
+      launch(Dispatchers.Default) { multiPreview.onInit() }
       startLatch.await()
       Disposer.dispose(multiPreview)
       busyLatch.countDown()
@@ -759,8 +759,7 @@ class MultiRepresentationPreviewTest {
 
     multiPreview = UpdatableMultiRepresentationPreview(sampleFile, myFixture.editor, listOf(defaultProvider, provider))
 
-    // Essentially the same as Init but async
-    multiPreview.updateRepresentationsInTestAsync().await()
+    multiPreview.onInit()
 
     assertEquals("Default representation without previews", multiPreview.currentRepresentationName)
 
@@ -770,6 +769,38 @@ class MultiRepresentationPreviewTest {
 
     // We should switch to the representation that actually has previews
     assertEquals("Representation with previews", multiPreview.currentRepresentationName)
+  }
+
+  @Test
+  // Regression test for b/487042085
+  fun testDoesNotSearchForPreviewsUntilInitialized() = runBlocking {
+    val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
+    myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
+
+    val provider =
+      object : PreviewRepresentationProvider {
+        val wasCalled = AtomicBoolean(false)
+
+        override val displayName: RepresentationName = "Representation"
+
+        override suspend fun accept(project: Project, psiFile: PsiFile): Boolean {
+          wasCalled.set(true)
+          return true
+        }
+
+        override suspend fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
+          wasCalled.set(true)
+          return TestPreviewRepresentation()
+        }
+      }
+
+    multiPreview = UpdatableMultiRepresentationPreview(sampleFile, myFixture.editor, listOf(provider))
+
+    multiPreview.updateRepresentationsInTestAsync().await()
+    assertFalse("Expected the provider not to be called", provider.wasCalled.get())
+
+    multiPreview.onInit()
+    assertTrue("Expected the provider to be called", provider.wasCalled.get())
   }
 }
 
