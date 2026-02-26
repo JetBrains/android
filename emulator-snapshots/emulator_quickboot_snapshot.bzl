@@ -34,7 +34,7 @@ def emulator_quickboot_snapshot(name, system_image, jvm_flags = [], visibility =
             "TEST_SRCDIR": ".",
         },
         runtime_deps = [
-            "//tools/adt/idea/android/integration:emulator_quickboot_snapshot_generator_lib",
+            ":emulator_quickboot_snapshot_generator_lib",
         ],
         target_compatible_with = select({
             "@platforms//os:windows": ["@platforms//:incompatible"],

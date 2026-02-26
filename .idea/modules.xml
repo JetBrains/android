@@ -522,5 +522,6 @@
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/firebase-provisioning/firebase-provisioning.iml" filepath="$PROJECT_DIR$/../../vendor/google/firebase-provisioning/firebase-provisioning.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/v2/agent-controller/aiplugin.v2.agent-controller.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/v2/agent-controller/aiplugin.v2.agent-controller.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/v2/agent-controller-tests/aiplugin.v2.agent-controller-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/v2/agent-controller-tests/aiplugin.v2.agent-controller-tests.iml" />    </modules>
+      <module fileurl="file://$PROJECT_DIR$/emulator-snapshots/intellij.android.emulator-snapshots.iml" filepath="$PROJECT_DIR$/emulator-snapshots/intellij.android.emulator-snapshots.iml" />
   </component>
 </project>
