@@ -159,6 +159,9 @@ class EmulatorViewTest {
   private val fakeEmulator: FakeEmulator by lazy { emulatorViewRule.getFakeEmulator(view) }
   private lateinit var fakeUi: FakeUi
 
+  private val project
+    get() = emulatorViewRule.project
+
   private val testRootDisposable
     get() = emulatorViewRule.disposable
 
@@ -190,7 +193,7 @@ class EmulatorViewTest {
           inputEvents.add(event)
         }
       }
-    val inputListenerManager = emulatorViewRule.project.getService(DeviceInputListenerManager::class.java)
+    val inputListenerManager = project.getService(DeviceInputListenerManager::class.java)
     inputListenerManager.addDeviceInputListener(fakeEmulator.serialNumber, inputListener)
 
     // Check initial appearance.
@@ -939,7 +942,7 @@ class EmulatorViewTest {
     fakeEmulator.virtualSceneCameraActive = true
 
     // Disable hardware input with shift key
-    executeAction("android.streaming.hardware.input", view, emulatorViewRule.project, modifiers = SHIFT_DOWN_MASK)
+    executeAction("android.streaming.hardware.input", view, project, modifiers = SHIFT_DOWN_MASK)
 
     // Check if notification panel is disappeared
     waitForCondition(200, MILLISECONDS) { fakeUi.findComponent<EditorNotificationPanel>() != null }
@@ -983,7 +986,7 @@ class EmulatorViewTest {
     assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("mouse_event { x: 1274 y: 744 buttons: 1 }")
 
     // Disable hardware input
-    executeAction("android.streaming.hardware.input", view, emulatorViewRule.project, modifiers = CTRL_DOWN_MASK)
+    executeAction("android.streaming.hardware.input", view, project, modifiers = CTRL_DOWN_MASK)
 
     // Check if multitouch indicator is shown
     fakeUi.layoutAndDispatchEvents()
