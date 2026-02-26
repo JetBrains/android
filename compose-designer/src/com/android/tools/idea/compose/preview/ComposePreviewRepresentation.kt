@@ -91,6 +91,7 @@ import com.android.tools.idea.preview.representation.CommonPreviewStateManager
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
+import com.android.tools.idea.preview.util.PreviewFilePointer
 import com.android.tools.idea.projectsystem.needsBuild
 import com.android.tools.idea.rendering.RenderUtils
 import com.android.tools.idea.rendering.isErrorResult
@@ -133,7 +134,6 @@ import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
-import com.intellij.psi.SmartPointerManager
 import com.intellij.ui.AncestorListenerAdapter
 import com.intellij.util.messages.Topic
 import com.intellij.util.ui.UIUtil
@@ -305,7 +305,14 @@ class ComposePreviewRepresentation(
   private val log = Logger.getInstance(ComposePreviewRepresentation::class.java)
   private val isDisposed = AtomicBoolean(false)
 
-  private val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
+  private val psiFilePointer =
+    PreviewFilePointer(psiFile) {
+      // If file reference changes, make sure to invalidate and refresh again
+      // as the last refresh might have failed midway due to this change.
+      invalidate()
+      requestRefresh()
+    }
+
   private val project
     get() = psiFilePointer.project
 

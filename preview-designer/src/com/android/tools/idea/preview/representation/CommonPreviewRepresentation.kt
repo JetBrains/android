@@ -73,6 +73,7 @@ import com.android.tools.idea.preview.navigation.AbstractPreviewNavigationHandle
 import com.android.tools.idea.preview.pagination.PreviewPaginationManager
 import com.android.tools.idea.preview.refreshExistingPreviewElements
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
+import com.android.tools.idea.preview.util.PreviewFilePointer
 import com.android.tools.idea.preview.viewmodels.CommonPreviewViewModel
 import com.android.tools.idea.preview.views.CommonNlDesignSurfacePreviewView
 import com.android.tools.idea.projectsystem.needsBuild
@@ -112,7 +113,6 @@ import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.psi.NavigatablePsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import java.awt.Rectangle
 import java.util.concurrent.atomic.AtomicBoolean
@@ -179,7 +179,13 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
 
   private val LOG = Logger.getInstance(CommonPreviewRepresentation::class.java)
   protected val project = psiFile.project
-  private val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
+  private val psiFilePointer =
+    PreviewFilePointer(psiFile) {
+      // If file reference changes, make sure to invalidate and refresh again
+      // as the last refresh might have failed midway due to this change.
+      invalidate()
+      requestRefresh()
+    }
   private val buildTargetReference = BuildTargetReference.from(psiFile) ?: error("Cannot obtain build reference to: $psiFile")
 
   private val renderingBuildStatusManager = RenderingBuildStatusManager.create(this, psiFilePointer)
