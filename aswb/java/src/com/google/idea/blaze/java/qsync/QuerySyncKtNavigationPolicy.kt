@@ -73,13 +73,17 @@ class QuerySyncKtNavigationPolicy : KotlinAnalysisApiBasedDeclarationNavigationP
     }
   }
 
+  private fun eligibleToRun(project: Project): Boolean {
+    return project.isQuerySyncProject() && !DaemonCodeAnalyzer.getInstance(project).isRunning
+  }
+
   override fun getNavigationElement(ktDeclaration: KtDeclaration): KtElement {
     if (!ENABLED_NAVIGATION_POLICY.value) return super.getNavigationElement(ktDeclaration)
 
     val classIdToKtClsFile = localCache.get()
     var classId: ClassId? = null
     val project = ktDeclaration.project
-    if (!project.isQuerySyncProject() || DaemonCodeAnalyzer.getInstance(project).isRunning) {
+    if (!eligibleToRun(project)) {
       return super.getNavigationElement(ktDeclaration)
     }
 
@@ -116,6 +120,9 @@ class QuerySyncKtNavigationPolicy : KotlinAnalysisApiBasedDeclarationNavigationP
     project: Project,
     scope: Scope,
   ): Sequence<KtCallableDeclaration> {
+    if (!eligibleToRun(project)) {
+      return super.getTopLevelCallablesByName(declaration, callableId, project, scope)
+    }
     val containingFile = declaration.containingFile
     if (containingFile is KtClsFile) {
       val candidateSourceFiles = getCachedResult(containingFile, project, ::findCandiateSourceFiles)
@@ -133,6 +140,9 @@ class QuerySyncKtNavigationPolicy : KotlinAnalysisApiBasedDeclarationNavigationP
   }
 
   override fun getClassesByClassId(classId: ClassId, project: Project, scope: Scope): Sequence<KtClassOrObject> {
+    if (!eligibleToRun(project)) {
+      return super.getClassesByClassId(classId, project, scope)
+    }
     val ktClsFile = localCache.get()[classId] ?: return super.getClassesByClassId(classId, project, scope)
 
     val candidateSourceFile = getCachedResult(ktClsFile, project, ::findCandiateSourceFile)
