@@ -25,7 +25,6 @@ import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.subComponentProvider
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.AnimationInspectorAction
-import com.android.tools.idea.preview.actions.BackNavigationAction
 import com.android.tools.idea.preview.actions.CommonPreviewActionManager
 import com.android.tools.idea.preview.actions.EnableInteractiveAction
 import com.android.tools.idea.preview.actions.JumpToDefinitionAction
@@ -89,7 +88,8 @@ internal class PreviewSurfaceActionManager(
         .disabledIfRefreshingOrHasErrorsOrProjectNeedsBuild()
         .hideIfRenderErrors()
         .visibleOnlyInStaticPreview() +
-      listOf(BackNavigationAction().visibleOnlyInInteractive()).disabledIfRefreshingOrHasErrorsOrProjectNeedsBuild()
+      listOfNotNull(StudioFlags.COMPOSE_INTERACTIVE_PREVIEW_PREDICTIVE_BACK.ifEnabled { BackNavigationAction().visibleOnlyInInteractive() })
+        .disabledIfRefreshingOrHasErrorsOrProjectNeedsBuild()
 
   private fun getAiActionGroup(shouldShowInDropDown: Boolean): AnAction? {
     val factory = ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull() ?: return null

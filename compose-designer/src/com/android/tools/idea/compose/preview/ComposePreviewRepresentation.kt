@@ -184,6 +184,7 @@ private val accessibilityModelUpdater: NlModelUpdaterInterface = AccessibilityMo
  * @param previewFlowManager the [PreviewFlowManager] that manages flows of [ComposePreviewElementInstance]
  * @param previewElement the [ComposePreviewElementInstance] associated to this model
  * @param fastPreviewSurface the [FastPreviewSurface] of the preview
+ * @param interactiveNavigationHandler the [InteractiveNavigationHandler] used to enable back navigation in Interactive mode
  */
 private fun createPreviewElementDataProvider(
   project: Project,
@@ -191,6 +192,7 @@ private fun createPreviewElementDataProvider(
   previewFlowManager: PreviewFlowManager<out ComposePreviewElementInstance<*>>,
   previewElement: PsiComposePreviewElementInstance,
   fastPreviewSurface: FastPreviewSurface,
+  interactiveNavigationHandler: InteractiveNavigationHandler,
 ) =
   object :
     NlDataProvider(
@@ -205,6 +207,7 @@ private fun createPreviewElementDataProvider(
       PREVIEW_VIEW_MODEL_STATUS,
       FastPreviewSurface.KEY,
       PreviewInvalidationManager.KEY,
+      InteractiveNavigationHandler.KEY,
     ) {
     override fun getData(dataId: String): Any? =
       when (dataId) {
@@ -219,6 +222,7 @@ private fun createPreviewElementDataProvider(
         PREVIEW_VIEW_MODEL_STATUS.name -> composePreviewManager.status()
         FastPreviewSurface.KEY.name -> fastPreviewSurface
         PreviewInvalidationManager.KEY.name -> composePreviewManager
+        InteractiveNavigationHandler.KEY.name -> interactiveNavigationHandler
         else -> null
       }
   }
@@ -316,6 +320,7 @@ class ComposePreviewRepresentation(
   private val project
     get() = psiFilePointer.project
 
+  private val interactiveNavigationHandler = InteractiveNavigationHandler()
   override val caretNavigationHandler = CaretNavigationHandlerImpl()
 
   private val previewBuildListenersManager =
@@ -507,6 +512,7 @@ class ComposePreviewRepresentation(
           composePreviewFlowManager,
           previewElement,
           this@ComposePreviewRepresentation,
+          interactiveNavigationHandler,
         )
 
       override fun toXml(previewElement: PsiComposePreviewElementInstance) =
@@ -976,7 +982,7 @@ class ComposePreviewRepresentation(
     composeWorkBench.hasRendered = true
     surface.sceneManagers.forEach {
       ComposeAnimationToolbarUpdater.update(this, it) { AnimationToolingUsageTracker.getInstance(surface) }
-      InteractivePreviewBackNavigationUpdater.update(this, it)
+      InteractivePreviewBackNavigationUpdater.update(this, it, interactiveNavigationHandler)
     }
 
     // Only update the hasRenderedAtLeastOnce field if we rendered at least one preview. Otherwise,

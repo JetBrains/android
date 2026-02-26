@@ -82,10 +82,6 @@ abstract class ComposePreviewElementInstance<T> : ComposePreviewElement<T>, XmlS
   /** Whether the Composable being previewed contains animations. If true, the Preview should allow opening the animation inspector. */
   override var hasAnimations = false
 
-  var mutableBackPressDispatcher: Any? = null
-  override val backPressedDispatcher: Any?
-    get() = mutableBackPressDispatcher
-
   override fun resolve(): Sequence<ComposePreviewElementInstance<T>> = sequenceOf(this)
 
   abstract override fun createDerivedInstance(

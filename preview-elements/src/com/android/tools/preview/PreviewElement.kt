@@ -15,7 +15,6 @@
  */
 package com.android.tools.preview
 
-import com.android.tools.preview.PreviewDisplaySettings.Background
 import java.awt.image.BufferedImage
 import java.util.function.Consumer
 
@@ -84,10 +83,6 @@ interface PreviewElement<T> : PreviewNode {
 
   /** Indicates if preview element has animation that could be inspected via [AnimationInspectorAction] */
   val hasAnimations: Boolean
-
-  /** Dispatcher that can be used for navigating back within the preview. It should be handled via reflection. */
-  val backPressedDispatcher: Any?
-    get() = null
 
   /** Settings that affect how the [PreviewElement] is presented in the preview surface */
   val displaySettings: PreviewDisplaySettings

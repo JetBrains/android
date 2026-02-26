@@ -10,7 +10,6 @@ import com.android.tools.idea.compose.preview.actions.glasses.GlassesBlendDropdo
 import com.android.tools.idea.compose.preview.util.FakeStudioBotActionFactory
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.AnimationInspectorAction
-import com.android.tools.idea.preview.actions.BackNavigationAction
 import com.android.tools.idea.preview.actions.EnableInteractiveAction
 import com.android.tools.idea.preview.actions.JumpToDefinitionAction
 import com.android.tools.idea.preview.actions.ViewInFocusModeAction
@@ -106,6 +105,7 @@ class PreviewSurfaceActionManagerTest {
     StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI_AGENTIC.overrideForTest(true, projectRule.testRootDisposable)
     StudioFlags.COMPOSE_PREVIEW_MATCH_UI_AGENT.overrideForTest(true, projectRule.testRootDisposable)
     StudioFlags.COMPOSE_UI_CHECK_FIX_WITH_AI.overrideForTest(true, projectRule.testRootDisposable)
+    StudioFlags.COMPOSE_INTERACTIVE_PREVIEW_PREDICTIVE_BACK.overrideForTest(true, projectRule.testRootDisposable)
 
     // Simulate multiple actions
     ExtensionTestUtil.maskExtensions(

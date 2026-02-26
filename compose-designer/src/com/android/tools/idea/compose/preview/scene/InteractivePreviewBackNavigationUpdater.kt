@@ -15,21 +15,24 @@
  */
 package com.android.tools.idea.compose.preview.scene
 
-import com.android.tools.idea.compose.preview.util.previewElement
+import com.android.tools.idea.compose.preview.InteractiveNavigationHandler
+import com.android.tools.idea.compose.preview.scene.InteractivePreviewBackNavigationUpdater.currentNavigationEventDispatcherOwner
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.rendering.classloading.LocalNavigationEventTransform
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.preview.ComposePreviewElementInstance
-import com.intellij.openapi.diagnostic.Logger
-import org.jetbrains.annotations.VisibleForTesting
 
+/**
+ * Sets up the [InteractiveNavigationHandler] on the [ComposePreviewElementInstance] responsible for handling interactive back navigation
+ * events in the preview.
+ */
 object InteractivePreviewBackNavigationUpdater {
 
   private var _currentNavigationEventDispatcherOwner: Any? = null
 
   /**
-   * Returns the current `androidx.navigationevent.compose.FakeNavigationEventDispatcherOwner` preveviosly created by
+   * Returns the current `androidx.navigationevent.compose.FakeNavigationEventDispatcherOwner` previously created by
    * [LocalNavigationEventTransform]
    */
   val currentNavigationEventDispatcherOwner
@@ -51,40 +54,28 @@ object InteractivePreviewBackNavigationUpdater {
   }
 
   /**
-   * Sets the `backPressDispatcher` property of the [previewElement] to the ComposeViewAdapter's
-   * FakeOnBackPressedDispatcherOwner#onBackPressedDispatcher() method. This will make sure that back events triggered in interactive
-   * preview will be dispatched to Composable.
+   * Updates the [InteractiveNavigationHandler] for the current [ComposePreviewElementInstance] using the provided [LayoutlibSceneManager].
+   *
+   * This method retrieves the [ComposePreviewElementInstance] and the underlying object of `androidx.compose.ui-tooling.ComposeViewAdapter`
+   * from the [LayoutlibSceneManager] to update the [InteractiveNavigationHandler].
+   *
+   * Call this method on every preview render to ensure the [InteractiveNavigationHandler] has the most current navigation information from
+   * the [ComposeViewAdapter].
+   *
+   * @param previewManager The [PreviewModeManager] to check the current preview mode.
+   * @param layoutlibSceneManager The [LayoutlibSceneManager] providing the [ComposePreviewElementInstance] and the [ComposeViewAdapter]
+   *   object.
    */
-  @VisibleForTesting
-  fun update(viewObj: Any, previewManager: PreviewModeManager, previewElement: ComposePreviewElementInstance<*>) {
+  fun update(
+    previewManager: PreviewModeManager,
+    layoutlibSceneManager: LayoutlibSceneManager,
+    interactiveNavigationHandler: InteractiveNavigationHandler,
+  ) {
+    val composeViewAdapterObj = layoutlibSceneManager.viewObject ?: return
     if (previewManager.mode.value !is PreviewMode.Interactive) return
-    try {
-      val fakeOnBackPressedDispatcherOwner =
-        viewObj::class
-          .java
-          .declaredFields
-          .single { it.name == "FakeOnBackPressedDispatcherOwner" }
-          .also { it.isAccessible = true }
-          .get(viewObj)
-
-      val onBackPressedDispatcher =
-        fakeOnBackPressedDispatcherOwner::class
-          .java
-          .declaredFields
-          .single { it.name == "onBackPressedDispatcher" }
-          .also { it.isAccessible = true }
-          .get(fakeOnBackPressedDispatcherOwner)
-
-      previewElement.mutableBackPressDispatcher = onBackPressedDispatcher
-    } catch (e: Throwable) {
-      Logger.getInstance(InteractivePreviewBackNavigationUpdater::class.java)
-        .debug("Could not get the Composable OnBackPressedDispatcher.", e)
-    }
-  }
-
-  fun update(previewManager: PreviewModeManager, layoutlibSceneManager: LayoutlibSceneManager) {
-    val previewElementInstance = layoutlibSceneManager.model.dataProvider?.previewElement() ?: return
-    val viewObj = layoutlibSceneManager.viewObject ?: return
-    update(viewObj, previewManager, previewElementInstance)
+    interactiveNavigationHandler.updateObjects(
+      currentNavigationEventDispatcherOwnerObj = currentNavigationEventDispatcherOwner,
+      currentComposeViewAdapterObj = composeViewAdapterObj,
+    )
   }
 }
