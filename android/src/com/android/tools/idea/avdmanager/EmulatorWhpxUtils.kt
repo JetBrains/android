@@ -19,7 +19,10 @@ package com.android.tools.idea.avdmanager
 
 import com.android.sdklib.internal.avd.getEmulatorPackage
 import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.EmulatorWindowsHypervisorMigrationEvent
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler
@@ -120,9 +123,18 @@ fun balloonNotifyReboot(prompt: String, project: Project? = null) {
 
 fun showWhpxUpdateDialog(project: Project?, fromAehd: Boolean): Boolean {
   val dialog = WhpxUpdateDialog(project, fromAehd)
+  if (fromAehd) logHypervisorMigrationEvent(EmulatorWindowsHypervisorMigrationEvent.Action.WHPX_UPDATE_DIALOG_SHOW)
   dialog.show()
 
   return dialog.isOperationSuccessful
+}
+
+fun logHypervisorMigrationEvent(action: EmulatorWindowsHypervisorMigrationEvent.Action) {
+  UsageTracker.log(
+    AndroidStudioEvent.newBuilder()
+      .setKind(AndroidStudioEvent.EventKind.EMULATOR_WINDOWS_HYPERVISOR_MIGRATION_EVENT)
+      .setEmulatorWindowsHypervisorMigrationEvent(EmulatorWindowsHypervisorMigrationEvent.newBuilder().setAction(action))
+  )
 }
 
 private object EmulatorWhpxUtil

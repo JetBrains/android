@@ -16,6 +16,7 @@
 package com.android.tools.idea.avdmanager
 
 import com.android.tools.idea.sdk.AndroidSdks
+import com.google.wireless.android.sdk.stats.EmulatorWindowsHypervisorMigrationEvent
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.diagnostic.logger
@@ -72,6 +73,7 @@ class WhpxUpdateDialog(private val project: Project?, private val fromAehd: Bool
     if (result is WhpxResult.Success) {
       isOperationSuccessful = true
       PropertiesComponent.getInstance().setValue(WHPX_ENABLE_PENDING_RESTART, true)
+      if (fromAehd) logHypervisorMigrationEvent(EmulatorWindowsHypervisorMigrationEvent.Action.ENABLE_WHPX_SUCCESS)
 
       if (rebootNow) {
         notifyAndReboot("You must restart your system to complete Windows Hypervisor Platform update.", project)
@@ -81,6 +83,7 @@ class WhpxUpdateDialog(private val project: Project?, private val fromAehd: Bool
     } else {
       logger<WhpxUpdateDialog>().error("Operation enableWHPX failed: ${result.description}.")
       isOperationSuccessful = false
+      if (fromAehd) logHypervisorMigrationEvent(EmulatorWindowsHypervisorMigrationEvent.Action.ENABLE_WHPX_FAILURE)
 
       when (result) {
         is WhpxResult.AuthorizationRequired -> {
@@ -111,6 +114,7 @@ class WhpxUpdateDialog(private val project: Project?, private val fromAehd: Bool
     val updateAndRestartAction =
       object : AbstractAction(if (fromAehd) "Update and Restart Now" else "Enable and Restart Now") {
         override fun actionPerformed(e: ActionEvent?) {
+          if (fromAehd) logHypervisorMigrationEvent(EmulatorWindowsHypervisorMigrationEvent.Action.WHPX_UPDATE_ACCEPTED)
           close(UPDATE_AND_RESTART_EXIT_CODE)
           enableWhpxAndReboot(true)
         }
@@ -128,8 +132,14 @@ class WhpxUpdateDialog(private val project: Project?, private val fromAehd: Bool
 
   /* Action when user clicks "Update" */
   override fun doOKAction() {
+    if (fromAehd) logHypervisorMigrationEvent(EmulatorWindowsHypervisorMigrationEvent.Action.WHPX_UPDATE_ACCEPTED)
     super.doOKAction()
     enableWhpxAndReboot(false)
+  }
+
+  override fun doCancelAction() {
+    if (fromAehd) logHypervisorMigrationEvent(EmulatorWindowsHypervisorMigrationEvent.Action.WHPX_UPDATE_REJECTED)
+    super.doCancelAction()
   }
 
   private inner class RebootWarningPanel(warningText: String) : EditorNotificationPanel(Status.Warning) {

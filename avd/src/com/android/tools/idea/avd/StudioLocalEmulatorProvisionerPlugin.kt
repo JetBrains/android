@@ -57,11 +57,13 @@ import com.android.tools.idea.avdmanager.AccelerationErrorSolution
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.RunningAvdTracker
 import com.android.tools.idea.avdmanager.checkAcceleration
+import com.android.tools.idea.avdmanager.logHypervisorMigrationEvent
 import com.android.tools.idea.deviceprovisioner.NotificationBannersExtension
 import com.android.tools.idea.deviceprovisioner.StudioDefaultDeviceActionPresentation
 import com.android.tools.idea.glassespairing.GlassesPairingWizard
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
+import com.google.wireless.android.sdk.stats.EmulatorWindowsHypervisorMigrationEvent
 import com.intellij.icons.AllIcons
 import com.intellij.ide.actions.RevealFileAction
 import com.intellij.ide.util.PropertiesComponent
@@ -162,6 +164,9 @@ class StudioLocalEmulatorProvisionerPlugin(
       icon(StudioIcons.Common.ERROR)
       createActionLabel(accelError.solution.description) {
         AccelerationErrorSolution.getActionForFix(accelError, project, { refreshAccelerationCheck() }, null).run()
+      }
+      if (accelError == AccelerationErrorCode.WHPX_RECOMMENDED) {
+        logHypervisorMigrationEvent(EmulatorWindowsHypervisorMigrationEvent.Action.BANNER_SHOW)
       }
     }
   }
