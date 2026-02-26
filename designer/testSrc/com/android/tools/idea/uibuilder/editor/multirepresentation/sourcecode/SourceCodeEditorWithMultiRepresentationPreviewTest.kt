@@ -28,9 +28,11 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.common.waitUntil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import kotlin.test.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.junit.Assert.assertFalse
 import org.junit.Rule
 import org.junit.Test
 
@@ -50,6 +52,7 @@ class SourceCodeEditorWithMultiRepresentationPreviewTest {
           Disposer.register(projectRule.testRootDisposable, it)
         }
       }
+    withContext(Dispatchers.EDT) { fixture.openFileInEditor(file.virtualFile) }
     editor.selectNotify()
 
     // Wait for representations to be fully initialized
@@ -89,6 +92,7 @@ class SourceCodeEditorWithMultiRepresentationPreviewTest {
       withContext(Dispatchers.EDT) {
         (editorProvider.createEditor(file.project, file.virtualFile) as TextEditorWithMultiRepresentationPreview<*>)
       }
+    withContext(Dispatchers.EDT) { fixture.openFileInEditor(file.virtualFile) }
     editor.selectNotify()
 
     // Wait for representations to be fully initialized
@@ -97,5 +101,30 @@ class SourceCodeEditorWithMultiRepresentationPreviewTest {
     assertThat(editor.getToolbarComponentForTests()).isNotNull()
     withContext(Dispatchers.EDT) { Disposer.dispose(editor) }
     assertThat(editor.getToolbarComponentForTests()).isNull()
+  }
+
+  @Test
+  // Regression test for b/487042085
+  fun testEditorIsActivatedOnlyWhenTheFileIsSelectedInTheEditor() = runBlocking {
+    val file = fixture.addFileToProject("src/Preview.kt", "")
+    val editorProvider = SourceCodeEditorProvider.forTesting(listOf(TestPreviewRepresentationProvider("Representation1", true)))
+    val editor =
+      withContext(Dispatchers.EDT) {
+        (editorProvider.createEditor(file.project, file.virtualFile) as TextEditorWithMultiRepresentationPreview<*>).also {
+          Disposer.register(projectRule.testRootDisposable, it)
+        }
+      }
+    // The editor is waiting for its first activation
+    assertFalse(editor.hasBeenActivatedForTest())
+
+    // If we selectNotify without opening the file in the editor, the editor should not be activated
+    editor.selectNotify()
+    assertFalse(editor.hasBeenActivatedForTest())
+
+    // Now, if we open the file in the editor and call selectNotify, the activation should happen
+    withContext(Dispatchers.EDT) { fixture.openFileInEditor(file.virtualFile) }
+    editor.selectNotify()
+
+    assertTrue(editor.hasBeenActivatedForTest())
   }
 }

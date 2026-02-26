@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.TestOnly
 
 /** Converts the [PreferredVisibility] value into the equivalent [TextEditorWithPreview.Layout]. */
 private fun PreferredVisibility?.toTextEditorLayout(): TextEditorWithPreview.Layout? =
@@ -167,6 +168,9 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
 
   final override fun selectNotify() {
     super.selectNotify()
+    // selectNotify can be triggered for tabs that are not selected when opening a project. We only want to activate the preview once
+    // the tab has been selected to avoid initializing files/tabs too eagerly.
+    if (file !in FileEditorManager.getInstance(project).selectedFiles) return
 
     if (firstActivation) {
       // This is the first time the editor is being activated so trigger the onInit initialization.
@@ -212,4 +216,10 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
 
   override val showPreviewAction: SplitEditorAction
     get() = _showPreviewAction
+
+  /**
+   * Returns whether the editor has been activated at least once. This should happen when the editor is selected and the [selectNotify]
+   * method called.
+   */
+  @TestOnly internal fun hasBeenActivatedForTest() = !firstActivation
 }
