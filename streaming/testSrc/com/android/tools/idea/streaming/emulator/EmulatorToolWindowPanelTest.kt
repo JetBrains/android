@@ -21,8 +21,7 @@ import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.ThemingStyle
 import com.android.mockito.kotlin.whenever
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
+import com.android.testutils.GoldenImageRule
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.actions.createTestEvent
@@ -141,6 +140,7 @@ class EmulatorToolWindowPanelTest {
 
   private val projectRule = ProjectRule()
   private val emulatorRule = FakeEmulatorRule()
+  private val goldenImageRule = GoldenImageRule("tools/adt/idea/streaming/testData/EmulatorToolWindowPanelTest/golden")
   @get:Rule
   val ruleChain =
     RuleChain(
@@ -149,6 +149,7 @@ class EmulatorToolWindowPanelTest {
       emulatorRule,
       ClipboardSynchronizationDisablementRule(),
       PortableUiFontRule(),
+      goldenImageRule,
       EdtRule(),
     )
 
@@ -1337,12 +1338,6 @@ class EmulatorToolWindowPanelTest {
         SystemInfo.isWindows -> maxPercentDifferentWindows
         else -> maxPercentDifferentLinux
       }
-    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), scaledImage, maxPercentDifferent)
-  }
-
-  private fun getGoldenFile(name: String): Path {
-    return TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/golden/${name}.png")
+    goldenImageRule.assertImageSimilar(goldenImageName, scaledImage, maxPercentDifferent)
   }
 }
-
-private const val TEST_DATA_PATH = "tools/adt/idea/streaming/testData/EmulatorToolWindowPanelTest"
