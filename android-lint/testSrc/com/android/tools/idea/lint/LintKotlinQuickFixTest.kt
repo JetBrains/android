@@ -19,7 +19,6 @@ import com.android.ide.common.util.Diffs
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.idea.lint.inspections.AndroidLintInlinedApiInspection
 import com.android.tools.idea.lint.inspections.AndroidLintNewApiInspection
-import com.android.tools.idea.lint.inspections.AndroidLintParcelCreatorInspection
 import com.android.tools.idea.lint.inspections.AndroidLintSdCardPathInspection
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.WriteAction
@@ -28,8 +27,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import java.io.IOException
 import org.intellij.lang.annotations.Language
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
-import org.junit.Assume
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -106,99 +103,6 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       FileDocumentManager.getInstance().reloadFiles(virtualFile)
     }
     return PsiManager.getInstance(project).findFile(virtualFile)!!
-  }
-
-  // Test Parcelable quickfixes
-
-  @Test
-  fun testParcelableMissingCreator() {
-    // Parcelable is no longer supported in K2. Use Parcelize.
-    Assume.assumeFalse(KotlinPluginModeProvider.isK2Mode())
-    check(
-      """
-        import android.os.Parcel
-        import android.os.Parcelable
-
-        class /*caret*/MissingCreator : Parcelable {
-            override fun writeToParcel(dest: Parcel?, flags: Int) {
-                TODO("not implemented")
-            }
-
-            override fun describeContents(): Int {
-                TODO("not implemented")
-            }
-        }
-        """,
-      AndroidLintParcelCreatorInspection(),
-      "Add Parcelable Implementation",
-      """
-      @@ -3,3 +3,6 @@
-
-      -class MissingCreator : Parcelable {
-      +class MissingCreator() : Parcelable {
-      +    constructor(parcel: Parcel) : this() {
-      +    }
-      +
-           override fun writeToParcel(dest: Parcel?, flags: Int) {
-      @@ -10,2 +13,12 @@
-               TODO("not implemented")
-      +    }
-      +
-      +    companion object CREATOR : Parcelable.Creator<MissingCreator> {
-      +        override fun createFromParcel(parcel: Parcel): MissingCreator {
-      +            return MissingCreator(parcel)
-      +        }
-      +
-      +        override fun newArray(size: Int): Array<MissingCreator?> {
-      +            return arrayOfNulls(size)
-      +        }
-           }
-      """,
-    )
-  }
-
-  @Test
-  fun testParcelableNoImplementation() {
-    // Parcelable is no longer supported in K2. Use Parcelize.
-    Assume.assumeFalse(KotlinPluginModeProvider.isK2Mode())
-    check(
-      """
-      import android.os.Parcelable
-
-      class /*caret*/NoImplementation : Parcelable
-        """,
-      AndroidLintParcelCreatorInspection(),
-      "Add Parcelable Implementation",
-      """
-      @@ -1,3 +1,25 @@
-      +import android.os.Parcel
-       import android.os.Parcelable
-
-      -class NoImplementation : Parcelable
-      +class NoImplementation() : Parcelable {
-      +    constructor(parcel: Parcel) : this() {
-      +    }
-      +
-      +    override fun writeToParcel(parcel: Parcel, flags: Int) {
-      +
-      +    }
-      +
-      +    override fun describeContents(): Int {
-      +        return 0
-      +    }
-      +
-      +    companion object CREATOR : Parcelable.Creator<NoImplementation> {
-      +        override fun createFromParcel(parcel: Parcel): NoImplementation {
-      +            return NoImplementation(parcel)
-      +        }
-      +
-      +        override fun newArray(size: Int): Array<NoImplementation?> {
-      +            return arrayOfNulls(size)
-      +        }
-      +    }
-      +}
-      """,
-    )
   }
 
   // Test Add Requires Api quickfixes
