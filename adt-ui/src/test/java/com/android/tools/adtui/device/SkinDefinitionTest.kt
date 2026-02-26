@@ -16,7 +16,7 @@
 package com.android.tools.adtui.device
 
 import com.android.io.readImage
-import com.android.testutils.ImageDiffUtil
+import com.android.testutils.GoldenImageRule
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.webp.WebpMetadata
@@ -39,10 +39,13 @@ import kotlin.math.roundToInt
 import kotlin.math.sqrt
 import kotlin.test.fail
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
 /** Tests for [SkinDefinition] and related classes. */
 class SkinDefinitionTest {
+
+  @get:Rule val goldenImageRule = GoldenImageRule("$TEST_DATA_PATH/golden")
 
   @Before
   fun setUp() {
@@ -181,7 +184,7 @@ class SkinDefinitionTest {
 
   @Test
   fun testTwoDisplays() {
-    val folder = TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/skins/two_displays")
+    val folder = TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/skins/two_displays")
     val skin = SkinDefinition.createOrNull(folder) ?: fail("Expected non-null SkinDefinition")
     // Check the skin layout.
     assertThat(skin.getRotatedFrameSize(0)).isEqualTo(Dimension(2348, 1080))
@@ -462,7 +465,7 @@ class SkinDefinitionTest {
 
   private fun assertSkinAppearance(skinLayout: SkinLayout, goldenImageName: String) {
     val image = skinLayout.draw()
-    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, 0.0)
+    goldenImageRule.assertImageSimilar(goldenImageName, image, 0.0)
   }
 
   private fun SkinLayout.draw(): BufferedImage {
@@ -471,10 +474,6 @@ class SkinDefinitionTest {
     drawFrameAndMask(g, Rectangle(-frameRectangle.x, -frameRectangle.y, displaySize.width, displaySize.height))
     g.dispose()
     return image
-  }
-
-  private fun getGoldenFile(name: String): Path {
-    return TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/golden/${name}.png")
   }
 }
 
