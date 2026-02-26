@@ -1583,8 +1583,10 @@ def intellij_platform(
     )
 
     for plugin, jars in spec.plugin_jars.items():
-        # 'kind' indicates whether this is a top-level plugin, or a plugin module inside a host plugin.
-        kind = "module" if len(jars) == 1 and "/modules/" in jars[0] else "plugin"
+        # Note: some "plugins" are actually v2 submodules (existing inside a larger plugin
+        # or inside the platform). See go/studio-v2-modules for details.
+        is_v2_module = len(jars) == 1 and ("/modules/" in jars[0] or jars[0].startswith("lib/"))
+        kind = "module" if is_v2_module else "plugin"
         jars_target_name = "%s-plugin-%s_jars" % (name, plugin)
         _gen_plugin_jars_import_target(jars_target_name, spec, sdk_dirs, plugin, jars)
         _intellij_plugin_import(

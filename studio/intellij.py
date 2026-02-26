@@ -48,11 +48,11 @@ class IntelliJ:
     )
     prefix = _read_platform_prefix(product_info)
     major, minor = read_version(path/_idea_home[platform]/"lib", prefix)
-    jars = read_platform_jars(product_info)
-    plugin_jars = _read_plugin_jars(path/_idea_home[platform], product_info)
+    platform_jars = read_platform_jars(product_info)
+    plugin_jars = _read_plugin_jars(path/_idea_home[platform], product_info, platform_jars)
     add_exports = _read_jvm_args("--add-exports=","=ALL-UNNAMED", product_info)
     add_opens = _read_jvm_args("--add-opens=","=ALL-UNNAMED", product_info)
-    return IntelliJ(major, minor, platform_jars=jars, plugin_jars=plugin_jars, jvm_add_exports=add_exports, jvm_add_opens=add_opens)
+    return IntelliJ(major, minor, platform_jars=platform_jars, plugin_jars=plugin_jars, jvm_add_exports=add_exports, jvm_add_opens=add_opens)
 
 
 def read_product_info(path):
@@ -102,7 +102,7 @@ def _read_zip_entry(zip_path, entry):
   return data.decode("utf-8")
 
 
-def _read_plugin_jars(ide_home: Path, product_info):
+def _read_plugin_jars(ide_home: Path, product_info, platform_jars: set[str]):
   # Note: we model V2 modules as plugins too, at least until the V2 design solidifies upstream.
   # See b/349849955 and go/studio-v2-modules for details.
   plugins = {}
@@ -116,6 +116,10 @@ def _read_plugin_jars(ide_home: Path, product_info):
       if not classpath:
         continue  # Empty classpath => no need to create a Bazel target for it.
       jars = ["/" + jar for jar in classpath]
+      if all(jar in platform_jars for jar in jars):
+        continue  # All jars are in the core classloader => no need for a separate target.
+      for jar in jars:
+        assert jar not in platform_jars, f"Plugin {id} somehow has a subset of its jars inside core, including {jar}"
       assert id not in plugins, f"Duplicated plugin ID: {id}"
       plugins[id] = set(jars)
   return plugins
