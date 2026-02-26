@@ -182,7 +182,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   private val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
   private val buildTargetReference = BuildTargetReference.from(psiFile) ?: error("Cannot obtain build reference to: $psiFile")
 
-  private val renderingBuildStatusManager = RenderingBuildStatusManager.create(this, psiFile)
+  private val renderingBuildStatusManager = RenderingBuildStatusManager.create(this, psiFilePointer)
 
   @TestOnly internal fun getProjectBuildStatusForTest() = renderingBuildStatusManager.status
 

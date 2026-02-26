@@ -30,6 +30,7 @@ import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.edtWriteAction
 import com.intellij.openapi.application.readAction
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -37,6 +38,7 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.writeText
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiManager
+import com.intellij.psi.SmartPointerManager
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.utils.vfs.createFile
 import kotlin.time.Duration.Companion.seconds
@@ -77,7 +79,9 @@ class RenderingBuildStatusManagerTest {
 
     IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
 
-    val statusManager = RenderingBuildStatusManager.create(projectRule.fixture.testRootDisposable, projectRule.fixture.file)
+    val psiFilePointer = runReadAction { SmartPointerManager.createPointer(projectRule.fixture.file) }
+
+    val statusManager = RenderingBuildStatusManager.create(projectRule.fixture.testRootDisposable, psiFilePointer)
     statusManager.statusFlow.awaitStatus("Ready state expected", 5.seconds) { it == RenderingBuildStatus.Ready }
     assertTrue("Project must compile correctly", projectRule.build().isBuildSuccessful)
     statusManager.statusFlow.awaitStatus("Builds status is not Ready after successful build", 5.seconds) {
@@ -90,8 +94,9 @@ class RenderingBuildStatusManagerTest {
       newVirtualFile
     }
     val newFile = readAction { PsiManager.getInstance(project).findFile(newVirtualFile) }!!
+    val newPsiFilePointer = runReadAction { SmartPointerManager.createPointer(newFile) }
 
-    val newStatusManager = RenderingBuildStatusManager.create(projectRule.fixture.testRootDisposable, newFile)
+    val newStatusManager = RenderingBuildStatusManager.create(projectRule.fixture.testRootDisposable, newPsiFilePointer)
     newStatusManager.statusFlow.awaitStatus("NeedsBuild state expected", 5.seconds) { it == RenderingBuildStatus.NeedsBuild }
     projectRule.buildAndAssertIsSuccessful()
     newStatusManager.statusFlow.awaitStatus("Ready state expected", 5.seconds) { it == RenderingBuildStatus.Ready }
@@ -129,7 +134,9 @@ class RenderingBuildStatusManagerTest {
       documentManager.commitAllDocuments()
     }
 
-    val statusManager = RenderingBuildStatusManager.create(projectRule.fixture.testRootDisposable, projectRule.fixture.file)
+    val psiFilePointer = runReadAction { SmartPointerManager.createPointer(projectRule.fixture.file) }
+
+    val statusManager = RenderingBuildStatusManager.create(projectRule.fixture.testRootDisposable, psiFilePointer)
     statusManager.statusFlow.awaitStatus("NeedsBuild state expected", 5.seconds) { it == RenderingBuildStatus.NeedsBuild }
     assertFalse(projectRule.build().isBuildSuccessful)
     statusManager.statusFlow.awaitStatus("NeedsBuild state expected", 5.seconds) { it == RenderingBuildStatus.NeedsBuild }

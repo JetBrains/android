@@ -28,11 +28,13 @@ import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText
 import com.android.tools.idea.ui.ApplicationUtils.invokeWriteActionAndWait
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.psi.SmartPointerManager
 import java.util.concurrent.CountDownLatch
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -80,8 +82,8 @@ class RenderingBuildStatusManagerTest {
         Disposer.register(projectRule.fixture.testRootDisposable, it)
       }
     projectRule.replaceProjectService(FastPreviewManager::class.java, fastPreviewManager)
-
-    val statusManager = RenderingBuildStatusManager.create(projectRule.fixture.testRootDisposable, psiFile)
+    val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
+    val statusManager = RenderingBuildStatusManager.create(projectRule.fixture.testRootDisposable, psiFilePointer)
 
     runBlocking {
       val buildTargetReference = BuildTargetReference.gradleOnly(projectRule.fixture.module)
@@ -111,8 +113,8 @@ class RenderingBuildStatusManagerTest {
   @Test
   fun testFastPreviewEnableLeavesFileAsUpToDateForSuccessfulGradleBuild() {
     val psiFile = projectRule.fixture.addFileToProject("src/a/Test.kt", "fun a() {}")
-
-    val statusManager = RenderingBuildStatusManager.create(projectRule.fixture.testRootDisposable, psiFile)
+    val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
+    val statusManager = RenderingBuildStatusManager.create(projectRule.fixture.testRootDisposable, psiFilePointer)
 
     try {
       FastPreviewManager.getInstance(project).enable()
@@ -133,8 +135,8 @@ class RenderingBuildStatusManagerTest {
   @Test
   fun testFastPreviewEnableLeavesFileAsOutOfDateForFailedGradleBuild() {
     val psiFile = projectRule.fixture.addFileToProject("src/a/Test.kt", "fun a() {}")
-
-    val statusManager = RenderingBuildStatusManager.create(projectRule.fixture.testRootDisposable, psiFile)
+    val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
+    val statusManager = RenderingBuildStatusManager.create(projectRule.fixture.testRootDisposable, psiFilePointer)
 
     try {
       FastPreviewManager.getInstance(project).enable()
@@ -156,8 +158,8 @@ class RenderingBuildStatusManagerTest {
   fun testFastPreviewEnableLeavesFileAsOutOfDateForFailedFastPreviewCompilation() {
     val psiFile = projectRule.fixture.addFileToProject("src/a/Test.kt", "fun a() {}")
     val buildTargetReference = BuildTargetReference.gradleOnly(projectRule.fixture.module)
-
-    val statusManager = RenderingBuildStatusManager.create(projectRule.fixture.testRootDisposable, psiFile)
+    val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
+    val statusManager = RenderingBuildStatusManager.create(projectRule.fixture.testRootDisposable, psiFilePointer)
 
     try {
       FastPreviewManager.getInstance(project).enable()
@@ -195,8 +197,9 @@ class RenderingBuildStatusManagerTest {
       """,
       )
     val lookups = mutableSetOf<String>()
+    val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
     val statusManager =
-      RenderingBuildStatusManager.createForTest(projectRule.fixture.testRootDisposable, psiFile) { _ ->
+      RenderingBuildStatusManager.createForTest(projectRule.fixture.testRootDisposable, psiFilePointer) { _ ->
         { fqcn ->
           lookups.add(fqcn)
           true

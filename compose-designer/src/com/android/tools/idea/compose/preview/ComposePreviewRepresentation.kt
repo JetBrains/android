@@ -349,7 +349,7 @@ class ComposePreviewRepresentation(
   /** Gives access to the rendered preview elements. For testing only. Users of this class should not use this method. */
   @TestOnly fun renderedPreviewElementsInstancesFlowForTest() = composePreviewFlowManager.renderedPreviewElementsFlow
 
-  private val renderingBuildStatusManager = RenderingBuildStatusManager.create(this, psiFile)
+  private val renderingBuildStatusManager = RenderingBuildStatusManager.create(this, psiFilePointer)
 
   /**
    * This field will be false until the preview has rendered at least once. If the preview has not rendered once we do not have enough

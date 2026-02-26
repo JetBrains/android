@@ -43,7 +43,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
-import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.search.EverythingGlobalScope
 import com.intellij.psi.search.GlobalSearchScope
@@ -130,26 +129,26 @@ interface RenderingBuildStatusManager {
      * Creates a new [RenderingBuildStatusManager].
      *
      * @param parentDisposable [Disposable] to track for disposing this manager.
-     * @param psiFile the file in the editor to track changes and the build status. If the project has not been built since it was open,
-     *   this file is used to find if there are any existing .class files that indicate that has been built before.
+     * @param psiFilePointer a pointer to the file in the editor to track changes and the build status. If the project has not been built
+     *   since it was open, this file is used to find if there are any existing .class files that indicate that has been built before.
      */
-    fun create(parentDisposable: Disposable, psiFile: PsiFile): RenderingBuildStatusManager =
-      RenderingBuildStatusManagerImpl(parentDisposable, psiFile, ::defaultClassFinderFactory)
+    fun create(parentDisposable: Disposable, psiFilePointer: SmartPsiElementPointer<PsiFile>): RenderingBuildStatusManager =
+      RenderingBuildStatusManagerImpl(parentDisposable, psiFilePointer, ::defaultClassFinderFactory)
 
     /**
      * Creates a new [RenderingBuildStatusManager].
      *
      * @param parentDisposable [Disposable] to track for disposing this manager.
-     * @param psiFile the file in the editor to track changes and the build status. If the project has not been built since it was open,
-     *   this file is used to find if there are any existing .class files that indicate that has been built before.
+     * @param psiFilePointer a pointer to the file in the editor to track changes and the build status. If the project has not been built
+     *   since it was open, this file is used to find if there are any existing .class files that indicate that has been built before.
      * @param classFinderFactory factory method that provides the class finder lookup method that allows to determine if a class exists.
      */
     @TestOnly
     fun createForTest(
       parentDisposable: Disposable,
-      psiFile: PsiFile,
+      psiFilePointer: SmartPsiElementPointer<PsiFile>,
       classFinderFactory: (BuildTargetReference) -> suspend ((String) -> Boolean) = ::defaultClassFinderFactory,
-    ): RenderingBuildStatusManagerForTests = RenderingBuildStatusManagerImpl(parentDisposable, psiFile, classFinderFactory)
+    ): RenderingBuildStatusManagerForTests = RenderingBuildStatusManagerImpl(parentDisposable, psiFilePointer, classFinderFactory)
   }
 }
 
@@ -179,17 +178,18 @@ private fun defaultClassFinderFactory(buildTargetReference: BuildTargetReference
 
 private class RenderingBuildStatusManagerImpl(
   parentDisposable: Disposable,
-  psiFile: PsiFile,
+  private val psiFilePointer: SmartPsiElementPointer<PsiFile>,
   private val classFinderFactory: (BuildTargetReference) -> suspend ((String) -> Boolean),
 ) : RenderingBuildStatusManager, RenderingBuildStatusManagerForTests {
-  private val editorFilePtr: SmartPsiElementPointer<PsiFile> = runReadAction {
-    SmartPointerManager.getInstance(psiFile.project).createSmartPsiElementPointer(psiFile)
-  }
 
   private val scope = AndroidCoroutineScope(parentDisposable)
 
-  private val project: Project = psiFile.project
-  private val buildTargetReference = BuildTargetReference.from(psiFile) ?: error("Cannot get build target reference for: $psiFile")
+  private val project: Project
+    get() = psiFilePointer.project
+
+  private val buildTargetReference =
+    psiFilePointer.element?.let { BuildTargetReference.from(it) }
+      ?: error("Cannot get build target reference for: ${psiFilePointer.element}")
   private val buildSystemFilePreviewServices = buildTargetReference.getBuildSystemFilePreviewServices()
 
   private val projectBuildStatusFlow = MutableStateFlow(ProjectBuildStatus.NotReady)
@@ -299,7 +299,7 @@ private class RenderingBuildStatusManagerImpl(
 
     // Register listener
     LOG.debug("setup notification change listener")
-    runReadAction { psiFile.module?.androidFacet }
+    runReadAction { psiFilePointer.element?.module?.androidFacet }
       ?.let { facet ->
         val resourceNotificationManager = ResourceNotificationManager.getInstance(project)
         val isDisposerRegistered =
@@ -335,7 +335,7 @@ private class RenderingBuildStatusManagerImpl(
   override fun getResourcesListenerForTest(): ResourceChangeListener = resourceChangeListener
 
   private suspend fun editorHasExistingClassFile(): Boolean {
-    val psiFile: PsiFile = readAction { editorFilePtr.element } ?: return false
+    val psiFile: PsiFile = readAction { psiFilePointer.element } ?: return false
     val classFileFinder = classFinderFactory(buildTargetReference)
 
     return readAction { psiFile.findClassesFqNames() }.any { classFileFinder(it) }

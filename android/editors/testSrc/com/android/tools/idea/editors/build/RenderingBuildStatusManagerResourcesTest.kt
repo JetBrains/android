@@ -22,7 +22,9 @@ import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewService
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.ApplicationUtils
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
+import com.intellij.psi.SmartPointerManager
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -44,7 +46,8 @@ class RenderingBuildStatusManagerResourcesTest {
   @Test
   fun testResourcesMakeTheProjectOutOfDate() = runBlocking {
     val psiFile = projectRule.fixture.addFileToProject("/src/a/Test.kt", "fun a() {}")
-    val statusManager = RenderingBuildStatusManager.create(projectRule.fixture.testRootDisposable, psiFile)
+    val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
+    val statusManager = RenderingBuildStatusManager.create(projectRule.fixture.testRootDisposable, psiFilePointer)
 
     // Simulate a successful build
     buildServices.simulateArtifactBuild(buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS)
