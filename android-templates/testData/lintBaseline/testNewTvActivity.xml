@@ -43,6 +43,17 @@
     </issue>
 
     <issue
+        id="PrivateResource"
+        message="The resource `@drawable/lb_ic_sad_cloud` is marked as private in androidx.leanback:leanback:1.2.0"
+        errorLine1="        setImageDrawable(ContextCompat.getDrawable(getContext(), androidx.leanback.R.drawable.lb_ic_sad_cloud));"
+        errorLine2="                                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/template/test/in/ErrorFragment.java"
+            line="25"
+            column="66"/>
+    </issue>
+
+    <issue
         id="DiscouragedApi"
         message="Fixed screen orientations will be ignored in most cases, starting from Android 16. Android is moving toward a model where apps are expected to adapt to various orientations, display sizes, and aspect ratios."
         errorLine1="            android:screenOrientation=&quot;landscape&quot;>"

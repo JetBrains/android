@@ -16,7 +16,7 @@
         errorLine2="        ~~~~~~~~~~~~">
         <location
             file="build.gradle"
-            line="15"
+            line="14"
             column="9"/>
     </issue>
 
@@ -29,6 +29,28 @@
             file="src/main/AndroidManifest.xml"
             line="25"
             column="13"/>
+    </issue>
+
+    <issue
+        id="PrivateResource"
+        message="The resource `@drawable/lb_ic_sad_cloud` is marked as private in androidx.leanback:leanback:1.2.0"
+        errorLine1="            ContextCompat.getDrawable(context!!, androidx.leanback.R.drawable.lb_ic_sad_cloud)"
+        errorLine2="                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/template/test/in/ErrorFragment.kt"
+            line="21"
+            column="50"/>
+    </issue>
+
+    <issue
+        id="PrivateResource"
+        message="The resource `@drawable/lb_ic_sad_cloud` is marked as private in androidx.leanback:leanback:1.2.0"
+        errorLine1="            ContextCompat.getDrawable(context!!, androidx.leanback.R.drawable.lb_ic_sad_cloud)"
+        errorLine2="                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/template/test/in/ErrorFragment.kt"
+            line="21"
+            column="50"/>
     </issue>
 
     <issue

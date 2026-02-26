@@ -253,6 +253,7 @@ maven_repository(
         "@maven//:androidx.games.games-activity_4.0.0",
         "@maven//:androidx.graphics.graphics-shapes-desktop_1.0.1",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.leanback.leanback_1.0.0",
+        "@maven//:androidx.leanback.leanback_1.2.0",
         "@maven//:androidx.legacy.legacy-support-v13_1.0.0",
         "@maven//:androidx.lifecycle.lifecycle-common-java8_2.4.0",
         "@maven//:androidx.lifecycle.lifecycle-common-java8_2.8.3",  # Compose BOM 2024.09.00
