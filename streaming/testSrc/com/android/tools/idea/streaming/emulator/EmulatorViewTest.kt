@@ -18,9 +18,8 @@ package com.android.tools.idea.streaming.emulator
 import com.android.emulator.control.Posture.PostureValue
 import com.android.mockito.kotlin.whenever
 import com.android.sdklib.deviceprovisioner.ProcessHandleProvider
-import com.android.testutils.ImageDiffUtil
+import com.android.testutils.GoldenImageRule
 import com.android.testutils.ProcessHandleProviderRule
-import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.actions.executeAction
@@ -153,7 +152,9 @@ class EmulatorViewTest {
   }
 
   private val emulatorViewRule = EmulatorViewRule()
-  @get:Rule val ruleChain = RuleChain(emulatorViewRule, ClipboardSynchronizationDisablementRule(), ProcessHandleProviderRule(), EdtRule())
+  private val goldenImageRule = GoldenImageRule("tools/adt/idea/streaming/testData/EmulatorViewTest/golden")
+  @get:Rule val ruleChain =
+    RuleChain(emulatorViewRule, ClipboardSynchronizationDisablementRule(), ProcessHandleProviderRule(), goldenImageRule, EdtRule())
   @get:Rule val usageTrackerRule = UsageTrackerRule()
   private lateinit var view: EmulatorView
   private val fakeEmulator: FakeEmulator by lazy { emulatorViewRule.getFakeEmulator(view) }
@@ -1207,15 +1208,11 @@ class EmulatorViewTest {
   private fun assertAppearance(goldenImageName: String) {
     val image = fakeUi.render()
     val scaledDownImage = ImageUtils.scale(image, 0.5)
-    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), scaledDownImage, 0.0)
+    goldenImageRule.assertImageSimilar(goldenImageName, scaledDownImage, 0.0)
   }
-
-  private fun getGoldenFile(name: String): Path = TestUtils.resolveWorkspacePathUnchecked("${GOLDEN_FILE_PATH}/${name}.png")
 }
 
 private fun UsageTrackerRule.deviceMirroringSessions(): List<AndroidStudioEvent> =
   usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DEVICE_MIRRORING_SESSION }.map { it.studioEvent }
 
 private fun getKeyStroke(action: String) = KeymapUtil.getKeyStroke(KeymapUtil.getActiveKeymapShortcuts(action))!!
-
-private const val GOLDEN_FILE_PATH = "tools/adt/idea/streaming/testData/EmulatorViewTest/golden"
