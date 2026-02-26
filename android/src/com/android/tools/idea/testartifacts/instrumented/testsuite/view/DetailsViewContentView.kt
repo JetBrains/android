@@ -137,7 +137,22 @@ class DetailsViewContentView(
     myLogsView = ConsoleViewImpl(project, /* viewer= */ true)
     Disposer.register(this, myLogsView)
     logger.addImpressionWhenDisplayed(myLogsView.component, ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_LOG_VIEW)
-    val logsViewWithVerticalToolbar = NonOpaquePanel(BorderLayout())
+    val logsViewWithVerticalToolbar =
+      object : NonOpaquePanel(BorderLayout()) {
+          override fun getAccessibleContext(): javax.accessibility.AccessibleContext {
+            if (accessibleContext == null) {
+              accessibleContext =
+                object : AccessibleJPanel() {
+                  override fun getAccessibleRole() = javax.accessibility.AccessibleRole.PANEL
+                }
+            }
+            return accessibleContext
+          }
+        }
+        .apply {
+          accessibleContext.accessibleName = "Logs View"
+          isFocusable = true
+        }
     logsViewWithVerticalToolbar.add(myLogsView.component, BorderLayout.CENTER)
     val logViewToolbar =
       ActionManager.getInstance()
@@ -156,7 +171,22 @@ class DetailsViewContentView(
     // Create benchmark tab.
     myBenchmarkView = ConsoleViewImpl(project, /* viewer= */ true)
     Disposer.register(this, myBenchmarkView)
-    val benchmarkViewWithVerticalToolbar = NonOpaquePanel(BorderLayout())
+    val benchmarkViewWithVerticalToolbar =
+      object : NonOpaquePanel(BorderLayout()) {
+          override fun getAccessibleContext(): javax.accessibility.AccessibleContext {
+            if (accessibleContext == null) {
+              accessibleContext =
+                object : AccessibleJPanel() {
+                  override fun getAccessibleRole() = javax.accessibility.AccessibleRole.PANEL
+                }
+            }
+            return accessibleContext
+          }
+        }
+        .apply {
+          accessibleContext.accessibleName = "Benchmark View"
+          isFocusable = true
+        }
     benchmarkViewWithVerticalToolbar.add(myBenchmarkView.component, BorderLayout.CENTER)
     val benchmarkViewToolbar =
       ActionManager.getInstance()

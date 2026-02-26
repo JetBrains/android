@@ -92,6 +92,7 @@ class UpdateReferenceImagesFromTestPanelAction : AnAction(UPDATE_ACTION_TEXT, UP
     return JButton(presentation.text).apply {
       isFocusable = true
       toolTipText = presentation.description
+      accessibleContext.accessibleName = presentation.text
       addActionListener {
         val dataContext = DataManager.getInstance().getDataContext(this)
         val event =
@@ -114,6 +115,7 @@ class UpdateReferenceImagesFromTestPanelAction : AnAction(UPDATE_ACTION_TEXT, UP
       component.isEnabled = presentation.isEnabled
       component.isVisible = presentation.isVisible
       component.toolTipText = presentation.description
+      component.accessibleContext.accessibleName = presentation.text
     }
   }
 }

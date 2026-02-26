@@ -44,7 +44,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -97,7 +99,26 @@ class ScreenshotAttributesView {
   var state by mutableStateOf(ScreenshotAttributesState())
     private set
 
-  private val panel: JComponent by lazy { StudioComposePanel { ScreenshotAttributesUi(state) } }
+  private val panel: JComponent by lazy {
+    val composePanel = StudioComposePanel { ScreenshotAttributesUi(state) }
+    object : javax.swing.JPanel(java.awt.BorderLayout()) {
+        override fun getAccessibleContext(): javax.accessibility.AccessibleContext {
+          if (accessibleContext == null) {
+            accessibleContext =
+              object : AccessibleJPanel() {
+                override fun getAccessibleRole() = javax.accessibility.AccessibleRole.PANEL
+              }
+          }
+          return accessibleContext
+        }
+      }
+      .apply {
+        isOpaque = false
+        add(composePanel, java.awt.BorderLayout.CENTER)
+        accessibleContext.accessibleName = "Attributes View"
+        isFocusable = true
+      }
+  }
 
   /** Returns the Swing component for this view. */
   @UiThread
@@ -196,7 +217,10 @@ class ScreenshotAttributesView {
 
     Row(
       modifier =
-        Modifier.fillMaxSize().focusable(true).semantics(mergeDescendants = true) { contentDescription = summarySemanticsDescription }
+        Modifier.fillMaxSize().focusable(true).semantics(mergeDescendants = true) {
+          contentDescription = "Attributes\n$summarySemanticsDescription"
+          role = androidx.compose.ui.semantics.Role.Tab
+        }
     ) {
       Column(modifier = Modifier.weight(1f).padding(16.dp).verticalScroll(scrollState), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Section("Summary") {
