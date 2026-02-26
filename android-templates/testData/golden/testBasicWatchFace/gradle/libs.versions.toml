@@ -1,5 +1,5 @@
 [versions]
-agp = "9.1.0-dev"
+agp = "9.2.0-alpha03"
 
 [libraries]
 
