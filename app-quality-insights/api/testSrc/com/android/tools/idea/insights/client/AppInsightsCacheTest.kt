@@ -62,7 +62,7 @@ class AppInsightsCacheTest {
               ExceptionStack(
                 stacktrace =
                   Stacktrace(
-                    caption = Caption(title = "Non-fatal Exception: retrofit2.HttpException", subtitle = "HTTP 401 "),
+                    caption = Caption(title = "Non-fatal Exception: retrofit2.HttpException", subtitle = "HTTP 401"),
                     blames = Blames.BLAMED,
                     frames =
                       listOf(
@@ -87,7 +87,7 @@ class AppInsightsCacheTest {
                       ),
                   ),
                 type = "retrofit2.HttpException",
-                exceptionMessage = "HTTP 401 ",
+                exceptionMessage = "HTTP 401",
               )
             )
         ),

@@ -134,7 +134,7 @@ val ISSUE1 =
               ExceptionStack(
                 stacktrace =
                   Stacktrace(
-                    caption = Caption(title = "Non-fatal Exception: retrofit2.HttpException", subtitle = "HTTP 401 "),
+                    caption = Caption(title = "Non-fatal Exception: retrofit2.HttpException", subtitle = "HTTP 401"),
                     blames = Blames.BLAMED,
                     frames =
                       listOf(
@@ -162,8 +162,8 @@ val ISSUE1 =
                       ),
                   ),
                 type = "retrofit2.HttpException",
-                exceptionMessage = "HTTP 401 ",
-                rawExceptionMessage = "retrofit2.HttpException: HTTP 401 ",
+                exceptionMessage = "HTTP 401",
+                rawExceptionMessage = "retrofit2.HttpException: HTTP 401",
               )
             )
         ),
@@ -261,8 +261,8 @@ val ISSUE2 =
                       ),
                   ),
                 type = "javax.net.ssl.SSLHandshakeException",
-                exceptionMessage = "Trust anchor for certification path not found ",
-                rawExceptionMessage = "javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found ",
+                exceptionMessage = "Trust anchor for certification path not found",
+                rawExceptionMessage = "javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found",
               ),
               ExceptionStack(
                 stacktrace =
@@ -298,8 +298,8 @@ val ISSUE2 =
                       ),
                   ),
                 type = "javax.net.ssl.SSLHandshakeException",
-                exceptionMessage = "Trust anchor for certification path not found ",
-                rawExceptionMessage = "Caused by: javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found ",
+                exceptionMessage = "Trust anchor for certification path not found",
+                rawExceptionMessage = "Caused by: javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found",
               ),
             )
         ),

@@ -85,10 +85,10 @@ class StackTraceConsoleTest {
       assertThat(stackTraceConsole.consoleView.editor!!.document.text.trim())
         .isEqualTo(
           """
-          javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found 
+          javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found
               com.android.org.conscrypt.SSLUtils.toSSLHandshakeException(SSLUtils.java:362)
               com.android.org.conscrypt.ConscryptEngine.convertException(ConscryptEngine.java:1134)
-          Caused by: javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found 
+          Caused by: javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found
               com.android.org.conscrypt.TrustManagerImpl.verifyChain(TrustManagerImpl.java:677)
               okhttp3.internal.connection.RealConnection.connectTls(RealConnection.java:320)
           """

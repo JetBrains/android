@@ -66,7 +66,7 @@ class VitalsStackTraceConsoleTest {
         Truth.assertThat(stackTraceConsole.consoleView.editor!!.document.text.trim())
           .isEqualTo(
             """
-            retrofit2.HttpException: HTTP 401 
+            retrofit2.HttpException: HTTP 401
                 dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.build(ResponseWrapper.kt:23)
                 dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.fetchOrError(ResponseWrapper.kt:31)
             """

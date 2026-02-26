@@ -221,7 +221,7 @@ class AiInsightToolkitTest {
       |Please reference the provided source code if they are helpful.
       |Exception:
       |```
-      |retrofit2.HttpException: HTTP 401 
+      |retrofit2.HttpException: HTTP 401
       |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.build(ResponseWrapper.kt:23)
       |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.fetchOrError(ResponseWrapper.kt:31)
       |```

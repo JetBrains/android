@@ -119,7 +119,7 @@ class GeminiAiInsightClientTest {
       |Explain this exception from my app running on DeviceName with Android version ApiLevel:
       |Exception:
       |```
-      |retrofit2.HttpException: HTTP 401 
+      |retrofit2.HttpException: HTTP 401
       |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.build(ResponseWrapper.kt:23)
       |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.fetchOrError(ResponseWrapper.kt:31)
       |```
@@ -158,7 +158,7 @@ class GeminiAiInsightClientTest {
       |Please reference the provided source code if they are helpful.
       |Exception:
       |```
-      |retrofit2.HttpException: HTTP 401 
+      |retrofit2.HttpException: HTTP 401
       |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.build(ResponseWrapper.kt:23)
       |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.fetchOrError(ResponseWrapper.kt:31)
       |```
@@ -215,7 +215,7 @@ class GeminiAiInsightClientTest {
       |Explain this exception from my app running on DeviceName with Android version ApiLevel:
       |Exception:
       |```
-      |retrofit2.HttpException: HTTP 401 
+      |retrofit2.HttpException: HTTP 401
       |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.build(ResponseWrapper.kt:23)
       |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.fetchOrError(ResponseWrapper.kt:31)
       |```
@@ -252,7 +252,7 @@ class GeminiAiInsightClientTest {
       |Please reference the provided source code if they are helpful.
       |Exception:
       |```
-      |retrofit2.HttpException: HTTP 401 
+      |retrofit2.HttpException: HTTP 401
       |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.build(ResponseWrapper.kt:23)
       |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.fetchOrError(ResponseWrapper.kt:31)
       |```
@@ -304,7 +304,7 @@ class GeminiAiInsightClientTest {
       |where file is the fully qualified path of the source file in which you think the fix should likely be performed.
       |Exception:
       |```
-      |retrofit2.HttpException: HTTP 401 
+      |retrofit2.HttpException: HTTP 401
       |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.build(ResponseWrapper.kt:23)
       |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.fetchOrError(ResponseWrapper.kt:31)
       |```
@@ -366,7 +366,7 @@ class GeminiAiInsightClientTest {
       |in which you think the fix should likely be performed.
       |Exception:
       |```
-      |retrofit2.HttpException: HTTP 401 
+      |retrofit2.HttpException: HTTP 401
       |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.build(ResponseWrapper.kt:23)
       |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.fetchOrError(ResponseWrapper.kt:31)
       |```
@@ -435,7 +435,7 @@ class GeminiAiInsightClientTest {
       |where file is the fully qualified path of the source file in which you think the fix should likely be performed.
       |Exception:
       |```
-      |retrofit2.HttpException: HTTP 401 
+      |retrofit2.HttpException: HTTP 401
       |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.build(ResponseWrapper.kt:23)
       |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.fetchOrError(ResponseWrapper.kt:31)
       |```
