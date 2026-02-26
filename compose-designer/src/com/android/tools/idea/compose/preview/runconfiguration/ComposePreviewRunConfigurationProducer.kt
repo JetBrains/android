@@ -19,7 +19,6 @@ import com.android.tools.compose.COMPOSE_PREVIEW_ACTIVITY_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
 import com.android.tools.compose.MULTIPLATFORM_PREVIEW_PARAMETER_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.util.isValidComposePreviewForRunConfiguration
-import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.kotlin.getClassName
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -37,18 +36,12 @@ import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotationValue
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.types.KaClassType
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
-import org.jetbrains.kotlin.idea.caches.resolve.analyze as analyzeK1
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.psiUtil.getNonStrictParentOfType
-import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.constants.KClassValue
-import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 
 /**
  * Producer of [ComposePreviewRunConfiguration] for `@Composable` functions annotated with
@@ -82,23 +75,9 @@ open class ComposePreviewRunConfigurationProducer :
       updateConfigurationTriggerToGutterIfNeeded(configuration, context)
 
       ktNamedFunction.valueParameters.forEach { parameter ->
-        if (KotlinPluginModeProvider.isK2Mode()) {
-          parameter.providerClassNameK2()?.let { providerClass ->
-            configuration.providerClassFqn = providerClass
-            return@forEach
-          }
-        } else {
-          parameter.annotationEntries
-            .firstOrNull { annotation ->
-              annotation.fqNameMatches(COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN) ||
-                annotation.fqNameMatches(MULTIPLATFORM_PREVIEW_PARAMETER_ANNOTATION_FQN)
-            }
-            ?.let { previewParameter ->
-              previewParameter.providerClassName()?.let { providerClass ->
-                configuration.providerClassFqn = providerClass
-                return@forEach
-              }
-            }
+        parameter.providerClassNameK2()?.let { providerClass ->
+          configuration.providerClassFqn = providerClass
+          return@forEach
         }
       }
       return true
@@ -135,17 +114,6 @@ private fun updateConfigurationTriggerToGutterIfNeeded(
   if (PlatformCoreDataKeys.CONTEXT_COMPONENT.getData(context.dataContext) is EditorGutter) {
     configuration.triggerSource = ComposePreviewRunConfiguration.TriggerSource.GUTTER
   }
-}
-
-/** Get the provider fully qualified class name of a `@PreviewParameter` annotated parameter. */
-private fun KtAnnotationEntry.providerClassName(): String? {
-  val annotationDescriptor =
-    analyzeK1(BodyResolveMode.PARTIAL).get(BindingContext.ANNOTATION, this) ?: return null
-  val argument =
-    annotationDescriptor.allValueArguments.entries
-      .firstOrNull { it.key.asString() == "provider" }
-      ?.value ?: return null
-  return (argument.value as? KClassValue.Value.NormalClass)?.classId?.asSingleFqName()?.asString()
 }
 
 /** Get the provider fully qualified class name of a `@PreviewParameter` annotated parameter. */
