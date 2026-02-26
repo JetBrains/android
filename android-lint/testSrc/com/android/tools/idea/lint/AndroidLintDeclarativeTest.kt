@@ -29,7 +29,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.VfsTestUtil
 import java.util.Locale
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -45,7 +44,6 @@ class AndroidLintDeclarativeTest {
   private val fixture
     get() = projectRule.fixture
 
-  @Ignore("b/481734567 - Enable with new declarative changes")
   @Test
   fun testDeclarativeTomlSkip() {
     projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_DECLARATIVE)

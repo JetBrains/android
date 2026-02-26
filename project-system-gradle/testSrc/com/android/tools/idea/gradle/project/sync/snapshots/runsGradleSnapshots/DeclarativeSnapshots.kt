@@ -22,12 +22,10 @@ import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTestDef
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_DECLARATIVE_GRADLE_SNAPSHOT
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
-@Ignore("b/481734567 - Enable with new declarative changes")
 @RunWith(Parameterized::class)
 class DeclarativeSnapshots(val version: AgpVersionSoftwareEnvironmentDescriptor) :
   SyncedProjectTestBase<DeclarativeTestProject>(agpVersion = version) {
