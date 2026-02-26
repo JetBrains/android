@@ -1,7 +1,25 @@
-// Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
-package com.android.tools.idea.compose.preview
+/*
+ * Copyright (C) 2026 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.compose.gradle.preview
 
-import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
+import com.android.testutils.junit4.OldAgpTest
+import com.android.tools.idea.compose.ANDROID_KOTLIN_MULTIPLATFORM_MULTI_PREVIEW
+import com.android.tools.idea.compose.preview.getPreviewNodes
+import com.android.tools.idea.compose.preview.isMultiPreviewAnnotation
+import com.android.tools.idea.compose.preview.isPreviewAnnotation
 import com.android.tools.idea.preview.find.findAllAnnotationsInGraph
 import com.android.tools.idea.testartifacts.TestConfigurationTestingUtil.Companion.getPsiElement
 import com.android.tools.idea.testartifacts.TestConfigurationTestingUtil.Method
@@ -20,6 +38,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UMethod
@@ -33,7 +52,7 @@ class KotlinMultiplatformLibraryMultiPreviewTest {
 
   @get:Rule
   val projectRule: EdtAndroidGradleProjectRule =
-    AndroidGradleProjectRule(agpVersionSoftwareEnvironment = AgpVersionSoftwareEnvironmentDescriptor.AGP_8_11).onEdt()
+    AndroidGradleProjectRule(agpVersionSoftwareEnvironment = AgpVersionSoftwareEnvironmentDescriptor.AGP_8_13).onEdt()
 
   @Before
   fun setup() {
@@ -41,7 +60,8 @@ class KotlinMultiplatformLibraryMultiPreviewTest {
   }
 
   @Test
-  fun `findAllAnnotationsInGraph can find all Preview annotations from library multi preview PreviewFontScale`() = runBlockingWithTimeout {
+  @OldAgpTest(gradleVersions = ["8.13"], agpVersions = ["8.13.0"])
+  fun `findAllAnnotationsInGraph can find all Preview annotations from library multi preview PreviewFontScale`() = runBlocking {
     val multiPreviewUMethod = projectRule.project.getPsiElement(MULTI_PREVIEW_METHOD).toUElement()
     assertNotNull(multiPreviewUMethod)
 
@@ -57,7 +77,7 @@ class KotlinMultiplatformLibraryMultiPreviewTest {
   }
 
   @Test
-  fun `PreviewFontScale is properly detected as MultiPreview annotation`() = runBlockingWithTimeout {
+  fun `PreviewFontScale is properly detected as MultiPreview annotation`() = runBlocking {
     val multiPreviewMethod = projectRule.project.getPsiElement(MULTI_PREVIEW_METHOD)
     assertIs<PsiModifierListOwner>(multiPreviewMethod)
 
@@ -74,7 +94,7 @@ class KotlinMultiplatformLibraryMultiPreviewTest {
   }
 
   @Test
-  fun `UastAnnotationAttributesProvider can provide proper annotation parameter values for getPreviewNodes`() = runBlockingWithTimeout {
+  fun `UastAnnotationAttributesProvider can provide proper annotation parameter values for getPreviewNodes`() = runBlocking {
     val multiPreviewUMethod = projectRule.project.getPsiElement(MULTI_PREVIEW_METHOD).toUElement()
     assertIs<UMethod>(multiPreviewUMethod)
 
@@ -88,4 +108,3 @@ class KotlinMultiplatformLibraryMultiPreviewTest {
 
 private val MULTI_PREVIEW_METHOD = Method("org.example.project.ClickMeTextKt", "ClickMeText")
 private const val PREVIEW_FONT_SCALE_QNAME = "androidx.compose.ui.tooling.preview.PreviewFontScale"
-private const val ANDROID_KOTLIN_MULTIPLATFORM_MULTI_PREVIEW = "projects/androidKotlinMultiplatformMultiPreview"

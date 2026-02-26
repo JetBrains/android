@@ -62,6 +62,12 @@ iml_module(
             "tags": ["cpu:3"],
             "shard_count": 3,
             "test_filter": "com.android.tools.idea.compose.gradle.preview",
+            "data": [
+                "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
+                "//tools/adt/idea/compose-designer/testData:android_kotlin_multiplatform_multi_preview_deps",
+                "//tools/base/build-system:gradle-distrib-8.13",
+                "//tools/base/build-system/previous-versions:8.13.0",
+            ],
         },
         "gradle.runconfiguration": {
             "test_filter": "com.android.tools.idea.compose.gradle.preview.runconfiguration",

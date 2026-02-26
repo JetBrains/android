@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.compose
 
+
+const val ANDROID_KOTLIN_MULTIPLATFORM_MULTI_PREVIEW = "projects/androidKotlinMultiplatformMultiPreview"
 const val TEST_DATA_PATH = "tools/adt/idea/compose-designer/testData"
 const val SIMPLE_COMPOSE_PROJECT_PATH = "projects/SimpleComposeApplication"
 const val ONBOARDING_AUTH_IBM_PROJECT_PATH = "projects/OnboardingAuthIBMProject"
