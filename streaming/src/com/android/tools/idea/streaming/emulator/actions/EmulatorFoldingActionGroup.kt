@@ -87,7 +87,7 @@ internal class EmulatorFoldingActionGroup : DefaultActionGroup(), DumbAware {
     val presentation = event.presentation
     presentation.isEnabledAndVisible = enabled
     if (enabled) {
-      emulatorView?.currentPosture?.let { posture ->
+      emulatorView.currentPosture?.let { posture ->
         presentation.icon = posture.icon
         presentation.text = "${templatePresentation.text} (currently ${posture.displayName})"
       }
