@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights.ui.insight
 
 import com.android.tools.adtui.HtmlLabel
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.LoadingState
@@ -130,7 +131,7 @@ class InsightDisclaimerPanel(
           return@collect
         }
         when {
-          insight.codeContextData.contextSharingState == ContextSharingState.DISABLED -> {
+          insight.codeContextData.contextSharingState == ContextSharingState.DISABLED && !StudioFlags.AQI_FIX_WITH_AGENT.get() -> {
             isVisible = true
             withoutCode.isVisible = true
             projectMismatch.isVisible = false

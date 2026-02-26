@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.insights.ui.insight
 
+import com.android.flags.junit.FlagRule
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AI_INSIGHT_WITH_CODE_CONTEXT
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
@@ -33,6 +35,7 @@ import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.ui.FakeGeminiPluginApi
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ExtensionTestUtil
@@ -53,7 +56,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -63,7 +66,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.whenever
 
 @RunsInEdt
-class InsightDisclaimerPanelTest {
+class InsightDisclaimerPanelTestWithoutAgent {
 
   private lateinit var scope: CoroutineScope
   private lateinit var insightFlow: MutableStateFlow<LoadingState<AiInsight?>>
@@ -77,6 +80,7 @@ class InsightDisclaimerPanelTest {
 
   @get:Rule val edtRule = EdtRule()
   @get:Rule val projectRule = ProjectRule()
+  @get:Rule val flagRule = FlagRule(StudioFlags.AQI_FIX_WITH_AGENT, false)
 
   private lateinit var fakeUi: FakeUi
   private lateinit var fakeGeminiPluginApi: FakeGeminiPluginApi
@@ -84,7 +88,7 @@ class InsightDisclaimerPanelTest {
   @Before
   fun setup() {
     scope = CoroutineScope(EmptyCoroutineContext)
-    insightFlow = MutableStateFlow<LoadingState<AiInsight?>>(LoadingState.Ready(null))
+    insightFlow = MutableStateFlow(LoadingState.Ready(null))
     fakeGeminiPluginApi = FakeGeminiPluginApi()
     fakeGeminiPluginApi.contextAllowed = false
     ExtensionTestUtil.maskExtensions(GeminiPluginApi.EP_NAME, listOf(fakeGeminiPluginApi), projectRule.disposable)
@@ -97,7 +101,7 @@ class InsightDisclaimerPanelTest {
   }
 
   @Test
-  fun `context sharing disclaimer is removed and callback is triggered after user shares context`() = runBlocking {
+  fun `context sharing disclaimer is removed and callback is triggered after user shares context`() = runTest {
     val refreshInsightCalled = CompletableDeferred<Boolean>()
     val disclaimerPanel =
       createDisclaimerPanel(
@@ -113,7 +117,9 @@ class InsightDisclaimerPanelTest {
 
     clickOnLink()
     fakeGeminiPluginApi.contextAllowed = true
-    fakeUi.updateToolbars()
+    // Necessary here since we're artificially enabling context
+    ActivityTracker.getInstance().inc()
+    fakeUi.updateToolbarsIfNecessary()
     assertThat(refreshInsightCalled.await()).isTrue()
 
     insightFlow.update { LoadingState.Ready(AiInsight("", ISSUE1.sampleEvent)) }
@@ -122,14 +128,76 @@ class InsightDisclaimerPanelTest {
 
   @Test
   fun `enable context prompt disclaimer is shown when context sharing setting is off and current insight's experiment is unknown`() =
-    runBlocking {
+    runTest {
       val disclaimerPanel = createDisclaimerPanel(StubAppInsightsProjectLevelController(state = MutableStateFlow(state)))
       insightFlow.update { LoadingState.Ready(DEFAULT_AI_INSIGHT) }
       waitForCondition(2.seconds) { disclaimerPanel.isVisible }
     }
 
   @Test
-  fun `project mismatch panel shown when context enabled and project different from connection`() = runBlocking {
+  fun `project mismatch panel shown when context enabled and project different from connection`() = runTest {
+    doReturn(false).whenever(conn).isMatchingProject()
+    insightFlow.update { LoadingState.Ready(AI_INSIGHT_WITH_CODE_CONTEXT) }
+    createDisclaimerPanel(StubAppInsightsProjectLevelController(state = MutableStateFlow(state)))
+
+    val textPane = fakeUi.findComponent<JTextPane> { it.isVisible } ?: fail("JTextPane not found")
+    // TextPane text contains html tags. Clean up the spacing in order to match the expected text
+    val text = textPane.text.split("\n").joinToString(" ") { it.trim() }
+    assertThat(text)
+      .contains(
+        "The AI does not have access to source code for generating insights because the currently open Android Studio project does not match the project selected in App Quality Insights."
+      )
+  }
+
+  private fun createDisclaimerPanel(
+    controller: AppInsightsProjectLevelController = StubAppInsightsProjectLevelController(state = MutableStateFlow(state))
+  ) = InsightDisclaimerPanel(controller, scope, insightFlow).also { fakeUi = FakeUi(it) }
+
+  private fun clickOnLink() =
+    fakeUi.findHyperLinkLabel().hyperlinkListeners.forEach {
+      it.hyperlinkUpdate(HyperlinkEvent(fakeUi.findHyperLinkLabel(), HyperlinkEvent.EventType.ACTIVATED, URL("https://www.google.com")))
+    }
+
+  private fun FakeUi.findHyperLinkLabel() = findComponent<JEditorPane>()!!
+}
+
+@RunsInEdt
+class InsightDisclaimerPanelTestWithAgent {
+
+  private lateinit var scope: CoroutineScope
+  private lateinit var insightFlow: MutableStateFlow<LoadingState<AiInsight?>>
+  private val conn = mock<Connection>().apply { doReturn(true).whenever(this).isMatchingProject() }
+  private val state =
+    AppInsightsState(
+      Selection(conn, listOf(conn)),
+      TEST_FILTERS,
+      LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
+    )
+
+  @get:Rule val edtRule = EdtRule()
+  @get:Rule val projectRule = ProjectRule()
+  @get:Rule val flagRule = FlagRule(StudioFlags.AQI_FIX_WITH_AGENT, true)
+
+  private lateinit var fakeUi: FakeUi
+  private lateinit var fakeGeminiPluginApi: FakeGeminiPluginApi
+
+  @Before
+  fun setup() {
+    scope = CoroutineScope(EmptyCoroutineContext)
+    insightFlow = MutableStateFlow(LoadingState.Ready(null))
+    fakeGeminiPluginApi = FakeGeminiPluginApi()
+    fakeGeminiPluginApi.contextAllowed = false
+    ExtensionTestUtil.maskExtensions(GeminiPluginApi.EP_NAME, listOf(fakeGeminiPluginApi), projectRule.disposable)
+    application.replaceService(ShowSettingsUtil::class.java, mock(), projectRule.disposable)
+  }
+
+  @After
+  fun tearDown() {
+    scope.cancel()
+  }
+
+  @Test
+  fun `project mismatch panel shown when context enabled and project different from connection`() = runTest {
     doReturn(false).whenever(conn).isMatchingProject()
     insightFlow.update { LoadingState.Ready(AI_INSIGHT_WITH_CODE_CONTEXT) }
     createDisclaimerPanel(StubAppInsightsProjectLevelController(state = MutableStateFlow(state)))
