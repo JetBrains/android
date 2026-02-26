@@ -141,7 +141,6 @@ private fun PreviewDisplaySettings.asTestDisplayString(): String {
   return "PreviewDisplaySettings(name=$name, baseName=$baseName, parameterName=$parameterName, group=$group, showDecoration=$showDecoration, $backgroundString, displayPositioning=$displayPositioning, organizationGroup=$organizationGroup, organizationName=$organizationName)"
 }
 
-@Ignore("b/488139872")
 class ComposePreviewRepresentationTest {
   private val logger = Logger.getInstance(ComposePreviewRepresentationTest::class.java)
 
@@ -862,6 +861,7 @@ class ComposePreviewRepresentationTest {
   }
 
   @Test
+  @Ignore("b/488139872")
   fun testInteractivePreviewManagerFpsLimitIsUpdatedWhenEssentialsModeChanges() = runComposePreviewRepresentationTest {
     val preview = createPreviewAndCompile()
 

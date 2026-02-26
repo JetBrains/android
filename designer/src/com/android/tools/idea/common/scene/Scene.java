@@ -149,23 +149,25 @@ public class Scene implements SelectionListener, Disposable {
     myHitListener = new SceneHitListener(selectionModel);
     myFindListener = new SceneHitListener(selectionModel);
     mySnapListener = new SceneHitListener(selectionModel);
-    selectionModel.addListener(this);
 
-    myHoverListener.setTargetFilter(target -> {
-      if (target instanceof AnchorTarget anchorTarget) {
-        if (myHitTarget == null) {
-          // Not interacting with any Target, avoid to hover to edge AnchorTarget.
-          return !anchorTarget.isEdge();
-        }
-        else if (myHitTarget instanceof AnchorTarget) {
-          // Interacting with AnchorTarget, only hovers on connectible AnchorTargets.
-          return ((AnchorTarget)myHitTarget).isConnectible(anchorTarget);
-        }
-      }
-      return true;
-    });
+    if (Disposer.tryRegister(sceneManager, this)) {
+      // Only register the listener and target filter if the parent is not already disposed.
+      selectionModel.addListener(this);
 
-    Disposer.register(sceneManager, this);
+      myHoverListener.setTargetFilter(target -> {
+        if (target instanceof AnchorTarget anchorTarget) {
+          if (myHitTarget == null) {
+            // Not interacting with any Target, avoid to hover to edge AnchorTarget.
+            return !anchorTarget.isEdge();
+          }
+          else if (myHitTarget instanceof AnchorTarget) {
+            // Interacting with AnchorTarget, only hovers on connectible AnchorTargets.
+            return ((AnchorTarget)myHitTarget).isConnectible(anchorTarget);
+          }
+        }
+        return true;
+      });
+    }
   }
 
   public static void setTooltipVisibility(boolean visible) {

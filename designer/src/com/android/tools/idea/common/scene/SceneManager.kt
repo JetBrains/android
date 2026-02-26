@@ -133,16 +133,23 @@ abstract class SceneManager(
     get() = root?.viewInfo?.viewObject
 
   init {
-    Disposer.register(model, this)
+    val registered = Disposer.tryRegister(model, this)
+
     // Scene is initialized here to ensure that the SceneManager is already registered with the
     // disposer.
     // If initialized earlier, it could mean that a failed initialization would also leave the Scene
-    // in the disposer as a leak  .
+    // in the disposer as a leak.
     scene = Scene(this, designSurface)
 
     // Similar case for resourceChangeListener, as using notificationExecutorServiceProvider
     // needs this manager to be properly registered in the disposer tree already
     resourceChangeListener = ResourceChangeListenerImpl(model, notificationExecutorServiceProvider(this))
+
+    if (!registered) {
+      // The SceneManager dispose() method contains logic to properly clean up listeners and other components. Therefore, if the parent
+      // disposable (the NlModel) was disposed before being able to register this SceneManager as a child, we need to dispose it directly.
+      Disposer.dispose(this)
+    }
   }
 
   /** Returns true if this [SceneManager] has been disposed. */

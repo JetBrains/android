@@ -1007,6 +1007,7 @@ class ComposePreviewRepresentation(
    * in Focus mode.
    */
   private fun updateResizePanel() {
+    if (isDisposed.get()) return
     activeResizePanelInFocusMode?.let { panel ->
       val focusedSceneManager = surface.sceneManagers.singleOrNull()
       if (focusedSceneManager != null) {

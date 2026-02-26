@@ -63,15 +63,16 @@ class ConfigurationResizeListener(
   private val deviceSizeChangedFlow = MutableStateFlow(configuration.deviceSizePx())
 
   init {
-    Disposer.register(sceneManager, this)
-    scope.launch {
-      deviceSizeChangedFlow.drop(1).collectLatest { (width, height) ->
-        try {
-          requestRender(Dimension(width, height))
-        } catch (e: CancellationException) {
-          throw e
-        } catch (e: Exception) {
-          logger.warn("Error inside requestRender: ", e)
+    if (Disposer.tryRegister(sceneManager, this)) {
+      scope.launch {
+        deviceSizeChangedFlow.drop(1).collectLatest { (width, height) ->
+          try {
+            requestRender(Dimension(width, height))
+          } catch (e: CancellationException) {
+            throw e
+          } catch (e: Exception) {
+            logger.warn("Error inside requestRender: ", e)
+          }
         }
       }
     }
