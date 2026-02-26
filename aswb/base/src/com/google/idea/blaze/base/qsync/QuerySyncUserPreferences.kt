@@ -38,8 +38,10 @@ val skipRefreshQueryDataOnStartup = BoolExperiment("aswb.query.sync.skip.query.o
 val buildNativeTargetsFromAndroidTransitionPoint =
   BoolExperiment("aswb.query.sync.build.native.targets.from.android.transition.point", true)
 val liveEditSupportEnabled: BoolExperiment = BoolExperiment("aswb.live.edit.enabled", false)
-val autoSyncComposeToolingExperiment = BoolExperiment("aswb.query.sync.auto.sync.compose.tooling", true)
-val commitProjectStructureAfterQueryExperiment = BoolExperiment("aswb.query.sync.commit.project.structure.after.query", false)
+val autoSyncComposeToolingExperiment =
+  BoolExperiment("aswb.query.sync.auto.sync.compose.tooling", true)
+val commitProjectStructureAfterQueryExperiment =
+  BoolExperiment("aswb.query.sync.commit.project.structure.after.query", false)
 val loadProjectStructureFromDirectoryTraversalExperiment =
   FeatureRolloutExperiment("query.sync.load.project.structure.from.directory.traversal")
 
@@ -49,8 +51,10 @@ class QuerySyncUserPreferencesProvider(private val project: Project) {
     object : QuerySyncUserPreferences {
       override val enableCodeAnalysisOnSync: Boolean
         get() =
-          ProjectViewManager.getInstance(project).projectViewSet?.getScalarValue(EnableCodeAnalysisOnSyncSection.KEY)?.getOrDefault(false)
-            ?: false
+          ProjectViewManager.getInstance(project)
+            .projectViewSet
+            ?.getScalarValue(EnableCodeAnalysisOnSyncSection.KEY)
+            ?.getOrDefault(false) ?: false
 
       override val refreshQueryDataOnStartup: Boolean
         get() = !skipRefreshQueryDataOnStartup.value
@@ -72,6 +76,7 @@ class QuerySyncUserPreferencesProvider(private val project: Project) {
     }
 
   companion object {
-    @JvmStatic fun getInstance(project: Project): QuerySyncUserPreferencesProvider = project.service()
+    @JvmStatic
+    fun getInstance(project: Project): QuerySyncUserPreferencesProvider = project.service()
   }
 }

@@ -57,8 +57,9 @@ class ProjectBuilder(
   }
 
   /**
-   * Creates a [QuerySyncProjectSnapshot], which includes an expected IDE project structure, from the `postQuerySyncData` and a function
-   * `applyBuiltDependenciesTransform` that applies transformations required to account for any currently synced(i.e. built) dependencies.
+   * Creates a [QuerySyncProjectSnapshot], which includes an expected IDE project structure, from
+   * the `postQuerySyncData` and a function `applyBuiltDependenciesTransform` that applies
+   * transformations required to account for any currently synced(i.e. built) dependencies.
    */
   @Throws(BuildException::class)
   fun createBlazeProjectStructure(
@@ -69,9 +70,11 @@ class ProjectBuilder(
     artifactTrackerState: ArtifactTracker.State,
     projectProtoUpdates: Collection<ProjectProtoUpdateOperation>,
   ): ProjectProto.Project {
-    val effectiveWorkspaceRoot = postQuerySyncData.vcsState().flatMap { it.workspaceSnapshotPath }.orElse(workspaceRoot)
+    val effectiveWorkspaceRoot =
+      postQuerySyncData.vcsState().flatMap { it.workspaceSnapshotPath }.orElse(workspaceRoot)
     val packageReader = WorkspaceResolvingPackageReader(effectiveWorkspaceRoot, this.packageReader)
-    val javaPackagePrefixReader: JavaPackagePrefixReader = JavaPackagePrefixReaderImpl(workspaceRoot, packageReader, parallelPackageReader)
+    val javaPackagePrefixReader: JavaPackagePrefixReader =
+      JavaPackagePrefixReaderImpl(workspaceRoot, packageReader, parallelPackageReader)
 
     val graphToProjectConverter =
       GraphToProjectConverter(
@@ -79,7 +82,8 @@ class ProjectBuilder(
         context = context,
         projectDefinition = postQuerySyncData.projectDefinition(),
       )
-    val externalRepositoryFinder = ProjectPath.ExternalRepositoryFinder.createAndPrepare(workspaceRoot)
+    val externalRepositoryFinder =
+      ProjectPath.ExternalRepositoryFinder.createAndPrepare(workspaceRoot)
 
     val update = ProjectProtoUpdate(ProjectProto.Project.getDefaultInstance())
     graphToProjectConverter.configureProject(projectStructureData, externalRepositoryFinder, update)

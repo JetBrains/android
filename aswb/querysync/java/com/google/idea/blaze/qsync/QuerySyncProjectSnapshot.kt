@@ -60,9 +60,11 @@ data class QuerySyncProjectSnapshot(
 
   fun withGraph(value: BuildGraphData): QuerySyncProjectSnapshot = copy(graph = value)
 
-  fun withProjectStructureData(value: ProjectStructureData): QuerySyncProjectSnapshot = copy(projectStructureData = value)
+  fun withProjectStructureData(value: ProjectStructureData): QuerySyncProjectSnapshot =
+    copy(projectStructureData = value)
 
-  fun withArtifactState(value: ArtifactTracker.State): QuerySyncProjectSnapshot = copy(artifactState = value)
+  fun withArtifactState(value: ArtifactTracker.State): QuerySyncProjectSnapshot =
+    copy(artifactState = value)
 
   fun withProject(value: ProjectProto.Project): QuerySyncProjectSnapshot = copy(project = value)
 
@@ -79,13 +81,15 @@ data class QuerySyncProjectSnapshot(
     /** Returns mapping of targets to [BuildTarget] */
     get() = graph.allLoadedTargets()
 
-  val artifactIndex: ArtifactIndex by lazy(LazyThreadSafetyMode.PUBLICATION) { ArtifactIndex.create(artifactState) }
+  val artifactIndex: ArtifactIndex by
+    lazy(LazyThreadSafetyMode.PUBLICATION) { ArtifactIndex.create(artifactState) }
 
   /**
-   * For given project targets, returns all dependency targets that are [ ][BuildGraphDataImpl.projectDeps] external} to the project, from
-   * which build artifacts are needed for the targets sources to be edited fully. This method returns the dependencies for the target with
-   * fewest pending so that if dependencies have been built for one, the empty set will be returned even if others have pending
-   * dependencies.
+   * For given project targets, returns all dependency targets that are
+   * [ ][BuildGraphDataImpl.projectDeps] external} to the project, from which build artifacts are
+   * needed for the targets sources to be edited fully. This method returns the dependencies for the
+   * target with fewest pending so that if dependencies have been built for one, the empty set will
+   * be returned even if others have pending dependencies.
    *
    * @param projectTargets The set of project targets which include a given source file.
    */
@@ -95,7 +99,10 @@ data class QuerySyncProjectSnapshot(
     return projectTargets
       .map { target ->
         graph
-          .computeRequestedTargets(listOf(target), replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false)
+          .computeRequestedTargets(
+            listOf(target),
+            replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false,
+          )
           .requiredTargets
           .filter { !syncedTargets.contains(it) || incompleteTargets.contains(it) }
           .toSet()
