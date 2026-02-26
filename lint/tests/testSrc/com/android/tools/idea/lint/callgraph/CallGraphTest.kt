@@ -32,7 +32,6 @@ import com.intellij.psi.PsiManager
 import com.intellij.testFramework.LightProjectDescriptor
 import junit.framework.TestCase
 import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UastContext
 import org.jetbrains.uast.convertWithParent
@@ -121,13 +120,7 @@ class CallGraphTest : LightJavaCodeInsightFixtureAdtTestCase() {
     "SimpleLocal#unique".assertCalls("Impl#implUnique")
     "SimpleLocal#typeEvidencedSubImpl".assertCalls("SubImpl#f", "SubImpl#SubImpl")
     "SimpleLocal#typeEvidencedImpl".assertCalls("Impl#f", "Impl#Impl")
-    // In K1, `it` is of `It`, the explicit type, since assignments of `Impl` and `SubImpl` are
-    // aggregated.
-    // Therefore, the resolution of `it.f()` started from `It#f` and traced all the overrides:
-    // `Impl#f` and `SubImpl#f`.
-    // In contrast, in K2, the last assignment is tracked properly in DFA, so the resolution goes
-    // directly to `SubImpl#f`.
-    if (KotlinPluginModeProvider.isK2Mode() && ext == ".kt") {
+    if (ext == ".kt") {
       "SimpleLocal#typeEvidencedBoth".assertCalls("Impl#Impl", "SubImpl#SubImpl", "SubImpl#f")
     } else {
       "SimpleLocal#typeEvidencedBoth"
