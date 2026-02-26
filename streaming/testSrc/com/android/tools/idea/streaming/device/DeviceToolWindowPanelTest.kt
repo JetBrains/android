@@ -17,8 +17,7 @@ package com.android.tools.idea.streaming.device
 
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.adblib.DevicePropertyNames.RO_BUILD_CHARACTERISTICS
-import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
+import com.android.testutils.GoldenImageRule
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.createTestEvent
 import com.android.tools.adtui.actions.executeAction
@@ -100,7 +99,6 @@ import java.awt.event.KeyEvent.VK_UP
 import java.awt.event.KeyEvent.VK_W
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.nio.file.Path
 import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.Control
 import javax.sound.sampled.Line
@@ -133,8 +131,10 @@ class DeviceToolWindowPanelTest {
   }
 
   private val agentRule = FakeScreenSharingAgentRule()
+  private val goldenImageRule = GoldenImageRule("tools/adt/idea/streaming/testData/DeviceToolWindowPanelTest/golden")
 
-  @get:Rule val ruleChain = RuleChain(agentRule, ClipboardSynchronizationDisablementRule(), PortableUiFontRule(), EdtRule())
+  @get:Rule
+  val ruleChain = RuleChain(agentRule, ClipboardSynchronizationDisablementRule(), PortableUiFontRule(), goldenImageRule, EdtRule())
 
   private lateinit var device: FakeDevice
   private val panel: DeviceToolWindowPanel by lazy { createToolWindowPanel() }
@@ -818,18 +818,9 @@ class DeviceToolWindowPanelTest {
         else -> maxPercentDifferentLinux
       }
     // First rendering may be low quality.
-    ImageDiffUtil.assertImageSimilar(
-      getGoldenFile(goldenImageName),
-      fakeUi.render(),
-      max(maxPercentDifferent, 0.7),
-      ignoreMissingGoldenFile = true,
-    )
+    goldenImageRule.assertImageSimilar(goldenImageName, fakeUi.render(), max(maxPercentDifferent, 0.7), ignoreMissingGoldenFile = true)
     // Second rendering is guaranteed to be high quality.
-    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), fakeUi.render(), maxPercentDifferent)
-  }
-
-  private fun getGoldenFile(name: String): Path {
-    return TestUtils.resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/${name}.png")
+    goldenImageRule.assertImageSimilar(goldenImageName, fakeUi.render(), maxPercentDifferent)
   }
 
   private val DeviceToolWindowPanel.isConnected
@@ -944,5 +935,3 @@ private class TestDataLine : SourceDataLine {
     return len
   }
 }
-
-private const val GOLDEN_FILE_PATH = "tools/adt/idea/streaming/testData/DeviceToolWindowPanelTest/golden"

@@ -18,8 +18,7 @@ package com.android.tools.idea.streaming.device
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.adblib.DevicePropertyNames
 import com.android.mockito.kotlin.whenever
-import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
+import com.android.testutils.GoldenImageRule
 import com.android.testutils.truth.PathSubject.assertThat
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.ImageUtils
@@ -129,7 +128,6 @@ import java.awt.event.KeyEvent.VK_RIGHT
 import java.awt.event.KeyEvent.VK_SHIFT
 import java.awt.event.KeyEvent.VK_TAB
 import java.awt.event.KeyEvent.VK_UP
-import java.nio.file.Path
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit.SECONDS
@@ -161,9 +159,18 @@ internal class DeviceViewTest {
   private val androidExecutorsRule = AndroidExecutorsRule(workerThreadExecutor = Executors.newCachedThreadPool())
   private val crashReporterRule = CrashReporterRule()
   private val notificationRule = NotificationRule()
+  private val goldenImageRule = GoldenImageRule("tools/adt/idea/streaming/testData/DeviceViewTest/golden")
   @get:Rule
   val ruleChain =
-    RuleChain(agentRule, crashReporterRule, androidExecutorsRule, notificationRule, ClipboardSynchronizationDisablementRule(), EdtRule())
+    RuleChain(
+      agentRule,
+      crashReporterRule,
+      androidExecutorsRule,
+      notificationRule,
+      ClipboardSynchronizationDisablementRule(),
+      goldenImageRule,
+      EdtRule(),
+    )
   @get:Rule val usageTrackerRule = UsageTrackerRule()
   private lateinit var device: FakeScreenSharingAgentRule.FakeDevice
   private lateinit var view: DeviceView
@@ -609,7 +616,7 @@ internal class DeviceViewTest {
     assertThat(view.canZoom(ZoomType.ACTUAL)).isFalse()
     assertThat(view.canZoom(ZoomType.FIT)).isTrue()
     val image = ImageUtils.scale(fakeUi.render(view), 0.125)
-    ImageDiffUtil.assertImageSimilar(getGoldenFile("Zoom1"), image, 0.0)
+    goldenImageRule.assertImageSimilar("Zoom1", image, 0.0)
 
     view.zoom(ZoomType.OUT)
     fakeUi.layoutAndDispatchEvents()
@@ -1258,12 +1265,10 @@ internal class DeviceViewTest {
 
   private fun assertAppearance(goldenImageName: String) {
     // First rendering may be low quality.
-    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), fakeUi.render(), 0.5, ignoreMissingGoldenFile = true)
+    goldenImageRule.assertImageSimilar(goldenImageName, fakeUi.render(), 0.5, ignoreMissingGoldenFile = true)
     // Second rendering is guaranteed to be high quality.
-    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), fakeUi.render())
+    goldenImageRule.assertImageSimilar(goldenImageName, fakeUi.render())
   }
-
-  private fun getGoldenFile(name: String): Path = TestUtils.resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/${name}.png")
 
   private fun getNextControlMessageAndWaitForFrame(displayId: Int = PRIMARY_DISPLAY_ID): ControlMessage {
     val message = agent.getNextControlMessage(5.seconds)
@@ -1317,5 +1322,3 @@ private fun CrashReport.toPartMap(): Map<String, String> {
   }
   return parts
 }
-
-private const val GOLDEN_FILE_PATH = "tools/adt/idea/streaming/testData/DeviceViewTest/golden"

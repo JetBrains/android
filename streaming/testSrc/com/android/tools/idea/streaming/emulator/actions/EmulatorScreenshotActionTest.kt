@@ -17,8 +17,7 @@ package com.android.tools.idea.streaming.emulator.actions
 
 import com.android.emulator.control.DisplayConfiguration
 import com.android.emulator.control.Posture
-import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
+import com.android.testutils.GoldenImageRule
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.TreeWalker
@@ -76,6 +75,7 @@ class EmulatorScreenshotActionTest {
 
   private val projectRule = ProjectRule()
   private val emulatorRule = FakeEmulatorRule()
+  private val goldenImageRule = GoldenImageRule("tools/adt/idea/streaming/testData/EmulatorScreenshotActionTest/golden")
 
   @get:Rule
   val ruleChain =
@@ -84,6 +84,7 @@ class EmulatorScreenshotActionTest {
       DataManagerRule(projectRule),
       emulatorRule,
       ClipboardSynchronizationDisablementRule(),
+      goldenImageRule,
       EdtRule(),
       HeadlessDialogRule(),
     )
@@ -271,11 +272,8 @@ class EmulatorScreenshotActionTest {
 
   private fun assertAppearance(image: BufferedImage, goldenImageName: String) {
     val scaledDownImage = ImageUtils.scale(image, 0.1)
-    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), scaledDownImage, 0.0)
+    goldenImageRule.assertImageSimilar(goldenImageName, scaledDownImage, 0.0)
   }
-
-  @Suppress("SameParameterValue")
-  private fun getGoldenFile(name: String): Path = TestUtils.resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/${name}.png")
 }
 
 private fun ScreenshotViewer.waitForUpdateAndGetImage(expectTransparentCorner: Boolean? = null): BufferedImage {
@@ -318,5 +316,3 @@ private fun VirtualFile.readImage(): BufferedImage? {
     null
   }
 }
-
-private const val GOLDEN_FILE_PATH = "tools/adt/idea/streaming/testData/EmulatorScreenshotActionTest/golden"

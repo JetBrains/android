@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.streaming.core
 
-import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
+import com.android.testutils.GoldenImageRule
 import com.android.tools.adtui.actions.executeAction
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
@@ -38,7 +37,6 @@ import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.BorderLayout
 import java.awt.Color
-import java.nio.file.Path
 import javax.swing.Icon
 import javax.swing.border.EmptyBorder
 import org.junit.Before
@@ -55,7 +53,9 @@ class FloatingToolbarContainerTest {
   }
 
   private val disposableRule = DisposableRule()
-  @get:Rule val rule = RuleChain(ApplicationRule(), disposableRule, EdtRule())
+  private val goldenImageRule = GoldenImageRule("tools/adt/idea/streaming/testData/FloatingToolbarContainerTest/golden")
+
+  @get:Rule val rule = RuleChain(ApplicationRule(), disposableRule, goldenImageRule, EdtRule())
   private val panel by lazy { createHostPanel() }
   private val fakeUi by lazy { FakeUi(panel, createFakeWindow = true, parentDisposable = disposableRule.disposable) }
 
@@ -168,10 +168,8 @@ class FloatingToolbarContainerTest {
     ActivityTracker.getInstance().inc()
     fakeUi.updateToolbarsIfNecessary()
     val image = fakeUi.render()
-    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, 0.0)
+    goldenImageRule.assertImageSimilar(goldenImageName, image, 0.0)
   }
-
-  private fun getGoldenFile(name: String): Path = TestUtils.resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/$name.png")
 
   private class TestAction(name: String, icon: Icon) : AnAction(name, name, icon) {
 
@@ -193,5 +191,3 @@ class FloatingToolbarContainerTest {
     }
   }
 }
-
-private const val GOLDEN_FILE_PATH = "tools/adt/idea/streaming/testData/FloatingToolbarContainerTest/golden"
