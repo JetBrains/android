@@ -23,13 +23,13 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.blockingContext
 import com.intellij.openapi.progress.coroutineToIndicator
 import com.intellij.util.application
 import com.intellij.util.cancelOnDispose
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -90,7 +90,7 @@ class ResourceFolderRepositoryBackgroundActions : Disposable.Default {
         ReadAction.nonBlocking(action).expireWith(this).executeSynchronously()
         ResourceUpdateTracer.log { "$repositorySimpleId: Update $action finished" }
       } catch (e: Throwable) {
-        if (e is ProcessCanceledException) {
+        if (e is CancellationException) {
           ResourceUpdateTracer.log { "$repositorySimpleId: Update $action was canceled" }
         } else {
           ResourceUpdateTracer.log { "$repositorySimpleId: Update $action finished with exception $e\n${getStackTrace(e)}" }
