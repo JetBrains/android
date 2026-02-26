@@ -36,7 +36,9 @@ import com.google.idea.blaze.common.artifact.BuildArtifactCache
 import com.google.idea.blaze.common.vcs.VcsState
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.BlazeQueryParser
+import com.google.idea.blaze.qsync.GraphToProjectConverter
 import com.google.idea.blaze.qsync.ProjectBuilder
+import com.google.idea.blaze.qsync.ProjectStructureReader
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.PostQuerySyncData
@@ -107,6 +109,8 @@ class QuerySyncProject(
   val projectProtoUpdateOperations: Collection<ProjectProtoUpdateOperation>,
   val handledRuleKinds: Set<String>,
   val protoRules: BuildGraphData.ProtoRules,
+  private val projectStructureReader: ProjectStructureReader,
+  private val readProjectStructureFromDirectory: Boolean,
 ) : ReadonlyQuerySyncProject {
   override val projectData: QuerySyncProjectData
     get() {
@@ -139,9 +143,20 @@ class QuerySyncProject(
     postQuerySyncData: PostQuerySyncData,
   ): CoreSyncResult {
     val graph = buildGraphData(postQuerySyncData, context)
-    val projectStructureData =
-      projectBuilder.readProjectStructure(context, postQuerySyncData, graph)
+    val projectStructureData = readProjectStructure(context, postQuerySyncData, graph)
     return CoreSyncResult(postQuerySyncData, graph, projectStructureData)
+  }
+
+  fun readProjectStructure(
+    context: Context<*>,
+    postQuerySyncData: PostQuerySyncData,
+    graph: BuildGraphData,
+  ): ProjectStructureData {
+    return if (readProjectStructureFromDirectory) {
+      projectStructureReader.read(context, workspaceRoot.path(), postQuerySyncData.projectDefinition())
+    } else {
+      GraphToProjectConverter.initializeProjectStructureData(graph)
+    }
   }
 
   /**

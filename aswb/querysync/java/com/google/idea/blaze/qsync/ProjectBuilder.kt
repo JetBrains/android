@@ -39,22 +39,8 @@ import java.nio.file.Path
 class ProjectBuilder(
   private val packageReader: PackageReader,
   private val parallelPackageReader: PackageReader.ParallelReader,
-  private val projectStructureReader: ProjectStructureReader,
   private val workspaceRoot: Path,
-  private val readProjectStructureFromDirectory: Boolean,
 ) {
-
-  fun readProjectStructure(
-    context: Context<*>,
-    postQuerySyncData: PostQuerySyncData,
-    graph: BuildGraphData,
-  ): ProjectStructureData {
-    return if (readProjectStructureFromDirectory) {
-      projectStructureReader.read(context, workspaceRoot, postQuerySyncData.projectDefinition())
-    } else {
-      GraphToProjectConverter.initializeProjectStructureData(graph)
-    }
-  }
 
   /**
    * Creates a [QuerySyncProjectSnapshot], which includes an expected IDE project structure, from

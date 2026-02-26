@@ -130,7 +130,9 @@ public class ProjectLoaderImpl implements ProjectLoader {
       ProjectQuerier projectQuerier,
       QuerySyncSourceToTargetMap sourceToTargetMap,
       ImmutableSet<String> handledRuleKinds,
-      BuildGraphData.ProtoRules protoRules) {}
+      BuildGraphData.ProtoRules protoRules,
+      ProjectStructureReader projectStructureReader,
+      boolean readProjectStructureFromDirectory) {}
 
   public ProjectLoaderImpl(Project project) {
     this(
@@ -182,7 +184,9 @@ public class ProjectLoaderImpl implements ProjectLoader {
                 .addAll(ProjectProtoTransformProvider.getAll(result.latestProjectDef()))
                 .build(),
             result.handledRuleKinds(),
-            result.protoRules());
+            result.protoRules(),
+            result.projectStructureReader(),
+            result.readProjectStructureFromDirectory());
 
     return querySyncProject;
   }
@@ -303,13 +307,14 @@ public class ProjectLoaderImpl implements ProjectLoader {
             workspaceRoot.path(),
             enableExperimentalQuery.getValue(),
             snapshotHolder::getCurrent);
+    ProjectStructureReader projectStructureReader = ProjectStructureReader.Companion.create(new FileExtensions());
+    boolean readProjectStructureFromDirectory = querySyncUserPreferences.getLoadProjectStructureFromDirectoryTraversal();
+
     ProjectBuilder snapshotBuilder =
         new ProjectBuilder(
             createPackageReader(),
             createParallelPackageReader(),
-            ProjectStructureReader.Companion.create(new FileExtensions()),
-            workspaceRoot.path(),
-            querySyncUserPreferences.getLoadProjectStructureFromDirectoryTraversal());
+            workspaceRoot.path());
     QueryRunner queryRunner = createQueryRunner(buildSystem);
     ProjectQuerier projectQuerier =
         createProjectQuerier(
@@ -341,7 +346,9 @@ public class ProjectLoaderImpl implements ProjectLoader {
         projectQuerier,
         sourceToTargetMap,
         handledRules,
-        buildSystem.getProtoRules());
+        buildSystem.getProtoRules(),
+        projectStructureReader,
+        readProjectStructureFromDirectory);
   }
 
   private static Map<BuildArtifact, ? extends Collection<? extends ArtifactMetadata.Extractor<?>>>
