@@ -362,7 +362,6 @@ filegroup(
         "//tools/base/third_party/kotlin:kotlin-m2repository",
         "//tools/base/threading-agent:threading_agent.jar",
         "//tools/base/tracer:trace_agent",
-        "//tools/vendor/google/automation:android_automation_agent_plugin",
         "//tools/vendor/google/ml/aiplugin/ij-platform/atlas:atlas_artifacts",
     ] + select({
         "@platforms//os:windows": [],
