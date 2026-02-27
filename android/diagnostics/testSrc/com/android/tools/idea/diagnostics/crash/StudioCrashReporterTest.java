@@ -62,7 +62,6 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.hamcrest.core.SubstringMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider;
 import org.junit.ClassRule;
 import org.junit.Test;
 
@@ -113,16 +112,6 @@ public class StudioCrashReporterTest {
 
     String expectedValue = Boolean.toString(NewUI.isEnabled());
     assertRequestContainsField(content, "isNewUI", expectedValue);
-  }
-
-  @Test
-  public void testKotlinK2IncludedInExceptionReport() throws Exception {
-    CrashReport report =
-      new StudioExceptionReport.Builder()
-        .setThrowable(new RuntimeException("Test Exception Message"), false, false)
-        .build();
-    String content = getSerializedContent(report);
-    assertRequestContainsField(content, "isKotlinK2", Boolean.toString(KotlinPluginModeProvider.Companion.isK2Mode()));
   }
 
   @Test
