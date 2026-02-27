@@ -32,6 +32,7 @@ import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.ImageFormat.ImgFormat
 import com.android.emulator.control.InputEvent
 import com.android.emulator.control.KeyboardEvent
+import com.android.emulator.control.MicrophoneState
 import com.android.emulator.control.MouseEvent
 import com.android.emulator.control.Notification
 import com.android.emulator.control.PaneEntry
@@ -168,7 +169,21 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
 
   @Volatile
   var xrOptions: XrOptions = XrOptions.newBuilder().setEnvironment(XrOptions.Environment.LIVING_ROOM_DAY).build()
-    private set
+    private set(value) {
+      if (value != field) {
+        field = value
+        notificationStreamObserver?.sendStreamingResponse(Notification.newBuilder().setXrOptions(value).build())
+      }
+    }
+
+  @Volatile
+  var microphoneState: MicrophoneState = MicrophoneState.newBuilder().build()
+    private set(value) {
+      if (value != field) {
+        field = value
+        notificationStreamObserver?.sendStreamingResponse(Notification.newBuilder().setMicrophoneState(value).build())
+      }
+    }
 
   private var foldedDisplay: FoldedDisplay? = null
     set(value) {
@@ -529,8 +544,6 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
   private fun createPostureNotification(posture: PostureValue): Notification =
     Notification.newBuilder().setPosture(Posture.newBuilder().setValue(posture)).build()
 
-  private fun createXrOptionsNotification(xrOptions: XrOptions): Notification = Notification.newBuilder().setXrOptions(xrOptions).build()
-
   private fun readDisplayRegion(avdFolder: Path): FoldedDisplay? {
     val configIniFile = avdFolder.resolve("config.ini")
     val configIni = readKeyValueFile(configIniFile)
@@ -584,6 +597,17 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
       executor.execute { sendResponse(responseObserver, xrOptions) }
     }
 
+    override fun setMicrophoneState(request: MicrophoneState, responseObserver: StreamObserver<Empty>) {
+      executor.execute {
+        microphoneState = request
+        sendEmptyResponse(responseObserver)
+      }
+    }
+
+    override fun getMicrophoneState(request: Empty, responseObserver: StreamObserver<MicrophoneState>) {
+      executor.execute { sendResponse(responseObserver, microphoneState) }
+    }
+
     private fun findPosture(valueType: PostureDescriptor.ValueType, value: Float): PostureValue? =
       config.postures.find { it.valueType == valueType && it.minValue <= value && value <= it.maxValue }?.posture
 
@@ -617,8 +641,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
         }
         devicePosture?.let { responseObserver.sendStreamingResponse(createPostureNotification(it)) }
         if (config.deviceType == DeviceType.XR_HEADSET) {
-          responseObserver.sendStreamingResponse(createXrOptionsNotification(xrOptions))
+          responseObserver.sendStreamingResponse(Notification.newBuilder().setXrOptions(xrOptions).build())
         }
+        responseObserver.sendStreamingResponse(Notification.newBuilder().setMicrophoneState(microphoneState).build())
       }
     }
 

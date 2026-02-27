@@ -53,6 +53,12 @@
 
   <actions>
     <group id="Streaming">
+      <action id="android.streaming.microphone.input" class="com.android.tools.idea.streaming.emulator.actions.EmulatorMicrophoneToggleAction"
+          icon="AllIcons.CodeWithMe.CwmMicOn" text="Turn Microphone On/Off" description="Turn microphone on/off">
+        <keyboard-shortcut first-keystroke="control M" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta M" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta M" keymap="Mac OS X 10.5+"/>
+      </action>
       <action id="android.device.power.button" class="com.android.tools.idea.streaming.actions.StreamingPowerButtonAction"
               icon="StudioIcons.Emulator.Toolbar.POWER" text="Power" description="Press the Power button of the device">
         <keyboard-shortcut first-keystroke="control shift P" keymap="$default"/>
@@ -363,6 +369,8 @@
         <reference ref="android.emulator.display.mode.foldable"/>
         <reference ref="android.emulator.display.mode.tablet"/>
       </group>
+      <separator/>
+      <reference ref="android.streaming.microphone.input"/>
       <separator/>
       <reference ref="android.device.power.button"/>
       <reference ref="android.device.wear1.button"/>

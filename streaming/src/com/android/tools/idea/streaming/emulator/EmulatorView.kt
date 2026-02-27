@@ -297,6 +297,14 @@ internal class EmulatorView(
   val displaySizeWithFrame: Dimension
     get() = computeActualSize(screenshotShape.orientation)
 
+  var microphoneInput: Boolean? = null
+    set(value) {
+      if (field != value) {
+        field = value
+        ActivityTracker.getInstance().inc()
+      }
+    }
+
   private var multiTouchMode = false
     set(value) {
       if (value != field) {
@@ -896,6 +904,7 @@ internal class EmulatorView(
             checkDisplayConfigurationsAndNotifyDisplayConfigurationListeners(message.displayConfigurationsChangedNotification)
           message.hasPosture() -> updateCurrentPosture(message.posture.value)
           message.hasXrOptions() -> updateXrOptions(message.xrOptions)
+          message.hasMicrophoneState() -> microphoneInput = message.microphoneState.realAudioEnabled
           else -> {}
         }
       }

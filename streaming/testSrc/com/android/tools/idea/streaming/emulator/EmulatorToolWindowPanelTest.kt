@@ -521,8 +521,20 @@ class EmulatorToolWindowPanelTest {
     assertAppearance("AiGlassesToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
     emulator.clearGrpcCallLog()
 
-    // Check the Button 1 action.
-    var button = fakeUi.getComponent<ActionButton> { it.action.templateText == "Camera" }
+    var button = fakeUi.getComponent<ActionButton> { it.action.templateText == "Turn Microphone On/Off" }
+    assertThat(button.isSelected).isFalse()
+    fakeUi.mouseClickOn(button)
+    var call = emulator.getNextGrpcCall(2.seconds)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setMicrophoneState")
+    assertThat(shortDebugString(call.request)).isEqualTo("realAudioEnabled: true")
+    fakeUi.layoutAndDispatchEvents()
+    fakeUi.mouseClickOn(button)
+    call = emulator.getNextGrpcCall(2.seconds)
+    assertThat(shortDebugString(call.request)).isEqualTo("")
+    fakeUi.layoutAndDispatchEvents()
+    assertThat(button.isSelected).isFalse()
+
+    button = fakeUi.getComponent<ActionButton> { it.action.templateText == "Camera" }
     fakeUi.mouseClickOn(button)
     val streamInputCall = emulator.getNextGrpcCall(2.seconds)
     assertThat(streamInputCall.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
