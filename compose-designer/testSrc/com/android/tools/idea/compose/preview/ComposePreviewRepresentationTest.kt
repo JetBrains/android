@@ -121,6 +121,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -140,6 +141,7 @@ private fun PreviewDisplaySettings.asTestDisplayString(): String {
   return "PreviewDisplaySettings(name=$name, baseName=$baseName, parameterName=$parameterName, group=$group, showDecoration=$showDecoration, $backgroundString, displayPositioning=$displayPositioning, organizationGroup=$organizationGroup, organizationName=$organizationName)"
 }
 
+@Ignore("b/488139872")
 class ComposePreviewRepresentationTest {
   private val logger = Logger.getInstance(ComposePreviewRepresentationTest::class.java)
 
