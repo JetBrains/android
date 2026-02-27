@@ -15,11 +15,34 @@ Fast, lightweight, and isolated. Use regular JUnit rules if the task does not de
 ```
 Then manually add files via `androidProjectRule.fixture.addFileToProject(...)`.
 
-### Prebuilt Zipped Projects
-For tasks involving Gradle Sync, Rendering, or complex Android multi-module structures, use a prebuilt project.
+### Real World Projects
+For tasks involving Gradle Sync, Rendering, or complex Android multi-module structures, use a real world project.
+#### Git hosted Projects
+1. **Location**: The project must be hosted on git and available publicly.
+2. **Rule Configuration**: Use `GitProjectRule` combined with `TemporaryFolder` to download and setup the project and `AgentEvalRule` to run the evaluation. Use a `RuleChain` to ensure the project is setup before the `AgentEvalRule`.
 
+Here is an example:
+```kotlin
+val temporaryFolder = TemporaryFolder()
+  val gitRepository = GitRepository(
+    url = "some git url",
+    refSha = "some ref sha",
+  )
+  val gitProjectRule = GitProjectRule(
+    taskDir = { temporaryFolder.newFolder().resolve("my_eval").toPath() },
+    gitRepository = { gitRepository },
+  )
+  val agentEvalRule = AgentEvalRule(evalId = "my_eval") { gitProjectRule.project }
+  val geminiKeyRule = GeminiApiKeyRule()
+
+  @get:Rule
+  val chain: RuleChain =
+    RuleChain.outerRule(temporaryFolder).around(projectRule).around(agentEvalRule).around(geminiKeyRule)
+```
+
+#### Prebuilt Zipped Projects
 1. **Format**: The project should be completely self-contained, zipped, and named `src.zip`.
-2. **Location**: Add the `src.zip` folder structure to the `prebuilts/studio/evalprojects/` tree in Google3 (e.g., `prebuilts/studio/evalprojects/ui-tools/myproject/src.zip`).
+2. **Location**: Add the `src.zip` folder structure to the `prebuilts/studio/evalprojects/` tree in `studio-main` (e.g., `prebuilts/studio/evalprojects/ui-tools/myproject/src.zip`).
 3. **Rule Configuration**: Use `AndroidGradleProjectRule` wrapped by a custom test rule (like `UiToolsEvalRule`) that unzips `src.zip` before starting the eval.
 
 ```kotlin
@@ -40,6 +63,7 @@ The main interface for evaluation logic, accessed via `agentEvalRule.fixture`.
 - `run(prompt)`: Executes the task and returns a `DiffResult`.
 - `assertTrue/assertFalse(severity, message, condition)`: Logs assertions.
 - `logMetric(name, value)`: Records quantitative data for the evaluation run.
+- `score(dimension, value)`: Scores the eval based on a specific dimension. The score value is between 0.0 and 1.0. The eval should not aim at scoring 1.0 from the start as the value should increase as the agent improves.
 
 ### LlmJudge
 Provides qualitative analysis of the agent's output.
@@ -61,4 +85,4 @@ my_feature_eval(
 )
 ```
 
-Ensure the `java_test` target produced by the macro includes a `data` dependency on the `prebuilts` directory containing your `src.zip`.
+If you are using a prebuilt zipped project, ensure the `java_test` target produced by the macro includes a `data` dependency on the `prebuilts` directory containing your `src.zip`.
