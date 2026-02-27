@@ -130,7 +130,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
 /** Tests for [EmulatorToolWindowPanel] and some of its toolbar actions. */
-@Suppress("OPT_IN_USAGE", "OverrideOnly")
+@Suppress("OPT_IN_USAGE")
 @RunsInEdt
 class EmulatorToolWindowPanelTest {
 
