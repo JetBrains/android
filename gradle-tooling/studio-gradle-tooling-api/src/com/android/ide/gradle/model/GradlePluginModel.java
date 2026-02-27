@@ -27,4 +27,6 @@ public interface GradlePluginModel {
   Boolean hasKotlinMultiPlatform();
 
   Boolean hasFtlPlugin();
+
+  Boolean hasLegacyKaptPlugin();
 }

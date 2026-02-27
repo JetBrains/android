@@ -36,9 +36,9 @@ import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.project.entities.getGradleAndroidModel
-import com.android.tools.idea.gradle.project.entities.gradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.gradleModuleModel
 import com.android.tools.idea.gradle.project.sync.idea.getGradleProjectPath
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidModuleSystem.Type
@@ -581,7 +581,7 @@ class GradleModuleSystem(
     get() = GradleAndroidModel.get(module)?.androidProject?.agpFlags?.dataBindingEnabled ?: false
 
   override val isKaptEnabled: Boolean
-    get() = GradleAndroidModel.get(module)?.androidProject?.isKaptEnabled ?: false
+    get() = GradleAndroidModel.get(module)?.androidProject?.isKaptEnabled == true || module.gradleModuleModel?.hasLegacyKaptPlugin == true
 
   override val applicationRClassConstantIds: Boolean
     get() = readFromAgpFlags { it.applicationRClassConstantIds } ?: true

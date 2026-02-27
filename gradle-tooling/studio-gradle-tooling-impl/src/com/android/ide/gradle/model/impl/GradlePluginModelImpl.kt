@@ -25,6 +25,7 @@ data class GradlePluginModelImpl(
   private val hasSafeArgsKotlin: Boolean,
   private val hasKotlinMultiPlatform: Boolean,
   private val hasFtlPlugin: Boolean,
+  private val hasLegacyKaptPlugin: Boolean,
 ) : GradlePluginModel, Serializable {
   override fun hasSafeArgsJava(): Boolean = hasSafeArgsJava
 
@@ -34,7 +35,9 @@ data class GradlePluginModelImpl(
 
   override fun hasFtlPlugin(): Boolean = hasFtlPlugin
 
+  override fun hasLegacyKaptPlugin(): Boolean = hasLegacyKaptPlugin
+
   companion object {
-    private const val serialVersionUID = 4L
+    private const val serialVersionUID = 5L
   }
 }

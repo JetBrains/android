@@ -102,9 +102,10 @@ class ModelSerializationTest {
         FileImpl("/some/fake/build/file"),
         "4.1.10",
         "3.6.0-dev",
-        false,
-        false,
-        false,
+        safeArgsJava = false,
+        safeArgsKotlin = false,
+        hasFtlPlugin = false,
+        hasLegacyKaptPlugin = false,
       )
     }
 
