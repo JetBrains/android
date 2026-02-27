@@ -22,10 +22,14 @@ import com.google.wireless.android.sdk.stats.ScreenshotTestComposePreviewEvent
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+
+private val LOG = Logger.getInstance(ScreenshotToolbarAnalytics::class.java)
 
 /** Logs a screenshot test event with the specified type. */
 fun logScreenshotTestEvent(type: ScreenshotTestComposePreviewEvent.Type, project: Project?) {
+  LOG.debug("Logging screenshot test event: kind=SCREENSHOT_TEST_COMPOSE_PREVIEW, type=$type, project=${project?.name ?: "unknown"}")
   val event = ScreenshotTestComposePreviewEvent.newBuilder().setType(type).build()
 
   val studioEvent =
