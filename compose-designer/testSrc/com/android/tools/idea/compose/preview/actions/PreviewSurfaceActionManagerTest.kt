@@ -55,7 +55,7 @@ import org.mockito.kotlin.whenever
 // EnableInteractiveAction(),
 // DeployToDeviceAction(),
 // BackNavigationAction()
-// ComposePreviewAgentsDropdownAction() or TransformPreviewAction(), depending on flag value.
+// ComposePreviewAgentsDropdownAction() or ChangeUIAction(), depending on flag value.
 // in wrappers
 private const val EXPECTED_NUMBER_OF_ACTIONS = 8
 

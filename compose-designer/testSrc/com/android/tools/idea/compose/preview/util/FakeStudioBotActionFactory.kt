@@ -30,20 +30,20 @@ open class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
   }
 
   private fun fakeDefaultActionGroup(): DefaultActionGroup {
-    return DefaultActionGroup("previewAgents", listOf(transformPreviewAction(), fakeAction("Match UI"), fakeAction("Fix UI")))
+    return DefaultActionGroup("previewAgents", listOf(changeUIAction(), fakeAction("Match UI"), fakeAction("Fix UI")))
   }
 
   private fun fakeDropDownAction(): DropDownAction {
     return object : DropDownAction("previewAgents", null, null) {
       init {
-        listOf(transformPreviewAction(), fakeAction("Match UI"), fakeAction("Fix UI")).forEach { add(it) }
+        listOf(changeUIAction(), fakeAction("Match UI"), fakeAction("Fix UI")).forEach { add(it) }
       }
     }
   }
 
   override fun createPreviewGenerator(): AnAction = fakeAction("previewGenerator")
 
-  override fun transformPreviewAction() = fakeAction("transformPreview")
+  override fun changeUIAction() = fakeAction("changeUI")
 
   override fun fixVisualLintIssuesAction(methodFqn: String) = fakeAction("fixVisualLintIssues")
 

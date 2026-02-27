@@ -18,7 +18,7 @@ This document describes how an AI agent can interact specifically with the Compo
 ## AI Agent Specialized Hooks
 Specific hooks for AI agents are located in `tools/vendor/google/ml/aiplugin/android/src/main/kotlin/com/android/studio/ml/designer/compose/preview/agents/`.
 - **`MatchUiToTargetImageAgent`**: Uses Vision models to compare a rendered preview against a mockup and suggest code fixes.
-- **`TransformPreviewAgent`**: Orchestrates deep memory edits and verify-by-render loops.
+- **`ChangeUIAgent`**: Orchestrates deep memory edits and verify-by-render loops.
 
 ## Examples and Testing
 

@@ -28,7 +28,7 @@ interface ComposeStudioBotActionFactory {
    * An action to transform (e.g. fix, improve, evolve) the selected Compose Preview, taking both the preview image and its corresponding
    * code into account.
    */
-  fun transformPreviewAction(): AnAction
+  fun changeUIAction(): AnAction
 
   /**
    * An action to fix visual lint issues found by UI Check for a Compose Preview.
