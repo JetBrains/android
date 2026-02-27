@@ -59,14 +59,6 @@ interface SnapshotComparisonTest {
 
 /** Snapshot filename suffixes ordered by matching priority, where [BASELINE] must be last. */
 enum class SnapshotSuffix(val suffix: String) {
-  K2_PHASED("_K2_phased") {
-    override val isEnabled
-      get() = StudioFlags.PHASED_SYNC_ENABLED.get()
-  },
-  K2("_K2") {
-    override val isEnabled
-      get() = true
-  },
   PHASED("_phased") {
     override val isEnabled
       get() = StudioFlags.PHASED_SYNC_ENABLED.get()
