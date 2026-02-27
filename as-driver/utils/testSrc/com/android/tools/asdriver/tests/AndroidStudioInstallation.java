@@ -27,6 +27,7 @@ import com.android.tools.testlib.Display;
 import com.android.tools.testlib.LogFile;
 import com.android.tools.testlib.TestFileSystem;
 import com.android.tools.testlib.TestLogger;
+import com.android.utils.FileUtils;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.system.CpuArch;
 import java.io.IOException;
@@ -124,9 +125,12 @@ public class AndroidStudioInstallation extends IdeInstallation<AndroidStudio> {
       androidStudioDirectory = androidStudioDirectory + "." + config;
     }
 
-    Path workDir = TestUtils.getBinPath(androidStudioDirectory);
-    Path studioDir = workDir.resolve(getStudioDirectory(workDir));
-    TestLogger.log("studioDir: %s", studioDir);
+    Path sourceDir = TestUtils.getBinPath(androidStudioDirectory);
+    Path workDir = Files.createTempDirectory(options.testFileSystem.getRoot(), "android-studio");
+    var copyDotFiles = true;
+    FileUtils.copyDirectory(sourceDir, workDir, copyDotFiles);
+    Path studioDir = workDir.resolve(getStudioDirectory(sourceDir));
+    TestLogger.log("workDir: %s", workDir);
     return new AndroidStudioInstallation(options.testFileSystem, workDir, studioDir, options.androidStudioFlavor, options.disableFirstRun);
   }
 
