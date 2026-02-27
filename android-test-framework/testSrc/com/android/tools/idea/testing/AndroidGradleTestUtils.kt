@@ -212,6 +212,7 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl.ensureIndexesUpToDate
 import com.intellij.testFramework.replaceService
+import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ThrowableConsumer
 import com.intellij.util.containers.ContainerUtil
@@ -2368,8 +2369,9 @@ private fun <T> openPreparedProject(
   fun body(): T {
     val disposable = Disposer.newDisposable()
     try {
-      val project = funcall {
-        runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+      // JetBrains: Reverted EDT handling to fix tests (e.g. ManifestPanelContentTest.testProject_dynamicApp)
+      val project = runInEdtAndGet {
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
         var afterCreateCalled = false
 
