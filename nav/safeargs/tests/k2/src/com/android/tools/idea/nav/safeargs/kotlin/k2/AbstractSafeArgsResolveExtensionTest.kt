@@ -19,7 +19,6 @@ import com.android.ide.common.gradle.Version
 import com.android.tools.idea.nav.safeargs.SafeArgsFeatureVersions
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
-import com.android.tools.idea.testing.KotlinPluginRule
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runWriteAction
@@ -43,20 +42,15 @@ import org.jetbrains.kotlin.analysis.api.symbols.KaFunctionSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaNamedFunctionSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaSymbolOrigin
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginMode
 import org.jetbrains.kotlin.idea.references.KtReference
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.junit.Rule
-import org.junit.rules.RuleChain
 
 abstract class AbstractSafeArgsResolveExtensionTest {
-  protected val safeArgsRule = SafeArgsRule(SafeArgsMode.KOTLIN)
-
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(KotlinPluginRule(KotlinPluginMode.K2)).around(safeArgsRule)!!
+  @get:Rule val safeArgsRule = SafeArgsRule(SafeArgsMode.KOTLIN)
 
   protected fun addNavXml(
     @Language("xml") fileContent: String,

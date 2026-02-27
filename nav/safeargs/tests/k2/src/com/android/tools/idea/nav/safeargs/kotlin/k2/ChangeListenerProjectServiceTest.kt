@@ -21,7 +21,6 @@ import com.android.tools.idea.nav.safeargs.safeArgsMode
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.getSyncManager
-import com.android.tools.idea.testing.KotlinPluginRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.runInEdtAndWait
@@ -32,20 +31,15 @@ import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModificatio
 import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModificationEventListener
 import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModuleStateModificationEvent
 import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModuleStateModificationKind
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginMode
 import org.jetbrains.kotlin.idea.util.toKaModulesForModificationEvents
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 
 class ChangeListenerProjectServiceTest {
-  private val safeArgsRule = SafeArgsRule(SafeArgsMode.KOTLIN)
-
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(KotlinPluginRule(KotlinPluginMode.K2)).around(safeArgsRule)
+  @get:Rule val safeArgsRule = SafeArgsRule(SafeArgsMode.KOTLIN)
 
   private inline fun withAnalysisBusListener(block: (KotlinModificationEventListener) -> Unit) {
     val disposable = Disposer.newDisposable()
