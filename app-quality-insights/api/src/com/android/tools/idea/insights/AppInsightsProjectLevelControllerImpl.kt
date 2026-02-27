@@ -234,8 +234,8 @@ class AppInsightsProjectLevelControllerImpl(
     emit(SelectedIssueVariantChanged(variant))
   }
 
-  override fun refreshInsight(regenerateWithContext: Boolean) {
-    emit(RefreshInsight(regenerateWithContext))
+  override fun refreshInsight(regenerateWithContext: Boolean, forceGenerateNewInsight: Boolean) {
+    emit(RefreshInsight(regenerateWithContext, forceGenerateNewInsight))
   }
 
   override fun submitInsightFeedback(insightFeedback: InsightFeedback) {

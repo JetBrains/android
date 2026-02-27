@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights.ui.insight
 
 import com.android.tools.idea.concurrency.createCoroutineScope
+import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.experiments.InsightFeedback
@@ -44,6 +45,7 @@ import kotlinx.coroutines.flow.stateIn
 const val INSIGHT_TOOLBAR = "InsightToolbarPanel"
 
 class InsightToolbarPanel(
+  controller: AppInsightsProjectLevelController,
   currentInsightFlow: Flow<LoadingState<AiInsight?>>,
   parentDisposable: Disposable,
   private val onSubmitFeedback: (InsightFeedback) -> Unit,
@@ -73,8 +75,10 @@ class InsightToolbarPanel(
       state = { feedbackState.value == InsightFeedback.THUMBS_DOWN },
     )
 
+  private val refreshAction = InsightRefreshAction(controller)
+
   init {
-    val actionGroup = DefaultActionGroup(copyAction, upvoteAction, downvoteAction)
+    val actionGroup = DefaultActionGroup(copyAction, refreshAction, upvoteAction, downvoteAction)
     val toolbar = ActionManager.getInstance().createActionToolbar(INSIGHT_TOOLBAR, actionGroup, true)
     toolbar.targetComponent = this
     add(toolbar.component, BorderLayout.CENTER)

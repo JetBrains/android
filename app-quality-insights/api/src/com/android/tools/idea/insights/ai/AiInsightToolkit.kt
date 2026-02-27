@@ -90,12 +90,15 @@ abstract class AiInsightToolkit(
     variantId: String?,
     failureType: FailureType,
     event: Event,
+    forceGenerateNewInsight: Boolean = false,
   ): LoadingState.Done<AiInsight> {
     validateFetchInsightPrecondition(failureType, event)?.let {
       return it
     }
-    getCachedInsight(connection, issueId, variantId)?.let {
-      return LoadingState.Ready(it)
+    if (!forceGenerateNewInsight) {
+      getCachedInsight(connection, issueId, variantId)?.let {
+        return LoadingState.Ready(it)
+      }
     }
     val request = createGeminiInsightRequest(connection, issueId, variantId, event)
     val failure = LoadingState.UnknownFailure("Unable to fetch insight for the selected issue.")

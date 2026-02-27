@@ -321,7 +321,14 @@ class ActionDispatcher(
               }
             }
             else -> {
-              aiInsightToolkit.fetchInsight(connection, action.id, action.variantId, action.issueFatality, action.event)
+              aiInsightToolkit.fetchInsight(
+                connection,
+                action.id,
+                action.variantId,
+                action.issueFatality,
+                action.event,
+                action.forceGenerateNewInsight,
+              )
             }
           }
         eventEmitter(AiInsightFetched(insight))

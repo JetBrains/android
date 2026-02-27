@@ -18,11 +18,17 @@ package com.android.tools.idea.insights.ui.insight
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
 import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
+import com.android.tools.idea.insights.DEFAULT_FETCHED_PERMISSIONS
+import com.android.tools.idea.insights.ISSUE1
+import com.android.tools.idea.insights.ISSUE2
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.experiments.InsightFeedback
+import com.android.tools.idea.insights.model.event.EventPage
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
+import com.intellij.icons.AllIcons
 import com.intellij.ide.CopyProvider
 import com.intellij.ide.actions.CopyAction
 import com.intellij.openapi.actionSystem.ActionManager
@@ -35,6 +41,7 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -47,12 +54,14 @@ import javax.swing.JPanel
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.fail
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -103,7 +112,7 @@ class InsightToolbarPanelTest {
   fun `test upvote and downvote actions`() = runBlocking {
     createInsightBottomPanel()
 
-    val (_, upvote, downvote) = fakeUi.findAllComponents<ActionButton>()
+    val (_, _, upvote, downvote) = fakeUi.findAllComponents<ActionButton>()
     assertThat(upvote.icon).isEqualTo(StudioIcons.Common.LIKE)
     assertThat(upvote.presentation.text).isEqualTo("Upvote this insight")
     assertThat(upvote.isSelected).isFalse()
@@ -139,7 +148,7 @@ class InsightToolbarPanelTest {
 
     val upvoteEvent = TestActionEvent.createTestEvent()
     val downvoteEvent = TestActionEvent.createTestEvent()
-    val (_, upvote, downvote) = fakeUi.findAllComponents<ActionButton>()
+    val (_, _, upvote, downvote) = fakeUi.findAllComponents<ActionButton>()
     upvote.actionPerformed(upvoteEvent)
     downvote.actionPerformed(downvoteEvent)
     downvote.updateAwaitUntil(downvoteEvent) { it.isSelected }
@@ -154,7 +163,7 @@ class InsightToolbarPanelTest {
 
     val fakeUi = FakeUi(toolbarPanel)
     val toolbar = fakeUi.findComponent<ActionToolbarImpl> { it.place == INSIGHT_TOOLBAR } ?: fail("Toolbar not found")
-    assertThat(toolbar.actions.size).isEqualTo(3)
+    assertThat(toolbar.actions.size).isEqualTo(4)
     val copyAction = toolbar.actions[0]
 
     CopyPasteManager.copyTextToClipboard("default text")
@@ -195,6 +204,30 @@ class InsightToolbarPanelTest {
     verify(mockToolbar, timeout(1000).times(2)).updateActionsAsync()
   }
 
+  @Test
+  fun `test refresh insight action`() = runBlocking {
+    val toolbarPanel = createInsightBottomPanel()
+    controllerRule.consumeInitialState(
+      state = LoadingState.Ready(IssueResponse(listOf(ISSUE1, ISSUE2), emptyList(), emptyList(), emptyList(), DEFAULT_FETCHED_PERMISSIONS)),
+      eventsState = LoadingState.Ready(EventPage(listOf(ISSUE1.sampleEvent), "")),
+      insightState = LoadingState.Ready(AiInsight("insight", ISSUE1.sampleEvent)),
+    )
+
+    val fakeUi = withContext(Dispatchers.EDT) { FakeUi(toolbarPanel) }
+    val toolbar = fakeUi.findComponent<ActionToolbarImpl> { it.place == INSIGHT_TOOLBAR } ?: fail("Toolbar not found")
+    assertThat(toolbar.actions.size).isEqualTo(4)
+
+    val refreshAction = toolbar.actions.firstOrNull { it is InsightRefreshAction } ?: fail("InsightRefreshAction not found")
+
+    refreshAction.update(testEvent)
+    assertThat(testEvent.presentation.icon).isEqualTo(AllIcons.General.Refresh)
+
+    refreshAction.actionPerformed(testEvent)
+
+    val state = controllerRule.consumeNext()
+    assertThat(state.currentInsight).isEqualTo(LoadingState.Loading)
+  }
+
   private val AnActionEvent.isSelected: Boolean
     get() = Toggleable.isSelected(presentation)
 
@@ -223,7 +256,7 @@ class InsightToolbarPanelTest {
   }
 
   private fun createInsightBottomPanel() =
-    InsightToolbarPanel(currentInsightFlow, projectRule.disposable) { feedback ->
+    InsightToolbarPanel(controllerRule.controller, currentInsightFlow, projectRule.disposable) { feedback ->
         submittedFeedback.add(feedback)
         currentInsightFlow.value = LoadingState.Ready(DEFAULT_AI_INSIGHT.copy(feedback = feedback))
       }

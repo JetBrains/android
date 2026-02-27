@@ -55,7 +55,7 @@ class InsightLinksPanel(
         }
     }
     add(leftPanel, BorderLayout.WEST)
-    add(InsightToolbarPanel(currentInsightFlow, parentDisposable, controller::submitInsightFeedback), BorderLayout.EAST)
+    add(InsightToolbarPanel(controller, currentInsightFlow, parentDisposable, controller::submitInsightFeedback), BorderLayout.EAST)
   }
 }
 

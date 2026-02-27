@@ -103,7 +103,7 @@ class InsightDisclaimerPanelTest {
       createDisclaimerPanel(
         controller =
           object : StubAppInsightsProjectLevelController(state = MutableStateFlow(state)) {
-            override fun refreshInsight(regenerateWithContext: Boolean) {
+            override fun refreshInsight(regenerateWithContext: Boolean, forceGenerateNewInsight: Boolean) {
               refreshInsightCalled.complete(regenerateWithContext)
             }
           }

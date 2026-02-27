@@ -109,7 +109,7 @@ interface AppInsightsProjectLevelController {
 
   fun selectIssueVariant(variant: IssueVariant?)
 
-  fun refreshInsight(regenerateWithContext: Boolean)
+  fun refreshInsight(regenerateWithContext: Boolean, forceGenerateNewInsight: Boolean = false)
 
   fun submitInsightFeedback(insightFeedback: InsightFeedback)
 
