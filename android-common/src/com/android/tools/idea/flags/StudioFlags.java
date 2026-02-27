@@ -1665,6 +1665,9 @@ public final class StudioFlags {
     "Uses agentic approach when performing transform UI with Gemini."
     );
 
+  public static final Flag<Boolean> COMPOSE_PREVIEW_SUBCOMPONENT_CONTEXT_CHANGE_UI = new BooleanFlag(
+    COMPOSE, "preview.subcomponent.change.ui", "Enable subcomponent context to be sent to AI",
+    "Enables the change UI to have subcomponent selection when entering through clicking on preview.");
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_SCREENSHOT_TO_CODE = new BooleanFlag(
     COMPOSE, "preview.screenshot.to.code", "Enable screenshot to code action",
