@@ -73,6 +73,26 @@ interface SnapshotComparisonTest {
   fun getName(): String
 }
 
+/** Snapshot filename suffixes ordered by matching priority, where [BASELINE] must be last. */
+enum class SnapshotSuffix(val suffix: String) {
+  PHASED("_phased") {
+    override val isEnabled
+      get() = StudioFlags.PHASED_SYNC_ENABLED.get()
+  },
+  BASELINE("") {
+    override val isEnabled
+      get() = true
+  };
+
+  abstract val isEnabled: Boolean
+
+  companion object {
+    fun nonBaselineSnapshots() = entries.filter { it != BASELINE }
+
+    fun snapshotSuffixesApplicable() = entries.filter { it.isEnabled }.map { it.suffix }
+  }
+}
+
 private val testLogsPath: String?
   get() = System.getenv("TEST_TARGET")?.takeIf { it.isNotEmpty() }?.removePrefix("//")?.replace(":", "/")?.let { targetPath ->
     targetPath + (System.getenv("TEST_SHARD_INDEX")?.takeIf { it.isNotEmpty() }?.let { shard -> "/shard_${shard}_of_${System.getenv("TEST_TOTAL_SHARDS")}" } ?: "")
