@@ -215,7 +215,6 @@ import com.intellij.util.ThrowableConsumer
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.containers.MultiMap
 import com.intellij.util.messages.MessageBusConnection
-import com.intellij.workspaceModel.core.fileIndex.WorkspaceFileIndexContributor
 import com.intellij.workspaceModel.core.fileIndex.impl.WorkspaceFileIndexImpl
 import com.intellij.workspaceModel.ide.ProjectSynchronizerUtil
 import kotlinx.coroutines.GlobalScope
@@ -227,7 +226,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.SystemDependent
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.idea.base.externalSystem.findAll
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
+import org.jetbrains.kotlin.idea.core.script.k2.KotlinScriptWorkspaceFileIndexContributor
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtension
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtensions
 import org.jetbrains.plugins.gradle.model.ExternalProject
@@ -2788,14 +2787,7 @@ private fun Project.maybeOutputDiagnostics() {
 
 fun disableKtsIndexing(project: Project, disposable: Disposable) {
   val ep = WorkspaceFileIndexImpl.EP_NAME
-  val contributorPredicate: (WorkspaceFileIndexContributor<*>) -> Boolean = {
-    if (KotlinPluginModeProvider.isK1Mode()) {
-      it is org.jetbrains.kotlin.idea.core.script.k1.dependencies.KotlinScriptWorkspaceFileIndexContributor
-    } else {
-      it is org.jetbrains.kotlin.idea.core.script.k2.KotlinScriptWorkspaceFileIndexContributor
-    }
-  }
-  val filteredExtensions = ep.extensionList.filter { !contributorPredicate(it) }
+  val filteredExtensions = ep.extensionList.filter { it !is KotlinScriptWorkspaceFileIndexContributor }
 
   ExtensionTestUtil.maskExtensions(ep, filteredExtensions, disposable)
 }
