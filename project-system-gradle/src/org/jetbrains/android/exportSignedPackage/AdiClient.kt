@@ -18,6 +18,8 @@ package org.jetbrains.android.exportSignedPackage
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.googleapis.GoogleApiKeyProvider
 import com.android.tools.idea.googleapis.GoogleApiKeyProvider.GoogleApi
+import com.android.tools.idea.gservices.DevServicesDeprecationData
+import com.android.tools.idea.gservices.DevServicesDeprecationDataProvider
 import com.google.api.client.http.GenericUrl
 import com.google.api.client.http.HttpHeaders
 import com.google.api.client.http.HttpTransport
@@ -35,24 +37,37 @@ import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 
+private const val SERVICE_NAME = "AdiClient"
+
 class AdiClient
 @JvmOverloads
 constructor(private val parentDisposable: Disposable, @TestOnly private val transport: HttpTransport = NetHttpTransport()) {
-  private val cache = ConcurrentHashMap<String, RegistrationState>()
+  private val cache = ConcurrentHashMap<String, Pair<RegistrationState, DevServicesDeprecationData?>>()
 
   fun reset() = cache.clear()
 
-  fun checkPackageRegistrationStatusAsync(packageName: String, certificate: ByteArray?): CompletableFuture<RegistrationState> {
+  fun checkPackageRegistrationStatusAsync(
+    packageName: String,
+    certificate: ByteArray?,
+  ): CompletableFuture<Pair<RegistrationState, DevServicesDeprecationData?>> {
     return parentDisposable
       .createCoroutineScope(Dispatchers.IO)
       .async { checkPackageRegistrationStatus(packageName, certificate) }
       .asCompletableFuture()
   }
 
-  suspend fun checkPackageRegistrationStatus(packageName: String, certificate: ByteArray?): RegistrationState {
+  suspend fun checkPackageRegistrationStatus(
+    packageName: String,
+    certificate: ByteArray?,
+  ): Pair<RegistrationState, DevServicesDeprecationData?> {
     val cachedState = cache[packageName]
     if (cachedState != null) {
       return cachedState
+    }
+    val deprecationData =
+      DevServicesDeprecationDataProvider.getInstance().getCurrentDeprecationData(SERVICE_NAME, "Android Developer Verification")
+    if (deprecationData.isUnsupported()) {
+      return RegistrationState.STUDIO_VERSION_UNSUPPORTED to deprecationData
     }
 
     val state =
@@ -79,8 +94,8 @@ constructor(private val parentDisposable: Disposable, @TestOnly private val tran
         }
       }
 
-    cache[packageName] = state
-    return state
+    cache[packageName] = state to null
+    return state to null
   }
 
   private fun generateFingerprint(certificate: ByteArray): String {
@@ -105,4 +120,5 @@ enum class RegistrationState {
   REGISTERED,
   NOT_REGISTERED,
   BAD_KEY,
+  STUDIO_VERSION_UNSUPPORTED,
 }

@@ -24,6 +24,7 @@ import static org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizar
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeBasicVariant;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
+import com.android.tools.idea.gservices.DevServicesDeprecationData;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
@@ -65,6 +66,7 @@ import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import kotlin.Pair;
 import org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard.TargetType;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
@@ -92,15 +94,17 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
   private final JBLabel mySelectedKeyLabel = new JBLabel("Selected Key");
   private final JBLabel mySelectedKey = new JBLabel();
   private final JBLabel myAdiSelectedAppId = new JBLabel();
-  private final JBLabel myAdiStatus = new JBLabel();
+  @VisibleForTesting
+  final JBLabel myAdiStatus = new JBLabel();
   private final JBLabel myAdiStatusIcon = new JBLabel();
-  private final JBLabel myAdiStatusDescription = new JBLabel();
+  @VisibleForTesting
+  final JBLabel myAdiStatusDescription = new JBLabel();
   private final BrowserLink myLearnMoreLink = new BrowserLink("Learn more", "https://d.android.com/r/studio-ui/developer-verification/learn-more");
   private final JBLabel myWarningText = new JBLabel();
 
   private final AdiClient myAdiClient;
 
-  private CompletableFuture<RegistrationState> myCurrentAdiCheck;
+  private CompletableFuture<Pair<RegistrationState, DevServicesDeprecationData>> myCurrentAdiCheck;
 
   @VisibleForTesting
   static class VariantItem {
@@ -174,8 +178,11 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
         }
 
         myAdiClient.checkPackageRegistrationStatusAsync(appId, cert).thenAccept(state -> {
-          if (state == RegistrationState.REGISTERED) {
+          if (state.getFirst() == RegistrationState.REGISTERED) {
             item.icon = StudioIcons.Common.SUCCESS_INLINE;
+          }
+          else if (state.getFirst() == RegistrationState.STUDIO_VERSION_UNSUPPORTED) {
+            item.icon = EmptyIcon.ICON_16;
           }
           else {
             item.icon = AllIcons.General.Note;
@@ -422,13 +429,13 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
         myCurrentAdiCheck = myAdiClient.checkPackageRegistrationStatusAsync(currentAppId, cert);
         myCurrentAdiCheck.thenAccept(state -> ModalityUiUtil.invokeLaterIfNeeded(ModalityState.any(), () -> {
             if (myCurrentAdiCheck != null && !myCurrentAdiCheck.isCancelled() && currentAppId.equals(getAppId(selectedVariant.name))) {
-              if (state == RegistrationState.UNKNOWN) {
+              if (state.getFirst() == RegistrationState.UNKNOWN) {
                 myAdiStatusIcon.setIcon(AllIcons.General.Note);
                 myAdiStatus.setText(AndroidBundle.message("android.apk.sign.gradle.adi.check.failed"));
                 myAdiStatusDescription.setText(" ");
                 myLearnMoreLink.setVisible(false);
               }
-              else if (state == RegistrationState.REGISTERED) {
+              else if (state.getFirst() == RegistrationState.REGISTERED) {
                 String text;
                 String description;
                 if (myWizard.getTargetType() == BUNDLE) {
@@ -443,11 +450,17 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
                 myAdiStatusDescription.setText("<html>" + description + "</html>");
                 myLearnMoreLink.setVisible(true);
               }
-              else if (state == RegistrationState.BAD_KEY) {
+              else if (state.getFirst() == RegistrationState.BAD_KEY) {
                 myAdiStatusIcon.setIcon(AllIcons.General.Note);
                 myAdiStatus.setText("<html>" + AndroidBundle.message("android.apk.sign.gradle.adi.bad.key.title") + "</html>");
                 myAdiStatusDescription.setText("<html>" + AndroidBundle.message("android.apk.sign.gradle.adi.bad.key.description") + "</html>");
                 myLearnMoreLink.setVisible(true);
+              }
+              else if (state.getFirst() == RegistrationState.STUDIO_VERSION_UNSUPPORTED) {
+                myAdiStatusIcon.setIcon(AllIcons.General.Note);
+                myAdiStatus.setText("<html>" + state.getSecond().getHeader() + "</html>");
+                myAdiStatusDescription.setText("<html>" + state.getSecond().getDescription() + "</html>");
+                myLearnMoreLink.setVisible(false);
               }
               else {
                 myAdiStatusIcon.setIcon(AllIcons.General.Note);

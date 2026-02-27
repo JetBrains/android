@@ -19,6 +19,8 @@ import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeBasicVariant
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelImpl
+import com.android.tools.idea.gservices.DevServicesDeprecationData
+import com.android.tools.idea.gservices.DevServicesDeprecationStatus
 import com.android.tools.idea.help.AndroidWebHelpProvider
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
@@ -138,7 +140,7 @@ class GradleSignStepTest {
   fun testAdiRegistered() = runTest {
     val client: AdiClient = mock()
     whenever(client.checkPackageRegistrationStatusAsync("com.example.app", null))
-      .thenReturn(CompletableFuture.completedFuture(RegistrationState.REGISTERED))
+      .thenReturn(CompletableFuture.completedFuture(RegistrationState.REGISTERED to null))
     val gradleSignStep = GradleSignStep(myWizard, client)
 
     val properties = PropertiesComponent.getInstance(project)
@@ -165,7 +167,7 @@ class GradleSignStepTest {
   fun testAdiNotRegistered() = runTest {
     val client: AdiClient = mock()
     whenever(client.checkPackageRegistrationStatusAsync("com.example.app", null))
-      .thenReturn(CompletableFuture.completedFuture(RegistrationState.NOT_REGISTERED))
+      .thenReturn(CompletableFuture.completedFuture(RegistrationState.NOT_REGISTERED to null))
     val gradleSignStep = GradleSignStep(myWizard, client)
 
     val properties = PropertiesComponent.getInstance(project)
@@ -186,6 +188,44 @@ class GradleSignStepTest {
 
     val icon = getIconAt(gradleSignStep, 0)
     assertThat(icon).isEqualTo(AllIcons.General.Note)
+  }
+
+  @Test
+  fun testAdiUnsupported() = runTest {
+    val client: AdiClient = mock()
+    val mockDeprecationData =
+      DevServicesDeprecationData(
+        "Warning",
+        "This feature is unsupported",
+        "http://example.com",
+        true,
+        DevServicesDeprecationStatus.UNSUPPORTED,
+      )
+
+    whenever(client.checkPackageRegistrationStatusAsync("com.example.app", null))
+      .thenReturn(CompletableFuture.completedFuture(RegistrationState.STUDIO_VERSION_UNSUPPORTED to mockDeprecationData))
+    val gradleSignStep = GradleSignStep(myWizard, client)
+
+    val properties = PropertiesComponent.getInstance(project)
+    properties.setList(GradleSignStep.PROPERTY_BUILD_VARIANTS, listOf("release"))
+    val bundlePath = homePath + File.separator + "Bundle"
+    properties.setValue(gradleSignStep.getApkPathPropertyName(name, ExportSignedPackageWizard.BUNDLE), bundlePath)
+
+    val testAndroidModel: GradleAndroidModelImpl = mock()
+    whenever(testAndroidModel.moduleName).thenReturn(name)
+    whenever(testAndroidModel.filteredVariantNames).thenReturn(listOf("release"))
+    val variant: IdeBasicVariant = mock()
+    whenever(variant.applicationId).thenReturn("com.example.app")
+    whenever(testAndroidModel.findBasicVariantByName("release")).thenReturn(variant)
+
+    gradleSignStep._init(testAndroidModel)
+
+    UIUtil.dispatchAllInvocationEvents()
+
+    val icon = getIconAt(gradleSignStep, 0)
+    assertThat(icon).isEqualTo(com.intellij.util.ui.EmptyIcon.ICON_16)
+    assertThat(gradleSignStep.myAdiStatus.text).isEqualTo("<html>Warning</html>")
+    assertThat(gradleSignStep.myAdiStatusDescription.text).isEqualTo("<html>This feature is unsupported</html>")
   }
 
   private fun getIconAt(step: GradleSignStep, index: Int): Icon? {

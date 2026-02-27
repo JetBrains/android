@@ -54,7 +54,7 @@ class AdiClientTest {
   fun testRegistered() = runBlocking {
     val json = """{"state": "REGISTERED"}"""
     val client = AdiClient(disposableRule.disposable, FakeHttpTransport(CompletableFuture.completedFuture(json)))
-    val state = client.checkPackageRegistrationStatus("com.example.app", null)
+    val (state, _) = client.checkPackageRegistrationStatus("com.example.app", null)
     assertEquals(RegistrationState.REGISTERED, state)
   }
 
@@ -62,7 +62,7 @@ class AdiClientTest {
   fun testNotRegistered() = runBlocking {
     val json = """{"state": "NOT_REGISTERED"}"""
     val client = AdiClient(disposableRule.disposable, FakeHttpTransport(CompletableFuture.completedFuture(json)))
-    val state = client.checkPackageRegistrationStatus("com.example.app", null)
+    val (state, _) = client.checkPackageRegistrationStatus("com.example.app", null)
     assertEquals(RegistrationState.NOT_REGISTERED, state)
   }
 
@@ -70,7 +70,7 @@ class AdiClientTest {
   fun testBadKey() = runBlocking {
     val json = """{"state": "REGISTERED_WITH_ANOTHER_CERTIFICATE_FINGERPRINT"}"""
     val client = AdiClient(disposableRule.disposable, FakeHttpTransport(CompletableFuture.completedFuture(json)))
-    val state = client.checkPackageRegistrationStatus("com.example.app", null)
+    val (state, _) = client.checkPackageRegistrationStatus("com.example.app", null)
     assertEquals(RegistrationState.BAD_KEY, state)
   }
 
@@ -78,14 +78,14 @@ class AdiClientTest {
   fun testUnknownState() = runBlocking {
     val json = """{"state": "SOMETHING_ELSE"}"""
     val client = AdiClient(disposableRule.disposable, FakeHttpTransport(CompletableFuture.completedFuture(json)))
-    val state = client.checkPackageRegistrationStatus("com.example.app", null)
+    val (state, _) = client.checkPackageRegistrationStatus("com.example.app", null)
     assertEquals(RegistrationState.UNKNOWN, state)
   }
 
   @Test
   fun testNetworkError() = runBlocking {
     val client = AdiClient(disposableRule.disposable, FakeHttpTransport(CompletableFuture.failedFuture(Exception("Network Error"))))
-    val state = client.checkPackageRegistrationStatus("com.example.app", null)
+    val (state, _) = client.checkPackageRegistrationStatus("com.example.app", null)
     assertEquals(RegistrationState.UNKNOWN, state)
   }
 
@@ -93,7 +93,7 @@ class AdiClientTest {
   fun testMalformedJson() = runBlocking {
     val json = """{"state": "REGIS"""
     val client = AdiClient(disposableRule.disposable, FakeHttpTransport(CompletableFuture.completedFuture(json)))
-    val state = client.checkPackageRegistrationStatus("com.example.app", null)
+    val (state, _) = client.checkPackageRegistrationStatus("com.example.app", null)
     assertEquals(RegistrationState.UNKNOWN, state)
   }
 
