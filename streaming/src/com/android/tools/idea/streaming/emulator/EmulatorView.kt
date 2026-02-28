@@ -1139,11 +1139,11 @@ internal class EmulatorView(
       if (xrInputController?.mousePressed(event, deviceDisplaySize, deviceScaleFactor) == true) {
         return
       }
-      val insideDisplay = isInsideDisplay(event)
-      if (handlePopup(event, insideDisplay)) {
+      val insideTouchScreen = isInsideTouchScreen(event)
+      if (handlePopup(event, insideTouchScreen)) {
         return
       }
-      if (insideDisplay) {
+      if (insideTouchScreen) {
         if (event.button == BUTTON1) {
           lastTouchCoordinates = Point(event.x, event.y)
         }
@@ -1160,8 +1160,8 @@ internal class EmulatorView(
       if (xrInputController?.mouseReleased(event, deviceDisplaySize, deviceScaleFactor) == true) {
         return
       }
-      val insideDisplay = isInsideDisplay(event)
-      if (handlePopup(event, insideDisplay)) {
+      val insideTouchScreen = isInsideTouchScreen(event)
+      if (handlePopup(event, insideTouchScreen)) {
         return
       }
       if (event.button == BUTTON1) {
@@ -1353,8 +1353,8 @@ internal class EmulatorView(
       return Touch.newBuilder().setX(x).setY(y).setIdentifier(identifier).setPressure(pressure).setExpiration(NEVER_EXPIRE)
     }
 
-    private fun isInsideDisplay(event: MouseEvent) =
-      displayRectangle?.contains(event.x * screenScalingFactor, event.y * screenScalingFactor) ?: false
+    private fun isInsideTouchScreen(event: MouseEvent) =
+      emulatorConfig.hasTouchScreen && displayRectangle?.contains(event.x * screenScalingFactor, event.y * screenScalingFactor) ?: false
 
     private fun buttonsToAndroid(buttons: Int): Int {
       return (if (buttons and BUTTON1_DOWN_MASK != 0) ANDROID_BUTTON_PRIMARY else 0) or
