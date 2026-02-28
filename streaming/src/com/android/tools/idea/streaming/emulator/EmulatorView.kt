@@ -1583,7 +1583,6 @@ internal class EmulatorView(
 
   private class Screenshot(val displayShape: DisplayShape, val image: BufferedImage, val frameOriginationTime: Long) {
     var skinLayout: SkinLayout? = null
-    var skinLayoutSet = false
     var painted = false
   }
 
