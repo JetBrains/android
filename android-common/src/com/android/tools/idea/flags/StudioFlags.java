@@ -2298,6 +2298,11 @@ public final class StudioFlags {
                     "Enable Studio Bot Skills.",
                     "When enabled, the studio-bot agents will be able to use skills.");
 
+  public static final Flag<Boolean> STUDIOBOT_IS_IDE_HISTORY_EVENTS_IN_CONTEXT =
+    new BooleanFlag(STUDIOBOT, "ide.history.enabled",
+                    "Enable IDE history in context",
+                    "When enabled, the agent will be told about IDE events.");
+
   public static final Flag<Boolean> STUDIOBOT_IS_QUICK_EDIT_ENABLED =
     new BooleanFlag(STUDIOBOT, "quick.edit.enabled",
                     "Enable the quick edit support.",
