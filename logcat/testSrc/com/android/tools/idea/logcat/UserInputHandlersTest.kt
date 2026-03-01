@@ -37,9 +37,9 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.ClientProperty
-import java.awt.event.KeyEvent
 import org.junit.Rule
 import org.junit.Test
+import java.awt.event.KeyEvent
 
 /** Tests for [UserInputHandlers] */
 @RunsInEdt
@@ -354,7 +354,7 @@ class UserInputHandlersTest {
   private fun EditorEx.getUserInputAreas(): List<String> {
     val markupModel = DocumentMarkupModel.forDocument(document, projectRule.project, false)
     return markupModel.allHighlighters
-      .filter { it.textAttributesKey == USER_INPUT.attributesKey }
+      .filter { it.isValid && it.textAttributesKey == USER_INPUT.attributesKey }
       .map { document.text.substring(it.startOffset, it.endOffset) }
   }
 }
