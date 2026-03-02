@@ -1,8 +1,8 @@
 <component name="libraryTable">
   <library name="studio-plugin-org.jetbrains.plugins.gradle">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/gradle-java/lib/gradle-java.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/gradle-java/lib/gradle-jps.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/gradle-java-plugin/lib/gradle-java-plugin.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/gradle-java-plugin/lib/gradle-jps.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
