@@ -29,6 +29,7 @@
     <additionalExtractableAnalyser implementation="com.android.tools.compose.ComposableFunctionExtractableAnalyser"/>
 
     <irGenerationExtension implementation="com.android.tools.compose.ComposePluginIrGenerationExtension"/>
+    <supportsKotlinPluginMode supportsK1="true"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
