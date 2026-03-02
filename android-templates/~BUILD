@@ -141,7 +141,9 @@ maven_repository(
         "@maven//:androidx.collection.collection-ktx_1.4.0",  # Compose BOM 2024.04.01
         "@maven//:androidx.collection.collection-ktx_1.5.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.collection.collection-ktx_1.5.0-alpha06",  # XR template
+        "@maven//:androidx.collection.collection_1.4.5",  # Compose BOM 2026.02.01
         "@maven//:androidx.compose.animation.animation-core-android_1.5.0-beta01",  # Necessary for Compose for TV
+        "@maven//:androidx.compose.animation.animation-core_1.10.4",  # Compose BOM 2026.02.01
         "@maven//:androidx.compose.animation.animation-graphics_1.10.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.animation.animation-graphics_1.8.2",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.animation.animation_1.3.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
@@ -153,9 +155,12 @@ maven_repository(
         "@maven//:androidx.compose.compose-bom_2022.10.00",
         "@maven//:androidx.compose.compose-bom_2024.09.00",
         "@maven//:androidx.compose.compose-bom_2025.12.00",
+        "@maven//:androidx.compose.compose-bom_2026.02.01",
         "@maven//:androidx.compose.foundation.foundation-android_1.5.0-beta01",  # Necessary for Compose for TV.
+        "@maven//:androidx.compose.foundation.foundation-layout_1.10.4",  # Compose BOM 2026.02.01
         "@maven//:androidx.compose.foundation.foundation-layout_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.foundation.foundation_1.10.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.compose.foundation.foundation_1.10.4",  # Compose BOM 2026.02.01
         "@maven//:androidx.compose.foundation.foundation_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.foundation.foundation_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.foundation.foundation_1.8.0-alpha06",  # XR template
@@ -168,9 +173,11 @@ maven_repository(
         "@maven//:androidx.compose.material.material-icons-core_1.7.8",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.material.material-ripple-jvmstubs_1.7.7",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.material.material-ripple_1.10.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.compose.material.material-ripple_1.10.4",  # Compose BOM 2026.02.01
         "@maven//:androidx.compose.material.material-ripple_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.material.material-ripple_1.7.7",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.material.material_1.10.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.compose.material.material_1.10.4",
         "@maven//:androidx.compose.material.material_1.4.3",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.material.material_1.5.0-alpha04",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.material.material_1.7.0",  # Compose BOM 2024.09.00
@@ -184,18 +191,22 @@ maven_repository(
         "@maven//:androidx.compose.runtime.runtime-desktop_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.runtime.runtime-saveable-desktop_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.runtime.runtime-saveable_1.10.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.compose.runtime.runtime-saveable_1.10.4",  # Compose BOM 2026.02.01
         "@maven//:androidx.compose.runtime.runtime-saveable_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.runtime.runtime_1.10.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.compose.runtime.runtime_1.10.4",  # Compose BOM 2026.02.01
         "@maven//:androidx.compose.runtime.runtime_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.runtime.runtime_1.8.0-alpha06",  # XR template
         "@maven//:androidx.compose.ui.ui-desktop_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.ui.ui-graphics-android_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui-graphics-desktop_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.ui.ui-graphics_1.10.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.compose.ui.ui-graphics_1.10.4",  # Compose BOM 2026.02.01
         "@maven//:androidx.compose.ui.ui-graphics_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.ui.ui-test-android_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui-test-junit4-android_1.5.0-beta01",
         "@maven//:androidx.compose.ui.ui-test-junit4_1.10.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.compose.ui.ui-test-junit4_1.10.4",  # Compose BOM 2026.02.01
         "@maven//:androidx.compose.ui.ui-test-junit4_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui-test-junit4_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.ui.ui-test-junit4_1.7.0-beta03",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
@@ -203,6 +214,7 @@ maven_repository(
         "@maven//:androidx.compose.ui.ui-test-junit4_1.8.0-alpha06",  # XR template
         "@maven//:androidx.compose.ui.ui-test-junit4_1.8.2",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.ui.ui-test-manifest_1.10.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.compose.ui.ui-test-manifest_1.10.4",
         "@maven//:androidx.compose.ui.ui-test-manifest_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui-test-manifest_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.ui.ui-test-manifest_1.7.0-beta03",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
@@ -210,17 +222,20 @@ maven_repository(
         "@maven//:androidx.compose.ui.ui-test-manifest_1.8.0-alpha06",  # XR template
         "@maven//:androidx.compose.ui.ui-test-manifest_1.8.2",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.ui.ui-text_1.10.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.compose.ui.ui-text_1.10.4",  # Compose BOM 2026.02.01
         "@maven//:androidx.compose.ui.ui-tooling-android_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui-tooling-data-android_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui-tooling-desktop_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.ui.ui-tooling-preview-android_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui-tooling-preview-desktop_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.ui.ui-tooling-preview_1.10.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.compose.ui.ui-tooling-preview_1.10.4",  # Compose BOM 2026.02.01
         "@maven//:androidx.compose.ui.ui-tooling-preview_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui-tooling-preview_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.ui.ui-tooling-preview_1.7.0-beta03",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.ui.ui-tooling-preview_1.8.2",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.ui.ui-tooling_1.10.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.compose.ui.ui-tooling_1.10.4",  # Compose BOM 2026.02.01
         "@maven//:androidx.compose.ui.ui-tooling_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui-tooling_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.ui.ui-tooling_1.7.0-beta03",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
@@ -228,7 +243,9 @@ maven_repository(
         "@maven//:androidx.compose.ui.ui-tooling_1.8.0-alpha06",  # XR template
         "@maven//:androidx.compose.ui.ui-tooling_1.8.2",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.ui.ui-unit-android_1.5.0-beta01",  # Necessary for Compose for TV.
+        "@maven//:androidx.compose.ui.ui-util_1.10.4",  # Compose BOM 2026.02.01
         "@maven//:androidx.compose.ui.ui_1.10.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.compose.ui.ui_1.10.4",  # Compose BOM 2026.02.01
         "@maven//:androidx.compose.ui.ui_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.ui.ui_1.8.0-alpha06",  # XR template

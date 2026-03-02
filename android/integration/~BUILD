@@ -539,7 +539,7 @@ create_project_test_data = [
     ":createproject_deps",
     "//prebuilts/studio/sdk:build-tools/36.0.0",
     "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
-    "//prebuilts/studio/sdk:platforms/android-34",
+    "//prebuilts/studio/sdk:platforms/android-36",
     "//tools/base/build-system:gradle-distrib-9.1.0",  # The test itself sets a flag for which AGP version to use, so we can't rely on the framework choosing INTEGRATION_TEST_GRADLE_VERSION for us
 ]
 
@@ -565,34 +565,67 @@ maven_repository(
         "@maven//:androidx.annotation.annotation_1.6.0",
         "@maven//:androidx.appcompat.appcompat_1.6.1",
         "@maven//:androidx.collection.collection-ktx_1.4.0",  # Required by CreateProjectTest after updating to Compose BOM 2024.04.01
+        "@maven//:androidx.collection.collection-ktx_1.5.0",  # Compose BOM 2026.02.01
+        "@maven//:androidx.collection.collection_1.4.5",  # Compose BOM 2026.02.01
+        "@maven//:androidx.compose.animation.animation-core_1.10.4",  # Compose BOM 2026.02.01
         "@maven//:androidx.compose.compiler.compiler_1.5.1",
         "@maven//:androidx.compose.compose-bom_2024.09.00",
+        "@maven//:androidx.compose.compose-bom_2026.02.01",
+        "@maven//:androidx.compose.foundation.foundation-layout_1.10.4",  # Compose BOM 2026.02.01
         "@maven//:androidx.compose.foundation.foundation-layout_1.5.0",
+        "@maven//:androidx.compose.foundation.foundation_1.10.4",  # Compose BOM 2026.02.01
         "@maven//:androidx.compose.foundation.foundation_1.5.0",
         "@maven//:androidx.compose.material.material-icons-core_1.5.0",
+        "@maven//:androidx.compose.material.material-ripple_1.10.4",  # Compose BOM 2026.02.01
         "@maven//:androidx.compose.material.material-ripple_1.5.0",
+        "@maven//:androidx.compose.material.material_1.10.4",  # Compose BOM 2026.02.01
         "@maven//:androidx.compose.material.material_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.material3.material3_1.3.0",  # Compose BOM 2024.09.00
+        "@maven//:androidx.compose.material3.material3_1.4.0",  # Compose BOM 2026.02.01
+        "@maven//:androidx.compose.runtime.runtime-saveable_1.10.4",  # Compose BOM 2026.02.01
+        "@maven//:androidx.compose.runtime.runtime_1.10.4",  # Compose BOM 2026.02.01
+        "@maven//:androidx.compose.ui.ui-graphics_1.10.4",  # Compose BOM 2026.02.01
+        "@maven//:androidx.compose.ui.ui-test-junit4_1.10.4",  # Compose BOM 2026.02.01
         "@maven//:androidx.compose.ui.ui-test-junit4_1.7.0",  # Compose BOM 2024.09.00
+        "@maven//:androidx.compose.ui.ui-test-manifest_1.10.4",  # Compose BOM 2026.02.01
         "@maven//:androidx.compose.ui.ui-test-manifest_1.7.0",  # Compose BOM 2024.09.00
+        "@maven//:androidx.compose.ui.ui-text_1.10.4",  # Compose BOM 2026.02.01
+        "@maven//:androidx.compose.ui.ui-tooling-preview_1.10.4",  # Compose BOM 2026.02.01
         "@maven//:androidx.compose.ui.ui-tooling-preview_1.5.0",
+        "@maven//:androidx.compose.ui.ui-tooling_1.10.4",  # Compose BOM 2026.02.01
         "@maven//:androidx.compose.ui.ui-tooling_1.7.0",  # Compose BOM 2024.09.00
+        "@maven//:androidx.compose.ui.ui-util_1.10.4",  # Compose BOM 2026.02.01
+        "@maven//:androidx.compose.ui.ui_1.10.4",  # Compose BOM 2026.02.01
         "@maven//:androidx.compose.ui.ui_1.5.0",
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",
         "@maven//:androidx.core.core-ktx_1.10.1",
         "@maven//:androidx.core.core-ktx_1.13.1",  # Compose BOM 2024.09.00
+        "@maven//:androidx.core.core-ktx_1.16.0",  # Compose BOM 2026.02.01
         "@maven//:androidx.databinding.viewbinding_7.4.1",
         "@maven//:androidx.lifecycle.lifecycle-common-java8_2.8.3",  # Compose BOM 2024.09.00
+        "@maven//:androidx.lifecycle.lifecycle-common-java8_2.9.4",  # Compose BOM 2026.02.01
+        "@maven//:androidx.lifecycle.lifecycle-livedata_2.9.2",  # Compose BOM 2026.02.01
+        "@maven//:androidx.lifecycle.lifecycle-livedata_2.9.4",  # Compose BOM 2026.02.01
         "@maven//:androidx.lifecycle.lifecycle-process_2.8.3",  # Compose BOM 2024.09.00
+        "@maven//:androidx.lifecycle.lifecycle-process_2.9.2",  # Compose BOM 2026.02.01
+        "@maven//:androidx.lifecycle.lifecycle-process_2.9.4",  # Compose BOM 2026.02.01
         "@maven//:androidx.lifecycle.lifecycle-runtime-compose_2.8.3",  # Compose BOM 2024.09.00
+        "@maven//:androidx.lifecycle.lifecycle-runtime-compose_2.9.4",  # Compose BOM 2026.02.01
         "@maven//:androidx.lifecycle.lifecycle-runtime-ktx_2.8.3",  # Compose BOM 2024.09.00
         "@maven//:androidx.lifecycle.lifecycle-viewmodel-ktx_2.8.3",  # Compose BOM 2024.09.00
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel-ktx_2.9.4",  # Compose BOM 2026.02.01
         "@maven//:androidx.lifecycle.lifecycle-viewmodel-savedstate_2.8.3",  # Compose BOM 2024.09.00
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel-savedstate_2.8.7",  # Compose BOM 2026.02.01
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel-savedstate_2.9.2",  # Compose BOM 2026.02.01
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel-savedstate_2.9.4",  # Compose BOM 2026.02.01
         "@maven//:androidx.lifecycle.lifecycle-viewmodel_2.8.3",  # Compose BOM 2024.09.00
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel_2.9.4",  # Compose BOM 2026.02.01
         "@maven//:androidx.navigation.navigation-fragment-ktx_2.4.1",
         "@maven//:androidx.navigation.navigation-ui-ktx_2.4.1",
+        "@maven//:androidx.savedstate.savedstate-ktx_1.3.2",  # Compose BOM 2026.02.01
         "@maven//:androidx.test.espresso.espresso-core_3.5.1",
         "@maven//:androidx.test.ext.junit_1.1.3",
+        "@maven//:androidx.window.window-core-android_1.5.0",  # Compose BOM 2026.02.01
         "@maven//:com.android.application.com.android.application.gradle.plugin_9.0.0",
         "@maven//:com.android.library.com.android.library.gradle.plugin_9.0.0",
         "@maven//:com.android.tools.build.aapt2_9.0.0-14304508",

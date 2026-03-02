@@ -65,7 +65,7 @@ public class CreateProjectTest {
     system.getInstallation().setGlobalSdk(system.getSdk());
     // See class-level comments
     system.getInstallation().addVmOption("-Dgradle.ide.agp.version.to.use=9.0.0");
-    system.getInstallation().addVmOption("-Dnpw.new.project.compile.sdk=34");
+    system.getInstallation().addVmOption("-Dnpw.new.project.compile.sdk=36");
 
     String distributionPath = "tools/external/gradle/";
     String localDistributionUrl = TestUtils.resolveWorkspacePathUnchecked(distributionPath).toUri().toString();
