@@ -142,14 +142,6 @@ fun Sequence<String>.annotate(phasedSyncModuleNames: List<String>, androidModule
     }
   }
 
-fun ModuleDumpWithType.filterOutExpectedInconsistencies() =
-  copy(
-    projectStructure =
-      projectStructure.filter { line ->
-        !line.contains("BUILD_TASKS") // We don't set up tasks in phased sync
-      }
-  )
-
 fun Project.dumpModules(knownAndroidPaths: Set<File>, checkObjectIdentity: Boolean = false): ModuleDumpWithType {
   // Filter KTS modules since with IntelliJ 2025.2 there are differences between intermediate and full sync b/431159711
   val modulesFiltered = modules.filter { !it.isKotlinBuildScript }
@@ -206,14 +198,13 @@ private fun Project.createDumper(checkObjectIdentity: Boolean) =
     androidSdk = getSdk().toFile(),
     devBuildHome = TestUtils.getWorkspaceRoot().toFile(),
     projectJdk = ProjectRootManager.getInstance(this).projectSdk,
+    ignoreModuleFileAndType = true,
     forSnapshotComparison = true,
     checkObjectIdentity = checkObjectIdentity,
   )
 
 private fun Module.projectDirectory(): File? =
   ExternalSystemModulePropertyManager.getInstance(this).getLinkedProjectPath()?.let { File(it) }
-
-val DEPENDENCY_RELATED_PROPERTIES = setOf("/ORDER_ENTRY", "/LIBRARY")
 
 private fun String.nameProperties(): Sequence<String> =
   this.splitToSequence('\n')
