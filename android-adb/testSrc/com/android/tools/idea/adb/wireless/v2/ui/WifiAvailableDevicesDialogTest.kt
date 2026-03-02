@@ -281,6 +281,30 @@ class WifiAvailableDevicesDialogTest {
   }
 
   @Test
+  fun deviceUpToDate_version2_1_dontShowWarning() = runTest {
+    whenever(mockWiFiPairingService.checkMdnsSupport()).thenReturn(MdnsSupportState.Supported)
+    whenever(mockWiFiPairingService.isTrackMdnsServiceAvailable()).thenReturn(true)
+    val deviceUpToDate = createMdnsTlsService("service1", "192.168.1.101", 5555, "New Device", "30", mdnsServiceVersion = "2.1")
+    adblibMdnsServicesFlow.value = MdnsServices(emptyList(), listOf(deviceUpToDate), emptyList())
+
+    composeTestRule.setContent { wifiAvailableDevicesDialog.WifiDialog() }
+
+    composeTestRule.onNode(hasTestTag(WARNING_TOOLTIP_TEST_TAG), useUnmergedTree = true).assertDoesNotExist()
+  }
+
+  @Test
+  fun deviceUpToDate_version10_dontShowWarning() = runTest {
+    whenever(mockWiFiPairingService.checkMdnsSupport()).thenReturn(MdnsSupportState.Supported)
+    whenever(mockWiFiPairingService.isTrackMdnsServiceAvailable()).thenReturn(true)
+    val deviceUpToDate = createMdnsTlsService("service1", "192.168.1.101", 5555, "New Device", "30", mdnsServiceVersion = "10.0")
+    adblibMdnsServicesFlow.value = MdnsServices(emptyList(), listOf(deviceUpToDate), emptyList())
+
+    composeTestRule.setContent { wifiAvailableDevicesDialog.WifiDialog() }
+
+    composeTestRule.onNode(hasTestTag(WARNING_TOOLTIP_TEST_TAG), useUnmergedTree = true).assertDoesNotExist()
+  }
+
+  @Test
   fun mdnsSupported_filtersOutEmulators() = runTest {
     whenever(mockWiFiPairingService.isTrackMdnsServiceAvailable()).thenReturn(true)
     whenever(mockWiFiPairingService.checkMdnsSupport()).thenReturn(MdnsSupportState.Supported)
