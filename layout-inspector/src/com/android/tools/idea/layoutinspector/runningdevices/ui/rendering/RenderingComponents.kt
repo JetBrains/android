@@ -29,7 +29,6 @@ import com.intellij.openapi.util.Disposer
 /** Groups together the components required to render Layout Inspector UI on-top of running devices */
 class RenderingComponents(
   disposable: Disposable,
-  layoutInspector: LayoutInspector,
   val renderer: LayoutInspectorRenderer,
   val model: EmbeddedRendererModel,
   private val displayView: DisplayView,
@@ -64,91 +63,96 @@ fun createRenderingComponents(
   statsProvider().setOnDeviceRendering(useOnDeviceRendering)
 
   return if (useOnDeviceRendering) {
-    val mainDisplayView = displayList.find { it.displayId == Display.MAIN_DISPLAY_ID }
-    checkNotNull(mainDisplayView) { "Main display is missing" }
-
-    // Rendering components are tied to the lifecycle of the tab - if the tab goes away they should
-    // be disposed. But they are also tied to the lifecycle of the display - if the display goes
-    // away they should be disposed.
-    val combinedDisposable = combine(disposable, mainDisplayView)
-
-    // For on-device rendering we want to always keep a single model shared by the renderers, having
-    // multiple models for the same device would cause duplicated rendering instructions to be sent
-    // to the device.
-    val renderModel =
-      EmbeddedRendererModel(
-        parentDisposable = combinedDisposable,
-        // In on-device rendering we don't want to filter nodes by display id. There is no concept
-        // of display there, since everything is rendered on-top of the views.
-        displayId = null,
-        inspectorModel = layoutInspector.inspectorModel,
-        treeSettings = layoutInspector.treeSettings,
-        renderSettings = layoutInspector.renderSettings,
-        navigateToSelectedViewOnDoubleClick = { layoutInspector.navigateToSelectedViewFromRendererDoubleClick() },
-      )
-
-    val onDeviceRendererModel =
-      OnDeviceRendererModel(disposable = combinedDisposable, scope = layoutInspector.coroutineScope, renderModel = renderModel)
-
-    displayList.map { displayView ->
-      val renderer =
-        OnDeviceRendererPanel(
-          disposable = combinedDisposable,
-          scope = layoutInspector.coroutineScope,
-          model = onDeviceRendererModel,
-          enableSendRightClicksToDevice = { enable -> displayView.rightClicksAreSentToDevice = enable },
-        )
-
-      RenderingComponents(
-        disposable = combinedDisposable,
-        layoutInspector = layoutInspector,
-        displayView = displayView,
-        renderer = renderer,
-        model = renderModel,
-      )
-    }
+    createOnDeviceRenderingComponents(disposable = disposable, layoutInspector = layoutInspector, displayList = displayList)
   } else {
     displayList.map { displayView ->
-      // Rendering components are tied to the lifecycle of the tab - if the tab goes away they
-      // should be disposed. But they are also tied to the lifecycle of the display - if the display
-      // goes away they should be disposed.
-      val combinedDisposable = combine(disposable, displayView)
-
-      val renderModel =
-        EmbeddedRendererModel(
-          parentDisposable = combinedDisposable,
-          displayId = displayView.displayId,
-          inspectorModel = layoutInspector.inspectorModel,
-          treeSettings = layoutInspector.treeSettings,
-          renderSettings = layoutInspector.renderSettings,
-          navigateToSelectedViewOnDoubleClick = { layoutInspector.navigateToSelectedViewFromRendererDoubleClick() },
-        )
-
-      val renderer =
-        EmbeddedRendererPanel(
-          disposable = combinedDisposable,
-          scope = layoutInspector.coroutineScope,
-          renderModel = renderModel,
-          displayRectangleProvider = { displayView.displayRectangle },
-          screenScaleProvider = { displayView.screenScalingFactor },
-          deviceDisplayDimensionProvider = { renderModel.inspectorModel.getDisplayDimension(displayView.displayId) },
-          orientationQuadrantProvider = {
-            calculateRotationCorrection(
-              displayProvider = { layoutInspector.inspectorModel.resourceLookup.displays.find { it.id == displayView.displayId } },
-              displayOrientationQuadrant = { displayView.displayOrientationQuadrants },
-              displayOrientationQuadrantCorrection = { displayView.displayOrientationCorrectionQuadrants },
-            )
-          },
-        )
-      RenderingComponents(
-        disposable = combinedDisposable,
-        layoutInspector = layoutInspector,
-        displayView = displayView,
-        renderer = renderer,
-        model = renderModel,
-      )
+      createEmbeddedRenderingComponents(disposable = disposable, layoutInspector = layoutInspector, displayView = displayView)
     }
   }
+}
+
+private fun createOnDeviceRenderingComponents(
+  disposable: Disposable,
+  layoutInspector: LayoutInspector,
+  displayList: List<DisplayView>,
+): List<RenderingComponents> {
+  val mainDisplayView = displayList.find { it.displayId == Display.MAIN_DISPLAY_ID }
+  checkNotNull(mainDisplayView) { "Main display is missing" }
+
+  // Rendering components are tied to the lifecycle of the tab - if the tab goes away they should
+  // be disposed. But they are also tied to the lifecycle of the display - if the display goes
+  // away they should be disposed.
+  val combinedDisposable = combine(disposable, mainDisplayView)
+
+  // For on-device rendering we want to always keep a single model shared by the renderers, having
+  // multiple models for the same device would cause duplicated rendering instructions to be sent
+  // to the device.
+  val renderModel =
+    EmbeddedRendererModel(
+      parentDisposable = combinedDisposable,
+      // In on-device rendering we don't want to filter nodes by display id. There is no concept
+      // of display there, since everything is rendered on-top of the views.
+      displayId = null,
+      inspectorModel = layoutInspector.inspectorModel,
+      treeSettings = layoutInspector.treeSettings,
+      renderSettings = layoutInspector.renderSettings,
+      navigateToSelectedViewOnDoubleClick = { layoutInspector.navigateToSelectedViewFromRendererDoubleClick() },
+    )
+
+  val onDeviceRendererModel =
+    OnDeviceRendererModel(disposable = combinedDisposable, scope = layoutInspector.coroutineScope, renderModel = renderModel)
+
+  return displayList.map { displayView ->
+    val renderer =
+      OnDeviceRendererPanel(
+        disposable = combinedDisposable,
+        scope = layoutInspector.coroutineScope,
+        model = onDeviceRendererModel,
+        enableSendRightClicksToDevice = { enable -> displayView.rightClicksAreSentToDevice = enable },
+      )
+
+    RenderingComponents(disposable = combinedDisposable, displayView = displayView, renderer = renderer, model = renderModel)
+  }
+}
+
+private fun createEmbeddedRenderingComponents(
+  disposable: Disposable,
+  layoutInspector: LayoutInspector,
+  displayView: DisplayView,
+  displayId: Int = displayView.displayId,
+): RenderingComponents {
+  // Rendering components are tied to the lifecycle of the tab - if the tab goes away they
+  // should be disposed. But they are also tied to the lifecycle of the display - if the display
+  // goes away they should be disposed.
+  val combinedDisposable = combine(disposable, displayView)
+
+  val renderModel =
+    EmbeddedRendererModel(
+      parentDisposable = combinedDisposable,
+      displayId = displayId,
+      inspectorModel = layoutInspector.inspectorModel,
+      treeSettings = layoutInspector.treeSettings,
+      renderSettings = layoutInspector.renderSettings,
+      navigateToSelectedViewOnDoubleClick = { layoutInspector.navigateToSelectedViewFromRendererDoubleClick() },
+    )
+
+  val renderer =
+    EmbeddedRendererPanel(
+      disposable = combinedDisposable,
+      scope = layoutInspector.coroutineScope,
+      renderModel = renderModel,
+      displayRectangleProvider = { displayView.displayRectangle },
+      screenScaleProvider = { displayView.screenScalingFactor },
+      deviceDisplayDimensionProvider = { renderModel.inspectorModel.getDisplayDimension(displayId) },
+      orientationQuadrantProvider = {
+        calculateRotationCorrection(
+          displayProvider = { layoutInspector.inspectorModel.resourceLookup.displays.find { it.id == displayId } },
+          displayOrientationQuadrant = { displayView.displayOrientationQuadrants },
+          displayOrientationQuadrantCorrection = { displayView.displayOrientationCorrectionQuadrants },
+        )
+      },
+    )
+  return RenderingComponents(disposable = combinedDisposable, displayView = displayView, renderer = renderer, model = renderModel)
 }
 
 /**

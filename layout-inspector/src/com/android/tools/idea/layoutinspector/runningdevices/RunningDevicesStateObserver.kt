@@ -115,6 +115,11 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
 
   override fun dispose() {}
 
+  fun removeListener(listener: Listener) {
+    ApplicationManager.getApplication().assertIsDispatchThread()
+    listeners.remove(listener)
+  }
+
   fun addListener(listener: Listener) {
     ApplicationManager.getApplication().assertIsDispatchThread()
 
