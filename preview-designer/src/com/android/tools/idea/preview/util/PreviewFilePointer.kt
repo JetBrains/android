@@ -58,7 +58,7 @@ class PreviewFilePointer(psiFile: PsiFile, private val onInvalidationRecovered: 
 
   override fun getContainingFile(): PsiFile? = delegate.containingFile
 
-  override fun getProject(): Project = delegate.project
+  override fun getProject(): Project = runReadAction { delegate.project }
 
   override fun getVirtualFile(): VirtualFile = delegate.virtualFile
 

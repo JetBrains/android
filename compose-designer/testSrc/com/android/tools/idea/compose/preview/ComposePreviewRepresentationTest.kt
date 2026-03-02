@@ -121,7 +121,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -861,7 +860,6 @@ class ComposePreviewRepresentationTest {
   }
 
   @Test
-  @Ignore("b/488139872")
   fun testInteractivePreviewManagerFpsLimitIsUpdatedWhenEssentialsModeChanges() = runComposePreviewRepresentationTest {
     val preview = createPreviewAndCompile()
 
