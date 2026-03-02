@@ -40,7 +40,8 @@ class ProjectIsolationTest {
     preparedProject.root.resolve(SdkConstants.FN_GRADLE_PROPERTIES).let { it.appendText("\norg.gradle.unsafe.isolated-projects=true") }
 
     val stdout = StringBuilder()
-    projectRule.openPreparedProject("project", OpenPreparedProjectOptions(outputHandler = { message -> stdout.append(message) })) {
+    projectRule.openPreparedProject("project", OpenPreparedProjectOptions(outputHandler = { message -> stdout.append(message) })) { project
+      ->
       stdout.toString().let {
         assertThat(it).contains("""1 problem was found storing the configuration cache""")
         assertThat(it).contains("""Project ':' cannot access 'Project.repositories' functionality on subprojects via 'allprojects'""")
@@ -58,6 +59,23 @@ class ProjectIsolationTest {
             """
               .trimIndent()
           )
+      }
+    }
+  }
+
+  @Test
+  fun testKmpProjectIsolationIssues() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.ANDROID_KOTLIN_MULTIPLATFORM)
+    preparedProject.root.resolve(SdkConstants.FN_GRADLE_PROPERTIES).appendText("\norg.gradle.unsafe.isolated-projects=true")
+
+    val stdout = StringBuilder()
+    projectRule.openPreparedProject("project", OpenPreparedProjectOptions(outputHandler = { message -> stdout.append(message) })) { project
+      ->
+      stdout.toString().let {
+        assertThat(it).contains("""6 problems were found storing the configuration cache, 2 of which seem unique.""")
+        assertThat(it)
+          .contains("""Project ':build-logic' cannot access 'Project.repositories' functionality on subprojects via 'allprojects'""")
+        assertThat(it).contains("""Project ':' cannot access 'Project.repositories' functionality on subprojects via 'allprojects'""")
       }
     }
   }
