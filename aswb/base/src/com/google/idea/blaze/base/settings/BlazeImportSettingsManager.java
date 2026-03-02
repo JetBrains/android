@@ -19,6 +19,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.idea.blaze.base.projectview.ProjectViewManager.migrateImportSettingsToProjectViewFile;
 
 import com.google.idea.blaze.base.async.executor.ProgressiveTaskWithProgressIndicator;
+import com.google.idea.blaze.base.project.BazelProjectSystemId;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.projectview.parser.ProjectViewParser;
@@ -88,6 +89,9 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
     synchronized (this) {
       final var result = importSettings.get();
       if (result != null) return result;
+      if (!BazelProjectSystemId.isActive(project)) {
+        return null;
+      }
       BlazeImportSettingsManager.getInstance(project)
           .initImportSettings(
               Optional.ofNullable(
