@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ private fun getProjectSpecificResyncIssues(testProject: TestProject) =
         "kmp-java.sample.main)/CONTENT_ENTRY",
         "kmp-java.sample.test)/CONTENT_ENTRY",
         "MODULE (kotlinMultiPlatform.module2)/COMPILER_MODULE_EXTENSION",
-        "MODULE (NonStandardSourceSetDependencies.feature-b)/COMPILER_MODULE_EXTENSION"
+        "MODULE (NonStandardSourceSetDependencies.feature-b)/COMPILER_MODULE_EXTENSION",
       )
     else ->
       when (testProject) {
@@ -129,6 +129,7 @@ class PhasedSyncResyncTests(val testProject: TestProject) : PhasedSyncSnapshotTe
     val preparedProject = projectRule.prepareTestProject(testProject)
     preparedProject.open({ it.copy(expectedSyncIssues = testProject.expectedSyncIssues) }) { project: Project ->
       val firstFullSync = project.dumpModules(knownAndroidPaths, checkObjectIdentity = true)
+      val firstGpp = project.dumpGradleProjectPaths()
       project.requestSyncAndWait(ignoreSyncIssues = testProject.expectedSyncIssues, waitForIndexes = false)
       val secondFullSync = project.dumpModules(knownAndroidPaths, checkObjectIdentity = true)
       val secondIntermediateSync = intermediateDump.copy()
@@ -150,6 +151,11 @@ class PhasedSyncResyncTests(val testProject: TestProject) : PhasedSyncSnapshotTe
           Truth.assertWithMessage("Comparing resync intermediate sync ide models to full state")
             .that(secondIntermediateSync.filterOutKnownResyncIssues(testProject).ideModels())
             .isEqualTo(secondFullSync.filterOutKnownResyncIssues(testProject).ideModels())
+        }
+        runCatchingAndRecord {
+          Truth.assertWithMessage("Comparing GradleProjectPaths between resync failed")
+            .that(project.dumpGradleProjectPaths())
+            .isEqualTo(firstGpp)
         }
       }
     }

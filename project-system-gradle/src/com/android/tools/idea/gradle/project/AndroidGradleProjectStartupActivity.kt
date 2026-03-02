@@ -54,6 +54,7 @@ import com.intellij.execution.RunConfigurationProducerService
 import com.intellij.execution.actions.RunConfigurationProducer
 import com.intellij.execution.junit.JUnitConfigurationType
 import com.intellij.facet.Facet
+import com.intellij.facet.FacetConfiguration
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.edtWriteAction
@@ -294,6 +295,8 @@ private suspend fun attachCachedModelsOrTriggerSyncBody(project: Project, gradle
       }
       .toMap()
 
+  val facets = getFacetsFromModules(existingGradleModules).toMutableSet()
+
   val projectDataNodes: List<DataNode<ProjectData>> =
     GradleSettings.getInstance(project)
       .linkedProjectsSettings
@@ -327,23 +330,6 @@ private suspend fun attachCachedModelsOrTriggerSyncBody(project: Project, gradle
 
   if (projectDataNodes.isEmpty()) {
     requestSync("No linked projects found")
-  }
-
-  val facets =
-    existingGradleModules
-      .flatMap { module ->
-        FacetManager.getInstance(module).let {
-          it.getFacetsByType(GradleFacet.getFacetTypeId()) + it.getFacetsByType(AndroidFacet.ID) + it.getFacetsByType(NdkFacet.facetTypeId)
-        }
-      }
-      .toMutableSet()
-
-  // With phased sync, facet entities are stored in the workspace model instead of using JPS (i.e. XML) serialization.
-  // When deserializing the entities in the new workspace model, the external source is lost, but we know at this point these are
-  // facets tied to Gradle modules, so we can explicitly mark them here. We don't need to do anything similar for modules, as that
-  // information isn't lost for modules.
-  if (StudioFlags.PHASED_SYNC_ENABLED.get() && StudioFlags.PHASED_SYNC_BRIDGE_DATA_SERVICE_DISABLED.get()) {
-    facets.forEach { it.externalSource = ExternalProjectSystemRegistry.getInstance().getSourceById(GradleConstants.SYSTEM_ID.getId()) }
   }
 
   existingGradleModules
@@ -467,6 +453,34 @@ private suspend fun attachCachedModelsOrTriggerSyncBody(project: Project, gradle
   additionalProjectSetup(project)
 
   GradleSyncStateHolder.getInstance(project).syncSkipped(null)
+}
+
+private val isPhasedSyncWithDataServiceDisabled: Boolean
+  get() = StudioFlags.PHASED_SYNC_ENABLED.get() && StudioFlags.PHASED_SYNC_BRIDGE_DATA_SERVICE_DISABLED.get()
+
+/**
+ * Gets all Android, Gradle and NDK facets from existing Gradle modules.
+ *
+ * @param updateExternalSource With phased sync, facet entities are stored in the workspace model instead of using JPS (i.e. XML)
+ *   serialization. When deserializing the entities in the new workspace model, the external source is lost, but we know at this point these
+ *   are facets tied to Gradle modules, so we can explicitly mark them here. We don't need to do anything similar for modules, as that
+ *   information isn't lost for modules.
+ */
+private fun getFacetsFromModules(
+  existingGradleModules: List<Module>,
+  updateExternalSource: Boolean = isPhasedSyncWithDataServiceDisabled,
+): List<Facet<out FacetConfiguration>> {
+  val facets =
+    existingGradleModules.flatMap { module ->
+      FacetManager.getInstance(module).let {
+        it.getFacetsByType(GradleFacet.getFacetTypeId()) + it.getFacetsByType(AndroidFacet.ID) + it.getFacetsByType(NdkFacet.facetTypeId)
+      }
+    }
+  if (updateExternalSource) {
+    val source = ExternalProjectSystemRegistry.getInstance().getSourceById(GradleConstants.SYSTEM_ID.getId())
+    facets.forEach { it.externalSource = source }
+  }
+  return facets
 }
 
 private fun <T> getModelFromDataNode(moduleDataNode: DataNode<*>, dataKey: Key<T>) =

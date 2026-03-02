@@ -236,6 +236,12 @@ data class PhasedSyncSnapshotConsistencyTestDef(
           // We only need to inspect android modules when comparing IDE models
           .isEqualTo(filteredFullDump.filterToAndroidModules().ideModels())
       }
+      if (testProject in gppExcludedProjects) return@aggregateAndThrowIfAny
+      runCatchingAndRecord {
+        Truth.assertWithMessage("Comparing Workspace and DataNodes based GradleProjectPaths failed")
+          .that(project.dumpGradleProjectPaths(FetchMode.Workspace))
+          .isEqualTo(project.dumpGradleProjectPaths(FetchMode.DataNodes))
+      }
     }
   }
 
@@ -252,6 +258,21 @@ data class PhasedSyncSnapshotConsistencyTestDef(
   }
 
   companion object {
+    // projects excluded from Gradle Project Path tests
+    val gppExcludedProjects =
+      setOf(
+        TestProject.KOTLIN_MULTIPLATFORM_MULTIPLE_SOURCE_SET_PER_ANDROID_COMPILATION, // GPP null for source-sets
+        TestProject.KOTLIN_MULTIPLATFORM_WITHJS, // exclude 'jsModule'
+        TestProject.KOTLIN_MULTIPLATFORM_JVM_KMPAPP_WITHINTERMEDIATE, // kmp source-sets not supported
+        TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES, // small subset of modules not included
+        TestProject.KOTLIN_MULTIPLATFORM_JVM, // some source sets in module2 not included
+        TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES_MANUAL_TEST_FIXTURES_WORKAROUND, // some source sets not included
+        TestProject.KOTLIN_MULTIPLATFORM_JVM_KMPAPP, // some source sets not included
+        TestProject.KOTLIN_MULTIPLATFORM, // some source sets not included
+        TestProject.KOTLIN_MULTIPLATFORM_IOS,
+        TestProject.SIMPLE_APPLICATION_MULTIPLE_ROOTS,
+      )
+
     val tests =
       phasedSyncTestProjects
         .filterNot {

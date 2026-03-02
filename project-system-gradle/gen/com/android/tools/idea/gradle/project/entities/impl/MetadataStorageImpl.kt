@@ -30,9 +30,9 @@ import com.intellij.platform.workspace.storage.metadata.model.ValueTypeMetadata
 internal object MetadataStorageImpl : MetadataStorageBase() {
   override fun initializeMetadata() {
     val primitiveTypeStringNotNullable = ValueTypeMetadata.SimpleType.PrimitiveType(isNullable = false, type = "String")
+    val primitiveTypeBooleanNotNullable = ValueTypeMetadata.SimpleType.PrimitiveType(isNullable = false, type = "Boolean")
     val primitiveTypeIntNotNullable = ValueTypeMetadata.SimpleType.PrimitiveType(isNullable = false, type = "Int")
     val primitiveTypeListNotNullable = ValueTypeMetadata.SimpleType.PrimitiveType(isNullable = false, type = "List")
-    val primitiveTypeBooleanNotNullable = ValueTypeMetadata.SimpleType.PrimitiveType(isNullable = false, type = "Boolean")
     val primitiveTypeIntNullable = ValueTypeMetadata.SimpleType.PrimitiveType(isNullable = true, type = "Int")
     val primitiveTypeStringNullable = ValueTypeMetadata.SimpleType.PrimitiveType(isNullable = true, type = "String")
     val primitiveTypeSetNotNullable = ValueTypeMetadata.SimpleType.PrimitiveType(isNullable = false, type = "Set")
@@ -43,6 +43,14 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
     val primitiveTypeBooleanNullable = ValueTypeMetadata.SimpleType.PrimitiveType(isNullable = true, type = "Boolean")
     val primitiveTypeCharNullable = ValueTypeMetadata.SimpleType.PrimitiveType(isNullable = true, type = "Char")
     var typeMetadata: StorageTypeMetadata
+    typeMetadata = FinalClassMetadata.ObjectMetadata(
+      fqName = "com.android.tools.idea.gradle.project.entities.GradleProjectPathEntitySource", properties = listOf(
+      OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false, name = "virtualFileUrl",
+                          valueType = ValueTypeMetadata.SimpleType.CustomType(isNullable = true,
+                                                                              typeMetadata = FinalClassMetadata.KnownClass(
+                                                                                fqName = "com.intellij.platform.workspace.storage.url.VirtualFileUrl")),
+                          withDefault = false)), supertypes = listOf("com.intellij.platform.workspace.storage.EntitySource"))
+    addMetadata(typeMetadata)
     typeMetadata = FinalClassMetadata.ClassMetadata(fqName = "com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntityId",
                                                     properties = listOf(
                                                       OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false,
@@ -64,6 +72,105 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
                                                                               supertypes = listOf(
                                                                                 "com.intellij.platform.workspace.storage.SymbolicEntityId"))),
                                                                           withDefault = false),
+                                                      OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false,
+                                                                          name = "presentableName",
+                                                                          valueType = primitiveTypeStringNotNullable, withDefault = false)),
+                                                    supertypes = listOf("com.intellij.platform.workspace.storage.SymbolicEntityId"))
+    addMetadata(typeMetadata)
+    typeMetadata = FinalClassMetadata.ClassMetadata(fqName = "com.android.tools.idea.gradle.project.entities.GradleProjectPathSymbolicId",
+                                                    properties = listOf(
+                                                      OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false,
+                                                                          name = "gradleProjectPath",
+                                                                          valueType = ValueTypeMetadata.SimpleType.CustomType(
+                                                                            isNullable = false,
+                                                                            typeMetadata = ExtendableClassMetadata.AbstractClassMetadata(
+                                                                              fqName = "com.android.tools.idea.projectsystem.gradle.GradleProjectPath",
+                                                                              subclasses = listOf(FinalClassMetadata.ClassMetadata(
+                                                                                fqName = "com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath",
+                                                                                properties = listOf(
+                                                                                  OwnPropertyMetadata(isComputable = false, isKey = false,
+                                                                                                      isOpen = false, name = "buildRoot",
+                                                                                                      valueType = primitiveTypeStringNotNullable,
+                                                                                                      withDefault = false),
+                                                                                  OwnPropertyMetadata(isComputable = false, isKey = false,
+                                                                                                      isOpen = false, name = "path",
+                                                                                                      valueType = primitiveTypeStringNotNullable,
+                                                                                                      withDefault = false),
+                                                                                  OwnPropertyMetadata(isComputable = false, isKey = false,
+                                                                                                      isOpen = false, name = "sourceSet",
+                                                                                                      valueType = ValueTypeMetadata.SimpleType.CustomType(
+                                                                                                        isNullable = false,
+                                                                                                        typeMetadata = ExtendableClassMetadata.AbstractClassMetadata(
+                                                                                                          fqName = "com.android.tools.idea.gradle.model.impl.IdeModuleSourceSet",
+                                                                                                          subclasses = listOf(
+                                                                                                            FinalClassMetadata.EnumClassMetadata(
+                                                                                                              fqName = "com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet",
+                                                                                                              properties = listOf(
+                                                                                                                OwnPropertyMetadata(
+                                                                                                                  isComputable = false,
+                                                                                                                  isKey = false,
+                                                                                                                  isOpen = false,
+                                                                                                                  name = "canBeConsumed",
+                                                                                                                  valueType = primitiveTypeBooleanNotNullable,
+                                                                                                                  withDefault = false),
+                                                                                                                OwnPropertyMetadata(
+                                                                                                                  isComputable = false,
+                                                                                                                  isKey = false,
+                                                                                                                  isOpen = false,
+                                                                                                                  name = "sourceSetName",
+                                                                                                                  valueType = primitiveTypeStringNotNullable,
+                                                                                                                  withDefault = false)),
+                                                                                                              supertypes = listOf(
+                                                                                                                "com.android.tools.idea.gradle.model.impl.IdeModuleSourceSet",
+                                                                                                                "java.io.Serializable",
+                                                                                                                "kotlin.Comparable",
+                                                                                                                "kotlin.Enum"),
+                                                                                                              values = listOf(
+                                                                                                                "ANDROID_TEST", "MAIN",
+                                                                                                                "SCREENSHOT_TEST",
+                                                                                                                "TEST_FIXTURES",
+                                                                                                                "UNIT_TEST")),
+                                                                                                            FinalClassMetadata.ClassMetadata(
+                                                                                                              fqName = "com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl",
+                                                                                                              properties = listOf(
+                                                                                                                OwnPropertyMetadata(
+                                                                                                                  isComputable = false,
+                                                                                                                  isKey = false,
+                                                                                                                  isOpen = false,
+                                                                                                                  name = "canBeConsumed",
+                                                                                                                  valueType = primitiveTypeBooleanNotNullable,
+                                                                                                                  withDefault = false),
+                                                                                                                OwnPropertyMetadata(
+                                                                                                                  isComputable = false,
+                                                                                                                  isKey = false,
+                                                                                                                  isOpen = false,
+                                                                                                                  name = "sourceSetName",
+                                                                                                                  valueType = primitiveTypeStringNotNullable,
+                                                                                                                  withDefault = false)),
+                                                                                                              supertypes = listOf(
+                                                                                                                "com.android.tools.idea.gradle.model.impl.IdeModuleSourceSet",
+                                                                                                                "java.io.Serializable"))),
+                                                                                                          supertypes = listOf())),
+                                                                                                      withDefault = false)),
+                                                                                supertypes = listOf(
+                                                                                  "com.android.tools.idea.projectsystem.gradle.GradleProjectPath")),
+                                                                                                  FinalClassMetadata.ClassMetadata(
+                                                                                                    fqName = "com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath",
+                                                                                                    properties = listOf(OwnPropertyMetadata(
+                                                                                                      isComputable = false, isKey = false,
+                                                                                                      isOpen = false, name = "buildRoot",
+                                                                                                      valueType = primitiveTypeStringNotNullable,
+                                                                                                      withDefault = false),
+                                                                                                                        OwnPropertyMetadata(
+                                                                                                                          isComputable = false,
+                                                                                                                          isKey = false,
+                                                                                                                          isOpen = false,
+                                                                                                                          name = "path",
+                                                                                                                          valueType = primitiveTypeStringNotNullable,
+                                                                                                                          withDefault = false)),
+                                                                                                    supertypes = listOf(
+                                                                                                      "com.android.tools.idea.projectsystem.gradle.GradleProjectPath"))),
+                                                                              supertypes = listOf())), withDefault = false),
                                                       OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false,
                                                                           name = "presentableName",
                                                                           valueType = primitiveTypeStringNotNullable, withDefault = false)),
@@ -8007,6 +8114,258 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
                                                                         isChild = true, isNullable = true), withDefault = false)),
                                   isAbstract = false)
     addMetadata(typeMetadata)
+    typeMetadata = EntityMetadata(fqName = "com.android.tools.idea.gradle.project.entities.GradleProjectPathEntity",
+                                  entityDataFqName = "com.android.tools.idea.gradle.project.entities.impl.GradleProjectPathEntityData",
+                                  supertypes = listOf("com.intellij.platform.workspace.storage.WorkspaceEntity",
+                                                      "com.intellij.platform.workspace.storage.WorkspaceEntityWithSymbolicId"),
+                                  properties = listOf(
+                                    OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false, name = "entitySource",
+                                                        valueType = ValueTypeMetadata.SimpleType.CustomType(isNullable = false,
+                                                                                                            typeMetadata = FinalClassMetadata.KnownClass(
+                                                                                                              fqName = "com.intellij.platform.workspace.storage.EntitySource")),
+                                                        withDefault = false),
+                                    OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false, name = "module",
+                                                        valueType = ValueTypeMetadata.EntityReference(
+                                                          connectionType = ConnectionId.ConnectionType.ONE_TO_ONE,
+                                                          entityFqName = "com.intellij.platform.workspace.jps.entities.ModuleEntity",
+                                                          isChild = false, isNullable = false), withDefault = false),
+                                    OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false, name = "gradleProjectPath",
+                                                        valueType = ValueTypeMetadata.SimpleType.CustomType(isNullable = false,
+                                                                                                            typeMetadata = ExtendableClassMetadata.AbstractClassMetadata(
+                                                                                                              fqName = "com.android.tools.idea.projectsystem.gradle.GradleProjectPath",
+                                                                                                              subclasses = listOf(
+                                                                                                                FinalClassMetadata.ClassMetadata(
+                                                                                                                  fqName = "com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath",
+                                                                                                                  properties = listOf(
+                                                                                                                    OwnPropertyMetadata(
+                                                                                                                      isComputable = false,
+                                                                                                                      isKey = false,
+                                                                                                                      isOpen = false,
+                                                                                                                      name = "buildRoot",
+                                                                                                                      valueType = primitiveTypeStringNotNullable,
+                                                                                                                      withDefault = false),
+                                                                                                                    OwnPropertyMetadata(
+                                                                                                                      isComputable = false,
+                                                                                                                      isKey = false,
+                                                                                                                      isOpen = false,
+                                                                                                                      name = "path",
+                                                                                                                      valueType = primitiveTypeStringNotNullable,
+                                                                                                                      withDefault = false),
+                                                                                                                    OwnPropertyMetadata(
+                                                                                                                      isComputable = false,
+                                                                                                                      isKey = false,
+                                                                                                                      isOpen = false,
+                                                                                                                      name = "sourceSet",
+                                                                                                                      valueType = ValueTypeMetadata.SimpleType.CustomType(
+                                                                                                                        isNullable = false,
+                                                                                                                        typeMetadata = ExtendableClassMetadata.AbstractClassMetadata(
+                                                                                                                          fqName = "com.android.tools.idea.gradle.model.impl.IdeModuleSourceSet",
+                                                                                                                          subclasses = listOf(
+                                                                                                                            FinalClassMetadata.EnumClassMetadata(
+                                                                                                                              fqName = "com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet",
+                                                                                                                              properties = listOf(
+                                                                                                                                OwnPropertyMetadata(
+                                                                                                                                  isComputable = false,
+                                                                                                                                  isKey = false,
+                                                                                                                                  isOpen = false,
+                                                                                                                                  name = "canBeConsumed",
+                                                                                                                                  valueType = primitiveTypeBooleanNotNullable,
+                                                                                                                                  withDefault = false),
+                                                                                                                                OwnPropertyMetadata(
+                                                                                                                                  isComputable = false,
+                                                                                                                                  isKey = false,
+                                                                                                                                  isOpen = false,
+                                                                                                                                  name = "sourceSetName",
+                                                                                                                                  valueType = primitiveTypeStringNotNullable,
+                                                                                                                                  withDefault = false)),
+                                                                                                                              supertypes = listOf(
+                                                                                                                                "com.android.tools.idea.gradle.model.impl.IdeModuleSourceSet",
+                                                                                                                                "java.io.Serializable",
+                                                                                                                                "kotlin.Comparable",
+                                                                                                                                "kotlin.Enum"),
+                                                                                                                              values = listOf(
+                                                                                                                                "ANDROID_TEST",
+                                                                                                                                "MAIN",
+                                                                                                                                "SCREENSHOT_TEST",
+                                                                                                                                "TEST_FIXTURES",
+                                                                                                                                "UNIT_TEST")),
+                                                                                                                            FinalClassMetadata.ClassMetadata(
+                                                                                                                              fqName = "com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl",
+                                                                                                                              properties = listOf(
+                                                                                                                                OwnPropertyMetadata(
+                                                                                                                                  isComputable = false,
+                                                                                                                                  isKey = false,
+                                                                                                                                  isOpen = false,
+                                                                                                                                  name = "canBeConsumed",
+                                                                                                                                  valueType = primitiveTypeBooleanNotNullable,
+                                                                                                                                  withDefault = false),
+                                                                                                                                OwnPropertyMetadata(
+                                                                                                                                  isComputable = false,
+                                                                                                                                  isKey = false,
+                                                                                                                                  isOpen = false,
+                                                                                                                                  name = "sourceSetName",
+                                                                                                                                  valueType = primitiveTypeStringNotNullable,
+                                                                                                                                  withDefault = false)),
+                                                                                                                              supertypes = listOf(
+                                                                                                                                "com.android.tools.idea.gradle.model.impl.IdeModuleSourceSet",
+                                                                                                                                "java.io.Serializable"))),
+                                                                                                                          supertypes = listOf())),
+                                                                                                                      withDefault = false)),
+                                                                                                                  supertypes = listOf(
+                                                                                                                    "com.android.tools.idea.projectsystem.gradle.GradleProjectPath")),
+                                                                                                                FinalClassMetadata.ClassMetadata(
+                                                                                                                  fqName = "com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath",
+                                                                                                                  properties = listOf(
+                                                                                                                    OwnPropertyMetadata(
+                                                                                                                      isComputable = false,
+                                                                                                                      isKey = false,
+                                                                                                                      isOpen = false,
+                                                                                                                      name = "buildRoot",
+                                                                                                                      valueType = primitiveTypeStringNotNullable,
+                                                                                                                      withDefault = false),
+                                                                                                                    OwnPropertyMetadata(
+                                                                                                                      isComputable = false,
+                                                                                                                      isKey = false,
+                                                                                                                      isOpen = false,
+                                                                                                                      name = "path",
+                                                                                                                      valueType = primitiveTypeStringNotNullable,
+                                                                                                                      withDefault = false)),
+                                                                                                                  supertypes = listOf(
+                                                                                                                    "com.android.tools.idea.projectsystem.gradle.GradleProjectPath"))),
+                                                                                                              supertypes = listOf())),
+                                                        withDefault = false),
+                                    OwnPropertyMetadata(isComputable = true, isKey = false, isOpen = false, name = "symbolicId",
+                                                        valueType = ValueTypeMetadata.SimpleType.CustomType(isNullable = false,
+                                                                                                            typeMetadata = FinalClassMetadata.ClassMetadata(
+                                                                                                              fqName = "com.android.tools.idea.gradle.project.entities.GradleProjectPathSymbolicId",
+                                                                                                              properties = listOf(
+                                                                                                                OwnPropertyMetadata(
+                                                                                                                  isComputable = false,
+                                                                                                                  isKey = false,
+                                                                                                                  isOpen = false,
+                                                                                                                  name = "gradleProjectPath",
+                                                                                                                  valueType = ValueTypeMetadata.SimpleType.CustomType(
+                                                                                                                    isNullable = false,
+                                                                                                                    typeMetadata = ExtendableClassMetadata.AbstractClassMetadata(
+                                                                                                                      fqName = "com.android.tools.idea.projectsystem.gradle.GradleProjectPath",
+                                                                                                                      subclasses = listOf(
+                                                                                                                        FinalClassMetadata.ClassMetadata(
+                                                                                                                          fqName = "com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath",
+                                                                                                                          properties = listOf(
+                                                                                                                            OwnPropertyMetadata(
+                                                                                                                              isComputable = false,
+                                                                                                                              isKey = false,
+                                                                                                                              isOpen = false,
+                                                                                                                              name = "buildRoot",
+                                                                                                                              valueType = primitiveTypeStringNotNullable,
+                                                                                                                              withDefault = false),
+                                                                                                                            OwnPropertyMetadata(
+                                                                                                                              isComputable = false,
+                                                                                                                              isKey = false,
+                                                                                                                              isOpen = false,
+                                                                                                                              name = "path",
+                                                                                                                              valueType = primitiveTypeStringNotNullable,
+                                                                                                                              withDefault = false),
+                                                                                                                            OwnPropertyMetadata(
+                                                                                                                              isComputable = false,
+                                                                                                                              isKey = false,
+                                                                                                                              isOpen = false,
+                                                                                                                              name = "sourceSet",
+                                                                                                                              valueType = ValueTypeMetadata.SimpleType.CustomType(
+                                                                                                                                isNullable = false,
+                                                                                                                                typeMetadata = ExtendableClassMetadata.AbstractClassMetadata(
+                                                                                                                                  fqName = "com.android.tools.idea.gradle.model.impl.IdeModuleSourceSet",
+                                                                                                                                  subclasses = listOf(
+                                                                                                                                    FinalClassMetadata.EnumClassMetadata(
+                                                                                                                                      fqName = "com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet",
+                                                                                                                                      properties = listOf(
+                                                                                                                                        OwnPropertyMetadata(
+                                                                                                                                          isComputable = false,
+                                                                                                                                          isKey = false,
+                                                                                                                                          isOpen = false,
+                                                                                                                                          name = "canBeConsumed",
+                                                                                                                                          valueType = primitiveTypeBooleanNotNullable,
+                                                                                                                                          withDefault = false),
+                                                                                                                                        OwnPropertyMetadata(
+                                                                                                                                          isComputable = false,
+                                                                                                                                          isKey = false,
+                                                                                                                                          isOpen = false,
+                                                                                                                                          name = "sourceSetName",
+                                                                                                                                          valueType = primitiveTypeStringNotNullable,
+                                                                                                                                          withDefault = false)),
+                                                                                                                                      supertypes = listOf(
+                                                                                                                                        "com.android.tools.idea.gradle.model.impl.IdeModuleSourceSet",
+                                                                                                                                        "java.io.Serializable",
+                                                                                                                                        "kotlin.Comparable",
+                                                                                                                                        "kotlin.Enum"),
+                                                                                                                                      values = listOf(
+                                                                                                                                        "ANDROID_TEST",
+                                                                                                                                        "MAIN",
+                                                                                                                                        "SCREENSHOT_TEST",
+                                                                                                                                        "TEST_FIXTURES",
+                                                                                                                                        "UNIT_TEST")),
+                                                                                                                                    FinalClassMetadata.ClassMetadata(
+                                                                                                                                      fqName = "com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl",
+                                                                                                                                      properties = listOf(
+                                                                                                                                        OwnPropertyMetadata(
+                                                                                                                                          isComputable = false,
+                                                                                                                                          isKey = false,
+                                                                                                                                          isOpen = false,
+                                                                                                                                          name = "canBeConsumed",
+                                                                                                                                          valueType = primitiveTypeBooleanNotNullable,
+                                                                                                                                          withDefault = false),
+                                                                                                                                        OwnPropertyMetadata(
+                                                                                                                                          isComputable = false,
+                                                                                                                                          isKey = false,
+                                                                                                                                          isOpen = false,
+                                                                                                                                          name = "sourceSetName",
+                                                                                                                                          valueType = primitiveTypeStringNotNullable,
+                                                                                                                                          withDefault = false)),
+                                                                                                                                      supertypes = listOf(
+                                                                                                                                        "com.android.tools.idea.gradle.model.impl.IdeModuleSourceSet",
+                                                                                                                                        "java.io.Serializable"))),
+                                                                                                                                  supertypes = listOf())),
+                                                                                                                              withDefault = false)),
+                                                                                                                          supertypes = listOf(
+                                                                                                                            "com.android.tools.idea.projectsystem.gradle.GradleProjectPath")),
+                                                                                                                        FinalClassMetadata.ClassMetadata(
+                                                                                                                          fqName = "com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath",
+                                                                                                                          properties = listOf(
+                                                                                                                            OwnPropertyMetadata(
+                                                                                                                              isComputable = false,
+                                                                                                                              isKey = false,
+                                                                                                                              isOpen = false,
+                                                                                                                              name = "buildRoot",
+                                                                                                                              valueType = primitiveTypeStringNotNullable,
+                                                                                                                              withDefault = false),
+                                                                                                                            OwnPropertyMetadata(
+                                                                                                                              isComputable = false,
+                                                                                                                              isKey = false,
+                                                                                                                              isOpen = false,
+                                                                                                                              name = "path",
+                                                                                                                              valueType = primitiveTypeStringNotNullable,
+                                                                                                                              withDefault = false)),
+                                                                                                                          supertypes = listOf(
+                                                                                                                            "com.android.tools.idea.projectsystem.gradle.GradleProjectPath"))),
+                                                                                                                      supertypes = listOf())),
+                                                                                                                  withDefault = false),
+                                                                                                                OwnPropertyMetadata(
+                                                                                                                  isComputable = false,
+                                                                                                                  isKey = false,
+                                                                                                                  isOpen = false,
+                                                                                                                  name = "presentableName",
+                                                                                                                  valueType = primitiveTypeStringNotNullable,
+                                                                                                                  withDefault = false)),
+                                                                                                              supertypes = listOf(
+                                                                                                                "com.intellij.platform.workspace.storage.SymbolicEntityId"))),
+                                                        withDefault = false)), extProperties = listOf(
+      ExtPropertyMetadata(isComputable = false, isOpen = false, name = "gradleProjectPath",
+                          receiverFqn = "com.intellij.platform.workspace.jps.entities.ModuleEntity",
+                          valueType = ValueTypeMetadata.EntityReference(connectionType = ConnectionId.ConnectionType.ONE_TO_ONE,
+                                                                        entityFqName = "com.android.tools.idea.gradle.project.entities.GradleProjectPathEntity",
+                                                                        isChild = true, isNullable = true), withDefault = false)),
+                                  isAbstract = false)
+    addMetadata(typeMetadata)
   }
 
   override fun initializeMetadataHash() {
@@ -8127,8 +8486,14 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.entities.GradleModuleModelEntity", metadataHash = 523357887)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.entities.GradleModuleModelEntityId", metadataHash = -409283803)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.model.GradleModuleModel", metadataHash = 1018626463)
-    addMetadataHash(typeFqn = "com.intellij.platform.workspace.storage.SymbolicEntityId", metadataHash = -2116897899)
-    addMetadataHash(typeFqn = "com.intellij.platform.workspace.storage.EntitySource", metadataHash = 1526477969)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.entities.GradleProjectPathEntity", metadataHash = -1975636342)
+    addMetadataHash(typeFqn = "com.android.tools.idea.projectsystem.gradle.GradleProjectPath", metadataHash = -561408553)
+    addMetadataHash(typeFqn = "com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath", metadataHash = -1572612363)
+    addMetadataHash(typeFqn = "com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath", metadataHash = 1532360923)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.entities.GradleProjectPathSymbolicId", metadataHash = -1317621187)
+    addMetadataHash(typeFqn = "com.intellij.platform.workspace.storage.EntitySource", metadataHash = 2073606372)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.entities.GradleProjectPathEntitySource", metadataHash = -824432122)
+    addMetadataHash(typeFqn = "com.intellij.platform.workspace.storage.SymbolicEntityId", metadataHash = -1652952730)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectEntitySource", metadataHash = 1206513947)
     addMetadataHash(typeFqn = "org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase", metadataHash = 1187401489)
     addMetadataHash(typeFqn = "org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase\$DataServices", metadataHash = -1256475695)

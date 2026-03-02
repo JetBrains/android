@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,10 @@ import com.android.tools.idea.gradle.project.sync.internal.dump
 import com.android.tools.idea.gradle.project.sync.internal.dumpAndroidIdeModel
 import com.android.tools.idea.gradle.project.sync.internal.isKotlinBuildScript
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
+import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
+import com.android.tools.idea.projectsystem.gradle.getGradleIdentityPath
+import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
+import com.android.tools.idea.projectsystem.gradle.getGradleProjectPathWithoutCache
 import com.android.tools.idea.testing.nameProperties
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
@@ -110,6 +114,7 @@ data class ModuleDumpWithType(
   val androidModuleNames: List<String>,
   val projectStructure: Sequence<String>,
   val ideModels: Sequence<String>,
+  val gradleProjectPaths: List<String>,
 )
 
 fun ModuleDumpWithType.projectStructure(): String = annotate().projectStructure.joinToString(separator = "\n")
@@ -153,7 +158,33 @@ fun Project.dumpModules(knownAndroidPaths: Set<File>, checkObjectIdentity: Boole
     androidModuleNames = modulesFiltered.filter { it.projectDirectory() in knownAndroidPaths }.map { it.name },
     projectStructure = dumpAllModuleEntries(checkObjectIdentity),
     ideModels = dumpAllIdeModels(),
+    gradleProjectPaths = modules.mapNotNull { it.getGradleIdentityPath() },
   )
+}
+
+internal enum class FetchMode {
+  // ask explicitly for workspace backed data
+  Workspace,
+  // ask for the legacy data nodes backed data
+  DataNodes,
+  // official api, without specifying backing data
+  NormalApi,
+}
+
+internal fun Project.dumpGradleProjectPaths(mode: FetchMode = FetchMode.NormalApi, moduleFilter: (Module) -> Boolean = { true }): String =
+  modules.filter(moduleFilter).joinToString("\n") {
+    val dumped =
+      when (mode) {
+        FetchMode.Workspace -> it.getGradleProjectPathWithoutCache(useWorkspace = true)
+        FetchMode.DataNodes -> it.getGradleProjectPathWithoutCache(useWorkspace = false)
+        FetchMode.NormalApi -> it.getGradleProjectPath()
+      }
+    "Module [$it] => GradleProjectPath [${dumped?.printWithoutPath(this.basePath)}]"
+  }
+
+private fun GradleProjectPath.printWithoutPath(rootProjectPath: String?): String {
+  if (rootProjectPath == null) return toString()
+  return toString().replace(rootProjectPath, "<PROJECT_ROOT>")
 }
 
 private fun Project.dumpAllModuleEntries(checkObjectIdentity: Boolean): Sequence<String> {
