@@ -184,9 +184,9 @@ class AndroidGradleConfigurationProducersTest {
     val keys:List<Key<*>> = listOf(
       com.android.tools.idea.testartifacts.testsuite.GradleRunConfigurationExtension.BooleanOptions.SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey,
       com.android.tools.idea.testartifacts.testsuite.GradleRunConfigurationExtension.BooleanOptions.USE_ANDROID_DEVICE.userDataKey,
-      GradleRunConfiguration.DEBUG_ALL_KEY,
-      GradleRunConfiguration.RUN_AS_TEST_KEY,
-      GradleRunConfiguration.IS_TEST_TASK_RERUN_KEY,
+      GradleExecutionSettings.DEBUG_ALL_KEY,
+      GradleExecutionSettings.RUN_AS_TEST_KEY,
+      GradleExecutionSettings.IS_TEST_TASK_RERUN_KEY,
     )
     for (key in keys) {
       val userData:Any? = gradleRunConfiguration.getUserData<Any?>(key)
