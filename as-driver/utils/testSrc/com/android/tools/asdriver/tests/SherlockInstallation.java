@@ -22,23 +22,18 @@ import com.android.tools.testlib.Display;
 import com.android.tools.testlib.Emulator;
 import com.android.tools.testlib.TestFileSystem;
 import com.android.tools.testlib.TestLogger;
-import com.android.utils.PathUtils;
 import com.intellij.openapi.util.SystemInfo;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import org.jetbrains.annotations.Nullable;
-import org.junit.rules.TestRule;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
 
-public class SherlockInstallation extends IdeInstallation<Sherlock> implements TestRule {
+public class SherlockInstallation extends IdeInstallation<Sherlock> {
 
   private final HashMap<String, String> env;
   private final Display display;
@@ -154,10 +149,8 @@ public class SherlockInstallation extends IdeInstallation<Sherlock> implements T
     }
   }
 
-  public static SherlockInstallation standard() {
+  public static SherlockInstallation standard(TestFileSystem fileSystem) {
     try {
-      TestFileSystem fileSystem = new TestFileSystem(Files.createTempDirectory("root"));
-
       AndroidSdk sdk = new AndroidSdk(TestUtils.resolveWorkspacePath(TestUtils.getRelativeSdk()));
 
       SherlockInstallation install = SherlockInstallation.fromZip(fileSystem, Display.createDefault(), sdk, true);
@@ -226,27 +219,6 @@ public class SherlockInstallation extends IdeInstallation<Sherlock> implements T
     if(display != null) {
       display.close();
     }
-    try {
-      try {
-        PathUtils.deleteRecursivelyIfExists(fileSystem.getRoot());
-      }
-      catch (AccessDeniedException e) {
-        // TODO(b/240166122): on Windows, there seems to be a race condition preventing deletions, so
-        // we try again after waiting for a bit.
-        if (SystemInfo.isWindows) {
-          Thread.sleep(5000);
-          PathUtils.deleteRecursivelyIfExists(fileSystem.getRoot());
-        }
-        else {
-          throw e;
-        }
-      }
-    }
-    catch (RuntimeException | IOException e) {
-      TestLogger.log("*** Files being written while shutting down system: ***");
-      printContents(fileSystem.getRoot().toFile());
-      throw e;
-    }
   }
 
   private static void printContents(File root) throws IOException {
@@ -256,28 +228,5 @@ public class SherlockInstallation extends IdeInstallation<Sherlock> implements T
       }
     }
     System.out.printf("%s%n", root.getCanonicalPath());
-  }
-
-  @Override
-  public Statement apply(Statement base, Description description) {
-    return new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        if (initializedAt != null) {
-          // This object can be used as a rule only once per execution to avoid multiple
-          // integration tests on the same target. We only want a single test in a single
-          // target so that integration tests are parallelized, since they tend to take
-          // much longer time than unit tests.
-          throw new IllegalStateException("There should only be one integration test per test execution.", initializedAt);
-        }
-        initializedAt = new Throwable("Sherlock was previously initialized here.");
-        try {
-          base.evaluate();
-          verify();
-        } finally {
-          close();
-        }
-      }
-    };
   }
 }
