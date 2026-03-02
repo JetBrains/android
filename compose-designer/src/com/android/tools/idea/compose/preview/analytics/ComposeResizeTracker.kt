@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview.analytics
 
-import com.android.annotations.TestOnly
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.common.analytics.setApplicationId
 import com.android.tools.idea.common.scene.SceneManager
@@ -28,6 +27,7 @@ import com.google.wireless.android.sdk.stats.ResizeComposePreviewEvent
 import com.google.wireless.android.sdk.stats.ResizeComposePreviewEvent.EventType
 import com.google.wireless.android.sdk.stats.ResizeComposePreviewEvent.ResizeMode
 import com.intellij.openapi.application.ApplicationManager
+import org.jetbrains.annotations.TestOnly
 
 /** Implementation of [ResizeTracker] for the Compose Preview. */
 class ComposeResizeTracker : ResizeTracker {
