@@ -131,7 +131,7 @@ studio_plugin(
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/.idea/libraries:transport-proto",
-        "//tools/adt/idea/.idea/libraries:utp-core-proto-jarjar",
+        "//tools/adt/idea/.idea/libraries:test-result-proto",
         "//tools/adt/idea/.idea/libraries:zxing-core",
         "//tools/adt/idea/android/lib:instantapps-api",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/model:background-inspector-proto",

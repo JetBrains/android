@@ -25,7 +25,7 @@ iml_module(
         "@intellij//:com.intellij.java",
         "//tools/adt/idea/utp:libstudio.android-test-plugin-result-listener-gradle-proto",
         "//tools/adt/idea/.idea/libraries:studio-proto",
-        "//tools/adt/idea/.idea/libraries:utp-core-proto-jarjar",
+        "//tools/adt/idea/.idea/libraries:test-result-proto",
     ],
 )
 

@@ -100,7 +100,7 @@ iml_module(
         "//tools/base/tracer:studio.android.sdktools.tracer",
         "//tools/base/kotlin-multiplatform-models:studio.android.kotlin-multiplatform-models",
         "//tools/adt/idea/.idea/libraries:kotlin-multiplatform-android-models-proto",
-        "//tools/adt/idea/.idea/libraries:utp-core-proto-jarjar",
+        "//tools/adt/idea/.idea/libraries:test-result-proto",
         "@intellij//:org.intellij.groovy",
         "//tools/base/lint:studio.android.sdktools.lint-checks",
         "@intellij//:org.toml.lang",

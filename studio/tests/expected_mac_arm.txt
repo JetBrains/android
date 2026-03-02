@@ -2361,6 +2361,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/liblint-checks-proto.lib
 Android Studio Preview.app/Contents/plugins/android/lib/libstudio.android-test-plugin-host-device-info-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libstudio.android-test-plugin-result-listener-gradle-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libstudio.proto.jar
+Android Studio Preview.app/Contents/plugins/android/lib/libstudio.test-result-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/lint-ide.jar
 Android Studio Preview.app/Contents/plugins/android/lib/logcat-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/manifest-merger.jar
@@ -2406,7 +2407,6 @@ Android Studio Preview.app/Contents/plugins/android/lib/tracing-perfetto-handsha
 Android Studio Preview.app/Contents/plugins/android/lib/tracing-wire-desktop-2.0.0-alpha01.jar
 Android Studio Preview.app/Contents/plugins/android/lib/transport_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/ui-animation-tooling-internal.jar
-Android Studio Preview.app/Contents/plugins/android/lib/utp-core-proto-jarjar.jar
 Android Studio Preview.app/Contents/plugins/android/lib/utp.jar
 Android Studio Preview.app/Contents/plugins/android/lib/wire-runtime-jvm-5.4.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/wizard-template.jar
@@ -3097,10 +3097,6 @@ Android Studio Preview.app/Contents/plugins/editorconfig-plugin/lib/editorconfig
 Android Studio Preview.app/Contents/plugins/editorconfig-plugin/lib/modules/intellij.editorconfig.backend.jar
 Android Studio Preview.app/Contents/plugins/editorconfig-plugin/lib/modules/intellij.editorconfig.common.jar
 Android Studio Preview.app/Contents/plugins/editorconfig-plugin/lib/modules/intellij.editorconfig.frontend.jar
-Android Studio Preview.app/Contents/plugins/gmd-code-completion/lib/gmd-code-completion.jar
-Android Studio Preview.app/Contents/plugins/gmd-code-completion/lib/google-api-services-storage-v1-rev20230301-2.0.0.jar
-Android Studio Preview.app/Contents/plugins/gmd-code-completion/lib/google-api-services-testing-v1-rev20250327-2.0.0.jar
-Android Studio Preview.app/Contents/plugins/gmd-code-completion/lib/google-api-services-toolresults-v1beta3-rev20230410-2.0.0.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/firebase.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/firebase.so.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/firebase_kt_proto.jar
@@ -3138,6 +3134,10 @@ Android Studio Preview.app/Contents/plugins/gemini/lib/openai-java-client-okhttp
 Android Studio Preview.app/Contents/plugins/gemini/lib/openai-java-core-4.21.0.jar
 Android Studio Preview.app/Contents/plugins/gemini/resources/kb_zip/dac.zip
 Android Studio Preview.app/Contents/plugins/git4insights/lib/git4insights.jar
+Android Studio Preview.app/Contents/plugins/gmd-code-completion/lib/gmd-code-completion.jar
+Android Studio Preview.app/Contents/plugins/gmd-code-completion/lib/google-api-services-storage-v1-rev20230301-2.0.0.jar
+Android Studio Preview.app/Contents/plugins/gmd-code-completion/lib/google-api-services-testing-v1-rev20250327-2.0.0.jar
+Android Studio Preview.app/Contents/plugins/gmd-code-completion/lib/google-api-services-toolresults-v1beta3-rev20230410-2.0.0.jar
 Android Studio Preview.app/Contents/plugins/gradle-declarative/lib/gradle-declarative.jar
 Android Studio Preview.app/Contents/plugins/gradle-declarative/lib/gradle-declarative.so.jar
 Android Studio Preview.app/Contents/plugins/gradle-dsl/lib/gradle-dsl.jar
@@ -3251,8 +3251,8 @@ Android Studio Preview.app/Contents/plugins/keymap-visualStudio/lib/keymap-visua
 Android Studio Preview.app/Contents/plugins/markdown/lib/markdown.jar
 Android Studio Preview.app/Contents/plugins/markdown/lib/modules/intellij.markdown.backend.jar
 Android Studio Preview.app/Contents/plugins/markdown/lib/modules/intellij.markdown.frontend.jar
-Android Studio Preview.app/Contents/plugins/performanceTesting/lib/assertj.jar
 Android Studio Preview.app/Contents/plugins/performanceTesting/lib/assertj-swing.jar
+Android Studio Preview.app/Contents/plugins/performanceTesting/lib/assertj.jar
 Android Studio Preview.app/Contents/plugins/performanceTesting/lib/github.oshi.core.jar
 Android Studio Preview.app/Contents/plugins/performanceTesting/lib/modules/intellij.performanceTesting.frontend.jar
 Android Studio Preview.app/Contents/plugins/performanceTesting/lib/performanceTesting.jar

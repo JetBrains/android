@@ -1,5 +1,5 @@
 <component name="libraryTable">
-  <library name="utp-core-proto-jarjar" type="repository">
+  <library name="test-result-proto" type="repository">
     <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:utp-core-proto-jarjar:232.1.23.0">
       <verification>
         <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/utp-core-proto-jarjar/232.1.23.0/utp-core-proto-jarjar-232.1.23.0.jar">

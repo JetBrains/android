@@ -450,6 +450,7 @@ android-studio/lib/externalProcess-rt.jar
 android-studio/lib/forms_rt.jar
 android-studio/lib/groovy.jar
 android-studio/lib/idea_rt.jar
+android-studio/lib/intellij-test-discovery.jar
 android-studio/lib/javax.activation.jar
 android-studio/lib/javax.annotation-api.jar
 android-studio/lib/jaxb-api.jar
@@ -482,6 +483,7 @@ android-studio/lib/module-intellij.libraries.guava.jar
 android-studio/lib/module-intellij.libraries.hash4j.jar
 android-studio/lib/module-intellij.libraries.hdr.histogram.jar
 android-studio/lib/module-intellij.libraries.http.client.jar
+android-studio/lib/module-intellij.libraries.icu4j.jar
 android-studio/lib/module-intellij.libraries.imgscalr.jar
 android-studio/lib/module-intellij.libraries.ini4j.jar
 android-studio/lib/module-intellij.libraries.ion.jar
@@ -524,7 +526,6 @@ android-studio/lib/module-intellij.libraries.markdown.jar
 android-studio/lib/module-intellij.libraries.miglayout.swing.jar
 android-studio/lib/module-intellij.libraries.mvstore.jar
 android-studio/lib/module-intellij.libraries.oro.matcher.jar
-android-studio/lib/module-intellij.libraries.oshi.core.jar
 android-studio/lib/module-intellij.libraries.proxy.vole.jar
 android-studio/lib/module-intellij.libraries.pty4j.jar
 android-studio/lib/module-intellij.libraries.rd.text.jar
@@ -606,6 +607,7 @@ android-studio/lib/modules/intellij.platform.customization.min.jar
 android-studio/lib/modules/intellij.platform.debugger.impl.backend.jar
 android-studio/lib/modules/intellij.platform.debugger.impl.frontend.jar
 android-studio/lib/modules/intellij.platform.diagnostic.freezeAnalyzer.jar
+android-studio/lib/modules/intellij.platform.diagnostic.freezes.jar
 android-studio/lib/modules/intellij.platform.diagnostic.telemetry.agent.extension.jar
 android-studio/lib/modules/intellij.platform.editor.backend.jar
 android-studio/lib/modules/intellij.platform.editor.frontend.jar
@@ -2348,6 +2350,7 @@ android-studio/plugins/android/lib/liblint-checks-proto.lib.jar
 android-studio/plugins/android/lib/libstudio.android-test-plugin-host-device-info-proto.jar
 android-studio/plugins/android/lib/libstudio.android-test-plugin-result-listener-gradle-proto.jar
 android-studio/plugins/android/lib/libstudio.proto.jar
+android-studio/plugins/android/lib/libstudio.test-result-proto.jar
 android-studio/plugins/android/lib/lint-ide.jar
 android-studio/plugins/android/lib/logcat-proto.jar
 android-studio/plugins/android/lib/manifest-merger.jar
@@ -2393,7 +2396,6 @@ android-studio/plugins/android/lib/tracing-perfetto-handshake-1.0.0-beta02.jar
 android-studio/plugins/android/lib/tracing-wire-desktop-2.0.0-alpha01.jar
 android-studio/plugins/android/lib/transport_java_proto.jar
 android-studio/plugins/android/lib/ui-animation-tooling-internal.jar
-android-studio/plugins/android/lib/utp-core-proto-jarjar.jar
 android-studio/plugins/android/lib/utp.jar
 android-studio/plugins/android/lib/wire-runtime-jvm-5.4.0.jar
 android-studio/plugins/android/lib/wizard-template.jar
@@ -3085,10 +3087,6 @@ android-studio/plugins/editorconfig-plugin/lib/editorconfig-plugin.jar
 android-studio/plugins/editorconfig-plugin/lib/modules/intellij.editorconfig.backend.jar
 android-studio/plugins/editorconfig-plugin/lib/modules/intellij.editorconfig.common.jar
 android-studio/plugins/editorconfig-plugin/lib/modules/intellij.editorconfig.frontend.jar
-android-studio/plugins/gmd-code-completion/lib/gmd-code-completion.jar
-android-studio/plugins/gmd-code-completion/lib/google-api-services-storage-v1-rev20230301-2.0.0.jar
-android-studio/plugins/gmd-code-completion/lib/google-api-services-testing-v1-rev20250327-2.0.0.jar
-android-studio/plugins/gmd-code-completion/lib/google-api-services-toolresults-v1beta3-rev20230410-2.0.0.jar
 android-studio/plugins/firebase/lib/firebase.jar
 android-studio/plugins/firebase/lib/firebase.so.jar
 android-studio/plugins/firebase/lib/firebase_kt_proto.jar
@@ -3126,6 +3124,10 @@ android-studio/plugins/gemini/lib/openai-java-client-okhttp-4.21.0.jar
 android-studio/plugins/gemini/lib/openai-java-core-4.21.0.jar
 android-studio/plugins/gemini/resources/kb_zip/dac.zip
 android-studio/plugins/git4insights/lib/git4insights.jar
+android-studio/plugins/gmd-code-completion/lib/gmd-code-completion.jar
+android-studio/plugins/gmd-code-completion/lib/google-api-services-storage-v1-rev20230301-2.0.0.jar
+android-studio/plugins/gmd-code-completion/lib/google-api-services-testing-v1-rev20250327-2.0.0.jar
+android-studio/plugins/gmd-code-completion/lib/google-api-services-toolresults-v1beta3-rev20230410-2.0.0.jar
 android-studio/plugins/gradle-declarative/lib/gradle-declarative.jar
 android-studio/plugins/gradle-declarative/lib/gradle-declarative.so.jar
 android-studio/plugins/gradle-dsl/lib/gradle-dsl.jar
@@ -3189,7 +3191,6 @@ android-studio/plugins/grazie/lib/tech.units-indriya.jar
 android-studio/plugins/grazie/lib/tech.uom.lib-uom-lib-common.jar
 android-studio/plugins/html-tools/lib/html-tools.jar
 android-studio/plugins/java-coverage/lib/coverage-report.jar
-android-studio/plugins/java-coverage/lib/intellij.libraries.test.discovery.jar
 android-studio/plugins/java-coverage/lib/jacoco.jar
 android-studio/plugins/java-coverage/lib/java-coverage-rt.jar
 android-studio/plugins/java-coverage/lib/java-coverage.jar
@@ -3201,7 +3202,6 @@ android-studio/plugins/java/lib/aether-dependency-resolver.jar
 android-studio/plugins/java/lib/completion-ranking-java.jar
 android-studio/plugins/java/lib/debugger-memory-agent.jar
 android-studio/plugins/java/lib/ecj/eclipse.jar
-android-studio/plugins/java/lib/intellij.libraries.test.discovery.jar
 android-studio/plugins/java/lib/java-impl.jar
 android-studio/plugins/java/lib/javac2.jar
 android-studio/plugins/java/lib/jb-jdi.jar
@@ -3241,8 +3241,9 @@ android-studio/plugins/keymap-visualStudio/lib/keymap-visualStudio.jar
 android-studio/plugins/markdown/lib/markdown.jar
 android-studio/plugins/markdown/lib/modules/intellij.markdown.backend.jar
 android-studio/plugins/markdown/lib/modules/intellij.markdown.frontend.jar
-android-studio/plugins/performanceTesting/lib/assertj.jar
 android-studio/plugins/performanceTesting/lib/assertj-swing.jar
+android-studio/plugins/performanceTesting/lib/assertj.jar
+android-studio/plugins/performanceTesting/lib/github.oshi.core.jar
 android-studio/plugins/performanceTesting/lib/modules/intellij.performanceTesting.frontend.jar
 android-studio/plugins/performanceTesting/lib/performanceTesting.jar
 android-studio/plugins/platform-images/lib/modules/intellij.platform.images.xdebugger.jar

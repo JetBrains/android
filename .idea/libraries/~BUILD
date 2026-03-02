@@ -227,9 +227,9 @@ jvm_import(
 
 # managed by go/iml_to_build
 jvm_import(
-    name = "utp-core-proto-jarjar",
+    name = "test-result-proto",
     # do not sort: must match IML order
-    jars = ["//tools/base/bazel:utp-core-proto-jarjar.jar"],
+    jars = ["//tools/base/android-test/test-result-proto:libstudio.test-result-proto.jar"],
     visibility = ["//visibility:public"],
 )
 
