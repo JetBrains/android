@@ -356,6 +356,7 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager<StudioModuleClas
       captureDiagnostics = enabled
     }
 
+    @Suppress("VisibleForTests")
     internal fun createDiagnostics() = if (captureDiagnostics) ModuleClassLoadedDiagnosticsImpl() else NopModuleClassLoadedDiagnostics
 
     @JvmStatic fun get(): StudioModuleClassLoaderManager = application.service<StudioModuleClassLoaderManager>()
