@@ -27,15 +27,13 @@ import kotlin.test.fail
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibility
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.formatter.kotlinCustomSettings
 import org.jetbrains.kotlin.idea.k2.refactoring.inline.KotlinInlineFunctionHandler
-import org.jetbrains.kotlin.idea.refactoring.inline.KotlinInlineNamedFunctionHandler
 import org.jetbrains.kotlin.idea.util.ClassImportFilter.ClassInfo
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.junit.Assume
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -99,11 +97,8 @@ class NestedResourceClassImportFilterTest {
   /** Tests the actual behavior in the editor as specified by b/254502853. */
   @Test
   @RunsInEdt
+  @Ignore("b/388149042: no counterpart of ClassImportFilter")
   fun innerResourceClassNotImported_inlineMethod() {
-    // TODO(b/388149042): perhaps import filter is not working after 243 merge
-    //  where inline handler starts more reference shortening
-    Assume.assumeFalse(KotlinPluginModeProvider.isK2Mode())
-
     CodeStyle.getSettings(project).kotlinCustomSettings.IMPORT_NESTED_CLASSES = true
     configureStringResources()
 
@@ -125,13 +120,7 @@ class NestedResourceClassImportFilterTest {
     fixture.openFileInEditor(file.virtualFile)
 
     val myOtherGreatFunction = fixture.getEnclosing<KtNamedFunction>("fun myOther")
-    val handler =
-      if (KotlinPluginModeProvider.isK2Mode()) {
-        KotlinInlineFunctionHandler()
-      } else {
-        KotlinInlineNamedFunctionHandler()
-      }
-    handler.inlineKotlinFunction(project, fixture.editor, myOtherGreatFunction)
+    KotlinInlineFunctionHandler().inlineKotlinFunction(project, fixture.editor, myOtherGreatFunction)
 
     // The refactor does some weird things with formatting that we don't want this test to rely on,
     // so just make some basic assertions.
