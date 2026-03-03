@@ -32,6 +32,9 @@ import com.android.tools.property.ptable.PTableGroupModification
 import com.android.tools.property.ptable.PTableItem
 import com.android.tools.property.ptable.PTableModel
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
+import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.wm.IdeFocusManager
@@ -100,7 +103,8 @@ open class PTableImpl(
   private val customToolTipHook: (MouseEvent) -> String? = { null },
   private val updatingUI: () -> Unit = {},
   private val nameColumnFraction: ColumnFraction = ColumnFraction(),
-) : PFormTableImpl(PTableModelImpl(tableModel)), PTable {
+  private val dataProvider: DataProvider? = null,
+) : PFormTableImpl(PTableModelImpl(tableModel)), PTable, UiDataProvider {
   private val nameRowSorter = TableRowSorter<TableModel>()
   private val nameRowFilter = NameRowFilter(model)
   private val tableCellRenderer = PTableCellRendererWrapper()
@@ -400,6 +404,10 @@ open class PTableImpl(
   override fun getCellEditor(row: Int, column: Int): PTableCellEditorWrapper {
     tableCellEditor.editor = editorProvider(this, item(row), PTableColumn.fromColumn(column))
     return tableCellEditor
+  }
+
+  override fun uiDataSnapshot(sink: DataSink) {
+    DataSink.uiDataSnapshot(sink, dataProvider)
   }
 
   override fun getToolTipText(event: MouseEvent): String? {

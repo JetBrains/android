@@ -27,6 +27,9 @@ import com.android.tools.idea.flags.StudioFlags
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.dnd.DnDSupport
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.DisabledTraversalPolicy
@@ -100,7 +103,8 @@ class TreeTableImpl(
   installTreeSearch: Boolean,
   private val expandAllOnRootChange: Boolean,
   treeHeaderRenderer: TableCellRenderer?,
-) : TreeTable(model), TableVisibility {
+  private val dataProvider: DataProvider? = null,
+) : TreeTable(model), TableVisibility, UiDataProvider {
   private val extraColumns: List<ColumnInfo>
   private var initialized = false
   private var dropTargetHandler: TreeTableDropTargetHandler? = null
@@ -228,6 +232,10 @@ class TreeTableImpl(
     enableDrags = true
     transferHandler = treeTransferHandler
     dropTargetHandler = TreeTableDropTargetHandler(this, deleteOriginOfInternalMove, treeTransferHandler.draggedItems)
+  }
+
+  override fun uiDataSnapshot(sink: DataSink) {
+    DataSink.uiDataSnapshot(sink, dataProvider)
   }
 
   override fun getTableModel(): TreeTableModelImpl {

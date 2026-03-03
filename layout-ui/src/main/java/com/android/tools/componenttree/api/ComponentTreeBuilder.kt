@@ -21,7 +21,6 @@ import com.android.tools.componenttree.treetable.TreeTableImpl
 import com.android.tools.componenttree.treetable.TreeTableModelImpl
 import com.android.tools.componenttree.treetable.UpperRightCorner
 import com.android.tools.idea.flags.StudioFlags
-import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.treeStructure.Tree
@@ -169,12 +168,12 @@ class ComponentTreeBuilder {
         installTreeSearch,
         expandAllOnRootChange,
         headerRenderer,
+        dataProvider,
       )
     table.name = componentName // For UI tests
     if (dndSupport) {
       table.enableDnD(dndMerger, dndDeleteOriginOfInternalMove)
     }
-    dataProvider?.let { DataManager.registerDataProvider(table, it) }
     val tree = table.tree
     tree.toggleClickCount = toggleClickCount
     tree.isRootVisible = isRootVisible

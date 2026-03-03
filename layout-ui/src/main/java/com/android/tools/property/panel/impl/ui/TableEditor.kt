@@ -33,8 +33,8 @@ import com.android.tools.property.ptable.PTableCellRendererProvider
 import com.android.tools.property.ptable.PTableColumn
 import com.android.tools.property.ptable.PTableGroupItem
 import com.android.tools.property.ptable.PTableItem
-import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.psi.codeStyle.NameUtil
 import com.intellij.util.text.Matcher
@@ -57,7 +57,16 @@ class TableEditor(
 ) {
 
   private val table =
-    PTable.create(lineModel.tableModel, lineModel, rendererProvider, editorProvider, { getToolTipText(it) }, ::updateUI, nameColumnFraction)
+    PTable.create(
+      lineModel.tableModel,
+      lineModel,
+      rendererProvider,
+      editorProvider,
+      { getToolTipText(it) },
+      ::updateUI,
+      nameColumnFraction,
+      DataProvider { dataId -> if (HelpSupport.PROPERTY_ITEM.`is`(dataId)) lineModel.selectedItem else null },
+    )
   val component = table.component as JTable
 
   init {
@@ -98,7 +107,6 @@ class TableEditor(
         .filter { it.secondKeyStroke == null }
         .forEach { component.registerAnActionKey({ action }, it.firstKeyStroke, action.templatePresentation.description) }
     }
-    DataManager.registerDataProvider(component) { dataId -> if (HelpSupport.PROPERTY_ITEM.`is`(dataId)) lineModel.selectedItem else null }
   }
 
   fun setPreviousTableEditor(editor: TableEditor?) {
