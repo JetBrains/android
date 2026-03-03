@@ -29,6 +29,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.html.HtmlEscapers
 import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
 import com.google.wireless.android.sdk.stats.ScreenshotTestComposePreviewEvent
+import com.intellij.accessibility.AccessibilityUtils
 import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.ide.ui.LafManagerListener
@@ -43,6 +44,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.ActiveRunnable
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.JBColor
@@ -55,11 +57,14 @@ import com.intellij.ui.tabs.TabInfo
 import com.intellij.util.messages.MessageBus
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.accessibility.AccessibleContextUtil
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.FlowLayout
 import java.util.Arrays
 import java.util.Locale
+import javax.accessibility.AccessibleContext
+import javax.accessibility.AccessibleRole
 import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants
 
@@ -137,6 +142,30 @@ class DetailsViewContentView(
     myLogsView = ConsoleViewImpl(project, /* viewer= */ true)
     Disposer.register(this, myLogsView)
     logger.addImpressionWhenDisplayed(myLogsView.component, ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_LOG_VIEW)
+    val logsHeadingLabel =
+      object : JBLabel("Logs") {
+          override fun getAccessibleContext(): AccessibleContext {
+            if (accessibleContext == null) {
+              accessibleContext =
+                object : AccessibleJLabel() {
+                  override fun getAccessibleRole() =
+                    if (SystemInfoRt.isMac) {
+                      AccessibilityUtils.GROUPED_ELEMENTS
+                    } else {
+                      AccessibleRole.LABEL
+                    }
+                }
+            }
+            return accessibleContext
+          }
+        }
+        .apply {
+          isFocusable = true
+          AccessibleContextUtil.setName(this, "Heading: Logs")
+        }
+
+    val logsContainer = JPanel(BorderLayout()).apply { add(logsHeadingLabel, BorderLayout.NORTH) }
+
     val logsViewWithVerticalToolbar =
       object : NonOpaquePanel(BorderLayout()) {
           override fun getAccessibleContext(): javax.accessibility.AccessibleContext {
@@ -163,7 +192,9 @@ class DetailsViewContentView(
         )
     logViewToolbar.targetComponent = myLogsView.component
     logsViewWithVerticalToolbar.add(logViewToolbar.component, BorderLayout.EAST)
-    logsTab = TabInfo(logsViewWithVerticalToolbar)
+    logsContainer.add(logsViewWithVerticalToolbar, BorderLayout.CENTER)
+
+    logsTab = TabInfo(logsContainer)
     logsTab.setText("Logs")
     logsTab.setTooltipText("Show logcat output")
     tabs.addTab(logsTab)
@@ -213,7 +244,24 @@ class DetailsViewContentView(
     myDeviceInfoTab.setTooltipText("Show device information")
     tabs.addTab(myDeviceInfoTab)
 
-    rootPanel = JPanel(BorderLayout())
+    rootPanel =
+      object : JPanel(BorderLayout()) {
+        override fun getAccessibleContext(): AccessibleContext {
+          if (accessibleContext == null) {
+            accessibleContext =
+              object : AccessibleJPanel() {
+                  override fun getAccessibleRole() =
+                    if (SystemInfoRt.isMac) {
+                      AccessibilityUtils.GROUPED_ELEMENTS
+                    } else {
+                      AccessibleRole.PANEL
+                    }
+                }
+                .apply { accessibleName = "Test Results Panel Structure" }
+          }
+          return accessibleContext
+        }
+      }
     val actionGroup = DefaultActionGroup()
     actionGroup.addAll(headerActions)
     val toolbar = ActionManager.getInstance().createActionToolbar("AndroidTestSuite.DetailsView.Header", actionGroup, true)

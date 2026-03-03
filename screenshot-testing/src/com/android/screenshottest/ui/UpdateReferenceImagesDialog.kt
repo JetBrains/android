@@ -37,12 +37,14 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.logScreenshotTestEvent
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.ScreenshotViewType
 import com.google.wireless.android.sdk.stats.ScreenshotTestComposePreviewEvent
+import com.intellij.accessibility.AccessibilityUtils
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.openapi.wm.ToolWindowId
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.AnimatedIcon
@@ -54,12 +56,15 @@ import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.ui.accessibility.AccessibleContextUtil
 import com.intellij.util.ui.tree.TreeUtil
 import java.awt.BorderLayout
 import java.awt.CardLayout
 import java.awt.Dimension
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
+import javax.accessibility.AccessibleContext
+import javax.accessibility.AccessibleRole
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -232,10 +237,42 @@ class UpdateReferenceImagesDialog(
     rightPaneWrapper.add(rightPaneContent, BorderLayout.CENTER)
     rightPaneWrapper.add(previewToolbar, BorderLayout.SOUTH)
 
-    tree = createPreviewTree()
-    val treeScrollPane = JBScrollPane(tree)
+    val treeHeadingLabel =
+      object : JBLabel("Preview Tree") {
+          override fun getAccessibleContext(): AccessibleContext {
+            if (accessibleContext == null) {
+              accessibleContext =
+                object : AccessibleJLabel() {
+                  override fun getAccessibleRole() =
+                    if (SystemInfoRt.isMac) {
+                      AccessibilityUtils.GROUPED_ELEMENTS
+                    } else {
+                      AccessibleRole.LABEL
+                    }
+                }
+            }
+            return accessibleContext
+          }
+        }
+        .apply {
+          isFocusable = true
+          AccessibleContextUtil.setName(this, "Heading: Preview Tree")
+        }
 
-    splitter.firstComponent = treeScrollPane
+    tree = createPreviewTree()
+    val treeScrollPane =
+      JBScrollPane(tree).apply {
+        border = BorderFactory.createEmptyBorder()
+        accessibleContext.accessibleName = "Preview Tree"
+      }
+
+    val treeContainer =
+      JPanel(BorderLayout()).apply {
+        add(treeHeadingLabel, BorderLayout.NORTH)
+        add(treeScrollPane, BorderLayout.CENTER)
+      }
+
+    splitter.firstComponent = treeContainer
     splitter.secondComponent = rightPaneWrapper
     centerPanel.add(splitter, "content")
     centerPanelCardLayout.show(centerPanel, "content")

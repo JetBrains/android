@@ -27,6 +27,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.DetailsViewDeviceSelectorListView.DetailsViewDeviceSelectorListViewListener
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Strings
+import com.intellij.accessibility.AccessibilityUtils
 import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
@@ -35,6 +36,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.SideBorder
 import com.intellij.ui.components.JBLabel
@@ -42,10 +44,13 @@ import com.intellij.ui.components.panels.NonOpaquePanel
 import com.intellij.util.IJSwingUtilities
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.NamedColorUtil
+import com.intellij.util.ui.accessibility.AccessibleContextUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.event.ActionListener
+import javax.accessibility.AccessibleContext
+import javax.accessibility.AccessibleRole
 import javax.swing.BoxLayout
 import javax.swing.JPanel
 import kotlin.math.max
@@ -76,7 +81,30 @@ constructor(
     fun onAndroidTestSuiteDetailsViewCloseButtonClicked()
   }
 
-  @get:VisibleForTesting val titleTextView: JBLabel = JBLabel().apply { border = JBUI.Borders.empty(0, 10) }
+  @get:VisibleForTesting
+  val titleTextView: JBLabel =
+    object : JBLabel("Test Results") {
+        override fun getAccessibleContext(): AccessibleContext {
+          if (accessibleContext == null) {
+            accessibleContext =
+              object : AccessibleJLabel() {
+                override fun getAccessibleRole(): AccessibleRole {
+                  return if (SystemInfoRt.isMac) {
+                    AccessibilityUtils.GROUPED_ELEMENTS
+                  } else {
+                    AccessibleRole.LABEL
+                  }
+                }
+              }
+          }
+          return accessibleContext
+        }
+      }
+      .apply {
+        border = JBUI.Borders.empty(0, 10)
+        isFocusable = true
+        AccessibleContextUtil.setName(this, "Heading: Test Results")
+      }
 
   private val myChangeOrientationButton: CommonButton =
     CommonButton(AllIcons.Actions.PreviewDetailsVertically).apply {
@@ -196,25 +224,42 @@ constructor(
     }
 
   val rootPanel: JPanel =
-    JPanel(BorderLayout()).apply {
-      add(
-        JPanel(BorderLayout()).apply {
-          add(titleTextView, BorderLayout.CENTER)
-          add(
-            JPanel().apply {
-              layout = BoxLayout(this, BoxLayout.LINE_AXIS)
-              add(myChangeOrientationButton)
-              add(closeButton)
-            },
-            BorderLayout.EAST,
-          )
-          border = SideBorder(NamedColorUtil.getBoundsColor(), SideBorder.BOTTOM)
-        },
-        BorderLayout.NORTH,
-      )
-      add(myComponentsSplitter, BorderLayout.CENTER)
-      minimumSize = Dimension()
-    }
+    object : JPanel(BorderLayout()) {
+        override fun getAccessibleContext(): AccessibleContext {
+          if (accessibleContext == null) {
+            accessibleContext =
+              object : AccessibleJPanel() {
+                  override fun getAccessibleRole() =
+                    if (SystemInfoRt.isMac) {
+                      AccessibilityUtils.GROUPED_ELEMENTS
+                    } else {
+                      AccessibleRole.PANEL
+                    }
+                }
+                .apply { accessibleName = "Test Results Panel Structure" }
+          }
+          return accessibleContext
+        }
+      }
+      .apply {
+        add(
+          JPanel(BorderLayout()).apply {
+            add(titleTextView, BorderLayout.CENTER)
+            add(
+              JPanel().apply {
+                layout = BoxLayout(this, BoxLayout.LINE_AXIS)
+                add(myChangeOrientationButton)
+                add(closeButton)
+              },
+              BorderLayout.EAST,
+            )
+            border = SideBorder(NamedColorUtil.getBoundsColor(), SideBorder.BOTTOM)
+          },
+          BorderLayout.NORTH,
+        )
+        add(myComponentsSplitter, BorderLayout.CENTER)
+        minimumSize = Dimension()
+      }
 
   private var myTestResults: AndroidTestResults? = null
   @get:VisibleForTesting var selectedDevice: AndroidDevice? = null

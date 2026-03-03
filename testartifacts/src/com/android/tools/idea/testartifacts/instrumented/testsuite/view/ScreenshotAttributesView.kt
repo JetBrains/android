@@ -44,9 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -59,11 +57,14 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.util.NOT_APPL
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils.calculateMatchPercentage
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils.loadImageMetadata
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.accessibility.AccessibilityUtils
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.util.ColorProgressBar
+import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.ui.JBColor
 import java.awt.Desktop
 import java.io.File
+import javax.accessibility.AccessibleRole
 import javax.swing.JComponent
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.Orientation
@@ -106,8 +107,14 @@ class ScreenshotAttributesView {
           if (accessibleContext == null) {
             accessibleContext =
               object : AccessibleJPanel() {
-                override fun getAccessibleRole() = javax.accessibility.AccessibleRole.PANEL
-              }
+                  override fun getAccessibleRole() =
+                    if (SystemInfoRt.isMac) {
+                      AccessibilityUtils.GROUPED_ELEMENTS
+                    } else {
+                      AccessibleRole.PANEL
+                    }
+                }
+                .apply { accessibleName = "Test Results Panel Structure" }
           }
           return accessibleContext
         }
@@ -115,8 +122,6 @@ class ScreenshotAttributesView {
       .apply {
         isOpaque = false
         add(composePanel, java.awt.BorderLayout.CENTER)
-        accessibleContext.accessibleName = "Attributes View"
-        isFocusable = true
       }
   }
 
@@ -215,13 +220,7 @@ class ScreenshotAttributesView {
     """
         .trimIndent()
 
-    Row(
-      modifier =
-        Modifier.fillMaxSize().focusable(true).semantics(mergeDescendants = true) {
-          contentDescription = "Attributes\n$summarySemanticsDescription"
-          role = androidx.compose.ui.semantics.Role.Tab
-        }
-    ) {
+    Row(modifier = Modifier.fillMaxSize()) {
       Column(modifier = Modifier.weight(1f).padding(16.dp).verticalScroll(scrollState), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Section("Summary") {
           KeyValueRow("Match") {
@@ -271,7 +270,7 @@ class ScreenshotAttributesView {
 @Composable
 private fun Section(title: String, content: @Composable () -> Unit) {
   Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-    BoldLightText(title)
+    BoldLightText(title, modifier = Modifier.focusable(true).semantics { heading() })
     Column(modifier = Modifier.padding(start = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) { content() }
   }
 }
