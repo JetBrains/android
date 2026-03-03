@@ -164,7 +164,9 @@ class ProjectJdkRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
   }
 
   private fun getCurrentProjectGradleVersion(): GradleVersion? {
-    return GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project)?.resolveGradleVersion()
+    return GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project)?.let {
+      GradleInstallationManager.guessGradleVersion(it) ?: GradleVersion.current()
+    }
   }
 
   companion object {

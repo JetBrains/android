@@ -43,6 +43,8 @@ import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.util.IncorrectOperationException
+import org.gradle.util.GradleVersion
+import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import java.nio.file.Path
 
@@ -154,7 +156,11 @@ class NewVersionCatalogAction : CreateFileFromTemplateAction("Version Catalog", 
         return
       }
 
-      val gradleVersion = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project)?.resolveGradleVersion()
+      val gradleVersion = GradleProjectSettingsFinder.getInstance()
+        .findGradleProjectSettings(project)
+        ?.let {
+          GradleInstallationManager.guessGradleVersion(it) ?: GradleVersion.current()
+        }
       if (gradleVersion == null || gradleVersion < GradleVersionCatalogDetector.STABLE_GRADLE_VERSION) {
         e.presentation.isEnabledAndVisible = false
         return

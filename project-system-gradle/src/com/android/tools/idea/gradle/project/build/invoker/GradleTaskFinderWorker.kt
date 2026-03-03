@@ -43,6 +43,7 @@ import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.idea.base.facet.isMultiPlatformModule
 import org.jetbrains.kotlin.idea.gradleJava.configuration.kotlinGradleProjectDataOrNull
 import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
+import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.jetbrains.plugins.gradle.service.project.data.GradleExtensionsDataService
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import java.io.File
@@ -261,8 +262,8 @@ private data class ModuleTasks(val module: Module, val cleanTasks: Set<String>, 
 private fun getTaskRunningInfo(module: Module): Pair<File, String>? {
   val externalRootProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(module) ?: return null
   val gradleProjectSettings = GradleSettings.getInstance(module.project).getLinkedProjectSettings(externalRootProjectPath) ?: return null
-
-  return if (gradleProjectSettings.resolveGradleVersion() >= supportsDirectTaskInvocationInCompositeBuilds) {
+  val gradleVersion = GradleInstallationManager.guessGradleVersion(gradleProjectSettings) ?: GradleVersion.current()
+  return if (gradleVersion >= supportsDirectTaskInvocationInCompositeBuilds) {
     val gradleIdentityPath = module.getGradleIdentityPath() ?: return null
     File(externalRootProjectPath) to gradleIdentityPath
   } else {

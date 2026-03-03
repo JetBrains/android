@@ -77,11 +77,13 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.jetbrains.plugins.gradle.model.ExternalProject;
+import org.jetbrains.plugins.gradle.service.GradleInstallationManager;
 import org.jetbrains.plugins.gradle.service.project.GradlePartialResolverPolicy;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver;
 import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCache;
@@ -179,7 +181,8 @@ public class GradleSyncExecutor {
 
     GradleProjectSettings projectSettings = GradleDefaultProjectSettings.createProjectSettings(externalProjectPath);
     GradleProjectImportUtil.setupGradleSettings(GradleSettings.getInstance(project));
-    GradleJvmResolutionUtil.setupGradleJvm(project, projectSettings, projectSettings.resolveGradleVersion());
+    GradleVersion gradleVersion = GradleInstallationManager.guessGradleVersion(projectSettings);
+    GradleJvmResolutionUtil.setupGradleJvm(project, projectSettings, gradleVersion == null ? GradleVersion.current() : gradleVersion);
     //noinspection unchecked
     ExternalSystemApiUtil.getSettings(project, SYSTEM_ID).linkProject(projectSettings);
     return externalProjectPath;
