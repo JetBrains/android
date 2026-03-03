@@ -832,6 +832,8 @@ studio_plugin(
             "//tools/vendor/google/ml/aiplugin/core/terminal:aiplugin.core.terminal",
             "//tools/vendor/google/ml/aiplugin/core/aicore:aiplugin.core.aicore",
             "//tools/vendor/google/ml/aiplugin/agents/agents-core:aiplugin.agents.agents-core",
+            "//tools/vendor/google/ml/aiplugin/v2/agent-sdk:aiplugin.v2.agent-sdk",
+            "//tools/vendor/google/ml/aiplugin/v2/datamodel:aiplugin.v2.datamodel",
             "//tools/vendor/google/ml/aiplugin/android:aiplugin.android",
             "//tools/vendor/google/ml/aiplugin/android/gradle:aiplugin.android.gradle",
             "//tools/vendor/google/ml/aiplugin/android/enterprise:aiplugin.android.enterprise",
