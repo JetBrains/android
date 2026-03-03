@@ -18,20 +18,17 @@ package com.android.tools.idea.streaming.emulator
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.avdmanager.EmulatorLogListener
-import com.android.tools.idea.concurrency.createCoroutineScope
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.util.Disposer
 import com.intellij.util.containers.DisposableWrapperList
 import com.intellij.util.ui.UIUtil
 import com.jetbrains.rd.util.getOrCreate
 import java.nio.file.Path
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.datetime.Instant
 import org.jetbrains.annotations.TestOnly
 
 /**
@@ -41,10 +38,9 @@ import org.jetbrains.annotations.TestOnly
 @Service
 internal class EmulatorNotificationDispatcher : EmulatorLogListener, Disposable {
 
-  private val recentMessages = mutableMapOf<ProcessHandle, ArrayDeque<Message>>()
-  private val scope = createCoroutineScope()
-  private var janitor: Job? = null
+  private val recentMessages = mutableMapOf<ProcessHandle, PerishableItemQueue<Message>>()
   private val listeners = DisposableWrapperList<ListenerWithProcessHandle>()
+  private var messageExpiration: Duration = 5.seconds
 
   init {
     ApplicationManager.getApplication().messageBus.connect(this).subscribe(EmulatorLogListener.TOPIC, this)
@@ -58,9 +54,13 @@ internal class EmulatorNotificationDispatcher : EmulatorLogListener, Disposable 
       listeners.add(ListenerWithProcessHandle(listener, emulatorProcessHandle))
     }
     if (playBackRecentMessages) {
-      removeExpiredMessages()
       recentMessages[emulatorProcessHandle]?.forEach { listener.notificationMessageLogged(it.severity, it.text) }
     }
+  }
+
+  @UiThread
+  fun removeListener(emulatorProcessHandle: ProcessHandle, listener: Listener) {
+    listeners.find { it.processHandle == emulatorProcessHandle && it.listener == listener }?.let { listeners.remove(it) }
   }
 
   @AnyThread
@@ -81,7 +81,7 @@ internal class EmulatorNotificationDispatcher : EmulatorLogListener, Disposable 
 
   @UiThread
   private fun notifyListenersAndSaveMessage(sourceProcess: ProcessHandle, severity: EmulatorLogListener.Severity, message: String) {
-    val timestamp = System.currentTimeMillis()
+    val expirationTime = Instant.fromEpochMilliseconds(System.currentTimeMillis()) + messageExpiration
     for ((listener, processHandle) in listeners) {
       if (processHandle == sourceProcess) {
         listener.notificationMessageLogged(severity, message)
@@ -89,51 +89,32 @@ internal class EmulatorNotificationDispatcher : EmulatorLogListener, Disposable 
     }
     val list =
       recentMessages.getOrCreate(sourceProcess) { processHandle ->
-        processHandle.onExit().thenRun { recentMessages.remove(processHandle) }
-        ArrayDeque()
-      }
-    list.add(Message(timestamp, severity, message))
-    if (janitor == null) {
-      janitor =
-        scope.launch(Dispatchers.EDT) {
-          do {
-            delay(MESSAGE_EXPIRATION)
-            removeExpiredMessages()
-          } while (recentMessages.isNotEmpty())
-          janitor = null
+        processHandle.onExit().thenRun {
+          val queue = recentMessages.remove(processHandle)
+          queue?.let { Disposer.dispose(it) }
         }
-    }
-  }
-
-  private fun removeExpiredMessages() {
-    val timeThreshold = System.currentTimeMillis() - MESSAGE_EXPIRATION.inWholeMilliseconds
-    val iter = recentMessages.iterator()
-    while (iter.hasNext()) {
-      val (processHandle, list) = iter.next()
-      while (list.isNotEmpty() && list.first().timestamp < timeThreshold) {
-        list.removeFirst()
+        PerishableItemQueue<Message>().also { Disposer.register(this, it) }
       }
-      if (list.isEmpty()) {
-        iter.remove()
-      }
-    }
+    list.add(Message(expirationTime, severity, message))
   }
 
   /** Removes all accumulated notification messages. */
   @TestOnly
   @UiThread
   fun reset() {
+    recentMessages.values.forEach { it.clear() }
     recentMessages.clear()
-    janitor?.cancel()
-    janitor = null
+  }
+
+  @TestOnly
+  fun setMessageExpiration(duration: Duration) {
+    messageExpiration = duration
   }
 
   companion object {
     @JvmStatic
     fun getInstance(): EmulatorNotificationDispatcher =
       ApplicationManager.getApplication().getService(EmulatorNotificationDispatcher::class.java)
-
-    @JvmStatic private val MESSAGE_EXPIRATION = 5.seconds
   }
 
   interface Listener {
@@ -144,5 +125,6 @@ internal class EmulatorNotificationDispatcher : EmulatorLogListener, Disposable 
 
   private data class ListenerWithProcessHandle(val listener: Listener, val processHandle: ProcessHandle)
 
-  private data class Message(val timestamp: Long, val severity: EmulatorLogListener.Severity, val text: String)
+  private data class Message(override val expirationTime: Instant, val severity: EmulatorLogListener.Severity, val text: String) :
+    Perishable
 }
