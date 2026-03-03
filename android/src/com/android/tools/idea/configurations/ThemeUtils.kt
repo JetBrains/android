@@ -33,6 +33,7 @@ import com.android.tools.idea.model.logManifestIndexQueryError
 import com.android.tools.idea.model.queryActivitiesFromManifestIndex
 import com.android.tools.idea.model.queryApplicationThemeFromManifestIndex
 import com.android.tools.idea.model.queryIsMainManifestIndexReady
+import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.run.activity.DefaultActivityLocator
 import com.android.tools.idea.util.uiSafeRunReadActionInSmartMode
 import com.android.tools.module.AndroidModuleInfo
@@ -40,6 +41,7 @@ import com.android.utils.cache.ChangeTracker
 import com.android.utils.cache.ChangeTrackerCachedValue
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
@@ -77,8 +79,7 @@ fun Module.getAppThemeName(): String? {
       )
     }
   } catch (e: MainManifestIndexNotReadyException) {
-    // this is perhaps too strong but the flag is off.
-    logManifestIndexQueryError(e)
+    thisLogger().info("Manifest was not ready", e)
   } catch (e: IndexNotReadyException) {
     // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
     //  We need to refactor the callers of this to require a *smart*
@@ -187,6 +188,7 @@ class StudioThemeInfoProvider(private val module: Module) : ThemeInfoProvider {
           { weakConfig.get()?.modificationCount ?: 0 },
           { modificationTracker.modificationCount },
           { dumbServiceTracker.modificationTracker.modificationCount },
+          { ProjectSyncModificationTracker.getInstance(module.project).modificationCount },
         ),
       )
     }
