@@ -43,9 +43,15 @@ import java.awt.image.BufferedImage
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
+import kotlin.math.roundToInt
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
-private const val FADEOUT_TIME_MILLIS = 5000
-private const val TOTAL_FRAMES = 150
+private val FADE_OUT_DELAY_INFO = 3.seconds
+private val FADE_OUT_DELAY_WARNING = 6.seconds
+private val FADE_OUT_DELAY_ERROR = 9.seconds
+private val FADE_OUT_DURATION = 2.seconds
+private const val FADE_OUT_FRAME_RATE = 30
 
 /** A panel that can display notifications at the top. */
 class NotificationHolderPanel(content: Component) : JBLayeredPane(), UiDataProvider {
@@ -118,7 +124,13 @@ class NotificationHolderPanel(content: Component) : JBLayeredPane(), UiDataProvi
     val notificationPopup = createFadeOutNotificationPopup(status)
     fadeOutNotificationPopup = notificationPopup
     notificationPopup.notificationPanel.text = text
-    startFadeOutAnimation()
+    val fadeOutDelay =
+      when (status) {
+        EditorNotificationPanel.Status.Error -> FADE_OUT_DELAY_ERROR
+        EditorNotificationPanel.Status.Warning -> FADE_OUT_DELAY_WARNING
+        else -> FADE_OUT_DELAY_INFO
+      }
+    startFadeOutAnimation(fadeOutDelay)
     revalidate()
   }
 
@@ -144,10 +156,10 @@ class NotificationHolderPanel(content: Component) : JBLayeredPane(), UiDataProvi
     }
   }
 
-  private fun startFadeOutAnimation() {
+  private fun startFadeOutAnimation(delay: Duration) {
     animator?.dispose()
     fadeOutNotificationPopup?.alpha = 1.0F
-    animator = FadeOutAnimator().apply { resume() }
+    animator = FadeOutAnimator(delay).apply { resume() }
   }
 
   private fun stopFadeOutAnimation() {
@@ -192,11 +204,19 @@ class NotificationHolderPanel(content: Component) : JBLayeredPane(), UiDataProvi
     }
   }
 
-  private inner class FadeOutAnimator : Animator("FadeOutAnimator", TOTAL_FRAMES, FADEOUT_TIME_MILLIS, false) {
+  private inner class FadeOutAnimator(fadeOutDelay: Duration) :
+    Animator(
+      "FadeOutAnimator",
+      totalFrames = (fadeOutDelay + FADE_OUT_DURATION).toFrames(),
+      cycleDuration = (fadeOutDelay + FADE_OUT_DURATION).inWholeMilliseconds.toInt(),
+      isRepeatable = false,
+    ) {
+
+    private val delayFrames = fadeOutDelay.toFrames()
 
     override fun paintNow(frame: Int, totalFrames: Int, cycle: Int) {
       val popup = fadeOutNotificationPopup ?: return
-      val alpha = cos(0.5 * PI * frame / totalFrames).toFloat()
+      val alpha = if (frame < delayFrames) 1F else cos(0.5 * PI * (frame - delayFrames) / (totalFrames - delayFrames)).toFloat()
       if (abs(alpha - popup.alpha) >= 0.005) {
         popup.alpha = alpha
         popup.paintImmediately(0, 0, popup.width, popup.height)
@@ -227,3 +247,5 @@ class NotificationHolderPanel(content: Component) : JBLayeredPane(), UiDataProvi
     }
   }
 }
+
+private fun Duration.toFrames(): Int = (inWholeMilliseconds * 0.001 * FADE_OUT_FRAME_RATE).roundToInt()
