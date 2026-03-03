@@ -55,20 +55,23 @@ interface BenchmarkTestRule : ProjectSetupRule, TestRule
 fun createCpuBenchmarkTestRule(
   projectName: String,
   project: BenchmarkProject,
+  configurePhasedSyncFlagsRule: ConfigurePhasedSyncFlagsRule? = null,
   useLatestGradle: Boolean = false,
   useLatestKotlin: Boolean = false,
-) = createBenchmarkTestRule(projectName, project, useLatestGradle, useLatestKotlin, CPU_BENCHMARK)
+) = createBenchmarkTestRule(projectName, project, configurePhasedSyncFlagsRule, useLatestGradle, useLatestKotlin, CPU_BENCHMARK)
 
 fun createMemoryBenchmarkTestRule(
   projectName: String,
   project: BenchmarkProject,
+  configurePhasedSyncFlagsRule: ConfigurePhasedSyncFlagsRule? = null,
   useLatestGradle: Boolean = false,
   useLatestKotlin: Boolean = false,
-) = createBenchmarkTestRule(projectName, project, useLatestGradle, useLatestKotlin, MEMORY_BENCHMARK)
+) = createBenchmarkTestRule(projectName, project, configurePhasedSyncFlagsRule, useLatestGradle, useLatestKotlin, MEMORY_BENCHMARK)
 
 private fun createBenchmarkTestRule(
   projectName: String,
   project: BenchmarkProject,
+  configurePhasedSyncFlagsRule: ConfigurePhasedSyncFlagsRule? = null,
   useLatestGradle: Boolean = false,
   useLatestKotlin: Boolean = false,
   benchmark: com.android.tools.perflogger.Benchmark,
@@ -76,11 +79,11 @@ private fun createBenchmarkTestRule(
   val projectSetupRule =
     ProjectSetupRuleImpl(projectName, project, useLatestGradle, useLatestKotlin) { AndroidProjectRule.withIntegrationTestEnvironment() }
   val wrappedRules =
-    RuleChain.outerRule(projectSetupRule.testEnvironmentRule)
+    RuleChain.outerRule(configurePhasedSyncFlagsRule ?: ConfigurePhasedSyncFlagsRule())
+      .around(projectSetupRule.testEnvironmentRule)
       .around(projectSetupRule)
       .around(MemoryConstrainedTestRule(projectName, project.maxHeapMB, benchmark).also { projectSetupRule.addListener(it.listener) })
       .around(CollectDaemonLogsRule())
-      .around(ConfigurePhasedSyncFlagsRule())
       .maybeDisableLibraryConstraints(project)
       .maybeDisableBuiltInKotlin(project)
       .maybeDisableNewDsl(project)
