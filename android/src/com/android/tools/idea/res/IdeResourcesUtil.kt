@@ -114,7 +114,6 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.JarFileSystem
 import com.intellij.openapi.vfs.ReadonlyStatusHandler
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.platform.ide.progress.ModalTaskOwner.project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
@@ -165,6 +164,8 @@ import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 import org.jetbrains.kotlin.util.collectionUtils.filterIsInstanceAnd
+import org.jetbrains.kotlin.utils.SmartList
+import org.jetbrains.kotlin.utils.filterIsInstanceAndTo
 import java.awt.Color
 import java.io.File
 import java.io.IOException
@@ -2063,7 +2064,7 @@ fun getIdDeclarationAttribute(project: Project, idResource: ResourceItem): XmlAt
   // TODO: Consider storing XmlAttribute instead of XmlTag in PsiResourceItem.
   val scope = (idResource as? PsiResourceItem)?.tag ?: getItemPsiFile(project, idResource)
   val attributes: Collection<XmlAttribute> =
-    SyntaxTraverser.psiTraverser(scope).traverse().filterIsInstanceAnd(predicate)
+    SyntaxTraverser.psiTraverser(scope).traverse().filterIsInstanceAndTo(SmartList(), predicate)
   return attributes.firstOrNull { it.name == "android:id" } ?: attributes.firstOrNull()
 }
 
