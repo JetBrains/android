@@ -27,10 +27,10 @@ import com.google.common.truth.TruthJUnit
 import com.intellij.gradle.toolingExtension.util.GradleVersionUtil
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import java.io.File
 import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.jetbrains.plugins.gradle.settings.GradleSettings
+import java.io.File
 
 data class GradleModuleHierarchyProviderTest(
   override val name: String,

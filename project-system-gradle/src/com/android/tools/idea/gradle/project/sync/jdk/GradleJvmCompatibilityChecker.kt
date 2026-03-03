@@ -29,6 +29,8 @@ import com.intellij.util.lang.JavaVersion
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.gradle.util.GradleVersion
+import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
 import org.jetbrains.plugins.gradle.settings.GradleSettings
@@ -51,7 +53,8 @@ class GradleJvmCompatibilityChecker(private val scope: CoroutineScope) {
     val currentJavaVersion =
       AndroidStudioGradleInstallationManager.instance.resolveGradleJvmVersion(project, gradleProjectSettings) ?: return false
 
-    val gradleJvmCompatibility = GradleJvmCompatibilityResolver.resolve(project, gradleProjectSettings.resolveGradleVersion())
+    val gradleVersion = GradleInstallationManager.guessGradleVersion(gradleProjectSettings) ?: GradleVersion.current()
+    val gradleJvmCompatibility = GradleJvmCompatibilityResolver.resolve(project, gradleVersion)
     if (gradleJvmCompatibility.isCompatible(currentJavaVersion)) return false
 
     scope.launch(Dispatchers.EDT) {
