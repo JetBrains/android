@@ -10,10 +10,6 @@ Projects:
               Receiver ReferenceType        : org.gradle.internal.declarativedsl.project.ProjectTopLevelReceiver
               Parameters
               Block ReferenceType           : com.android.build.gradle.internal.dsl.DeclarativeLibraryExtension
-            - MemberFunctionName            : layout
-              Receiver ReferenceType        : org.gradle.internal.declarativedsl.project.ProjectTopLevelReceiver
-              Parameters
-              Block ReferenceType           : org.gradle.api.file.ProjectLayout
         Properties
             - PropertyName                  : layout
               Property ReferenceType        : org.gradle.api.file.ProjectLayout
@@ -5033,10 +5029,6 @@ Projects:
                 Name                          : com.android.build.api.dsl.ManagedDevices
                 MemberFunctions
                 Properties
-                    - PropertyName                  : allDevices
-                      Property DataClassWithType    : org.gradle.api.ExtensiblePolymorphicDomainObjectContainer
-                      GenericTypes
-                          - ConcreteGeneric ReferenceType : com.android.build.api.dsl.Device
                 Supertypes                    : kotlin.Any
             com.android.build.api.dsl.MaxSdkSpec
                 Name                          : com.android.build.api.dsl.MaxSdkSpec
@@ -5714,10 +5706,6 @@ Projects:
                     - MemberFunctionName            : androidTestImplementation
                       Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
                       Parameters
-                      Block ReferenceType           : org.gradle.api.artifacts.dsl.DependencyCollector
-                    - MemberFunctionName            : androidTestImplementation
-                      Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
-                      Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
@@ -5727,10 +5715,6 @@ Projects:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : api
-                      Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.artifacts.dsl.DependencyCollector
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
                       Parameters
@@ -5751,10 +5735,6 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
                       Parameters
                       Function ReferenceType        : org.gradle.api.artifacts.Dependency
-                    - MemberFunctionName            : implementation
-                      Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.artifacts.dsl.DependencyCollector
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
                       Parameters
@@ -5780,10 +5760,6 @@ Projects:
                     - MemberFunctionName            : testImplementation
                       Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
                       Parameters
-                      Block ReferenceType           : org.gradle.api.artifacts.dsl.DependencyCollector
-                    - MemberFunctionName            : testImplementation
-                      Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
-                      Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
@@ -5794,14 +5770,6 @@ Projects:
                             Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                 Properties
-                    - PropertyName                  : androidTestImplementation
-                      Property ReferenceType        : org.gradle.api.artifacts.dsl.DependencyCollector
-                    - PropertyName                  : api
-                      Property ReferenceType        : org.gradle.api.artifacts.dsl.DependencyCollector
-                    - PropertyName                  : implementation
-                      Property ReferenceType        : org.gradle.api.artifacts.dsl.DependencyCollector
-                    - PropertyName                  : testImplementation
-                      Property ReferenceType        : org.gradle.api.artifacts.dsl.DependencyCollector
                 Supertypes                    : org.gradle.api.artifacts.dsl.GradleDependencies,org.gradle.api.artifacts.dsl.Dependencies,kotlin.Any
             com.android.build.gradle.internal.dsl.DeclarativeApplicationExtension
                 Name                          : com.android.build.gradle.internal.dsl.DeclarativeApplicationExtension
@@ -6144,7 +6112,7 @@ Projects:
                       Property ReferenceType        : com.android.build.api.dsl.TestOptions
                     - PropertyName                  : viewBinding
                       Property ReferenceType        : com.android.build.api.dsl.ViewBinding
-                Supertypes                    : com.android.build.api.dsl.ApplicationExtension,com.android.build.api.dsl.CommonExtension,org.gradle.api.plugins.ExtensionAware,kotlin.Any,com.android.build.api.dsl.ApkExtension,com.android.build.api.dsl.TestedExtension,org.gradle.api.internal.plugins.Definition
+                Supertypes                    : com.android.build.api.dsl.ApplicationExtension,com.android.build.api.dsl.CommonExtension,org.gradle.api.plugins.ExtensionAware,kotlin.Any,com.android.build.api.dsl.ApkExtension,com.android.build.api.dsl.TestedExtension,org.gradle.features.binding.Definition
             com.android.build.gradle.internal.dsl.DeclarativeLibraryExtension
                 Name                          : com.android.build.gradle.internal.dsl.DeclarativeLibraryExtension
                 MemberFunctions
@@ -6446,7 +6414,7 @@ Projects:
                       Property ReferenceType        : com.android.build.api.dsl.TestOptions
                     - PropertyName                  : viewBinding
                       Property ReferenceType        : com.android.build.api.dsl.ViewBinding
-                Supertypes                    : com.android.build.api.dsl.LibraryExtension,com.android.build.api.dsl.CommonExtension,org.gradle.api.plugins.ExtensionAware,kotlin.Any,com.android.build.api.dsl.TestedExtension,org.gradle.api.internal.plugins.Definition
+                Supertypes                    : com.android.build.api.dsl.LibraryExtension,com.android.build.api.dsl.CommonExtension,org.gradle.api.plugins.ExtensionAware,kotlin.Any,com.android.build.api.dsl.TestedExtension,org.gradle.features.binding.Definition
             com.google.common.collect.ListMultimap
                 Name                          : com.google.common.collect.ListMultimap
                 GenericArguments
@@ -6478,11 +6446,6 @@ Projects:
                 Supertypes                    : kotlin.Comparable,kotlin.Any
             kotlin.CharSequence
                 Name                          : kotlin.CharSequence
-                MemberFunctions
-                Properties
-                Supertypes                    : kotlin.Any
-            kotlin.Cloneable
-                Name                          : kotlin.Cloneable
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
@@ -6532,10 +6495,6 @@ Projects:
                 Name                          : kotlin.collections.Set
                 GenericArguments
                     ConcreteGeneric SimpleType    : STRING
-            kotlin.enums.EnumEntries
-                Name                          : kotlin.enums.EnumEntries
-                GenericArguments
-                    ConcreteGeneric ReferenceType : org.gradle.api.JavaVersion
             org.gradle.api.ExtensiblePolymorphicDomainObjectContainer
                 Name                          : org.gradle.api.ExtensiblePolymorphicDomainObjectContainer
                 GenericArguments
@@ -6550,73 +6509,17 @@ Projects:
             org.gradle.api.artifacts.Dependency
                 Name                          : org.gradle.api.artifacts.Dependency
                 MemberFunctions
-                    - MemberFunctionName            : because
-                      Receiver ReferenceType        : org.gradle.api.artifacts.Dependency
-                      Parameters
-                          - Name                          : reason
-                            Value SimpleType              : STRING
-                      Function SimpleType           : UNIT
-                    - MemberFunctionName            : copy
-                      Receiver ReferenceType        : org.gradle.api.artifacts.Dependency
-                      Parameters
-                      Function ReferenceType        : org.gradle.api.artifacts.Dependency
                 Properties
-                    - PropertyName                  : group
-                      Property SimpleType           : STRING
-                    - PropertyName                  : name
-                      Property SimpleType           : STRING
-                    - PropertyName                  : reason
-                      Property SimpleType           : STRING
-                    - PropertyName                  : version
-                      Property SimpleType           : STRING
                 Supertypes                    : kotlin.Any
             org.gradle.api.artifacts.ModuleDependency
                 Name                          : org.gradle.api.artifacts.ModuleDependency
                 MemberFunctions
-                    - MemberFunctionName            : because
-                      Receiver ReferenceType        : org.gradle.api.artifacts.ModuleDependency
-                      Parameters
-                          - Name                          : reason
-                            Value SimpleType              : STRING
-                      Function SimpleType           : UNIT
-                    - MemberFunctionName            : copy
-                      Receiver ReferenceType        : org.gradle.api.artifacts.ModuleDependency
-                      Parameters
-                      Function ReferenceType        : org.gradle.api.artifacts.Dependency
                 Properties
-                    - PropertyName                  : group
-                      Property SimpleType           : STRING
-                    - PropertyName                  : name
-                      Property SimpleType           : STRING
-                    - PropertyName                  : reason
-                      Property SimpleType           : STRING
-                    - PropertyName                  : version
-                      Property SimpleType           : STRING
                 Supertypes                    : org.gradle.api.artifacts.Dependency,kotlin.Any,org.gradle.api.attributes.HasConfigurableAttributes,org.gradle.api.attributes.HasAttributes
             org.gradle.api.artifacts.ProjectDependency
                 Name                          : org.gradle.api.artifacts.ProjectDependency
                 MemberFunctions
-                    - MemberFunctionName            : because
-                      Receiver ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                      Parameters
-                          - Name                          : reason
-                            Value SimpleType              : STRING
-                      Function SimpleType           : UNIT
-                    - MemberFunctionName            : copy
-                      Receiver ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                      Parameters
-                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                 Properties
-                    - PropertyName                  : group
-                      Property SimpleType           : STRING
-                    - PropertyName                  : name
-                      Property SimpleType           : STRING
-                    - PropertyName                  : path
-                      Property SimpleType           : STRING
-                    - PropertyName                  : reason
-                      Property SimpleType           : STRING
-                    - PropertyName                  : version
-                      Property SimpleType           : STRING
                 Supertypes                    : org.gradle.api.artifacts.ModuleDependency,org.gradle.api.artifacts.Dependency,kotlin.Any,org.gradle.api.attributes.HasConfigurableAttributes,org.gradle.api.attributes.HasAttributes
             org.gradle.api.artifacts.dsl.Dependencies
                 Name                          : org.gradle.api.artifacts.dsl.Dependencies
@@ -6665,10 +6568,6 @@ Projects:
             org.gradle.api.file.Directory
                 Name                          : org.gradle.api.file.Directory
                 MemberFunctions
-                    - MemberFunctionName            : asFile
-                      Receiver ReferenceType        : org.gradle.api.file.Directory
-                      Parameters
-                      Block ReferenceType           : java.io.File
                     - MemberFunctionName            : dir
                       Receiver ReferenceType        : org.gradle.api.file.Directory
                       Parameters
@@ -6682,8 +6581,6 @@ Projects:
                             Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.file.RegularFile
                 Properties
-                    - PropertyName                  : asFile
-                      Property ReferenceType        : java.io.File
                 Supertypes                    : org.gradle.api.file.FileSystemLocation,kotlin.Any
             org.gradle.api.file.DirectoryProperty
                 Name                          : org.gradle.api.file.DirectoryProperty
@@ -6693,25 +6590,11 @@ Projects:
             org.gradle.api.file.FileSystemLocation
                 Name                          : org.gradle.api.file.FileSystemLocation
                 MemberFunctions
-                    - MemberFunctionName            : asFile
-                      Receiver ReferenceType        : org.gradle.api.file.FileSystemLocation
-                      Parameters
-                      Block ReferenceType           : java.io.File
                 Properties
-                    - PropertyName                  : asFile
-                      Property ReferenceType        : java.io.File
                 Supertypes                    : kotlin.Any
             org.gradle.api.file.ProjectLayout
                 Name                          : org.gradle.api.file.ProjectLayout
                 MemberFunctions
-                    - MemberFunctionName            : projectDirectory
-                      Receiver ReferenceType        : org.gradle.api.file.ProjectLayout
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.file.Directory
-                    - MemberFunctionName            : settingsDirectory
-                      Receiver ReferenceType        : org.gradle.api.file.ProjectLayout
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.file.Directory
                 Properties
                     - PropertyName                  : projectDirectory
                       Property ReferenceType        : org.gradle.api.file.Directory
@@ -6721,10 +6604,6 @@ Projects:
             org.gradle.api.file.RegularFile
                 Name                          : org.gradle.api.file.RegularFile
                 MemberFunctions
-                    - MemberFunctionName            : asFile
-                      Receiver ReferenceType        : org.gradle.api.file.RegularFile
-                      Parameters
-                      Block ReferenceType           : java.io.File
                 Properties
                     - PropertyName                  : asFile
                       Property ReferenceType        : java.io.File
@@ -6750,10 +6629,6 @@ Projects:
                       Receiver ReferenceType        : org.gradle.internal.declarativedsl.project.ProjectTopLevelReceiver
                       Parameters
                       Block ReferenceType           : com.android.build.gradle.internal.dsl.DeclarativeLibraryExtension
-                    - MemberFunctionName            : layout
-                      Receiver ReferenceType        : org.gradle.internal.declarativedsl.project.ProjectTopLevelReceiver
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.file.ProjectLayout
                 Properties
                     - PropertyName                  : layout
                       Property ReferenceType        : org.gradle.api.file.ProjectLayout
@@ -6872,11 +6747,6 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
-            kotlin.Cloneable
-                Name                          : kotlin.Cloneable
-                MemberFunctions
-                Properties
-                Supertypes                    : kotlin.Any
             kotlin.Pair
                 Name                          : kotlin.Pair
                 GenericArguments
@@ -6901,10 +6771,6 @@ Settings:
                 GenericArguments
                     ConcreteGeneric GenericType   : <T>
                     ConcreteGeneric GenericType   : <T>
-            kotlin.enums.EnumEntries
-                Name                          : kotlin.enums.EnumEntries
-                GenericArguments
-                    ConcreteGeneric ReferenceType : org.gradle.api.initialization.resolve.RepositoriesMode
             org.gradle.api.artifacts.dsl.RepositoryHandler
                 Name                          : org.gradle.api.artifacts.dsl.RepositoryHandler
                 MemberFunctions
@@ -6933,6 +6799,12 @@ Settings:
                       Receiver ReferenceType        : org.gradle.api.artifacts.repositories.ArtifactRepository
                       Parameters
                       Block ReferenceType           : org.gradle.api.artifacts.repositories.RepositoryContentDescriptor
+                    - MemberFunctionName            : setName
+                      Receiver ReferenceType        : org.gradle.api.artifacts.repositories.ArtifactRepository
+                      Parameters
+                          - Name                          : name
+                            Value SimpleType              : STRING
+                      Function SimpleType           : UNIT
                 Properties
                     - PropertyName                  : name
                       Property SimpleType           : STRING
@@ -7017,6 +6889,18 @@ Settings:
                       Parameters
                           - Name                          : allowInsecureProtocol
                             Value SimpleType              : BOOLEAN
+                      Function SimpleType           : UNIT
+                    - MemberFunctionName            : setName
+                      Receiver ReferenceType        : org.gradle.api.artifacts.repositories.MavenArtifactRepository
+                      Parameters
+                          - Name                          : name
+                            Value SimpleType              : STRING
+                      Function SimpleType           : UNIT
+                    - MemberFunctionName            : setUrl
+                      Receiver ReferenceType        : org.gradle.api.artifacts.repositories.MavenArtifactRepository
+                      Parameters
+                          - Name                          : url
+                            Value ReferenceType           : java.net.URI
                       Function SimpleType           : UNIT
                     - MemberFunctionName            : setUrl
                       Receiver ReferenceType        : org.gradle.api.artifacts.repositories.MavenArtifactRepository
@@ -7197,6 +7081,12 @@ Settings:
                           - Name                          : url
                             Value ReferenceType           : kotlin.Any
                       Function SimpleType           : UNIT
+                    - MemberFunctionName            : setUrl
+                      Receiver ReferenceType        : org.gradle.api.artifacts.repositories.UrlArtifactRepository
+                      Parameters
+                          - Name                          : url
+                            Value ReferenceType           : java.net.URI
+                      Function SimpleType           : UNIT
                 Properties
                     - PropertyName                  : allowInsecureContinueWhenDisabled
                       Property SimpleType           : BOOLEAN
@@ -7210,6 +7100,18 @@ Settings:
             org.gradle.api.initialization.ProjectDescriptor
                 Name                          : org.gradle.api.initialization.ProjectDescriptor
                 MemberFunctions
+                    - MemberFunctionName            : setBuildFileName
+                      Receiver ReferenceType        : org.gradle.api.initialization.ProjectDescriptor
+                      Parameters
+                          - Name                          : name
+                            Value SimpleType              : STRING
+                      Function SimpleType           : UNIT
+                    - MemberFunctionName            : setName
+                      Receiver ReferenceType        : org.gradle.api.initialization.ProjectDescriptor
+                      Parameters
+                          - Name                          : name
+                            Value SimpleType              : STRING
+                      Function SimpleType           : UNIT
                 Properties
                     - PropertyName                  : buildFileName
                       Property SimpleType           : STRING
@@ -7453,11 +7355,6 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
-            kotlin.Cloneable
-                Name                          : kotlin.Cloneable
-                MemberFunctions
-                Properties
-                Supertypes                    : kotlin.Any
             kotlin.Pair
                 Name                          : kotlin.Pair
                 GenericArguments
@@ -7482,10 +7379,6 @@ Settings:
                 GenericArguments
                     ConcreteGeneric GenericType   : <T>
                     ConcreteGeneric GenericType   : <T>
-            kotlin.enums.EnumEntries
-                Name                          : kotlin.enums.EnumEntries
-                GenericArguments
-                    ConcreteGeneric ReferenceType : org.gradle.api.initialization.resolve.RepositoriesMode
             org.gradle.api.artifacts.dsl.RepositoryHandler
                 Name                          : org.gradle.api.artifacts.dsl.RepositoryHandler
                 MemberFunctions
@@ -7514,6 +7407,12 @@ Settings:
                       Receiver ReferenceType        : org.gradle.api.artifacts.repositories.ArtifactRepository
                       Parameters
                       Block ReferenceType           : org.gradle.api.artifacts.repositories.RepositoryContentDescriptor
+                    - MemberFunctionName            : setName
+                      Receiver ReferenceType        : org.gradle.api.artifacts.repositories.ArtifactRepository
+                      Parameters
+                          - Name                          : name
+                            Value SimpleType              : STRING
+                      Function SimpleType           : UNIT
                 Properties
                     - PropertyName                  : name
                       Property SimpleType           : STRING
@@ -7598,6 +7497,18 @@ Settings:
                       Parameters
                           - Name                          : allowInsecureProtocol
                             Value SimpleType              : BOOLEAN
+                      Function SimpleType           : UNIT
+                    - MemberFunctionName            : setName
+                      Receiver ReferenceType        : org.gradle.api.artifacts.repositories.MavenArtifactRepository
+                      Parameters
+                          - Name                          : name
+                            Value SimpleType              : STRING
+                      Function SimpleType           : UNIT
+                    - MemberFunctionName            : setUrl
+                      Receiver ReferenceType        : org.gradle.api.artifacts.repositories.MavenArtifactRepository
+                      Parameters
+                          - Name                          : url
+                            Value ReferenceType           : java.net.URI
                       Function SimpleType           : UNIT
                     - MemberFunctionName            : setUrl
                       Receiver ReferenceType        : org.gradle.api.artifacts.repositories.MavenArtifactRepository
@@ -7778,6 +7689,12 @@ Settings:
                           - Name                          : url
                             Value ReferenceType           : kotlin.Any
                       Function SimpleType           : UNIT
+                    - MemberFunctionName            : setUrl
+                      Receiver ReferenceType        : org.gradle.api.artifacts.repositories.UrlArtifactRepository
+                      Parameters
+                          - Name                          : url
+                            Value ReferenceType           : java.net.URI
+                      Function SimpleType           : UNIT
                 Properties
                     - PropertyName                  : allowInsecureContinueWhenDisabled
                       Property SimpleType           : BOOLEAN
@@ -7791,6 +7708,18 @@ Settings:
             org.gradle.api.initialization.ProjectDescriptor
                 Name                          : org.gradle.api.initialization.ProjectDescriptor
                 MemberFunctions
+                    - MemberFunctionName            : setBuildFileName
+                      Receiver ReferenceType        : org.gradle.api.initialization.ProjectDescriptor
+                      Parameters
+                          - Name                          : name
+                            Value SimpleType              : STRING
+                      Function SimpleType           : UNIT
+                    - MemberFunctionName            : setName
+                      Receiver ReferenceType        : org.gradle.api.initialization.ProjectDescriptor
+                      Parameters
+                          - Name                          : name
+                            Value SimpleType              : STRING
+                      Function SimpleType           : UNIT
                 Properties
                     - PropertyName                  : buildFileName
                       Property SimpleType           : STRING
@@ -12989,10 +12918,6 @@ Settings:
                 Name                          : com.android.build.api.dsl.ManagedDevices
                 MemberFunctions
                 Properties
-                    - PropertyName                  : allDevices
-                      Property DataClassWithType    : org.gradle.api.ExtensiblePolymorphicDomainObjectContainer
-                      GenericTypes
-                          - ConcreteGeneric ReferenceType : com.android.build.api.dsl.Device
                 Supertypes                    : kotlin.Any
             com.android.build.api.dsl.MaxSdkSpec
                 Name                          : com.android.build.api.dsl.MaxSdkSpec
@@ -13670,10 +13595,6 @@ Settings:
                     - MemberFunctionName            : androidTestImplementation
                       Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
                       Parameters
-                      Block ReferenceType           : org.gradle.api.artifacts.dsl.DependencyCollector
-                    - MemberFunctionName            : androidTestImplementation
-                      Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
-                      Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
@@ -13683,10 +13604,6 @@ Settings:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : api
-                      Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.artifacts.dsl.DependencyCollector
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
                       Parameters
@@ -13707,10 +13624,6 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
                       Parameters
                       Function ReferenceType        : org.gradle.api.artifacts.Dependency
-                    - MemberFunctionName            : implementation
-                      Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.artifacts.dsl.DependencyCollector
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
                       Parameters
@@ -13736,10 +13649,6 @@ Settings:
                     - MemberFunctionName            : testImplementation
                       Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
                       Parameters
-                      Block ReferenceType           : org.gradle.api.artifacts.dsl.DependencyCollector
-                    - MemberFunctionName            : testImplementation
-                      Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
-                      Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
@@ -13750,14 +13659,6 @@ Settings:
                             Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                 Properties
-                    - PropertyName                  : androidTestImplementation
-                      Property ReferenceType        : org.gradle.api.artifacts.dsl.DependencyCollector
-                    - PropertyName                  : api
-                      Property ReferenceType        : org.gradle.api.artifacts.dsl.DependencyCollector
-                    - PropertyName                  : implementation
-                      Property ReferenceType        : org.gradle.api.artifacts.dsl.DependencyCollector
-                    - PropertyName                  : testImplementation
-                      Property ReferenceType        : org.gradle.api.artifacts.dsl.DependencyCollector
                 Supertypes                    : org.gradle.api.artifacts.dsl.GradleDependencies,org.gradle.api.artifacts.dsl.Dependencies,kotlin.Any
             com.android.build.gradle.internal.dsl.DeclarativeApplicationExtension
                 Name                          : com.android.build.gradle.internal.dsl.DeclarativeApplicationExtension
@@ -14100,7 +14001,7 @@ Settings:
                       Property ReferenceType        : com.android.build.api.dsl.TestOptions
                     - PropertyName                  : viewBinding
                       Property ReferenceType        : com.android.build.api.dsl.ViewBinding
-                Supertypes                    : com.android.build.api.dsl.ApplicationExtension,com.android.build.api.dsl.CommonExtension,org.gradle.api.plugins.ExtensionAware,kotlin.Any,com.android.build.api.dsl.ApkExtension,com.android.build.api.dsl.TestedExtension,org.gradle.api.internal.plugins.Definition
+                Supertypes                    : com.android.build.api.dsl.ApplicationExtension,com.android.build.api.dsl.CommonExtension,org.gradle.api.plugins.ExtensionAware,kotlin.Any,com.android.build.api.dsl.ApkExtension,com.android.build.api.dsl.TestedExtension,org.gradle.features.binding.Definition
             com.android.build.gradle.internal.dsl.DeclarativeLibraryExtension
                 Name                          : com.android.build.gradle.internal.dsl.DeclarativeLibraryExtension
                 MemberFunctions
@@ -14402,7 +14303,7 @@ Settings:
                       Property ReferenceType        : com.android.build.api.dsl.TestOptions
                     - PropertyName                  : viewBinding
                       Property ReferenceType        : com.android.build.api.dsl.ViewBinding
-                Supertypes                    : com.android.build.api.dsl.LibraryExtension,com.android.build.api.dsl.CommonExtension,org.gradle.api.plugins.ExtensionAware,kotlin.Any,com.android.build.api.dsl.TestedExtension,org.gradle.api.internal.plugins.Definition
+                Supertypes                    : com.android.build.api.dsl.LibraryExtension,com.android.build.api.dsl.CommonExtension,org.gradle.api.plugins.ExtensionAware,kotlin.Any,com.android.build.api.dsl.TestedExtension,org.gradle.features.binding.Definition
             com.google.common.collect.ListMultimap
                 Name                          : com.google.common.collect.ListMultimap
                 GenericArguments
@@ -14434,11 +14335,6 @@ Settings:
                 Supertypes                    : kotlin.Comparable,kotlin.Any
             kotlin.CharSequence
                 Name                          : kotlin.CharSequence
-                MemberFunctions
-                Properties
-                Supertypes                    : kotlin.Any
-            kotlin.Cloneable
-                Name                          : kotlin.Cloneable
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
@@ -14488,10 +14384,6 @@ Settings:
                 Name                          : kotlin.collections.Set
                 GenericArguments
                     ConcreteGeneric SimpleType    : STRING
-            kotlin.enums.EnumEntries
-                Name                          : kotlin.enums.EnumEntries
-                GenericArguments
-                    ConcreteGeneric ReferenceType : org.gradle.api.JavaVersion
             org.gradle.api.ExtensiblePolymorphicDomainObjectContainer
                 Name                          : org.gradle.api.ExtensiblePolymorphicDomainObjectContainer
                 GenericArguments
@@ -14506,73 +14398,17 @@ Settings:
             org.gradle.api.artifacts.Dependency
                 Name                          : org.gradle.api.artifacts.Dependency
                 MemberFunctions
-                    - MemberFunctionName            : because
-                      Receiver ReferenceType        : org.gradle.api.artifacts.Dependency
-                      Parameters
-                          - Name                          : reason
-                            Value SimpleType              : STRING
-                      Function SimpleType           : UNIT
-                    - MemberFunctionName            : copy
-                      Receiver ReferenceType        : org.gradle.api.artifacts.Dependency
-                      Parameters
-                      Function ReferenceType        : org.gradle.api.artifacts.Dependency
                 Properties
-                    - PropertyName                  : group
-                      Property SimpleType           : STRING
-                    - PropertyName                  : name
-                      Property SimpleType           : STRING
-                    - PropertyName                  : reason
-                      Property SimpleType           : STRING
-                    - PropertyName                  : version
-                      Property SimpleType           : STRING
                 Supertypes                    : kotlin.Any
             org.gradle.api.artifacts.ModuleDependency
                 Name                          : org.gradle.api.artifacts.ModuleDependency
                 MemberFunctions
-                    - MemberFunctionName            : because
-                      Receiver ReferenceType        : org.gradle.api.artifacts.ModuleDependency
-                      Parameters
-                          - Name                          : reason
-                            Value SimpleType              : STRING
-                      Function SimpleType           : UNIT
-                    - MemberFunctionName            : copy
-                      Receiver ReferenceType        : org.gradle.api.artifacts.ModuleDependency
-                      Parameters
-                      Function ReferenceType        : org.gradle.api.artifacts.Dependency
                 Properties
-                    - PropertyName                  : group
-                      Property SimpleType           : STRING
-                    - PropertyName                  : name
-                      Property SimpleType           : STRING
-                    - PropertyName                  : reason
-                      Property SimpleType           : STRING
-                    - PropertyName                  : version
-                      Property SimpleType           : STRING
                 Supertypes                    : org.gradle.api.artifacts.Dependency,kotlin.Any,org.gradle.api.attributes.HasConfigurableAttributes,org.gradle.api.attributes.HasAttributes
             org.gradle.api.artifacts.ProjectDependency
                 Name                          : org.gradle.api.artifacts.ProjectDependency
                 MemberFunctions
-                    - MemberFunctionName            : because
-                      Receiver ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                      Parameters
-                          - Name                          : reason
-                            Value SimpleType              : STRING
-                      Function SimpleType           : UNIT
-                    - MemberFunctionName            : copy
-                      Receiver ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                      Parameters
-                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                 Properties
-                    - PropertyName                  : group
-                      Property SimpleType           : STRING
-                    - PropertyName                  : name
-                      Property SimpleType           : STRING
-                    - PropertyName                  : path
-                      Property SimpleType           : STRING
-                    - PropertyName                  : reason
-                      Property SimpleType           : STRING
-                    - PropertyName                  : version
-                      Property SimpleType           : STRING
                 Supertypes                    : org.gradle.api.artifacts.ModuleDependency,org.gradle.api.artifacts.Dependency,kotlin.Any,org.gradle.api.attributes.HasConfigurableAttributes,org.gradle.api.attributes.HasAttributes
             org.gradle.api.artifacts.dsl.Dependencies
                 Name                          : org.gradle.api.artifacts.dsl.Dependencies
@@ -14621,10 +14457,6 @@ Settings:
             org.gradle.api.file.Directory
                 Name                          : org.gradle.api.file.Directory
                 MemberFunctions
-                    - MemberFunctionName            : asFile
-                      Receiver ReferenceType        : org.gradle.api.file.Directory
-                      Parameters
-                      Block ReferenceType           : java.io.File
                     - MemberFunctionName            : dir
                       Receiver ReferenceType        : org.gradle.api.file.Directory
                       Parameters
@@ -14638,8 +14470,6 @@ Settings:
                             Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.file.RegularFile
                 Properties
-                    - PropertyName                  : asFile
-                      Property ReferenceType        : java.io.File
                 Supertypes                    : org.gradle.api.file.FileSystemLocation,kotlin.Any
             org.gradle.api.file.DirectoryProperty
                 Name                          : org.gradle.api.file.DirectoryProperty
@@ -14649,25 +14479,11 @@ Settings:
             org.gradle.api.file.FileSystemLocation
                 Name                          : org.gradle.api.file.FileSystemLocation
                 MemberFunctions
-                    - MemberFunctionName            : asFile
-                      Receiver ReferenceType        : org.gradle.api.file.FileSystemLocation
-                      Parameters
-                      Block ReferenceType           : java.io.File
                 Properties
-                    - PropertyName                  : asFile
-                      Property ReferenceType        : java.io.File
                 Supertypes                    : kotlin.Any
             org.gradle.api.file.ProjectLayout
                 Name                          : org.gradle.api.file.ProjectLayout
                 MemberFunctions
-                    - MemberFunctionName            : projectDirectory
-                      Receiver ReferenceType        : org.gradle.api.file.ProjectLayout
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.file.Directory
-                    - MemberFunctionName            : settingsDirectory
-                      Receiver ReferenceType        : org.gradle.api.file.ProjectLayout
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.file.Directory
                 Properties
                     - PropertyName                  : projectDirectory
                       Property ReferenceType        : org.gradle.api.file.Directory
@@ -14677,10 +14493,6 @@ Settings:
             org.gradle.api.file.RegularFile
                 Name                          : org.gradle.api.file.RegularFile
                 MemberFunctions
-                    - MemberFunctionName            : asFile
-                      Receiver ReferenceType        : org.gradle.api.file.RegularFile
-                      Parameters
-                      Block ReferenceType           : java.io.File
                 Properties
                     - PropertyName                  : asFile
                       Property ReferenceType        : java.io.File
@@ -14810,7 +14622,7 @@ Settings:
             kotlin.collections.List
                 Name                          : kotlin.collections.List
                 GenericArguments
-                    ConcreteGeneric ReferenceType : org.gradle.internal.declarativedsl.plugins.MutablePluginDependencySpec
+                    ConcreteGeneric GenericType   : <T>
             kotlin.collections.Map
                 Name                          : kotlin.collections.Map
                 GenericArguments
@@ -14834,8 +14646,6 @@ Settings:
                 Properties
                     - PropertyName                  : apply
                       Property SimpleType           : BOOLEAN
-                    - PropertyName                  : id
-                      Property SimpleType           : STRING
                     - PropertyName                  : version
                       Property SimpleType           : STRING
                 Supertypes                    : kotlin.Any
@@ -14855,10 +14665,6 @@ Settings:
                             Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.internal.declarativedsl.plugins.MutablePluginDependencySpec
                 Properties
-                    - PropertyName                  : specs
-                      Property DataClassWithType    : kotlin.collections.List
-                      GenericTypes
-                          - ConcreteGeneric ReferenceType : org.gradle.internal.declarativedsl.plugins.MutablePluginDependencySpec
                 Supertypes                    : kotlin.Any
             org.gradle.internal.declarativedsl.plugins.PluginsTopLevelReceiver
                 Name                          : org.gradle.internal.declarativedsl.plugins.PluginsTopLevelReceiver
