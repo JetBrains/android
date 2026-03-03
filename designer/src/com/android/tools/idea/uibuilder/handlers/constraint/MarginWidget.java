@@ -33,15 +33,32 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.intellij.openapi.actionSystem.DataSink;
+import com.intellij.openapi.actionSystem.UiDataProvider;
+import com.android.tools.property.panel.api.HelpSupport;
+import java.util.function.Supplier;
+
 /**
  * Widget to support margin editing on the ui
  */
-public class MarginWidget extends JComboBox<String> {
+public class MarginWidget extends JComboBox<String> implements UiDataProvider {
   private static final String POPUP_MENU = "@ ...";
   private static final String DEFAULT = "0";
   private static final String PICK_A_DIMENSION = "Pick a Dimension";
   private static final String[] MENU_LIST = new String[]{DEFAULT, "8", "16", "24", "32", POPUP_MENU};
   private final String myBaseToolTipText;
+  private Supplier<ConstraintAttribute> myAttributeSupplier;
+
+  public void setAttributeSupplier(Supplier<ConstraintAttribute> supplier) {
+    myAttributeSupplier = supplier;
+  }
+
+  @Override
+  public void uiDataSnapshot(@NotNull DataSink sink) {
+    if (myAttributeSupplier != null) {
+      sink.lazy(HelpSupport.Companion.getPROPERTY_ITEM(), () -> myAttributeSupplier.get());
+    }
+  }
 
   private final JTextField myTextField;
   public enum Show {

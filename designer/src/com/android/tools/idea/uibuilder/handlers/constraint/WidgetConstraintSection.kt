@@ -24,7 +24,6 @@ import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities.registerAttributeHelp
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.components.JBList
@@ -82,12 +81,16 @@ class WidgetConstraintSection(private val widgetModel: WidgetConstraintModel) : 
   init {
     layout = BorderLayout()
 
-    list = JBList<ConstraintCellData>().apply { setEmptyText("") }
+    list =
+      object : JBList<ConstraintCellData>(), com.intellij.openapi.actionSystem.UiDataProvider {
+          override fun uiDataSnapshot(sink: com.intellij.openapi.actionSystem.DataSink) {
+            sink.lazy(com.android.tools.property.panel.api.HelpSupport.PROPERTY_ITEM) { selectedValue?.toConstraintAttribute() }
+          }
+        }
+        .apply { setEmptyText("") }
     list.border = JBUI.Borders.empty(0, 4)
     list.selectionMode = ListSelectionModel.SINGLE_SELECTION
     list.cellRenderer = ConstraintItemRenderer()
-
-    registerAttributeHelp(list) { list.selectedValue?.toConstraintAttribute() }
 
     warningPanel.border = JBUI.Borders.empty(0, 4)
 
