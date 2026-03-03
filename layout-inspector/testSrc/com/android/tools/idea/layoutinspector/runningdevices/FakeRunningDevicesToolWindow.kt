@@ -24,23 +24,17 @@ import com.android.tools.idea.streaming.core.DisplayOwner
 import com.android.tools.idea.streaming.core.DisplayView
 import com.android.tools.idea.streaming.core.STREAMING_CONTENT_PANEL_KEY
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DataSink
-import com.intellij.openapi.actionSystem.EmptyActionGroup
 import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.ActionCallback
-import com.intellij.openapi.util.BusyObject
 import com.intellij.openapi.util.Comparing
-import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.testFramework.PlatformTestUtil
-import com.intellij.ui.content.AlertIcon
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentFactory
 import com.intellij.ui.content.ContentManager
@@ -50,10 +44,7 @@ import com.intellij.ui.content.impl.ContentImpl
 import com.intellij.util.EventDispatcher
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
-import icons.StudioIcons
 import java.awt.Container
-import java.beans.PropertyChangeListener
-import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -102,111 +93,12 @@ private fun findContent(toolWindow: ToolWindow, tabInfo: TabInfo): Content? {
   }
 }
 
-class FakeContent(private val disposable: Disposable, private val contentManager: ContentManager, private val fakeComponent: JComponent) :
-  Content {
+class FakeContent(disposable: Disposable, contentManager: ContentManager, fakeComponent: JComponent) :
+  ContentImpl(fakeComponent, "Fake Content", true) {
   init {
     Disposer.register(disposable, this)
+    setManager(contentManager)
   }
-
-  override fun <T : Any?> getUserData(key: Key<T>): T? = null
-
-  override fun <T : Any?> putUserData(key: Key<T>, value: T?) {}
-
-  override fun dispose() {}
-
-  override fun getComponent() = fakeComponent
-
-  override fun getPreferredFocusableComponent() = fakeComponent
-
-  override fun setComponent(component: JComponent?) {}
-
-  override fun setPreferredFocusableComponent(component: JComponent?) {}
-
-  override fun setPreferredFocusedComponent(computable: Computable<out JComponent>?) {}
-
-  override fun setIcon(icon: Icon?) {}
-
-  override fun getIcon() = StudioIcons.LayoutInspector.Toolbar.SNAPSHOT
-
-  override fun setDisplayName(displayName: String?) {}
-
-  override fun getDisplayName() = "Fake Content"
-
-  override fun setTabName(tabName: String?) {}
-
-  override fun getTabName() = "Fake Tab"
-
-  override fun getToolwindowTitle() = "Fake Tool Window"
-
-  override fun setToolwindowTitle(toolwindowTitle: String?) {}
-
-  override fun getDisposer() = disposable
-
-  override fun setDisposer(disposer: Disposable) {}
-
-  override fun setShouldDisposeContent(value: Boolean) {}
-
-  override fun getDescription() = "Fake description"
-
-  override fun setDescription(description: String?) {}
-
-  override fun addPropertyChangeListener(l: PropertyChangeListener?) {}
-
-  override fun removePropertyChangeListener(l: PropertyChangeListener?) {}
-
-  override fun getManager() = contentManager
-
-  override fun isSelected() = contentManager.selectedContent == this
-
-  override fun release() {}
-
-  override fun isValid() = true
-
-  override fun setPinned(locked: Boolean) {}
-
-  override fun isPinned() = false
-
-  override fun setPinnable(pinnable: Boolean) {}
-
-  override fun isPinnable() = true
-
-  override fun isCloseable() = true
-
-  override fun setCloseable(closeable: Boolean) {}
-
-  override fun setActions(actions: ActionGroup?, place: String?, contextComponent: JComponent?) {}
-
-  override fun getActions() = EmptyActionGroup()
-
-  override fun setSearchComponent(comp: JComponent?) {}
-
-  override fun getSearchComponent() = null
-
-  override fun getPlace() = "fake place"
-
-  override fun getActionsContextComponent() = JPanel()
-
-  override fun setAlertIcon(icon: AlertIcon?) {}
-
-  override fun getAlertIcon() = null
-
-  override fun fireAlert() {}
-
-  override fun getBusyObject() = null
-
-  override fun setBusyObject(`object`: BusyObject?) {}
-
-  override fun getSeparator() = "fake separator"
-
-  override fun setSeparator(separator: String?) {}
-
-  override fun setPopupIcon(icon: Icon?) {}
-
-  override fun getPopupIcon() = StudioIcons.LayoutInspector.Toolbar.CLEAR_OVERLAY
-
-  override fun setExecutionId(executionId: Long) {}
-
-  override fun getExecutionId() = 1L
 }
 
 class FakeRunningDevicesComponent(val tabInfo: TabInfo) : JPanel(), UiDataProvider, DisplayOwner {
