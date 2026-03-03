@@ -3917,6 +3917,30 @@ object StudioIconsCompose {
           "/studio/icons/shell/status-bar/essentials-mode.svg",
           StudioIconsCompose.javaClass,
         ) // 16x16
+      val NepDefault: IntelliJIconKey =
+        IntelliJIconKey(
+          "/studio/icons/shell/status-bar/nep-default.svg",
+          "/studio/icons/shell/status-bar/nep-default.svg",
+          StudioIconsCompose.javaClass
+        ) // 16x16
+      val NepPause: IntelliJIconKey =
+        IntelliJIconKey(
+          "/studio/icons/shell/status-bar/nep-pause.svg",
+          "/studio/icons/shell/status-bar/nep-pause.svg",
+          StudioIconsCompose.javaClass
+        ) // 16x16
+      val NepRequest: IntelliJIconKey =
+        IntelliJIconKey(
+          "/studio/icons/shell/status-bar/nep-request.svg",
+          "/studio/icons/shell/status-bar/nep-request.svg",
+          StudioIconsCompose.javaClass
+        ) // 16x16
+      val NepUnavailable: IntelliJIconKey =
+        IntelliJIconKey(
+          "/studio/icons/shell/status-bar/nep-unavailable.svg",
+          "/studio/icons/shell/status-bar/nep-unavailable.svg",
+          StudioIconsCompose.javaClass
+        ) // 16x16
     }
 
     object Telemetry {

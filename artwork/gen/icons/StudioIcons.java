@@ -885,6 +885,10 @@ public final class StudioIcons {
       /** 16x16 */ public static final @NotNull Icon ADB_MANAGED = load("studio/icons/shell/status-bar/adb-managed.svg", -791885379, 2);
       /** 16x16 */ public static final @NotNull Icon ADB_UNMANAGED = load("studio/icons/shell/status-bar/adb-unmanaged.svg", -514125107, 2);
       /** 16x16 */ public static final @NotNull Icon ESSENTIALS_MODE = load("studio/icons/shell/status-bar/essentials-mode.svg", -841940907, 2);
+      /** 16x16 */ public static final @NotNull Icon NEP_DEFAULT = load("studio/icons/shell/status-bar/nep-default.svg", 1542514924, 2);
+      /** 16x16 */ public static final @NotNull Icon NEP_PAUSE = load("studio/icons/shell/status-bar/nep-pause.svg", 1826186985, 2);
+      /** 16x16 */ public static final @NotNull Icon NEP_REQUEST = load("studio/icons/shell/status-bar/nep-request.svg", 659748623, 2);
+      /** 16x16 */ public static final @NotNull Icon NEP_UNAVAILABLE = load("studio/icons/shell/status-bar/nep-unavailable.svg", 206496986, 2);
     }
 
     public static final class Telemetry {
