@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.jdk
 
+import com.android.tools.analytics.UsageTracker
+import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
@@ -55,13 +58,23 @@ object GradleJvmIncompatibleDialog {
           null,
         )
 
-      val quickFixAction =
+      val (eventAction, quickFixAction) =
         when (result) {
-          0 -> applyCompatibleJvmAction
-          1 -> openSettingsAction
-          else -> null
+          0 -> AndroidStudioEvent.EventKind.GRADLE_JVM_INCOMPATIBLE_DIALOG_APPLY_COMPATIBLE_JVM to applyCompatibleJvmAction
+          1 -> AndroidStudioEvent.EventKind.GRADLE_JVM_INCOMPATIBLE_DIALOG_OPEN_SETTINGS to openSettingsAction
+          else -> AndroidStudioEvent.EventKind.GRADLE_JVM_INCOMPATIBLE_DIALOG_CANCEL to null
         }
+      logDialogAction(project, eventAction)
       quickFixAction?.runQuickFix(project, DataContext.EMPTY_CONTEXT)
     }
+  }
+
+  private fun logDialogAction(project: Project, eventAction: AndroidStudioEvent.EventKind) {
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder()
+        .setCategory(AndroidStudioEvent.EventCategory.GRADLE_JVM_INCOMPATIBLE_DIALOG)
+        .setKind(eventAction)
+        .withProjectId(project)
+    )
   }
 }
