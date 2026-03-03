@@ -38,7 +38,6 @@ import com.android.emulator.control.WheelEvent
 import com.android.emulator.control.XrOptions
 import com.android.ide.common.util.Cancelable
 import com.android.sdklib.deviceprovisioner.DeviceType
-import com.android.sdklib.deviceprovisioner.ProcessHandleProvider
 import com.android.tools.adtui.ImageUtils.ALPHA_MASK
 import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.adtui.common.AdtUiCursorsProvider
@@ -47,7 +46,6 @@ import com.android.tools.adtui.device.SkinLayout
 import com.android.tools.adtui.util.rotatedByQuadrants
 import com.android.tools.adtui.util.scaled
 import com.android.tools.analytics.toProto
-import com.android.tools.idea.avdmanager.EmulatorLogListener
 import com.android.tools.idea.avdmanager.RunningAvdTracker
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.flags.StudioFlags
@@ -123,7 +121,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.wm.IdeGlassPaneUtil
 import com.intellij.openapi.wm.impl.IdeGlassPaneEx
-import com.intellij.ui.EditorNotificationPanel
 import com.intellij.util.Alarm
 import com.intellij.util.SofterReference
 import com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService
@@ -210,8 +207,7 @@ internal class EmulatorView(
   AbstractDisplayView(project, displayId, "StreamingContextMenuVirtualDevice"),
   EmulatorDisplayView,
   ConnectionStateListener,
-  EmulatorSettingsListener,
-  EmulatorNotificationDispatcher.Listener {
+  EmulatorSettingsListener {
 
   override var displayOrientationQuadrants: Int
     get() = screenshotShape.orientation
@@ -465,10 +461,6 @@ internal class EmulatorView(
           }
         }
       )
-
-      ProcessHandleProvider.getProcessHandle(emulatorId.pid)?.let { processHandle ->
-        EmulatorNotificationDispatcher.getInstance().addListener(processHandle, this)
-      }
     }
 
     messageBusConnection.subscribe(
@@ -850,17 +842,6 @@ internal class EmulatorView(
     } else {
       stopClipboardSynchronization()
     }
-  }
-
-  override fun notificationMessageLogged(severity: EmulatorLogListener.Severity, message: String) {
-    val status =
-      when (severity) {
-        EmulatorLogListener.Severity.WARNING -> EditorNotificationPanel.Status.Warning
-        EmulatorLogListener.Severity.ERROR,
-        EmulatorLogListener.Severity.FATAL -> EditorNotificationPanel.Status.Error
-        else -> null
-      }
-    UIUtil.invokeLaterIfNeeded { findNotificationHolderPanel()?.showFadeOutNotification(message, status) }
   }
 
   private fun startClipboardSynchronization() {

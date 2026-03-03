@@ -21,7 +21,9 @@ import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.ThemingStyle
 import com.android.mockito.kotlin.whenever
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.deviceprovisioner.ProcessHandleProvider
 import com.android.testutils.GoldenImageRule
+import com.android.testutils.ProcessHandleProviderRule
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.actions.createTestEvent
@@ -34,6 +36,7 @@ import com.android.tools.adtui.swing.HeadlessRootPaneContainer
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.getDescendant
+import com.android.tools.idea.avdmanager.EmulatorLogListener
 import com.android.tools.idea.editors.liveedit.ui.LiveEditNotificationGroup
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
@@ -84,6 +87,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.LayeredIcon
+import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.Component
 import java.awt.Dimension
@@ -147,6 +151,7 @@ class EmulatorToolWindowPanelTest {
       projectRule,
       DataManagerRule(projectRule),
       emulatorRule,
+      ProcessHandleProviderRule(),
       ClipboardSynchronizationDisablementRule(),
       PortableUiFontRule(),
       goldenImageRule,
@@ -1261,6 +1266,46 @@ class EmulatorToolWindowPanelTest {
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamScreenshot")
     panel.waitForFrame(frameNumber, 2.seconds)
     return call
+  }
+
+  @Test
+  fun testLogNotifications() {
+    panel = createWindowPanelForPhone()
+
+    assertThat(panel.primaryDisplayView).isNull()
+
+    panel.createContent(true)
+    val emulatorView = panel.primaryDisplayView ?: fail()
+
+    var frameNumber = emulatorView.frameNumber
+    assertThat(frameNumber).isEqualTo(0u)
+    panel.size = Dimension(400, 600)
+    fakeUi.layoutAndDispatchEvents()
+    getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
+
+    val messageBus = ApplicationManager.getApplication().messageBus
+    val emulator = emulatorView.emulator
+    val avdFolder = emulator.emulatorConfig.avdFolder
+
+    val processHandle = ProcessHandleProvider.getProcessHandle(emulator.emulatorId.pid)!!
+    messageBus
+      .syncPublisher(EmulatorLogListener.TOPIC)
+      .messageLogged(processHandle, avdFolder, EmulatorLogListener.Severity.WARNING, true, "Attention!")
+    waitForCondition(2.seconds) { fakeUi.findComponent<EditorNotificationPanel>() != null }
+    var notificationPanel = fakeUi.findComponent<EditorNotificationPanel>()!!
+    assertThat(notificationPanel.text).isEqualTo("Attention!")
+    assertThat(notificationPanel.background).isEqualTo(JBUI.CurrentTheme.Banner.WARNING_BACKGROUND)
+
+    messageBus
+      .syncPublisher(EmulatorLogListener.TOPIC)
+      .messageLogged(processHandle, avdFolder, EmulatorLogListener.Severity.ERROR, true, "Crashed!")
+    waitForCondition(2.seconds) {
+      val p = fakeUi.findComponent<EditorNotificationPanel>()
+      p != null && p.text == "Crashed!"
+    }
+    notificationPanel = fakeUi.findComponent<EditorNotificationPanel>()!!
+    assertThat(notificationPanel.text).isEqualTo("Crashed!")
+    assertThat(notificationPanel.background).isEqualTo(JBUI.CurrentTheme.Banner.ERROR_BACKGROUND)
   }
 
   private fun createWindowPanelForPhone(): EmulatorToolWindowPanel {
