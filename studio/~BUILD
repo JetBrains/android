@@ -992,7 +992,8 @@ android_studio(
     name = "android-studio-agent",
     codesign_entitlements = "//tools/adt/idea/studio:codesign/entitlements.xml",
     configurations = [
-        "//tools/adt/idea/studio:nightly",
+        ":nightly",
+        ":canary",
     ],
     generate_package_metadata = True,
     jre = "//prebuilts/studio/jdk:jdk-bundle",
