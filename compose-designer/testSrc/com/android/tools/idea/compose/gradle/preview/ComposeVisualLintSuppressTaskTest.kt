@@ -34,6 +34,8 @@ import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue.Companion.createVisualLintRenderIssue
+import com.android.tools.idea.uibuilder.visual.visuallint.toVisualLintConfiguration
+import com.android.tools.idea.uibuilder.visual.visuallint.toVisualLintRenderResult
 import com.android.tools.preview.applyTo
 import com.android.tools.visuallint.VisualLintErrorType
 import com.android.tools.visuallint.analyzers.ButtonSizeAnalyzer
@@ -100,12 +102,12 @@ class ComposeVisualLintSuppressTaskTest {
 
     val issueProvider = ComposeVisualLintIssueProvider(projectRule.fixture.testRootDisposable)
     val buttonIssues =
-      ButtonSizeAnalyzer.findIssues(renderResult, nlModel.configuration).map {
+      ButtonSizeAnalyzer.findIssues(renderResult.toVisualLintRenderResult(), nlModel.configuration.toVisualLintConfiguration()).map {
         createVisualLintRenderIssue(it, nlModel, ButtonSizeAnalyzer.type)
       }
     assertEquals(1, buttonIssues.size)
     val textFieldIssues =
-      TextFieldSizeAnalyzer.findIssues(renderResult, nlModel.configuration).map {
+      TextFieldSizeAnalyzer.findIssues(renderResult.toVisualLintRenderResult(), nlModel.configuration.toVisualLintConfiguration()).map {
         createVisualLintRenderIssue(it, nlModel, TextFieldSizeAnalyzer.type)
       }
     assertEquals(1, textFieldIssues.size)
@@ -171,12 +173,12 @@ class ComposeVisualLintSuppressTaskTest {
 
     val issueProvider = ComposeVisualLintIssueProvider(projectRule.fixture.testRootDisposable)
     val buttonIssues =
-      ButtonSizeAnalyzer.findIssues(renderResult, nlModel.configuration).map {
+      ButtonSizeAnalyzer.findIssues(renderResult.toVisualLintRenderResult(), nlModel.configuration.toVisualLintConfiguration()).map {
         createVisualLintRenderIssue(it, nlModel, ButtonSizeAnalyzer.type)
       }
     assertEquals(1, buttonIssues.size)
     val textFieldIssues =
-      TextFieldSizeAnalyzer.findIssues(renderResult, nlModel.configuration).map {
+      TextFieldSizeAnalyzer.findIssues(renderResult.toVisualLintRenderResult(), nlModel.configuration.toVisualLintConfiguration()).map {
         createVisualLintRenderIssue(it, nlModel, TextFieldSizeAnalyzer.type)
       }
     assertEquals(1, textFieldIssues.size)

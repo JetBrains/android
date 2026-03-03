@@ -16,10 +16,10 @@
 package com.android.tools.visuallint.analyzers
 
 import com.android.ide.common.rendering.api.ViewInfo
-import com.android.tools.configurations.Configuration
-import com.android.tools.rendering.RenderResult
 import com.android.tools.visuallint.VisualLintAnalyzer
+import com.android.tools.visuallint.VisualLintConfiguration
 import com.android.tools.visuallint.VisualLintErrorType
+import com.android.tools.visuallint.VisualLintRenderResult
 import com.android.utils.HtmlBuilder
 
 private const val BOTTOM_NAVIGATION_CLASS_NAME = "com.google.android.material.bottomnavigation.BottomNavigationView"
@@ -31,7 +31,7 @@ object BottomNavAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.BOTTOM_NAV
 
-  override fun findIssues(renderResult: RenderResult, configuration: Configuration): List<VisualLintIssueContent> {
+  override fun findIssues(renderResult: VisualLintRenderResult, configuration: VisualLintConfiguration): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val viewsToAnalyze = ArrayDeque(renderResult.rootViews)
     while (viewsToAnalyze.isNotEmpty()) {

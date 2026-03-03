@@ -17,10 +17,10 @@ package com.android.tools.visuallint.analyzers
 
 import android.widget.EditText
 import com.android.ide.common.rendering.api.ViewInfo
-import com.android.tools.configurations.Configuration
-import com.android.tools.rendering.RenderResult
 import com.android.tools.visuallint.VisualLintAnalyzer
+import com.android.tools.visuallint.VisualLintConfiguration
 import com.android.tools.visuallint.VisualLintErrorType
+import com.android.tools.visuallint.VisualLintRenderResult
 import com.android.utils.HtmlBuilder
 
 private const val TEXT_FIELD_MAX_DP_WIDTH = 488
@@ -30,7 +30,7 @@ object TextFieldSizeAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.TEXT_FIELD_SIZE
 
-  override fun findIssues(renderResult: RenderResult, configuration: Configuration): List<VisualLintIssueContent> {
+  override fun findIssues(renderResult: VisualLintRenderResult, configuration: VisualLintConfiguration): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val viewsToAnalyze = ArrayDeque(renderResult.rootViews)
     while (viewsToAnalyze.isNotEmpty()) {
@@ -43,7 +43,7 @@ object TextFieldSizeAnalyzer : VisualLintAnalyzer() {
     return issues
   }
 
-  private fun isWideTextField(view: ViewInfo, configuration: Configuration): Boolean {
+  private fun isWideTextField(view: ViewInfo, configuration: VisualLintConfiguration): Boolean {
     if (!checkIsClass(view, EditText::class.java)) {
       return false
     }

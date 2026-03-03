@@ -147,7 +147,12 @@ class PerfgateVisualLintAnalyzerTest : ComposeRenderTestBase(VISUAL_LINT_APPLICA
         ),
       samplesCount = NUMBER_OF_SAMPLES,
     ) {
-      modelResultMap.forEach { (nlModel, renderResult) -> analyzer.findIssues(renderResult, nlModel.configuration) }
+      modelResultMap.forEach { (nlModel, renderResult) ->
+        analyzer.findIssues(
+          renderResult = renderResult.toVisualLintRenderResult(),
+          configuration = nlModel.configuration.toVisualLintConfiguration(),
+        )
+      }
     }
   }
 }

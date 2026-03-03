@@ -33,6 +33,7 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue.
 import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
 import com.android.tools.rendering.RenderResult
 import com.android.tools.rendering.RenderService
+import com.android.tools.visuallint.ViewInfoProvider
 import com.android.tools.visuallint.VisualLintAnalyzer
 import com.android.tools.visuallint.VisualLintBaseConfigIssues
 import com.android.tools.visuallint.analyzers.AtfAnalyzer
@@ -133,6 +134,7 @@ private constructor(
     // the IssueModel never to be disposed,
     // since it will be registered as the child of a broken VisualLintService object.
     issueModel = VisualLintIssueModel(this, project)
+    ViewInfoProvider.setCustomProvider(CustomVisualLintViewInfoProvider)
   }
 
   /**
@@ -273,7 +275,7 @@ private constructor(
         if (runningInBackground && !inspection.runInBackground) {
           return@forEach
         }
-        val issues = analyzer.analyze(result).map { createVisualLintRenderIssue(it, model, analyzer.type) }
+        val issues = analyzer.analyze(result.toVisualLintRenderResult()).map { createVisualLintRenderIssue(it, model, analyzer.type) }
         targetIssueProvider.addAllIssues(issues)
       }
   }

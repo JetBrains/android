@@ -17,10 +17,10 @@ package com.android.tools.visuallint.analyzers
 
 import android.view.ViewGroup
 import com.android.ide.common.rendering.api.ViewInfo
-import com.android.tools.configurations.Configuration
-import com.android.tools.rendering.RenderResult
 import com.android.tools.visuallint.VisualLintAnalyzer
+import com.android.tools.visuallint.VisualLintConfiguration
 import com.android.tools.visuallint.VisualLintErrorType
+import com.android.tools.visuallint.VisualLintRenderResult
 import com.android.utils.HtmlBuilder
 
 private const val MIN_ROUND_MARGIN_RATIO = 0.052
@@ -34,7 +34,7 @@ object WearMarginAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.WEAR_MARGIN
 
-  override fun findIssues(renderResult: RenderResult, configuration: Configuration): List<VisualLintIssueContent> {
+  override fun findIssues(renderResult: VisualLintRenderResult, configuration: VisualLintConfiguration): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val viewsToAnalyze = ArrayDeque<ViewWithParentBounds>()
     val orientation = configuration.deviceState?.orientation ?: return issues

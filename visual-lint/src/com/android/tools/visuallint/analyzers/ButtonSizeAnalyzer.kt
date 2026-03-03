@@ -17,10 +17,10 @@ package com.android.tools.visuallint.analyzers
 
 import android.widget.Button
 import com.android.ide.common.rendering.api.ViewInfo
-import com.android.tools.configurations.Configuration
-import com.android.tools.rendering.RenderResult
 import com.android.tools.visuallint.VisualLintAnalyzer
+import com.android.tools.visuallint.VisualLintConfiguration
 import com.android.tools.visuallint.VisualLintErrorType
+import com.android.tools.visuallint.VisualLintRenderResult
 import com.android.utils.HtmlBuilder
 
 private const val MAX_BUTTON_WIDTH_DP = 320
@@ -30,7 +30,7 @@ object ButtonSizeAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.BUTTON_SIZE
 
-  override fun findIssues(renderResult: RenderResult, configuration: Configuration): List<VisualLintIssueContent> {
+  override fun findIssues(renderResult: VisualLintRenderResult, configuration: VisualLintConfiguration): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val viewsToAnalyze = ArrayDeque(renderResult.rootViews)
     while (viewsToAnalyze.isNotEmpty()) {
@@ -43,7 +43,7 @@ object ButtonSizeAnalyzer : VisualLintAnalyzer() {
     return issues
   }
 
-  private fun isWideButton(view: ViewInfo, configuration: Configuration): Boolean {
+  private fun isWideButton(view: ViewInfo, configuration: VisualLintConfiguration): Boolean {
     if (!checkIsClass(view, Button::class.java)) {
       return false
     }

@@ -17,6 +17,8 @@ package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.uibuilder.visual.visuallint.toVisualLintConfiguration
+import com.android.tools.idea.uibuilder.visual.visuallint.toVisualLintRenderResult
 import com.android.tools.rendering.RenderTask
 import com.android.tools.visuallint.analyzers.BoundsAnalyzer
 import com.intellij.openapi.application.ApplicationManager
@@ -77,7 +79,11 @@ class BoundsAnalyzerTest {
       task.setDecorations(false)
       try {
         val result = task.render().get()
-        val issues = BoundsAnalyzer.findIssues(result, configuration)
+        val issues =
+          BoundsAnalyzer.findIssues(
+            renderResult = result.toVisualLintRenderResult(),
+            configuration = configuration.toVisualLintConfiguration(),
+          )
         Assert.assertEquals(2, issues.size)
         Assert.assertEquals("TextView is partially hidden in layout", issues[0].message)
         Assert.assertEquals("image_view <ImageView> is partially hidden in layout", issues[1].message)

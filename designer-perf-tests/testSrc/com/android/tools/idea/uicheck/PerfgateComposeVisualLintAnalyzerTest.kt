@@ -35,6 +35,8 @@ import com.android.tools.idea.uibuilder.visual.visuallint.LongTextAnalyzerInspec
 import com.android.tools.idea.uibuilder.visual.visuallint.OverlapAnalyzerInspection
 import com.android.tools.idea.uibuilder.visual.visuallint.TextFieldSizeAnalyzerInspection
 import com.android.tools.idea.uibuilder.visual.visuallint.WearMarginAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.toVisualLintConfiguration
+import com.android.tools.idea.uibuilder.visual.visuallint.toVisualLintRenderResult
 import com.android.tools.perflogger.Metric
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.rendering.RenderResult
@@ -127,7 +129,12 @@ class PerfgateComposeVisualLintAnalyzerTest : ComposeRenderTestBase() {
         ),
       samplesCount = NUMBER_OF_SAMPLES,
     ) {
-      resultToModelMap.forEach { (renderResult, nlModel) -> analyzer.findIssues(renderResult, nlModel.configuration) }
+      resultToModelMap.forEach { (renderResult, nlModel) ->
+        analyzer.findIssues(
+          renderResult = renderResult.toVisualLintRenderResult(),
+          configuration = nlModel.configuration.toVisualLintConfiguration(),
+        )
+      }
     }
   }
 }

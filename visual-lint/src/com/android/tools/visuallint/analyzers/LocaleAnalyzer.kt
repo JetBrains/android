@@ -18,12 +18,11 @@ package com.android.tools.visuallint.analyzers
 import android.graphics.Rect
 import android.widget.TextView
 import com.android.ide.common.rendering.api.ViewInfo
-import com.android.tools.configurations.Configuration
-import com.android.tools.rendering.RenderResult
-import com.android.tools.rendering.parsers.TagSnapshot
 import com.android.tools.visuallint.VisualLintAnalyzer
 import com.android.tools.visuallint.VisualLintBaseConfigIssues
+import com.android.tools.visuallint.VisualLintConfiguration
 import com.android.tools.visuallint.VisualLintErrorType
+import com.android.tools.visuallint.VisualLintRenderResult
 import com.android.utils.HtmlBuilder
 
 /** [VisualLintAnalyzer] for issues with texts in different locales. */
@@ -31,7 +30,7 @@ class LocaleAnalyzer(private val baseConfigIssues: VisualLintBaseConfigIssues) :
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.LOCALE_TEXT
 
-  override fun findIssues(renderResult: RenderResult, configuration: Configuration): List<VisualLintIssueContent> {
+  override fun findIssues(renderResult: VisualLintRenderResult, configuration: VisualLintConfiguration): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
 
     if (isBaseConfig(configuration)) {
@@ -63,11 +62,18 @@ class LocaleAnalyzer(private val baseConfigIssues: VisualLintBaseConfigIssues) :
 
   /** Returns key based on view info. Key should be consistent between configurations. */
   private fun getKey(root: ViewInfo): Int? {
-    return (root.cookie as? TagSnapshot)?.tag?.hashCode()
+    // TODO: Investigate a better way to provide the tag field directly from layoutlib.
+    val cookie = root.cookie ?: return null
+    return try {
+      val tagField = cookie.javaClass.getField("tag")
+      tagField.get(cookie)?.hashCode()
+    } catch (_: Exception) {
+      null
+    }
   }
 
   /** Returns true if the configuration is the base configuration. */
-  private fun isBaseConfig(config: Configuration?): Boolean {
+  private fun isBaseConfig(config: VisualLintConfiguration?): Boolean {
     // TODO: Follow up and investigate if there's better way to detect base config.
     return config?.locale?.toString() == "__"
   }
@@ -76,7 +82,7 @@ class LocaleAnalyzer(private val baseConfigIssues: VisualLintBaseConfigIssues) :
   private fun findLocaleIssues(
     view: ViewInfo,
     baseConfigIssues: VisualLintBaseConfigIssues,
-    configuration: Configuration,
+    configuration: VisualLintConfiguration,
   ): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val key = getKey(view) ?: return issues

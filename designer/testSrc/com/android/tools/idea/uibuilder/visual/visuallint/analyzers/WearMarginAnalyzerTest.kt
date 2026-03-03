@@ -17,6 +17,8 @@ package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.uibuilder.visual.visuallint.toVisualLintConfiguration
+import com.android.tools.idea.uibuilder.visual.visuallint.toVisualLintRenderResult
 import com.android.tools.rendering.RenderTask
 import com.android.tools.visuallint.analyzers.WearMarginAnalyzer
 import com.intellij.openapi.application.ApplicationManager
@@ -101,7 +103,11 @@ class WearMarginAnalyzerTest {
       task.setDecorations(false)
       try {
         val result = task.render().get()
-        val issues = WearMarginAnalyzer.findIssues(result, configuration)
+        val issues =
+          WearMarginAnalyzer.findIssues(
+            renderResult = result.toVisualLintRenderResult(),
+            configuration = configuration.toVisualLintConfiguration(),
+          )
         Assert.assertEquals(3, issues.size)
         Assert.assertEquals("The view image_view <ImageView> is too close to the side of the device", issues[0].message)
         Assert.assertEquals("The view textview3 <TextView> is too close to the side of the device", issues[1].message)
@@ -122,7 +128,11 @@ class WearMarginAnalyzerTest {
       task.setDecorations(false)
       try {
         val result = task.render().get()
-        val issues = WearMarginAnalyzer.findIssues(result, configuration)
+        val issues =
+          WearMarginAnalyzer.findIssues(
+            renderResult = result.toVisualLintRenderResult(),
+            configuration = configuration.toVisualLintConfiguration(),
+          )
         Assert.assertEquals(4, issues.size)
         Assert.assertEquals("The view image_view <ImageView> is too close to the side of the device", issues[0].message)
         Assert.assertEquals("The view textview4 <TextView> is too close to the side of the device", issues[1].message)
@@ -144,7 +154,11 @@ class WearMarginAnalyzerTest {
       task.setDecorations(false)
       try {
         val result = task.render().get()
-        val issues = WearMarginAnalyzer.findIssues(result, configuration)
+        val issues =
+          WearMarginAnalyzer.findIssues(
+            renderResult = result.toVisualLintRenderResult(),
+            configuration = configuration.toVisualLintConfiguration(),
+          )
         Assert.assertEquals(3, issues.size)
         Assert.assertEquals("The view image_view <ImageView> is too close to the side of the device", issues[0].message)
         Assert.assertEquals("The view textview3 <TextView> is too close to the side of the device", issues[1].message)
@@ -165,7 +179,11 @@ class WearMarginAnalyzerTest {
       task.setDecorations(false)
       try {
         val result = task.render().get()
-        val issues = WearMarginAnalyzer.findIssues(result, configuration)
+        val issues =
+          WearMarginAnalyzer.findIssues(
+            renderResult = result.toVisualLintRenderResult(),
+            configuration = configuration.toVisualLintConfiguration(),
+          )
         Assert.assertEquals(2, issues.size)
         Assert.assertEquals("The view textview2 <TextView> is too close to the side of the device", issues[0].message)
         Assert.assertEquals("The view textview1 <TextView> is too close to the side of the device", issues[1].message)
