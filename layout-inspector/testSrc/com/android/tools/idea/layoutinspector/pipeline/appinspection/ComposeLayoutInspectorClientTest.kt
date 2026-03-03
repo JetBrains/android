@@ -80,26 +80,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
 class ComposeLayoutInspectorClientTest {
-  private val processDescriptor =
-    object : ProcessDescriptor {
-      override val device =
-        object : DeviceDescriptor {
-          override val manufacturer = "mfg"
-          override val model = "model"
-          override val serial = "emulator-1234"
-          override val isEmulator = true
-          override val apiLevel = AndroidApiLevel(30)
-          override val version = "10.0.0"
-          override val codename: String? = null
-        }
-      override val abiCpuArch = "x86_64"
-      override val name = "my name"
-      override val packageName = "my package name"
-      override val isRunning = true
-      override val pid = 1234
-      override val streamId = 4321L
-    }
-
   private val projectRule = AndroidProjectRule.inMemory()
   private val adbRule = FakeAdbServerRule()
   private val devFlagRule = FlagRule(StudioFlags.APP_INSPECTION_USE_DEV_JAR)
@@ -111,21 +91,12 @@ class ComposeLayoutInspectorClientTest {
 
   @Before
   fun before() {
-    adbRule.connectDevice(
-      deviceId = processDescriptor.device.serial,
-      manufacturer = processDescriptor.device.manufacturer,
-      deviceModel = processDescriptor.device.model,
-      release = processDescriptor.device.version,
-      sdk = processDescriptor.device.apiLevel,
-      hostConnectionType = DeviceState.HostConnectionType.LOCAL,
-      cpuAbi = "arm64-v8a",
-      properties = emptyMap(),
-    )
     ProjectSystemService.getInstance(projectRule.project).replaceProjectSystemForTests(GradleProjectSystem(projectRule.project))
   }
 
   @Test
   fun testClientCreation() = runBlocking {
+    val processDescriptor = createProcess()
     val artifactService = mock<InspectorArtifactService>()
     val messenger = createMessenger()
     whenever(artifactService.getOrResolveInspectorArtifact(any(), any())).thenReturn(Paths.get("/foo/bar"))
@@ -136,11 +107,12 @@ class ComposeLayoutInspectorClientTest {
     whenever(target.getLibraryVersions(any())).thenReturn(listOf(LibraryCompatibilityInfo(mock(), Status.COMPATIBLE, "1.3.0", "")))
     whenever(apiServices.attachToProcess(processDescriptor, projectRule.project.name)).thenReturn(target)
 
-    checkLaunch(apiServices, "", AttachErrorCode.UNKNOWN_ERROR_CODE, expectClient = true)
+    checkLaunch(apiServices, processDescriptor, "", AttachErrorCode.UNKNOWN_ERROR_CODE, expectClient = true)
   }
 
   @Test
   fun testClientCreationReportsUnknownError() = runBlocking {
+    val processDescriptor = createProcess()
     val artifactService = mock<InspectorArtifactService>()
     val messenger = createMessenger()
     whenever(artifactService.getOrResolveInspectorArtifact(any(), any())).thenReturn(Paths.get("/foo/bar"))
@@ -153,6 +125,7 @@ class ComposeLayoutInspectorClientTest {
 
     checkLaunch(
       apiServices,
+      processDescriptor,
       "An unknown error happened while launching the compose inspector",
       AttachErrorCode.UNKNOWN_APP_INSPECTION_ERROR,
       expectClient = false,
@@ -161,6 +134,7 @@ class ComposeLayoutInspectorClientTest {
 
   @Test
   fun inspectorArtifactNotFound_showUseSnapshotBanner() = runBlocking {
+    val processDescriptor = createProcess()
     val artifactService =
       object : InspectorArtifactService {
         override suspend fun getOrResolveInspectorArtifact(artifactCoordinate: RunningArtifactCoordinate, project: Project): Path {
@@ -172,12 +146,13 @@ class ComposeLayoutInspectorClientTest {
       }
     ApplicationManager.getApplication().registerServiceInstance(InspectorArtifactService::class.java, artifactService)
     val target = mock<AppInspectionTarget>()
-    whenever(target.getLibraryVersions(any())).thenReturn(listOf(LibraryCompatibilityInfo(mock(), Status.COMPATIBLE, "1.3.0-SNAPSHOT", "")))
+    whenever(target.getLibraryVersions(any())).thenReturn(listOf(LibraryCompatibilityInfo(mock(), Status.COMPATIBLE, "1.4.0-SNAPSHOT", "")))
     val apiServices = mock<AppInspectionApiServices>()
     whenever(apiServices.attachToProcess(processDescriptor, projectRule.project.name)).thenReturn(target)
 
     checkLaunch(
       apiServices,
+      processDescriptor,
       LayoutInspectorBundle.message(INSPECTOR_NOT_FOUND_USE_SNAPSHOT_KEY),
       AttachErrorCode.APP_INSPECTION_SNAPSHOT_NOT_SPECIFIED,
     )
@@ -185,6 +160,7 @@ class ComposeLayoutInspectorClientTest {
 
   @Test
   fun inspectorArtifactNotFound_showComposeInspectionNotAvailableBanner() = runBlocking {
+    val processDescriptor = createProcess()
     val artifactService =
       object : InspectorArtifactService {
         override suspend fun getOrResolveInspectorArtifact(artifactCoordinate: RunningArtifactCoordinate, project: Project): Path {
@@ -202,6 +178,7 @@ class ComposeLayoutInspectorClientTest {
 
     checkLaunch(
       apiServices,
+      processDescriptor,
       LayoutInspectorBundle.message(COMPOSE_INSPECTION_NOT_AVAILABLE_KEY),
       AttachErrorCode.APP_INSPECTION_COMPOSE_INSPECTOR_NOT_FOUND,
     )
@@ -209,6 +186,7 @@ class ComposeLayoutInspectorClientTest {
 
   @Test
   fun inspectorArtifactNotFound_showComposeInspectionNotAvailableBanner_UiAndroid() = runBlocking {
+    val processDescriptor = createProcess()
     val artifactService =
       object : InspectorArtifactService {
         override suspend fun getOrResolveInspectorArtifact(artifactCoordinate: RunningArtifactCoordinate, project: Project): Path {
@@ -226,6 +204,7 @@ class ComposeLayoutInspectorClientTest {
 
     checkLaunch(
       apiServices,
+      processDescriptor,
       LayoutInspectorBundle.message(COMPOSE_INSPECTION_NOT_AVAILABLE_KEY),
       AttachErrorCode.APP_INSPECTION_COMPOSE_INSPECTOR_NOT_FOUND,
     )
@@ -233,6 +212,7 @@ class ComposeLayoutInspectorClientTest {
 
   @Test
   fun inspectorArtifactVersionMissing_showBanner() = runBlocking {
+    val processDescriptor = createProcess()
     val target = mock<AppInspectionTarget>()
     whenever(target.getLibraryVersions(any())).thenReturn(listOf(LibraryCompatibilityInfo(mock(), Status.VERSION_MISSING, "", "error")))
     val apiServices = mock<AppInspectionApiServices>()
@@ -240,6 +220,7 @@ class ComposeLayoutInspectorClientTest {
 
     checkLaunch(
       apiServices,
+      processDescriptor,
       LayoutInspectorBundle.message(VERSION_MISSING_MESSAGE_KEY),
       AttachErrorCode.APP_INSPECTION_VERSION_FILE_NOT_FOUND,
     )
@@ -247,16 +228,23 @@ class ComposeLayoutInspectorClientTest {
 
   @Test
   fun inspectorArtifactProguarded_showBanner() = runBlocking {
+    val processDescriptor = createProcess()
     val target = mock<AppInspectionTarget>()
     whenever(target.getLibraryVersions(any())).thenReturn(listOf(LibraryCompatibilityInfo(mock(), Status.APP_PROGUARDED, "", "error")))
     val apiServices = mock<AppInspectionApiServices>()
     whenever(apiServices.attachToProcess(processDescriptor, projectRule.project.name)).thenReturn(target)
 
-    checkLaunch(apiServices, LayoutInspectorBundle.message(PROGUARDED_LIBRARY_MESSAGE_KEY), AttachErrorCode.APP_INSPECTION_PROGUARDED_APP)
+    checkLaunch(
+      apiServices,
+      processDescriptor,
+      LayoutInspectorBundle.message(PROGUARDED_LIBRARY_MESSAGE_KEY),
+      AttachErrorCode.APP_INSPECTION_PROGUARDED_APP,
+    )
   }
 
   @Test
   fun inspectorArtifactIncompatible_showBanner() = runBlocking {
+    val processDescriptor = createProcess()
     val target = mock<AppInspectionTarget>()
     whenever(target.getLibraryVersions(any()))
       .thenReturn(listOf(LibraryCompatibilityInfo(mock(), Status.INCOMPATIBLE, "garbage version", "error")))
@@ -265,6 +253,7 @@ class ComposeLayoutInspectorClientTest {
 
     checkLaunch(
       apiServices,
+      processDescriptor,
       LayoutInspectorBundle.message(INCOMPATIBLE_LIBRARY_MESSAGE_KEY),
       AttachErrorCode.APP_INSPECTION_INCOMPATIBLE_VERSION,
     )
@@ -272,6 +261,7 @@ class ComposeLayoutInspectorClientTest {
 
   @Test
   fun inspectorCouldNotDownloadArtifact_showBanner() = runBlocking {
+    val processDescriptor = createProcess()
     val artifact = RunningArtifactCoordinate(mockMinimumArtifactCoordinate("androidx.compose.ui", "ui", "1.3.0"), "1.3.0")
     val artifactService =
       object : InspectorArtifactService {
@@ -291,6 +281,7 @@ class ComposeLayoutInspectorClientTest {
 
     checkLaunch(
       apiServices,
+      processDescriptor,
       LayoutInspectorBundle.message(MAVEN_DOWNLOAD_PROBLEM, artifact.toString()),
       AttachErrorCode.APP_INSPECTION_FAILED_MAVEN_DOWNLOAD,
     )
@@ -298,6 +289,7 @@ class ComposeLayoutInspectorClientTest {
 
   @Test
   fun inspectorCouldNotFindComposeInspectorJarWithDevFlag() = runBlocking {
+    val processDescriptor = createProcess()
     val folder = "/non-existing-folder/other/folder"
     val file = "$folder/compose-ui-inspection.jar"
     StudioFlags.APP_INSPECTION_USE_DEV_JAR.override(true)
@@ -314,6 +306,7 @@ class ComposeLayoutInspectorClientTest {
 
     checkLaunch(
       apiServices,
+      processDescriptor,
       LayoutInspectorBundle.message(
         COMPOSE_JAR_FOUND_KEY,
         file,
@@ -325,6 +318,7 @@ class ComposeLayoutInspectorClientTest {
 
   @Test
   fun inspectorCouldNotFindComposeInspectorJarWithReleaseFlag() = runBlocking {
+    val processDescriptor = createProcess()
     val folder = "/non-existing-folder"
     val file = "$folder/compose-ui-inspection.jar"
     StudioFlags.APP_INSPECTION_USE_DEV_JAR.override(true)
@@ -341,6 +335,7 @@ class ComposeLayoutInspectorClientTest {
 
     checkLaunch(
       apiServices,
+      processDescriptor,
       LayoutInspectorBundle.message(
         COMPOSE_JAR_FOUND_KEY,
         file,
@@ -353,6 +348,7 @@ class ComposeLayoutInspectorClientTest {
 
   @Test
   fun inspectorCouldNotFindComposeInspectorJarWithinAndroidx() = runBlocking {
+    val processDescriptor = createProcess()
     val folder = ANDROIDX_RELEASE_LOCATION
     val file = "$folder/compose-ui-inspection.jar"
     StudioFlags.APP_INSPECTION_USE_DEV_JAR.override(true)
@@ -369,6 +365,7 @@ class ComposeLayoutInspectorClientTest {
 
     checkLaunch(
       apiServices,
+      processDescriptor,
       LayoutInspectorBundle.message(COMPOSE_JAR_FOUND_FOR_ANDROIDX_KEY),
       AttachErrorCode.TRANSPORT_PUSH_FAILED_FILE_NOT_FOUND,
       isRunningFromSources = false,
@@ -377,16 +374,18 @@ class ComposeLayoutInspectorClientTest {
 
   @Test
   fun inspectorArtifactLibraryMissing_showNoBanner() = runBlocking {
+    val processDescriptor = createProcess()
     val target = mock<AppInspectionTarget>()
     whenever(target.getLibraryVersions(any())).thenReturn(listOf(LibraryCompatibilityInfo(mock(), Status.LIBRARY_MISSING, "", "error")))
     val apiServices = mock<AppInspectionApiServices>()
     whenever(apiServices.attachToProcess(processDescriptor, projectRule.project.name)).thenReturn(target)
 
-    checkLaunch(apiServices, "", AttachErrorCode.UNKNOWN_ERROR_CODE)
+    checkLaunch(apiServices, processDescriptor, "", AttachErrorCode.UNKNOWN_ERROR_CODE)
   }
 
   @Test
-  fun inspectorVersionWarning() = runBlocking {
+  fun inspectorVersionError() = runBlocking {
+    var process = createProcess()
     val target = mock<AppInspectionTarget>()
     whenever(target.getLibraryVersions(any()))
       .thenReturn(comp("1.1.0-beta05"))
@@ -394,9 +393,13 @@ class ComposeLayoutInspectorClientTest {
       .thenReturn(comp("1.2.0"))
       .thenReturn(comp("1.3.0"))
       .thenReturn(comp("1.3.0-alpha01"))
+      .thenReturn(comp("1.10.0")) // API 30
+      .thenReturn(comp("1.10.0")) // API 36.1
+      .thenReturn(comp("1.10.0")) // API 36.1 CinnamonBun
+      .thenReturn(comp("1.11.0-beta01")) // API 36.1
     val messenger = createMessenger()
     val apiServices = mock<AppInspectionApiServices>()
-    whenever(apiServices.attachToProcess(processDescriptor, projectRule.project.name)).thenReturn(target)
+    whenever(apiServices.attachToProcess(process, projectRule.project.name)).thenReturn(target)
     whenever(apiServices.launchInspector(any())).thenReturn(messenger)
     val artifactService = mock<InspectorArtifactService>()
     whenever(artifactService.getOrResolveInspectorArtifact(any(), any())).thenReturn(Paths.get("/foo/bar"))
@@ -404,12 +407,25 @@ class ComposeLayoutInspectorClientTest {
     projectRule.mockProjectService(Info::class.java)
     whenever(Info.getInstance(projectRule.project).isBuildWithGradle).thenReturn(true)
 
-    checkLaunch(apiServices, LayoutInspectorBundle.message(COMPOSE_MAY_CAUSE_APP_CRASH_KEY, "1.1.0-beta05", "1.2.1"), expectClient = true)
-    checkLaunch(apiServices, "", expectClient = true)
-    checkLaunch(apiServices, LayoutInspectorBundle.message(COMPOSE_MAY_CAUSE_APP_CRASH_KEY, "1.2.0", "1.2.1"), expectClient = true)
-    checkLaunch(apiServices, "", expectClient = true)
-    checkLaunch(apiServices, LayoutInspectorBundle.message(COMPOSE_MAY_CAUSE_APP_CRASH_KEY, "1.3.0-alpha01", "1.3.0"), expectClient = true)
+    checkLaunch(apiServices, process, versionError("1.1.0-beta05", "1.2.1"), expectClient = false)
+    checkLaunch(apiServices, process, "", expectClient = true) // 1.2.1
+    checkLaunch(apiServices, process, versionError("1.2.0", "1.2.1"), expectClient = false)
+    checkLaunch(apiServices, process, "", expectClient = true) // 1.3.0
+    checkLaunch(apiServices, process, versionError("1.3.0-alpha01", "1.3.0"), expectClient = false)
+    checkLaunch(apiServices, process, "", expectClient = true) // 1.10.0 (with API 30)
+
+    process = createProcess("emulator-1235", AndroidApiLevel(36, 1))
+    whenever(apiServices.attachToProcess(process, projectRule.project.name)).thenReturn(target)
+    checkLaunch(apiServices, process, "", expectClient = true) // 1.10.0 (with API 36.1)
+
+    process = createProcess("emulator-1236", AndroidApiLevel(36, 1), codeName = "CinnamonBun")
+    whenever(apiServices.attachToProcess(process, projectRule.project.name)).thenReturn(target)
+    checkLaunch(apiServices, process, versionError("1.10.0", "1.11.0"), expectClient = false)
+    checkLaunch(apiServices, process, "", expectClient = true) // 1.11.0-beta01
   }
+
+  private fun versionError(actualVersion: String, fixedVersion: String): String =
+    LayoutInspectorBundle.message(COMPOSE_MAY_CAUSE_APP_CRASH_KEY, actualVersion, fixedVersion)
 
   private fun comp(version: String): List<LibraryCompatibilityInfo> =
     listOf(LibraryCompatibilityInfo(MinimumArtifactCoordinate.COMPOSE_UI, Status.COMPATIBLE, version, ""))
@@ -464,6 +480,43 @@ class ComposeLayoutInspectorClientTest {
       .isEqualTo(RunningArtifactCoordinate(MinimumArtifactCoordinate.COMPOSE_UI_ANDROID, "2.0.0-alpha01"))
   }
 
+  private fun createProcess(
+    serial: String = "emulator-1234",
+    apiLevel: AndroidApiLevel = AndroidApiLevel(30),
+    codeName: String? = null,
+  ): ProcessDescriptor {
+    val processDescriptor =
+      object : ProcessDescriptor {
+        override val device =
+          object : DeviceDescriptor {
+            override val manufacturer = "mfg"
+            override val model = "model"
+            override val serial = serial
+            override val isEmulator = true
+            override var apiLevel = apiLevel
+            override val version = "10.0.0"
+            override val codename = codeName
+          }
+        override val abiCpuArch = "x86_64"
+        override val name = "my name"
+        override val packageName = "my package name"
+        override val isRunning = true
+        override val pid = 1234
+        override val streamId = 4321L
+      }
+    adbRule.connectDevice(
+      deviceId = processDescriptor.device.serial,
+      manufacturer = processDescriptor.device.manufacturer,
+      deviceModel = processDescriptor.device.model,
+      release = processDescriptor.device.version,
+      sdk = processDescriptor.device.apiLevel,
+      hostConnectionType = DeviceState.HostConnectionType.LOCAL,
+      cpuAbi = "arm64-v8a",
+      properties = emptyMap(),
+    )
+    return processDescriptor
+  }
+
   private suspend fun createMessenger(): AppInspectorMessenger {
     val messenger = mock<AppInspectorMessenger>()
     whenever(messenger.scope).thenReturn(projectRule.testRootDisposable.createCoroutineScope())
@@ -473,6 +526,7 @@ class ComposeLayoutInspectorClientTest {
 
   private suspend fun checkLaunch(
     apiServices: AppInspectionApiServices,
+    processDescriptor: ProcessDescriptor,
     expectedMessage: String,
     expectedError: AttachErrorCode = AttachErrorCode.UNKNOWN_ERROR_CODE,
     expectClient: Boolean = false,

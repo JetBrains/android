@@ -16,6 +16,8 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
 import com.android.ide.common.gradle.Version
+import com.android.sdklib.AndroidApiLevel
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.api.checkVersion
 import com.android.tools.idea.appinspection.ide.InspectorArtifactService
@@ -115,6 +117,8 @@ private val KMP_MIGRATION_VERSION = Version.parse("1.5.0-beta01")
 
 private const val PROGUARD_LEARN_MORE = "https://d.android.com/r/studio-ui/layout-inspector/code-shrinking"
 
+private val CINNAMON_BUN_VERSION = AndroidVersion(AndroidApiLevel(36, 1), "CinnamonBun", null, true)
+
 /** Result from [ComposeLayoutInspectorClient.getComposeables]. */
 class GetComposablesResult(
   /** The response received from the agent */
@@ -141,22 +145,33 @@ class ComposeLayoutInspectorClient(
 ) {
 
   companion object {
-    /** Check for problems with the specified compose version, and display banners if appropriate. */
-    private fun checkComposeVersion(notificationModel: NotificationModel, versionString: String) {
+    /**
+     * Check for problems with the specified compose version, and display banners if appropriate. Return true if the version is OK, and
+     * false if the compose version is known to crash the app.
+     */
+    private fun checkComposeVersion(notificationModel: NotificationModel, versionString: String, process: ProcessDescriptor): Boolean {
       val version = Version.parse(versionString)
-      // b/237987764 App crash while fetching parameters with empty lambda was fixed in
-      // 1.3.0-alpha03 and in 1.2.1
-      // b/235526153 App crash while fetching component tree with certain Borders was fixed in
-      // 1.3.0-alpha03 and in 1.2.1
-      if (version >= Version.parse("1.3.0-alpha03") || version.minor == 2 && version >= Version.parse("1.2.1")) return
-      val versionUpgrade = if (version.minor == 3) "1.3.0" else "1.2.1"
+      val deviceVersion = AndroidVersion(process.device.apiLevel, process.device.codename, null, true)
+      val versionUpgrade =
+        when {
+          // Do not check snapshot versions
+          version.isSnapshot -> return true
+
+          // b/487130700 App crash while starting compose inspector using CinnamonBun or higher with STATIC_FINAL_FIELDS_ARE_FINAL enabled
+          // was fixed in 1.11.0-alpha01
+          deviceVersion >= CINNAMON_BUN_VERSION && version < Version.parse("1.11.0-beta01") -> "1.11.0"
+
+          // b/237987764 App crash while fetching parameters with empty lambda was fixed in 1.3.0-alpha03 and in 1.2.1
+          // b/235526153 App crash while fetching component tree with certain Borders was fixed in 1.3.0-alpha03 and in 1.2.1
+          (version.minor == 1 || version.minor == 2) && version < Version.parse("1.2.1") -> "1.2.1"
+          version.minor == 3 && version < Version.parse("1.3.0") -> "1.3.0"
+
+          else -> return true
+        }
       val message = LayoutInspectorBundle.message(COMPOSE_MAY_CAUSE_APP_CRASH_KEY, versionString, versionUpgrade)
       logDiagnostics(ComposeLayoutInspectorClient::class.java, "Compose version warning, message: %s", message)
-      notificationModel.addNotification(COMPOSE_MAY_CAUSE_APP_CRASH_KEY, message, EditorNotificationPanel.Status.Warning)
-      // Allow the user to connect and inspect compose elements because:
-      // - b/235526153 is uncommon
-      // - b/237987764 only happens if the kotlin compiler version is at least 1.6.20 (which we
-      // cannot reliably detect)
+      notificationModel.addNotification(COMPOSE_MAY_CAUSE_APP_CRASH_KEY, message, EditorNotificationPanel.Status.Error)
+      return false
     }
 
     @VisibleForTesting
@@ -171,6 +186,7 @@ class ComposeLayoutInspectorClient(
       compatibility: LibraryCompatibilityInfo?,
       logErrorToMetrics: (AttachErrorCode) -> Unit,
       isRunningFromSourcesInTests: Boolean?,
+      process: ProcessDescriptor,
     ): String? {
       val version =
         compatibility?.version?.takeIf { compatibility.status == LibraryCompatibilityInfo.Status.COMPATIBLE && it.isNotBlank() }
@@ -181,8 +197,8 @@ class ComposeLayoutInspectorClient(
             compatibility?.status.toAttachErrorInfo(),
           )
 
-      checkComposeVersion(notificationModel, version)
-      return version
+      val isVersionSupported = checkComposeVersion(notificationModel, version, process)
+      return version.takeIf { isVersionSupported }
     }
 
     fun getAppInspectorJar(
@@ -245,9 +261,21 @@ class ComposeLayoutInspectorClient(
               null ->
                 // The token is null when there is no build system. eg the user imported an APK or
                 // is using a plain intellij project.
-                handleCompatibilityAndComputeVersion(notificationModel, compatibility, logErrorToMetrics, isRunningFromSourcesInTests)
+                handleCompatibilityAndComputeVersion(
+                  notificationModel,
+                  compatibility,
+                  logErrorToMetrics,
+                  isRunningFromSourcesInTests,
+                  process,
+                )
               else ->
-                token.handleCompatibilityAndComputeVersion(notificationModel, compatibility, logErrorToMetrics, isRunningFromSourcesInTests)
+                token.handleCompatibilityAndComputeVersion(
+                  notificationModel,
+                  compatibility,
+                  logErrorToMetrics,
+                  isRunningFromSourcesInTests,
+                  process,
+                )
             }
 
           val appInspectorJar =
@@ -608,6 +636,7 @@ interface GetComposeLayoutInspectorJarToken<P : AndroidProjectSystem> : Token {
     compatibility: LibraryCompatibilityInfo?,
     logErrorToMetrics: (AttachErrorCode) -> Unit,
     isRunningFromSourcesInTests: Boolean?,
+    process: ProcessDescriptor,
   ): String?
 
   fun getRequiredCompatibility(): LibraryCompatibility
