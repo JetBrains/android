@@ -31,6 +31,9 @@ iml_module(
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements",
         "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile",
         "//tools/adt/idea/completion:intellij.android.completion",
+        "@intellij//:intellij.java.indexing.impl",
+        "@intellij//:intellij.platform.uast",
+        "@intellij//:intellij.java.analysis.impl",
     ],
 )
 
@@ -92,5 +95,6 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "//tools/adt/idea/render-resources:intellij.android.render-resources",
+        "@intellij//:intellij.platform.uast",
     ],
 )

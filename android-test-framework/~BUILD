@@ -54,5 +54,10 @@ iml_module(
     visibility = ["//visibility:public"],
     exports = ["@intellij//:test-framework"],
     # do not sort: must match IML order
-    deps = ["@intellij//:com.intellij.java"],
+    deps = [
+        "@intellij//:com.intellij.java",
+        "@intellij//:intellij.java",
+        "@intellij//:intellij.java.impl",
+        "@intellij//:intellij.java.ui",
+    ],
 )

@@ -62,6 +62,10 @@ iml_module(
         "//tools/adt/idea/avd:intellij.android.avd",
         "//tools/adt/idea/visual-lint:intellij.android.visual-lint",
         "@intellij//:intellij.spellchecker",
+        "@intellij//:intellij.uiDesigner",
+        "@intellij//:intellij.java.indexing",
+        "@intellij//:intellij.java.analysis.impl",
+        "@intellij//:intellij.java.impl",
     ],
 )
 
@@ -157,6 +161,8 @@ iml_module(
         "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "@intellij//:org.jetbrains.kotlin",
+        "@intellij//:intellij.java",
+        "@intellij//:intellij.java.impl",
     ],
 )
 

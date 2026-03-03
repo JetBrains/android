@@ -31,6 +31,8 @@ iml_module(
         "//tools/adt/idea/observable-ui:intellij.android.observable.ui",
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard",
         "//tools/adt/idea/rendering:intellij.android.rendering",
+        "@intellij//:intellij.java",
+        "@intellij//:intellij.java.impl",
     ],
 )
 
@@ -89,6 +91,7 @@ iml_module(
         "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/layoutlib:intellij.android.layoutlib",
         "//tools/adt/idea/render-resources:intellij.android.render-resources",
+        "@intellij//:intellij.java",
     ],
 )
 

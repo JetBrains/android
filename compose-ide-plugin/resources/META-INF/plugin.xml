@@ -35,8 +35,15 @@
   </change-notes>
 
 
-  <!-- region Generated dependencies - run `Generate Product Layouts` to regenerate -->
   <dependencies>
+    <module name="intellij.java.impl"/>
+<!--  TODO: android-merge; intellij.compose.ide.plugin.gradleTooling.rt is a content module with no visibility attribute, so the module model keeps it private to the Compose Multiplatform plugin and rejects a dependency on it from another plugin-->
+<!--  <module name="intellij.compose.ide.plugin.gradleTooling.rt"/>-->
+    <module name="intellij.java"/>
+    <module name="intellij.platform.uast"/>
+    <module name="intellij.java.impl.refactorings"/>
+    <module name="intellij.java.debugger"/>
+    <!-- region Generated dependencies - run `Generate Product Layouts` to regenerate -->
     <module name="intellij.java.debugger.impl"/>
     <module name="intellij.java.psi"/>
     <module name="intellij.kotlin.base.analysis"/>
@@ -86,8 +93,8 @@
     <module name="intellij.platform.usageView.impl"/>
     <module name="intellij.platform.util.ui"/>
     <module name="kotlin.fir.frontend-independent"/>
+    <!-- endregion -->
   </dependencies>
-  <!-- endregion -->
   <content namespace="jetbrains"/>
   <extensions defaultExtensionNs="com.intellij">
     <dependencySupport coordinate="androidx.compose.runtime:runtime" kind="java" displayName="Jetpack Compose"/>

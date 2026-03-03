@@ -25,6 +25,15 @@ iml_module(
         "//tools/adt/idea/android-material:intellij.android.android-material",
         "//tools/adt/idea/completion:intellij.android.completion",
         "@intellij//:com.intellij.modules.json",
+        "@intellij//:intellij.platform.uast",
+        "@intellij//:intellij.java.impl.refactorings",
+        "@intellij//:intellij.compose.ide.plugin.shared",
+        "@intellij//:com.intellij.compose",
+        "@intellij//:intellij.compose.ide.plugin.gradleTooling.rt",
+        "@intellij//:intellij.java",
+        "@intellij//:intellij.java.debugger.impl",
+        "@intellij//:intellij.java.debugger",
+        "@intellij//:intellij.java.impl",
     ],
 )
 
@@ -85,5 +94,8 @@ iml_module(
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
         "//tools/base/testutils:studio.android.sdktools.testutils",
         "@intellij//:com.intellij.java",
+        "@intellij//:intellij.java",
+        "@intellij//:intellij.java.debugger",
+        "@intellij//:intellij.java.debugger.impl",
     ],
 )

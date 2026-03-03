@@ -39,6 +39,10 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/adt/idea/gmaven:intellij.android.gmaven",
         "//tools/adt/idea/.idea/libraries:agp-version",
+        "@intellij//:intellij.java.impl",
+        "@intellij//:intellij.platform.uast",
+        "@intellij//:intellij.java.analysis.impl",
+        "@intellij//:intellij.java.impl.refactorings",
     ],
 )
 

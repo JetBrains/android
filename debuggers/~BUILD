@@ -37,6 +37,11 @@ iml_module(
         "//prebuilts/r8",
         "//tools/base/deploy/deployer:studio.android.sdktools.deployer",
         "//tools/adt/idea/.idea/libraries:studio-proto",
+        "@intellij//:intellij.java",
+        "@intellij//:intellij.java.debugger",
+        "@intellij//:intellij.java.debugger.impl",
+        "@intellij//:intellij.platform.debugger.impl.backend",
+        "@intellij//:intellij.java.execution",
     ],
 )
 
@@ -78,6 +83,8 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
+        "@intellij//:intellij.java.debugger",
+        "@intellij//:intellij.java.debugger.impl",
     ],
 )
 
@@ -97,5 +104,6 @@ kotlin_library(
     deps = [
         "//tools/adt/idea/debuggers:intellij.android.debuggers",
         "@intellij//:com.intellij.java",
+        "@intellij//:intellij.java.debugger",
     ],
 )

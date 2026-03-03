@@ -24,6 +24,9 @@ iml_module(
         "//tools/adt/idea/rendering:intellij.android.rendering",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/adt/idea/wear-preview-elements:intellij.android.wear-preview-elements",
+        "@intellij//:intellij.java.indexing.impl",
+        "@intellij//:intellij.platform.uast",
+        "@intellij//:intellij.java.analysis",
     ],
 )
 
@@ -71,5 +74,10 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:org.jetbrains.kotlin",
         "@intellij//:com.intellij.java",
+        "@intellij//:intellij.platform.uast",
+        "@intellij//:intellij.java.impl",
+        "@intellij//:intellij.java",
+        "@intellij//:intellij.java.analysis.impl",
+        "@intellij//:intellij.java.analysis",
     ],
 )

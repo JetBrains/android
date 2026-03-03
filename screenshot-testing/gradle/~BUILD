@@ -26,5 +26,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/analytics-library/tracker:analytics-tracker",
         "//tools/adt/idea/analytics",
+        "@intellij//:intellij.java.execution.impl",
+        "@intellij//:intellij.java.execution",
     ],
 )

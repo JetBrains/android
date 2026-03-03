@@ -88,5 +88,9 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "@intellij//:org.jetbrains.kotlin",
+        "@intellij//:intellij.java.execution.impl",
+        "@intellij//:intellij.java.execution",
+        "@intellij//:intellij.java.debugger",
+        "@intellij//:intellij.java.debugger.impl",
     ],
 )

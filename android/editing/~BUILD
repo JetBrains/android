@@ -25,5 +25,10 @@ iml_module(
     test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    deps = ["@intellij//:com.intellij.java"],
+    deps = [
+        "@intellij//:com.intellij.java",
+        "@intellij//:intellij.java",
+        "@intellij//:intellij.java.impl.refactorings",
+        "@intellij//:intellij.java.impl",
+    ],
 )

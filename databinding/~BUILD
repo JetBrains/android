@@ -22,6 +22,7 @@ iml_module(
         "//tools/adt/idea/render-resources:intellij.android.render-resources",
         "//tools/adt/idea/analytics",
         "//tools/base/flags:studio.android.sdktools.flags",
+        "@intellij//:intellij.java.indexing",
     ],
 )
 
@@ -91,6 +92,8 @@ iml_module(
         "@intellij//:com.intellij.java",
         "@intellij//:com.intellij.gradle",
         "@intellij//:org.jetbrains.kotlin",
+        "@intellij//:intellij.java.indexing",
+        "@intellij//:intellij.java.impl.refactorings",
     ],
 )
 

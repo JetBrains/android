@@ -69,5 +69,7 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "@intellij//:org.jetbrains.kotlin",
+        "@intellij//:intellij.java",
+        "@intellij//:intellij.java.ui",
     ],
 )

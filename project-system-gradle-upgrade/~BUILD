@@ -71,6 +71,7 @@ iml_module(
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl.testutils",
         "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle.tests",
+        "@intellij//:intellij.java.impl",
     ],
 )
 
@@ -108,6 +109,8 @@ iml_module(
         "//tools/adt/idea/analytics",
         "@intellij//:intellij.platform.lvcs.impl",
         "//tools/adt/idea/gmaven:intellij.android.gmaven",
+        "@intellij//:intellij.java",
+        "@intellij//:intellij.java.ui",
     ],
 )
 

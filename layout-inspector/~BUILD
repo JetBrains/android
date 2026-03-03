@@ -74,6 +74,9 @@ iml_module(
         "//tools/adt/idea/device-manager-v2:intellij.android.device-manager-v2",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner",
         "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools",
+        "@intellij//:intellij.java.debugger.impl",
+        "@intellij//:intellij.java.execution",
+        "@intellij//:intellij.java.debugger",
     ],
 )
 
@@ -156,6 +159,9 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/adt/idea/.idea/libraries:layoutinspector-view-proto",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
+        "@intellij//:intellij.java.debugger",
+        "@intellij//:intellij.java.debugger.impl",
+        "@intellij//:intellij.java.execution",
     ],
 )
 

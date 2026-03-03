@@ -47,5 +47,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/analytics-library/tracker:analytics-tracker",
         "//tools/vendor/google/android-keys",
+        "@intellij//:intellij.java.impl",
     ],
 )

@@ -30,6 +30,7 @@ iml_module(
         "//tools/adt/idea/artwork-compose:intellij.android.artwork-compose",
         "@intellij//:intellij.libraries.grpc.netty.shaded",
         "//tools/adt/idea/app-quality-insights/client:intellij.android.app-quality-insights.client",
+        "@intellij//:intellij.java.execution",
     ],
 )
 

@@ -123,6 +123,14 @@ iml_module(
         "@intellij//:intellij.spellchecker",
         "@intellij//:intellij.properties.backend.psi",
         "//tools/adt/idea/.idea/libraries:google-api-client",
+        "@intellij//:intellij.gradle.java.groovy",
+        "@intellij//:intellij.java",
+        "@intellij//:intellij.java.compiler",
+        "@intellij//:intellij.java.ui",
+        "@intellij//:intellij.java.compiler.impl",
+        "@intellij//:intellij.java.impl",
+        "@intellij//:intellij.java.execution",
+        "@intellij//:intellij.java.execution.impl",
     ],
 )
 
@@ -697,6 +705,9 @@ iml_module(
         "@intellij//:com.intellij.java-i18n",
         "@intellij//:com.intellij.java.ide",
         "@intellij//:org.toml.lang",
+        "@intellij//:intellij.java.impl",
+        "@intellij//:intellij.gradle.java.toml",
+        "@intellij//:intellij.java",
     ],
 )
 

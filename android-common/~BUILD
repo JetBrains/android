@@ -39,6 +39,8 @@ iml_module(
         "//tools/adt/idea/render-resources:intellij.android.render-resources",
         "//tools/adt/idea/.idea/libraries:android-core-proto",
         "//tools/adt/idea/.idea/libraries:agp-version",
+        "@intellij//:intellij.java",
+        "@intellij//:intellij.platform.uast",
     ],
 )
 

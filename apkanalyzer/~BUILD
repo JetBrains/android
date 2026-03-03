@@ -29,6 +29,10 @@ iml_module(
         "//tools/base/threading-agent-callback:studio.android.sdktools.threading-agent-callback",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model",
         "//prebuilts/r8",
+        "@intellij//:intellij.java.debugger.impl",
+        "@intellij//:intellij.java.debugger.impl.backend",
+        "@intellij//:intellij.java.debugger",
+        "@intellij//:intellij.platform.uast",
     ],
 )
 

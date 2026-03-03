@@ -31,6 +31,9 @@ iml_module(
         "//tools/base/adblib:studio.android.sdktools.adblib",
         "//tools/adt/idea/backup:intellij.android.backup.api",
         "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools",
+        "@intellij//:intellij.java.debugger.impl",
+        "@intellij//:intellij.java.execution",
+        "@intellij//:intellij.java.debugger",
     ],
 )
 
@@ -97,6 +100,9 @@ iml_module(
         "//tools/adt/idea/execution/common:intellij.android.execution.common",
         "//tools/adt/idea/.idea/libraries:truth",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
+        "@intellij//:intellij.java.execution.impl",
+        "@intellij//:intellij.java.debugger",
+        "@intellij//:intellij.java.debugger.impl",
     ],
 )
 

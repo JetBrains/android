@@ -18,6 +18,10 @@ iml_module(
         "@intellij//:org.toml.lang",
         "//tools/base/lint:studio.android.sdktools.lint-checks",
         "//tools/adt/idea/gradle-declarative-lang:intellij.android.gradle.declarative.lang",
+        "@intellij//:intellij.java.analysis.impl",
+        "@intellij//:com.intellij.gradle",
+        "@intellij//:intellij.gradle.java.groovy",
+        "@intellij//:intellij.java.analysis",
     ],
 )
 
@@ -54,5 +58,6 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "@intellij//:com.intellij.gradle",
+        "@intellij//:intellij.platform.uast",
     ],
 )

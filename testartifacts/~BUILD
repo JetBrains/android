@@ -33,6 +33,8 @@ iml_module(
         "//tools/adt/idea/artwork-compose:intellij.android.artwork-compose",
         "//tools/adt/idea/testartifacts:libjourneys-java-proto",
         "//tools/adt/idea/analytics",
+        "@intellij//:intellij.java.execution.impl",
+        "@intellij//:intellij.java",
     ],
 )
 
@@ -115,6 +117,7 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "@intellij//:org.jetbrains.kotlin",
+        "@intellij//:intellij.java.execution.impl",
     ],
 )
 

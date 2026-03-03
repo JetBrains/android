@@ -27,6 +27,10 @@ iml_module(
         "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/.idea/libraries:google-dexlib2",
         "//tools/adt/idea/analytics",
+        "@intellij//:intellij.java.debugger.impl",
+        "@intellij//:intellij.java.indexing",
+        "@intellij//:intellij.java.debugger",
+        "@intellij//:intellij.java.impl",
     ],
 )
 

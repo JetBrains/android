@@ -64,5 +64,7 @@ iml_module(
         "@intellij//:com.intellij.java",
         "@intellij//:com.intellij.gradle",
         "@intellij//:org.jetbrains.kotlin",
+        "@intellij//:intellij.java.indexing",
+        "@intellij//:intellij.platform.uast",
     ],
 )

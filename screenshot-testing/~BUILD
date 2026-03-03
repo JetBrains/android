@@ -26,6 +26,7 @@ iml_module(
         "//tools/base/common:studio.android.sdktools.common",
         "//tools/adt/idea/analytics",
         "//tools/adt/idea/testartifacts:intellij.android.testartifacts",
+        "@intellij//:intellij.platform.uast",
     ],
 )
 

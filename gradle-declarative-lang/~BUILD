@@ -17,6 +17,7 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:org.jetbrains.kotlin",
         "@intellij//:com.intellij.java",
+        "@intellij//:intellij.platform.uast",
     ],
 )
 
@@ -47,6 +48,7 @@ iml_module(
         "@intellij//:intellij-sdk",
         "//tools/adt/idea/.idea/libraries:mockito",
         "@intellij//:com.intellij.java",
+        "@intellij//:intellij.platform.uast",
     ],
 )
 

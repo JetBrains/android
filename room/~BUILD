@@ -14,6 +14,9 @@ iml_module(
         "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/android-lang:intellij.android.lang",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
+        "@intellij//:intellij.java.analysis.impl",
+        "@intellij//:intellij.java",
+        "@intellij//:intellij.java.impl",
     ],
 )
 

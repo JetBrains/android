@@ -62,6 +62,7 @@ iml_module(
         "//prebuilts/r8",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
         "//tools/adt/idea/gmaven:intellij.android.gmaven",
+        "@intellij//:intellij.java.impl",
     ],
 )
 
@@ -132,6 +133,7 @@ iml_module(
         "@intellij//:com.intellij.java",
         "@intellij//:com.intellij.gradle",
         "@intellij//:org.jetbrains.kotlin",
+        "@intellij//:intellij.java.ui",
     ],
 )
 

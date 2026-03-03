@@ -39,6 +39,9 @@ iml_module(
         "//tools/base/lint:studio.android.sdktools.lint-api",
         "//tools/base/lint:studio.android.sdktools.lint-checks",
         "//tools/adt/idea/analytics",
+        "@intellij//:intellij.java.ui",
+        "@intellij//:intellij.java.compiler.impl",
+        "@intellij//:intellij.java.compiler",
     ],
 )
 

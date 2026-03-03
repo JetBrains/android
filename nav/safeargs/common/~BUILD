@@ -23,5 +23,6 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/adt/idea/render-resources:intellij.android.render-resources",
+        "@intellij//:intellij.java.indexing",
     ],
 )

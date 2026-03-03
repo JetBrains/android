@@ -39,5 +39,9 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/base/adblib:studio.android.sdktools.adblib",
         "//tools/adt/idea/android-adb:intellij.android.adb",
+        "@intellij//:intellij.java.debugger.impl",
+        "@intellij//:intellij.java.execution",
+        "@intellij//:intellij.java.debugger.impl.backend",
+        "@intellij//:intellij.java.debugger",
     ],
 )

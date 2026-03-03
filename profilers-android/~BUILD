@@ -77,6 +77,8 @@ iml_module(
         "//tools/adt/idea/execution/common:intellij.android.execution.common",
         "//tools/adt/idea/analytics",
         "//tools/base/leakcanarylib:studio.android.sdktools.leakcanarylib",
+        "@intellij//:intellij.java.indexing",
+        "@intellij//:intellij.java.execution",
     ],
 )
 

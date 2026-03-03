@@ -31,6 +31,31 @@
     <module name="intellij.platform.jewel.markdown.core"/>
     <module name="intellij.platform.jewel.markdown.ideLafBridgeStyling"/>
     <module name="intellij.platform.jewel.ui"/>
+    <module name="intellij.platform.uast"/>
+    <module name="intellij.java.analysis.impl"/>
+    <module name="intellij.gradle.java.groovy"/>
+    <module name="intellij.java.execution.impl"/>
+    <module name="intellij.libraries.maven.resolver.provider"/>
+    <module name="intellij.java.indexing"/>
+    <module name="intellij.xml.emmet"/>
+    <module name="intellij.java.debugger"/>
+    <module name="intellij.java"/>
+<!--  TODO: android-merge; intellij.java.debugger.impl.frontend and intellij.platform.images.xdebugger are content modules with no visibility attribute, so the module model keeps them private to the Java and Images plugins and rejects a dependency on them from another plugin-->
+<!--  <module name="intellij.java.debugger.impl.frontend"/>-->
+<!--  <module name="intellij.platform.images.xdebugger"/>-->
+<!--  TODO: android-merge; these content modules declare visibility="internal" in the jetbrains namespace, and org.jetbrains.android has no namespace, so the module model rejects a dependency on them from this plugin-->
+<!--  <module name="intellij.java.debugger.impl.backend"/>-->
+<!--  <module name="intellij.platform.debugger.impl.frontend"/>-->
+<!--  <module name="intellij.platform.debugger.impl.backend"/>-->
+    <module name="intellij.java.impl.refactorings"/>
+    <module name="intellij.java.uast"/>
+    <module name="intellij.java.ui"/>
+    <module name="intellij.java.execution"/>
+    <module name="intellij.java.analysis"/>
+    <module name="intellij.java.compiler"/>
+    <module name="intellij.java.debugger.impl"/>
+    <module name="intellij.java.compiler.impl"/>
+    <module name="intellij.java.impl"/>
     <!-- region Generated dependencies - run `Generate Product Layouts` to regenerate -->
     <plugin id="org.intellij.groovy"/>
     <plugin id="org.jetbrains.plugins.gradle"/>

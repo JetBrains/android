@@ -29,6 +29,9 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/adt/idea/device-explorer-files:intellij.android.device-explorer-files",
+        "@intellij//:intellij.java",
+        "@intellij//:intellij.java.impl",
+        "@intellij//:intellij.java.indexing",
     ],
 )
 
@@ -85,5 +88,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/app-inspection/inspector/ide:app-inspection.inspector.ide",
         "//tools/adt/idea/artwork:intellij.android.artwork",
+        "@intellij//:intellij.java",
     ],
 )

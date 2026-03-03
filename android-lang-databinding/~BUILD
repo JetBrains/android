@@ -23,6 +23,8 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
+        "@intellij//:intellij.java.impl",
+        "@intellij//:intellij.java.indexing",
     ],
 )
 

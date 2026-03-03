@@ -53,5 +53,8 @@ iml_module(
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    deps = ["@intellij//:com.intellij.java"],
+    deps = [
+        "@intellij//:com.intellij.java",
+        "@intellij//:intellij.java.execution",
+    ],
 )

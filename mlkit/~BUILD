@@ -31,6 +31,7 @@ iml_module(
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard",
         "//tools/adt/idea/android-templates:intellij.android.templates",
         "//tools/adt/idea/render-resources:intellij.android.render-resources",
+        "@intellij//:intellij.java.indexing",
     ],
 )
 

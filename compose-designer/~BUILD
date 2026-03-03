@@ -42,6 +42,9 @@ iml_module(
         "//tools/adt/idea/rendering:intellij.android.rendering",
         "//tools/adt/idea/visual-lint:intellij.android.visual-lint",
         "//tools/adt/idea/compose-designer:ui-animation-tooling-internal",
+        "@intellij//:intellij.platform.uast",
+        "@intellij//:intellij.java.execution.impl",
+        "@intellij//:intellij.java.execution",
     ],
 )
 
@@ -193,6 +196,8 @@ iml_module(
         "@intellij//:org.jetbrains.kotlin",
         "@intellij//:intellij-sdk",
         "//tools/adt/idea/intellij.android.compose-common",
+        "@intellij//:intellij.platform.uast",
+        "@intellij//:intellij.java.execution.impl",
     ],
 )
 
@@ -307,5 +312,6 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "@intellij//:org.jetbrains.kotlin",
+        "@intellij//:intellij.platform.uast",
     ],
 )

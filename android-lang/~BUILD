@@ -22,6 +22,10 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/base/flags:studio.android.sdktools.flags",
+        "@intellij//:intellij.platform.uast",
+        "@intellij//:intellij.java.indexing",
+        "@intellij//:intellij.java",
+        "@intellij//:intellij.java.impl",
     ],
 )
 
@@ -84,5 +88,6 @@ iml_module(
         "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/adt/idea/android:intellij.android.core",
+        "@intellij//:intellij.java.impl",
     ],
 )
