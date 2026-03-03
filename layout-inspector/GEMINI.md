@@ -8,3 +8,4 @@ Keep this file up to date as information changes/goes out of date.
 - **how to build the module**: `bazel build //tools/adt/idea/layout-inspector:intellij.android.layout-inspector`
 - **how to run all tests**: `bazel test //tools/adt/idea/layout-inspector:intellij.android.layout-inspector.tests_tests`
 - **how to run a specific test**: `bazel test //tools/adt/idea/layout-inspector:intellij.android.layout-inspector.tests_tests --test_filter=MyTest`
+  - **useful flags**: --test_output=errors: display the output of failed tests only.
