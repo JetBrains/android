@@ -589,7 +589,10 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
       VisualizationToolSettings.getInstance().globalState.lastSelectedConfigurationSet = newConfigurationSet
       myCurrentModelsProvider = newConfigurationSet.createModelsProvider(this)
       surface.layoutManagerSwitcher?.currentLayoutOption?.value = myLayoutOption
-      surface.zoomController.resetZoomToFitSettings(false, surface.size)
+      surface.zoomController.resetZoomToFitSettings(
+        shouldWaitForResize = false,
+        shouldWaitForLayoutCreated = surface.size.height <= 0 || surface.size.width <= 0,
+      )
       refresh()
     }
   }

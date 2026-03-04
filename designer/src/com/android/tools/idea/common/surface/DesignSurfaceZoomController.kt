@@ -27,7 +27,6 @@ import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.surface.ZoomConstants.DEFAULT_MAX_SCALE
 import com.android.tools.idea.common.surface.ZoomConstants.DEFAULT_MIN_SCALE
 import com.intellij.openapi.application.EDT
-import java.awt.Dimension
 import java.awt.Point
 import java.util.concurrent.atomic.AtomicInteger
 import javax.swing.JViewport
@@ -290,20 +289,17 @@ abstract class DesignSurfaceZoomController(
    * @param shouldWaitForResize When true, the zoom mask waits for the resize notification
    *   [ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK]. When false, the notification is applied immediately, avoiding the need to wait
    *   for the next [DesignSurface] resize event.
-   * @param width wip
-   * @param height wip Note: if [waitForRenderBeforeZoomToFit] is enabled, it will wait [notifyZoomToFit] to be performed at least once
-   *   before trying to apply zoom-to-fit.
+   * @param shouldWaitForLayoutCreated When true, the zoom mask waits for the layout creation notification
+   *   [ZoomMaskConstants.NOTIFY_LAYOUT_CREATED_INT_MASK]. When false, the notification is applied immediately.
    */
-  override fun resetZoomToFitSettings(shouldWaitForResize: Boolean, surfaceSize: Dimension) {
-    val newZoomToFitStateMask =
-      if (!shouldWaitForResize && surfaceSize.height > 0 && surfaceSize.width > 0) {
-        // If we want to perform a zoom-to-fit, but we don't need that [DesignSurface] notifies that
-        // has been resized we reset the mask adding [NOTIFY_COMPONENT_RESIZED_INT_MASK] already.
-        ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK or ZoomMaskConstants.NOTIFY_LAYOUT_CREATED_INT_MASK
-      } else {
-        ZoomMaskConstants.INITIAL_STATE_INT_MASK
+  override fun resetZoomToFitSettings(shouldWaitForResize: Boolean, shouldWaitForLayoutCreated: Boolean) {
+    var newZoomToFitStateMask: Int = ZoomMaskConstants.INITIAL_STATE_INT_MASK
+    if (!shouldWaitForLayoutCreated) {
+      newZoomToFitStateMask = newZoomToFitStateMask or ZoomMaskConstants.NOTIFY_LAYOUT_CREATED_INT_MASK
+      if (!shouldWaitForResize) {
+        newZoomToFitStateMask = newZoomToFitStateMask or ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK
       }
-
+    }
     // If we want to perform a zoom-to-fit, and we need to wait for the creation of a layout and
     // the resize of design surface we set the mask to its initial bitwise number
     // [INITIAL_STATE_INT_MASK].

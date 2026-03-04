@@ -311,7 +311,7 @@ class NavDesignSurfaceZoomControllerTest {
 
     // Create the [ZoomController].
     val zoomController = createNavDesignSurfaceZoomController(navDesignSurfaceMock, { contentDimension })
-    zoomController.resetZoomToFitSettings(false, Dimension(200, 200))
+    zoomController.resetZoomToFitSettings(shouldWaitForResize = false, shouldWaitForLayoutCreated = false)
 
     repeat(4) { zoomController.zoom(ZoomType.OUT) }
 

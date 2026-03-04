@@ -840,8 +840,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile, composePreviewViewProvider:
       var lastMode: PreviewMode? = null
 
       previewModeManager.mode.collect {
-        surface.zoomController.resetZoomToFitSettings(false, surface.size)
-
+        val shouldWaitForLayoutCreated = surface.size.height <= 0 || surface.size.width <= 0
+        surface.zoomController.resetZoomToFitSettings(shouldWaitForResize = false, shouldWaitForLayoutCreated = shouldWaitForLayoutCreated)
         (it.selected as? PsiComposePreviewElementInstance).let { element -> composePreviewFlowManager.setSingleFilter(element) }
         if (PreviewModeManager.areModesOfDifferentType(lastMode, it)) {
           lastMode?.let { last -> onExit(last) }
@@ -852,7 +852,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile, composePreviewViewProvider:
           isPreviewModeChanging.set(true)
           // A mode change requires recalculating zoom-to-fit, so the zoom notifier is reset.
           // However, a resize of the surface is not expected for all mode changes.
-          surface.zoomController.resetZoomToFitSettings(shouldWaitForResize = it.expectResizeOnEnter(lastMode, project), surface.size)
+          surface.zoomController.resetZoomToFitSettings(
+            shouldWaitForResize = it.expectResizeOnEnter(lastMode, project),
+            shouldWaitForLayoutCreated = shouldWaitForLayoutCreated,
+          )
           onEnter(it)
         } else {
           updateLayoutManager(it)
