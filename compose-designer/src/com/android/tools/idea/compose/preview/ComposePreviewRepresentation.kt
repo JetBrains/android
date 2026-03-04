@@ -1508,8 +1508,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile, composePreviewViewProvider:
         else {
           // If file had one Preview, on Entering Focus mode render will not be invoked,
           // so [onAfterRender] and [updateResizePanel] will not be invoked either, we need to do it
-          // manually
+          // manually.
           surface.sceneManagers.singleOrNull()?.let { updateResizePanel() }
+          // as [onAfterRender] would not be invoked we also need to apply zoom-to-fit manually.
+          withContext(Dispatchers.EDT) { surface.zoomController.zoomToFit() }
         }
       }
     }
