@@ -33,7 +33,6 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditLogger
 import com.android.tools.idea.run.deployment.liveedit.LiveEditNotifications
 import com.android.tools.idea.run.deployment.liveedit.LiveEditProjectMonitor
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
-import com.android.tools.idea.run.deployment.liveedit.SourceInlineCandidateCache
 import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup.Companion.getExecutorSetting
 import com.android.tools.idea.run.profiler.ProfilingMode
 import com.android.tools.idea.run.util.LaunchUtils
@@ -170,10 +169,6 @@ class LiveEditServiceImpl(val project: Project,
     })
   }
 
-  override fun inlineCandidateCache() : SourceInlineCandidateCache {
-    return deployMonitor.compiler.inlineCandidateCache
-  }
-
   companion object {
     private fun hasLiveEditSupportedDeviceConnected() = AndroidDebugBridge.getBridge()!!.devices.any { device ->
       LiveEditProjectMonitor.supportLiveEdits(device)
@@ -187,7 +182,7 @@ class LiveEditServiceImpl(val project: Project,
   }
 
   override fun devices(): Set<IDevice> {
-    return deployMonitor.devices()
+    return deployMonitor.liveEditDevices.devices()
   }
 
   override fun editStatus(device: IDevice): LiveEditStatus {

@@ -100,17 +100,12 @@ class EmbeddedCompilerClientImpl private constructor(
   override val isRunning: Boolean = true
 
   /**
-   * The Live Edit inline candidates cache. The cache can only be accessed with the Compile lock (see [runWithCompileLock]).
-   * The cache is automatically invalidated on build.
-   */
-  private val inlineCandidateCache = LiveEditService.getInstance(project).inlineCandidateCache()
-
-  /**
    * Compiles the given list of inputs. All inputs must belong to the same module.
    * The output will be generated in the given [outputDirectory] and progress will be updated in the given [ProgressIndicator].
    */
   @OptIn(KaExperimentalApi::class)
-  private suspend fun compileModuleKtFiles(applicationLiveEditServices: ApplicationLiveEditServices, moduleForAllInputs: Module, inputs: List<KtFile>, outputDirectory: Path) = withContext(AndroidDispatchers.workerThread) {
+  private suspend fun compileModuleKtFiles(applicationLiveEditServices: ApplicationLiveEditServices, moduleForAllInputs: Module, inputs: List<KtFile>, outputDirectory: Path) = withContext(
+    AndroidDispatchers.workerThread) {
     log.debug("compileModuleKtFiles($inputs, $outputDirectory)")
 
       readAction {

@@ -30,7 +30,7 @@ import com.android.tools.deployer.tasks.LiveUpdateDeployer
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.projectsystem.TestApplicationProjectContext
-import com.android.tools.idea.run.deployment.liveedit.LiveEditProjectMonitor.NUM_RECOMPOSITION_STATUS_POLLS_PER_EDIT
+import com.android.tools.idea.run.deployment.liveedit.LiveEditProjectMonitor.Companion.NUM_RECOMPOSITION_STATUS_POLLS_PER_EDIT
 import com.android.tools.idea.run.deployment.liveedit.analysis.createKtFile
 import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileIr
 import com.android.tools.idea.run.deployment.liveedit.tokens.FakeBuildSystemLiveEditServices

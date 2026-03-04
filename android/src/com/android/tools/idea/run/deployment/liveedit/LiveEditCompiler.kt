@@ -50,9 +50,6 @@ class LiveEditCompiler(val project: Project, private val irClassCache: IrClassCa
   private var applicationLiveEditServices: ApplicationLiveEditServices? = null
   private val LOGGER = LogWrapper(Logger.getInstance(LiveEditCompiler::class.java))
 
-  // Cache of fully-qualified class name to inlineable bytecode on disk or in memory
-  var inlineCandidateCache = SourceInlineCandidateCache()
-
   // Each Deployment would invoke resetState() to ensure we have a non-null desugarer.
   private var desugarer : LiveEditDesugar? = null
   private val logger = LiveEditLogger("LE Compiler")
@@ -102,7 +99,7 @@ class LiveEditCompiler(val project: Project, private val irClassCache: IrClassCa
           validatePsiDiff(input, file)
 
           LiveEditOutputBuilder(unrestricted).getGeneratedCode(applicationLiveEditServices!!, file, compilerOutput, irClassCache,
-                                                               inlineCandidateCache, outputBuilder)
+                                                                outputBuilder)
 
           val outputs = outputBuilder.build()
           logger.dumpCompilerOutputs(outputs.classes)
@@ -205,7 +202,6 @@ class LiveEditCompiler(val project: Project, private val irClassCache: IrClassCa
   }
 
   fun resetState(applicationLiveEditServices: ApplicationLiveEditServices) {
-    inlineCandidateCache.clear()
     this.applicationLiveEditServices = applicationLiveEditServices
     try {
       // Desugarer caches jar indexes and entries. It MUST be closed and recreated.

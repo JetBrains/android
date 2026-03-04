@@ -23,7 +23,6 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditAdbEventsListener
 import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
 import com.android.tools.idea.run.deployment.liveedit.LiveEditProjectMonitor
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
-import com.android.tools.idea.run.deployment.liveedit.SourceInlineCandidateCache
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.openapi.Disposable
@@ -96,8 +95,6 @@ interface LiveEditService : Disposable {
         ActionManager.getInstance().getAction(MANUAL_LIVE_EDIT_ACTION_ID)
           .shortcutSet.shortcuts.firstOrNull()?.let { KeymapUtil.getShortcutText(it) } ?: ""
   }
-
-  fun inlineCandidateCache(): SourceInlineCandidateCache
 
   // TODO: Refactor this away when AndroidLiveEditDeployMonitor functionality is moved to LiveEditService/other classes.
   @VisibleForTesting
