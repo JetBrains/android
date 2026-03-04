@@ -16,16 +16,13 @@
 package com.android.tools.asdriver.tests;
 
 import com.android.testutils.TestUtils;
+import com.android.tools.testlib.TestLogger;
 import com.android.utils.FileUtils;
-import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
+import com.intellij.openapi.util.SystemInfo;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Pattern;
 
 public class AndroidProject {
@@ -34,6 +31,7 @@ public class AndroidProject {
   private Path distribution;
   private Path targetProject;
   private final Path gradleProperties;
+  private boolean isInstalled = false;
 
   public AndroidProject(String path) {
     this.path = path;
@@ -56,10 +54,12 @@ public class AndroidProject {
   }
 
   public Path install(Path tempDir) throws IOException {
+    if (isInstalled) return targetProject;
     Path project = TestUtils.resolveWorkspacePath(this.path);
     targetProject = Files.createTempDirectory(tempDir, "project");
     FileUtils.copyDirectory(project.toFile(), targetProject.toFile());
     injectGradle();
+    isInstalled = true;
     return targetProject;
   }
 
@@ -69,12 +69,14 @@ public class AndroidProject {
    * project jdk location through gradle.xml file.
    */
   public Path installAtTmpDir(Path tmpDir) throws IOException {
+    if (isInstalled) return targetProject;
     Path project = TestUtils.getBinPath(this.path);
     targetProject = tmpDir.resolve(Paths.get(path).getFileName().toString());
     Files.createDirectories(targetProject);
     FileUtils.copyDirectory(project.toFile(), targetProject.toFile());
     setJdkDir(targetProject);
     injectGradle();
+    isInstalled = true;
     return targetProject;
   }
 
@@ -137,5 +139,20 @@ public class AndroidProject {
    */
   public void addGradleProperty(final String property) throws IOException {
     FileUtils.appendLine(gradleProperties, property);
+  }
+
+  public void stopGradleDaemon() throws IOException, InterruptedException {
+    Path gradleExecutablePath;
+    if (SystemInfo.isWindows) {
+      gradleExecutablePath = targetProject.resolve("gradlew.bat");
+    } else {
+      gradleExecutablePath = targetProject.resolve("gradlew");
+    }
+
+    ProcessBuilder processBuilder = new ProcessBuilder(gradleExecutablePath.toString(), "--stop");
+
+    Process process = processBuilder.start();
+    int exitCode = process.waitFor();
+    TestLogger.log("Gradle stop process exited with code: " + exitCode);
   }
 }

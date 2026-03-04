@@ -55,6 +55,7 @@ public class AndroidSystem implements AutoCloseable, TestRule {
   private final Display display;
   private final AndroidSdk sdk;
   private AndroidStudioInstallation install;
+  private AndroidProject project = null;
   // Currently running emulators
   private final List<Emulator> emulators;
   private int nextPort = 8554;
@@ -91,6 +92,7 @@ public class AndroidSystem implements AutoCloseable, TestRule {
             install.verify();
           }
         } finally {
+          if (project != null) project.stopGradleDaemon();
           AndroidSystem.this.close();
         }
       }
@@ -226,6 +228,7 @@ public class AndroidSystem implements AutoCloseable, TestRule {
   }
 
   public AndroidStudio runStudio(AndroidProject project) throws IOException, InterruptedException {
+    this.project = project;
     AndroidStudioInstallation install = getInstallation();
     if (useTmpDir) {
       return install.runIdeFromTmpDir(display, env, project);
@@ -264,6 +267,7 @@ public class AndroidSystem implements AutoCloseable, TestRule {
   }
 
   public AndroidStudio runStudioFromApk(AndroidProject project) throws IOException, InterruptedException {
+    this.project = project;
     AndroidStudioInstallation install = getInstallation();
     return install.run(display, env, project, sdk.getSourceDir());
   }
