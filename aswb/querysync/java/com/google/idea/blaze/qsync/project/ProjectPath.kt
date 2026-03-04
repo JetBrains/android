@@ -183,7 +183,7 @@ private fun Path.maybeExternalRepositoryName(externalRepositoryFinder: ProjectPa
   if (nameCount > 1 && startsWith(Path.of("external"))) {
     val name = getName(1).toString()
     if (externalRepositoryFinder.find(name) != null) {
-      return name to subpath(2, nameCount)
+      return name to (if (nameCount == 2) Path.of("") else subpath(2, nameCount))
     }
   }
   return null to this
