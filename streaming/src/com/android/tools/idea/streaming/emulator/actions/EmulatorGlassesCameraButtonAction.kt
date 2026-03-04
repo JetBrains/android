@@ -17,5 +17,6 @@ package com.android.tools.idea.streaming.emulator.actions
 
 import com.android.sdklib.deviceprovisioner.DeviceType
 
-/** Simulates pressing the Display button on an AI Glasses virtual device. */
-internal class EmulatorGlasses2ButtonAction : EmulatorPushButtonAction("Stem2", configFilter = { it.deviceType == DeviceType.AI_GLASSES })
+/** Simulates pressing the Camera button on an AI Glasses virtual device. */
+internal class EmulatorGlassesCameraButtonAction :
+  EmulatorPushButtonAction("Stem1", configFilter = { it.deviceType == DeviceType.AI_GLASSES })

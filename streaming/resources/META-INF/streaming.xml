@@ -118,17 +118,17 @@
         <keyboard-shortcut first-keystroke="meta shift L" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="meta shift L" keymap="Mac OS X 10.5+"/>
       </action>
-      <action id="android.emulator.glasses1.button" class="com.android.tools.idea.streaming.emulator.actions.EmulatorGlasses1ButtonAction"
-              icon="StudioIcons.Emulator.XR.GLASSES_CAMERA" text="Camera" description="Press the Camera button of the device">
-        <keyboard-shortcut first-keystroke="control shift 1" keymap="$default"/>
-        <keyboard-shortcut first-keystroke="meta shift 1" keymap="Mac OS X"/>
-        <keyboard-shortcut first-keystroke="meta shift 1" keymap="Mac OS X 10.5+"/>
-      </action>
-      <action id="android.emulator.glasses2.button" class="com.android.tools.idea.streaming.emulator.actions.EmulatorGlasses2ButtonAction"
+      <action id="android.emulator.glasses.display.button" class="com.android.tools.idea.streaming.emulator.actions.EmulatorGlassesDisplayButtonAction"
           icon="StudioIcons.Emulator.Toolbar.POWER" text="Display" description="Press the Display button of the device">
         <keyboard-shortcut first-keystroke="control shift 2" keymap="$default"/>
         <keyboard-shortcut first-keystroke="meta shift 2" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="meta shift 2" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.emulator.glasses.camera.button" class="com.android.tools.idea.streaming.emulator.actions.EmulatorGlassesCameraButtonAction"
+              icon="StudioIcons.Emulator.XR.GLASSES_CAMERA" text="Camera" description="Press the Camera button of the device">
+        <keyboard-shortcut first-keystroke="control shift 1" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift 1" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift 1" keymap="Mac OS X 10.5+"/>
       </action>
       <action id="android.device.back.button" class="com.android.tools.idea.streaming.actions.StreamingBackButtonAction"
               icon="StudioIcons.Emulator.Toolbar.BACK" text="Back" description="Press the Back button of the device">
@@ -326,6 +326,11 @@
       <reference ref="android.streaming.xr.passthrough"/>
     </group>
 
+    <group id="StreamingToolbarGlasses">
+      <reference ref="android.emulator.glasses.display.button"/>
+      <reference ref="android.emulator.glasses.camera.button"/>
+    </group>
+
     <group id="ContextMenuOnlyVirtualDevice">
       <reference ref="android.streaming.backup"/>
       <separator/>
@@ -360,8 +365,6 @@
       </group>
       <separator/>
       <reference ref="android.device.power.button"/>
-      <reference ref="android.emulator.glasses2.button"/>
-      <reference ref="android.emulator.glasses1.button"/>
       <reference ref="android.device.wear1.button"/>
       <reference ref="android.device.wear2.button"/>
       <reference ref="android.device.volume.up.button"/>
