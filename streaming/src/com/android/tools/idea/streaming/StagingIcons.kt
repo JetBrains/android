@@ -19,12 +19,12 @@ import com.intellij.ui.IconManager
 import javax.swing.Icon
 
 /**
- * NOTE THIS FILE IS AUTO-GENERATED
- * DO NOT EDIT IT BY HAND, run "generate_icons.sh" configuration instead
+ * NOTE THIS FILE IS AUTO-GENERATED.
+ * DO NOT EDIT IT BY HAND, run "tools/adt/idea/streaming/generate_icons.sh" to update.
  */
-object TemporaryIcons {
+object StagingIcons {
   private fun load(path: String, cacheKey: Int, flags: Int): Icon {
-    return IconManager.getInstance().loadRasterizedIcon(path, TemporaryIcons::class.java.classLoader, cacheKey, flags)
+    return IconManager.getInstance().loadRasterizedIcon(path, StagingIcons::class.java.classLoader, cacheKey, flags)
   }
 
   @JvmField

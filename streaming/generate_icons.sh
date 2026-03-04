@@ -7,16 +7,23 @@ readonly ADT_DIR="$(cd "${PROG_DIR}/.." && pwd)"
 ln -sf "${ADT_DIR}" "${IDEA_DIR}/android"
 
 export IntellijIconClassGeneratorConfig_MODULES="intellij.android.streaming"
+export OPTIMIZE_ICONS=false
+
+readonly CONFIG_FILE="${IDEA_DIR}/platform/build-scripts/icons/src/org/jetbrains/intellij/build/images/IntellijIconClassGeneratorConfig.kt"
+sed -i 's/it.name.startsWith("fleet")/it.name.startsWith("fleet") || (System.getenv("IntellijIconClassGeneratorConfig_MODULES") != null \&\& !System.getenv("IntellijIconClassGeneratorConfig_MODULES").split(",").contains(it.name))/' "$CONFIG_FILE"
+
+# Ensure we revert the IntelliJ config file even if the script fails
+trap "git -C \"${IDEA_DIR}\" checkout \"$CONFIG_FILE\"" EXIT
+
 "${IDEA_DIR}/platform/jps-bootstrap/jps-bootstrap.sh" "-Duser.dir=${IDEA_DIR}/android" "${IDEA_DIR}" intellij.platform.buildScripts.studioIcons org.jetbrains.intellij.build.images.GenerateIconClassesKt
 
 unlink "${IDEA_DIR}/android" || true
 
-# Extract icon definitions from the generated Java file and rewrite TemporaryIcons.kt
-readonly JAVA_FILE="${PROG_DIR}/src/com/android/tools/idea/streaming/TemporaryIcons.java"
-readonly KT_FILE="${PROG_DIR}/src/com/android/tools/idea/streaming/TemporaryIcons.kt"
+# Extract icon definitions from the generated Java file and rewrite StagingIcons.kt
+readonly JAVA_FILE="${PROG_DIR}/src/com/intellij/android/streaming/icons/AndroidStreamingIcons.java"
+readonly KT_FILE="${PROG_DIR}/src/com/android/tools/idea/streaming/StagingIcons.kt"
 
-if [ -f "$JAVA_FILE" ]; then
-    cat << 'EOF' > "$KT_FILE"
+cat << 'EOF' > "$KT_FILE"
 /*
  * Copyright (C) 2026 The Android Open Source Project
  *
@@ -38,15 +45,16 @@ import com.intellij.ui.IconManager
 import javax.swing.Icon
 
 /**
- * NOTE THIS FILE IS AUTO-GENERATED
- * DO NOT EDIT IT BY HAND, run "tools/adt/idea/streaming/generate_icons.sh" to update
+ * NOTE THIS FILE IS AUTO-GENERATED.
+ * DO NOT EDIT IT BY HAND, run "tools/adt/idea/streaming/generate_icons.sh" to update.
  */
-object TemporaryIcons {
+object StagingIcons {
   private fun load(path: String, cacheKey: Int, flags: Int): Icon {
-    return IconManager.getInstance().loadRasterizedIcon(path, TemporaryIcons::class.java.classLoader, cacheKey, flags)
+    return IconManager.getInstance().loadRasterizedIcon(path, StagingIcons::class.java.classLoader, cacheKey, flags)
   }
 EOF
 
+if [ -f "$JAVA_FILE" ]; then
     # Parse and convert lines like: public static final @NotNull Icon FitView = load("icons/fit-view.svg", -842529787, 0);
     # To:
     #   @JvmField
@@ -66,11 +74,9 @@ EOF
         echo "  val $kt_name: Icon = $load_expr" >> "$KT_FILE"
     done
 
-    echo "}" >> "$KT_FILE"
-
     # Clean up generated Java source
     rm -rf "${PROG_DIR}/src/com/intellij"
-
-    # Also clean up accidental platform changes
-    git -C "${ADT_DIR}/artwork" checkout gen/icons/StudioIcons.java gen/icons/StudioIllustrations.java || true
 fi
+
+echo "}" >> "$KT_FILE"
+
