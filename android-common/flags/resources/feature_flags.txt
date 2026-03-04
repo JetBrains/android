@@ -121,6 +121,7 @@ network.inspector.static.timeline=COMPLETE:2023
 npw.ai.glasses.template=PREVIEW
 npw.emptycalapp.template=PREVIEW
 npw.enable.version.catalog=COMPLETE:2023
+npw.gemini.firebase.template=PREVIEW
 npw.genai.template=COMPLETE:2024
 npw.navigationui.template=COMPLETE:2025
 npw.new.baseline.profiles.module=COMPLETE:2023
