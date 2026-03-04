@@ -15,27 +15,29 @@
  */
 package com.android.tools.idea.run.deployment.selector
 
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.RunnerAndConfigurationSettings
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
+import kotlin.collections.map
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.time.Clock
 import kotlin.time.Instant
-import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -63,7 +65,7 @@ internal constructor(
   private val clock: Clock,
   coroutineContext: CoroutineContext = EmptyCoroutineContext,
 ) : Disposable {
-  private val coroutineScope = AndroidCoroutineScope(this, coroutineContext)
+  private val coroutineScope = createCoroutineScope(coroutineContext)
 
   @Suppress("unused")
   private constructor(
@@ -77,33 +79,99 @@ internal constructor(
 
   override fun dispose() {}
 
-  /**
-   * Explicit updates to the selection by [setTargetSelectedWithComboBox] or [setTargetsSelectedWithDialog] are sent through this flow; the
-   * updates propagate through to the [devicesAndTargetsFlow].
-   */
-  private val selectionStateUpdateFlow =
-    MutableSharedFlow<SelectionState>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+  private val messageChannel = Channel<DeviceSelectionMessage>(4)
 
-  /** The current selection state can change either because the run configuration has changed, or because the user updated the selection. */
-  private val selectionStateFlow =
-    merge(runConfigurationFlow.map { selectedTargetStateService.getState(it?.configuration) }, selectionStateUpdateFlow)
-      .stateIn(coroutineScope, SharingStarted.Eagerly, SelectionState())
+  /**
+   * The core logic of this class: an actor flow which processes events serially, updates its internal state, and emits the resulting device
+   * and target selection. This flow emits additional internal state used only by [getTargetsSelectedWithDialog].
+   */
+  private val internalDevicesAndTargetsFlow: StateFlow<Pair<SelectionState, DevicesAndTargets>> =
+    flow {
+        var currentSelectionState = SelectionState()
+        var presentDevices: List<DeploymentTargetDevice> = emptyList()
+        var selectedTargets: List<DeploymentTarget> = emptyList()
+        for (message in messageChannel) {
+          when (message) {
+            is RunConfigUpdate -> {
+              if (message.runConfig != null) {
+                val savedSelectionState = selectedTargetStateService.getState(message.runConfig)
+                if (savedSelectionState.isEmpty()) {
+                  // This is a new run config with no saved selection. Assign the existing selection to the run config.
+                  currentSelectionState = currentSelectionState.copy(runConfigName = message.runConfig.name)
+                  selectedTargetStateService.updateState(currentSelectionState)
+                } else {
+                  currentSelectionState = savedSelectionState
+                }
+              }
+            }
+            is DeviceListUpdate -> {
+              presentDevices = message.devices.sortedWith(DeviceComparator)
+            }
+            is UserComboboxSelection -> {
+              currentSelectionState =
+                currentSelectionState.copy(
+                  selectionMode = SelectionMode.DROPDOWN,
+                  dropdownSelection = DropdownSelection(target = message.target.id, timestamp = clock.now()),
+                )
+              selectedTargetStateService.updateState(currentSelectionState)
+            }
+            is UserDialogSelection -> {
+              currentSelectionState =
+                currentSelectionState.copy(
+                  // Update the dialog selection, but if nothing is selected in the dialog, set the mode to
+                  // dropdown.
+                  dialogSelection = DialogSelection(targets = message.targets.map { it.id }),
+                  selectionMode = if (message.targets.isEmpty()) SelectionMode.DROPDOWN else SelectionMode.DIALOG,
+                )
+              selectedTargetStateService.updateState(currentSelectionState)
+            }
+          }
+
+          // Selection or devices updated; now resolve the selection against the present devices
+
+          if (currentSelectionState.selectionMode == SelectionMode.DIALOG) {
+            selectedTargets = currentSelectionState.dialogSelection.targets.mapNotNull { it.resolve(presentDevices) }
+            if (selectedTargets.isEmpty()) {
+              // When none of the selected devices are present, we switch the persisted selection from multiple to single selection.
+              // This is longstanding behavior, though questionable.
+              currentSelectionState = currentSelectionState.copy(selectionMode = SelectionMode.DROPDOWN)
+              selectedTargetStateService.updateState(currentSelectionState)
+            }
+          }
+          // We may have just changed the mode in the previous if statement
+          if (currentSelectionState.selectionMode == SelectionMode.DROPDOWN) {
+            selectedTargets =
+              listOfNotNull(
+                updateSingleSelection(
+                  presentDevices,
+                  currentSelectionState.dropdownSelection?.target,
+                  currentSelectionState.dropdownSelection?.timestamp,
+                )
+              )
+          }
+          emit(
+            Pair(
+              currentSelectionState,
+              DevicesAndTargets(presentDevices, currentSelectionState.selectionMode == SelectionMode.DIALOG, selectedTargets),
+            )
+          )
+        }
+      }
+      .stateIn(coroutineScope, SharingStarted.Eagerly, Pair(SelectionState(), DevicesAndTargets(emptyList(), false, emptyList())))
 
   /**
    * The primary output of this class, which is the result of combining the current set of devices and the persisted selection to determine
    * a set of selected targets.
    */
-  internal val devicesAndTargetsFlow =
-    devicesFlow
-      .combine(selectionStateFlow, ::updateState)
-      .stateIn(
-        coroutineScope,
-        // Note that nothing collects this flow at present, so it must be eager for it to be updated
-        SharingStarted.Eagerly,
-        DevicesAndTargets(emptyList(), false, emptyList()),
-      )
+  internal val devicesAndTargetsFlow: StateFlow<DevicesAndTargets> =
+    internalDevicesAndTargetsFlow
+      .map { it.second }
+      // Note that nothing collects this flow at present, so it must be eager for it to be updated
+      .stateIn(coroutineScope, SharingStarted.Eagerly, DevicesAndTargets(emptyList(), false, emptyList()))
 
   init {
+    coroutineScope.launch { runConfigurationFlow.collect { messageChannel.send(RunConfigUpdate(it?.configuration)) } }
+    coroutineScope.launch { devicesFlow.collect { messageChannel.send(DeviceListUpdate(it)) } }
     coroutineScope.launch {
       devicesAndTargetsFlow.map { it.selectedTargets }.distinctUntilChanged().collect { ActivityTracker.getInstance().inc() }
     }
@@ -111,39 +179,6 @@ internal constructor(
 
   internal val devicesAndTargets: DevicesAndTargets
     get() = devicesAndTargetsFlow.firstValue()
-
-  private fun updateSelectionState(selectionState: SelectionState) {
-    selectedTargetStateService.updateState(selectionState)
-    selectionStateUpdateFlow.tryEmit(selectionState)
-  }
-
-  private fun updateState(presentDevices: List<DeploymentTargetDevice>, selectionState: SelectionState): DevicesAndTargets {
-    val presentDevices = presentDevices.sortedWith(DeviceComparator)
-    val selectedTargets: List<DeploymentTarget>
-    when (selectionState.selectionMode) {
-      SelectionMode.DROPDOWN -> {
-        selectedTargets =
-          listOfNotNull(
-            updateSingleSelection(presentDevices, selectionState.dropdownSelection?.target, selectionState.dropdownSelection?.timestamp)
-          )
-      }
-      SelectionMode.DIALOG -> {
-        selectedTargets = selectionState.dialogSelection.targets.mapNotNull { it.resolve(presentDevices) }
-        if (selectedTargets.isEmpty()) {
-          // TODO: Here, without explicit user action, we switch the mode from multiple to single
-          // selection. Is this really what we want?
-          val dropdownState = selectionState.copy(selectionMode = SelectionMode.DROPDOWN)
-          // This doesn't take immediate effect, it has to come back around via the flows
-          updateSelectionState(dropdownState)
-        }
-      }
-    }
-    return DevicesAndTargets(
-      presentDevices.sortedWith(DeviceComparator),
-      selectionState.selectionMode == SelectionMode.DIALOG,
-      selectedTargets,
-    )
-  }
 
   /** Given that we are in single-device mode, with the given devices present, determine the device to select. */
   private fun updateSingleSelection(
@@ -168,29 +203,17 @@ internal constructor(
 
   fun getSelectedTargets(): List<DeploymentTarget> = devicesAndTargets.selectedTargets
 
-  fun setTargetSelectedWithComboBox(targetSelectedWithComboBox: DeploymentTarget?) {
-    updateSelectionState(
-      selectionStateFlow.value.copy(
-        selectionMode = SelectionMode.DROPDOWN,
-        dropdownSelection = targetSelectedWithComboBox?.let { DropdownSelection(target = it.id, timestamp = clock.now()) },
-      )
-    )
+  fun setTargetSelectedWithComboBox(targetSelectedWithComboBox: DeploymentTarget) {
+    messageChannel.trySendBlocking(UserComboboxSelection(targetSelectedWithComboBox))
   }
 
   fun getTargetsSelectedWithDialog(): List<DeploymentTarget> {
-    return selectionStateFlow.value.dialogSelection.targets.mapNotNull { it.resolve(devicesAndTargets.allDevices) }
+    return internalDevicesAndTargetsFlow.value.first.dialogSelection.targets.mapNotNull { it.resolve(devicesAndTargets.allDevices) }
   }
 
   /** Updates the currently-persisted selected device state with the new set of selected targets. */
   fun setTargetsSelectedWithDialog(targetsSelectedWithDialog: List<DeploymentTarget>) {
-    updateSelectionState(
-      selectionStateFlow.value.copy(
-        // Update the dialog selection, but if nothing is selected in the dialog, set the mode to
-        // dropdown.
-        dialogSelection = DialogSelection(targets = targetsSelectedWithDialog.map { it.id }),
-        selectionMode = if (targetsSelectedWithDialog.isEmpty()) SelectionMode.DROPDOWN else SelectionMode.DIALOG,
-      )
-    )
+    messageChannel.trySendBlocking(UserDialogSelection(targetsSelectedWithDialog))
   }
 
   companion object {
@@ -200,6 +223,8 @@ internal constructor(
     }
   }
 }
+
+private fun SelectionState.isEmpty() = dropdownSelection == null && dialogSelection.targets.isEmpty()
 
 internal data class DevicesAndTargets(
   val allDevices: List<DeploymentTargetDevice>,
@@ -231,3 +256,13 @@ internal fun TargetId.resolve(devices: List<DeploymentTargetDevice>): Deployment
         }
   return device?.let { DeploymentTarget(it, bootOption) }
 }
+
+private sealed class DeviceSelectionMessage
+
+private class RunConfigUpdate(val runConfig: RunConfiguration?) : DeviceSelectionMessage()
+
+private class DeviceListUpdate(val devices: List<DeploymentTargetDevice>) : DeviceSelectionMessage()
+
+private class UserComboboxSelection(val target: DeploymentTarget) : DeviceSelectionMessage()
+
+private class UserDialogSelection(val targets: List<DeploymentTarget>) : DeviceSelectionMessage()
