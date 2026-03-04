@@ -17,6 +17,7 @@ package com.android.tools.idea.adb.wireless.provisioner
 
 import com.android.adblib.AdbFeatures.TRACK_MDNS_SERVICE
 import com.android.adblib.ConnectedDevice
+import com.android.adblib.MdnsServices
 import com.android.adblib.MdnsTlsService
 import com.android.adblib.MdnsTrackServiceInfo
 import com.android.adblib.serialNumber
@@ -40,10 +41,12 @@ import com.android.sdklib.deviceprovisioner.PhysicalDeviceProvisionerPlugin
 import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.sdklib.deviceprovisioner.awaitDisconnection
 import com.android.sdklib.devices.Abi
+import com.android.tools.idea.adb.AdbServerStatusRetriever
 import com.android.tools.idea.adb.wireless.AdbServiceWrapper
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService
 import com.android.tools.idea.adb.wireless.TrackingMdnsService
 import com.android.tools.idea.adb.wireless.WiFiPairingNotificationService
+import com.android.tools.idea.adb.wireless.isAdbVersionTooLow
 import com.android.tools.idea.adb.wireless.needsUpdate
 import com.android.tools.idea.adb.wireless.showDeviceHiddenBalloon
 import com.android.tools.idea.adb.wireless.v2.ui.WifiPairableDevicesPersistentStateComponent
@@ -59,6 +62,7 @@ import javax.swing.Icon
 import kotlin.collections.plus
 import kotlin.collections.toSet
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -69,6 +73,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.flow.update
@@ -118,21 +124,26 @@ class WifiPairableDeviceProvisionerPlugin(
 
   init {
     scope.launch {
-      // TODO(b/412571872) investigate IllegalStateException(ADB has not been initialized for this
-      // project)
-      delay(5000)
-      if (!adbService.getHostFeatures().contains(TRACK_MDNS_SERVICE)) {
-        return@launch
-      }
       val mdnsTrackServicesFlow: Flow<Set<MdnsTlsService>> =
-        adbService
-          .trackMdnsServices()
+        AdbServerStatusRetriever.getInstance(project)
+          .serverStatus
+          .flatMapLatest { serverStatus ->
+            if (serverStatus == null) {
+              return@flatMapLatest flowOf(MdnsServices(emptyList(), emptyList(), emptyList()))
+            }
+            if (!adbService.getHostFeatures().contains(TRACK_MDNS_SERVICE) || isAdbVersionTooLow(serverStatus.version)) {
+              return@flatMapLatest flowOf(MdnsServices(emptyList(), emptyList(), emptyList()))
+            }
+            adbService.trackMdnsServices()
+          }
           .retryWhen { throwable, attempt ->
             if (throwable is CancellationException) {
               false
             } else {
-              log.warn("Error tracking mDNS services (attempt ${attempt + 1}), retrying in 1000 ms", throwable)
-              delay(1000)
+              val delaySeconds = (1 shl attempt.toInt().coerceAtMost(5)).seconds
+              // Resulting delay is 1s, 2s, 4s, 8s, 16s, 32s, 32s...
+              delay(delaySeconds)
+              log.warn("Error tracking mDNS services (attempt ${attempt + 1}), retrying in $delaySeconds seconds", throwable)
               true
             }
           }

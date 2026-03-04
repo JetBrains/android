@@ -43,6 +43,7 @@ class AdbServerStatusRetriever(project: Project) {
     adbSession.scope.launch {
       adbSession.connectionStatusTracker.connectionStatus.collect { connectionStatus ->
         if (!connectionStatus.isConnected) {
+          _serverStatus.value = null
           return@collect
         }
         runCatching {
@@ -55,6 +56,7 @@ class AdbServerStatusRetriever(project: Project) {
             }
           }
           .onFailure { e ->
+            _serverStatus.value = null
             if (e !is CancellationException) {
               logger.warn("Cannot retrieve `AdbServerStatus` due to a problem with adb server", e)
             }

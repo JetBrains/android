@@ -62,6 +62,7 @@ import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService
 import com.android.tools.idea.adb.wireless.TrackingMdnsService
 import com.android.tools.idea.adb.wireless.Urls
 import com.android.tools.idea.adb.wireless.WiFiPairingService
+import com.android.tools.idea.adb.wireless.isAdbVersionTooLow
 import com.android.tools.idea.adb.wireless.needsUpdate
 import com.android.tools.idea.adddevicedialog.EmptyStatePanel
 import com.android.tools.idea.adddevicedialog.SearchBar
@@ -122,6 +123,11 @@ class WifiAvailableDevicesDialog(private val project: Project, private val wifiP
           return@produceState
         }
         if (!wifiPairingService.isTrackMdnsServiceAvailable()) {
+          value = MdnsSupportState.AdbVersionTooLow
+          return@produceState
+        }
+        val adbVersion = wifiPairingService.getAdbVersion()
+        if (isAdbVersionTooLow(adbVersion)) {
           value = MdnsSupportState.AdbVersionTooLow
           return@produceState
         }

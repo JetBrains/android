@@ -18,6 +18,7 @@ package com.android.tools.idea.adb.wireless
 import com.android.adblib.MdnsServices
 import com.android.adblib.MdnsTrackServiceInfo
 import com.android.annotations.concurrency.AnyThread
+import com.android.repository.Revision
 import com.google.common.util.concurrent.ListenableFuture
 import java.awt.Color
 import java.awt.image.BufferedImage
@@ -158,4 +159,10 @@ enum class MdnsSupportState {
 
   /** ADB server MDNS is disabled */
   AdbDisabled,
+}
+
+// ADB version 37.0.0 or higher is required for reliable ADB Wi-Fi v2 improvements.
+fun isAdbVersionTooLow(adbVersion: String): Boolean {
+  val version = Revision.safeParseRevision(adbVersion.substringBefore('-'))
+  return version < Revision(37, 0, 0)
 }

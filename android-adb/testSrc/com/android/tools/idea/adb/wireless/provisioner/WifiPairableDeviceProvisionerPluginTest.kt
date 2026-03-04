@@ -25,6 +25,7 @@ import com.android.adblib.MdnsTlsService
 import com.android.adblib.MdnsTrackServiceInfo
 import com.android.adblib.ServerStatus
 import com.android.adblib.ServiceInstanceName
+import com.android.tools.idea.adb.AdbServerStatusRetriever
 import com.android.tools.idea.adb.wireless.AdbCommandResult
 import com.android.tools.idea.adb.wireless.AdbOnlineDevice
 import com.android.tools.idea.adb.wireless.AdbServiceWrapper
@@ -79,6 +80,8 @@ class WifiPairableDeviceProvisionerPluginTest {
   private val pairDevicesService = mock<PairDevicesUsingWiFiService>()
   private lateinit var notificationService: MockWiFiPairingNotificationService
   private val mockPersistentService = mock<WifiPairableDevicesPersistentStateComponent>()
+  private val mockAdbServerStatusRetriever = mock<AdbServerStatusRetriever>()
+  private val serverStatusFlow = MutableStateFlow<ServerStatus?>(ServerStatus(version = "37.0.0"))
 
   private val projectRule = ProjectRule()
   val project: Project
@@ -93,6 +96,7 @@ class WifiPairableDeviceProvisionerPluginTest {
       projectRule,
       ApplicationServiceRule(WifiPairableDevicesPersistentStateComponent::class.java, mockPersistentService),
       ProjectServiceRule(projectRule, PairDevicesUsingWiFiService::class.java, pairDevicesService),
+      ProjectServiceRule(projectRule, AdbServerStatusRetriever::class.java, mockAdbServerStatusRetriever),
     )
 
   private val mdnsFlow = MutableStateFlow(MdnsServices(emptyList(), emptyList(), emptyList()))
@@ -108,6 +112,7 @@ class WifiPairableDeviceProvisionerPluginTest {
     adbService.setMdnsTrackServicesFlow(mdnsFlow)
     adbService.setHostFeatures(listOf(AdbFeatures.TRACK_MDNS_SERVICE))
     doReturn(MutableStateFlow(emptySet<String>())).whenever(mockPersistentService).hiddenDevices
+    whenever(mockAdbServerStatusRetriever.serverStatus).thenReturn(serverStatusFlow)
   }
 
   @Test
@@ -118,6 +123,31 @@ class WifiPairableDeviceProvisionerPluginTest {
     advanceTimeBy(6000) // Past initial delay
 
     assertThat(plugin.devices.value).isEmpty()
+  }
+
+  @Test
+  fun pluginDoesNothing_whenAdbVersionTooLow() = runTest {
+    serverStatusFlow.value = ServerStatus(version = "36.0.0")
+    mdnsFlow.value = createMdnsTlsService("service1")
+    val plugin = WifiPairableDeviceProvisionerPlugin(backgroundScope, adbService, project, notificationService)
+    advanceTimeBy(6000) // Past initial delay
+
+    assertThat(plugin.devices.value).isEmpty()
+  }
+
+  @Test
+  fun pluginStartsTracking_whenAdbIsUpdated() = runTest {
+    serverStatusFlow.value = ServerStatus(version = "36.0.0")
+    mdnsFlow.value = createMdnsTlsService("service1")
+    val plugin = WifiPairableDeviceProvisionerPlugin(backgroundScope, adbService, project, notificationService)
+    advanceTimeBy(6000) // Past initial delay
+
+    assertThat(plugin.devices.value).isEmpty()
+
+    serverStatusFlow.value = ServerStatus(version = "37.0.0")
+    advanceTimeBy(1000) // Past loop delay
+
+    assertThat(plugin.devices.value).hasSize(1)
   }
 
   @Test
@@ -370,10 +400,11 @@ class WifiPairableDeviceProvisionerPluginTest {
   }
 
   @Test
-  fun mdnsTracking_retriesOnError() = runTest {
+  fun mdnsTracking_retriesWithExponentialBackoff() = runTest {
     var attempt = 0
     val failingFlow = flow {
-      if (attempt++ == 0) {
+      attempt++
+      if (attempt <= 2) {
         throw IOException("ADB connection failed")
       } else {
         emit(createMdnsTlsService("service1"))
@@ -381,14 +412,18 @@ class WifiPairableDeviceProvisionerPluginTest {
     }
     adbService.setMdnsTrackServicesFlow(failingFlow)
     val plugin = WifiPairableDeviceProvisionerPlugin(backgroundScope, adbService, project, notificationService)
-    advanceTimeBy(5500) // Initial delay
 
     assertThat(plugin.devices.value).isEmpty()
 
-    advanceTimeBy(1100) // Retry delay
+    // First retry delay: 1000ms
+    advanceTimeBy(1001)
+    assertThat(plugin.devices.value).isEmpty()
+
+    // Second retry delay: 2000ms
+    advanceTimeBy(2001)
 
     assertThat(plugin.devices.value).hasSize(1)
-    assertThat(attempt).isEqualTo(2)
+    assertThat(attempt).isEqualTo(3)
   }
 
   @Test
