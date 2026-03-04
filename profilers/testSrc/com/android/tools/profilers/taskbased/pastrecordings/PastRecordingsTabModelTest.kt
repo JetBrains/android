@@ -20,6 +20,7 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Trace
+import com.android.tools.profiler.proto.Trace.TraceMode
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.SessionArtifactUtils
@@ -30,7 +31,7 @@ import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.LiveTaskHandler
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -47,216 +48,212 @@ class PastRecordingsTabModelTest {
   private lateinit var ideProfilerServices: FakeIdeProfilerServices
   private lateinit var pastRecordingsTabModel: PastRecordingsTabModel
 
+  private val session = Common.Session.getDefaultInstance()
+
   @Before
   fun setup() {
     ideProfilerServices = FakeIdeProfilerServices()
     myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideProfilerServices, myTimer)
     myManager = myProfilers.sessionsManager
     pastRecordingsTabModel = PastRecordingsTabModel(myProfilers)
-    val taskHandlers = ProfilerTaskHandlerFactory.createTaskHandlers(myManager)
-    taskHandlers.forEach { (type, handler) -> myProfilers.addTaskHandler(type, handler) }
+    setupTaskHandlers(myProfilers)
     ideProfilerServices.enableTaskBasedUx(true)
+  }
+
+  private fun setupTaskHandlers(profilers: StudioProfilers) {
+    val taskHandlers = ProfilerTaskHandlerFactory.createTaskHandlers(profilers.sessionsManager)
+    taskHandlers.forEach { (type, handler) -> profilers.addTaskHandler(type, handler) }
+  }
+
+  private fun createGenericSessionItem(profilers: StudioProfilers): com.android.tools.profilers.sessions.SessionItem {
+    val artifact = SessionArtifactUtils.createCpuCaptureSessionArtifact(profilers, session, 1L, 1L)
+    return SessionArtifactUtils.createSessionItem(profilers, session, 1L, listOf(artifact))
+  }
+
+  private fun createSystemTraceSessionItem(profilers: StudioProfilers): com.android.tools.profilers.sessions.SessionItem {
+    val perfettoConfig = Trace.TraceConfiguration.newBuilder().setPerfettoOptions(TraceConfig.getDefaultInstance()).build()
+    val artifact = SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(profilers, session, 1L, 1L, perfettoConfig)
+    return SessionArtifactUtils.createSessionItem(profilers, session, 1L, ProfilerTaskType.SYSTEM_TRACE, listOf(artifact))
+  }
+
+  private fun createArtTraceSessionItem(profilers: StudioProfilers): com.android.tools.profilers.sessions.SessionItem {
+    val artConfig =
+      Trace.TraceConfiguration.newBuilder()
+        .setArtOptions(Trace.ArtOptions.newBuilder().setTraceMode(TraceMode.INSTRUMENTED).build())
+        .build()
+    val artifact = SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(profilers, session, 1L, 1L, artConfig)
+    return SessionArtifactUtils.createSessionItem(profilers, session, 1L, ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING, listOf(artifact))
+  }
+
+  /** Creates a test profiler instance to intercept methods and allows setting a specific current task handler. */
+  private fun createTestProfilers(onOpenTaskTab: () -> Unit = {}, currentTaskHandlerType: ProfilerTaskType? = null): StudioProfilers {
+    val profilers =
+      object : StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideProfilerServices, myTimer) {
+        override fun openTaskTab() {
+          onOpenTaskTab()
+        }
+
+        override fun getCurrentTaskHandler(): ProfilerTaskHandler? {
+          return currentTaskHandlerType?.let { taskHandlers[it] }
+        }
+      }
+    setupTaskHandlers(profilers)
+    return profilers
   }
 
   @Test
   fun `test retrieval of most recent task type selection`() {
     pastRecordingsTabModel.taskGridModel.onTaskSelection(ProfilerTaskType.SYSTEM_TRACE)
-    Truth.assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.SYSTEM_TRACE)
+    assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.SYSTEM_TRACE)
   }
 
   @Test
   fun `test retrieval of most recent recording selection`() {
-    val session = Common.Session.getDefaultInstance()
-    val systemTraceArtifact = SessionArtifactUtils.createCpuCaptureSessionArtifact(myProfilers, session, 1L, 1L)
-    val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, 1L, listOf(systemTraceArtifact))
+    val sessionItem = createSystemTraceSessionItem(myProfilers)
     pastRecordingsTabModel.recordingListModel.onRecordingSelection(sessionItem)
-    Truth.assertThat(pastRecordingsTabModel.selectedRecording).isEqualTo(sessionItem)
+    assertThat(pastRecordingsTabModel.selectedRecording).isEqualTo(sessionItem)
   }
 
   @Test
   fun `test onEnterTaskButtonClick when session has no artifacts`() {
-    val session = Common.Session.getDefaultInstance()
     val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, 1L, listOf())
     pastRecordingsTabModel.recordingListModel.onRecordingSelection(sessionItem)
-    Truth.assertThat(pastRecordingsTabModel.selectedRecording).isEqualTo(sessionItem)
+    assertThat(pastRecordingsTabModel.selectedRecording).isEqualTo(sessionItem)
+
     setCurrentTaskHandler(ProfilerTaskType.SYSTEM_TRACE)
     pastRecordingsTabModel.onEnterTaskButtonClick()
-    Truth.assertThat(myProfilers.sessionsManager.selectedSession).isEqualTo(session)
+    assertThat(myManager.selectedSession).isEqualTo(session)
   }
 
   @Test
   fun `test onEnterTaskButtonClick when session has artifacts`() {
-    val session = Common.Session.getDefaultInstance()
-    val systemTraceArtifact = SessionArtifactUtils.createCpuCaptureSessionArtifact(myProfilers, session, 1L, 1L)
-    val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, 1L, listOf(systemTraceArtifact))
+    val sessionItem = createSystemTraceSessionItem(myProfilers)
     pastRecordingsTabModel.recordingListModel.onRecordingSelection(sessionItem)
-    Truth.assertThat(pastRecordingsTabModel.selectedRecording).isEqualTo(sessionItem)
+    assertThat(pastRecordingsTabModel.selectedRecording).isEqualTo(sessionItem)
+
     setCurrentTaskHandler(ProfilerTaskType.SYSTEM_TRACE)
     pastRecordingsTabModel.onEnterTaskButtonClick()
-    Truth.assertThat(myProfilers.sessionsManager.selectedSession).isEqualTo(systemTraceArtifact.session)
+    assertThat(myManager.selectedSession).isEqualTo(sessionItem.getChildArtifacts().first().session)
   }
 
   @Test
   fun `test task type selection resets after recording selection`() {
     pastRecordingsTabModel.taskGridModel.onTaskSelection(ProfilerTaskType.SYSTEM_TRACE)
-    Truth.assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.SYSTEM_TRACE)
+    assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.SYSTEM_TRACE)
 
-    val session = Common.Session.getDefaultInstance()
-    val systemTraceArtifact = SessionArtifactUtils.createCpuCaptureSessionArtifact(myProfilers, session, 1L, 1L)
-    val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, 1L, listOf(systemTraceArtifact))
-    pastRecordingsTabModel.recordingListModel.onRecordingSelection(sessionItem)
-
-    Truth.assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.UNSPECIFIED)
+    pastRecordingsTabModel.recordingListModel.onRecordingSelection(createGenericSessionItem(myProfilers))
+    assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.UNSPECIFIED)
   }
 
   @Test
   fun `test task is auto-selected if it is the only supported task for a selected recording`() {
-    // Reset task selection for testing purposes.
     pastRecordingsTabModel.taskGridModel.onTaskSelection(ProfilerTaskType.UNSPECIFIED)
-    Truth.assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.UNSPECIFIED)
-    val session = Common.Session.getDefaultInstance()
-    val perfettoConfig = Trace.TraceConfiguration.newBuilder().setPerfettoOptions(TraceConfig.getDefaultInstance()).build()
-    val systemTraceArtifact = SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers, session, 1L, 1L, perfettoConfig)
-    val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, 1L, listOf(systemTraceArtifact))
-    pastRecordingsTabModel.recordingListModel.onRecordingSelection(sessionItem)
+    pastRecordingsTabModel.recordingListModel.onRecordingSelection(createSystemTraceSessionItem(myProfilers))
     // System trace recordings have only one supported task, and thus the task gets auto-selected on recording selection.
-    Truth.assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.SYSTEM_TRACE)
+    assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.SYSTEM_TRACE)
   }
 
   @Test
   fun `test task type and recording selection resets after recording deletion`() {
     pastRecordingsTabModel.taskGridModel.onTaskSelection(ProfilerTaskType.LIVE_VIEW)
-    Truth.assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.LIVE_VIEW)
-
     myProfilers.addTaskHandler(ProfilerTaskType.LIVE_VIEW, LiveTaskHandler(myManager))
     SessionArtifactUtils.generateLiveTaskRecording(myManager, myTransportService)
+
     val recordingListModel = pastRecordingsTabModel.recordingListModel
-    // Select the recording.
     val recording = recordingListModel.recordingList.value.first()
     recordingListModel.onRecordingSelection(recording)
-    Truth.assertThat(recordingListModel.selectedRecording.value).isEqualTo(recording)
+    assertThat(recordingListModel.selectedRecording.value).isEqualTo(recording)
 
-    // Perform deletion of selected recording.
     recordingListModel.doDeleteSelectedRecording()
 
-    // Make sure task type and recording selection have been reset.
-    Truth.assertThat(recordingListModel.selectedRecording.value).isEqualTo(null)
-    Truth.assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.UNSPECIFIED)
+    assertThat(recordingListModel.selectedRecording.value).isNull()
+    assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.UNSPECIFIED)
   }
 
   @Test
   fun `test onEnterTaskButtonClick calls openTaskTab only when unified preview is disabled`() {
-    // 1. Create a specific Profilers instance to intercept methods.
-    var openTaskTabCalled: Boolean
-    val testProfilers =
-      object : StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideProfilerServices, myTimer) {
-        override fun openTaskTab() {
-          openTaskTabCalled = true
-        }
-
-        // Override this to prevent the AssertionError in the base class when logic falls through.
-        // Returning null simulates no active task handler, prompting the code to try entering the task (doEnterTaskButton),
-        // which is fine for this test as we only care about openTaskTab NOT being called.
-        override fun getCurrentTaskHandler(): ProfilerTaskHandler? {
-          return null
-        }
-      }
-
-    // 2. Initialize task handlers for the test profiler
-    val taskHandlers = ProfilerTaskHandlerFactory.createTaskHandlers(testProfilers.sessionsManager)
-    taskHandlers.forEach { (type, handler) -> testProfilers.addTaskHandler(type, handler) }
-
-    // 3. Create a model instance using the test profiler
+    var openTaskTabCalled = false
+    val testProfilers = createTestProfilers(onOpenTaskTab = { openTaskTabCalled = true })
     val testModel = PastRecordingsTabModel(testProfilers)
 
-    // 4. Create a session and an artifact
-    // We use default session to avoid assertion errors in SessionsManager.setSessionInternal because we don't register the session
-    // properly.
-    val session = Common.Session.getDefaultInstance()
-    val perfettoConfig = Trace.TraceConfiguration.newBuilder().setPerfettoOptions(TraceConfig.getDefaultInstance()).build()
-    val systemTraceArtifact = SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(testProfilers, session, 1L, 1L, perfettoConfig)
-    val sessionItem =
-      SessionArtifactUtils.createSessionItem(testProfilers, session, 1L, ProfilerTaskType.SYSTEM_TRACE, listOf(systemTraceArtifact))
+    testModel.recordingListModel.onRecordingSelection(createSystemTraceSessionItem(testProfilers))
 
-    // 5. Select the recording in the list
-    testModel.recordingListModel.onRecordingSelection(sessionItem)
-
-    // 6. Perform the first click to enter the task.
-    // This sets the active session in the manager to match the selected recording's session.
+    // Perform the first click to enter the task.
     testModel.onEnterTaskButtonClick()
-    Truth.assertThat(testProfilers.session).isEqualTo(session)
-
-    // Reset the flag for the actual checks
-    openTaskTabCalled = false
+    assertThat(testProfilers.session).isEqualTo(session)
 
     // Case 1: Unified Preview is DISABLED
-    // When the session is already active, clicking enter should just open the existing tab.
+    openTaskTabCalled = false
     ideProfilerServices.enableSystemTraceInEditor(false)
     testModel.onEnterTaskButtonClick()
-    Truth.assertThat(openTaskTabCalled).isTrue()
+    assertThat(openTaskTabCalled).isTrue()
 
     // Case 2: Unified Preview is ENABLED
-    // Even if the session is already active, we should NOT open the tab (it falls through to other logic).
     openTaskTabCalled = false
     ideProfilerServices.enableSystemTraceInEditor(true)
-
-    // This call should now proceed without crashing due to the getCurrentTaskHandler override.
     testModel.onEnterTaskButtonClick()
-
-    // Verify openTaskTab was NOT called.
-    Truth.assertThat(openTaskTabCalled).isFalse()
+    assertThat(openTaskTabCalled).isFalse()
   }
 
   @Test
   fun `test onEnterTaskButtonClick bypasses current task checks when system trace in editor enabled`() {
-    // 1. Create a specific Profilers instance to intercept methods.
     var openTaskTabCalled = false
+    // Simulate an active task tab of a different type
     val testProfilers =
-      object : StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideProfilerServices, myTimer) {
-        override fun openTaskTab() {
-          openTaskTabCalled = true
-        }
-
-        override fun getCurrentTaskHandler(): ProfilerTaskHandler? {
-          // Returning a non-null handler simulates an active task tab.
-          // This would normally prompt the user to close the currently open task.
-          return ProfilerTaskHandlerFactory.createTaskHandlers(sessionsManager)[ProfilerTaskType.CALLSTACK_SAMPLE]
-        }
-      }
-
-    // 2. Initialize task handlers for the test profiler
-    val taskHandlers = ProfilerTaskHandlerFactory.createTaskHandlers(testProfilers.sessionsManager)
-    taskHandlers.forEach { (type, handler) -> testProfilers.addTaskHandler(type, handler) }
-
-    // 3. Create a model instance using the test profiler
+      createTestProfilers(onOpenTaskTab = { openTaskTabCalled = true }, currentTaskHandlerType = ProfilerTaskType.CALLSTACK_SAMPLE)
     val testModel = PastRecordingsTabModel(testProfilers)
 
-    // 4. Create a session and an artifact
-    val session = Common.Session.getDefaultInstance()
-    val perfettoConfig = Trace.TraceConfiguration.newBuilder().setPerfettoOptions(TraceConfig.getDefaultInstance()).build()
-    val systemTraceArtifact = SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(testProfilers, session, 1L, 1L, perfettoConfig)
-    val sessionItem =
-      SessionArtifactUtils.createSessionItem(testProfilers, session, 1L, ProfilerTaskType.SYSTEM_TRACE, listOf(systemTraceArtifact))
-
-    // 5. Select the recording in the list
-    testModel.recordingListModel.onRecordingSelection(sessionItem)
-
-    // Enable unified preview
+    testModel.recordingListModel.onRecordingSelection(createSystemTraceSessionItem(testProfilers))
     ideProfilerServices.enableSystemTraceInEditor(true)
 
-    // Because the unified preview is enabled and we are opening a system trace task, it should bypass the current task checks
-    // and directly call doEnterTaskButton (which sets the session).
-    // It should not throw any assertion error or show the prompt to close the current task.
     testModel.onEnterTaskButtonClick()
 
-    // Verify openTaskTab was NOT called.
-    Truth.assertThat(openTaskTabCalled).isFalse()
+    assertThat(openTaskTabCalled).isFalse()
+    assertThat(testProfilers.session).isEqualTo(session)
+  }
 
-    // Verify doEnterTaskButton was executed by checking the session.
-    Truth.assertThat(testProfilers.session).isEqualTo(session)
+  @Test
+  fun `test onEnterTaskButtonClick calls openTaskTab only when ART trace in editor is disabled`() {
+    var openTaskTabCalled = false
+    val testProfilers = createTestProfilers(onOpenTaskTab = { openTaskTabCalled = true })
+    val testModel = PastRecordingsTabModel(testProfilers)
+
+    testModel.recordingListModel.onRecordingSelection(createArtTraceSessionItem(testProfilers))
+
+    // First click to enter the task.
+    testModel.onEnterTaskButtonClick()
+    assertThat(testProfilers.session).isEqualTo(session)
+
+    // Case 1: ART Trace in Editor is DISABLED
+    openTaskTabCalled = false
+    ideProfilerServices.enableMethodTraceInEditor(false)
+    testModel.onEnterTaskButtonClick()
+    assertThat(openTaskTabCalled).isTrue()
+
+    // Case 2: ART Trace in Editor is ENABLED
+    openTaskTabCalled = false
+    ideProfilerServices.enableMethodTraceInEditor(true)
+    testModel.onEnterTaskButtonClick()
+    assertThat(openTaskTabCalled).isFalse()
+  }
+
+  @Test
+  fun `test onEnterTaskButtonClick bypasses current task checks when ART trace in editor enabled`() {
+    var openTaskTabCalled = false
+    val testProfilers =
+      createTestProfilers(onOpenTaskTab = { openTaskTabCalled = true }, currentTaskHandlerType = ProfilerTaskType.SYSTEM_TRACE)
+    val testModel = PastRecordingsTabModel(testProfilers)
+
+    testModel.recordingListModel.onRecordingSelection(createArtTraceSessionItem(testProfilers))
+    ideProfilerServices.enableMethodTraceInEditor(true)
+
+    testModel.onEnterTaskButtonClick()
+
+    assertThat(openTaskTabCalled).isFalse()
+    assertThat(testProfilers.session).isEqualTo(session)
   }
 
   private fun setCurrentTaskHandler(taskType: ProfilerTaskType) {
-    myProfilers.setCurrentTaskHandlerFetcher { myProfilers.taskHandlers.toList().first { it.first == taskType }.second }
+    myProfilers.setCurrentTaskHandlerFetcher { myProfilers.taskHandlers[taskType] }
   }
 }

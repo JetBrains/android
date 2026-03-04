@@ -227,19 +227,12 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<Trace.TraceInf
                                             @NotNull Common.Session session,
                                             @NotNull Common.SessionMetaData sessionMetaData) {
     ProfilingConfiguration.TraceType type = ProfilingConfiguration.TraceType.from(info.getConfiguration());
-    boolean isSystemTrace = (type == ProfilingConfiguration.TraceType.ATRACE ||
-                             type == ProfilingConfiguration.TraceType.PERFETTO);
+    boolean isEditorEnabled = ProfilerInEditorUtils.isEditorEnabled(ideServices.getFeatureConfig(), type.toTaskType());
 
-    if (!isSystemTrace) {
-      return false;
-    }
-
-    // Check if the system trace editor feature is enabled.
-    boolean isSystemTraceEditorEnabled = ideServices.getFeatureConfig().isSystemTraceInEditorEnabled();
-    // To avoid duplicates in the 'Past Recordings' list, skip system trace artifacts in
+    // To avoid duplicates in the 'Past Recordings' list, skip artifacts in
     //  FULL sessions, as they are automatically handled by the import process:
     // We must NOT filter artifacts from Imported FULL sessions (e.g. from .asdb), otherwise they would be hidden.
-    return isSystemTraceEditorEnabled &&
+    return isEditorEnabled &&
            sessionMetaData.getType() == Common.SessionMetaData.SessionType.FULL &&
            !SessionsManager.isSessionImported(session);
   }

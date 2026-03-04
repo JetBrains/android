@@ -16,6 +16,7 @@
 package com.android.tools.profilers.taskbased
 
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.cpu.ProfilerInEditorUtils
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 import com.android.tools.profilers.taskbased.pastrecordings.PastRecordingsTabModel
 import com.android.tools.profilers.taskbased.task.TaskGridModel
@@ -41,12 +42,16 @@ abstract class TaskEntranceTabModel(val profilers: StudioProfilers) {
   open fun onEnterTaskButtonClick() {
     val isTaskOngoing = profilers.sessionsManager.isSessionAlive
 
-    val isSystemTraceTask =
+    val selectedTaskTypeForEditor =
       when (this) {
-        is PastRecordingsTabModel -> selectedRecording?.getTaskType() == ProfilerTaskType.SYSTEM_TRACE
-        is TaskHomeTabModel -> selectedTaskType == ProfilerTaskType.SYSTEM_TRACE
-        else -> false
+        is PastRecordingsTabModel -> selectedRecording?.getTaskType()
+        is TaskHomeTabModel -> selectedTaskType
+        else -> null
       }
+
+    val opensInEditor =
+      selectedTaskTypeForEditor != null &&
+        ProfilerInEditorUtils.isEditorEnabled(profilers.ideServices.featureConfig, selectedTaskTypeForEditor)
 
     when (this) {
       // Disable start button until the previous task has started successfully.
@@ -57,19 +62,16 @@ abstract class TaskEntranceTabModel(val profilers: StudioProfilers) {
       // existing task tab will be re-opened.
       is PastRecordingsTabModel -> {
         val selectedSession = selectedRecording!!.session
-        if (
-          selectedSession == profilers.session && !(profilers.ideServices.featureConfig.isSystemTraceInEditorEnabled && isSystemTraceTask)
-        ) {
+        if (selectedSession == profilers.session && !opensInEditor) {
           profilers.openTaskTab()
           return
         }
       }
     }
 
-    // If the system trace in editor feature is enabled, and we're opening a past system trace task, we bypass the checks that
-    // stop the current task and just execute doEnterTaskButton directly. This is because the past system trace task will
-    // open in its own editor window and will not conflict with the existing task in the Profiler window.
-    if (profilers.ideServices.featureConfig.isSystemTraceInEditorEnabled && this is PastRecordingsTabModel && isSystemTraceTask) {
+    // Bypass current task checks if the past trace task opens in its own editor window
+    // so it doesn't conflict with the existing task in the Profiler window.
+    if (this is PastRecordingsTabModel && opensInEditor) {
       doEnterTaskButton()
       return
     }

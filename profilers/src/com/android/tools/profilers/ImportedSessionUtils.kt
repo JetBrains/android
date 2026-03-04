@@ -18,6 +18,9 @@ package com.android.tools.profilers
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.SessionData.SessionStarted
 import com.android.tools.profiler.proto.LeakCanary
+import com.android.tools.profilers.cpu.CpuCaptureParserUtil
+import com.android.tools.profilers.cpu.ProfilerInEditorUtils
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.memory.MemoryProfiler
 import com.android.tools.profilers.sessions.SessionsManager
 import com.intellij.openapi.diagnostic.Logger
@@ -64,11 +67,16 @@ object ImportedSessionUtils {
     makeEvent: (Long, Long) -> Common.Event,
   ) {
     withFileImportedOnce(sessionsManager, file) { startTimestampsEpochMs, startTime, endTime ->
-      val fileToImport = if (sessionsManager.studioProfilers.ideServices.featureConfig.isSystemTraceInEditorEnabled) {
-        file
-      } else {
-        copyToTemp(file)
-      }
+      val config = sessionsManager.studioProfilers.ideServices.featureConfig
+      val taskType = CpuCaptureParserUtil.getFileTraceType(file, TraceType.UNSPECIFIED)?.toTaskType()
+      val openInEditor = taskType != null && ProfilerInEditorUtils.isEditorEnabled(config, taskType)
+
+      val fileToImport =
+        if (openInEditor) {
+          file
+        } else {
+          copyToTemp(file)
+        }
       sessionsManager.createImportedSession(
         file.name,
         sessionType,

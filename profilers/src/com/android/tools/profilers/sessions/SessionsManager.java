@@ -18,6 +18,7 @@ package com.android.tools.profilers.sessions;
 import static com.android.tools.profilers.StudioProfilers.buildSessionName;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.profilers.cpu.ProfilerInEditorUtils;
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.idea.protobuf.GeneratedMessageV3;
@@ -475,11 +476,13 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   }
 
   private void setSessionInternal(@NotNull Common.Session session) {
-    // When System Trace In Editor is enabled, although a system trace session is selected, its editor tab may be hidden because the user
-    // has shifted to another tab or closed it, so we need to reselect it to bring it to focus even if it's already selected.
+    // When a profiler task is editor enabled, although a session is selected, its editor tab may be hidden because
+    // the user has shifted to another tab or closed it, so we need to reselect it to bring it to focus even if it's already selected.
     SessionItem sessionItem = mySessionItems.get(session.getSessionId());
-    if (session.equals(mySelectedSession) &&
-        !(myProfilers.getIdeServices().getFeatureConfig().isSystemTraceInEditorEnabled() && sessionItem != null && sessionItem.getTaskType() == ProfilerTaskType.SYSTEM_TRACE)) {
+    boolean openInEditor = sessionItem != null && ProfilerInEditorUtils.isEditorEnabled(
+      myProfilers.getIdeServices().getFeatureConfig(), sessionItem.getTaskType());
+
+    if (mySelectedSession.equals(session) && !openInEditor) {
       return;
     }
 

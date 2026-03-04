@@ -136,6 +136,8 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
 
   private boolean mySystemTraceInEditorEnabled = false;
 
+  private boolean myMethodTraceInEditorEnabled = false;
+
   /**
    * Whether power and battery data tracks should be visible in system trace and if shown,
    * which graph display style will be used for the power and battery tracks.
@@ -237,6 +239,11 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   @Override
   public FeatureConfig getFeatureConfig() {
     return new FeatureConfig() {
+
+      @Override
+      public boolean isMethodTraceInEditorEnabled() {
+        return myMethodTraceInEditorEnabled;
+      }
 
       @Override
       public boolean isMemoryCSVExportEnabled() {
@@ -478,6 +485,10 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableSystemTraceInEditor(boolean enabled) {
     mySystemTraceInEditorEnabled = enabled;
+  }
+
+  public void enableMethodTraceInEditor(boolean enabled) {
+    myMethodTraceInEditorEnabled = enabled;
   }
 
   @Override

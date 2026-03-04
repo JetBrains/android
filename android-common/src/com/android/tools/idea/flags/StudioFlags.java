@@ -387,6 +387,10 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_SYSTEM_TRACE_IN_EDITOR = new BooleanFlag(
     PROFILER, "system.trace.in.editor", "Open System Trace in Editor",
     "Opens System Trace files in a new editor tab");
+
+  public static final Flag<Boolean> PROFILER_METHOD_TRACE_IN_EDITOR = new BooleanFlag(
+    PROFILER, "method.trace.in.editor", "Open Method Trace in Editor",
+    "Opens Java/Kotlin Method Trace files in a new editor tab");
   //endregion
 
   //region Design Tools

@@ -222,9 +222,10 @@ public class CpuCaptureStage extends Stage<Timeline> {
                                        CpuCaptureMetadata.CpuProfilerEntryPoint entryPoint,
                                        long traceId) {
     File captureFile;
-    boolean isSystemTrace = configuration.getTraceType() == ProfilingConfiguration.TraceType.ATRACE ||
-                            configuration.getTraceType() == ProfilingConfiguration.TraceType.PERFETTO;
-    if (profilers.getIdeServices().getFeatureConfig().isSystemTraceInEditorEnabled() && isSystemTrace) {
+
+    boolean openInEditor = ProfilerInEditorUtils.isEditorEnabled(profilers.getIdeServices().getFeatureConfig(), configuration.getTraceType().toTaskType());
+
+    if (openInEditor) {
       captureFile = getAndRenameCapture(profilers, traceId);
     } else {
       captureFile = getCaptureAsFile(profilers, traceId);

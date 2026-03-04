@@ -491,15 +491,16 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
           myRecordingOptionsModel.setLoading(false);
           CpuTraceInfo traceInfo = myCompletedTraceIdToInfoMap.get(traceId);
           ProfilingConfiguration config = ProfilingConfiguration.fromProto(traceInfo.getTraceInfo().getConfiguration(), isTraceboxEnabled);
-          ProfilingConfiguration.TraceType traceType = config.getTraceType();
-          boolean isSystemTrace = traceType == ProfilingConfiguration.TraceType.ATRACE
-                                  || traceType == ProfilingConfiguration.TraceType.PERFETTO;
-          if (stage != null && getStudioProfilers().getIdeServices().getFeatureConfig().isSystemTraceInEditorEnabled() && isSystemTrace) {
+          ProfilerTaskType taskType = config.getTraceType().toTaskType();
+
+          boolean openInEditor = ProfilerInEditorUtils.isEditorEnabled(getStudioProfilers().getIdeServices().getFeatureConfig(), taskType);
+
+          if (stage != null && openInEditor) {
             File captureFile = stage.getCaptureHandler().getCaptureFile();
             getStudioProfilers().getIdeServices().getMainExecutor().execute(() -> {
               if(captureFile.exists()) {
                 getStudioProfilers().getIdeServices().openTraceFile(captureFile);
-                getStudioProfilers().getIdeServices().closeTaskTab(ProfilerTaskType.SYSTEM_TRACE);
+                getStudioProfilers().getIdeServices().closeTaskTab(taskType);
               }
             });
           } else if (stage != null) {

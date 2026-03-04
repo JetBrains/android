@@ -19,25 +19,25 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
 import com.android.tools.profilers.cpu.CpuCaptureStageUtils
+import com.android.tools.profilers.cpu.ProfilerInEditorUtils
 import com.android.tools.profilers.sessions.SessionItem
-import com.android.tools.profilers.tasks.ProfilerTaskType
-import com.intellij.openapi.util.io.FileUtil
 import java.io.File
 
-/** Helper class responsible for handling the opening of System Traces via the Unified Profiler. */
+/** Helper class responsible for handling the opening of editor enabled tasks via the Unified Profiler. */
 class UnifiedTraceOpener(private val profilers: StudioProfilers) {
 
   fun openUnifiedTrace(session: Common.Session, sessionItems: Map<Long, SessionItem>): Boolean {
     val services = profilers.ideServices
     val config = services.featureConfig
 
-    // 1. Check Feature Flags and Task Type
-    // We only intervene if the Unified Preview is enabled AND it is a System Trace task.
-    if (!config.isSystemTraceInEditorEnabled || profilers.sessionsManager.currentTaskType != ProfilerTaskType.SYSTEM_TRACE) {
+    val currentTaskType = profilers.sessionsManager.currentTaskType
+    val isTraceInEditorEnabled = ProfilerInEditorUtils.isEditorEnabled(config, currentTaskType)
+
+    if (!isTraceInEditorEnabled) {
       return false
     }
 
-    // 3. Try opening from a saved Artifact (Completed session)
+    // Try opening from a saved Artifact (Completed session)
     val sessionItem = sessionItems[session.sessionId] ?: return false
 
     // Find the first CpuCaptureSessionArtifact (Kotlin makes this cleaner than streams)
