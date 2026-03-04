@@ -27,6 +27,7 @@ backup.enable=COMPLETE:2025
 compose.allocation.limiter=COMPLETE:2023
 compose.deploy.live.edit.deploy.desugar.r8=COMPLETE:2023
 compose.deploy.live.edit.deploy.enable.default=COMPLETE:2024
+compose.interactive.preview.predictive.back=PREVIEW
 compose.preview.ai.glasses.preview=PREVIEW
 compose.preview.code.to.preview.navigation=COMPLETE:2025
 compose.preview.generate.preview.action.agentic=COMPLETE:2025
