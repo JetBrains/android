@@ -63,7 +63,11 @@ internal class PreviewSurfaceActionManager(
     actionGroup.add(ViewInFocusModeAction())
     // Add toolbar actions in the context-menu as a redundant entry point
     getPreviewActions().takeIf { it.isNotEmpty() }?.forEach { actionGroup.add(it) }
-    getAiActionGroup(shouldShowInDropDown = true)?.let { actionGroup.add(it) }
+    ComposeStudioBotActionFactory.EP_NAME.extensionList
+      .firstOrNull()
+      ?.previewAgentsDropDownAction(convertedPoint)
+      ?.visibleOnlyInStaticPreview()
+      ?.let { actionGroup.add(it) }
     return actionGroup
   }
 
@@ -71,7 +75,8 @@ internal class PreviewSurfaceActionManager(
     listOfNotNull(StudioFlags.COMPOSE_PREVIEW_AI_GLASSES_PREVIEW.ifEnabled { GlassesBlendDropdownAction() })
 
   override fun getSceneViewContextToolbarOverflowActions(): List<AnAction> {
-    val aiActionGroup = getAiActionGroup(shouldShowInDropDown = false)
+    val aiActionGroup =
+      ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull()?.previewAgentsActionGroup()?.visibleOnlyInStaticPreview()
     val previewActions = getPreviewActions()
     return previewActions + listOfNotNull(aiActionGroup)
   }
@@ -90,16 +95,4 @@ internal class PreviewSurfaceActionManager(
         .visibleOnlyInStaticPreview() +
       listOfNotNull(StudioFlags.COMPOSE_INTERACTIVE_PREVIEW_PREDICTIVE_BACK.ifEnabled { BackNavigationAction().visibleOnlyInInteractive() })
         .disabledIfRefreshingOrHasErrorsOrProjectNeedsBuild()
-
-  private fun getAiActionGroup(shouldShowInDropDown: Boolean): AnAction? {
-    val factory = ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull() ?: return null
-
-    val action =
-      if (shouldShowInDropDown) {
-        factory.previewAgentsDropDownAction()
-      } else {
-        factory.previewAgentsActionGroup()
-      }
-    return action?.visibleOnlyInStaticPreview()
-  }
 }
