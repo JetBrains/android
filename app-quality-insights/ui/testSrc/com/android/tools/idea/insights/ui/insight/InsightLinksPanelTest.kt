@@ -21,6 +21,7 @@ import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.CONNECTION1
 import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
+import com.android.tools.idea.insights.FAKE_INSIGHTS_PROVIDER
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
@@ -75,6 +76,7 @@ class InsightLinksPanelTest {
   fun setup() {
     whenever(controller.project).thenReturn(projectRule.project)
     whenever(controller.state).thenReturn(stateFlow)
+    whenever(controller.provider).thenReturn(FAKE_INSIGHTS_PROVIDER)
     ExtensionTestUtil.maskExtensions(AgentActionContributor.EP_NAME, listOf(contributor), projectRule.disposable)
   }
 

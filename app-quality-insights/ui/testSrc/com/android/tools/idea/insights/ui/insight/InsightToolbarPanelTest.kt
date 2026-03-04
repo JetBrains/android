@@ -162,7 +162,8 @@ class InsightToolbarPanelTest {
     val toolbarPanel = createInsightBottomPanel()
 
     val fakeUi = FakeUi(toolbarPanel)
-    val toolbar = fakeUi.findComponent<ActionToolbarImpl> { it.place == INSIGHT_TOOLBAR } ?: fail("Toolbar not found")
+    val toolbarPlace = "${controllerRule.controller.provider.displayName} $INSIGHT_TOOLBAR"
+    val toolbar = fakeUi.findComponent<ActionToolbarImpl> { it.place == toolbarPlace } ?: fail("Toolbar not found")
     assertThat(toolbar.actions.size).isEqualTo(4)
     val copyAction = toolbar.actions[0]
 
@@ -214,7 +215,8 @@ class InsightToolbarPanelTest {
     )
 
     val fakeUi = withContext(Dispatchers.EDT) { FakeUi(toolbarPanel) }
-    val toolbar = fakeUi.findComponent<ActionToolbarImpl> { it.place == INSIGHT_TOOLBAR } ?: fail("Toolbar not found")
+    val toolbarPlace = "${controllerRule.controller.provider.displayName} $INSIGHT_TOOLBAR"
+    val toolbar = fakeUi.findComponent<ActionToolbarImpl> { it.place == toolbarPlace } ?: fail("Toolbar not found")
     assertThat(toolbar.actions.size).isEqualTo(4)
 
     val refreshAction = toolbar.actions.firstOrNull { it is InsightRefreshAction } ?: fail("InsightRefreshAction not found")

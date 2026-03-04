@@ -79,7 +79,7 @@ class InsightToolbarPanel(
 
   init {
     val actionGroup = DefaultActionGroup(copyAction, refreshAction, upvoteAction, downvoteAction)
-    val toolbar = ActionManager.getInstance().createActionToolbar(INSIGHT_TOOLBAR, actionGroup, true)
+    val toolbar = ActionManager.getInstance().createActionToolbar("${controller.provider.displayName} $INSIGHT_TOOLBAR", actionGroup, true)
     toolbar.targetComponent = this
     add(toolbar.component, BorderLayout.CENTER)
 
