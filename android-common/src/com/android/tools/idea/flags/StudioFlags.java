@@ -2541,6 +2541,12 @@ public final class StudioFlags {
                     "When enabled, a setting and various UI is made visible to configure local models, and when provided and " +
                     "enabled it add local model option to Chat model picker.");
 
+  public static Flag<Boolean> LOCAL_GEMMA_ENABLED =
+    new BooleanFlag(STUDIOBOT, "local.gemma.enabled",
+                    "Enable local Gemma model.",
+                    "When enabled, a setting and various UI is made visible to configure the local Gemma model, and when provided and " +
+                    "enabled it adds Gemma model option to Chat model picker.");
+
   public static Flag<Boolean> REMOTE_MODELS_ENABLED =
     new BooleanFlag(STUDIOBOT, "remote.models.enabled",
                     "Add remote models for Chat.",
