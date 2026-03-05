@@ -92,10 +92,11 @@ class RecompositionStateReadCache(
 
   private suspend fun requestRecompositionStateReads(composable: ComposeViewNode, recomposition: Int) {
     val key = Key(composable.anchorHash, recomposition)
-    val node = lookup(key) ?: fetchDataFor(key) ?: cache.closest(key)
-    val result = node?.let { RecomposeStateReadResult(StateReadKey(composable, node.recomposition), node.reads, node.prev != null) }
+    val node = lookup(key) ?: fetchDataFor(key)
+    val result = node.toRecomposeStateReadResult(composable)
+
     model.stateReadsModel.stateReads.emit(result)
-    if (result == null) {
+    if (result == RecomposeStateReadResult.Waiting) {
       pendingRequest = Key(composable.anchorHash, composable.recompositions.count)
     }
   }
@@ -120,7 +121,7 @@ class RecompositionStateReadCache(
    *
    * @param key the composable and recomposition we want to load state reads for.
    */
-  private suspend fun fetchDataFor(key: Key): StateReadNode? {
+  private suspend fun fetchDataFor(key: Key): StateReadNode {
     val hasPrev = cache.contains(key.prev)
     val hasNext = cache.contains(key.next)
     val start = maxOf(1, key.recomposition - (if (!hasPrev) 4 else 0))
@@ -139,7 +140,8 @@ class RecompositionStateReadCache(
       first = first ?: node
     }
     if (first == null) {
-      return null
+      // No state reads were found.
+      return StateReadNode.WAITING_NODE
     }
     if (first.recomposition > start) {
       val prev = first.prev
@@ -179,10 +181,22 @@ class RecompositionStateReadCache(
     /** The state read data. */
     val reads: List<RecomposeStateReadData>,
   ) {
+    companion object {
+      val WAITING_NODE = StateReadNode(recomposition = 0, emptyList())
+    }
+
     /** The State reads for the next recomposition we have data for. */
     var next: StateReadNode? = null
     /** The State reads for the previous recomposition we have data for. */
     var prev: StateReadNode? = null
+
+    fun toRecomposeStateReadResult(composable: ComposeViewNode): RecomposeStateReadResult {
+      return if (this === WAITING_NODE) {
+        RecomposeStateReadResult.Waiting
+      } else {
+        RecomposeStateReadResult.StateReads(StateReadKey(composable, recomposition), reads, prev != null)
+      }
+    }
   }
 
   /**
@@ -281,16 +295,6 @@ class RecompositionStateReadCache(
         prev = prev.prev
       }
       node.prev = null
-    }
-
-    fun closest(key: RecompositionStateReadCache.Key): RecompositionStateReadCache.StateReadNode? {
-      var node = top[key.anchorHash] ?: return null
-      var prev = node.prev
-      while (prev != null && prev.recomposition > key.recomposition) {
-        node = prev
-        prev = prev.prev
-      }
-      return node
     }
   }
 }

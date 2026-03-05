@@ -138,6 +138,7 @@ class StateInspectionModelTest {
     inspectorModel.setSelection(compose1, SelectionOrigin.INTERNAL)
     inspectorModel.stateReadsModel.observeNode(compose1)
     inspectorModel.stateReadsModel.requestStateReadFor(compose1)
+    inspectorModel.stateReadsModel.stateReads.emit(RecomposeStateReadResult.Waiting)
     testScheduler.advanceUntilIdle()
 
     // Nothing to show yet:
@@ -270,6 +271,7 @@ class StateInspectionModelTest {
 
     // Make it observable:
     inspectorModel.stateReadsModel.observeNode(compose2)
+    inspectorModel.stateReadsModel.stateReads.emit(RecomposeStateReadResult.Waiting)
     testScheduler.advanceUntilIdle()
     content = model.content.value
 
@@ -296,6 +298,7 @@ class StateInspectionModelTest {
     // Select compose1 for showing state reads:
     inspectorModel.setSelection(compose1, SelectionOrigin.INTERNAL)
     inspectorModel.stateReadsModel.requestStateReadFor(compose1)
+    inspectorModel.stateReadsModel.stateReads.emit(RecomposeStateReadResult.Waiting)
     testScheduler.advanceUntilIdle()
     assertThat(model.content.value.updates).isEqualTo(2)
 
@@ -326,6 +329,7 @@ class StateInspectionModelTest {
     assertThat(model.nextAction.isEnabled()).isTrue()
 
     model.nextAction.perform()
+    inspectorModel.stateReadsModel.stateReads.emit(RecomposeStateReadResult.Waiting)
     testScheduler.advanceUntilIdle()
     content = model.content.value
     assertThat(inspectorModel.stateReadsModel.stateReadRequested.value).isEqualTo(StateReadKey(compose1, 3))
@@ -344,6 +348,7 @@ class StateInspectionModelTest {
     assertThat(results).isEqualTo(2)
 
     model.prevAction.perform()
+    inspectorModel.stateReadsModel.stateReads.emit(RecomposeStateReadResult.Waiting)
     testScheduler.advanceUntilIdle()
     assertThat(inspectorModel.stateReadsModel.stateReadRequested.value).isEqualTo(StateReadKey(compose1, 2))
     content = model.content.value
@@ -362,6 +367,7 @@ class StateInspectionModelTest {
     assertThat(results).isEqualTo(3)
 
     model.prevAction.perform()
+    inspectorModel.stateReadsModel.stateReads.emit(RecomposeStateReadResult.Waiting)
     testScheduler.advanceUntilIdle()
     content = model.content.value
     assertThat(inspectorModel.stateReadsModel.stateReadRequested.value).isEqualTo(StateReadKey(compose1, 1))
@@ -381,12 +387,58 @@ class StateInspectionModelTest {
   }
 
   @Test
+  fun testEmptyStateReads() = runTestWithDisposable { disposable ->
+    var results = 0
+    val model = StateInspectionModelImpl(inspectorModel, this, disposable) { results++ }
+
+    // Select compose1 and request recomposition 2
+    inspectorModel.setSelection(compose1, SelectionOrigin.INTERNAL)
+    inspectorModel.stateReadsModel.observeNode(compose1)
+    inspectorModel.stateReadsModel.requestStateReadFor(compose1, 2)
+    inspectorModel.stateReadsModel.stateReads.emit(RecomposeStateReadResult.Waiting)
+    testScheduler.advanceUntilIdle()
+
+    // Emulate empty state reads for recomposition 2
+    val emptyResult =
+      RecomposeStateReadResult.StateReads(StateReadKey(compose1, 2), emptyList(), hasStateReadsForPreviousRecomposition = false)
+    inspectorModel.stateReadsModel.stateReads.emit(emptyResult)
+    testScheduler.advanceUntilIdle()
+
+    var content = model.content.value
+    assertThat(content.recompositionText).isEqualTo("Recomposition 2")
+    assertThat(content.stateReadsText).isEqualTo("State Reads: 0")
+    assertThat(content.emptyStateText)
+      .isEqualTo(
+        "The selected composable recomposed without making any state reads.\nMost likely a parameter change caused this recomposition."
+      )
+    assertThat(content.stackTraceText).isEmpty()
+    assertThat(results).isEqualTo(1)
+
+    // Now request recomposition 3 which has state reads
+    inspectorModel.stateReadsModel.requestStateReadFor(compose1, 3)
+    inspectorModel.stateReadsModel.stateReads.emit(RecomposeStateReadResult.Waiting)
+    testScheduler.advanceUntilIdle()
+
+    // Emulate state reads for recomposition 3
+    inspectorModel.stateReadsModel.stateReads.emit(read3Anchor1.convert(compose1, 3))
+    testScheduler.advanceUntilIdle()
+
+    content = model.content.value
+    assertThat(content.recompositionText).isEqualTo("Recomposition 3")
+    assertThat(content.stateReadsText).isEqualTo("State Reads: 1")
+    assertThat(content.emptyStateText).isEmpty()
+    assertThat(content.stackTraceText).isNotEmpty()
+    assertThat(results).isEqualTo(2)
+  }
+
+  @Test
   fun testMinimize() = runTestWithDisposable { disposable ->
     var results = 0
     val model = StateInspectionModelImpl(inspectorModel, this, disposable) { results++ }
     assertThat(model.show.value).isFalse()
 
     inspectorModel.stateReadsModel.requestStateReadFor(compose1)
+    inspectorModel.stateReadsModel.stateReads.emit(RecomposeStateReadResult.Waiting)
     testScheduler.advanceUntilIdle()
     assertThat(model.show.value).isTrue()
     assertThat(results).isEqualTo(0)
@@ -409,6 +461,7 @@ class StateInspectionModelTest {
     assertThat(model.show.value).isFalse()
 
     inspectorModel.stateReadsModel.requestStateReadFor(compose1)
+    inspectorModel.stateReadsModel.stateReads.emit(RecomposeStateReadResult.Waiting)
     testScheduler.advanceUntilIdle()
     assertThat(model.show.value).isTrue()
     assertThat(results).isEqualTo(0)
@@ -447,7 +500,7 @@ class StateInspectionModelTest {
   ): RecomposeStateReadResult {
     val reads = convertStateRead(this, inspectorModel)
     val data = reads[recomposition] ?: error("recomposition: $recomposition not found")
-    return RecomposeStateReadResult(StateReadKey(node, recomposition), data, hasPrevious)
+    return RecomposeStateReadResult.StateReads(StateReadKey(node, recomposition), data, hasPrevious)
   }
 
   private fun runTestWithDisposable(testBody: suspend TestScope.(disposable: Disposable) -> Unit) {

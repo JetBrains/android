@@ -26,6 +26,8 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.Par
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterItem
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecomposeStateReadData
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecomposeStateReadResult
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecomposeStateReadResult.StateReads
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecomposeStateReadResult.Waiting
 import com.android.tools.idea.layoutinspector.properties.PropertyType
 import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
 import com.intellij.icons.AllIcons
@@ -50,6 +52,7 @@ private const val STACK_TRACE_START_LINE = "    at "
 private const val PREV_DESCRIPTION_KEY = "layout.inspector.recomposition.prev"
 private const val NEXT_DESCRIPTION_KEY = "layout.inspector.recomposition.next"
 private const val HIDE_DESCRIPTION_KEY = "layout.inspector.recomposition.hide"
+private const val NO_STATE_READS_ID = "layout.inspector.recomposition.no-state-reads"
 
 internal const val INVALIDATED = "<invalidated>"
 
@@ -143,9 +146,7 @@ internal class StateInspectionModelImpl(
     model.addModificationListener(updateListener)
     scope.launch {
       model.stateReadsModel.stateReadRequested.collect { key ->
-        if (key != null) {
-          showInactiveState(InactiveState.WAITING, key)
-        } else {
+        if (key == null) {
           stopStateObservations()
         }
       }
@@ -176,21 +177,45 @@ internal class StateInspectionModelImpl(
     }
   }
 
+  private fun showResultFor(key: StateReadKey, result: RecomposeStateReadResult) {
+    when (result) {
+      is Waiting -> showInactiveState(InactiveState.WAITING)
+      is StateReads -> if (result.key == key) showStateReadsResult(result) else showInactiveState(InactiveState.WAITING)
+    }
+  }
+
   private fun showResult(result: RecomposeStateReadResult) {
+    when (result) {
+      is Waiting -> showInactiveState(InactiveState.WAITING)
+      is StateReads -> showStateReadsResult(result)
+    }
+  }
+
+  private fun showStateReadsResult(result: StateReads) {
     synchronized(lock) {
       currentKey = result.key
       val node = result.key.composable
       hasStateReadsForPreviousRecomposition = result.hasStateReadsForPreviousRecomposition
       _show.value = true
       _recompositions.value = model.selection?.recompositions?.count ?: 0
-      _content.value =
-        StateInspectionContent(
-          recompositionText = generateRecompositionText(result.key),
-          stateReadsText = generateStateReadsText(result.reads.size),
-          stackTraceText = generateStackTraces(result.reads),
-          composableInspected = ComposableDefinition(node.qualifiedName, node.composeFilename),
-          updates = _content.value.updates + 1,
-        )
+      if (result.reads.isEmpty()) {
+        _content.value =
+          StateInspectionContent(
+            recompositionText = generateRecompositionText(result.key),
+            stateReadsText = generateStateReadsText(result.reads.size),
+            emptyStateText = LayoutInspectorBundle.message(NO_STATE_READS_ID),
+            updates = _content.value.updates + 1,
+          )
+      } else {
+        _content.value =
+          StateInspectionContent(
+            recompositionText = generateRecompositionText(result.key),
+            stateReadsText = generateStateReadsText(result.reads.size),
+            stackTraceText = generateStackTraces(result.reads),
+            composableInspected = ComposableDefinition(node.qualifiedName, node.composeFilename),
+            updates = _content.value.updates + 1,
+          )
+      }
     }
     resultShown()
   }
@@ -203,12 +228,7 @@ internal class StateInspectionModelImpl(
       // The user navigated back to an observable composable from either a View or a non
       // observable composable. The result may still hold the state reads for the wanted composable
       // and recomposition.
-      val result = model.stateReadsModel.stateReads.value
-      if (result?.key == key) {
-        showResult(result)
-      } else {
-        showInactiveState(InactiveState.WAITING)
-      }
+      showResultFor(key, model.stateReadsModel.stateReads.value ?: Waiting)
     }
   }
 
