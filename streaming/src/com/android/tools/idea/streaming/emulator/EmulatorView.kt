@@ -1120,7 +1120,7 @@ internal class EmulatorView(
       if (xrInputController?.mousePressed(event, deviceDisplaySize, deviceScaleFactor) == true) {
         return
       }
-      val insideTouchScreen = isInsideTouchScreen(event)
+      val insideTouchScreen = isInsideDisplayAndMouseInputIsSupported(event)
       if (handlePopup(event, insideTouchScreen)) {
         return
       }
@@ -1141,7 +1141,7 @@ internal class EmulatorView(
       if (xrInputController?.mouseReleased(event, deviceDisplaySize, deviceScaleFactor) == true) {
         return
       }
-      val insideTouchScreen = isInsideTouchScreen(event)
+      val insideTouchScreen = isInsideDisplayAndMouseInputIsSupported(event)
       if (handlePopup(event, insideTouchScreen)) {
         return
       }
@@ -1193,7 +1193,12 @@ internal class EmulatorView(
         return
       }
       updateMultiTouchMode(event)
-      if (!virtualSceneCameraOperating && !multiTouchMode && (currentButtons and BUTTON_MASK) == 0) {
+      if (
+        isInsideDisplayAndMouseInputIsSupported(event) &&
+          !virtualSceneCameraOperating &&
+          !multiTouchMode &&
+          (currentButtons and BUTTON_MASK) == 0
+      ) {
         sendMouseEvent(event.x, event.y, currentButtons)
       }
     }
@@ -1334,8 +1339,11 @@ internal class EmulatorView(
       return Touch.newBuilder().setX(x).setY(y).setIdentifier(identifier).setPressure(pressure).setExpiration(NEVER_EXPIRE)
     }
 
-    private fun isInsideTouchScreen(event: MouseEvent) =
-      emulatorConfig.hasTouchScreen && displayRectangle?.contains(event.x * screenScalingFactor, event.y * screenScalingFactor) ?: false
+    private fun isInsideDisplayAndMouseInputIsSupported(event: MouseEvent): Boolean =
+      deviceType != DeviceType.AI_GLASSES && isInsideDisplay(event)
+
+    private fun isInsideDisplay(event: MouseEvent): Boolean =
+      displayRectangle?.contains(event.x * screenScalingFactor, event.y * screenScalingFactor) ?: false
 
     private fun buttonsToAndroid(buttons: Int): Int {
       return (if (buttons and BUTTON1_DOWN_MASK != 0) ANDROID_BUTTON_PRIMARY else 0) or
