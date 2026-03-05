@@ -17,6 +17,7 @@ package com.android.tools.idea.preview.find
 
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.PsiModifierListOwner
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
@@ -121,6 +122,7 @@ class AnnotationsGraph<S, T>(private val nodeInfoFactory: NodeInfoFactory<S>, pr
   ): Flow<T> = flow {
     val stack = mutableListOf(DfsNode(parentInfo = null, rootElement))
     while (stack.isNotEmpty()) {
+      ProgressManager.checkCanceled()
       val node = stack.pop()
       if (node.status == DfsNodeStatus.PROCESSED) {
         emitAll(resultFactory.create(node.nodeInfo).also { node.parentInfo?.onAfterChildTraversal(node.nodeInfo) })
@@ -192,11 +194,17 @@ class AnnotationsGraph<S, T>(private val nodeInfoFactory: NodeInfoFactory<S>, pr
 suspend fun UElement.getUAnnotations(): List<UAnnotation> {
   val annotations = readAction {
     (this@getUAnnotations as? UMethod)?.uAnnotations
-      ?: (this@getUAnnotations.tryResolve() as? PsiModifierListOwner)?.annotations?.mapNotNull { it.toUElementOfType() as? UAnnotation }
+      ?: (this@getUAnnotations.tryResolve() as? PsiModifierListOwner)?.annotations?.mapNotNull {
+        ProgressManager.checkCanceled()
+        it.toUElementOfType() as? UAnnotation
+      }
       ?: resolveKaAnnotationAnnotations()
       ?: emptyList()
   }
-  return annotations.flatMap { annotation -> annotation.extractFromContainer().ifEmpty { listOf(annotation) } }
+  return annotations.flatMap { annotation ->
+    ProgressManager.checkCanceled()
+    annotation.extractFromContainer().ifEmpty { listOf(annotation) }
+  }
 }
 
 /**
