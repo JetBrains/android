@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.vcs
 
-import com.android.tools.idea.insights.model.vcs.VCS_CATEGORY
+import com.android.tools.idea.insights.model.vcs.VcsCategory
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vcs.AbstractVcs
@@ -25,7 +25,7 @@ import com.intellij.openapi.vcs.history.VcsRevisionNumber
 
 /** A wrapper-like service for providing VCS related operations from AS bundled plugins. */
 interface VcsForAppInsights {
-  val key: VCS_CATEGORY
+  val key: VcsCategory
 
   fun isApplicable(vcs: AbstractVcs): Boolean
 
@@ -36,7 +36,7 @@ interface VcsForAppInsights {
   companion object {
     @JvmField val EP_NAME = ExtensionPointName<VcsForAppInsights>("com.android.tools.idea.insights.vcs.vcsForAppInsights")
 
-    fun getExtensionByKey(key: VCS_CATEGORY): VcsForAppInsights? {
+    fun getExtensionByKey(key: VcsCategory): VcsForAppInsights? {
       return EP_NAME.extensionList.firstOrNull { it.key == key }
     }
   }

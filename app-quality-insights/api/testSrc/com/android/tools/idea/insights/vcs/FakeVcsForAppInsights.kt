@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.vcs
 
-import com.android.tools.idea.insights.model.vcs.VCS_CATEGORY
+import com.android.tools.idea.insights.model.vcs.VcsCategory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vcs.AbstractVcs
@@ -25,7 +25,7 @@ import com.intellij.openapi.vcs.changes.committed.MockAbstractVcs
 import com.intellij.openapi.vcs.history.VcsRevisionNumber
 
 class FakeVcsForAppInsights : VcsForAppInsights {
-  override val key: VCS_CATEGORY = VCS_CATEGORY.TEST_VCS
+  override val key: VcsCategory = VcsCategory.TEST_VCS
 
   override fun isApplicable(vcs: AbstractVcs) = vcs is MockAbstractVcs
 

@@ -49,7 +49,7 @@ import com.android.tools.idea.insights.model.stacktrace.Stacktrace
 import com.android.tools.idea.insights.model.stacktrace.StacktraceGroup
 import com.android.tools.idea.insights.model.vcs.AppVcsInfo
 import com.android.tools.idea.insights.model.vcs.RepoInfo
-import com.android.tools.idea.insights.model.vcs.VCS_CATEGORY
+import com.android.tools.idea.insights.model.vcs.VcsCategory
 import com.android.tools.idea.insights.vcs.PROJECT_ROOT_PREFIX
 import java.time.Duration
 import java.time.Instant
@@ -94,7 +94,7 @@ val NOW = Instant.parse("2022-06-08T10:00:00Z")
 
 const val REVISION_74081e5f = "74081e5f56a58788f3243fe8410c4b66e9c7c902"
 
-val REPO_INFO = RepoInfo(vcsKey = VCS_CATEGORY.TEST_VCS, rootPath = PROJECT_ROOT_PREFIX, revision = REVISION_74081e5f)
+val REPO_INFO = RepoInfo(vcsKey = VcsCategory.TEST_VCS, rootPath = PROJECT_ROOT_PREFIX, revision = REVISION_74081e5f)
 
 val SAMPLE_KEYS = listOf(CustomKey("CSRF_TOKEN", "screen_view"), CustomKey("RAY_ID", "abcdeefg"))
 val SAMPLE_LOGS = listOf(Log(FAKE_10_HOURS_AGO, "fake_log", mapOf("key" to "value")))

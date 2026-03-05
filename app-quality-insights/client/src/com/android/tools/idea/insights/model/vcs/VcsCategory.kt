@@ -20,14 +20,14 @@ import java.util.logging.Level
 import java.util.logging.Logger
 
 /** Version control system */
-enum class VCS_CATEGORY {
+enum class VcsCategory {
   GIT,
   TEST_VCS,
 }
 
-fun mapVcsCategoryFrom(proto: VersionControlSystem): VCS_CATEGORY? {
+fun mapVcsCategoryFrom(proto: VersionControlSystem): VcsCategory? {
   return when (proto) {
-    VersionControlSystem.GIT -> VCS_CATEGORY.GIT
+    VersionControlSystem.GIT -> VcsCategory.GIT
     else -> {
       Logger.getLogger("AppVcsInfo").log(Level.WARNING, "$proto is not supported.")
       null

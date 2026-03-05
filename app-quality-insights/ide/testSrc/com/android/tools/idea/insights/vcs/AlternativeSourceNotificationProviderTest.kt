@@ -16,7 +16,7 @@
 package com.android.tools.idea.insights.vcs
 
 import com.android.tools.idea.insights.model.connection.Connection
-import com.android.tools.idea.insights.model.vcs.VCS_CATEGORY
+import com.android.tools.idea.insights.model.vcs.VcsCategory
 import com.android.tools.idea.insights.ui.vcs.ContextDataForDiff
 import com.android.tools.idea.insights.ui.vcs.InsightsDiffViewProvider
 import com.android.tools.idea.insights.ui.vcs.InsightsDiffVirtualFile
@@ -205,7 +205,7 @@ class AlternativeSourceNotificationProviderTest {
 
   private fun createDiffFile(file: VirtualFile, project: Project, origin: Connection?): InsightsDiffVirtualFile {
     val contextDataForDiff =
-      ContextDataForDiff(vcsKey = VCS_CATEGORY.TEST_VCS, revision = "123", filePath = file.toVcsFilePath(), lineNumber = 4, origin = origin)
+      ContextDataForDiff(vcsKey = VcsCategory.TEST_VCS, revision = "123", filePath = file.toVcsFilePath(), lineNumber = 4, origin = origin)
     return InsightsDiffVirtualFile(InsightsDiffViewProvider(contextDataForDiff, project))
   }
 

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.ui.vcs
 
-import com.android.tools.idea.insights.model.vcs.VCS_CATEGORY
+import com.android.tools.idea.insights.model.vcs.VcsCategory
 import com.android.tools.idea.insights.vcs.FakeVcsForAppInsights
 import com.android.tools.idea.insights.vcs.InsightsVcsTestRule
 import com.android.tools.idea.insights.vcs.VcsForAppInsights
@@ -54,7 +54,7 @@ class JumpToDiffUtilsTest {
 
     val context =
       ContextDataForDiff(
-        vcsKey = VCS_CATEGORY.TEST_VCS,
+        vcsKey = VcsCategory.TEST_VCS,
         revision = BEFORE_REVISION,
         filePath = vcsInsightsRule.projectBaseDir.findChild("Foo.kt")!!.toVcsFilePath(),
         lineNumber = LINE_NUMBER,
@@ -102,7 +102,7 @@ class JumpToDiffUtilsTest {
 
     val context =
       ContextDataForDiff(
-        vcsKey = VCS_CATEGORY.TEST_VCS,
+        vcsKey = VcsCategory.TEST_VCS,
         revision = BEFORE_REVISION,
         filePath = vcsInsightsRule.projectBaseDir.findChild("Foo.kt")!!.toVcsFilePath(),
         lineNumber = LINE_NUMBER,
@@ -110,7 +110,7 @@ class JumpToDiffUtilsTest {
       )
 
     // Note in our test infra, we don't really support real historical content.
-    val extension = VcsForAppInsights.getExtensionByKey(VCS_CATEGORY.TEST_VCS) as FakeVcsForAppInsights
+    val extension = VcsForAppInsights.getExtensionByKey(VcsCategory.TEST_VCS) as FakeVcsForAppInsights
     extension.vcsContentProvider = { throw DiffRequestProducerException("Cannot show diff: fatal: invalid object name: '123'.") }
 
     // Act

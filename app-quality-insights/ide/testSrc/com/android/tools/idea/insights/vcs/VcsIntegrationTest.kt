@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinitio
 import com.android.tools.idea.insights.InsightsTestProject
 import com.android.tools.idea.insights.model.vcs.AppVcsInfo
 import com.android.tools.idea.insights.model.vcs.RepoInfo
-import com.android.tools.idea.insights.model.vcs.VCS_CATEGORY
+import com.android.tools.idea.insights.model.vcs.VcsCategory
 import com.android.tools.idea.insights.ui.initConsoleWithFilters
 import com.android.tools.idea.insights.ui.printAndHighlight
 import com.android.tools.idea.insights.ui.vcs.ContextDataForDiff
@@ -121,13 +121,13 @@ class VcsIntegrationTest {
 
   private fun buildAppVcsInfo(repo: GitRepository): AppVcsInfo {
     return AppVcsInfo.ValidInfo(
-      listOf(RepoInfo(vcsKey = VCS_CATEGORY.GIT, rootPath = PROJECT_ROOT_PREFIX, revision = repo.currentRevision.toString()))
+      listOf(RepoInfo(vcsKey = VcsCategory.GIT, rootPath = PROJECT_ROOT_PREFIX, revision = repo.currentRevision.toString()))
     )
   }
 
   private fun buildContextDataForDiff(targetFile: VirtualFile, lineNumber: Int, repo: GitRepository): ContextDataForDiff {
     return ContextDataForDiff(
-      vcsKey = VCS_CATEGORY.GIT,
+      vcsKey = VcsCategory.GIT,
       revision = repo.currentRevision.toString(),
       filePath = targetFile.toVcsFilePath(),
       lineNumber = lineNumber,

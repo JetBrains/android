@@ -16,7 +16,7 @@
 package com.android.tools.idea.insights.ui.vcs
 
 import com.android.tools.idea.insights.model.connection.Connection
-import com.android.tools.idea.insights.model.vcs.VCS_CATEGORY
+import com.android.tools.idea.insights.model.vcs.VcsCategory
 import com.android.tools.idea.insights.vcs.VcsForAppInsights
 import com.android.tools.idea.insights.vcs.createShortRevisionString
 import com.intellij.diff.DiffEditorTitleCustomizer
@@ -65,7 +65,7 @@ private fun getLogger() = Logger.getInstance("com.android.tools.idea.insights.ui
  * @param origin is to scope the request
  */
 data class ContextDataForDiff(
-  val vcsKey: VCS_CATEGORY,
+  val vcsKey: VcsCategory,
   val revision: String,
   val filePath: FilePath,
   val lineNumber: Int,
@@ -136,7 +136,7 @@ class InsightsDiffVirtualFile(val provider: InsightsDiffViewProvider) : DiffView
 
 data class InsightsDiffViewProvider(val insightsContext: ContextDataForDiff, val project: Project) : DiffPreviewProvider {
 
-  data class OwnerObject(val vcsKey: VCS_CATEGORY, val revision: String, val filePath: FilePath, val project: Project)
+  data class OwnerObject(val vcsKey: VcsCategory, val revision: String, val filePath: FilePath, val project: Project)
 
   override fun createDiffRequestProcessor(): DiffRequestProcessor {
     // Note this object will be disposed when the corresponding DiffRequestProcessorEditor is
