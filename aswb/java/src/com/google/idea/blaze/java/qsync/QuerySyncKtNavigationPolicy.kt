@@ -20,11 +20,13 @@ import com.google.idea.blaze.qsync.java.AddDependencyGenSrcsJars.Companion.ENABL
 import com.google.idea.common.experiments.BoolExperiment
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.CachedValueProvider.Result
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiTreeUtil
+import java.util.concurrent.CancellationException
 import org.jetbrains.kotlin.analysis.decompiler.psi.file.KtClsFile
 import org.jetbrains.kotlin.idea.navigation.KotlinAnalysisApiBasedDeclarationNavigationPolicyImpl
 import org.jetbrains.kotlin.name.CallableId
@@ -50,6 +52,9 @@ class QuerySyncKtNavigationPolicy : KotlinAnalysisApiBasedDeclarationNavigationP
           try {
             provider(ktClsFile)
           } catch (e: Exception) {
+            if (e is ProcessCanceledException || e is CancellationException || e is InterruptedException) {
+              throw e
+            }
             logger.error("Failed to find navigation file for: ${ktClsFile.name}", e)
             null
           }
