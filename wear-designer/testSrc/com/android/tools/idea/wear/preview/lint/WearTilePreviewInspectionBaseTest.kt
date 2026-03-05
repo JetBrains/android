@@ -33,7 +33,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 @RunWith(Parameterized::class)
-class WearTileInspectionBaseTest(private val isUnitTestInspection: Boolean) {
+class WearTilePreviewInspectionBaseTest(private val isUnitTestInspection: Boolean) {
 
   companion object {
     @JvmStatic @Parameterized.Parameters fun data() = listOf(false, true)
