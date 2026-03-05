@@ -21,8 +21,6 @@ import com.google.play.developer.reporting.Track
 import java.util.logging.Level
 import java.util.logging.Logger
 
-private val LOG = Logger.getLogger("vitals.datamodel.Verion")
-
 internal fun Track.toPlayTrack() =
   when (type) {
     "Production" -> PlayTrack.PRODUCTION
@@ -30,7 +28,7 @@ internal fun Track.toPlayTrack() =
     "Open testing" -> PlayTrack.OPEN_TESTING
     "Closed testing" -> PlayTrack.CLOSED_TESTING
     else -> {
-      LOG.log(Level.WARNING, "$type is not of a supported Play Track type.")
+      Logger.getLogger("vitals.datamodel.Version").log(Level.WARNING, "$type is not of a supported Play Track type.")
       null
     }
   }
@@ -49,9 +47,8 @@ internal fun List<Track>.extract(): List<Version> {
     }
 }
 
-fun Version.Companion.fromDimensions(dimensions: List<Dimension>): Version {
-  return dimensions
-    .filter { it.type == DimensionType.VERSION_CODE }
+fun List<Dimension>.toVersion(): Version {
+  return filter { it.type == DimensionType.VERSION_CODE }
     .map { dimension ->
       val versionCode =
         when (dimension.value) { // TODO: either we just pass string around or we know it's of a long type. ?

@@ -16,10 +16,8 @@
 package com.android.tools.idea.vitals.datamodel
 
 import com.android.tools.idea.insights.client.toJavaInstant
-import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.event.EventData
-import com.android.tools.idea.insights.model.event.OperatingSystemInfo
 import com.android.tools.idea.insights.model.issue.IssueAnnotation
 import com.android.tools.idea.insights.model.issue.IssueDetails
 import com.android.tools.idea.insights.model.issue.IssueId
@@ -55,8 +53,8 @@ internal fun ErrorReport.toSampleEvent(parser: StackTraceGroupParser): Event {
     name = name,
     eventData =
       EventData(
-        device = Device.fromProto(deviceModel),
-        operatingSystemInfo = OperatingSystemInfo.fromProto(osVersion),
+        device = deviceModel.toDevice(),
+        operatingSystemInfo = osVersion.toOperatingSystemInfo(),
         eventTime = eventTime.toJavaInstant(),
       ),
     stacktraceGroup =

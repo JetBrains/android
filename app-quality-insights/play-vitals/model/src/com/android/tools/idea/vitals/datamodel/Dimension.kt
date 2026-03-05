@@ -15,23 +15,23 @@
  */
 package com.android.tools.idea.vitals.datamodel
 
-data class Dimension(val type: DimensionType, val value: DimensionValue, val displayValue: String) {
-  companion object {
-    fun fromProto(proto: com.google.play.developer.reporting.DimensionValue): Dimension {
-      val dimensionType = proto.dimension.toEnumDimensionType()
+import com.google.play.developer.reporting.DimensionValue as DimensionValueProto
 
-      // TODO: it's a bit too much to do the following, but I'm not sure if just
-      //  querying "value label" is good enough.
-      val dimensionValue =
-        when {
-          proto.hasInt64Value() -> DimensionValue.LongValue(proto.int64Value)
-          proto.hasStringValue() -> DimensionValue.StringValue(proto.stringValue)
-          else -> throw IllegalStateException("$proto is neither or long nor string type.")
-        }
+data class Dimension(val type: DimensionType, val value: DimensionValue, val displayValue: String)
 
-      return Dimension(type = dimensionType, value = dimensionValue, displayValue = proto.valueLabel)
+fun DimensionValueProto.toDimension(): Dimension {
+  val dimensionType = dimension.toDimensionType()
+
+  // TODO: it's a bit too much to do the following, but I'm not sure if just
+  //  querying "value label" is good enough.
+  val dimensionValue =
+    when {
+      hasInt64Value() -> DimensionValue.LongValue(int64Value)
+      hasStringValue() -> DimensionValue.StringValue(stringValue)
+      else -> throw IllegalStateException("$this is neither or long nor string type.")
     }
-  }
+
+  return Dimension(type = dimensionType, value = dimensionValue, displayValue = valueLabel)
 }
 
 enum class DimensionType(val value: String) {
@@ -139,8 +139,8 @@ enum class DimensionType(val value: String) {
   DEVICE_SCREEN_DPI("deviceScreenDpi"),
 }
 
-fun String.toEnumDimensionType(): DimensionType {
-  return DimensionType.values().firstOrNull { it.value == this }
+fun String.toDimensionType(): DimensionType {
+  return DimensionType.entries.firstOrNull { it.value == this }
     ?: throw IllegalStateException("$this is not of a recognizable dimension type.")
 }
 

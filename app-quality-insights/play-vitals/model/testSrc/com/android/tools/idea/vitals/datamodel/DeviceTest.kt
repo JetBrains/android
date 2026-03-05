@@ -68,9 +68,9 @@ class DeviceTest {
         }
         .build()
 
-    assertThat(Device.fromProto(device1)).isEqualTo(Device("samsung", "blqt", "samsung Galaxy A7"))
-    assertThat(Device.fromProto(device2)).isEqualTo(Device("samsung", "blqt", "SAMSUNG Galaxy A7"))
-    assertThat(Device.fromProto(device3)).isEqualTo(Device("unknown", "unknown", "unknown"))
+    assertThat(device1.toDevice()).isEqualTo(Device("samsung", "blqt", "samsung Galaxy A7"))
+    assertThat(device2.toDevice()).isEqualTo(Device("samsung", "blqt", "SAMSUNG Galaxy A7"))
+    assertThat(device3.toDevice()).isEqualTo(Device("unknown", "unknown", "unknown"))
   }
 
   @Test
@@ -94,8 +94,8 @@ class DeviceTest {
         Dimension(DimensionType.DEVICE_MODEL, DimensionValue.StringValue("unknown"), ""),
       )
 
-    assertThat(Device.fromDimensions(dimension)).isEqualTo(Device("samsung", "blqt", "Galaxy A7", DeviceType("phone")))
-    assertThat(Device.fromDimensions(dimensionWithNoMarketingName)).isEqualTo(Device("google", "husky", "husky", DeviceType("phone")))
-    assertThat(Device.fromDimensions(unknown)).isEqualTo(Device("unknown", "unknown", "", DeviceType("")))
+    assertThat(dimension.toDevice()).isEqualTo(Device("samsung", "blqt", "Galaxy A7", DeviceType("phone")))
+    assertThat(dimensionWithNoMarketingName.toDevice()).isEqualTo(Device("google", "husky", "husky", DeviceType("phone")))
+    assertThat(unknown.toDevice()).isEqualTo(Device("unknown", "unknown", "", DeviceType("")))
   }
 }

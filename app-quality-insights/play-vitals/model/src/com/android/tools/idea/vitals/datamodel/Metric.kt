@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.vitals.datamodel
 
+import com.google.play.developer.reporting.MetricValue as MetricValueProto
 import java.math.BigDecimal
 
 data class DimensionsAndMetrics(val dimensions: List<Dimension>, val metrics: List<Metric>)
 
-data class Metric(val type: MetricType, val value: MetricValue) {
-  companion object {
-    fun fromProto(proto: com.google.play.developer.reporting.MetricValue): Metric {
-      val metricType = proto.metric.toEnumMetricType()
-      val metricValue = MetricValue.BigDecimalValue(BigDecimal(proto.decimalValue.value))
+data class Metric(val type: MetricType, val value: MetricValue)
 
-      return Metric(type = metricType, value = metricValue)
-    }
-  }
+fun MetricValueProto.toMetric(): Metric {
+  val metricType = metric.toMetricType()
+  val metricValue = MetricValue.BigDecimalValue(BigDecimal(decimalValue.value))
+
+  return Metric(type = metricType, value = metricValue)
 }
 
 enum class MetricType(val value: String) {
@@ -39,8 +38,8 @@ sealed class MetricValue {
   data class BigDecimalValue(val value: BigDecimal) : MetricValue()
 }
 
-internal fun String.toEnumMetricType(): MetricType {
-  return MetricType.values().firstOrNull { it.value == this }
+internal fun String.toMetricType(): MetricType {
+  return MetricType.entries.firstOrNull { it.value == this }
     ?: throw IllegalStateException("$this is not of a recognizable dimension type.")
 }
 

@@ -24,16 +24,16 @@ import com.android.tools.idea.insights.model.event.Version
 import com.android.tools.idea.insights.model.issue.IssueDetails
 import com.android.tools.idea.insights.model.issue.IssueId
 import com.android.tools.idea.insights.model.stacktrace.StackTraceGroupParser
-import com.android.tools.idea.vitals.datamodel.Dimension
 import com.android.tools.idea.vitals.datamodel.DimensionType
 import com.android.tools.idea.vitals.datamodel.DimensionsAndMetrics
 import com.android.tools.idea.vitals.datamodel.FilterBuilder
 import com.android.tools.idea.vitals.datamodel.Freshness
-import com.android.tools.idea.vitals.datamodel.Metric
 import com.android.tools.idea.vitals.datamodel.MetricType
 import com.android.tools.idea.vitals.datamodel.TimeGranularity
 import com.android.tools.idea.vitals.datamodel.extract
+import com.android.tools.idea.vitals.datamodel.toDimension
 import com.android.tools.idea.vitals.datamodel.toIssueDetails
+import com.android.tools.idea.vitals.datamodel.toMetric
 import com.android.tools.idea.vitals.datamodel.toProto
 import com.android.tools.idea.vitals.datamodel.toSampleEvent
 import com.google.play.developer.reporting.AggregationPeriod
@@ -108,10 +108,7 @@ class VitalsGrpcClientImpl(channel: Channel, authTokenInterceptor: ClientInterce
     return retryRpc { vitalsErrorGrpcClient.queryErrorCountMetricSet(queryErrorCountMetricsSetRequest) }
       .rowsList
       .map { row ->
-        DimensionsAndMetrics(
-          dimensions = row.dimensionsList.map { Dimension.fromProto(it) },
-          metrics = row.metricsList.map { Metric.fromProto(it) },
-        )
+        DimensionsAndMetrics(dimensions = row.dimensionsList.map { it.toDimension() }, metrics = row.metricsList.map { it.toMetric() })
       }
   }
 
