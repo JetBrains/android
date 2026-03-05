@@ -124,7 +124,11 @@ class DataSeriesPerformanceTest {
     nameToMetrics.values.forEach {
       it.setAnalyzers(
         cpuBenchmark,
-        setOf(WindowDeviationAnalyzer.Builder().addMeanTolerance(WindowDeviationAnalyzer.MeanToleranceParams.Builder().build()).build()),
+        setOf(
+          WindowDeviationAnalyzer.Builder()
+            .addMeanTolerance(WindowDeviationAnalyzer.MeanToleranceParams.Builder().setConstTerm(2500.0).build())
+            .build()
+        ),
       )
       it.commit()
     }
