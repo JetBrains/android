@@ -72,6 +72,8 @@ jvm_library(
     "//java/testFramework",
     "//java/testFramework:testFramework_test_lib",
     "@lib//:assert_j",
+    "//platform/lang-core",
+    "//platform/lang-core:lang-core_test_lib",
   ],
   runtime_deps = [":editors"]
 )

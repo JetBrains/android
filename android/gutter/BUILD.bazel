@@ -71,6 +71,8 @@ jvm_library(
     "//xml/xml-psi-api:psi_test_lib",
     "//android/layoutlib",
     "//android/layoutlib:layoutlib_test_lib",
+    "//libraries/fastutil",
+    "//libraries/fastutil:fastutil_test_lib",
   ],
   runtime_deps = [":gutter"]
 )

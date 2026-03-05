@@ -249,6 +249,10 @@ jvm_library(
     "//platform/util/jdom:jdom_test_lib",
     "//platform/util:util-ui",
     "//platform/util:util-ui_test_lib",
+    "//platform/analysis-api:analysis",
+    "//platform/analysis-api:analysis_test_lib",
+    "//platform/code-style-api:codeStyle",
+    "//platform/code-style-api:codeStyle_test_lib",
   ],
   runtime_deps = [
     ":adb-tests",

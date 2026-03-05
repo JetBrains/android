@@ -307,6 +307,8 @@ jvm_library(
     "//android/adt-ui-compose:adt-ui-compose_test_lib",
     "//android/ml-api",
     "//android/ml-api:ml-api_test_lib",
+    "//platform/util/concurrency",
+    "//platform/util/concurrency:concurrency_test_lib",
   ],
   runtime_deps = [
     ":newProjectWizard-tests",

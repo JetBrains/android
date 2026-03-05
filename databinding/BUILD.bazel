@@ -252,6 +252,8 @@ jvm_library(
     "//plugins/kotlin/base/plugin:plugin_test_lib",
     "//android/databinding/gradle",
     "//android/databinding/gradle:gradle_test_lib",
+    "//libraries/fastutil",
+    "//libraries/fastutil:fastutil_test_lib",
   ],
   runtime_deps = [
     ":databinding-tests",

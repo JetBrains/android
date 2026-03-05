@@ -44,6 +44,7 @@ jvm_library(
     "//platform/ide-core",
     "//platform/util:util-ui",
     "//platform/forms_rt:java-guiForms-rt",
+    "//platform/util/concurrency",
   ]
 )
 
@@ -83,6 +84,7 @@ jvm_library(
     "//platform/ide-core:ide-core_test_lib",
     "//platform/util:util-ui_test_lib",
     "//platform/forms_rt:java-guiForms-rt_test_lib",
+    "//platform/util/concurrency:concurrency_test_lib",
   ]
 )
 ### auto-generated section `build intellij.android.sdkUpdates` end
@@ -158,6 +160,10 @@ jvm_library(
     "//platform/util-rt",
     "//platform/util-rt:util-rt_test_lib",
     "@lib//:mockito-kotlin",
+    "//platform/analysis-api:analysis",
+    "//platform/analysis-api:analysis_test_lib",
+    "//platform/code-style-api:codeStyle",
+    "//platform/code-style-api:codeStyle_test_lib",
   ],
   runtime_deps = [
     ":sdkUpdates-tests",

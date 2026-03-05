@@ -36,6 +36,7 @@ jvm_library(
     "//xml/dom-openapi:dom",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
     "//libraries/gson",
+    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
   ]
 )
 
@@ -103,6 +104,8 @@ jvm_library(
     "//libraries/jsoup:jsoup_test_lib",
     "//libraries/gson",
     "//libraries/gson:gson_test_lib",
+    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
+    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable_test_lib",
   ],
   runtime_deps = ["//platform/platform-impl:ide-impl_test_lib"]
 )

@@ -33,6 +33,7 @@ jvm_library(
     "//android/execution/common",
     "//java/execution/openapi:java-execution",
     "//platform/core-api:core",
+    "//platform/core-ui",
     "//platform/editor-ui-api:editor-ui",
     "//platform/execution",
     "//platform/execution-impl",
@@ -45,6 +46,7 @@ jvm_library(
     "//platform/util-rt",
     "//platform/util:util-ui",
     "//platform/projectModel-impl",
+    "//platform/util/concurrency",
   ]
 )
 
@@ -123,6 +125,8 @@ jvm_library(
     "@lib//:mockito-kotlin",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
+    "//platform/util/concurrency",
+    "//platform/util/concurrency:concurrency_test_lib",
   ],
   runtime_deps = [
     "//platform/ide-core:ide-core_test_lib",

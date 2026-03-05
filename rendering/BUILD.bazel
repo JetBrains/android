@@ -34,6 +34,7 @@ jvm_library(
     "//platform/util/base",
     "//platform/util-rt",
     "@lib//:layoutlib",
+    "//libraries/fastutil",
   ]
 )
 
@@ -61,6 +62,7 @@ jvm_library(
     "//platform/util:util_test_lib",
     "//platform/util/base:base_test_lib",
     "//platform/util-rt:util-rt_test_lib",
+    "//libraries/fastutil:fastutil_test_lib",
   ]
 )
 ### auto-generated section `build intellij.android.rendering` end

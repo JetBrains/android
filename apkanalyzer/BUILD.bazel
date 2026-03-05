@@ -56,6 +56,7 @@ jvm_library(
     "//platform/lang-impl",
     "//platform/forms_rt:java-guiForms-rt",
     "//platform/execution",
+    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
   ]
 )
 
@@ -108,6 +109,7 @@ jvm_library(
     "//platform/lang-impl:lang-impl_test_lib",
     "//platform/forms_rt:java-guiForms-rt_test_lib",
     "//platform/execution:execution_test_lib",
+    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable_test_lib",
   ]
 )
 ### auto-generated section `build intellij.android.apkanalyzer` end

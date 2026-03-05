@@ -68,6 +68,8 @@ jvm_library(
     "//libraries/guava:guava_test_lib",
     "//xml/dom-openapi:dom",
     "//xml/dom-openapi:dom_test_lib",
+    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
+    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable_test_lib",
   ],
   runtime_deps = [
     ":editors.manifest",

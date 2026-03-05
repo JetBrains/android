@@ -71,6 +71,7 @@ jvm_library(
     "//libraries/kotlinx/datetime",
     "//android/server-flags",
     "//libraries/protobuf",
+    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
   ]
 )
 
@@ -125,6 +126,7 @@ jvm_library(
     "//libraries/protobuf:protobuf_test_lib",
     "//libraries/mockito",
     "//libraries/mockito:mockito_test_lib",
+    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable_test_lib",
   ]
 )
 ### auto-generated section `build intellij.android.common` end
@@ -199,6 +201,10 @@ jvm_library(
     "@lib//:mockito-kotlin",
     "//libraries/protobuf",
     "//libraries/protobuf:protobuf_test_lib",
+    "//platform/analysis-api:analysis",
+    "//platform/analysis-api:analysis_test_lib",
+    "//platform/code-style-api:codeStyle",
+    "//platform/code-style-api:codeStyle_test_lib",
   ],
   runtime_deps = [":common-tests"]
 )

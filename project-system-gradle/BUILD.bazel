@@ -180,6 +180,8 @@ jvm_library(
     "//platform/util-class-loader:util-classLoader",
     "//platform/forms_rt:java-guiForms-rt",
     "//plugins/gradle/java/groovy",
+    "//android/observable",
+    "//platform/locking-impl",
   ]
 )
 
@@ -344,6 +346,8 @@ jvm_library(
     "//platform/util-class-loader:util-classLoader_test_lib",
     "//platform/forms_rt:java-guiForms-rt_test_lib",
     "//plugins/gradle/java/groovy:groovy_test_lib",
+    "//android/observable:observable_test_lib",
+    "//platform/locking-impl:locking-impl_test_lib",
   ]
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle` end
@@ -628,6 +632,12 @@ jvm_library(
     "//plugins/kotlin/project-wizard/core:core_test_lib",
     "//plugins/gradle/java/toml",
     "//plugins/gradle/java/toml:toml_test_lib",
+    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
+    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable_test_lib",
+    "//platform/code-style-api:codeStyle",
+    "//platform/code-style-api:codeStyle_test_lib",
+    "//platform/util/concurrency",
+    "//platform/util/concurrency:concurrency_test_lib",
   ],
   runtime_deps = [
     ":projectSystem-gradle-tests",

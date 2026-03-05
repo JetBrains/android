@@ -76,6 +76,8 @@ jvm_library(
     "@lib//:mockito-kotlin",
     "//plugins/kotlin/base/plugin",
     "//plugins/kotlin/base/plugin:plugin_test_lib",
+    "//platform/lang-core",
+    "//platform/lang-core:lang-core_test_lib",
   ],
   runtime_deps = [
     ":actions",

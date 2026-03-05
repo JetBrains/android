@@ -210,6 +210,12 @@ jvm_library(
     "//android/android/editing/documentation:documentation_test_lib",
     "//java/openapi:java",
     "//java/openapi:java_test_lib",
+    "//libraries/fastutil",
+    "//libraries/fastutil:fastutil_test_lib",
+    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
+    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable_test_lib",
+    "//platform/util/concurrency",
+    "//platform/util/concurrency:concurrency_test_lib",
   ],
   runtime_deps = [
     ":jetbrains",

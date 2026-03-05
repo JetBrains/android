@@ -189,6 +189,8 @@ jvm_library(
     "//android/android-adb:adb",
     "//android/android-adb:adb_test_lib",
     "@lib//:mockito-kotlin",
+    "//platform/code-style-api:codeStyle",
+    "//platform/code-style-api:codeStyle_test_lib",
   ],
   runtime_deps = [
     ":android-execution-common-tests",

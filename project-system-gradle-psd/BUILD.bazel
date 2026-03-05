@@ -73,6 +73,7 @@ jvm_library(
     "//platform/util:util-ui",
     "//plugins/kotlin/base/facet",
     "//platform/lang-api:lang",
+    "//platform/util/concurrency",
   ]
 )
 
@@ -140,6 +141,7 @@ jvm_library(
     "//platform/util:util-ui_test_lib",
     "//plugins/kotlin/base/facet:facet_test_lib",
     "//platform/lang-api:lang_test_lib",
+    "//platform/util/concurrency:concurrency_test_lib",
   ]
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle.psd` end
@@ -246,6 +248,10 @@ jvm_library(
     "//libraries/kotlinx/datetime:datetime_test_lib",
     "//android/gradle-declarative-lang-flags",
     "//android/gradle-declarative-lang-flags:gradle-declarative-lang-flags_test_lib",
+    "//platform/lang-api:lang",
+    "//platform/lang-api:lang_test_lib",
+    "//platform/lang-core",
+    "//platform/lang-core:lang-core_test_lib",
   ],
   runtime_deps = [
     ":projectSystem-gradle-psd-tests",

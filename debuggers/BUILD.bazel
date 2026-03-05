@@ -241,6 +241,8 @@ jvm_library(
     "//platform/projectModel-api:projectModel_test_lib",
     "//plugins/maven",
     "//plugins/maven:maven_test_lib",
+    "//platform/lang-core",
+    "//platform/lang-core:lang-core_test_lib",
   ],
   runtime_deps = [
     ":debuggers-tests",

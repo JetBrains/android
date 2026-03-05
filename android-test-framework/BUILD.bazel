@@ -157,6 +157,8 @@ jvm_library(
     "//plugins/kotlin/base/scripting/scripting.shared:scripting.shared_test_lib",
     "//android/preview-fast-compile",
     "//android/preview-fast-compile:preview-fast-compile_test_lib",
+    "//libraries/fastutil",
+    "//libraries/fastutil:fastutil_test_lib",
   ],
   runtime_deps = [
     ":testFramework",

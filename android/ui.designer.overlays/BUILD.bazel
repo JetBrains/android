@@ -48,6 +48,8 @@ jvm_library(
     "//platform/testFramework:testFramework_test_lib",
     "//platform/util:util-ui",
     "//platform/util:util-ui_test_lib",
+    "//platform/lang-core",
+    "//platform/lang-core:lang-core_test_lib",
   ],
   runtime_deps = [
     ":ui.designer.overlays",

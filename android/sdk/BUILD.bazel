@@ -103,6 +103,8 @@ jvm_library(
     "//plugins/kotlin/base/facet",
     "//plugins/kotlin/base/facet:facet_test_lib",
     "@lib//:jaxb-api",
+    "//platform/util/concurrency",
+    "//platform/util/concurrency:concurrency_test_lib",
   ],
   runtime_deps = [
     ":sdk",

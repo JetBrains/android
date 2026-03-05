@@ -151,6 +151,10 @@ jvm_library(
     "//platform/workspace/jps:jps_test_lib",
     "//platform/workspace/storage",
     "//platform/workspace/storage:storage_test_lib",
+    "//platform/code-style-api:codeStyle",
+    "//platform/code-style-api:codeStyle_test_lib",
+    "//platform/util/concurrency",
+    "//platform/util/concurrency:concurrency_test_lib",
   ],
   runtime_deps = [
     ":gradle",

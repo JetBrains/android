@@ -66,6 +66,7 @@ jvm_library(
     "//xml/xml-psi-impl:psi-impl",
     "//platform/platform-impl/ui",
     "//libraries/jspecify",
+    "//platform/code-style-api:codeStyle",
   ],
   exports = ["@lib//:android-adt-ui-ibm-db2-jcc"]
 )
@@ -168,6 +169,8 @@ jvm_library(
     "//libraries/jspecify:jspecify_test_lib",
     "//platform/project-frame",
     "//platform/project-frame:project-frame_test_lib",
+    "//platform/code-style-api:codeStyle",
+    "//platform/code-style-api:codeStyle_test_lib",
   ],
   exports = ["@lib//:android-adt-ui-ibm-db2-jcc"],
   runtime_deps = [

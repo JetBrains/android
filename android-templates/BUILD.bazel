@@ -270,6 +270,8 @@ jvm_library(
     "//android/gradle-dsl-flags:gradle-dsl-flags_test_lib",
     "//android/gradle-declarative-lang-flags",
     "//android/gradle-declarative-lang-flags:gradle-declarative-lang-flags_test_lib",
+    "//platform/code-style-api:codeStyle",
+    "//platform/code-style-api:codeStyle_test_lib",
   ],
   runtime_deps = [
     ":templates-tests",

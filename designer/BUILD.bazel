@@ -94,6 +94,7 @@ jvm_library(
     "//android/avd",
     "//libraries/xerces",
     "@lib//:kotlinc-kotlin-compiler-ir-provided",
+    "//libraries/fastutil",
   ],
   plugins = ["@lib//:compose-plugin"]
 )
@@ -266,6 +267,8 @@ jvm_library(
     "//libraries/xerces",
     "//libraries/xerces:xerces_test_lib",
     "@lib//:kotlinc-kotlin-compiler-ir-provided",
+    "//libraries/fastutil",
+    "//libraries/fastutil:fastutil_test_lib",
   ],
   runtime_deps = [
     "//platform/ide-core:ide-core_test_lib",
