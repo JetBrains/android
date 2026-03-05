@@ -3304,6 +3304,8 @@ Projects:
                       Property DataClassWithType    : kotlin.collections.Collection
                       GenericTypes
                           - ConcreteGeneric SimpleType    : STRING
+                    - PropertyName                  : resourcePrefix
+                      Property SimpleType           : STRING
                 Supertypes                    : com.android.build.api.dsl.AndroidResources,kotlin.Any
             com.android.build.api.dsl.LibraryBaseFlavor
                 Name                          : com.android.build.api.dsl.LibraryBaseFlavor
@@ -11193,6 +11195,8 @@ Settings:
                       Property DataClassWithType    : kotlin.collections.Collection
                       GenericTypes
                           - ConcreteGeneric SimpleType    : STRING
+                    - PropertyName                  : resourcePrefix
+                      Property SimpleType           : STRING
                 Supertypes                    : com.android.build.api.dsl.AndroidResources,kotlin.Any
             com.android.build.api.dsl.LibraryBaseFlavor
                 Name                          : com.android.build.api.dsl.LibraryBaseFlavor
