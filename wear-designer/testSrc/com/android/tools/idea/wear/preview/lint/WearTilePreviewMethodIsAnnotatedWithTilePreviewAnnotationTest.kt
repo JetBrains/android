@@ -16,8 +16,11 @@
 package com.android.tools.idea.wear.preview.lint
 
 import com.android.tools.idea.preview.quickfixes.ReplacePreviewAnnotationFix
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
 import com.android.tools.idea.wear.preview.WearPreviewBundle.message
 import com.android.tools.idea.wear.preview.WearTileProjectRule
+import com.android.tools.idea.wear.preview.withTilePreviewDependency
 import com.intellij.codeInspection.ex.QuickFixWrapper
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.psi.PsiFile
@@ -29,7 +32,11 @@ import org.junit.Test
 
 class WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotationTest {
 
-  @get:Rule val projectRule = WearTileProjectRule()
+  @get:Rule
+  val projectRule =
+    WearTileProjectRule(
+      AndroidProjectRule.withAndroidModel(createAndroidProjectBuilderForDefaultTestProjectStructure().withTilePreviewDependency())
+    )
 
   private val fixture
     get() = projectRule.fixture
@@ -41,7 +48,7 @@ class WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotationTest {
     fixture.enableInspections(inspection)
 
     fixture.addFileToProject(
-      "src/main/test/Preview.kt",
+      "src/test/java/Preview.kt",
       // language=kotlin
       """
       package test
@@ -51,7 +58,7 @@ class WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotationTest {
         .trimIndent(),
     )
     fixture.addFileToProject(
-      "src/main/test/AnInvalidMultiPreviewAnnotation.kt",
+      "src/test/java/AnInvalidMultiPreviewAnnotation.kt",
       // language=kotlin
       """
       package test
@@ -67,7 +74,7 @@ class WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotationTest {
   fun previewAnnotationFromADifferentPackageResultsInAnErrorKotlin() {
     val kotlinFile =
       fixture.addFileToProject(
-        "src/main/test/Test.kt",
+        "src/test/java/Test.kt",
         // language=kotlin
         """
         import androidx.wear.tiles.tooling.preview.TilePreviewData
@@ -96,7 +103,7 @@ class WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotationTest {
   fun previewAnnotationFromADifferentPackageResultsInAnErrorJava() {
     val javaFile =
       fixture.addFileToProject(
-        "src/main/test/Test.java",
+        "src/test/java/Test.java",
         // language=java
         """
         import androidx.wear.tiles.tooling.preview.TilePreviewData;

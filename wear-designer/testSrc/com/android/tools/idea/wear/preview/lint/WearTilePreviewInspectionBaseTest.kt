@@ -20,11 +20,11 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.wear.preview.WearTileProjectRule
-import com.intellij.ide.highlighter.HtmlFileType
-import com.intellij.ide.highlighter.JavaFileType
-import com.intellij.ide.highlighter.XmlFileType
-import org.jetbrains.kotlin.idea.KotlinFileType
+import com.android.tools.idea.wear.preview.withTilePreviewDependency
+import com.intellij.openapi.application.readAction
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Rule
@@ -39,9 +39,24 @@ class WearTilePreviewInspectionBaseTest(private val isUnitTestInspection: Boolea
     @JvmStatic @Parameterized.Parameters fun data() = listOf(false, true)
   }
 
+  private val moduleWithTilesToolingPreviewDependency =
+    AndroidModuleModelBuilder(
+      gradlePath = ":with-dependency",
+      selectedBuildVariant = "debug",
+      AndroidProjectBuilder().withTilePreviewDependency(),
+    )
+  private val moduleWithoutDependency =
+    AndroidModuleModelBuilder(gradlePath = ":without-dependency", selectedBuildVariant = "debug", AndroidProjectBuilder())
+
   @get:Rule
   val projectRule =
-    WearTileProjectRule(AndroidProjectRule.withAndroidModels(AndroidModuleModelBuilder(":", "debug", AndroidProjectBuilder())))
+    WearTileProjectRule(
+      AndroidProjectRule.withAndroidModels(
+        JavaModuleModelBuilder.rootModuleBuilder,
+        moduleWithTilesToolingPreviewDependency,
+        moduleWithoutDependency,
+      )
+    )
 
   @get:Rule val wearTilePreviewFlagRule = FlagRule(StudioFlags.WEAR_TILE_PREVIEW, true)
 
@@ -51,44 +66,60 @@ class WearTilePreviewInspectionBaseTest(private val isUnitTestInspection: Boolea
   private val inspection = object : WearTilePreviewInspectionBase(isUnitTestInspection = isUnitTestInspection) {}
 
   @Test
-  fun isAvailableForKotlinAndJavaFiles() {
-    val kotlinFile = fixture.configureByText(KotlinFileType.INSTANCE, "")
-    val javaFile = fixture.configureByText(JavaFileType.INSTANCE, "")
+  fun isAvailableForKotlinAndJavaFiles() = runTest {
+    val kotlinFile = fixture.addFileToProject("with-dependency/src/main/kotlin/Test.kt", "")
+    val javaFile = fixture.addFileToProject("with-dependency/src/main/java/Test.java", "")
 
-    assertEquals(!isUnitTestInspection, inspection.isAvailableForFile(kotlinFile))
-    assertEquals(!isUnitTestInspection, inspection.isAvailableForFile(javaFile))
+    readAction {
+      assertEquals(!isUnitTestInspection, inspection.isAvailableForFile(kotlinFile))
+      assertEquals(!isUnitTestInspection, inspection.isAvailableForFile(javaFile))
+    }
   }
 
   @Test
-  fun isAvailableForUnitTestFiles() {
-    val kotlinUnitTestFile = fixture.addFileToProject("src/test/test.kt", "")
-    val javaUnitTestFile = fixture.addFileToProject("src/test/Test.java", "")
+  fun isAvailableForUnitTestFiles() = runTest {
+    val kotlinUnitTestFile = fixture.addFileToProject("with-dependency/src/test/kotlin/Test.kt", "")
+    val javaUnitTestFile = fixture.addFileToProject("with-dependency/src/test/java/Test.java", "")
 
-    assertEquals(isUnitTestInspection, inspection.isAvailableForFile(kotlinUnitTestFile))
-    assertEquals(isUnitTestInspection, inspection.isAvailableForFile(javaUnitTestFile))
+    readAction {
+      assertEquals(isUnitTestInspection, inspection.isAvailableForFile(kotlinUnitTestFile))
+      assertEquals(isUnitTestInspection, inspection.isAvailableForFile(javaUnitTestFile))
+    }
   }
 
   @Test
-  fun isUnavailableForUnSupportedTypes() {
-    val xmlFile = fixture.configureByText(XmlFileType.INSTANCE, "")
-    val xmlUnitTestFile = fixture.addFileToProject("src/test/Test.xml", "")
-    val htmlFile = fixture.configureByText(HtmlFileType.INSTANCE, "")
-    val htmlUnitTestFile = fixture.addFileToProject("src/test/Test.html", "")
+  fun isUnavailableForUnSupportedTypes() = runTest {
+    val xmlFile = fixture.addFileToProject("with-dependency/src/main/Test.xml", "")
+    val xmlUnitTestFile = fixture.addFileToProject("with-dependency/src/test/Test.xml", "")
+    val htmlFile = fixture.addFileToProject("with-dependency/src/main/Test.html", "")
+    val htmlUnitTestFile = fixture.addFileToProject("with-dependency/src/test/Test.html", "")
 
-    assertFalse(inspection.isAvailableForFile(xmlFile))
-    assertFalse(inspection.isAvailableForFile(xmlUnitTestFile))
-    assertFalse(inspection.isAvailableForFile(htmlFile))
-    assertFalse(inspection.isAvailableForFile(htmlUnitTestFile))
+    readAction {
+      assertFalse(inspection.isAvailableForFile(xmlFile))
+      assertFalse(inspection.isAvailableForFile(xmlUnitTestFile))
+      assertFalse(inspection.isAvailableForFile(htmlFile))
+      assertFalse(inspection.isAvailableForFile(htmlUnitTestFile))
+    }
   }
 
   @Test
-  fun canBeDisabled() {
-    val kotlinFile = fixture.configureByText(KotlinFileType.INSTANCE, "")
-    val javaFile = fixture.configureByText(JavaFileType.INSTANCE, "")
+  fun canBeDisabled() = runTest {
+    val kotlinFile = fixture.addFileToProject("with-dependency/src/main/kotlin/Test.kt", "")
+    val javaFile = fixture.addFileToProject("with-dependency/src/main/java/Test.java", "")
 
     StudioFlags.WEAR_TILE_PREVIEW.override(false)
 
-    assertFalse(inspection.isAvailableForFile(kotlinFile))
-    assertFalse(inspection.isAvailableForFile(javaFile))
+    readAction {
+      assertFalse(inspection.isAvailableForFile(kotlinFile))
+      assertFalse(inspection.isAvailableForFile(javaFile))
+    }
+  }
+
+  @Test
+  // Regression test for b/487624989
+  fun isNotAvailableIfModuleDoesNotDependOnTilePreviewAndroidxLibrary() = runTest {
+    val kotlinFile = fixture.addFileToProject("without-dependency/src/main/kotlin/Test.kt", "")
+
+    readAction { assertFalse(inspection.isAvailableForFile(kotlinFile)) }
   }
 }

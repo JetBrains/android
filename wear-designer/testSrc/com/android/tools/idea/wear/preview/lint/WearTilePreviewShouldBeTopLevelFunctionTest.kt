@@ -15,16 +15,17 @@
  */
 package com.android.tools.idea.wear.preview.lint
 
+import com.android.tools.idea.testing.AndroidProjectBuilder
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wear.preview.WearPreviewBundle.message
 import com.android.tools.idea.wear.preview.WearTileProjectRule
-import com.intellij.ide.highlighter.JavaFileType
-import org.jetbrains.kotlin.idea.KotlinFileType
+import com.android.tools.idea.wear.preview.withTilePreviewDependency
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 class WearTilePreviewShouldBeTopLevelFunctionTest {
-  @get:Rule val projectRule = WearTileProjectRule()
+  @get:Rule val projectRule = WearTileProjectRule(AndroidProjectRule.withAndroidModel(AndroidProjectBuilder().withTilePreviewDependency()))
 
   private val fixture
     get() = projectRule.fixture
@@ -38,10 +39,11 @@ class WearTilePreviewShouldBeTopLevelFunctionTest {
 
   @Test
   fun checkKotlinErrors() {
-    fixture.configureByText(
-      KotlinFileType.INSTANCE,
-      // language=kotlin
-      """
+    val file =
+      fixture.addFileToProject(
+        "src/main/java/test.kt",
+        // language=kotlin
+        """
       import androidx.wear.tiles.tooling.preview.Preview
       import androidx.wear.tiles.tooling.preview.TilePreviewData
 
@@ -94,18 +96,20 @@ class WearTilePreviewShouldBeTopLevelFunctionTest {
         fun validClassMethod() = TilePreviewData()
       }
     """
-        .trimIndent(),
-    )
+          .trimIndent(),
+      )
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting(false, false, false)
   }
 
   @Test
   fun checkJavaErrors() {
-    fixture.configureByText(
-      JavaFileType.INSTANCE,
-      // language=java
-      """
+    val file =
+      fixture.addFileToProject(
+        "src/main/java/Test.java",
+        // language=java
+        """
       import androidx.wear.tiles.tooling.preview.Preview;
       import androidx.wear.tiles.tooling.preview.TilePreviewData;
 
@@ -141,8 +145,9 @@ class WearTilePreviewShouldBeTopLevelFunctionTest {
         }
       }
     """
-        .trimIndent(),
-    )
+          .trimIndent(),
+      )
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting(false, false, false)
   }
