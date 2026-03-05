@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.wear.preview
 
+import com.android.ide.common.repository.GoogleMavenArtifactId
+import com.android.tools.idea.testing.AndroidLibraryDependency
+import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 
@@ -46,4 +49,9 @@ fun CodeInsightTestFixture.stubWearTilePreviewAnnotation(modulePath: String? = "
     """
       .trimIndent(),
   )
+}
+
+/** Adds a dependency on `androidx.wear.tiles:tiles-tooling-preview`. */
+fun AndroidProjectBuilder.withTilePreviewDependency(version: String = "1.0.0") = withAndroidLibraryDependencyList {
+  listOf(AndroidLibraryDependency.fromAddress("${GoogleMavenArtifactId.WEAR_TILES_TOOLING_PREVIEW}:$version"))
 }

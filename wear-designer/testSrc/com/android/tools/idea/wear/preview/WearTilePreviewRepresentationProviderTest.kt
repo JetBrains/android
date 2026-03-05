@@ -17,7 +17,6 @@ package com.android.tools.idea.wear.preview
 
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.preview.find.FilePreviewElementFinder
-import com.android.tools.idea.testing.AndroidLibraryDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JavaModuleModelBuilder
@@ -34,9 +33,7 @@ class WearTilePreviewRepresentationProviderTest {
     AndroidModuleModelBuilder(
       gradlePath = ":with-dependency",
       selectedBuildVariant = "debug",
-      createAndroidProjectBuilderForDefaultTestProjectStructure(IdeAndroidProjectType.PROJECT_TYPE_APP).withAndroidLibraryDependencyList {
-        listOf(AndroidLibraryDependency.fromAddress("androidx.wear.tiles:tiles-tooling-preview:1.5.0"))
-      },
+      createAndroidProjectBuilderForDefaultTestProjectStructure(IdeAndroidProjectType.PROJECT_TYPE_APP).withTilePreviewDependency(),
     )
   private val moduleWithoutDependency =
     AndroidModuleModelBuilder(
