@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.project
 
-import com.android.SdkConstants.VALUE_TRUE
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.model.MergedManifestModificationTracker
+import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.getProductionAndroidModule
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
@@ -36,8 +36,7 @@ import com.android.tools.idea.run.configuration.AndroidTileRunConfigurationProdu
 import com.android.tools.idea.run.configuration.AndroidWatchFaceRunConfigurationProducer
 import com.android.tools.idea.run.configuration.AndroidWearConfiguration
 import com.android.tools.idea.run.util.LaunchUtils
-import com.android.utils.cache.ChangeTracker
-import com.android.utils.cache.ChangeTrackerCachedValue
+import com.android.tools.idea.util.androidFacet
 import com.intellij.execution.JavaExecutionUtil
 import com.intellij.execution.RunManager
 import com.intellij.execution.RunnerAndConfigurationSettings
@@ -48,15 +47,14 @@ import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Key
+import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.PathUtil
 import org.jetbrains.android.dom.manifest.Manifest
-import org.jetbrains.android.dom.manifest.UsesFeature
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.AndroidUtils
 
 private val wearConfigurationProducers =
   listOf(AndroidTileRunConfigurationProducer(), AndroidComplicationRunConfigurationProducer(), AndroidWatchFaceRunConfigurationProducer())
@@ -211,6 +209,7 @@ class AndroidRunConfigurations {
     project
       .getAndroidFacets()
       .filter { it.configuration.isAppProject }
+      .filter { LaunchUtils.isWatchFeatureRequired(it) }
       .forEach {
         if (!project.isDisposed) {
           wearRunConfigurationsToAdd += createWearConfigurations(it.module)
@@ -298,40 +297,36 @@ class AndroidRunConfigurations {
   }
 
   private suspend fun extractWearComponents(module: Module): List<WearComponent> {
-    val modificationTracker = MergedManifestModificationTracker.getInstance(module)
-    val dumbServiceTracker = DumbService.getInstance(module.project)
-    val wearComponentsCache =
-      module.getUserData(extractWearComponentsCacheKey)
-        ?: ChangeTrackerCachedValue.softReference<List<WearComponent>>().also { module.putUserData(extractWearComponentsCacheKey, it) }
-    return ChangeTrackerCachedValue.get(
-      wearComponentsCache,
-      { extractWearComponentsNonCached(module) },
-      ChangeTracker(
-        ChangeTracker { modificationTracker.modificationCount },
-        ChangeTracker { dumbServiceTracker.modificationTracker.modificationCount },
-      ),
-    )
-  }
+    val facet = module.androidFacet ?: return emptyList()
+    return smartReadAction(project = module.project) {
+      val overrides = facet.getModuleSystem().getManifestOverrides()
+      val packageName = facet.getModuleSystem().getPackageName()
+      val psiFacade = JavaPsiFacade.getInstance(module.project)
+      val scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(facet.getProductionAndroidModule())
 
-  private suspend fun extractWearComponentsNonCached(module: Module): List<WearComponent> {
-    return smartReadAction(module.project) {
-      val manifests =
-        module.getModuleSystem().getMergedManifestContributors().let {
-          val primaryManifest =
-            it.primaryManifest?.let { file -> AndroidUtils.loadDomElement(module, file, Manifest::class.java) }
-              ?: return@smartReadAction emptyList()
-
-          if (!isWatchFeatureRequired(primaryManifest)) {
-            return@smartReadAction emptyList()
+      val servicePsiClasses =
+        AndroidManifestIndex.getDataForMergedManifestContributors(facet)
+          .map { manifest ->
+            ProgressManager.checkCanceled()
+            manifest.services.mapNotNull {
+              val name = it.name ?: return@mapNotNull null
+              val resolvedName = overrides.resolvePlaceholders(name)
+              val qualifiedName =
+                when {
+                  packageName == null -> resolvedName
+                  resolvedName.startsWith('.') -> packageName + resolvedName
+                  resolvedName.contains('.') -> resolvedName
+                  else -> "$packageName.$resolvedName"
+                }
+              psiFacade.findClass(qualifiedName, scope)
+            }
           }
+          .toList()
+          .flatten()
+          .toSet()
 
-          val libraryManifests = it.libraryManifests.mapNotNull { file -> AndroidUtils.loadDomElement(module, file, Manifest::class.java) }
-
-          listOf(primaryManifest) + libraryManifests
-        }
-
-      val servicePsiClasses = manifests.flatMap { it.application.services.mapNotNull { service -> service.serviceClass.value } }
       servicePsiClasses.mapNotNull { psiClass ->
+        ProgressManager.checkCanceled()
         val qualifiedName = psiClass.qualifiedName ?: return@mapNotNull null
         val configurationFactory = wearConfigurationFactory(psiClass) ?: return@mapNotNull null
         WearComponent(qualifiedName, configurationFactory)
@@ -351,21 +346,11 @@ class AndroidRunConfigurations {
       .toSet()
   }
 
-  private fun isWatchFeatureRequired(manifest: Manifest): Boolean {
-    return manifest.usesFeatures.any { feature ->
-      val isWearFeature = feature.name.value == UsesFeature.HARDWARE_TYPE_WATCH
-      val isRequired = feature.required.stringValue == null || feature.required.stringValue == VALUE_TRUE
-      isWearFeature && isRequired
-    }
-  }
-
   private data class WearComponent(val name: String, val configurationFactory: ConfigurationFactory)
 
   companion object {
     @JvmStatic
     val instance: AndroidRunConfigurations
       get() = ApplicationManager.getApplication().getService(AndroidRunConfigurations::class.java)
-
-    private val extractWearComponentsCacheKey = Key<ChangeTrackerCachedValue<List<WearComponent>>>("extractWearComponents")
   }
 }
