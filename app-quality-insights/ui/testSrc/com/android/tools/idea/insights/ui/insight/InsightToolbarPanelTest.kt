@@ -27,6 +27,7 @@ import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.android.tools.idea.insights.model.event.EventPage
 import com.android.tools.idea.testing.disposable
+import com.android.tools.idea.ui.resourcemanager.actions.HeaderAction
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.ide.CopyProvider
@@ -43,9 +44,7 @@ import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.ide.CopyPasteManager
-import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
-import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
 import com.intellij.util.application
@@ -79,7 +78,7 @@ class InsightToolbarPanelTest {
   private val projectRule = ProjectRule()
   private val controllerRule = AppInsightsProjectLevelControllerRule(projectRule)
 
-  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(EdtRule()).around(projectRule).around(controllerRule)
+  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(controllerRule)
 
   private lateinit var copyProvider: FakeCopyProvider
   private lateinit var testEvent: AnActionEvent
@@ -107,7 +106,6 @@ class InsightToolbarPanelTest {
     scope.cancel()
   }
 
-  @RunsInEdt
   @Test
   fun `test upvote and downvote actions`() = runBlocking {
     createInsightBottomPanel()
@@ -141,7 +139,6 @@ class InsightToolbarPanelTest {
     assertThat(downvoteEvent.isSelected).isFalse()
   }
 
-  @RunsInEdt
   @Test
   fun `test sentiment tracked when feedback clicked`() = runBlocking {
     createInsightBottomPanel()
@@ -156,15 +153,12 @@ class InsightToolbarPanelTest {
     assertThat(submittedFeedback).containsExactly(InsightFeedback.THUMBS_UP, InsightFeedback.THUMBS_DOWN).inOrder()
   }
 
-  @RunsInEdt
   @Test
   fun `test copy action`() = runBlocking {
-    val toolbarPanel = createInsightBottomPanel()
+    createInsightBottomPanel()
 
-    val fakeUi = FakeUi(toolbarPanel)
-    val toolbarPlace = "${controllerRule.controller.provider.displayName} $INSIGHT_TOOLBAR"
-    val toolbar = fakeUi.findComponent<ActionToolbarImpl> { it.place == toolbarPlace } ?: fail("Toolbar not found")
-    assertThat(toolbar.actions.size).isEqualTo(4)
+    val toolbar = findToolbar()
+    assertThat(toolbar.actions.size).isEqualTo(5)
     val copyAction = toolbar.actions[0]
 
     CopyPasteManager.copyTextToClipboard("default text")
@@ -207,17 +201,15 @@ class InsightToolbarPanelTest {
 
   @Test
   fun `test refresh insight action`() = runBlocking {
-    val toolbarPanel = createInsightBottomPanel()
+    createInsightBottomPanel()
     controllerRule.consumeInitialState(
       state = LoadingState.Ready(IssueResponse(listOf(ISSUE1, ISSUE2), emptyList(), emptyList(), emptyList(), DEFAULT_FETCHED_PERMISSIONS)),
       eventsState = LoadingState.Ready(EventPage(listOf(ISSUE1.sampleEvent), "")),
       insightState = LoadingState.Ready(AiInsight("insight", ISSUE1.sampleEvent)),
     )
 
-    val fakeUi = withContext(Dispatchers.EDT) { FakeUi(toolbarPanel) }
-    val toolbarPlace = "${controllerRule.controller.provider.displayName} $INSIGHT_TOOLBAR"
-    val toolbar = fakeUi.findComponent<ActionToolbarImpl> { it.place == toolbarPlace } ?: fail("Toolbar not found")
-    assertThat(toolbar.actions.size).isEqualTo(4)
+    val toolbar = findToolbar()
+    assertThat(toolbar.actions.size).isEqualTo(5)
 
     val refreshAction = toolbar.actions.firstOrNull { it is InsightRefreshAction } ?: fail("InsightRefreshAction not found")
 
@@ -228,6 +220,38 @@ class InsightToolbarPanelTest {
 
     val state = controllerRule.consumeNext()
     assertThat(state.currentInsight).isEqualTo(LoadingState.Loading)
+  }
+
+  @Test
+  fun `test settings action`() = runBlocking {
+    createInsightBottomPanel()
+
+    val toolbar = findToolbar()
+    assertThat(toolbar.actions.size).isEqualTo(5)
+
+    val settingsAction = toolbar.actions.filterIsInstance<InsightSettingGroup>().firstOrNull() ?: fail("InsightSettingGroup not found")
+
+    settingsAction.update(testEvent)
+    assertThat(testEvent.presentation.icon).isEqualTo(AllIcons.General.Settings)
+    assertThat(settingsAction.isPopup).isTrue()
+
+    val children = settingsAction.getChildren(testEvent)
+    assertThat(children).hasLength(2)
+    assertThat(children[0]).isInstanceOf(HeaderAction::class.java)
+    assertThat(children[1]).isInstanceOf(InsightAutoGenerateSetting::class.java)
+
+    val autoGenerateAction = children[1] as InsightAutoGenerateSetting
+    assertThat(autoGenerateAction.templatePresentation.text).isEqualTo("Auto-generate insight summaries")
+
+    // Initially false in FakeAiInsightToolkit
+    assertThat(Toggleable.isSelected(testEvent.presentation)).isFalse()
+
+    autoGenerateAction.actionPerformed(testEvent)
+    assertThat(Toggleable.isSelected(testEvent.presentation)).isTrue()
+
+    autoGenerateAction.setSelected(testEvent, false)
+    autoGenerateAction.update(testEvent)
+    assertThat(Toggleable.isSelected(testEvent.presentation)).isFalse()
   }
 
   private val AnActionEvent.isSelected: Boolean
@@ -257,10 +281,16 @@ class InsightToolbarPanelTest {
     override fun isCopyVisible(dataContext: DataContext) = true
   }
 
-  private fun createInsightBottomPanel() =
-    InsightToolbarPanel(controllerRule.controller, currentInsightFlow, projectRule.disposable) { feedback ->
-        submittedFeedback.add(feedback)
-        currentInsightFlow.value = LoadingState.Ready(DEFAULT_AI_INSIGHT.copy(feedback = feedback))
-      }
-      .also { fakeUi = FakeUi(it) }
+  private suspend fun createInsightBottomPanel() =
+    withContext(Dispatchers.EDT) {
+      InsightToolbarPanel(controllerRule.controller, currentInsightFlow, projectRule.disposable) { feedback ->
+          submittedFeedback.add(feedback)
+          currentInsightFlow.value = LoadingState.Ready(DEFAULT_AI_INSIGHT.copy(feedback = feedback))
+        }
+        .also { fakeUi = FakeUi(it) }
+    }
+
+  private fun findToolbar(): ActionToolbar =
+    fakeUi.findComponent<ActionToolbarImpl> { it.place == "${controllerRule.controller.provider.displayName} $INSIGHT_TOOLBAR" }
+      ?: fail("Toolbar not found")
 }

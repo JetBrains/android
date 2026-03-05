@@ -70,7 +70,7 @@ class VitalsAiInsightToolkitTest {
 
   @Test
   fun `fetch insight populates proto fields correctly`() = runBlocking {
-    val insight = aiInsightToolkit.fetchInsight(TEST_CONNECTION_1, ISSUE1.id, null, ISSUE1.issueDetails.fatality, ISSUE1.sampleEvent)
+    val insight = aiInsightToolkit.fetchInsight(TEST_CONNECTION_1, ISSUE1.id, null, ISSUE1.issueDetails.fatality, ISSUE1.sampleEvent, true)
 
     val rawInsight = (insight as LoadingState.Ready).value.rawInsight
     Truth.assertThat(rawInsight).isEqualTo("insight for $TEST_CONNECTION_1 and ${ISSUE1.sampleEvent}")

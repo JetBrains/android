@@ -1,0 +1,90 @@
+/*
+ * Copyright (C) 2026 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.insights.ui.insight
+
+import com.android.tools.idea.insights.ai.FakeAiInsightToolkit
+import com.android.tools.idea.ui.resourcemanager.actions.HeaderAction
+import com.google.common.truth.Truth.assertThat
+import com.google.gct.login2.LoginUsersRule
+import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.KeepPopupOnPerform
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.TestActionEvent.createTestEvent
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
+
+class InsightSettingGroupTest {
+
+  private val projectRule = ProjectRule()
+  private val loginUserRule = LoginUsersRule()
+
+  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(loginUserRule)
+
+  private lateinit var fakeToolkit: FakeAiInsightToolkit
+
+  @Before
+  fun setUp() {
+    loginUserRule.setActiveUser("test_user@google.com")
+    fakeToolkit = FakeAiInsightToolkit(projectRule.project)
+  }
+
+  @Test
+  fun `test setting group properties`() {
+    val group = InsightSettingGroup(fakeToolkit)
+
+    assertThat(group.isPopup).isTrue()
+
+    val event = createTestEvent()
+    group.update(event)
+    assertThat(event.presentation.icon).isEqualTo(AllIcons.General.Settings)
+  }
+
+  @Test
+  fun `test setting group children`() {
+    val group = InsightSettingGroup(fakeToolkit)
+
+    val children = group.getChildren(null)
+    assertThat(children).hasLength(2)
+    assertThat(children[0]).isInstanceOf(HeaderAction::class.java)
+    assertThat(children[1]).isInstanceOf(InsightAutoGenerateSetting::class.java)
+  }
+
+  @Test
+  fun `test auto generate setting`() {
+    val setting = InsightAutoGenerateSetting(fakeToolkit)
+
+    fakeToolkit.setAutoGenerate(true)
+    assertThat(setting.isSelected(createTestEvent())).isTrue()
+
+    fakeToolkit.setAutoGenerate(false)
+    assertThat(setting.isSelected(createTestEvent())).isFalse()
+
+    setting.actionPerformed(createTestEvent())
+    assertThat(fakeToolkit.isAutoGenerateEnabled()).isTrue()
+
+    setting.actionPerformed(createTestEvent())
+    assertThat(fakeToolkit.isAutoGenerateEnabled()).isFalse()
+  }
+
+  @Test
+  fun `test auto generate setting closes popup when clicked`() {
+    val setting = InsightAutoGenerateSetting(fakeToolkit)
+
+    assertThat(setting.templatePresentation.keepPopupOnPerform).isEqualTo(KeepPopupOnPerform.Never)
+  }
+}

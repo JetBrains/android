@@ -28,6 +28,8 @@ class AppInsightsSettings : PersistentStateComponent<AppInsightsSettings> {
   var selectedTabId: String? = null
   var tabSettings: MutableMap<String, InsightsFilterSettings> = mutableMapOf()
   var isOfflineNotificationDismissed: Boolean = false
+  // Users who enabled auto generate
+  var insightAutoGenerateEnabledUsers = mutableSetOf<String>()
 
   override fun getState() = this
 
@@ -38,4 +40,14 @@ class AppInsightsSettings : PersistentStateComponent<AppInsightsSettings> {
   fun setTabSetting(tabId: String, state: AppInsightsState) {
     tabSettings[tabId] = state.toFilterSettings()
   }
+
+  fun enableAutoGenerate(user: String) {
+    insightAutoGenerateEnabledUsers.add(user)
+  }
+
+  fun disableAutoGenerate(user: String) {
+    insightAutoGenerateEnabledUsers.remove(user)
+  }
+
+  fun isInsightAutoGenerateEnabled(user: String) = (user in insightAutoGenerateEnabledUsers)
 }

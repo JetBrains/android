@@ -75,10 +75,15 @@ class InsightToolbarPanel(
       state = { feedbackState.value == InsightFeedback.THUMBS_DOWN },
     )
 
-  private val refreshAction = InsightRefreshAction(controller)
-
   init {
-    val actionGroup = DefaultActionGroup(copyAction, refreshAction, upvoteAction, downvoteAction)
+    val actionGroup =
+      DefaultActionGroup(
+        copyAction,
+        InsightRefreshAction(controller),
+        upvoteAction,
+        downvoteAction,
+        InsightSettingGroup(controller.aiInsightToolkit),
+      )
     val toolbar = ActionManager.getInstance().createActionToolbar("${controller.provider.displayName} $INSIGHT_TOOLBAR", actionGroup, true)
     toolbar.targetComponent = this
     add(toolbar.component, BorderLayout.CENTER)
