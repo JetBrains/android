@@ -79,8 +79,8 @@ fun main(args: Array<String>) {
     checkNotNull(oldKotlinVersion)
     println("Old version: $oldKotlinVersion")
 
-    println("Update artifacts.bzl")
-    File("$repoDir/tools/base/bazel/maven/artifacts.bzl").replaceLine(lineEnd = "$oldKotlinVersion\",", newVersion = kotlinVersion)
+    println("Update data.bzl")
+    File("$repoDir/tools/base/bazel/maven/data.bzl").replaceLine(lineEnd = "$oldKotlinVersion\",", newVersion = kotlinVersion)
     println("Update tools/base/build-system/integration-test/BUILD.bazel")
     File("$repoDir/tools/base/build-system/integration-test/BUILD.bazel")
       .replaceLine(lineStart = "LATEST_KOTLIN_VERSION_FOR_SYNC_BENCHMARKS = ", newVersion = kotlinVersion)
@@ -123,7 +123,7 @@ fun main(args: Array<String>) {
       "tools/base",
       commitMessage,
       listOf(
-        "tools/base/bazel/maven/artifacts.bzl",
+        "tools/base/bazel/maven/data.bzl",
         "tools/base/bazel/maven/BUILD.maven",
         "tools/base/build-system/integration-test/BUILD.bazel",
         "tools/base/testutils/src/main/java/com/android/testutils/TestUtils.java",
