@@ -76,6 +76,7 @@
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/v2/datamodel-tests/aiplugin.v2.datamodel-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/v2/datamodel-tests/aiplugin.v2.datamodel-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/v2/agent-sdk-api/aiplugin.v2.agent-sdk-api.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/v2/agent-sdk-api/aiplugin.v2.agent-sdk-api.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/gemini-coder/gemini-coder.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/gemini-coder/gemini-coder.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/gemini-coder-tests/gemini-coder-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/gemini-coder-tests/gemini-coder-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/core/altlang-core.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/core/altlang-core.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/lsp4ij/plugin/altlang-lsp4ij.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/lsp4ij/plugin/altlang-lsp4ij.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../analytics-library/crash/analytics-crash.iml" filepath="$PROJECT_DIR$/../../analytics-library/crash/analytics-crash.iml" />
