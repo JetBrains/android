@@ -52,64 +52,93 @@ class AdiClientTest {
 
   @Test
   fun testRegistered() = runBlocking {
-    val json = """{"state": "REGISTERED"}"""
+    val json =
+      """{"packageRegistrationStatuses": [{"name": "packages/com-example-app/packageRegistrationStatus", "state": "REGISTERED"}]}"""
     val client = AdiClient(disposableRule.disposable, FakeHttpTransport(CompletableFuture.completedFuture(json)))
-    val (state, _) = client.checkPackageRegistrationStatus("com.example.app", null)
-    assertEquals(RegistrationState.REGISTERED, state)
+    val (state, _) = client.checkPackageRegistrationStatus(listOf("com.example.app"), null)
+    assertEquals(mapOf("com.example.app" to RegistrationState.REGISTERED), state)
+  }
+
+  @Test
+  fun testMultiplePackages() = runBlocking {
+    val json =
+      """{"packageRegistrationStatuses": [
+      {"name": "packages/com-example-app1/packageRegistrationStatus", "state": "REGISTERED"},
+      {"name": "packages/com-example-app2/packageRegistrationStatus", "state": "NOT_REGISTERED"},
+      {"name": "packages/com-example-app3/packageRegistrationStatus", "state": "REGISTERED_WITH_ANOTHER_CERTIFICATE_FINGERPRINT"}
+    ]}"""
+    val client = AdiClient(disposableRule.disposable, FakeHttpTransport(CompletableFuture.completedFuture(json)))
+    val (state, _) = client.checkPackageRegistrationStatus(listOf("com.example.app1", "com.example.app2", "com.example.app3"), null)
+    assertEquals(
+      mapOf(
+        "com.example.app1" to RegistrationState.REGISTERED,
+        "com.example.app2" to RegistrationState.NOT_REGISTERED,
+        "com.example.app3" to RegistrationState.BAD_KEY,
+      ),
+      state,
+    )
   }
 
   @Test
   fun testNotRegistered() = runBlocking {
-    val json = """{"state": "NOT_REGISTERED"}"""
+    val json =
+      """{"packageRegistrationStatuses": [{"name": "packages/com-example-app/packageRegistrationStatus", "state": "NOT_REGISTERED"}]}"""
     val client = AdiClient(disposableRule.disposable, FakeHttpTransport(CompletableFuture.completedFuture(json)))
-    val (state, _) = client.checkPackageRegistrationStatus("com.example.app", null)
-    assertEquals(RegistrationState.NOT_REGISTERED, state)
+    val (state, _) = client.checkPackageRegistrationStatus(listOf("com.example.app"), null)
+    assertEquals(mapOf("com.example.app" to RegistrationState.NOT_REGISTERED), state)
   }
 
   @Test
   fun testBadKey() = runBlocking {
-    val json = """{"state": "REGISTERED_WITH_ANOTHER_CERTIFICATE_FINGERPRINT"}"""
+    val json =
+      """{"packageRegistrationStatuses": [{"name": "packages/com-example-app/packageRegistrationStatus", "state": "REGISTERED_WITH_ANOTHER_CERTIFICATE_FINGERPRINT"}]}"""
     val client = AdiClient(disposableRule.disposable, FakeHttpTransport(CompletableFuture.completedFuture(json)))
-    val (state, _) = client.checkPackageRegistrationStatus("com.example.app", null)
-    assertEquals(RegistrationState.BAD_KEY, state)
+    val (state, _) = client.checkPackageRegistrationStatus(listOf("com.example.app"), null)
+    assertEquals(mapOf("com.example.app" to RegistrationState.BAD_KEY), state)
   }
 
   @Test
   fun testUnknownState() = runBlocking {
-    val json = """{"state": "SOMETHING_ELSE"}"""
+    val json =
+      """{"packageRegistrationStatuses": [{"name": "packages/com-example-app/packageRegistrationStatus", "state": "SOMETHING_ELSE"}]}"""
     val client = AdiClient(disposableRule.disposable, FakeHttpTransport(CompletableFuture.completedFuture(json)))
-    val (state, _) = client.checkPackageRegistrationStatus("com.example.app", null)
-    assertEquals(RegistrationState.UNKNOWN, state)
+    val (state, _) = client.checkPackageRegistrationStatus(listOf("com.example.app"), null)
+    assertEquals(mapOf("com.example.app" to RegistrationState.UNKNOWN), state)
   }
 
   @Test
   fun testNetworkError() = runBlocking {
     val client = AdiClient(disposableRule.disposable, FakeHttpTransport(CompletableFuture.failedFuture(Exception("Network Error"))))
-    val (state, _) = client.checkPackageRegistrationStatus("com.example.app", null)
-    assertEquals(RegistrationState.UNKNOWN, state)
+    val (state, _) = client.checkPackageRegistrationStatus(listOf("com.example.app"), null)
+    assertEquals(mapOf("com.example.app" to RegistrationState.UNKNOWN), state)
   }
 
   @Test
   fun testMalformedJson() = runBlocking {
-    val json = """{"state": "REGIS"""
+    val json = """{"packageRegistrationStatuses": [{"n"""
     val client = AdiClient(disposableRule.disposable, FakeHttpTransport(CompletableFuture.completedFuture(json)))
-    val (state, _) = client.checkPackageRegistrationStatus("com.example.app", null)
-    assertEquals(RegistrationState.UNKNOWN, state)
+    val (state, _) = client.checkPackageRegistrationStatus(listOf("com.example.app"), null)
+    assertEquals(mapOf("com.example.app" to RegistrationState.UNKNOWN), state)
   }
 
   @Test
   fun testFingerprint() = runBlocking {
-    val json = """{"state": "REGISTERED"}"""
+    val json =
+      """{"packageRegistrationStatuses": [{"name": "packages/com-example-app/packageRegistrationStatus", "state": "REGISTERED"}]}"""
     val transport = FakeHttpTransport(CompletableFuture.completedFuture(json))
     val client = AdiClient(disposableRule.disposable, transport)
-    client.checkPackageRegistrationStatus("com.example.app", byteArrayOf(1, 2, 3))
+    client.checkPackageRegistrationStatus(listOf("com.example.app"), byteArrayOf(1, 2, 3))
 
     // SHA-256 of [1,2,3]
-    assertContains(transport.lastRequestedUrl!!, "certificate_fingerprint=039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81")
+    assertContains(
+      transport.lastRequestBody!!,
+      "certificate_fingerprint\":\"039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81\"",
+    )
   }
 
   private class FakeHttpTransport(val response: Future<String>) : HttpTransport() {
     var lastRequestedUrl: String? = null
+    var lastRequestBody: String? = null
 
     override fun buildRequest(method: String, url: String): LowLevelHttpRequest {
       lastRequestedUrl = url
@@ -123,6 +152,10 @@ class AdiClientTest {
         }
 
         override fun execute(): LowLevelHttpResponse {
+          val stream = java.io.ByteArrayOutputStream()
+          streamingContent?.writeTo(stream)
+          lastRequestBody = stream.toString("UTF-8")
+
           if (!addedHeader) {
             throw Exception("Didn't set the api key")
           }

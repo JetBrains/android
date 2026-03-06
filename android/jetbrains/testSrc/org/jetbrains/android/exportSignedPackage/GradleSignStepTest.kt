@@ -33,6 +33,7 @@ import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.io.File
 import java.nio.file.Files
+import java.security.cert.X509Certificate
 import java.util.concurrent.CompletableFuture
 import javax.swing.Icon
 import kotlin.io.path.Path
@@ -74,6 +75,10 @@ class GradleSignStepTest {
     whenever(myWizard.project).thenReturn(project)
     whenever(myWizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
     whenever(myWizard.disposable).thenReturn(projectRule.disposable)
+
+    val cert: X509Certificate = mock()
+    whenever(cert.encoded).thenReturn(byteArrayOf())
+    whenever(myWizard.certificate).thenReturn(cert)
   }
 
   @Test
@@ -139,8 +144,8 @@ class GradleSignStepTest {
   @Test
   fun testAdiRegistered() = runTest {
     val client: AdiClient = mock()
-    whenever(client.checkPackageRegistrationStatusAsync("com.example.app", null))
-      .thenReturn(CompletableFuture.completedFuture(RegistrationState.REGISTERED to null))
+    whenever(client.checkPackageRegistrationStatusAsync(setOf("com.example.app"), null))
+      .thenReturn(CompletableFuture.completedFuture(mapOf("com.example.app" to RegistrationState.REGISTERED) to null))
     val gradleSignStep = GradleSignStep(myWizard, client)
 
     val properties = PropertiesComponent.getInstance(project)
@@ -166,8 +171,8 @@ class GradleSignStepTest {
   @Test
   fun testAdiNotRegistered() = runTest {
     val client: AdiClient = mock()
-    whenever(client.checkPackageRegistrationStatusAsync("com.example.app", null))
-      .thenReturn(CompletableFuture.completedFuture(RegistrationState.NOT_REGISTERED to null))
+    whenever(client.checkPackageRegistrationStatusAsync(setOf("com.example.app"), null))
+      .thenReturn(CompletableFuture.completedFuture(mapOf("com.example.app" to RegistrationState.NOT_REGISTERED) to null))
     val gradleSignStep = GradleSignStep(myWizard, client)
 
     val properties = PropertiesComponent.getInstance(project)
@@ -202,8 +207,10 @@ class GradleSignStepTest {
         DevServicesDeprecationStatus.UNSUPPORTED,
       )
 
-    whenever(client.checkPackageRegistrationStatusAsync("com.example.app", null))
-      .thenReturn(CompletableFuture.completedFuture(RegistrationState.STUDIO_VERSION_UNSUPPORTED to mockDeprecationData))
+    whenever(client.checkPackageRegistrationStatusAsync(setOf("com.example.app"), null))
+      .thenReturn(
+        CompletableFuture.completedFuture(mapOf("com.example.app" to RegistrationState.STUDIO_VERSION_UNSUPPORTED) to mockDeprecationData)
+      )
     val gradleSignStep = GradleSignStep(myWizard, client)
 
     val properties = PropertiesComponent.getInstance(project)
@@ -234,7 +241,10 @@ class GradleSignStepTest {
   }
 
   private fun verifyDestinationEndsWhiteSpace(targetType: TargetType) {
-    val gradleSignStep = GradleSignStep(myWizard)
+    val client: AdiClient = mock()
+    whenever(client.checkPackageRegistrationStatusAsync(org.mockito.kotlin.any(), org.mockito.kotlin.anyOrNull()))
+      .thenReturn(CompletableFuture.completedFuture(emptyMap<String, RegistrationState>() to null))
+    val gradleSignStep = GradleSignStep(myWizard, client)
     val properties = PropertiesComponent.getInstance(project)
     val destinationPath = "${homePath}${File.separator}$targetType "
     whenever(myWizard.targetType).thenReturn(targetType)

@@ -20,11 +20,14 @@ import com.android.tools.idea.googleapis.GoogleApiKeyProvider
 import com.android.tools.idea.googleapis.GoogleApiKeyProvider.GoogleApi
 import com.android.tools.idea.gservices.DevServicesDeprecationData
 import com.android.tools.idea.gservices.DevServicesDeprecationDataProvider
+import com.android.utils.associateWithNotNull
+import com.google.api.client.http.ByteArrayContent
 import com.google.api.client.http.GenericUrl
 import com.google.api.client.http.HttpHeaders
 import com.google.api.client.http.HttpTransport
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.gson.Gson
+import com.google.gson.annotations.SerializedName
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.thisLogger
 import java.nio.charset.Charset
@@ -42,60 +45,62 @@ private const val SERVICE_NAME = "AdiClient"
 class AdiClient
 @JvmOverloads
 constructor(private val parentDisposable: Disposable, @TestOnly private val transport: HttpTransport = NetHttpTransport()) {
-  private val cache = ConcurrentHashMap<String, Pair<RegistrationState, DevServicesDeprecationData?>>()
+  private val cache = ConcurrentHashMap<String, RegistrationState>()
 
   fun reset() = cache.clear()
 
   fun checkPackageRegistrationStatusAsync(
-    packageName: String,
+    packageNames: Collection<String>,
     certificate: ByteArray?,
-  ): CompletableFuture<Pair<RegistrationState, DevServicesDeprecationData?>> {
+  ): CompletableFuture<Pair<Map<String, RegistrationState>, DevServicesDeprecationData?>> {
     return parentDisposable
       .createCoroutineScope(Dispatchers.IO)
-      .async { checkPackageRegistrationStatus(packageName, certificate) }
+      .async { checkPackageRegistrationStatus(packageNames, certificate) }
       .asCompletableFuture()
   }
 
   suspend fun checkPackageRegistrationStatus(
-    packageName: String,
+    packageNames: Collection<String>,
     certificate: ByteArray?,
-  ): Pair<RegistrationState, DevServicesDeprecationData?> {
-    val cachedState = cache[packageName]
-    if (cachedState != null) {
-      return cachedState
-    }
+  ): Pair<Map<String, RegistrationState>, DevServicesDeprecationData?> {
     val deprecationData =
       DevServicesDeprecationDataProvider.getInstance().getCurrentDeprecationData(SERVICE_NAME, "Android Developer Verification")
     if (deprecationData.isUnsupported()) {
-      return RegistrationState.STUDIO_VERSION_UNSUPPORTED to deprecationData
+      return packageNames.associateWith { RegistrationState.STUDIO_VERSION_UNSUPPORTED } to deprecationData
     }
 
-    val state =
+    val cachedState = packageNames.associateWithNotNull { cache[it] }
+
+    val newStates =
       withContext(Dispatchers.IO) {
+        val toConsider = packageNames.minus(cachedState.keys)
         try {
-          val urlName = packageName.replace('.', '-')
-          val keyParam = certificate?.let { "?certificate_fingerprint=${generateFingerprint(certificate)}" } ?: ""
-          val url = "https://androiddeveloperid.googleapis.com/v1/packages/$urlName/packageRegistrationStatus:check$keyParam"
+          val key = certificate?.let { generateFingerprint(it) }
+          val packageQueryStrings = toConsider.associateBy { "packages/${it.replace('.', '-')}/packageRegistrationStatus" }
+          val requests = AdiBatchRequest(packageQueryStrings.keys.map { AdiRequest(it, key) })
+
+          val url = "https://androiddeveloperid.googleapis.com/v1/packageRegistrationStatuses:batchCheck"
 
           val response =
             transport
               .createRequestFactory()
-              .buildGetRequest(GenericUrl(url))
+              .buildPostRequest(GenericUrl(url), ByteArrayContent.fromString("application/json", Gson().toJson(requests)))
               .setHeaders(HttpHeaders().set("X-Goog-Api-Key", GoogleApiKeyProvider.getApiKey(GoogleApi.DEVELOPER_ID)))
               .setReadTimeout(10_000)
               .setThrowExceptionOnExecuteError(true)
               .execute()
 
           val responseBody = response.content.readAllBytes().toString(Charset.defaultCharset())
-          Gson().fromJson(responseBody, AdiResponse::class.java).toRegistrationState()
+          Gson().fromJson(responseBody, AdiBatchResponse::class.java).toRegistrationStates(packageQueryStrings)
         } catch (e: Exception) {
           thisLogger().warn("Error checking ADI status", e)
-          RegistrationState.UNKNOWN
+          toConsider.associateWith { RegistrationState.UNKNOWN }
         }
       }
 
-    cache[packageName] = state to null
-    return state to null
+    cache.putAll(newStates)
+
+    return newStates.plus(cachedState) to null
   }
 
   private fun generateFingerprint(certificate: ByteArray): String {
@@ -104,15 +109,24 @@ constructor(private val parentDisposable: Disposable, @TestOnly private val tran
     return digest.joinToString("") { "%02x".format(it) }
   }
 
-  private data class AdiResponse(var name: String? = null, var state: String? = null)
+  private data class AdiBatchRequest(val requests: List<AdiRequest>)
 
-  private fun AdiResponse?.toRegistrationState() =
-    when (this?.state) {
-      "REGISTERED" -> RegistrationState.REGISTERED
-      "NOT_REGISTERED" -> RegistrationState.NOT_REGISTERED
-      "REGISTERED_WITH_ANOTHER_CERTIFICATE_FINGERPRINT" -> RegistrationState.BAD_KEY
-      else -> RegistrationState.UNKNOWN
-    }
+  private data class AdiRequest(val name: String, @SerializedName("certificate_fingerprint") val certificateFingerprint: String?)
+
+  private data class AdiBatchResponse(var packageRegistrationStatuses: List<PackageRegistrationStatus>?)
+
+  private data class PackageRegistrationStatus(var name: String, var state: String? = null)
+
+  private fun AdiBatchResponse.toRegistrationStates(nameMap: Map<String, String>) =
+    packageRegistrationStatuses?.associate { (name, state) ->
+      nameMap.getValue(name) to
+        when (state) {
+          "REGISTERED" -> RegistrationState.REGISTERED
+          "NOT_REGISTERED" -> RegistrationState.NOT_REGISTERED
+          "REGISTERED_WITH_ANOTHER_CERTIFICATE_FINGERPRINT" -> RegistrationState.BAD_KEY
+          else -> RegistrationState.UNKNOWN
+        }
+    } ?: mapOf()
 }
 
 enum class RegistrationState {

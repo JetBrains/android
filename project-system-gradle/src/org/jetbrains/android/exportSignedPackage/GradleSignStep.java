@@ -26,6 +26,9 @@ import com.android.tools.idea.gradle.model.IdeBasicVariant;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gservices.DevServicesDeprecationData;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
@@ -54,6 +57,9 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.Collections;
 import java.util.HashSet;
@@ -104,7 +110,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
 
   private final AdiClient myAdiClient;
 
-  private CompletableFuture<Pair<RegistrationState, DevServicesDeprecationData>> myCurrentAdiCheck;
+  private CompletableFuture<Pair<Map<String, RegistrationState>, DevServicesDeprecationData>> myCurrentAdiCheck;
 
   @VisibleForTesting
   static class VariantItem {
@@ -163,36 +169,39 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
     Set<String> lastSelectedVariants = cachedVariants == null ? Collections.emptySet() : Sets.newHashSet(cachedVariants);
     TargetType targetType = myWizard.getTargetType();
 
+    Multimap<String, VariantItem> idsToCheck = ArrayListMultimap.create();
     for (int i = 0; i < buildVariants.size(); i++) {
       String variant = buildVariants.get(i);
       VariantItem item = new VariantItem(variant);
       myBuildVariantsListModel.addElement(item);
-      var appId = getAppId(variant);
-      if (appId != null && StudioFlags.SIGNED_BUILD_ADV_FEATURE.get()) {
-        byte[] cert;
-        try {
-          cert = myWizard.getTargetType() == BUNDLE ? null : myWizard.getCertificate().getEncoded();
-        }
-        catch (CertificateEncodingException e) {
-          throw new RuntimeException(e);
-        }
-
-        myAdiClient.checkPackageRegistrationStatusAsync(appId, cert).thenAccept(state -> {
-          if (state.getFirst() == RegistrationState.REGISTERED) {
-            item.icon = StudioIcons.Common.SUCCESS_INLINE;
-          }
-          else if (state.getFirst() == RegistrationState.STUDIO_VERSION_UNSUPPORTED) {
-            item.icon = EmptyIcon.ICON_16;
-          }
-          else {
-            item.icon = AllIcons.General.Note;
-          }
-          myBuildVariantsList.repaint();
-        });
-      }
+      idsToCheck.put(getAppId(variant), item);
       if (lastSelectedVariants.contains(variant)) {
         lastSelectedIndices.add(i);
       }
+    }
+    if (StudioFlags.SIGNED_BUILD_ADV_FEATURE.get()) {
+      byte[] cert;
+      try {
+        cert = myWizard.getTargetType() == BUNDLE ? null : myWizard.getCertificate().getEncoded();
+      }
+      catch (CertificateEncodingException e) {
+        throw new RuntimeException(e);
+      }
+      myAdiClient.checkPackageRegistrationStatusAsync(idsToCheck.keySet(), cert).thenAccept(result -> {
+        result.getFirst().forEach(
+          (id, state) -> idsToCheck.get(id).forEach(item -> {
+            if (state == RegistrationState.REGISTERED) {
+              item.icon = StudioIcons.Common.SUCCESS_INLINE;
+            }
+            else if (state == RegistrationState.STUDIO_VERSION_UNSUPPORTED) {
+              item.icon = EmptyIcon.ICON_16;
+            }
+            else {
+              item.icon = AllIcons.General.Note;
+            }
+          }));
+        myBuildVariantsList.repaint();
+      });
     }
 
     myBuildVariantsList.setSelectedIndices(lastSelectedIndices.toIntArray());
@@ -426,16 +435,17 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
         }
         
         final String currentAppId = appId;
-        myCurrentAdiCheck = myAdiClient.checkPackageRegistrationStatusAsync(currentAppId, cert);
-        myCurrentAdiCheck.thenAccept(state -> ModalityUiUtil.invokeLaterIfNeeded(ModalityState.any(), () -> {
+        myCurrentAdiCheck = myAdiClient.checkPackageRegistrationStatusAsync(Collections.singleton(currentAppId), cert);
+        myCurrentAdiCheck.thenAccept(result -> ModalityUiUtil.invokeLaterIfNeeded(ModalityState.any(), () -> {
+          var state = result.getFirst().get(currentAppId);
             if (myCurrentAdiCheck != null && !myCurrentAdiCheck.isCancelled() && currentAppId.equals(getAppId(selectedVariant.name))) {
-              if (state.getFirst() == RegistrationState.UNKNOWN) {
+              if (state == RegistrationState.UNKNOWN) {
                 myAdiStatusIcon.setIcon(AllIcons.General.Note);
                 myAdiStatus.setText(AndroidBundle.message("android.apk.sign.gradle.adi.check.failed"));
                 myAdiStatusDescription.setText(" ");
                 myLearnMoreLink.setVisible(false);
               }
-              else if (state.getFirst() == RegistrationState.REGISTERED) {
+              else if (state == RegistrationState.REGISTERED) {
                 String text;
                 String description;
                 if (myWizard.getTargetType() == BUNDLE) {
@@ -450,16 +460,16 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
                 myAdiStatusDescription.setText("<html>" + description + "</html>");
                 myLearnMoreLink.setVisible(true);
               }
-              else if (state.getFirst() == RegistrationState.BAD_KEY) {
+              else if (state == RegistrationState.BAD_KEY) {
                 myAdiStatusIcon.setIcon(AllIcons.General.Note);
                 myAdiStatus.setText("<html>" + AndroidBundle.message("android.apk.sign.gradle.adi.bad.key.title") + "</html>");
                 myAdiStatusDescription.setText("<html>" + AndroidBundle.message("android.apk.sign.gradle.adi.bad.key.description") + "</html>");
                 myLearnMoreLink.setVisible(true);
               }
-              else if (state.getFirst() == RegistrationState.STUDIO_VERSION_UNSUPPORTED) {
+              else if (state == RegistrationState.STUDIO_VERSION_UNSUPPORTED) {
                 myAdiStatusIcon.setIcon(AllIcons.General.Note);
-                myAdiStatus.setText("<html>" + state.getSecond().getHeader() + "</html>");
-                myAdiStatusDescription.setText("<html>" + state.getSecond().getDescription() + "</html>");
+                myAdiStatus.setText("<html>" + result.getSecond().getHeader() + "</html>");
+                myAdiStatusDescription.setText("<html>" + result.getSecond().getDescription() + "</html>");
                 myLearnMoreLink.setVisible(false);
               }
               else {
