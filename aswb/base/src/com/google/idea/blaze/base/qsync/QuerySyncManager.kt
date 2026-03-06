@@ -53,6 +53,7 @@ import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.PostQuerySyncData
 import com.google.idea.blaze.qsync.project.ProjectProto
+import com.google.idea.blaze.qsync.project.ProjectStructureData
 import com.google.idea.blaze.qsync.project.SnapshotDeserializer
 import com.google.idea.blaze.qsync.project.SnapshotSerializer
 import com.google.idea.blaze.qsync.project.TargetsToBuild
@@ -290,9 +291,9 @@ constructor(
         }
       } else {
         updateCurrentSnapshot(context) {
-          applySyncResult(
+          val coreSyncResult =
             assertProjectLoaded().computeQueryCoreSyncResult(context, existingPostQuerySyncData)
-          )
+          applySyncResult(coreSyncResult, coreSyncResult.projectStructureData)
         }
       }
       val buildTriggered = autoEnableCodeAnalysis(context, startup = true)
@@ -585,7 +586,9 @@ constructor(
   private fun syncQueryData(context: BlazeContext, postQuerySyncData: PostQuerySyncData?) {
     val queryInstant = Clock.System.now()
     val coreSyncResult = assertProjectLoaded().syncQueryCore(context, postQuerySyncData)
-    updateCurrentSnapshot(context) { applySyncResult(coreSyncResult) }
+    updateCurrentSnapshot(context) {
+      applySyncResult(coreSyncResult, coreSyncResult.projectStructureData)
+    }
     lastQueryInstant = queryInstant
   }
 
@@ -1060,11 +1063,12 @@ fun QuerySyncManager.updateCurrentSnapshot(
 }
 
 fun QuerySyncProjectSnapshot.applySyncResult(
-  coreSyncResult: QuerySyncProject.QueryCoreSyncResult
+  coreSyncResult: QuerySyncProject.QueryCoreSyncResult,
+  projectStructureData: ProjectStructureData,
 ): QuerySyncProjectSnapshot {
   return copy(
     queryData = coreSyncResult.postQuerySyncData,
     graph = coreSyncResult.graph,
-    projectStructureData = coreSyncResult.projectStructureData,
+    projectStructureData = projectStructureData,
   )
 }
