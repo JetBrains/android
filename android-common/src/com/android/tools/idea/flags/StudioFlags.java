@@ -2789,6 +2789,11 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "new.subagent.mode",
                     "Enable new Sub-Agent mode",
                     "This enable the new sub-agent infrastructure,bringing in the task and run_skill tool");
+
+  public static final Flag<Boolean> STUDIOBOT_AGY_HARNESS =
+    new BooleanFlag(STUDIOBOT, "agy.harness",
+                    "Enable support for Antigravity Harness",
+                    "Enables the integration to connect and use Antigravity Harness");
   // endregion STUDIO_BOT
 
   // region EXPERIMENTAL_UI
