@@ -505,4 +505,23 @@ class WifiAvailableDevicesDialogTest {
       .createPairingDialogController(argThat { serviceName == expectedTrackingMdnsService.serviceName })
     verify(mockPairingDialogController).showDialog()
   }
+
+  @Test
+  fun refreshButton_rechecksSupport() = runTest {
+    // Initial state: Not Supported
+    whenever(mockWiFiPairingService.checkMdnsSupport()).thenReturn(MdnsSupportState.NotSupported)
+    composeTestRule.setContent { wifiAvailableDevicesDialog.WifiDialog() }
+
+    composeTestRule.onNodeWithText("Refresh").assertIsDisplayed()
+
+    // Change mock to Supported
+    whenever(mockWiFiPairingService.checkMdnsSupport()).thenReturn(MdnsSupportState.Supported)
+    whenever(mockWiFiPairingService.isTrackMdnsServiceAvailable()).thenReturn(true)
+
+    // Click Refresh
+    composeTestRule.onNodeWithText("Refresh").performClick()
+
+    // Expect: Supported UI (e.g. "No devices found" if list empty)
+    composeTestRule.onNodeWithText("No devices found.", substring = true).assertIsDisplayed()
+  }
 }
