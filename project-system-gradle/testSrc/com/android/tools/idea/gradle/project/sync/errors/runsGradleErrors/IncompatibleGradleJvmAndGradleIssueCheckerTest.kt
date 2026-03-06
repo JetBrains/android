@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.errors.runsGradleErrors
 import com.android.SdkConstants.GRADLE_LATEST_VERSION
 import com.android.testutils.junit4.OldAgpTest
 import com.android.testutils.junit4.SeparateOldAgpTestsRule
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.extensions.getRecommendedJavaVersion
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.gradle.project.sync.model.GradleDaemonToolchain
@@ -33,6 +34,7 @@ import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.JdkConstants
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.testFramework.PlatformTestUtil
 import java.io.File
@@ -41,6 +43,7 @@ import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.tools.projectWizard.core.asPath
 import org.jetbrains.plugins.gradle.jvmcompat.GradleJvmSupportMatrix
 import org.jetbrains.plugins.gradle.properties.GradleDaemonJvmPropertiesFile
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -48,6 +51,13 @@ import org.mockito.Mockito.mock
 class IncompatibleGradleJvmAndGradleIssueCheckerTest : AbstractIssueCheckerIntegrationTest() {
 
   @get:Rule val separateOldAgpTestsRule = SeparateOldAgpTestsRule()
+
+  @Before
+  override fun setUp() {
+    super.setUp()
+    // Disable project import Gradle JVM compatibility check since test assert already imported project
+    StudioFlags.EXECUTE_GRADLE_JVM_COMPATIBILITY_CHECK.overrideForTest(false, projectRule.testRootDisposable)
+  }
 
   @Test
   @OldAgpTest(agpVersions = ["7.4.1"], gradleVersions = ["7.5"])

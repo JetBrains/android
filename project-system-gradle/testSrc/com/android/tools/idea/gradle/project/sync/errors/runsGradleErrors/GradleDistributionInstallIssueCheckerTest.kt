@@ -19,9 +19,11 @@ import com.android.tools.idea.gradle.project.sync.errors.UnsupportedGradleVersio
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenStudioProxySettingsQuickFix
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.testing.JdkConstants
 import com.android.utils.FileUtils
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.util.io.NioFiles
+import java.io.File
 import java.net.InetAddress
 import java.net.UnknownHostException
 import org.jetbrains.plugins.gradle.issue.quickfix.GradleWrapperSettingsOpenQuickFix
@@ -51,6 +53,7 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
 
     runSyncAndCheckBuildIssueFailure(
       preparedProject = preparedProject,
+      overrideGradleJdkPath = File(JdkConstants.JDK_17_PATH),
       verifyBuildIssue = { _, buildIssue ->
         expect.that(buildIssue).isNotNull()
         expect
@@ -115,6 +118,7 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
 
     runSyncAndCheckBuildIssueFailure(
       preparedProject,
+      overrideGradleJdkPath = File(JdkConstants.JDK_17_PATH),
       verifyBuildIssue = { _, buildIssue ->
         expect.that(buildIssue).isNotNull()
         expect
@@ -174,6 +178,7 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
     )
     runSyncAndCheckBuildIssueFailure(
       preparedProject,
+      overrideGradleJdkPath = File(JdkConstants.JDK_17_PATH),
       verifyBuildIssue = { _, buildIssue ->
         expect.that(buildIssue).isNotNull()
         expect
