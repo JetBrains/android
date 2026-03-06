@@ -78,7 +78,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -119,7 +118,7 @@ internal constructor(
   private val coroutineScope: CoroutineScope,
   devicesFlow: Flow<List<DeviceHandle>>,
   private val glassesHandle: DeviceHandle,
-  private val pair: (glasses: DeviceHandle, phone: DeviceHandle) -> Flow<PairingState> = ::pairGlassesToPhone,
+  private val pair: (glasses: DeviceHandle, phone: DeviceHandle, project: Project?) -> Flow<PairingState> = ::pairGlassesToPhone,
   private val isCompatible: (DeviceHandle) -> Boolean = ::isAiGlassesCompatible,
 ) {
   companion object {
@@ -205,7 +204,7 @@ internal constructor(
               // We use a large timeout (10 minutes) to account for potential slow cold boots of both devices,
               // which can take significant time on some machines/configurations (e.g no GPU, cold boot, etc),
               // in addition to time for the user to navigate the pairing flow.
-              withTimeout(10.minutes) { pair(it.glasses, it.phone).collect { emit(it) } }
+              withTimeout(10.minutes) { pair(it.glasses, it.phone, project).collect { emit(it) } }
             } catch (cause: TimeoutCancellationException) {
               GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ERROR_TIMEOUT)
               emit(PairingState.Error("Pairing timed out", "The pairing process timed out."))
@@ -436,7 +435,7 @@ internal suspend fun FlowCollector<PairingState>.launchGlassesAndPhone(glasses: 
     .first { it.phoneLaunchState == LaunchState.Ready && it.glassesLaunchState == LaunchState.Ready }
 }
 
-internal fun pairGlassesToPhone(glasses: DeviceHandle, phone: DeviceHandle): Flow<PairingState> {
+internal fun pairGlassesToPhone(glasses: DeviceHandle, phone: DeviceHandle, project: Project?): Flow<PairingState> {
   val logger = logger<GlassesPairingWizard>()
   val phoneName = phone.state.properties.title
   val glassesName = glasses.state.properties.title
@@ -468,6 +467,7 @@ internal fun pairGlassesToPhone(glasses: DeviceHandle, phone: DeviceHandle): Flo
       }
 
       try {
+        project?.userInvolvementRequired(phone)
         runPairingSequence(phoneDevice, glassesDevice, phoneName, glassesName, logger)
       } catch (cause: ShellCommandException) {
         GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ERROR_SHELL_COMMAND)

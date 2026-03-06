@@ -41,6 +41,7 @@ import com.google.protobuf.Message.Builder
 import com.google.wireless.android.play.playlog.proto.ClientAnalytics
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GlassesPairingEvent
+import com.intellij.openapi.project.Project
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import java.util.concurrent.CopyOnWriteArrayList
@@ -108,7 +109,7 @@ class GlassesPairingWizardTest {
       val devicesFlow = MutableStateFlow(listOf(phone, glasses))
 
       val pairingFlow = MutableStateFlow<PairingState>(PairingState.NotStarted)
-      fun pair(g: DeviceHandle, p: DeviceHandle): Flow<PairingState> {
+      fun pair(g: DeviceHandle, p: DeviceHandle, project: Project?): Flow<PairingState> {
         assertThat(g).isSameAs(glasses)
         assertThat(p).isSameAs(phone)
         return pairingFlow
@@ -250,7 +251,7 @@ class GlassesPairingWizardTest {
         )
       val devicesFlow = MutableStateFlow(listOf(phone, glasses))
 
-      fun pair(g: DeviceHandle, p: DeviceHandle): Flow<PairingState> = flow { delay(Long.MAX_VALUE) }
+      fun pair(g: DeviceHandle, p: DeviceHandle, project: Project?): Flow<PairingState> = flow { delay(Long.MAX_VALUE) }
 
       val glassesWizard = GlassesPairingWizard(null, coroutineScope, devicesFlow, glasses, ::pair, { true })
       val wizard = TestComposeWizard { with(glassesWizard) { SelectDevicePage() } }
@@ -321,7 +322,7 @@ class GlassesPairingWizardTest {
       val devicesFlow = MutableStateFlow(listOf(phone, glasses))
 
       val pairingFlow = MutableStateFlow<PairingState>(PairingState.NotStarted)
-      fun pair(g: DeviceHandle, p: DeviceHandle): Flow<PairingState> {
+      fun pair(g: DeviceHandle, p: DeviceHandle, project: Project?): Flow<PairingState> {
         return pairingFlow
       }
 
