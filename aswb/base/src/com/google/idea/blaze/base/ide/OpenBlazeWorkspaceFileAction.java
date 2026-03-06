@@ -26,6 +26,7 @@ import com.intellij.ide.actions.OpenFileAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
@@ -36,7 +37,7 @@ import javax.annotation.Nullable;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
-final class OpenBlazeWorkspaceFileAction extends BlazeProjectAction {
+final class OpenBlazeWorkspaceFileAction extends BlazeProjectAction implements DumbAware {
 
   @Override
   protected QuerySyncStatus querySyncSupport() {
