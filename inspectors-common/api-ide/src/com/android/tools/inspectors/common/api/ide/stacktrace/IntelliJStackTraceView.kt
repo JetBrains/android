@@ -36,12 +36,13 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.icons.AllIcons
 import com.intellij.ide.CopyProvider
-import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionUpdateThread.BGT
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.PlatformDataKeys.COPY_PROVIDER
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.project.Project
@@ -90,7 +91,13 @@ internal constructor(
   private val copyPasteManager = CopyPasteManager.getInstance()
   private val scrollPane: JBScrollPane
   private val listModel = DefaultListModel<StackElement>()
-  @get:VisibleForTesting val listView = JBList(listModel)
+  @get:VisibleForTesting
+  val listView: JBList<StackElement> =
+    object : JBList<StackElement>(listModel), UiDataProvider {
+      override fun uiDataSnapshot(sink: DataSink) {
+        sink.uiDataSnapshot(this@IntelliJStackTraceView)
+      }
+    }
   private val renderer: StackElementRenderer
 
   constructor(
@@ -107,8 +114,6 @@ internal constructor(
     scrollPane = JBScrollPane(listView)
     scrollPane.horizontalScrollBarPolicy = HORIZONTAL_SCROLLBAR_AS_NEEDED
     scrollPane.verticalScrollBarPolicy = VERTICAL_SCROLLBAR_AS_NEEDED
-
-    DataManager.registerDataProvider(listView, this)
 
     listView.addListSelectionListener {
       if (listView.selectedValue == null) {
