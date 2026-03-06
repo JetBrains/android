@@ -450,6 +450,7 @@ filegroup(
         "//tools/vendor/google/ml/aiplugin/core/aicore:aida_proto",
         "//tools/vendor/google/ml/aiplugin/core/aicore:aida_protobuf",
         "//tools/vendor/google/ml/aiplugin/core/aicore:gemini_plugin_proto",
+        "//tools/vendor/google/ml/gemini-coder:libgemini-coder_proto",
         "//tools/vendor/google/url-assistant:urlassistant_proto",
         "//tools/vendor/modelcontextprotocol/kotlin-sdk:mcp-sdk-libraries",
     ],
