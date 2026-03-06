@@ -291,7 +291,7 @@ constructor(
       } else {
         updateCurrentSnapshot(context) {
           applySyncResult(
-            assertProjectLoaded().computeCoreSyncResult(context, existingPostQuerySyncData)
+            assertProjectLoaded().computeQueryCoreSyncResult(context, existingPostQuerySyncData)
           )
         }
       }
@@ -584,7 +584,7 @@ constructor(
 
   private fun syncQueryData(context: BlazeContext, postQuerySyncData: PostQuerySyncData?) {
     val queryInstant = Clock.System.now()
-    val coreSyncResult = assertProjectLoaded().syncCore(context, postQuerySyncData)
+    val coreSyncResult = assertProjectLoaded().syncQueryCore(context, postQuerySyncData)
     updateCurrentSnapshot(context) { applySyncResult(coreSyncResult) }
     lastQueryInstant = queryInstant
   }
@@ -1060,7 +1060,7 @@ fun QuerySyncManager.updateCurrentSnapshot(
 }
 
 fun QuerySyncProjectSnapshot.applySyncResult(
-  coreSyncResult: QuerySyncProject.CoreSyncResult
+  coreSyncResult: QuerySyncProject.QueryCoreSyncResult
 ): QuerySyncProjectSnapshot {
   return copy(
     queryData = coreSyncResult.postQuerySyncData,

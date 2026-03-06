@@ -123,28 +123,28 @@ class QuerySyncProject(
     }
 
   @JvmRecord
-  data class CoreSyncResult(
+  data class QueryCoreSyncResult(
     val postQuerySyncData: PostQuerySyncData,
     val graph: BuildGraphData,
     val projectStructureData: ProjectStructureData,
   )
 
   @Throws(BuildException::class)
-  fun syncCore(context: BlazeContext, lastQuery: PostQuerySyncData?): CoreSyncResult {
+  fun syncQueryCore(context: BlazeContext, lastQuery: PostQuerySyncData?): QueryCoreSyncResult {
     SaveUtil.saveAllFiles()
     val postQuerySyncData =
       if (lastQuery == null) projectQuerier.fullQuery(projectDefinition, context)
       else projectQuerier.update(projectDefinition, lastQuery, context)
-    return computeCoreSyncResult(context, postQuerySyncData)
+    return computeQueryCoreSyncResult(context, postQuerySyncData)
   }
 
-  fun computeCoreSyncResult(
+  fun computeQueryCoreSyncResult(
     context: BlazeContext,
     postQuerySyncData: PostQuerySyncData,
-  ): CoreSyncResult {
+  ): QueryCoreSyncResult {
     val graph = buildGraphData(postQuerySyncData, context)
     val projectStructureData = readProjectStructure(context, postQuerySyncData, graph)
-    return CoreSyncResult(postQuerySyncData, graph, projectStructureData)
+    return QueryCoreSyncResult(postQuerySyncData, graph, projectStructureData)
   }
 
   fun readProjectStructure(
