@@ -230,14 +230,16 @@ internal constructor(
 
   override fun getActionUpdateThread() = BGT
 
-  override fun isCopyEnabled(dataContext: DataContext) = true
+  private fun isSelectedIndexValid(index: Int) = index >= 0 && index < listView.itemsCount
+
+  override fun isCopyEnabled(dataContext: DataContext) = isSelectedIndexValid(listView.selectedIndex)
 
   override fun isCopyVisible(dataContext: DataContext) = true
 
   /** Copies the selected list item to the clipboard. The copied text rendering is the same as the list rendering. */
   override fun performCopy(dataContext: DataContext) {
     val selectedIndex = listView.selectedIndex
-    if (selectedIndex >= 0 && selectedIndex < listView.itemsCount) {
+    if (isSelectedIndexValid(selectedIndex)) {
       renderer.getListCellRendererComponent(listView, listModel.getElementAt(selectedIndex), selectedIndex, true, false)
       val data = renderer.getCharSequence(false).toString()
       copyPasteManager.setContents(StringSelection(data))
