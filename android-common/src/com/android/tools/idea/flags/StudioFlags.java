@@ -2657,6 +2657,16 @@ public final class StudioFlags {
                     "Enable regenerating past chat queries.",
                     "Enable regenerating past chat queries by hovering and clicking a regenerate button.");
 
+  public static final Flag<Boolean> STUDIOBOT_TRAJECTORY_UI_TOOL_WINDOW_ENABLED =
+    new BooleanFlag(STUDIOBOT, "trajectory.ui.toolwindow.enabled",
+                    "Enable Trajectory UI in Tool Window",
+                    "Enables viewing the Trajectory based UI as a Tool Window");
+
+  public static final Flag<Boolean> STUDIOBOT_TRAJECTORY_UI_EDITOR_ACTION_ENABLED =
+    new BooleanFlag(STUDIOBOT, "trajectory.ui.editor.action.enabled",
+                    "Enable Trajectory UI in Editor Tabs",
+                    "Enables viewing the Trajectory based UI on Editor tabs through a global Action.");
+
   public static final Flag<Boolean> GEMINI_DEBUGGER_TOOLS_ENABLED =
     new BooleanFlag(STUDIOBOT, "debugger.tools",
                     "Enable Debugger tools.",
