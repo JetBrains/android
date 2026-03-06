@@ -15,26 +15,11 @@
  */
 package com.android.tools.idea.imports
 
-import com.intellij.codeInsight.intention.IntentionAction
 import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KaFirDiagnostic
-import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixFactory
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixRegistrar
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixesList
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KtQuickFixesListBuilder
-import org.jetbrains.kotlin.idea.quickfix.QuickFixContributor
-import org.jetbrains.kotlin.idea.quickfix.QuickFixes
-
-/**
- * Registers an unresolved reference resolver in Kotlin files (K1) which recognizes classes from key
- * Maven artifacts and offers to add a dependency on them.
- */
-class AndroidMavenImportKotlinResolver : QuickFixContributor {
-  override fun registerQuickFixes(quickFixes: QuickFixes) {
-    val action: IntentionAction = AndroidMavenImportIntentionAction()
-    quickFixes.register(Errors.UNRESOLVED_REFERENCE, action)
-  }
-}
 
 /**
  * Registers an unresolved reference resolver in Kotlin files (K2) which recognizes classes from key
