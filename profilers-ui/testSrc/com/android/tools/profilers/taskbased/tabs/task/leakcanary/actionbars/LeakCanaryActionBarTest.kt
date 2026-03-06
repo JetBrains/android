@@ -26,6 +26,7 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Commands
+import com.android.tools.profiler.proto.Commands.StartLeakCanaryTaskData
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
@@ -175,6 +176,8 @@ class LeakCanaryActionBarTest : WithFakeTimer {
     val mockHeapDumper: LeakCanaryHeapDumper = mock()
 
     leakCanaryModel = LeakCanaryModel(profilers, mockHeapDumper)
+    // ON_HOST mode triggers the mockHeapDumper
+    leakCanaryModel.leakcanaryMode = StartLeakCanaryTaskData.LeakCanaryMode.ON_HOST
     leakCanaryModel.setIsRecording(true)
     // Button is enabled when at least one object is retained.
     leakCanaryModel.setObjectRetainedCount(1)

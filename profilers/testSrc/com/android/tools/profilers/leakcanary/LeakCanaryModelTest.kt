@@ -463,6 +463,8 @@ class LeakCanaryModelTest : WithFakeTimer {
     stage.setObjectRetainedCount(1)
     stage.setAnalysisProgress(0)
 
+    stage.leakcanaryMode = Commands.StartLeakCanaryTaskData.LeakCanaryMode.ON_HOST
+
     // Request stop
     stage.requestStopRecording()
 

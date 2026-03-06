@@ -28,6 +28,7 @@ import com.android.tools.idea.logcat.service.LogcatService
 import com.android.tools.idea.profilers.commands.util.FakeLogcatService
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.idea.transport.faketransport.commands.CommandHandler
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.LeakCanary
@@ -91,6 +92,23 @@ class LeakCanaryLogcatCommandHandlerTest {
     mockLogcatService = FakeLogcatService()
     mockProjectDevice(disposableRule.disposable, app)
     ApplicationManager.setApplication(app, disposableRule.disposable)
+
+    // Register a mock handler for SET_STUDIO_LEAKCANARY_MODE.
+    // In these tests, we assert the payload inside the handler to verify that Android Studio is correctly
+    // packing the desired LeakCanary mode before sending the command to the device.
+    service.setCommandHandler(
+      Commands.Command.CommandType.SET_STUDIO_LEAKCANARY_MODE,
+      object : CommandHandler(timer) {
+        override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
+          assertEquals(Commands.Command.CommandType.SET_STUDIO_LEAKCANARY_MODE, command.type)
+          assertTrue(command.hasSetStudioLeakcanaryMode())
+          val payload = command.setStudioLeakcanaryMode
+          // Since test is mocking ON_DEVICE, verify it matches
+          assertEquals(Commands.StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE, payload.mode)
+        }
+      },
+    )
+
     transportServiceGrpc = spy(TransportServiceGrpc.newBlockingStub(channel))
     `when`(transportServiceGrpc.getCurrentTime(any())).thenReturn(Transport.TimeResponse.newBuilder().setTimestampNs(startTime).build())
     handler = LeakCanaryLogcatCommandHandler(mockDevice, transportServiceGrpc, mockEventQueue)
@@ -109,9 +127,12 @@ class LeakCanaryLogcatCommandHandlerTest {
 
   @Test
   fun testExecuteStartLogcatTracking() {
+    val startTaskData =
+      Commands.StartLeakCanaryTaskData.newBuilder().setMode(Commands.StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE).build()
     val command =
       Commands.Command.newBuilder()
         .setType(Commands.Command.CommandType.START_LEAKCANARY_TASK)
+        .setStartLeakcanaryTask(startTaskData)
         .setPid(123)
         .build()
     val response = handler.execute(command)
@@ -131,8 +152,14 @@ class LeakCanaryLogcatCommandHandlerTest {
   @Test
   fun testLeakCanaryLogWithDifferentTag() = runTest {
     handler = LeakCanaryLogcatCommandHandler(mockDevice, transportServiceGrpc, mockEventQueue)
+    val startTaskData =
+      Commands.StartLeakCanaryTaskData.newBuilder().setMode(Commands.StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE).build()
     handler.execute(
-      Commands.Command.newBuilder().setType(Commands.Command.CommandType.START_LEAKCANARY_TASK).setPid(123).build()
+      Commands.Command.newBuilder()
+        .setType(Commands.Command.CommandType.START_LEAKCANARY_TASK)
+        .setStartLeakcanaryTask(startTaskData)
+        .setPid(123)
+        .build()
     )
 
     // Before pushing messages wait for logcat to setup
@@ -161,8 +188,14 @@ class LeakCanaryLogcatCommandHandlerTest {
 
   private fun testLogcatWithMultipleLeaks(oneLinePerLogEntry: Boolean) = runTest {
     handler = LeakCanaryLogcatCommandHandler(mockDevice, transportServiceGrpc, mockEventQueue)
+    val startTaskData =
+      Commands.StartLeakCanaryTaskData.newBuilder().setMode(Commands.StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE).build()
     handler.execute(
-      Commands.Command.newBuilder().setType(Commands.Command.CommandType.START_LEAKCANARY_TASK).setPid(123).build()
+      Commands.Command.newBuilder()
+        .setType(Commands.Command.CommandType.START_LEAKCANARY_TASK)
+        .setStartLeakcanaryTask(startTaskData)
+        .setPid(123)
+        .build()
     )
 
     // Before pushing messages wait for logcat to setup
@@ -190,8 +223,14 @@ class LeakCanaryLogcatCommandHandlerTest {
   @Test
   fun testLogcatWithCompleteLeakAfterInCompleteLeak() = runTest {
     handler = LeakCanaryLogcatCommandHandler(mockDevice, transportServiceGrpc, mockEventQueue)
+    val startTaskData =
+      Commands.StartLeakCanaryTaskData.newBuilder().setMode(Commands.StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE).build()
     handler.execute(
-      Commands.Command.newBuilder().setType(Commands.Command.CommandType.START_LEAKCANARY_TASK).setPid(123).build()
+      Commands.Command.newBuilder()
+        .setType(Commands.Command.CommandType.START_LEAKCANARY_TASK)
+        .setStartLeakcanaryTask(startTaskData)
+        .setPid(123)
+        .build()
     )
 
     // Before pushing messages wait for logcat to setup
@@ -229,8 +268,14 @@ class LeakCanaryLogcatCommandHandlerTest {
   @Test
   fun testLogcatWithIncompleteLeak() = runTest {
     handler = LeakCanaryLogcatCommandHandler(mockDevice, transportServiceGrpc, mockEventQueue)
+    val startTaskData =
+      Commands.StartLeakCanaryTaskData.newBuilder().setMode(Commands.StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE).build()
     handler.execute(
-      Commands.Command.newBuilder().setType(Commands.Command.CommandType.START_LEAKCANARY_TASK).setPid(123).build()
+      Commands.Command.newBuilder()
+        .setType(Commands.Command.CommandType.START_LEAKCANARY_TASK)
+        .setStartLeakcanaryTask(startTaskData)
+        .setPid(123)
+        .build()
     )
 
     // Before pushing messages wait for logcat to setup
@@ -257,7 +302,15 @@ class LeakCanaryLogcatCommandHandlerTest {
   @Test
   fun testLogcatWithShellInjection() = runTest {
     handler = LeakCanaryLogcatCommandHandler(mockDevice, transportServiceGrpc, mockEventQueue)
-    handler.execute(Commands.Command.newBuilder().setType(Commands.Command.CommandType.START_LEAKCANARY_TASK).setPid(123).build())
+    val startTaskData =
+      Commands.StartLeakCanaryTaskData.newBuilder().setMode(Commands.StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE).build()
+    handler.execute(
+      Commands.Command.newBuilder()
+        .setType(Commands.Command.CommandType.START_LEAKCANARY_TASK)
+        .setStartLeakcanaryTask(startTaskData)
+        .setPid(123)
+        .build()
+    )
 
     // Before pushing messages wait for logcat to setup
     waitForEvent(this)

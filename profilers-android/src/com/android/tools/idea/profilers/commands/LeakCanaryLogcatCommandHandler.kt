@@ -91,8 +91,8 @@ class LeakCanaryLogcatCommandHandler(
   }
 
   /**
-   * Starts listening and detecting LeakCanary logs from Logcat, sends start object count tracking command to the agent And sends a started
-   * status info event.
+   * Starts listening and detecting LeakCanary logs from Logcat. Sends the SET_STUDIO_LEAKCANARY_MODE command to the agent containing the
+   * current mode so that the device-side integration library can configure itself accordingly (ON_DEVICE vs ON_HOST).
    */
   private fun startTrace(command: Commands.Command) {
     currentMode = command.getStartLeakcanaryTask().mode
@@ -102,20 +102,25 @@ class LeakCanaryLogcatCommandHandler(
     sessionId = command.sessionId
 
     var isTaskStarted = true
-    if (currentMode == LeakCanaryMode.ON_HOST) {
-      val objectCountCommand =
-        Commands.Command.newBuilder()
-          .setStreamId(command.streamId)
-          .setPid(pid)
-          //.setType(Commands.Command.CommandType.START_LEAKCANARY_OBJECT_COUNT_TRACKING) // TODO android-merge uncomment
-          .build()
-      try {
-        transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(objectCountCommand).build())
-      } catch (e: Exception) {
-        isTaskStarted = false
-        logger.warn("Failed to execute start object count tracking command", e)
-      }
-    } else { // ON_DEVICE mode
+
+    // Always notify the device of the mode.
+    // In ON_HOST mode, it sets up our custom listener. In ON_DEVICE mode, it restores LeakCanary's defaults.
+    val setModeData = Commands.StudioLeakCanaryModeData.newBuilder().setMode(currentMode).build()
+    val setModeCommand =
+      Commands.Command.newBuilder()
+        .setStreamId(command.streamId)
+        .setPid(pid)
+        .setType(Commands.Command.CommandType.SET_STUDIO_LEAKCANARY_MODE)
+        .setSetStudioLeakcanaryMode(setModeData)
+        .build()
+    try {
+      transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(setModeCommand).build())
+    } catch (e: Exception) {
+      isTaskStarted = false
+      logger.warn("Failed to execute set StudioLeakCanary mode command", e)
+    }
+
+    if (currentMode == LeakCanaryMode.ON_DEVICE) {
       resetTrackingState()
       readLeakLog()
     }
