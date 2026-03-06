@@ -108,7 +108,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
       // CPU ABI architecture, when needed by the code navigator, should be retrieved from StudioProfiler selected session.
       navigator.cpuArchSource = Supplier { profilers.sessionsManager.selectedSessionMetaData.processAbi }
 
-      profilers.addDependency(this).onChange(ProfilerAspect.STAGE) { stageChanged() }
+      profilers.addDependency(this).onChange(ProfilerAspect.STAGE) { invokeLater { stageChanged() } }
 
       // Attempt to find the last-run process and start profiling it. This covers the case where the user presses "Run" (without profiling),
       // but then opens the profiling window manually.
@@ -320,17 +320,19 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
 
     sessionsManager.removeDependencies(this)
     sessionsManager.addDependency(this).onChange(SessionAspect.ONGOING_SESSION_NEWLY_ENDED) {
-      // In an edge-case scenario if another session is started we do not want to clean up the new session.
-      // This check prevents the session cleanup logic to be fired if a new session has started.
-      if (sessionsManager.isSessionAlive) return@onChange
+      invokeLater {
+        // In an edge-case scenario if another session is started we do not want to clean up the new session.
+        // This check prevents the session cleanup logic to be fired if a new session has started.
+        if (sessionsManager.isSessionAlive) return@invokeLater
 
-      currentTaskHandler?.takeIf { it.canStop() }?.stopTask()
+        currentTaskHandler?.takeIf { it.canStop() }?.stopTask()
 
-      // If the task tab is closed, reset the selected session.
-      // Also see [onTaskTabClose].
-      if (findTaskTab() == null) {
-        sessionsManager.removeDependencies(this)
-        sessionsManager.resetSessionSelection()
+        // If the task tab is closed, reset the selected session.
+        // Also see [onTaskTabClose].
+        if (findTaskTab() == null) {
+          sessionsManager.removeDependencies(this)
+          sessionsManager.resetSessionSelection()
+        }
       }
     }
   }

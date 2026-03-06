@@ -15,24 +15,21 @@
  */
 package com.android.tools.profilers.taskbased
 
-import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.sessions.SessionAspect
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 import com.android.tools.profilers.taskbased.pastrecordings.PastRecordingsTabModel
 import com.android.tools.profilers.taskbased.task.TaskGridModel
 import com.android.tools.profilers.tasks.ProfilerTaskType
+import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler
 
 /** This class is to be extended by tab UI models allowing the user to select and enter a Profiler task. */
 abstract class TaskEntranceTabModel(val profilers: StudioProfilers) {
-  private val ongoingSessionEndedObserver = AspectObserver()
-
   val taskGridModel: TaskGridModel = TaskGridModel(profilers)
 
   val selectedTaskType
     get() = taskGridModel.selectedTaskType.value
 
-  val taskHandlers
+  val taskHandlers: Map<ProfilerTaskType, ProfilerTaskHandler>
     get() = profilers.taskHandlers
 
   val sessionsManager
@@ -69,7 +66,7 @@ abstract class TaskEntranceTabModel(val profilers: StudioProfilers) {
       }
     }
 
-    // If the system trace in editor feature is enabled and we're opening a past system trace task, we bypass the checks that
+    // If the system trace in editor feature is enabled, and we're opening a past system trace task, we bypass the checks that
     // stop the current task and just execute doEnterTaskButton directly. This is because the past system trace task will
     // open in its own editor window and will not conflict with the existing task in the Profiler window.
     if (profilers.ideServices.featureConfig.isSystemTraceInEditorEnabled && this is PastRecordingsTabModel && isSystemTraceTask) {
@@ -100,23 +97,14 @@ abstract class TaskEntranceTabModel(val profilers: StudioProfilers) {
         return
       }
 
-      // If there is an ongoing task, then the ongoing task is stopped. Then, on notification of the stoppage, the new task is entered.
+      // If there is an ongoing task, then the ongoing task is stopped. Then, the new task is entered.
       if (isTaskOngoing) {
-        sessionsManager.addDependency(ongoingSessionEndedObserver).onChange(SessionAspect.ONGOING_SESSION_NEWLY_ENDED) {
-          sessionsManager.removeDependencies(ongoingSessionEndedObserver)
-          doEnterTaskButton()
-        }
         currentTaskHandler.stopTask()
       }
-      // If the current task is already terminated, then the new task is entered.
-      else {
-        doEnterTaskButton()
-      }
     }
-    // If there is no current task/no task tab open, the new task is entered.
-    else {
-      doEnterTaskButton()
-    }
+
+    // Enter the new task
+    doEnterTaskButton()
   }
 
   /**
