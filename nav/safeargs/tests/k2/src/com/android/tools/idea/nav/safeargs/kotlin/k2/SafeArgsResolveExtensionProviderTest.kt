@@ -26,6 +26,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
+import org.jetbrains.kotlin.analysis.api.KaSpiExtensionPoint
 import org.jetbrains.kotlin.analysis.api.projectStructure.KaLibraryModule
 import org.jetbrains.kotlin.analysis.api.projectStructure.KaModule
 import org.jetbrains.kotlin.analysis.api.projectStructure.KaSourceModule
@@ -95,6 +96,7 @@ class SafeArgsResolveExtensionProviderTest : AbstractSafeArgsResolveExtensionTes
     assertThat(isChangeListenerRegistered).isTrue()
   }
 
+  @OptIn(KaSpiExtensionPoint::class)
   @Test
   fun shadowedScope_doesNotRegisterForDisposal() {
     safeArgsRule.androidFacet.safeArgsMode = SafeArgsMode.KOTLIN

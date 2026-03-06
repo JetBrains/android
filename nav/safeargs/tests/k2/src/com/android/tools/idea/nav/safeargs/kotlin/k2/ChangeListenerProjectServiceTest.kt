@@ -25,6 +25,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.EDT
+import org.jetbrains.kotlin.analysis.api.KaPlatformInterface
 import org.jetbrains.kotlin.analysis.api.platform.analysisMessageBus
 import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinGlobalSourceOutOfBlockModificationEvent
 import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModificationEvent
@@ -41,6 +42,7 @@ import org.mockito.kotlin.verify
 class ChangeListenerProjectServiceTest {
   @get:Rule val safeArgsRule = SafeArgsRule(SafeArgsMode.KOTLIN)
 
+  @OptIn(KaPlatformInterface::class)
   private inline fun withAnalysisBusListener(block: (KotlinModificationEventListener) -> Unit) {
     val disposable = Disposer.newDisposable()
     try {
@@ -57,6 +59,7 @@ class ChangeListenerProjectServiceTest {
     ChangeListenerProjectService.ensureListening(safeArgsRule.project)
   }
 
+  @OptIn(KaPlatformInterface::class)
   @Test
   fun `fires module OOB for module SafeArgs mode change`() = withAnalysisBusListener { listener ->
     safeArgsRule.androidFacet.safeArgsMode = SafeArgsMode.JAVA
@@ -66,6 +69,7 @@ class ChangeListenerProjectServiceTest {
     }
   }
 
+  @OptIn(KaPlatformInterface::class)
   @Test
   fun `fires global source change for completed project sync`() = withAnalysisBusListener { listener ->
     val future = safeArgsRule.project.getSyncManager().requestSyncProject(SyncReason.USER_REQUEST)
