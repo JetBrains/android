@@ -142,8 +142,8 @@ class WifiPairableDeviceProvisionerPlugin(
             } else {
               val delaySeconds = (1 shl attempt.toInt().coerceAtMost(5)).seconds
               // Resulting delay is 1s, 2s, 4s, 8s, 16s, 32s, 32s...
+              log.warn("Error tracking mDNS services (attempt ${attempt + 1}), retrying in $delaySeconds", throwable)
               delay(delaySeconds)
-              log.warn("Error tracking mDNS services (attempt ${attempt + 1}), retrying in $delaySeconds seconds", throwable)
               true
             }
           }
