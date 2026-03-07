@@ -19,12 +19,13 @@ import com.intellij.openapi.util.Iconable
 import com.intellij.psi.PsiElement
 import com.intellij.ui.RowIcon
 import icons.StudioIcons.Compose.Editor.COMPOSABLE_FUNCTION
+import javax.swing.Icon
+import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
+import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.idea.KotlinIconProvider
-import org.jetbrains.kotlin.idea.util.hasMatchingExpected
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.psiUtil.hasActualModifier
-import javax.swing.Icon
 
 /**
  * Returns Composable function icon for [KtFunction] elements that are composable, or null otherwise
@@ -50,8 +51,9 @@ class ComposableIconProvider : KotlinIconProvider() {
     return false
   }
 
+  @OptIn(KaExperimentalApi::class)
   override fun isMatchingExpected(declaration: KtDeclaration): Boolean {
-    return declaration.hasActualModifier() && declaration.hasMatchingExpected()
+    return declaration.hasActualModifier() && analyze(declaration) { declaration.symbol.getExpectsForActual().isNotEmpty() }
   }
 
   private fun createRowIcon(baseIcon: Icon, visibilityIcon: Icon?): RowIcon =
