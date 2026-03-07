@@ -55,7 +55,6 @@ import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.nj2k.postProcessing.resolve
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
@@ -327,7 +326,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       elementOnWhichMethodCalled.callReturnTypeFqName()
         ?:
         // Case Modifier.%this%
-        ((elementOnWhichMethodCalled as? KtNameReferenceExpression)?.resolve() as? KtClass)
+        ((elementOnWhichMethodCalled as? KtNameReferenceExpression)?.mainReference?.resolve() as? KtClass)
           ?.fqName
           ?.asString()
     return fqName == COMPOSE_MODIFIER_FQN
