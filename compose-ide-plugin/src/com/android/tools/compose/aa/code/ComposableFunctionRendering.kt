@@ -21,7 +21,8 @@ import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.renderer.declarations.impl.KaDeclarationRendererForSource
 import org.jetbrains.kotlin.analysis.api.symbols.KaFunctionSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaValueParameterSymbol
-import org.jetbrains.kotlin.idea.completion.LambdaSignatureTemplates
+
+private const val DEFAULT_LAMBDA_PRESENTATION = "{...}"
 
 /**
  * Generates [ComposableFunctionRenderParts] for a given Composable function.
@@ -38,7 +39,7 @@ internal fun KaSession.getComposableFunctionRenderParts(
   val requiredParameters = allParameters.filter { isRequired(it) }
   val hasTrailingLambda = allParameters.lastOrNull()?.let { isRequiredTrailingLambda(it) } ?: false
   val inParens = if (hasTrailingLambda) requiredParameters.dropLast(1) else requiredParameters
-  val tail = LambdaSignatureTemplates.DEFAULT_LAMBDA_PRESENTATION.takeIf { hasTrailingLambda }
+  val tail = DEFAULT_LAMBDA_PRESENTATION.takeIf { hasTrailingLambda }
   val hasOptionalParams = requiredParameters.size < allParameters.size
 
   val stringAfterValueParameters =
