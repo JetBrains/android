@@ -31,7 +31,7 @@ import com.intellij.psi.impl.source.codeStyle.PostFormatProcessorHelper
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
 import org.jetbrains.kotlin.idea.formatter.kotlinCommonSettings
-import org.jetbrains.kotlin.idea.intentions.callExpression
+import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
@@ -143,7 +143,7 @@ internal tailrec fun wrapModifierChain(
   // Now that there was (potentially) a newline added, the call expression should be reformatted
   // with the original settings in case it needs further changes (eg, if the indent level has
   // changed).
-  val callExpression = element.callExpression
+  val callExpression = element.selectorExpression as? KtCallExpression
   if (callExpression != null) {
     CodeFormatterFacade(settings, element.language).processElement(callExpression.node)
   }
