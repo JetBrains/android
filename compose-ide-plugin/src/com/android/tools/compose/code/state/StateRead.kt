@@ -27,7 +27,7 @@ import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.types.KaType
-import org.jetbrains.kotlin.idea.caches.resolve.resolveMainReference
+import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtBinaryExpression
@@ -118,9 +118,8 @@ private fun KtNameReferenceExpression.getExplicitStateReadElement(): KtExpressio
  * `val foo by stateOf(...)`
  */
 private fun KtNameReferenceExpression.isImplicitStateRead(): Boolean =
-  (resolveMainReference() as? KtProperty)?.delegateExpression?.isStateType(GENERIC_STATE_CLASS_ID)
+  (mainReference.resolve() as? KtProperty)?.delegateExpression?.isStateType(GENERIC_STATE_CLASS_ID)
   ?: false
-
 
 
 private fun KaSession.isStateType(type: KaType, stateClassId: ClassId): Boolean =
