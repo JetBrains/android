@@ -368,7 +368,7 @@ public class AndroidSystem implements AutoCloseable, TestRule {
       try {
         PathUtils.deleteRecursivelyIfExists(fileSystem.getRoot());
       }
-      catch (FileSystemException e) {
+      catch (Exception e) {
         // TODO(b/240166122): on Windows, there seems to be a race condition preventing deletions, so
         // we try again after waiting for a bit.
         if (SystemInfo.isWindows) {
