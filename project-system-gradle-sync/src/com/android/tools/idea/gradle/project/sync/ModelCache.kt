@@ -20,8 +20,9 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.build.OutputFile
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.Library
-import com.android.builder.model.NativeAndroidProject
-import com.android.builder.model.NativeVariantAbi
+// TODO android merge
+//import com.android.builder.model.NativeAndroidProject
+//import com.android.builder.model.NativeVariantAbi
 import com.android.builder.model.Variant
 import com.android.builder.model.v2.ide.BasicVariant
 import com.android.builder.model.v2.models.AndroidDsl
@@ -79,8 +80,9 @@ interface ModelCache {
 
     fun androidArtifactOutputFrom(output: OutputFile): IdeAndroidArtifactOutputImpl
 
-    fun nativeVariantAbiFrom(variantAbi: NativeVariantAbi): IdeNativeVariantAbiImpl
-    fun nativeAndroidProjectFrom(project: NativeAndroidProject, ndkVersion: String?): IdeNativeAndroidProjectImpl
+    // TODO android merge
+    //fun nativeVariantAbiFrom(variantAbi: NativeVariantAbi): IdeNativeVariantAbiImpl
+    //fun nativeAndroidProjectFrom(project: NativeAndroidProject, ndkVersion: String?): IdeNativeAndroidProjectImpl
   }
 
   interface V2 : ModelCache {
