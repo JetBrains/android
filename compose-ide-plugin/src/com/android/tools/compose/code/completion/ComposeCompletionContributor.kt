@@ -45,14 +45,17 @@ import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.kotlin.idea.completion.LookupElementFactory
 import org.jetbrains.kotlin.idea.references.mainReference
-import org.jetbrains.kotlin.idea.util.CallType
-import org.jetbrains.kotlin.idea.util.CallTypeAndReceiver
 import org.jetbrains.kotlin.kdoc.psi.impl.KDocName
 import org.jetbrains.kotlin.psi.KtCallExpression
-import org.jetbrains.kotlin.psi.KtNameReferenceExpression
+import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
+import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
+import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtPackageDirective
 import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtQualifiedExpression
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
+import org.jetbrains.kotlin.psi.KtUserType
 import org.jetbrains.kotlin.psi.psiUtil.getNextSiblingIgnoringWhitespace
 import org.jetbrains.kotlin.psi.psiUtil.getPrevSiblingIgnoringWhitespace
 import org.jetbrains.kotlin.types.typeUtil.isUnit
@@ -65,25 +68,30 @@ private val COMPOSABLE_FUNCTION_ICON = StudioIcons.Compose.Editor.COMPOSABLE_FUN
 private fun InsertionContext.getParent(): PsiElement? = file.findElementAt(startOffset)?.parent
 
 /**
- * Find the [CallType] from the [InsertionContext]. The [CallType] can be used to detect if the
- * completion is being done in a regular statement, an import or some other expression and decide if
- * we want to apply the [ComposeInsertHandler].
- */
-private fun PsiElement?.inferCallType(): CallType<*> {
-  // Look for an existing KtSimpleNameExpression to pass to CallTypeAndReceiver.detect so we can
-  // infer the call type.
-  val namedExpression =
-    (this as? KtSimpleNameExpression)?.mainReference?.expression ?: return CallType.DEFAULT
-  return CallTypeAndReceiver.detect(namedExpression).callType
-}
-
-/**
- * Return true if element is a KDoc.
+ * Returns true if the [PsiElement] is a regular statement or a dot-qualified expression selector.
  *
- * Ideally, we would use [inferCallType] but there doesn't seem to be a [CallType] for a KDoc
- * element.
+ * It returns false for imports, package directives, type references, KDocs, and other contexts where special Compose lambda handling
+ * shouldn't apply.
  */
-private fun PsiElement?.isKdoc() = this is KDocName
+private fun PsiElement?.isDefaultOrDotCall(): Boolean {
+  val namedExpression =
+    (this as? KtSimpleNameExpression)?.mainReference?.expression ?: return false
+  if (
+    namedExpression.parentOfType<KDocName>() != null ||
+      namedExpression.parentOfType<KtImportDirective>() != null ||
+      namedExpression.parentOfType<KtPackageDirective>() != null ||
+      namedExpression.parentOfType<KtUserType>() != null
+  ) {
+    return false
+  }
+
+  val call = namedExpression.parent as? KtCallExpression ?: namedExpression
+  return when (val parent = call.parent) {
+    is KtQualifiedExpression -> parent is KtDotQualifiedExpression && parent.selectorExpression == call
+    is KtCallableReferenceExpression -> false
+    else -> true
+  }
+}
 
 /** Modifies [LookupElement]s for composable functions, to improve Compose editing UX. */
 class ComposeCompletionContributor : CompletionContributor() {
@@ -175,9 +183,6 @@ private class ComposableFunctionLookupElement(
   original: LookupElement,
   private val functionInfo: FunctionInfo,
 ) : LookupElementDecorator<LookupElement>(original) {
-  /** Set of [CallType]s that should be handled by the [ComposeInsertHandler]. */
-  private val validCallTypes = setOf(CallType.DEFAULT, CallType.DOT)
-
   init {
     require(original.psiElement?.isComposableFunction() == true)
   }
@@ -247,10 +252,7 @@ private class ComposableFunctionLookupElement(
   private fun applyComposeLambdaHandling(context: InsertionContext): Boolean {
     if (!ComposeSettings.getInstance().state.isComposeInsertHandlerEnabled) return false
 
-    val parent = context.getParent()
-    if (parent.isKdoc() || parent !is KtNameReferenceExpression) return false
-
-    return validCallTypes.contains(parent.inferCallType())
+    return context.getParent().isDefaultOrDotCall()
   }
 
   private fun LookupElementPresentation.rewriteSignature(parts: ComposableFunctionRenderParts) {
