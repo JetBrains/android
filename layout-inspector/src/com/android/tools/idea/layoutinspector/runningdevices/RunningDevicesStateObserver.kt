@@ -41,10 +41,10 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
 
   interface Listener {
     /**
-     * Called when the visible tabs in Running Devices change. There can be more than one visible tab if Running Deices is running in split
-     * window mode.
+     * Called when the selected tabs in Running Devices change. There can be more than one selected tab if Running Deices is running in
+     * split window mode.
      */
-    fun onVisibleTabsChanged(visibleTabs: List<DeviceId>)
+    fun onSelectedTabsChanged(selectedTabs: List<DeviceId>)
 
     /** Called when a tab is added or removed to Running Devices */
     fun onExistingTabsChanged(existingTabs: List<DeviceId>)
@@ -59,7 +59,7 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
 
   private val listeners = mutableListOf<Listener>()
 
-  private var visibleTabs: List<DeviceId> = emptyList()
+  private var selectedTabs: List<DeviceId> = emptyList()
     set(value) {
       ApplicationManager.getApplication().assertIsDispatchThread()
       if (value == field) {
@@ -67,7 +67,7 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
       }
 
       field = value
-      listeners.forEach { it.onVisibleTabsChanged(value) }
+      listeners.forEach { it.onSelectedTabsChanged(value) }
     }
 
   private var existingTabs = emptyList<DeviceId>()
@@ -101,10 +101,10 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
           toolWindowManager.invokeLater {
             if (!toolWindow.isDisposed) {
               if (toolWindow.isVisible) {
-                // Restore visible tabs that were removed when the tool window was hidden.
-                updateVisibleTabs()
+                // Restore selected tabs that were removed when the tool window was hidden.
+                updateSelectedTabs()
               } else {
-                visibleTabs = emptyList()
+                selectedTabs = emptyList()
               }
             }
           }
@@ -124,7 +124,7 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
     ApplicationManager.getApplication().assertIsDispatchThread()
 
     listener.onExistingTabsChanged(existingTabs)
-    listener.onVisibleTabsChanged(visibleTabs)
+    listener.onSelectedTabsChanged(selectedTabs)
 
     listeners.add(listener)
   }
@@ -140,9 +140,9 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
     return getAllContents().find { it.deviceId == deviceId }
   }
 
-  private fun updateVisibleTabs() {
-    val deviceIds = getRunningDevicesVisibleTabs()
-    visibleTabs = deviceIds
+  private fun updateSelectedTabs() {
+    val deviceIds = getRunningDevicesSelectedTabs()
+    selectedTabs = deviceIds
   }
 
   private fun updateExistingTabs() {
@@ -155,7 +155,7 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
     init {
       invokeLater {
         updateExistingTabs()
-        updateVisibleTabs()
+        updateSelectedTabs()
       }
     }
 
@@ -174,12 +174,12 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
     override fun selectionChanged(event: ContentManagerEvent) {
       // listeners are executed in order, if listeners before this one launched calls using
       // invokeLater, they should be executed first.
-      invokeLater { updateVisibleTabs() }
+      invokeLater { updateSelectedTabs() }
     }
   }
 
-  /** Returns [DeviceId] of the visible tabs in the Running Devices Tool Window. */
-  private fun getRunningDevicesVisibleTabs(): List<DeviceId> {
+  /** Returns [DeviceId] of the selected tabs in the Running Devices Tool Window. */
+  private fun getRunningDevicesSelectedTabs(): List<DeviceId> {
     val selectedContent = getAllContents().filter { it.isSelected }
     return selectedContent.mapNotNull { it.deviceId }
   }

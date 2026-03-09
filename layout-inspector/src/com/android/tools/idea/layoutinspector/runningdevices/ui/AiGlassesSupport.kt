@@ -163,9 +163,9 @@ private fun visibleAiGlassesDeviceIdsFlow(project: Project): Flow<List<DeviceId>
 
       val listener =
         object : RunningDevicesStateObserver.Listener {
-          override fun onVisibleTabsChanged(visibleTabs: List<DeviceId>) {
+          override fun onSelectedTabsChanged(selectedTabs: List<DeviceId>) {
             val aiGlassesDeviceIds = mutableListOf<DeviceId>()
-            visibleTabs.forEach { deviceId ->
+            selectedTabs.forEach { deviceId ->
               val content = observer.getTabContent(deviceId) ?: return@forEach
               val dataProvider = DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, content.component)
               val deviceType = DEVICE_TYPE_KEY.getData(dataProvider)
