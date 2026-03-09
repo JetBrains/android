@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.glassespairing
+package com.android.tools.idea.avd.glassespairing
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -55,6 +55,7 @@ import com.android.tools.adtui.compose.WizardPageScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.google.wireless.android.sdk.stats.GlassesPairingEvent
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.util.ui.JBUI
@@ -541,7 +542,7 @@ private suspend fun FlowCollector<PairingState>.runPairingSequence(
   glassesDevice: ConnectedDevice,
   phoneName: String,
   glassesName: String,
-  logger: com.intellij.openapi.diagnostic.Logger,
+  logger: Logger,
 ) {
   with(AiGlassesPairing(phoneDevice.session)) {
     val glassesPairedCount =

@@ -53,6 +53,7 @@ import com.android.sdklib.internal.avd.BootMode
 import com.android.sdklib.internal.avd.BootSnapshot
 import com.android.sdklib.internal.avd.ColdBoot
 import com.android.tools.idea.avd.EditVirtualDeviceDialog.Mode
+import com.android.tools.idea.avd.glassespairing.GlassesPairingWizard
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution
 import com.android.tools.idea.avdmanager.AvdManagerConnection
@@ -61,7 +62,6 @@ import com.android.tools.idea.avdmanager.checkAcceleration
 import com.android.tools.idea.avdmanager.logHypervisorMigrationEvent
 import com.android.tools.idea.deviceprovisioner.NotificationBannersExtension
 import com.android.tools.idea.deviceprovisioner.StudioDefaultDeviceActionPresentation
-import com.android.tools.idea.glassespairing.GlassesPairingWizard
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.google.wireless.android.sdk.stats.EmulatorWindowsHypervisorMigrationEvent

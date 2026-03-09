@@ -49,7 +49,6 @@ iml_module(
         "//tools/adt/idea/render-resources:intellij.android.render-resources",
         "//tools/adt/idea/wizard:intellij.android.wizard",
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model",
-        "//tools/adt/idea/glasses-pairing",
         "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools",
     ],
 )

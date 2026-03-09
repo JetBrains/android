@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.glassespairing
+package com.android.tools.idea.avd.glassespairing
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
@@ -33,9 +33,9 @@ import com.android.tools.adtui.compose.TestComposeWizard
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.UsageTrackerWriter
-import com.android.tools.idea.glassespairing.LaunchState.Booting
-import com.android.tools.idea.glassespairing.LaunchState.Launching
-import com.android.tools.idea.glassespairing.LaunchState.Ready
+import com.android.tools.idea.avd.glassespairing.LaunchState.Booting
+import com.android.tools.idea.avd.glassespairing.LaunchState.Launching
+import com.android.tools.idea.avd.glassespairing.LaunchState.Ready
 import com.google.common.truth.Truth.assertThat
 import com.google.protobuf.Message.Builder
 import com.google.wireless.android.play.playlog.proto.ClientAnalytics
