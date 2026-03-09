@@ -1883,6 +1883,14 @@ public final class StudioFlags {
       "Play Policy Insights target library version",
       "Force a specific version of the Play Policy Insights.",
       "");
+
+  public static final Flag<String> PLAY_POLICY_INSIGHTS_HOLDOUT_RATIO =
+    new StringFlag(
+      PLAY_POLICY_INSIGHTS,
+      "play.policy.insights.holdout.ratio",
+      "Play Policy Insights Holdout Ratio",
+      "Holdout some Play Policy lint checks for a subset of applications.",
+      "0.0");
   // endregion Play Policy Insights
 
   // region Firebase Test Lab

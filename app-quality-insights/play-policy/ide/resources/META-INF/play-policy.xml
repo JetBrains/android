@@ -20,4 +20,13 @@
       <add-to-group anchor="after" relative-to-action="InspectCode" group-id="InspectCodeGroup"/>
     </action>
   </actions>
+
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.android.tools.idea.play.holdoutRatioProvider"
+        interface="com.android.tools.idea.play.HoldoutRatioProvider"/>
+  </extensionPoints>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.play">
+    <holdoutRatioProvider implementation="com.android.tools.idea.play.HoldoutRatioProviderImpl"/>
+  </extensions>
 </idea-plugin>
