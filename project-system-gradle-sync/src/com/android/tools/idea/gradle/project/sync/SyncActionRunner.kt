@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.builder.model.NativeAndroidProject
-import com.android.builder.model.NativeVariantAbi
+// TODO android merge
+//import com.android.builder.model.NativeAndroidProject
+//import com.android.builder.model.NativeVariantAbi
 import com.android.builder.model.v2.models.AndroidDsl
 import com.android.builder.model.v2.models.AndroidProject
 import com.android.builder.model.v2.models.BasicAndroidProject
@@ -105,8 +106,9 @@ data class ActionToRun<T>(
       KotlinMPPGradleModel::class.java -> fetchesKotlinModels
       LegacyAndroidGradlePluginProperties::class.java -> fetchesV1Models || fetchesV2Models
       NativeModule::class.java -> fetchesV1Models || fetchesV2Models  // We trust actions request it with Gradle models.
-      NativeAndroidProject::class.java -> fetchesV1Models
-      NativeVariantAbi::class.java -> fetchesV1Models
+      // TODO android merge
+      //NativeAndroidProject::class.java -> fetchesV1Models
+      //NativeVariantAbi::class.java -> fetchesV1Models
       AdditionalClassifierArtifactsModel::class.java -> true  // No known incompatibilities.
       LegacyV1AgpVersionModel::class.java -> true
       GradlePluginModel::class.java -> true
@@ -364,8 +366,9 @@ private fun <T> SyncCounters.measure(modelType: Class<*>, block: () -> T): T {
     KotlinMPPGradleModel::class.java -> mppModel
     LegacyAndroidGradlePluginProperties::class.java -> otherModel
     NativeModule::class.java -> nativeModel
-    NativeAndroidProject::class.java -> nativeModel
-    NativeVariantAbi::class.java -> nativeModel
+    // TODO android merge
+    //NativeAndroidProject::class.java -> nativeModel
+    //NativeVariantAbi::class.java -> nativeModel
     AdditionalClassifierArtifactsModel::class.java -> additionalArtifactsModel
     LegacyV1AgpVersionModel::class.java -> otherModel
     GradlePluginModel::class.java -> otherModel
