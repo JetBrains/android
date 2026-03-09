@@ -704,7 +704,7 @@ public final class AndroidStudioSystemHealthMonitor {
 
   private void reportThrowableToCrash(Throwable t) {
     incrementAndSaveExceptionCount(t);
-    AndroidStudioErrorReportSubmitter reporter = ErrorReportSubmitter.EP_NAME.findExtension(AndroidStudioErrorReportSubmitter.class);
+    ErrorReportSubmitter reporter = ErrorReportSubmitter.EP_NAME.findExtension(AndroidStudioErrorReportSubmitter.class);
     if (reporter != null) {
       StackTrace stackTrace = ExceptionRegistry.INSTANCE.register(t);
       String signature = ExceptionDataCollection.Companion.calculateSignature(t);
@@ -1200,7 +1200,7 @@ public final class AndroidStudioSystemHealthMonitor {
       return;
     }
 
-    AndroidStudioErrorReportSubmitter reporter = ErrorReportSubmitter.EP_NAME.findExtension(AndroidStudioErrorReportSubmitter.class);
+    ErrorReportSubmitter reporter = ErrorReportSubmitter.EP_NAME.findExtension(AndroidStudioErrorReportSubmitter.class);
     if (reporter != null) {
       IdeaLoggingEvent e = new AndroidStudioCrashEvents(descriptions);
       reporter.submit(new IdeaLoggingEvent[]{e}, null, null, info -> { });
