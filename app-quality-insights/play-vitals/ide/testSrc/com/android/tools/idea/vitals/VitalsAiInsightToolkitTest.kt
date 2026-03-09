@@ -17,10 +17,13 @@ package com.android.tools.idea.vitals
 
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.LoadingState
+import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.ai.AiInsightContributor
+import com.android.tools.idea.insights.ai.GeminiCrashInsightRequest
+import com.android.tools.idea.insights.ai.InsightSource
 import com.android.tools.idea.insights.ai.StubInsightsOnboardingProvider
+import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolverImpl
-import com.android.tools.idea.insights.client.FakeAiInsightClient
-import com.android.tools.idea.insights.client.GeminiCrashInsightRequest
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.stacktrace.Caption
@@ -28,7 +31,10 @@ import com.android.tools.idea.insights.model.stacktrace.ExceptionStack
 import com.android.tools.idea.insights.model.stacktrace.Frame
 import com.android.tools.idea.insights.model.stacktrace.Stacktrace
 import com.android.tools.idea.insights.model.stacktrace.StacktraceGroup
+import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth
+import com.intellij.openapi.project.Project
+import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.ProjectRule
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -43,13 +49,22 @@ class VitalsAiInsightToolkitTest {
 
   @Before
   fun setup() {
+    val client =
+      object : AiInsightContributor {
+        override fun canContribute(): Boolean = true
+
+        override suspend fun fetchInsight(
+          request: GeminiCrashInsightRequest,
+          project: Project,
+          codeContextResolver: CodeContextResolver,
+        ): AiInsight {
+          return AiInsight(request.toString(), request.event, insightSource = InsightSource.STUDIO_BOT)
+        }
+      }
+    ExtensionTestUtil.maskExtensions(AiInsightContributor.EP_NAME, listOf(client), projectRule.disposable)
+
     aiInsightToolkit =
-      VitalsAiInsightToolkit(
-        projectRule.project,
-        StubInsightsOnboardingProvider(),
-        CodeContextResolverImpl(projectRule.project),
-        FakeAiInsightClient,
-      )
+      VitalsAiInsightToolkit(projectRule.project, StubInsightsOnboardingProvider(), CodeContextResolverImpl(projectRule.project))
   }
 
   @Test

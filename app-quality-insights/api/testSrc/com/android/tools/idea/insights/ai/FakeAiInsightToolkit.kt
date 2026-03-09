@@ -19,7 +19,6 @@ import com.android.tools.idea.insights.CallInProgress
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.ai.codecontext.FakeCodeContextResolver
-import com.android.tools.idea.insights.client.GeminiAiInsightClient
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.intellij.openapi.project.Project
@@ -28,7 +27,7 @@ open class FakeAiInsightToolkit(
   project: Project,
   codeContextResolver: CodeContextResolver = FakeCodeContextResolver(emptyList()),
   override val aiInsightOnboardingProvider: InsightsOnboardingProvider = StubInsightsOnboardingProvider(),
-) : AiInsightToolkit(project, codeContextResolver, GeminiAiInsightClient(project, codeContextResolver)) {
+) : AiInsightToolkit(project, codeContextResolver) {
 
   private val fetchInsightCall = CallInProgress<LoadingState.Done<AiInsight>>()
 

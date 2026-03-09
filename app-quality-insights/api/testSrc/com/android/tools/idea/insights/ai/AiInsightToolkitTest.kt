@@ -19,7 +19,6 @@ import com.android.flags.junit.FlagRule
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
-import com.android.tools.idea.gemini.formatForTests
 import com.android.tools.idea.gservices.DevServicesDeprecationData
 import com.android.tools.idea.gservices.DevServicesDeprecationDataProvider
 import com.android.tools.idea.gservices.DevServicesDeprecationStatus.SUPPORTED
@@ -35,10 +34,6 @@ import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
 import com.android.tools.idea.insights.ai.codecontext.FakeCodeContextResolver
 import com.android.tools.idea.insights.client.AiInsightCache
-import com.android.tools.idea.insights.client.AiInsightClient
-import com.android.tools.idea.insights.client.FakeAiInsightClient
-import com.android.tools.idea.insights.client.GeminiAiInsightClient
-import com.android.tools.idea.insights.client.createGeminiInsightRequest
 import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.issue.FailureType
@@ -47,6 +42,7 @@ import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.testing.ui.FakeToolWindow
 import com.android.tools.idea.testing.ui.createFakeToolWindow
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.project.Project
 import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.replaceService
@@ -147,6 +143,8 @@ class AiInsightToolkitTest {
     cache.putAiInsight(CONNECTION1, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
     val toolkit = createToolkit(cache)
 
+    setupAiInsightContributor()
+
     val insight = toolkit.fetchInsight(CONNECTION1, ISSUE1.id, null, ISSUE1.issueDetails.fatality, ISSUE1.sampleEvent)
     assertThat(insight.valueOrNull()).isEqualTo(expectedInsight())
   }
@@ -155,6 +153,8 @@ class AiInsightToolkitTest {
   fun `toolkit caches new insight`() = runBlocking {
     val cache = AiInsightCache()
     val toolkit = createToolkit(cache)
+
+    setupAiInsightContributor()
 
     val insight = toolkit.fetchInsight(CONNECTION1, ISSUE1.id, null, ISSUE1.issueDetails.fatality, ISSUE1.sampleEvent)
     assertThat(insight.valueOrNull()).isEqualTo(expectedInsight())
@@ -169,6 +169,9 @@ class AiInsightToolkitTest {
     cache.putAiInsight(CONNECTION1, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
     cache.putAiInsight(CONNECTION1, ISSUE1.id, null, AI_INSIGHT_WITH_CODE_CONTEXT)
     val toolkit = createToolkit(cache)
+
+    setupAiInsightContributor()
+
     val insight = toolkit.fetchInsight(CONNECTION1, ISSUE1.id, null, ISSUE1.issueDetails.fatality, ISSUE1.sampleEvent)
 
     assertThat(insight.valueOrNull()).isEqualTo(AI_INSIGHT_WITH_CODE_CONTEXT.copy(isCached = true))
@@ -192,61 +195,20 @@ class AiInsightToolkitTest {
           |}
           """
             .trimMargin(),
-        ),
-        CodeContext(
-          "a/b/c/HelloWorld2.kt",
-          """
-          |package a.b.c
-          |
-          |fun helloWorld2() {
-          |  println("Hello World 2")
-          |}
-          """
-            .trimMargin(),
-        ),
+        )
       )
 
-    val toolkit =
-      createToolkit(cache, aiInsightClient = GeminiAiInsightClient(projectRule.project, FakeCodeContextResolver(codeContextData)))
+    var fakeInsightFetched = false
+    setupAiInsightContributor { request ->
+      fakeInsightFetched = true
+      AiInsight(request.toString(), request.event, insightSource = InsightSource.STUDIO_BOT)
+    }
 
-    val expectedPromptText =
-      """
-      |USER
-      |Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
-      |For headings, use H3 only. Initial explanation should not be under a heading.
-      |Begin with the explanation directly. Do not add fillers at the start of response.
-      |
-      |USER
-      |Explain this exception from my app running on Google Pixel 4a with Android version 12.
-      |Please reference the provided source code if they are helpful.
-      |Exception:
-      |```
-      |retrofit2.HttpException: HTTP 401
-      |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.build(ResponseWrapper.kt:23)
-      |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.fetchOrError(ResponseWrapper.kt:31)
-      |```
-      |a/b/c/HelloWorld1.kt:
-      |```
-      |package a.b.c
-      |
-      |fun helloWorld() {
-      |  println("Hello World")
-      |}
-      |```
-      |a/b/c/HelloWorld2.kt:
-      |```
-      |package a.b.c
-      |
-      |fun helloWorld2() {
-      |  println("Hello World 2")
-      |}
-      |```
-      """
-        .trimMargin()
+    val toolkit = createToolkit(cache)
+
     val loadingState = toolkit.fetchInsight(CONNECTION1, ISSUE1.id, null, ISSUE1.issueDetails.fatality, ISSUE1.sampleEvent)
 
-    assertThat(fakeGeminiPluginApi.receivedPrompt?.formatForTests()).isEqualTo(expectedPromptText)
-
+    assertThat(fakeInsightFetched).isTrue()
     val insight = loadingState.valueOrNull() ?: fail("LoadingState did not have an insight")
     assertThat(insight.insightSource).isEqualTo(InsightSource.STUDIO_BOT)
   }
@@ -261,6 +223,8 @@ class AiInsightToolkitTest {
 
   @Test
   fun `toolkit returns new insight with force regenerate`() = runBlocking {
+    setupAiInsightContributor { request -> AiInsight("a different insight", request.event, insightSource = InsightSource.STUDIO_BOT) }
+
     val cache = AiInsightCache()
     cache.putAiInsight(CONNECTION1, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
     val toolkit = createToolkit(cache)
@@ -270,13 +234,35 @@ class AiInsightToolkitTest {
     assertThat(insight.valueOrNull()).isNotEqualTo(DEFAULT_AI_INSIGHT)
   }
 
+  @Test
+  fun `getFirstAvailableContributor returns the first contributor that can contribute`() {
+    val contributor1 = mock<AiInsightContributor>()
+    whenever(contributor1.canContribute()).thenReturn(false)
+
+    val contributor2 = mock<AiInsightContributor>()
+    whenever(contributor2.canContribute()).thenReturn(true)
+
+    ExtensionTestUtil.maskExtensions(AiInsightContributor.EP_NAME, listOf(contributor1, contributor2), projectRule.disposable)
+
+    assertThat(AiInsightContributor.getFirstAvailableContributor()).isEqualTo(contributor2)
+  }
+
+  @Test
+  fun `getFirstAvailableContributor returns null if no contributor can contribute`() {
+    val contributor1 = mock<AiInsightContributor>()
+    whenever(contributor1.canContribute()).thenReturn(false)
+
+    ExtensionTestUtil.maskExtensions(AiInsightContributor.EP_NAME, listOf(contributor1), projectRule.disposable)
+
+    assertThat(AiInsightContributor.getFirstAvailableContributor()).isNull()
+  }
+
   private fun createToolkit(
     cache: AiInsightCache = AiInsightCache(),
     codeContextResolver: CodeContextResolver = FakeCodeContextResolver(emptyList()),
-    aiInsightClient: AiInsightClient = FakeAiInsightClient,
     fetchInsightCondition: (FailureType, Event) -> LoadingState.Done<AiInsight>? = { _, _ -> null },
   ) =
-    object : AiInsightToolkit(projectRule.project, codeContextResolver, aiInsightClient, cache) {
+    object : AiInsightToolkit(projectRule.project, codeContextResolver, cache) {
       override val aiInsightOnboardingProvider: InsightsOnboardingProvider
         get() = StubInsightsOnboardingProvider()
 
@@ -284,6 +270,23 @@ class AiInsightToolkitTest {
         fetchInsightCondition(failureType, event)
     }
 
-  private suspend fun expectedInsight() =
-    FakeAiInsightClient.fetchCrashInsight(createGeminiInsightRequest(CONNECTION1, ISSUE1.id, null, ISSUE1.sampleEvent))
+  private fun expectedInsight(): AiInsight {
+    return AiInsight(createGeminiInsightRequest(CONNECTION1, ISSUE1.id, null, ISSUE1.sampleEvent).toString(), ISSUE1.sampleEvent)
+  }
+
+  private fun setupAiInsightContributor(fetchInsight: suspend (GeminiCrashInsightRequest) -> AiInsight = { expectedInsight() }) {
+    val contributor =
+      object : AiInsightContributor {
+        override fun canContribute() = true
+
+        override suspend fun fetchInsight(
+          request: GeminiCrashInsightRequest,
+          project: Project,
+          codeContextResolver: CodeContextResolver,
+        ): AiInsight {
+          return fetchInsight(request)
+        }
+      }
+    ExtensionTestUtil.maskExtensions(AiInsightContributor.EP_NAME, listOf(contributor), projectRule.disposable)
+  }
 }

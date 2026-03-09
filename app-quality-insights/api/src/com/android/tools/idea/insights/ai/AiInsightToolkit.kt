@@ -23,8 +23,6 @@ import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
 import com.android.tools.idea.insights.client.AiInsightCache
-import com.android.tools.idea.insights.client.AiInsightClient
-import com.android.tools.idea.insights.client.createGeminiInsightRequest
 import com.android.tools.idea.insights.client.runGrpcCatching
 import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.android.tools.idea.insights.model.connection.Connection
@@ -40,7 +38,6 @@ internal const val GEMINI_TOOL_WINDOW_ID = "StudioBot"
 abstract class AiInsightToolkit(
   private val project: Project,
   private val codeContextResolver: CodeContextResolver,
-  protected val aiInsightClient: AiInsightClient,
   private val insightCache: AiInsightCache = AiInsightCache(),
 ) {
 
@@ -102,8 +99,10 @@ abstract class AiInsightToolkit(
     }
     val request = createGeminiInsightRequest(connection, issueId, variantId, event)
     val failure = LoadingState.UnknownFailure("Unable to fetch insight for the selected issue.")
+    val contributor =
+      AiInsightContributor.getFirstAvailableContributor() ?: return LoadingState.Unauthorized("No insight contributor found")
     return runGrpcCatching(failure) {
-      val insight = aiInsightClient.fetchCrashInsight(request)
+      val insight = contributor.fetchInsight(request, project, codeContextResolver)
       insightCache.putAiInsight(connection, issueId, variantId, insight)
       LoadingState.Ready(insight)
     }
