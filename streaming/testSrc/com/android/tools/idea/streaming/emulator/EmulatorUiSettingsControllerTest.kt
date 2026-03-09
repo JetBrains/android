@@ -156,6 +156,23 @@ class EmulatorUiSettingsControllerTest {
   }
 
   @Test
+  fun testResetStateOnTv() {
+    // Use default value for settings included for TV
+    // Use non default values for settings not included for TV
+    uiRule.configureUiSettings(
+      darkMode = true, // Not included
+      gestureNavigation = false, // Not included
+      talkBackInstalled = true,
+      selectToSpeakOn = true, // Not included
+      physicalDensity = DEFAULT_DENSITY,
+      overrideDensity = CUSTOM_DENSITY, // Not included
+    )
+    controller.initAndWait()
+    // All values should be recognized as default values:
+    assertThat(model.differentFromDefault.value).isFalse()
+  }
+
+  @Test
   fun testResetStateOnXr() {
     // Use default value for settings included for Wear
     // Use non default values for settings not included for Wear

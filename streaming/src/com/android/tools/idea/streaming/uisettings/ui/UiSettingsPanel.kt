@@ -67,7 +67,7 @@ internal class UiSettingsPanel(private val model: UiSettingsModel, deviceType: D
     add(
       panel {
         customizeSpacingConfiguration(SPACING) {
-          if (deviceType != DeviceType.WEAR) {
+          if (deviceType != DeviceType.WEAR && deviceType != DeviceType.TV && deviceType != DeviceType.AUTOMOTIVE) {
             row(JBLabel(DARK_THEME_TITLE)) {
               checkBox("").accessibleName(DARK_THEME_TITLE).bind(model.inDarkMode).apply { component.name = DARK_THEME_TITLE }
             }

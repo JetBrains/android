@@ -2061,6 +2061,103 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
       return createAvd(avdId, avdFolder, configIni, hardwareIni)
     }
 
+    /** Creates a fake TV AVD. */
+    @JvmStatic
+    fun createTvAvd(
+      parentFolder: Path,
+      sdkFolder: Path = getSdkFolder(parentFolder),
+      androidVersion: AndroidVersion = AndroidVersion(30, 0),
+    ): Path {
+      val api = androidVersion.androidApiLevel.majorVersion
+      val avdId = "Android_TV_1080p_API_$api"
+      val avdFolder = parentFolder.resolve("${avdId}.avd")
+      val avdName = avdId.replace('_', ' ')
+      val systemImage = "system-images/android-$api/android-tv/x86/"
+      val systemImageFolder = sdkFolder.resolve(systemImage)
+
+      val configIni =
+        """
+          AvdId=${avdId}
+          PlayStore.enabled=false
+          abi.type=x86
+          avd.ini.displayname=${avdName}
+          avd.ini.encoding=UTF-8
+          disk.dataPartition.size=2G
+          hw.accelerometer=no
+          hw.arc=false
+          hw.audioInput=yes
+          hw.battery=no
+          hw.camera.back=None
+          hw.camera.front=None
+          hw.cpu.arch=x86
+          hw.cpu.ncore=4
+          hw.dPad=yes
+          hw.device.manufacturer=Google
+          hw.device.name=tv_1080p
+          hw.gps=no
+          hw.gpu.enabled=yes
+          hw.gpu.mode=auto
+          hw.initialOrientation=landscape
+          hw.keyboard=yes
+          hw.lcd.density=320
+          hw.lcd.height=1080
+          hw.lcd.width=1920
+          hw.mainKeys=no
+          hw.ramSize=1536
+          hw.sdCard=no
+          hw.sensors.orientation=no
+          hw.sensors.proximity=no
+          hw.trackBall=no
+          image.sysdir.1=$systemImage
+          runtime.network.latency=none
+          runtime.network.speed=full
+          showDeviceFrame=no
+          skin.dynamic=yes
+          skin.path=_no_skin
+          tag.display=Android TV
+          tag.id=android-tv
+          """
+          .trimIndent()
+
+      val hardwareIni =
+        """
+          hw.cpu.arch = x86
+          hw.cpu.model = qemu32
+          hw.cpu.ncore = 4
+          hw.lcd.density = 320
+          hw.lcd.width = 1920
+          hw.lcd.height = 1080
+          hw.ramSize = 1536
+          hw.screen = no-touch
+          hw.dPad = true
+          hw.rotaryInput = false
+          hw.gsmModem = false
+          hw.gps = false
+          hw.battery = false
+          hw.accelerometer = false
+          hw.audioInput = true
+          hw.audioOutput = true
+          hw.sdCard = false
+          android.sdk.root = $sdkFolder
+          """
+          .trimIndent()
+
+      val sourceProperties =
+        """
+        Pkg.Desc=System Image x86 with Android TV.
+        SystemImage.Abi=x86
+        SystemImage.TagId=android-tv
+        SystemImage.TagDisplay=Android TV
+        SystemImage.GpuSupport=true
+        Addon.VendorId=google
+        Addon.VendorDisplay=Google Inc.
+        """
+          .trimIndent()
+
+      createSystemImage(systemImageFolder, androidVersion, sourceProperties)
+      return createAvd(avdId, avdFolder, configIni, hardwareIni)
+    }
+
     private fun createSystemImage(systemImageFolder: Path, androidVersion: AndroidVersion, sourceProperties: String) {
       if (Files.exists(systemImageFolder.resolve(SystemImageManager.SYS_IMG_NAME))) {
         return
