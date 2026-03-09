@@ -23,7 +23,7 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/base/adblib:studio.android.sdktools.adblib",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner",
-        "//tools/base/ddmlib:studio.android.sdktools.ddmlib",
+        "//tools/base/ddmlib-studio:studio.android.sdktools.ddmlib-studio",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/analytics-library/tracker:analytics-tracker",
     ],

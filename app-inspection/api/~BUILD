@@ -29,7 +29,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/base/annotations:studio.android.sdktools.android-annotations",
-        "//tools/base/ddmlib:studio.android.sdktools.ddmlib",
+        "//tools/base/ddmlib-studio:studio.android.sdktools.ddmlib-studio",
         "//tools/adt/idea/app-inspection/inspector/api:app-inspection.inspector.api",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common",
     ],

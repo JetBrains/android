@@ -52,7 +52,7 @@ iml_module(
         "//prebuilts/tools/common/m2:shark-graph-2.14",
         "//prebuilts/tools/common/m2:shark-hprof-2.14",
         "//prebuilts/tools/common/m2:shark-log-2.14",
-        "//tools/base/ddmlib:studio.android.sdktools.ddmlib",
+        "//tools/base/ddmlib-studio:studio.android.sdktools.ddmlib-studio",
         "//tools/adt/idea/android-transport:intellij.android.transport",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:studio-grpc",

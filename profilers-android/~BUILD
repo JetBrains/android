@@ -49,7 +49,7 @@ iml_module(
         "//tools/adt/idea/transport-database:intellij.android.transportDatabase",
         "//tools/adt/idea/android:intellij.android.core",
         "//tools/adt/idea/android-common:intellij.android.common",
-        "//tools/base/ddmlib:studio.android.sdktools.ddmlib",
+        "//tools/base/ddmlib-studio:studio.android.sdktools.ddmlib-studio",
         "//tools/analytics-library/shared:analytics-shared",
         "//tools/analytics-library/tracker:analytics-tracker",
         "//tools/base/flags:studio.android.sdktools.flags",

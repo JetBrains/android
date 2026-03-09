@@ -10,7 +10,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/adt/idea/device-explorer-common:intellij.android.device-explorer-common",
-        "//tools/base/ddmlib:studio.android.sdktools.ddmlib",
+        "//tools/base/ddmlib-studio:studio.android.sdktools.ddmlib-studio",
         "//tools/base/flags:studio.android.sdktools.flags",
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
@@ -49,7 +49,7 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/adt/idea/android-common:intellij.android.common.tests",
         "//tools/adt/idea/android-adb:intellij.android.adb",
-        "//tools/base/ddmlib:studio.android.sdktools.ddmlib",
+        "//tools/base/ddmlib-studio:studio.android.sdktools.ddmlib-studio",
         "//tools/adt/idea/.idea/libraries:truth",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
         "//tools/adt/idea/android:intellij.android.core",

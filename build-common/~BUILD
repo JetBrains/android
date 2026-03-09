@@ -12,7 +12,7 @@ iml_module(
     # do not sort: must match IML order
     exports = [
         "//tools/base/common:studio.android.sdktools.common",
-        "//tools/base/ddmlib:studio.android.sdktools.ddmlib",
+        "//tools/base/ddmlib-studio:studio.android.sdktools.ddmlib-studio",
         "//tools/base/device_validator:studio.android.sdktools.dvlib",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common",
@@ -24,7 +24,7 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "//tools/base/common:studio.android.sdktools.common",
-        "//tools/base/ddmlib:studio.android.sdktools.ddmlib",
+        "//tools/base/ddmlib-studio:studio.android.sdktools.ddmlib-studio",
         "//tools/base/device_validator:studio.android.sdktools.dvlib",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common",

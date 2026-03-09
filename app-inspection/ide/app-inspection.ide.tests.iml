@@ -9,17 +9,25 @@
       <sourceFolder url="file://$MODULE_DIR$/testResources" type="java-test-resource" />
     </content>
     <orderEntry type="inheritedJdk" />
-    <orderEntry type="library" name="studio-sdk" level="project" />
-    <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
-    <orderEntry type="library" name="studio-plugin-com.intellij.gradle" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
+    <orderEntry type="library" name="kotlin-stdlib" level="project" />
+    <orderEntry type="library" name="jetbrains-annotations" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.guava" />
+    <orderEntry type="module" module-name="intellij.platform.util" />
+    <orderEntry type="module" module-name="intellij.platform.projectModel" />
+    <orderEntry type="module" module-name="intellij.platform.core" />
+    <orderEntry type="module" module-name="intellij.platform.core.ui" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.java.syntax" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" scope="TEST" name="junit4" level="project" />
+    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.mockito" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.mockito.kotlin" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="studio-grpc" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.ddmlib" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.ddmlib-studio" scope="TEST" />
     <orderEntry type="module" module-name="app-inspection.api" scope="TEST" />
     <orderEntry type="module" module-name="app-inspection.ide" scope="TEST" />
     <orderEntry type="module" module-name="app-inspection.inspector.api" scope="TEST" />
@@ -29,7 +37,6 @@
     <orderEntry type="module" module-name="intellij.android.transport" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="studio-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="transport-proto" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.sdkUpdates" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
@@ -37,8 +44,6 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.deploy" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.execution.common" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="studio-analytics-proto" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.flags" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" scope="TEST" />
     <orderEntry type="module" module-name="app-inspection.ide.gradle" scope="TEST" />

@@ -355,7 +355,7 @@ filegroup(
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
         "//tools/base/adb-proxy/reverse-daemon:daemon",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
-        "//tools/base/ddmlib:adb-server-proto",
+        "//tools/base/ddmlib-studio:adb-server-proto",
         "//tools/base/dynamic-layout-inspector/agent/appinspection:agent",
         "//tools/base/lint:lint-checks-proto",
         "//tools/base/process-monitor/process-tracker-agent:bundle",

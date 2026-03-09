@@ -19,7 +19,7 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/base/common:studio.android.sdktools.common",
         "//tools/adt/idea/jps-model:intellij.android.jps.model",
-        "//tools/base/ddmlib:studio.android.sdktools.ddmlib",
+        "//tools/base/ddmlib-studio:studio.android.sdktools.ddmlib-studio",
         "//tools/analytics-library/shared:analytics-shared",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common",
         "//tools/base/adblib:studio.android.sdktools.adblib",

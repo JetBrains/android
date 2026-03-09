@@ -82,7 +82,7 @@ jvm_import(
 # managed by go/iml_to_build
 jvm_import(
     name = "libam-instrumentation-data-proto",
-    jars = ["//tools/base/ddmlib:libam-instrumentation-data-proto.jar"],
+    jars = ["//tools/base/ddmlib-studio:libam-instrumentation-data-proto.jar"],
     visibility = ["//visibility:public"],
 )
 

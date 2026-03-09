@@ -26,7 +26,7 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "//tools/base/annotations:studio.android.sdktools.android-annotations",
-        "//tools/base/ddmlib:studio.android.sdktools.ddmlib",
+        "//tools/base/ddmlib-studio:studio.android.sdktools.ddmlib-studio",
         "//tools/base/sdklib:studio.android.sdktools.sdklib",
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/adt/idea/android-adb:intellij.android.adb",
