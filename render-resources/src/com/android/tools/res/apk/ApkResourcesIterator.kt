@@ -18,43 +18,45 @@ package com.android.tools.res.apk
 
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
-import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceFile
-import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceIdentifier
+// TODO android merge
+//import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceFile
+//import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceIdentifier
 import com.google.devrel.gmscore.tools.apk.arsc.ResourceTableChunk
 import java.lang.RuntimeException
 import java.util.zip.ZipFile
 
 internal fun forEveryResource(apkPath: String, processor: ResourceEntryProcessor) {
-  ZipFile(apkPath).use { zipFile ->
-    val zipEntry = zipFile.getEntry("resources.arsc") ?: return@use
-    val resourceFile = BinaryResourceFile.fromInputStream(zipFile.getInputStream(zipEntry))
-    (resourceFile.chunks.firstOrNull() as? ResourceTableChunk)?.let { resourceTable ->
-      val stringPool = resourceTable.stringPool
-      for (pkg in resourceTable.packages) {
-        for (typeSpec in pkg.typeSpecChunks) {
-          val resType = ResourceType.fromXmlTagName(typeSpec.typeName)!!
-          for (typeChunk in pkg.getTypeChunks(typeSpec.id)) {
-            val binResConfig = typeChunk.configuration
-            val qualifierString =
-              binResConfig.toString().let { if (it == "default") "" else it }
-            val folderConfig =
-              FolderConfiguration.getConfigForQualifierString(qualifierString) ?:
-              throw RuntimeException("Unrecognized configuration $qualifierString")
-
-            typeChunk.entries.forEach { (rowId, typeChunkEntry) ->
-              val binaryId =
-                BinaryResourceIdentifier.create(pkg.id, typeSpec.id, rowId)
-              processor.onResourceEntry(
-                stringPool,
-                resType,
-                folderConfig,
-                binaryId.resourceId(),
-                typeChunkEntry
-              )
-            }
-          }
-        }
-      }
-    }
-  }
+  // TODO android merge
+  //ZipFile(apkPath).use { zipFile ->
+  //  val zipEntry = zipFile.getEntry("resources.arsc") ?: return@use
+  //  val resourceFile = BinaryResourceFile.fromInputStream(zipFile.getInputStream(zipEntry))
+  //  (resourceFile.chunks.firstOrNull() as? ResourceTableChunk)?.let { resourceTable ->
+  //    val stringPool = resourceTable.stringPool
+  //    for (pkg in resourceTable.packages) {
+  //      for (typeSpec in pkg.typeSpecChunks) {
+  //        val resType = ResourceType.fromXmlTagName(typeSpec.typeName)!!
+  //        for (typeChunk in pkg.getTypeChunks(typeSpec.id)) {
+  //          val binResConfig = typeChunk.configuration
+  //          val qualifierString =
+  //            binResConfig.toString().let { if (it == "default") "" else it }
+  //          val folderConfig =
+  //            FolderConfiguration.getConfigForQualifierString(qualifierString) ?:
+  //            throw RuntimeException("Unrecognized configuration $qualifierString")
+  //
+  //          typeChunk.entries.forEach { (rowId, typeChunkEntry) ->
+  //            val binaryId =
+  //              BinaryResourceIdentifier.create(pkg.id, typeSpec.id, rowId)
+  //            processor.onResourceEntry(
+  //              stringPool,
+  //              resType,
+  //              folderConfig,
+  //              binaryId.resourceId(),
+  //              typeChunkEntry
+  //            )
+  //          }
+  //        }
+  //      }
+  //    }
+  //  }
+  //}
 }

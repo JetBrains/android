@@ -16,7 +16,8 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.builder.model.AndroidProject
-import com.android.builder.model.NativeAndroidProject
+// TODO android merge
+//import com.android.builder.model.NativeAndroidProject
 import com.android.builder.model.v2.ide.AndroidGradlePluginProjectFlags
 import com.android.builder.model.v2.models.AndroidDsl
 import com.android.builder.model.v2.models.BasicAndroidProject
@@ -28,6 +29,7 @@ import com.android.ide.gradle.model.LegacyAndroidGradlePluginPropertiesModelPara
 import com.android.tools.idea.gradle.project.sync.AndroidProjectResult.Companion.RuntimeClasspathBehaviour
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.ignoreExceptionsAndGet
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.mapCatching
+import com.android.tools.idea.gradle.project.sync.findParameterizedAndroidModel
 import com.google.common.collect.ImmutableRangeSet
 import com.google.common.collect.Range
 import org.gradle.tooling.BuildController
@@ -35,6 +37,7 @@ import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import java.io.Serializable
+import kotlin.jvm.java
 
 
 /**
@@ -214,13 +217,15 @@ internal class BasicV1AndroidModuleGradleProject(
         return androidProjectResult
           .mapCatching { androidProjectResult ->
             val nativeModule = controller.findNativeModuleModel(gradleProject, syncAllVariantsAndAbis = false)
-            val nativeAndroidProject: NativeAndroidProject? =
-              if (nativeModule == null)
-                controller.findParameterizedAndroidModel(
-                  gradleProject, NativeAndroidProject::class.java,
-                  shouldBuildVariant = false
-                )
-              else null
+            // TODO android merge
+            // val nativeAndroidProject: NativeAndroidProject? =
+            //   if (nativeModule == null)
+            //     controller.findParameterizedAndroidModel(
+            //       gradleProject, NativeAndroidProject::class.java,
+            //       shouldBuildVariant = false
+            //     )
+            //   else null
+            val nativeAndroidProject: Any? = null // TODO android merge: NativeAndroidProject is not available
 
             createAndroidModuleV1(
               modelVersions,
@@ -356,7 +361,7 @@ private fun createAndroidModuleV1(
   modelVersions: ModelVersions,
   gradleProject: BasicGradleProject,
   androidProjectResult: AndroidProjectResult.V1Project,
-  nativeAndroidProject: NativeAndroidProject?,
+  nativeAndroidProject: Any?, // TODO android merge: NativeAndroidProject is not available
   nativeModule: NativeModule?,
   buildPathMap: Map<String, BuildId>,
   modelCache: ModelCache.V1
@@ -365,9 +370,11 @@ private fun createAndroidModuleV1(
   val allVariantNames = androidProjectResult.allVariantNames
   val defaultVariantName: String? = androidProjectResult.defaultVariantName
 
-  val ideNativeAndroidProject = nativeAndroidProject?.let {
-    modelCache.nativeAndroidProjectFrom(it, androidProjectResult.ndkVersion)
-  }
+  // TODO android merge
+  // val ideNativeAndroidProject = nativeAndroidProject?.let {
+  //   modelCache.nativeAndroidProjectFrom(it, androidProjectResult.ndkVersion)
+  // }
+  val ideNativeAndroidProject = null // TODO android merge: NativeAndroidProject is not available
   val ideNativeModule = nativeModule?.let(modelCache::nativeModuleFrom)
 
   val androidModule = AndroidModule.V1(

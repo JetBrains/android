@@ -34,7 +34,8 @@ import com.android.tools.apk.analyzer.BinaryXmlParser
 import com.android.tools.res.CacheableResourceRepository
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.ListMultimap
-import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceValue
+// TODO android merge
+//import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceValue
 import com.google.devrel.gmscore.tools.apk.arsc.StringPoolChunk
 import com.google.devrel.gmscore.tools.apk.arsc.TypeChunk
 import java.util.EnumMap
@@ -191,6 +192,9 @@ internal fun extractNameAndNamespace(namespacedName: String): Pair<ResourceNames
     ResourceNamespace.RES_AUTO to namespacedName
   }
 }
+
+// TODO android merge
+typealias BinaryResourceValue = com.google.devrel.gmscore.tools.apk.arsc.ResourceValue
 
 private fun formatVal(binResVal: BinaryResourceValue, stringPool: StringPoolChunk, resLookUp: (Int) -> ResourceReference?): String {
   return BinaryXmlParser.formatValue(binResVal, stringPool) { resId ->

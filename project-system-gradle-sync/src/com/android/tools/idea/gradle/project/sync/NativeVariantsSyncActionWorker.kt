@@ -16,7 +16,8 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.builder.model.ModelBuilderParameter
-import com.android.builder.model.NativeVariantAbi
+// TODO android merge
+//import com.android.builder.model.NativeVariantAbi
 import com.android.builder.model.v2.models.ndk.NativeModelBuilderParameter
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
@@ -47,23 +48,24 @@ internal class NativeVariantsSyncActionWorker(
             return NativeVariantsAndroidModule.createV2(gradleProject)
           }
 
-          fun fetchV1Abi(abi: String): IdeNativeVariantAbi? {
-            val model = controller.findModel(
-              gradleProject,
-              NativeVariantAbi::class.java,
-              ModelBuilderParameter::class.java
-            ) { parameter ->
-              parameter.setVariantName(variantName)
-              parameter.setAbiName(abi)
-            } ?: return null
-            return modelCache.nativeVariantAbiFrom(model)
-          }
+          // TODO android merge
+          //fun fetchV1Abi(abi: String): IdeNativeVariantAbi? {
+          //  val model = controller.findModel(
+          //    gradleProject,
+          //    NativeVariantAbi::class.java,
+          //    ModelBuilderParameter::class.java
+          //  ) { parameter ->
+          //    parameter.setVariantName(variantName)
+          //    parameter.setAbiName(abi)
+          //  } ?: return null
+          //  return modelCache.nativeVariantAbiFrom(model)
+          //}
+          //
+          //fun tryV1(): NativeVariantsAndroidModule {
+          //  return NativeVariantsAndroidModule.createV1(gradleProject, syncOptions.requestedAbis.mapNotNull { abi -> fetchV1Abi(abi) })
+          //}
 
-          fun tryV1(): NativeVariantsAndroidModule {
-            return NativeVariantsAndroidModule.createV1(gradleProject, syncOptions.requestedAbis.mapNotNull { abi -> fetchV1Abi(abi) })
-          }
-
-          return tryV2() ?: tryV1()
+          return tryV2() // TODO android merge: V1 not available
         }, fetchesV1Models = true) // It should never run with Gradle V2 models.
       }.toList()
     ).filterNotNull()
