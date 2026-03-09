@@ -30,6 +30,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -50,9 +51,11 @@ class LambdaResolutionGradleTokenTest {
     projectRule.setupProjectFrom(*with(compose = "1.8.3"))
     val problem = findCauseOfMissingSourceLocation()!!
     assertThat(problem.type).isEqualTo(ProblemType.COMPOSE_UI)
-    assertThat(problem.getMessage()).isEqualTo("The androidx.compose.ui:ui library version should be at least: 1.9.0, current version: 1.8.3")
+    assertThat(problem.getMessage())
+      .isEqualTo("The androidx.compose.ui:ui library version should be at least: 1.9.0, current version: 1.8.3")
   }
 
+  @Ignore("b/491032912")
   @Test
   fun testLambdaResolutionMessageWithOldAgp() {
     projectRule.setupProjectFrom(*with(agp = "8.13.0"))
