@@ -90,7 +90,10 @@ internal class LayoutInspectorManagerImpl(private val project: Project) : Layout
       LayoutInspectorManagerGlobalState.tabsWithLayoutInspector.removeAll(tabsRemoved)
     }
 
-  /** The tab on which Layout Inspector is running */
+  /**
+   * The tab on which Layout Inspector is running. The tab might not be visible. Layout Inspector keeps running in this tab until the tab is
+   * destroyed, or a new [selectedTab] is set.
+   */
   private var selectedTab: SelectedTabState? = null
     set(value) {
       ApplicationManager.getApplication().assertIsDispatchThread()
@@ -141,11 +144,15 @@ internal class LayoutInspectorManagerImpl(private val project: Project) : Layout
   /** The list of tabs currently open in Running Devices, with or without Layout Inspector enabled. */
   private var existingRunningDevicesTabs: List<DeviceId> = emptyList()
 
+  private var visibleRunningDevicesTabs: List<DeviceId> = emptyList()
+
   init {
     RunningDevicesStateObserver.getInstance(project)
       .addListener(
         object : RunningDevicesStateObserver.Listener {
           override fun onVisibleTabsChanged(visibleTabs: List<DeviceId>) {
+            visibleRunningDevicesTabs = visibleTabs
+
             val visibleTabsWithLayoutInspector =
               visibleTabs.filter {
                 // Keep only tabs that have layout inspector enabled on them.
@@ -165,27 +172,19 @@ internal class LayoutInspectorManagerImpl(private val project: Project) : Layout
 
             val newSelectedTab = visibleTabsWithLayoutInspector.firstOrNull()
 
-            if (newSelectedTab == selectedTab?.deviceId) {
-              // The new selected tab is the same as the currently selected tab.
-              return
+            if (newSelectedTab != null && newSelectedTab != selectedTab?.deviceId) {
+              // There is a new selected tab and the new selected tab is different from the old selected tab
+              selectedTab = createTabState(newSelectedTab)
             }
-
-            selectedTab =
-              if (newSelectedTab != null) {
-                createTabState(newSelectedTab)
-              } else {
-                null
-              }
           }
 
           override fun onExistingTabsChanged(existingTabs: List<DeviceId>) {
             existingRunningDevicesTabs = existingTabs
-            // If the Running Devices Tool Window is collapsed, all tabs are removed.
-            // We don't want to update our state when this happens, because it means we would lose
-            // track of which tabs had Layout Inspector.
-            // So instead we keep the tab state forever.
-            // So if an emulator is disconnected with Layout Inspector turned on and later
-            // restarted, Layout Inspector will be on again.
+            if (selectedTab != null && !existingTabs.contains(selectedTab!!.deviceId)) {
+              // The selected tab doesn't exist anymore, we set selectedTab to null to disconnect layout inspector and release resources.
+              // We keep the tab in tabsWithLayoutInspector so that it can be restored when the tab returns.
+              selectedTab = null
+            }
           }
         }
       )
@@ -222,13 +221,12 @@ internal class LayoutInspectorManagerImpl(private val project: Project) : Layout
       }
 
       selectedTab?.let {
-        // We are enabling Layout Inspector on a new tab, but there is already a tab with Layout
-        // Inspector enabled.
-        // Layout Inspector does not support concurrent sessions, so we disable it in the previous
-        // tab, before enabling in the new tab.
-        // This can happen if Running Devices is running in split mode and multiple tabs are
-        // visible at the same time.
-        tabsWithLayoutInspector -= it.deviceId
+        if (visibleRunningDevicesTabs.contains(it.deviceId)) {
+          // We are enabling Layout Inspector on a new tab, but there is already a tab with Layout Inspector enabled.
+          // Layout Inspector does not support concurrent sessions, so we disable it in the previous tab, before enabling in the new tab.
+          // This can happen if Running Devices is running in split mode and multiple tabs are visible at the same time.
+          tabsWithLayoutInspector -= it.deviceId
+        }
       }
 
       if (tabsWithLayoutInspector.contains(deviceId)) {

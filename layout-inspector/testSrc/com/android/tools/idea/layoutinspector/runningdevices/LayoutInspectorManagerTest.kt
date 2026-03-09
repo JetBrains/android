@@ -197,7 +197,7 @@ class LayoutInspectorManagerTest {
 
   @Test
   @RunsInEdt
-  fun testHideToolWindowRemovesUi() = withEmbeddedLayoutInspector {
+  fun testHideToolWindowDoesNotRemoveUi() = withEmbeddedLayoutInspector {
     addContent(fakeToolWindow, tab1)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     setSelectedContent(fakeToolWindow, tab1)
@@ -217,13 +217,12 @@ class LayoutInspectorManagerTest {
     fakeToolWindow.hide()
     waitForCondition(2, TimeUnit.SECONDS) { !fakeToolWindow.isVisible }
 
-    // Make sure that the UI is removed when the tool window is hidden.
-    verifyUiRemoved(tab1)
+    // Make sure that the UI is not removed when the tool window is hidden.
+    verifyUiInjected<EmbeddedRendererPanel>(tab1)
 
     fakeToolWindow.show()
     waitForCondition(2, TimeUnit.SECONDS) { fakeToolWindow.isVisible }
 
-    // The UI should be re-inject from scratch when the tool window is visible again.
     verifyUiInjected<EmbeddedRendererPanel>(tab1)
 
     // Make sure the selection is intact
@@ -298,6 +297,8 @@ class LayoutInspectorManagerTest {
   fun testWorkbenchIsInjectedWhenSelectedTabChanges() = withEmbeddedLayoutInspector {
     enableLayoutInspector(tab1, true)
 
+    verifyUiInjected<EmbeddedRendererPanel>(tab1)
+
     enableLayoutInspector(tab2, true)
 
     verifyUiRemoved(tab1)
@@ -325,8 +326,10 @@ class LayoutInspectorManagerTest {
 
     setSelectedContent(fakeToolWindow, tab2)
 
-    assertThat(layoutInspector.inspectorModel.selectionListeners.size()).isEqualTo(0)
-    assertThat(layoutInspector.processModel?.selectedProcessListeners).hasSize(1)
+    // Since tab1 is still in the existing tabs list, layout inspector and its listeners should still be active for it
+    verifyUiInjected<EmbeddedRendererPanel>(tab1)
+    assertThat(layoutInspector.inspectorModel.selectionListeners.size()).isEqualTo(6)
+    assertThat(layoutInspector.processModel?.selectedProcessListeners).hasSize(3)
 
     enableLayoutInspector(tab2, true)
 
@@ -335,6 +338,7 @@ class LayoutInspectorManagerTest {
       waitForCondition(2.seconds) { display.component.allChildren().filterIsInstance<LayoutInspectorRenderer>().isNotEmpty() }
     }
 
+    // Now layout inspector is running on tab2, completely replacing tab1
     assertThat(layoutInspector.inspectorModel.selectionListeners.size()).isEqualTo(6)
     assertThat(layoutInspector.processModel?.selectedProcessListeners).hasSize(3)
 
@@ -507,8 +511,10 @@ class LayoutInspectorManagerTest {
 
     setSelectedContent(fakeToolWindow, tab2)
 
+    // Because we keep Layout Inspector connected in the background, selecting a different tab
+    // does not immediately stop the foreground process detection for the previous tab
     assertThat(fakeForegroundProcessDetection.startInvokeCounter).isEqualTo(1)
-    assertThat(fakeForegroundProcessDetection.stopInvokeCounter).isEqualTo(1)
+    assertThat(fakeForegroundProcessDetection.stopInvokeCounter).isEqualTo(0)
 
     enableLayoutInspector(tab2, true)
 
