@@ -74,13 +74,13 @@ import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.annotations.NotNull
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.idea.structuralsearch.visitor.KotlinRecursiveElementWalkingVisitor
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtReferenceExpression
+import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.KtTypeParameter
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
 import java.util.Locale
@@ -352,7 +352,7 @@ class AndroidModularizeHandler : RefactoringActionHandler {
     }
 
     private inner class KotlinReferenceVisitor(private val myFacet: AndroidFacet,
-                                               private val mySource: PsiElement) : KotlinRecursiveElementWalkingVisitor() {
+                                               private val mySource: PsiElement) : KtTreeVisitorVoid() {
       private val myResourceRepository: ResourceRepository = StudioResourceRepositoryManager.getModuleResources(myFacet)
 
       override fun visitReferenceExpression(expression: KtReferenceExpression) {
