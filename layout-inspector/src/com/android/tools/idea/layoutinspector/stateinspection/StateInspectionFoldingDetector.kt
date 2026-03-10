@@ -208,7 +208,7 @@ internal class StateInspectionFoldingDetector(private val editor: Editor, privat
 
     // Stop now and abandon the fold if we didn't find `SnapshotKt.readable`:
     if (!nextLine.startsWith(SNAPSHOT_READABLE)) {
-      return start
+      return next
     }
 
     // Skip any snapshot or kotlin runtime frames:

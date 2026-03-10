@@ -43,4 +43,17 @@ class StateInspectionFoldingDetectorTest {
       fold(startLine = 95, endLine = 122, "<28 more...>")
     }
   }
+
+  @Test
+  fun testFoldingOfUnrecognizedException() = runTest {
+    val file = "${TEST_DATA_PATH}/state_reads_unrecognized_exception.txt"
+    val text = TestUtils.resolveWorkspacePathUnchecked(file).readText()
+    val editor = runInEdtAndGet { projectRule.createEditorWithContent(text) }
+    val detector = StateInspectionFoldingDetector(editor, this)
+    detector.detectFolding()?.join()
+    validateFoldingModel(editor.foldingModel) {
+      fold(39, 47, "<9 more...>")
+      fold(52, 79, "<28 more...>")
+    }
+  }
 }
