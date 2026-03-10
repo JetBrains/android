@@ -18,18 +18,16 @@ package com.android.tools.compose.intentions
 import androidx.compose.compiler.plugins.kotlin.ComposeClassIds
 import com.android.tools.compose.ComposeBundle
 import com.android.tools.compose.expectedComposableAnnotationHolder
-import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.analysis.api.KaIdeApi
-import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KaFirDiagnostic
+import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KtCompilerPluginDiagnostic0
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.idea.base.analysis.api.utils.shortenReferences
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixFactory
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.quickfixes.KotlinQuickFixAction
-import org.jetbrains.kotlin.idea.quickfix.KotlinSingleIntentionActionFactory
 import org.jetbrains.kotlin.idea.util.addAnnotation
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
@@ -78,31 +76,34 @@ private constructor(element: KtModifierListOwner, private val displayText: Strin
       (element?.parent as? KtElement)?.let { parent -> shortenReferences(parent) }
   }
 
-  /**
-   * Creates a fix for the COMPOSABLE_INVOCATION error, which appears on a Composable function call
-   * from within a non-Composable scope.
-   */
-  object ComposableInvocationFactory : KotlinSingleIntentionActionFactory() {
-    override fun createAction(diagnostic: Diagnostic): IntentionAction? =
-      createAction(diagnostic.psiElement)
+  companion object {
+    val k2DiagnosticFixFactory =
+      KotlinQuickFixFactory.IntentionBased<KtCompilerPluginDiagnostic0> { diagnostic ->
+        val psiElement = diagnostic.psi
+        listOfNotNull(
+          when (diagnostic.factoryName) {
+            "COMPOSABLE_INVOCATION" -> createComposableInvocationAction(psiElement)
+            "COMPOSABLE_EXPECTED" -> createComposableExpectedAction(psiElement)
+            else -> null
+          }
+        )
+      }
 
-    fun createAction(psiElement: PsiElement): AddComposableAnnotationQuickFix? {
+    /**
+     * Creates a fix for the COMPOSABLE_INVOCATION error, which appears on a Composable function call from within a non-Composable scope.
+     */
+    private fun createComposableInvocationAction(psiElement: PsiElement): AddComposableAnnotationQuickFix? {
       val node = (psiElement as? KtElement)?.expectedComposableAnnotationHolder()
       return node?.takeIf(PsiElement::isWritable)?.toDisplayText()?.let {
         AddComposableAnnotationQuickFix(node, it)
       }
     }
-  }
 
   /**
    * Creates a fix for the COMPOSABLE_EXPECTED error, which appears on a non-Composable scope that
    * contains a Composable function call.
-   */
-  object ComposableExpectedFactory : KotlinSingleIntentionActionFactory() {
-    override fun createAction(diagnostic: Diagnostic): IntentionAction? =
-      createAction(diagnostic.psiElement.parent)
-
-    fun createAction(psiElement: PsiElement): AddComposableAnnotationQuickFix? {
+     */
+    private fun createComposableExpectedAction(psiElement: PsiElement): AddComposableAnnotationQuickFix? {
       val node: KtModifierListOwner? =
         when (psiElement) {
           // If there is only one accessor, and it is a getter, then we can figure out what to
@@ -119,19 +120,6 @@ private constructor(element: KtModifierListOwner, private val displayText: Strin
           }
         }
       return node?.toDisplayText()?.let { AddComposableAnnotationQuickFix(node, it) }
-    }
-  }
-
-  companion object {
-    val k2DiagnosticFixFactory = KotlinQuickFixFactory.IntentionBased { diagnostic: KaFirDiagnostic.UnresolvedReference ->
-      val psiElement = diagnostic.psi
-      listOfNotNull(
-        when (diagnostic.factoryName) {
-          "COMPOSABLE_INVOCATION" -> ComposableInvocationFactory.createAction(psiElement)
-          "COMPOSABLE_EXPECTED" -> ComposableExpectedFactory.createAction(psiElement)
-          else -> null
-        }
-      )
     }
 
     private fun KtModifierListOwner.toDisplayText(): String? =
