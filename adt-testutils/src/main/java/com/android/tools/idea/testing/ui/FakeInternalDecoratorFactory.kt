@@ -13,49 +13,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.testing.ui;
+package com.android.tools.idea.testing.ui
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
+import com.android.tools.idea.testing.ui.ToolWindowHeadlessManagerImpl.InternalDecoratorFactory
+import com.intellij.toolWindow.InternalDecoratorImpl
+import com.intellij.ui.content.ContentManager
+import java.awt.Container
+import javax.swing.JPanel
+import org.mockito.ArgumentMatchers.anyInt
+import org.mockito.Mockito.CALLS_REAL_METHODS
+import org.mockito.invocation.InvocationOnMock
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
-import com.intellij.toolWindow.InternalDecoratorImpl;
-import com.intellij.ui.content.Content;
-import com.intellij.ui.content.ContentManager;
-import java.awt.Container;
-import java.util.ArrayList;
-import javax.swing.JPanel;
-import org.mockito.Answers;
+class FakeInternalDecoratorFactory : InternalDecoratorFactory {
+  private val treeLock: Any = JPanel().treeLock
 
-public class FakeInternalDecoratorFactory implements ToolWindowHeadlessManagerImpl.InternalDecoratorFactory {
-  private final Object treeLock = new JPanel().getTreeLock();
-
-  @SuppressWarnings("UnstableApiUsage")
-  public InternalDecoratorImpl createInternalDecorator(ContentManager contentManager) {
-    InternalDecoratorImpl mockDecorator = mock(InternalDecoratorImpl.class, Answers.CALLS_REAL_METHODS);
+  @Suppress("UnstableApiUsage")
+  override fun createInternalDecorator(contentManager: ContentManager): InternalDecoratorImpl {
+    val mockDecorator = mock<InternalDecoratorImpl>(defaultAnswer = CALLS_REAL_METHODS)
     try {
-      var field = Container.class.getDeclaredField("component");
-      field.setAccessible(true);
-      field.set(mockDecorator, new ArrayList<>());
-    } catch (Exception e) {
-      throw new RuntimeException(e);
+      val field = Container::class.java.getDeclaredField("component")
+      field.isAccessible = true
+      field.set(mockDecorator, ArrayList<Any>())
+    } catch (e: Exception) {
+      throw RuntimeException(e)
     }
-    doAnswer(invocation -> treeLock).when(mockDecorator).getTreeLock();
+    doAnswer { _: InvocationOnMock -> "" }.whenever(mockDecorator).toString() // To avoid NPE while debugging.
+    doAnswer { _: InvocationOnMock -> treeLock }.whenever(mockDecorator).treeLock
 
-    doAnswer(invocation -> {
-      ToolWindowHeadlessManagerImpl.split(invocation.getArgument(0), invocation.getArgument(1), invocation.getArgument(2));
-      return null;
-    }).when(mockDecorator).splitWithContent(any(Content.class), anyInt(), anyInt());
+    doAnswer { invocation: InvocationOnMock ->
+      ToolWindowHeadlessManagerImpl.unsplit(contentManager, invocation.getArgument(0))
+    }.whenever(mockDecorator).unsplit(any())
 
-    doAnswer(invocation -> {
-      Object argument = invocation.getArgument(0);
-      ToolWindowHeadlessManagerImpl.unsplit(contentManager, invocation.getArgument(0));
-      return null;
-    }).when(mockDecorator).unsplit(any(Content.class));
+    doAnswer { invocation: InvocationOnMock ->
+      ToolWindowHeadlessManagerImpl.split(invocation.getArgument(0), invocation.getArgument(1), invocation.getArgument(2))
+    }.whenever(mockDecorator).splitWithContent(any(), anyInt(), anyInt())
 
-    doAnswer(invocation -> false).when(mockDecorator).isSplitUnsplitInProgress();
-    doAnswer(invocation -> "").when(mockDecorator).toString(); // To avoid NPE while debugging.
-    return mockDecorator;
+    doAnswer { _: InvocationOnMock -> false }.whenever(mockDecorator).isSplitUnsplitInProgress
+    return mockDecorator
   }
 }
