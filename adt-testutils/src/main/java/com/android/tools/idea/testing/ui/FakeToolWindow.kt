@@ -42,10 +42,8 @@ fun createFakeToolWindow(
   toolWindowId: String,
   icon: Icon = EmptyIcon.ICON_16,
   windowFactory: ToolWindowFactory = SimpleToolWindowFactory(),
-  createInternalDecorators: Boolean = true,
 ): FakeToolWindow {
-  val internalDecoratorFactory = if (createInternalDecorators) FakeInternalDecoratorFactory() else null
-  val windowManager = FakeToolWindowManager(windowFactory, toolWindowId, icon, project, internalDecoratorFactory)
+  val windowManager = FakeToolWindowManager(windowFactory, toolWindowId, icon, project)
   project.replaceService(ToolWindowManager::class.java, windowManager, parentDisposable)
   Disposer.register(parentDisposable) { toolWindowBalloons.clear() }
   val toolWindow = windowManager.toolWindow
@@ -61,7 +59,7 @@ internal constructor(
   private val manager: ToolWindowManager,
   project: Project,
   private val toolWindowId: String,
-  internalDecoratorFactory: ToolWindowHeadlessManagerImpl.InternalDecoratorFactory?,
+  internalDecoratorFactory: ToolWindowHeadlessManagerImpl.InternalDecoratorFactory,
 ) : ToolWindowHeadlessManagerImpl.MockToolWindow(project, internalDecoratorFactory) {
 
   var tabActions: List<AnAction> = emptyList()
@@ -158,13 +156,8 @@ internal constructor(
   }
 }
 
-private class FakeToolWindowManager(
-  windowFactory: ToolWindowFactory,
-  toolWindowId: String,
-  icon: Icon,
-  project: Project,
-  internalDecoratorFactory: InternalDecoratorFactory?,
-) : ToolWindowHeadlessManagerImpl(project, internalDecoratorFactory) {
+private class FakeToolWindowManager(windowFactory: ToolWindowFactory, toolWindowId: String, icon: Icon, project: Project) :
+  ToolWindowHeadlessManagerImpl(project, FakeInternalDecoratorFactory()) {
 
   val toolWindow = FakeToolWindow(windowFactory, icon, this, project, toolWindowId, internalDecoratorFactory)
 

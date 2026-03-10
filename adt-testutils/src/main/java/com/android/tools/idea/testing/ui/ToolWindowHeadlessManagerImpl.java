@@ -63,6 +63,7 @@ import org.jetbrains.annotations.Nullable;
 public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
   private final Map<String, ToolWindow> myToolWindows = new HashMap<>();
   private final Project myProject;
+
   private final InternalDecoratorFactory myInternalDecoratorFactory;
 
   public ToolWindowHeadlessManagerImpl(Project project, @Nullable InternalDecoratorFactory internalDecoratorFactory) {
@@ -209,6 +210,10 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
 
   public static void unsplit(@NotNull ContentManager contentManager, @Nullable Content toSelect) {
     ((MockContentManager) contentManager).unsplit(toSelect);
+  }
+
+  public InternalDecoratorFactory getInternalDecoratorFactory() {
+    return myInternalDecoratorFactory;
   }
 
   public static class MockToolWindow implements ToolWindowEx {
