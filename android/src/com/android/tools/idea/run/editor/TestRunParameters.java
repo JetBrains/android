@@ -59,6 +59,7 @@ import com.intellij.ui.EditorTextFieldWithBrowseButton;
 import com.intellij.ui.TextAccessor;
 import com.intellij.ui.UserActivityProviderComponent;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
@@ -446,6 +447,8 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
   private static class SimpleEditorTextFieldWithBrowseButton extends ComponentWithBrowseButton<EditorTextField> implements TextAccessor {
     SimpleEditorTextFieldWithBrowseButton() {
       super(new EditorTextField(), null);
+      getChildComponent().setOneLineMode(true);
+      getChildComponent().setPreferredWidth(JBUIScale.scale(100));
     }
 
     @Override
