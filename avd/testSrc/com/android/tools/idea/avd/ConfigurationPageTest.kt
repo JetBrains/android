@@ -379,6 +379,7 @@ private suspend fun AddDeviceWizard.profilesWhenReady(): List<VirtualDeviceProfi
 internal fun SdkFixture.createAddDeviceWizard(
   accelerationCheck: () -> AccelerationErrorCode = { AccelerationErrorCode.ALREADY_INSTALLED },
   systemImageStateFlow: StateFlow<SystemImageState> = MutableStateFlow(systemImageState()),
+  virtualDeviceFilter: (VirtualDeviceProfile) -> Boolean = { true },
 ) =
   AddDeviceWizard(
     project = null,
@@ -387,4 +388,5 @@ internal fun SdkFixture.createAddDeviceWizard(
     avdManager = avdManager,
     accelerationCheck = accelerationCheck,
     systemImageFlow = systemImageStateFlow,
+    virtualDeviceFilter = virtualDeviceFilter,
   )

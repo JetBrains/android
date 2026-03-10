@@ -31,6 +31,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +42,9 @@ import com.android.adblib.serialNumber
 import com.android.adblib.tools.aiglasses.AiGlassesPairing
 import com.android.adblib.tools.aiglasses.ShellCommandException
 import com.android.annotations.concurrency.UiThread
+import com.android.sdklib.ISystemImage
+import com.android.sdklib.SystemImageTags
+import com.android.sdklib.deviceprovisioner.AbstractAvdScanner
 import com.android.sdklib.deviceprovisioner.DeviceActionException
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceId
@@ -49,12 +53,19 @@ import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
 import com.android.sdklib.deviceprovisioner.awaitReady
 import com.android.sdklib.deviceprovisioner.mapChangedState
 import com.android.sdklib.deviceprovisioner.pairWithNestedState
+import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.adtui.compose.ComposeWizard
 import com.android.tools.adtui.compose.WizardAction
+import com.android.tools.adtui.compose.WizardButton
 import com.android.tools.adtui.compose.WizardPageScope
+import com.android.tools.idea.adddevicedialog.FormFactors
+import com.android.tools.idea.avd.VirtualDeviceProfile
+import com.android.tools.idea.avd.showAddDeviceDialog
+import com.android.tools.idea.avdmanager.AvdScannerService
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.google.wireless.android.sdk.stats.GlassesPairingEvent
+import com.intellij.openapi.application.UI
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
@@ -62,12 +73,17 @@ import com.intellij.util.ui.JBUI
 import icons.StudioIconsCompose
 import java.awt.Component
 import java.awt.Dimension
+import java.awt.Window
 import java.io.IOException
+import java.text.Collator
+import javax.swing.SwingUtilities
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.cancel
@@ -85,11 +101,14 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyListState
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
@@ -112,6 +131,15 @@ private class ComposeWizardController(val wizard: ComposeWizard) : WizardControl
   }
 }
 
+fun interface AddDeviceDialog {
+  suspend fun show(
+    project: Project?,
+    parent: Component?,
+    virtualDeviceFilter: (VirtualDeviceProfile) -> Boolean,
+    systemImageFilter: (ISystemImage) -> Boolean,
+  ): AvdInfo?
+}
+
 @Stable
 class GlassesPairingWizard
 internal constructor(
@@ -121,6 +149,8 @@ internal constructor(
   private val glassesHandle: DeviceHandle,
   private val pair: (glasses: DeviceHandle, phone: DeviceHandle, project: Project?) -> Flow<PairingState> = ::pairGlassesToPhone,
   private val isCompatible: (DeviceHandle) -> Boolean = ::isAiGlassesCompatible,
+  private val addDeviceDialog: AddDeviceDialog = AddDeviceDialog(::showAddDeviceDialog),
+  private val avdScanner: () -> AbstractAvdScanner = { AvdScannerService.instance },
 ) {
   companion object {
     private val activeWizards = mutableMapOf<DeviceId, WizardController>()
@@ -233,10 +263,11 @@ internal constructor(
   @Composable
   internal fun WizardPageScope.SelectDevicePage() {
     val devices: ImmutableList<DeviceRow> by deviceRowFlow.collectAsState()
+    val sortedDevices = remember(devices) { devices.sortedWith(compareBy(Collator.getInstance()) { it.name }).toImmutableList() }
 
     val state = getOrCreateState { SelectableLazyListState(LazyListState()) }
     Column(Modifier.padding(20.dp)) {
-      if (devices.isEmpty()) {
+      if (sortedDevices.isEmpty()) {
         PairingStateHorizontalProgress(
           header = "No compatible AVDs found.",
           detail =
@@ -246,7 +277,7 @@ internal constructor(
       } else {
         LargeText("Select a device to pair", Modifier.padding(bottom = 8.dp))
         DeviceList(
-          devices,
+          sortedDevices,
           onSelectedDeviceChange = {
             phone = it
             GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_DEVICE_SELECTED)
@@ -255,6 +286,46 @@ internal constructor(
         )
       }
     }
+    leftSideButtons =
+      remember(sortedDevices) {
+        listOf(
+          WizardButton(
+            "Create new device...",
+            WizardAction {
+              coroutineScope.launch {
+                val createdAvd =
+                  addDeviceDialog.show(
+                    project = project,
+                    parent = component,
+                    virtualDeviceFilter = { it.formFactor == FormFactors.PHONE },
+                    systemImageFilter = { it.tags.contains(SystemImageTags.AI_GLASSES_COMPATIBLE_TAG) },
+                  )
+                // Force focus back to this panel after the dialog closes; because this dialog is non-modal, it doesn't happen on its own
+                withContext(Dispatchers.UI) { ((component as? Window) ?: SwingUtilities.getWindowAncestor(component))?.toFront() }
+                if (createdAvd != null) {
+                  avdScanner().rescan()
+                  coroutineScope.launch {
+                    val createdRow =
+                      withTimeoutOrNull(5.seconds) {
+                        deviceRowFlow.mapNotNull { rows -> rows.find { it.state.properties.title == createdAvd.displayName } }.first()
+                      }
+
+                    if (createdRow != null) {
+                      phone = createdRow
+                      val currentSorted = deviceRowFlow.value.sortedWith(compareBy(Collator.getInstance()) { it.name })
+                      val index = currentSorted.indexOfFirst { it.handle.id == createdRow.handle.id }
+                      if (index >= 0) {
+                        state.selectedKeys = setOf(createdRow.handle.id)
+                        state.scrollToItem(index)
+                      }
+                    }
+                  }
+                }
+              }
+            },
+          )
+        )
+      }
     nextAction =
       when (val phone = phone) {
         null -> WizardAction.Disabled

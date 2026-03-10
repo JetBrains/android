@@ -33,6 +33,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.internal.avd.AvdInfo
@@ -93,6 +94,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.jewel.foundation.LocalComponent
@@ -106,19 +108,31 @@ import org.jetbrains.jewel.ui.component.Icon
  *
  * @return the AvdInfo of the created AVD, or null if the dialog was cancelled.
  */
-suspend fun showAddDeviceDialog(project: Project?, parent: Component?): AvdInfo? {
+suspend fun showAddDeviceDialog(
+  project: Project?,
+  parent: Component?,
+  virtualDeviceFilter: (VirtualDeviceProfile) -> Boolean = { true },
+  systemImageFilter: (ISystemImage) -> Boolean = { true },
+): AvdInfo? {
   val sdkHandler = getOrSetupValidSdk(project, "An Android SDK is required to create an AVD.") ?: return null
+  val skins =
+    withContext(Dispatchers.Default) {
+      SkinComboBoxModel.merge(listOf(NoSkin.INSTANCE), SkinCollector.updateAndCollect()).toImmutableList()
+    }
   return withContext(Dispatchers.EDT) {
     var avdInfo: AvdInfo? = null
-    val skins = SkinComboBoxModel.merge(listOf(NoSkin.INSTANCE), SkinCollector.updateAndCollect()).toImmutableList()
     val wizard =
       AddDeviceWizard(
         project,
         skins,
         sdkHandler = sdkHandler,
         avdManager = IdeAvdManagers.getAvdManager(sdkHandler),
-        systemImageFlow = ISystemImages.systemImageFlow(sdkHandler),
+        systemImageFlow =
+          ISystemImages.systemImageFlow(sdkHandler).map { imageState ->
+            imageState.copy(images = imageState.images.filter(systemImageFilter).toImmutableList())
+          },
         accelerationCheck = { checkAcceleration(sdkHandler) },
+        virtualDeviceFilter = virtualDeviceFilter,
         onAdd = { avdInfo = it },
       )
     val created = wizard.createDialog(parent = parent).showAndGet()
@@ -140,6 +154,7 @@ internal class AddDeviceWizard(
   val avdManager: AvdManager,
   val systemImageFlow: Flow<SystemImageState>,
   val accelerationCheck: () -> AccelerationErrorCode,
+  val virtualDeviceFilter: (VirtualDeviceProfile) -> Boolean = { true },
   val onAdd: (AvdInfo) -> Unit = {},
 ) {
   val profiles: Flow<LoadingState<List<VirtualDeviceProfile>>> =
@@ -184,8 +199,8 @@ internal class AddDeviceWizard(
     val filterState = getOrCreateState { VirtualDeviceFilterState() }
     val selectionState = getOrCreateState { TableSelectionState<VirtualDeviceProfile>() }
 
-    val profilesFlow = remember { profiles }
-    DeviceLoadingPage(profilesFlow) { profiles ->
+    DeviceLoadingPage(profiles) { profiles ->
+      val profiles = remember(profiles) { profiles.filter(virtualDeviceFilter) }
       // Holds a Device that should be selected as a result of a DeviceUiAction; e.g. when a new
       // Device is created, we select it automatically.
       var dialogSelectedDevice by remember { mutableStateOf<Device?>(null) }

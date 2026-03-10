@@ -41,7 +41,6 @@ import com.android.sdklib.devices.Abi
 import com.android.sdklib.getReleaseNameAndDetails
 import com.intellij.util.ui.UIUtil
 import icons.StudioIconsCompose
-import java.text.Collator
 import kotlinx.collections.immutable.ImmutableList
 import org.jetbrains.jewel.bridge.toComposeColor
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyColumn
@@ -76,14 +75,13 @@ private fun DeviceType?.toIcon() =
 
 @Composable
 internal fun DeviceList(devices: ImmutableList<DeviceRow>, onSelectedDeviceChange: (DeviceRow) -> Unit, state: SelectableLazyListState) {
-  val devices = devices.sortedWith(compareBy(Collator.getInstance(), { it.name }))
   Box(Modifier.fillMaxSize()) {
     SelectableLazyColumn(
       selectionMode = SelectionMode.Single,
       state = state,
       onSelectedIndexesChange = { indices -> indices.singleOrNull()?.let { onSelectedDeviceChange(devices[it]) } },
     ) {
-      items(devices, key = { it }) { DeviceRow(row = it, isSelected = isSelected, isFocused = isActive) }
+      items(devices, key = { it.handle.id }) { DeviceRow(row = it, isSelected = isSelected, isFocused = isActive) }
     }
 
     VerticalScrollbar(

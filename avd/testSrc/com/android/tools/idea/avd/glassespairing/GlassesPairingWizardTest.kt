@@ -21,14 +21,19 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.android.adblib.ConnectedDevice
+import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.deviceprovisioner.AbstractAvdScanner
 import com.android.sdklib.deviceprovisioner.ActivationAction
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.EmptyIcon
+import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
 import com.android.sdklib.deviceprovisioner.testing.FakeDeviceProvisionerPlugin
+import com.android.sdklib.internal.avd.AvdInfo
+import com.android.sdklib.internal.avd.ConfigKey
 import com.android.tools.adtui.compose.TestComposeWizard
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.analytics.UsageTracker
@@ -36,14 +41,13 @@ import com.android.tools.analytics.UsageTrackerWriter
 import com.android.tools.idea.avd.glassespairing.LaunchState.Booting
 import com.android.tools.idea.avd.glassespairing.LaunchState.Launching
 import com.android.tools.idea.avd.glassespairing.LaunchState.Ready
+import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.google.common.truth.Truth.assertThat
 import com.google.protobuf.Message.Builder
 import com.google.wireless.android.play.playlog.proto.ClientAnalytics
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GlassesPairingEvent
 import com.intellij.openapi.project.Project
-import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.RunsInEdt
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -52,6 +56,7 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -66,9 +71,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
 
-@RunsInEdt
 class GlassesPairingWizardTest {
-  @get:Rule val edtRule = EdtRule()
+  @get:Rule val temporaryDirectoryRule = TemporaryDirectoryRule()
   @get:Rule val composeTestRule = createStudioComposeTestRule()
 
   @Test
@@ -477,6 +481,102 @@ class GlassesPairingWizardTest {
     controller2.close(false)
     job1.join()
     job2.join()
+  }
+
+  @Test
+  fun testCreateDeviceButton() = runTest {
+    val wizardScope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher(testScheduler))
+    val tracker = TestTracker()
+    UsageTracker.setWriterForTest(tracker)
+
+    val avdRoot = temporaryDirectoryRule.newPath()
+    try {
+      val phoneAvd =
+        AvdInfo(
+          iniFile = avdRoot.resolve("Pixel_9.ini"),
+          dataFolderPath = avdRoot.resolve("Pixel_9.avd"),
+          systemImage = null,
+          properties =
+            mapOf(ConfigKey.DISPLAY_NAME to "Pixel 9", ConfigKey.TARGET to AndroidTargetHash.getPlatformHashString(AndroidVersion(36))),
+        )
+
+      val phoneProps =
+        LocalEmulatorProperties.build(phoneAvd) {
+          icon = EmptyIcon.DEFAULT
+          isAiGlassesCompatible = true
+        }
+
+      val phone = FakeDeviceProvisionerPlugin.FakeDeviceHandle("p1", this, DeviceState.Disconnected(phoneProps))
+      val glasses =
+        FakeDeviceProvisionerPlugin.FakeDeviceHandle(
+          "g1",
+          wizardScope,
+          DeviceState.Disconnected(
+            DeviceProperties.buildForTest {
+              icon = EmptyIcon.DEFAULT
+              manufacturer = "Google"
+              model = "AI Glasses"
+              deviceType = DeviceType.AI_GLASSES
+              androidVersion = AndroidVersion(36, 1)
+            }
+          ),
+        )
+      val devicesFlow = MutableStateFlow(listOf(phone, glasses))
+
+      val newAvd =
+        AvdInfo(
+          iniFile = avdRoot.resolve("New_Phone.ini"),
+          dataFolderPath = avdRoot.resolve("New_Phone.avd"),
+          systemImage = null,
+          properties =
+            mapOf(ConfigKey.DISPLAY_NAME to "New Phone", ConfigKey.TARGET to AndroidTargetHash.getPlatformHashString(AndroidVersion(36))),
+        )
+
+      val newPhoneProps =
+        LocalEmulatorProperties.build(newAvd) {
+          icon = EmptyIcon.DEFAULT
+          isAiGlassesCompatible = true
+        }
+
+      val newPhone = FakeDeviceProvisionerPlugin.FakeDeviceHandle("p2", this, DeviceState.Disconnected(newPhoneProps))
+
+      val addDeviceDialog = AddDeviceDialog { _, _, _, _ ->
+        // Update devicesFlow when dialog "finishes"
+        devicesFlow.value = listOf(phone, glasses, newPhone)
+        newAvd
+      }
+
+      val glassesWizard =
+        GlassesPairingWizard(
+          null,
+          wizardScope,
+          devicesFlow,
+          glasses,
+          addDeviceDialog = addDeviceDialog,
+          avdScanner = { mock<AbstractAvdScanner>() },
+        )
+      val wizard = TestComposeWizard { with(glassesWizard) { SelectDevicePage() } }
+
+      composeTestRule.setContent { wizard.Content() }
+
+      composeTestRule.onNodeWithText("Create new device...").performClick()
+
+      // The onClick handler is running in 'coroutineScope' (which is 'this').
+      // Since it's StandardTestDispatcher, it needs help to progress.
+      composeTestRule.waitUntil(10000) {
+        testScheduler.runCurrent()
+        try {
+          composeTestRule.onNodeWithText("New Phone").assertIsDisplayed()
+          composeTestRule.onNodeWithText("Next").assertIsEnabled()
+          true
+        } catch (e: AssertionError) {
+          false
+        }
+      }
+    } finally {
+      wizardScope.cancel()
+      UsageTracker.cleanAfterTesting()
+    }
   }
 }
 

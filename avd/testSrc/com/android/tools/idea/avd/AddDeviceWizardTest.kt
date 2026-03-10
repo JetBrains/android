@@ -54,6 +54,7 @@ import java.io.File
 import java.nio.file.Files
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.listDirectoryEntries
+import kotlinx.coroutines.flow.map
 import org.junit.Rule
 import org.junit.Test
 
@@ -348,6 +349,17 @@ class AddDeviceWizardTest {
       assertThat(wizard.nextAction.enabled).isFalse()
 
       composeTestRule.onNodeWithText("No system images available matching the current set of filters.").assertIsDisplayed()
+    }
+  }
+
+  @Test
+  fun virtualDeviceFilter() {
+    with(SdkFixture()) {
+      val wizard = TestComposeWizard { with(createAddDeviceWizard(virtualDeviceFilter = { it.name == "Pixel 8" })) { DeviceGridPage() } }
+      composeTestRule.setContentWithSdkLocals { wizard.Content() }
+
+      composeTestRule.onNodeWithText("Pixel 8").assertIsDisplayed()
+      composeTestRule.onNodeWithText("Pixel 7").assertDoesNotExist()
     }
   }
 }
