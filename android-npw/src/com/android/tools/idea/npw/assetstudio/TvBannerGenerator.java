@@ -24,6 +24,7 @@ import com.android.ide.common.util.AssetUtil;
 import com.android.ide.common.util.PathString;
 import com.android.resources.Density;
 import com.android.tools.idea.concurrency.FutureUtils;
+import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
 import com.android.tools.idea.observable.core.BoolProperty;
@@ -136,8 +137,8 @@ public class TvBannerGenerator extends IconGenerator {
   public TvBannerOptions createOptions(boolean forPreview) {
     TvBannerOptions options = new TvBannerOptions(forPreview);
     // Set foreground image.
-    ImageAsset foregroundAsset = (ImageAsset)sourceAsset().getValueOrNull();
-    if (foregroundAsset != null && foregroundAsset.imagePath().getValueOrNull() != null) {
+    BaseAsset foregroundAsset = sourceAsset().getValueOrNull();
+    if (foregroundAsset != null) {
       double scaleFactor = foregroundAsset.scalingPercent().get() / 100.;
       options.foregroundImage =
         new TransformedImageAsset(foregroundAsset, SIZE_ADAPTIVE_DP, scaleFactor,

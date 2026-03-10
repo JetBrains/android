@@ -25,6 +25,7 @@ import com.android.io.Images;
 import com.android.tools.idea.npw.NewProjectWizardTestUtils;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
+import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.android.tools.idea.rendering.DrawableRenderer;
 import com.google.common.base.Joiner;
@@ -251,5 +252,37 @@ public class TvBannerGeneratorTest extends AndroidTestCase {
     myIconGenerator.backgroundColor().set(new Color(0x88AAFF));
     // Don't compare context of ic_launcher_foreground.xml because it is slightly platform dependent.
     checkGeneratedIcons(expectedFilenames, "resources/drawable/ic_banner_foreground.xml");
+  }
+
+  public void testSourceAssetAsText() throws Exception {
+    String[] expectedFilenames = {
+        "resources/mipmap-anydpi-v26/ic_banner.xml",
+        "resources/values/ic_banner_background.xml",
+        "resources/drawable/ic_banner_foreground.xml",
+        "resources/mipmap-xhdpi/ic_banner.png" };
+    TextAsset textAsset = new TextAsset();
+    textAsset.text().set("T");
+    textAsset.fontFamily().set("Droid Sans");
+    textAsset.color().setValue(new Color(0x00FF00));
+
+    myIconGenerator.sourceAsset().setValue(textAsset);
+    myIconGenerator.backgroundColor().set(Color.BLACK);
+    // Don't compare context of ic_banner_foreground.xml because it is slightly platform dependent.
+    checkGeneratedIcons(expectedFilenames, "resources/drawable/ic_banner_foreground.xml");
+  }
+
+  public void testVectorAsset() throws Exception {
+    String[] expectedFilenames = {
+        "resources/mipmap-anydpi-v26/ic_banner.xml",
+        "resources/values/ic_banner_background.xml",
+        "resources/mipmap-xhdpi/ic_banner_foreground.png",
+        "resources/mipmap-xhdpi/ic_banner.png" };
+    VectorAsset vectorAsset = new VectorAsset();
+    File file = new File(FileUtil.join(getTestDataPath(), "drawable", "foreground.xml"));
+    vectorAsset.path().setValue(file);
+
+    myIconGenerator.sourceAsset().setValue(vectorAsset);
+    myIconGenerator.backgroundColor().set(Color.WHITE);
+    checkGeneratedIcons(expectedFilenames);
   }
 }
