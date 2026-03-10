@@ -220,7 +220,10 @@ internal constructor(
         when (it) {
           is PairingState.AwaitingAuthorization -> phone?.handle?.let { project?.userInvolvementRequired(it) }
           is PairingState.Error -> GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.SHOW_FAILED_PAIRING)
-          is PairingState.Complete -> GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.SHOW_SUCCESSFUL_PAIRING)
+          is PairingState.Complete -> {
+            GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.SHOW_SUCCESSFUL_PAIRING)
+            phone?.handle?.let { project?.userInvolvementRequired(glassesHandle, it) }
+          }
           else -> {}
         }
       }
@@ -420,6 +423,15 @@ internal fun Project.userInvolvementRequired(deviceHandle: DeviceHandle) {
   val connected = deviceHandle.state as? DeviceState.Connected ?: return
   val serialNumber = connected.connectedDevice.serialNumber
   messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).userInvolvementRequired(serialNumber, this)
+}
+
+/** Indicates that two devices require user attention at the same time. */
+internal fun Project.userInvolvementRequired(device1: DeviceHandle, device2: DeviceHandle) {
+  val connected1 = device1.state as? DeviceState.Connected ?: return
+  val connected2 = device2.state as? DeviceState.Connected ?: return
+  val serialNumber1 = connected1.connectedDevice.serialNumber
+  val serialNumber2 = connected2.connectedDevice.serialNumber
+  messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).userInvolvementRequired(serialNumber1, serialNumber2, this)
 }
 
 private fun isAiGlassesCompatible(handle: DeviceHandle) =

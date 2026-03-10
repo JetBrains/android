@@ -82,28 +82,38 @@ class GlassesPairingWizardTest {
         FakeDeviceProvisionerPlugin.FakeDeviceHandle(
           "p1",
           coroutineScope,
-          DeviceState.Disconnected(
-            DeviceProperties.buildForTest {
-              icon = EmptyIcon.DEFAULT
-              manufacturer = "Google"
-              model = "Pixel 9"
-              deviceType = DeviceType.HANDHELD
-              androidVersion = AndroidVersion(36, 1)
-            }
+          DeviceState.Connected(
+            properties =
+              DeviceProperties.buildForTest {
+                icon = EmptyIcon.DEFAULT
+                manufacturer = "Google"
+                model = "Pixel 9"
+                deviceType = DeviceType.HANDHELD
+                androidVersion = AndroidVersion(36, 1)
+              },
+            connectedDevice = mock<ConnectedDevice>(),
+            isTransitioning = true,
+            isReady = false,
+            status = "Online",
           ),
         )
       val glasses =
         FakeDeviceProvisionerPlugin.FakeDeviceHandle(
           "g1",
           coroutineScope,
-          DeviceState.Disconnected(
-            DeviceProperties.buildForTest {
-              icon = EmptyIcon.DEFAULT
-              manufacturer = "Google"
-              model = "AI Glasses"
-              deviceType = DeviceType.AI_GLASSES
-              androidVersion = AndroidVersion(36, 1)
-            }
+          DeviceState.Connected(
+            properties =
+              DeviceProperties.buildForTest {
+                icon = EmptyIcon.DEFAULT
+                manufacturer = "Google"
+                model = "AI Glasses"
+                deviceType = DeviceType.AI_GLASSES
+                androidVersion = AndroidVersion(36, 1)
+              },
+            connectedDevice = mock<ConnectedDevice>(),
+            isTransitioning = true,
+            isReady = false,
+            status = "Online",
           ),
         )
       val devicesFlow = MutableStateFlow(listOf(phone, glasses))
