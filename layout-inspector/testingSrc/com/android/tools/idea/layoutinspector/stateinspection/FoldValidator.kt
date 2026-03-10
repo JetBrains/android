@@ -63,8 +63,8 @@ class FoldValidator(private val model: FoldingModel) {
     index++
     val rest = outputWithMarker()
     index--
-    val expected = model.allFoldRegions.size
-    assertThat(index).named("Only $index out of $expected regions are accounted for:\n $rest").isEqualTo(expected)
+    val actual = model.allFoldRegions.size
+    assertThat(actual).named("Only $index out of $actual regions are accounted for:\n $rest").isEqualTo(index)
   }
 
   private fun formatActual(): String {
