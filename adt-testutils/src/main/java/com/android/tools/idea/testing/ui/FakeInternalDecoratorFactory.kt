@@ -42,6 +42,8 @@ class FakeInternalDecoratorFactory : InternalDecoratorFactory {
     }
     doAnswer { "" }.whenever(mockDecorator).toString() // To avoid NPE while debugging.
     doAnswer { treeLock }.whenever(mockDecorator).treeLock
+    doAnswer { contentManager }.whenever(mockDecorator).contentManager
+    doAnswer { true }.whenever(mockDecorator).isVisible
 
     doAnswer { ToolWindowHeadlessManagerImpl.unsplit(contentManager, it.getArgument(0)) }.whenever(mockDecorator).unsplit(any())
 

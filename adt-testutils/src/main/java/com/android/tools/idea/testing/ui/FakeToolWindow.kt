@@ -42,7 +42,7 @@ fun createFakeToolWindow(
   toolWindowId: String,
   icon: Icon = EmptyIcon.ICON_16,
   windowFactory: ToolWindowFactory = SimpleToolWindowFactory(),
-  createInternalDecorators: Boolean = false,
+  createInternalDecorators: Boolean = true,
 ): FakeToolWindow {
   val internalDecoratorFactory = if (createInternalDecorators) FakeInternalDecoratorFactory() else null
   val windowManager = FakeToolWindowManager(windowFactory, toolWindowId, icon, project, internalDecoratorFactory)

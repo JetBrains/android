@@ -23,6 +23,7 @@ import com.intellij.openapi.application.EDT
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.testFramework.waitUntil
+import javax.swing.JPanel
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -31,7 +32,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.kotlin.mock
 
 class IssuePanelProjectActivityTest {
   @JvmField @Rule val rule = AndroidProjectRule.withAndroidModel().onEdt()
@@ -40,10 +40,10 @@ class IssuePanelProjectActivityTest {
   @Before
   fun setup() {
     rule.projectRule.replaceProjectService(DesignerCommonIssuePanelModelProvider::class.java, TestIssuePanelModelProvider())
-    toolWindow = createFakeToolWindow(rule.project, rule.testRootDisposable, ProblemsView.ID)
     runInEdtAndWait {
+      toolWindow = createFakeToolWindow(rule.project, rule.testRootDisposable, ProblemsView.ID)
       val contentManager = toolWindow.contentManager
-      val content = contentManager.factory.createContent(mock(), "Current File", true).apply { isCloseable = false }
+      val content = contentManager.factory.createContent(JPanel(), "Current File", true).apply { isCloseable = false }
       contentManager.addContent(content)
       contentManager.setSelectedContent(content)
     }
