@@ -30,6 +30,8 @@ import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ROOT
+import com.android.tools.idea.layoutinspector.model.SelectionOrigin
+import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
@@ -151,7 +153,8 @@ class LayoutInspectorManagerTest {
         foregroundProcessDetection = fakeForegroundProcessDetection,
         inspectorClientSettings = InspectorClientSettings(displayViewRule.project),
         launcher = launcher,
-        layoutInspectorModel = model(displayViewRule.disposable) { view(ROOT, Rectangle(0, 0, 100, 100)) {} },
+        layoutInspectorModel =
+          model(displayViewRule.disposable) { view(ROOT, Rectangle(0, 0, 100, 100)) { view(VIEW1, Rectangle(0, 0, 100, 100)) } },
         notificationModel = notificationModel,
         treeSettings = FakeTreeSettings(),
       )
@@ -199,6 +202,9 @@ class LayoutInspectorManagerTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     setSelectedContent(fakeToolWindow, tab1)
 
+    val model = layoutInspector.inspectorModel
+    model.setSelection(model[VIEW1], SelectionOrigin.INTERNAL)
+
     fakeToolWindow.show()
     waitForCondition(2, TimeUnit.SECONDS) { fakeToolWindow.isVisible }
 
@@ -219,6 +225,9 @@ class LayoutInspectorManagerTest {
 
     // The UI should be re-inject from scratch when the tool window is visible again.
     verifyUiInjected<EmbeddedRendererPanel>(tab1)
+
+    // Make sure the selection is intact
+    assertThat(model.selection?.drawId).isEqualTo(VIEW1)
   }
 
   @Test

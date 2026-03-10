@@ -192,6 +192,10 @@ class EmbeddedRendererModel(
   }
 
   fun setInterceptClicks(enable: Boolean) {
+    if (_interceptClicks.value == enable) {
+      return
+    }
+
     _interceptClicks.value = enable
 
     if (!enable) {
