@@ -135,14 +135,7 @@ class StreamingToolWindowManagerTest {
 
   private val windowFactory: StreamingToolWindowFactory by lazy { StreamingToolWindowFactory() }
   private val toolWindow: FakeToolWindow by lazy {
-    createFakeToolWindow(
-      project,
-      testRootDisposable,
-      RUNNING_DEVICES_TOOL_WINDOW_ID,
-      StudioIcons.Shell.ToolWindows.EMULATOR,
-      windowFactory,
-      createInternalDecorators = true,
-    )
+    createFakeToolWindow(project, testRootDisposable, RUNNING_DEVICES_TOOL_WINDOW_ID, StudioIcons.Shell.ToolWindows.EMULATOR, windowFactory)
   }
   private val contentManager: ContentManager by lazy { toolWindow.contentManager }
 
