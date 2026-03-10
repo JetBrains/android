@@ -16,6 +16,8 @@
 package com.google.idea.blaze.base.qsync
 
 import com.android.tools.idea.concurrency.transform
+import com.android.tools.idea.protobuf.Message
+import com.android.tools.idea.protobuf.TextFormat
 import com.google.common.base.Stopwatch
 import com.google.common.io.ByteSource
 import com.google.common.io.MoreFiles
@@ -56,8 +58,6 @@ import com.google.idea.blaze.qsync.java.JavaTargetInfo
 import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.common.experiments.BoolExperiment
-import com.google.protobuf.Message
-import com.google.protobuf.TextFormat
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project

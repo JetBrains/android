@@ -1,3 +1,4 @@
+load("@rules_java//java:defs.bzl", "java_library")
 load("//tools/adt/idea/aswb:build-visibility.bzl", "DEFAULT_TEST_VISIBILITY")
 load("//tools/adt/idea/aswb/testing:test_defs.bzl", "aswb_test")
 
@@ -40,5 +41,6 @@ java_library(
     deps = [
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts:build_artifact_java_proto",
         "//tools/vendor/google/aswb/plugin_api/maven:guava",
+        "//tools/vendor/google/aswb/plugin_api/maven:protobuf-java",
     ],
 )

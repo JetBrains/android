@@ -1,3 +1,4 @@
+load("@rules_java//java:defs.bzl", "java_library")
 load(
     "//tools/adt/idea/aswb:build-visibility.bzl",
     "DEFAULT_TEST_VISIBILITY",
@@ -59,6 +60,7 @@ aswb_library(
         "//tools/adt/idea/aswb/shared:proto",
         "//tools/adt/idea/aswb/shared:vcs",
         "//tools/adt/idea/aswb/third_party/java/auto_value",
+        "//tools/vendor/google/asfg/ext/proto:intellijext_java_grpc",
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:jsr305",  # unuseddeps: keep for @Nullable
         "//tools/vendor/google/aswb/plugin_api/maven:protobuf-java",  # unuseddeps: keep for consistent protobuf-java version
@@ -337,7 +339,7 @@ java_library(
         "//tools/adt/idea/aswb/shared:artifact",
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
-        "@maven//:com.google.errorprone.error_prone_annotations",
+        "//tools/vendor/google/aswb/plugin_api/maven:guava",
     ],
 )
 
@@ -404,6 +406,7 @@ java_library(
         "//tools/adt/idea/aswb/shared:vcs",
         "//tools/adt/idea/aswb/testing:lib",
         "//tools/adt/idea/aswb/third_party/java/junit",
+        "//tools/vendor/google/asfg/ext/proto:intellijext_java_grpc",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
         "//tools/vendor/google/aswb/plugin_api:test_libs",

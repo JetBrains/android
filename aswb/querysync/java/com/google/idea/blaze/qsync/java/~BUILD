@@ -1,5 +1,6 @@
 load("//tools/adt/idea/aswb/build_defs:build_defs.bzl", "aswb_library")
 load("//tools/base/bazel:proto.bzl", "java_proto_library")
+load("//tools/base/bazel:utils.bzl", "java_jarjar")
 
 package(default_visibility = [
     "//tools/adt/idea/aswb/querysync:__subpackages__",
@@ -7,10 +8,18 @@ package(default_visibility = [
 ])
 
 java_proto_library(
-    name = "java_target_info_java_proto",
+    name = "java_target_info_java_proto_internal",
     srcs = ["java_target_info.proto"],
-    java_deps = ["//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts:build_artifact_java_proto"],
-    proto_deps = ["//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts:build_artifact_java_proto_srcs"],
+    java_deps = ["//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts:build_artifact_java_proto_internal"],
+    proto_deps = ["//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts:build_artifact_java_proto_internal_srcs"],
+)
+
+java_jarjar(
+    name = "java_target_info_java_proto",
+    srcs = [
+        ":java_target_info_java_proto_internal",
+    ],
+    rules = "//tools/base/bazel:jarjar_rules.txt",
 )
 
 aswb_library(

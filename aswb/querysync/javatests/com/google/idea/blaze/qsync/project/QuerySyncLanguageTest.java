@@ -17,8 +17,8 @@ package com.google.idea.blaze.qsync.project;
 
 import static com.google.common.truth.Truth8.assertThat;
 
+import com.android.tools.idea.protobuf.Descriptors.EnumValueDescriptor;
 import com.google.idea.blaze.qsync.project.LanguageClassProto.LanguageClass;
-import com.google.protobuf.Descriptors.EnumValueDescriptor;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;

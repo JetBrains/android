@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.qsync.project;
 
+import com.android.tools.idea.protobuf.AbstractMessageLite;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
@@ -24,7 +25,6 @@ import com.google.idea.blaze.common.vcs.WorkspaceFileChange;
 import com.google.idea.blaze.common.vcs.WorkspaceFileChange.Operation;
 import com.google.idea.blaze.qsync.project.SnapshotProto.WorkspaceSnapshot;
 import com.google.idea.blaze.qsync.query.QuerySummary;
-import com.google.protobuf.AbstractMessageLite;
 import java.nio.file.Path;
 import java.util.Optional;
 

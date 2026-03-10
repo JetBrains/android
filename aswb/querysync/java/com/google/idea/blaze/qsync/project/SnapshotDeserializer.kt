@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.qsync.project
 
+import com.android.tools.idea.protobuf.ExtensionRegistry
 import com.google.common.collect.ImmutableBiMap
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
@@ -24,7 +25,6 @@ import com.google.idea.blaze.common.TargetPattern
 import com.google.idea.blaze.common.vcs.VcsState
 import com.google.idea.blaze.common.vcs.WorkspaceFileChange
 import com.google.idea.blaze.qsync.query.Query
-import com.google.protobuf.ExtensionRegistry
 import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Path

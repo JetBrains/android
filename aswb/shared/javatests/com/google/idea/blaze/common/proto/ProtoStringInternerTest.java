@@ -17,11 +17,11 @@ package com.google.idea.blaze.common.proto;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.tools.idea.protobuf.TextFormat;
+import com.android.tools.idea.protobuf.TextFormat.ParseException;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.idea.blaze.common.proto.TestMessage.MyMessage;
-import com.google.protobuf.TextFormat;
-import com.google.protobuf.TextFormat.ParseException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;

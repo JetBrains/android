@@ -17,6 +17,7 @@ package com.google.idea.blaze.base.lang.buildfile.language.semantics;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.android.tools.idea.protobuf.ExtensionRegistry;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -30,7 +31,6 @@ import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.output.IssueOutput;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.sync.SyncListener;
-import com.google.protobuf.ExtensionRegistry;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;

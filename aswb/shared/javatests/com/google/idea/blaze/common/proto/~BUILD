@@ -1,18 +1,23 @@
 load("//tools/adt/idea/aswb:build-visibility.bzl", "DEFAULT_TEST_VISIBILITY")
 load("//tools/adt/idea/aswb/testing:test_defs.bzl", "aswb_test")
+load("//tools/base/bazel:proto.bzl", "java_proto_library")
+load("//tools/base/bazel:utils.bzl", "java_jarjar")
 
 package(
     default_visibility = DEFAULT_TEST_VISIBILITY,
 )
 
-proto_library(
-    name = "test_proto",
+java_proto_library(
+    name = "test_java_proto_internal",
     srcs = ["test_message.proto"],
 )
 
-java_proto_library(
+java_jarjar(
     name = "test_java_proto",
-    deps = [":test_proto"],
+    srcs = [
+        ":test_java_proto_internal",
+    ],
+    rules = "//tools/base/bazel:jarjar_rules.txt",
 )
 
 aswb_test(
@@ -26,7 +31,7 @@ aswb_test(
         "//tools/adt/idea/aswb/third_party/java/junit",
         "//tools/adt/idea/aswb/third_party/java/truth",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
-        "//tools/vendor/google/aswb/plugin_api/maven:grpc-protobuf",
         "//tools/vendor/google/aswb/plugin_api/maven:guava",
+        "//tools/vendor/google/aswb/plugin_api/maven:protobuf-java",
     ],
 )

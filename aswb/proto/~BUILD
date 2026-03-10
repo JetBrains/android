@@ -2,18 +2,12 @@
 # Description:
 # Proto dependencies from bazel.
 #
+load("@rules_java//java:defs.bzl", "java_library")
 load(
     "//tools/adt/idea/aswb:build-visibility.bzl",
-    "ASPECT_PROTO_VISIBILITY",
     "PLUGIN_PACKAGES_VISIBILITY",
     "create_proto_visibility_group",
 )
-load(
-    "//tools/adt/idea/aswb/build_defs:build_defs.bzl",
-    "aswb_library",
-    "combine_visibilities",
-)
-load("//tools/base/bazel:proto.bzl", "java_proto_library")
 
 licenses(["notice"])
 
@@ -25,16 +19,14 @@ java_library(
     name = "proto_deps",
     visibility = PLUGIN_PACKAGES_VISIBILITY,
     exports = [
-        # do not sort: to get a consistent version of the protobuf-java library across all proto users
-        "//tools/vendor/google/aswb/plugin_api/maven:grpc-protobuf",
         "//tools/adt/idea/aswb/third_party/bazel/src/main/java/com/google/devtools/build/lib/buildeventstream/proto:build_event_stream_java_proto",
+        "//tools/adt/idea/aswb/third_party/bazel/src/main/java/com/google/devtools/build/lib/packages/metrics:package_load_metrics_java_proto",
+        "//tools/adt/idea/aswb/third_party/bazel/src/main/java/com/google/devtools/build/lib/packages/metrics:package_metrics_java_proto",
         "//tools/adt/idea/aswb/third_party/bazel/src/main/java/com/google/devtools/build/lib/starlarkdebug/proto:starlark_debugging_java_proto",
-        "//tools/adt/idea/aswb/third_party/bazel/src/main/protobuf:android_deploy_info_java_proto",
-        "//tools/adt/idea/aswb/third_party/bazel/src/main/protobuf:build_java_proto",
-        "//tools/adt/idea/aswb/third_party/bazel/src/main/protobuf:command_line_java_proto",
-        "//tools/adt/idea/aswb/third_party/bazel/src/main/protobuf:deps_java_proto",
+        "//tools/adt/idea/aswb/third_party/bazel/src/main/protobuf:all_protos",
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
-        "@maven//:com.google.errorprone.error_prone_annotations",  # unuseddeps: keep
+        "//tools/vendor/google/aswb/plugin_api/maven:guava",
+        "//tools/vendor/google/aswb/plugin_api/maven:protobuf-java",
     ],
 )

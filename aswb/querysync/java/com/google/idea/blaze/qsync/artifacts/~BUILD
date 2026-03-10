@@ -1,5 +1,6 @@
 load("//tools/adt/idea/aswb/build_defs:build_defs.bzl", "aswb_library")
 load("//tools/base/bazel:proto.bzl", "java_proto_library")
+load("//tools/base/bazel:utils.bzl", "java_jarjar")
 
 aswb_library(
     name = "artifacts",
@@ -31,8 +32,20 @@ aswb_library(
 )
 
 java_proto_library(
-    name = "build_artifact_java_proto",
+    name = "build_artifact_java_proto_internal",
     srcs = ["build_artifact.proto"],
+    visibility = [
+        "//tools/adt/idea/aswb/querysync:__subpackages__",
+        "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/blaze/plugin/aswb:__pkg__",
+    ],
+)
+
+java_jarjar(
+    name = "build_artifact_java_proto",
+    srcs = [
+        ":build_artifact_java_proto_internal",
+    ],
+    rules = "//tools/base/bazel:jarjar_rules.txt",
     visibility = [
         "//tools/adt/idea/aswb/querysync:__subpackages__",
         "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/blaze/plugin/aswb:__pkg__",

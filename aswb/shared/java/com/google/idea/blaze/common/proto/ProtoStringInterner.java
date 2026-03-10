@@ -17,10 +17,10 @@ package com.google.idea.blaze.common.proto;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
+import com.android.tools.idea.protobuf.Descriptors.FieldDescriptor;
+import com.android.tools.idea.protobuf.Message;
 import com.google.common.collect.Interner;
 import com.google.idea.blaze.common.Interners;
-import com.google.protobuf.Descriptors.FieldDescriptor;
-import com.google.protobuf.Message;
 import java.util.List;
 import java.util.stream.IntStream;
 

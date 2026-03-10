@@ -17,6 +17,7 @@
 
 package com.google.idea.blaze.base.qsync
 
+import com.android.tools.idea.protobuf.CodedOutputStream
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Joiner
 import com.google.common.collect.ImmutableMap
@@ -57,7 +58,6 @@ import com.google.idea.blaze.qsync.project.ProjectStructureData
 import com.google.idea.blaze.qsync.project.SnapshotDeserializer
 import com.google.idea.blaze.qsync.project.SnapshotSerializer
 import com.google.idea.blaze.qsync.project.TargetsToBuild
-import com.google.protobuf.CodedOutputStream
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
