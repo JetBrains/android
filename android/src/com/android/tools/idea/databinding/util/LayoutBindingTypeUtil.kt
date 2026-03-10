@@ -23,13 +23,13 @@ import com.android.tools.idea.databinding.index.BindingXmlData
 import com.android.tools.idea.databinding.index.BindingXmlIndex
 import com.android.tools.idea.databinding.index.ViewIdData
 import com.android.tools.idea.databinding.util.DataBindingUtil.getQualifiedBindingName
+import com.android.tools.idea.module.getModule
 import com.android.tools.idea.util.androidFacet
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementFactory
 import com.intellij.psi.PsiType
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.util.projectStructure.getModule
 
 object LayoutBindingTypeUtil {
   private val VIEW_PACKAGE_ELEMENTS =

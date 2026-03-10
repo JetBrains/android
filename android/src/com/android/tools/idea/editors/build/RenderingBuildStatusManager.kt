@@ -22,6 +22,7 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.fastPreviewCompileFlow
+import com.android.tools.idea.module.module
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildStatus
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.rendering.BuildTargetReference
@@ -59,7 +60,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
 import org.jetbrains.annotations.TestOnly
-import org.jetbrains.kotlin.idea.util.projectStructure.module
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.toUElement
 
@@ -94,15 +94,13 @@ sealed class RenderingBuildStatus {
   /**
    * The project is compiled but one or more files are out of date.
    *
-   * Not all resource changes require a rebuild but we do not have an easy way for now to
-   * differentiate them. For example, a color change might be flagged as "out of date" but the
-   * preview should be ok dealing with that. However, adding or removing a resource will always
+   * Not all resource changes require a rebuild but we do not have an easy way for now to differentiate them. For example, a color change
+   * might be flagged as "out of date" but the preview should be ok dealing with that. However, adding or removing a resource will always
    * require a rebuild since the R class needs to change.
    *
    * @param areResourcesOutOfDate true if resources might be out of date.
    */
-  sealed class OutOfDate private constructor(val areResourcesOutOfDate: Boolean) :
-    RenderingBuildStatus() {
+  sealed class OutOfDate private constructor(val areResourcesOutOfDate: Boolean) : RenderingBuildStatus() {
     object Code : OutOfDate(false)
 
     object Resources : OutOfDate(true)

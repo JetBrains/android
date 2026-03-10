@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs.project.gradle
 
+import com.android.tools.idea.module.getModule
 import com.android.tools.idea.nav.safeargs.TestDataPaths
 import com.android.tools.idea.nav.safeargs.extensions.replaceWithoutSaving
 import com.android.tools.idea.nav.safeargs.project.NAVIGATION_RESOURCES_CHANGED
@@ -28,7 +29,6 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
-import org.jetbrains.kotlin.idea.util.projectStructure.getModule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

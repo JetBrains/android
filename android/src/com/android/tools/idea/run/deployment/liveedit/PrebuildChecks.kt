@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.module.module
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.res.isGradleFile
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.gradleBuildFile
@@ -33,7 +34,6 @@ import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
-import org.jetbrains.kotlin.idea.util.projectStructure.module
 import org.jetbrains.kotlin.psi.KtFile
 
 private const val kotlinPluginId = "org.jetbrains.kotlin"

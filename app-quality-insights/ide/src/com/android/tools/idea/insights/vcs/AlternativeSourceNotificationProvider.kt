@@ -21,6 +21,7 @@ import com.android.tools.idea.insights.ui.vcs.InsightsDiffVirtualFile
 import com.android.tools.idea.insights.ui.vcs.goToDiff
 import com.android.tools.idea.insights.vcs.AlternativeSourceNotificationProvider.AppScopeMatchResult
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.module.getModule
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -40,7 +41,6 @@ import com.intellij.ui.components.JBLabel
 import java.awt.BorderLayout
 import java.util.function.Function
 import javax.swing.JPanel
-import org.jetbrains.kotlin.idea.util.projectStructure.getModule
 
 /**
  * Provides alternative sources options in the top banner of the diff view, if there's ambiguity of

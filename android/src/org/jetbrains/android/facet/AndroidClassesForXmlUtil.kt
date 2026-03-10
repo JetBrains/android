@@ -17,6 +17,7 @@ package org.jetbrains.android.facet
 
 import com.android.SdkConstants.CLASS_VIEW
 import com.android.tools.idea.model.StudioAndroidModuleInfo
+import com.android.tools.idea.module.module
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.isClassPackageNeeded
@@ -30,7 +31,6 @@ import com.intellij.psi.PsiModifierList
 import com.intellij.psi.search.PsiShortNamesCache
 import com.intellij.psi.util.InheritanceUtil
 import org.jetbrains.android.util.AndroidUtils
-import org.jetbrains.kotlin.idea.util.projectStructure.module
 
 /** Returns class by name. It can be either short name for library classes or FQCN. */
 private fun findClassByName(
