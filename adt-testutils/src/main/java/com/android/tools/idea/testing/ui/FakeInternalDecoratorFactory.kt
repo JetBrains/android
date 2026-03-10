@@ -22,7 +22,6 @@ import java.awt.Container
 import javax.swing.JPanel
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.Mockito.CALLS_REAL_METHODS
-import org.mockito.invocation.InvocationOnMock
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.mock
@@ -41,18 +40,16 @@ class FakeInternalDecoratorFactory : InternalDecoratorFactory {
     } catch (e: Exception) {
       throw RuntimeException(e)
     }
-    doAnswer { _: InvocationOnMock -> "" }.whenever(mockDecorator).toString() // To avoid NPE while debugging.
-    doAnswer { _: InvocationOnMock -> treeLock }.whenever(mockDecorator).treeLock
+    doAnswer { "" }.whenever(mockDecorator).toString() // To avoid NPE while debugging.
+    doAnswer { treeLock }.whenever(mockDecorator).treeLock
 
-    doAnswer { invocation: InvocationOnMock ->
-      ToolWindowHeadlessManagerImpl.unsplit(contentManager, invocation.getArgument(0))
-    }.whenever(mockDecorator).unsplit(any())
+    doAnswer { ToolWindowHeadlessManagerImpl.unsplit(contentManager, it.getArgument(0)) }.whenever(mockDecorator).unsplit(any())
 
-    doAnswer { invocation: InvocationOnMock ->
-      ToolWindowHeadlessManagerImpl.split(invocation.getArgument(0), invocation.getArgument(1), invocation.getArgument(2))
-    }.whenever(mockDecorator).splitWithContent(any(), anyInt(), anyInt())
+    doAnswer { ToolWindowHeadlessManagerImpl.split(it.getArgument(0), it.getArgument(1), it.getArgument(2)) }
+      .whenever(mockDecorator)
+      .splitWithContent(any(), anyInt(), anyInt())
 
-    doAnswer { _: InvocationOnMock -> false }.whenever(mockDecorator).isSplitUnsplitInProgress
+    doAnswer { false }.whenever(mockDecorator).isSplitUnsplitInProgress
     return mockDecorator
   }
 }
