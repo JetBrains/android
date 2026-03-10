@@ -24,7 +24,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiMethod
-import com.intellij.testFramework.junit5.RunInEdt
+import com.intellij.testFramework.RunsInEdt
 import java.io.File
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
@@ -33,7 +33,7 @@ import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
 
-@RunInEdt
+@RunsInEdt
 class DefaultAndroidTestResultsPsiElementProviderTest {
 
   @get:Rule val projectRule = AndroidGradleProjectRule()
