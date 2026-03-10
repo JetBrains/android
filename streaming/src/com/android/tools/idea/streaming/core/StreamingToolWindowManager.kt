@@ -99,6 +99,7 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEve
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType.ShowToolWindow
 import com.intellij.openapi.wm.impl.InternalDecorator
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi
+import com.intellij.toolWindow.InternalDecoratorImpl
 import com.intellij.ui.BadgeIconSupplier
 import com.intellij.ui.ComponentUtil
 import com.intellij.ui.JBColor
@@ -123,6 +124,7 @@ import java.awt.event.KeyEvent
 import java.nio.file.Path
 import java.util.function.Supplier
 import javax.swing.JComponent
+import javax.swing.SwingConstants
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
@@ -214,7 +216,11 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
       }
 
       override fun contentAdded(event: ContentManagerEvent) {
-        event.content.addPropertyChangeListener { evt ->
+        val content = event.content
+        if (Content.TEMPORARY_REMOVED_KEY.get(content, false)) {
+          return
+        }
+        content.addPropertyChangeListener { evt ->
           if (evt.propertyName == PROP_CONTENT_MANAGER) {
             val contentManager = evt.newValue as? ContentManager
             contentManager?.let { adoptContentManager(it) }
@@ -646,6 +652,8 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
     (it.deviceId as? DeviceId.EmulatorDeviceId)?.emulatorId?.avdFolder == avdFolder
   }
 
+  private fun findContentBySerialNumber(serialNumber: String): Content? = findContent { it.deviceId?.serialNumber == serialNumber }
+
   private fun findContentBySerialNumberOfPhysicalDevice(serialNumber: String): Content? = findContent {
     it.deviceId?.serialNumber == serialNumber && it.component is DeviceToolWindowPanel
   }
@@ -1026,6 +1034,27 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
 
     override fun userInvolvementRequired(deviceSerialNumber: String, project: Project) {
       onDeviceHeadsUp(deviceSerialNumber, ActivationLevel.ACTIVATE_TAB, project)
+    }
+
+    override fun userInvolvementRequired(device1SerialNumber: String, device2SerialNumber: String, project: Project) {
+      if (project == toolWindow.project) {
+        UIUtil.invokeLaterIfNeeded { showInSplitView(device1SerialNumber, device2SerialNumber) }
+      }
+    }
+
+    @UiThread
+    @Suppress("UnstableApiUsage")
+    private fun showInSplitView(device1SerialNumber: String, device2SerialNumber: String) {
+      val content1 = findContentBySerialNumber(device1SerialNumber) ?: return
+      val content2 = findContentBySerialNumber(device2SerialNumber) ?: return
+
+      if (content1.manager == content2.manager) {
+        val decorator = content1.component.containingDecorator as? InternalDecoratorImpl ?: return
+        decorator.splitWithContent(content2, SwingConstants.BOTTOM, -1)
+      }
+
+      content1.select(ActivationLevel.ACTIVATE_TAB)
+      content2.select(ActivationLevel.ACTIVATE_TAB)
     }
 
     override fun launchingApp(deviceSerialNumber: String, project: Project) {
