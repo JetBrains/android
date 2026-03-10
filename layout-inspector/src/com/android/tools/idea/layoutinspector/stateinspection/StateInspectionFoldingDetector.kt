@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.utils.indexOfFirst
 
 private const val RECORD_READ_OF = "at androidx.compose.runtime.CompositionImpl.recordReadOf"
 private const val SNAPSHOT_READABLE = "at androidx.compose.runtime.snapshots.SnapshotKt.readable"
+private const val DERIVED_SNAPSHOT_STATE = "at androidx.compose.runtime.DerivedSnapshotState.getValue"
 private const val SNAPSHOT_PACKAGE = "at androidx.compose.runtime.snapshots."
 private const val SNAPSHOT_CLASS = "at androidx.compose.runtime.Snapshot"
 private const val DYNAMIC_VALUE = "at androidx.compose.runtime.DynamicValueHolder.readValue"
@@ -36,7 +37,8 @@ private const val RECOMPOSE = "at androidx.compose.runtime.RecomposeScopeImpl.co
 private const val LAMBDA_INVOKE = "at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke"
 private const val VALUE = "value: "
 
-private val RECORD_READ_EXCEPTION_PREFIXES = listOf(SNAPSHOT_PACKAGE, SNAPSHOT_CLASS, KOTLIN_METHOD, DYNAMIC_VALUE)
+private val RECORD_READ_EXCEPTION_PREFIXES = listOf(SNAPSHOT_PACKAGE, SNAPSHOT_CLASS, KOTLIN_METHOD, DYNAMIC_VALUE, DERIVED_SNAPSHOT_STATE)
+private val STATE_READ_STARTS = listOf(SNAPSHOT_READABLE, DERIVED_SNAPSHOT_STATE)
 
 /**
  * Adds line folding to the content of an editor with State Inspection data.
@@ -202,12 +204,12 @@ internal class StateInspectionFoldingDetector(private val editor: Editor, privat
     var nextLine = line(next)
 
     // Skip down to `SnapshotKt.readable` in the stacktrace:
-    while (nextLine.isNotEmpty() && !nextLine.startsWith(SNAPSHOT_READABLE)) {
+    while (nextLine.isNotEmpty() && STATE_READ_STARTS.none { nextLine.startsWith(it) }) {
       nextLine = line(++next)
     }
 
     // Stop now and abandon the fold if we didn't find `SnapshotKt.readable`:
-    if (!nextLine.startsWith(SNAPSHOT_READABLE)) {
+    if (STATE_READ_STARTS.none { nextLine.startsWith(it) }) {
       return next
     }
 

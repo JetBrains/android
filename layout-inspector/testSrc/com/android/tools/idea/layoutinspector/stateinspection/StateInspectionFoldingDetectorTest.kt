@@ -56,4 +56,17 @@ class StateInspectionFoldingDetectorTest {
       fold(52, 79, "<28 more...>")
     }
   }
+
+  @Test
+  fun testFoldingOfExceptionWithDerivedSnapshotGetValue() = runTest {
+    val file = "${TEST_DATA_PATH}/state_reads_derived_snapshot_state_read.txt"
+    val text = TestUtils.resolveWorkspacePathUnchecked(file).readText()
+    val editor = runInEdtAndGet { projectRule.createEditorWithContent(text) }
+    val detector = StateInspectionFoldingDetector(editor, this)
+    detector.detectFolding()?.join()
+    validateFoldingModel(editor.foldingModel) {
+      fold(2, 5, "<4 more...>")
+      fold(9, 45, "<37 more...>")
+    }
+  }
 }
