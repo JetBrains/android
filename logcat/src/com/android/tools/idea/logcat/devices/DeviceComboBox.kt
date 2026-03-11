@@ -120,7 +120,7 @@ internal class DeviceComboBox(private val project: Project, private val initialI
     when (item) {
       is FileItem -> {
         if (!item.path.exists()) {
-          val itemRemoved = handleItemError(item, LogcatBundle.message("logcat.device.combo.error.message", item.path))
+          val itemRemoved = handleItemError(item, LogcatBundle.message("logcat.device.combo.error.load.file", item.path))
           if (itemRemoved) {
             return
           }
@@ -148,7 +148,7 @@ internal class DeviceComboBox(private val project: Project, private val initialI
         when {
           selectedItem != selectedItemReminder -> selectedItemReminder
           deviceComboModel.items.count() == 1 -> null
-          else -> deviceComboModel.items.first()
+          else -> deviceComboModel.items.firstOrNull()
         }
     }
     return answer

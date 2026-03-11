@@ -501,9 +501,11 @@ constructor(
               try {
                 LogcatFileIo().readLogcat(item.path)
               } catch (e: Exception) {
-                LOGGER.warn("Failed to load Logcat from file ${item.path}", e)
+                LOGGER.debug("Failed to load Logcat from file ${item.path}", e)
                 withContext(Dispatchers.EDT) {
-                  deviceComboBox.handleItemError(item, LogcatBundle.message("logcat.device.combo.error.load.file", item.path))
+                  if (item == deviceComboBox.selectedItem) {
+                    deviceComboBox.handleItemError(item, LogcatBundle.message("logcat.device.combo.error.load.file", item.path))
+                  }
                 }
                 null
               }
