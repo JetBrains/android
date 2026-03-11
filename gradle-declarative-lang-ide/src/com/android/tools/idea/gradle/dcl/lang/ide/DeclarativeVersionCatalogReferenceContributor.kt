@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeProperty
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativePsiFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeQualified
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeRecursiveVisitor
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.util.TextRange
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.PsiElement
@@ -34,7 +35,6 @@ import com.intellij.psi.PsiReferenceContributor
 import com.intellij.psi.PsiReferenceProvider
 import com.intellij.psi.PsiReferenceRegistrar
 import com.intellij.util.ProcessingContext
-import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.plugins.gradle.service.resolve.getVersionCatalogFiles
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 
@@ -180,6 +180,8 @@ class DeclarativeVersionCatalogReferenceProvider : PsiReferenceProvider() {
           PsiManager.getInstance(project).findFile(virtualFile)
         }
       }
+      private val PsiElement.module
+      get() = ModuleUtilCore.findModuleForPsiElement(this)
   }
 
 }
