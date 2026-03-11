@@ -2,7 +2,6 @@ package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.fakeadbserver.DeviceState
 import com.android.sdklib.AndroidApiLevel
 import com.android.testutils.MockitoCleanerRule
@@ -75,7 +74,7 @@ class AndroidTestRunConfigurationExecutorTest {
 
   @Test
   fun runSucceededAndSaveHistory() {
-    Assume.assumeFalse("b/403870016: FakeAdbTestRule seems to be flaky on windows.", SystemInfo.isWindows)
+    Assume.assumeFalse("b/403870016: this test was reported to be flaky on windows.", SystemInfo.isWindows)
 
     val deviceState =
       fakeAdb.connectDevice(
@@ -139,7 +138,7 @@ class AndroidTestRunConfigurationExecutorTest {
       )
     deviceState.setActivityManager { args, _ ->
       if (args[0] == "instrument") {
-        FakeAdbTestRule.launchAndWaitForProcess(deviceState, 1235, "applicationId", true)
+        deviceState.startClient(pid = 1235, userId = 4321, packageName = "applicationId", isWaiting = true)
         Thread.sleep(2000) // let debugger connect
       }
       if (args.joinToString(" ") == "force-stop applicationId") {
