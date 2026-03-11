@@ -16,7 +16,6 @@
 package com.android.tools.idea.appinspection.ide.ui
 
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.internal.DeviceImpl
 import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.run.AndroidRunConfiguration
@@ -31,6 +30,8 @@ import com.intellij.testFramework.ProjectRule
 import kotlin.random.Random
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 
 class AppInspectionExecutionListenerTest {
   @get:Rule val projectRule = ProjectRule()
@@ -38,7 +39,8 @@ class AppInspectionExecutionListenerTest {
   @Test
   fun testRecentProcess() {
     val project = projectRule.project
-    val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
+    val device = mock<IDevice>()
+    whenever(device.serialNumber).thenReturn("serial_number")
     val env =
       ExecutionEnvironmentBuilder.create(
           DefaultRunExecutor.getRunExecutorInstance(),

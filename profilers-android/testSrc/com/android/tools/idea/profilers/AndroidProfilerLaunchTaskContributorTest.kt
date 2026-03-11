@@ -16,7 +16,6 @@
 package com.android.tools.idea.profilers
 
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.internal.DeviceImpl
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.run.editor.ProfilerState
 import com.android.tools.idea.transport.TransportFileManager
@@ -25,7 +24,7 @@ import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.testFramework.ProjectRule
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
+import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
 
 class AndroidProfilerLaunchTaskContributorTest {
@@ -48,7 +47,7 @@ class AndroidProfilerLaunchTaskContributorTest {
 
   @Test
   fun testEmptyAmStartOptions() {
-    val device = DeviceImpl(null, "123", IDevice.DeviceState.ONLINE)
+    val device = mock<IDevice>()
     val profilerState = ProfilerState()
 
     // Empty string for non-profiler executors.
@@ -65,7 +64,7 @@ class AndroidProfilerLaunchTaskContributorTest {
 
   @Test
   fun testAgentConfigIsEmptyForProfileable() {
-    val device = Mockito.mock(IDevice::class.java)
+    val device = mock<IDevice>()
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.O_MR1))
     val fileManager = TransportFileManager(device)
 
