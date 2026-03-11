@@ -818,7 +818,6 @@ studio_plugin(
         "//tools/vendor/google/ml/aiplugin/core/aicore:gemini_plugin_proto",
         "//tools/vendor/google/ml/aiplugin/rag/lucene/sdkcompat:lucene-lib",
         "//tools/vendor/modelcontextprotocol/kotlin-sdk:mcp-sdk-libraries",
-        "//tools/vendor/google/ml/aiplugin/android/journeys/gradle:libjourneys-java-proto",
         "//tools/vendor/google/ml/aiplugin/backends/aicode:aicode_grpc",
     ],
     modules = {

@@ -3116,7 +3116,6 @@ Android Studio Preview.app/Contents/plugins/gemini/lib/jackson-datatype-jsr310-2
 Android Studio Preview.app/Contents/plugins/gemini/lib/libagent_log_proto.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/libfeedback_java_proto.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/libgoogle_auth_intellij_lib.jar
-Android Studio Preview.app/Contents/plugins/gemini/lib/libjourneys-java-proto.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/libserviceusage_v1_java_lib.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/libv1internal_java_rest.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/lucene-backward-codecs-10.3.0.jar

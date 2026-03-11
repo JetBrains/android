@@ -11,6 +11,7 @@ iml_module(
     lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
     visibility = ["//visibility:public"],
+    exports = ["//tools/adt/idea/testartifacts:libjourneys-java-proto"],
     # do not sort: must match IML order
     deps = [
         "@intellij//:intellij-sdk",

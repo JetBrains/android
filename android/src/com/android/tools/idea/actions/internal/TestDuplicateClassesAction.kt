@@ -68,13 +68,7 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
           "org.xmlpull.v1",
         ),
       "com.android.tools.design" to setOf("org.json", "com.google.errorprone.annotations", "android.annotation"),
-      "com.google.tools.ij.aiplugin" to
-        setOf(
-          "androidx.annotation",
-          "com.android.tools.journeys.proto", // b/476493309
-          "kotlinx.atomicfu.locks",
-          "kotlinx.atomicfu",
-        ),
+      "com.google.tools.ij.aiplugin" to setOf("androidx.annotation", "kotlinx.atomicfu.locks", "kotlinx.atomicfu"),
 
       // The below are all coming from the platform: we can't do anything about them directly.
       "com.intellij.cidr.base" to
