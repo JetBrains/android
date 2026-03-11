@@ -34,10 +34,10 @@ import org.jetbrains.kotlin.idea.k2.refactoring.extractFunction.ExtractionGenera
 import org.jetbrains.kotlin.idea.k2.refactoring.extractFunction.ExtractionResult as K2ExtractionResult
 import org.jetbrains.kotlin.idea.k2.refactoring.extractFunction.KotlinFirExtractFunctionHandler
 import org.jetbrains.kotlin.idea.k2.refactoring.introduce.extractionEngine.ExtractionEngineHelper as K2ExtractionEngineHelper
+import org.jetbrains.kotlin.idea.k2.refactoring.introduceConstant.INTRODUCE_CONSTANT
 import org.jetbrains.kotlin.idea.k2.refactoring.introduceConstant.KotlinIntroduceConstantHandler as K2KotlinIntroduceConstantHandler
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractFunction.EXTRACT_FUNCTION
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractionEngine.ExtractionGeneratorOptions
-import org.jetbrains.kotlin.idea.refactoring.introduce.introduceConstant.INTRODUCE_CONSTANT
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

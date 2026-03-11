@@ -15,7 +15,7 @@
  */
 package org.jetbrains.kotlin.android
 
-
+import com.android.tools.idea.module.module
 import com.google.common.collect.ImmutableList
 import com.google.gson.JsonElement
 import com.google.gson.JsonNull
@@ -26,7 +26,9 @@ import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.ui.JBColor
 import com.intellij.util.ArrayUtil
-import org.jetbrains.kotlin.idea.base.util.module
+import java.util.ArrayList
+import java.util.HashMap
+import java.util.LinkedHashSet
 import org.jetbrains.kotlin.idea.completion.KOTLIN_CAST_REQUIRED_COLOR
 import org.jetbrains.kotlin.idea.core.completion.DeclarationLookupObject
 import org.jetbrains.kotlin.platform.TargetPlatform
