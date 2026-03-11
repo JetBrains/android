@@ -31,6 +31,8 @@ private object StudioTracingConfig : TracingConfigProvider {
     StudioFlags.STUDIO_TRACE_LIBRARY_ENABLED.get() && PropertiesComponent.getInstance().getBoolean(TRACING_ENABLED_KEY, false)
 
   override fun getTraceDirectory(): File = PathManager.getTempDir().toFile()
+
+  override fun getRingBufferCapacity(): Long = 20_000_000 // 20 MB trace file
 }
 
 /** Controller that manages the lifecycle and configuration of [Tracing] for Android Studio. */
@@ -38,14 +40,38 @@ class StudioTracingController : AppLifecycleListener {
 
   override fun appStarted() = initializeTracing()
 
-  override fun appWillBeClosed(isRestart: Boolean) = Tracing.close()
+  override fun appWillBeClosed(isRestart: Boolean) {
+    // Gracefully close tracing on a normal IDE exit.
+    // We only save the trace file when the shutdown hook (crash/force-kill) catches it.
+    Tracing.close(false)
+    try {
+      Runtime.getRuntime().removeShutdownHook(hook)
+    } catch (_: IllegalStateException) {
+      // Ignored: JVM is already shutting down
+    }
+  }
 
   companion object {
+    private val hook = Thread { Tracing.close(true) }
+    private var hookRegistered = false
+
     internal fun initializeTracing() {
       val log = thisLogger()
       studioTracingScope.launch(Dispatchers.IO) {
         Tracing.initialize(StudioTracingConfig)
         log.info("Tracing Driver initialized and ${if (StudioTracingConfig.isTracingEnabled()) "enabled" else "disabled"}.")
+      }
+
+      // Add a shutdown hook to ensure trace is flushed on process crash or termination.
+      if (!hookRegistered) {
+        try {
+          Runtime.getRuntime().addShutdownHook(hook)
+          hookRegistered = true
+        } catch (_: IllegalArgumentException) {
+          // Hook already registered
+        } catch (_: IllegalStateException) {
+          // JVM is shutting down
+        }
       }
     }
   }
