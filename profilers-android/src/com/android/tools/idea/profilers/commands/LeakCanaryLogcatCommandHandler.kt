@@ -290,7 +290,7 @@ class LeakCanaryLogcatCommandHandler(
 
   // Returns true if any event was sent, false otherwise.
   private fun detectAndHandleObjectRetainedAndAnalysis(logcatMessage: LogcatMessage): Boolean {
-    val retainedObjectsRegex = """Found (\d+) objects retained""".toRegex()
+    val retainedObjectsRegex = """Found (\d+) objects? retained""".toRegex()
     val analysisProgressRegex = """Analysis in progress, (\d+)% done""".toRegex()
     var handled = false
 

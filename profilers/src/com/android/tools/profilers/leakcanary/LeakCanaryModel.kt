@@ -289,7 +289,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
 
   private fun handleRetainedObject(analysis: Analysis): Boolean {
     if (analysis !is AnalysisUpdate) return false
-    val retainedObjectsRegex = """Found (\d+) objects retained""".toRegex()
+    val retainedObjectsRegex = """Found (\d+) objects? retained""".toRegex()
     return retainedObjectsRegex.find(analysis.message)?.let { matchResult ->
       matchResult.groupValues.getOrNull(1)?.toIntOrNull()?.let { count ->
         logger.info("LeakCanary: $count objects retained.")
