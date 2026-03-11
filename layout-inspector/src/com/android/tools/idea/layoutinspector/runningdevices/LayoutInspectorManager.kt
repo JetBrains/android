@@ -18,7 +18,7 @@ package com.android.tools.idea.layoutinspector.runningdevices
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
-import com.android.tools.idea.layoutinspector.runningdevices.ui.SelectedTabState
+import com.android.tools.idea.layoutinspector.runningdevices.ui.ActiveTabState
 import com.android.tools.idea.layoutinspector.runningdevices.ui.createTabComponents
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.core.DeviceId
@@ -80,8 +80,8 @@ internal class LayoutInspectorManagerImpl(private val project: Project) : Layout
       val tabsRemoved = field - value
 
       // check if the selected tab was removed
-      if (tabsRemoved.contains(selectedTab?.deviceId)) {
-        selectedTab = null
+      if (tabsRemoved.contains(activeTab?.deviceId)) {
+        activeTab = null
       }
 
       field = value
@@ -92,9 +92,9 @@ internal class LayoutInspectorManagerImpl(private val project: Project) : Layout
 
   /**
    * The tab on which Layout Inspector is running. The tab might not be visible. Layout Inspector keeps running in this tab until the tab is
-   * destroyed, or a new [selectedTab] is set.
+   * destroyed, or a new [activeTab] is set.
    */
-  private var selectedTab: SelectedTabState? = null
+  private var activeTab: ActiveTabState? = null
     set(value) {
       ApplicationManager.getApplication().assertIsDispatchThread()
       if (field == value) {
@@ -167,34 +167,34 @@ internal class LayoutInspectorManagerImpl(private val project: Project) : Layout
               // them into separate tool windows.
               // We don't want multiple selected tabs with Layout Inspector enabled because we
               // support running only one instance of Layout Inspector at a time.
-              tabsWithLayoutInspector = selectedTab?.deviceId?.let { setOf(it) } ?: emptySet()
+              tabsWithLayoutInspector = activeTab?.deviceId?.let { setOf(it) } ?: emptySet()
             } else {
               val newSelectedTab = selectedTabsWithLayoutInspector.firstOrNull()
 
-              if (newSelectedTab != null && newSelectedTab != selectedTab?.deviceId) {
+              if (newSelectedTab != null && newSelectedTab != activeTab?.deviceId) {
                 // There is a new selected tab and the new selected tab is different from the old selected tab
-                selectedTab = createTabState(newSelectedTab)
+                activeTab = createTabState(newSelectedTab)
               }
             }
           }
 
           override fun onExistingTabsChanged(existingTabs: List<DeviceId>) {
             existingRunningDevicesTabs = existingTabs
-            if (selectedTab != null && !existingTabs.contains(selectedTab!!.deviceId)) {
+            if (activeTab != null && !existingTabs.contains(activeTab!!.deviceId)) {
               // The selected tab doesn't exist anymore, we set selectedTab to null to disconnect layout inspector and release resources.
               // We keep the tab in tabsWithLayoutInspector so that it can be restored when the tab returns.
-              selectedTab = null
+              activeTab = null
             }
           }
         }
       )
   }
 
-  private fun createTabState(deviceId: DeviceId): SelectedTabState {
+  private fun createTabState(deviceId: DeviceId): ActiveTabState {
     val tabComponents = createTabComponents(project, deviceId)
 
     val layoutInspector = project.getLayoutInspector()
-    return SelectedTabState(
+    return ActiveTabState(
       disposable = tabComponents,
       project = project,
       deviceId = deviceId,
@@ -220,7 +220,7 @@ internal class LayoutInspectorManagerImpl(private val project: Project) : Layout
         }
       }
 
-      selectedTab?.let {
+      activeTab?.let {
         if (selectedRunningDevicesTabs.contains(it.deviceId)) {
           // We are enabling Layout Inspector on a new tab, but there is already a tab with Layout Inspector enabled.
           // Layout Inspector does not support concurrent sessions, so we disable it in the previous tab, before enabling in the new tab.
@@ -235,7 +235,7 @@ internal class LayoutInspectorManagerImpl(private val project: Project) : Layout
       }
 
       tabsWithLayoutInspector = tabsWithLayoutInspector + deviceId
-      selectedTab = createTabState(deviceId)
+      activeTab = createTabState(deviceId)
     } else {
       if (!tabsWithLayoutInspector.contains(deviceId)) {
         // do nothing if Layout Inspector is not enabled
@@ -243,15 +243,15 @@ internal class LayoutInspectorManagerImpl(private val project: Project) : Layout
       }
 
       tabsWithLayoutInspector = tabsWithLayoutInspector - deviceId
-      if (selectedTab?.deviceId == deviceId) {
-        selectedTab = null
+      if (activeTab?.deviceId == deviceId) {
+        activeTab = null
       }
     }
   }
 
   override fun isEnabled(deviceId: DeviceId): Boolean {
     ApplicationManager.getApplication().assertIsDispatchThread()
-    return selectedTab?.deviceId == deviceId
+    return activeTab?.deviceId == deviceId
   }
 
   override fun isSupported(deviceId: DeviceId): Boolean {
@@ -259,12 +259,12 @@ internal class LayoutInspectorManagerImpl(private val project: Project) : Layout
   }
 
   override fun dispose() {
-    selectedTab = null
+    activeTab = null
     tabsWithLayoutInspector = emptySet()
   }
 
   override fun disable() {
-    selectedTab = null
+    activeTab = null
     tabsWithLayoutInspector = emptySet()
   }
 }

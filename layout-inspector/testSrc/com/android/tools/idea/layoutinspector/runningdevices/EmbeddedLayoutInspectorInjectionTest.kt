@@ -33,7 +33,7 @@ import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
-import com.android.tools.idea.layoutinspector.runningdevices.ui.SelectedTabState
+import com.android.tools.idea.layoutinspector.runningdevices.ui.ActiveTabState
 import com.android.tools.idea.layoutinspector.runningdevices.ui.TabComponents
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.streaming.core.DeviceId
@@ -138,7 +138,7 @@ class EmbeddedLayoutInspectorInjectionTest {
     renderAndAssertImageSimilarity(panel, selectedTabState.tabComponents)
   }
 
-  private fun createUi(): Pair<DevicePanel<*>, SelectedTabState> {
+  private fun createUi(): Pair<DevicePanel<*>, ActiveTabState> {
     val panel = emulatorViewRule.newEmulatorToolWindowPanel()
 
     val context = createDataContext(panel.component, EMPTY_CONTEXT)
@@ -147,8 +147,8 @@ class EmbeddedLayoutInspectorInjectionTest {
 
     val tabComponents = TabComponents(disposable = panel, tabContentPanel = streamingContent!!, displayOwner = panel)
 
-    val selectedTabState =
-      SelectedTabState(
+    val activeTabState =
+      ActiveTabState(
         disposable = panel,
         project = project,
         deviceId = DeviceId.ofPhysicalDevice("0"),
@@ -156,7 +156,7 @@ class EmbeddedLayoutInspectorInjectionTest {
         layoutInspector = layoutInspector,
       )
 
-    return panel to selectedTabState
+    return panel to activeTabState
   }
 
   private fun renderAndAssertImageSimilarity(panel: DevicePanel<*>, tabComponents: TabComponents) {

@@ -34,7 +34,7 @@ class OnDeviceRenderingIntegrationTest {
       join(
         listOf(
           // Enable debug logging
-          "-Didea.log.debug.categories=#com.android.tools.idea.layoutinspector.LayoutInspector,com.android.tools.idea.layoutinspector.runningdevices.ui.SelectedTabState",
+          "-Didea.log.debug.categories=#com.android.tools.idea.layoutinspector.LayoutInspector,com.android.tools.idea.layoutinspector.runningdevices.ui.ActiveTabState",
           "-Dlayout.inspector.dynamic.layout.inspector.enable.auto.connect.foreground=true",
           "-Dlayout.inspector.dynamic.layout.inspector.enable.running.devices=true",
           "-Dlayout.inspector.dynamic.layout.inspector.on.device.rendering=true",

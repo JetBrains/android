@@ -57,10 +57,10 @@ import org.jetbrains.annotations.TestOnly
 private const val MULTIPLE_GLASSES_TAB_ID = "multiple.ai.glasses.tabs"
 private const val MULTIPLE_DISPLAYS_ID = "multiple.secondary.displays"
 
-private val logger = Logger.getInstance(SelectedTabState::class.java)
+private val logger = Logger.getInstance(ActiveTabState::class.java)
 
 /**
- * Represents the state of the selected tab.
+ * Represents the state of the selected tab on which Embedded Layout Inspector is enabled.
  *
  * @param deviceId The id of selected tab.
  * @param tabComponents The components of the selected tab.
@@ -68,7 +68,7 @@ private val logger = Logger.getInstance(SelectedTabState::class.java)
  *   tab can have multiple displays, in which case each display has its on [RenderingComponents].
  */
 @UiThread
-data class SelectedTabState(
+data class ActiveTabState(
   val disposable: Disposable,
   val project: Project,
   val deviceId: DeviceId,
@@ -131,7 +131,7 @@ data class SelectedTabState(
           }
 
           createRenderingComponents(
-            disposable = this@SelectedTabState,
+            disposable = this@ActiveTabState,
             displayList = displayList,
             layoutInspector = layoutInspector,
             aiGlassesData = aiGlassesData,

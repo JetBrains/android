@@ -69,7 +69,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
 
-class SelectedTabStateTest {
+class ActiveTabStateTest {
 
   @get:Rule val edtRule = EdtRule()
 
@@ -403,8 +403,8 @@ class SelectedTabStateTest {
     )
   }
 
-  private fun createSelectedTabState(tabComponents: TabComponents): SelectedTabState {
-    return SelectedTabState(
+  private fun createSelectedTabState(tabComponents: TabComponents): ActiveTabState {
+    return ActiveTabState(
       disposable = tabComponents,
       project = displayViewRule.project,
       deviceId = DeviceId.ofPhysicalDevice("tab"),
