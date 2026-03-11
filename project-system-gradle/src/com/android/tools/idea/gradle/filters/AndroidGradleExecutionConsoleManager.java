@@ -46,21 +46,19 @@ public class AndroidGradleExecutionConsoleManager extends GradleExecutionConsole
            task instanceof ExternalSystemResolveProjectTask;
   }
 
-  @Nullable
   @Override
-  public ExecutionConsole attachExecutionConsole(@NotNull Project project,
-                                                 @NotNull ExternalSystemTask task,
-                                                 @Nullable ExecutionEnvironment env,
-                                                 @Nullable ProcessHandler processHandler) {
+  protected @NotNull ConsoleView createConsoleView(@NotNull Project project,
+                                                   @NotNull ExternalSystemTask task,
+                                                   @Nullable ExecutionEnvironment env) {
     // Register AndroidReRunSyncFilter for Gradle Sync tasks.
     // The default filter calls refreshProject from ExternalSystemUtil, which corresponds to GradleSyncInvoker in Android Studio.
     if (task instanceof ExternalSystemResolveProjectTask) {
-      ConsoleView executionConsole = TextConsoleBuilderFactory.getInstance().createBuilder(project).getConsole();
-      executionConsole.attachToProcess(processHandler);
-      executionConsole.addMessageFilter(new AndroidReRunSyncFilter(((ExternalSystemResolveProjectTask)task).getExternalProjectPath()));
-      return executionConsole;
+      var console = TextConsoleBuilderFactory.getInstance().createBuilder(project).getConsole();
+      console.addMessageFilter(new AndroidReRunSyncFilter(((ExternalSystemResolveProjectTask)task).getExternalProjectPath()));
+      return console;
     }
-    return super.attachExecutionConsole(project, task, env, processHandler);
+
+    return super.createConsoleView(project, task, env);
   }
 
   @SuppressWarnings("UnstableApiUsage")
