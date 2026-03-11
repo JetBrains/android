@@ -15,6 +15,7 @@
  */
 package org.jetbrains.kotlin.android
 
+import com.android.tools.idea.module.module
 import com.google.common.collect.ImmutableList
 import com.google.gson.JsonElement
 import com.google.gson.JsonNull
