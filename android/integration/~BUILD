@@ -527,6 +527,7 @@ iml_test(
     },
     module = ":intellij.android.core.integration",
     tags = [
+        "noci:studio-win",  # Disabling due to b/491123352#comment4 and other instances of quota getting exhausted
         "studio-e2e-test",
     ],
     tags_linux = ["block-network"],
