@@ -34,6 +34,7 @@ import com.android.tools.idea.testing.JdkConstants.JDK_INVALID_PATH
 import com.google.common.truth.Expect
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.JAVA_HOME
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_JAVA_HOME
+import com.intellij.openapi.externalSystem.service.execution.InvalidJavaHomeException
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
@@ -84,13 +85,13 @@ class SingleGradleRootSyncUseStudioGradleJdkIntegrationTest {
     }
 
   @Test
-  fun `Given valid STUDIO_GRADLE_JDK and invalid JAVA_HOME env variables When import project Then sync used the STUDIO_GRADLE_JDK`() =
+  fun `Given valid STUDIO_GRADLE_JDK and invalid JAVA_HOME env variables When import project Then throw InvalidJavaHomeException`() =
     jdkIntegrationTest.run(
       project = SimpleApplication(ideaGradleJdk = USE_JAVA_HOME),
       environment =
         TestEnvironment(environmentVariables = mapOf(JAVA_HOME to JDK_INVALID_PATH, JDK_LOCATION_ENV_VARIABLE_NAME to JDK_17_PATH)),
     ) {
-      syncWithAssertion(expectedGradleJdkName = USE_JAVA_HOME, expectedProjectJdkName = JDK_17, expectedProjectJdkPath = JDK_17_PATH)
+      sync(assertOnFailure = { assertException(InvalidJavaHomeException::class) })
     }
 
   @Test
