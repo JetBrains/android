@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.emulator
 
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.annotations.concurrency.UiThread
+import com.android.emulator.control.BatteryState
 import com.android.emulator.control.CameraNotification
 import com.android.emulator.control.ClipData
 import com.android.emulator.control.DisplayConfiguration
@@ -27,7 +28,9 @@ import com.android.emulator.control.EmulatorControllerGrpc
 import com.android.emulator.control.EmulatorStatus
 import com.android.emulator.control.Environment
 import com.android.emulator.control.ExtendedControlsStatus
+import com.android.emulator.control.Fingerprint
 import com.android.emulator.control.FoldedDisplay
+import com.android.emulator.control.GpsState
 import com.android.emulator.control.Image
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.ImageFormat.ImgFormat
@@ -37,6 +40,8 @@ import com.android.emulator.control.MicrophoneState
 import com.android.emulator.control.MouseEvent
 import com.android.emulator.control.Notification
 import com.android.emulator.control.PaneEntry
+import com.android.emulator.control.ParameterValue
+import com.android.emulator.control.PhoneResponse
 import com.android.emulator.control.PhysicalModelValue
 import com.android.emulator.control.PhysicalModelValue.PhysicalType
 import com.android.emulator.control.Posture
@@ -44,6 +49,7 @@ import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.Rotation
 import com.android.emulator.control.Rotation.SkinRotation
 import com.android.emulator.control.RotationRadian
+import com.android.emulator.control.SmsMessage
 import com.android.emulator.control.SnapshotDetails
 import com.android.emulator.control.SnapshotFilter
 import com.android.emulator.control.SnapshotList
@@ -174,6 +180,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
   @Volatile private var clipboardStreamObserver: StreamObserver<ClipData>? = null
   @Volatile private var notificationStreamObserver: StreamObserver<Notification>? = null
   private var displays = listOf(DisplayConfiguration.newBuilder().setWidth(config.displayWidth).setHeight(config.displayHeight).build())
+  @Volatile
+  var batteryStatus: BatteryState = BatteryState.newBuilder().setChargeLevel(100).setStatus(BatteryState.BatteryStatus.CHARGING).build()
+  @Volatile var gpsLocation: GpsState = GpsState.newBuilder().setLatitude(0.0).setLongitude(0.0).setAltitude(0.0).build()
 
   @Volatile
   var devicePosture: PostureValue? = config.postures.lastOrNull()?.posture
@@ -638,6 +647,23 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
       }
     }
 
+    override fun getPhysicalModel(request: PhysicalModelValue, responseObserver: StreamObserver<PhysicalModelValue>) {
+      executor.execute {
+        val result =
+          when (request.target) {
+            PhysicalType.POSTURE -> {
+              val posture = devicePosture ?: PostureValue.POSTURE_OPENED
+              PhysicalModelValue.newBuilder()
+                .setTarget(PhysicalType.POSTURE)
+                .setValue(ParameterValue.newBuilder().addData(posture.number.toFloat()))
+                .build()
+            }
+            else -> PhysicalModelValue.getDefaultInstance()
+          }
+        sendResponse(responseObserver, result)
+      }
+    }
+
     override fun setXrOptions(request: XrOptions, responseObserver: StreamObserver<Empty>) {
       executor.execute {
         xrOptions = request
@@ -675,6 +701,43 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
         val response = EmulatorStatus.newBuilder().setUptime(System.currentTimeMillis() - startTime).setBooted(true).build()
         sendResponse(responseObserver, response)
       }
+    }
+
+    override fun getClipboard(request: Empty, responseObserver: StreamObserver<ClipData>) {
+      executor.execute {
+        val response = ClipData.newBuilder().setText(clipboardInternal.get()).build()
+        sendResponse(responseObserver, response)
+      }
+    }
+
+    override fun setBattery(request: BatteryState, responseObserver: StreamObserver<Empty>) {
+      executor.execute {
+        batteryStatus = request
+        sendEmptyResponse(responseObserver)
+      }
+    }
+
+    override fun getBattery(request: Empty, responseObserver: StreamObserver<BatteryState>) {
+      executor.execute { sendResponse(responseObserver, batteryStatus) }
+    }
+
+    override fun setGps(request: GpsState, responseObserver: StreamObserver<Empty>) {
+      executor.execute {
+        gpsLocation = request
+        sendEmptyResponse(responseObserver)
+      }
+    }
+
+    override fun getGps(request: Empty, responseObserver: StreamObserver<GpsState>) {
+      executor.execute { sendResponse(responseObserver, gpsLocation) }
+    }
+
+    override fun sendSms(request: SmsMessage, responseObserver: StreamObserver<PhoneResponse>) {
+      executor.execute { sendResponse(responseObserver, PhoneResponse.getDefaultInstance()) }
+    }
+
+    override fun sendFingerprint(request: Fingerprint, responseObserver: StreamObserver<Empty>) {
+      executor.execute { sendEmptyResponse(responseObserver) }
     }
 
     override fun setClipboard(request: ClipData, responseObserver: StreamObserver<Empty>) {
