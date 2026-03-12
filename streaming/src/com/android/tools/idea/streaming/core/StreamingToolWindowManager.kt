@@ -1006,7 +1006,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
         add(Separator.getInstance())
       }
 
-      val avds = getStartableVirtualDevices().sortedBy { it.displayNameWithApi }
+      val avds = getStartableVirtualDevices().sortedWith(compareBy( { it.displayName }, { it.androidVersion }))
       if (avds.isNotEmpty()) {
         add(Separator("Virtual Devices"))
         for (avd in avds) {
