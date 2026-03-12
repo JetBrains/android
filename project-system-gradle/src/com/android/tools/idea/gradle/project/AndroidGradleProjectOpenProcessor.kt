@@ -50,7 +50,14 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
     get() = "Android Gradle"
 
   override fun canOpenProject(file: VirtualFile): Boolean {
-    if (canImportAsGradleProject(file)) return true
+    // JetBrains patch: make sure to adapt this condition for future changes
+    if (!IdeInfo.getInstance().isAndroidStudio) {
+      if (!Registry.`is`("android.gradle.importer.enabled")) {
+        return false
+      }
+    }
+
+    if (GradleProjects.canImportAsGradleProject(file)) return true
 
     // Try again but refreshing the file system since this might not be updated b/460389443
     file.refresh(false, false)
