@@ -34,6 +34,7 @@ import javax.swing.JComponent
 import javax.swing.JRootPane
 import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.SwingUtilities
+import org.jetbrains.android.util.runOnDisposalOfAnyOf
 
 private const val HORIZONTAL_MARGIN = 20
 private const val VERTICAL_MARGIN = 8
@@ -123,7 +124,7 @@ internal class UiSettingsDialog(project: Project, model: UiSettingsModel, device
     window.addWindowFocusListener(windowListener)
 
     registerCleanup(disposable) { window.removeWindowFocusListener(windowListener) }
-    registerCleanup(parentDisposable) { close(OK_EXIT_CODE) }
+    runOnDisposalOfAnyOf(disposable, parentDisposable) { close(OK_EXIT_CODE) }
   }
 
   private fun registerCleanup(parent: Disposable, child: Disposable) {
