@@ -2914,8 +2914,10 @@ private fun <T> openPreparedProject(
   fun body(): T {
     val disposable = Disposer.newDisposable()
     try {
-      val project = run {
-        runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+      val projectScopedDisposable = Disposer.newDisposable()
+      // JetBrains: Reverted EDT handling to fix tests (e.g. ManifestPanelContentTest.testProject_dynamicApp)
+      val project = runInEdtAndGet {
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
         var afterCreateCalled = false
 
