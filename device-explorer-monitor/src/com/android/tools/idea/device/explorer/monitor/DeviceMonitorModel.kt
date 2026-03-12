@@ -17,7 +17,6 @@ package com.android.tools.idea.device.explorer.monitor
 
 import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.backup.BackupManager
 import com.android.tools.idea.device.explorer.common.DeviceExplorerSettings
 import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDevice
 import com.android.tools.idea.device.explorer.monitor.processes.DeviceProcessService
@@ -110,8 +109,7 @@ constructor(private val processService: DeviceProcessService, private val packag
   fun restoreApplication(project: Project, rows: IntArray) {
     val adbDevice = activeDevice ?: return
     assert(rows.size == 1)
-    val backupFile = BackupManager.getInstance(project).chooseRestoreFile() ?: return
-    processService.restoreApplication(project, adbDevice.device, backupFile)
+    processService.restoreApplication(project, adbDevice.device)
   }
 
   private suspend fun invokeOnProcessInfo(rows: IntArray, block: suspend (ProcessInfo) -> Unit) {

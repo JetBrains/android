@@ -108,7 +108,7 @@ internal constructor(
             reporter.onStep(Step(++step, steps, "Checking device..."))
             val result = checkDevice(serialNumber)
             if (result != null) {
-              project.showDialog(result)
+              project.showDialog(message("backup.app.action.error.title"), result)
               return@withContext null
             }
 
@@ -124,10 +124,10 @@ internal constructor(
             reporter.onStep(Step(++step, steps, "Detecting debuggable apps..."))
             val debuggableApps = backupService.getDebuggableApps(serialNumber)
             if (!debuggableApps.contains(appId)) {
-              project.showDialog(message("error.application.not.debuggable", appId))
+              project.showDialog(message("backup.app.action.error.title"), message("error.application.not.debuggable", appId))
               return@withContext null
             }
-            @Suppress("AssignedValueIsNeverRead") reporter.onStep(Step(++step, steps, "Checking apps..."))
+            reporter.onStep(Step(++step, steps, "Checking apps..."))
             val appIdToBackupEnabledMap =
               withContext(Default) {
                 debuggableApps.withIndex().associate { it.value to backupService.isBackupEnabled(serialNumber, it.value) }
@@ -166,6 +166,22 @@ internal constructor(
   override fun restoreModal(serialNumber: String, backupFile: Path, source: Source, notify: Boolean): BackupResult {
     // TODO(348406593): Find a way to make the modal dialog be switched to background task
     return runWithModalProgressBlocking(ModalTaskOwner.project(project), message("restore"), cancellable()) {
+      reportSequentialProgress { reporter ->
+        val listener = BackupProgressListener(reporter::onStep)
+        restore(serialNumber, backupFile, source, listener, notify)
+      }
+    }
+  }
+
+  @UiThread
+  override fun restoreModal(serialNumber: String, source: Source, notify: Boolean) {
+    return runWithModalProgressBlocking(ModalTaskOwner.project(project), message("restore"), cancellable()) {
+      val result = checkDevice(serialNumber)
+      if (result != null) {
+        project.showDialog(message("backup.app.action.error.title"), result)
+        return@runWithModalProgressBlocking
+      }
+      val backupFile = withContext(Dispatchers.EDT) { chooseRestoreFile() } ?: return@runWithModalProgressBlocking
       reportSequentialProgress { reporter ->
         val listener = BackupProgressListener(reporter::onStep)
         restore(serialNumber, backupFile, source, listener, notify)
@@ -387,8 +403,8 @@ internal constructor(
     }
   }
 
-  private fun Project.showDialog(message: String) {
-    dialogFactory.showDialog(this@showDialog, message("backup.app.action.error.title"), message)
+  private fun Project.showDialog(title: String, message: String) {
+    dialogFactory.showDialog(this@showDialog, title, message)
   }
 
   private class DialogData(val applicationId: String, val appIdToBackupEnabledMap: Map<String, Boolean>)
