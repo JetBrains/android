@@ -388,6 +388,10 @@ internal sealed class PairingState {
     override val heading: String = "Finishing pairing with $phoneName..."
   }
 
+  data class AwaitingForeground(val phoneName: String) : PairingState() {
+    override val heading: String = "Waiting for Companion app to move to the foreground on $phoneName"
+  }
+
   data class Error(override val heading: String, override val detailText: String, val logDetail: String? = null) : PairingState() {
     constructor(detailText: String) : this("Pairing failed.", detailText)
 
@@ -508,6 +512,9 @@ internal fun pairGlassesToPhone(glasses: DeviceHandle, phone: DeviceHandle, proj
       when (it) {
         PairingState.NotStarted,
         is PairingState.Pairing -> {}
+        is PairingState.AwaitingForeground -> {
+          logger.debug("Awaiting foreground of Companion app on $phoneName")
+        }
         is PairingState.Launching ->
           if (logger.isDebugEnabled) {
             logger.debug("Launching $phoneName and $glassesName: ${it.phoneState()};  ${it.glassesState()}")
@@ -565,7 +572,6 @@ private suspend fun FlowCollector<PairingState>.runPairingSequence(
     }
 
     if ((phoneDevice.getPairedBluetoothDeviceCount() ?: 0) > 0) {
-      phoneDevice.launchCompanionApp()
       try {
         phoneDevice.sendUnpairCommand()
       } catch (e: ShellCommandException) {}
@@ -621,6 +627,7 @@ private suspend fun FlowCollector<PairingState>.runPairingSequence(
           "UI_CDM_ASSOCIATING" -> emit(PairingState.AwaitingAuthorization(phoneName))
           "WORKER_CONNECTING" -> emit(PairingState.GlassesCoreConnecting(phoneName))
           "WORKER_GLASSES_CORE_CONNECTED" -> emit(PairingState.GlassesCoreConnected(phoneName))
+          AiGlassesPairing.AWAITING_FOREGROUND -> emit(PairingState.AwaitingForeground(phoneName))
           in AiGlassesPairing.TERMINAL_STATES ->
             emit(
               PairingState.Error(
@@ -647,6 +654,8 @@ private suspend fun FlowCollector<PairingState>.runPairingSequence(
                       GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ERROR_WORKER_CANCELLED)
                       "Pairing $glassesName with $phoneName was cancelled."
                     }
+                    "POLLING_FAILED" ->
+                      "Failed to detect the Companion app in the foreground or pairing state. Please make sure it is open and focused on $phoneName."
                     else -> "Error pairing $glassesName with $phoneName."
                   },
                 logDetail = pairingState,
