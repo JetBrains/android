@@ -363,6 +363,7 @@ java_library(
         ":base",
         "//tools/adt/idea/aswb/base/src/com/google/idea/blaze/base/command/buildresult/bepparser",
         "//tools/adt/idea/aswb/proto:proto_deps",
+        "//tools/adt/idea/aswb/querysync",
         "//tools/adt/idea/aswb/shared:artifact",
         "//tools/adt/idea/aswb/shared:exception",
         "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common",

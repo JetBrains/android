@@ -9,6 +9,7 @@ package(default_visibility = [
     "//tools/adt/idea/aswb/querysync/javatests:__subpackages__",
     "//tools/vendor/google3/aswb/java/com/google/devtools/intellij/blaze/plugin:__subpackages__",
     "//tools/vendor/google3/aswb/java/com/google/devtools/intellij/g3plugins/citc:__subpackages__",
+    "//tools/vendor/google3/aswb/java/com/google/devtools/intellij/g3plugins/languages:__subpackages__",
     "//tools/vendor/google3/aswb/java/com/google/devtools/intellij/g3plugins/services:__subpackages__",
     "//tools/vendor/google3/aswb/java/com/google/devtools/intellij/protobuf:__subpackages__",
     "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij:__subpackages__",
@@ -20,6 +21,7 @@ java_library(
     exports = [
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts:build_artifact_java_proto",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/cc",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/cc:cc_compilation_info_java_proto",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps",

@@ -3,18 +3,13 @@ load("//tools/base/bazel:proto.bzl", "java_proto_library")
 
 package(default_visibility = [
     "//tools/adt/idea/aswb/querysync:__subpackages__",
-    "//tools/vendor/google3/aswb/java/com/google/devtools/intellij/blaze/plugin/aswb:__pkg__",
-    "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/blaze/plugin/aswb:__subpackages__",
 ])
 
 java_proto_library(
     name = "language_class_java_proto",
     srcs = ["language_class.proto"],
     visibility = [
-        "//tools/adt/idea/aswb/base:__subpackages__",
-        "//tools/adt/idea/aswb/cpp:__subpackages__",
         "//tools/adt/idea/aswb/querysync:__subpackages__",
-        "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/blaze/plugin/aswb:__subpackages__",
     ],
 )
 
@@ -39,11 +34,7 @@ aswb_library(
         "*.kt",
     ]),
     visibility = [
-        "//tools/adt/idea/aswb/base:__subpackages__",
-        "//tools/adt/idea/aswb/cpp:__subpackages__",
         "//tools/adt/idea/aswb/querysync:__subpackages__",
-        "//tools/vendor/google3/aswb/java/com/google/devtools/intellij/g3plugins/languages/protoeditor:__subpackages__",
-        "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/blaze/plugin/aswb:__subpackages__",
     ],
     deps = [
         ":language_class_java_proto",

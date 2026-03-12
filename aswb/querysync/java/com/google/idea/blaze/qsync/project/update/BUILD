@@ -1,7 +1,7 @@
 load("//tools/adt/idea/aswb/build_defs:build_defs.bzl", "aswb_library")
 load("//tools/base/bazel:proto.bzl", "java_proto_library")
 
-package(default_visibility = ["//visibility:public"])
+package(default_visibility = ["//tools/adt/idea/aswb/querysync:__subpackages__"])
 
 aswb_library(
     name = "update",
