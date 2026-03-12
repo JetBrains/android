@@ -29,6 +29,7 @@ import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.src.base
 import com.android.tools.idea.run.configuration.AndroidBaselineProfileRunConfiguration
 import com.android.tools.idea.run.configuration.AndroidBaselineProfileRunConfigurationType
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
+import com.android.tools.idea.wizard.template.DslLanguage
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
@@ -52,7 +53,7 @@ const val MACROBENCHMARK_MIN_REV = "1.2.4"
 
 fun RecipeExecutor.generateBaselineProfilesModule(
   newModule: ModuleTemplateData,
-  useGradleKts: Boolean,
+  dslLanguage: DslLanguage,
   targetModule: Module,
   useGmd: Boolean,
   useVersionCatalog: Boolean = true,
@@ -82,13 +83,13 @@ fun RecipeExecutor.generateBaselineProfilesModule(
 
   createModule(
     newModule = newModule,
-    useGradleKts = useGradleKts,
+    dslLanguage = dslLanguage,
     macrobenchmarkMinRev = MACROBENCHMARK_MIN_REV,
     buildGradleContent =
       baselineProfilesBuildGradle(
         newModule = newModule,
         flavors = flavors,
-        useGradleKts = useGradleKts,
+        dslLanguage = dslLanguage,
         targetModule = targetModule,
         useGmd = gmdSpec,
         useInstrumentationArgumentForAppId = useInstrumentationArgumentForAppId,

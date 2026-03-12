@@ -248,7 +248,7 @@ private constructor(
           minSdk = androidSdkInfo.valueOrNull?.minSdk?.majorVersion,
           targetSdk = androidSdkInfo.valueOrNull?.compileSdk?.majorVersion,
           bytecodeLevel = (moduleModelData as? NewAndroidModuleModel)?.bytecodeLevel?.valueOrNull,
-          useGradleKts = useGradleKts.get(),
+          dslLanguage = dslLanguage.get(),
           useAppCompat = false,
         )
 

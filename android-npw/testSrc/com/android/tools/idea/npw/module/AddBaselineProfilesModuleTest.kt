@@ -29,6 +29,8 @@ import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.findModule
 import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.wizard.template.DslLanguage
+import com.android.tools.idea.wizard.template.DslLanguage.GROOVY
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
@@ -54,7 +56,7 @@ class AddBaselineProfilesModuleTest(private val useGmdParam: Boolean) {
   companion object {
     @JvmStatic @Parameterized.Parameters(name = "useGmdParam={0}") fun data(): List<Array<Any>> = listOf(arrayOf(true), arrayOf(false))
 
-    fun addNewBaselineProfilesModule(projectRule: AndroidGradleProjectRule, useGmdParam: Boolean, useGradleKtsParam: Boolean) {
+    fun addNewBaselineProfilesModule(projectRule: AndroidGradleProjectRule, useGmdParam: Boolean, language: DslLanguage) {
       projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE, agpVersion = getAgpVersion())
 
       val project = projectRule.project
@@ -62,7 +64,7 @@ class AddBaselineProfilesModuleTest(private val useGmdParam: Boolean) {
         NewBaselineProfilesModuleModel(project = project, moduleParent = ":", projectSyncInvoker = emptyProjectSyncInvoker).apply {
           androidSdkInfo.value = AndroidVersionsInfo.VersionItem.fromStableVersion(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API)
           targetModule.value = project.findAppModule()
-          useGradleKts.set(useGradleKtsParam)
+          dslLanguage.set(language)
           useGmd.set(useGmdParam)
           agpVersionSelector.set(AgpVersionSelector.FixedVersion(GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project)!!))
         }
@@ -87,7 +89,7 @@ class AddBaselineProfilesModuleTest(private val useGmdParam: Boolean) {
 
   @Test
   fun addNewBaselineProfilesModuleTest() {
-    addNewBaselineProfilesModule(projectRule, useGmdParam, false)
+    addNewBaselineProfilesModule(projectRule, useGmdParam, GROOVY)
   }
 }
 

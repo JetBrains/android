@@ -17,6 +17,8 @@ package com.android.tools.idea.npw.builder
 
 import com.android.SdkConstants
 import com.android.tools.idea.npw.builders.GradleSettingsBuilder
+import com.android.tools.idea.wizard.template.DslLanguage.GROOVY
+import com.android.tools.idea.wizard.template.DslLanguage.KTS
 import java.net.URI
 import java.net.URL
 import kotlin.test.assertEquals
@@ -30,31 +32,31 @@ class GradleSettingsBuilderTest {
 
   @Test(expected = IllegalArgumentException::class)
   fun testBuildGradleSettingsWithProjectNameUsingBackslashResultsOnException() {
-    GradleSettingsBuilder("\\", false) {}
+    GradleSettingsBuilder("\\", GROOVY) {}
   }
 
   @Test
   fun testBuildGradleSettingsWithJustProjectName() {
-    val gradleSettings = GradleSettingsBuilder("test", false) {}.build()
+    val gradleSettings = GradleSettingsBuilder("test", GROOVY) {}.build()
     assertEquals("rootProject.name = \"test\"", gradleSettings)
   }
 
   @Test
   fun testBuildGradleSettingsWithProjectNameUsingSpecialCharacters() {
-    val gradleSettings = GradleSettingsBuilder("My 'App' \$", false) {}.build()
+    val gradleSettings = GradleSettingsBuilder("My 'App' \$", GROOVY) {}.build()
     assertEquals("rootProject.name = \"My \\'App\\' \\$\"", gradleSettings)
   }
 
   @Test
   fun testBuildKotlinGradleSettingsWithProjectNameUsingSpecialCharacters() {
-    val gradleSettings = GradleSettingsBuilder("My 'App' \$", true) {}.build()
+    val gradleSettings = GradleSettingsBuilder("My 'App' \$", KTS) {}.build()
     assertEquals("rootProject.name = \"My \\'App\\' \\$\"", gradleSettings)
   }
 
   @Test
   fun testBuildGroovyGradleSettings() {
     val gradleSettings =
-      GradleSettingsBuilder("groovyProject", false) {
+      GradleSettingsBuilder("groovyProject", GROOVY) {
           withDependencyResolutionManagement(listOfUrls("https://www.example.com/1"))
           withFoojayPlugin(gradleVersion)
           withPluginManager(listOfUrls("https://www.example.com/2"))
@@ -97,7 +99,7 @@ rootProject.name = "groovyProject""""
   @Test
   fun testBuildKotlinGradleSettings() {
     val gradleSettings =
-      GradleSettingsBuilder("kotlinProject", true) {
+      GradleSettingsBuilder("kotlinProject", KTS) {
           withDependencyResolutionManagement(listOfUrls("https://www.example.com/1", "https://www.example.com/2"))
           withFoojayPlugin(gradleVersion)
           withPluginManager(listOfUrls("https://www.example.com/3", "https://www.example.com/4"))

@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.project.importing.GradleJdkConfigurationIni
 import com.android.tools.idea.gradle.toolchain.GradleDaemonJvmCriteriaTemplatesManager
 import com.android.tools.idea.gradle.util.AGP_BUILT_IN_KOTLIN_VERSION
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
-import com.android.tools.idea.observable.core.BoolValueProperty
+import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidGradleTests
@@ -33,6 +33,8 @@ import com.android.tools.idea.testing.AndroidGradleTests.getLocalRepositoriesFor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.DslLanguage
+import com.android.tools.idea.wizard.template.DslLanguage.GROOVY
+import com.android.tools.idea.wizard.template.DslLanguage.KTS
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.intellij.openapi.progress.ProgressIndicator
@@ -108,7 +110,7 @@ class NewProjectTemplateRendererTest {
 
   @Test
   fun `Given gradle version with toolchain as default When create project using KTS Then Foojay plugin and Daemon JVM criteria are defined`() {
-    val render = createNewProjectTemplateRender("9.2.0", useGradleKts = true)
+    val render = createNewProjectTemplateRender("9.2.0", dslLanguage = KTS)
     multiTemplateRenderer.requestRender(render)
 
     assertFoojayPlugin(true)
@@ -117,7 +119,7 @@ class NewProjectTemplateRendererTest {
 
   @Test
   fun `Given gradle version with toolchain as default When create project not using KTS Then Foojay plugin and Daemon JVM criteria are defined`() {
-    val render = createNewProjectTemplateRender("9.2.1", useGradleKts = true)
+    val render = createNewProjectTemplateRender("9.2.1", dslLanguage = KTS)
     multiTemplateRenderer.requestRender(render)
 
     assertFoojayPlugin(true)
@@ -141,7 +143,7 @@ class NewProjectTemplateRendererTest {
 
     // Using version of Gradle that doesn't generate the download URLs when executing updateDaemonJvm task that's
     // because 'foojay-resolver' plugin requires to access 'api.foojay.io' host which will fail when running from bazel
-    val render = createNewProjectTemplateRender("8.11.1", removeFoojayPlugin = true, useGradleKts = false)
+    val render = createNewProjectTemplateRender("8.11.1", removeFoojayPlugin = true, dslLanguage = GROOVY)
     multiTemplateRenderer.requestRender(render)
 
     assertBasicGradleDaemonJvmCriteria(17, "tencent")
@@ -150,7 +152,7 @@ class NewProjectTemplateRendererTest {
   private fun createNewProjectTemplateRender(
     gradleVersionString: String,
     removeFoojayPlugin: Boolean = false,
-    useGradleKts: Boolean = false,
+    dslLanguage: DslLanguage = GROOVY,
   ): NewProjectModel.ProjectTemplateRenderer {
     val gradleVersion = GradleVersion.version(gradleVersionString)
     val newProjectModel = spy(NewProjectModel())
@@ -162,13 +164,13 @@ class NewProjectTemplateRendererTest {
     doReturn(projectTemplateData).whenever(projectTemplateDataBuilder).build()
     doReturn(StringValueProperty(projectBasePath)).whenever(newProjectModel).projectLocation
     doReturn(projectTemplateDataBuilder).whenever(newProjectModel).projectTemplateDataBuilder
-    doReturn(BoolValueProperty(useGradleKts)).whenever(newProjectModel).useGradleKts
+    doReturn(ObjectValueProperty(dslLanguage)).whenever(newProjectModel).dslLanguage
     doAnswer {
         withGradleSettings {
           if (removeFoojayPlugin) {
             removeTemplateFoojayPluginDefinition()
           } else {
-            addTemplateLocalRepositoriesToResolveFoojayPlugin(useGradleKts)
+            addTemplateLocalRepositoriesToResolveFoojayPlugin(dslLanguage.isKts)
           }
         }
         it.callRealMethod()
@@ -235,9 +237,9 @@ class NewProjectTemplateRendererTest {
     Files.writeString(gradleSettings.toPath(), gradleSettingsBuilder.toString())
   }
 
-  private fun StringBuilder.addTemplateLocalRepositoriesToResolveFoojayPlugin(useGradleKts: Boolean) {
+  private fun StringBuilder.addTemplateLocalRepositoriesToResolveFoojayPlugin(isKts: Boolean) {
     val localRepositories =
-      if (useGradleKts) {
+      if (isKts) {
         getLocalRepositoriesForKotlin(listOf<File>())
       } else {
         getLocalRepositoriesForGroovy(listOf<File>())

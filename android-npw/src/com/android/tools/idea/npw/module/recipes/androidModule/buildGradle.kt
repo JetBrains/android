@@ -21,12 +21,13 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.npw.module.recipes.androidConfig
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 import com.android.tools.idea.wizard.template.CppStandardType
+import com.android.tools.idea.wizard.template.DslLanguage
 import com.android.tools.idea.wizard.template.TemplateKotlinSupport
 import com.android.tools.idea.wizard.template.renderIf
 
 fun buildGradle(
   agpVersion: AgpVersion,
-  isKts: Boolean,
+  dslLanguage: DslLanguage,
   isLibraryProject: Boolean,
   isDynamicFeature: Boolean,
   /** The application ID; also used for the namespace. */
@@ -45,6 +46,8 @@ fun buildGradle(
   hasCode: Boolean = true,
   kotlinSupport: TemplateKotlinSupport,
 ): String {
+  val isKts = dslLanguage.isKts
+
   val androidConfigBlock =
     androidConfig(
       agpVersion = agpVersion,

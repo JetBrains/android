@@ -49,6 +49,7 @@ import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.model.WizardModel
+import com.android.tools.idea.wizard.template.DslLanguage
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.Language.Java
 import com.android.tools.idea.wizard.template.Language.Kotlin
@@ -106,7 +107,7 @@ interface ProjectModelData {
   val applicationName: StringProperty
   val packageName: StringProperty
   val projectLocation: StringProperty
-  val useGradleKts: BoolProperty
+  val dslLanguage: ObjectValueProperty<DslLanguage>
   val useVersionCatalog: BoolProperty
   val viewBindingSupport: OptionalValueProperty<ViewBindingSupport>
   var project: Project
@@ -125,7 +126,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val applicationName = StringValueProperty("My Application")
   override val packageName = StringValueProperty()
   override val projectLocation = StringValueProperty()
-  override val useGradleKts = BoolValueProperty()
+  override val dslLanguage = ObjectValueProperty<DslLanguage>(DslLanguage.KTS)
   override val useVersionCatalog = BoolValueProperty(true)
   // We can assume this is true for a new project because View binding is supported from AGP 3.6+
   override val viewBindingSupport = OptionalValueProperty<ViewBindingSupport>(ViewBindingSupport.SUPPORTED_4_0_MORE)
@@ -308,7 +309,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
           data = data as ProjectTemplateData,
           appTitle = applicationName.get(),
           language = language.value,
-          useGradleKts = useGradleKts.get(),
+          dslLanguage = dslLanguage.get(),
         )
       }
 

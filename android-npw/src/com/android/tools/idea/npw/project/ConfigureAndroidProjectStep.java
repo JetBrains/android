@@ -66,6 +66,7 @@ import com.android.tools.idea.ui.validation.validators.StringPathValidator;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewProject;
+import com.android.tools.idea.wizard.template.DslLanguage;
 import com.android.tools.idea.wizard.template.FormFactor;
 import com.android.tools.idea.wizard.template.Language;
 import com.android.tools.idea.wizard.template.Template;
@@ -215,15 +216,15 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myBindings.bindTwoWay(new SelectedItemProperty<>(myProjectLanguage), myProjectModel.getLanguage());
     myBindings.bindTwoWay(new SelectedProperty(myLaunchFirebaseCheckbox), myProjectModel.getLaunchFirebaseWizard());
 
-    myBuildConfigurationLanguageCombo.addItem(BuildConfigurationLanguageForNewProject.KTS);
-    myBuildConfigurationLanguageCombo.addItem(BuildConfigurationLanguageForNewProject.Groovy);
-    myBindings.bind(myProjectModel.getUseGradleKts(), new TransformOptionalExpression<BuildConfigurationLanguageForNewProject, Boolean>(true, new SelectedItemProperty<>(myBuildConfigurationLanguageCombo)) {
-      @NotNull
-      @Override
-      protected Boolean transform(@NotNull BuildConfigurationLanguageForNewProject value) {
-          return value.getUseKts();
-        }
-      });
+      myBuildConfigurationLanguageCombo.addItem(BuildConfigurationLanguageForNewProject.KTS);
+      myBuildConfigurationLanguageCombo.addItem(BuildConfigurationLanguageForNewProject.Groovy);
+      myBindings.bind(myProjectModel.getDslLanguage(), new SelectedItemProperty<>(myBuildConfigurationLanguageCombo).transform(
+        selection -> selection.map(value -> switch (value) {
+          case BuildConfigurationLanguageForNewProject.KTS -> DslLanguage.KTS;
+          case BuildConfigurationLanguageForNewProject.Groovy -> DslLanguage.GROOVY;
+          default -> DslLanguage.KTS;
+        }).orElse(DslLanguage.KTS)
+      ));
 
     if ((StudioFlags.NPW_SHOW_AGP_VERSION_COMBO_BOX.get() && !ApplicationManager.getApplication().isUnitTestMode()) ||
         (StudioFlags.NPW_SHOW_AGP_VERSION_COMBO_BOX_EXPERIMENTAL_SETTING.get() &&

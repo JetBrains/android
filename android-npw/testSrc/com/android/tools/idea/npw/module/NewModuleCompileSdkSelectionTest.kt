@@ -27,6 +27,7 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.withCompileSdk
 import com.android.tools.idea.wizard.template.Category
+import com.android.tools.idea.wizard.template.DslLanguage.KTS
 import com.android.tools.idea.wizard.template.FormFactor
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
@@ -78,7 +79,7 @@ class NewModuleCompileSdkSelectionTest {
     model.moduleName.set(TEST_LIBRARY_NAME)
     model.template.set(createDefaultModuleTemplate(projectRule.project, TEST_LIBRARY_NAME))
     model.packageName.set("com.example")
-    model.useGradleKts.set(true)
+    model.dslLanguage.set(KTS)
     model.handleFinished()
   }
 

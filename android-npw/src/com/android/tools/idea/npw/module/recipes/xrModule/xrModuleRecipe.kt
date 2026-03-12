@@ -23,13 +23,14 @@ import com.android.tools.idea.npw.module.recipes.generateCommonModule
 import com.android.tools.idea.npw.module.recipes.generateManifest
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.CppStandardType
+import com.android.tools.idea.wizard.template.DslLanguage
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 
 fun RecipeExecutor.generateXRModule(
   data: ModuleTemplateData,
   appTitle: String,
-  useKts: Boolean,
+  dslLanguage: DslLanguage,
   enableCpp: Boolean = false,
   cppStandard: CppStandardType = CppStandardType.`Toolchain Default`,
   useVersionCatalog: Boolean = true,
@@ -39,7 +40,7 @@ fun RecipeExecutor.generateXRModule(
   generateCommonModule(
     data = data,
     appTitle = appTitle,
-    useKts = useKts,
+    dslLanguage = dslLanguage,
     manifestXml =
       generateManifest(
         hasApplicationBlock = !data.isLibrary,

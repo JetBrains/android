@@ -32,6 +32,7 @@ import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.prepareGradleProject
+import com.android.tools.idea.wizard.template.DslLanguage.GROOVY
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
@@ -94,11 +95,11 @@ abstract class ProjectRenderer(protected val template: Template, val goldenDirNa
         // TODO(qumeric): support C++
         FormFactor.XR,
         FormFactor.AiGlasses,
-        FormFactor.Mobile -> { data: TemplateData -> this.generateAndroidModule(data as ModuleTemplateData, appTitle, false) }
-        FormFactor.Wear -> { data: TemplateData -> this.generateWearModule(data as ModuleTemplateData, appTitle, false) }
-        FormFactor.Tv -> { data: TemplateData -> this.generateTvModule(data as ModuleTemplateData, appTitle, false) }
-        FormFactor.Car -> { data: TemplateData -> this.generateAutomotiveModule(data as ModuleTemplateData, appTitle, false) }
-        FormFactor.Generic -> { data: TemplateData -> this.generatePureLibrary(data as ModuleTemplateData, "LibraryTemplate", false) }
+        FormFactor.Mobile -> { data: TemplateData -> this.generateAndroidModule(data as ModuleTemplateData, appTitle, GROOVY) }
+        FormFactor.Wear -> { data: TemplateData -> this.generateWearModule(data as ModuleTemplateData, appTitle, GROOVY) }
+        FormFactor.Tv -> { data: TemplateData -> this.generateTvModule(data as ModuleTemplateData, appTitle, GROOVY) }
+        FormFactor.Car -> { data: TemplateData -> this.generateAutomotiveModule(data as ModuleTemplateData, appTitle, GROOVY) }
+        FormFactor.Generic -> { data: TemplateData -> this.generatePureLibrary(data as ModuleTemplateData, "LibraryTemplate", GROOVY) }
       }
 
     val context =

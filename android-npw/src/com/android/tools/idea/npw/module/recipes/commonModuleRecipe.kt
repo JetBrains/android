@@ -17,13 +17,12 @@ package com.android.tools.idea.npw.module.recipes
 
 import com.android.SdkConstants
 import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
-import com.android.SdkConstants.FN_BUILD_GRADLE
-import com.android.SdkConstants.FN_BUILD_GRADLE_KTS
 import com.android.tools.idea.npw.module.recipes.androidModule.buildGradle
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleColors
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleStrings
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleThemes
 import com.android.tools.idea.wizard.template.CppStandardType
+import com.android.tools.idea.wizard.template.DslLanguage
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
@@ -38,7 +37,7 @@ enum class IconsGenerationStyle {
 fun RecipeExecutor.generateCommonModule(
   data: ModuleTemplateData,
   appTitle: String?, // may be null only for libraries
-  useKts: Boolean,
+  dslLanguage: DslLanguage,
   manifestXml: String,
   generateGenericLocalTests: Boolean = false,
   generateGenericInstrumentedTests: Boolean = false,
@@ -65,12 +64,10 @@ fun RecipeExecutor.generateCommonModule(
   createDirectory(srcOut)
   addIncludeToSettings(data.name)
 
-  val buildFile = if (useKts) FN_BUILD_GRADLE_KTS else FN_BUILD_GRADLE
-
   save(
     buildGradle(
       agpVersion,
-      useKts,
+      dslLanguage,
       isLibraryProject,
       data.isDynamic,
       applicationId = data.namespace,
@@ -86,7 +83,7 @@ fun RecipeExecutor.generateCommonModule(
       hasCode = hasCode,
       kotlinSupport = projectData.kotlinSupport,
     ),
-    moduleOut.resolve(buildFile),
+    moduleOut.resolve(dslLanguage.buildFileName),
   )
   addCompileSdk(apis.buildApi)
 

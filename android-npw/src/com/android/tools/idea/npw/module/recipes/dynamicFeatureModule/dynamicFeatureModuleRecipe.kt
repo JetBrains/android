@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.npw.module.recipes.dynamicFeatureModule
 
-import com.android.SdkConstants
 import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
-import com.android.SdkConstants.FN_BUILD_GRADLE
 import com.android.tools.idea.npw.dynamicapp.DeviceFeatureModel
 import com.android.tools.idea.npw.dynamicapp.DownloadInstallKind
 import com.android.tools.idea.npw.model.NewProjectModel
@@ -28,6 +26,7 @@ import com.android.tools.idea.npw.module.recipes.addTestDependencies
 import com.android.tools.idea.npw.module.recipes.androidModule.buildGradle
 import com.android.tools.idea.npw.module.recipes.dynamicFeatureModule.res.values.stringsXml
 import com.android.tools.idea.npw.module.recipes.gitignore
+import com.android.tools.idea.wizard.template.DslLanguage
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
@@ -38,7 +37,7 @@ fun RecipeExecutor.generateDynamicFeatureModule(
   fusing: Boolean,
   downloadInstallKind: DownloadInstallKind,
   deviceFeatures: Collection<DeviceFeatureModel>,
-  useGradleKts: Boolean,
+  dslLanguage: DslLanguage,
   useVersionCatalog: Boolean,
 ) {
   val (projectData, srcOut, _, manifestOut, instrumentedTestOut, localTestOut, _, moduleOut) = moduleData
@@ -56,11 +55,11 @@ fun RecipeExecutor.generateDynamicFeatureModule(
   createDirectory(srcOut)
   addIncludeToSettings(name)
 
-  val buildFile = if (useGradleKts) SdkConstants.FN_BUILD_GRADLE_KTS else FN_BUILD_GRADLE
+  val buildFile = dslLanguage.buildFileName
   save(
     buildGradle(
       projectData.agpVersion,
-      useGradleKts,
+      dslLanguage = dslLanguage,
       isLibraryProject = false,
       isDynamicFeature = true,
       applicationId = moduleData.namespace,

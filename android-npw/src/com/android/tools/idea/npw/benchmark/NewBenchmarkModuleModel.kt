@@ -69,13 +69,13 @@ class NewBenchmarkModuleModel(project: Project, moduleParent: String, projectSyn
             MICROBENCHMARK ->
               generateBenchmarkModule(
                 moduleData = td as ModuleTemplateData,
-                useGradleKts = useGradleKts.get(),
+                dslLanguage = dslLanguage.get(),
                 useVersionCatalog = useVersionCatalog.get(),
               )
             MACROBENCHMARK ->
               generateMacrobenchmarkModule(
                 newModule = td as ModuleTemplateData,
-                useGradleKts = useGradleKts.get(),
+                dslLanguage = dslLanguage.get(),
                 targetModule = targetModule.value,
                 useVersionCatalog = useVersionCatalog.get(),
               )

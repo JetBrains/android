@@ -66,7 +66,7 @@ class NewBaselineProfilesModuleModel(project: Project, moduleParent: String, pro
           get() = {
             generateBaselineProfilesModule(
               newModule = it as ModuleTemplateData,
-              useGradleKts = useGradleKts.get(),
+              dslLanguage = dslLanguage.get(),
               useGmd = useGmd.get(),
               targetModule = targetModule.value,
               useVersionCatalog = useVersionCatalog.get(),

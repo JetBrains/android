@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.npw.module.recipes.benchmarkModule
 
-import com.android.SdkConstants.FN_BUILD_GRADLE
-import com.android.SdkConstants.FN_BUILD_GRADLE_KTS
 import com.android.tools.idea.npw.module.recipes.addKotlinIfNeeded
 import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.androidTest.androidManifestXml as testAndroidManifestXml
 import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.androidTest.exampleBenchmarkJava
 import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.androidTest.exampleBenchmarkKt
 import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.main.androidManifestXml
 import com.android.tools.idea.npw.module.recipes.gitignore
+import com.android.tools.idea.wizard.template.DslLanguage
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
@@ -30,7 +29,7 @@ import com.android.tools.idea.wizard.template.RecipeExecutor
 private const val minRev = "1.2.4"
 private const val exampleBenchmarkName = "ExampleBenchmark"
 
-fun RecipeExecutor.generateBenchmarkModule(moduleData: ModuleTemplateData, useGradleKts: Boolean, useVersionCatalog: Boolean) {
+fun RecipeExecutor.generateBenchmarkModule(moduleData: ModuleTemplateData, dslLanguage: DslLanguage, useVersionCatalog: Boolean) {
   val projectData = moduleData.projectTemplateData
   val testOut = moduleData.testDir
   val packageName = moduleData.packageName
@@ -49,9 +48,9 @@ fun RecipeExecutor.generateBenchmarkModule(moduleData: ModuleTemplateData, useGr
       minApi = minApi,
       targetApi = targetApi,
       agpVersion = projectData.agpVersion,
-      useGradleKts = useGradleKts,
+      dslLanguage = dslLanguage,
     )
-  val buildFile = if (useGradleKts) FN_BUILD_GRADLE_KTS else FN_BUILD_GRADLE
+  val buildFile = dslLanguage.buildFileName
 
   save(bg, moduleOut.resolve(buildFile))
   addCompileSdk(buildApi)

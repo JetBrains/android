@@ -23,6 +23,7 @@ import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 import com.android.tools.idea.npw.module.recipes.minSdk
 import com.android.tools.idea.npw.module.recipes.targetSdk
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
+import com.android.tools.idea.wizard.template.DslLanguage
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.TemplateKotlinSupport
 import com.android.tools.idea.wizard.template.renderIf
@@ -34,7 +35,7 @@ private val BENCHMARK_MIN_API = AndroidMajorVersion(28)
 fun baselineProfilesBuildGradle(
   newModule: ModuleTemplateData,
   flavors: ProductFlavorsWithDimensions,
-  useGradleKts: Boolean,
+  dslLanguage: DslLanguage,
   targetModule: Module,
   useGmd: GmdSpec?,
   useInstrumentationArgumentForAppId: Boolean,
@@ -45,15 +46,15 @@ fun baselineProfilesBuildGradle(
   val agpVersion = newModule.projectTemplateData.agpVersion
   // TODO(b/149203281): Fix support for composite builds.
   val targetModuleGradlePath = targetModule.getGradleProjectPath()?.path
-  val flavorsConfiguration = flavorsConfigurationsBuildGradle(flavors, useGradleKts)
+  val flavorsConfiguration = flavorsConfigurationsBuildGradle(flavors, dslLanguage)
 
   val addTargetAppIdAsInstrumentationArgumentBlock =
     if (useInstrumentationArgumentForAppId) {
       """
 
       androidComponents {
-          onVariants${if (useGradleKts) "" else "(selector().all())"} {  v ->
-              ${if (useGradleKts) "val" else "def"} artifactsLoader = v.artifacts.getBuiltArtifactsLoader()
+          onVariants${if (dslLanguage.isKts) "" else "(selector().all())"} {  v ->
+              ${if (dslLanguage.isKts) "val" else "def"} artifactsLoader = v.artifacts.getBuiltArtifactsLoader()
               v.instrumentationRunnerArguments.put(
                   "targetAppId",
                   v.testedApks.map { artifactsLoader.load(it)?.applicationId }
@@ -80,7 +81,7 @@ fun baselineProfilesBuildGradle(
       useGmd!!
 
       val createGMD: String =
-        if (useGradleKts) {
+        if (dslLanguage.isKts) {
           "create<ManagedVirtualDevice>(\"${useGmd.identifier}\")"
         } else {
           "${useGmd.identifier}(ManagedVirtualDevice)"
@@ -147,5 +148,5 @@ dependencies {
 }
 
 """
-    .gradleToKtsIfKts(useGradleKts) + addTargetAppIdAsInstrumentationArgumentBlock
+    .gradleToKtsIfKts(dslLanguage.isKts) + addTargetAppIdAsInstrumentationArgumentBlock
 }

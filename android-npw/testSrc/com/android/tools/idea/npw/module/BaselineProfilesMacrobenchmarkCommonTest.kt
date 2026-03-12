@@ -26,6 +26,7 @@ import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.Baseline
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.ProductFlavorsWithDimensions
 import com.android.tools.idea.npw.module.recipes.gitignore
 import com.android.tools.idea.wizard.template.ApiTemplateData
+import com.android.tools.idea.wizard.template.DslLanguage.KTS
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.ProjectTemplateData
@@ -72,7 +73,7 @@ class BaselineProfilesMacrobenchmarkCommonTest {
     with(BaselineProfilesMacrobenchmarkCommon) {
       mockExecutor.createModule(
         newModule = newModuleData,
-        useGradleKts = true,
+        dslLanguage = KTS,
         macrobenchmarkMinRev = macrobenchmarkMinRev,
         buildGradleContent = gradleContent,
         customizeModule = customizeModule,
@@ -98,14 +99,14 @@ class BaselineProfilesMacrobenchmarkCommonTest {
 
   @Test
   fun flavorsConfigurationsBuildGradle_empty() {
-    val flavorsBlock = flavorsConfigurationsBuildGradle(ProductFlavorsWithDimensions(emptyList(), emptyList()), true)
+    val flavorsBlock = flavorsConfigurationsBuildGradle(ProductFlavorsWithDimensions(emptyList(), emptyList()), KTS)
     assertThat(flavorsBlock).isEmpty()
   }
 
   @Test
   fun flavorsConfigurationsBuildGradle_only_dimensions() {
     val dimen = listOf("tier", "env")
-    val flavorsBlock = flavorsConfigurationsBuildGradle(ProductFlavorsWithDimensions(dimen, emptyList()), true)
+    val flavorsBlock = flavorsConfigurationsBuildGradle(ProductFlavorsWithDimensions(dimen, emptyList()), KTS)
 
     assertThat(flavorsBlock).run {
       contains("flavorDimensions")
@@ -128,7 +129,7 @@ class BaselineProfilesMacrobenchmarkCommonTest {
         ),
       )
 
-    val flavorsBlock = flavorsConfigurationsBuildGradle(flavors, true)
+    val flavorsBlock = flavorsConfigurationsBuildGradle(flavors, KTS)
 
     assertThat(flavorsBlock).run {
       contains("flavorDimensions")

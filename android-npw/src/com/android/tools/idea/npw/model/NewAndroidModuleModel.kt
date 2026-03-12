@@ -43,6 +43,7 @@ import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.determineVersionCatalogUseForNewModule
 import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.Category
+import com.android.tools.idea.wizard.template.DslLanguage
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -69,7 +70,7 @@ class ExistingProjectModelData(
   override val applicationName: StringValueProperty = StringValueProperty()
   override val packageName: StringValueProperty = StringValueProperty()
   override val projectLocation: StringValueProperty = StringValueProperty(project.basePath!!)
-  override val useGradleKts = BoolValueProperty(project.hasKtsUsage())
+  override val dslLanguage: ObjectValueProperty<DslLanguage> = ObjectValueProperty(project.dclLanguageUsage())
   override val useVersionCatalog = BoolValueProperty(determineVersionCatalogUseForNewModule(project, isNewProject = false))
   override val viewBindingSupport = OptionalValueProperty<ViewBindingSupport>(project.isViewBindingSupported())
   override val isNewProject = false
@@ -174,7 +175,7 @@ class NewAndroidModuleModel(
               generateAndroidModule(
                 data = data as ModuleTemplateData,
                 appTitle = applicationName.get(),
-                useKts = useGradleKts.get(),
+                dslLanguage = dslLanguage.get(),
                 useVersionCatalog = useVersionCatalog.get(),
               )
             }
@@ -182,7 +183,7 @@ class NewAndroidModuleModel(
               generateWearModule(
                 data = data as ModuleTemplateData,
                 appTitle = applicationName.get(),
-                useKts = useGradleKts.get(),
+                dslLanguage = dslLanguage.get(),
                 useVersionCatalog = useVersionCatalog.get(),
               )
             }
@@ -190,7 +191,7 @@ class NewAndroidModuleModel(
               generateAutomotiveModule(
                 data = data as ModuleTemplateData,
                 appTitle = applicationName.get(),
-                useKts = useGradleKts.get(),
+                dslLanguage = dslLanguage.get(),
                 useVersionCatalog = useVersionCatalog.get(),
               )
             }
@@ -198,7 +199,7 @@ class NewAndroidModuleModel(
               generateTvModule(
                 data = data as ModuleTemplateData,
                 appTitle = applicationName.get(),
-                useKts = useGradleKts.get(),
+                dslLanguage = dslLanguage.get(),
                 useVersionCatalog = useVersionCatalog.get(),
               )
             }
@@ -207,7 +208,7 @@ class NewAndroidModuleModel(
               generateXRModule(
                 data = data as ModuleTemplateData,
                 appTitle = applicationName.get(),
-                useKts = useGradleKts.get(),
+                dslLanguage = dslLanguage.get(),
                 useVersionCatalog = useVersionCatalog.get(),
               )
             }
@@ -282,6 +283,13 @@ private fun FormFactor.toModuleRenderingLoggingEvent() =
 
 internal fun Project.hasKtsUsage(): Boolean {
   return GradleProjectSystemUtil.projectBuildFilesTypes(this).contains(GradleProjectSystemUtil.BuildFileType.KOTLIN_SCRIPT)
+}
+
+internal fun Project.dclLanguageUsage(): DslLanguage {
+  return when {
+    this.hasKtsUsage() -> DslLanguage.KTS
+    else -> DslLanguage.GROOVY
+  }
 }
 
 internal fun Project.isViewBindingSupported(): ViewBindingSupport {

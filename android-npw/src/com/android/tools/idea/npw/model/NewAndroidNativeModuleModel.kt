@@ -78,7 +78,7 @@ class NewAndroidNativeModuleModel(
           generateAndroidModule(
             data = data,
             appTitle = applicationName.get(),
-            useKts = useGradleKts.get(),
+            dslLanguage = dslLanguage.get(),
             enableCpp = true,
             cppStandard = cppStandard.value,
             useVersionCatalog = useVersionCatalog.get(),

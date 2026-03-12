@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.builders
 
+import com.android.tools.idea.wizard.template.DslLanguage
 import java.net.URL
 import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.FOOJAY_RESOLVER_CONVENTION_NAME
@@ -22,7 +23,7 @@ import org.jetbrains.plugins.gradle.frameworkSupport.settingsScript.getFoojayPlu
 
 class GradleSettingsBuilder(
   private val projectName: String,
-  private val useGradleKts: Boolean,
+  private val dslLanguage: DslLanguage,
   private val builderFunction: GradleSettings.() -> Unit,
 ) {
 
@@ -44,7 +45,7 @@ class GradleSettingsBuilder(
         append("rootProject.name = \"$escapedAppTitle\"")
       }
       .toString()
-      .gradleSettingsToKtsIfKts(useGradleKts)
+      .gradleSettingsToKtsIfKts(dslLanguage.isKts)
   }
 
   private fun String.gradleSettingsToKtsIfKts(isKts: Boolean): String =

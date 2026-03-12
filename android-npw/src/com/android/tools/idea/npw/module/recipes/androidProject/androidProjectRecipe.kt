@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.npw.module.recipes.androidProject
 
-import com.android.SdkConstants.FN_BUILD_GRADLE
-import com.android.SdkConstants.FN_BUILD_GRADLE_KTS
 import com.android.SdkConstants.FN_GRADLE_PROPERTIES
 import com.android.SdkConstants.FN_LOCAL_PROPERTIES
-import com.android.SdkConstants.FN_SETTINGS_GRADLE
-import com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS
+import com.android.tools.idea.wizard.template.DslLanguage
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
@@ -32,23 +29,20 @@ fun RecipeExecutor.androidProjectRecipe(
   data: ProjectTemplateData,
   appTitle: String,
   language: Language,
-  useGradleKts: Boolean,
+  dslLanguage: DslLanguage,
   makeIgnore: Boolean = true,
 ) {
   val topOut = data.rootDir
 
-  if (useGradleKts) {
-    save(androidProjectBuildGradle(), topOut.resolve(FN_BUILD_GRADLE_KTS))
-  } else {
-    save(androidProjectBuildGradle(), topOut.resolve(FN_BUILD_GRADLE))
-  }
+  save(androidProjectBuildGradle(), topOut.resolve(dslLanguage.buildFileName))
 
   if (makeIgnore) {
     copy(resource("project_ignore"), topOut.resolve(".gitignore"))
   }
 
-  val settingsFile = topOut.resolve(if (useGradleKts) FN_SETTINGS_GRADLE_KTS else FN_SETTINGS_GRADLE)
-  save(androidProjectGradleSettings(appTitle, data.gradleVersion, data.agpVersion, useGradleKts, data.additionalMavenRepos), settingsFile)
+  val settingsFile = topOut.resolve(dslLanguage.settingsFileName)
+
+  save(androidProjectGradleSettings(appTitle, data.gradleVersion, data.agpVersion, data.additionalMavenRepos, dslLanguage), settingsFile)
   save(
     androidProjectGradleProperties(data.agpVersion, language == Language.Kotlin, data.overridePathCheck),
     topOut.resolve(FN_GRADLE_PROPERTIES),
