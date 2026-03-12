@@ -90,7 +90,7 @@ import org.mockito.kotlin.whenever
 
 @RunsInEdt
 class UpgradeAssistantContentManagerTest {
-  val deprecatedAgpVersion = AgpVersion.parse("7.0.0")
+  val deprecatedAgpVersion = AgpVersion.parse("7.1.0")
   val supportedAgpVersion = AgpVersion.parse("7.4.0")
   val latestAgpVersion = AgpVersion.parse("8.12.0")
 
