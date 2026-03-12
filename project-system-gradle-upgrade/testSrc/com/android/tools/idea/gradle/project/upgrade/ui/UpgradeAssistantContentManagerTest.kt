@@ -91,7 +91,7 @@ import org.mockito.kotlin.whenever
 @RunsInEdt
 class UpgradeAssistantContentManagerTest {
   val deprecatedAgpVersion = AgpVersion.parse("7.0.0")
-  val supportedAgpVersion = AgpVersion.parse("7.1.0")
+  val supportedAgpVersion = AgpVersion.parse("7.4.0")
   val latestAgpVersion = AgpVersion.parse("8.12.0")
 
   @get:Rule val projectRule = AndroidProjectRule.withSdk().onEdt()
@@ -428,7 +428,7 @@ class UpgradeAssistantContentManagerTest {
     val contentManager = ContentManagerImpl(project)
     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
     val model =
-      UpgradeAssistantWindowModel(project, { supportedAgpVersion }, AgpVersion.parse("7.1.1"), latestKnownVersion = latestAgpVersion)
+      UpgradeAssistantWindowModel(project, { supportedAgpVersion }, AgpVersion.parse("8.1.1"), latestKnownVersion = latestAgpVersion)
     val view = UpgradeAssistantView(model, toolWindow.contentManager)
     val detailsPanelContent = TreeWalker(view.detailsPanel).descendants().first { it.name == "content" } as HtmlLabel
     assertThat(detailsPanelContent.text).contains("<b>Updates available</b>")
@@ -464,7 +464,7 @@ class UpgradeAssistantContentManagerTest {
       UpgradeAssistantWindowModel(
         project,
         { supportedAgpVersion },
-        AgpVersion.parse("7.2.0-alpha01"),
+        AgpVersion.parse("8.0.0-alpha01"),
         latestKnownVersion = latestAgpVersion,
       )
     val view = UpgradeAssistantView(model, toolWindow.contentManager)
@@ -1149,9 +1149,9 @@ class UpgradeAssistantContentManagerTest {
         latestKnownVersion = latestAgpVersion,
         newProjectVersion = AgpVersion.parse("7.0.0"),
       )
-    val knownVersions = listOf("7.1.0", "7.2.0-dev", "7.2.0").map { AgpVersion.parse(it) }.toSet()
+    val knownVersions = listOf("7.1.0", "7.2.0-dev", "7.2.0", "7.3.0", "8.0.0").map { AgpVersion.parse(it) }.toSet()
     val suggestedVersions = toolWindowModel.suggestedVersionsList(knownVersions)
-    assertThat(suggestedVersions).isEqualTo(setOf(supportedAgpVersion, AgpVersion.parse("7.2.0")).toList().sortedDescending())
+    assertThat(suggestedVersions).isEqualTo(setOf(supportedAgpVersion, AgpVersion.parse("8.0.0")).toList().sortedDescending())
   }
 
   @Test
