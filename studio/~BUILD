@@ -834,6 +834,7 @@ studio_plugin(
             "//tools/vendor/google/ml/aiplugin/android:aiplugin.android",
             "//tools/vendor/google/ml/aiplugin/android/gradle:aiplugin.android.gradle",
             "//tools/vendor/google/ml/aiplugin/android/enterprise:aiplugin.android.enterprise",
+            "//tools/vendor/google/ml/aiplugin/android/onboarding-common:aiplugin.android.onboarding-common",
             "//tools/vendor/google/ml/aiplugin/android/journeys:aiplugin.android.journeys",
             "//tools/vendor/google/ml/aiplugin/android/journeys/gradle:aiplugin.android.journeys.gradle",
             "//tools/vendor/google/ml/aiplugin/android-plugin:aiplugin.android-plugin",
