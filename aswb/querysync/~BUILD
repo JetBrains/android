@@ -1,4 +1,12 @@
-load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load(
+    "//tools/adt/idea/aswb:build-visibility.bzl",
+    "PLUGIN_PACKAGES_VISIBILITY",
+)
+load(
+    "//tools/adt/idea/aswb/build_defs:build_defs.bzl",
+    "aswb_library",
+    "intellij_plugin_library",
+)
 
 package(default_visibility = [
     ":__subpackages__",
@@ -16,9 +24,10 @@ package(default_visibility = [
 ])
 
 # A build rule to expose individual targets under java/ to users
-java_library(
+intellij_plugin_library(
     name = "querysync",
-    exports = [
+    visibility = PLUGIN_PACKAGES_VISIBILITY,
+    deps = [
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts:build_artifact_java_proto",
@@ -32,5 +41,6 @@ java_library(
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project/update",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/query",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/query:querysummary_java_proto",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/traverser",
     ],
 )

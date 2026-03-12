@@ -76,6 +76,7 @@ def _intellij_plugin_library_impl(ctx):
             ],
             java_info = java_info,
         ),
+        java_info,
     ]
 
 intellij_plugin_library = rule(
