@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector
 import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
+import com.android.tools.idea.layoutinspector.runningdevices.ui.ActiveTabState
 import java.util.concurrent.TimeUnit
 import org.jetbrains.kotlin.utils.join
 import org.junit.Rule
@@ -34,7 +35,7 @@ class EmbeddedLayoutInspectorIntegrationTest {
       join(
         listOf(
           // Enable debug logging
-          "-Didea.log.debug.categories=#com.android.tools.idea.layoutinspector.LayoutInspector,com.android.tools.idea.layoutinspector.runningdevices.ui.ActiveTabState",
+          "-Didea.log.debug.categories=#${LayoutInspector::class.java.name},${ActiveTabState::class.java.name}",
           "-Dlayout.inspector.dynamic.layout.inspector.enable.auto.connect.foreground=true",
           "-Dlayout.inspector.dynamic.layout.inspector.enable.running.devices=true",
         ),
