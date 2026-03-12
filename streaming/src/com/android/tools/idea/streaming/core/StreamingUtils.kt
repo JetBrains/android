@@ -16,6 +16,8 @@
 package com.android.tools.idea.streaming.core
 
 import com.android.sdklib.SystemImageTags
+import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.adtui.util.scaled
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
@@ -44,6 +46,7 @@ import java.awt.Rectangle
 import java.awt.event.MouseEvent
 import java.awt.geom.Ellipse2D
 import java.nio.ByteBuffer
+import java.nio.file.Path
 import javax.swing.Icon
 import javax.swing.JEditorPane
 import javax.swing.event.HyperlinkEvent
@@ -237,4 +240,16 @@ internal fun Graphics.drawCircle(center: Point, radius: Int) {
 
 internal fun Graphics.fillCircle(center: Point, radius: Int) {
   fillOval(center.x - radius, center.y - radius, radius * 2, radius * 2)
+}
+
+/** Returns the folder of the phone AVD paired to the given AI glasses AVD, or null if the glasses are not paired with a phone. */
+internal fun getPairedPhoneAvdFolder(glassesAvdFolder: Path, devices: Iterable<DeviceHandle>): Path? {
+  val glasses = devices.findByAvdFolder(glassesAvdFolder) ?: return null
+  val pairedAvdId = glasses.state.properties.pairedPhoneId ?: return null
+  val pairedPhoneProperties = devices.firstOrNull { it.id == pairedAvdId }?.state?.properties
+  return (pairedPhoneProperties as? LocalEmulatorProperties)?.avdPath
+}
+
+internal fun Iterable<DeviceHandle>.findByAvdFolder(avdFolder: Path): DeviceHandle? {
+  return firstOrNull { (it.state.properties as? LocalEmulatorProperties)?.avdPath == avdFolder }
 }
