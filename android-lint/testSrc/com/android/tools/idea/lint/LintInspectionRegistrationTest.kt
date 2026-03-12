@@ -106,7 +106,25 @@ class LintInspectionRegistrationTest : AndroidTestCase() {
         return true
       }
 
-      val root = if (UPDATE_IN_PLACE || getBoolean("lint.update-in-place")) TestUtils.getWorkspaceRoot().toFile() else null
+      val root = run {
+        // When running the test from Bazel, getting the actual WORKSPACE root is intentionally difficult,
+        // so we just use an environment variable to provide the root and indicate in place updating.
+        val envRoot = System.getenv("LINT_UPDATE_IN_PLACE_ROOT")
+        if (envRoot != null && envRoot.isNotEmpty()) {
+          val result = File(envRoot)
+          val workspaceFile = result.resolve("WORKSPACE")
+          if (!workspaceFile.exists()) {
+            throw IllegalStateException("LINT_UPDATE_IN_PLACE_ROOT is set, but cannot find ${workspaceFile.path}")
+          }
+          return@run result
+        }
+
+        if (UPDATE_IN_PLACE || getBoolean("lint.update-in-place")) {
+          return@run TestUtils.getWorkspaceRoot().toFile()
+        }
+
+        return@run null
+      }
 
       // Spit out registration information for the missing elements
       val sb = StringBuilder(1000)
