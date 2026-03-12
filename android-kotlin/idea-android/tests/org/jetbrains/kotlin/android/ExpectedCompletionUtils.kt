@@ -29,6 +29,7 @@ import com.intellij.util.ArrayUtil
 import java.util.ArrayList
 import java.util.HashMap
 import java.util.LinkedHashSet
+import org.jetbrains.kotlin.K1Deprecation
 import org.jetbrains.kotlin.idea.completion.KOTLIN_CAST_REQUIRED_COLOR
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.platform.isJs
@@ -289,6 +290,7 @@ object ExpectedCompletionUtils {
         return result
     }
 
+    @OptIn(K1Deprecation::class)
     private val LookupElement.moduleName: String?
         get() = null
 

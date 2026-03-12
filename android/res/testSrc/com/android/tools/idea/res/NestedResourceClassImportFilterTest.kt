@@ -24,6 +24,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.application.options.CodeStyle
 import com.intellij.testFramework.RunsInEdt
 import kotlin.test.fail
+import org.jetbrains.kotlin.K1Deprecation
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibility
@@ -134,6 +135,7 @@ class NestedResourceClassImportFilterTest {
   }
 
   /** More of a unit test for the very specific behavior of the filter. */
+  @OptIn(K1Deprecation::class)
   @Test
   fun allowImport() {
     val ktFile: KtFile = mock()
