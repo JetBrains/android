@@ -31,8 +31,15 @@ aswb_library(
     resource_strip_prefix = "tools/adt/idea/aswb/base/src",
     resources = glob(["src/resources/**/*"]),
     visibility = PLUGIN_PACKAGES_VISIBILITY,
+    exports = [
+        "//tools/adt/idea/aswb/base/src/com/google/idea/blaze/base/command/buildresult/bepparser",
+        "//tools/adt/idea/aswb/base/src/com/google/idea/blaze/base/project/analysis/ijar",
+        "//tools/adt/idea/aswb/base/src/com/google/idea/blaze/base/project/startup",
+    ],
     deps = [
         "//tools/adt/idea/aswb/base/src/com/google/idea/blaze/base/command/buildresult/bepparser",
+        "//tools/adt/idea/aswb/base/src/com/google/idea/blaze/base/project/analysis/ijar",
+        "//tools/adt/idea/aswb/base/src/com/google/idea/blaze/base/project/startup",
         "//tools/adt/idea/aswb/common/actions",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/common/settings",

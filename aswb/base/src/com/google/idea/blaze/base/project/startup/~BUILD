@@ -7,7 +7,7 @@ aswb_library(
         "*.java",
     ]),
     visibility = [
-        "//visibility:public",
+        "//tools/adt/idea/aswb/base:__subpackages__",
     ],
     deps = [
         "//tools/vendor/google/aswb/plugin_api",
