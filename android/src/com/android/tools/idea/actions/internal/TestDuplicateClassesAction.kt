@@ -58,8 +58,6 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
           "org.apache.commons.lang.time",
           "org.apache.commons.lang",
           // end b/476501574
-          "org.HdrHistogram.packedarray", // b/476488908
-          "org.HdrHistogram", // b/476488908
           "org.objectweb.asm.commons",
           "org.objectweb.asm.signature",
           "org.objectweb.asm.tree.analysis",

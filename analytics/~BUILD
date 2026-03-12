@@ -13,7 +13,6 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
-        "//tools/adt/idea/.idea/libraries:HdrHistogram",
         "//tools/analytics-library/tracker:analytics-tracker",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/adt/idea/android-common:intellij.android.common",

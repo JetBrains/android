@@ -34,7 +34,6 @@ iml_module(
         "//tools/adt/idea/render-resources:intellij.android.render-resources",
         "//tools/adt/idea/.idea/libraries:emulator-proto",
         "//tools/adt/idea/.idea/libraries:ffmpeg",
-        "//tools/adt/idea/.idea/libraries:HdrHistogram",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/.idea/libraries:studio-proto",

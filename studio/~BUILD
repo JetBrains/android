@@ -108,7 +108,6 @@ studio_plugin(
         "//tools/adt/idea/.idea/libraries:google-baksmali",
         "//tools/adt/idea/.idea/libraries:google-dexlib2",
         "//tools/adt/idea/.idea/libraries:gradle-shared-proto",
-        "//tools/adt/idea/.idea/libraries:HdrHistogram",
         "//tools/adt/idea/.idea/libraries:javax-inject",
         "//tools/adt/idea/.idea/libraries:jetty",
         "//tools/adt/idea/.idea/libraries:kotlin-multiplatform-android-models-proto",
