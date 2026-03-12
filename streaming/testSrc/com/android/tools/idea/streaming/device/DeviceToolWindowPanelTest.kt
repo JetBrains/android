@@ -543,11 +543,12 @@ class DeviceToolWindowPanelTest {
         DeviceFoldingAction(FoldingState(0, "Closed")),
         DeviceFoldingAction(FoldingState(1, "Tent")),
         DeviceFoldingAction(FoldingState(2, "Half-Open")),
-        DeviceFoldingAction(FoldingState(3, "Open")),
-        DeviceFoldingAction(FoldingState(4, "Rear Display Mode")),
-        DeviceFoldingAction(FoldingState(5, "Dual Display Mode", setOf(PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP))),
-        DeviceFoldingAction(FoldingState(6, "Rear Dual Mode", setOf(PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP))),
-        DeviceFoldingAction(FoldingState(7, "Flipped")),
+        DeviceFoldingAction(FoldingState(3, "Half-Closed")),
+        DeviceFoldingAction(FoldingState(4, "Open")),
+        DeviceFoldingAction(FoldingState(5, "Rear Display Mode")),
+        DeviceFoldingAction(FoldingState(6, "Dual Display Mode", setOf(PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP))),
+        DeviceFoldingAction(FoldingState(7, "Rear Dual Mode", setOf(PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP))),
+        DeviceFoldingAction(FoldingState(8, "Flipped")),
       )
     val disabledModes = setOf("Dual Display Mode", "Rear Dual Mode")
     for (action in foldingActions) {
