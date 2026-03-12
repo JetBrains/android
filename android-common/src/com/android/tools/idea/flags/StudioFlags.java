@@ -2628,6 +2628,11 @@ public final class StudioFlags {
                     "Enable agent mode.",
                     "When enabled, the agent mode will be enabled in the Gemini toolwindow.");
 
+  public static final Flag<Boolean> IS_GEMINI_ONBOARDING_V2_ENABLED =
+    new BooleanFlag(STUDIOBOT, "gemini.onboarding.v2.enabled",
+                    "Enable the Gemini onboarding V2 support.",
+                    "When enabled, the user will be shown the new V2 onboarding flow for Gemini.");
+
   public static final Flag<Boolean> GEMINI_VERSION_UPGRADE_AGENT =
     new BooleanFlag(STUDIOBOT, "version.upgrade.agent",
                     "Enable Gemini Version Upgrade Agent.",
