@@ -17,18 +17,32 @@ package com.example.android;
 
 import com.example.external.ExternalMessage;
 import com.example.lib.LibMessage;
+import com.example.lib.LibEdition2024OuterClass.MessageManager;
+import com.example.lib.LibEdition2024OuterClass.MessageContent;
 import com.example.lib.LibEdition2024Proto.LibMessageEdition2024DisableMultiFile;
 import com.example.lib.LibMessageEdition2024EnableMultiFile;
 
-/** An example proto consumer. */
+/**
+ * An example proto consumer.
+ */
 public class ProtoConsumer {
+
+  public MessageContent getMessage() {
+    MessageManager message =
+      MessageManager.newBuilder()
+        .setMessage(MessageContent.newBuilder()
+                      .setContent("abc")
+                      .build())
+        .build();
+    return message.getMessage();
+  }
 
   public ProtoConsumer() {
     LibMessage message =
-        LibMessage.newBuilder()
-            .setMessage("abc")
-            .setExternalMessage(ExternalMessage.newBuilder().setMessage("xyz").build())
-            .build();
+      LibMessage.newBuilder()
+        .setMessage("abc")
+        .setExternalMessage(ExternalMessage.newBuilder().setMessage("xyz").build())
+        .build();
     LibMessageEdition2024DisableMultiFile messageEdition2024DisableMultiFile =
       LibMessageEdition2024DisableMultiFile.newBuilder()
         .setMessage("abc")
