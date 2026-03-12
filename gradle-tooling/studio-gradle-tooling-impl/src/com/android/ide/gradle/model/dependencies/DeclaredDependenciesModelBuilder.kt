@@ -27,28 +27,33 @@ class DeclaredDependenciesModelBuilder : ToolingModelBuilder {
 
   override fun buildAll(modelName: String, project: Project): Any {
     val configurationsToCoordinates = mutableMapOf<String, MutableList<Coordinates>>()
+    val allOutgoingProjectDependencies = mutableListOf<String>()
 
-    project.configurations.forEach { configuration ->
-      if (CONFIGURATIONS_OF_INTEREST.contains(configuration.name)) {
-        configuration.dependencies.filter { it !is ProjectDependency }
-          .forEach { dependency ->
-          configurationsToCoordinates.getOrPut(configuration.name) { mutableListOf<Coordinates>() }
-            .add(dependency.coordinates())
+    fun ProjectDependency.computePath(): String =
+      if (GradleVersion.version(project.gradle.gradleVersion) >= GradleVersion.version("8.11")) {
+        path
+      }
+      else {
+        // Need to be backwards compatible, should use reflection to get this value in 9.0 tooling api as it's being removed completely
+        @Suppress("DEPRECATION")
+        dependencyProject.path
+      }
+
+    // The apparently-unnecessary toList() calls here are an attempt to defend against anything
+    // that might spontaneously generate new elements of the collection being iterated over.  See
+    // for example b/456739611.
+    project.configurations.toList()
+      .forEach { configuration ->
+        configuration.dependencies.toList().forEach { dependency ->
+          when (dependency) {
+            is ProjectDependency -> allOutgoingProjectDependencies.add(dependency.computePath())
+            else -> if (CONFIGURATIONS_OF_INTEREST.contains(configuration.name)) {
+              configurationsToCoordinates.getOrPut(configuration.name) { mutableListOf() }
+                .add(dependency.coordinates())
+            }
+          }
         }
       }
-    }
-    val allOutgoingProjectDependencies = project.configurations.flatMap {
-      it.dependencies.filterIsInstance<ProjectDependency>()
-        .map {
-          if (GradleVersion.version(project.gradle.gradleVersion) >= GradleVersion.version("8.11")) {
-            it.path
-          } else {
-            // Need to be backwards compatible, should use reflection to get this value in 9.0 tooling api as it's being removed completely
-            @Suppress("DEPRECATION")
-            it.dependencyProject.path
-          }
-      }
-    }
     return DeclaredDependenciesImpl(configurationsToCoordinates, allOutgoingProjectDependencies)
   }
 
