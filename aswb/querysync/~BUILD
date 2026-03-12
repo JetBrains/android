@@ -4,7 +4,6 @@ load(
 )
 load(
     "//tools/adt/idea/aswb/build_defs:build_defs.bzl",
-    "aswb_library",
     "intellij_plugin_library",
 )
 

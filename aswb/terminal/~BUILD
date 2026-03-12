@@ -12,14 +12,14 @@ load(
 licenses(["notice"])
 
 aswb_library(
-    name = "terminal",
+    name = "terminal_lib",
     srcs = glob(["src/**/*.java"]),
     visibility = [
         "//tools/adt/idea/aswb:__subpackages__",
         "//tools/vendor/google3/aswb:__subpackages__",
     ],
     deps = [
-        "//tools/adt/idea/aswb/base",
+        "//tools/adt/idea/aswb/base:base_lib",
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
         "//tools/vendor/google/aswb/plugin_api:terminal",
@@ -33,8 +33,8 @@ optional_plugin_xml(
 )
 
 intellij_plugin_library(
-    name = "plugin_library",
+    name = "terminal",
     optional_plugin_xmls = [":optional_xml"],
     visibility = PLUGIN_PACKAGES_VISIBILITY,
-    deps = [":terminal"],
+    deps = [":terminal_lib"],
 )

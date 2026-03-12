@@ -7,10 +7,10 @@ load("//tools/adt/idea/aswb/build_defs:build_defs.bzl", "intellij_plugin_library
 load("//tools/adt/idea/aswb/testing:test_defs.bzl", "intellij_unit_test_suite")
 
 java_library(
-    name = "dart",
+    name = "dart_lib",
     srcs = glob(["src/**/*.java"]),
     deps = [
-        "//tools/adt/idea/aswb/base",
+        "//tools/adt/idea/aswb/base:base_lib",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/proto:proto_deps",
         "//tools/vendor/google/aswb/plugin_api",
@@ -19,10 +19,10 @@ java_library(
 )
 
 intellij_plugin_library(
-    name = "plugin_library",
+    name = "dart",
     plugin_xmls = ["src/META-INF/blaze-dart.xml"],
     visibility = PLUGIN_PACKAGES_VISIBILITY,
-    deps = [":dart"],
+    deps = [":dart_lib"],
 )
 
 intellij_unit_test_suite(
@@ -32,8 +32,8 @@ intellij_unit_test_suite(
     test_package_root = "com.google.idea.blaze.dart",
     visibility = DEFAULT_TEST_VISIBILITY,
     deps = [
-        ":dart",
-        "//tools/adt/idea/aswb/base",
+        ":dart_lib",
+        "//tools/adt/idea/aswb/base:base_lib",
         "//tools/adt/idea/aswb/base:unit_test_utils",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/third_party/java/junit",

@@ -20,7 +20,7 @@ load("//tools/adt/idea/studio:studio.bzl", "intellij_plugin_import")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 aswb_library(
-    name = "cpp",
+    name = "cpp_lib",
     srcs = glob([
         "src/com/google/idea/blaze/cpp/*.java",
         "src/com/google/idea/blaze/cpp/includes/*.java",
@@ -30,7 +30,7 @@ aswb_library(
     ]),
     visibility = PLUGIN_PACKAGES_VISIBILITY,
     deps = [
-        "//tools/adt/idea/aswb/base",
+        "//tools/adt/idea/aswb/base:base_lib",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/common/util:platform",
         "//tools/adt/idea/aswb/proto:proto_deps",
@@ -49,10 +49,10 @@ optional_plugin_xml(
 )
 
 intellij_plugin_library(
-    name = "plugin_library",
+    name = "cpp",
     optional_plugin_xmls = [":optional_cidr"],
     visibility = PLUGIN_PACKAGES_VISIBILITY,
-    deps = [":cpp"],
+    deps = [":cpp_lib"],
 )
 
 java_library(
@@ -96,8 +96,8 @@ intellij_unit_test_suite(
     # Needed to work around one-version issue
     runtime_deps = ["//tools/vendor/google/aswb/plugin_api:test_libs"],
     deps = [
-        ":cpp",
-        "//tools/adt/idea/aswb/base",
+        ":cpp_lib",
+        "//tools/adt/idea/aswb/base:base_lib",
         "//tools/adt/idea/aswb/base:unit_test_utils",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/common/experiments:unit_test_utils",
@@ -116,7 +116,7 @@ java_library(
     ],
     visibility = PLUGIN_PACKAGES_VISIBILITY,
     deps = [
-        "//tools/adt/idea/aswb/base",
+        "//tools/adt/idea/aswb/base:base_lib",
         "//tools/adt/idea/aswb/base:integration_test_utils",
         "//tools/adt/idea/aswb/base:unit_test_utils",
         "//tools/adt/idea/aswb/testing:lib",
@@ -139,8 +139,8 @@ intellij_plugin(
     testonly = 1,
     plugin_xml = ":cpp_plugin_xml",
     deps = [
-        ":plugin_library",
-        "//tools/adt/idea/aswb/base:plugin_library",
+        ":cpp",
+        "//tools/adt/idea/aswb/base",
     ],
 )
 
@@ -175,9 +175,9 @@ intellij_integration_test_suite(
     test_package_root = "com.google.idea.blaze.cpp",
     visibility = DEFAULT_TEST_VISIBILITY,
     deps = [
-        ":cpp",
+        ":cpp_lib",
         ":integration_test_utils",
-        "//tools/adt/idea/aswb/base",
+        "//tools/adt/idea/aswb/base:base_lib",
         "//tools/adt/idea/aswb/base:integration_test_utils",
         "//tools/adt/idea/aswb/base:unit_test_utils",
         "//tools/adt/idea/aswb/third_party/java/junit",

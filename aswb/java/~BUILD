@@ -20,7 +20,7 @@ load("//tools/adt/idea/studio:studio.bzl", "intellij_plugin_import")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 aswb_library(
-    name = "java",
+    name = "java_lib",
     srcs = glob(
         [
             "src/**/*.java",
@@ -33,7 +33,7 @@ aswb_library(
         "//tools/vendor/google3/aswb:__subpackages__",
     ],
     deps = [
-        "//tools/adt/idea/aswb/base",
+        "//tools/adt/idea/aswb/base:base_lib",
         "//tools/adt/idea/aswb/common/actions",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/common/settings",
@@ -64,14 +64,14 @@ optional_plugin_xml(
 )
 
 intellij_plugin_library(
-    name = "plugin_library",
+    name = "java",
     optional_plugin_xmls = [
         ":optional_java",
         ":optional_coverage",
     ],
     plugin_xmls = ["src/META-INF/blaze-java.xml"],
     visibility = PLUGIN_PACKAGES_VISIBILITY,
-    deps = [":java"],
+    deps = [":java_lib"],
 )
 
 intellij_unit_test_suite(
@@ -97,8 +97,8 @@ intellij_unit_test_suite(
     test_package_root = "com.google.idea.blaze.java",
     visibility = DEFAULT_TEST_VISIBILITY,
     deps = [
-        ":java",
-        "//tools/adt/idea/aswb/base",
+        ":java_lib",
+        "//tools/adt/idea/aswb/base:base_lib",
         "//tools/adt/idea/aswb/base:unit_test_utils",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/common/experiments:unit_test_utils",
@@ -156,8 +156,8 @@ intellij_plugin(
     testonly = 1,
     plugin_xml = ":java_plugin_xml",
     deps = [
-        ":plugin_library",
-        "//tools/adt/idea/aswb/base:plugin_library",
+        ":java",
+        "//tools/adt/idea/aswb/base",
     ],
 )
 
@@ -190,8 +190,8 @@ intellij_integration_test_suite(
     test_package_root = "com.google.idea.blaze.java",
     visibility = DEFAULT_TEST_VISIBILITY,
     deps = [
-        ":java",
-        "//tools/adt/idea/aswb/base",
+        ":java_lib",
+        "//tools/adt/idea/aswb/base:base_lib",
         "//tools/adt/idea/aswb/base:integration_test_utils",
         "//tools/adt/idea/aswb/base:unit_test_utils",
         "//tools/adt/idea/aswb/common/experiments",

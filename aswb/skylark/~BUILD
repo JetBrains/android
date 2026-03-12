@@ -12,14 +12,14 @@ load("//tools/adt/idea/aswb/build_defs:build_defs.bzl", "intellij_plugin_library
 licenses(["notice"])
 
 java_library(
-    name = "skylark",
+    name = "skylark_lib",
     srcs = glob(["src/**/*.java"]),
     visibility = [
         "//tools/adt/idea/aswb:__subpackages__",
         "//tools/vendor/google3/aswb:__subpackages__",
     ],
     deps = [
-        "//tools/adt/idea/aswb/base",
+        "//tools/adt/idea/aswb/base:base_lib",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/proto:proto_deps",
         "//tools/vendor/google/aswb/plugin_api",
@@ -28,8 +28,8 @@ java_library(
 )
 
 intellij_plugin_library(
-    name = "plugin_library",
+    name = "skylark",
     plugin_xmls = ["src/META-INF/blaze-skylark.xml"],
     visibility = PLUGIN_PACKAGES_VISIBILITY,
-    deps = [":skylark"],
+    deps = [":skylark_lib"],
 )

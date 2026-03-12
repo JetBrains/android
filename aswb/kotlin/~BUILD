@@ -24,7 +24,7 @@ load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 licenses(["notice"])
 
 aswb_library(
-    name = "kotlin",
+    name = "kotlin_lib",
     srcs = glob([
         "src/**/*.java",
         "src/**/*.kt",
@@ -34,9 +34,9 @@ aswb_library(
         "//tools/vendor/google3/aswb:__subpackages__",
     ],
     deps = [
-        "//tools/adt/idea/aswb/base",
+        "//tools/adt/idea/aswb/base:base_lib",
         "//tools/adt/idea/aswb/common/experiments",
-        "//tools/adt/idea/aswb/java:plugin_library",
+        "//tools/adt/idea/aswb/java:java_lib",
         "//tools/adt/idea/aswb/proto:proto_deps",
         "//tools/adt/idea/aswb/shared",
         "//tools/vendor/google/aswb/plugin_api",
@@ -52,11 +52,11 @@ optional_plugin_xml(
 )
 
 intellij_plugin_library(
-    name = "plugin_library",
+    name = "kotlin",
     optional_plugin_xmls = [":optional_xml"],
     plugin_xmls = ["src/META-INF/blaze-kotlin.xml"],
     visibility = PLUGIN_PACKAGES_VISIBILITY,
-    deps = [":kotlin"],
+    deps = [":kotlin_lib"],
 )
 
 intellij_unit_test_suite(
@@ -65,12 +65,12 @@ intellij_unit_test_suite(
     tags = ["noci:studio-win"],
     test_package_root = "com.google.idea.blaze",
     deps = [
-        ":kotlin",
-        "//tools/adt/idea/aswb/base",
+        ":kotlin_lib",
+        "//tools/adt/idea/aswb/base:base_lib",
         "//tools/adt/idea/aswb/base:unit_test_utils",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/common/experiments:unit_test_utils",
-        "//tools/adt/idea/aswb/java",
+        "//tools/adt/idea/aswb/java:java_lib",
         "//tools/adt/idea/aswb/third_party/java/junit",
         "//tools/vendor/google/aswb/plugin_api:kotlin_for_tests",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
@@ -92,9 +92,9 @@ intellij_plugin(
     optional_plugin_xmls = [":optional_xml"],
     plugin_xml = ":kotlin_plugin_xml",
     deps = [
-        ":plugin_library",
-        "//tools/adt/idea/aswb/base:plugin_library",
-        "//tools/adt/idea/aswb/java:plugin_library",
+        ":kotlin",
+        "//tools/adt/idea/aswb/base",
+        "//tools/adt/idea/aswb/java",
     ],
 )
 
@@ -125,13 +125,13 @@ intellij_integration_test_suite(
     tags = ["noci:studio-win"],
     test_package_root = "com.google.idea.blaze.kotlin",
     deps = [
-        ":kotlin",
-        "//tools/adt/idea/aswb/base",
+        ":kotlin_lib",
+        "//tools/adt/idea/aswb/base:base_lib",
         "//tools/adt/idea/aswb/base:integration_test_utils",
         "//tools/adt/idea/aswb/base:unit_test_utils",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/common/experiments:unit_test_utils",
-        "//tools/adt/idea/aswb/java",
+        "//tools/adt/idea/aswb/java:java_lib",
         "//tools/adt/idea/aswb/proto:proto_deps",
         "//tools/adt/idea/aswb/third_party/java/auto_value",
         "//tools/adt/idea/aswb/third_party/java/junit",
