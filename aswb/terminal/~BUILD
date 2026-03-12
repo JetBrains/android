@@ -14,7 +14,10 @@ licenses(["notice"])
 aswb_library(
     name = "terminal",
     srcs = glob(["src/**/*.java"]),
-    visibility = PLUGIN_PACKAGES_VISIBILITY,
+    visibility = [
+        "//tools/adt/idea/aswb:__subpackages__",
+        "//tools/vendor/google3/aswb:__subpackages__",
+    ],
     deps = [
         "//tools/adt/idea/aswb/base",
         "//tools/vendor/google/aswb/plugin_api",

@@ -28,7 +28,10 @@ aswb_library(
         ],
     ),
     javacopts = ["-Xep:FutureReturnValueIgnored:OFF"],
-    visibility = PLUGIN_PACKAGES_VISIBILITY,
+    visibility = [
+        "//tools/adt/idea/aswb:__subpackages__",
+        "//tools/vendor/google3/aswb:__subpackages__",
+    ],
     deps = [
         "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/common/actions",

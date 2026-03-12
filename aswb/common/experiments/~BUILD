@@ -3,6 +3,7 @@ load(
     "COMMON_PLUGINS_VISIBILITY",
     "DEFAULT_TEST_VISIBILITY",
     "G3PLUGINS_VISIBILITY",
+    "PLUGIN_PACKAGES_VISIBILITY",
     "SERVICES_EXPERIMENT_SUBPACKAGES",
 )
 load(
@@ -33,18 +34,18 @@ aswb_library(
 # for tests of code hit during test fixture setup (before the test code itself
 # can register services / components)
 intellij_plugin_library(
-    name = "mock_experiment_service",
+    name = "unit_test_utils",
     testonly = 1,
     plugin_xmls = ["tests/utils/mock_experiment_service.xml"],
-    visibility = G3PLUGINS_VISIBILITY,
-    deps = [":unit_test_utils"],
+    visibility = PLUGIN_PACKAGES_VISIBILITY,
+    deps = [":unit_test_utils_lib"],
 )
 
 java_library(
-    name = "unit_test_utils",
+    name = "unit_test_utils_lib",
     testonly = 1,
     srcs = glob(["tests/utils/**/*.java"]),
-    visibility = COMMON_PLUGINS_VISIBILITY,
+    visibility = [":__subpackages__"],
     deps = [
         ":experiments",
         "//tools/vendor/google/aswb/plugin_api",

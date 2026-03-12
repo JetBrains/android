@@ -29,11 +29,14 @@ aswb_library(
         "src/**/*.java",
         "src/**/*.kt",
     ]),
-    visibility = combine_visibilities(ASWB_SUBPACKAGES_VISIBILITY, KOTLIN_PACKAGE_VISIBILITY),
+    visibility = [
+        "//tools/adt/idea/aswb:__subpackages__",
+        "//tools/vendor/google3/aswb:__subpackages__",
+    ],
     deps = [
         "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/common/experiments",
-        "//tools/adt/idea/aswb/java",
+        "//tools/adt/idea/aswb/java:plugin_library",
         "//tools/adt/idea/aswb/proto:proto_deps",
         "//tools/adt/idea/aswb/shared",
         "//tools/vendor/google/aswb/plugin_api",

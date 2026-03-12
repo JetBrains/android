@@ -14,7 +14,10 @@ licenses(["notice"])
 java_library(
     name = "skylark",
     srcs = glob(["src/**/*.java"]),
-    visibility = SKYLARK_PACKAGES_VISIBILITY,
+    visibility = [
+        "//tools/adt/idea/aswb:__subpackages__",
+        "//tools/vendor/google3/aswb:__subpackages__",
+    ],
     deps = [
         "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/common/experiments",
