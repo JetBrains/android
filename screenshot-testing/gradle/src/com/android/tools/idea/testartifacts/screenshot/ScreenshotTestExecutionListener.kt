@@ -16,6 +16,7 @@
 package com.android.tools.idea.testartifacts.screenshot
 
 import com.android.screenshottest.producers.IS_SCREENSHOT_TEST_CONFIGURATION
+import com.android.screenshottest.producers.IS_SCREENSHOT_UPDATE_CONFIGURATION
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.logScreenshotTestEvent
 import com.android.tools.idea.testartifacts.testsuite.GradleRunConfigurationExtension
 import com.google.wireless.android.sdk.stats.ScreenshotTestComposePreviewEvent
@@ -30,6 +31,7 @@ class ScreenshotTestExecutionListener : ExecutionListener {
     if (
       runProfile is GradleRunConfiguration &&
         runProfile.getUserData<Boolean>(IS_SCREENSHOT_TEST_CONFIGURATION) == true &&
+        runProfile.getUserData<Boolean>(IS_SCREENSHOT_UPDATE_CONFIGURATION) != true &&
         runProfile.getUserData<Boolean>(
           GradleRunConfigurationExtension.BooleanOptions.SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey
         ) == true

@@ -16,6 +16,7 @@
 package com.android.screenshottest.action
 
 import com.android.screenshottest.listener.UpdateScreenshotTestResultsListener
+import com.android.screenshottest.producers.IS_SCREENSHOT_UPDATE_CONFIGURATION
 import com.android.screenshottest.util.UpdateReferenceImagesDialogManager
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
 import com.intellij.execution.DefaultExecutionTarget
@@ -56,6 +57,10 @@ abstract class UpdateReferenceImagesBaseAction(text: String, description: String
     val updateRunconfigSettings =
       RunManagerImpl.getInstanceImpl(project)
         .createConfiguration(validateRunconfigSettings.configuration, validateRunconfigSettings.factory)
+    (updateRunconfigSettings.configuration as? com.intellij.openapi.util.UserDataHolder)?.putUserData(
+      IS_SCREENSHOT_UPDATE_CONFIGURATION,
+      true,
+    )
     updateRunconfigSettings.isTemporary = true
     updateRunconfigSettings.isActivateToolWindowBeforeRun = false
 
