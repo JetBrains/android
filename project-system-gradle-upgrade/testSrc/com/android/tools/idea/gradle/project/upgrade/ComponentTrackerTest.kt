@@ -30,7 +30,6 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.Upgra
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.ANDROID_MANIFEST_PACKAGE
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.ANDROID_MANIFEST_USE_EMBEDDED_DEX
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.BUILD_CONFIG_DEFAULT
-import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.COMPILE_RUNTIME_CONFIGURATION
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.DEFAULT_TARGET_SDK_TO_COMPILE_SDK_IF_UNSET
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.DEPENDENCY_CONSTRAINTS_DEFAULT
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.DYNAMIC_FEATURE_CONSUMER_PROGUARD_FILES
@@ -49,7 +48,6 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.Upgra
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.PROJECT_JDK
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.R8_FULL_MODE_DEFAULT
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.REDUNDANT_PROPERTIES
-import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.REMOVE_BUILD_TYPE_USE_PROGUARD
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.REMOVE_IMPLEMENTATION_PROPERTIES
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.REMOVE_SOURCE_SET_JNI
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.RENDER_SCRIPT_DEFAULT
@@ -147,30 +145,6 @@ class ComponentTrackerTest : UpgradeGradleFileModelTestCase() {
   }
 
   @Test
-  fun testSimpleApplicationUsageTracker() {
-    writeToBuildFile(TestFileName("CompileRuntimeConfiguration/SimpleApplication"))
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.0.0"))
-    processor.run()
-
-    checkComponentEvents(
-      UpgradeAssistantComponentEvent.newBuilder()
-        .setUpgradeUuid(processor.uuid)
-        .setCurrentAgpVersion("3.5.0")
-        .setNewAgpVersion("7.0.0")
-        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(COMPILE_RUNTIME_CONFIGURATION).setIsEnabled(true))
-        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(6).setFiles(2))
-        .build(),
-      UpgradeAssistantComponentEvent.newBuilder()
-        .setUpgradeUuid(processor.uuid)
-        .setCurrentAgpVersion("3.5.0")
-        .setNewAgpVersion("7.0.0")
-        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(COMPILE_RUNTIME_CONFIGURATION).setIsEnabled(true))
-        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(6).setFiles(2))
-        .build(),
-    )
-  }
-
-  @Test
   fun testRemoveJniSingleBlockUsageTracker() {
     writeToBuildFile(TestFileName("RemoveSourceSetJni/SingleBlock"))
     val processor = REMOVE_SOURCE_SET_JNI_INFO.RefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
@@ -215,30 +189,6 @@ class ComponentTrackerTest : UpgradeGradleFileModelTestCase() {
         .setNewAgpVersion("9.0.0")
         .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(MIGRATE_TO_ANDROID_RESOURCES).setIsEnabled(true))
         .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(6).setFiles(2))
-        .build(),
-    )
-  }
-
-  @Test
-  fun testRemoveUseProguardTwoBuildTypesUsageTracker() {
-    writeToBuildFile(TestFileName("RemoveBuildTypeUseProguard/TwoBuildTypes"))
-    val processor = REMOVE_BUILD_TYPE_USE_PROGUARD_INFO.RefactoringProcessor(project, AgpVersion.parse("4.2.0"), AgpVersion.parse("7.0.0"))
-    processor.run()
-
-    checkComponentEvents(
-      UpgradeAssistantComponentEvent.newBuilder()
-        .setUpgradeUuid(processor.uuid)
-        .setCurrentAgpVersion("4.2.0")
-        .setNewAgpVersion("7.0.0")
-        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(REMOVE_BUILD_TYPE_USE_PROGUARD).setIsEnabled(true))
-        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(2).setFiles(2))
-        .build(),
-      UpgradeAssistantComponentEvent.newBuilder()
-        .setUpgradeUuid(processor.uuid)
-        .setCurrentAgpVersion("4.2.0")
-        .setNewAgpVersion("7.0.0")
-        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(REMOVE_BUILD_TYPE_USE_PROGUARD).setIsEnabled(true))
-        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(2).setFiles(2))
         .build(),
     )
   }

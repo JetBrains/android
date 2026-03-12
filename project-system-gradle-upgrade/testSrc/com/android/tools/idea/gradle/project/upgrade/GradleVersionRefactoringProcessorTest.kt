@@ -76,10 +76,10 @@ class GradleVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testOldGradleVersion420() {
     writeToGradleWrapperPropertiesFile(TestFileName("GradleVersion/OldGradleVersion"))
-    val processor = GradleVersionRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("4.2.0"))
+    val processor = GradleVersionRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.4.0"))
     processor.run()
 
-    val expectedText = FileUtil.loadFile(TestFileName("GradleVersion/OldGradleVersion420Expected").toFile(testDataPath, ""))
+    val expectedText = FileUtil.loadFile(TestFileName("GradleVersion/OldGradleVersion740Expected").toFile(testDataPath, ""))
     val actualText = VfsUtilCore.loadText(gradleWrapperPropertiesFile)
     assertEquals(expectedText, actualText)
   }
@@ -98,7 +98,7 @@ class GradleVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testOldGradleVersionAll() {
     writeToGradleWrapperPropertiesFile(TestFileName("GradleVersion/OldGradleVersionAll"))
-    val processor = GradleVersionRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("4.2.0"))
+    val processor = GradleVersionRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.4.0"))
     processor.run()
 
     val expectedText = FileUtil.loadFile(TestFileName("GradleVersion/OldGradleVersionAllExpected").toFile(testDataPath, ""))
@@ -120,7 +120,7 @@ class GradleVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testOldGradleVersionFile() {
     writeToGradleWrapperPropertiesFile(TestFileName("GradleVersion/OldGradleVersionFile"))
-    val processor = GradleVersionRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("4.2.0"))
+    val processor = GradleVersionRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.4.0"))
     processor.run()
 
     val expectedText = FileUtil.loadFile(TestFileName("GradleVersion/OldGradleVersionFileExpected").toFile(testDataPath, ""))
@@ -131,7 +131,7 @@ class GradleVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testOldGradleVersionFileAll() {
     writeToGradleWrapperPropertiesFile(TestFileName("GradleVersion/OldGradleVersionFileAll"))
-    val processor = GradleVersionRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("4.2.0"))
+    val processor = GradleVersionRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.4.0"))
     processor.run()
 
     val expectedText = FileUtil.loadFile(TestFileName("GradleVersion/OldGradleVersionFileAllExpected").toFile(testDataPath, ""))
@@ -142,10 +142,10 @@ class GradleVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testOldGradleVersionEscaped() {
     writeToGradleWrapperPropertiesFile(TestFileName("GradleVersion/OldGradleVersionEscaped"))
-    val processor = GradleVersionRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("4.2.0"))
+    val processor = GradleVersionRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.4.0"))
     processor.run()
 
-    val expectedText = FileUtil.loadFile(TestFileName("GradleVersion/OldGradleVersion420Expected").toFile(testDataPath, ""))
+    val expectedText = FileUtil.loadFile(TestFileName("GradleVersion/OldGradleVersion740Expected").toFile(testDataPath, ""))
     val actualText = VfsUtilCore.loadText(gradleWrapperPropertiesFile)
     assertEquals(expectedText, actualText)
   }
@@ -153,7 +153,7 @@ class GradleVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testOldGradleVersionFileEscaped() {
     writeToGradleWrapperPropertiesFile(TestFileName("GradleVersion/OldGradleVersionFileEscaped"))
-    val processor = GradleVersionRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("4.2.0"))
+    val processor = GradleVersionRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.4.0"))
     processor.run()
 
     val expectedText = FileUtil.loadFile(TestFileName("GradleVersion/OldGradleVersionFileExpected").toFile(testDataPath, ""))
@@ -164,10 +164,10 @@ class GradleVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testRCGradleVersionEscaped() {
     writeToGradleWrapperPropertiesFile(TestFileName("GradleVersion/RCGradleVersionEscaped"))
-    val processor = GradleVersionRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("4.2.0"))
+    val processor = GradleVersionRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.4.0"))
     processor.run()
 
-    val expectedText = FileUtil.loadFile(TestFileName("GradleVersion/OldGradleVersion420Expected").toFile(testDataPath, ""))
+    val expectedText = FileUtil.loadFile(TestFileName("GradleVersion/OldGradleVersion740Expected").toFile(testDataPath, ""))
     val actualText = VfsUtilCore.loadText(gradleWrapperPropertiesFile)
     assertEquals(expectedText, actualText)
   }

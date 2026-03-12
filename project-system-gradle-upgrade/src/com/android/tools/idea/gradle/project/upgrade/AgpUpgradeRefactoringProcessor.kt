@@ -270,8 +270,6 @@ class AgpUpgradeRefactoringProcessor(project: Project, val current: AgpVersion, 
       GradlePluginsRefactoringProcessor(this),
       ProjectJdkRefactoringProcessor(this),
       // AGP 7.x
-      CompileRuntimeConfigurationRefactoringProcessor(this),
-      REMOVE_BUILD_TYPE_USE_PROGUARD_INFO.RefactoringProcessor(this),
       RedundantPropertiesRefactoringProcessor(this),
       // AGP 8.x
       R8FullModeDefaultRefactoringProcessor(this),

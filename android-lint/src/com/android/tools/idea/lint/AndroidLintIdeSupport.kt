@@ -48,7 +48,6 @@ import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.lang.properties.PropertiesFileType
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileTypes.FileTypes
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -210,13 +209,9 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     project.getService(AssistantInvoker::class.java).performRecommendedPluginUpgrade(project)
   }
 
-  override fun shouldOfferUpgradeAssistantForDeprecatedConfigurations(project: Project) = true
+  override fun shouldOfferUpgradeAssistantForDeprecatedConfigurations(project: Project) = false
 
-  override fun updateDeprecatedConfigurations(project: Project, element: PsiElement) {
-    ApplicationManager.getApplication().executeOnPooledThread {
-      project.getService(AssistantInvoker::class.java).performDeprecatedConfigurationsUpgrade(project, element)
-    }
-  }
+  override fun updateDeprecatedConfigurations(project: Project, element: PsiElement) = Unit
 
   override fun resolveDynamicDependency(project: Project, dependency: Dependency): String? {
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()

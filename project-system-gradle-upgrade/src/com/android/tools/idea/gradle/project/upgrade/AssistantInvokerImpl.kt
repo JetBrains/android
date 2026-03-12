@@ -23,55 +23,10 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationsManager
-import com.intellij.openapi.application.ModalityState
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
-import com.intellij.psi.PsiElement
-import org.jetbrains.annotations.VisibleForTesting
-
-private val LOG = Logger.getInstance(LOG_CATEGORY)
 
 class AssistantInvokerImpl : AssistantInvoker {
-  @Slow
-  override fun performDeprecatedConfigurationsUpgrade(project: Project, element: PsiElement) {
-    val recommended = AgpVersions.latestKnown
-    val current = AndroidPluginInfo.find(project)?.pluginVersion ?: recommended
-    val processor = AgpUpgradeRefactoringProcessor(project, current, recommended)
-    val runProcessor =
-      showAndGetDeprecatedConfigurationsUpgradeDialog(processor, element) { p ->
-        AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog(p)
-      }
-    if (runProcessor) {
-      DumbService.getInstance(project).smartInvokeLater { processor.run() }
-    }
-  }
-
-  @Slow
-  @VisibleForTesting
-  fun showAndGetDeprecatedConfigurationsUpgradeDialog(
-    processor: AgpUpgradeRefactoringProcessor,
-    element: PsiElement,
-    dialogFactory: (AgpUpgradeRefactoringProcessor) -> AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog,
-  ): Boolean {
-    val compileRuntimeProcessor =
-      processor.componentRefactoringProcessors.firstNotNullOfOrNull { it as? CompileRuntimeConfigurationRefactoringProcessor }
-    if (compileRuntimeProcessor == null) {
-      LOG.error("no CompileRuntimeConfiguration processor found in AGP Upgrade Processor")
-    }
-    processor.setCommandName("Replace Deprecated Configurations")
-    val wrappedElement = WrappedPsiElement(element, compileRuntimeProcessor!!, null, "Upgrading deprecated configurations")
-    processor.targets.add(wrappedElement)
-    processor.ensureParsedModels()
-    val runProcessor =
-      invokeAndWaitIfNeeded(ModalityState.nonModal()) {
-        val dialog = dialogFactory(processor)
-        dialog.showAndGet()
-      }
-    return runProcessor
-  }
 
   override fun maybeForceOrRecommendPluginUpgrade(project: Project, info: AndroidPluginInfo) {
     info.pluginVersion?.let { currentAgpVersion ->

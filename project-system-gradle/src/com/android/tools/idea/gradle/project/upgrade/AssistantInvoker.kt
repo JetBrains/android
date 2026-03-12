@@ -18,14 +18,8 @@ package com.android.tools.idea.gradle.project.upgrade
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiElement
 
 interface AssistantInvoker {
-  /**
-   * Perform a specialized "upgrade" of the build files to convert usages of the old, long-deprecated `compile` dependency configuration
-   * (and its variants) to its replacement `api` or `implementation` (depending on the context in which that dependency is declared).
-   */
-  @Slow fun performDeprecatedConfigurationsUpgrade(project: Project, element: PsiElement)
 
   /**
    * If policy, preferences and available versions of the Android Gradle plugin allow, notify the user in some fashion to force or recommend

@@ -63,30 +63,6 @@ class AgpComponentUsageTypeProviderTest : AndroidTestCase() {
     assertThat(usageType.toString()).isEqualTo("Update Gradle distribution URL")
   }
 
-  fun testCompileRuntimeConfigurationRefactoringProcessor() {
-    myFixture.addFileToProject(
-      "build.gradle",
-      """
-      plugins {
-        id 'com.android.application'
-      }
-      configurations {
-        paidReleaseCompile { }
-      }
-      dependencies {
-        androidTestCompile 'org.junit:junit:4.11'
-      }
-      """
-        .trimIndent(),
-    )
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(myFixture.project, AgpVersion.parse("4.0.0"), AgpVersion.parse("5.0.0"))
-    assertTrue(processor.isEnabled)
-    val usages = processor.findUsages()
-    assertThat(usages).hasLength(2)
-    assertThat(usages.mapNotNull { it.element?.let { e -> getUsageType(e).toString() } })
-      .containsExactly("Change dependency configuration", "Rename configuration")
-  }
-
   private fun getUsageType(element: PsiElement): UsageType? {
     for (provider in UsageTypeProvider.EP_NAME.extensionList) {
       if (provider is UsageTypeProviderEx) {
