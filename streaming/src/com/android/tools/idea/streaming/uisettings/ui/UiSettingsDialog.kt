@@ -114,7 +114,10 @@ internal class UiSettingsDialog(project: Project, model: UiSettingsModel, device
     val windowListener =
       object : WindowAdapter() {
         override fun windowLostFocus(event: WindowEvent) {
-          close(OK_EXIT_CODE)
+          // b/475894230: DialogWrapper.close() intercepts the native focus transition and causes
+          // the window peer to desync and become a zombie. Enqueue close on the EDT to allow AWT
+          // to finish its native handling first.
+          SwingUtilities.invokeLater { close(OK_EXIT_CODE) }
         }
       }
     window.addWindowFocusListener(windowListener)

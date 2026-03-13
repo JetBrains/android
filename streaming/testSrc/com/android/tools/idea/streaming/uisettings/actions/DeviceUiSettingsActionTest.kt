@@ -113,6 +113,7 @@ class DeviceUiSettingsActionTest {
     executeAction("android.streaming.ui.settings", view, project, ActionPlaces.TOOLBAR)
     val dialog = waitForDialog()
     dialog.window.windowFocusListeners.forEach { it.windowLostFocus(mock()) }
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     assertThat(dialog.isDisposed).isTrue()
   }
 
