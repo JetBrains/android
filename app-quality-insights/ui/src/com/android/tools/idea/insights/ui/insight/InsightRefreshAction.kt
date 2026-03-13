@@ -27,6 +27,7 @@ class InsightRefreshAction(private val controller: AppInsightsProjectLevelContro
 
   override fun update(e: AnActionEvent) {
     e.presentation.icon = AllIcons.General.Refresh
+    e.presentation.text = "Regenerate insight"
   }
 
   override fun actionPerformed(e: AnActionEvent) {

@@ -16,6 +16,8 @@
 package com.android.tools.idea.insights.ui.insight
 
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
+import com.google.common.truth.Truth.assertThat
+import com.intellij.icons.AllIcons
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.TestActionEvent
 import kotlinx.coroutines.runBlocking
@@ -34,7 +36,11 @@ class InsightRefreshActionTest {
     val action = InsightRefreshAction(mockController)
 
     val testEvent = TestActionEvent.createTestEvent()
+
     action.update(testEvent)
+    assertThat(testEvent.presentation.icon).isEqualTo(AllIcons.General.Refresh)
+    assertThat(testEvent.presentation.text).isEqualTo("Regenerate insight")
+
     action.actionPerformed(testEvent)
 
     verify(mockController).refreshInsight(regenerateWithContext = false, forceGenerateNewInsight = true)
