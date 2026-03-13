@@ -19,7 +19,7 @@ java_library(
         "//tools/vendor/google3/aswb:__subpackages__",
     ],
     deps = [
-        "//tools/adt/idea/aswb/base:base_lib",
+        "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/proto:proto_deps",
         "//tools/vendor/google/aswb/plugin_api",

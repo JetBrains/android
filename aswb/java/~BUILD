@@ -33,7 +33,7 @@ aswb_library(
         "//tools/vendor/google3/aswb:__subpackages__",
     ],
     deps = [
-        "//tools/adt/idea/aswb/base:base_lib",
+        "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/common/actions",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/common/settings",
@@ -98,7 +98,7 @@ intellij_unit_test_suite(
     visibility = DEFAULT_TEST_VISIBILITY,
     deps = [
         ":java_lib",
-        "//tools/adt/idea/aswb/base:base_lib",
+        "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/base:unit_test_utils",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/common/experiments:unit_test_utils",
@@ -191,7 +191,7 @@ intellij_integration_test_suite(
     visibility = DEFAULT_TEST_VISIBILITY,
     deps = [
         ":java_lib",
-        "//tools/adt/idea/aswb/base:base_lib",
+        "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/base:integration_test_utils",
         "//tools/adt/idea/aswb/base:unit_test_utils",
         "//tools/adt/idea/aswb/common/experiments",

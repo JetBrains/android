@@ -12,7 +12,7 @@ aswb_library(
     srcs = glob(["src/**/*.java"]),
     visibility = PLUGIN_PACKAGES_VISIBILITY,
     deps = [
-        "//tools/adt/idea/aswb/base:base_lib",
+        "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:jsr305",

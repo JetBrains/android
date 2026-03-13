@@ -34,7 +34,7 @@ aswb_library(
         "//tools/vendor/google3/aswb:__subpackages__",
     ],
     deps = [
-        "//tools/adt/idea/aswb/base:base_lib",
+        "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/java:java_lib",
         "//tools/adt/idea/aswb/proto:proto_deps",
@@ -66,7 +66,7 @@ intellij_unit_test_suite(
     test_package_root = "com.google.idea.blaze",
     deps = [
         ":kotlin_lib",
-        "//tools/adt/idea/aswb/base:base_lib",
+        "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/base:unit_test_utils",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/common/experiments:unit_test_utils",
@@ -126,7 +126,7 @@ intellij_integration_test_suite(
     test_package_root = "com.google.idea.blaze.kotlin",
     deps = [
         ":kotlin_lib",
-        "//tools/adt/idea/aswb/base:base_lib",
+        "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/base:integration_test_utils",
         "//tools/adt/idea/aswb/base:unit_test_utils",
         "//tools/adt/idea/aswb/common/experiments",

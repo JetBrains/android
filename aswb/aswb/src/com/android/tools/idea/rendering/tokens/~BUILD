@@ -10,7 +10,7 @@ aswb_library(
     ),
     deps = [
         "//tools/adt/idea/aswb/aswb:aswb_lib",
-        "//tools/adt/idea/aswb/base:base_lib",
+        "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/cpp:cpp_lib",
         "//tools/adt/idea/aswb/java:java_lib",

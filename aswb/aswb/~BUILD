@@ -62,7 +62,7 @@ java_library(
     visibility = combine_visibilities(TEST_ASWB_SUBPACKAGES_VISIBILITY, DEFAULT_TEST_VISIBILITY),
     deps = [
         ":aswb_lib",
-        "//tools/adt/idea/aswb/base:base_lib",
+        "//tools/adt/idea/aswb/base",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
         "//tools/vendor/google/aswb/plugin_api:test_libs",
         "//tools/vendor/google/aswb/plugin_api/maven:guava",
@@ -76,7 +76,7 @@ java_library(
     visibility = TEST_ASWB_SUBPACKAGES_VISIBILITY,
     deps = [
         ":aswb_lib",
-        "//tools/adt/idea/aswb/base:base_lib",
+        "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/base:integration_test_utils",
         "//tools/adt/idea/aswb/base:unit_test_utils",
         "//tools/adt/idea/aswb/common/experiments",
@@ -113,7 +113,7 @@ aswb_library(
         "//tools/vendor/google3/aswb/java/com/google/devtools/intellij/blaze/plugin/aswb:__subpackages__",
     ],
     deps = [
-        "//tools/adt/idea/aswb/base:base_lib",
+        "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/base/src/com/google/idea/blaze/base/command/buildresult/bepparser",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/cpp:cpp_lib",
@@ -147,7 +147,7 @@ intellij_unit_test_suite(
         ":aswb_lib",
         ":unit_test_utils",
         "//tools/adt/idea/aswb/aswb/tests/unittests/com/android/tools/idea/rendering/tokens:helloworld",
-        "//tools/adt/idea/aswb/base:base_lib",
+        "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/base:unit_test_utils",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/common/experiments:unit_test_utils",
@@ -217,7 +217,7 @@ intellij_integration_test_suite(
         ":aswb_lib",
         ":integration_test_utils",
         ":unit_test_utils",
-        "//tools/adt/idea/aswb/base:base_lib",
+        "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/base:integration_test_utils",
         "//tools/adt/idea/aswb/base:unit_test_utils",
         "//tools/adt/idea/aswb/base/src/com/google/idea/blaze/base/command/buildresult/bepparser",
@@ -252,7 +252,7 @@ intellij_integration_test_suite(
     ],
     deps = [
         ":aswb_lib",
-        "//tools/adt/idea/aswb/base:base_lib",
+        "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/base:integration_test_utils",
         "//tools/adt/idea/aswb/base:unit_test_utils",
         "//tools/adt/idea/aswb/proto:proto_deps",

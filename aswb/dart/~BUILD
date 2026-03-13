@@ -10,7 +10,7 @@ java_library(
     name = "dart_lib",
     srcs = glob(["src/**/*.java"]),
     deps = [
-        "//tools/adt/idea/aswb/base:base_lib",
+        "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/proto:proto_deps",
         "//tools/vendor/google/aswb/plugin_api",
@@ -33,7 +33,7 @@ intellij_unit_test_suite(
     visibility = DEFAULT_TEST_VISIBILITY,
     deps = [
         ":dart_lib",
-        "//tools/adt/idea/aswb/base:base_lib",
+        "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/base:unit_test_utils",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/third_party/java/junit",

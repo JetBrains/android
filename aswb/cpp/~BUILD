@@ -30,7 +30,7 @@ aswb_library(
     ]),
     visibility = PLUGIN_PACKAGES_VISIBILITY,
     deps = [
-        "//tools/adt/idea/aswb/base:base_lib",
+        "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/common/util:platform",
         "//tools/adt/idea/aswb/proto:proto_deps",
@@ -97,7 +97,7 @@ intellij_unit_test_suite(
     runtime_deps = ["//tools/vendor/google/aswb/plugin_api:test_libs"],
     deps = [
         ":cpp_lib",
-        "//tools/adt/idea/aswb/base:base_lib",
+        "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/base:unit_test_utils",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/common/experiments:unit_test_utils",
@@ -116,7 +116,7 @@ java_library(
     ],
     visibility = PLUGIN_PACKAGES_VISIBILITY,
     deps = [
-        "//tools/adt/idea/aswb/base:base_lib",
+        "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/base:integration_test_utils",
         "//tools/adt/idea/aswb/base:unit_test_utils",
         "//tools/adt/idea/aswb/testing:lib",
@@ -177,7 +177,7 @@ intellij_integration_test_suite(
     deps = [
         ":cpp_lib",
         ":integration_test_utils",
-        "//tools/adt/idea/aswb/base:base_lib",
+        "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/base:integration_test_utils",
         "//tools/adt/idea/aswb/base:unit_test_utils",
         "//tools/adt/idea/aswb/third_party/java/junit",
