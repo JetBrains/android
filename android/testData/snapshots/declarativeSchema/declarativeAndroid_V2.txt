@@ -6729,6 +6729,8 @@ Projects:
                       Property ReferenceType        : java.io.File
                     - PropertyName                  : noLines
                       Property SimpleType           : BOOLEAN
+                    - PropertyName                  : printTextReport
+                      Property SimpleType           : BOOLEAN
                     - PropertyName                  : quiet
                       Property SimpleType           : BOOLEAN
                     - PropertyName                  : sarifOutput
@@ -17046,6 +17048,8 @@ Settings:
                     - PropertyName                  : lintConfig
                       Property ReferenceType        : java.io.File
                     - PropertyName                  : noLines
+                      Property SimpleType           : BOOLEAN
+                    - PropertyName                  : printTextReport
                       Property SimpleType           : BOOLEAN
                     - PropertyName                  : quiet
                       Property SimpleType           : BOOLEAN
