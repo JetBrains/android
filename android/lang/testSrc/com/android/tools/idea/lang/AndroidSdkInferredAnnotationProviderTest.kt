@@ -98,7 +98,7 @@ class AndroidSdkInferredAnnotationProviderTest {
       package com.example;
       class Test {
         void foo() {
-          System.clearProperty(<warning descr="Passing 'null' argument to parameter annotated as @NotNull">null</warning>);
+          System.clearProperty(<warning descr="Passing 'null' argument to parameter annotated as non-null">null</warning>);
         }
       }
       """.trimIndent()
