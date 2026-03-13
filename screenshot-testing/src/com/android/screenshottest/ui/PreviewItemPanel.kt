@@ -153,15 +153,13 @@ class PreviewItemPanel(
 
   fun showError(message: String) {
     currentImagePath = ""
-    ApplicationManager.getApplication().invokeLater {
-      isLoadedSuccessfully = false
-      imagePanel.showText(message)
-    }
+    isLoadedSuccessfully = false
+    imagePanel.showText(message)
   }
 
   private fun showPlaceholder(message: String, color: JBColor) {
     currentImagePath = ""
-    ApplicationManager.getApplication().invokeLater { imagePanel.showText(message, color) }
+    imagePanel.showText(message, color)
   }
 
   fun showImageForView(viewType: ScreenshotViewType, onImageLoaded: (() -> Unit)? = null) {
@@ -247,6 +245,7 @@ class PreviewItemPanel(
             // Log the SCREENSHOT_DIALOG_RENDER_FAILURE event
             logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_RENDER_FAILURE, project)
             showError(COULD_NOT_LOAD_IMAGE_TEXT)
+            onImageLoaded?.invoke() // To trigger a list repaint
           }
         }
       }
