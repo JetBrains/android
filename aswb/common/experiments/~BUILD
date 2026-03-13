@@ -19,15 +19,21 @@ load(
 licenses(["notice"])
 
 aswb_library(
-    name = "experiments",
+    name = "experiments_lib",
     srcs = glob(["src/**/*.java"]),
-    visibility = COMMON_PLUGINS_VISIBILITY,
+    visibility = [":__subpackages__"],
     deps = [
         "//tools/adt/idea/aswb/common/util:platform",
         "//tools/adt/idea/aswb/third_party/java/auto_value",
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
     ],
+)
+
+intellij_plugin_library(
+    name = "experiments",
+    visibility = COMMON_PLUGINS_VISIBILITY,
+    deps = [":experiments_lib"],
 )
 
 # includes a test ExperimentService registered in plugin XML. This is required
