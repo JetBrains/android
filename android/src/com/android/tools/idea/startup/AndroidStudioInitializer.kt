@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.startup
 
-import com.android.tools.adtui.webp.WebpMetadata
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.analytics.SystemInfoStatsMonitor
@@ -51,13 +50,6 @@ class AndroidStudioInitializer(private val coroutineScope: CoroutineScope) : App
     coroutineScope.launch {
       AndroidStudioSystemHealthMonitor.getInstance()?.start()
     }
-
-    // TODO: Remove this once the issue has been properly fixed in the IntelliJ platform
-    //  see https://youtrack.jetbrains.com/issue/IDEA-316037
-    // Automatic registration of WebP support through the WebP plugin can fail
-    // because of a race condition in the creation of IIORegistry.
-    // Trying again here ensures that the WebP support is correctly registered.
-    WebpMetadata.ensureWebpRegistered()
 
     // We need to start the system info monitoring even in case when user never
     // runs a single emulator instance: e.g., incompatible hypervisor might be
