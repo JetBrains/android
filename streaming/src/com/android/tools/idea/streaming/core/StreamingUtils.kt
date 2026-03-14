@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.streaming.core
 
+import com.android.adblib.deviceInfo
 import com.android.sdklib.SystemImageTags
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.adtui.util.scaled
@@ -243,13 +245,37 @@ internal fun Graphics.fillCircle(center: Point, radius: Int) {
 }
 
 /** Returns the folder of the phone AVD paired to the given AI glasses AVD, or null if the glasses are not paired with a phone. */
-internal fun getPairedPhoneAvdFolder(glassesAvdFolder: Path, devices: Iterable<DeviceHandle>): Path? {
-  val glasses = devices.findByAvdFolder(glassesAvdFolder) ?: return null
-  val pairedAvdId = glasses.state.properties.pairedPhoneId ?: return null
-  val pairedPhoneProperties = devices.firstOrNull { it.id == pairedAvdId }?.state?.properties
-  return (pairedPhoneProperties as? LocalEmulatorProperties)?.avdPath
+internal fun getPairedPhoneAvdFolder(glasses: StreamingDeviceId, devices: Iterable<DeviceHandle>): Path? =
+  devices.findPairedPhone(glasses)?.avdFolder
+
+internal fun Iterable<DeviceHandle>.findPairedPhone(glasses: StreamingDeviceId): DeviceHandle? {
+  val glasses = findByDeviceId(glasses) ?: return null
+  return findPairedPhone(glasses)
 }
 
-internal fun Iterable<DeviceHandle>.findByAvdFolder(avdFolder: Path): DeviceHandle? {
-  return firstOrNull { (it.state.properties as? LocalEmulatorProperties)?.avdPath == avdFolder }
+internal fun Iterable<DeviceHandle>.findPairedPhone(glasses: DeviceHandle): DeviceHandle? {
+  val pairedPhoneId = glasses.pairedPhoneId ?: return null
+  return firstOrNull { it.id == pairedPhoneId }
 }
+
+internal fun Iterable<DeviceHandle>.findByDeviceId(deviceId: StreamingDeviceId): DeviceHandle? {
+  return when (deviceId) {
+    is StreamingDeviceId.EmulatorDeviceId -> findByAvdFolder(deviceId.emulatorId.avdFolder)
+    is StreamingDeviceId.PhysicalDeviceId -> findBySerialNumber(deviceId.serialNumber)
+  }
+}
+
+private fun Iterable<DeviceHandle>.findByAvdFolder(avdFolder: Path): DeviceHandle? = firstOrNull { it.avdFolder == avdFolder }
+
+private fun Iterable<DeviceHandle>.findBySerialNumber(serialNumber: String): DeviceHandle? = firstOrNull { it.serialNumber == serialNumber }
+
+/** AVD folder corresponding to the device handle, or null if the device is not an AVD. */
+internal val DeviceHandle.avdFolder: Path?
+  get() = (state.properties as? LocalEmulatorProperties)?.avdPath
+
+/** The serial number of the device, or null if the device is not connected. */
+internal val DeviceHandle.serialNumber: String?
+  get() = state.connectedDevice?.deviceInfo?.serialNumber
+
+private val DeviceHandle.pairedPhoneId: DeviceId?
+  get() = state.properties.pairedPhoneId
