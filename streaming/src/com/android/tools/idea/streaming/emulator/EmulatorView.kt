@@ -55,8 +55,8 @@ import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.EmulatorSettingsListener
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.BUTTON_MASK
-import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.RUNNING_DEVICES_NOTIFICATION_GROUP
+import com.android.tools.idea.streaming.core.StreamingDeviceId
 import com.android.tools.idea.streaming.core.isSameAspectRatio
 import com.android.tools.idea.streaming.core.scaledDown
 import com.android.tools.idea.streaming.core.scaledUnbiased
@@ -218,7 +218,7 @@ internal class EmulatorView(
     }
 
   private val emulatorId = emulator.emulatorId
-  override val deviceId: DeviceId = DeviceId.ofEmulator(emulatorId)
+  override val deviceId: StreamingDeviceId = StreamingDeviceId.ofEmulator(emulatorId)
   override val deviceType: DeviceType = emulatorConfig.deviceType
   override val apiLevel: Int
     get() = emulatorConfig.api

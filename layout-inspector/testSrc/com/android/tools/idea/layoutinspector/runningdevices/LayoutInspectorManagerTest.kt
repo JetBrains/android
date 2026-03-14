@@ -43,7 +43,7 @@ import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.Layout
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.OnDeviceRendererPanel
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
-import com.android.tools.idea.streaming.core.DeviceId
+import com.android.tools.idea.streaming.core.StreamingDeviceId
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.android.tools.idea.streaming.emulator.FakeEmulator
 import com.android.tools.idea.testing.ui.createFakeToolWindow
@@ -90,7 +90,7 @@ class LayoutInspectorManagerTest {
   fun setUp() {
     tab1 =
       TabInfo(
-        deviceId = DeviceId.ofPhysicalDevice("tab1"),
+        streamingDeviceId = StreamingDeviceId.ofPhysicalDevice("tab1"),
         content = BorderLayoutPanel(),
         container = JPanel(),
         displays =
@@ -101,7 +101,7 @@ class LayoutInspectorManagerTest {
       )
     tab2 =
       TabInfo(
-        deviceId = DeviceId.ofPhysicalDevice("tab2"),
+        streamingDeviceId = StreamingDeviceId.ofPhysicalDevice("tab2"),
         content = BorderLayoutPanel(),
         container = JPanel(),
         displays =
@@ -112,7 +112,7 @@ class LayoutInspectorManagerTest {
       )
     xrTab =
       TabInfo(
-        deviceId = DeviceId.ofPhysicalDevice("tab3"),
+        streamingDeviceId = StreamingDeviceId.ofPhysicalDevice("tab3"),
         content = BorderLayoutPanel(),
         container = JPanel(),
         displays = listOf(displayViewRule.newEmulatorDisplayView(avdCreator = { path -> FakeEmulator.createXrHeadsetAvd(path) })),
@@ -268,7 +268,7 @@ class LayoutInspectorManagerTest {
     verifyUiRemoved(tab1)
     verifyUiInjected<EmbeddedRendererPanel>(tab2)
 
-    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, false)
+    layoutInspectorManager.enableLayoutInspector(tab1.streamingDeviceId, false)
 
     verifyUiRemoved(tab1)
     verifyUiInjected<EmbeddedRendererPanel>(tab2)
@@ -451,7 +451,7 @@ class LayoutInspectorManagerTest {
     enableLayoutInspector(tab1, true)
 
     verifyUiInjected<EmbeddedRendererPanel>(tab1)
-    assertThat(LayoutInspectorManagerGlobalState.tabsWithLayoutInspector).containsExactly(tab1.deviceId)
+    assertThat(LayoutInspectorManagerGlobalState.tabsWithLayoutInspector).containsExactly(tab1.streamingDeviceId)
 
     enableLayoutInspector(tab1, false)
 
@@ -465,7 +465,7 @@ class LayoutInspectorManagerTest {
     enableLayoutInspector(tab1, true)
 
     verifyUiInjected<EmbeddedRendererPanel>(tab1)
-    assertThat(LayoutInspectorManagerGlobalState.tabsWithLayoutInspector).containsExactly(tab1.deviceId)
+    assertThat(LayoutInspectorManagerGlobalState.tabsWithLayoutInspector).containsExactly(tab1.streamingDeviceId)
 
     Disposer.dispose(layoutInspectorManager)
 
@@ -568,7 +568,7 @@ class LayoutInspectorManagerTest {
   fun testDisable() = withEmbeddedLayoutInspector {
     enableLayoutInspector(tab1, true)
     verifyUiInjected<EmbeddedRendererPanel>(tab1)
-    assertThat(LayoutInspectorManagerGlobalState.tabsWithLayoutInspector).containsExactly(tab1.deviceId)
+    assertThat(LayoutInspectorManagerGlobalState.tabsWithLayoutInspector).containsExactly(tab1.streamingDeviceId)
 
     layoutInspectorManager.disable()
 
@@ -578,7 +578,7 @@ class LayoutInspectorManagerTest {
 
   private fun enableLayoutInspector(tabInfo: TabInfo, enable: Boolean) {
     setSelectedContent(fakeToolWindow, tabInfo)
-    layoutInspectorManager.enableLayoutInspector(tabInfo.deviceId, enable)
+    layoutInspectorManager.enableLayoutInspector(tabInfo.streamingDeviceId, enable)
   }
 }
 

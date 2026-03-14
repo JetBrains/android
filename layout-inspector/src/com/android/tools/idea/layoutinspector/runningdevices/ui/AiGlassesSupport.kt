@@ -20,8 +20,8 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.resource.data.Display
 import com.android.tools.idea.layoutinspector.runningdevices.RunningDevicesStateObserver
 import com.android.tools.idea.streaming.DEVICE_TYPE_KEY
-import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.DisplayView
+import com.android.tools.idea.streaming.core.StreamingDeviceId
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
@@ -157,26 +157,26 @@ private fun Flow<List<TabComponents>>.mapToMainDisplayState(): Flow<GlassesTabsS
  * A flow that emits the DeviceId for each visible ai glasses tab, each time that the set of visible ai glasses tabs changes. The flow does
  * not emit when any of the other tabs change.
  */
-private fun visibleAiGlassesDeviceIdsFlow(project: Project): Flow<List<DeviceId>> {
+private fun visibleAiGlassesDeviceIdsFlow(project: Project): Flow<List<StreamingDeviceId>> {
   return callbackFlow {
       val observer = RunningDevicesStateObserver.getInstance(project)
 
       val listener =
         object : RunningDevicesStateObserver.Listener {
-          override fun onSelectedTabsChanged(selectedTabs: List<DeviceId>) {
-            val aiGlassesDeviceIds = mutableListOf<DeviceId>()
+          override fun onSelectedTabsChanged(selectedTabs: List<StreamingDeviceId>) {
+            val aiGlassesStreamingDeviceIds = mutableListOf<StreamingDeviceId>()
             selectedTabs.forEach { deviceId ->
               val content = observer.getTabContent(deviceId) ?: return@forEach
               val dataProvider = DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, content.component)
               val deviceType = DEVICE_TYPE_KEY.getData(dataProvider)
               if (deviceType == DeviceType.AI_GLASSES) {
-                aiGlassesDeviceIds.add(deviceId)
+                aiGlassesStreamingDeviceIds.add(deviceId)
               }
             }
-            this@callbackFlow.trySend(aiGlassesDeviceIds)
+            this@callbackFlow.trySend(aiGlassesStreamingDeviceIds)
           }
 
-          override fun onExistingTabsChanged(existingTabs: List<DeviceId>) {}
+          override fun onExistingTabsChanged(existingTabs: List<StreamingDeviceId>) {}
         }
       observer.addListener(listener)
       awaitClose { invokeLater { observer.removeListener(listener) } }
@@ -187,10 +187,10 @@ private fun visibleAiGlassesDeviceIdsFlow(project: Project): Flow<List<DeviceId>
 
 /** A flow that emits the [TabComponents] for each visible ai glasses tab, each time that the set of visible ai glasses tabs changes */
 private fun visibleAiGlassesTabComponentsFlow(project: Project): Flow<List<TabComponents>> = flow {
-  var currentGlassesTabs = mapOf<DeviceId, TabComponents>()
+  var currentGlassesTabs = mapOf<StreamingDeviceId, TabComponents>()
   try {
     visibleAiGlassesDeviceIdsFlow(project).collect { aiGlassesDeviceIds ->
-      val newGlassesTabs = mutableMapOf<DeviceId, TabComponents>()
+      val newGlassesTabs = mutableMapOf<StreamingDeviceId, TabComponents>()
       aiGlassesDeviceIds.forEach { deviceId ->
         val existing = currentGlassesTabs[deviceId]
         if (existing != null) {

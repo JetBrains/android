@@ -17,7 +17,7 @@ package com.android.tools.idea.streaming.actions
 
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.actions.enableRichTooltip
-import com.android.tools.idea.streaming.core.DeviceId
+import com.android.tools.idea.streaming.core.StreamingDeviceId
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -74,9 +74,9 @@ internal class HardwareInputStateStorage {
 
   private val enabledDevices = createConcurrentList<String>()
 
-  fun isHardwareInputEnabled(deviceId: DeviceId): Boolean = enabledDevices.contains(deviceId.storageKey)
+  fun isHardwareInputEnabled(deviceId: StreamingDeviceId): Boolean = enabledDevices.contains(deviceId.storageKey)
 
-  fun setHardwareInputEnabled(deviceId: DeviceId, enabled: Boolean) {
+  fun setHardwareInputEnabled(deviceId: StreamingDeviceId, enabled: Boolean) {
     if (enabled) {
       enabledDevices.addIfAbsent(deviceId.storageKey)
     } else {
@@ -84,10 +84,10 @@ internal class HardwareInputStateStorage {
     }
   }
 
-  private val DeviceId.storageKey: String
+  private val StreamingDeviceId.storageKey: String
     get() =
       when (this) {
-        is DeviceId.EmulatorDeviceId -> emulatorId.avdId
-        is DeviceId.PhysicalDeviceId -> serialNumber
+        is StreamingDeviceId.EmulatorDeviceId -> emulatorId.avdId
+        is StreamingDeviceId.PhysicalDeviceId -> serialNumber
       }
 }

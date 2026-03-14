@@ -26,7 +26,7 @@ import com.android.tools.idea.layoutinspector.runningdevices.addContent
 import com.android.tools.idea.layoutinspector.runningdevices.getContent
 import com.android.tools.idea.layoutinspector.runningdevices.removeContent
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
-import com.android.tools.idea.streaming.core.DeviceId
+import com.android.tools.idea.streaming.core.StreamingDeviceId
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.android.tools.idea.testing.ui.ToolWindowHeadlessManagerImpl
 import com.android.tools.idea.testing.ui.createFakeToolWindow
@@ -154,8 +154,8 @@ class AiGlassesSupportTest {
     val tab1 = addGlassesTab("glasses1")
     val tab2 = addGlassesTab("glasses2")
 
-    val content1 = fakeToolWindow.getContent(tab1.deviceId)
-    val content2 = fakeToolWindow.getContent(tab2.deviceId)
+    val content1 = fakeToolWindow.getContent(tab1.streamingDeviceId)
+    val content2 = fakeToolWindow.getContent(tab2.streamingDeviceId)
 
     ToolWindowHeadlessManagerImpl.split(content1, SwingConstants.BOTTOM)
     val bottomContentManager = content1.manager!!
@@ -202,7 +202,7 @@ class AiGlassesSupportTest {
     val displayView = displayViewRule.newEmulatorDisplayView(displayId = Display.MAIN_DISPLAY_ID)
     val tab =
       TabInfo(
-        deviceId = DeviceId.ofPhysicalDevice(id),
+        streamingDeviceId = StreamingDeviceId.ofPhysicalDevice(id),
         content = BorderLayoutPanel(),
         container = JPanel(),
         displays = listOf(displayView),

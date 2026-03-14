@@ -18,16 +18,16 @@ package com.android.tools.idea.streaming.core
 import com.android.tools.idea.streaming.emulator.EmulatorId
 
 /** Identifying information for a running Emulator or a connected physical device. */
-sealed class DeviceId(val serialNumber: String) : Comparable<DeviceId> {
+sealed class StreamingDeviceId(val serialNumber: String) : Comparable<StreamingDeviceId> {
 
-  data class EmulatorDeviceId(val emulatorId: EmulatorId) : DeviceId(emulatorId.serialNumber) {
+  data class EmulatorDeviceId(val emulatorId: EmulatorId) : StreamingDeviceId(emulatorId.serialNumber) {
 
     override fun toString(): String {
       return emulatorId.toString()
     }
   }
 
-  class PhysicalDeviceId(serialNumber: String) : DeviceId(serialNumber) {
+  class PhysicalDeviceId(serialNumber: String) : StreamingDeviceId(serialNumber) {
 
     override fun equals(other: Any?): Boolean = this === other || other is PhysicalDeviceId && other.serialNumber == serialNumber
 
@@ -39,7 +39,7 @@ sealed class DeviceId(val serialNumber: String) : Comparable<DeviceId> {
   }
 
   /** Physical devices are sorted after AVDs. Within each group devices are sorted by serial number. */
-  override fun compareTo(other: DeviceId): Int {
+  override fun compareTo(other: StreamingDeviceId): Int {
     return when {
       this::class == other::class -> serialNumber.compareTo(other.serialNumber)
       this is EmulatorDeviceId -> -1
@@ -48,8 +48,8 @@ sealed class DeviceId(val serialNumber: String) : Comparable<DeviceId> {
   }
 
   companion object {
-    fun ofEmulator(emulatorId: EmulatorId): DeviceId = EmulatorDeviceId(emulatorId)
+    fun ofEmulator(emulatorId: EmulatorId): StreamingDeviceId = EmulatorDeviceId(emulatorId)
 
-    fun ofPhysicalDevice(serialNumber: String): DeviceId = PhysicalDeviceId(serialNumber)
+    fun ofPhysicalDevice(serialNumber: String): StreamingDeviceId = PhysicalDeviceId(serialNumber)
   }
 }

@@ -24,11 +24,11 @@ import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutI
 import com.android.tools.idea.streaming.DEVICE_TYPE_KEY
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
-import com.android.tools.idea.streaming.core.DEVICE_ID_KEY
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
-import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.DisplayView
 import com.android.tools.idea.streaming.core.STREAMING_CONTENT_PANEL_KEY
+import com.android.tools.idea.streaming.core.STREAMING_DEVICE_ID_KEY
+import com.android.tools.idea.streaming.core.StreamingDeviceId
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.android.tools.idea.testing.ui.createFakeToolWindow
 import com.google.common.truth.Truth.assertThat
@@ -78,7 +78,8 @@ class ToggleLayoutInspectorActionTest {
   fun setUp() {
     LayoutInspectorManagerGlobalState.tabsWithLayoutInspector.clear()
 
-    tab1 = TabInfo(DeviceId.ofPhysicalDevice("tab1"), BorderLayoutPanel(), JPanel(), listOf(displayViewRule.newEmulatorDisplayView()))
+    tab1 =
+      TabInfo(StreamingDeviceId.ofPhysicalDevice("tab1"), BorderLayoutPanel(), JPanel(), listOf(displayViewRule.newEmulatorDisplayView()))
 
     fakeToolWindow = createFakeToolWindow(displayViewRule.project, displayViewRule.disposable, RUNNING_DEVICES_TOOL_WINDOW_ID)
     addContent(fakeToolWindow, tab1)
@@ -165,7 +166,7 @@ class ToggleLayoutInspectorActionTest {
     toggleLayoutInspectorAction.update(fakeActionEvent)
     assertThat(fakeActionEvent.presentation.isEnabled).isTrue()
 
-    LayoutInspectorManagerGlobalState.tabsWithLayoutInspector.add(DeviceId.ofPhysicalDevice("device1"))
+    LayoutInspectorManagerGlobalState.tabsWithLayoutInspector.add(StreamingDeviceId.ofPhysicalDevice("device1"))
 
     toggleLayoutInspectorAction.update(fakeActionEvent)
     assertThat(fakeActionEvent.presentation.isEnabled).isFalse()
@@ -187,7 +188,7 @@ class ToggleLayoutInspectorActionTest {
     var isTriggered = false
     val toggleLayoutInspectorAction = ToggleLayoutInspectorAction(showNotificationDiscovery = { isTriggered = true })
 
-    val fakeActionEvent = toggleLayoutInspectorAction.getFakeActionEvent(deviceId = null)
+    val fakeActionEvent = toggleLayoutInspectorAction.getFakeActionEvent(streamingDeviceId = null)
 
     toggleLayoutInspectorAction.actionPerformed(fakeActionEvent)
 
@@ -212,7 +213,7 @@ class ToggleLayoutInspectorActionTest {
 
   private fun AnAction.getFakeActionEvent(
     deviceSerialNumber: String = "serial_number",
-    deviceId: DeviceId? = DeviceId.ofPhysicalDevice(deviceSerialNumber),
+    streamingDeviceId: StreamingDeviceId? = StreamingDeviceId.ofPhysicalDevice(deviceSerialNumber),
     deviceType: DeviceType = DeviceType.HANDHELD,
   ): AnActionEvent {
     val contentPanelContainer = JPanel()
@@ -225,7 +226,7 @@ class ToggleLayoutInspectorActionTest {
         .add(SERIAL_NUMBER_KEY, deviceSerialNumber)
         .add(STREAMING_CONTENT_PANEL_KEY, contentPanel)
         .add(DISPLAY_VIEW_KEY, displayView)
-        .add(DEVICE_ID_KEY, deviceId)
+        .add(STREAMING_DEVICE_ID_KEY, streamingDeviceId)
         .add(DEVICE_TYPE_KEY, deviceType)
         .add(CONTENT_MANAGER, fakeToolWindow.contentManager)
         .build()
@@ -243,14 +244,14 @@ class ToggleLayoutInspectorActionTest {
     var isEnabled = false
     var toggleLayoutInspectorInvocations = 0
 
-    override fun enableLayoutInspector(tabId: DeviceId, enable: Boolean) {
+    override fun enableLayoutInspector(tabId: StreamingDeviceId, enable: Boolean) {
       toggleLayoutInspectorInvocations += 1
       isEnabled = enable
     }
 
-    override fun isEnabled(tabId: DeviceId) = isEnabled
+    override fun isEnabled(tabId: StreamingDeviceId) = isEnabled
 
-    override fun isSupported(deviceId: DeviceId) = true
+    override fun isSupported(streamingDeviceId: StreamingDeviceId) = true
 
     override fun dispose() {}
 

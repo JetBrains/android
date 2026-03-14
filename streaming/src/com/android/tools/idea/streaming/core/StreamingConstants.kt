@@ -28,7 +28,7 @@ import javax.swing.JComponent
 
 @JvmField val STREAMING_CONTENT_PANEL_KEY = DataKey.create<JComponent>("StreamingContentPanel")
 
-@JvmField val DEVICE_ID_KEY = DataKey.create<DeviceId>("DeviceId")
+@JvmField val STREAMING_DEVICE_ID_KEY = DataKey.create<StreamingDeviceId>("StreamingDeviceId")
 
 @JvmField internal val NUMBER_OF_DISPLAYS_KEY = DataKey.create<Int>("NumberOfDisplays")
 

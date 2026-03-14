@@ -34,7 +34,7 @@ import com.android.tools.idea.layoutinspector.runningdevices.actions.VerticalSpl
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.RenderingComponents
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.createRenderingComponents
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.TargetSelectionActionFactory
-import com.android.tools.idea.streaming.core.DeviceId
+import com.android.tools.idea.streaming.core.StreamingDeviceId
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
@@ -71,7 +71,7 @@ private val logger = Logger.getInstance(ActiveTabState::class.java)
 data class ActiveTabState(
   val disposable: Disposable,
   val project: Project,
-  val deviceId: DeviceId,
+  val deviceId: StreamingDeviceId,
   val tabComponents: TabComponents,
   val layoutInspector: LayoutInspector,
 ) : Disposable {

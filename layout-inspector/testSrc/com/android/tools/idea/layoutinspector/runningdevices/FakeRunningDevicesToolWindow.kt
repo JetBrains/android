@@ -18,13 +18,13 @@ package com.android.tools.idea.layoutinspector.runningdevices
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.streaming.DEVICE_TYPE_KEY
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
-import com.android.tools.idea.streaming.core.DEVICE_ID_KEY
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.core.DeviceDisplayListener
-import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.DisplayOwner
 import com.android.tools.idea.streaming.core.DisplayView
 import com.android.tools.idea.streaming.core.STREAMING_CONTENT_PANEL_KEY
+import com.android.tools.idea.streaming.core.STREAMING_DEVICE_ID_KEY
+import com.android.tools.idea.streaming.core.StreamingDeviceId
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataProvider
@@ -52,7 +52,7 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 
 data class TabInfo(
-  val deviceId: DeviceId,
+  val streamingDeviceId: StreamingDeviceId,
   val content: BorderLayoutPanel,
   val container: Container,
   val displays: List<DisplayView>,
@@ -97,13 +97,14 @@ fun setSelectedContent(toolWindow: ToolWindow, tabInfo: TabInfo) {
 private fun findContent(toolWindow: ToolWindow, tabInfo: TabInfo): Content? {
   return toolWindow.contentManager.contents.find {
     val component = it.component
-    component is FakeRunningDevicesComponent && component.tabInfo.deviceId == tabInfo.deviceId
+    component is FakeRunningDevicesComponent && component.tabInfo.streamingDeviceId == tabInfo.streamingDeviceId
   }
 }
 
-fun ToolWindow.getContent(deviceId: DeviceId): Content {
+fun ToolWindow.getContent(streamingDeviceId: StreamingDeviceId): Content {
   return contentManager.contents.first {
-    it.component is FakeRunningDevicesComponent && (it.component as FakeRunningDevicesComponent).tabInfo.deviceId == deviceId
+    it.component is FakeRunningDevicesComponent &&
+      (it.component as FakeRunningDevicesComponent).tabInfo.streamingDeviceId == streamingDeviceId
   }
 }
 
@@ -121,10 +122,10 @@ class FakeRunningDevicesComponent(val tabInfo: TabInfo) : JPanel(), UiDataProvid
   }
 
   override fun uiDataSnapshot(sink: DataSink) {
-    sink[SERIAL_NUMBER_KEY] = tabInfo.deviceId.serialNumber
+    sink[SERIAL_NUMBER_KEY] = tabInfo.streamingDeviceId.serialNumber
     sink[STREAMING_CONTENT_PANEL_KEY] = tabInfo.content
     sink[DISPLAY_VIEW_KEY] = tabInfo.displays.first()
-    sink[DEVICE_ID_KEY] = tabInfo.deviceId
+    sink[STREAMING_DEVICE_ID_KEY] = tabInfo.streamingDeviceId
     sink[DEVICE_TYPE_KEY] = tabInfo.deviceType
   }
 

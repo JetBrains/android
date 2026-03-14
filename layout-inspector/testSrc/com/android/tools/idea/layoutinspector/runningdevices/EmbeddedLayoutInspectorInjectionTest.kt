@@ -36,10 +36,10 @@ import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetectio
 import com.android.tools.idea.layoutinspector.runningdevices.ui.ActiveTabState
 import com.android.tools.idea.layoutinspector.runningdevices.ui.TabComponents
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
-import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.DevicePanel
 import com.android.tools.idea.streaming.core.DisplayView
 import com.android.tools.idea.streaming.core.STREAMING_CONTENT_PANEL_KEY
+import com.android.tools.idea.streaming.core.StreamingDeviceId
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.DataContext.EMPTY_CONTEXT
@@ -151,7 +151,7 @@ class EmbeddedLayoutInspectorInjectionTest {
       ActiveTabState(
         disposable = panel,
         project = project,
-        deviceId = DeviceId.ofPhysicalDevice("0"),
+        deviceId = StreamingDeviceId.ofPhysicalDevice("0"),
         tabComponents = tabComponents,
         layoutInspector = layoutInspector,
       )

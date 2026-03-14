@@ -23,7 +23,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findAllDescendants
 import com.android.tools.adtui.swing.popup.FakeJBPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
-import com.android.tools.idea.streaming.core.DeviceId
+import com.android.tools.idea.streaming.core.StreamingDeviceId
 import com.android.tools.idea.streaming.device.DeviceClient
 import com.android.tools.idea.streaming.device.DeviceDisplayPanel
 import com.android.tools.idea.streaming.device.DeviceView
@@ -127,7 +127,7 @@ class StreamingHardwareInputActionTest {
   @Test
   fun testHardwareInputStateStorage() {
     val hardwareInputStateStorage = project.service<HardwareInputStateStorage>()
-    val deviceId = DeviceId.ofPhysicalDevice("123456")
+    val deviceId = StreamingDeviceId.ofPhysicalDevice("123456")
     assertThat(hardwareInputStateStorage.isHardwareInputEnabled(deviceId)).isFalse()
     hardwareInputStateStorage.setHardwareInputEnabled(deviceId, true)
     assertThat(hardwareInputStateStorage.isHardwareInputEnabled(deviceId)).isTrue()

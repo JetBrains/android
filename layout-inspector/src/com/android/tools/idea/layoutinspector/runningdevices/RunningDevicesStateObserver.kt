@@ -18,8 +18,8 @@ package com.android.tools.idea.layoutinspector.runningdevices
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.toolwindow.ContentManagerHierarchyAdapter
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
-import com.android.tools.idea.streaming.core.DEVICE_ID_KEY
-import com.android.tools.idea.streaming.core.DeviceId
+import com.android.tools.idea.streaming.core.STREAMING_DEVICE_ID_KEY
+import com.android.tools.idea.streaming.core.StreamingDeviceId
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
@@ -44,10 +44,10 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
      * Called when the selected tabs in Running Devices change. There can be more than one selected tab if Running Deices is running in
      * split window mode.
      */
-    fun onSelectedTabsChanged(selectedTabs: List<DeviceId>)
+    fun onSelectedTabsChanged(selectedTabs: List<StreamingDeviceId>)
 
     /** Called when a tab is added or removed to Running Devices */
-    fun onExistingTabsChanged(existingTabs: List<DeviceId>)
+    fun onExistingTabsChanged(existingTabs: List<StreamingDeviceId>)
   }
 
   companion object {
@@ -59,7 +59,7 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
 
   private val listeners = mutableListOf<Listener>()
 
-  private var selectedTabs: List<DeviceId> = emptyList()
+  private var selectedTabs: List<StreamingDeviceId> = emptyList()
     set(value) {
       ApplicationManager.getApplication().assertIsDispatchThread()
       if (value == field) {
@@ -70,7 +70,7 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
       listeners.forEach { it.onSelectedTabsChanged(value) }
     }
 
-  private var existingTabs = emptyList<DeviceId>()
+  private var existingTabs = emptyList<StreamingDeviceId>()
     set(value) {
       if (value == field) {
         return
@@ -136,8 +136,8 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
     return toolWindow.contentManagerIfCreated?.contentsRecursively ?: emptyList()
   }
 
-  fun getTabContent(deviceId: DeviceId): Content? {
-    return getAllContents().find { it.deviceId == deviceId }
+  fun getTabContent(streamingDeviceId: StreamingDeviceId): Content? {
+    return getAllContents().find { it.streamingDeviceId == streamingDeviceId }
   }
 
   private fun updateSelectedTabs() {
@@ -178,14 +178,14 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
     }
   }
 
-  /** Returns [DeviceId] of the selected tabs in the Running Devices Tool Window. */
-  private fun getRunningDevicesSelectedTabs(): List<DeviceId> {
+  /** Returns [StreamingDeviceId] of the selected tabs in the Running Devices Tool Window. */
+  private fun getRunningDevicesSelectedTabs(): List<StreamingDeviceId> {
     val selectedContent = getAllContents().filter { it.isSelected }
-    return selectedContent.mapNotNull { it.deviceId }
+    return selectedContent.mapNotNull { it.streamingDeviceId }
   }
 
-  /** Returns the list of [DeviceId]s for every tab in the Running Devices Tool Window. */
-  private fun getAllTabsDeviceIds(): List<DeviceId> {
+  /** Returns the list of [StreamingDeviceId]s for every tab in the Running Devices Tool Window. */
+  private fun getAllTabsDeviceIds(): List<StreamingDeviceId> {
     val contents = getAllContents()
     val tabIds =
       contents
@@ -193,7 +193,7 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
         .filterIsInstance<UiDataProvider>()
         .mapNotNull { dataProvider ->
           val dataContext = DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, dataProvider)
-          DEVICE_ID_KEY.getData(dataContext)
+          STREAMING_DEVICE_ID_KEY.getData(dataContext)
         }
 
     return tabIds
@@ -205,17 +205,17 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
     return devicesIds.map { it.serialNumber }.contains(desiredSerialNumber)
   }
 
-  /** Returns true if Running Devices has a tab containing a device associated with [deviceId]. */
-  fun hasDevice(deviceId: DeviceId): Boolean {
-    return hasDeviceWithSerialNumber(deviceId.serialNumber)
+  /** Returns true if Running Devices has a tab containing a device associated with [streamingDeviceId]. */
+  fun hasDevice(streamingDeviceId: StreamingDeviceId): Boolean {
+    return hasDeviceWithSerialNumber(streamingDeviceId.serialNumber)
   }
 }
 
-private val Content.deviceId: DeviceId?
+private val Content.streamingDeviceId: StreamingDeviceId?
   get() {
     if (component !is UiDataProvider) {
       return null
     }
     val dataContext = DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, component)
-    return DEVICE_ID_KEY.getData(dataContext)
+    return STREAMING_DEVICE_ID_KEY.getData(dataContext)
   }

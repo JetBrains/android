@@ -106,7 +106,7 @@ internal abstract class AbstractDisplayView(project: Project, override val displ
     get() = this
 
   /** ID of the device shown in the view. */
-  abstract val deviceId: DeviceId
+  abstract val deviceId: StreamingDeviceId
   override var displayRectangle: Rectangle? = null
     protected set
 

@@ -28,7 +28,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.core.AbstractDevicePanel
 import com.android.tools.idea.streaming.core.AbstractDisplayPanel
-import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.DisplayDescriptor
 import com.android.tools.idea.streaming.core.LayoutNode
 import com.android.tools.idea.streaming.core.LeafNode
@@ -37,6 +36,7 @@ import com.android.tools.idea.streaming.core.PanelState
 import com.android.tools.idea.streaming.core.RUNNING_DEVICES_NOTIFICATION_GROUP
 import com.android.tools.idea.streaming.core.SplitNode
 import com.android.tools.idea.streaming.core.SplitPanel
+import com.android.tools.idea.streaming.core.StreamingDeviceId
 import com.android.tools.idea.streaming.core.computeBestLayout
 import com.android.tools.idea.streaming.core.htmlColored
 import com.android.tools.idea.streaming.core.icon
@@ -82,7 +82,8 @@ private val LOG
 
 /** Provides view of one AVD in the Running Devices tool window. */
 internal class EmulatorToolWindowPanel(disposableParent: Disposable, private val project: Project, val emulator: EmulatorController) :
-  AbstractDevicePanel<EmulatorDisplayPanel>(DeviceId.ofEmulator(emulator.emulatorId), EMULATOR_MAIN_TOOLBAR_ID), ConnectionStateListener {
+  AbstractDevicePanel<EmulatorDisplayPanel>(StreamingDeviceId.ofEmulator(emulator.emulatorId), EMULATOR_MAIN_TOOLBAR_ID),
+  ConnectionStateListener {
 
   private val displayConfigurator = DisplayConfigurator(project)
   private var contentDisposable: Disposable? = null

@@ -25,7 +25,6 @@ import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
 import com.android.tools.idea.streaming.core.AbstractDevicePanel
 import com.android.tools.idea.streaming.core.AbstractDisplayPanel
-import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.DisplayDescriptor
 import com.android.tools.idea.streaming.core.DisplayType
 import com.android.tools.idea.streaming.core.LayoutNode
@@ -33,6 +32,7 @@ import com.android.tools.idea.streaming.core.LeafNode
 import com.android.tools.idea.streaming.core.PanelState
 import com.android.tools.idea.streaming.core.SplitNode
 import com.android.tools.idea.streaming.core.SplitPanel
+import com.android.tools.idea.streaming.core.StreamingDeviceId
 import com.android.tools.idea.streaming.core.computeBestLayout
 import com.android.tools.idea.streaming.core.htmlColored
 import com.android.tools.idea.streaming.core.installFileDropHandler
@@ -67,7 +67,7 @@ internal class DeviceToolWindowPanel(
   private val project: Project,
   val deviceHandle: DeviceHandle,
   val deviceClient: DeviceClient,
-) : AbstractDevicePanel<DeviceDisplayPanel>(DeviceId.ofPhysicalDevice(deviceClient.deviceSerialNumber), DEVICE_MAIN_TOOLBAR_ID) {
+) : AbstractDevicePanel<DeviceDisplayPanel>(StreamingDeviceId.ofPhysicalDevice(deviceClient.deviceSerialNumber), DEVICE_MAIN_TOOLBAR_ID) {
 
   override val deviceSerialNumber: String
     get() = deviceClient.deviceSerialNumber

@@ -44,8 +44,8 @@ import com.android.tools.idea.layoutinspector.runningdevices.verifyUiRemoved
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.core.DeviceDisplayListener
-import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.DisplayOwner
+import com.android.tools.idea.streaming.core.StreamingDeviceId
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.android.tools.idea.testing.ui.ToolWindowHeadlessManagerImpl
 import com.android.tools.idea.testing.ui.createFakeToolWindow
@@ -266,7 +266,7 @@ class ActiveTabStateTest {
 
     val glassesTab1 =
       TabInfo(
-        DeviceId.ofPhysicalDevice("g1"),
+        StreamingDeviceId.ofPhysicalDevice("g1"),
         BorderLayoutPanel(),
         JPanel(),
         listOf(displayViewRule.newEmulatorDisplayView()),
@@ -274,7 +274,7 @@ class ActiveTabStateTest {
       )
     val glassesTab2 =
       TabInfo(
-        DeviceId.ofPhysicalDevice("g2"),
+        StreamingDeviceId.ofPhysicalDevice("g2"),
         BorderLayoutPanel(),
         JPanel(),
         listOf(displayViewRule.newEmulatorDisplayView()),
@@ -284,8 +284,8 @@ class ActiveTabStateTest {
     addContent(fakeToolWindow, glassesTab1)
     addContent(fakeToolWindow, glassesTab2)
 
-    val content1 = fakeToolWindow.getContent(glassesTab1.deviceId)
-    val content2 = fakeToolWindow.getContent(glassesTab2.deviceId)
+    val content1 = fakeToolWindow.getContent(glassesTab1.streamingDeviceId)
+    val content2 = fakeToolWindow.getContent(glassesTab2.streamingDeviceId)
 
     ToolWindowHeadlessManagerImpl.split(content1, SwingConstants.BOTTOM)
     val bottomContentManager = content1.manager!!
@@ -328,7 +328,7 @@ class ActiveTabStateTest {
 
     val glassesTab =
       TabInfo(
-        DeviceId.ofPhysicalDevice("g1"),
+        StreamingDeviceId.ofPhysicalDevice("g1"),
         BorderLayoutPanel(),
         JPanel(),
         listOf(displayViewRule.newEmulatorDisplayView()),
@@ -407,7 +407,7 @@ class ActiveTabStateTest {
     return ActiveTabState(
       disposable = tabComponents,
       project = displayViewRule.project,
-      deviceId = DeviceId.ofPhysicalDevice("tab"),
+      deviceId = StreamingDeviceId.ofPhysicalDevice("tab"),
       tabComponents = tabComponents,
       layoutInspector = layoutInspector,
     )

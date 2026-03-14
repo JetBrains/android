@@ -26,7 +26,7 @@ import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.DeviceMirroringSettingsListener
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.BUTTON_MASK
-import com.android.tools.idea.streaming.core.DeviceId
+import com.android.tools.idea.streaming.core.StreamingDeviceId
 import com.android.tools.idea.streaming.core.ZoomType
 import com.android.tools.idea.streaming.core.buttonToMask
 import com.android.tools.idea.streaming.core.constrainInside
@@ -146,7 +146,7 @@ internal class DeviceView(
   val isConnected: Boolean
     get() = connectionState == ConnectionState.CONNECTED
 
-  override val deviceId: DeviceId = DeviceId.ofPhysicalDevice(deviceClient.deviceSerialNumber)
+  override val deviceId: StreamingDeviceId = StreamingDeviceId.ofPhysicalDevice(deviceClient.deviceSerialNumber)
   override val deviceType: DeviceType = deviceConfig.deviceType
 
   /**
