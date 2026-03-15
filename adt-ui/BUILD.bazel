@@ -182,6 +182,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.adt.ui` end
 
+### auto-generated section `iml intellij.android.adt.ui` start
+exports_files([
+  "intellij.android.adt.ui.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.adt.ui` end
+
 ### auto-generated section `test intellij.android.adt.ui` start
 load("@community//build:tests-options.bzl", "jps_test")
 

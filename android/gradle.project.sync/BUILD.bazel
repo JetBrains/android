@@ -104,6 +104,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.core.gradle.project.sync` end
 
+### auto-generated section `iml intellij.android.core.gradle.project.sync` start
+exports_files([
+  "intellij.android.core.gradle.project.sync.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.core.gradle.project.sync` end
+
 ### auto-generated section `test intellij.android.core.gradle.project.sync` start
 load("@community//build:tests-options.bzl", "jps_test")
 

@@ -78,6 +78,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.inspectors-common.api-ide` end
 
+### auto-generated section `iml intellij.android.inspectors-common.api-ide` start
+exports_files([
+  "intellij.android.inspectors-common.api-ide.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.inspectors-common.api-ide` end
+
 ### auto-generated section `test intellij.android.inspectors-common.api-ide` start
 load("@community//build:tests-options.bzl", "jps_test")
 

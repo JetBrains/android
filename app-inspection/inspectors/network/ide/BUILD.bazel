@@ -70,6 +70,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.app-inspection.inspectors.network.ide` end
 
+### auto-generated section `iml intellij.android.app-inspection.inspectors.network.ide` start
+exports_files([
+  "intellij.android.app-inspection.inspectors.network.ide.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.app-inspection.inspectors.network.ide` end
+
 ### auto-generated section `build intellij.android.app-inspection.inspectors.network.ide.tests` start
 jvm_library(
   name = "android-app-inspection-inspectors-network-ide-tests",
@@ -123,6 +129,12 @@ jvm_library(
   runtime_deps = [":android-app-inspection-inspectors-network-ide-tests"]
 )
 ### auto-generated section `build intellij.android.app-inspection.inspectors.network.ide.tests` end
+
+### auto-generated section `iml intellij.android.app-inspection.inspectors.network.ide.tests` start
+exports_files([
+  "intellij.android.app-inspection.inspectors.network.ide.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.app-inspection.inspectors.network.ide.tests` end
 
 ### auto-generated section `test intellij.android.app-inspection.inspectors.network.ide.tests` start
 load("@community//build:tests-options.bzl", "jps_test")

@@ -103,6 +103,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.execution.common` end
 
+### auto-generated section `iml intellij.android.execution.common` start
+exports_files([
+  "intellij.android.execution.common.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.execution.common` end
+
 ### auto-generated section `build intellij.android.execution.common.tests` start
 jvm_library(
   name = "android-execution-common-tests",
@@ -198,6 +204,12 @@ jvm_library(
   ]
 )
 ### auto-generated section `build intellij.android.execution.common.tests` end
+
+### auto-generated section `iml intellij.android.execution.common.tests` start
+exports_files([
+  "intellij.android.execution.common.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.execution.common.tests` end
 
 ### auto-generated section `test intellij.android.execution.common.tests` start
 load("@community//build:tests-options.bzl", "jps_test")

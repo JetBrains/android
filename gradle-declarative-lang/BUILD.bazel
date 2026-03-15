@@ -44,6 +44,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.gradle.declarative.lang` end
 
+### auto-generated section `iml intellij.android.gradle.declarative.lang` start
+exports_files([
+  "intellij.android.gradle.declarative.lang.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.gradle.declarative.lang` end
+
 ### auto-generated section `build intellij.android.gradle.declarative.lang.tests` start
 jvm_library(
   name = "gradle-declarative-lang-tests",
@@ -99,6 +105,12 @@ jvm_library(
   ]
 )
 ### auto-generated section `build intellij.android.gradle.declarative.lang.tests` end
+
+### auto-generated section `iml intellij.android.gradle.declarative.lang.tests` start
+exports_files([
+  "intellij.android.gradle.declarative.lang.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.gradle.declarative.lang.tests` end
 
 ### auto-generated section `test intellij.android.gradle.declarative.lang.tests` start
 load("@community//build:tests-options.bzl", "jps_test")

@@ -179,6 +179,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.lint` end
 
+### auto-generated section `iml intellij.android.lint` start
+exports_files([
+  "intellij.android.lint.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.lint` end
+
 ### auto-generated section `build intellij.android.lint.tests` start
 jvm_library(
   name = "lint-tests",
@@ -302,6 +308,12 @@ jvm_library(
   ]
 )
 ### auto-generated section `build intellij.android.lint.tests` end
+
+### auto-generated section `iml intellij.android.lint.tests` start
+exports_files([
+  "intellij.android.lint.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.lint.tests` end
 
 ### auto-generated section `test intellij.android.lint.tests` start
 load("@community//build:tests-options.bzl", "jps_test")

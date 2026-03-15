@@ -496,6 +496,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.core` end
 
+### auto-generated section `iml intellij.android.core` start
+exports_files([
+  "intellij.android.core.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.core` end
+
 ### auto-generated section `build intellij.android.core.agp-integration-tests` start
 jvm_library(
   name = "core-agp-integration-tests",
@@ -637,6 +643,12 @@ jvm_library(
   ]
 )
 ### auto-generated section `build intellij.android.core.agp-integration-tests` end
+
+### auto-generated section `iml intellij.android.core.agp-integration-tests` start
+exports_files([
+  "intellij.android.core.agp-integration-tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.core.agp-integration-tests` end
 
 ### auto-generated section `test intellij.android.core.agp-integration-tests` start
 load("@community//build:tests-options.bzl", "jps_test")
@@ -933,6 +945,12 @@ jvm_library(
   ]
 )
 ### auto-generated section `build intellij.android.core.tests` end
+
+### auto-generated section `iml intellij.android.core.tests` start
+exports_files([
+  "intellij.android.core.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.core.tests` end
 
 ### auto-generated section `test intellij.android.core.tests` start
 load("@community//build:tests-options.bzl", "jps_test")

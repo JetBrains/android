@@ -120,6 +120,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.profilers` end
 
+### auto-generated section `iml intellij.android.profilers` start
+exports_files([
+  "intellij.android.profilers.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.profilers` end
+
 ### auto-generated section `test intellij.android.profilers` start
 load("@community//build:tests-options.bzl", "jps_test")
 

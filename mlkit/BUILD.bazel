@@ -129,6 +129,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.mlkit` end
 
+### auto-generated section `iml intellij.android.mlkit` start
+exports_files([
+  "intellij.android.mlkit.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.mlkit` end
+
 ### auto-generated section `build intellij.android.mlkit.tests` start
 resourcegroup(
   name = "mlkit-tests_test_resources",
@@ -230,6 +236,12 @@ jvm_library(
   ]
 )
 ### auto-generated section `build intellij.android.mlkit.tests` end
+
+### auto-generated section `iml intellij.android.mlkit.tests` start
+exports_files([
+  "intellij.android.mlkit.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.mlkit.tests` end
 
 ### auto-generated section `test intellij.android.mlkit.tests` start
 load("@community//build:tests-options.bzl", "jps_test")

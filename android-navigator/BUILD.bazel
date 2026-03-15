@@ -114,6 +114,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.navigator` end
 
+### auto-generated section `iml intellij.android.navigator` start
+exports_files([
+  "intellij.android.navigator.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.navigator` end
+
 ### auto-generated section `build intellij.android.navigator.testutils` start
 jvm_library(
   name = "navigator-testutils",
@@ -168,6 +174,12 @@ jvm_library(
   ]
 )
 ### auto-generated section `build intellij.android.navigator.testutils` end
+
+### auto-generated section `iml intellij.android.navigator.testutils` start
+exports_files([
+  "intellij.android.navigator.testutils.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.navigator.testutils` end
 
 ### auto-generated section `test intellij.android.navigator.testutils` start
 load("@community//build:tests-options.bzl", "jps_test")

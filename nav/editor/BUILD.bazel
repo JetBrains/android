@@ -142,6 +142,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.nav.editor` end
 
+### auto-generated section `iml intellij.android.nav.editor` start
+exports_files([
+  "intellij.android.nav.editor.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.nav.editor` end
+
 ### auto-generated section `build intellij.android.nav.editor.tests` start
 jvm_library(
   name = "android-nav-editor-tests",
@@ -233,6 +239,12 @@ jvm_library(
   runtime_deps = [":android-nav-editor-tests"]
 )
 ### auto-generated section `build intellij.android.nav.editor.tests` end
+
+### auto-generated section `iml intellij.android.nav.editor.tests` start
+exports_files([
+  "intellij.android.nav.editor.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.nav.editor.tests` end
 
 ### auto-generated section `test intellij.android.nav.editor.tests` start
 load("@community//build:tests-options.bzl", "jps_test")

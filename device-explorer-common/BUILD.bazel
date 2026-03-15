@@ -32,3 +32,9 @@ jvm_library(
   ]
 )
 ### auto-generated section `build intellij.android.device-explorer-common` end
+
+### auto-generated section `iml intellij.android.device-explorer-common` start
+exports_files([
+  "intellij.android.device-explorer-common.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.device-explorer-common` end

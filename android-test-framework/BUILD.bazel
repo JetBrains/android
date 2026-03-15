@@ -167,6 +167,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.testFramework` end
 
+### auto-generated section `iml intellij.android.testFramework` start
+exports_files([
+  "intellij.android.testFramework.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.testFramework` end
+
 ### auto-generated section `test intellij.android.testFramework` start
 load("@community//build:tests-options.bzl", "jps_test")
 

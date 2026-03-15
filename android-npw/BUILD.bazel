@@ -159,6 +159,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.newProjectWizard` end
 
+### auto-generated section `iml intellij.android.newProjectWizard` start
+exports_files([
+  "intellij.android.newProjectWizard.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.newProjectWizard` end
+
 ### auto-generated section `build intellij.android.newProjectWizard.tests` start
 create_kotlinc_options(
   name = "custom_newProjectWizard-tests",
@@ -322,6 +328,12 @@ jvm_library(
   plugins = ["@lib//:compose-plugin"]
 )
 ### auto-generated section `build intellij.android.newProjectWizard.tests` end
+
+### auto-generated section `iml intellij.android.newProjectWizard.tests` start
+exports_files([
+  "intellij.android.newProjectWizard.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.newProjectWizard.tests` end
 
 ### auto-generated section `test intellij.android.newProjectWizard.tests` start
 load("@community//build:tests-options.bzl", "jps_test")

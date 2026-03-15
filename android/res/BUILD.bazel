@@ -158,6 +158,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.core.res` end
 
+### auto-generated section `iml intellij.android.core.res` start
+exports_files([
+  "intellij.android.core.res.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.core.res` end
+
 ### auto-generated section `test intellij.android.core.res` start
 load("@community//build:tests-options.bzl", "jps_test")
 

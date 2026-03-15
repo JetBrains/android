@@ -83,6 +83,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.app-inspection.inspectors.backgroundtask.view` end
 
+### auto-generated section `iml intellij.android.app-inspection.inspectors.backgroundtask.view` start
+exports_files([
+  "intellij.android.app-inspection.inspectors.backgroundtask.view.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.app-inspection.inspectors.backgroundtask.view` end
+
 ### auto-generated section `build intellij.android.app-inspection.inspectors.backgroundtask.view.tests` start
 jvm_library(
   name = "android-app-inspection-inspectors-backgroundtask-view-tests",
@@ -165,6 +171,12 @@ jvm_library(
   ]
 )
 ### auto-generated section `build intellij.android.app-inspection.inspectors.backgroundtask.view.tests` end
+
+### auto-generated section `iml intellij.android.app-inspection.inspectors.backgroundtask.view.tests` start
+exports_files([
+  "intellij.android.app-inspection.inspectors.backgroundtask.view.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.app-inspection.inspectors.backgroundtask.view.tests` end
 
 ### auto-generated section `test intellij.android.app-inspection.inspectors.backgroundtask.view.tests` start
 load("@community//build:tests-options.bzl", "jps_test")

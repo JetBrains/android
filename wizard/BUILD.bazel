@@ -64,6 +64,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.wizard` end
 
+### auto-generated section `iml intellij.android.wizard` start
+exports_files([
+  "intellij.android.wizard.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.wizard` end
+
 ### auto-generated section `build intellij.android.wizard.tests` start
 jvm_library(
   name = "wizard-tests",
@@ -132,6 +138,12 @@ jvm_library(
   ]
 )
 ### auto-generated section `build intellij.android.wizard.tests` end
+
+### auto-generated section `iml intellij.android.wizard.tests` start
+exports_files([
+  "intellij.android.wizard.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.wizard.tests` end
 
 ### auto-generated section `test intellij.android.wizard.tests` start
 load("@community//build:tests-options.bzl", "jps_test")

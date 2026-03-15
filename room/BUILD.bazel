@@ -85,6 +85,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.room` end
 
+### auto-generated section `iml intellij.android.room` start
+exports_files([
+  "intellij.android.room.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.room` end
+
 ### auto-generated section `build intellij.android.room.tests` start
 jvm_library(
   name = "room-tests",
@@ -148,6 +154,12 @@ jvm_library(
   runtime_deps = [":room-tests"]
 )
 ### auto-generated section `build intellij.android.room.tests` end
+
+### auto-generated section `iml intellij.android.room.tests` start
+exports_files([
+  "intellij.android.room.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.room.tests` end
 
 ### auto-generated section `test intellij.android.room.tests` start
 load("@community//build:tests-options.bzl", "jps_test")

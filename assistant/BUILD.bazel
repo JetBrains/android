@@ -84,6 +84,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.assistant` end
 
+### auto-generated section `iml intellij.android.assistant` start
+exports_files([
+  "intellij.android.assistant.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.assistant` end
+
 ### auto-generated section `build intellij.android.assistant-test` start
 jvm_library(
   name = "assistant-test",
@@ -144,6 +150,12 @@ jvm_library(
   runtime_deps = [":assistant-test"]
 )
 ### auto-generated section `build intellij.android.assistant-test` end
+
+### auto-generated section `iml intellij.android.assistant-test` start
+exports_files([
+  "intellij.android.assistant-test.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.assistant-test` end
 
 ### auto-generated section `test intellij.android.assistant-test` start
 load("@community//build:tests-options.bzl", "jps_test")

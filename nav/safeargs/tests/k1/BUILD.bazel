@@ -114,6 +114,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.nav.safeargs.tests.k1` end
 
+### auto-generated section `iml intellij.android.nav.safeargs.tests.k1` start
+exports_files([
+  "intellij.android.nav.safeargs.tests.k1.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.nav.safeargs.tests.k1` end
+
 ### auto-generated section `test intellij.android.nav.safeargs.tests.k1` start
 load("@community//build:tests-options.bzl", "jps_test")
 

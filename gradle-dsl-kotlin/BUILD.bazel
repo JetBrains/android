@@ -54,3 +54,9 @@ jvm_library(
   ]
 )
 ### auto-generated section `build intellij.android.gradle.dsl.kotlin` end
+
+### auto-generated section `iml intellij.android.gradle.dsl.kotlin` start
+exports_files([
+  "intellij.android.gradle.dsl.kotlin.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.gradle.dsl.kotlin` end

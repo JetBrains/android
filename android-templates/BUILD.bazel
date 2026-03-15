@@ -131,6 +131,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.templates` end
 
+### auto-generated section `iml intellij.android.templates` start
+exports_files([
+  "intellij.android.templates.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.templates` end
+
 ### auto-generated section `build intellij.android.templates.tests` start
 create_kotlinc_options(
   name = "custom_templates-tests",
@@ -280,6 +286,12 @@ jvm_library(
   ]
 )
 ### auto-generated section `build intellij.android.templates.tests` end
+
+### auto-generated section `iml intellij.android.templates.tests` start
+exports_files([
+  "intellij.android.templates.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.templates.tests` end
 
 ### auto-generated section `test intellij.android.templates.tests` start
 load("@community//build:tests-options.bzl", "jps_test")

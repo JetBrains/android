@@ -85,6 +85,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.adb.ui` end
 
+### auto-generated section `iml intellij.android.adb.ui` start
+exports_files([
+  "intellij.android.adb.ui.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.adb.ui` end
+
 ### auto-generated section `build intellij.android.adb.ui.tests` start
 jvm_library(
   name = "adb-ui-tests",
@@ -168,6 +174,12 @@ jvm_library(
   ]
 )
 ### auto-generated section `build intellij.android.adb.ui.tests` end
+
+### auto-generated section `iml intellij.android.adb.ui.tests` start
+exports_files([
+  "intellij.android.adb.ui.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.adb.ui.tests` end
 
 ### auto-generated section `test intellij.android.adb.ui.tests` start
 load("@community//build:tests-options.bzl", "jps_test")

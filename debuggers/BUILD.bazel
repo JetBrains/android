@@ -138,6 +138,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.debuggers` end
 
+### auto-generated section `iml intellij.android.debuggers` start
+exports_files([
+  "intellij.android.debuggers.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.debuggers` end
+
 ### auto-generated section `build intellij.android.debuggers.tests` start
 jvm_library(
   name = "debuggers-tests",
@@ -250,6 +256,12 @@ jvm_library(
   ]
 )
 ### auto-generated section `build intellij.android.debuggers.tests` end
+
+### auto-generated section `iml intellij.android.debuggers.tests` start
+exports_files([
+  "intellij.android.debuggers.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.debuggers.tests` end
 
 ### auto-generated section `test intellij.android.debuggers.tests` start
 load("@community//build:tests-options.bzl", "jps_test")

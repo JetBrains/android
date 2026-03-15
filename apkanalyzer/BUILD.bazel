@@ -114,6 +114,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.apkanalyzer` end
 
+### auto-generated section `iml intellij.android.apkanalyzer` start
+exports_files([
+  "intellij.android.apkanalyzer.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.apkanalyzer` end
+
 ### auto-generated section `build intellij.android.apkanalyzer.tests` start
 resourcegroup(
   name = "apkanalyzer-tests_test_resources",
@@ -174,6 +180,12 @@ jvm_library(
   ]
 )
 ### auto-generated section `build intellij.android.apkanalyzer.tests` end
+
+### auto-generated section `iml intellij.android.apkanalyzer.tests` start
+exports_files([
+  "intellij.android.apkanalyzer.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.apkanalyzer.tests` end
 
 ### auto-generated section `test intellij.android.apkanalyzer.tests` start
 load("@community//build:tests-options.bzl", "jps_test")

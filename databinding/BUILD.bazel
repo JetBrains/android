@@ -123,6 +123,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.databinding` end
 
+### auto-generated section `iml intellij.android.databinding` start
+exports_files([
+  "intellij.android.databinding.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.databinding` end
+
 ### auto-generated section `build intellij.android.databinding.tests` start
 resourcegroup(
   name = "databinding-tests_test_resources",
@@ -262,6 +268,12 @@ jvm_library(
   ]
 )
 ### auto-generated section `build intellij.android.databinding.tests` end
+
+### auto-generated section `iml intellij.android.databinding.tests` start
+exports_files([
+  "intellij.android.databinding.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.databinding.tests` end
 
 ### auto-generated section `test intellij.android.databinding.tests` start
 load("@community//build:tests-options.bzl", "jps_test")

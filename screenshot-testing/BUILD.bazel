@@ -83,6 +83,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.screenshot-test` end
 
+### auto-generated section `iml intellij.android.screenshot-test` start
+exports_files([
+  "intellij.android.screenshot-test.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.screenshot-test` end
+
 ### auto-generated section `build intellij.android.screenshot-test.tests` start
 create_kotlinc_options(
   name = "custom_screenshot-test-tests",
@@ -146,6 +152,12 @@ jvm_library(
   plugins = ["@lib//:compose-plugin"]
 )
 ### auto-generated section `build intellij.android.screenshot-test.tests` end
+
+### auto-generated section `iml intellij.android.screenshot-test.tests` start
+exports_files([
+  "intellij.android.screenshot-test.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.screenshot-test.tests` end
 
 ### auto-generated section `test intellij.android.screenshot-test.tests` start
 load("@community//build:tests-options.bzl", "jps_test")

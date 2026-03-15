@@ -104,6 +104,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.logcat` end
 
+### auto-generated section `iml intellij.android.logcat` start
+exports_files([
+  "intellij.android.logcat.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.logcat` end
+
 ### auto-generated section `build intellij.android.logcat.tests` start
 jvm_library(
   name = "logcat-tests",
@@ -216,6 +222,12 @@ jvm_library(
   ]
 )
 ### auto-generated section `build intellij.android.logcat.tests` end
+
+### auto-generated section `iml intellij.android.logcat.tests` start
+exports_files([
+  "intellij.android.logcat.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.logcat.tests` end
 
 ### auto-generated section `test intellij.android.logcat.tests` start
 load("@community//build:tests-options.bzl", "jps_test")

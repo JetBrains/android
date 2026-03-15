@@ -44,3 +44,9 @@ jvm_library(
   ]
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle.sync.testUtils` end
+
+### auto-generated section `iml intellij.android.projectSystem.gradle.sync.testUtils` start
+exports_files([
+  "intellij.android.projectSystem.gradle.sync.testUtils.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.projectSystem.gradle.sync.testUtils` end

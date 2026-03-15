@@ -88,6 +88,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.kotlin.idea` end
 
+### auto-generated section `iml intellij.android.kotlin.idea` start
+exports_files([
+  "intellij.android.kotlin.idea.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.kotlin.idea` end
+
 ### auto-generated section `build intellij.android.kotlin.tests` start
 create_kotlinc_options(
   name = "custom_android-kotlin-tests",
@@ -216,6 +222,12 @@ jvm_library(
   runtime_deps = [":android-kotlin-tests"]
 )
 ### auto-generated section `build intellij.android.kotlin.tests` end
+
+### auto-generated section `iml intellij.android.kotlin.tests` start
+exports_files([
+  "intellij.android.kotlin.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.kotlin.tests` end
 
 ### auto-generated section `test intellij.android.kotlin.tests` start
 load("@community//build:tests-options.bzl", "jps_test")

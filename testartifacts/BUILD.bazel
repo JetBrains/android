@@ -91,6 +91,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.testartifacts` end
 
+### auto-generated section `iml intellij.android.testartifacts` start
+exports_files([
+  "intellij.android.testartifacts.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.testartifacts` end
+
 ### auto-generated section `build intellij.android.testartifacts.tests` start
 create_kotlinc_options(
   name = "custom_testartifacts-tests",
@@ -215,6 +221,12 @@ jvm_library(
   plugins = ["@lib//:compose-plugin"]
 )
 ### auto-generated section `build intellij.android.testartifacts.tests` end
+
+### auto-generated section `iml intellij.android.testartifacts.tests` start
+exports_files([
+  "intellij.android.testartifacts.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.testartifacts.tests` end
 
 ### auto-generated section `test intellij.android.testartifacts.tests` start
 load("@community//build:tests-options.bzl", "jps_test")

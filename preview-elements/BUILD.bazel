@@ -36,6 +36,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.preview-elements` end
 
+### auto-generated section `iml intellij.android.preview-elements` start
+exports_files([
+  "intellij.android.preview-elements.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.preview-elements` end
+
 ### auto-generated section `build intellij.android.preview-elements.tests` start
 jvm_library(
   name = "preview-elements-tests",
@@ -72,6 +78,12 @@ jvm_library(
   runtime_deps = [":preview-elements-tests"]
 )
 ### auto-generated section `build intellij.android.preview-elements.tests` end
+
+### auto-generated section `iml intellij.android.preview-elements.tests` start
+exports_files([
+  "intellij.android.preview-elements.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.preview-elements.tests` end
 
 ### auto-generated section `test intellij.android.preview-elements.tests` start
 load("@community//build:tests-options.bzl", "jps_test")

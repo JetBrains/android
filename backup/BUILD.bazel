@@ -90,6 +90,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.backup` end
 
+### auto-generated section `iml intellij.android.backup` start
+exports_files([
+  "intellij.android.backup.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.backup` end
+
 ### auto-generated section `build intellij.android.backup.api` start
 jvm_library(
   name = "backup-api",
@@ -122,6 +128,12 @@ jvm_library(
   ]
 )
 ### auto-generated section `build intellij.android.backup.api` end
+
+### auto-generated section `iml intellij.android.backup.api` start
+exports_files([
+  "intellij.android.backup.api.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.backup.api` end
 
 ### auto-generated section `build intellij.android.backup.tests` start
 jvm_library(
@@ -185,6 +197,12 @@ jvm_library(
   runtime_deps = [":backup-tests"]
 )
 ### auto-generated section `build intellij.android.backup.tests` end
+
+### auto-generated section `iml intellij.android.backup.tests` start
+exports_files([
+  "intellij.android.backup.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.backup.tests` end
 
 ### auto-generated section `test intellij.android.backup.tests` start
 load("@community//build:tests-options.bzl", "jps_test")

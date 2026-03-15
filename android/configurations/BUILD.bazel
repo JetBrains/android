@@ -60,6 +60,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.core.configurations` end
 
+### auto-generated section `iml intellij.android.core.configurations` start
+exports_files([
+  "intellij.android.core.configurations.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.core.configurations` end
+
 ### auto-generated section `test intellij.android.core.configurations` start
 load("@community//build:tests-options.bzl", "jps_test")
 

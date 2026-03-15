@@ -78,6 +78,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.device-explorer-monitor` end
 
+### auto-generated section `iml intellij.android.device-explorer-monitor` start
+exports_files([
+  "intellij.android.device-explorer-monitor.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.device-explorer-monitor` end
+
 ### auto-generated section `build intellij.android.device-explorer-monitor.tests` start
 jvm_library(
   name = "device-explorer-monitor-tests",
@@ -142,6 +148,12 @@ jvm_library(
   runtime_deps = [":device-explorer-monitor-tests"]
 )
 ### auto-generated section `build intellij.android.device-explorer-monitor.tests` end
+
+### auto-generated section `iml intellij.android.device-explorer-monitor.tests` start
+exports_files([
+  "intellij.android.device-explorer-monitor.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.device-explorer-monitor.tests` end
 
 ### auto-generated section `test intellij.android.device-explorer-monitor.tests` start
 load("@community//build:tests-options.bzl", "jps_test")

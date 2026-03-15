@@ -73,6 +73,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.device-explorer` end
 
+### auto-generated section `iml intellij.android.device-explorer` start
+exports_files([
+  "intellij.android.device-explorer.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.device-explorer` end
+
 ### auto-generated section `build intellij.android.device-explorer.integration.tests` start
 jvm_library(
   name = "device-explorer-integration-tests",
@@ -100,6 +106,12 @@ jvm_library(
   runtime_deps = [":device-explorer-integration-tests"]
 )
 ### auto-generated section `build intellij.android.device-explorer.integration.tests` end
+
+### auto-generated section `iml intellij.android.device-explorer.integration.tests` start
+exports_files([
+  "intellij.android.device-explorer.integration.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.device-explorer.integration.tests` end
 
 ### auto-generated section `test intellij.android.device-explorer.integration.tests` start
 load("@community//build:tests-options.bzl", "jps_test")
@@ -163,6 +175,12 @@ jvm_library(
   runtime_deps = [":device-explorer-tests"]
 )
 ### auto-generated section `build intellij.android.device-explorer.tests` end
+
+### auto-generated section `iml intellij.android.device-explorer.tests` start
+exports_files([
+  "intellij.android.device-explorer.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.device-explorer.tests` end
 
 ### auto-generated section `test intellij.android.device-explorer.tests` start
 load("@community//build:tests-options.bzl", "jps_test")

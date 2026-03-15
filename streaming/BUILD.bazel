@@ -119,6 +119,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.streaming` end
 
+### auto-generated section `iml intellij.android.streaming` start
+exports_files([
+  "intellij.android.streaming.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.streaming` end
+
 ### auto-generated section `build intellij.android.streaming.integration` start
 jvm_library(
   name = "streaming-integration",
@@ -193,6 +199,12 @@ jvm_library(
   runtime_deps = [":streaming-integration"]
 )
 ### auto-generated section `build intellij.android.streaming.integration` end
+
+### auto-generated section `iml intellij.android.streaming.integration` start
+exports_files([
+  "intellij.android.streaming.integration.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.streaming.integration` end
 
 ### auto-generated section `test intellij.android.streaming.integration` start
 load("@community//build:tests-options.bzl", "jps_test")
@@ -309,6 +321,12 @@ jvm_library(
   ]
 )
 ### auto-generated section `build intellij.android.streaming.testUtil` end
+
+### auto-generated section `iml intellij.android.streaming.testUtil` start
+exports_files([
+  "intellij.android.streaming.testUtil.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.streaming.testUtil` end
 
 ### auto-generated section `test intellij.android.streaming.testUtil` start
 load("@community//build:tests-options.bzl", "jps_test")
@@ -448,6 +466,12 @@ jvm_library(
   ]
 )
 ### auto-generated section `build intellij.android.streaming.tests` end
+
+### auto-generated section `iml intellij.android.streaming.tests` start
+exports_files([
+  "intellij.android.streaming.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.streaming.tests` end
 
 ### auto-generated section `test intellij.android.streaming.tests` start
 load("@community//build:tests-options.bzl", "jps_test")

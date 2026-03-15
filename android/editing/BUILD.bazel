@@ -65,6 +65,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.core.editing.tests` end
 
+### auto-generated section `iml intellij.android.core.editing.tests` start
+exports_files([
+  "intellij.android.core.editing.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.core.editing.tests` end
+
 ### auto-generated section `test intellij.android.core.editing.tests` start
 load("@community//build:tests-options.bzl", "jps_test")
 

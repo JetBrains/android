@@ -155,6 +155,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.preview-designer` end
 
+### auto-generated section `iml intellij.android.preview-designer` start
+exports_files([
+  "intellij.android.preview-designer.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.preview-designer` end
+
 ### auto-generated section `build intellij.android.preview-designer.tests` start
 create_kotlinc_options(
   name = "custom_preview-designer-tests",
@@ -273,6 +279,12 @@ jvm_library(
   ]
 )
 ### auto-generated section `build intellij.android.preview-designer.tests` end
+
+### auto-generated section `iml intellij.android.preview-designer.tests` start
+exports_files([
+  "intellij.android.preview-designer.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.preview-designer.tests` end
 
 ### auto-generated section `test intellij.android.preview-designer.tests` start
 load("@community//build:tests-options.bzl", "jps_test")

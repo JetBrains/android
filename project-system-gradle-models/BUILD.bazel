@@ -37,6 +37,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle.models` end
 
+### auto-generated section `iml intellij.android.projectSystem.gradle.models` start
+exports_files([
+  "intellij.android.projectSystem.gradle.models.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.projectSystem.gradle.models` end
+
 ### auto-generated section `build intellij.android.projectSystem.gradle.models.tests` start
 jvm_library(
   name = "projectSystem-gradle-models-tests",
@@ -64,6 +70,12 @@ jvm_library(
   runtime_deps = [":projectSystem-gradle-models-tests"]
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle.models.tests` end
+
+### auto-generated section `iml intellij.android.projectSystem.gradle.models.tests` start
+exports_files([
+  "intellij.android.projectSystem.gradle.models.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.projectSystem.gradle.models.tests` end
 
 ### auto-generated section `test intellij.android.projectSystem.gradle.models.tests` start
 load("@community//build:tests-options.bzl", "jps_test")

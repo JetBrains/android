@@ -44,6 +44,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.threading-checker` end
 
+### auto-generated section `iml intellij.android.threading-checker` start
+exports_files([
+  "intellij.android.threading-checker.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.threading-checker` end
+
 ### auto-generated section `build intellij.android.threading-checker.tests` start
 jvm_library(
   name = "threading-checker-tests",
@@ -93,6 +99,12 @@ jvm_library(
   ]
 )
 ### auto-generated section `build intellij.android.threading-checker.tests` end
+
+### auto-generated section `iml intellij.android.threading-checker.tests` start
+exports_files([
+  "intellij.android.threading-checker.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.threading-checker.tests` end
 
 ### auto-generated section `test intellij.android.threading-checker.tests` start
 load("@community//build:tests-options.bzl", "jps_test")

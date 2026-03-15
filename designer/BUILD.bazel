@@ -281,6 +281,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.designer` end
 
+### auto-generated section `iml intellij.android.designer` start
+exports_files([
+  "intellij.android.designer.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.designer` end
+
 ### auto-generated section `test intellij.android.designer` start
 load("@community//build:tests-options.bzl", "jps_test")
 
@@ -314,6 +320,12 @@ jvm_library(
   runtime_deps = [":designer-integration"]
 )
 ### auto-generated section `build intellij.android.designer.integration` end
+
+### auto-generated section `iml intellij.android.designer.integration` start
+exports_files([
+  "intellij.android.designer.integration.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.designer.integration` end
 
 ### auto-generated section `test intellij.android.designer.integration` start
 load("@community//build:tests-options.bzl", "jps_test")
@@ -523,6 +535,12 @@ jvm_library(
   plugins = ["@lib//:compose-plugin"]
 )
 ### auto-generated section `build intellij.android.designer.tests` end
+
+### auto-generated section `iml intellij.android.designer.tests` start
+exports_files([
+  "intellij.android.designer.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.designer.tests` end
 
 ### auto-generated section `test intellij.android.designer.tests` start
 load("@community//build:tests-options.bzl", "jps_test")

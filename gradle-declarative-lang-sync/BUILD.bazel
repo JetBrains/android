@@ -40,3 +40,9 @@ jvm_library(
   ]
 )
 ### auto-generated section `build intellij.android.gradle.declarative.lang.sync` end
+
+### auto-generated section `iml intellij.android.gradle.declarative.lang.sync` start
+exports_files([
+  "intellij.android.gradle.declarative.lang.sync.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.gradle.declarative.lang.sync` end

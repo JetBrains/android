@@ -89,6 +89,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.sdkUpdates` end
 
+### auto-generated section `iml intellij.android.sdkUpdates` start
+exports_files([
+  "intellij.android.sdkUpdates.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.sdkUpdates` end
+
 ### auto-generated section `build intellij.android.sdkUpdates.tests` start
 resourcegroup(
   name = "sdkUpdates-tests_test_resources",
@@ -173,6 +179,12 @@ jvm_library(
   ]
 )
 ### auto-generated section `build intellij.android.sdkUpdates.tests` end
+
+### auto-generated section `iml intellij.android.sdkUpdates.tests` start
+exports_files([
+  "intellij.android.sdkUpdates.tests.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.sdkUpdates.tests` end
 
 ### auto-generated section `test intellij.android.sdkUpdates.tests` start
 load("@community//build:tests-options.bzl", "jps_test")

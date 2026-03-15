@@ -225,6 +225,12 @@ jvm_library(
 )
 ### auto-generated section `build intellij.android.core.jetbrains` end
 
+### auto-generated section `iml intellij.android.core.jetbrains` start
+exports_files([
+  "intellij.android.core.jetbrains.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.android.core.jetbrains` end
+
 ### auto-generated section `test intellij.android.core.jetbrains` start
 load("@community//build:tests-options.bzl", "jps_test")
 
