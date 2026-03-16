@@ -44,6 +44,11 @@ private val fontScales = mapOf(0.85f to "85%", 1.0f to "100%", 1.15f to "115%", 
 private val wearFontScales =
   mapOf(0.94f to "Small", 1.0f to "Normal", 1.06f to "Medium", 1.12f to "Large", 1.18f to "Larger", 1.24f to "Largest")
 private val lightDarkModes = mapOf(Configuration.UI_MODE_NIGHT_NO to "Light", Configuration.UI_MODE_NIGHT_YES to "Dark")
+private val systemUiVariations =
+  mapOf(
+    "navigation=buttons,cutout=corner" to "3-button Navigation with Corner Cutout",
+    "navigation=gesture,cutout=tall" to "Gesture Navigation with Tall Cutout",
+  )
 
 /**
  * A filter that is applied in "UI Check Mode". When enabled, it will get the `selected` instance and generate multiple previews, one per
@@ -105,6 +110,7 @@ sealed class UiCheckModeFilter<T : PreviewElementInstance<*>> {
         } else {
           previewInstances.addAll(deviceSizePreviews(base))
           previewInstances.addAll(fontSizePreviews(base))
+          previewInstances.addAll(systemUiPreviews(base))
           previewInstances.addAll(lightDarkPreviews(base))
           previewInstances.addAll(colorBlindPreviews(base))
         }
@@ -174,6 +180,49 @@ private fun <T : PreviewElementInstance<*>> fontSizePreviews(baseInstance: T, is
           organizationGroup = baseDisplaySettings.organizationGroup + message("ui.check.mode.font.scale.group"),
           organizationName = "${message("ui.check.mode.font.scale.group")} - ${baseDisplaySettings.name}",
           showDecoration = isWearPreview || baseDisplaySettings.showDecoration,
+        )
+      baseInstance.createDerivedInstance(displaySettings, config)
+    }
+    .filterIsInstance(baseInstance::class.java)
+}
+
+private fun <T : PreviewElementInstance<*>> systemUiPreviews(baseInstance: T): List<T> {
+  val baseConfig = baseInstance.configuration
+  val baseDisplaySettings = baseInstance.displaySettings
+  val baseDeviceSpec = baseConfig.deviceSpec
+
+  return systemUiVariations
+    .map { (param, name) ->
+      val overriddenParams =
+        param.split(",").filter { it.contains("=") }.associate { it.substringBefore("=").trim() to it.substringAfter("=").trim() }
+      val config =
+        baseConfig.copy(
+          deviceSpec =
+            when {
+              baseDeviceSpec.startsWith("id:") -> "spec:parent=${baseDeviceSpec.substring(3)},$param"
+              baseDeviceSpec.startsWith("spec:") -> {
+                val currentParams =
+                  baseDeviceSpec
+                    .substring(5)
+                    .split(",")
+                    .filter { it.contains("=") }
+                    .associate { it.substringBefore("=").trim() to it.substringAfter("=").trim() }
+                val mergedParams = currentParams + overriddenParams
+                "spec:" + mergedParams.entries.joinToString(",") { "${it.key}=${it.value}" }
+              }
+              baseDeviceSpec.isEmpty() -> "spec:parent=$DEVICE_CLASS_PHONE_ID,$param"
+              else -> "spec:parent=$baseDeviceSpec,$param"
+            }
+        )
+      val displaySettings =
+        baseDisplaySettings.copy(
+          name = "$name - ${baseDisplaySettings.name}",
+          baseName = baseDisplaySettings.name,
+          parameterName = name,
+          group = message("ui.check.mode.system.ui.group"),
+          showDecoration = true,
+          organizationGroup = baseDisplaySettings.organizationGroup + message("ui.check.mode.system.ui.group"),
+          organizationName = "${message("ui.check.mode.system.ui.group")} - ${baseDisplaySettings.name}",
         )
       baseInstance.createDerivedInstance(displaySettings, config)
     }
