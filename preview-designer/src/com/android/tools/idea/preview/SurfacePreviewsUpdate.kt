@@ -42,7 +42,6 @@ import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.readAction
-import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProgressIndicator
@@ -193,10 +192,10 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
             }
           }
 
-        val offset = runReadAction { previewElement.previewElementDefinition?.element?.textOffset ?: 0 }
+        val offset = readAction { previewElement.previewElementDefinition?.element?.textOffset ?: 0 }
         val defaultFile = previewElement.previewElementDefinition?.virtualFile?.let { getPsiFileSafely(project, it) } ?: psiFile
         navigationHandler.setDefaultLocation(newModel, defaultFile, offset)
-        previewElementModelAdapter.applyToConfiguration(previewElement, newModel.configuration)
+        readAction { previewElementModelAdapter.applyToConfiguration(previewElement, newModel.configuration) }
 
         previewElement to newModel
       }
