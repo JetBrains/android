@@ -268,7 +268,7 @@ class ComposePreviewRepresentationTest {
     delayUntilCondition(250) { UI_CHECK_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayoutOption?.value }
 
     assertThat(preview.composePreviewFlowManager.availableGroupsFlow.value.map { it.displayName })
-      .containsExactly("Screen sizes", "Font scales", "Light/Dark", "Colorblind filters")
+      .containsExactly("Screen sizes", "Font scales", "System UI", "Light/Dark", "Colorblind filters")
       .inOrder()
     preview.renderedPreviewElementsInstancesFlowForTest().awaitStatus("Failed set uiCheckMode", 25.seconds) { it.asCollection().size > 2 }
     fun PsiComposePreviewElementInstance.print(): String {
@@ -315,6 +315,14 @@ class ComposePreviewRepresentationTest {
 
       TestKt.Preview1
       PreviewDisplaySettings(name=200% - Preview1, baseName=Preview1, parameterName=200%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=TestKt.Preview1Font scales, organizationName=Font scales - Preview1)
+
+      TestKt.Preview1
+      spec:parent=_device_class_phone,navigation=buttons,cutout=corner
+      PreviewDisplaySettings(name=3-button Navigation with Corner Cutout - Preview1, baseName=Preview1, parameterName=3-button Navigation with Corner Cutout, group=System UI, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=TestKt.Preview1System UI, organizationName=System UI - Preview1)
+
+      TestKt.Preview1
+      spec:parent=_device_class_phone,navigation=gesture,cutout=tall
+      PreviewDisplaySettings(name=Gesture Navigation with Tall Cutout - Preview1, baseName=Preview1, parameterName=Gesture Navigation with Tall Cutout, group=System UI, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=TestKt.Preview1System UI, organizationName=System UI - Preview1)
 
       TestKt.Preview1
       PreviewDisplaySettings(name=Light - Preview1, baseName=Preview1, parameterName=Light, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=TestKt.Preview1Light/Dark, organizationName=Light/Dark - Preview1)
