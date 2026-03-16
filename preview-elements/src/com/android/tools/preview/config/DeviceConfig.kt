@@ -125,8 +125,10 @@ open class DeviceConfig(
           return referenceString
         }
     }
-    if (parentDeviceId != null && orientation == getDeviceDefaultOrientation() && navigation == DEFAULT_NAVIGATION) {
-      // If the spec value has a parent but none of orientation and navigation are different from
+    if (
+      parentDeviceId != null && orientation == getDeviceDefaultOrientation() && navigation == DEFAULT_NAVIGATION && cutout == DEFAULT_CUTOUT
+    ) {
+      // If the spec value has a parent but none of orientation, navigation and cutout are different from
       // default value, return id:<device-id>
       return "$DEVICE_BY_ID_PREFIX$parentDeviceId"
     }
@@ -136,6 +138,10 @@ open class DeviceConfig(
       // device, e.g: orientation
       builder.appendParamValue(PARAMETER_PARENT, parentDeviceId.toString())
       builder.addOrientationIfNeeded()
+      if (cutout != DEFAULT_CUTOUT) {
+        builder.appendSeparator()
+        builder.appendParamValue(PARAMETER_CUTOUT, cutout.name)
+      }
       if (navigation != DEFAULT_NAVIGATION) {
         builder.appendSeparator()
         builder.appendParamValue(PARAMETER_NAVIGATION, navigation.name)
@@ -272,12 +278,20 @@ open class DeviceConfig(
           null
         }
 
-      if (orientation != null || navigation != null) {
+      val cutout =
+        if (params[PARAMETER_CUTOUT] != null) {
+          enumValueOfOrNull<Cutout>(params.getOrDefault(PARAMETER_CUTOUT, "")) ?: return null
+        } else {
+          null
+        }
+
+      if (orientation != null || navigation != null || cutout != null) {
         return initialConfig
           .toMutableConfig()
           .apply {
             orientation?.let { this.orientation = it }
             navigation?.let { this.navigation = it }
+            cutout?.let { this.cutout = it }
           }
           .toImmutableConfig()
       }
