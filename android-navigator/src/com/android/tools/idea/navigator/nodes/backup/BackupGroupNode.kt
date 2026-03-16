@@ -89,7 +89,7 @@ internal class BackupGroupNode(project: Project, settings: ViewSettings) : Proje
     return getOrPut(pathString) {
       val path = Path.of(pathString)
       val dir = BackupDirectoryNode(project, path.name, settings)
-      getOrCreateDirectoryNode(path.parent.pathString).addChild(dir)
+      getOrCreateDirectoryNode(path.parent?.pathString ?: "").addChild(dir)
       dir
     }
   }

@@ -39,6 +39,7 @@ import com.intellij.util.PathUtil
 import java.io.File
 import java.nio.file.Files
 import org.jetbrains.android.AndroidTestBase
+import org.jetbrains.kotlin.incremental.createDirectory
 import org.junit.Rule
 
 /**
@@ -194,6 +195,15 @@ enum class TestProject(
     testName = "syncFailed",
     verifyOpened = { project -> assertThat(GradleSyncState.Companion.getInstance(project).lastSyncFailed()).isTrue() },
     patch = { root -> root.resolve("build.gradle").writeText("*** this is an error ***") },
+  ),
+  SIMPLE_APPLICATION_WITH_BACKUPS(
+    TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
+    testName = "withBackups",
+    patch = { root ->
+      root.resolve("root.backup").createDirectory()
+      root.resolve("app/app.backup").createDirectory()
+    },
+    isCompatibleWith = { it == AGP_CURRENT },
   ),
   CUSTOM_NAMESPACE(TestProjectToSnapshotPaths.CUSTOM_NAMESPACE),
   WITH_GRADLE_METADATA(TestProjectToSnapshotPaths.WITH_GRADLE_METADATA),

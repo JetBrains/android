@@ -111,6 +111,7 @@ data class AndroidProjectViewSnapshotComparisonTestDef(
         AndroidProjectViewSnapshotComparisonTestDef(TestProject.GRADLE_DECLARATIVE),
         AndroidProjectViewSnapshotComparisonTestDef(TestProject.TEST_SUITES),
         AndroidProjectViewSnapshotComparisonTestDef(TestProject.TEST_ONLY_MODULE, compatibleWith = setOf(AGP_42, AGP_CURRENT)),
+        AndroidProjectViewSnapshotComparisonTestDef(TestProject.SIMPLE_APPLICATION_WITH_BACKUPS),
       )
   }
 }
