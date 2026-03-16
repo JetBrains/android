@@ -44,6 +44,7 @@ import com.android.tools.visuallint.analyzers.ButtonSizeAnalyzer
 import com.android.tools.visuallint.analyzers.LocaleAnalyzer
 import com.android.tools.visuallint.analyzers.LongTextAnalyzer
 import com.android.tools.visuallint.analyzers.OverlapAnalyzer
+import com.android.tools.visuallint.analyzers.SystemUiAnalyzer
 import com.android.tools.visuallint.analyzers.TextFieldSizeAnalyzer
 import com.android.tools.visuallint.analyzers.WearMarginAnalyzer
 import com.intellij.openapi.Disposable
@@ -122,7 +123,7 @@ private constructor(
 
   private val basicAnalyzers = listOf(BoundsAnalyzer, OverlapAnalyzer, AtfAnalyzer)
   private val adaptiveAnalyzers =
-    listOf(BottomNavAnalyzer, BottomAppBarAnalyzer, TextFieldSizeAnalyzer, LongTextAnalyzer, ButtonSizeAnalyzer)
+    listOf(BottomNavAnalyzer, BottomAppBarAnalyzer, TextFieldSizeAnalyzer, LongTextAnalyzer, ButtonSizeAnalyzer, SystemUiAnalyzer)
   private val wearAnalyzers = listOf(WearMarginAnalyzer)
 
   private var listenerRemovalDisposable: Disposable? = null

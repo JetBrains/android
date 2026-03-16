@@ -30,6 +30,9 @@ data class VisualLintRenderResult(
   /** The list of root [ViewInfo] objects representing the view hierarchy. */
   val rootViews: List<ViewInfo>,
 
+  /** The list of system root [ViewInfo] objects representing the system view hierarchy. */
+  val systemRootViews: List<ViewInfo>,
+
   /** The configuration used for the rendering. */
   val configuration: VisualLintConfiguration?,
 

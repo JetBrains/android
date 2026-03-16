@@ -26,7 +26,8 @@ enum class VisualLintErrorType(val shortName: String) {
   ATF("AccessibilityTestFramework"),
   ATF_COLORBLIND("AtfColorblindCheck"),
   LOCALE_TEXT("LocaleText"),
-  WEAR_MARGIN("WearMargin");
+  WEAR_MARGIN("WearMargin"),
+  SYSTEM_UI("SystemUi");
 
   /** The values for tools:ignore attribute. This is used by suppression. */
   val ignoredAttributeValue: String

@@ -35,6 +35,7 @@ import com.android.tools.visuallint.VisualLintViewInfoProvider
 fun RenderResult.toVisualLintRenderResult(): VisualLintRenderResult {
   return VisualLintRenderResult(
     rootViews = rootViews,
+    systemRootViews = systemRootViews,
     configuration = renderContext?.configuration?.toVisualLintConfiguration(),
     validatorResult = validatorResult,
   )
