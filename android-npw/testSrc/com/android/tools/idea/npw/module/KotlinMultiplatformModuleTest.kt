@@ -253,9 +253,9 @@ sourceSets {
 
   getByName("androidDeviceTest") {
     dependencies {
-        implementation("androidx.test:runner:1.5.2")
-        implementation("androidx.test:core:1.5.0")
         implementation("androidx.test.ext:junit:1.1.5")
+        implementation("androidx.test:core:1.5.0")
+        implementation("androidx.test:runner:1.5.2")
     }
   }
 

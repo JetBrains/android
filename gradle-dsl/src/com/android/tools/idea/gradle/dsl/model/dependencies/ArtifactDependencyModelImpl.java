@@ -147,7 +147,6 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     GradleNameElement name = GradleNameElement.create(configurationName);
     GradleDslLiteral literal = new GradleDslLiteral(parent, name);
     literal.setElementType(REGULAR);
-    parent.setNewElement(literal);
     return literal;
   }
 
@@ -164,6 +163,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
                         @NotNull List<ArtifactDependencySpec> excludes) {
     GradleDslLiteral literal = createLiteral(parent, configurationName);
     initializeLiteral(literal, reference, excludes);
+    parent.setNewElement(literal);
   }
 
   static void createNew(@NotNull GradlePropertiesDslElement parent,
@@ -172,6 +172,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
                         @NotNull List<ArtifactDependencySpec> excludes) {
     GradleDslLiteral literal = createLiteral(parent, configurationName);
     initializeLiteral(literal, createCompactNotationForLiterals(literal, dependency), excludes);
+    parent.setNewElement(literal);
   }
 
   private static void addExcludes(@NotNull GradleDslLiteral literal, @NotNull List<ArtifactDependencySpec> excludes) {
