@@ -3251,6 +3251,8 @@ Projects:
                             Value SimpleType              : BOOLEAN
                       Function SimpleType           : UNIT
                 Properties
+                    - PropertyName                  : ignoreFromAllExternalDependencies
+                      Property SimpleType           : BOOLEAN
                     - PropertyName                  : includeDefault
                       Property SimpleType           : BOOLEAN
                 Supertypes                    : kotlin.Any
@@ -11142,6 +11144,8 @@ Settings:
                             Value SimpleType              : BOOLEAN
                       Function SimpleType           : UNIT
                 Properties
+                    - PropertyName                  : ignoreFromAllExternalDependencies
+                      Property SimpleType           : BOOLEAN
                     - PropertyName                  : includeDefault
                       Property SimpleType           : BOOLEAN
                 Supertypes                    : kotlin.Any
