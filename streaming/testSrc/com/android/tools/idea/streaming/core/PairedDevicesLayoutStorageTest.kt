@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.core
 
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.google.common.truth.Truth.assertThat
 import com.intellij.configurationStore.deserialize
 import com.intellij.configurationStore.serialize
@@ -23,19 +24,22 @@ import org.junit.Test
 
 class PairedDevicesLayoutStorageTest {
 
+  private val key1 = DeviceId("plugin", false, "key1")
+  private val key2 = DeviceId("plugin", false, "key2")
+
   @Test
   fun testGetAndSetLayout() {
     val storage = PairedDevicesLayoutStorage()
-    assertThat(storage.getLayout("key1")).isNull()
+    assertThat(storage.getLayout(key1)).isNull()
 
-    storage.setLayout("key1", PairLayout.LEFT, 0.3f)
-    var layout = storage.getLayout("key1") ?: fail("Missing layout")
+    storage.setLayout(key1, PairLayout.LEFT, 0.3f)
+    var layout = storage.getLayout(key1) ?: fail("Missing layout")
     assertThat(layout).isNotNull()
     assertThat(layout.side).isEqualTo(PairLayout.LEFT)
     assertThat(layout.splitRatio).isEqualTo(0.3f)
 
-    storage.setLayout("key1", PairLayout.RIGHT, 0.7f)
-    layout = storage.getLayout("key1") ?: fail("Missing layout")
+    storage.setLayout(key1, PairLayout.RIGHT, 0.7f)
+    layout = storage.getLayout(key1) ?: fail("Missing layout")
     assertThat(layout.side).isEqualTo(PairLayout.RIGHT)
     assertThat(layout.splitRatio).isEqualTo(0.7f)
   }
@@ -43,30 +47,30 @@ class PairedDevicesLayoutStorageTest {
   @Test
   fun testRemoveLayout() {
     val storage = PairedDevicesLayoutStorage()
-    storage.setLayout("key1", PairLayout.LEFT, 0.3f)
-    storage.setLayout("key2", PairLayout.TOP, 0.4f)
+    storage.setLayout(key1, PairLayout.LEFT, 0.3f)
+    storage.setLayout(key2, PairLayout.TOP, 0.4f)
 
-    storage.removeLayout("key1")
-    assertThat(storage.getLayout("key1")).isNull()
-    assertThat(storage.getLayout("key2")).isNotNull()
+    storage.removeLayout(key1)
+    assertThat(storage.getLayout(key1)).isNull()
+    assertThat(storage.getLayout(key2)).isNotNull()
   }
 
   @Test
   fun testClear() {
     val storage = PairedDevicesLayoutStorage()
-    storage.setLayout("key1", PairLayout.LEFT, 0.3f)
-    storage.setLayout("key2", PairLayout.TOP, 0.4f)
+    storage.setLayout(key1, PairLayout.LEFT, 0.3f)
+    storage.setLayout(key2, PairLayout.TOP, 0.4f)
 
     storage.clear()
-    assertThat(storage.getLayout("key1")).isNull()
-    assertThat(storage.getLayout("key2")).isNull()
+    assertThat(storage.getLayout(key1)).isNull()
+    assertThat(storage.getLayout(key2)).isNull()
   }
 
   @Test
   fun testSerialization() {
     val storage = PairedDevicesLayoutStorage()
-    storage.setLayout("key1", PairLayout.LEFT, 0.3f)
-    storage.setLayout("key2", PairLayout.TOP, 0.4f)
+    storage.setLayout(key1, PairLayout.LEFT, 0.3f)
+    storage.setLayout(key2, PairLayout.TOP, 0.4f)
 
     val element = serialize(storage, createElementIfEmpty = true)!!
     val deserialized = deserialize<PairedDevicesLayoutStorage>(element)
