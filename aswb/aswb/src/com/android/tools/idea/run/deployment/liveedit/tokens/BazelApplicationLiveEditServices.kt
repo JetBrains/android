@@ -30,6 +30,7 @@ import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
 import org.jetbrains.kotlin.cli.common.arguments.toLanguageVersionSettings
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
+import org.jetbrains.kotlin.cli.create
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.psi.KtFile
@@ -73,12 +74,12 @@ class BazelApplicationLiveEditServices(
 
   override fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration {
     val qSyncManager = QuerySyncManager.getInstance(project)
-    val snapshot = qSyncManager.currentSnapshot.getOrNull() ?: return CompilerConfiguration.EMPTY
+    val snapshot = qSyncManager.currentSnapshot.getOrNull() ?: return CompilerConfiguration.create()
 
     val workspaceRoot = WorkspaceRoot.fromProject(project)
     val path = workspaceRoot.relativize(ktFile.virtualFile.toNioPath())
     val labels = snapshot.getTargetOwners(path)
-    if (labels.isEmpty()) return CompilerConfiguration.EMPTY
+    if (labels.isEmpty()) return CompilerConfiguration.create()
 
     // Choose the target that would normally be selected for previews.
     val label =
@@ -86,11 +87,11 @@ class BazelApplicationLiveEditServices(
         .toPreferredLabel(isPreferredTarget = { buildOutcomeProvider.lastBuildOutcome()?.builtJavaTargetPredicate(it) ?: false })
         ?: labels.first()
 
-    val targetBuildInfo = snapshot.artifactIndex.builtDepsMap()[label] ?: return CompilerConfiguration.EMPTY
-    val javaInfo = targetBuildInfo.javaInfo().getOrNull() ?: return CompilerConfiguration.EMPTY
+    val targetBuildInfo = snapshot.artifactIndex.builtDepsMap()[label] ?: return CompilerConfiguration.create()
+    val javaInfo = targetBuildInfo.javaInfo().getOrNull() ?: return CompilerConfiguration.create()
     val flags = javaInfo.kotlinCompilerFlags()
 
-    return CompilerConfiguration().apply {
+    return CompilerConfiguration.create().apply {
       put(CommonConfigurationKeys.MODULE_NAME, label.toString())
       val arguments = parseCommandLineArguments<K2JVMCompilerArguments>(flags)
       val languageVersionSettings = arguments.toLanguageVersionSettings(MessageCollector.NONE)
