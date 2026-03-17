@@ -20,15 +20,8 @@ import com.android.tools.adtui.model.options.Slider
 import com.android.tools.profiler.proto.Trace
 
 /** Configuration for sampled art traces. */
-class ArtSampledConfiguration(name: String) : ProfilingConfiguration(name) {
-  @OptionsProperty(
-    name = "Enable dual clock (warning: slower performance)",
-    group = TRACE_CONFIG_GROUP,
-    order = 100,
-    description =
-      "<html>When enabled, both thread-CPU and wall clock time are recorded, otherwise, only wall clock time is recorded. On Android 13 (API level 33) and below, this is always enabled regardless of selection. </html>",
-  )
-  var dualClock = DEFAULT_DUAL_CLOCK_VALUE
+abstract class ArtSampledConfiguration(name: String) : ProfilingConfiguration(name) {
+  open var dualClock = DEFAULT_DUAL_CLOCK_VALUE
 
   @OptionsProperty(name = "Sample interval: ", group = TRACE_CONFIG_GROUP, order = 101, unit = "Us (Microseconds)")
   var profilingSamplingIntervalUs = DEFAULT_SAMPLING_INTERVAL_US
@@ -63,4 +56,34 @@ class ArtSampledConfiguration(name: String) : ProfilingConfiguration(name) {
   override fun getRequiredDeviceLevel(): Int {
     return 0
   }
+
+  companion object {
+    @JvmStatic
+    fun create(name: String, isWallClockOnly: Boolean): ArtSampledConfiguration {
+      return if (isWallClockOnly) {
+        ArtSampledConfigurationWallClock(name)
+      } else {
+        ArtSampledConfigurationLegacy(name)
+      }
+    }
+  }
+}
+
+class ArtSampledConfigurationLegacy(name: String) : ArtSampledConfiguration(name) {
+  @OptionsProperty(
+    name = "Enable dual clock (warning: slower performance)",
+    group = TRACE_CONFIG_GROUP,
+    order = 100,
+    description =
+      "<html>When enabled, both thread-CPU and wall clock time are recorded, otherwise, only wall clock time is recorded. On Android 13 (API level 33) and below, this is always enabled regardless of selection.<br><br>${ProfilingConfiguration.WARNING_ICON_HTML}<b>Note: Dual clock recording will be deprecated and removed in a future release of Android Studio.</b></html>",
+  )
+  override var dualClock = DEFAULT_DUAL_CLOCK_VALUE
+}
+
+class ArtSampledConfigurationWallClock(name: String) : ArtSampledConfiguration(name) {
+  override var dualClock: Boolean
+    get() = false
+    set(value) {
+      // No-op, always false
+    }
 }

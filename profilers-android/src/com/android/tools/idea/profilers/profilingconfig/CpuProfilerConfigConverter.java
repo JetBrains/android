@@ -55,8 +55,7 @@ public class CpuProfilerConfigConverter {
 
     switch (config.getTraceType()) {
       case ART:
-        if (config instanceof ArtSampledConfiguration) {
-          ArtSampledConfiguration artSampledConfiguration = (ArtSampledConfiguration)config;
+        if (config instanceof ArtSampledConfiguration artSampledConfiguration) {
           cpuProfilerConfig = new CpuProfilerConfig(artSampledConfiguration.getName(), CpuProfilerConfig.Technology.SAMPLED_JAVA);
           cpuProfilerConfig.setSamplingIntervalUs(artSampledConfiguration.getProfilingSamplingIntervalUs());
           cpuProfilerConfig.setBufferSizeMb(artSampledConfiguration.getProfilingBufferSizeInMb());
@@ -119,13 +118,13 @@ public class CpuProfilerConfigConverter {
 
     switch (config.getTechnology()) {
       case SAMPLED_JAVA:
-        configuration = new ArtSampledConfiguration(name);
+        configuration = ArtSampledConfiguration.create(name, StudioFlags.PROFILER_METHOD_TRACE_IN_EDITOR.get());
         ((ArtSampledConfiguration)configuration).setProfilingBufferSizeInMb(config.getBufferSizeMb());
         ((ArtSampledConfiguration)configuration).setProfilingSamplingIntervalUs(config.getSamplingIntervalUs());
         ((ArtSampledConfiguration)configuration).setDualClock(config.getDualClock());
         break;
       case INSTRUMENTED_JAVA:
-        configuration = new ArtInstrumentedConfiguration(name);
+        configuration = ArtInstrumentedConfiguration.create(name, StudioFlags.PROFILER_METHOD_TRACE_IN_EDITOR.get());
         ((ArtInstrumentedConfiguration)configuration).setProfilingBufferSizeInMb(config.getBufferSizeMb());
         ((ArtInstrumentedConfiguration)configuration).setDualClock(config.getDualClock());
         break;
@@ -185,7 +184,7 @@ public class CpuProfilerConfigConverter {
         }
       }
       case CALLSTACK_SAMPLE -> configName = SAMPLED_NATIVE_CONFIG_NAME;
-      case SYSTEM_TRACE  -> configName = SYSTEM_TRACE_CONFIG_NAME;
+      case SYSTEM_TRACE -> configName = SYSTEM_TRACE_CONFIG_NAME;
       case NATIVE_ALLOCATIONS -> configName = NATIVE_ALLOCATIONS_CONFIG_NAME;
       case LEAKCANARY -> configName = "LeakCanary";
     }

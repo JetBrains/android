@@ -27,9 +27,15 @@ class JavaKotlinMethodRecordingTaskHandler(private val sessionsManager: Sessions
   override fun getCpuRecordingConfig(): ProfilingConfiguration {
     val taskHomeTabModel = sessionsManager.studioProfilers.taskHomeTabModel
     val taskRecordingMode = taskHomeTabModel.taskRecordingType.value
+    val inEditorEnabled = sessionsManager.studioProfilers.ideServices.featureConfig.isMethodTraceInEditorEnabled
+
     return when (taskRecordingMode) {
-      TaskHomeTabModel.TaskRecordingType.SAMPLED -> ArtSampledConfiguration("Java/Kotlin Method Sample (legacy)")
-      TaskHomeTabModel.TaskRecordingType.INSTRUMENTED -> ArtInstrumentedConfiguration("Java/Kotlin Method Trace")
+      TaskHomeTabModel.TaskRecordingType.SAMPLED -> {
+        ArtSampledConfiguration.create("Java/Kotlin Method Sample (legacy)", inEditorEnabled)
+      }
+      TaskHomeTabModel.TaskRecordingType.INSTRUMENTED -> {
+        ArtInstrumentedConfiguration.create("Java/Kotlin Method Trace", inEditorEnabled)
+      }
     }
   }
 

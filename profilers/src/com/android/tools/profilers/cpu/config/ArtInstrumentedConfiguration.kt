@@ -21,15 +21,8 @@ import com.android.tools.profiler.proto.Trace
 import com.android.tools.profiler.proto.Trace.TraceMode
 
 /** Configuration for art traces. */
-class ArtInstrumentedConfiguration(name: String) : ProfilingConfiguration(name) {
-  @OptionsProperty(
-    name = "Enable dual clock (warning: slower performance)",
-    group = TRACE_CONFIG_GROUP,
-    order = 100,
-    description =
-      "<html>When enabled, both thread-CPU and wall clock time are recorded, otherwise, only wall clock time is recorded. On Android 13 (API level 33) and below, this is always enabled regardless of selection.</html>",
-  )
-  var dualClock = DEFAULT_DUAL_CLOCK_VALUE
+abstract class ArtInstrumentedConfiguration(name: String) : ProfilingConfiguration(name) {
+  open var dualClock = DEFAULT_DUAL_CLOCK_VALUE
 
   @Slider(min = 1, max = 32, step = 1)
   @OptionsProperty(
@@ -60,4 +53,34 @@ class ArtInstrumentedConfiguration(name: String) : ProfilingConfiguration(name) 
   override fun getRequiredDeviceLevel(): Int {
     return 0
   }
+
+  companion object {
+    @JvmStatic
+    fun create(name: String, isWallClockOnly: Boolean): ArtInstrumentedConfiguration {
+      return if (isWallClockOnly) {
+        ArtInstrumentedConfigurationWallClock(name)
+      } else {
+        ArtInstrumentedConfigurationLegacy(name)
+      }
+    }
+  }
+}
+
+class ArtInstrumentedConfigurationLegacy(name: String) : ArtInstrumentedConfiguration(name) {
+  @OptionsProperty(
+    name = "Enable dual clock (warning: slower performance)",
+    group = TRACE_CONFIG_GROUP,
+    order = 100,
+    description =
+      "<html>When enabled, both thread-CPU and wall clock time are recorded, otherwise, only wall clock time is recorded. On Android 13 (API level 33) and below, this is always enabled regardless of selection.<br><br>${ProfilingConfiguration.WARNING_ICON_HTML}<b>Note: Dual clock recording will be deprecated and removed in a future release of Android Studio.</b></html>",
+  )
+  override var dualClock = DEFAULT_DUAL_CLOCK_VALUE
+}
+
+class ArtInstrumentedConfigurationWallClock(name: String) : ArtInstrumentedConfiguration(name) {
+  override var dualClock: Boolean
+    get() = false
+    set(value) {
+      // No-op, always false
+    }
 }

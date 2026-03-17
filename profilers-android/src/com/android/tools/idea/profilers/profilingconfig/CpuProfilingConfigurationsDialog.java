@@ -27,8 +27,8 @@ import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
-import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
 import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel;
+import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
 import com.android.tools.profilers.cpu.config.PerfettoSystemTraceConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration;
@@ -66,8 +66,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import javax.swing.Action;
+import java.util.stream.Collectors;
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -484,8 +484,14 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
         myPopup = new CommonPopupMenu();
         myPopup.add(buildPopupMenuItem(CpuProfilerConfig.Technology.SAMPLED_NATIVE.getName(), SimpleperfConfiguration::new));
         myPopup.add(buildPopupMenuItemPerfetto(CpuProfilerConfig.Technology.SYSTEM_TRACE.getName()));
-        myPopup.add(buildPopupMenuItem(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA.getName(), ArtInstrumentedConfiguration::new));
-        myPopup.add(buildPopupMenuItem(CpuProfilerConfig.Technology.SAMPLED_JAVA.getName(), ArtSampledConfiguration::new));
+        myPopup.add(buildPopupMenuItem(
+            CpuProfilerConfig.Technology.INSTRUMENTED_JAVA.getName(),
+            name -> ArtInstrumentedConfiguration.create(name, StudioFlags.PROFILER_METHOD_TRACE_IN_EDITOR.get())
+        ));
+        myPopup.add(buildPopupMenuItem(
+            CpuProfilerConfig.Technology.SAMPLED_JAVA.getName(),
+            name -> ArtSampledConfiguration.create(name, StudioFlags.PROFILER_METHOD_TRACE_IN_EDITOR.get())
+        ));
       }
 
       private CommonMenuItem buildPopupMenuItemPerfetto(String name) {

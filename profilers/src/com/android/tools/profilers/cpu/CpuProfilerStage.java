@@ -65,7 +65,8 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class CpuProfilerStage extends StreamingStage implements InterimStage {
+public class
+CpuProfilerStage extends StreamingStage implements InterimStage {
   private static final String HAS_USED_CPU_CAPTURE = "cpu.used.capture";
 
   private static final SingleUnitAxisFormatter CPU_USAGE_FORMATTER = new SingleUnitAxisFormatter(1, 5, 10, "%");
@@ -80,9 +81,8 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
    * A fake configuration shown when an API-initiated tracing is in progress. It exists for UX purpose only and isn't something
    * we want to preserve across stages. Therefore, it exists inside {@link CpuProfilerStage}.
    */
-  @VisibleForTesting
-  public static final ProfilingConfiguration API_INITIATED_TRACING_PROFILING_CONFIG =
-    new ArtInstrumentedConfiguration("API tracing");
+  @VisibleForTesting final ProfilingConfiguration myApiInitiatedTracingConfig;
+
 
   public enum CaptureState {
     // Waiting for a capture to start (displaying the current capture or not)
@@ -182,6 +182,7 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
     mySession = profilers.getSession();
     myCpuDataProvider = new CpuDataProvider(profilers, getTimeline());
     myProfilerConfigModel = new CpuProfilerConfigModel(profilers, this);
+    myApiInitiatedTracingConfig = ArtInstrumentedConfiguration.create("API tracing", profilers.getIdeServices().getFeatureConfig().isMethodTraceInEditorEnabled());
     myRecordingOptionsModel = new RecordingOptionsModel();
 
     myCaptureState = CaptureState.IDLE;
@@ -561,7 +562,7 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
         // This is needed when a startup recording or API recording has started.
         if (!myRecordingOptionsModel.isRecording()) {
           if (isApiInitiatedTracingInProgress()) {
-            RecordingOption option = addConfiguration(API_INITIATED_TRACING_PROFILING_CONFIG);
+            RecordingOption option = addConfiguration(myApiInitiatedTracingConfig);
             myRecordingOptionsModel.getCustomConfigurationModel().setSelectedItem(option);
             myRecordingOptionsModel.selectCurrentCustomConfiguration();
           }
@@ -768,7 +769,7 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
       }
 
       if (myInProgressTraceInfo.getConfiguration().getInitiationType() == TraceInitiationType.INITIATED_BY_API) {
-        // For API-initiated tracing, we want to update the config combo box to show API_INITIATED_TRACING_PROFILING_CONFIG.
+        // For API-initiated tracing, we want to update the config combo box to show myApiInitiatedTracingConfig.
         // Don't update the myProfilerConfigModel. First, this config is by definition transitory. Passing the reference outside
         // CpuProfilerStage may indicate a longer life span. Second, it is not a real configuration. For example, each
         // configuration's name should be unique, but all API-initiated captures should show the same text even if they

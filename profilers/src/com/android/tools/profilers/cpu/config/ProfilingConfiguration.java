@@ -33,6 +33,7 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
   public static final int SYSTEM_TRACE_BUFFER_SIZE_MB = 4;
   public static final int DEFAULT_SAMPLING_INTERVAL_US = 1000;
   public static final String TRACE_CONFIG_GROUP = "Trace config";
+  public static final String WARNING_ICON_HTML = "&#x26A0;&#xFE0F;&nbsp;";
   public static final int DEFAULT_MEMORY_SAMPLING_INTERVAL_BYTES = 2048;
   public static final boolean DEFAULT_DUAL_CLOCK_VALUE = false;
 
@@ -128,14 +129,16 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
     switch (proto.getUnionCase()) {
       case ART_OPTIONS:
         if (proto.getArtOptions().getTraceMode() == Trace.TraceMode.SAMPLED) {
-          ArtSampledConfiguration artSampled = new ArtSampledConfiguration("");
+          boolean isWallClock = !proto.getArtOptions().getDualClock();
+          ArtSampledConfiguration artSampled = ArtSampledConfiguration.create("", isWallClock);
           artSampled.setProfilingSamplingIntervalUs(proto.getArtOptions().getSamplingIntervalUs());
           artSampled.setProfilingBufferSizeInMb(proto.getArtOptions().getBufferSizeInMb());
           artSampled.setDualClock(proto.getArtOptions().getDualClock());
           return artSampled;
         }
         else {
-          ArtInstrumentedConfiguration artInstrumented = new ArtInstrumentedConfiguration("");
+          boolean isWallClock = !proto.getArtOptions().getDualClock();
+          ArtInstrumentedConfiguration artInstrumented = ArtInstrumentedConfiguration.create("", isWallClock);
           artInstrumented.setProfilingBufferSizeInMb(proto.getArtOptions().getBufferSizeInMb());
           artInstrumented.setDualClock(proto.getArtOptions().getDualClock());
           return artInstrumented;

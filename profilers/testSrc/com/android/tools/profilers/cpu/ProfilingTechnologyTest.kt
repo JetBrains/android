@@ -19,8 +19,10 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.profiler.proto.Trace
 import com.android.tools.profiler.proto.Trace.TraceMode
 import com.android.tools.profilers.TraceConfigOptionsUtils
-import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration
-import com.android.tools.profilers.cpu.config.ArtSampledConfiguration
+import com.android.tools.profilers.cpu.config.ArtInstrumentedConfigurationLegacy
+import com.android.tools.profilers.cpu.config.ArtInstrumentedConfigurationWallClock
+import com.android.tools.profilers.cpu.config.ArtSampledConfigurationLegacy
+import com.android.tools.profilers.cpu.config.ArtSampledConfigurationWallClock
 import com.android.tools.profilers.cpu.config.AtraceConfiguration
 import com.android.tools.profilers.cpu.config.ImportedConfiguration
 import com.android.tools.profilers.cpu.config.PerfettoSystemTraceConfiguration
@@ -75,15 +77,27 @@ class ProfilingTechnologyTest {
   }
 
   @Test
-  fun fromConfigArtSampled() {
-    val artSampledConfiguration = ArtSampledConfiguration("MyConfiguration")
+  fun fromConfigArtSampledLegacy() {
+    val artSampledConfiguration = ArtSampledConfigurationLegacy("MyConfiguration")
     assertThat(ProfilingTechnology.fromConfig(artSampledConfiguration)).isEqualTo(ProfilingTechnology.ART_SAMPLED)
   }
 
   @Test
-  fun fromConfigArtInstrumented() {
-    val artInstrumentedConfiguration = ArtInstrumentedConfiguration("MyConfiguration")
+  fun fromConfigArtSampledWallClock() {
+    val artSampledConfigurationWallClock = ArtSampledConfigurationWallClock("MyConfiguration")
+    assertThat(ProfilingTechnology.fromConfig(artSampledConfigurationWallClock)).isEqualTo(ProfilingTechnology.ART_SAMPLED)
+  }
+
+  @Test
+  fun fromConfigArtInstrumentedLegacy() {
+    val artInstrumentedConfiguration = ArtInstrumentedConfigurationLegacy("MyConfiguration")
     assertThat(ProfilingTechnology.fromConfig(artInstrumentedConfiguration)).isEqualTo(ProfilingTechnology.ART_INSTRUMENTED)
+  }
+
+  @Test
+  fun fromConfigArtInstrumentedWallClock() {
+    val artInstrumentedConfigurationWallClock = ArtInstrumentedConfigurationWallClock("MyConfiguration")
+    assertThat(ProfilingTechnology.fromConfig(artInstrumentedConfigurationWallClock)).isEqualTo(ProfilingTechnology.ART_INSTRUMENTED)
   }
 
   @Test

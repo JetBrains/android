@@ -24,8 +24,10 @@ import com.android.tools.idea.run.profiler.CpuProfilerConfig.NATIVE_ALLOCATIONS_
 import com.android.tools.idea.run.profiler.CpuProfilerConfig.SAMPLED_JAVA_CONFIG_NAME
 import com.android.tools.idea.run.profiler.CpuProfilerConfig.SAMPLED_NATIVE_CONFIG_NAME
 import com.android.tools.idea.run.profiler.CpuProfilerConfig.SYSTEM_TRACE_CONFIG_NAME
-import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration
-import com.android.tools.profilers.cpu.config.ArtSampledConfiguration
+import com.android.tools.profilers.cpu.config.ArtInstrumentedConfigurationLegacy
+import com.android.tools.profilers.cpu.config.ArtInstrumentedConfigurationWallClock
+import com.android.tools.profilers.cpu.config.ArtSampledConfigurationLegacy
+import com.android.tools.profilers.cpu.config.ArtSampledConfigurationWallClock
 import com.android.tools.profilers.cpu.config.AtraceConfiguration
 import com.android.tools.profilers.cpu.config.ImportedConfiguration
 import com.android.tools.profilers.cpu.config.LeakCanaryConfiguration
@@ -48,11 +50,12 @@ class CpuProfilerConfigConverterTest {
     @AfterClass
     fun tearDown() {
       StudioFlags.PROFILER_TRACEBOX.clearOverride()
+      StudioFlags.PROFILER_METHOD_TRACE_IN_EDITOR.clearOverride()
     }
   }
 
   @Test
-  fun toProfilingConfigurationSampledJava() {
+  fun toProfilingConfigurationSampledLegacy() {
     val config =
       CpuProfilerConfig().apply {
         name = "MyConfiguration"
@@ -63,8 +66,8 @@ class CpuProfilerConfigConverterTest {
       }
 
     val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.N)
-    assertThat(profilingConfiguration).isInstanceOf(ArtSampledConfiguration::class.java)
-    assertThat((profilingConfiguration as ArtSampledConfiguration).name).isEqualTo(config.name)
+    assertThat(profilingConfiguration).isInstanceOf(ArtSampledConfigurationLegacy::class.java)
+    assertThat((profilingConfiguration as ArtSampledConfigurationLegacy).name).isEqualTo(config.name)
     assertThat(profilingConfiguration.traceType).isEqualTo(TraceType.ART)
     assertThat(profilingConfiguration.profilingSamplingIntervalUs).isEqualTo(config.samplingIntervalUs)
     assertThat(profilingConfiguration.profilingBufferSizeInMb).isEqualTo(5678)
@@ -73,7 +76,33 @@ class CpuProfilerConfigConverterTest {
   }
 
   @Test
-  fun toProfilingConfigurationInstrumentedJava() {
+  fun toProfilingConfigurationSampledWallClock() {
+    StudioFlags.PROFILER_METHOD_TRACE_IN_EDITOR.override(true)
+    try {
+      val config =
+        CpuProfilerConfig().apply {
+          name = "MyConfiguration"
+          technology = CpuProfilerConfig.Technology.SAMPLED_JAVA
+          samplingIntervalUs = 1234
+          bufferSizeMb = 5678
+          dualClock = true
+        }
+
+      val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.N)
+      assertThat(profilingConfiguration).isInstanceOf(ArtSampledConfigurationWallClock::class.java)
+      assertThat((profilingConfiguration as ArtSampledConfigurationWallClock).name).isEqualTo(config.name)
+      assertThat(profilingConfiguration.traceType).isEqualTo(TraceType.ART)
+      assertThat(profilingConfiguration.profilingSamplingIntervalUs).isEqualTo(config.samplingIntervalUs)
+      assertThat(profilingConfiguration.profilingBufferSizeInMb).isEqualTo(5678)
+      assertThat(profilingConfiguration.requiredDeviceLevel).isEqualTo(0)
+      assertThat(profilingConfiguration.dualClock).isFalse()
+    } finally {
+      StudioFlags.PROFILER_METHOD_TRACE_IN_EDITOR.clearOverride()
+    }
+  }
+
+  @Test
+  fun toProfilingConfigurationInstrumentedLegacy() {
     val config =
       CpuProfilerConfig().apply {
         name = "MyConfiguration"
@@ -83,13 +112,38 @@ class CpuProfilerConfigConverterTest {
         dualClock = false
       }
 
-    val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.N)
-    assertThat(profilingConfiguration).isInstanceOf(ArtInstrumentedConfiguration::class.java)
-    assertThat((profilingConfiguration as ArtInstrumentedConfiguration).name).isEqualTo(config.name)
+    val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.UPSIDE_DOWN_CAKE)
+    assertThat(profilingConfiguration).isInstanceOf(ArtInstrumentedConfigurationLegacy::class.java)
+    assertThat((profilingConfiguration as ArtInstrumentedConfigurationLegacy).name).isEqualTo(config.name)
     assertThat(profilingConfiguration.traceType).isEqualTo(TraceType.ART)
     assertThat(profilingConfiguration.profilingBufferSizeInMb).isEqualTo(5678)
     assertThat(profilingConfiguration.requiredDeviceLevel).isEqualTo(0)
     assertThat(profilingConfiguration.dualClock).isEqualTo(config.dualClock)
+  }
+
+  @Test
+  fun toProfilingConfigurationInstrumentedWallClock() {
+    StudioFlags.PROFILER_METHOD_TRACE_IN_EDITOR.override(true)
+    try {
+      val config =
+        CpuProfilerConfig().apply {
+          name = "MyConfiguration"
+          technology = CpuProfilerConfig.Technology.INSTRUMENTED_JAVA
+          samplingIntervalUs = 1234
+          bufferSizeMb = 5678
+          dualClock = true
+        }
+
+      val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.UPSIDE_DOWN_CAKE)
+      assertThat(profilingConfiguration).isInstanceOf(ArtInstrumentedConfigurationWallClock::class.java)
+      assertThat((profilingConfiguration as ArtInstrumentedConfigurationWallClock).name).isEqualTo(config.name)
+      assertThat(profilingConfiguration.traceType).isEqualTo(TraceType.ART)
+      assertThat(profilingConfiguration.profilingBufferSizeInMb).isEqualTo(5678)
+      assertThat(profilingConfiguration.requiredDeviceLevel).isEqualTo(0)
+      assertThat(profilingConfiguration.dualClock).isFalse()
+    } finally {
+      StudioFlags.PROFILER_METHOD_TRACE_IN_EDITOR.clearOverride()
+    }
   }
 
   @Test
@@ -282,8 +336,8 @@ class CpuProfilerConfigConverterTest {
       }
 
     val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.P)
-    assertThat(profilingConfiguration).isInstanceOf(ArtSampledConfiguration::class.java)
-    assertThat((profilingConfiguration as ArtSampledConfiguration).name).isEqualTo(config.name)
+    assertThat(profilingConfiguration).isInstanceOf(ArtSampledConfigurationLegacy::class.java)
+    assertThat((profilingConfiguration as ArtSampledConfigurationLegacy).name).isEqualTo(config.name)
     assertThat(profilingConfiguration.traceType).isEqualTo(TraceType.ART)
     assertThat(profilingConfiguration.profilingSamplingIntervalUs).isEqualTo(1234)
     assertThat(profilingConfiguration.profilingBufferSizeInMb).isEqualTo(5678)
@@ -319,9 +373,9 @@ class CpuProfilerConfigConverterTest {
   }
 
   @Test
-  fun toCpuProfilerConfigArtSampled() {
+  fun toCpuProfilerConfigArtSampledLegacy() {
     val configuration =
-      ArtSampledConfiguration("MyConfiguration").apply {
+      ArtSampledConfigurationLegacy("MyConfiguration").apply {
         profilingSamplingIntervalUs = 1234
         profilingBufferSizeInMb = 5678
         dualClock = true
@@ -336,8 +390,25 @@ class CpuProfilerConfigConverterTest {
   }
 
   @Test
-  fun toCpuProfilerConfigArtInstrumented() {
-    val configuration = ArtInstrumentedConfiguration("MyConfiguration").apply { profilingBufferSizeInMb = 1234 }
+  fun toCpuProfilerConfigArtSampledWallClock() {
+    val configuration =
+      ArtSampledConfigurationWallClock("MyConfiguration").apply {
+        profilingSamplingIntervalUs = 1234
+        profilingBufferSizeInMb = 5678
+        dualClock = true
+      }
+
+    val cpuProfilerConfig = CpuProfilerConfigConverter.fromProfilingConfiguration(configuration)
+    assertThat(cpuProfilerConfig.name).isEqualTo(configuration.name)
+    assertThat(cpuProfilerConfig.technology).isEqualTo(CpuProfilerConfig.Technology.SAMPLED_JAVA)
+    assertThat(cpuProfilerConfig.samplingIntervalUs).isEqualTo(1234)
+    assertThat(cpuProfilerConfig.bufferSizeMb).isEqualTo(5678)
+    assertThat(cpuProfilerConfig.dualClock).isFalse()
+  }
+
+  @Test
+  fun toCpuProfilerConfigArtInstrumentedLegacy() {
+    val configuration = ArtInstrumentedConfigurationLegacy("MyConfiguration").apply { profilingBufferSizeInMb = 1234 }
 
     val cpuProfilerConfig = CpuProfilerConfigConverter.fromProfilingConfiguration(configuration)
     assertThat(cpuProfilerConfig.name).isEqualTo(configuration.name)
@@ -345,6 +416,18 @@ class CpuProfilerConfigConverterTest {
     assertThat(cpuProfilerConfig.samplingIntervalUs).isEqualTo(ProfilingConfiguration.DEFAULT_SAMPLING_INTERVAL_US)
     assertThat(cpuProfilerConfig.bufferSizeMb).isEqualTo(1234)
     assertThat(cpuProfilerConfig.dualClock).isEqualTo(ProfilingConfiguration.DEFAULT_DUAL_CLOCK_VALUE)
+  }
+
+  @Test
+  fun toCpuProfilerConfigArtInstrumentedWallClock() {
+    val configuration = ArtInstrumentedConfigurationWallClock("MyConfiguration").apply { profilingBufferSizeInMb = 1234 }
+
+    val cpuProfilerConfig = CpuProfilerConfigConverter.fromProfilingConfiguration(configuration)
+    assertThat(cpuProfilerConfig.name).isEqualTo(configuration.name)
+    assertThat(cpuProfilerConfig.technology).isEqualTo(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA)
+    assertThat(cpuProfilerConfig.samplingIntervalUs).isEqualTo(ProfilingConfiguration.DEFAULT_SAMPLING_INTERVAL_US)
+    assertThat(cpuProfilerConfig.bufferSizeMb).isEqualTo(1234)
+    assertThat(cpuProfilerConfig.dualClock).isFalse()
   }
 
   @Test

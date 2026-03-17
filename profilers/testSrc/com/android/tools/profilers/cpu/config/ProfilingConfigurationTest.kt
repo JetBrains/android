@@ -33,19 +33,39 @@ class ProfilingConfigurationTest {
   @get:Rule val myThrown = ExpectedException.none()
 
   @Test
-  fun fromProto() {
+  fun fromProtoLegacy() {
     val proto =
       TraceConfiguration.newBuilder()
-        .setArtOptions(Trace.ArtOptions.newBuilder().setTraceMode(TraceMode.SAMPLED).setSamplingIntervalUs(123).setBufferSizeInMb(12))
+        .setArtOptions(
+          Trace.ArtOptions.newBuilder().setTraceMode(TraceMode.SAMPLED).setSamplingIntervalUs(123).setBufferSizeInMb(12).setDualClock(true)
+        )
         .build()
     val config = ProfilingConfiguration.fromProto(proto, false)
-    assertThat(config).isInstanceOf(ArtSampledConfiguration::class.java)
-    config as ArtSampledConfiguration
+    assertThat(config).isInstanceOf(ArtSampledConfigurationLegacy::class.java)
+    config as ArtSampledConfigurationLegacy
     assertThat(config.name).isEqualTo("")
-    assertThat(config).isInstanceOf(ArtSampledConfiguration::class.java)
     assertThat(config.traceType).isEqualTo(TraceType.ART)
     assertThat(config.profilingSamplingIntervalUs).isEqualTo(123)
     assertThat(config.profilingBufferSizeInMb).isEqualTo(12)
+    assertThat(config.dualClock).isTrue()
+  }
+
+  @Test
+  fun fromProtoWallClock() {
+    val proto =
+      TraceConfiguration.newBuilder()
+        .setArtOptions(
+          Trace.ArtOptions.newBuilder().setTraceMode(TraceMode.SAMPLED).setSamplingIntervalUs(123).setBufferSizeInMb(12).setDualClock(false)
+        )
+        .build()
+    val config = ProfilingConfiguration.fromProto(proto, false)
+    assertThat(config).isInstanceOf(ArtSampledConfigurationWallClock::class.java)
+    config as ArtSampledConfigurationWallClock
+    assertThat(config.name).isEqualTo("")
+    assertThat(config.traceType).isEqualTo(TraceType.ART)
+    assertThat(config.profilingSamplingIntervalUs).isEqualTo(123)
+    assertThat(config.profilingBufferSizeInMb).isEqualTo(12)
+    assertThat(config.dualClock).isFalse()
   }
 
   @Test
@@ -82,10 +102,45 @@ class ProfilingConfigurationTest {
   }
 
   @Test
-  fun addOptionsArtSampledConfigAddsSuccessfully() {
+  fun addOptionsArtSampledLegacyConfigAddsSuccessfully() {
     val configBuilder = TraceConfiguration.getDefaultInstance().toBuilder()
     val artSampledConfiguration =
-      ArtSampledConfiguration("MyConfiguration").apply {
+      ArtSampledConfiguration.create("MyConfiguration", false).apply {
+        profilingSamplingIntervalUs = 1234
+        profilingBufferSizeInMb = 5678
+        dualClock = true
+      }
+
+    artSampledConfiguration.addOptions(configBuilder, emptyMap())
+    val config = configBuilder.build()
+
+    assertThat(config.hasArtOptions()).isTrue()
+    assertThat(config.artOptions.traceMode).isEqualTo(TraceMode.SAMPLED)
+    assertThat(config.artOptions.samplingIntervalUs).isEqualTo(1234)
+    assertThat(config.artOptions.bufferSizeInMb).isEqualTo(5678)
+    assertThat(config.artOptions.dualClock).isTrue()
+  }
+
+  @Test
+  fun addOptionsArtInstrumentedLegacyConfigAddsSuccessfully() {
+    val configBuilder = TraceConfiguration.getDefaultInstance().toBuilder()
+    val artInstrumentedConfiguration =
+      ArtInstrumentedConfiguration.create("MyConfiguration", false).apply { profilingBufferSizeInMb = 1234 }
+
+    artInstrumentedConfiguration.addOptions(configBuilder, emptyMap())
+    val config = configBuilder.build()
+
+    assertThat(config.hasArtOptions()).isTrue()
+    assertThat(config.artOptions.traceMode).isEqualTo(TraceMode.INSTRUMENTED)
+    assertThat(config.artOptions.samplingIntervalUs).isEqualTo(0)
+    assertThat(config.artOptions.bufferSizeInMb).isEqualTo(1234)
+  }
+
+  @Test
+  fun addOptionsArtSampledWallClockConfigAddsSuccessfully() {
+    val configBuilder = TraceConfiguration.getDefaultInstance().toBuilder()
+    val artSampledConfiguration =
+      ArtSampledConfiguration.create("MyConfiguration", true).apply {
         profilingSamplingIntervalUs = 1234
         profilingBufferSizeInMb = 5678
       }
@@ -97,12 +152,13 @@ class ProfilingConfigurationTest {
     assertThat(config.artOptions.traceMode).isEqualTo(TraceMode.SAMPLED)
     assertThat(config.artOptions.samplingIntervalUs).isEqualTo(1234)
     assertThat(config.artOptions.bufferSizeInMb).isEqualTo(5678)
+    assertThat(config.artOptions.dualClock).isFalse()
   }
 
   @Test
-  fun addOptionsArtInstrumentedConfigAddsSuccessfully() {
+  fun addOptionsArtInstrumentedWallClockConfigAddsSuccessfully() {
     val configBuilder = TraceConfiguration.getDefaultInstance().toBuilder()
-    val artInstrumentedConfiguration = ArtInstrumentedConfiguration("MyConfiguration").apply { profilingBufferSizeInMb = 1234 }
+    val artInstrumentedConfiguration = ArtInstrumentedConfiguration.create("MyConfiguration", true).apply { profilingBufferSizeInMb = 1234 }
 
     artInstrumentedConfiguration.addOptions(configBuilder, emptyMap())
     val config = configBuilder.build()
@@ -111,6 +167,7 @@ class ProfilingConfigurationTest {
     assertThat(config.artOptions.traceMode).isEqualTo(TraceMode.INSTRUMENTED)
     assertThat(config.artOptions.samplingIntervalUs).isEqualTo(0)
     assertThat(config.artOptions.bufferSizeInMb).isEqualTo(1234)
+    assertThat(config.artOptions.dualClock).isFalse()
   }
 
   @Test
