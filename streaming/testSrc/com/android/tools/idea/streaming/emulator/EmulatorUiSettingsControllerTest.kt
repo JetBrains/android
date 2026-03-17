@@ -99,6 +99,7 @@ class EmulatorUiSettingsControllerTest {
     adb.configureShellCommand(deviceSelector, "setprop debug.layout true; service call activity 1599295570", "")
     adb.configureShellCommand(deviceSelector, "setprop debug.layout false; service call activity 1599295570", "")
     adb.configureShellCommand(deviceSelector, "pm grant $TALKBACK_PACKAGE_NAME android.permission.POST_NOTIFICATIONS", "")
+    adb.configureShellCommand(deviceSelector, SYSTEM_PROPERTY_UPDATE_COMMAND, "")
   }
 
   @Test
@@ -453,16 +454,17 @@ class EmulatorUiSettingsControllerTest {
     assertThat(model.differentFromDefault.value).isTrue()
     adb.shellV2Requests.clear()
     model.resetAction()
-    waitForCondition(10.seconds) { adb.shellV2Requests.size == 7 }
+    waitForCondition(10.seconds) { adb.shellV2Requests.size == 8 }
     val commands = adb.shellV2Requests.map { it.command }
-    assertThat(commands).hasSize(7)
+    assertThat(commands).hasSize(8)
     assertThat(commands[0]).isEqualTo(resetWithDebugLayoutAndGestureNavigation)
     assertThat(commands[1]).isEqualTo("settings get secure $ENABLED_ACCESSIBILITY_SERVICES")
     assertThat(commands[2]).isEqualTo("settings get secure $ACCESSIBILITY_BUTTON_TARGETS")
     assertThat(commands[3]).isEqualTo("settings delete secure $ENABLED_ACCESSIBILITY_SERVICES")
     assertThat(commands[4]).isEqualTo("settings delete secure $ACCESSIBILITY_BUTTON_TARGETS")
-    assertThat(commands[5]).isEqualTo(POPULATE_COMMAND)
-    assertThat(commands[6]).isEqualTo(POPULATE_LANGUAGE_COMMAND.format(APPLICATION_ID1))
+    assertThat(commands[5]).isEqualTo(SYSTEM_PROPERTY_UPDATE_COMMAND)
+    assertThat(commands[6]).isEqualTo(POPULATE_COMMAND)
+    assertThat(commands[7]).isEqualTo(POPULATE_LANGUAGE_COMMAND.format(APPLICATION_ID1))
     assertUsageEvent(OperationKind.RESET)
 
     uiRule.configureUiSettings()
@@ -491,16 +493,17 @@ class EmulatorUiSettingsControllerTest {
     assertThat(model.differentFromDefault.value).isTrue()
     adb.shellV2Requests.clear()
     model.resetAction()
-    waitForCondition(10.seconds) { adb.shellV2Requests.size == 7 }
+    waitForCondition(10.seconds) { adb.shellV2Requests.size == 8 }
     val commands = adb.shellV2Requests.map { it.command }
-    assertThat(commands).hasSize(7)
+    assertThat(commands).hasSize(8)
     assertThat(commands[0]).isEqualTo(resetWithDebugLayoutAndGestureNavigation)
     assertThat(commands[1]).isEqualTo("settings get secure $ENABLED_ACCESSIBILITY_SERVICES")
     assertThat(commands[2]).isEqualTo("settings get secure $ACCESSIBILITY_BUTTON_TARGETS")
     assertThat(commands[3]).isEqualTo("settings delete secure $ENABLED_ACCESSIBILITY_SERVICES")
     assertThat(commands[4]).isEqualTo("settings put secure $ACCESSIBILITY_BUTTON_TARGETS $MAGNIFICATION_SERVICE_NAME")
-    assertThat(commands[5]).isEqualTo(POPULATE_COMMAND)
-    assertThat(commands[6]).isEqualTo(POPULATE_LANGUAGE_COMMAND.format(APPLICATION_ID1))
+    assertThat(commands[5]).isEqualTo(SYSTEM_PROPERTY_UPDATE_COMMAND)
+    assertThat(commands[6]).isEqualTo(POPULATE_COMMAND)
+    assertThat(commands[7]).isEqualTo(POPULATE_LANGUAGE_COMMAND.format(APPLICATION_ID1))
     assertUsageEvent(OperationKind.RESET)
 
     uiRule.configureUiSettings(magnificationOn = true)

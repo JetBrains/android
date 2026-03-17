@@ -68,6 +68,8 @@ private const val APP_LANGUAGE_PATTERN = "Locales for (.+) for user \\d+ are \\[
 
 private const val SYSPROPS_TRANSACTION = 1599295570 // from frameworks/base/core/java/android/os/IBinder.java
 
+internal const val SYSTEM_PROPERTY_UPDATE_COMMAND = "service call activity $SYSPROPS_TRANSACTION"
+
 internal const val POPULATE_COMMAND =
   "echo $DARK_MODE_DIVIDER; " +
     "cmd uimode night; " +
@@ -99,13 +101,13 @@ internal const val FACTORY_RESET_COMMAND_FOR_WEAR =
   "cmd locale set-app-locales %s --locales; " +
     "settings put system font_scale 1; " +
     "setprop debug.layout false; " +
-    "service call activity $SYSPROPS_TRANSACTION; " // Parameters: applicationId
+    "$SYSTEM_PROPERTY_UPDATE_COMMAND; " // Parameters: applicationId
 
 internal const val FACTORY_RESET_COMMAND_FOR_TV_AND_AUTO =
   "cmd locale set-app-locales %s --locales; " +
     "settings put system font_scale 1; " +
     "setprop debug.layout false; " +
-    "service call activity $SYSPROPS_TRANSACTION; " // Parameters: applicationId
+    "$SYSTEM_PROPERTY_UPDATE_COMMAND; " // Parameters: applicationId
 
 internal const val FACTORY_RESET_COMMAND_FOR_XR =
   "cmd uimode night yes; " +
@@ -113,7 +115,7 @@ internal const val FACTORY_RESET_COMMAND_FOR_XR =
     "settings put system font_scale 1; " +
     "wm density %d; " +
     "setprop debug.layout false; " +
-    "service call activity $SYSPROPS_TRANSACTION; " // Parameters: applicationId, density
+    "$SYSTEM_PROPERTY_UPDATE_COMMAND; " // Parameters: applicationId, density
 
 internal const val FACTORY_RESET_COMMAND =
   "cmd uimode night no; " +
@@ -121,7 +123,7 @@ internal const val FACTORY_RESET_COMMAND =
     "settings put system font_scale 1; " +
     "wm density %d; " +
     "setprop debug.layout false; " +
-    "service call activity $SYSPROPS_TRANSACTION; " +
+    "$SYSTEM_PROPERTY_UPDATE_COMMAND; " +
     "cmd overlay enable $GESTURES_OVERLAY; " +
     "cmd overlay disable $THREE_BUTTON_OVERLAY; " // Parameters: applicationId, density
 
@@ -358,7 +360,7 @@ internal class EmulatorUiSettingsController(
   }
 
   override fun setDebugLayout(on: Boolean) {
-    scope.launch { executeShellCommand("setprop debug.layout $on; service call activity $SYSPROPS_TRANSACTION") }
+    scope.launch { executeShellCommand("setprop debug.layout $on; $SYSTEM_PROPERTY_UPDATE_COMMAND") }
     lastDebugLayout = on
     updateResetButton()
   }
@@ -373,6 +375,7 @@ internal class EmulatorUiSettingsController(
 
   override fun reset() {
     scope.launch {
+      val debugLayoutActive = model.debugLayout.value
       val command =
         when (deviceType) {
           DeviceType.WEAR -> FACTORY_RESET_COMMAND_FOR_WEAR.format(readApplicationId)
@@ -383,6 +386,10 @@ internal class EmulatorUiSettingsController(
         }
       executeShellCommand(command)
       resetTalkBackAndSelectToSpeak()
+      if (debugLayoutActive) {
+        // b/492014029 Debug Layout Bounds sometimes require 2 activity updates to clear the bounds
+        executeShellCommand(SYSTEM_PROPERTY_UPDATE_COMMAND)
+      }
       populateModel()
     }
   }
