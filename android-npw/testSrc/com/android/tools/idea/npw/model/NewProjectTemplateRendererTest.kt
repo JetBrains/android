@@ -22,8 +22,8 @@ import com.android.tools.idea.gradle.jdk.GradleDefaultJvmCriteriaStore
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.importing.GradleJdkConfigurationInitializer
 import com.android.tools.idea.gradle.toolchain.GradleDaemonJvmCriteriaTemplatesManager
+import com.android.tools.idea.gradle.util.AGP_BUILT_IN_KOTLIN_VERSION
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
-import com.android.tools.idea.npw.project.DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.sdk.IdeSdks
@@ -148,8 +148,10 @@ class NewProjectTemplateRendererTest {
   }
 
   private fun createNewProjectTemplateRender(
-    gradleVersionString: String, removeFoojayPlugin: Boolean = false, useGradleKts: Boolean = false,
-  ) : NewProjectModel.ProjectTemplateRenderer {
+    gradleVersionString: String,
+    removeFoojayPlugin: Boolean = false,
+    useGradleKts: Boolean = false,
+  ): NewProjectModel.ProjectTemplateRenderer {
     val gradleVersion = GradleVersion.version(gradleVersionString)
     val newProjectModel = spy(NewProjectModel())
     val render = spy(newProjectModel.ProjectTemplateRenderer())
@@ -163,12 +165,12 @@ class NewProjectTemplateRendererTest {
     doReturn(BoolValueProperty(useGradleKts)).whenever(newProjectModel).useGradleKts
     doAnswer {
         withGradleSettings {
-        if (removeFoojayPlugin) {
-          removeTemplateFoojayPluginDefinition()
-        } else {
-          addTemplateLocalRepositoriesToResolveFoojayPlugin(useGradleKts)
+          if (removeFoojayPlugin) {
+            removeTemplateFoojayPluginDefinition()
+          } else {
+            addTemplateLocalRepositoriesToResolveFoojayPlugin(useGradleKts)
+          }
         }
-      }
         it.callRealMethod()
       }
       .whenever(render)
@@ -184,7 +186,7 @@ class NewProjectTemplateRendererTest {
       listOf(),
       null,
       Language.Java,
-      DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS,
+      AGP_BUILT_IN_KOTLIN_VERSION,
       projectRule.project.guessProjectDir()!!.toIoFile(),
       "com.test.packagename",
       mapOf(),

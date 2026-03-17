@@ -16,7 +16,7 @@
 package com.android.tools.idea.templates
 
 import com.android.sdklib.AndroidVersion
-import com.android.tools.idea.npw.project.DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS
+import com.android.tools.idea.gradle.util.AGP_BUILT_IN_KOTLIN_VERSION
 import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
 import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
 import com.android.tools.idea.npw.template.TemplateResolver
@@ -58,7 +58,7 @@ class ComposeWearActivityTemplateTest {
     moduleData.apis = moduleData.apis!!.copy(buildApi = apiVersion, targetApi = apiVersion.majorVersion)
   }
 
-  private fun withKotlin(kotlinVersion: String = DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS): ProjectStateCustomizer =
+  private fun withKotlin(kotlinVersion: String = AGP_BUILT_IN_KOTLIN_VERSION): ProjectStateCustomizer =
     { _: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
       projectData.language = Language.Kotlin
       // Use the Kotlin version for tests

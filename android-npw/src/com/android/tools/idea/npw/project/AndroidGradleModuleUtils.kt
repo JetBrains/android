@@ -21,8 +21,11 @@ package com.android.tools.idea.npw.project
 import com.android.SdkConstants
 import com.android.annotations.concurrency.Slow
 import com.android.builder.model.SourceProvider
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
+import com.android.tools.idea.gradle.util.AGP_BUILT_IN_KOTLIN_VERSION
 import com.android.tools.idea.gradle.util.KotlinGradleProjectSystemUtil
+import com.android.tools.idea.gradle.util.getKotlinVersion
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.wizard.template.Parameter
 import com.intellij.openapi.module.Module
@@ -71,11 +74,20 @@ fun setGradleWrapperExecutable(projectRoot: File) {
 
 /** Find the most appropriate Kotlin plugin version for the specified project. */
 @Slow
-fun determineKotlinVersionOrDefault(project: Project, isNewProject: Boolean): String {
-  if (isNewProject) return DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS
+fun determineKotlinVersionOrDefault(project: Project, isNewProject: Boolean, agpVersion: AgpVersion?): String {
+  if (isNewProject) return agpVersion.getKotlinVersionOrDefault()
 
   val versionInUse = determineKotlinVersion(project)
-  return versionInUse?.toString() ?: DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS
+  return versionInUse?.toString() ?: agpVersion.getKotlinVersionOrDefault()
+}
+
+/**
+ * Returns the Kotlin version that AGP uses since AGP 9.0. (Each AGP version may use a different Kotlin version.)
+ *
+ * If the AGP version is null or is lower than 9.0, this method returns a default Kotlin version.
+ */
+internal fun AgpVersion?.getKotlinVersionOrDefault(): String {
+  return this?.getKotlinVersion() ?: AGP_BUILT_IN_KOTLIN_VERSION
 }
 
 @Slow
@@ -88,6 +100,3 @@ fun determineKotlinVersion(project: Project): KotlinGradlePluginVersion? {
 fun determineVersionCatalogUse(project: Project): Boolean {
   return GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject
 }
-
-/** This version should be kept in sync with the version bundled in AGP */
-const val DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS = "2.2.10"
