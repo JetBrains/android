@@ -19,11 +19,11 @@ import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.AiInsightContributor
-import com.android.tools.idea.insights.ai.GeminiCrashInsightRequest
 import com.android.tools.idea.insights.ai.InsightSource
 import com.android.tools.idea.insights.ai.StubInsightsOnboardingProvider
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolverImpl
+import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.stacktrace.Caption
@@ -54,11 +54,12 @@ class VitalsAiInsightToolkitTest {
         override fun canContribute(): Boolean = true
 
         override suspend fun fetchInsight(
-          request: GeminiCrashInsightRequest,
+          connection: Connection,
+          event: Event,
           project: Project,
           codeContextResolver: CodeContextResolver,
         ): AiInsight {
-          return AiInsight(request.toString(), request.event, insightSource = InsightSource.STUDIO_BOT)
+          return AiInsight("insight for $connection and $event", event, insightSource = InsightSource.STUDIO_BOT)
         }
       }
     ExtensionTestUtil.maskExtensions(AiInsightContributor.EP_NAME, listOf(client), projectRule.disposable)
@@ -72,16 +73,7 @@ class VitalsAiInsightToolkitTest {
     val insight = aiInsightToolkit.fetchInsight(TEST_CONNECTION_1, ISSUE1.id, null, ISSUE1.issueDetails.fatality, ISSUE1.sampleEvent)
 
     val rawInsight = (insight as LoadingState.Ready).value.rawInsight
-    val expectedRequest =
-      GeminiCrashInsightRequest(
-        connection = TEST_CONNECTION_1,
-        issueId = ISSUE1.id,
-        variantId = null,
-        deviceName = "Google Pixel 4a",
-        apiLevel = "12",
-        event = ISSUE1.sampleEvent,
-      )
-    Truth.assertThat(rawInsight).isEqualTo(expectedRequest.toString())
+    Truth.assertThat(rawInsight).isEqualTo("insight for $TEST_CONNECTION_1 and ${ISSUE1.sampleEvent}")
   }
 
   @Test

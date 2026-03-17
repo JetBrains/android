@@ -97,12 +97,11 @@ abstract class AiInsightToolkit(
         return LoadingState.Ready(it)
       }
     }
-    val request = createGeminiInsightRequest(connection, issueId, variantId, event)
     val failure = LoadingState.UnknownFailure("Unable to fetch insight for the selected issue.")
     val contributor =
       AiInsightContributor.getFirstAvailableContributor() ?: return LoadingState.Unauthorized("No insight contributor found")
     return runGrpcCatching(failure) {
-      val insight = contributor.fetchInsight(request, project, codeContextResolver)
+      val insight = contributor.fetchInsight(connection, event, project, codeContextResolver)
       insightCache.putAiInsight(connection, issueId, variantId, insight)
       LoadingState.Ready(insight)
     }

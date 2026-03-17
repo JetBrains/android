@@ -18,23 +18,13 @@ package com.android.tools.idea.insights.ai
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.event.Event
-import com.android.tools.idea.insights.model.issue.IssueId
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.delay
 import org.jetbrains.annotations.TestOnly
 
-data class GeminiCrashInsightRequest(
-  val connection: Connection,
-  val issueId: IssueId,
-  val variantId: String?,
-  val deviceName: String,
-  val apiLevel: String,
-  val event: Event,
-)
-
 interface AiInsightContributor {
-  suspend fun fetchInsight(request: GeminiCrashInsightRequest, project: Project, codeContextResolver: CodeContextResolver): AiInsight
+  suspend fun fetchInsight(connection: Connection, event: Event, project: Project, codeContextResolver: CodeContextResolver): AiInsight
 
   fun canContribute(): Boolean
 
@@ -51,23 +41,14 @@ class StubAiInsightContributor : AiInsightContributor {
   override fun canContribute() = java.lang.Boolean.getBoolean("appinsights.generate.fake.insight")
 
   override suspend fun fetchInsight(
-    request: GeminiCrashInsightRequest,
+    connection: Connection,
+    event: Event,
     project: Project,
     codeContextResolver: CodeContextResolver,
   ): AiInsight {
     delay(2000)
-    return AiInsight(rawInsight = "Fake insight for testing purposes.", event = request.event, insightSource = InsightSource.STUDIO_BOT)
+    return AiInsight(rawInsight = "Fake insight for testing purposes.", event = event, insightSource = InsightSource.STUDIO_BOT)
   }
 }
 
 const val FILE_PHRASE = "The fix should likely be in "
-
-fun createGeminiInsightRequest(connection: Connection, issueId: IssueId, variantId: String?, event: Event) =
-  GeminiCrashInsightRequest(
-    connection = connection,
-    issueId = issueId,
-    variantId = variantId,
-    deviceName = event.eventData.device.let { "${it.manufacturer} ${it.model}" },
-    apiLevel = event.eventData.operatingSystemInfo.displayVersion,
-    event = event,
-  )

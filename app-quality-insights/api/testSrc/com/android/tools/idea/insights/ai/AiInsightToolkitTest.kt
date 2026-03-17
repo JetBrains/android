@@ -199,9 +199,9 @@ class AiInsightToolkitTest {
       )
 
     var fakeInsightFetched = false
-    setupAiInsightContributor { request ->
+    setupAiInsightContributor { connection, event ->
       fakeInsightFetched = true
-      AiInsight(request.toString(), request.event, insightSource = InsightSource.STUDIO_BOT)
+      AiInsight("insight for $connection and $event", event, insightSource = InsightSource.STUDIO_BOT)
     }
 
     val toolkit = createToolkit(cache)
@@ -223,7 +223,7 @@ class AiInsightToolkitTest {
 
   @Test
   fun `toolkit returns new insight with force regenerate`() = runBlocking {
-    setupAiInsightContributor { request -> AiInsight("a different insight", request.event, insightSource = InsightSource.STUDIO_BOT) }
+    setupAiInsightContributor { _, event -> AiInsight("a different insight", event, insightSource = InsightSource.STUDIO_BOT) }
 
     val cache = AiInsightCache()
     cache.putAiInsight(CONNECTION1, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
@@ -271,20 +271,21 @@ class AiInsightToolkitTest {
     }
 
   private fun expectedInsight(): AiInsight {
-    return AiInsight(createGeminiInsightRequest(CONNECTION1, ISSUE1.id, null, ISSUE1.sampleEvent).toString(), ISSUE1.sampleEvent)
+    return AiInsight("expected insight", ISSUE1.sampleEvent)
   }
 
-  private fun setupAiInsightContributor(fetchInsight: suspend (GeminiCrashInsightRequest) -> AiInsight = { expectedInsight() }) {
+  private fun setupAiInsightContributor(fetchInsight: suspend (Connection, Event) -> AiInsight = { _, _ -> expectedInsight() }) {
     val contributor =
       object : AiInsightContributor {
         override fun canContribute() = true
 
         override suspend fun fetchInsight(
-          request: GeminiCrashInsightRequest,
+          connection: Connection,
+          event: Event,
           project: Project,
           codeContextResolver: CodeContextResolver,
         ): AiInsight {
-          return fetchInsight(request)
+          return fetchInsight(connection, event)
         }
       }
     ExtensionTestUtil.maskExtensions(AiInsightContributor.EP_NAME, listOf(contributor), projectRule.disposable)
