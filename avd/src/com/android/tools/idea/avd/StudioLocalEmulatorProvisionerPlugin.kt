@@ -98,8 +98,8 @@ class StudioLocalEmulatorProvisionerPlugin(
   val scope: CoroutineScope,
   val basePlugin: LocalEmulatorProvisionerPlugin,
   val context: LocalEmulatorContext,
-  val avdScanner: AvdScanner, // TODO android-merge
   val project: Project?,
+  val avdScanner: AvdScanner,
 ) : DeviceProvisionerPlugin by basePlugin {
   private val accelerationError = MutableStateFlow(AccelerationErrorCode.ALREADY_INSTALLED)
 
@@ -111,10 +111,8 @@ class StudioLocalEmulatorProvisionerPlugin(
     }
   }
 
-  fun refreshDevices() {
-    // TODO android-merge refreshDevices() got removed, changed to rescanAsync -- ok?
-    // basePlugin.refreshDevices()
-    avdScanner.rescanAsync()
+  suspend fun refreshDevices() {
+    avdScanner.rescan()
   }
 
   override val devices: StateFlow<List<StudioLocalEmulatorDeviceHandle>> =
@@ -125,7 +123,7 @@ class StudioLocalEmulatorProvisionerPlugin(
           for (baseHandle in baseHandles) {
             wrappedHandles.add(
               handles.computeIfAbsent(baseHandle as LocalEmulatorDeviceHandle) {
-                StudioLocalEmulatorDeviceHandle(project, baseHandle, context, devices, avdScanner)
+                StudioLocalEmulatorDeviceHandle(project, baseHandle, context, devices)
               }
             )
           }
@@ -181,7 +179,6 @@ class StudioLocalEmulatorDeviceHandle(
   internal val baseDeviceHandle: LocalEmulatorDeviceHandle,
   private val context: LocalEmulatorContext,
   private val deviceHandleFlow: Flow<List<StudioLocalEmulatorDeviceHandle>>,
-  private val avdScanner: AvdScanner,
 ) : DeviceHandle by baseDeviceHandle {
   // Do not cache this; getDefaultAvdManagerConnection() changes when the local SDK path changes.
   private val avdManagerConnection
@@ -199,10 +196,8 @@ class StudioLocalEmulatorDeviceHandle(
   private val avdInfo by baseDeviceHandle::avdInfo
   private val onDiskAvdInfo by baseDeviceHandle::onDiskAvdInfo
 
-  private fun refreshDevices() {
-    // TODO android-merge refreshDevices() got removed, changed to rescanAsync -- ok?
-    // baseDeviceHandle.refreshDevices()
-    avdScanner.rescanAsync()
+  private suspend fun refreshDevices() {
+    baseDeviceHandle.avdScanner.rescan()
   }
 
   private val defaultPresentation: DeviceAction.DefaultPresentation = StudioDefaultDeviceActionPresentation

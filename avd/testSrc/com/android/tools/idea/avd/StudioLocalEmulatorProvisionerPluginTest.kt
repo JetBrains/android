@@ -20,10 +20,11 @@ import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
 import com.android.adblib.testingutils.CoroutineTestUtils.yieldUntil
 import com.android.adblib.utils.createChildScope
 import com.android.sdklib.SystemImageTags
-import com.android.sdklib.deviceprovisioner.AvdScanner
+import com.android.sdklib.deviceprovisioner.AbstractAvdScanner
 import com.android.sdklib.deviceprovisioner.DeviceAction
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.sdklib.deviceprovisioner.FakeAvdManager
+import com.android.sdklib.deviceprovisioner.FakeAvdScanner
 import com.android.sdklib.deviceprovisioner.LocalEmulatorDeviceHandle
 import com.android.sdklib.deviceprovisioner.makeAvdInfo
 import com.android.sdklib.deviceprovisioner.testContext
@@ -39,6 +40,7 @@ import javax.swing.Icon
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberProperties
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
@@ -62,7 +64,8 @@ class StudioLocalEmulatorProvisionerPluginTest {
   fun setUp() {
     avdManager = FakeAvdManager(session, temporaryDirectoryRule.newPath())
     plugin =
-      LocalEmulatorProvisionerFactory().create(session.scope, session, projectRule.project, avdManager::rescanAvds)
+      LocalEmulatorProvisionerFactory()
+        .create(session.scope, session, projectRule.project, avdScanner = FakeAvdScanner(avdManager, session.scope))
         as StudioLocalEmulatorProvisionerPlugin
     provisioner = DeviceProvisioner.create(session.scope, session, listOf(plugin))
   }
@@ -97,41 +100,20 @@ class StudioLocalEmulatorProvisionerPluginTest {
   /** Verify that DeviceActions are implemented as fields rather than via getters. */
   @Test
   fun actionPresentationIdentity() = runTest {
-    // TODO android-merge added fakeAvdScanner stub to satisfy compiler -- fix later
-    val fakeAvdScanner =
-      object : AvdScanner {
-        override fun rescanAsync() {}
-
-        override suspend fun rescan(): List<AvdInfo> = emptyList()
-
-        override val avdFlow = MutableStateFlow<List<AvdInfo>>(emptyList())
-      }
-    val handleContext = testContext(this)
-    val initialAvdInfo = makeAvdInfo(createInMemoryFileSystemAndFolder("avds"), 1)
+    val handleScope = this.createChildScope()
     val handle =
       StudioLocalEmulatorDeviceHandle(
         null,
         baseDeviceHandle =
-          // TODO android-merge refreshDevices param is gone, now needs properties directly (couldn't confirm
-          // real param names from the bumped jar, so passed positionally below)
-          // LocalEmulatorDeviceHandle(
-          //   context = testContext(this),
-          //   refreshDevices = {},
-          //   scope = this.createChildScope(),
-          //   extensions = emptyList(),
-          //   initialAvdInfo = makeAvdInfo(createInMemoryFileSystemAndFolder("avds"), 1),
-          // )
           LocalEmulatorDeviceHandle(
-            handleContext,
-            fakeAvdScanner,
-            this.createChildScope(),
-            emptyList(),
-            initialAvdInfo,
-            handleContext.disconnectedDeviceProperties(initialAvdInfo),
+            context = testContext(this),
+            avdScanner = NullAvdScanner(handleScope),
+            scope = handleScope,
+            extensions = emptyList(),
+            initialAvdInfo = makeAvdInfo(createInMemoryFileSystemAndFolder("avds"), 1),
           ),
-        context = handleContext,
+        context = testContext(this),
         deviceHandleFlow = MutableStateFlow(emptyList()),
-        avdScanner = fakeAvdScanner,
       )
 
     for (property in StudioLocalEmulatorDeviceHandle::class.memberProperties) {
@@ -191,4 +173,10 @@ class StudioLocalEmulatorProvisionerPluginTest {
     // The action should become disabled.
     yieldUntil { activationAction.presentation.value.enabled == false }
   }
+}
+
+private class NullAvdScanner(coroutineScope: CoroutineScope) : AbstractAvdScanner(coroutineScope) {
+  override fun scanAvds(): List<AvdInfo> = emptyList()
+
+  override fun logError(message: String, exception: Throwable) = throw exception
 }
