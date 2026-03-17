@@ -295,6 +295,7 @@ private constructor(
   override fun dispose() {
     listenerRemovalDisposable = null
     issueModel.removeAllIssueProviders()
+    ViewInfoProvider.setCustomProvider(null)
   }
 }
 

@@ -17,9 +17,11 @@ package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.uibuilder.visual.visuallint.CustomVisualLintViewInfoProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.toVisualLintConfiguration
 import com.android.tools.idea.uibuilder.visual.visuallint.toVisualLintRenderResult
 import com.android.tools.rendering.RenderTask
+import com.android.tools.visuallint.ViewInfoProvider
 import com.android.tools.visuallint.analyzers.WearMarginAnalyzer
 import com.intellij.openapi.application.ApplicationManager
 import org.intellij.lang.annotations.Language
@@ -86,10 +88,12 @@ class WearMarginAnalyzerTest {
   @Before
   fun setup() {
     RenderTestUtil.beforeRenderTestCase()
+    ViewInfoProvider.setCustomProvider(CustomVisualLintViewInfoProvider)
   }
 
   @After
   fun tearDown() {
+    ViewInfoProvider.setCustomProvider(null)
     ApplicationManager.getApplication().invokeAndWait { RenderTestUtil.afterRenderTestCase() }
   }
 
