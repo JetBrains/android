@@ -1,7 +1,7 @@
 [versions]
 agp = "9.2.0-alpha03"
 playServicesWearable = "18.0.0"
-kotlin = "2.2.10"
+kotlin = "{AGP_BUILT_IN_KOTLIN_VERSION}"
 composeBom = "2024.09.00"
 composeMaterial3 = "1.5.6"
 composeFoundation = "1.5.6"

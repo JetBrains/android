@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates.diff.activity
 
+import com.android.tools.idea.gradle.util.AGP_BUILT_IN_KOTLIN_VERSION
 import com.android.tools.idea.templates.diff.TemplateDiffTestUtils.smartDiffAgpVersion
 import com.android.tools.idea.wizard.template.Template
 import com.google.common.truth.Truth
@@ -82,7 +83,7 @@ private fun diffDirectories(goldenDir: Path, projectDir: Path, printPrefix: Stri
     // it's just for human readability, so diffing all lines and only reading bytes if text fails is
     // simpler.
     try {
-      val goldenLines = Files.readAllLines(goldenFile).map { replaceLatestAgpVersion(it, printPrefix) }
+      val goldenLines = Files.readAllLines(goldenFile).map { replaceLatestAgpVersion(it, printPrefix).replaceAgpBuiltInKotlinVersion() }
       val projectLines = Files.readAllLines(projectFile).map { replaceLatestAgpVersion(it, printPrefix) }
       Truth.assertThat(projectLines).isEqualTo(goldenLines)
     } catch (error: MalformedInputException) {
@@ -145,4 +146,8 @@ private fun replaceLatestAgpVersion(text: String, printPrefix: String = ""): Str
     println("${printPrefix}Replaced AGP version in $text")
   }
   return replacedText
+}
+
+private fun String.replaceAgpBuiltInKotlinVersion(): String {
+  return replace("{AGP_BUILT_IN_KOTLIN_VERSION}", AGP_BUILT_IN_KOTLIN_VERSION)
 }

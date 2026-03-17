@@ -6,7 +6,7 @@ junitVersion = "1.1.5"
 espressoCore = "3.5.1"
 lifecycleRuntimeKtx = "2.6.1"
 activityCompose = "1.8.0"
-kotlin = "2.2.10"
+kotlin = "{AGP_BUILT_IN_KOTLIN_VERSION}"
 composeBom = "2026.02.01"
 
 [libraries]
