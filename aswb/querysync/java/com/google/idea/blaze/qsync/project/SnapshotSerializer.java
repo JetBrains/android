@@ -72,7 +72,9 @@ public class SnapshotSerializer {
         .map(Path::toString)
         .forEach(proto::addExcludePaths);
     proto.setDeriveTargetsFromDirectories(projectDefinition.getDeriveTargetsFromDirectories());
-    projectDefinition.getTargetPatterns().stream().map(TargetPattern::toString).forEach(proto::addTargetPatterns);
+    projectDefinition.getTargetPatterns().stream()
+        .map(TargetPattern::toString)
+        .forEach(proto::addTargetPatterns);
     projectDefinition.getSystemExcludes().stream()
         .map(Path::toString)
         .forEach(proto::addSystemExcludes);

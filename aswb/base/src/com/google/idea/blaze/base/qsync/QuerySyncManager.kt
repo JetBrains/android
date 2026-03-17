@@ -246,8 +246,7 @@ constructor(
           }
     this.loadedProject = loadedProject
     projectModificationTracker_
-      .incModificationCount() // Loaded project should be managed by the SnapshotHolder. For now
-                              // here.
+      .incModificationCount() // Loaded project should be managed by the SnapshotHolder.
     return ReloadProjectResult(
       project = loadedProject,
       existingPostQuerySyncData = existingQueryData,
