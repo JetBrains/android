@@ -3068,6 +3068,17 @@ public final class StudioFlags {
     );
   // endregion AGP Test Suites
 
+  // region What's New
+  private static final FlagGroup WHATS_NEW = new FlagGroup(FLAGS, "whatsnew", "What's New");
+  public static final Flag<Boolean> WHATS_NEW_V2 =
+    new BooleanFlag(
+      WHATS_NEW,
+      "use.whats.new.v2",
+      "Use What's New V2",
+      "Use What's New V2 with Compose"
+    );
+  // endregion What's New
+
   private StudioFlags() { }
 
   private static Boolean isUnitTestMode() {

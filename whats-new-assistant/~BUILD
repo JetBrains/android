@@ -5,6 +5,7 @@ iml_module(
     name = "whats-new-assistant",
     srcs = ["src"],
     iml_files = ["whats-new-assistant.iml"],
+    kotlin_use_compose = True,
     resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -20,6 +21,7 @@ iml_module(
         "//tools/adt/idea/build-attribution:intellij.android.build-attribution",
         "//tools/adt/idea/app-inspection/ide:app-inspection.ide",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
     ],
 )
 
