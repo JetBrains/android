@@ -15,9 +15,15 @@
  */
 package com.android.tools.idea.tracer
 
+import androidx.compose.runtime.Composer
+import androidx.compose.runtime.CompositionTracer
+import androidx.compose.runtime.InternalComposeTracingApi
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.tracer.Tracing
 import com.android.tools.tracer.TracingConfigProvider
+import com.android.tools.tracer.beginSectionWithMetadata
+import com.android.tools.tracer.endSection
+import com.android.tools.tracer.isTracingEnabled
 import com.intellij.ide.AppLifecycleListener
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.PathManager
@@ -35,10 +41,37 @@ private object StudioTracingConfig : TracingConfigProvider {
   override fun getRingBufferCapacity(): Long = 20_000_000 // 20 MB trace file
 }
 
-/** Controller that manages the lifecycle and configuration of [Tracing] for Android Studio. */
+/**
+ * Controller that manages the lifecycle and configuration of [Tracing] for Android Studio. It also enables Compose Composition tracing to
+ * write to the tracer.
+ */
 class StudioTracingController : AppLifecycleListener {
 
-  override fun appStarted() = initializeTracing()
+  override fun appStarted() {
+    initializeTracing()
+    enableComposeCompositionTracing()
+  }
+
+  // Enable Compose Composition tracing in the Studio tracer.
+  // See https://developer.android.com/develop/ui/compose/tooling/tracing for more details
+  @OptIn(InternalComposeTracingApi::class)
+  private fun enableComposeCompositionTracing() {
+    Composer.setTracer(
+      object : CompositionTracer {
+        override fun traceEventStart(key: Int, dirty1: Int, dirty2: Int, info: String) {
+          beginSectionWithMetadata("compose", info)
+        }
+
+        override fun traceEventEnd() {
+          endSection()
+        }
+
+        override fun isTraceInProgress(): Boolean {
+          return isTracingEnabled()
+        }
+      }
+    )
+  }
 
   override fun appWillBeClosed(isRestart: Boolean) {
     // Gracefully close tracing on a normal IDE exit.
