@@ -217,7 +217,7 @@ import com.intellij.util.containers.MultiMap
 import com.intellij.util.messages.MessageBusConnection
 import com.intellij.workspaceModel.core.fileIndex.WorkspaceFileIndexContributor
 import com.intellij.workspaceModel.core.fileIndex.impl.WorkspaceFileIndexImpl
-import com.intellij.workspaceModel.ide.impl.jps.serialization.DelayedProjectSynchronizer
+import com.intellij.workspaceModel.ide.impl.jps.serialization.ProjectSynchronizerUtil
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.future.asCompletableFuture
@@ -2411,7 +2411,7 @@ private fun <T> openPreparedProject(
         // Unfortunately we do not have start-up activities run in tests so we have to trigger a refresh here.
         emulateStartupActivityForTest(project)
         val awaitGradleStartupActivity = project.coroutineScope.launch {
-          DelayedProjectSynchronizer.Util.backgroundPostStartupProjectLoading(project)
+          ProjectSynchronizerUtil.backgroundPostStartupProjectLoading(project)
           project.service<AndroidGradleProjectStartupActivity.StartupService>().awaitInitialization()
         }
         PlatformTestUtil.waitForFuture(awaitGradleStartupActivity.asCompletableFuture(), TimeUnit.MINUTES.toMillis(10))
