@@ -15,19 +15,21 @@
  */
 package com.android.tools.idea.device.explorer.monitor
 
-import com.android.tools.idea.device.explorer.monitor.mocks.MockDevice
+import com.android.tools.idea.device.explorer.monitor.mocks.MockDeviceHandle
 import com.android.tools.idea.device.explorer.monitor.processes.ProcessInfo
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorTableModel
 import com.google.common.truth.Truth.assertThat
 import javax.swing.event.TableModelEvent
 import javax.swing.event.TableModelListener
+import kotlinx.coroutines.CoroutineScope
 import org.junit.Before
 import org.junit.Test
+import org.mockito.Mockito
 
 class DeviceMonitorTableModelTest {
   private lateinit var tableModel: DeviceMonitorTableModel
   private lateinit var tableModelListener: TestListener
-  private val device = MockDevice("Test Device", "Serial Number")
+  private val device = MockDeviceHandle(Mockito.mock(CoroutineScope::class.java), "Serial Number")
 
   @Before
   fun setUp() {
@@ -265,9 +267,10 @@ class DeviceMonitorTableModelTest {
   private fun createDefaultProcessInfoList() =
     mutableListOf(createProcessInfo(3), createProcessInfo(5), createProcessInfo(10), createProcessInfo(15), createProcessInfo(20))
 
-  private fun createProcessInfo(pid: Int) = ProcessInfo(device, pid = pid, processName = "Test Process $pid")
+  private fun createProcessInfo(pid: Int) = ProcessInfo(device.serialNumber, pid = pid, processName = "Test Process $pid")
 
-  private fun createChangedProcessInfo(oldPid: Int, newPid: Int) = ProcessInfo(device, pid = newPid, processName = "Test Process $oldPid")
+  private fun createChangedProcessInfo(oldPid: Int, newPid: Int) =
+    ProcessInfo(device.serialNumber, pid = newPid, processName = "Test Process $oldPid")
 
   class TestListener : TableModelListener {
     var insertRowCount = 0

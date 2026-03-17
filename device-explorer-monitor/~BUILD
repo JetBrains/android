@@ -11,6 +11,7 @@ iml_module(
         "//tools/adt/idea/device-explorer-common:intellij.android.device-explorer-common",
         "//tools/adt/idea/android-adb:intellij.android.adb",
         "//tools/base/adblib:studio.android.sdktools.adblib",
+        "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools",
         "//tools/base/backup:studio.android.sdktools.backup",
         "//tools/base/sdklib:studio.android.sdktools.sdklib",
         "//tools/base/ddmlib-studio:studio.android.sdktools.ddmlib-studio",
@@ -28,6 +29,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/analytics-library/tracker:analytics-tracker",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner",
+        "//tools/base/adblib-ddmlibcompatibility:studio.android.sdktools.adblib.ddmlibcompatibility",
     ],
 )
 
@@ -50,6 +52,7 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/adt/idea/android-common:intellij.android.common.tests",
         "//tools/adt/idea/android-adb:intellij.android.adb",
+        "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools",
         "//tools/base/ddmlib-studio:studio.android.sdktools.ddmlib-studio",
         "//tools/adt/idea/.idea/libraries:truth",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
@@ -66,6 +69,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
         "//tools/base/common:studio.android.sdktools.common",
         "//tools/adt/idea/android-adb:intellij.android.adb.testUtil",
+        "//tools/base/adblib-ddmlibcompatibility:studio.android.sdktools.adblib.ddmlibcompatibility",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
