@@ -34,6 +34,7 @@ import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.log.LoggerWithFixedInfo
 import com.android.tools.idea.preview.CommonPreviewRefreshRequest
 import com.android.tools.idea.preview.CommonPreviewRefreshType
+import com.android.tools.idea.preview.CommonPreviewRenderQualityManager
 import com.android.tools.idea.preview.DefaultRenderQualityManager
 import com.android.tools.idea.preview.DefaultRenderQualityPolicy
 import com.android.tools.idea.preview.DelegatingPreviewElementModelAdapter
@@ -282,13 +283,17 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   /** [RenderQualityPolicy] used to configure the [qualityManager] */
   private val qualityPolicy = DefaultRenderQualityPolicy { surface.zoomController.screenScalingFactor }
 
+  private val previewModeManager = CommonPreviewModeManager()
+
   /**
    * Used for defining the target render quality of each preview and detecting the need of changing the quality the previews. See
    * [RenderQualityManager] for more details.
    */
   private val qualityManager: RenderQualityManager =
-    DefaultRenderQualityManager(surface, qualityPolicy) { requestRefresh(type = CommonPreviewRefreshType.QUALITY) }
-
+    CommonPreviewRenderQualityManager(
+      previewModeManager,
+      DefaultRenderQualityManager(surface, qualityPolicy) { requestRefresh(type = CommonPreviewRefreshType.QUALITY) },
+    )
   /** Whether the preview needs a full refresh or not. */
   private val invalidated = AtomicBoolean(true)
 
@@ -356,8 +361,6 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
         }
       }
     }
-
-  private val previewModeManager = CommonPreviewModeManager()
 
   private val fpsLimitFlow = essentialsModeFlow(project, this).fpsLimitFlow(this, standardFpsLimit = 30)
 

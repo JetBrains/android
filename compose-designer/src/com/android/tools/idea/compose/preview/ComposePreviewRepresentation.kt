@@ -58,6 +58,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT
 import com.android.tools.idea.log.LoggerWithFixedInfo
 import com.android.tools.idea.preview.Colors
+import com.android.tools.idea.preview.CommonPreviewRenderQualityManager
 import com.android.tools.idea.preview.DefaultRenderQualityManager
 import com.android.tools.idea.preview.DefaultRenderQualityPolicy
 import com.android.tools.idea.preview.NavigatingInteractionHandler
@@ -703,14 +704,16 @@ class ComposePreviewRepresentation(
   val surface: NlDesignSurface
     get() = composeWorkBench.mainSurface
 
+  private val previewModeManager: PreviewModeManager = CommonPreviewModeManager()
   private val allowQualityChangeIfInactive = AtomicBoolean(false)
   private val qualityPolicy = DefaultRenderQualityPolicy { surface.zoomController.screenScalingFactor }
   private val qualityManager: RenderQualityManager =
-    DefaultRenderQualityManager(surface, qualityPolicy) { requestRefresh(type = ComposePreviewRefreshType.QUALITY) }
+    CommonPreviewRenderQualityManager(
+      previewModeManager,
+      DefaultRenderQualityManager(surface, qualityPolicy) { requestRefresh(type = ComposePreviewRefreshType.QUALITY) },
+    )
 
   private val myPsiCodeFileOutOfDateStatusReporter = PsiCodeFileOutOfDateStatusReporter.getInstance(project)
-
-  private val previewModeManager: PreviewModeManager = CommonPreviewModeManager()
 
   private val focusEssentialsModeManager =
     CommonFocusEssentialsModeManager(
