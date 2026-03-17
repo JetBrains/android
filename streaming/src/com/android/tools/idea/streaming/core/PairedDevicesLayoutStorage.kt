@@ -16,12 +16,6 @@
 package com.android.tools.idea.streaming.core
 
 import com.android.sdklib.deviceprovisioner.DeviceId
-import com.android.tools.idea.streaming.core.PairLayout.Companion.BOTTOM
-import com.android.tools.idea.streaming.core.PairLayout.Companion.FIRST_ONLY
-import com.android.tools.idea.streaming.core.PairLayout.Companion.LEFT
-import com.android.tools.idea.streaming.core.PairLayout.Companion.RIGHT
-import com.android.tools.idea.streaming.core.PairLayout.Companion.SECOND_ONLY
-import com.android.tools.idea.streaming.core.PairLayout.Companion.TOP
 import com.intellij.configurationStore.JbXmlOutputter
 import com.intellij.configurationStore.serialize
 import com.intellij.openapi.components.PersistentStateComponent
