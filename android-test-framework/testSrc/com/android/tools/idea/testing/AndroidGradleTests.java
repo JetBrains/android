@@ -42,6 +42,7 @@ import static com.intellij.openapi.util.io.FileUtil.copyDir;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static java.util.Collections.emptyList;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.jetbrains.plugins.gradle.properties.GradlePropertiesFileKt.GRADLE_JAVA_HOME_PROPERTY;
 import static org.junit.Assert.assertNotNull;
@@ -178,7 +179,11 @@ public class AndroidGradleTests {
     return invokeGradle(project, gradleInvoker ->
       gradleInvoker.executeTasks(
         GradleBuildInvoker.Request.builder(project, projectDir, tasks)
-          .setCommandLineArguments(Lists.newArrayList("--offline"))
+          .setCommandLineArguments(
+            shouldUseRemoteRepositories()
+              ? emptyList()
+              : Lists.newArrayList("--offline")
+          )
           .build()
       ), timeoutMillis);
   }
