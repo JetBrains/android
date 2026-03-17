@@ -16,7 +16,6 @@
 package com.google.idea.blaze.qsync.project
 
 import com.android.tools.idea.protobuf.ExtensionRegistry
-import com.google.common.collect.ImmutableBiMap
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import com.google.idea.blaze.common.Context
@@ -24,6 +23,8 @@ import com.google.idea.blaze.common.PrintOutput
 import com.google.idea.blaze.common.TargetPattern
 import com.google.idea.blaze.common.vcs.VcsState
 import com.google.idea.blaze.common.vcs.WorkspaceFileChange
+import com.google.idea.blaze.common.vcs.WorkspaceFileChange.Operation
+import com.google.idea.blaze.qsync.project.SnapshotProto.WorkspaceFileChange.VcsOperation
 import com.google.idea.blaze.qsync.query.Query
 import java.io.IOException
 import java.io.InputStream
@@ -53,10 +54,14 @@ class SnapshotDeserializer private constructor() {
         deserializer.syncDataBuilder.setBazelVersion(Optional.of(proto.getBazelVersion()))
       }
       if (proto.hasProjectStructureData()) {
-        deserializer.projectStructureData = deserializer.visitProjectStructureData(proto.projectStructureData)
+        deserializer.projectStructureData =
+          deserializer.visitProjectStructureData(proto.projectStructureData)
       }
       deserializer.visitQuerySummay(proto.querySummary)
-      return SerializedProjectStructureAndQueryData(deserializer.syncDataBuilder.build(), deserializer.projectStructureData)
+      return SerializedProjectStructureAndQueryData(
+        deserializer.syncDataBuilder.build(),
+        deserializer.projectStructureData,
+      )
     }
   }
 
@@ -66,9 +71,13 @@ class SnapshotDeserializer private constructor() {
         projectIncludes = ImmutableSet.copyOf(proto.includePathsList.map { Path.of(it) }),
         projectExcludes = ImmutableSet.copyOf(proto.excludePathsList.map { Path.of(it) }),
         deriveTargetsFromDirectories = proto.deriveTargetsFromDirectories,
-        targetPatterns = ImmutableList.copyOf(proto.targetPatternsList.map { TargetPattern.parse(it) }),
+        targetPatterns =
+          ImmutableList.copyOf(proto.targetPatternsList.map { TargetPattern.parse(it) }),
         isAndroidWorkspace = proto.isAndroidWorkspace,
-        languageClasses = ImmutableSet.copyOf(proto.languageClassesList.mapNotNull { QuerySyncLanguage.fromProto(it).getOrNull() }),
+        languageClasses =
+          ImmutableSet.copyOf(
+            proto.languageClassesList.mapNotNull { QuerySyncLanguage.fromProto(it).getOrNull() }
+          ),
         testSources = ImmutableSet.copyOf(proto.testSourcesList),
         systemExcludes = ImmutableSet.copyOf(proto.systemExcludesList.map { Path.of(it) }),
       )
@@ -83,7 +92,9 @@ class SnapshotDeserializer private constructor() {
     syncDataBuilder.setQuerySummary(proto)
   }
 
-  private fun visitProjectStructureData(proto: SnapshotProto.ProjectStructureData): ProjectStructureData {
+  private fun visitProjectStructureData(
+    proto: SnapshotProto.ProjectStructureData
+  ): ProjectStructureData {
     val packageSourceSets =
       proto.packageSourceSetsList.associate { sourceSet ->
         Path.of(sourceSet.workspaceRelativePath) to
@@ -93,22 +104,32 @@ class SnapshotDeserializer private constructor() {
           )
       }
 
-    val activeLanguages = proto.activeLanguagesList.mapNotNull { QuerySyncLanguage.fromProto(it).getOrNull() }.toSet()
+    val activeLanguages =
+      proto.activeLanguagesList.mapNotNull { QuerySyncLanguage.fromProto(it).getOrNull() }.toSet()
 
     return ProjectStructureData(packageSourceSets, activeLanguages)
   }
 }
-
-private val OP_MAP: ImmutableBiMap<SnapshotProto.WorkspaceFileChange.VcsOperation, WorkspaceFileChange.Operation> =
-  SnapshotSerializer.OP_MAP.inverse()
 
 private fun convertVcsState(proto: SnapshotProto.VcsState): VcsState {
   return VcsState(
     proto.getWorkspaceId(),
     proto.getUpstreamRevision(),
     ImmutableSet.copyOf(
-      proto.workingSetList.map { WorkspaceFileChange(OP_MAP.get(it.getOperation()), Path.of(it.getWorkspaceRelativePath())) }
+      proto.workingSetList.map {
+        WorkspaceFileChange(it.getOperation().toOperation(), Path.of(it.getWorkspaceRelativePath()))
+      }
     ),
-    if (proto.hasWorkspaceSnapshot()) Optional.of(Path.of(proto.workspaceSnapshot.getPath())) else Optional.empty(),
+    if (proto.hasWorkspaceSnapshot()) Optional.of(Path.of(proto.workspaceSnapshot.getPath()))
+    else Optional.empty(),
   )
 }
+
+private fun VcsOperation.toOperation(): Operation =
+  when (this) {
+    VcsOperation.ADD -> Operation.ADD
+    VcsOperation.DELETE -> Operation.DELETE
+    VcsOperation.MODIFY -> Operation.MODIFY
+    VcsOperation.UNSPECIFIED,
+    VcsOperation.UNRECOGNIZED -> error("Unknown VcsOperation: $this")
+  }
