@@ -43,6 +43,7 @@ import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.
 import com.android.tools.idea.gradle.project.upgrade.integration.TestProject.FROM_AGP_40_ALL_DEPRECATIONS
 import com.android.tools.idea.gradle.project.upgrade.integration.TestProject.FROM_AGP_40_BASIC
 import com.android.tools.idea.gradle.project.upgrade.integration.TestProject.FROM_AGP_80_BASIC
+import com.android.tools.idea.gradle.util.AGP_BUILT_IN_KOTLIN_VERSION
 import com.android.utils.FileUtils
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 
@@ -72,7 +73,7 @@ enum class TestAGPVersion(
   V_7_3("7.3.0", jdkVersion = JavaSdkVersion.JDK_11, kotlinVersion = "1.6.21"),
   V_8_0("8.0.2", jdkVersion = JavaSdkVersion.JDK_17, kotlinVersion = "1.6.21"),
   V_8_11("8.11.0", jdkVersion = JavaSdkVersion.JDK_17, kotlinVersion = "1.6.21"),
-  LATEST(null, jdkVersion = JavaSdkVersion.JDK_17, kotlinVersion = "2.2.10"),
+  LATEST(null, jdkVersion = JavaSdkVersion.JDK_17, kotlinVersion = AGP_BUILT_IN_KOTLIN_VERSION),
 }
 
 /**

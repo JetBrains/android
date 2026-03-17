@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
+import com.android.tools.idea.gradle.util.AGP_BUILT_IN_KOTLIN_VERSION
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion.Companion.getCompatibleGradleVersion
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_4_10_1
@@ -176,8 +177,8 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_8_11_1 -> Version.parse("1.6.21")
         VERSION_8_13 -> Version.parse("1.6.21")
         VERSION_9_1_0,
-        VERSION_9_3_1,
-        VERSION_FOR_DEV -> Version.parse("2.2.10")
+        VERSION_9_3_1 -> Version.parse("2.2.10")
+        VERSION_FOR_DEV -> Version.parse(AGP_BUILT_IN_KOTLIN_VERSION)
       }
 
     fun `androidx-navigation-safeargs-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =

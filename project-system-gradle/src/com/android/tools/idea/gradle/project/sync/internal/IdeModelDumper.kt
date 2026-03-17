@@ -64,6 +64,7 @@ import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.model.gradleModuleModel
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
+import com.android.tools.idea.gradle.util.AGP_BUILT_IN_KOTLIN_VERSION
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.getHolderModule
@@ -204,7 +205,7 @@ private val jbModelDumpers =
         // kotlinGradlePluginVersion also has properties such as `major`, `minor`, `patch`, but we
         // don't want to print them as it would make updating snapshots difficult (see b/414371674)
         // and that info is already captured by the `versionString` property below.
-        prop("versionString", kotlinGradlePluginVersion.versionString)
+        prop("versionString", kotlinGradlePluginVersion.versionString.replaceBuiltInKotlinVersion())
       }
     },
     SpecializedDumper(property = K2JVMCompilerArguments::configurator),
@@ -267,6 +268,8 @@ private val jbModelDumpers =
 const val KOTLIN_VERSION_FOR_TESTS = "2.3.20-RC"
 
 fun String.replaceKotlinVersionForTests(): String = replace(KOTLIN_VERSION_FOR_TESTS, "<KOTLIN_VERSION_FOR_TESTS>")
+
+fun String.replaceBuiltInKotlinVersion(): String = replace(AGP_BUILT_IN_KOTLIN_VERSION, "<AGP_BUILT_IN_KOTLIN_VERSION>")
 
 private fun ideModelDumper(projectDumper: ProjectDumper) =
   with(projectDumper) {
