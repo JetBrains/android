@@ -16,10 +16,9 @@
 package com.android.tools.adtui.compose
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import java.awt.Component
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -31,22 +30,27 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 
-class TestComposeWizard(initialPage: @Composable WizardPageScope.() -> Unit) : WizardDialogScope, WizardPageScope() {
+class TestComposeWizard(initialPage: @Composable WizardPageScope.() -> Unit) : WizardDialogScope {
 
   override val coroutineScope = CoroutineScope(SupervisorJob())
 
-  private val pageStack = mutableStateListOf<@Composable WizardPageScope.() -> Unit>(initialPage)
+  private val state: SnapshotStateMap<Any, Any> = mutableStateMapOf()
+  private val pageStack = mutableStateListOf(WizardPage(WizardPageScope(coroutineScope, state), initialPage))
+  private val currentPageScope
+    get() = pageStack.last().pageScope
+
+  private val currentPage
+    get() = pageStack.last().content
 
   @Composable
   fun Content() {
-    prevAction = if (pageStack.size > 1) WizardAction { pageStack.removeLast() } else WizardAction.Disabled
-    WizardPageScaffold(this, pageStack.last())
+    with(currentPageScope) { WizardPageScaffold(this@TestComposeWizard, currentPage) }
   }
 
   override val component: Component = JPanel()
 
-  override fun pushPage(page: @Composable WizardPageScope.() -> Unit) {
-    pageStack.add(page)
+  override fun pushPage(page: @Composable (WizardPageScope.() -> Unit)) {
+    pageStack.add(WizardPage(WizardPageScope(coroutineScope, state), page))
   }
 
   override fun popPage() {
@@ -72,10 +76,11 @@ class TestComposeWizard(initialPage: @Composable WizardPageScope.() -> Unit) : W
     }
   }
 
-  override var nextAction by mutableStateOf(WizardAction.Disabled)
-  override var finishAction by mutableStateOf(WizardAction.Disabled)
-
-  var prevAction: WizardAction = WizardAction.Disabled
+  var nextAction: WizardAction
+    get() = currentPageScope.nextAction
+    set(value) {
+      currentPageScope.nextAction = value
+    }
 
   fun performAction(action: WizardAction) {
     checkNotNull(action.action) { "Action is disabled" }

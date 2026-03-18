@@ -60,8 +60,6 @@ internal class LocalVirtualDeviceSource(
   fun WizardPageScope.selectionUpdated(profile: VirtualDeviceProfile, finish: suspend (VirtualDevice) -> Boolean) {
     nextAction = WizardAction {
       pushPage {
-        leftSideButtons = emptyList()
-
         val deviceNameValidator = remember { DeviceNameValidator.createForAvdManager(avdManager) }
         val device =
           remember(profile) {
@@ -73,7 +71,6 @@ internal class LocalVirtualDeviceSource(
         ConfigurationPage(device, systemImageFlow, skins, deviceNameValidator, sdkHandler, finish)
       }
     }
-    finishAction = WizardAction.Disabled
   }
 
   val profiles: Flow<LoadingState<List<VirtualDeviceProfile>>> =

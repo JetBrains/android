@@ -143,11 +143,11 @@ class LocalVirtualDeviceSourceTest {
 
       composeTestRule.onNodeWithText("Show system images with SDK extensions").performClick()
       composeTestRule.waitForIdle()
-      assertThat(wizard.finishAction.action).isNull()
+      assertThat(wizard.nextAction.action).isNull()
 
       composeTestRule.onNodeWithText("Show system images with SDK extensions").performClick()
       composeTestRule.waitForIdle()
-      assertThat(wizard.finishAction.action).isNotNull()
+      assertThat(wizard.nextAction.action).isNotNull()
     }
   }
 
@@ -158,7 +158,7 @@ class LocalVirtualDeviceSourceTest {
 
       // Create a Pixel 8
       with(ConfigurationPageFixture(this)) {
-        wizard.performAction(wizard.finishAction)
+        wizard.performAction(wizard.nextAction)
         wizard.awaitClose()
       }
 
@@ -168,19 +168,19 @@ class LocalVirtualDeviceSourceTest {
         composeTestRule.waitForIdle()
 
         // We can't use Pixel 8 because it already exists
-        assertThat(wizard.finishAction.action).isNull()
+        assertThat(wizard.nextAction.action).isNull()
 
         composeTestRule.onNodeWithEditableText("Pixel 8").performTextReplacement("My Pixel!")
         composeTestRule.waitForIdle()
 
         // We can't use "My Pixel!" because ! is not allowed in device names
-        assertThat(wizard.finishAction.action).isNull()
+        assertThat(wizard.nextAction.action).isNull()
 
         composeTestRule.onNodeWithEditableText("My Pixel!").performTextReplacement("My Pixel")
         composeTestRule.waitForIdle()
 
         // Create "My Pixel"
-        wizard.performAction(wizard.finishAction)
+        wizard.performAction(wizard.nextAction)
         composeTestRule.waitForIdle()
         wizard.awaitClose()
 
@@ -208,7 +208,7 @@ class LocalVirtualDeviceSourceTest {
 
         // We should have no validation error
         composeTestRule.waitForIdle()
-        assertThat(wizard.finishAction.action).isNotNull()
+        assertThat(wizard.nextAction.action).isNotNull()
 
         // Select a different system image without RISC-V
         composeTestRule.onNodeWithClickableText("Device").performClick()
@@ -216,7 +216,7 @@ class LocalVirtualDeviceSourceTest {
 
         // We get an error banner and cannot proceed
         composeTestRule.waitForIdle()
-        assertThat(wizard.finishAction.action).isNull()
+        assertThat(wizard.nextAction.action).isNull()
         composeTestRule
           .onNodeWithText("Preferred ABI \"${SdkConstants.ABI_RISCV64}\" is not available with selected system image")
           .assertIsDisplayed()
@@ -229,7 +229,7 @@ class LocalVirtualDeviceSourceTest {
         // We should be able to finish the edit
         composeTestRule.onNodeWithText("is not available with selected system image", substring = true).assertDoesNotExist()
         composeTestRule.waitForIdle()
-        wizard.performAction(wizard.finishAction)
+        wizard.performAction(wizard.nextAction)
         wizard.awaitClose()
 
         // The preferred ABI is written to disk
@@ -366,7 +366,7 @@ class LocalVirtualDeviceSourceTest {
 
         composeTestRule.onNodeWithContentDescription("Download").assertDoesNotExist()
         composeTestRule.onNodeWithText(localImage.displayName).assertIsSelected()
-        assertThat(wizard.finishAction.enabled).isTrue()
+        assertThat(wizard.nextAction.enabled).isTrue()
       }
     }
   }

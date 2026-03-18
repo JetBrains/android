@@ -45,7 +45,7 @@ class ComposeWizardTest {
       val focusRequester = remember { FocusRequester() }
       TextField(TextFieldState("abcd"), Modifier.focusRequester(focusRequester))
       LaunchedEffect(Unit) { focusRequester.requestFocus() }
-      finishAction = WizardAction { close() }
+      nextAction = WizardAction { close() }
     }
 
     composeTestRule.setContent { wizard.Content() }
@@ -62,10 +62,9 @@ class ComposeWizardTest {
       nextAction = WizardAction {
         pushPage {
           Text("Second")
-          enterFinishedState()
+          enterTerminalState()
         }
       }
-      finishAction = WizardAction.Disabled
     }
 
     composeTestRule.setContent { wizard.Content() }
@@ -73,7 +72,7 @@ class ComposeWizardTest {
     composeTestRule.onNodeWithText("First").assertIsDisplayed()
     composeTestRule.onNodeWithText("Cancel").assertIsEnabled()
     composeTestRule.onNodeWithText("Previous").assertIsNotEnabled()
-    composeTestRule.onNodeWithText("Finish").assertIsNotEnabled()
+    composeTestRule.onNodeWithText("Finish").assertDoesNotExist()
     composeTestRule.onNodeWithText("Next").performClick()
     composeTestRule.waitForIdle()
 
@@ -81,7 +80,7 @@ class ComposeWizardTest {
     composeTestRule.onNodeWithText("Second").assertIsDisplayed()
     composeTestRule.onNodeWithText("Cancel").assertIsNotEnabled()
     composeTestRule.onNodeWithText("Previous").assertIsNotEnabled()
-    composeTestRule.onNodeWithText("Next").assertIsNotEnabled()
+    composeTestRule.onNodeWithText("Next").assertDoesNotExist()
     composeTestRule.onNodeWithText("Finish").performClick()
 
     wizard.awaitClose(5.seconds)

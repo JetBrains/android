@@ -273,9 +273,8 @@ internal constructor(
     PairingState(pairingState, phone)
 
     if (pairingState is PairingState.Complete) {
-      enterFinishedState()
+      enterTerminalState()
     }
-    nextAction = WizardAction.Disabled
   }
 }
 

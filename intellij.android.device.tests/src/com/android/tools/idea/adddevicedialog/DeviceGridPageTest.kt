@@ -57,7 +57,7 @@ class DeviceGridPageTest {
 
     composeTestRule.onNodeWithText("Configuring Pixel Fold").assertIsDisplayed()
 
-    wizard.performAction(wizard.prevAction)
+    composeTestRule.onNodeWithText("Previous").performClick()
     composeTestRule.waitForIdle()
 
     composeTestRule.onNodeWithText("Pixel Fold").assertIsSelected()

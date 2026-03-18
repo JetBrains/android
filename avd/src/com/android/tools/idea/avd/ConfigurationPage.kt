@@ -99,7 +99,6 @@ internal fun WizardPageScope.ConfigurationPage(
   if (!systemImageState.hasLocal || (!isTimedOut && !systemImageState.hasRemote && systemImageState.error == null)) {
     EmptyStatePanel("Loading system images...", Modifier.fillMaxSize())
     nextAction = WizardAction.Disabled
-    finishAction = WizardAction.Disabled
     return
   }
 
@@ -107,7 +106,6 @@ internal fun WizardPageScope.ConfigurationPage(
   if (filteredImageState.images.isEmpty()) {
     EmptyStatePanel("No system images available.", Modifier.fillMaxSize())
     nextAction = WizardAction.Disabled
-    finishAction = WizardAction.Disabled
     return
   }
 
@@ -159,9 +157,8 @@ internal fun WizardPageScope.ConfigurationPage(
       },
     )
   }
-  nextAction = WizardAction.Disabled
-
-  finishAction =
+  nextActionName = "Finish"
+  nextAction =
     if (state.isValid) {
       WizardAction {
         runWithModalProgressBlocking(ModalTaskOwner.component(parent), "Creating AVD", TaskCancellation.nonCancellable()) {

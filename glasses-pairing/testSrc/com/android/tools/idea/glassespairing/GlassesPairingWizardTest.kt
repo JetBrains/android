@@ -172,7 +172,6 @@ class GlassesPairingWizardTest {
       assertThat(tracker.events).contains(GlassesPairingEvent.EventKind.SHOW_SUCCESSFUL_PAIRING)
 
       composeTestRule.onNodeWithText("Previous").assertIsNotEnabled()
-      composeTestRule.onNodeWithText("Next").assertIsNotEnabled()
       composeTestRule.onNodeWithText("Cancel").assertIsNotEnabled()
       composeTestRule.onNodeWithText("Finish").assertIsEnabled().performClick()
 
