@@ -25,6 +25,8 @@ fun FormFactor.toTemplateFormFactor(): com.android.tools.idea.wizard.template.Fo
     FormFactor.TV -> com.android.tools.idea.wizard.template.FormFactor.Tv
     FormFactor.AUTOMOTIVE -> com.android.tools.idea.wizard.template.FormFactor.Car
     FormFactor.XR -> com.android.tools.idea.wizard.template.FormFactor.XR
+    // TODO android merge
+    //FormFactor.AI_GLASSES -> com.android.tools.idea.wizard.template.FormFactor.AiGlasses
   }
 
 fun com.android.tools.idea.wizard.template.FormFactor.toWizardFormFactor() =
@@ -34,5 +36,7 @@ fun com.android.tools.idea.wizard.template.FormFactor.toWizardFormFactor() =
     com.android.tools.idea.wizard.template.FormFactor.Tv -> FormFactor.TV
     com.android.tools.idea.wizard.template.FormFactor.Car -> FormFactor.AUTOMOTIVE
     com.android.tools.idea.wizard.template.FormFactor.XR -> FormFactor.XR
+    // TODO: android merge
+    com.android.tools.idea.wizard.template.FormFactor.AiGlasses -> TODO() //FormFactor.AI_GLASSES
     com.android.tools.idea.wizard.template.FormFactor.Generic -> FormFactor.MOBILE
   }

@@ -53,14 +53,6 @@ class SourceProviderAdapter(private val name: String, private val paths: Android
     return emptyList()
   }
 
-  override fun getCDirectories(): Collection<File> {
-    return emptyList()
-  }
-
-  override fun getCppDirectories(): Collection<File> {
-    return emptyList()
-  }
-
   override fun getResDirectories(): Collection<File> {
     return paths.resDirectories
   }

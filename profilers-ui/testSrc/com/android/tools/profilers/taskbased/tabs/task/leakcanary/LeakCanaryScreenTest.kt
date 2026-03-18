@@ -164,7 +164,7 @@ class LeakCanaryScreenTest : WithFakeTimer {
     composeTestRule.onNodeWithText("No").isDisplayed()
   }
 
-  private fun getMultipleLeaksAnalysis(): Analysis {
+  private fun getMultipleLeaksAnalysis(): Analysis? {
     val analysis =
       """
         ====================================
@@ -262,7 +262,7 @@ class LeakCanaryScreenTest : WithFakeTimer {
     composeTestRule.onNodeWithText("Unknown").isDisplayed()
   }
 
-  private fun getLeaksAnalysisWithClassNameInMultipleLine(): Analysis {
+  private fun getLeaksAnalysisWithClassNameInMultipleLine(): Analysis? {
     val analysis = """
         ====================================
         HEAP ANALYSIS RESULT

@@ -766,7 +766,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     buildModel.android().dynamicFeatures().addListValue()?.setValue(gradleName)
   }
 
-  override fun getJavaVersion(defaultVersion: String): String {
+  override suspend fun getJavaVersion(defaultVersion: String): String {
     return TemplateUtils.getJavaVersion(project, defaultVersion)
   }
 

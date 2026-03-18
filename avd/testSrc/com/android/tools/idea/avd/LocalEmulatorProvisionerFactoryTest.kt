@@ -48,7 +48,8 @@ class LocalEmulatorProvisionerFactoryTest {
     avdManager = FakeAvdManager(session, temporaryDirectoryRule.newPath())
     plugin =
       LocalEmulatorProvisionerFactory()
-        .create(session.scope, session, projectRule.project, avdManager)
+        // TODO android merge
+        .create(session.scope, session, projectRule.project) // , avdManager
         as LocalEmulatorProvisionerPlugin
     provisioner = DeviceProvisioner.create(session.scope, session, listOf(plugin))
   }

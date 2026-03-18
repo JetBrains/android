@@ -56,7 +56,9 @@ private fun getHumanReadablePageSize(sizeInBytes: Long): String {
 fun ArchiveEntry.getAlignmentFinding(extractNativeLibs: Boolean?) = getAlignmentFinding(
   "$path",
   extractNativeLibs,
-  elfMinimumLoadSectionAlignment,
+  // todo: fix todo/TODO (script) + support TODO("android studio")
+  // TODO: android merge
+  -1L,//elfMinimumLoadSectionAlignment,
   selfOrChild16kbIncompatible,
   fileAlignment
 )

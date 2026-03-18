@@ -29,9 +29,9 @@ import com.android.tools.idea.apk.viewer.testing.FakeAndroidApplicationInfoProvi
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.google.common.truth.Truth.assertThat
-import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceFile
 import com.google.devrel.gmscore.tools.apk.arsc.Chunk
 import com.google.devrel.gmscore.tools.apk.arsc.ChunkWithChunks
+import com.google.devrel.gmscore.tools.apk.arsc.ResourceFile
 import com.intellij.diff.util.FileEditorBase
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
@@ -428,7 +428,7 @@ private fun Tree.getClassCount(): Int {
   return model.asSequence().count { it is DexClassNode }
 }
 
-private fun BinaryResourceFile.getAllChunks(): Sequence<Any> {
+private fun ResourceFile.getAllChunks(): Sequence<Any> {
   return sequence {
     chunks.forEach {
       yield(it)

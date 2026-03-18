@@ -25,9 +25,9 @@ import com.android.tools.profilers.sessions.SessionArtifact
 class LeakCanarySessionArtifact(override val profilers: StudioProfilers,
                                 override val session: Common.Session,
                                 override val sessionMetaData: SessionMetaData,
-                                leakCanaryLogcatEnded: LeakCanary.LeakCanaryLogcatEnded): SessionArtifact<LeakCanary.LeakCanaryLogcatEnded> {
+                                leakCanaryLogcatEnded: LeakCanary.LeakCanaryAnalysisEnded): SessionArtifact<LeakCanary.LeakCanaryAnalysisEnded> {
 
-  override val artifactProto: LeakCanary.LeakCanaryLogcatEnded = leakCanaryLogcatEnded
+  override val artifactProto: LeakCanary.LeakCanaryAnalysisEnded = leakCanaryLogcatEnded
 
   // When export/import is supported (Milestone 2) we need to fetch from the Info.
   override val name = "LeakCanary"
@@ -66,7 +66,7 @@ class LeakCanarySessionArtifact(override val profilers: StudioProfilers,
                                                                          session.endTimestamp.toDouble()))
       leakInfoEvents.forEach { leakEvent ->
         run {
-          artifacts.add(LeakCanarySessionArtifact(profilers, session, sessionMetadata, leakEvent.leakCanaryLogcatStatus.logcatEnded))
+          artifacts.add(LeakCanarySessionArtifact(profilers, session, sessionMetadata, leakEvent.leakCanaryAnalysisStatus.analysisEnded))
         }
       }
       return artifacts

@@ -35,9 +35,8 @@ import com.android.tools.idea.wizard.template.Constraint.UNIQUE
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.StringParameter
 import com.android.tools.idea.wizard.template.Template
-import com.android.tools.idea.wizard.template.TestSuiteWidget
 import com.android.tools.idea.wizard.template.WizardUiContext
-import com.android.tools.idea.wizard.template.impl.other.files.journeyFile.journeyFileTemplate
+import com.android.tools.idea.wizard.template.impl.other.appWidget.appWidgetTemplate
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.MENU_GALLERY
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestUtil
@@ -232,7 +231,7 @@ class ConfigureTemplateParametersStepTest {
   @RunsInEdt
   fun parameterValuesAreResetWhenTemplateIsShownAgain() {
     val moduleTemplates = facet.getModuleTemplates(null)
-    val template = journeyFileTemplate
+    val template = appWidgetTemplate
     val templateModel =
       fromFacet(
         facet,
@@ -321,7 +320,7 @@ class ConfigureTemplateParametersStepTest {
         constraints = emptyList(),
         defaultValue = defaultTestSuiteName,
       )
-    val testSuiteWidget = TestSuiteWidget(testSuiteParameter)
+    val testSuiteWidget = TODO() //TestSuiteWidget(testSuiteParameter) // TODO android merge
     val template = mock<Template>()
     whenever(template.name).thenReturn("Test Template with Test Suite")
     whenever(template.description).thenReturn("A test template")
