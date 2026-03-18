@@ -55,114 +55,117 @@ class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {
     coroutineScope: CoroutineScope,
     adbSession: AdbSession,
     project: Project?,
-    avdManager: LocalEmulatorProvisionerPlugin.AvdManager = AvdManagerImpl(project),
+    // TODO android merge
+    //avdManager: LocalEmulatorProvisionerPlugin.AvdManager = AvdManagerImpl(project),
   ): DeviceProvisionerPlugin {
-    return LocalEmulatorProvisionerPlugin(
-      coroutineScope,
-      adbSession,
-      avdManager,
-      deviceIcons =
-        DeviceIcons(
-          handheld = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE,
-          wear = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR,
-          tv = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV,
-          automotive = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR,
-          headset = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_HEADSET,
-          glasses = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_GLASS,
-        ),
-      defaultPresentation = StudioDefaultDeviceActionPresentation,
-      diskIoThread,
-      pluginExtensions = emptyList(),
-      handleExtensions = emptyList(),
-    )
+    // TODO android studio
+    TODO()
+    //return LocalEmulatorProvisionerPlugin(
+    //  coroutineScope,
+    //  adbSession,
+    //  avdManager,
+    //  deviceIcons =
+    //    DeviceIcons(
+    //      handheld = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE,
+    //      wear = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR,
+    //      tv = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV,
+    //      automotive = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR,
+    //      headset = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_HEADSET,
+    //      glasses = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_GLASS,
+    //    ),
+    //  defaultPresentation = StudioDefaultDeviceActionPresentation,
+    //  diskIoThread,
+    //  pluginExtensions = emptyList(),
+    //  handleExtensions = emptyList(),
+    //)
   }
 }
 
-private class AvdManagerImpl(val project: Project?) : LocalEmulatorProvisionerPlugin.AvdManager {
-  override val runningAvdsFlow: StateFlow<Map<Path, RunningAvd>>
-    get() = runningAvdTracker.runningAvdsFlow
-
-  // Do not cache this; getDefaultAvdManagerConnection() changes when the local SDK path changes.
-  private val avdManagerConnection
-    get() = AvdManagerConnection.getDefaultAvdManagerConnection()
-
-  private val runningAvdTracker
-    get() = RunningAvdTracker.getInstance()
-
-  override suspend fun rescanAvds() =
-    withContext(diskIoThread) { avdManagerConnection.getAvds(true) }
-
-  override suspend fun createAvd(parent: Component?): Boolean {
-    return showAddDeviceDialog(project, parent) != null
-  }
-
-  override suspend fun editAvd(parent: Component?, avdInfo: AvdInfo): Boolean {
-    return EditVirtualDeviceDialog.show(project, parent, avdInfo, Mode.EDIT)
-  }
-
-  override suspend fun duplicateAvd(parent: Component?, avdInfo: AvdInfo) {
-    EditVirtualDeviceDialog.show(project, parent, avdInfo, mode = Mode.DUPLICATE)
-  }
-
-  override suspend fun startAvd(avdInfo: AvdInfo, bootMode: BootMode): Unit =
-    // Note: the original DeviceManager does this in UI thread, but this may call
-    // @Slow methods so switch
-    withContext(workerThread) {
-      avdManagerConnection.startAvd(project, avdInfo, bootMode = bootMode)
-    }
-
-  override suspend fun stopAvd(avdInfo: AvdInfo) {
-    withContext(workerThread) { avdManagerConnection.stopAvd(avdInfo) }
-  }
-
-  override suspend fun showOnDisk(avdInfo: AvdInfo) {
-    RevealFileAction.openDirectory(avdInfo.dataFolderPath)
-  }
-
-  override suspend fun wipeData(avdInfo: AvdInfo) {
-    withContext(diskIoThread) {
-      if (!avdManagerConnection.wipeUserData(avdInfo)) {
-        withContext(uiThread) {
-          Messages.showErrorDialog(
-            project,
-            "Failed to wipe data. Please check that the emulator and its files are not in use and try again.",
-            "Wipe Data Error",
-          )
-        }
-      }
-    }
-  }
-
-  override suspend fun deleteAvd(avdInfo: AvdInfo) {
-    withContext(diskIoThread) {
-      if (!avdManagerConnection.deleteAvd(avdInfo)) {
-        withContext(uiThread) {
-          if (
-            MessageDialogBuilder.okCancel(
-                "Could Not Delete All AVD Files",
-                "There may be additional files remaining in the AVD directory. To fully delete " +
-                  "the AVD, open the directory and manually delete the files.",
-              )
-              .yesText("Open Directory")
-              .noText("OK")
-              .icon(Messages.getInformationIcon())
-              .ask(project)
-          ) {
-            showOnDisk(avdInfo)
-          }
-        }
-      }
-    }
-  }
-
-  override suspend fun downloadAvdSystemImage(avdInfo: AvdInfo) {
-    val path = AvdManagerConnection.getRequiredSystemImagePath(avdInfo) ?: return
-    withContext(uiThread) {
-      SdkQuickfixUtils.createDialogForPaths(project, listOf(path))?.showAndGet()
-    }
-  }
-
-  override fun requestedAvdShutdown(avdInfo: AvdInfo) {
-    runningAvdTracker.shuttingDown(avdInfo.dataFolderPath)
-  }
-}
+//private class AvdManagerImpl(val project: Project?) : LocalEmulatorProvisionerPlugin.AvdManager {
+//  override val runningAvdsFlow: StateFlow<Map<Path, RunningAvd>>
+//    get() = runningAvdTracker.runningAvdsFlow
+//
+//  // Do not cache this; getDefaultAvdManagerConnection() changes when the local SDK path changes.
+//  private val avdManagerConnection
+//    get() = AvdManagerConnection.getDefaultAvdManagerConnection()
+//
+//  private val runningAvdTracker
+//    get() = RunningAvdTracker.getInstance()
+//
+//  override suspend fun rescanAvds() =
+//    withContext(diskIoThread) { avdManagerConnection.getAvds(true) }
+//
+//  override suspend fun createAvd(parent: Component?): Boolean {
+//    return showAddDeviceDialog(project, parent) != null
+//  }
+//
+//  override suspend fun editAvd(parent: Component?, avdInfo: AvdInfo): Boolean {
+//    return EditVirtualDeviceDialog.show(project, parent, avdInfo, Mode.EDIT)
+//  }
+//
+//  override suspend fun duplicateAvd(parent: Component?, avdInfo: AvdInfo) {
+//    EditVirtualDeviceDialog.show(project, parent, avdInfo, mode = Mode.DUPLICATE)
+//  }
+//
+//  override suspend fun startAvd(avdInfo: AvdInfo, bootMode: BootMode): Unit =
+//    // Note: the original DeviceManager does this in UI thread, but this may call
+//    // @Slow methods so switch
+//    withContext(workerThread) {
+//      avdManagerConnection.startAvd(project, avdInfo, bootMode = bootMode)
+//    }
+//
+//  override suspend fun stopAvd(avdInfo: AvdInfo) {
+//    withContext(workerThread) { avdManagerConnection.stopAvd(avdInfo) }
+//  }
+//
+//  override suspend fun showOnDisk(avdInfo: AvdInfo) {
+//    RevealFileAction.openDirectory(avdInfo.dataFolderPath)
+//  }
+//
+//  override suspend fun wipeData(avdInfo: AvdInfo) {
+//    withContext(diskIoThread) {
+//      if (!avdManagerConnection.wipeUserData(avdInfo)) {
+//        withContext(uiThread) {
+//          Messages.showErrorDialog(
+//            project,
+//            "Failed to wipe data. Please check that the emulator and its files are not in use and try again.",
+//            "Wipe Data Error",
+//          )
+//        }
+//      }
+//    }
+//  }
+//
+//  override suspend fun deleteAvd(avdInfo: AvdInfo) {
+//    withContext(diskIoThread) {
+//      if (!avdManagerConnection.deleteAvd(avdInfo)) {
+//        withContext(uiThread) {
+//          if (
+//            MessageDialogBuilder.okCancel(
+//                "Could Not Delete All AVD Files",
+//                "There may be additional files remaining in the AVD directory. To fully delete " +
+//                  "the AVD, open the directory and manually delete the files.",
+//              )
+//              .yesText("Open Directory")
+//              .noText("OK")
+//              .icon(Messages.getInformationIcon())
+//              .ask(project)
+//          ) {
+//            showOnDisk(avdInfo)
+//          }
+//        }
+//      }
+//    }
+//  }
+//
+//  override suspend fun downloadAvdSystemImage(avdInfo: AvdInfo) {
+//    val path = AvdManagerConnection.getRequiredSystemImagePath(avdInfo) ?: return
+//    withContext(uiThread) {
+//      SdkQuickfixUtils.createDialogForPaths(project, listOf(path))?.showAndGet()
+//    }
+//  }
+//
+//  override fun requestedAvdShutdown(avdInfo: AvdInfo) {
+//    runningAvdTracker.shuttingDown(avdInfo.dataFolderPath)
+//  }
+//}

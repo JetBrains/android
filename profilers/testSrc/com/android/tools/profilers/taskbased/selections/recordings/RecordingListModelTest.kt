@@ -168,7 +168,7 @@ class RecordingListModelTest {
   fun `recording with one non-exportable artifact is not exportable`() {
     val sessionId = 1L
     val session = Common.Session.newBuilder().setSessionId(sessionId).build()
-    val leakCanaryEnded = LeakCanary.LeakCanaryLogcatEnded.newBuilder().setStatus(LeakCanary.LeakCanaryLogcatEnded.Status.SUCCESS).build()
+    val leakCanaryEnded = LeakCanary.LeakCanaryAnalysisEnded.newBuilder().setStatus(LeakCanary.LeakCanaryAnalysisEnded.Status.SUCCESS).build()
     val leakCanaryArtifact = LeakCanarySessionArtifact(myProfilers, session, Common.SessionMetaData.getDefaultInstance(), leakCanaryEnded)
 
     val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf(leakCanaryArtifact))

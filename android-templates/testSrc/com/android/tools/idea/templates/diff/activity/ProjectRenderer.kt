@@ -92,6 +92,7 @@ abstract class ProjectRenderer(protected val template: Template, val goldenDirNa
       when (template.formFactor) {
         // TODO(qumeric): support C++
         FormFactor.XR,
+        FormFactor.AiGlasses,
         FormFactor.Mobile -> { data: TemplateData ->
           this.generateAndroidModule(data as ModuleTemplateData, appTitle, false)
         }

@@ -129,6 +129,7 @@ class LintModelFactory : LintModelModuleLoader {
           javaSourceLevel = project.javaCompileOptions?.sourceCompatibility,
           compileTarget = project.compileTarget,
           neverShrinking = isNeverShrinking(project),
+          highlightGradualR8Api = TODO(), // TODO android merge project.agpFlags.highlightGradualR8Api,
           variants = variantList,
         )
 
@@ -669,6 +670,9 @@ class LintModelFactory : LintModelModuleLoader {
       get() = project.compileTarget
 
     override val lintRuleJars: List<File> = project.getLintRuleJarsForAnyAgpVersion()
+
+    override val highlightGradualR8Api: Boolean
+      get() = TODO() // TODO android merge project.agpFlags.highlightGradualR8Api
 
     override fun neverShrinking(): Boolean {
       return isNeverShrinking(project)

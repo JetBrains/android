@@ -61,7 +61,7 @@ class ExpandedLeakDetailsTest : WithFakeTimer {
     val referencingField = ReferencingField("random.classname", ReferencingField.ReferencingFieldType.INSTANCE_FIELD,
                                             false, "referenceName")
     val node = Node(LeakTraceNodeType.INSTANCE, "random.classname", LeakingStatus.YES,
-                    "A Strong garbage collection.", 1024,
+                    "A Strong garbage collection.", "1024 bytes",
                     10, listOf("Note 1", "Note 2"), referencingField)
 
     composeTestRule.setContent {

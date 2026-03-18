@@ -26,8 +26,8 @@ import com.android.tools.apk.analyzer.ResourceIdResolver
 import com.android.tools.apk.analyzer.internal.ApkArchive
 import com.android.tools.idea.res.DEFAULT_STRING_RESOURCE_FILE_NAME
 import com.android.tools.res.ids.apk.ApkResourceIdManager
-import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceConfiguration
-import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceFile
+import com.google.devrel.gmscore.tools.apk.arsc.ResourceConfiguration
+import com.google.devrel.gmscore.tools.apk.arsc.ResourceFile
 import com.google.devrel.gmscore.tools.apk.arsc.ResourceTableChunk
 import java.nio.file.Path
 import kotlin.io.path.inputStream
@@ -74,7 +74,7 @@ class ApkExtractor(private val ioDispatcher: CoroutineDispatcher) : WatchFaceStu
             archive.contentRoot
               .resolve(RESOURCES_ARSC_PATH)
               .inputStream()
-              .use { BinaryResourceFile.fromInputStream(it) }
+              .use { ResourceFile.fromInputStream(it) }
               .chunks
               .filterIsInstance<ResourceTableChunk>()
               .single()
@@ -143,7 +143,7 @@ class ApkExtractor(private val ioDispatcher: CoroutineDispatcher) : WatchFaceStu
     return decodedBytes.toString(Charsets.UTF_8)
   }
 
-  private fun stringResourcePath(configuration: BinaryResourceConfiguration): Path {
+  private fun stringResourcePath(configuration: ResourceConfiguration): Path {
     val folderConfiguration =
       FolderConfiguration.getConfigForQualifierString(
         if (configuration.isDefault) "" else configuration.toString()

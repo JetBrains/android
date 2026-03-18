@@ -174,7 +174,7 @@ internal fun AvdBuilder.copyFrom(device: VirtualDevice) {
   frontCamera = device.frontCamera
   backCamera = device.rearCamera
 
-  gpuMode = device.graphicsMode.toGpuMode(device.image!!)
+  gpuMode = device.graphicsMode.toGpuMode()
 
   networkSpeed = device.speed
   networkLatency = device.latency

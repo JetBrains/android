@@ -68,7 +68,6 @@ import com.android.tools.idea.wizard.template.Separator
 import com.android.tools.idea.wizard.template.StringParameter
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.TemplateConstraint
-import com.android.tools.idea.wizard.template.TestSuiteWidget
 import com.android.tools.idea.wizard.template.TextFieldWidget
 import com.android.tools.idea.wizard.template.UrlLinkWidget
 import com.android.tools.idea.wizard.template.Widget
@@ -228,7 +227,6 @@ class ConfigureTemplateParametersStep(
         // We cannot know a good default value for package in template, but it's being preset in
         // [createRowForWidget]
         is PackageNameWidget -> parameter.value = property!!.get()
-        is TestSuiteWidget -> parameter.value = property!!.get()
         is EnumWidget -> row.setValue((parameter.value as Enum<*>).name)
         else -> row.setValue(parameter.value)
       }
@@ -315,21 +313,6 @@ class ConfigureTemplateParametersStep(
         // Model.packageName is used for parameter evaluation, but updated asynchronously. Do new
         // evaluation when value changes.
         listeners.listen(model.packageName) { enqueueEvaluateParameters() }
-        rowEntry
-      }
-      is TestSuiteWidget -> {
-        val rowEntry = RowEntry(widget.p.name, TextFieldProvider(widget.parameter))
-
-        // If the test suite name is unset on the model, set it to the default defined by the
-        // string parameter in the template
-        if (model.testSuiteName.get().isEmpty()) {
-          model.testSuiteName.set(widget.p.defaultValue)
-        }
-
-        val testSuiteName = rowEntry.property as StringProperty
-        bindings.bindTwoWay(testSuiteName, model.testSuiteName)
-        listeners.listen(model.testSuiteName) { enqueueEvaluateParameters() }
-
         rowEntry
       }
       is CheckBoxWidget -> RowEntry(CheckboxProvider(widget.p))

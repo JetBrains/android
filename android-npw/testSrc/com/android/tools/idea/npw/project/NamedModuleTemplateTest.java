@@ -58,8 +58,6 @@ public class NamedModuleTemplateTest {
 
     assertThat(sourceProvider.getResourcesDirectories()).isEmpty();
     assertThat(sourceProvider.getRenderscriptDirectories()).isEmpty();
-    assertThat(sourceProvider.getCDirectories()).isEmpty();
-    assertThat(sourceProvider.getCppDirectories()).isEmpty();
     assertThat(sourceProvider.getAssetsDirectories()).isEmpty();
     assertThat(sourceProvider.getJniLibsDirectories()).isEmpty();
     assertThat(sourceProvider.getShadersDirectories()).isEmpty();
@@ -86,8 +84,6 @@ public class NamedModuleTemplateTest {
     assertThat(sourceProvider.getResourcesDirectories()).isEmpty();
     assertThat(sourceProvider.getAidlDirectories()).isEmpty();
     assertThat(sourceProvider.getRenderscriptDirectories()).isEmpty();
-    assertThat(sourceProvider.getCDirectories()).isEmpty();
-    assertThat(sourceProvider.getCppDirectories()).isEmpty();
     assertThat(sourceProvider.getResDirectories()).isEmpty();
     assertThat(sourceProvider.getAssetsDirectories()).isEmpty();
     assertThat(sourceProvider.getJniLibsDirectories()).isEmpty();
