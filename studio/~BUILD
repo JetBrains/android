@@ -498,11 +498,11 @@ studio_plugin(
 studio_plugin(
     name = "com.android.tools.apk",
     directory = "android-apk",
+    libs = ["//tools/vendor/google/android-apk:org.eclipse.cdt"],
     modules = {"android-apk.jar": ["//tools/vendor/google/android-apk:android-apk"]},
     visibility = ["//visibility:public"],
     deps = [
         ":com.android.tools.idea.smali",
-        ":com.android.tools.ndk",
         ":org.jetbrains.android",
         "@intellij//:com.intellij.java",
     ],
@@ -511,7 +511,6 @@ studio_plugin(
 studio_plugin(
     name = "com.android.tools.ndk",
     directory = "android-ndk",
-    libs = ["//tools/vendor/google/android-ndk/lib:org.eclipse.cdt"],
     modules = {"android-ndk.jar": ["//tools/vendor/google/android-ndk:android-ndk"]},
     resources = {
         "resources/lldb": [

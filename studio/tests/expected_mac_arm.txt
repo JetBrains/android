@@ -907,12 +907,12 @@ Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlinc.sam-with-receiver
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlinc.scripting-compiler-plugin.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/vavr.jar
 Android Studio Preview.app/Contents/plugins/android-apk/lib/android-apk.jar
+Android Studio Preview.app/Contents/plugins/android-apk/lib/org.eclipse.cdt.core_6.8.1.201907021957.jar
+Android Studio Preview.app/Contents/plugins/android-apk/lib/org.eclipse.equinox.common_3.10.500.v20190815-1535.jar
 Android Studio Preview.app/Contents/plugins/android-compose-ide-plugin/lib/android-compose-ide-plugin.jar
 Android Studio Preview.app/Contents/plugins/android-compose-ide-plugin/lib/android-compose-ide-plugin.so.jar
 Android Studio Preview.app/Contents/plugins/android-ndk/lib/android-ndk.jar
 Android Studio Preview.app/Contents/plugins/android-ndk/lib/android-ndk.so.jar
-Android Studio Preview.app/Contents/plugins/android-ndk/lib/org.eclipse.cdt.core_6.8.1.201907021957.jar
-Android Studio Preview.app/Contents/plugins/android-ndk/lib/org.eclipse.equinox.common_3.10.500.v20190815-1535.jar
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/LICENSE.TXT
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/android/arm64-v8a/lldb-server
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/android/armeabi/lldb-server
