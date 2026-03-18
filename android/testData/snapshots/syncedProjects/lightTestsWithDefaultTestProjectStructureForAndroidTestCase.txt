@@ -15,7 +15,6 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
             isExcludeOutput               : true
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
