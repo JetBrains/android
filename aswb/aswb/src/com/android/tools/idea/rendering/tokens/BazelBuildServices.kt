@@ -23,7 +23,6 @@ import com.android.tools.idea.run.classes.BuildOutcomeCache
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.SettableFuture
-import com.google.idea.blaze.base.command.buildresult.BuildResult
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
 import com.google.idea.blaze.base.qsync.DependencyTracker
@@ -53,7 +52,6 @@ import kotlinx.coroutines.withContext
 
 @Service(Service.Level.PROJECT) internal class BazelBuildServicesCoroutineScope(val scope: CoroutineScope)
 
-// TODO: b/418844903 - Update the artifact manager
 internal class BazelBuildServices : BuildSystemFilePreviewServices.BuildServices<BazelBuildTargetReference> {
   private val listeners: MutableCollection<BuildSystemFilePreviewServices.BuildListener> = CopyOnWriteArrayList()
   private val buildOutcomeCache = BuildOutcomeCache()
@@ -80,8 +78,8 @@ internal class BazelBuildServices : BuildSystemFilePreviewServices.BuildServices
   }
 
   /** Executed by an application pool thread */
-  override fun buildArtifacts(targets: Collection<BazelBuildTargetReference>) {
-    val unused = buildArtifactsAsync(targets)
+  override fun buildArtifacts(buildTargets: Collection<BazelBuildTargetReference>) {
+    @Suppress("DeferredResultUnused") buildArtifactsAsync(buildTargets)
   }
 
   /** Executed by an application pool thread */
