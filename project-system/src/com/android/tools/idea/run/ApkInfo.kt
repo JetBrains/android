@@ -49,8 +49,9 @@ constructor(
 
   /** An available "pm options". */
   enum class AppInstallOption(@JvmField val minSupportedApiLevel: Int) {
-    // Request to be installed with "all privileges" (-g).
-    GRANT_ALL_PERMISSIONS(AndroidVersion.VersionCodes.M), // Request to be installed as queryable (--force-queryable).
+    /** Request to be installed with "all privileges" (-g). */
+    GRANT_ALL_PERMISSIONS(AndroidVersion.VersionCodes.M),
+    /** Request to be installed as queryable (--force-queryable). */
     FORCE_QUERYABLE(AndroidVersion.VersionCodes.R),
   }
 
