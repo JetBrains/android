@@ -17,7 +17,6 @@ package com.android.tools.idea.streaming.actions
 
 import com.android.tools.idea.streaming.core.FloatingToolbarContainer
 import com.android.tools.idea.streaming.core.ZOOMABLE_KEY
-import com.android.utils.TraceUtils.simpleId
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -26,8 +25,6 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Presentation.PROP_DESCRIPTION
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.UIUtil
@@ -56,9 +53,6 @@ class ZoomLevelIndicator : DumbAwareAction(EmptyIcon.ICON_16), CustomComponentAc
       val scale = zoomable.scale
       val scaleText = String.format(Locale.ROOT, "%d%%", (scale * 100).roundToInt())
       presentation.text = "Zoom Level: $scaleText"
-      if (presentation.description != scaleText) {
-        thisLogger().info("Zoom level indicator updated from ${presentation.description} to $scaleText") // b/479059316
-      }
       presentation.description = scaleText
     }
   }
@@ -106,11 +100,6 @@ class ZoomLevelIndicator : DumbAwareAction(EmptyIcon.ICON_16), CustomComponentAc
     private val fontRenderContext: FontRenderContext = createFontRenderContext()
     private val adjustedFont: Font = baseFont.squeezeToFit(text, maxWidth)
     private val textBounds: Rectangle = computeTextBounds(adjustedFont, text)
-    private var textPainted = false // b/479059316
-
-    init {
-      Logger.getInstance(ZoomLevelIndicator::class.java).info("$simpleId: painter created for zoom level indicator $text") // b/479059316
-    }
 
     fun paintText(g: Graphics2D, centerIn: Rectangle) {
       g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, fontRenderContext.getAntiAliasingHint())
@@ -121,10 +110,6 @@ class ZoomLevelIndicator : DumbAwareAction(EmptyIcon.ICON_16), CustomComponentAc
       val textBounds = textBounds
       val textX = centerIn.x - textBounds.x + (centerIn.width - textBounds.width) / 2
       val textY = centerIn.y - textBounds.y + (centerIn.height - textBounds.height) / 2
-      if (!textPainted) { // b/479059316
-        Logger.getInstance(ZoomLevelIndicator::class.java).info("$simpleId: painting zoom level indicator $text at $textX, $textY")
-        textPainted = true
-      }
       g.drawString(text, textX, textY)
     }
 
