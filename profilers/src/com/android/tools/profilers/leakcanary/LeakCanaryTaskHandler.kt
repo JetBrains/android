@@ -214,7 +214,6 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
    */
   override fun checkSupportForDeviceAndProcess(device: Common.Device, process: Common.Process): StartTaskSelectionError? {
     val isFeatureSupported = SupportLevel.of(process.exposureLevel).isFeatureSupported(SupportLevel.Feature.MEMORY_LEAK_WITH_LEAKCANARY)
-
     if (!isFeatureSupported) {
       updateStateToIdle()
       return StartTaskSelectionError(StartTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS)

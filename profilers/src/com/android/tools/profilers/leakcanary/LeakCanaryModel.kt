@@ -175,11 +175,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
     }
     profilers.updater.register(this)
     setIsRecording(true)
-    if (!isLeakCanaryMilestone2Enabled) {
-      checkLeakCanaryPresence()
-    } else if (leakcanaryMode == StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE) {
-      _retainedObjectThreshold.value = profilers.ideServices.temporaryProfilerPreferences.getInt("LEAKCANARY_THRESHOLD", 5)
-    }
+    checkPresenceAndFetchThreshold()
     setObjectRetainedCount(0)
     setAnalysisProgress(0)
     registerLeakCanaryListeners()
@@ -255,6 +251,24 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
     _selectedLeak.value = newLeak
   }
 
+  private fun checkPresenceAndFetchThreshold() {
+    if (!isLeakCanaryMilestone2Enabled) {
+      checkLeakCanaryPresence()
+    } else if (leakcanaryMode == StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE) {
+
+      val thresholdValue = profilers.ideServices.temporaryProfilerPreferences.getInt("LEAKCANARY_THRESHOLD", -1)
+      if (thresholdValue != -1) {
+        _retainedObjectThreshold.value = thresholdValue
+      }
+
+      if (thresholdValue == -1) {
+        fetchRetainedVisibleThreshold()
+      }
+      // Reset the state to -1
+      profilers.ideServices.temporaryProfilerPreferences.setInt("LEAKCANARY_THRESHOLD", -1)
+    }
+  }
+
   /** Creates and registers transport event listeners that run from the start of the session until the end. */
   private fun registerLeakCanaryListeners() {
     val startTime = profilers.session.startTimestamp
@@ -290,6 +304,45 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
           },
         )
       profilers.transportPoller.registerListener(objectCountListener)
+    }
+  }
+
+  private fun fetchRetainedVisibleThreshold() {
+    val fetchThresholdCommand =
+      Commands.Command.newBuilder()
+        .setStreamId(profilers.session.streamId)
+        .setPid(profilers.session.pid)
+        .setType(Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD)
+        .build()
+
+    profilers.ideServices.poolExecutor.execute {
+      val commandIdFuture = CompletableFuture<Int>()
+      val listener =
+        TransportEventListener(
+          eventKind = Common.Event.Kind.LEAKCANARY_THRESHOLD,
+          executor = profilers.ideServices.poolExecutor,
+          streamId = { profilers.session.streamId },
+          filter = { event ->
+            val targetCommandId = commandIdFuture.getNow(-1)
+            targetCommandId != -1 && event.commandId == targetCommandId
+          },
+          processId = { profilers.session.pid },
+          callback = { event ->
+            val threshold = event.leakcanaryThreshold.threshold
+            profilers.ideServices.mainExecutor.execute { _retainedObjectThreshold.value = threshold }
+            true // Unregister listener
+          },
+        )
+      profilers.transportPoller.registerListener(listener)
+
+      try {
+        val response =
+          profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(fetchThresholdCommand).build())
+        commandIdFuture.complete(response.commandId)
+      } catch (e: Exception) {
+        logger.warn("Failed to fetch retained visible threshold", e)
+        profilers.transportPoller.unregisterListener(listener)
+      }
     }
   }
 
