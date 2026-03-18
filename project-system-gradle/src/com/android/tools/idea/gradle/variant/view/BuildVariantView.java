@@ -387,7 +387,9 @@ public class BuildVariantView {
 
     @Override
     public boolean isCellEditable(int row, int column) {
-      return true;
+      if (column == MODULE_COLUMN_INDEX) return true;
+      BuildVariantTableRow tableRow = ((BuildVariantTableModel)getModel()).getRows().get(row);
+      return !tableRow.isDynamicFeature();
     }
 
     void updateLoadingStatus(boolean loading) {
@@ -509,6 +511,7 @@ public class BuildVariantView {
     // Default help text that will be displayed as a tooltip on the Variants cells.
     private static final String variantsCellHelpTooltipText =
       "Determines the build variant that will be deployed to device and used by the editor";
+    private static final String dynamicFeatureHelpTooltipText = "This variant is inherited from the base application module";
 
     private BuildVariantTableRow tableRow;
 
@@ -519,11 +522,13 @@ public class BuildVariantView {
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
       if (tableRow == null) return this;
-
       BuildVariantItem[] items = tableRow.buildVariantsAsArray();
       if (items == null) return this;
       BuildVariantItem selected = tableRow.variantItem();
       ComboBox<BuildVariantItem> editor = new ComboBox<>(items);
+
+      boolean isDynamicFeature = tableRow.isDynamicFeature();
+      editor.setEnabled(!isDynamicFeature);
 
       Color background = isSelected ? table.getSelectionBackground() : table.getBackground();
       ImmutableList<Conflict> conflictFound = ((BuildVariantTable)table).findConflict(row);
@@ -533,9 +538,15 @@ public class BuildVariantView {
       }
       editor.setBackground(background);
       editor.setFont(StartupUiUtil.getLabelFont());
-      Module module = ((BuildVariantTable)table).findModule(row);
-      String toolTip = hasConflicts && module != null ? ConflictSetKt.variantConflictMessage(module, conflictFound)
-                                                      : variantsCellHelpTooltipText;
+
+      String toolTip;
+      if (isDynamicFeature) {
+        toolTip = dynamicFeatureHelpTooltipText;
+      } else {
+        Module module = ((BuildVariantTable)table).findModule(row);
+        toolTip = hasConflicts && module != null ? ConflictSetKt.variantConflictMessage(module, conflictFound)
+                                                 : variantsCellHelpTooltipText;
+      }
       editor.setToolTipText(toolTip);
 
       // add some padding to table cells. It is hard to read text of combo box.
@@ -553,6 +564,7 @@ public class BuildVariantView {
   private static class AbisCellRenderer extends JComboBox implements TableCellRenderer {
     // Default help text that will be displayed as a tooltip on the ABI cells.
     private static final String abisCellHelpTooltipText = "For NDK modules, determines the ABI that will be used by the editor";
+    private static final String dynamicFeatureHelpTooltipText = "This ABI is inherited from the base application module";
 
     private BuildVariantTableRow tableRow;
 
@@ -573,10 +585,15 @@ public class BuildVariantView {
       }
       ComboBox<AbiItem> editor = new ComboBox<>(items);
 
+      boolean isDynamicFeature = tableRow.isDynamicFeature();
+      editor.setEnabled(!isDynamicFeature);
+
       Color background = isSelected ? table.getSelectionBackground() : table.getBackground();
       editor.setBackground(background);
       editor.setFont(StartupUiUtil.getLabelFont());
-      editor.setToolTipText(abisCellHelpTooltipText);
+
+      String toolTip = isDynamicFeature ? dynamicFeatureHelpTooltipText : abisCellHelpTooltipText;
+      editor.setToolTipText(toolTip);
 
       // add some padding to table cells. It is hard to read text of combo box.
       editor.setBorder(BorderFactory.createCompoundBorder(editor.getBorder(), JBUI.Borders.empty(3, 2, 4, 2)));
@@ -665,6 +682,17 @@ public class BuildVariantView {
       myModuleNameLabel.setText(moduleName == null ? "" : moduleName);
       myModuleNameLabel.setIcon(moduleIcon);
 
+      boolean isDynamicFeature = false;
+      if (table.getModel() instanceof BuildVariantTableModel) {
+        isDynamicFeature = ((BuildVariantTableModel)table.getModel()).getRows().get(row).isDynamicFeature();
+      }
+      if (isDynamicFeature) {
+        myModuleNameLabel.setForeground(com.intellij.util.ui.UIUtil.getInactiveTextColor());
+      }
+      else {
+        myModuleNameLabel.setForeground(AdtUiUtils.DEFAULT_FONT_COLOR);
+      }
+      myModuleNameLabel.setBorder(JBUI.Borders.empty());
       Color background = isSelected ? table.getSelectionBackground() : table.getBackground();
 
       if (isAndroidGradleModule) {

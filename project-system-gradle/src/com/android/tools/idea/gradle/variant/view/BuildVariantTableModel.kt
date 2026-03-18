@@ -53,6 +53,7 @@ data class BuildVariantTableRow(
   val abi: String?,
   val buildVariants: List<BuildVariantItem>,
   val abis: List<AbiItem>,
+  val isDynamicFeature: Boolean = false,
 ) {
 
   fun buildVariantsAsArray(): Array<BuildVariantItem>? = buildVariants.takeUnless { it.isEmpty() }?.toTypedArray()
@@ -118,7 +119,7 @@ private fun buildVariantTableModelRows(project: Project) =
         listOf(BuildVariantTableRow(androidFacet.module, variantAndAbi.variant, variantAndAbi.abi, buildVariantItems, abiItems)) +
           androidFacet.module.project.getProjectSystem().getModuleSystem(androidFacet.module).getDynamicFeatureModules().map {
             // Using app's values for everything except the module
-            BuildVariantTableRow(it, variantAndAbi.variant, variantAndAbi.abi, buildVariantItems, abiItems)
+            BuildVariantTableRow(it, variantAndAbi.variant, variantAndAbi.abi, buildVariantItems, abiItems, isDynamicFeature = true)
           }
       else emptyList()
     }
