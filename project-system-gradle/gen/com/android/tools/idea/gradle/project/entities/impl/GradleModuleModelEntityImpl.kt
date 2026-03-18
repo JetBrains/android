@@ -42,12 +42,12 @@ import com.intellij.platform.workspace.storage.metadata.model.EntityMetadata
 @GeneratedCodeApiVersion(3)
 @GeneratedCodeImplVersion(7)
 @OptIn(WorkspaceEntityInternalApi::class)
-internal class GradleModuleModelEntityImpl(private val dataSource: GradleModuleModelEntityData) : GradleModuleModelEntity,
-                                                                                                  WorkspaceEntityBase(dataSource) {
+internal class GradleModuleModelEntityImpl(private val dataSource: GradleModuleModelEntityData) : GradleModuleModelEntity, WorkspaceEntityBase(
+  dataSource) {
 
   private companion object {
-    internal val MODULE_CONNECTION_ID: ConnectionId =
-      ConnectionId.create(ModuleEntity::class.java, GradleModuleModelEntity::class.java, ConnectionId.ConnectionType.ONE_TO_ONE, false)
+    internal val MODULE_CONNECTION_ID: ConnectionId = ConnectionId.create(ModuleEntity::class.java, GradleModuleModelEntity::class.java,
+                                                                          ConnectionId.ConnectionType.ONE_TO_ONE, false)
     private val connections = listOf<ConnectionId>(MODULE_CONNECTION_ID)
 
   }
@@ -71,8 +71,8 @@ internal class GradleModuleModelEntityImpl(private val dataSource: GradleModuleM
   }
 
 
-  internal class Builder(result: GradleModuleModelEntityData?) :
-    ModifiableWorkspaceEntityBase<GradleModuleModelEntity, GradleModuleModelEntityData>(result), GradleModuleModelEntityBuilder {
+  internal class Builder(result: GradleModuleModelEntityData?) : ModifiableWorkspaceEntityBase<GradleModuleModelEntity, GradleModuleModelEntityData>(
+    result), GradleModuleModelEntityBuilder {
     internal constructor() : this(GradleModuleModelEntityData())
 
     override fun applyToBuilder(builder: MutableEntityStorage) {
@@ -88,10 +88,10 @@ internal class GradleModuleModelEntityImpl(private val dataSource: GradleModuleM
       this.diff = builder
       addToBuilder()
       this.id = getEntityData().createEntityId()
-// After adding entity data to the builder, we need to unbind it and move the control over entity data to builder
-// Builder may switch to snapshot at any moment and lock entity data to modification
+      // After adding entity data to the builder, we need to unbind it and move the control over entity data to builder
+      // Builder may switch to snapshot at any moment and lock entity data to modification
       this.currentEntityData = null
-// Process linked entities that are connected without a builder
+      // Process linked entities that are connected without a builder
       processLinkedEntities(builder)
       checkInitialization() // TODO uncomment and check failed tests
     }
@@ -156,7 +156,7 @@ internal class GradleModuleModelEntityImpl(private val dataSource: GradleModuleM
           if (value is ModifiableWorkspaceEntityBase<*, *>) {
             value.entityLinks[EntityLink(true, MODULE_CONNECTION_ID)] = this
           }
-// else you're attaching a new entity to an existing entity that is not modifiable
+          // else you're attaching a new entity to an existing entity that is not modifiable
           _diff.addEntity(value as ModifiableWorkspaceEntityBase<WorkspaceEntity, *>)
         }
         if (_diff != null && (value !is ModifiableWorkspaceEntityBase<*, *> || value.diff != null)) {
@@ -166,7 +166,7 @@ internal class GradleModuleModelEntityImpl(private val dataSource: GradleModuleM
           if (value is ModifiableWorkspaceEntityBase<*, *>) {
             value.entityLinks[EntityLink(true, MODULE_CONNECTION_ID)] = this
           }
-// else you're attaching a new entity to an existing entity that is not modifiable
+          // else you're attaching a new entity to an existing entity that is not modifiable
           this.entityLinks[EntityLink(false, MODULE_CONNECTION_ID)] = value
         }
         changedProperty.add("module")
@@ -211,7 +211,8 @@ internal class GradleModuleModelEntityData : WorkspaceEntityData<GradleModuleMod
   }
 
   override fun getMetadata(): EntityMetadata {
-    return MetadataStorageImpl.getMetadataByTypeFqn("com.android.tools.idea.gradle.project.entities.GradleModuleModelEntity") as EntityMetadata
+    return MetadataStorageImpl.getMetadataByTypeFqn(
+      "com.android.tools.idea.gradle.project.entities.GradleModuleModelEntity") as EntityMetadata
   }
 
   override fun getEntityInterface(): Class<out WorkspaceEntity> {
