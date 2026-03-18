@@ -43,7 +43,7 @@ val autoSyncComposeToolingExperiment =
 val commitProjectStructureAfterQueryExperiment =
   BoolExperiment("aswb.query.sync.commit.project.structure.after.query", false)
 val loadProjectStructureFromDirectoryTraversalExperiment =
-  FeatureRolloutExperiment("query.sync.load.project.structure.from.directory.traversal")
+  FeatureRolloutExperiment("aswb.query.sync.load.project.structure.from.directory.traversal")
 
 @Service(Service.Level.PROJECT)
 class QuerySyncUserPreferencesProvider(private val project: Project) {
