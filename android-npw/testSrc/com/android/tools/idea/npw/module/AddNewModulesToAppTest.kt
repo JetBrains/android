@@ -134,6 +134,48 @@ abstract class AddNewModulesToAppTest(private val useGradleKts: Boolean, private
   }
 
   @Test
+  fun addNewAndroidLibraryModuleDoesNotContainProguardFiles() {
+    loadInitialProject()
+
+    val project = projectRule.project
+    val libModuleModel =
+      NewAndroidModuleModel.fromExistingProject(
+        project = project,
+        moduleParent = ":",
+        projectSyncInvoker = emptyProjectSyncInvoker,
+        formFactor = FormFactor.Mobile,
+        category = Category.Activity,
+        isLibrary = true,
+      )
+    val moduleName = "mylibrary"
+    generateModuleFiles(project, libModuleModel, moduleName, useGradleKts)
+
+    checkBuildGradleNoProguardFiles(moduleName)
+    assembleDebugProject()
+  }
+
+  @Test
+  fun addNewAndroidApplicationModuleContainsProguardFiles() {
+    loadInitialProject()
+
+    val project = projectRule.project
+    val appModuleModel =
+      NewAndroidModuleModel.fromExistingProject(
+        project = project,
+        moduleParent = ":",
+        projectSyncInvoker = emptyProjectSyncInvoker,
+        formFactor = FormFactor.Mobile,
+        category = Category.Activity,
+        isLibrary = false,
+      )
+    val moduleName = "myapp"
+    generateModuleFiles(project, appModuleModel, moduleName, useGradleKts)
+
+    checkBuildGradleHasProguardFiles(moduleName)
+    assembleDebugProject()
+  }
+
+  @Test
   fun addNewPureLibraryModuleInKotlinHasJvmCompatibility() {
     if (useVersionCatalog) {
       // TODO (b/369979748): Kotlin version mismatch with Version Catalog
@@ -247,6 +289,27 @@ abstract class AddNewModulesToAppTest(private val useGradleKts: Boolean, private
             .removeSpaces()
         )
     )
+  }
+
+  private fun readBuildFile(moduleName: String): String {
+    val project = projectRule.project
+    val buildGradleFileName = if (useGradleKts) "build.gradle.kts" else "build.gradle"
+    val text = File(project.basePath!!).resolve(moduleName).resolve(buildGradleFileName).readText()
+    return text
+  }
+
+  private fun checkBuildGradleNoProguardFiles(moduleName: String) {
+    val text = readBuildFile(moduleName)
+    assertFalse("Generated build.gradle should not contain 'proguardFiles'", text.contains("proguardFiles"))
+    assertFalse("Generated build.gradle should not contain 'getDefaultProguardFile'", text.contains("getDefaultProguardFile"))
+    assertTrue("Generated build.gradle for library should contain 'consumerProguardFiles'", text.contains("consumerProguardFiles"))
+  }
+
+  private fun checkBuildGradleHasProguardFiles(moduleName: String) {
+    val text = readBuildFile(moduleName)
+    assertTrue("Generated build.gradle should contain 'proguardFiles'", text.contains("proguardFiles"))
+    assertTrue("Generated build.gradle should contain 'getDefaultProguardFile'", text.contains("getDefaultProguardFile"))
+    assertFalse("Generated build.gradle for application should not contain 'consumerProguardFiles'", text.contains("consumerProguardFiles"))
   }
 }
 
