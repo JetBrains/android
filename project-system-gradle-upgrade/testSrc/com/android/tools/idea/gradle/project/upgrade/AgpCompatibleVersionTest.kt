@@ -1,8 +1,11 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.SdkConstants
+import com.android.Version
 import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion.Companion.AGP_MAJOR_MINOR_TO_GRADLE_MAP
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion.Companion.getCompatibleGradleVersion
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_FOR_DEV
 import com.google.common.truth.Expect
 import com.intellij.testFramework.LightPlatformTestCase
 import org.gradle.util.GradleVersion
@@ -14,6 +17,13 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class AgpCompatibleVersionTest : LightPlatformTestCase() {
   @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
+
+  @Test
+  fun testAgpToGradleMapConsistency() {
+    val currentMajorMinor = AgpVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION).let { AgpVersion(it.major, it.minor) }
+    expect.that(AGP_MAJOR_MINOR_TO_GRADLE_MAP).containsKey(currentMajorMinor)
+    expect.that(AGP_MAJOR_MINOR_TO_GRADLE_MAP.values.filter { it == VERSION_FOR_DEV }).hasSize(1)
+  }
 
   @Test
   fun testCompatibleVersions() {

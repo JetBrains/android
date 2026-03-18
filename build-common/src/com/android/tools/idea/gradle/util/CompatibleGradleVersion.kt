@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.util
 import com.android.SdkConstants
 import com.android.ide.common.repository.AgpVersion
 import org.gradle.util.GradleVersion
+import org.jetbrains.annotations.VisibleForTesting
 
 enum class CompatibleGradleVersion(val version: GradleVersion) {
   // Gradle versions earlier than 7.0.2 are not needed because Android Studio
@@ -44,31 +45,38 @@ enum class CompatibleGradleVersion(val version: GradleVersion) {
   VERSION_FOR_DEV(GradleVersion.version(SdkConstants.GRADLE_LATEST_VERSION));
 
   companion object {
+    @VisibleForTesting
+    val AGP_MAJOR_MINOR_TO_GRADLE_MAP =
+      mapOf(
+        AgpVersion.parse("7.0.0") to VERSION_7_0_2,
+        AgpVersion.parse("7.1.0") to VERSION_7_2,
+        AgpVersion.parse("7.2.0") to VERSION_7_3_3,
+        AgpVersion.parse("7.3.0") to VERSION_7_4,
+        AgpVersion.parse("7.4.0") to VERSION_7_5,
+        AgpVersion.parse("8.0.0") to VERSION_8_0,
+        AgpVersion.parse("8.1.0") to VERSION_8_0,
+        AgpVersion.parse("8.2.0") to VERSION_8_2,
+        AgpVersion.parse("8.3.0") to VERSION_8_4,
+        AgpVersion.parse("8.4.0") to VERSION_8_6,
+        AgpVersion.parse("8.5.0") to VERSION_8_7,
+        AgpVersion.parse("8.6.0") to VERSION_8_7,
+        AgpVersion.parse("8.7.0") to VERSION_8_9,
+        AgpVersion.parse("8.8.0") to VERSION_8_10_2,
+        AgpVersion.parse("8.9.0") to VERSION_8_11_1,
+        AgpVersion.parse("8.10.0") to VERSION_8_11_1,
+        AgpVersion.parse("8.11.0") to VERSION_8_13,
+        AgpVersion.parse("8.12.0") to VERSION_8_13,
+        AgpVersion.parse("8.13.0") to VERSION_8_13,
+        AgpVersion.parse("9.0.0") to VERSION_9_1_0,
+        AgpVersion.parse("9.1.0") to VERSION_9_3_1,
+        AgpVersion.parse("9.2.0") to VERSION_FOR_DEV,
+      )
+
     private fun getAssociatedGradleVersion(agpVersion: AgpVersion): CompatibleGradleVersion {
       val agpVersionMajorMinor = AgpVersion(agpVersion.major, agpVersion.minor)
       return when {
-        AgpVersion.parse("7.0.0") >= agpVersionMajorMinor -> VERSION_7_0_2
-        AgpVersion.parse("7.1.0") >= agpVersionMajorMinor -> VERSION_7_2
-        AgpVersion.parse("7.2.0") >= agpVersionMajorMinor -> VERSION_7_3_3
-        AgpVersion.parse("7.3.0") >= agpVersionMajorMinor -> VERSION_7_4
-        AgpVersion.parse("7.4.0") >= agpVersionMajorMinor -> VERSION_7_5
-        AgpVersion.parse("8.0.0") >= agpVersionMajorMinor -> VERSION_8_0
-        AgpVersion.parse("8.1.0") >= agpVersionMajorMinor -> VERSION_8_0
-        AgpVersion.parse("8.2.0") >= agpVersionMajorMinor -> VERSION_8_2
-        AgpVersion.parse("8.3.0") >= agpVersionMajorMinor -> VERSION_8_4
-        AgpVersion.parse("8.4.0") >= agpVersionMajorMinor -> VERSION_8_6
-        AgpVersion.parse("8.5.0") >= agpVersionMajorMinor -> VERSION_8_7
-        AgpVersion.parse("8.6.0") >= agpVersionMajorMinor -> VERSION_8_7
-        AgpVersion.parse("8.7.0") >= agpVersionMajorMinor -> VERSION_8_9
-        AgpVersion.parse("8.8.0") >= agpVersionMajorMinor -> VERSION_8_10_2
-        AgpVersion.parse("8.9.0") >= agpVersionMajorMinor -> VERSION_8_11_1
-        AgpVersion.parse("8.10.0") >= agpVersionMajorMinor -> VERSION_8_11_1
-        AgpVersion.parse("8.11.0") >= agpVersionMajorMinor -> VERSION_8_13
-        AgpVersion.parse("8.12.0") >= agpVersionMajorMinor -> VERSION_8_13
-        AgpVersion.parse("8.13.0") >= agpVersionMajorMinor -> VERSION_8_13
-        AgpVersion.parse("9.0.0") >= agpVersionMajorMinor -> VERSION_9_1_0
-        AgpVersion.parse("9.1.0") >= agpVersionMajorMinor -> VERSION_9_3_1
-        else -> VERSION_FOR_DEV
+        agpVersionMajorMinor < AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_FORCED_UPGRADE_VERSION) -> VERSION_MIN
+        else -> AGP_MAJOR_MINOR_TO_GRADLE_MAP.getOrDefault(agpVersionMajorMinor, VERSION_FOR_DEV)
       }
     }
 
