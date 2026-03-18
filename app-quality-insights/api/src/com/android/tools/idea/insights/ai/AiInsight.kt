@@ -26,4 +26,11 @@ data class AiInsight(
   val insightSource: InsightSource = InsightSource.UNKNOWN,
   val feedback: InsightFeedback = InsightFeedback.NONE,
   val codeContextData: CodeContextData = CodeContextData.DISABLED,
+  val modelInfo: AiModelInfo = AiModelInfo.EMPTY,
 )
+
+data class AiModelInfo(val name: String?) {
+  companion object {
+    val EMPTY = AiModelInfo(null)
+  }
+}
