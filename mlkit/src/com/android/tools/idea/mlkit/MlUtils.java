@@ -20,6 +20,7 @@ import static com.android.ide.common.repository.WellKnownMavenArtifactId.TFLITE_
 import static com.android.ide.common.repository.WellKnownMavenArtifactId.TFLITE_SUPPORT;
 import static com.google.common.collect.Streams.stream;
 
+import com.android.ide.common.gradle.RichVersion;
 import com.android.ide.common.gradle.Version;
 import com.android.ide.common.repository.WellKnownMavenArtifactId;
 import com.android.tools.idea.mlkit.viewer.TfliteModelFileType;
@@ -138,8 +139,11 @@ public class MlUtils {
       for (Map.Entry<WellKnownMavenArtifactId,Version> depInfo : REQUIRED_DEPENDENCY_LIST.entrySet()) {
         GradleRegisteredDependencyId id = moduleSystem.getRegisteredDependency(depInfo.getKey());
         // TODO: null safety everywhere
-        if (id != null && id.getDependency().getVersion().getLowerBound().compareTo(depInfo.getValue()) < 0) {
-          resultDepPairList.add(Pair.create(id, depInfo));
+        if (id != null) {
+          RichVersion version = id.getDependency().getVersion();
+          if (version != null && version.getLowerBound().compareTo(depInfo.getValue()) < 0) {
+            resultDepPairList.add(Pair.create(id, depInfo));
+          }
         }
       }
     }
