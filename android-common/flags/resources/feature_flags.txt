@@ -16,10 +16,6 @@ app.links.assistant.missing.urls.feature=INTERNAL
 app.links.assistant.service.compatibility.enabled=COMPLETE:2025
 app.links.assistant.website.association.generator.v2=PREVIEW
 appinsights.fix.with.agent=PREVIEW
-# Not necessary with agent integration
-# appinsights.gemini.assisted.context.fetch=PREVIEW
-# Replaced by fix.with.agent
-# appinsights.suggest.a.fix=PREVIEW
 appinspection.additional.sql.drivers.enable=PREVIEW
 appinspection.enable.tool.window=COMPLETE:2020
 appinspection.use.experimental.database.inspector=COMPLETE:2025
@@ -254,7 +250,6 @@ studiobot.prompt.library.rules=COMPLETE:2025
 studiobot.prompt.library=COMPLETE:2025
 studiobot.query.cyclic.expand=COMPLETE:2026
 studiobot.quick.edit.enabled=INTERNAL
-# studiobot.rag.use.lucindex=INTERNAL  # disabled even in INTERNAL due to perf issues (b/462665363)
 studiobot.read.outline.tool=COMPLETE:2026
 studiobot.read.uri.tool=COMPLETE:2026
 studiobot.regenerate.chat.request.button.enabled=PREVIEW
