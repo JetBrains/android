@@ -54,11 +54,11 @@ object DexFinder {
 
   private class DexCache {
     companion object {
-      val DEX_CACHE_KEY = Key.create<DexCache?>("DEX_CACHE_KEY")
+      val DEX_CACHE_KEY: Key<DexCache> = Key.create("DEX_CACHE_KEY")
 
       fun instance(debugProcess: DebugProcessImpl): DexCache {
         val vmProxy = debugProcess.suspendManager.pausedContext.virtualMachineProxy
-        return vmProxy.getOrCreateUserData<DexCache>(DEX_CACHE_KEY) { DexCache() }
+        return vmProxy.getOrCreateUserData(DEX_CACHE_KEY) { DexCache() }
       }
     }
 
