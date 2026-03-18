@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.idea.entities.impl
+package com.android.tools.idea.gradle.project.sync.idea.impl
 
 import com.android.tools.idea.gradle.project.entities.impl.MetadataStorageImpl
 import com.intellij.platform.workspace.storage.WorkspaceEntityInternalApi
 import com.intellij.platform.workspace.storage.metadata.MetadataStorageBridge
 
 @OptIn(WorkspaceEntityInternalApi::class)
-internal object MetadataStorageImpl: MetadataStorageBridge(MetadataStorageImpl)
+internal object MetadataStorageImpl : MetadataStorageBridge(MetadataStorageImpl)
