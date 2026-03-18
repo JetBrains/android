@@ -25,15 +25,6 @@ class AgpCompatibleVersionTest : LightPlatformTestCase() {
          * comment should encourage the brave maintainer to do. Changes to GRADLE_LATEST_VERSION are both less likely to be disruptive and
          * more likely to be noticed quickly.
          */
-        "3.1" to GradleVersion.version("7.0.2"),
-        "3.2" to GradleVersion.version("7.0.2"),
-        "3.3" to GradleVersion.version("7.0.2"),
-        "3.4" to GradleVersion.version("7.0.2"),
-        "3.5" to GradleVersion.version("7.0.2"),
-        "3.6" to GradleVersion.version("7.0.2"),
-        "4.0" to GradleVersion.version("7.0.2"),
-        "4.1" to GradleVersion.version("7.0.2"),
-        "4.2" to GradleVersion.version("7.0.2"),
         "7.0" to GradleVersion.version("7.0.2"),
         "7.1" to GradleVersion.version("7.2"),
         "7.2" to GradleVersion.version("7.3.3"),

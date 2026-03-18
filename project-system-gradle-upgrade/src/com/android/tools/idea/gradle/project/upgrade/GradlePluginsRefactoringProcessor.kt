@@ -25,15 +25,6 @@ import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.util.AGP_BUILT_IN_KOTLIN_VERSION
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion.Companion.getCompatibleGradleVersion
-import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_4_10_1
-import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_4_4
-import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_4_6
-import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_5_1_1
-import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_5_4_1
-import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_5_6_4
-import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_6_1_1
-import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_6_5
-import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_6_7_1
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_7_0_2
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_7_2
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_7_3_3
@@ -153,15 +144,6 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
 
     fun `kotlin-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
-        VERSION_4_4 -> Version.parse("1.1.3")
-        VERSION_4_6 -> Version.parse("1.2.51")
-        VERSION_4_10_1 -> Version.parse("1.3.0")
-        VERSION_5_1_1 -> Version.parse("1.3.10")
-        VERSION_5_4_1 -> Version.parse("1.3.10")
-        VERSION_5_6_4 -> Version.parse("1.3.10")
-        VERSION_6_1_1 -> Version.parse("1.3.20")
-        VERSION_6_5 -> Version.parse("1.3.20")
-        VERSION_6_7_1 -> Version.parse("1.3.20")
         VERSION_7_0_2 -> Version.parse("1.3.40")
         VERSION_7_2 -> Version.parse("1.3.40")
         VERSION_7_3_3 -> Version.parse("1.3.40")
@@ -183,15 +165,6 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
 
     fun `androidx-navigation-safeargs-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
-        VERSION_4_4,
-        VERSION_4_6,
-        VERSION_4_10_1,
-        VERSION_5_1_1,
-        VERSION_5_4_1,
-        VERSION_5_6_4,
-        VERSION_6_1_1,
-        VERSION_6_5,
-        VERSION_6_7_1,
         VERSION_7_0_2 -> Version.parse("2.0.0")
         // AGP 7.1 removed an incubating API used by safeargs.
         VERSION_7_2,
@@ -216,15 +189,6 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
     // compatibility information from b/174686925 and https://github.com/mannodermaus/android-junit5/releases
     fun `de-mannodermaus-android-junit5-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
-        VERSION_4_4,
-        VERSION_4_6,
-        VERSION_4_10_1,
-        VERSION_5_1_1 -> Version.parse("1.3.1.0")
-        VERSION_5_4_1,
-        VERSION_5_6_4,
-        VERSION_6_1_1 -> Version.parse("1.4.2.1")
-        VERSION_6_5,
-        VERSION_6_7_1,
         VERSION_7_0_2,
         VERSION_7_2,
         VERSION_7_3_3,
@@ -246,15 +210,6 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
 
     fun `com-google-firebase-crashlytics-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
-        VERSION_4_4,
-        VERSION_4_6,
-        VERSION_4_10_1,
-        VERSION_5_1_1,
-        VERSION_5_4_1,
-        VERSION_5_6_4,
-        VERSION_6_1_1,
-        VERSION_6_5,
-        VERSION_6_7_1 -> Version.parse("2.0.0")
         VERSION_7_0_2,
         VERSION_7_2,
         VERSION_7_3_3,
@@ -276,15 +231,6 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
 
     fun `com-google-firebase-appdistribution-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
-        VERSION_4_4,
-        VERSION_4_6 -> Version.parse("1.0.0")
-        VERSION_4_10_1,
-        VERSION_5_1_1,
-        VERSION_5_4_1,
-        VERSION_5_6_4 -> Version.parse("1.1.0")
-        VERSION_6_1_1,
-        VERSION_6_5,
-        VERSION_6_7_1 -> Version.parse("1.4.0")
         VERSION_7_0_2,
         VERSION_7_2,
         VERSION_7_3_3,
@@ -306,15 +252,6 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
 
     fun `com-google-firebase-perf-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
-        VERSION_4_4,
-        VERSION_4_6,
-        VERSION_4_10_1,
-        VERSION_5_1_1,
-        VERSION_5_4_1,
-        VERSION_5_6_4,
-        VERSION_6_1_1,
-        VERSION_6_5,
-        VERSION_6_7_1,
         VERSION_7_0_2 -> Version.parse("1.2.1")
         VERSION_7_2,
         VERSION_7_3_3,
@@ -336,15 +273,6 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
 
     fun `com-google-android-gms-oss-licenses-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
-        VERSION_4_4,
-        VERSION_4_6,
-        VERSION_4_10_1 -> Version.parse("0.9.3")
-        VERSION_5_1_1,
-        VERSION_5_4_1,
-        VERSION_5_6_4,
-        VERSION_6_1_1,
-        VERSION_6_5,
-        VERSION_6_7_1 -> Version.parse("0.10.1")
         VERSION_7_0_2,
         VERSION_7_2,
         VERSION_7_3_3,
@@ -366,15 +294,6 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
 
     fun `com-google-gms-google-services-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
-        VERSION_4_4,
-        VERSION_4_6,
-        VERSION_4_10_1,
-        VERSION_5_1_1,
-        VERSION_5_4_1,
-        VERSION_5_6_4,
-        VERSION_6_1_1,
-        VERSION_6_5,
-        VERSION_6_7_1,
         VERSION_7_0_2 -> Version.parse("4.0.1")
         VERSION_7_2,
         VERSION_7_3_3,
@@ -396,15 +315,6 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
 
     fun `com-google-dagger-hilt-android-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
-        VERSION_4_4,
-        VERSION_4_6,
-        VERSION_4_10_1,
-        VERSION_5_1_1,
-        VERSION_5_4_1,
-        VERSION_5_6_4,
-        VERSION_6_1_1,
-        VERSION_6_5 -> Version.parse("2.0")
-        VERSION_6_7_1 -> Version.parse("2.32")
         VERSION_7_0_2,
         VERSION_7_2 -> Version.parse("2.38")
         VERSION_7_3_3,
@@ -426,15 +336,6 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
 
     fun `com-google-protobuf-protobuf-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
-        VERSION_4_4,
-        VERSION_4_6,
-        VERSION_4_10_1,
-        VERSION_5_1_1,
-        VERSION_5_4_1 -> Version.parse("0.8.8")
-        VERSION_5_6_4 -> Version.parse("0.8.11")
-        VERSION_6_1_1,
-        VERSION_6_5 -> Version.parse("0.8.12")
-        VERSION_6_7_1 -> Version.parse("0.8.13")
         VERSION_7_0_2,
         VERSION_7_2,
         VERSION_7_3_3,
@@ -456,15 +357,6 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
 
     fun `androidx-baselineprofile-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
-        VERSION_4_4,
-        VERSION_4_6,
-        VERSION_4_10_1,
-        VERSION_5_1_1,
-        VERSION_5_4_1,
-        VERSION_5_6_4,
-        VERSION_6_1_1,
-        VERSION_6_5,
-        VERSION_6_7_1,
         VERSION_7_0_2,
         VERSION_7_2,
         VERSION_7_3_3,
@@ -487,15 +379,6 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
     fun `kotlin-symbol-processing-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
         // do not recommend a specific KSP version before 9.0
-        VERSION_4_4,
-        VERSION_4_6,
-        VERSION_4_10_1,
-        VERSION_5_1_1,
-        VERSION_5_4_1,
-        VERSION_5_6_4,
-        VERSION_6_1_1,
-        VERSION_6_5,
-        VERSION_6_7_1,
         VERSION_7_0_2,
         VERSION_7_2,
         VERSION_7_3_3,
@@ -517,15 +400,6 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
 
     fun `androidx-room-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
-        VERSION_4_4,
-        VERSION_4_6,
-        VERSION_4_10_1,
-        VERSION_5_1_1,
-        VERSION_5_4_1,
-        VERSION_5_6_4,
-        VERSION_6_1_1,
-        VERSION_6_5,
-        VERSION_6_7_1,
         VERSION_7_0_2,
         VERSION_7_2,
         VERSION_7_3_3,
