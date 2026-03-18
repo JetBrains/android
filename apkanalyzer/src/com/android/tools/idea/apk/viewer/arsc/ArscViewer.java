@@ -16,7 +16,7 @@
 package com.android.tools.idea.apk.viewer.arsc;
 
 import com.android.tools.idea.apk.viewer.ApkFileEditorComponent;
-import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceFile;
+import com.google.devrel.gmscore.tools.apk.arsc.ResourceFile;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
@@ -25,10 +25,10 @@ public class ArscViewer implements ApkFileEditorComponent {
   private final ResourceTablePanel myResourceTablePanel;
 
   @TestOnly
-  private final BinaryResourceFile myResourceFile;
+  private final ResourceFile myResourceFile;
 
   public ArscViewer(byte @NotNull[] arscContent) {
-    myResourceFile = new BinaryResourceFile(arscContent);
+    myResourceFile = new ResourceFile(arscContent);
     myResourceTablePanel = new ResourceTablePanel(myResourceFile);
   }
 
@@ -43,7 +43,7 @@ public class ArscViewer implements ApkFileEditorComponent {
   }
 
   @TestOnly
-  public BinaryResourceFile getFile() {
+  public ResourceFile getFile() {
     return myResourceFile;
   }
 }

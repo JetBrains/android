@@ -164,16 +164,6 @@ constructor(
           AndroidBundle.message("android.wizard.action.requires.aidlEnabled", templateName)
         presentation.isEnabled = false
       }
-      templateConstraints.contains(TemplateConstraint.TestSuite) &&
-        !hasTestSuiteMinAgpVersion(module.project) -> {
-        presentation.text =
-          AndroidBundle.message(
-            "android.wizard.action.requires.new.agp",
-            templateName,
-            TEST_SUITE_MIN_AGP_VERSION,
-          )
-        presentation.isEnabled = false
-      }
       else -> {
         val facet = AndroidFacet.getInstance(module)
         val isProjectReady =

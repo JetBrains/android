@@ -145,7 +145,7 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
 
   override fun addDynamicFeature(name: String, toModule: File) {}
 
-  override fun getJavaVersion(defaultVersion: String): String {
+  override suspend fun getJavaVersion(defaultVersion: String): String {
     return TemplateUtils.getJavaVersion(project, defaultVersion)
   }
 

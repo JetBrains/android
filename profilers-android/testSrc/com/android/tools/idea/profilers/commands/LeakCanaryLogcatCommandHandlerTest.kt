@@ -202,7 +202,7 @@ class LeakCanaryLogcatCommandHandlerTest {
     val leakCanaryEvent = mockEventQueue.poll()
     // Only LeakCanary tagged logs is taken. Initial prefix and suffix of '=' characters exist even though 'Heap Analysis' is considered
     // the start of leak log.
-    assertEquals(leakCanaryEvent.leakcanaryLogcat.logcatMessage,
+    assertEquals(leakCanaryEvent.leakcanaryAnalysis.data,
                  "====================================\nHEAP ANALYSIS RESULT\nMETADATA\n====================================\n")
 
     verifyEndEvent()
@@ -239,7 +239,7 @@ class LeakCanaryLogcatCommandHandlerTest {
     verifyStartEvent()
     val leakCanaryEvent = mockEventQueue.poll()
     // Only LeakCanary tagged logs are taken. Initial prefix and suffix of '=' characters exist even though 'Heap Analysis' is considered the start of leak log.
-    assertEquals(leakCanaryEvent.leakcanaryLogcat.logcatMessage,
+    assertEquals(leakCanaryEvent.leakcanaryAnalysis.data,
                  "====================================\nHEAP ANALYSIS RESULT\nMETADATA\n====================================\n")
     verifyEndEvent()
   }
@@ -275,7 +275,7 @@ class LeakCanaryLogcatCommandHandlerTest {
     // Verify all logcat leakCanary messages
     while (!mockEventQueue.isEmpty()) {
       val event = mockEventQueue.poll()
-      assertEquals(event.leakcanaryLogcat.logcatMessage.trim(), fakedMessages[index++].trim())
+      assertEquals(event.leakcanaryAnalysis.data.trim(), fakedMessages[index++].trim())
     }
     verifyEndEvent()
   }
@@ -317,7 +317,7 @@ class LeakCanaryLogcatCommandHandlerTest {
       val event = mockEventQueue.poll()
       // Confirm that the data from the file written to logcat is what was read and that incomplete message appended to logcat are be
       // ignored.
-      assertEquals(event.leakcanaryLogcat.logcatMessage.trim(), fakedMessages[index++].trim())
+      assertEquals(event.leakcanaryAnalysis.data.trim(), fakedMessages[index++].trim())
     }
     verifyEndEvent()
   }
@@ -343,17 +343,17 @@ class LeakCanaryLogcatCommandHandlerTest {
 
     val event = mockEventQueue.poll()
     // -1 is assigned for incomplete trace without retained bytes info
-    assertTrue(event.leakcanaryLogcat.logcatMessage.contains("-1 bytes retained by leaking objects"))
+    assertTrue(event.leakcanaryAnalysis.data.contains("-1 bytes retained by leaking objects"))
 
     verifyEndEvent()
   }
 
   private fun verifyStartEvent() {
     val startEvent = mockEventQueue.poll()
-    assertEquals(Common.Event.Kind.LEAKCANARY_LOGCAT_STATUS, startEvent.kind)
+    assertEquals(Common.Event.Kind.LEAKCANARY_ANALYSIS_STATUS, startEvent.kind)
     assertEquals(123, startEvent.groupId)
-    assertEquals(startTime, startEvent.leakCanaryLogcatStatus.logcatStarted.timestamp)
-    assertEquals(0, startEvent.leakCanaryLogcatStatus.logcatEnded.startTimestamp)
+    assertEquals(startTime, startEvent.leakCanaryAnalysisStatus.analysisStarted.timestamp)
+    assertEquals(0, startEvent.leakCanaryAnalysisStatus.analysisEnded.startTimestamp)
   }
 
   private fun verifyEndEvent() {
@@ -362,12 +362,12 @@ class LeakCanaryLogcatCommandHandlerTest {
     assertEquals(mockEventQueue.size, 2) // End event is received
     val leakInfoEndEvent = mockEventQueue.poll()
     val sessionEndEvent = mockEventQueue.poll()
-    assertEquals(Common.Event.Kind.LEAKCANARY_LOGCAT_STATUS, leakInfoEndEvent.kind)
+    assertEquals(Common.Event.Kind.LEAKCANARY_ANALYSIS_STATUS, leakInfoEndEvent.kind)
     assertEquals(123, leakInfoEndEvent.groupId)
-    assertEquals(startTime, leakInfoEndEvent.leakCanaryLogcatStatus.logcatEnded.startTimestamp)
+    assertEquals(startTime, leakInfoEndEvent.leakCanaryAnalysisStatus.analysisEnded.startTimestamp)
     assertTrue(leakInfoEndEvent.isEnded)
-    assertEquals(endTime, leakInfoEndEvent.leakCanaryLogcatStatus.logcatEnded.endTimestamp)
-    assertEquals(LeakCanary.LeakCanaryLogcatEnded.Status.SUCCESS, leakInfoEndEvent.leakCanaryLogcatStatus.logcatEnded.status)
+    assertEquals(endTime, leakInfoEndEvent.leakCanaryAnalysisStatus.analysisEnded.endTimestamp)
+    assertEquals(LeakCanary.LeakCanaryAnalysisEnded.Status.SUCCESS, leakInfoEndEvent.leakCanaryAnalysisStatus.analysisEnded.status)
 
     assertEquals(Common.Event.Kind.SESSION, sessionEndEvent.kind)
     assertEquals(0, sessionEndEvent.groupId)
@@ -434,7 +434,7 @@ class LeakCanaryLogcatCommandHandlerTest {
 
   private fun deleteIncompleteLeaksFromQueue() {
     mockEventQueue.removeIf { event ->
-      val analysisDurationString = event.leakcanaryLogcat.logcatMessage.split("\n").find { "Analysis duration" in it } ?: ""
+      val analysisDurationString = event.leakcanaryAnalysis.data.split("\n").find { "Analysis duration" in it } ?: ""
       val isIncompleteTrace = analysisDurationString.split(":").last().trim() == "-1 ms"
       isIncompleteTrace
     }

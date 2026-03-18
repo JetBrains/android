@@ -140,9 +140,9 @@ public class ApkParser {
         boolean hasElfFiles = false;
         boolean hasNonCompliantElfFiles = false;
         for(ZipEntryInfo info : myApkSizeCalculator.getInfoPerFile(myArchiveContext.getArchive().getPath()).values()) {
-          if (info.isElf) {
+          if (info.elfAlignmentProblems != null) {
             hasElfFiles = true;
-            if (info.elfLoadSectionAlignment % (16 * 1024) != 0 // Check for 16 KB alignment in ELF LOAD sections
+            if (!info.elfAlignmentProblems.isEmpty() // Check for 16 KB alignment in LOAD or RELRO sections
                 || (!info.isCompressed && info.zipAlignment != ALIGNMENT_16K) // Check for alignment within the Zip file
             ) {
               hasNonCompliantElfFiles = true;

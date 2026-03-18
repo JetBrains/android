@@ -16,9 +16,9 @@
 package com.android.tools.idea.apk.viewer.arsc;
 
 import com.google.common.collect.ImmutableList;
-import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceFile;
 import com.google.devrel.gmscore.tools.apk.arsc.Chunk;
 import com.google.devrel.gmscore.tools.apk.arsc.PackageChunk;
+import com.google.devrel.gmscore.tools.apk.arsc.ResourceFile;
 import com.google.devrel.gmscore.tools.apk.arsc.ResourceTableChunk;
 import com.google.devrel.gmscore.tools.apk.arsc.StringPoolChunk;
 import com.google.devrel.gmscore.tools.apk.arsc.TypeSpecChunk;
@@ -68,7 +68,7 @@ public class ResourceTablePanel {
   private JBTable myResourceTypeTable;
   private SimpleColoredComponent myResourceTableHeader;
 
-  public ResourceTablePanel(@NotNull BinaryResourceFile resourceFile) {
+  public ResourceTablePanel(@NotNull ResourceFile resourceFile) {
     setupUI();
     List<Chunk> chunks = resourceFile.getChunks();
     if (chunks.isEmpty()) {

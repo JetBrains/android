@@ -606,9 +606,11 @@ public class ApkViewPanel implements TreeSelectionListener {
         else if (fileName.equals("baseline.prof") || fileName.equals("baseline.profm")) {
           // TODO: Use dedicated icon for this.
           return AllIcons.FileTypes.Hprof;
-        } else if (entry.getIsElf()) {
-          return AllIcons.FileTypes.BinaryData;
         }
+        // TODO: android merge
+        // else if (entry.getIsElf()) {
+        //  return AllIcons.FileTypes.BinaryData;
+        //}
 
         FileType fileType = FileTypeRegistry.getInstance().getFileTypeByFileName(fileName);
         Icon ftIcon = fileType.getIcon();

@@ -22,7 +22,7 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.SessionMetaData
 import com.android.tools.profiler.proto.LeakCanary
-import com.android.tools.profiler.proto.LeakCanary.LeakCanaryLogcatStatus
+import com.android.tools.profiler.proto.LeakCanary.LeakCanaryAnalysisStatus
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
@@ -63,10 +63,10 @@ class LeakCanarySessionArtifactTest : WithFakeTimer {
     val mockSessionMetadata = SessionMetaData.newBuilder().build()
 
     leakCanarySessionArtifact = LeakCanarySessionArtifact(profilers, mockSession, mockSessionMetadata,
-                                                          LeakCanary.LeakCanaryLogcatEnded.newBuilder()
+                                                          LeakCanary.LeakCanaryAnalysisEnded.newBuilder()
                                                             .setStartTimestamp(timeStamp1)
                                                             .setEndTimestamp(timeStamp5)
-                                                            .setStatus(LeakCanary.LeakCanaryLogcatEnded.Status.SUCCESS)
+                                                            .setStatus(LeakCanary.LeakCanaryAnalysisEnded.Status.SUCCESS)
                                                             .build())
   }
 
@@ -96,10 +96,10 @@ class LeakCanarySessionArtifactTest : WithFakeTimer {
     val mockSession = Common.Session.newBuilder().setStartTimestamp(timeStamp1).build()
     val mockSessionMetadata = SessionMetaData.newBuilder().build()
     leakCanarySessionArtifact = LeakCanarySessionArtifact(profilers, mockSession, mockSessionMetadata,
-                                                          LeakCanary.LeakCanaryLogcatEnded.newBuilder()
+                                                          LeakCanary.LeakCanaryAnalysisEnded.newBuilder()
                                                             .setStartTimestamp(timeStamp1)
                                                             .setEndTimestamp(Long.MAX_VALUE)
-                                                            .setStatus(LeakCanary.LeakCanaryLogcatEnded.Status.SUCCESS)
+                                                            .setStatus(LeakCanary.LeakCanaryAnalysisEnded.Status.SUCCESS)
                                                             .build())
     assertTrue(leakCanarySessionArtifact.isOngoing)
   }
@@ -195,12 +195,12 @@ class LeakCanarySessionArtifactTest : WithFakeTimer {
     transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID,
                                       Common.Event.newBuilder()
                                         .setPid(FakeTransportService.FAKE_PROCESS.pid)
-                                        .setKind(Common.Event.Kind.LEAKCANARY_LOGCAT_STATUS)
+                                        .setKind(Common.Event.Kind.LEAKCANARY_ANALYSIS_STATUS)
                                         .setIsEnded(false)
                                         .setTimestamp(timeStamp1)
-                                        .setLeakCanaryLogcatStatus(
-                                          LeakCanaryLogcatStatus.newBuilder()
-                                            .setLogcatStarted(LeakCanary.LeakCanaryLogcatStarted.newBuilder()
+                                        .setLeakCanaryAnalysisStatus(
+                                          LeakCanaryAnalysisStatus.newBuilder()
+                                            .setAnalysisStarted(LeakCanary.LeakCanaryAnalysisStarted.newBuilder()
                                                                 .setTimestamp(timeStamp1)
                                                                 .build())
                                             .build()
@@ -212,16 +212,16 @@ class LeakCanarySessionArtifactTest : WithFakeTimer {
     transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID,
                                       Common.Event.newBuilder()
                                         .setPid(FakeTransportService.FAKE_PROCESS.pid)
-                                        .setKind(Common.Event.Kind.LEAKCANARY_LOGCAT_STATUS)
+                                        .setKind(Common.Event.Kind.LEAKCANARY_ANALYSIS_STATUS)
                                         .setIsEnded(true)
                                         .setTimestamp(timeStamp3)
-                                        .setLeakCanaryLogcatStatus(LeakCanaryLogcatStatus
+                                        .setLeakCanaryAnalysisStatus(LeakCanaryAnalysisStatus
                                                                    .newBuilder()
-                                                                   .setLogcatEnded(LeakCanary.LeakCanaryLogcatEnded.newBuilder()
+                                                                   .setAnalysisEnded(LeakCanary.LeakCanaryAnalysisEnded.newBuilder()
                                                                                      .setStartTimestamp(timeStamp1)
                                                                                      .setEndTimestamp(timeStamp3)
                                                                                      .setStatus(
-                                                                                       LeakCanary.LeakCanaryLogcatEnded.Status.SUCCESS)
+                                                                                       LeakCanary.LeakCanaryAnalysisEnded.Status.SUCCESS)
                                                                                      .build())
                                                                    .build())
                                         .build())
@@ -237,34 +237,34 @@ class LeakCanarySessionArtifactTest : WithFakeTimer {
     transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID,
                                       Common.Event.newBuilder()
                                         .setPid(FakeTransportService.FAKE_PROCESS.pid)
-                                        .setKind(Common.Event.Kind.LEAKCANARY_LOGCAT)
+                                        .setKind(Common.Event.Kind.LEAKCANARY_ANALYSIS)
                                         .setIsEnded(true)
                                         .setTimestamp(timeStamp1)
-                                        .setLeakcanaryLogcat(LeakCanary.LeakCanaryLogcatData
+                                        .setLeakcanaryAnalysis(LeakCanary.LeakCanaryAnalysisData
                                                                .newBuilder()
-                                                               .setLogcatMessage(fileContent).build())
+                                                               .setData(fileContent).build())
                                         .build())
 
     transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID,
                                       Common.Event.newBuilder()
                                         .setPid(FakeTransportService.FAKE_PROCESS.pid)
-                                        .setKind(Common.Event.Kind.LEAKCANARY_LOGCAT)
+                                        .setKind(Common.Event.Kind.LEAKCANARY_ANALYSIS)
                                         .setIsEnded(true)
                                         .setTimestamp(timeStamp2)
-                                        .setLeakcanaryLogcat(LeakCanary.LeakCanaryLogcatData
+                                        .setLeakcanaryAnalysis(LeakCanary.LeakCanaryAnalysisData
                                                                .newBuilder()
-                                                               .setLogcatMessage(fileContent).build())
+                                                               .setData(fileContent).build())
                                         .build())
 
     transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID,
                                       Common.Event.newBuilder()
                                         .setPid(FakeTransportService.FAKE_PROCESS.pid)
-                                        .setKind(Common.Event.Kind.LEAKCANARY_LOGCAT)
+                                        .setKind(Common.Event.Kind.LEAKCANARY_ANALYSIS)
                                         .setIsEnded(true)
                                         .setTimestamp(timeStamp3)
-                                        .setLeakcanaryLogcat(LeakCanary.LeakCanaryLogcatData
+                                        .setLeakcanaryAnalysis(LeakCanary.LeakCanaryAnalysisData
                                                                .newBuilder()
-                                                               .setLogcatMessage(fileContent).build())
+                                                               .setData(fileContent).build())
                                         .build())
 
     addLeakCanaryInfoEndEvent()
