@@ -72,9 +72,6 @@ class DeviceCableMonitorTest {
           }
         },
       )
-
-    monitor = DeviceCableMonitor()
-    CoroutineScope(Dispatchers.IO).launch { monitor.execute(projectRule.project) }
   }
 
   @Test
@@ -97,6 +94,9 @@ class DeviceCableMonitorTest {
     WriteAction.runAndWait<Throwable> {
       FacetUtil.addFacet(projectRule.module, AndroidFacet.getFacetType())
     }
+
+    monitor = DeviceCableMonitor()
+    CoroutineScope(Dispatchers.IO).launch { monitor.execute(projectRule.project) }
 
     if (!latch.await(5, TimeUnit.SECONDS)) {
       Assert.fail("Bad cable notification not detected")
