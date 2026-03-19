@@ -33,8 +33,8 @@ ANDROID_KOTLIN_MULTIPLATFORM_MULTI_PREVIEW_DEPS = [
     # Direct dependencies
     "@maven//:androidx.activity.activity-compose_" + ACTIVITY_COMPOSE_VERSION,
     "@maven//:org.jetbrains.compose.compose-gradle-plugin_1.10.1",
-    "@maven//:org.jetbrains.kotlin.multiplatform.org.jetbrains.kotlin.multiplatform.gradle.plugin_2.2.10",
-    "@maven//:org.jetbrains.kotlin.plugin.compose.org.jetbrains.kotlin.plugin.compose.gradle.plugin_2.2.10",
+    "@maven//:org.jetbrains.kotlin.multiplatform.org.jetbrains.kotlin.multiplatform.gradle.plugin_2.3.10",
+    "@maven//:org.jetbrains.kotlin.plugin.compose.org.jetbrains.kotlin.plugin.compose.gradle.plugin_2.3.10",
 
     # Transitive dependencies
     "@maven//:androidx.collection.collection-ktx_1.5.0",
@@ -56,7 +56,7 @@ ANDROID_KOTLIN_MULTIPLATFORM_MULTI_PREVIEW_DEPS = [
     "@maven//:org.jetbrains.compose.ui.ui-desktop_1.10.1",
     "@maven//:org.jetbrains.compose.ui.ui-tooling-preview_1.10.1",
     "@maven//:org.jetbrains.compose.ui.ui-tooling_1.10.1",
-    "@maven//:org.jetbrains.kotlin.kotlin-compose-compiler-plugin-embeddable_2.2.10",
+    "@maven//:org.jetbrains.kotlin.kotlin-compose-compiler-plugin-embeddable_2.3.10",
     "@maven//:org.jetbrains.skiko.skiko-js-wasm-runtime_0.9.37.4",
 ]
 

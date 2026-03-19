@@ -5,7 +5,7 @@ android-minSdk = "24"
 android-targetSdk = "35"
 androidx-activity = "1.9.3"
 composeMultiplatform = "1.10.1"
-kotlin = "2.2.10"
+kotlin = "2.3.10"
 kotlinx-coroutines = "1.10.2"
 
 [libraries]

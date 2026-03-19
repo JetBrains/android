@@ -70,4 +70,4 @@ fun AgpVersion.getKotlinVersion(): String? {
 }
 
 /** The Kotlin Gradle plugin version that AGP @ HEAD depends on. */
-const val AGP_BUILT_IN_KOTLIN_VERSION = "2.2.10"
+const val AGP_BUILT_IN_KOTLIN_VERSION = "2.3.10"

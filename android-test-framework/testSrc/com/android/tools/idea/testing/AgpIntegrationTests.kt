@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.testing
 
+import com.android.ide.common.repository.AgpVersion
 import com.android.testutils.junit4.OldAgpSuite
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.util.AGP_BUILT_IN_KOTLIN_VERSION
+import com.android.tools.idea.gradle.util.getKotlinVersion
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_11
@@ -337,5 +340,8 @@ private fun AgpVersionSoftwareEnvironmentDescriptor.gradleSuffix(): String {
 
 /** Returns the built-in Kotlin version associated with the AGP version. */
 fun AgpVersionSoftwareEnvironmentDescriptor.getBuiltInKotlinVersion(): String? {
-  return if (agpVersion == null) "2.2.10" else null
+  return when {
+    agpVersion == null -> AGP_BUILT_IN_KOTLIN_VERSION
+    else -> AgpVersion.parse(agpVersion).getKotlinVersion()
+  }
 }

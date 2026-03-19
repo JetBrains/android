@@ -1,5 +1,6 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
+load("//tools/base/build-system/integration-test:common-dependencies.bzl", "BUILT_IN_KOTLIN_VERSION")
 
 # managed by go/iml_to_build
 iml_module(
@@ -405,6 +406,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-compiler-embeddable_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-compose-compiler-plugin-embeddable_2.0.21",
         "@maven//:org.jetbrains.kotlin.kotlin-compose-compiler-plugin-embeddable_2.2.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-compose-compiler-plugin-embeddable_" + BUILT_IN_KOTLIN_VERSION,  # Used by NewProjectKotlinVersionTest
         "@maven//:org.jetbrains.kotlin.kotlin-compose-compiler-plugin_2.2.10",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.8.0",
@@ -432,6 +434,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_2.2.10",
         "@maven//:org.jetbrains.kotlin.plugin.compose.org.jetbrains.kotlin.plugin.compose.gradle.plugin_2.0.21",
         "@maven//:org.jetbrains.kotlin.plugin.compose.org.jetbrains.kotlin.plugin.compose.gradle.plugin_2.2.10",
+        "@maven//:org.jetbrains.kotlin.plugin.compose.org.jetbrains.kotlin.plugin.compose.gradle.plugin_" + BUILT_IN_KOTLIN_VERSION,  # Used by NewProjectKotlinVersionTest
         "@maven//:org.jetbrains.kotlinx.atomicfu-jvm_0.17.0",
         "@maven//:org.jetbrains.kotlinx.atomicfu_0.17.0",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.6.1",
