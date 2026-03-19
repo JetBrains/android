@@ -20,8 +20,8 @@ aswb_test(
         "//tools/adt/idea/aswb/testing:lib",
         "//tools/adt/idea/aswb/third_party/java/junit",
         "//tools/adt/idea/aswb/third_party/java/truth",
+        "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
-        "//tools/vendor/google/aswb/plugin_api/maven:guava",
     ],
 )
 
@@ -31,7 +31,7 @@ java_library(
     deps = [
         "//tools/adt/idea/aswb/shared",
         "//tools/adt/idea/aswb/shared:artifact",
-        "//tools/vendor/google/aswb/plugin_api/maven:guava",
+        "//tools/vendor/google/aswb/plugin_api",
     ],
 )
 
@@ -40,7 +40,6 @@ java_library(
     srcs = ["AspectProtos.java"],
     deps = [
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts:build_artifact_java_proto",
-        "//tools/vendor/google/aswb/plugin_api/maven:guava",
-        "//tools/vendor/google/aswb/plugin_api/maven:protobuf-java",
+        "//tools/vendor/google/aswb/plugin_api",
     ],
 )

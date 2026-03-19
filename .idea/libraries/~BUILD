@@ -351,3 +351,10 @@ jvm_import(
     jars = ["//tools/base/apkparser:libbinary-resources.jar"],
     visibility = ["//visibility:public"],
 )
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "studio-grpc-testing",
+    jars = ["//tools/base/bazel:studio-grpc-testing.jar"],
+    visibility = ["//visibility:public"],
+)

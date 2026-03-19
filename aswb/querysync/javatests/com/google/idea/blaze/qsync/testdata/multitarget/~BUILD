@@ -13,5 +13,5 @@ java_library_for_test_data(
         "TestClassMultiTarget.java",
         "TestClassSingleTarget.java",
     ],
-    deps = ["//tools/vendor/google/aswb/plugin_api/maven:guava"],
+    deps = ["@intellij//:intellij-sdk"],
 )

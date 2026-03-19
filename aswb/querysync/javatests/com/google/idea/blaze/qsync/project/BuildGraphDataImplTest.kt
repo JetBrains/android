@@ -251,7 +251,7 @@ class BuildGraphDataImplTest {
     assertThat(graph.getSourceFileOwners(TESTDATA_ROOT.resolve("multitarget/TestClassMultiTarget.java")))
       .containsExactly(Label.of("//$TESTDATA_ROOT/multitarget:nodeps"), Label.of("//$TESTDATA_ROOT/multitarget:externaldep"))
     assertThat(getRequiredTargets(graph, listOf(Label.of("//" + TESTDATA_ROOT.resolve("multitarget:externaldep")))))
-      .contains(Label.of("//tools/vendor/google/aswb/plugin_api/maven:guava"))
+      .contains(Label.of("@@+intellij+intellij//:intellij-sdk"))
     assertThat(getRequiredTargets(graph, listOf(Label.of("//" + TESTDATA_ROOT.resolve("multitarget:nodeps"))))).isEmpty()
   }
 
@@ -270,7 +270,7 @@ class BuildGraphDataImplTest {
     val sourceFile: Path = TESTDATA_ROOT.resolve("exports/TestClassUsingExport.java")
     assertThat(graph.getJavaSourceFiles()).containsExactly(sourceFile)
     assertThat(getRequiredTargets(graph, listOf(Label.of("//" + TESTDATA_ROOT.resolve("exports:exports")))))
-      .containsExactly(Label.of("//tools/vendor/google/aswb/plugin_api/maven:guava"))
+      .containsExactly(Label.of("@@+intellij+intellij//:intellij-sdk"))
   }
 
   @Test
@@ -365,7 +365,7 @@ class BuildGraphDataImplTest {
     assertThat(graph.getSourceFileOwners(sourceFile)).containsExactly(Label.of("//$TESTDATA_ROOT/filegroup:filegroup"))
     assertThat(graph.getSourceFileOwners(subgroupSourceFile)).containsExactly(Label.of("//$TESTDATA_ROOT/filegroup:filegroup"))
     assertThat(getRequiredTargets(graph, listOf(Label.of("//$TESTDATA_ROOT/filegroup:filegroup"))))
-      .containsExactly(Label.of("//tools/vendor/google/aswb/plugin_api/maven:guava"))
+      .containsExactly(Label.of("@@+intellij+intellij//:intellij-sdk"))
   }
 
   @Test
@@ -473,7 +473,7 @@ class BuildGraphDataImplTest {
         TestData.JAVA_LIBRARY_MULTI_TARGETS.assumedOnlyLabel.siblingWithName("externaldep"),
         TestData.JAVA_LIBRARY_MULTI_TARGETS.assumedOnlyLabel.siblingWithName("nodeps"),
       )
-    val expected = "//tools/vendor/google/aswb/plugin_api/maven:guava"
+    val expected = "@@+intellij+intellij//:intellij-sdk"
     assertThat(targets.requiredTargets).containsExactly(Label.of(expected))
   }
 
@@ -495,7 +495,7 @@ class BuildGraphDataImplTest {
         replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false,
       )
     assertThat(targets.targetsToBuild).containsExactly(TestData.JAVA_LIBRARY_NESTED_PACKAGE.assumedOnlyLabel)
-    assertThat(targets.requiredTargets).containsExactly(Label.of("//tools/vendor/google/aswb/plugin_api/maven:guava"))
+    assertThat(targets.requiredTargets).containsExactly(Label.of("@@+intellij+intellij//:intellij-sdk"))
   }
 
   @Test
@@ -521,7 +521,7 @@ class BuildGraphDataImplTest {
         TestData.JAVA_LIBRARY_NESTED_PACKAGE.assumedOnlyLabel.siblingWithPathAndName("inner:inner"),
       )
     assertThat(targets.requiredTargets)
-      .containsExactly(Label.of("//tools/vendor/google/aswb/plugin_api/maven:guava"), Label.of("@@maven//:com.google.code.gson.gson"))
+      .containsExactly(Label.of("@@+intellij+intellij//:intellij-sdk"), Label.of("@@maven//:com.google.code.gson.gson"))
   }
 
   @Test

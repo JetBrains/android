@@ -29,8 +29,5 @@ aswb_library(
         "//tools/adt/idea/aswb/third_party/java/auto_value",
         "//tools/base/annotations",
         "//tools/vendor/google/aswb/plugin_api",
-        "//tools/vendor/google/aswb/plugin_api/maven:grpc-protobuf",
-        "//tools/vendor/google/aswb/plugin_api/maven:grpc-protobuf-lite",
-        "//tools/vendor/google/aswb/plugin_api/maven:guava",
     ],
 )

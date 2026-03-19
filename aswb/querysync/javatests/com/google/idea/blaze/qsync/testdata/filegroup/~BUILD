@@ -16,5 +16,5 @@ filegroup(
 java_library_for_test_data(
     name = "filegroup",
     srcs = [":sources"],
-    deps = ["//tools/vendor/google/aswb/plugin_api/maven:guava"],
+    deps = ["@intellij//:intellij-sdk"],
 )

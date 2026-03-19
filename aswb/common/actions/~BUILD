@@ -16,6 +16,5 @@ aswb_library(
     deps = [
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
-        "//tools/vendor/google/aswb/plugin_api/maven:guava",
     ],
 )
