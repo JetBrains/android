@@ -2065,6 +2065,10 @@ public final class StudioFlags {
   public static final Flag<Boolean> MISSING_URLS_FEATURE =
     new BooleanFlag(APP_LINKS_ASSISTANT, "missing.urls.feature", "Missing URLs feature",
                     "Add a new tab to display missing URLs and help users fix them.");
+  public static final Flag<Boolean> APP_LINKS_ASSISTANT_USE_AGENT_SDK_V2 =
+    new BooleanFlag(APP_LINKS_ASSISTANT, "use.agent.sdk.v2",
+                    "Use the V2 agent SDK for deep linking AI features",
+                    "When enabled, the user will be redirected to use the trajectory based agent SDK.");
   // endregion App Links Assistant
 
   // region TargetSDKVersion Upgrade Assistant
