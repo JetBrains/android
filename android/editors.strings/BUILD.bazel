@@ -77,6 +77,8 @@ jvm_library(
     "//android/render-resources:render-resources_test_lib",
     "//libraries/kotlinx/coroutines/test",
     "//libraries/kotlinx/coroutines/test:test_test_lib",
+    "//platform/lang-api:lang",
+    "//platform/lang-api:lang_test_lib",
   ],
   runtime_deps = [
     ":editors.strings",

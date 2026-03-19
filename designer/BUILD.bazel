@@ -531,6 +531,8 @@ jvm_library(
     "//android/visual-lint:visual-lint_test_lib",
     "//platform/util/base",
     "//platform/util/base:base_test_lib",
+    "//platform/lang-api:lang",
+    "//platform/lang-api:lang_test_lib",
   ],
   runtime_deps = [
     ":designer-tests",

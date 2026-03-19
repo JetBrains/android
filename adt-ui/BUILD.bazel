@@ -67,6 +67,7 @@ jvm_library(
     "//platform/platform-impl/ui",
     "//libraries/jspecify",
     "//platform/code-style-api:codeStyle",
+    "//platform/lang-api:lang",
   ],
   exports = ["@lib//:android-adt-ui-ibm-db2-jcc"]
 )
@@ -171,6 +172,8 @@ jvm_library(
     "//platform/project-frame:project-frame_test_lib",
     "//platform/code-style-api:codeStyle",
     "//platform/code-style-api:codeStyle_test_lib",
+    "//platform/lang-api:lang",
+    "//platform/lang-api:lang_test_lib",
   ],
   exports = ["@lib//:android-adt-ui-ibm-db2-jcc"],
   runtime_deps = [

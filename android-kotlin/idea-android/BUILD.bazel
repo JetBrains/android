@@ -221,6 +221,8 @@ jvm_library(
     "//plugins/kotlin/project-configuration:project-configuration_test_lib",
     "//android/adt-testutils",
     "//android/adt-testutils:adt-testutils_test_lib",
+    "//platform/lang-api:lang",
+    "//platform/lang-api:lang_test_lib",
   ],
   runtime_deps = [":android-kotlin-tests"]
 )

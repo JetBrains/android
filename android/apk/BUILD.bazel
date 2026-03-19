@@ -69,6 +69,8 @@ jvm_library(
     "@lib//:equalsverifier",
     "//libraries/guava",
     "//libraries/guava:guava_test_lib",
+    "//platform/lang-api:lang",
+    "//platform/lang-api:lang_test_lib",
   ],
   runtime_deps = [
     ":apk",

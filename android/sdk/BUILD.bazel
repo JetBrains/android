@@ -113,6 +113,8 @@ jvm_library(
     "@lib//:jaxb-api",
     "//platform/util/concurrency",
     "//platform/util/concurrency:concurrency_test_lib",
+    "//platform/lang-api:lang",
+    "//platform/lang-api:lang_test_lib",
   ],
   runtime_deps = [
     ":sdk",

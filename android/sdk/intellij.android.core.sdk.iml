@@ -60,6 +60,7 @@
     <orderEntry type="module" module-name="intellij.kotlin.base.facet" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="jaxb-api" level="project" />
     <orderEntry type="module" module-name="intellij.platform.concurrency" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.lang" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.core" />
 </module>
