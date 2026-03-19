@@ -24,6 +24,7 @@ import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiField
+import com.intellij.psi.PsiTypes
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.base.util.projectScope
@@ -827,5 +828,11 @@ class IndexKeyUtilTest {
     val arrayFooBarType = myFixture.findParentElement<KtProperty>("arrayFooBar|Property").psiType!!
     assertThat(getIndexKeys(arrayFooBarType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("Array", "Foo[]", "MyArrayBar", "MyArrayFooBar", "")
+  }
+
+  @Test
+  fun getIndexKeys_nullType() {
+    val indexKeys = getIndexKeys(PsiTypes.nullType(), myFixture.project, myFixture.project.projectScope())
+    assertThat(indexKeys).containsExactly("")
   }
 }
