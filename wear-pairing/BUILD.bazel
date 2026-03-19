@@ -150,6 +150,7 @@ jps_test(
 ### auto-generated section `build intellij.android.wear-pairing.tests` start
 jvm_library(
   name = "wear-pairing-tests",
+  module_name = "intellij.android.wear-pairing.tests",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True)
 )

@@ -52,6 +52,7 @@ exports_files([
 ### auto-generated section `build intellij.android.ml-api-tests` start
 jvm_library(
   name = "ml-api-tests",
+  module_name = "intellij.android.ml-api-tests",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True)
 )

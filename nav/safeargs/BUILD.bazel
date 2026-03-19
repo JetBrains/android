@@ -9,6 +9,7 @@ resourcegroup(
 
 jvm_library(
   name = "safeargs",
+  module_name = "intellij.android.nav.safeargs",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
   resources = [":safeargs_resources"],

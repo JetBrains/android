@@ -128,6 +128,7 @@ exports_files([
 ### auto-generated section `build intellij.android.streaming.integration` start
 jvm_library(
   name = "streaming-integration",
+  module_name = "intellij.android.streaming.integration",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True)
 )
@@ -218,6 +219,7 @@ jps_test(
 ### auto-generated section `build intellij.android.streaming.testUtil` start
 jvm_library(
   name = "streaming-testUtil",
+  module_name = "intellij.android.streaming.testUtil",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
   runtime_deps = [
@@ -340,6 +342,7 @@ jps_test(
 ### auto-generated section `build intellij.android.streaming.tests` start
 jvm_library(
   name = "streaming-tests",
+  module_name = "intellij.android.streaming.tests",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
   runtime_deps = [

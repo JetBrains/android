@@ -9,6 +9,7 @@ resourcegroup(
 
 jvm_library(
   name = "descriptor",
+  module_name = "intellij.android.plugin.descriptor",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
   resources = [":descriptor_resources"]

@@ -106,6 +106,7 @@ exports_files([
 ### auto-generated section `build intellij.android.glance-designer.tests` start
 jvm_library(
   name = "glance-designer-tests",
+  module_name = "intellij.android.glance-designer.tests",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
   runtime_deps = ["//platform/editor-ui-ex:editor-ex"]

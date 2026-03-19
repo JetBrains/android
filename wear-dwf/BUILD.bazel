@@ -93,6 +93,7 @@ resourcegroup(
 
 jvm_library(
   name = "wear-dwf-tests",
+  module_name = "intellij.android.wear-dwf.tests",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
   runtime_deps = ["//libraries/protobuf"]

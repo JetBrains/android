@@ -12,6 +12,7 @@ create_kotlinc_options(
 
 jvm_library(
   name = "modularize",
+  module_name = "intellij.android.core.modularize",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
   runtime_deps = ["@lib//:kotlin-stdlib"]

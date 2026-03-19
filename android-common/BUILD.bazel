@@ -145,6 +145,7 @@ create_kotlinc_options(
 
 jvm_library(
   name = "common-tests",
+  module_name = "intellij.android.common.tests",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
   runtime_deps = ["//platform/projectModel-api:projectModel"]

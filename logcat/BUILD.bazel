@@ -113,6 +113,7 @@ exports_files([
 ### auto-generated section `build intellij.android.logcat.tests` start
 jvm_library(
   name = "logcat-tests",
+  module_name = "intellij.android.logcat.tests",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
   runtime_deps = ["//platform/ide-core-impl"]

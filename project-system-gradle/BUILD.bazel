@@ -375,6 +375,7 @@ resourcegroup(
 
 jvm_library(
   name = "projectSystem-gradle-tests",
+  module_name = "intellij.android.projectSystem.gradle.tests",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
   runtime_deps = [

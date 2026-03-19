@@ -118,6 +118,7 @@ exports_files([
 ### auto-generated section `build intellij.android.adb.testUtil` start
 jvm_library(
   name = "adb-testUtil",
+  module_name = "intellij.android.adb.testUtil",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
   runtime_deps = ["@lib//:kotlin-stdlib"]
@@ -181,6 +182,7 @@ create_kotlinc_options(
 
 jvm_library(
   name = "adb-tests",
+  module_name = "intellij.android.adb.tests",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
   runtime_deps = ["@lib//:kotlin-stdlib"],

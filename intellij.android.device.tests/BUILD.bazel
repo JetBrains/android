@@ -10,6 +10,7 @@ create_kotlinc_options(
 
 jvm_library(
   name = "device-tests",
+  module_name = "intellij.android.device.tests",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
   runtime_deps = ["@lib//:kotlin-stdlib"],

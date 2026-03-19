@@ -53,6 +53,7 @@ exports_files([
 ### auto-generated section `build intellij.android.gradle.declarative.lang.tests` start
 jvm_library(
   name = "gradle-declarative-lang-tests",
+  module_name = "intellij.android.gradle.declarative.lang.tests",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
   runtime_deps = ["//android/gradle-declarative-lang-ide"]

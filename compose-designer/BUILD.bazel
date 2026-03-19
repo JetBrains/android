@@ -223,6 +223,7 @@ exports_files([
 ### auto-generated section `build intellij.android.compose-designer.integration` start
 jvm_library(
   name = "compose-designer-integration",
+  module_name = "intellij.android.compose-designer.integration",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
   runtime_deps = ["@lib//:kotlin-stdlib"]
@@ -267,6 +268,7 @@ jps_test(
 ### auto-generated section `build intellij.android.compose-designer.testFramework` start
 jvm_library(
   name = "compose-designer-testFramework",
+  module_name = "intellij.android.compose-designer.testFramework",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
   runtime_deps = ["@lib//:kotlin-stdlib"]
@@ -377,6 +379,7 @@ resourcegroup(
 
 jvm_library(
   name = "compose-designer-tests",
+  module_name = "intellij.android.compose-designer.tests",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
   runtime_deps = ["//platform/editor-ui-ex:editor-ex"],

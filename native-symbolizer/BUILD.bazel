@@ -63,6 +63,7 @@ resourcegroup(
 
 jvm_library(
   name = "native-symbolizer-tests",
+  module_name = "intellij.android.native-symbolizer.tests",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
   runtime_deps = [

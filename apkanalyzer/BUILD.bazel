@@ -129,6 +129,7 @@ resourcegroup(
 
 jvm_library(
   name = "apkanalyzer-tests",
+  module_name = "intellij.android.apkanalyzer.tests",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True)
 )

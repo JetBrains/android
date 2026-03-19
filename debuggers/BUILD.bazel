@@ -147,6 +147,7 @@ exports_files([
 ### auto-generated section `build intellij.android.debuggers.tests` start
 jvm_library(
   name = "debuggers-tests",
+  module_name = "intellij.android.debuggers.tests",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
   runtime_deps = [

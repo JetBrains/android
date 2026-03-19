@@ -179,6 +179,7 @@ resourcegroup(
 
 jvm_library(
   name = "newProjectWizard-tests",
+  module_name = "intellij.android.newProjectWizard.tests",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
   runtime_deps = [

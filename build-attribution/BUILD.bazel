@@ -122,6 +122,7 @@ exports_files([
 ### auto-generated section `build intellij.android.build-attribution.tests` start
 jvm_library(
   name = "build-attribution-tests",
+  module_name = "intellij.android.build-attribution.tests",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
   runtime_deps = ["//android/artwork"]

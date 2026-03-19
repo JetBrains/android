@@ -17,6 +17,7 @@ kt_javac_options(
 
 jvm_library(
   name = "testFramework",
+  module_name = "intellij.android.testFramework",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
   runtime_deps = [

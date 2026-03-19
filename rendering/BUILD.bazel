@@ -76,6 +76,7 @@ exports_files([
 ### auto-generated section `build intellij.android.rendering.tests` start
 jvm_library(
   name = "rendering-tests",
+  module_name = "intellij.android.rendering.tests",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
   runtime_deps = ["@lib//:kotlin-stdlib"]

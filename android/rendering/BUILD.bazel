@@ -11,6 +11,7 @@ kt_javac_options(
 
 jvm_library(
   name = "rendering",
+  module_name = "intellij.android.core.rendering",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True)
 )

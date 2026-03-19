@@ -3,6 +3,7 @@ load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 jvm_library(
   name = "actions",
+  module_name = "intellij.android.core.actions",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
   runtime_deps = ["//android/project-system-gradle-psd:projectSystem-gradle-psd"]

@@ -102,6 +102,7 @@ create_kotlinc_options(
 
 jvm_library(
   name = "android-kotlin-tests",
+  module_name = "intellij.android.kotlin.tests",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
   runtime_deps = ["@lib//:kotlin-stdlib"]
