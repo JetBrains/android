@@ -25,7 +25,6 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
-import com.android.ddmlib.allocations.AllocationsParserTest;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.FakeTimer;
