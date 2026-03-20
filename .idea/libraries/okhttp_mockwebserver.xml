@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="okhttp.mockwebserver">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/com/squareup/okhttp3/okhttp/4.12.0/okhttp-4.12.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/com/squareup/okhttp3/mockwebserver/4.12.0/mockwebserver-4.12.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/com/squareup/okio/okio-jvm/3.6.0/okio-jvm-3.6.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/com/squareup/okhttp3/okhttp/4.12.0/okhttp-4.12.0-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/com/squareup/okio/okio-jvm/3.6.0/okio-jvm-3.6.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

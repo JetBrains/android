@@ -358,3 +358,10 @@ jvm_import(
     jars = ["//tools/base/bazel:studio-grpc-testing.jar"],
     visibility = ["//visibility:public"],
 )
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "okhttp.mockwebserver",
+    jars = ["//prebuilts/tools/common/m2:okhttp.mockwebserver_files"],
+    visibility = ["//visibility:public"],
+)
