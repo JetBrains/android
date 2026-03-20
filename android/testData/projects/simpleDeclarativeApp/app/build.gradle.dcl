@@ -4,7 +4,7 @@ androidApp {
     defaultConfig {
       minSdk = 34
     }
-    dependenciesDcl {
+    dependencies {
         api("com.google.guava:guava:19.0")
         api("com.android.support.constraint:constraint-layout:1.0.2")
         implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.22")
