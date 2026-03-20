@@ -667,6 +667,8 @@
     <postStartupActivity implementation="com.android.tools.idea.ndk.PageAlignProjectActivity"/>
 
     <internalFileTemplate name="Version_Catalog_File.versions" />
+
+    <appStarter id="run-analysis-script" implementation="com.android.tools.idea.analysis.AnalysisScriptApplicationStarter"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">

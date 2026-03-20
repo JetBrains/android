@@ -65,7 +65,7 @@ class AnalysisScriptService(private val project: Project, private val scope: Cor
     }
   }
 
-  private suspend fun runAnalysisScript(file: VirtualFile): String? {
+  suspend fun runAnalysisScript(file: VirtualFile): String? {
     if (!file.isInLocalFileSystem) throw IllegalArgumentException("Analysis script file must be in local file system: $file")
     if (!file.name.endsWith(ANALYSIS_SCRIPT_EXTENSION))
       throw IllegalArgumentException("Analysis script file must have $ANALYSIS_SCRIPT_EXTENSION extension: $file")
