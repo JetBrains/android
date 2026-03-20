@@ -35,7 +35,6 @@ import java.nio.file.Path
 import kotlin.io.path.bufferedWriter
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.name
-import kotlin.script.experimental.jvm.util.classpathFromClassloader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -73,8 +72,8 @@ class AnalysisScriptService(private val project: Project, private val scope: Cor
 
     return withBackgroundProgress(project, "Executing analysis script...", cancellable = true) {
       val javaHome = System.getProperty("java.home") ?: throw RuntimeException("Could not get java.home directory of IDE")
-      val pluginClassloader = AnalysisScriptService::class.java.classLoader
-      val pluginClasspath = classpathFromClassloader(pluginClassloader) ?: throw RuntimeException("Could not get IDE classpath")
+      val pluginClassLoader = AnalysisScriptService::class.java.classLoader
+      val pluginClasspath = analysisScriptClasspath ?: throw RuntimeException("Could not get IDE classpath")
       createTempDirectory(tempDir.toPath(), "run").useDirectory { temp ->
         val argsFile = temp.resolve("args.txt")
         val outDir = temp.resolve("out")
@@ -101,7 +100,7 @@ class AnalysisScriptService(private val project: Project, private val scope: Cor
         if (!processResult.checkSuccess(LOGGER)) return@withBackgroundProgress null
 
         // Load and run.
-        val classLoader = URLClassLoader(arrayOf(outDir.toUri().toURL()), pluginClassloader)
+        val classLoader = URLClassLoader(arrayOf(outDir.toUri().toURL()), pluginClassLoader)
         val className = NameUtils.getScriptNameForFile(file.name).toString()
         val clazz = classLoader.loadClass(className)
         val constructor = clazz.getConstructor(Project::class.java)

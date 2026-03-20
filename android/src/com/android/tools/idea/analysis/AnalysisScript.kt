@@ -16,6 +16,7 @@
 package com.android.tools.idea.analysis
 
 import com.android.tools.idea.flags.StudioFlags.ANALYSIS_SCRIPTS
+import com.intellij.ide.plugins.cl.PluginClassLoader
 import com.intellij.openapi.project.Project
 import java.io.File
 import kotlin.script.experimental.annotations.KotlinScript
@@ -25,8 +26,9 @@ import kotlin.script.experimental.api.acceptedLocations
 import kotlin.script.experimental.api.defaultImports
 import kotlin.script.experimental.api.ide
 import kotlin.script.experimental.intellij.ScriptDefinitionsProvider
-import kotlin.script.experimental.jvm.dependenciesFromCurrentContext
 import kotlin.script.experimental.jvm.jvm
+import kotlin.script.experimental.jvm.updateClasspath
+import kotlin.script.experimental.jvm.util.classpathFromClassloader
 
 const val ANALYSIS_SCRIPT_EXTENSION = "analysis.kts"
 
@@ -42,7 +44,7 @@ abstract class AnalysisScript(val project: Project) {
 class AnalysisScriptCompilationConfiguration :
   ScriptCompilationConfiguration({
     defaultImports(Project::class)
-    jvm { dependenciesFromCurrentContext(wholeClasspath = true) }
+    jvm { updateClasspath(analysisScriptClasspath) }
     ide { acceptedLocations(ScriptAcceptedLocation.Everywhere) }
   })
 
@@ -57,7 +59,31 @@ class AnalysisScriptDefinitionProvider : ScriptDefinitionsProvider {
       emptyList()
     }
 
-  override fun getDefinitionsClassPath() = emptyList<File>()
+  override fun getDefinitionsClassPath() = analysisScriptClasspath ?: emptyList()
 
   override fun useDiscovery() = false
+}
+
+// Note that when using the "Run Android Studio" configuration from IntelliJ, the class loader setup is quite different, and is essentially
+// "more forgiving" (most class loaders will have access to all classes). The code below, and in particular, the overriding of
+// getDefinitionsClassPath() above, is necessary when actually running a proper Android Studio release (or when running via Bazel).
+
+val analysisScriptClasspath by lazy { getClasspathFromClassLoader(AnalysisScript::class.java.classLoader) }
+
+@Suppress("UnstableApiUsage")
+private fun getClasspathFromClassLoader(classLoader: ClassLoader): List<File>? {
+  if (classLoader !is PluginClassLoader) return classpathFromClassloader(classLoader)
+
+  // Workaround necessary for out-of-date code in classpathFromClassloader that cannot find
+  // parents of PluginClassLoader.
+
+  val result = LinkedHashSet<File>()
+  classpathFromClassloader(classLoader)?.let { result.addAll(it) }
+
+  // Includes transitive parents (so really, ancestors).
+  for (parent in classLoader.getAllParentsClassLoaders()) {
+    classpathFromClassloader(parent)?.let { result.addAll(it) }
+  }
+
+  return result.toList()
 }
