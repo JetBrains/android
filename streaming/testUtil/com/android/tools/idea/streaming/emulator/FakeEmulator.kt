@@ -58,7 +58,13 @@ import com.android.emulator.snapshot.SnapshotOuterClass.Image as SnapshotImage
 import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
 import com.android.io.writeImage
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceId
+import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
+import com.android.sdklib.deviceprovisioner.LocalEmulatorProvisionerPlugin
+import com.android.sdklib.deviceprovisioner.PairedGlassesInfo
 import com.android.sdklib.deviceprovisioner.ProcessHandleProvider
 import com.android.sdklib.deviceprovisioner.RunningAvd.RunType
 import com.android.sdklib.repository.targets.SystemImageManager
@@ -96,6 +102,7 @@ import com.intellij.openapi.util.text.StringUtil.parseInt
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.io.createDirectories
 import com.intellij.util.ui.UIUtil
+import icons.StudioIcons
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.RenderingHints
@@ -125,7 +132,10 @@ import javax.imageio.ImageIO
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.time.Duration
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.invoke
 import org.junit.Assert.fail
 
@@ -221,6 +231,12 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
   val avdName: String
     get() = config.avdName
 
+  val deviceType: DeviceType
+    get() = config.deviceType
+
+  val deviceId: DeviceId = DeviceId(LocalEmulatorProvisionerPlugin.PLUGIN_ID, false, "path=$avdFolder")
+  val deviceHandle: FakeDeviceHandle = FakeDeviceHandle(this)
+
   @Volatile var extendedControlsVisible = false
 
   @Volatile
@@ -238,6 +254,21 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
 
   val serialNumber: String
     get() = "emulator-$serialPort"
+
+  var pairedDevice: FakeEmulator? = null
+    set(value) {
+      if (field != value) {
+        require(
+          value == null ||
+            deviceType == DeviceType.AI_GLASSES && value.deviceType == DeviceType.HANDHELD ||
+            deviceType == DeviceType.HANDHELD && value.deviceType == DeviceType.AI_GLASSES
+        )
+        field?.pairedDevice = null
+        field = value
+        deviceHandle.setPair(value?.deviceId)
+        value?.pairedDevice = this
+      }
+    }
 
   val grpcCallLog = LinkedBlockingDeque<GrpcCallRecord>()
   private val grpcSemaphore = Semaphore(Int.MAX_VALUE)
@@ -928,6 +959,50 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
 
     fun or(vararg moreMethodNamesToIgnore: String): CallFilter {
       return CallFilter(*arrayOf(*methodNamesToIgnore) + arrayOf(*moreMethodNamesToIgnore))
+    }
+  }
+
+  class FakeDeviceHandle(private val emulator: FakeEmulator) : DeviceHandle {
+
+    override val id: DeviceId
+      get() = emulator.deviceId
+
+    override val stateFlow: MutableStateFlow<DeviceState>
+
+    override val scope = CoroutineScope(Dispatchers.Unconfined)
+
+    init {
+      val props =
+        LocalEmulatorProperties.Builder()
+          .apply {
+            avdName = emulator.avdName
+            avdPath = emulator.avdFolder
+            displayName = emulator.avdName
+            deviceType = emulator.deviceType
+            icon = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
+          }
+          .build()
+
+      val state = DeviceState.Disconnected(props)
+      stateFlow = MutableStateFlow(state)
+    }
+
+    fun setPair(pairedDeviceId: DeviceId?) {
+      val props =
+        state.properties
+          .toBuilder()
+          .apply {
+            when (deviceType) {
+              DeviceType.AI_GLASSES -> pairedPhoneId = pairedDeviceId
+              // TODO android-merge pairedGlassesId renamed to pairedGlassesInfos upstream
+              // else -> pairedGlassesId = pairedDeviceId
+              else ->
+                pairedGlassesInfos = listOfNotNull(pairedDeviceId?.let { PairedGlassesInfo(it, mac = null) })
+            }
+          }
+          .build()
+
+      stateFlow.value = DeviceState.Disconnected(props)
     }
   }
 
