@@ -418,7 +418,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   override val component: JComponent
     get() = previewView.component
 
-  override val preferredInitialVisibility: PreferredVisibility? = null
+  override suspend fun preferredInitialVisibility(): PreferredVisibility? = null
 
   override val caretNavigationHandler = PreviewRepresentation.CaretNavigationHandler.NoopCaretNavigationHandler()
 

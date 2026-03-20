@@ -32,7 +32,6 @@ import com.android.tools.idea.preview.find.StaticPreviewProvider
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.UiCheckInstance
 import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
-import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD
@@ -214,7 +213,7 @@ class ParametrizedPreviewTest {
     val mainSurface = NlSurfaceBuilder.builder(project, projectRule.fixture.testRootDisposable).build()
 
     val composeView = TestComposePreviewView(mainSurface)
-    val preview = ComposePreviewRepresentation(psiFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ -> composeView }
+    val preview = ComposePreviewRepresentation(psiFile) { _, _, _, _, _, _ -> composeView }
     Disposer.register(projectRule.fixture.testRootDisposable, preview)
 
     composeView.runAndWaitForRefresh { preview.onActivate() }
@@ -308,7 +307,7 @@ class ParametrizedPreviewTest {
     val mainSurface = NlSurfaceBuilder.builder(project, projectRule.fixture.testRootDisposable).build()
 
     val composeView = TestComposePreviewView(mainSurface)
-    val preview = ComposePreviewRepresentation(psiFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ -> composeView }
+    val preview = ComposePreviewRepresentation(psiFile) { _, _, _, _, _, _ -> composeView }
     Disposer.register(projectRule.fixture.testRootDisposable, preview)
 
     composeView.runAndWaitForRefresh { preview.onActivate() }
@@ -364,7 +363,7 @@ class ParametrizedPreviewTest {
     val mainSurface = NlSurfaceBuilder.builder(project, projectRule.fixture.testRootDisposable).build()
 
     val composeView = TestComposePreviewView(mainSurface)
-    val preview = ComposePreviewRepresentation(psiFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ -> composeView }
+    val preview = ComposePreviewRepresentation(psiFile) { _, _, _, _, _, _ -> composeView }
     Disposer.register(projectRule.fixture.testRootDisposable, preview)
 
     composeView.runAndWaitForRefresh { preview.onActivate() }

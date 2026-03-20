@@ -29,7 +29,8 @@ open class TestPreviewRepresentation : PreviewRepresentation {
   private var restoreCount = 0
   var nCaretNotifications = 0
   var lastCaretEvent: CaretEvent? = null
-  override val preferredInitialVisibility: PreferredVisibility? = null
+
+  override suspend fun preferredInitialVisibility(): PreferredVisibility? = null
 
   override val component = JPanel()
 

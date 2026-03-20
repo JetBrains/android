@@ -119,7 +119,8 @@ class CustomViewPreviewRepresentation(
 
   private val previewId = "$CUSTOM_VIEW_PREVIEW_ID${psiFile.virtualFile!!.path}"
   private val currentStatePropertyName = "${previewId}_SELECTED"
-  override val preferredInitialVisibility: PreferredVisibility? = null
+
+  override suspend fun preferredInitialVisibility(): PreferredVisibility? = null
 
   private fun dimensionsPropertyNameForClass(className: String) = "${previewId}_${className}_DIMENSIONS"
 

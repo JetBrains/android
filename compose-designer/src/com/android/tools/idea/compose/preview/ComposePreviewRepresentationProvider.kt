@@ -21,7 +21,6 @@ import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
-import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.actions.ComposeNotificationGroup
 import com.android.tools.idea.compose.preview.actions.ShowDebugBoundaries
@@ -41,15 +40,10 @@ import com.android.tools.idea.preview.actions.isPreviewRefreshing
 import com.android.tools.idea.preview.actions.visibleOnlyInDefaultPreview
 import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
-import com.android.tools.idea.preview.find.FilePreviewElementFinder
 import com.android.tools.idea.preview.modes.FOCUS_MODE_LAYOUT_OPTION
 import com.android.tools.idea.preview.representation.CommonRepresentationEditorFileType
 import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
-import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility.FULL
-import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility.HIDDEN
-import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility.SPLIT
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.android.tools.idea.util.isAndroidModule
 import com.android.tools.idea.util.isCommonWithAndroidModule
@@ -62,16 +56,12 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.smartReadAction
-import com.intellij.openapi.diagnostic.debug
-import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
-import org.jetbrains.android.uipreview.AndroidEditorSettings
-import org.jetbrains.android.uipreview.AndroidEditorSettings.EditorMode
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.idea.stubindex.KotlinFullClassNameIndex
 
@@ -121,9 +111,7 @@ class ComposeAdapterLightVirtualFile(name: String, content: String, originFile: 
   InMemoryLayoutVirtualFile("compose-$name", content, originFile)
 
 /** A [PreviewRepresentationProvider] coupled with [ComposePreviewRepresentation]. */
-class ComposePreviewRepresentationProvider(
-  private val filePreviewElementProvider: () -> FilePreviewElementFinder<PsiComposePreviewElement> = { AnnotationFilePreviewElementFinder }
-) : PreviewRepresentationProvider {
+class ComposePreviewRepresentationProvider : PreviewRepresentationProvider {
 
   private object ComposeEditorFileType :
     CommonRepresentationEditorFileType(ComposeAdapterLightVirtualFile::class.java, LayoutEditorState.Type.COMPOSE, ::ComposePreviewToolbar)
@@ -145,19 +133,7 @@ class ComposePreviewRepresentationProvider(
 
   /** Creates a [ComposePreviewRepresentation] for the input [psiFile]. */
   override suspend fun createRepresentation(psiFile: PsiFile): ComposePreviewRepresentation {
-    val virtualFile = psiFile.virtualFile ?: psiFile.viewProvider.virtualFile
-    val hasPreviewMethods = filePreviewElementProvider().hasPreviewElements(psiFile.project, virtualFile)
-    thisLogger().debug { "${virtualFile.path} hasPreviewMethods=${hasPreviewMethods}" }
-
-    val globalState = AndroidEditorSettings.getInstance().globalState
-    val preferredVisibility =
-      if (globalState.showSplitViewForPreviewFiles && hasPreviewMethods) {
-        SPLIT
-      } else {
-        globalState.preferredEditorMode.getVisibility(HIDDEN)
-      }
-
-    return ComposePreviewRepresentation(psiFile, preferredVisibility, ::ComposePreviewViewImpl)
+    return ComposePreviewRepresentation(psiFile = psiFile, composePreviewViewProvider = ::ComposePreviewViewImpl)
   }
 
   override val displayName = message("representation.name")
@@ -188,11 +164,3 @@ internal val COMPOSE_PREVIEW_MANAGER = DataKey.create<ComposePreviewManager>("$P
 internal val PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE = DataKey.create<PsiComposePreviewElementInstance>("$PREFIX.PreviewElement")
 
 @TestOnly fun getComposePreviewManagerKeyForTests() = COMPOSE_PREVIEW_MANAGER
-
-private fun EditorMode?.getVisibility(defaultValue: PreferredVisibility) =
-  when (this) {
-    EditorMode.CODE -> HIDDEN
-    EditorMode.SPLIT -> SPLIT
-    EditorMode.DESIGN -> FULL
-    null -> defaultValue
-  }

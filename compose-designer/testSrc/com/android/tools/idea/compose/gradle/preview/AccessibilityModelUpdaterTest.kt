@@ -26,7 +26,6 @@ import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.UiCheckInstance
-import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.model.w
 import com.android.tools.idea.uibuilder.model.y
 import com.google.common.truth.Truth.assertThat
@@ -111,7 +110,7 @@ class AccessibilityModelUpdaterTest {
   }
 
   private fun createComposePreviewRepresentation(psiFile: PsiFile, view: TestComposePreviewView): ComposePreviewRepresentation {
-    val previewRepresentation = ComposePreviewRepresentation(psiFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ -> view }
+    val previewRepresentation = ComposePreviewRepresentation(psiFile) { _, _, _, _, _, _ -> view }
     Disposer.register(fixture.testRootDisposable, previewRepresentation)
 
     return previewRepresentation

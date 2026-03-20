@@ -52,7 +52,7 @@ class ComposePreviewRepresentationProviderTest {
   private val fixture
     get() = projectRule.fixture
 
-  private val previewProvider = ComposePreviewRepresentationProvider { AnnotationFilePreviewElementFinder }
+  private val previewProvider = ComposePreviewRepresentationProvider()
 
   @Test
   fun testDefaultLayout_withPreview() = runBlocking {
@@ -234,6 +234,6 @@ class ComposePreviewRepresentationProviderTest {
     DumbModeTestUtils.runInDumbModeSynchronously(project) { runBlocking { assertFalse(previewProvider.accept(project, file)) } }
   }
 
-  private fun PsiFile.getPreferredVisibility() =
-    getRepresentationForFile(this, project, fixture, previewProvider).preferredInitialVisibility
+  private suspend fun PsiFile.getPreferredVisibility() =
+    getRepresentationForFile(this, project, fixture, previewProvider).preferredInitialVisibility()
 }

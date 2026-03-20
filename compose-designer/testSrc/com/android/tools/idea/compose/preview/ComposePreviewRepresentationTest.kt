@@ -58,7 +58,6 @@ import com.android.tools.idea.run.configuration.execution.findElementByText
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.testing.ui.createFakeToolWindow
-import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.SourceCodeEditorProvider
 import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
@@ -506,7 +505,7 @@ class ComposePreviewRepresentationTest {
       }
       val mainSurface: NlDesignSurface = NlSurfaceBuilder.builder(fixture.project, fixture.testRootDisposable, false).build()
       val composeView = TestComposePreviewView(mainSurface)
-      val previewRepresentation = ComposePreviewRepresentation(composeTest, PreferredVisibility.SPLIT) { _, _, _, _, _, _ -> composeView }
+      val previewRepresentation = ComposePreviewRepresentation(composeTest) { _, _, _, _, _, _ -> composeView }
       Disposer.register(fixture.testRootDisposable, previewRepresentation)
       Disposer.register(fixture.testRootDisposable, mainSurface)
 
@@ -1247,7 +1246,7 @@ class ComposePreviewRepresentationTest {
       composeView = TestComposePreviewView(mainSurface, onRefreshCompletedCallback)
       preview =
         previewOverride
-          ?: ComposePreviewRepresentation(previewPsiFile, PreferredVisibility.SPLIT) { _, _, _, provider, _, _ ->
+          ?: ComposePreviewRepresentation(previewPsiFile) { _, _, _, provider, _, _ ->
             uiDataProvider = provider
             composeView
           }

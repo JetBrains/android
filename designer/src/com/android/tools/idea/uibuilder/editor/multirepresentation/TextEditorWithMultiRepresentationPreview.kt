@@ -178,10 +178,16 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
       launch {
         preview.onInit()
 
-        withContext(Dispatchers.EDT) {
+        val textEditorLayout =
+          // When the user has manually set a layout, we don't want to override their choice
           if (!layoutSetExplicitly) {
-            preview.currentRepresentation?.preferredInitialVisibility?.toTextEditorLayout()?.let { setLayoutExplicitly(it) }
+            preview.currentRepresentation?.preferredInitialVisibility()?.toTextEditorLayout()
+          } else {
+            null
           }
+        withContext(Dispatchers.EDT) {
+          // If there is a preferred layout for the representation and the user hasn't explicitly set one, change to that layout
+          textEditorLayout?.let { setLayoutExplicitly(textEditorLayout) }
 
           // The editor has been selected, but only activate if it's visible.
           if (preview.component.isShowing) activate()

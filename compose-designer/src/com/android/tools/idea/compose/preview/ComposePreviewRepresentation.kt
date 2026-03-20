@@ -97,6 +97,9 @@ import com.android.tools.idea.projectsystem.needsBuild
 import com.android.tools.idea.rendering.RenderUtils
 import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
+import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility.FULL
+import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility.HIDDEN
+import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility.SPLIT
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationState
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -165,6 +168,8 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.android.uipreview.AndroidEditorSettings
+import org.jetbrains.android.uipreview.AndroidEditorSettings.EditorMode
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.psi.KtFile
@@ -309,14 +314,10 @@ fun configureLayoutlibSceneManager(
  * Layoutlib to render a `@Composable` functions.
  *
  * @param psiFile [PsiFile] pointing to the Kotlin source containing the code to preview.
- * @param preferredInitialVisibility preferred [PreferredVisibility] for this representation.
  * @param composePreviewViewProvider [ComposePreviewView] provider.
  */
-class ComposePreviewRepresentation(
-  psiFile: PsiFile,
-  override val preferredInitialVisibility: PreferredVisibility,
-  composePreviewViewProvider: ComposePreviewViewProvider,
-) : PreviewRepresentation, ComposePreviewManagerEx, UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware, FastPreviewSurface {
+class ComposePreviewRepresentation(psiFile: PsiFile, composePreviewViewProvider: ComposePreviewViewProvider) :
+  PreviewRepresentation, ComposePreviewManagerEx, UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware, FastPreviewSurface {
 
   private val log = Logger.getInstance(ComposePreviewRepresentation::class.java)
   private val isDisposed = AtomicBoolean(false)
@@ -478,6 +479,16 @@ class ComposePreviewRepresentation(
         emptyUiCheckPanel.setHasErrors(hasVisiblePreviews)
       }
     }
+
+  override suspend fun preferredInitialVisibility(): PreferredVisibility? {
+    val hasPreviews = previewElementsFlow.filter { it !is FlowableCollection.Uninitialized }.first().asCollection().isNotEmpty()
+    val globalState = AndroidEditorSettings.getInstance().globalState
+    return if (globalState.showSplitViewForPreviewFiles && hasPreviews) {
+      SPLIT
+    } else {
+      globalState.preferredEditorMode.getVisibility(HIDDEN)
+    }
+  }
 
   private val postIssueUpdateListenerForUiCheck =
     object : Runnable {
@@ -1599,3 +1610,11 @@ class ComposePreviewRepresentation(
     fun newAnimationPreviewIsOpening()
   }
 }
+
+private fun EditorMode?.getVisibility(defaultValue: PreferredVisibility) =
+  when (this) {
+    EditorMode.CODE -> HIDDEN
+    EditorMode.SPLIT -> SPLIT
+    EditorMode.DESIGN -> FULL
+    null -> defaultValue
+  }

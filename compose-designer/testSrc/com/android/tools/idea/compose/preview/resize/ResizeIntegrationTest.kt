@@ -33,7 +33,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
@@ -140,7 +139,7 @@ class ResizeIntegrationTest {
         view
       }
     previewRepresentation =
-      ComposePreviewRepresentation(testPsiFile, PreferredVisibility.SPLIT, viewProvider).also {
+      ComposePreviewRepresentation(testPsiFile, viewProvider).also {
         // TODO(b/445947658): modify test to stop relying on useLoadViewFallbacksForTest
         it.useLoadViewFallbacksForTest()
         Disposer.register(projectRule.testRootDisposable, it)

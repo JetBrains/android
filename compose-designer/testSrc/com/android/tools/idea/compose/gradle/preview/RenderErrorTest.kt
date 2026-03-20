@@ -36,7 +36,6 @@ import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
 import com.android.tools.idea.compose.waitForRender
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.UiCheckInstance
-import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.android.tools.idea.uibuilder.visual.visuallint.AtfAnalyzerInspection
 import com.android.tools.idea.uibuilder.visual.visuallint.ButtonSizeAnalyzerInspection
@@ -138,7 +137,7 @@ class RenderErrorTest {
     val psiMainFile = runReadAction { PsiManager.getInstance(project).findFile(mainFile)!! }
 
     previewView = TestComposePreviewView(fixture.testRootDisposable, project)
-    composePreviewRepresentation = ComposePreviewRepresentation(psiMainFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ -> previewView }
+    composePreviewRepresentation = ComposePreviewRepresentation(psiMainFile) { _, _, _, _, _, _ -> previewView }
 
     val visualLintInspections =
       arrayOf(ButtonSizeAnalyzerInspection(), LongTextAnalyzerInspection(), TextFieldSizeAnalyzerInspection(), AtfAnalyzerInspection())
