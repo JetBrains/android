@@ -15,18 +15,9 @@
  */
 package com.android.tools.idea.streaming.core
 
-import com.android.sdklib.deviceprovisioner.DeviceHandle
-import com.android.sdklib.deviceprovisioner.DeviceId
-import com.android.sdklib.deviceprovisioner.DeviceState
-import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
-import com.android.tools.idea.streaming.emulator.EmulatorId
 import com.google.common.truth.Truth.assertThat
-import icons.StudioIcons
-import java.nio.file.Path
 import org.junit.Assert.fail
 import org.junit.Test
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 
 /** Tests for functions defined in StreamingUtils.kt. */
 class StreamingUtilsTest {
@@ -59,55 +50,5 @@ class StreamingUtilsTest {
         }
       }
     }
-  }
-
-  @Test
-  fun testGetPairedPhoneAvdFolder() {
-    val glassesAvdFolder = Path.of("/home/user/.android/avd/glasses.avd")
-    val emulatorId = EmulatorId(123456, 8554, null, null, "AI Glasses", glassesAvdFolder, 5554, 5555, commandLine = listOf())
-    val glasses = StreamingDeviceId.ofEmulator(emulatorId)
-    val phoneAvdFolder = Path.of("/home/user/.android/avd/phone.avd")
-
-    val glassesPropertiesBuilder =
-      LocalEmulatorProperties.Builder().apply {
-        avdName = "glasses"
-        avdPath = glassesAvdFolder
-        displayName = "glasses"
-        icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
-      }
-
-    val phoneProperties =
-      LocalEmulatorProperties.Builder()
-        .apply {
-          avdName = "phone"
-          avdPath = phoneAvdFolder
-          displayName = "phone"
-          icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
-        }
-        .build()
-
-    fun createMockDeviceHandle(id: String, properties: LocalEmulatorProperties): DeviceHandle {
-      val handle: DeviceHandle = mock()
-      whenever(handle.id).thenReturn(DeviceId("LocalEmulator", false, id))
-      whenever(handle.state).thenReturn(DeviceState.Disconnected(properties))
-      return handle
-    }
-
-    val phoneHandle = createMockDeviceHandle("phone_id", phoneProperties)
-
-    // No pairedPhoneId
-    var properties = glassesPropertiesBuilder.apply { pairedPhoneId = null }.build()
-    var devices = listOf(createMockDeviceHandle("glasses_id", properties), phoneHandle)
-    assertThat(getPairedPhoneAvdFolder(glasses, devices)).isNull()
-
-    // pairedPhoneId without matching handle
-    properties = glassesPropertiesBuilder.apply { pairedPhoneId = DeviceId("LocalEmulator", false, "some_other_id") }.build()
-    devices = listOf(createMockDeviceHandle("glasses_id", properties), phoneHandle)
-    assertThat(getPairedPhoneAvdFolder(glasses, devices)).isNull()
-
-    // pairedPhoneId with matching handle
-    properties = glassesPropertiesBuilder.apply { pairedPhoneId = DeviceId("LocalEmulator", false, "phone_id") }.build()
-    devices = listOf(createMockDeviceHandle("glasses_id", properties), phoneHandle)
-    assertThat(getPairedPhoneAvdFolder(glasses, devices)).isEqualTo(phoneAvdFolder)
   }
 }

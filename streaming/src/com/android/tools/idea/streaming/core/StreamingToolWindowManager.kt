@@ -82,6 +82,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.Splitter
 import com.intellij.openapi.ui.ex.MessagesEx.showErrorDialog
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.JBPopupFactory.ActionSelectionAid
@@ -114,23 +115,28 @@ import com.intellij.util.Alarm
 import com.intellij.util.IncorrectOperationException
 import com.intellij.util.concurrency.AppExecutorUtil.createBoundedApplicationPoolExecutor
 import com.intellij.util.containers.ComparatorUtil.max
+import com.intellij.util.containers.ComparatorUtil.min
 import com.intellij.util.containers.ContainerUtil
-import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.EDT
 import icons.StudioIcons
 import java.awt.Component
-import java.awt.EventQueue
+import java.awt.event.ContainerEvent
+import java.awt.event.ContainerListener
 import java.awt.event.KeyEvent
+import java.beans.PropertyChangeListener
 import java.nio.file.Path
 import java.util.function.Supplier
 import javax.swing.JComponent
 import javax.swing.SwingConstants
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.future.await
@@ -203,6 +209,20 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
   private val alarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, this)
   private val toolWindowScope = createCoroutineScope(extraContext = Dispatchers.EDT)
 
+  private var pairedDevicesLayoutUpdateRequired: Boolean = false
+    set(value) {
+      if (field != value) {
+        field = value
+        if (value) {
+          invokeLater {
+            delay(500.milliseconds)
+            updatePairedDevicesLayouts()
+            field = false
+          }
+        }
+      }
+    }
+
   // Copy-on-write to allow changes while iterating.
   private val contentManagers = ContainerUtil.createLockFreeCopyOnWriteList<ContentManager>()
 
@@ -250,12 +270,35 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
       }
     }
 
+  private val decoratorListener =
+    object : ContainerListener {
+
+      override fun componentAdded(event: ContainerEvent) {
+        val child = event.child
+        if (child is Splitter) {
+          child.addPropertyChangeListener(Splitter.PROP_PROPORTION, proportionChangeListener)
+          pairedDevicesLayoutUpdateRequired = true
+        }
+      }
+
+      override fun componentRemoved(event: ContainerEvent) {
+        val child = event.child
+        if (child is Splitter) {
+          child.removePropertyChangeListener(Splitter.PROP_PROPORTION, proportionChangeListener)
+          pairedDevicesLayoutUpdateRequired = true
+        }
+      }
+    }
+
+  private val proportionChangeListener = PropertyChangeListener { pairedDevicesLayoutUpdateRequired = true }
+
   private val connectionStateListener =
     object : ConnectionStateListener {
       @AnyThread
       override fun connectionStateChanged(emulator: EmulatorController, connectionState: ConnectionState) {
         if (connectionState == ConnectionState.DISCONNECTED) {
-          EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
+          @Suppress("WrongThread") // b/496344769
+          invokeLaterIfNeeded {
             if (removeEmulatorPanel(emulator)) {
               emulators.remove(emulator)
             }
@@ -344,7 +387,8 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
   @AnyThread
   private fun onDeviceHeadsUp(serialNumber: String, activation: ActivationLevel, project: Project) {
     if (project == toolWindow.project) {
-      UIUtil.invokeLaterIfNeeded {
+      @Suppress("WrongThread") // b/496344769
+      invokeLaterIfNeeded {
         val excludedDevice = devicesExcludedFromMirroring.remove(serialNumber)
         when {
           excludedDevice != null -> activateMirroring(serialNumber, excludedDevice.handle, excludedDevice.config, activation)
@@ -360,7 +404,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
     alarm.addRequest(recentAttentionRequests::cleanUp, ATTENTION_REQUEST_EXPIRATION.inWholeMicroseconds)
     if (isLocalEmulator(serialNumber)) {
       val deferred = RunningEmulatorCatalog.getInstance().updateNow()
-      toolWindowScope.launch(Dispatchers.EDT) {
+      invokeLater {
         try {
           val emulators = deferred.await()
           onEmulatorHeadsUp(serialNumber, emulators, activation)
@@ -508,6 +552,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
       contentManagers.add(contentManager)
       contentManager.addContentManagerListener(contentManagerListener)
       contentManager.addSelectedPanelDataProvider()
+      contentManager.component.containingDecorator?.addContainerListener(decoratorListener)
       Disposer.register(contentManager) {
         contentManagers.remove(contentManager)
         // When the tool window switches from a split to a non-split state by dragging a tab,
@@ -531,9 +576,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
    * null. Returns the added [Content] object or null in case of an error.
    */
   private fun addPanel(panel: AbstractDevicePanel<*>, targetContentManager: ContentManager? = null): Content? {
-    val contentManager = targetContentManager ?: toolWindow.contentManager
-    val placeholderContent = contentManager.placeholderContent
-
     val contentFactory = ContentFactory.getInstance()
     val content =
       contentFactory.createContent(panel, shortenTitleText(panel.title), false).apply {
@@ -553,20 +595,56 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
       return null
     }
 
-    // Add panel to the end.
-    contentManager.addContent(content)
+    val contentManager = targetContentManager ?: toolWindow.contentManager
+    val placeholderContent = contentManager.placeholderContent
+
+    var splitLayout: PairLayout? = null
+    val devices = deviceProvisioner.devices.value
+    val device = devices.findByStreamingDeviceId(panel.id)
+    val pairedContent = device?.let { findPairedContent(it, devices) }
+    if (pairedContent != null) {
+      val layout =
+        when (device.deviceType) {
+          DeviceType.AI_GLASSES -> PairedDevicesLayoutStorage.getInstance().getLayout(device.id)
+          else -> device.pairedGlassesId?.let { PairedDevicesLayoutStorage.getInstance().getLayout(it) }?.withOppositeSide()
+        }
+      if (layout != null) {
+        val decorator = pairedContent.component.containingDecorator
+        if (decorator != null) {
+          pairedContent.manager!!.addContent(content)
+          if (layout.side != PairLayout.FIRST_ONLY && layout.side != PairLayout.SECOND_ONLY) {
+            @Suppress("UnstableApiUsage") (decorator as InternalDecoratorImpl).splitWithContent(content, layout.side, -1)
+            (content.component.containingDecorator?.parent as? Splitter)?.proportion = layout.splitRatio
+          }
+          splitLayout = layout
+        }
+      }
+    }
+    if (splitLayout == null) {
+      contentManager.addContent(content) // Add panel to the end.
+    }
 
     if (!content.isSelected) {
       val deviceId = panel.id
-      val activation =
+      var activation =
         max(
           recentAttentionRequests.remove(deviceId.serialNumber) ?: ActivationLevel.CREATE_TAB,
           (deviceId as? StreamingDeviceId.EmulatorDeviceId)?.emulatorId?.avdFolder?.let(recentAvdLaunches::remove)
             ?: ActivationLevel.CREATE_TAB,
         )
+      if (splitLayout != null) {
+        when (splitLayout.side) {
+          PairLayout.FIRST_ONLY -> activation = max(activation, ActivationLevel.ACTIVATE_TAB)
+          PairLayout.SECOND_ONLY -> activation = min(activation, ActivationLevel.CREATE_TAB)
+        }
+      }
       if (activation >= ActivationLevel.SELECT_TAB) {
         content.select(activation)
       }
+    }
+
+    if (splitLayout == null) {
+      pairedDevicesLayoutUpdateRequired = true
     }
 
     placeholderContent?.removeAndDispose() // Remove the placeholder panel.
@@ -579,6 +657,11 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
 
   private fun reportDuplicatePanel(content: Content) {
     logger.error("An attempt to add a duplicate panel ${content.simpleId} ${content.displayName}")
+  }
+
+  private fun findPairedContent(device: DeviceHandle, devices: List<DeviceHandle>): Content? {
+    val pairedId = device.pairedPhoneId ?: device.pairedGlassesId ?: return null
+    return buildContentDeviceHandleMapping(devices).firstOrNull { it.second.id == pairedId }?.first
   }
 
   private fun removeEmulatorPanel(emulator: EmulatorController): Boolean {
@@ -640,9 +723,58 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
         }
       }
     }
+
+    updatePairedDevicesLayouts()
   }
 
-  private fun findContentByDeviceId(streamingDeviceId: StreamingDeviceId): Content? = findContent { it.deviceId == streamingDeviceId }
+  private fun updatePairedDevicesLayouts() {
+    val devices = deviceProvisioner.devices.value
+    val deviceHandleContentPairs = buildContentDeviceHandleMapping(devices).toList()
+
+    val layoutStorage = PairedDevicesLayoutStorage.getInstance()
+    for ((content, device) in deviceHandleContentPairs) {
+      val pairedPhoneId = device.pairedPhoneId ?: continue
+      val pairedContent = deviceHandleContentPairs.firstOrNull { it.second.id == pairedPhoneId }?.first ?: continue
+      val layoutKey = device.id
+      if (content.manager == pairedContent.manager) {
+        if (content.isSelected) {
+          layoutStorage.setLayout(layoutKey, PairLayout.FIRST_ONLY, 1.0f)
+        } else {
+          layoutStorage.setLayout(layoutKey, PairLayout.SECOND_ONLY, 0.0f)
+        }
+      } else {
+        val decorator1 = content.component.containingDecorator ?: continue
+        val decorator2 = pairedContent.component.containingDecorator ?: continue
+        val splitter = decorator1.parent as? Splitter ?: continue
+        if (decorator2.parent != splitter) {
+          continue
+        }
+        val naturalOrder = splitter.firstComponent == decorator1
+        val side =
+          when {
+            splitter.isVertical -> if (naturalOrder) PairLayout.TOP else PairLayout.BOTTOM
+            else -> if (naturalOrder) PairLayout.LEFT else PairLayout.RIGHT
+          }
+        val proportion = if (naturalOrder) splitter.proportion else 1.0f - splitter.proportion
+        layoutStorage.setLayout(layoutKey, side, proportion)
+      }
+    }
+  }
+
+  private fun buildContentDeviceHandleMapping(devices: Iterable<DeviceHandle>): Sequence<Pair<Content, DeviceHandle>> {
+    return sequence {
+      for (contentManager in contentManagers) {
+        for (i in 0 until contentManager.contentCount) {
+          val content = contentManager.getContent(i) ?: continue
+          val deviceId = content.deviceId ?: continue
+          val device = devices.findByStreamingDeviceId(deviceId) ?: continue
+          yield(content to device)
+        }
+      }
+    }
+  }
+
+  private fun findContentByDeviceId(deviceId: StreamingDeviceId): Content? = findContent { it.deviceId == deviceId }
 
   private fun findContentByEmulatorId(emulatorId: EmulatorId): Content? = findContent {
     (it.deviceId as? StreamingDeviceId.EmulatorDeviceId)?.emulatorId == emulatorId
@@ -696,7 +828,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
   @AnyThread
   override fun emulatorAdded(emulator: EmulatorController) {
     if (emulator.emulatorId.isEmbedded && emulator.emulatorConfig.isValid) {
-      EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
+      invokeLater {
         updateLiveIndicator()
         if (contentShown && emulators.add(emulator)) {
           addEmulatorPanel(emulator)
@@ -708,7 +840,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
   @AnyThread
   override fun emulatorRemoved(emulator: EmulatorController) {
     if (emulator.emulatorId.isEmbedded) {
-      EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
+      invokeLater {
         emulators.remove(emulator)
         removeEmulatorPanel(emulator)
       }
@@ -884,9 +1016,8 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
   @AnyThread
   private fun deviceConnected(serialNumber: String, device: ConnectedDevice) {
     val config = DeviceConfiguration(device.state.properties, useTitleAsName = isLocalEmulator(serialNumber))
-    UIUtil.invokeLaterIfNeeded { // This is safe because this code doesn't touch PSI or VFS.
-      deviceConnected(serialNumber, device.handle, config)
-    }
+    @Suppress("WrongThread") // b/496344769
+    invokeLaterIfNeeded { deviceConnected(serialNumber, device.handle, config) }
   }
 
   private fun deviceConnected(serialNumber: String, deviceHandle: DeviceHandle, config: DeviceConfiguration) {
@@ -1030,6 +1161,20 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
   }
 
   @AnyThread
+  private fun invokeLater(block: suspend CoroutineScope.() -> Unit) {
+    toolWindowScope.launch(Dispatchers.EDT) { block() }
+  }
+
+  @AnyThread
+  private fun invokeLaterIfNeeded(block: @UiThread () -> Unit) {
+    if (EDT.isCurrentThreadEdt()) {
+      block()
+    } else {
+      toolWindowScope.launch(Dispatchers.EDT) { block() }
+    }
+  }
+
+  @AnyThread
   private inner class MyDeviceHeadsUpListener : DeviceHeadsUpListener {
 
     override fun userInvolvementRequired(deviceSerialNumber: String, project: Project) {
@@ -1038,7 +1183,8 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
 
     override fun userInvolvementRequired(device1SerialNumber: String, device2SerialNumber: String, project: Project) {
       if (project == toolWindow.project) {
-        UIUtil.invokeLaterIfNeeded { showInSplitView(device1SerialNumber, device2SerialNumber) }
+        @Suppress("WrongThread") // b/496344769
+        invokeLaterIfNeeded { showInSplitView(device1SerialNumber, device2SerialNumber) }
       }
     }
 
@@ -1133,7 +1279,8 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
       coroutineScope = createCoroutineScope(executor.asCoroutineDispatcher())
       coroutineScope.launch {
         deviceProvisioner.mirrorableDevicesBySerialNumber().collect { newOnlineDevices ->
-          UIUtil.invokeLaterIfNeeded {
+          @Suppress("WrongThread") // b/496344769
+          invokeLaterIfNeeded {
             onlineDevices = newOnlineDevices
             onlineDevicesChanged()
           }
