@@ -110,6 +110,7 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
           "org.objectweb.asm",
           "org.jetbrains.coverage.org.objectweb.asm",
           "org.jetbrains.coverage.gnu.trove",
+          "org.jspecify.annotations",
           "com.intellij.rt.coverage.util",
           "com.intellij.rt.coverage.instrumentation",
           "com.intellij.rt.coverage.data",
