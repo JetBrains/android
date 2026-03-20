@@ -16,14 +16,13 @@
 package com.android.tools.idea.compose.preview.flow
 
 import com.android.tools.idea.compose.ComposePreviewElementsModel
+import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
-import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.util.isFastPreviewAvailable
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.concurrency.smartModeFlow
 import com.android.tools.idea.editors.build.PsiCodeFileOutOfDateStatusReporter
 import com.android.tools.idea.editors.build.RenderingBuildStatus
-import com.android.tools.idea.preview.find.FilePreviewElementProvider
 import com.android.tools.idea.preview.flow.CommonPreviewFlowManager
 import com.android.tools.idea.preview.flow.PreviewElementFilter
 import com.android.tools.idea.preview.flow.PreviewFlowManager
@@ -37,6 +36,7 @@ import com.intellij.psi.SmartPsiElementPointer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -97,6 +97,7 @@ internal class ComposePreviewFlowManager(
     restorePreviousMode: () -> Unit,
     queryStatus: () -> RenderingBuildStatus,
     updateVisibilityAndNotifications: () -> Unit,
+    previewElementsFlow: Flow<FlowableCollection<PsiComposePreviewElement>>,
   ) {
     with(this@initializeFlows) {
       val project = psiFilePointer.project
@@ -112,7 +113,7 @@ internal class ComposePreviewFlowManager(
           isFastPreviewAvailable = { isFastPreviewAvailable(project) },
           requestFastPreviewRefresh = requestFastPreviewRefresh,
           restorePreviousMode = restorePreviousMode,
-          previewElementProvider = FilePreviewElementProvider(psiFilePointer, AnnotationFilePreviewElementFinder),
+          previewElementsFlow = previewElementsFlow,
           toInstantiatedPreviewElementsFlow = ComposePreviewElementsModel::instantiatedPreviewElementsFlow,
         )
       }

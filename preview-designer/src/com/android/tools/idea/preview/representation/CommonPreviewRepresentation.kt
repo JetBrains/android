@@ -59,6 +59,7 @@ import com.android.tools.idea.preview.find.MemoizedPreviewElementProvider
 import com.android.tools.idea.preview.find.PreviewElementProvider
 import com.android.tools.idea.preview.flow.CommonPreviewFlowManager
 import com.android.tools.idea.preview.flow.PreviewFlowManager
+import com.android.tools.idea.preview.flow.previewElementsOnFileChangesFlow
 import com.android.tools.idea.preview.focus.CommonFocusEssentialsModeManager
 import com.android.tools.idea.preview.focus.FocusMode
 import com.android.tools.idea.preview.groups.PreviewGroupManager
@@ -328,6 +329,13 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   private val previewFlowManager = CommonPreviewFlowManager<T>()
 
   private val previewElementProvider = MemoizedPreviewElementProvider(previewProviderConstructor(psiFilePointer), previewFreshnessTracker)
+  /**
+   * The flow of preview elements that are present in the [psiFilePointer] file. This flow is updated whenever changes are made to kotlin or
+   * java files.
+   *
+   * @see previewElementsOnFileChangesFlow
+   */
+  private val previewElementsFlow = previewElementsOnFileChangesFlow(project) { previewElementProvider }
 
   private val previewElementModelAdapter =
     object : DelegatingPreviewElementModelAdapter<T, NlModel>(previewElementModelAdapterDelegate) {
@@ -746,7 +754,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
           isFastPreviewAvailable = ::isFastPreviewAvailable,
           requestFastPreviewRefresh = delegateFastPreviewSurface::requestFastPreviewRefreshSync,
           restorePreviousMode = ::restorePrevious,
-          previewElementProvider = previewElementProvider,
+          previewElementsFlow = previewElementsFlow,
         ) {
           it
         }

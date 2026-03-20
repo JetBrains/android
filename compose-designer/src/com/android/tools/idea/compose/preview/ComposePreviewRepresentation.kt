@@ -29,6 +29,7 @@ import com.android.tools.idea.common.model.NlModelUpdaterInterface
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.updateSceneViewVisibilities
+import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationPreview
@@ -74,8 +75,10 @@ import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.preview.essentials.essentialsModeFlow
 import com.android.tools.idea.preview.fast.CommonFastPreviewSurface
 import com.android.tools.idea.preview.fast.FastPreviewSurface
+import com.android.tools.idea.preview.find.FilePreviewElementProvider
 import com.android.tools.idea.preview.find.findAnnotatedMethodsValues
 import com.android.tools.idea.preview.flow.PreviewFlowManager
+import com.android.tools.idea.preview.flow.previewElementsOnFileChangesFlow
 import com.android.tools.idea.preview.focus.CommonFocusEssentialsModeManager
 import com.android.tools.idea.preview.focus.FocusMode
 import com.android.tools.idea.preview.groups.PreviewGroupManager
@@ -155,6 +158,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
@@ -376,6 +380,15 @@ class ComposePreviewRepresentation(
    * the preview has finished rendering with the new [PreviewMode].
    */
   private val isPreviewModeChanging = AtomicBoolean(true)
+
+  /**
+   * The flow of preview elements that are present in the [psiFilePointer] file. This flow is updated whenever changes are made to kotlin or
+   * java files.
+   *
+   * @see previewElementsOnFileChangesFlow
+   */
+  private val previewElementsFlow: Flow<FlowableCollection<PsiComposePreviewElement>> =
+    previewElementsOnFileChangesFlow(psiFile.project) { FilePreviewElementProvider(psiFilePointer, AnnotationFilePreviewElementFinder) }
 
   @VisibleForTesting internal val composePreviewFlowManager = ComposePreviewFlowManager()
 
@@ -858,6 +871,7 @@ class ComposePreviewRepresentation(
         ::restorePrevious,
         { renderingBuildStatusManager.status },
         { composeWorkBench.updateVisibilityAndNotifications() },
+        previewElementsFlow = previewElementsFlow,
       )
     }
 
