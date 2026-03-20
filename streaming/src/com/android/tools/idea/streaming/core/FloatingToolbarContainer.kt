@@ -35,7 +35,6 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.IdeGlassPaneUtil
 import com.intellij.openapi.wm.impl.IdeGlassPaneEx
-import com.intellij.ui.ComponentUtil.getParentOfType
 import com.intellij.util.ui.AbstractLayoutManager
 import com.intellij.util.ui.Animator
 import com.intellij.util.ui.GraphicsUtil.disableAAPainting
@@ -542,10 +541,8 @@ internal class FloatingToolbarContainer(
      * Returns the [FloatingToolbarContainer] associated with the given [event], if any. The [event] has to be triggered by a mouse event on
      * a button of that toolbar.
      */
-    fun fromActionEvent(event: AnActionEvent): FloatingToolbarContainer? {
-      val component = event.inputEvent?.component ?: return null
-      return getParentOfType(FloatingToolbarContainer::class.java, component)
-    }
+    fun fromActionEvent(event: AnActionEvent): FloatingToolbarContainer? =
+      event.inputEvent?.component?.findAncestor<FloatingToolbarContainer>()
 
     /** Activates the floating toolbar. The action [event] has to be triggered by a mouse event on a button of that toolbar. */
     fun triggerActivation(event: AnActionEvent) {

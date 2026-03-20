@@ -31,6 +31,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.AnActionHolder
 import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.ui.ComponentUtil
 import com.intellij.ui.dsl.builder.HyperlinkEventAction
 import com.intellij.ui.dsl.builder.MAX_LINE_LENGTH_WORD_WRAP
 import com.intellij.ui.dsl.builder.components.DslLabel
@@ -230,6 +231,8 @@ internal fun Component.containsFocus(): Boolean {
   }
   return false
 }
+
+internal inline fun <reified T : Any> Component.findAncestor(): T? = ComponentUtil.getStrictParentOfType(T::class.java, this)
 
 internal fun createCircle(center: Point, radius: Int): Ellipse2D {
   val diameter = radius * 2.0

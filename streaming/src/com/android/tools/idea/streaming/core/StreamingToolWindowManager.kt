@@ -101,7 +101,6 @@ import com.intellij.openapi.wm.impl.InternalDecorator
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi
 import com.intellij.toolWindow.InternalDecoratorImpl
 import com.intellij.ui.BadgeIconSupplier
-import com.intellij.ui.ComponentUtil
 import com.intellij.ui.JBColor
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentFactory
@@ -1402,7 +1401,7 @@ private val AnActionEvent.contentManager: ContentManager?
   }
 
 private val Component.containingDecorator: InternalDecorator?
-  get() = ComponentUtil.getParentOfType(InternalDecorator::class.java, this)
+  get() = findAncestor<InternalDecorator>()
 
 private fun isLocalEmulator(deviceSerialNumber: String) = deviceSerialNumber.startsWith("emulator-")
 
