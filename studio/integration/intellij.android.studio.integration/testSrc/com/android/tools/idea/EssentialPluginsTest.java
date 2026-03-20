@@ -65,7 +65,7 @@ public class EssentialPluginsTest {
   }
 
   private int countEnabledPlugins(AndroidStudioInstallation install) throws Exception {
-    Matcher matcher = install.getIdeaLog().waitForMatchingLine(".*PluginManager - Loaded bundled plugins:(.*)", 10, TimeUnit.SECONDS);
+    Matcher matcher = install.getIdeaLog().waitForMatchingLine(".*AppStarter - Loaded bundled plugins:(.*)", 10, TimeUnit.SECONDS);
     return matcher.group(1).split(",").length;
   }
 }

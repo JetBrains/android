@@ -76,7 +76,7 @@ public class StartUpTest {
             Matcher matcher =
                     install.getIdeaLog()
                             .waitForMatchingLine(
-                                    ".*PluginManager - Loaded bundled plugins:(.*)",
+                                    ".*AppStarter - Loaded bundled plugins:(.*)",
                                     10,
                                     TimeUnit.SECONDS);
       String[] plugins = matcher.group(1).split(",");
@@ -119,6 +119,7 @@ public class StartUpTest {
                                     "Gradle DSL Parser Support",
                                     "Gradle for Java",
                                     "Groovy",
+                                    "Groovy Live Templates",
                                     "HTML Tools",
                                     "IDEA CORE",
                                     "Images",
@@ -141,7 +142,6 @@ public class StartUpTest {
                                     "Properties",
                                     "Shell Script",
                                     "Smali Support",
-                                    "Subversion",
                                     "Task Management",
                                     "Terminal",
                                     "Test Recorder",
