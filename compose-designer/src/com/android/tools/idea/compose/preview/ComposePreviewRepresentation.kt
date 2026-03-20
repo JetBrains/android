@@ -17,8 +17,6 @@ package com.android.tools.idea.compose.preview
 
 import com.android.ide.common.rendering.api.Bridge
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
-import com.android.tools.compose.COMPOSABLE_ANNOTATION_NAME
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.idea.common.error.DesignerCommonIssuePanel
 import com.android.tools.idea.common.model.AccessibilityModelUpdater
@@ -76,7 +74,6 @@ import com.android.tools.idea.preview.essentials.essentialsModeFlow
 import com.android.tools.idea.preview.fast.CommonFastPreviewSurface
 import com.android.tools.idea.preview.fast.FastPreviewSurface
 import com.android.tools.idea.preview.find.FilePreviewElementProvider
-import com.android.tools.idea.preview.find.findAnnotatedMethodsValues
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.flow.previewElementsOnFileChangesFlow
 import com.android.tools.idea.preview.focus.CommonFocusEssentialsModeManager
@@ -158,11 +155,13 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -180,6 +179,14 @@ private val defaultModelUpdater: NlModelUpdaterInterface = DefaultModelUpdater()
  * [AccessibilityNodeInfo] hierarchy.
  */
 private val accessibilityModelUpdater: NlModelUpdaterInterface = AccessibilityModelUpdater()
+
+/**
+ * The timeout after which the shared preview element flow will be stopped and its latest value lost. We use a non-zero value so the flow is
+ * not lost at instantiation time which saves some computations. At instantiation time, the [ComposePreviewRepresentation.hasPreviews]
+ * method will be called before the [PreviewFlowManager] is initialized. This also prevents new computations if a user switches tabs and
+ * comes back before the timeout.
+ */
+private const val SHARED_PREVIEW_FLOW_STOP_TIMEOUT_MS = 5_000L
 
 /**
  * [NlModel] associated preview data
@@ -387,8 +394,10 @@ class ComposePreviewRepresentation(
    *
    * @see previewElementsOnFileChangesFlow
    */
-  private val previewElementsFlow: Flow<FlowableCollection<PsiComposePreviewElement>> =
+  private val previewElementsFlow: SharedFlow<FlowableCollection<PsiComposePreviewElement>> =
     previewElementsOnFileChangesFlow(psiFile.project) { FilePreviewElementProvider(psiFilePointer, AnnotationFilePreviewElementFinder) }
+      // share the flow to avoid re-computing previews between the hasPreviewsCached and the flow manager
+      .shareIn(this, SharingStarted.WhileSubscribed(SHARED_PREVIEW_FLOW_STOP_TIMEOUT_MS), replay = 1)
 
   @VisibleForTesting internal val composePreviewFlowManager = ComposePreviewFlowManager()
 
@@ -1350,20 +1359,13 @@ class ComposePreviewRepresentation(
   override fun hasPreviewsCached() = hasPreviewsCachedValue.get()
 
   /**
-   * Iterate over the Composables of this file and returns true as soon as we find one with a `@Preview` or MultiPreview annotations. This
-   * function also updates the value of [hasPreviewsCachedValue] accordingly.
+   * This function checks if there are any previews by consuming the [previewElementsFlow] flow. This function also updates the value of
+   * [hasPreviewsCachedValue] accordingly.
    */
   override suspend fun hasPreviews(): Boolean {
-    val vFile = readAction { psiFilePointer.virtualFile } ?: return false
-    findAnnotatedMethodsValues(project, vFile, COMPOSABLE_ANNOTATION_FQ_NAME, COMPOSABLE_ANNOTATION_NAME) { methods -> methods.asFlow() }
-      .forEach { composableMethod ->
-        if (composableMethod.hasPreviewElements()) {
-          hasPreviewsCachedValue.set(true)
-          return@hasPreviews true
-        }
-      }
-    hasPreviewsCachedValue.set(false)
-    return false
+    val hasPreviews = previewElementsFlow.filter { it !is FlowableCollection.Uninitialized }.first().asCollection().isNotEmpty()
+    hasPreviewsCachedValue.set(hasPreviews)
+    return hasPreviews
   }
 
   /**
