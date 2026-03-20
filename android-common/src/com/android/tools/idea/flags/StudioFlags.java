@@ -2513,11 +2513,6 @@ public final class StudioFlags {
                 "Maximum number of LLM calls an agent can make in a single run.",
                 500);
 
-  public static final Flag<Boolean> STUDIOBOT_GENERATE_TEST_SCENARIOS =
-    new BooleanFlag(STUDIOBOT, "generate.test.scenarios",
-                    "Enable test scenario generation.",
-                    "When enabled, generate test scenarios and corresponding function names for the selected code.");
-
   public static final Flag<Boolean> STUDIOBOT_AGENTIC_TEST_GENERATION =
       new BooleanFlag(STUDIOBOT, "agentic.test.generation",
                       "Enable agentic automated unit test generation",
