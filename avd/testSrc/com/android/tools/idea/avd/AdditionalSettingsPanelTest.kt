@@ -35,10 +35,12 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
+import com.android.flags.junit.FlagRule
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.VendorDevices
+import com.android.sdklib.internal.avd.AiGlassesDisplayMode
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.testutils.file.createInMemoryFileSystem
 import com.android.tools.adtui.compose.LocalFileSystem
@@ -46,6 +48,7 @@ import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.cre
 import com.android.tools.adtui.compose.utils.lingerMouseHover
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
+import com.android.tools.idea.flags.StudioFlags
 import com.android.utils.NullLogger
 import com.google.common.truth.Truth.assertThat
 import java.nio.file.Files
@@ -62,6 +65,7 @@ import org.mockito.kotlin.whenever
 @RunWith(JUnit4::class)
 class AdditionalSettingsPanelTest {
   @get:Rule val rule = createStudioComposeTestRule()
+  @get:Rule val aiGlassesDisplaySettingFlagRule = FlagRule(StudioFlags.AI_GLASSES_DISPLAY_SETTING_ENABLED, true)
 
   @Test
   fun deviceSkinDropdownOnSelectedItemChange() {
@@ -194,6 +198,29 @@ class AdditionalSettingsPanelTest {
     rule.waitForIdle()
 
     assertThat(state.device.environment).isEqualTo(defaultEnvironments().first().toPath())
+  }
+
+  @Test
+  fun aiGlassesDisplayModeValidation() {
+    val device = TestDevices.aiGlasses()
+    val fileSystem = createInMemoryFileSystem()
+
+    val state = configureDevicePanelState(device)
+
+    rule.setContent {
+      provideCompositionLocals { CompositionLocalProvider(LocalFileSystem provides fileSystem) { AdditionalSettingsPanel(state) } }
+    }
+
+    rule.onNode(hasText("Monocular Right") and hasTestTag("GlassesDisplayTypeDropdown")).assertIsDisplayed()
+    rule.onNodeWithTag("GlassesEnvironmentDropdown").assertIsDisplayed()
+
+    rule.onNodeWithTag("GlassesDisplayTypeDropdown").performClick()
+    rule.onNodeWithTag("GlassesDisplayTypeDropdownMenuItem_NONE", useUnmergedTree = true).performClick()
+    rule.waitForIdle()
+
+    rule.onNodeWithTag("GlassesEnvironmentDropdown").assertDoesNotExist()
+
+    assertThat(state.device.aiGlassesDisplayMode).isEqualTo(AiGlassesDisplayMode.NONE)
   }
 
   @Test
