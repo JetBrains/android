@@ -1160,6 +1160,16 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
     }
   }
 
+  private fun findPairedPhoneAvd(avd: AvdInfo): AvdInfo? {
+    val devices = deviceProvisioner.devices.value
+    val handle = devices.findByAvdFolder(avd.dataFolderPath)
+    val pairedPhoneId = handle?.state?.properties?.pairedPhoneId ?: return null
+    val pairedPhoneHandle = devices.find { it.id == pairedPhoneId }
+    val pairedPhoneFolder = pairedPhoneHandle?.avdFolder ?: return null
+    val avdManager = AvdManagerConnection.getDefaultAvdManagerConnection()
+    return avdManager.getAvds(false).find { it.dataFolderPath == pairedPhoneFolder }
+  }
+
   @AnyThread
   private fun invokeLater(block: suspend CoroutineScope.() -> Unit) {
     toolWindowScope.launch(Dispatchers.EDT) { block() }
@@ -1405,6 +1415,16 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
           // have registered itself by the time of the call.
           alarm.addRequest({ onEmulatorHeadsUp(avd.dataFolderPath, ActivationLevel.ACTIVATE_TAB) }, 200)
           avdManager.startAvd(project, avd, forceLaunchInToolWindow = true)
+
+          if (avd.isAiGlassesDevice) {
+            val pairedPhoneAvd = findPairedPhoneAvd(avd)
+            if (pairedPhoneAvd != null) {
+              val runningPairedPhone = RunningAvdTracker.getInstance().runningAvds[pairedPhoneAvd.dataFolderPath]
+              if (runningPairedPhone == null || runningPairedPhone.isShuttingDown) {
+                avdManager.startAvd(project, pairedPhoneAvd, forceLaunchInToolWindow = true)
+              }
+            }
+          }
         } catch (e: Exception) {
           val avdName = avd.displayName
           val message =
