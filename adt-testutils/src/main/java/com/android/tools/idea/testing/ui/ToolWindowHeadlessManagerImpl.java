@@ -6,7 +6,6 @@ import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Comparing;
@@ -25,8 +24,6 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import com.intellij.openapi.wm.impl.DesktopLayout;
 import com.intellij.openapi.wm.impl.IdeFocusManagerHeadless;
 import com.intellij.openapi.wm.impl.InternalDecorator;
-import com.intellij.toolWindow.InternalDecoratorImpl;
-import com.intellij.ui.components.JBPanelWithEmptyText;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.content.ContentManager;
@@ -36,12 +33,10 @@ import com.intellij.ui.content.impl.ContentImpl;
 import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.EventDispatcher;
 import com.intellij.util.IncorrectOperationException;
-import com.intellij.util.SmartList;
 import com.intellij.util.containers.ContainerUtil;
 import java.awt.Rectangle;
 import java.awt.event.InputEvent;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -50,8 +45,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 import javax.swing.Icon;
 import javax.swing.JComponent;
-import javax.swing.SwingConstants;
-import kotlin.NotImplementedError;
+import javax.swing.JLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,11 +59,8 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
   private final Map<String, ToolWindow> myToolWindows = new HashMap<>();
   private final Project myProject;
 
-  private final InternalDecoratorFactory myInternalDecoratorFactory;
-
-  public ToolWindowHeadlessManagerImpl(Project project, @Nullable InternalDecoratorFactory internalDecoratorFactory) {
+  public ToolWindowHeadlessManagerImpl(Project project) {
     myProject = project;
-    myInternalDecoratorFactory = internalDecoratorFactory;
   }
 
   @Override
@@ -83,7 +74,10 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
   }
 
   public @NotNull ToolWindow doRegisterToolWindow(@NotNull String id) {
-    MockToolWindow toolWindow = new MockToolWindow(myProject, myInternalDecoratorFactory);
+    return doRegisterToolWindow(id, new MockToolWindow(myProject));
+  }
+
+  protected @NotNull ToolWindow doRegisterToolWindow(@NotNull String id, @NotNull ToolWindow toolWindow) {
     myToolWindows.put(id, toolWindow);
     return toolWindow;
   }
@@ -198,31 +192,18 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
     return ToolWindowAnchor.LEFT;
   }
 
-  public static void split(@NotNull Content content, int dropSide) {
-    split(content, dropSide, -1);
-  }
-
-  public static void split(@NotNull Content content, int dropSide, int dropIndex) {
-    ContentManager contentManager = content.getManager();
-    if (contentManager != null) {
-      ((MockContentManager) contentManager).splitWithContent(content, dropSide, dropIndex);
-    }
-  }
-
-  public static void unsplit(@NotNull ContentManager contentManager, @Nullable Content toSelect) {
-    ((MockContentManager) contentManager).unsplit(toSelect);
-  }
-
-  public InternalDecoratorFactory getInternalDecoratorFactory() {
-    return myInternalDecoratorFactory;
-  }
-
   public static class MockToolWindow implements ToolWindowEx {
     final ContentManager myContentManager;
     private final Project myProject;
 
-    public MockToolWindow(@NotNull Project project, @Nullable InternalDecoratorFactory internalDecoratorFactory) {
-      myContentManager = new MockContentManager(internalDecoratorFactory);
+    public MockToolWindow(@NotNull Project project) {
+      myContentManager = new MockContentManager();
+      myProject = project;
+      Disposer.register(project, myContentManager);
+    }
+
+    protected MockToolWindow(@NotNull Project project, @NotNull ContentManager contentManager) {
+      myContentManager = contentManager;
       myProject = project;
       Disposer.register(project, myContentManager);
     }
@@ -460,25 +441,10 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
   }
 
   @SuppressWarnings({"HardCodedStringLiteral", "DialogTitleCapitalization"})
-  private static class MockContentManager implements ContentManager {
+  public static class MockContentManager implements ContentManager {
     private final EventDispatcher<ContentManagerListener> myDispatcher = EventDispatcher.create(ContentManagerListener.class);
     private final List<Content> myContents = new ArrayList<>();
     private @Nullable Content mySelected;
-    private final List<MockContentManager> myNestedManagers = new SmartList<>();
-    private @Nullable MockContentManager myParent;
-    private boolean mySplitUnsplitInProgress;
-    private final InternalDecoratorFactory myInternalDecoratorFactory;
-    private final InternalDecoratorImpl myInternalDecorator;
-    private @Nullable Splitter mySplitter;
-    private final JComponent myComponent = new JBPanelWithEmptyText();
-
-    MockContentManager(@Nullable InternalDecoratorFactory internalDecoratorFactory) {
-      myInternalDecoratorFactory = internalDecoratorFactory;
-      myInternalDecorator = createInternalDecorator();
-      if (myInternalDecorator != null) {
-        myInternalDecorator.add(myComponent);
-      }
-    }
 
     @Override
     public @NotNull ActionCallback getReady(@NotNull Object requestor) {
@@ -496,8 +462,9 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
       if (content instanceof ContentImpl && content.getManager() == null) {
         ((ContentImpl)content).setManager(this);
       }
-      if (myInternalDecorator != null) {
-        myInternalDecorator.add(content.getComponent());
+      InternalDecorator decorator = getDecorator();
+      if (decorator != null) {
+        decorator.add(content.getComponent());
       }
       Disposer.register(this, content);
       ContentManagerEvent e = new ContentManagerEvent(this, content, myContents.indexOf(content), ContentManagerEvent.ContentOperation.add);
@@ -565,7 +532,7 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
 
     @Override
     public @NotNull JComponent getComponent() {
-      return myComponent;
+      return new JLabel();
     }
 
     @Override
@@ -595,15 +562,6 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
     }
 
     @Override
-    public @NotNull List<@NotNull Content> getContentsRecursively() {
-      List<Content> result = new ArrayList<>(Arrays.asList(getContents()));
-      for (MockContentManager child : myNestedManagers) {
-        result.addAll(child.getContentsRecursively());
-      }
-      return result;
-    }
-
-    @Override
     public int getIndexOfContent(@NotNull Content content) {
       return myContents.indexOf(content);
     }
@@ -618,9 +576,6 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
       List<Content> result = new ArrayList<>();
       if (mySelected != null) {
         result.add(mySelected);
-      }
-      for (MockContentManager child : myNestedManagers) {
-        result.addAll(Arrays.asList(child.getSelectedContents()));
       }
       return result.toArray(new Content[0]);
     }
@@ -647,8 +602,9 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
       if (wasSelected) {
         removeFromSelection(content);
       }
-      if (myInternalDecorator != null) {
-        myInternalDecorator.remove(content.getComponent());
+      InternalDecorator decorator = getDecorator();
+      if (decorator != null) {
+        decorator.remove(content.getComponent());
       }
       boolean result = myContents.remove(content);
       if (dispose) Disposer.dispose(content);
@@ -770,121 +726,8 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
       return ApplicationManager.getApplication().getService(ContentFactory.class);
     }
 
-    public void splitWithContent(@NotNull Content content, int dropSide, int dropIndex) {
-      if (dropSide == -1 || dropSide == SwingConstants.CENTER || dropIndex >= 0) {
-        addContent(content, dropIndex);
-        return;
-      }
-      MockContentManager firstChild = new MockContentManager(myInternalDecoratorFactory);
-      Disposer.register(this, firstChild);
-      MockContentManager secondChild = new MockContentManager(myInternalDecoratorFactory);
-      Disposer.register(this, secondChild);
-      addNestedManager(firstChild);
-      addNestedManager(secondChild);
-      ArrayList<Content> contents = new ArrayList<>(myContents);
-      if (!contents.contains(content)) {
-        contents.add(content);
-      }
-      for (Content c : contents) {
-        moveContent(c, (c != content) ^ (dropSide == SwingConstants.LEFT || dropSide == SwingConstants.TOP) ? firstChild : secondChild);
-      }
-
-      boolean isVertical = dropSide == SwingConstants.TOP || dropSide == SwingConstants.BOTTOM;
-      mySplitter = new Splitter(isVertical, 0.5f);
-      if (myInternalDecorator != null) {
-        myInternalDecorator.remove(myComponent);
-        myInternalDecorator.add(mySplitter);
-      }
-      if (firstChild.myInternalDecorator != null && secondChild.myInternalDecorator != null) {
-        mySplitter.setFirstComponent(firstChild.myInternalDecorator);
-        mySplitter.setSecondComponent(secondChild.myInternalDecorator);
-      }
+    protected @Nullable InternalDecorator getDecorator()  {
+      return null;
     }
-
-    void unsplit(@Nullable Content toSelect) {
-      if (myNestedManagers.isEmpty()) {
-        if (myParent != null) {
-          myParent.unsplit(toSelect);
-        }
-        return;
-      }
-      if (mySplitUnsplitInProgress) {
-        return;
-      }
-
-      mySplitUnsplitInProgress = true;
-      try {
-        for (MockContentManager child : myNestedManagers) {
-          if (child.isSplit()) {
-            raise(child);
-            return;
-          }
-        }
-        for (MockContentManager child : myNestedManagers) {
-          for (Content c : child.getContents()) {
-            child.moveContent(c, this);
-          }
-        }
-        if (toSelect != null) {
-          ContentManager manager = toSelect.getManager();
-          if (manager != null) {
-            manager.setSelectedContent(toSelect);
-          }
-        }
-        for (MockContentManager child : myNestedManagers) {
-          Disposer.dispose(child);
-        }
-        myNestedManagers.clear();
-        mySplitter = null;
-      }
-      finally {
-        mySplitUnsplitInProgress = false;
-      }
-    }
-
-    private void raise(@NotNull MockContentManager child) {
-      throw new NotImplementedError();
-    }
-
-    private boolean isSplit() {
-      return !myNestedManagers.isEmpty();
-    }
-
-    private void moveContent(Content content, MockContentManager target) {
-      Boolean initialState = content.getUserData(Content.TEMPORARY_REMOVED_KEY);
-      try {
-        mySplitUnsplitInProgress = true;
-        content.putUserData(Content.TEMPORARY_REMOVED_KEY, java.lang.Boolean.TRUE);
-        ContentManager owner = content.getManager();
-        if (owner != null) {
-          owner.removeContent(content, false);
-        }
-        ((ContentImpl)content).setManager(target);
-        target.addContent(content);
-      }
-      finally {
-        content.putUserData(Content.TEMPORARY_REMOVED_KEY, initialState);
-        mySplitUnsplitInProgress = false;
-      }
-    }
-
-    private void addNestedManager(@NotNull MockContentManager manager) {
-      manager.myParent = this;
-      myNestedManagers.add(manager);
-      Disposer.register(manager, () -> removeNestedManager(manager));
-    }
-
-    private void removeNestedManager(@NotNull MockContentManager manager) {
-      myNestedManagers.remove(manager);
-    }
-
-    private InternalDecoratorImpl createInternalDecorator() {
-      return myInternalDecoratorFactory == null ? null : myInternalDecoratorFactory.createInternalDecorator(this);
-    }
-  }
-
-  public interface InternalDecoratorFactory {
-    @SuppressWarnings("UnstableApiUsage")
-    InternalDecoratorImpl createInternalDecorator(ContentManager contentManager);
   }
 }

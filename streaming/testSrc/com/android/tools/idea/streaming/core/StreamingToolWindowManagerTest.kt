@@ -62,7 +62,6 @@ import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.DisposerExplorer
 import com.android.tools.idea.testing.override
 import com.android.tools.idea.testing.ui.FakeToolWindow
-import com.android.tools.idea.testing.ui.ToolWindowHeadlessManagerImpl
 import com.android.tools.idea.testing.ui.createFakeToolWindow
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
@@ -406,7 +405,7 @@ class StreamingToolWindowManagerTest {
 
     val topContent = contentManager.contents[0]
     val bottomContent = contentManager.contents[1]
-    ToolWindowHeadlessManagerImpl.split(bottomContent, SwingConstants.BOTTOM)
+    FakeToolWindow.split(bottomContent, SwingConstants.BOTTOM)
     val topContentManager = topContent.manager!!
     assertThat(topContentManager.contents).hasLength(1)
     val bottomContentManager = bottomContent.manager!!

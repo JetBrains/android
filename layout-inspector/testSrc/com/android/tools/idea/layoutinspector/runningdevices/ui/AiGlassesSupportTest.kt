@@ -28,7 +28,7 @@ import com.android.tools.idea.layoutinspector.runningdevices.removeContent
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.core.StreamingDeviceId
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
-import com.android.tools.idea.testing.ui.ToolWindowHeadlessManagerImpl
+import com.android.tools.idea.testing.ui.FakeToolWindow
 import com.android.tools.idea.testing.ui.createFakeToolWindow
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.wm.ToolWindow
@@ -157,7 +157,7 @@ class AiGlassesSupportTest {
     val content1 = fakeToolWindow.getContent(tab1.streamingDeviceId)
     val content2 = fakeToolWindow.getContent(tab2.streamingDeviceId)
 
-    ToolWindowHeadlessManagerImpl.split(content1, SwingConstants.BOTTOM)
+    FakeToolWindow.split(content1, SwingConstants.BOTTOM)
     val bottomContentManager = content1.manager!!
     val topContentManager = content2.manager!!
 

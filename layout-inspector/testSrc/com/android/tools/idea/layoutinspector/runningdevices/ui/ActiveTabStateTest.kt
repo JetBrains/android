@@ -47,7 +47,7 @@ import com.android.tools.idea.streaming.core.DeviceDisplayListener
 import com.android.tools.idea.streaming.core.DisplayOwner
 import com.android.tools.idea.streaming.core.StreamingDeviceId
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
-import com.android.tools.idea.testing.ui.ToolWindowHeadlessManagerImpl
+import com.android.tools.idea.testing.ui.FakeToolWindow
 import com.android.tools.idea.testing.ui.createFakeToolWindow
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
@@ -287,7 +287,7 @@ class ActiveTabStateTest {
     val content1 = fakeToolWindow.getContent(glassesTab1.streamingDeviceId)
     val content2 = fakeToolWindow.getContent(glassesTab2.streamingDeviceId)
 
-    ToolWindowHeadlessManagerImpl.split(content1, SwingConstants.BOTTOM)
+    FakeToolWindow.split(content1, SwingConstants.BOTTOM)
     val bottomContentManager = content1.manager!!
     val topContentManager = content2.manager!!
 
