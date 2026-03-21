@@ -161,7 +161,7 @@ class AdbLibApplicationService : Disposable {
       adbServerController.close()
     }
 
-    suspend fun closeAndJoin() {
+    suspend fun closeAndJoinForTests() {
       try {
         adbServerController.stop()
       } catch (_: CancellationException) {
@@ -170,6 +170,7 @@ class AdbLibApplicationService : Disposable {
       }
       dispose()
       session.scope.coroutineContext[Job]?.join()
+      AndroidDebugBridge.resetForTests()
     }
 
     /** An [AdbServerChannelProvider] that ensures the ADB server is running before creating an [AdbChannel]. */
@@ -265,7 +266,7 @@ class AdbLibApplicationService : Disposable {
     fun reinitializeForTests() {
       if (isInstanceCreated && ApplicationManager.getApplication().isUnitTestMode) {
         // Shutdown and cleanup
-        runBlocking { instance.configuration.closeAndJoin() }
+        runBlocking { instance.configuration.closeAndJoinForTests() }
 
         // Create a new configuration
         instance.configuration = Configuration(instance.host, instance.adbFileLocationTracker)
@@ -276,7 +277,7 @@ class AdbLibApplicationService : Disposable {
     fun disposeForTests() {
       if (isInstanceCreated && ApplicationManager.getApplication().isUnitTestMode) {
         // Shutdown and cleanup
-        runBlocking { instance.configuration.closeAndJoin() }
+        runBlocking { instance.configuration.closeAndJoinForTests() }
       }
     }
 
