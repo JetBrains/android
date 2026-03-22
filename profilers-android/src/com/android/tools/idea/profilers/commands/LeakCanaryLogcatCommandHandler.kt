@@ -24,6 +24,8 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Commands.EndSession
 import com.android.tools.profiler.proto.Commands.StartLeakCanaryTaskData.LeakCanaryMode
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Common.LeakCanaryDeviceError.ErrorType
+import com.android.tools.profiler.proto.Common.LeakCanaryDeviceError.ErrorType.LEAKCANARY_ERROR_LOGCAT_PARSING_FAILURE
 import com.android.tools.profiler.proto.LeakCanary.LeakCanaryAnalysisData
 import com.android.tools.profiler.proto.LeakCanary.LeakCanaryAnalysisEnded
 import com.android.tools.profiler.proto.LeakCanary.LeakCanaryAnalysisEnded.Status
@@ -110,6 +112,7 @@ class LeakCanaryLogcatCommandHandler(
       Commands.Command.newBuilder()
         .setStreamId(command.streamId)
         .setPid(pid)
+        .setSessionId(command.sessionId)
         .setType(Commands.Command.CommandType.SET_STUDIO_LEAKCANARY_MODE)
         .setSetStudioLeakcanaryMode(setModeData)
         .build()
@@ -143,6 +146,7 @@ class LeakCanaryLogcatCommandHandler(
         Commands.Command.newBuilder()
           .setStreamId(command.streamId)
           .setPid(pid)
+          .setSessionId(command.sessionId)
           .setType(Commands.Command.CommandType.STOP_LEAKCANARY_OBJECT_COUNT_TRACKING)
           .build()
       try {
@@ -215,6 +219,19 @@ class LeakCanaryLogcatCommandHandler(
     )
   }
 
+  private fun sendDeviceError(errorType: ErrorType) {
+    val errorEvent = com.android.tools.profiler.proto.Common.LeakCanaryDeviceError.newBuilder().setErrorType(errorType).build()
+    eventQueue.offer(
+      Common.Event.newBuilder()
+        .setGroupId(pid.toLong())
+        .setPid(pid)
+        .setKind(Common.Event.Kind.LEAKCANARY_DEVICE_ERROR)
+        .setLeakcanaryDeviceError(errorEvent)
+        .setTimestamp(getCurrentTimestampInNs())
+        .build()
+    )
+  }
+
   /**
    * Sends a LeakCanary log message event to the event queue.
    *
@@ -234,7 +251,8 @@ class LeakCanaryLogcatCommandHandler(
           .build()
       )
     } catch (e: Exception) {
-      logger.info("Failed to parse LeakCanary report. Skipping event.", e)
+      logger.warn("Failed to parse LeakCanary logcat message. Skipping event.", e)
+      sendDeviceError(LEAKCANARY_ERROR_LOGCAT_PARSING_FAILURE)
     }
   }
 

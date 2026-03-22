@@ -22,6 +22,7 @@ import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration
 import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel
+import com.android.tools.profilers.cpu.config.LeakCanaryConfiguration
 import com.android.tools.profilers.cpu.config.PerfettoNativeAllocationsConfiguration
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration
@@ -86,6 +87,16 @@ open class TaskTracker(private val profilers: StudioProfilers, private val taskM
     profilers.ideServices.featureTracker.trackTaskFailed(taskMetadata, metadata)
   }
 
+  /** Tracks a user interaction within an active LeakCanary task (e.g. clicking "Force Dump"). */
+  open fun trackLeakCanaryUiAction(uiAction: LeakCanaryUiAction) {
+    profilers.ideServices.featureTracker.trackLeakCanaryEvent(taskMetadata, uiAction)
+  }
+
+  /** Tracks the completion of a LeakCanary memory analysis, logging the specific leak metrics. */
+  open fun trackLeakCanaryAnalysis(leakAnalysis: LeakCanaryLeakAnalysis) {
+    profilers.ideServices.featureTracker.trackLeakCanaryEvent(taskMetadata, leakAnalysis)
+  }
+
   /**
    * A no-op implementation of [TaskTracker] used when task tracking is disabled or as a safe default value.
    *
@@ -114,6 +125,10 @@ open class TaskTracker(private val profilers: StudioProfilers, private val taskM
     override fun trackStopTaskFailed(metadata: TaskStopFailedMetadata) {}
 
     override fun trackProcessingTaskFailed(metadata: TaskProcessingFailedMetadata) {}
+
+    override fun trackLeakCanaryUiAction(uiAction: LeakCanaryUiAction) {}
+
+    override fun trackLeakCanaryAnalysis(leakAnalysis: LeakCanaryLeakAnalysis) {}
   }
 
   companion object {
@@ -198,6 +213,9 @@ open class TaskTracker(private val profilers: StudioProfilers, private val taskM
         }
         ProfilerTaskType.NATIVE_ALLOCATIONS -> {
           availableConfigs.filterIsInstance<PerfettoNativeAllocationsConfiguration>().firstOrNull()
+        }
+        ProfilerTaskType.LEAKCANARY -> {
+          availableConfigs.filterIsInstance<LeakCanaryConfiguration>().firstOrNull()
         }
         else -> null
       }

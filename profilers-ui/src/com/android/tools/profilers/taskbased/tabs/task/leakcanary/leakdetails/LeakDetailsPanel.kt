@@ -73,6 +73,7 @@ import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedU
 import com.android.tools.profilers.taskbased.common.dividers.ToolWindowHorizontalDivider
 import com.android.tools.profilers.taskbased.common.text.EllipsisText
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.notifications.NotificationWithTooltip
+import com.android.tools.profilers.tasks.analytics.LeakCanaryUiAction
 import icons.StudioIconsCompose
 import java.util.concurrent.CompletableFuture
 import org.jetbrains.jewel.ui.component.Icon
@@ -96,11 +97,19 @@ fun LeakDetailsPanel(
   isDeclarationAvailableAsync: (Node) -> CompletableFuture<Boolean>,
   openStates: List<Boolean>,
   onOpenStatesChange: (List<Boolean>) -> Unit,
+  onCopy: () -> Unit,
+  trackUiAction: (LeakCanaryUiAction) -> Unit = {},
 ) {
   val emptyLeakMessage = if (isRecording) LEAKCANARY_LEAK_DETAIL_EMPTY_INITIAL_MESSAGE else LEAKCANARY_NO_LEAK_FOUND_MESSAGE
   val traceNodes = selectedLeak?.displayedLeakTrace?.firstOrNull()?.nodes ?: emptyList()
-  val onExpandAll = { onOpenStatesChange(List(traceNodes.size) { true }) }
-  val onCollapseAll = { onOpenStatesChange(List(traceNodes.size) { false }) }
+  val onExpandAll = {
+    trackUiAction(LeakCanaryUiAction.EXPAND_ALL_NODES_CLICKED)
+    onOpenStatesChange(List(traceNodes.size) { true })
+  }
+  val onCollapseAll = {
+    trackUiAction(LeakCanaryUiAction.COLLAPSE_ALL_NODES_CLICKED)
+    onOpenStatesChange(List(traceNodes.size) { false })
+  }
 
   if (!isLeakCanaryPresent) {
     Box(modifier = Modifier.fillMaxSize().padding(horizontal = 15.dp), contentAlignment = Alignment.Center) {
@@ -113,7 +122,7 @@ fun LeakDetailsPanel(
   } else {
     val scrollState = rememberScrollState()
     Column(modifier = Modifier.fillMaxSize()) {
-      LeakActionToolbar(selectedLeak = selectedLeak, onExpandAll = onExpandAll, onCollapseAll = onCollapseAll)
+      LeakActionToolbar(selectedLeak = selectedLeak, onExpandAll = onExpandAll, onCollapseAll = onCollapseAll, onCopy = onCopy)
       ToolWindowHorizontalDivider()
       Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState).padding(10.dp)) {

@@ -304,6 +304,7 @@ class IntellijProfilerServicesTest {
     val androidConfiguration = mock<AndroidRunConfigurationBase>()
     val configurationModule = mock<AndroidRunConfigurationModule>()
     val module = mock<Module>()
+    val featureTracker = mock<com.android.tools.profilers.analytics.FeatureTracker>()
 
     // Register services on the project so static helpers like ProjectSystemUtil can find them
     (project as MockProjectEx).registerService(ProjectSystemService::class.java, projectSystemService)
@@ -325,6 +326,7 @@ class IntellijProfilerServicesTest {
     val actualInstance = IntellijProfilerServices(project, mock<SymbolFilesLocator>())
     Disposer.register(disposableRule.disposable, actualInstance)
     val servicesSpy = spy(actualInstance)
+    doReturn(featureTracker).whenever(servicesSpy).featureTracker
     spiesToDispose.add(actualInstance)
 
     return DependencyMocks(servicesSpy, androidModuleSystem, registeringModuleSystem, syncManager, runManager, configurationModule)

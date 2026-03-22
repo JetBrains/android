@@ -35,21 +35,73 @@ data class TaskMetadata(
 )
 
 /** Metadata for a task that failed to start. Only one of the properties will be non-null. */
-data class TaskStartFailedMetadata(
+data class TaskStartFailedMetadata
+@JvmOverloads
+constructor(
   val traceStartStatus: Trace.TraceStartStatus? = null,
   val allocationTrackStatus: TrackStatus? = null,
   val heapDumpStatus: Memory.HeapDumpStatus? = null,
+  val leakCanaryStartStatus: LeakCanaryStartErrorCode? = null,
 )
 
 /** Metadata for a task that failed to stop. Only one of the properties will be non-null. */
-data class TaskStopFailedMetadata(
+data class TaskStopFailedMetadata
+@JvmOverloads
+constructor(
   val traceStopStatus: Trace.TraceStopStatus? = null,
   val allocationTrackStatus: TrackStatus? = null,
   val cpuCaptureMetadata: CpuCaptureMetadata? = null,
 )
 
 /** Metadata for a task that failed during processing. */
-data class TaskProcessingFailedMetadata(val cpuCaptureMetadata: CpuCaptureMetadata?)
+data class TaskProcessingFailedMetadata
+@JvmOverloads
+constructor(val cpuCaptureMetadata: CpuCaptureMetadata? = null, val leakCanaryProcessingStatus: LeakCanaryProcessingErrorCode? = null)
+
+enum class LeakCanaryStartErrorCode {
+  UNKNOWN_ERROR,
+  AGENT_ATTACH_FAILED,
+  APP_CONTEXT_NULL,
+  LIBRARY_NOT_INSTALLED_TIMEOUT,
+  TRANSPORT_TIMEOUT,
+}
+
+enum class LeakCanaryProcessingErrorCode {
+  UNKNOWN_ERROR,
+  BROADCAST_DELIVERY_FAILED,
+  HEAP_DUMP_GENERATION_FAILED,
+  HPROF_DOWNLOAD_FAILED,
+  SHARK_ANALYSIS_OOM,
+  SHARK_ANALYSIS_EXCEPTION,
+  PARSING_FAILURE,
+}
+
+enum class LeakCanaryUiAction {
+  UNKNOWN_ACTION,
+  FORCE_DUMP_CLICKED,
+  STOP_RECORDING_CLICKED,
+  GO_TO_DECLARATION_CLICKED,
+  COPY_TRACE_CLICKED,
+  EXPAND_ALL_NODES_CLICKED,
+  COLLAPSE_ALL_NODES_CLICKED,
+  NEW_LEAK_SELECTED,
+  CANCELLED_DURING_ANALYSIS,
+}
+
+/** Metadata payload for a successfully parsed memory leak trace. */
+data class LeakCanaryLeakAnalysis(
+  val retainedObjectsCount: Int? = null,
+  val occurrencesCount: Int? = null,
+  val estimatedMemoryLeakedBytes: Long? = null,
+  val leakingNoRows: Int? = null,
+  val leakingMaybeRows: Int? = null,
+  val leakingYesRows: Int? = null,
+  val heapDumpAnalysisTimeMs: Long? = null,
+  val totalRecordingTimeMs: Long? = null,
+  val isLibraryLeak: Boolean? = null,
+  val hprofFileSizeBytes: Long? = null,
+  val hprofDownloadDurationMs: Long? = null,
+)
 
 enum class TaskDataOrigin {
   UNSPECIFIED,

@@ -37,6 +37,8 @@ import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
+import com.android.tools.profilers.cpu.config.LeakCanaryConfiguration;
+import com.android.tools.profiler.proto.Commands.StartLeakCanaryTaskData;
 import com.android.tools.profilers.cpu.config.PerfettoNativeAllocationsConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
@@ -71,6 +73,7 @@ import com.google.wireless.android.sdk.stats.CpuProfilingConfig;
 import com.google.wireless.android.sdk.stats.CpuStartupProfilingMetadata;
 import com.google.wireless.android.sdk.stats.DeviceInfo;
 import com.google.wireless.android.sdk.stats.FilterMetadata;
+import com.google.wireless.android.sdk.stats.LeakCanaryTaskMetadata;
 import com.google.wireless.android.sdk.stats.MemoryInstanceFilterMetadata;
 import com.google.wireless.android.sdk.stats.PowerProfilerCaptureMetadata;
 import com.google.wireless.android.sdk.stats.ProfilerSessionCreationMetaData;
@@ -789,6 +792,21 @@ public final class StudioFeatureTracker implements FeatureTracker {
       taskConfigBuilder.setNativeAllocationsTaskConfig(
         TaskMetadata.NativeAllocationsTaskConfig.newBuilder().setSampleIntervalBytes(memorySamplingIntervalBytes).build());
     }
+    else if (taskConfig instanceof LeakCanaryConfiguration) {
+      LeakCanaryConfiguration config = (LeakCanaryConfiguration)taskConfig;
+      TaskMetadata.LeakCanaryTaskConfig.ExecutionMode mode =
+        config.getMode() == StartLeakCanaryTaskData.LeakCanaryMode.ON_HOST ? TaskMetadata.LeakCanaryTaskConfig.ExecutionMode.ON_HOST
+                                                                           : TaskMetadata.LeakCanaryTaskConfig.ExecutionMode.ON_DEVICE;
+
+      TaskMetadata.LeakCanaryTaskConfig.Builder leakCanaryTaskConfigBuilder = TaskMetadata.LeakCanaryTaskConfig.newBuilder()
+        .setExecutionMode(mode);
+
+      if (mode == TaskMetadata.LeakCanaryTaskConfig.ExecutionMode.ON_HOST) {
+        leakCanaryTaskConfigBuilder.setSelectedThreshold(config.getThreshold());
+      }
+
+      taskConfigBuilder.setLeakcanaryTaskConfig(leakCanaryTaskConfigBuilder.build());
+    }
 
     return taskConfigBuilder.build();
   }
@@ -851,10 +869,38 @@ public final class StudioFeatureTracker implements FeatureTracker {
     newTracker(AndroidProfilerEvent.Type.TASK_FAILED).setTaskFailedMetadata(taskMetadataBuilder.build()).track();
   }
 
+  @Override
+  public void trackLeakCanaryEvent(com.android.tools.profilers.tasks.analytics.@NotNull TaskMetadata taskMetadata,
+                                   @NotNull com.android.tools.profilers.tasks.analytics.LeakCanaryUiAction uiAction) {
+    LeakCanaryTaskMetadata.Builder builder = LeakCanaryTaskMetadata.newBuilder()
+      .setTaskId(taskMetadata.getTaskId())
+      .setUiAction(TaskMetadataMappersKt.toStatsProto(uiAction));
+    newTracker(AndroidProfilerEvent.Type.LEAKCANARY_EVENT).setLeakCanaryMetadata(builder.build()).track();
+  }
+
+  @Override
+  public void trackLeakCanaryEvent(com.android.tools.profilers.tasks.analytics.@NotNull TaskMetadata taskMetadata,
+                                   @NotNull com.android.tools.profilers.tasks.analytics.LeakCanaryLeakAnalysis leakAnalysis) {
+    LeakCanaryTaskMetadata.Builder builder = LeakCanaryTaskMetadata.newBuilder()
+      .setTaskId(taskMetadata.getTaskId())
+      .setLeakAnalysis(TaskMetadataMappersKt.toStatsProto(leakAnalysis));
+    newTracker(AndroidProfilerEvent.Type.LEAKCANARY_EVENT).setLeakCanaryMetadata(builder.build()).track();
+  }
+
+  @Override
+  public void trackLeakCanaryAutoInjectPopup() {
+    LeakCanaryTaskMetadata.Builder builder = LeakCanaryTaskMetadata.newBuilder()
+      .setAutoInjectPopupShown(true);
+    newTracker(AndroidProfilerEvent.Type.LEAKCANARY_EVENT).setLeakCanaryMetadata(builder.build()).track();
+  }
+
   TaskFailedMetadata.TaskProcessingFailedMetadata buildStatsTaskProcessingFailedMetadata(TaskProcessingFailedMetadata metadata) {
     TaskFailedMetadata.TaskProcessingFailedMetadata.Builder result = TaskFailedMetadata.TaskProcessingFailedMetadata.newBuilder();
     if (metadata.getCpuCaptureMetadata() != null) {
       result.setCpuCaptureMetadata(CpuCaptureParser.getCpuCaptureMetadata(metadata.getCpuCaptureMetadata()));
+    }
+    if (metadata.getLeakCanaryProcessingStatus() != null) {
+      result.setLeakcanaryProcessingStatus(TaskMetadataMappersKt.toStatsProto(metadata.getLeakCanaryProcessingStatus()));
     }
     return result.build();
   }
@@ -883,6 +929,9 @@ public final class StudioFeatureTracker implements FeatureTracker {
     }
     else if (metadata.getHeapDumpStatus() != null) {
       result.setHeapDumpStartStatus(TaskMetadataMappersKt.toStatsProto(metadata.getHeapDumpStatus()));
+    }
+    else if (metadata.getLeakCanaryStartStatus() != null) {
+      result.setLeakcanaryStartStatus(TaskMetadataMappersKt.toStatsProto(metadata.getLeakCanaryStartStatus()));
     }
     return result.build();
   }
@@ -941,6 +990,8 @@ public final class StudioFeatureTracker implements FeatureTracker {
     @Nullable private TaskFinishedMetadata myTaskFinishedMetadata;
 
     @Nullable private TaskFailedMetadata myTaskFailedMetadata;
+
+    @Nullable private LeakCanaryTaskMetadata myLeakCanaryMetadata;
 
     private AndroidProfilerEvent.MemoryHeap myMemoryHeap = AndroidProfilerEvent.MemoryHeap.UNKNOWN_HEAP;
 
@@ -1090,6 +1141,12 @@ public final class StudioFeatureTracker implements FeatureTracker {
       return this;
     }
 
+    @NotNull
+    private Tracker setLeakCanaryMetadata(LeakCanaryTaskMetadata leakCanaryMetadata) {
+      myLeakCanaryMetadata = leakCanaryMetadata;
+      return this;
+    }
+
     public void track() {
       AndroidProfilerEvent.Builder profilerEvent = AndroidProfilerEvent.newBuilder().setType(myEventType);
 
@@ -1171,6 +1228,9 @@ public final class StudioFeatureTracker implements FeatureTracker {
           break;
         case TASK_FAILED:
           profilerEvent.setTaskFailedMetadata(myTaskFailedMetadata);
+          break;
+        case LEAKCANARY_EVENT:
+          profilerEvent.setLeakcanaryMetadata(myLeakCanaryMetadata);
           break;
         default:
           break;

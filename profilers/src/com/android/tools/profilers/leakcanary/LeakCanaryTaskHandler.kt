@@ -20,6 +20,7 @@ import com.android.tools.idea.transport.poller.TransportEventListener
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Commands.StartLeakCanaryTaskData
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Common.Process.ExposureLevel
 import com.android.tools.profiler.proto.Transport
 import com.android.tools.profilers.SupportLevel
 import com.android.tools.profilers.cpu.config.LeakCanaryConfiguration
@@ -27,6 +28,13 @@ import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
 import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StartTaskSelectionErrorCode
+import com.android.tools.profilers.tasks.ProfilerTaskType
+import com.android.tools.profilers.tasks.analytics.LeakCanaryStartErrorCode
+import com.android.tools.profilers.tasks.analytics.TaskAttachmentPoint
+import com.android.tools.profilers.tasks.analytics.TaskDataOrigin
+import com.android.tools.profilers.tasks.analytics.TaskMetadata
+import com.android.tools.profilers.tasks.analytics.TaskStartFailedMetadata
+import com.android.tools.profilers.tasks.analytics.TaskTracker
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.leakcanary.LeakCanaryTaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerUtils
@@ -70,6 +78,20 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
   private val AGENT_ATTACH_TIMEOUT_MS = 7000L
 
   private var pendingArgs: LeakCanaryTaskArgs? = null
+
+  private fun createPreFlightTracker(): TaskTracker {
+    return TaskTracker(
+      profilers,
+      TaskMetadata(
+        ProfilerTaskType.LEAKCANARY,
+        0L, // Task ID/Session ID is 0 because the session hasn't started yet
+        TaskDataOrigin.NEW,
+        TaskAttachmentPoint.EXISTING_PROCESS,
+        ExposureLevel.UNKNOWN, // Let it be unknown for pre-flight
+        null,
+      ),
+    )
+  }
 
   override fun setupStage() {
     val studioProfilers = sessionsManager.studioProfilers
@@ -179,12 +201,18 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
   }
 
   /** Called when the verification process successfully finishes. Updates the UI state with the result. */
-  private fun updateStateToCompleted(processId: String, found: Boolean) {
+  private fun updateStateToCompleted(processId: String, found: Boolean, tracker: TaskTracker) {
     profilers.ideServices.mainExecutor.execute {
       if (isProcessLastChecked(processId)) {
         isPresent.set(found)
         isCheckInProgress.set(false)
         _checkState.value = if (found) LeakCanaryCheckState.PRESENT else LeakCanaryCheckState.NOT_PRESENT
+
+        if (!found) {
+          tracker.trackStartTaskFailed(
+            TaskStartFailedMetadata(leakCanaryStartStatus = LeakCanaryStartErrorCode.LIBRARY_NOT_INSTALLED_TIMEOUT)
+          )
+        }
 
         logger.info("PROFILER: Check finished for $processId. State: ${_checkState.value}")
       }
@@ -274,23 +302,25 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
     logger.info("PROFILER: Starting LeakCanary check for $processId")
 
     updateStateToChecking(processId)
+    val tracker = createPreFlightTracker()
 
     // This is a local variable, meaning each UI click creates a completely separate,
     // independent reference. If the user clicks 3 apps rapidly, 3 separate timers will individually
     // clean up their own specific abandoned listeners without interfering with each other.
     val listenerRef = AtomicReference<TransportEventListener?>(null)
-    val timer = startSafetyTimer(processId, listenerRef)
+    val timer = startSafetyTimer(processId, listenerRef, tracker)
 
     // Offload the blocking attachment and network calls to a background thread
     profilers.ideServices.poolExecutor.execute {
       if (!attachAgentAndWait(streamId, process)) {
         logger.warn("PROFILER: Agent attachment failed or timed out for $processId")
         updateStateToTimeout(processId)
+        tracker.trackStartTaskFailed(TaskStartFailedMetadata(leakCanaryStartStatus = LeakCanaryStartErrorCode.AGENT_ATTACH_FAILED))
         timer.cancel()
         return@execute
       }
 
-      sendThresholdCommandAndListen(process, streamId, processId, timer, listenerRef)
+      sendThresholdCommandAndListen(process, streamId, processId, timer, listenerRef, tracker)
     }
   }
 
@@ -298,7 +328,7 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
    * Starts a safety timer that will forcefully abort the verification process if it takes too long. This protects the UI from hanging if
    * the target app is frozen or unresponsive.
    */
-  private fun startSafetyTimer(processId: String, listenerRef: AtomicReference<TransportEventListener?>): Timer {
+  private fun startSafetyTimer(processId: String, listenerRef: AtomicReference<TransportEventListener?>, tracker: TaskTracker): Timer {
     val timer = Timer()
     timer.schedule(
       object : TimerTask() {
@@ -306,6 +336,7 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
           if (isProcessLastChecked(processId) && isCheckInProgress.get()) {
             logger.info("PROFILER: Safety timeout for $processId. Failing check.")
             updateStateToTimeout(processId)
+            tracker.trackStartTaskFailed(TaskStartFailedMetadata(leakCanaryStartStatus = LeakCanaryStartErrorCode.TRANSPORT_TIMEOUT))
           }
           listenerRef.get()?.let { profilers.transportPoller.unregisterListener(it) }
           timer.cancel()
@@ -323,11 +354,13 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
     processId: String,
     timer: Timer,
     listenerRef: AtomicReference<TransportEventListener?>,
+    tracker: TaskTracker,
   ) {
     val command =
       Commands.Command.newBuilder()
         .setStreamId(streamId)
         .setPid(process.pid)
+        .setSessionId(profilers.session.sessionId)
         // Instructs the native agent to broadcast an intent to the app to fetch the user's LeakCanary threshold.
         .setType(Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD)
         .build()
@@ -351,7 +384,7 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
             if (found) {
               profilers.ideServices.temporaryProfilerPreferences.setInt("LEAKCANARY_THRESHOLD", event.leakcanaryThreshold.threshold)
             }
-            updateStateToCompleted(processId, found)
+            updateStateToCompleted(processId, found, tracker)
             true // Match found, unregister listener.
           } else {
             false // Match not found (e.g. stale event), keep listening.
@@ -407,6 +440,7 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
       Commands.Command.newBuilder()
         .setStreamId(streamId)
         .setPid(process.pid)
+        .setSessionId(profilers.session.sessionId)
         .setType(Commands.Command.CommandType.ATTACH_AGENT)
         .setAttachAgent(
           Commands.AttachAgent.newBuilder()

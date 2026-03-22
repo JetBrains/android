@@ -45,6 +45,7 @@ import com.android.tools.profilers.taskbased.tabs.task.leakcanary.actionbars.Lea
 import com.android.tools.profilers.taskbased.tabs.task.leakcanary.banner.LeakCanaryBanner
 import com.android.tools.profilers.taskbased.tabs.task.leakcanary.leakdetails.LeakDetailsPanel
 import com.android.tools.profilers.taskbased.tabs.task.leakcanary.leaklist.LeakListView
+import com.android.tools.profilers.tasks.analytics.LeakCanaryUiAction
 import org.jetbrains.jewel.ui.component.HorizontalSplitLayout
 import org.jetbrains.jewel.ui.component.rememberSplitLayoutState
 
@@ -66,11 +67,13 @@ fun LeakCanaryScreen(leakCanaryModel: LeakCanaryModel, ideProfilerComponents: Id
             Key.NumPadAdd,
             Key.Equals -> {
               openStates = List(traceNodes.size) { true }
+              leakCanaryModel.trackUiAction(LeakCanaryUiAction.EXPAND_ALL_NODES_CLICKED)
               true
             }
             Key.NumPadSubtract,
             Key.Minus -> {
               openStates = List(traceNodes.size) { false }
+              leakCanaryModel.trackUiAction(LeakCanaryUiAction.COLLAPSE_ALL_NODES_CLICKED)
               true
             }
             else -> false
@@ -116,6 +119,8 @@ fun LeakCanaryScreen(leakCanaryModel: LeakCanaryModel, ideProfilerComponents: Id
             isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync,
             openStates = openStates,
             onOpenStatesChange = { newStates -> openStates = newStates },
+            onCopy = { leakCanaryModel.trackUiAction(LeakCanaryUiAction.COPY_TRACE_CLICKED) },
+            trackUiAction = leakCanaryModel::trackUiAction,
           )
         },
         modifier = Modifier.weight(1f),

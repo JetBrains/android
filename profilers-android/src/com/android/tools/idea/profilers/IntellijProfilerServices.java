@@ -505,6 +505,9 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
    * Uses {@link DependencyConfirmationDialog} which mimics the Firebase assistant UI.
    */
   private void addDependencyWithConfirmationDialog(Module module, GoogleMavenArtifactId artifact, DependencyType dependencyType, CompletableFuture<Boolean> future) {
+    if (artifact == GoogleMavenArtifactId.LEAKCANARY) {
+      getFeatureTracker().trackLeakCanaryAutoInjectPopup();
+    }
     if (showConfirmationDialog(module, artifact, dependencyType)) {
       try {
         AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
