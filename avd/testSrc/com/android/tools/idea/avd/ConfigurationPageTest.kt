@@ -38,6 +38,7 @@ import com.android.sdklib.internal.avd.UserSettingsKey
 import com.android.tools.adtui.compose.TestComposeWizard
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.idea.adddevicedialog.LoadingState
+import com.android.tools.idea.avdmanager.AccelerationErrorCode
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.google.common.truth.Truth.assertThat
 import com.intellij.idea.IJIgnore
@@ -58,7 +59,7 @@ import org.junit.Rule
 import org.junit.Test
 
 @RunsInEdt
-class LocalVirtualDeviceSourceTest {
+class ConfigurationPageTest {
   @get:Rule val edtRule = EdtRule()
   @get:Rule val applicationRule = ApplicationRule()
   @get:Rule val composeTestRule = createStudioComposeTestRule()
@@ -96,7 +97,7 @@ class LocalVirtualDeviceSourceTest {
     with(SdkFixture()) {
       repoPackages.setRemotePkgInfos(listOf(remoteApi34()))
 
-      val profiles: List<VirtualDeviceProfile> = runBlocking { createLocalVirtualDeviceSource().profilesWhenReady() }
+      val profiles: List<VirtualDeviceProfile> = runBlocking { createAddDeviceWizard().profilesWhenReady() }
       val names = profiles.map { it.name }
 
       assertThat(names).containsAllOf("Pixel", "Pixel 8", "Medium Phone")
@@ -113,11 +114,11 @@ class LocalVirtualDeviceSourceTest {
 
     init {
       with(sdkFixture) {
-        val source = createLocalVirtualDeviceSource(systemImageStateFlow)
-        val profiles = runBlocking { source.profilesWhenReady() }
+        val addDeviceWizard = createAddDeviceWizard(systemImageStateFlow = systemImageStateFlow)
+        val profiles = runBlocking { addDeviceWizard.profilesWhenReady() }
         val pixel8 = profiles.first { it.name == "Pixel 8" }
 
-        wizard = TestComposeWizard { with(source) { selectionUpdated(pixel8, finish = ::finish) } }
+        wizard = TestComposeWizard { with(addDeviceWizard) { selectionUpdated(pixel8, finish = ::finish) } }
 
         composeTestRule.setContentWithSdkLocals { wizard.Content() }
 
@@ -372,9 +373,18 @@ class LocalVirtualDeviceSourceTest {
   }
 }
 
-private suspend fun LocalVirtualDeviceSource.profilesWhenReady(): List<VirtualDeviceProfile> =
+private suspend fun AddDeviceWizard.profilesWhenReady(): List<VirtualDeviceProfile> =
   profiles.filterIsInstance<LoadingState.Ready<List<VirtualDeviceProfile>>>().first().value
 
-internal fun SdkFixture.createLocalVirtualDeviceSource(
-  systemImageStateFlow: StateFlow<SystemImageState> = MutableStateFlow(systemImageState())
-) = LocalVirtualDeviceSource(persistentListOf(NoSkin.INSTANCE), sdkHandler, avdManager, systemImageStateFlow)
+internal fun SdkFixture.createAddDeviceWizard(
+  accelerationCheck: () -> AccelerationErrorCode = { AccelerationErrorCode.ALREADY_INSTALLED },
+  systemImageStateFlow: StateFlow<SystemImageState> = MutableStateFlow(systemImageState()),
+) =
+  AddDeviceWizard(
+    project = null,
+    skins = persistentListOf(NoSkin.INSTANCE),
+    sdkHandler = sdkHandler,
+    avdManager = avdManager,
+    accelerationCheck = accelerationCheck,
+    systemImageFlow = systemImageStateFlow,
+  )
