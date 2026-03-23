@@ -94,6 +94,8 @@ class AttachedToolWindowTest {
   @Before
   fun setUp() {
     ApplicationManager.getApplication().replaceService(PropertiesComponent::class.java, propertiesComponent, disposable)
+    ApplicationManager.getApplication().replaceService(WorkBenchManager::class.java, WorkBenchManager(), disposable)
+    projectRule.project.replaceService(DetachedToolWindowManager::class.java, DetachedToolWindowManager(projectRule.project), disposable)
 
     workBench = WorkBench(project, "DESIGNER", null, disposable, 0)
     toolWindow = AttachedToolWindow(definition, dragListener, workBench, model, false)
