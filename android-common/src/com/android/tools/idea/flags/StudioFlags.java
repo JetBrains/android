@@ -1421,12 +1421,6 @@ public final class StudioFlags {
     "If enabled, causes the translations editor to reload data when resource files are edited"
   );
 
-  public static final Flag<Boolean> COMPOSE_STATE_READ_INLAY_HINTS_ENABLED = new BooleanFlag(
-    EDITOR, "compose.state.read.inlay.hints.enabled",
-    "Enable inlay hints for State reads in @Composable functions",
-    "If enabled, calls out reads of variables of type State inside @Composable functions."
-    );
-
   public static final Flag<Boolean> REMOTE_SDK_DOCUMENTATION_FETCH_VIA_CONTENT_SERVING_API_ENABLED = new BooleanFlag(
     EDITOR, "remote.sdk.documentation.fetch.via.content.serving.api.enabled",
     "Enable use of the ContentServing API for fetching Android SDK documentation.",

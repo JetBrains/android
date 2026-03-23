@@ -91,8 +91,6 @@
   <extensions defaultExtensionNs="com.intellij">
     <dependencySupport coordinate="androidx.compose.runtime:runtime" kind="java" displayName="Jetpack Compose"/>
 
-    <annotator language="kotlin" implementationClass="com.android.tools.compose.code.state.ComposeStateReadAnnotator"/>
-
     <additionalTextAttributes scheme="Default" file="colorschemes/ComposeColorSchemeDefault.xml"/>
     <additionalTextAttributes scheme="Darcula" file="colorschemes/ComposeColorSchemeDarcula.xml"/>
 
@@ -217,17 +215,6 @@
                                     implementationClass="com.android.tools.compose.ComposeColorLineMarkerProviderDescriptor" />
 
     <usageGroupingRuleProvider implementation="com.android.tools.compose.ComposeUsageGroupingRuleProvider" />
-
-    <codeInsight.declarativeInlayProvider language="kotlin"
-                                          implementationClass="com.android.tools.compose.code.state.ComposeStateReadInlayHintsProvider"
-                                          isEnabledByDefault="false"
-                                          group="OTHER_GROUP"
-                                          providerId="compose.state.read"
-                                          bundle="messages.ComposeBundle"
-                                          nameKey="state.read.inlay.provider.name"
-                                          descriptionKey="state.read.inlay.provider.description"/>
-    <codeInsight.inlayActionHandler implementationClass="com.android.tools.compose.code.state.ComposeStateReadInlayActionHandler"
-                                    handlerId="compose.state.read" />
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin.extensions.internal">
