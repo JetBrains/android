@@ -39,6 +39,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.IdeActions
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
@@ -79,7 +80,9 @@ import javax.swing.event.ListSelectionEvent
 import javax.swing.table.AbstractTableModel
 import kotlin.math.min
 import kotlin.reflect.KClass
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.PropertyKey
 import org.jetbrains.annotations.TestOnly
@@ -162,8 +165,6 @@ class SymbolPickerDialog(
   private val imageCache = ImageCache.createImageCache(myDisposable, null)
   private val materialSymbolsUrlProvider = materialSymbolsUrlProvider ?: SymbolsSdkUrlProvider()
   private val materialIconsMetadataUrlProvider = materialIconsMetadataUrlProvider ?: SdkMetadataUrlProvider()
-  private val resourceResolver =
-    ConfigurationManager.getOrCreateInstance(facet.module).getConfiguration(LightVirtualFile()).getResourceResolver()
 
   // The default panel color in darcula mode is too dark given that our icons are all black.
   // We provide a lighter color for higher contrast.
@@ -178,9 +179,6 @@ class SymbolPickerDialog(
       }
     }
   private val renderingOptions = LayoutRenderOptions(SessionParams.RenderingMode.SHRINK, true, transparentBackground = true)
-  private val assetPreviewManager = AssetPreviewManagerImpl(facet, imageCache, resourceResolver, null, renderingOptions, placeholderImage)
-  private val layoutRenderer =
-    IconPickerCellLayoutRenderer(assetPreviewManager.getPreviewProvider(ResourceType.LAYOUT) as SlowResourcePreviewManager)
 
   private val layoutModel = TableModel(MaterialSymbolsVirtualFile::class, filteredSymbolList)
 
@@ -188,33 +186,50 @@ class SymbolPickerDialog(
   private var isBusy = true
 
   init {
-    isBusy = true
     setupTable()
     setStylesBoxModel() // We must ensure the styles box is initialized before loading the metadata to avoid a potential NPE
     setCategoriesBoxModel()
+    coroutineScope
+      .launch {
+        loadingPanel.startLoading()
+        try {
+          val resourceResolver =
+            withContext(Dispatchers.IO) {
+              ConfigurationManager.getOrCreateInstance(facet.module).getConfiguration(LightVirtualFile()).getResourceResolver()
+            }
+          val assetPreviewManager = AssetPreviewManagerImpl(facet, imageCache, resourceResolver, null, renderingOptions, placeholderImage)
+          val layoutRenderer =
+            IconPickerCellLayoutRenderer(assetPreviewManager.getPreviewProvider(ResourceType.LAYOUT) as SlowResourcePreviewManager)
 
-    ensureFontsAndMetadataAreDownloaded(false)
+          withContext(Dispatchers.Main) { iconTable.setDefaultRenderer(MaterialSymbolsVirtualFile::class.java, layoutRenderer) }
 
-    val stylesBoxListener = { e: ItemEvent ->
-      if (e.getStateChange() != ItemEvent.DESELECTED && e.getItem() != null) {
-        val categoryCurrentIndex: Int = categoriesBox.getSelectedIndex()
-        setCategoriesBoxModel()
-        updateIconList()
-        layoutModel.fireTableDataChanged()
-        if (categoryCurrentIndex >= 0 && categoryCurrentIndex < categoriesBox.itemCount) {
-          categoriesBox.setSelectedIndex(categoryCurrentIndex)
+          ensureFontsAndMetadataAreDownloaded(false)
+
+          val stylesBoxListener = { e: ItemEvent ->
+            if (e.getStateChange() != ItemEvent.DESELECTED && e.getItem() != null) {
+              val categoryCurrentIndex: Int = categoriesBox.getSelectedIndex()
+              setCategoriesBoxModel()
+              updateIconList()
+              layoutModel.fireTableDataChanged()
+              if (categoryCurrentIndex >= 0 && categoryCurrentIndex < categoriesBox.itemCount) {
+                categoriesBox.setSelectedIndex(categoryCurrentIndex)
+              }
+            }
+          }
+
+          val categoriesBoxListener = { e: ItemEvent ->
+            if (e.getStateChange() != ItemEvent.DESELECTED && e.getItem() != null) {
+              updateFilter()
+            }
+          }
+
+          stylesBox.addItemListener(stylesBoxListener)
+          categoriesBox.addItemListener(categoriesBoxListener)
+        } finally {
+          loadingPanel.stopLoading()
         }
       }
-    }
-
-    val categoriesBoxListener = { e: ItemEvent ->
-      if (e.getStateChange() != ItemEvent.DESELECTED && e.getItem() != null) {
-        updateFilter()
-      }
-    }
-
-    stylesBox.addItemListener(stylesBoxListener)
-    categoriesBox.addItemListener(categoriesBoxListener)
+      .invokeOnCompletion { _ -> isBusy = false }
   }
 
   private fun setStylesBoxModel() {
@@ -345,42 +360,36 @@ class SymbolPickerDialog(
   /**
    * Function that, if required, downloads missing font files and metadata to the Sdk
    *
-   * @param forceMetadataDownload even though some automatic checks for updates are in-place, we allow the user to manually trigger a
-   *   redownload through the [refreshButton]
+   * @param forceDownload even though some automatic checks for updates are in-place, we allow the user to manually trigger a redownload
+   *   through the [refreshButton]
    */
-  private fun ensureFontsAndMetadataAreDownloaded(forceDownload: Boolean) {
-    coroutineScope.launch {
-      loadingPanel.startLoading()
-      try {
-        getMaterialSymbolsFontsAndMetadata(
-          materialSymbolsUrlProvider,
-          materialIconsMetadataUrlProvider,
-          coroutineScope,
-          forceDownload,
-          ({
-            // Metadata contains duplicates of entries with the same codepoint, some only allowing
-            // for Material Symbols, others only for Material Icons. Since these have the same name,
-            // codepoint, but different unsupported families and categories, they spoil the metadata
-            // causing issues, so we need to filter them out
-            val displayNames = Symbols.entries.map { it.displayName }
-            val icons = it.icons.filter { icon -> !icon.unsupportedFamilies.toMutableList().containsAll(displayNames) }
-            val categories = icons.flatMap { icon -> icon.categories.toList() }.distinct().sorted().toTypedArray()
-            metadata =
-              MaterialIconsMetadata(
-                it.host,
-                urlPattern = it.urlPattern,
-                families = displayNames.toTypedArray(),
-                icons = icons.toTypedArray(),
-                categories = categories,
-              )
-          }),
-        )
-        isBusy = false
-      } catch (e: Exception) {
-        println("Error: " + e.message)
-      } finally {
-        loadingPanel.stopLoading()
-      }
+  private suspend fun ensureFontsAndMetadataAreDownloaded(forceDownload: Boolean) {
+    try {
+      getMaterialSymbolsFontsAndMetadata(
+        materialSymbolsUrlProvider,
+        materialIconsMetadataUrlProvider,
+        coroutineScope,
+        forceDownload,
+        ({
+          // Metadata contains duplicates of entries with the same codepoint, some only allowing
+          // for Material Symbols, others only for Material Icons. Since these have the same name,
+          // codepoint, but different unsupported families and categories, they spoil the metadata
+          // causing issues, so we need to filter them out
+          val displayNames = Symbols.entries.map { it.displayName }
+          val icons = it.icons.filter { icon -> !icon.unsupportedFamilies.toMutableList().containsAll(displayNames) }
+          val categories = icons.flatMap { icon -> icon.categories.toList() }.distinct().sorted().toTypedArray()
+          metadata =
+            MaterialIconsMetadata(
+              it.host,
+              urlPattern = it.urlPattern,
+              families = displayNames.toTypedArray(),
+              icons = icons.toTypedArray(),
+              categories = categories,
+            )
+        }),
+      )
+    } catch (e: Exception) {
+      thisLogger().error("Error loading fonts and metadata", e)
     }
   }
 
@@ -411,7 +420,6 @@ class SymbolPickerDialog(
 
     // Setup table model with expected data type and selection models
     iconTable.model = layoutModel
-    iconTable.setDefaultRenderer(MaterialSymbolsVirtualFile::class.java, layoutRenderer)
     val rowSelModel = iconTable.selectionModel
     val colSelModel = iconTable.columnModel.selectionModel
 
@@ -482,7 +490,7 @@ class SymbolPickerDialog(
     filledCheckBox.addItemListener { updateIconList() }
 
     // Add listeners for the refresh button and the search field
-    refreshButton.addActionListener { ensureFontsAndMetadataAreDownloaded(true) }
+    refreshButton.addActionListener { coroutineScope.launch { ensureFontsAndMetadataAreDownloaded(true) } }
 
     searchField.addDocumentListener(
       object : DocumentAdapter() {
