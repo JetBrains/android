@@ -985,6 +985,31 @@ android_studio(
     visibility = ["//visibility:public"],
 )
 
+android_studio(
+    name = "android-studio-with-optional-plugins",
+    codesign_entitlements = "codesign/entitlements.xml",
+    configurations = [
+        ":canary",
+        ":nightly",
+        ":stable",
+    ],
+    generate_package_metadata = False,
+    jre = "//prebuilts/studio/jdk:jdk-bundle",
+    legacy_default_configuration = STUDIO_CONFIG,
+    platform = "@intellij//:intellij-sdk",
+    plugins = STUDIO_BASE_PLUGINS + [
+        "//tools/vendor/google/optional-plugins:plugins",
+    ],
+    searchable_options_metadata = SEARCHABLE_OPTIONS,
+    searchable_options_plugin_lst = STUDIO_BASE_PLUGINS,
+    selector = "AndroidStudio",
+    update_message_template = ":update_message.html",
+    version_code_name = STUDIO_CODENAME,
+    version_micro_patch = STUDIO_MICRO_PATCH,
+    version_release_number = STUDIO_RELEASE_NUMBER,
+    visibility = ["//visibility:public"],
+)
+
 # Customized build of Android Studio that includes the automation plugin
 android_studio(
     name = "android-studio-agent",
@@ -1269,6 +1294,7 @@ iml_module(
         "//tools/adt/idea/gradle-dsl-plugin:intellij.android.gradle.dsl.plugin",
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "//tools/vendor/google/optional-plugins",
     ],
 )
 
