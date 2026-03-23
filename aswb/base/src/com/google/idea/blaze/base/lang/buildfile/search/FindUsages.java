@@ -35,7 +35,7 @@ public class FindUsages {
    */
   public static PsiReference[] findReferencesInElementScope(PsiElement element) {
     return findReferencesInScope(
-        element, PsiSearchHelper.SERVICE.getInstance(element.getProject()).getUseScope(element));
+        element, PsiSearchHelper.getInstance(element.getProject()).getUseScope(element));
   }
 
   public static PsiReference[] findReferencesInScope(PsiElement element, SearchScope scope) {

@@ -128,7 +128,7 @@ public class BuildTasksProblemsView {
     String toolWindowTitle = Blaze.getBuildSystemName(project).getName() + " Problems";
     toolWindow.setTitle(toolWindowTitle);
     toolWindow.setStripeTitle(toolWindowTitle);
-    Content content = ContentFactory.SERVICE.getInstance().createContent(panel, "", false);
+    Content content = ContentFactory.getInstance().createContent(panel, "", false);
     toolWindow.getContentManager().addContent(content);
     Disposer.register(project, () -> toolWindow.getContentManager().removeAllContents(true));
     updateIcon(panel);
