@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.preview.actions
 
+import com.android.tools.idea.common.actions.CopyResultImageAction
 import com.android.tools.idea.common.model.DisplaySettings
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.surface.sceneview.InteractiveLabelPanel
 import com.android.tools.idea.concurrency.createCoroutineScope
+import com.android.tools.idea.preview.modes.PreviewMode
+import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
@@ -35,6 +38,7 @@ import com.intellij.openapi.application.runInEdt
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.TestActionEvent.createTestEvent
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 import kotlinx.coroutines.CompletableDeferred
@@ -212,6 +216,42 @@ class CommonPreviewActionManagerTest {
     val actionManager =
       CommonPreviewActionManager(mock(), navigationHandler, supportAnimationPreview = false, supportInteractivePreview = false)
     assertEquals(emptyList(), actionManager.sceneViewContextToolbarOverflowActions)
+  }
+
+  @Test
+  fun testPopupMenuActionsInDefaultMode() {
+    val modeManager = mock<PreviewModeManager>()
+    whenever(modeManager.mode).thenReturn(MutableStateFlow(PreviewMode.Default()))
+
+    val dataContext =
+      SimpleDataContext.builder().add(CommonDataKeys.PROJECT, projectRule.project).add(PreviewModeManager.KEY, modeManager).build()
+    val testEvent = createTestEvent(dataContext)
+
+    val popupMenuActions = actionManager.getPopupMenuActions(null, mock())
+    val actions = popupMenuActions.getChildren(testEvent)
+
+    assertEquals(2, actions.size)
+    assertTrue(actions[0] is com.android.tools.idea.common.actions.CopyResultImageAction)
+    assertTrue(actions[1] is ActionGroup)
+    actions[1].update(testEvent)
+    assertTrue(testEvent.presentation.isVisible)
+  }
+
+  @Test
+  fun testPopupMenuActionsInFocusMode() {
+    val modeManager = mock<PreviewModeManager>()
+    whenever(modeManager.mode).thenReturn(MutableStateFlow(PreviewMode.Focus(null)))
+
+    val dataContext =
+      SimpleDataContext.builder().add(CommonDataKeys.PROJECT, projectRule.project).add(PreviewModeManager.KEY, modeManager).build()
+    val testEvent = createTestEvent(dataContext)
+    val popupMenuActions = actionManager.getPopupMenuActions(null, mock())
+    val actions = popupMenuActions.getChildren(testEvent)
+
+    assertEquals(2, actions.size)
+    assertTrue(actions[0] is com.android.tools.idea.common.actions.CopyResultImageAction)
+    actions[1].update(testEvent)
+    assertFalse(testEvent.presentation.isVisible)
   }
 }
 
