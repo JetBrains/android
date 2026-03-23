@@ -68,13 +68,6 @@ public final class WorkspaceFileTextField extends FileTextFieldImpl {
     return null;
   }
 
-  // Scheduled for removal in a future IJ version.
-  @Override
-  @Nullable
-  public VirtualFile getSelectedFile() {
-    return getVirtualFile();
-  }
-
   private static class WorkspaceFinder implements Finder {
 
     private final WorkspacePathResolver pathResolver;
