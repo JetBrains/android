@@ -30,7 +30,6 @@ import com.google.idea.blaze.base.projectview.ProjectViewVerifier;
 import com.google.idea.blaze.base.projectview.parser.ProjectViewParser;
 import com.google.idea.blaze.base.projectview.section.ProjectViewDefaultValueProvider;
 import com.google.idea.blaze.base.projectview.section.ScalarSection;
-import com.google.idea.blaze.base.projectview.section.Section;
 import com.google.idea.blaze.base.projectview.section.SectionKey;
 import com.google.idea.blaze.base.projectview.section.SectionParser;
 import com.google.idea.blaze.base.projectview.section.sections.DirectoryEntry;
@@ -72,7 +71,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.ui.TextComponentAccessor;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
@@ -162,8 +160,7 @@ public final class BlazeEditProjectViewControl {
     projectDataDirField.setName("project-data-dir-field");
     projectDataDirField.addBrowseFolderListener(
         null,
-        PROJECT_FOLDER_DESCRIPTOR.withDescription(buildSystemName + " project data directory"),
-        TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT);
+        PROJECT_FOLDER_DESCRIPTOR.withDescription(buildSystemName + " project data directory"));
     final String dataDirToolTipText = "Directory in which to store the project's metadata.";
     projectDataDirField.setToolTipText(dataDirToolTipText);
     projectDataDirLabel.setToolTipText(dataDirToolTipText);
@@ -600,10 +597,17 @@ public final class BlazeEditProjectViewControl {
     final ProjectViewSet projectViewSet;
     ProjectViewSet.ProjectViewFile projectViewFile = parseResult.getTopLevelProjectViewFile();
     assert projectViewFile != null;
-    ScalarSection<String> workspaceRootSection = ScalarSection.builder(WorkspaceLocationSection.KEY)
-      .set(workspaceData.workspaceRoot().toString()).build();
-    ScalarSection<Boolean> useQuerySyncSection = ScalarSection.builder(UseQuerySyncSection.KEY)
-      .set(Optional.ofNullable(projectViewFile.projectView.getScalarValue(UseQuerySyncSection.KEY)).orElse(QuerySync.useForNewProjects())).build();
+    ScalarSection<String> workspaceRootSection =
+        ScalarSection.builder(WorkspaceLocationSection.KEY)
+            .set(workspaceData.workspaceRoot().toString())
+            .build();
+    ScalarSection<Boolean> useQuerySyncSection =
+        ScalarSection.builder(UseQuerySyncSection.KEY)
+            .set(
+                Optional.ofNullable(
+                        projectViewFile.projectView.getScalarValue(UseQuerySyncSection.KEY))
+                    .orElse(QuerySync.useForNewProjects()))
+            .build();
     if (useSharedProjectView && selectProjectViewOption.getSharedProjectView() != null) {
       projectView =
           ProjectView.builder()
