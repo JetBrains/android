@@ -2092,13 +2092,6 @@ public final class StudioFlags {
   );
   // endregion
 
-  // region PRIVACY_SANDBOX_SDK
-  private static final FlagGroup PRIVACY_SANDBOX_SDK = new FlagGroup(FLAGS, "privacysandboxsdk", "Privacy Sandbox SDK");
-  public static final Flag<Boolean> LAUNCH_SANDBOX_SDK_PROCESS_WITH_DEBUGGER_ATTACHED_ON_DEBUG = new BooleanFlag(
-    PRIVACY_SANDBOX_SDK, "launch.process.with.debugger.attached.on.debug", "Launch sandbox SDK process with debugger attached on debug",
-    "Whether or not sandbox SDK should launch a process with the debugger attached on debug action.");
-  // endregion PRIVACY_SANDBOX_SDK
-
   // region STUDIO_BOT
   private static final FlagGroup STUDIOBOT = new FlagGroup(FLAGS, "studiobot", "Gemini");
   public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_CES_TELEMETRY_ENABLED =

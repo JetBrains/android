@@ -24,8 +24,6 @@ import com.android.builder.model.PROPERTY_BUILD_WITH_STABLE_IDS
 import com.android.builder.model.PROPERTY_DEPLOY_AS_INSTANT_APP
 import com.android.builder.model.PROPERTY_EXTRACT_INSTANT_APK
 import com.android.builder.model.PROPERTY_INJECTED_DYNAMIC_MODULES_LIST
-// TODO android-merge PROPERTY_SUPPORTS_PRIVACY_SANDBOX got removed from the AGP model upstream, dropped its usage below
-// import com.android.builder.model.PROPERTY_SUPPORTS_PRIVACY_SANDBOX
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.tools.idea.IdeInfo
@@ -382,12 +380,6 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
           val injectedProperty = AndroidGradleSettings.createProjectProperty("internal.android.inject.device.serials", deviceSerials)
           properties.add(injectedProperty)
         }
-        // TODO android-merge PROPERTY_SUPPORTS_PRIVACY_SANDBOX got removed upstream, dropped this whole block
-        // if (configuration.supportsPrivacySandbox) {
-        //   properties.add(
-        //     AndroidGradleSettings.createProjectProperty(PROPERTY_SUPPORTS_PRIVACY_SANDBOX, targetDeviceSpec.deviceSpec.supportsSdkRuntime)
-        //   )
-        // }
       }
       return properties
     }

@@ -31,7 +31,6 @@ import java.io.File
 /** @param files The list of files to deploy for the given [.getApplicationId]. The APK file(s). Contains at least one element. */
 /** @param applicationId The manifest package name for the APK (the app ID). */
 /** @param requiredInstallOptions A set of required "pm install" options to install this APK. */
-/** @param isSandboxApk A flag indicating if the APK is the sandbox APK. */
 /** @param baselineProfiles: List of baseline profile which can be installed along with the apks. */
 data class ApkInfo
 @JvmOverloads
@@ -39,7 +38,6 @@ constructor(
   val files: List<ApkFileUnit>,
   val applicationId: String,
   val requiredInstallOptions: Set<AppInstallOption> = emptySet(),
-  val isSandboxApk: Boolean = false,
   val baselineProfiles: List<BaselineProfileDetails> = emptyList(),
   val minSdkVersionForDexing: Int? = null,
 ) {
@@ -60,16 +58,15 @@ constructor(
     file: File,
     applicationId: String,
     requiredInstallOptions: Set<AppInstallOption> = emptySet(),
-    isSandboxApk: Boolean = false,
     baselineProfiles: List<BaselineProfileDetails> = emptyList(),
     minSdkVersionForDexing: Int? = null,
-  ) : this(listOf(ApkFileUnit("", file)), applicationId, requiredInstallOptions, isSandboxApk, baselineProfiles, minSdkVersionForDexing)
+  ) : this(listOf(ApkFileUnit("", file)), applicationId, requiredInstallOptions, baselineProfiles, minSdkVersionForDexing)
 
   constructor(
     file: File,
     applicationId: String,
     minSdkVersionForDexing: Int? = null,
-  ) : this(listOf(ApkFileUnit("", file)), applicationId, emptySet(), false, emptyList(), minSdkVersionForDexing)
+  ) : this(listOf(ApkFileUnit("", file)), applicationId, emptySet(), emptyList(), minSdkVersionForDexing)
 
   constructor(
     apkFileList: List<ApkFileUnit>,

@@ -225,9 +225,6 @@ public final class GradleApkProvider implements ApkProvider {
               getLogger().warn("Android model is null. Sync might have failed");
             }
             else {
-              // Privacy sandbox SDKs should be installed before the app itself.
-              IdeVariantCore baseVariant = baseAndroidModel.getSelectedVariant();
-
               ApkInfo apkInfo = collectAppBundleOutput(
                 baseAndroidModel,
                 baseAppModule,

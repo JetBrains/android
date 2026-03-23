@@ -152,11 +152,6 @@ public final class FakeAndroidDevice implements AndroidDevice {
     return myDevice.supportsFeature(feature);
   }
 
-  @Override
-  public boolean getSupportsSdkRuntime() {
-    return myDevice.services().containsKey("sdk_sandbox") && myDevice.getVersion().isAtLeast(34);
-  }
-
   @NotNull
   @Override
   public String getName() {

@@ -90,12 +90,9 @@ constructor(
   override val minVersion: AndroidVersion?,
   override val density: Density? = null,
   override val abis: List<String> = emptyList(),
-  val supportsSdkRuntimeProvider: () -> Boolean = { false },
   override val deviceSerials: List<String> = emptyList(),
   val languagesProvider: () -> List<String> = { emptyList() },
 ) : AndroidDeviceSpec {
-  override val supportsSdkRuntime: Boolean
-    get() = supportsSdkRuntimeProvider()
 
   override val languages: List<String>
     get() = languagesProvider()
@@ -136,22 +133,11 @@ fun createDeviceSpecs(
         }
       log.info("Creating spec for device ${device.name} with ABIs: ${abis.ifEmpty { "<none specified>" }}")
       val deviceSerial = devices.mapNotNull { if (device.isRunning) device.launchedDevice.get().serialNumber else null }
-      val supportsSdkRuntime = device.supportsSdkRuntime
-      if (supportsSdkRuntime) {
-        log.info("Creating spec for ${device.name}.")
-      } else {
-        log.info("Creating spec for ${device.name} without privacy sandbox support.")
-      }
+      log.info("Creating spec for ${device.name}.")
 
-      AndroidDeviceSpecImpl(
-        version,
-        version,
-        density,
-        abis,
-        supportsSdkRuntimeProvider = { supportsSdkRuntime },
-        languagesProvider = { combineDeviceLanguages(listOf(device), timeout, unit) },
-        deviceSerials = deviceSerial,
-      )
+      AndroidDeviceSpecImpl(version, version, density, abis, deviceSerials = deviceSerial) {
+        combineDeviceLanguages(listOf(device), timeout, unit)
+      }
     }
   return ProcessedDeviceSpec.MultipleDeviceSpec(deviceSpecList)
 }
@@ -202,23 +188,11 @@ fun createTargetDeviceSpec(
   }
 
   val deviceSerials = devices.mapNotNull { if (it.isRunning) it.launchedDevice.get().serialNumber else null }
-  val allDevicesSupportSdkRuntime = devices.all { it.supportsSdkRuntime }
-  if (allDevicesSupportSdkRuntime) {
-    log.info("Creating spec for privacy sandbox enabled device.")
-  } else {
-    log.info("Creating spec for device without privacy sandbox support.")
-  }
 
   val deviceSpec =
-    AndroidDeviceSpecImpl(
-      version,
-      minVersion,
-      density,
-      abis,
-      supportsSdkRuntimeProvider = { allDevicesSupportSdkRuntime },
-      languagesProvider = { combineDeviceLanguages(devices, timeout, unit) },
-      deviceSerials = deviceSerials,
-    )
+    AndroidDeviceSpecImpl(version, minVersion, density, abis, deviceSerials = deviceSerials) {
+      combineDeviceLanguages(devices, timeout, unit)
+    }
 
   return ProcessedDeviceSpec.SingleDeviceSpec.TargetDeviceSpec(deviceSpec)
 }
@@ -279,13 +253,6 @@ private fun AndroidDeviceSpec.writeJson(writeLanguages: Boolean, out: Writer, mo
       writer.beginArray()
       abis.forEach { writer.value(it) }
       writer.endArray()
-    }
-    if (
-      supportsSdkRuntime && // The DeviceConfig 'sdk_runtime' field exists in > AGP 7.4.0, the field is not recognised by older AGP
-        // versions.
-        moduleAgpVersions.all { it.isAtLeast(7, 4, 0) }
-    ) {
-      writer.name("sdk_runtime").beginObject().name("supported").value(supportsSdkRuntime).endObject()
     }
     if (writeLanguages) {
       if (!languages.isEmpty()) {

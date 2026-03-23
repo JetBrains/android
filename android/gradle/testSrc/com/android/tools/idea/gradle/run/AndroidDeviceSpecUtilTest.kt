@@ -285,64 +285,6 @@ class AndroidDeviceSpecUtilTest(private val extractDeviceSpecs: (List<AndroidDev
   }
 
   @Test
-  fun jsonFileFromPrivacySandboxSupportingDevice() {
-    val version33ext4 = AndroidVersion(33, null, 4, false)
-    val privacySandboxSupportedDevice = mockDevice(version33ext4, Density.XXXHIGH, listOf(Abi.X86_64), supportsPrivacySandbox = true)
-    val deviceSpecJson = createJsonFile(true, privacySandboxSupportedDevice)
-    val privacySandboxSupportedDeviceSpec =
-      extractDeviceSpecs(listOf(privacySandboxSupportedDevice), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
-
-    when (privacySandboxSupportedDeviceSpec) {
-      is ProcessedDeviceSpec.SingleDeviceSpec.NoDevices -> {}
-      is ProcessedDeviceSpec.SingleDeviceSpec.TargetDeviceSpec -> {
-        assertThat(privacySandboxSupportedDeviceSpec.deviceSpec.supportsSdkRuntime).isTrue()
-        val jsonFile = (deviceSpecJson as TargetDeviceSpec).jsonFile
-        assertThat(jsonFile.readText())
-          .isEqualTo(
-            "{\"sdk_version\":33,\"screen_density\":640,\"supported_abis\":[\"x86_64\"],\"sdk_runtime\":{\"supported\":true},\"supported_locales\":[\"es\",\"fr\"]}"
-          )
-      }
-
-      is ProcessedDeviceSpec.MultipleDeviceSpec -> {
-        assertThat(privacySandboxSupportedDeviceSpec.deviceSpecs.single().supportsSdkRuntime).isTrue()
-        val jsonFile = (deviceSpecJson as MultipleDeviceSpec).jsonFiles.single()
-        assertThat(jsonFile.readText())
-          .isEqualTo(
-            "{\"sdk_version\":33,\"screen_density\":640,\"supported_abis\":[\"x86_64\"],\"sdk_runtime\":{\"supported\":true},\"supported_locales\":[\"es\",\"fr\"]}"
-          )
-      }
-    }
-  }
-
-  @Test
-  fun combiningDevicesWithAndWithoutPrivacySandboxSupport() {
-    val version33ext4 = AndroidVersion(33, null, 4, false)
-    val supportedPrivacySandboxDevice = mockDevice(version33ext4, Density.XXXHIGH, listOf(Abi.X86_64), supportsPrivacySandbox = true)
-
-    val version33 = AndroidVersion(33)
-    val unSupportedPrivacySandboxDevice = mockDevice(version33, Density.XXXHIGH, listOf(Abi.X86_64), supportsPrivacySandbox = false)
-
-    val deviceSpec =
-      extractDeviceSpecs(
-        listOf(supportedPrivacySandboxDevice, unSupportedPrivacySandboxDevice),
-        MAX_TIMEOUT_MILLISECONDS,
-        TimeUnit.MILLISECONDS,
-      )
-
-    when (deviceSpec) {
-      is ProcessedDeviceSpec.SingleDeviceSpec.NoDevices -> {}
-      is ProcessedDeviceSpec.SingleDeviceSpec.TargetDeviceSpec -> {
-        assertThat(deviceSpec.deviceSpec.supportsSdkRuntime).isFalse()
-      }
-
-      is ProcessedDeviceSpec.MultipleDeviceSpec -> {
-        assertThat(deviceSpec.deviceSpecs[0].supportsSdkRuntime).isTrue()
-        assertThat(deviceSpec.deviceSpecs[1].supportsSdkRuntime).isFalse()
-      }
-    }
-  }
-
-  @Test
   fun densityOptimizationDisabledForResizableAndMultipleDevices() {
     val lowDensityDevice = mockDevice(AndroidVersion.DEFAULT, Density.LOW)
     val highDensityDevice = mockDevice(AndroidVersion.DEFAULT, Density.HIGH)
@@ -496,8 +438,9 @@ class AndroidDeviceSpecUtilTest(private val extractDeviceSpecs: (List<AndroidDev
         minVersion = AndroidVersion(20),
         density = Density.XXHIGH,
         abis = listOf("x86", "x86_64"),
-        deviceSerials = emptyList(),
-      )
+      ) {
+        emptyList()
+      }
 
     val tempFile = ProcessedDeviceSpec.SingleDeviceSpec.TargetDeviceSpec(spec).writeToJsonTempFile(writeLanguages = true)
     val fileName = tempFile.name
@@ -515,16 +458,18 @@ class AndroidDeviceSpecUtilTest(private val extractDeviceSpecs: (List<AndroidDev
         minVersion = AndroidVersion(21),
         density = Density.LOW,
         abis = listOf("arm"),
-        deviceSerials = emptyList(),
-      )
+      ) {
+        emptyList()
+      }
     val specApi29 =
       AndroidDeviceSpecImpl(
         commonVersion = AndroidVersion(29),
         minVersion = AndroidVersion(29),
         density = Density.XXHIGH,
         abis = listOf("x86"),
-        deviceSerials = emptyList(),
-      )
+      ) {
+        emptyList()
+      }
 
     val files = ProcessedDeviceSpec.MultipleDeviceSpec(listOf(specApi21, specApi29)).writeToMultipleJsonTempFiles(false)
 
@@ -570,7 +515,6 @@ class AndroidDeviceSpecUtilTest(private val extractDeviceSpecs: (List<AndroidDev
     preferredAbi: String? = null,
     config: String = EXAMPLE_DEVICE_CONFIG,
     resizeable: Boolean = false,
-    supportsPrivacySandbox: Boolean = false,
   ): AndroidDevice {
     val device = mock(AndroidDevice::class.java)
     whenever(device.version).thenReturn(version)
@@ -578,7 +522,6 @@ class AndroidDeviceSpecUtilTest(private val extractDeviceSpecs: (List<AndroidDev
     whenever(device.abis).thenReturn(abis)
     whenever(device.appPreferredAbi).thenReturn(preferredAbi)
     whenever(device.supportsMultipleScreenFormats()).thenReturn(resizeable)
-    whenever(device.supportsSdkRuntime).thenReturn(supportsPrivacySandbox)
     val launchedDevice = mock(IDevice::class.java)
     whenever(launchedDevice.version).thenReturn(version)
     if (config.isNotEmpty()) {

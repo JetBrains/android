@@ -31,10 +31,4 @@ interface AndroidDeviceSpec {
   val abis: List<String>
   val deviceSerials: List<String>
   val languages: List<String>
-  /**
-   * Whether the device supports the privacy sandbox SDK
-   *
-   * When there are multiple devices, only true if all devices support it.
-   */
-  val supportsSdkRuntime: Boolean
 }
