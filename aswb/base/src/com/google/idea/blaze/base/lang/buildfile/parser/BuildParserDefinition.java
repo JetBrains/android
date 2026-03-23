@@ -95,8 +95,7 @@ public class BuildParserDefinition implements ParserDefinition {
 
   private static TokenSet convert(TokenKind... blazeTokens) {
     return TokenSet.create(
-        Lists.newArrayList(blazeTokens)
-            .stream()
+        Lists.newArrayList(blazeTokens).stream()
             .map(BuildToken::fromKind)
             .toArray(IElementType[]::new));
   }
@@ -105,7 +104,7 @@ public class BuildParserDefinition implements ParserDefinition {
     @Override
     public ASTNode parse(IElementType root, PsiBuilder builder) {
       if (debug.getValue()) {
-        System.err.println(builder.getUserDataUnprotected(FileContextUtil.CONTAINING_FILE_KEY));
+        System.err.println(builder.getUserData(FileContextUtil.CONTAINING_FILE_KEY));
       }
       PsiBuilder.Marker rootMarker = builder.mark();
       ParsingContext context = new ParsingContext(builder);
