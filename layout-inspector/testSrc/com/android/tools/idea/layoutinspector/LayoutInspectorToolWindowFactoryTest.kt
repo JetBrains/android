@@ -227,6 +227,8 @@ class LayoutInspectorToolWindowFactoryTest {
     // Verify that the tool window has been removed.
     val layoutInspectorToolWindow3 = ToolWindowManager.getInstance(projectRule.project).getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
     assertThat(layoutInspectorToolWindow3).isNull()
+
+    verify(layoutInspector.notificationModel).removeNotification(BANNER_STRING_ID)
   }
 
   @Test
