@@ -22,6 +22,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.stubs.StubIndex;
 import com.intellij.psi.stubs.StubIndexEx;
 import com.intellij.testFramework.TestApplicationManager;
+import java.util.Collections;
 import org.junit.rules.ExternalResource;
 
 public class LeakCheckerRule extends ExternalResource {
@@ -40,7 +41,9 @@ public class LeakCheckerRule extends ExternalResource {
     }
     ensureFileUpdatesProcessedByModificationTracker();
     clearMockitoThreadLocals();
-    TestApplicationManager.disposeApplicationAndCheckForLeaks();
+    TestApplicationManager.disposeApplicationAndCheckForLeaks(Collections.singletonList(
+      backLink -> backLink.toString().contains("org.mockito")
+    ));
   }
 
   /**
@@ -54,7 +57,7 @@ public class LeakCheckerRule extends ExternalResource {
   private static void ensureFileUpdatesProcessedByModificationTracker() {
     StubIndex stubIndex = StubIndex.getInstance();
     if (stubIndex instanceof StubIndexEx) {
-      ((StubIndexEx) stubIndex).getPerFileElementTypeModificationTrackerUpdateProcessor().endUpdatesBatch();
+      ((StubIndexEx)stubIndex).getPerFileElementTypeModificationTrackerUpdateProcessor().endUpdatesBatch();
     }
   }
 

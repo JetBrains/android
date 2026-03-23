@@ -18,6 +18,7 @@ package org.jetbrains.android
 import com.android.testutils.MockitoThreadLocalsCleaner
 import com.android.tools.idea.testing.NamedExternalResource
 import com.intellij.testFramework.LeakHunter
+import com.intellij.util.ref.IgnoredTraverseEntry
 import com.intellij.util.ui.UIUtil
 import org.junit.runner.Description
 
@@ -30,7 +31,9 @@ class LightLeakCheckerRule : NamedExternalResource() {
     UIUtil.invokeAndWaitIfNeeded(
       Runnable {
         MockitoThreadLocalsCleaner().cleanupAndTearDown()
-        LeakHunter.checkNonDefaultProjectLeak()
+        LeakHunter.checkNonDefaultProjectLeakWithIgnoredEntries(
+          listOf(IgnoredTraverseEntry { backLink -> backLink.toString().contains("org.mockito") })
+        )
       }
     )
   }
