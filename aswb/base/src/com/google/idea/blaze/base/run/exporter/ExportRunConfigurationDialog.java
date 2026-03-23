@@ -91,9 +91,7 @@ public class ExportRunConfigurationDialog extends DialogWrapper {
     super(project, true);
     configurations =
         ImmutableList.copyOf(
-            RunManager.getInstance(project)
-                .getAllConfigurationsList()
-                .stream()
+            RunManager.getInstance(project).getAllConfigurationsList().stream()
                 .sorted(COMPARATOR)
                 .collect(Collectors.toList()));
     tableModel = new ExportRunConfigurationTableModel(configurations);
@@ -245,7 +243,9 @@ public class ExportRunConfigurationDialog extends DialogWrapper {
     JPanel panel = new JPanel(new BorderLayout());
     panel.setBorder(IdeBorderFactory.createTitledBorder("Run Configurations", false));
     panel.add(
-        ToolbarDecorator.createDecorator(table).addExtraAction(new SelectAllButton()).createPanel(),
+        ToolbarDecorator.createDecorator(table)
+            .addExtraActions(new SelectAllButton())
+            .createPanel(),
         BorderLayout.CENTER);
     return panel;
   }
