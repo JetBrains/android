@@ -716,6 +716,14 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
 
   @Override
   public void doLayout() {
+    if (mySplitter != null && mySplitter.getInnerComponent() == null && getWidth() > 0) {
+      // If there is no center component and the user hasn't manually adjusted the splitter width, evenly divide the side panels 50/50
+      int unscaledWidth = myPropertiesComponent.getInt(getUnscaledWidthPropertyName(Layout.CURRENT, Side.LEFT), -1);
+      int defaultUnscaledWidth = AdtUiUtils.unscale(getMinimumWidth(Side.LEFT));
+      if (unscaledWidth == -1 || unscaledWidth == defaultUnscaledWidth) {
+        mySplitter.setFirstSize(getWidth() / 2);
+      }
+    }
     myLoadingPanel.setBounds(0, 0, getWidth(), getHeight());
   }
 
