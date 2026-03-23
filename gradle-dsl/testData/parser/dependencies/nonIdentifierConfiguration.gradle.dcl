@@ -4,7 +4,7 @@ androidApp {
     }
   }
 
-  dependenciesDcl {
+  dependencies {
     implementation("com.android.support:appcompat-v7:+")
   }
 }

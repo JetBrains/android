@@ -1,7 +1,7 @@
 FILE
   PsiElement(BLOCK)
     PsiElement(IDENTIFIER)
-      PsiElement(DeclarativeTokenType.token)('dependenciesDcl')
+      PsiElement(DeclarativeTokenType.token)('dependencies')
     PsiWhiteSpace(' ')
     PsiElement(BLOCK_GROUP)
       PsiElement(DeclarativeTokenType.{)('{')

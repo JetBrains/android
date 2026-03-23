@@ -93,7 +93,7 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
     val file =
       """
       androidApp {
-        dependenciesDcl {
+        dependencies {
           implementation("abc")
         }
       }
@@ -102,14 +102,14 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
     val expected =
       """
       androidApp {
-        dependenciesDcl {
+        dependencies {
           implementation("bcd")
         }
       }
       """
         .trimIndent()
     doTest(file, expected) {
-      val dependencies = (elements["androidApp"] as DeclarativeAndroidDslElement).elements["dependenciesDcl"]
+      val dependencies = (elements["androidApp"] as DeclarativeAndroidDslElement).elements["dependencies"]
       val call = (dependencies as DependenciesDslElement).elements.values.first() as GradleDslMethodCall
       (call.argumentsElement.expressions[0] as GradleDslLiteral).setValue("bcd")
     }
@@ -120,7 +120,7 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
     val file =
       """
       androidApp {
-        dependenciesDcl {
+        dependencies {
           implementation("abc")
         }
       }
@@ -129,14 +129,14 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
     val expected =
       """
       androidApp {
-        dependenciesDcl {
+        dependencies {
           api("abc")
         }
       }
       """
         .trimIndent()
     doTest(file, expected) {
-      val dependencies = (elements["androidApp"] as DeclarativeAndroidDslElement).elements["dependenciesDcl"]
+      val dependencies = (elements["androidApp"] as DeclarativeAndroidDslElement).elements["dependencies"]
       val call = (dependencies as DependenciesDslElement).elements.values.first() as GradleDslMethodCall
       call.rename("api")
     }
@@ -200,7 +200,7 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
     val file =
       """
       androidApp {
-        dependenciesDcl {
+        dependencies {
           compile("org.example:1.0")
         }
       }
@@ -226,7 +226,7 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
     val file =
       """
       androidApp {
-          dependenciesDcl {
+          dependencies {
               api("someDependency")
           }
       }
@@ -235,7 +235,7 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
     val expected =
       """
       androidApp {
-          dependenciesDcl {
+          dependencies {
               api("someDependency")
               implementation("newDependency")
           }
@@ -243,7 +243,7 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
       """
         .trimIndent()
     doTest(file, expected) {
-      val dependencies = (elements["androidApp"] as DeclarativeAndroidDslElement).elements["dependenciesDcl"]
+      val dependencies = (elements["androidApp"] as DeclarativeAndroidDslElement).elements["dependencies"]
       val block = (dependencies as DependenciesDslElement)
       // new literal has externalSyntax = METHOD by default
       block.setNewLiteral("implementation", "newDependency")

@@ -1,5 +1,5 @@
 androidApp {
-  dependenciesDcl {
+  dependencies {
     compile("com.google.code.guice:guice:1.0")
   }
 }

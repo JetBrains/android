@@ -4,7 +4,7 @@ androidApp {
     }
   }
 
-  dependenciesDcl{
+  dependencies {
     `dotted.buildtypeImplementation`("com.android.support:appcompat-v7:+")
   }
 }
