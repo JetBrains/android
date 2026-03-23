@@ -15,19 +15,15 @@
  */
 package org.jetbrains.kotlin.android.quickfix
 
-abstract class AndroidQuickFixMultiFileTest : AbstractAndroidQuickFixMultiFileTest() {
+class AndroidQuickFixMultiFileTest : AbstractAndroidQuickFixMultiFileTest() {
 
     companion object {
         private const val TEST_DIR = "idea-android/testData/android/quickfix"
     }
 
-    class AutoImports : AndroidQuickFixMultiFileTest() {
-        fun testAndroidRImport() = doTest("$TEST_DIR/autoImports/androidRImport")
-    }
+    fun testAndroidRImport() = doTest("$TEST_DIR/autoImports/androidRImport")
 
-    class ViewConstructor : AndroidQuickFixMultiFileTest() {
-        fun testIndirect() = doTest("$TEST_DIR/viewConstructor/indirect")
+    fun testIndirect() = doTest("$TEST_DIR/viewConstructor/indirect")
 
-        fun testSimple() = doTest("$TEST_DIR/viewConstructor/simple")
-    }
+    fun testSimple() = doTest("$TEST_DIR/viewConstructor/simple")
 }
