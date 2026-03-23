@@ -107,8 +107,10 @@ internal class FocusModeTabs<Key : FocusKey>(
 
     override fun update(e: AnActionEvent) {
       super.update(e)
-      e.presentation.text =
-        key.settings.let { it.parameterName.takeIf { e.place == ActionPlaces.POPUP && partOfOrganizationGroup } ?: it.name }.truncate()
+      e.presentation.setText(
+        key.settings.let { it.parameterName.takeIf { e.place == ActionPlaces.POPUP && partOfOrganizationGroup } ?: it.name }.truncate(),
+        false,
+      )
     }
 
     override fun actionPerformed(e: AnActionEvent) {

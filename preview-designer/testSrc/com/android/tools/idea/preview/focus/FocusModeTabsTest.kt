@@ -441,6 +441,15 @@ class FocusModeTabsTest {
     assertEquals("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWX...", result)
   }
 
+  @Test
+  fun mnemonicsDisabled() {
+    val key = TestKey(simpleSettings.copy(name = "tab_with_character"))
+    val tabs = FocusModeTabs(rootComponent, { key }, { setOf(key) }, { _, _ -> })
+    FakeUi(tabs).apply { updateNestedActions() }
+    val button = findAllActionButtons(tabs).first()
+    assertEquals("tab_with_character", button.presentation.text)
+  }
+
   private fun FakeUi.updateNestedActions() {
     updateToolbars()
     updateToolbars()
