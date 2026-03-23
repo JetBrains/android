@@ -213,6 +213,10 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
    * @return null if the task is fully supported and verified; otherwise, returns an error object indicating why it cannot start.
    */
   override fun checkSupportForDeviceAndProcess(device: Common.Device, process: Common.Process): StartTaskSelectionError? {
+    if (profilers.ideServices.isDebuggerAttached(device.serial, process.pid)) {
+      updateStateToIdle()
+      return StartTaskSelectionError(StartTaskSelectionErrorCode.TASK_HAS_DEBUGGER_ATTACHED)
+    }
     val isFeatureSupported = SupportLevel.of(process.exposureLevel).isFeatureSupported(SupportLevel.Feature.MEMORY_LEAK_WITH_LEAKCANARY)
     if (!isFeatureSupported) {
       updateStateToIdle()

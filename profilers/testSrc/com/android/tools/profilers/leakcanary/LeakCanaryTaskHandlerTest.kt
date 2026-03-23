@@ -201,6 +201,13 @@ class LeakCanaryTaskHandlerTest : WithFakeTimer {
       StartTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS,
     )
     assertNull(leakCanaryTaskHandler.checkSupportForDeviceAndProcess(device, debuggableProcess))
+
+    ideProfilerServices.setDebuggerAttached(true)
+    assertNotNull(leakCanaryTaskHandler.checkSupportForDeviceAndProcess(device, debuggableProcess))
+    assertEquals(
+      leakCanaryTaskHandler.checkSupportForDeviceAndProcess(device, debuggableProcess)!!.startTaskSelectionErrorCode,
+      StartTaskSelectionErrorCode.TASK_HAS_DEBUGGER_ATTACHED,
+    )
   }
 
   @Test

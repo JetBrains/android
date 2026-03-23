@@ -17,6 +17,9 @@ package com.android.tools.idea.profilers;
 
 import static com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter.fromTechnologyToTaskType;
 
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.Client;
+import com.android.ddmlib.IDevice;
 import com.android.tools.idea.codenavigation.CodeNavigator;
 import com.android.tools.idea.codenavigation.IntelliJNavSource;
 import com.android.tools.idea.flags.StudioFlags;
@@ -33,7 +36,6 @@ import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
-import com.android.tools.idea.transport.EventStreamServer;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.NativeSymbolizerKt;
 import com.android.tools.nativeSymbolizer.SymbolFilesLocator;
@@ -611,6 +613,25 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   @Override
   public TraceProcessorService getTraceProcessorService() {
     return TraceProcessorServiceImpl.getInstance();
+  }
+
+
+  @Override
+  public boolean isDebuggerAttached(@NotNull String deviceId, int pid) {
+    AndroidDebugBridge bridge = AndroidDebugBridge.getBridge();
+    if (bridge != null) {
+      for (IDevice device : bridge.getDevices()) {
+        if (deviceId.equals(device.getSerialNumber())) {
+          for (Client client : device.getClients()) {
+            if (client.getClientData().getPid() == pid) {
+              return client.isDebuggerAttached();
+            }
+          }
+          return false; // Break out if the device was found but PID was not.
+        }
+      }
+    }
+    return false;
   }
 
   @Override

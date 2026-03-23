@@ -455,6 +455,17 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
     return myTraceProcessorService;
   }
 
+  private boolean myDebuggerAttached = false;
+
+  public void setDebuggerAttached(boolean debuggerAttached) {
+    myDebuggerAttached = debuggerAttached;
+  }
+
+  @Override
+  public boolean isDebuggerAttached(@NotNull String deviceId, int pid) {
+    return myDebuggerAttached;
+  }
+
   @Override
   public void buildAndLaunchAction(boolean profileableMode, ProcessListModel.@NotNull ProfilerDeviceSelection device) { }
 

@@ -111,6 +111,8 @@ object TaskBasedUxStrings {
   const val LEAKCANARY_MISSING_MESSAGE =
     "LeakCanary is missing. Retry after adding the dependency: debugImplementation " + "'com.squareup.leakcanary:leakcanary-android:2.14'."
   const val LEAKCANARY_CHECKING_PRESENCE = "Checking LeakCanary presence..."
+  const val TASK_HAS_DEBUGGER_ATTACHED_MESSAGE = "Cannot start the selected task while a debugger is attached to the process."
+
   const val LEAKCANARY_CHECK_TIMEOUT_MESSAGE =
     "Connection timeout: The app may be running in the background. Bring the app to the foreground and reselect the process to retry."
 
@@ -244,6 +246,7 @@ object TaskBasedUxStrings {
         "LeakCanary was not detected in the selected process. Please use the 'Start profiler task from process start' option."
       StartTaskSelectionErrorCode.LEAKCANARY_CHECK_IN_PROGRESS -> LEAKCANARY_CHECKING_PRESENCE
       StartTaskSelectionErrorCode.LEAKCANARY_CHECK_TIMEOUT -> LEAKCANARY_CHECK_TIMEOUT_MESSAGE
+      StartTaskSelectionErrorCode.TASK_HAS_DEBUGGER_ATTACHED -> TASK_HAS_DEBUGGER_ATTACHED_MESSAGE
       StartTaskSelectionErrorCode.GENERAL_ERROR -> "This task cannot be run in this configuration"
     }
 
