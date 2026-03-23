@@ -550,7 +550,6 @@ studio_plugin(
             "//tools/adt/idea/compose-designer:intellij.android.compose-designer",
             "//tools/adt/idea/design-plugin:intellij.android.design-plugin",
             "//tools/adt/idea/design-plugin/descriptor:intellij.android.design-plugin.descriptor",
-            "//tools/adt/idea/designer/customview:intellij.android.designer.customview",
             "//tools/adt/idea/designer:intellij.android.designer",
             "//tools/adt/idea/designer/gradle:intellij.android.designer.gradle",
             "//tools/adt/idea/glance-designer:intellij.android.glance-designer",

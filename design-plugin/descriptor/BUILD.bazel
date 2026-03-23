@@ -8,7 +8,6 @@ dev_dist_plugin(
         # do not sort,
         "intellij.android.compose-designer",
         "intellij.android.designer",
-        "intellij.android.designer.customview",
         "intellij.android.designer.gradle",
         "intellij.android.glance-designer",
         "intellij.android.layoutlib",
