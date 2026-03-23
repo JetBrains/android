@@ -23,54 +23,48 @@ import com.android.tools.idea.compose.preview.analytics.MultiPreviewEvent
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNode
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewUsageTracker
 import com.android.tools.idea.preview.find.FilePreviewElementFinder
-import com.android.tools.idea.preview.find.findAnnotatedMethodsValues
+import com.android.tools.idea.preview.find.findAnnotatedMethods
 import com.android.tools.idea.util.androidFacet
+import com.intellij.openapi.application.readAction
+import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import kotlinx.coroutines.flow.any
 import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flatMapConcat
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.flow.toSet
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.core.getFqNameByDirectory
 import org.jetbrains.uast.UMethod
 
 /** [FilePreviewElementFinder] for Compose Preview annotations. */
 object AnnotationFilePreviewElementFinder : FilePreviewElementFinder<PsiComposePreviewElement> {
-  override suspend fun hasPreviewElements(project: Project, vFile: VirtualFile) =
-    findAnnotatedMethodsValues(project, vFile, COMPOSABLE_ANNOTATION_FQ_NAME, COMPOSABLE_ANNOTATION_NAME) { methods ->
-        getPreviewNodes(methods, false)
-      }
-      .any()
+  override suspend fun hasPreviewElements(project: Project, vFile: VirtualFile): Boolean {
+    val methods = findAnnotatedMethods(project, vFile, COMPOSABLE_ANNOTATION_FQ_NAME, COMPOSABLE_ANNOTATION_NAME)
+    return smartReadAction(project) { getPreviewNodes(methods, includeAllNodes = false) }.any { true }
+  }
 
   /**
    * Returns all the preview elements in the [vFile]. Preview elements are `@Composable` functions that are also tagged with `@Preview`. A
    * `@Composable` function tagged with `@Preview` can return multiple preview elements.
    */
   override suspend fun findPreviewElements(project: Project, vFile: VirtualFile): Collection<PsiComposePreviewElement> {
-    return findAnnotatedMethodsValues(project, vFile, COMPOSABLE_ANNOTATION_FQ_NAME, COMPOSABLE_ANNOTATION_NAME) { methods ->
-      flow {
-        val previewNodes = getPreviewNodes(methods, includeAllNodes = true)
-        val previewElements = previewNodes.filterIsInstance<PsiComposePreviewElement>().toSet()
-
-        if (previewElements.firstOrNull() != null) {
-          getPsiFileSafely(project, vFile)?.let { psiFile ->
-            MultiPreviewUsageTracker.getInstance(psiFile.androidFacet)
-              .logEvent(
-                MultiPreviewEvent(
-                  previewNodes.filterIsInstance<MultiPreviewNode>().toList(),
-                  "${psiFile.getFqNameByDirectory().asString()}.${psiFile.name}",
-                )
-              )
-          }
-        }
-        emitAll(previewElements.asFlow())
+    val methods = findAnnotatedMethods(project, vFile, COMPOSABLE_ANNOTATION_FQ_NAME, COMPOSABLE_ANNOTATION_NAME)
+    val previewNodes = smartReadAction(project) { getPreviewNodes(methods, includeAllNodes = true) }.toList()
+    val previewElements = previewNodes.filterIsInstance<PsiComposePreviewElement>().toSet()
+    if (previewElements.firstOrNull() != null) {
+      getPsiFileSafely(project, vFile)?.let { psiFile ->
+        MultiPreviewUsageTracker.getInstance(psiFile.androidFacet)
+          .logEvent(
+            MultiPreviewEvent(
+              previewNodes.filterIsInstance<MultiPreviewNode>().toList(),
+              readAction { "${psiFile.getFqNameByDirectory().asString()}.${psiFile.name}" },
+            )
+          )
       }
     }
+    return previewElements
   }
 
   @VisibleForTesting
