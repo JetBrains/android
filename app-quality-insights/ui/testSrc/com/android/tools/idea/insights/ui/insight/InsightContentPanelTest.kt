@@ -35,15 +35,20 @@ import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.AiInsightToolkit
 import com.android.tools.idea.insights.ai.FakeAiInsightToolkit
 import com.android.tools.idea.insights.ai.StubInsightsOnboardingProvider
-import com.android.tools.idea.insights.analytics.TestAppInsightsTracker
+import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.model.connection.Connection
+import com.android.tools.idea.insights.ui.AI_INSIGHT_TOOLKIT_KEY
+import com.android.tools.idea.insights.ui.APP_INSIGHTS_TRACKER_KEY
 import com.android.tools.idea.insights.ui.FakeGeminiPluginApi
+import com.android.tools.idea.insights.ui.SELECTED_APP_ID_KEY
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.google.gct.login2.LoginFeatureRule
 import com.google.protobuf.Any
 import com.google.protobuf.ByteString
 import com.google.rpc.Status
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.GenerateInsightsAction.Action
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.ProjectRule
@@ -101,6 +106,8 @@ class InsightContentPanelTest {
 
   private val mockAiInsightToolkit = mock<AiInsightToolkit>()
 
+  private val mockTracker = mock<AppInsightsTracker>()
+
   private lateinit var fakeGeminiPluginApi: FakeGeminiPluginApi
   private val scope = CoroutineScope(EmptyCoroutineContext)
   private val onboardingProvider =
@@ -134,7 +141,7 @@ class InsightContentPanelTest {
     fakeGeminiPluginApi.available = false
     ExtensionTestUtil.maskExtensions(GeminiPluginApi.EP_NAME, listOf(fakeGeminiPluginApi), projectRule.disposable)
     currentInsightFlow = MutableStateFlow(LoadingState.Ready(AiInsight("insight", ISSUE1.sampleEvent)))
-    insightContentPanel = InsightContentPanel(mockController, scope, currentInsightFlow, TestAppInsightsTracker, projectRule.disposable)
+    insightContentPanel = InsightContentPanel(mockController, scope, currentInsightFlow, mockTracker, projectRule.disposable)
   }
 
   @After
@@ -303,6 +310,7 @@ class InsightContentPanelTest {
 
     generateLink.doClick()
     verify(mockController).refreshInsight(regenerateWithContext = false, forceGenerateNewInsight = true)
+    verify(mockTracker).logGenerateInsightAction("app1", Action.GENERATE_ONCE)
   }
 
   @Test
@@ -316,12 +324,13 @@ class InsightContentPanelTest {
     enableLink.doClick()
     verify(mockAiInsightToolkit).setAutoGenerate(true)
     verify(mockController).refreshInsight(false)
+    verify(mockTracker).logGenerateInsightAction("app1", Action.ENABLE_AUTO_GENERATE)
   }
 
   @Test
   fun `test fixing with agent flag shows links panel and hides bottom panel`() = runBlocking {
     StudioFlags.AQI_FIX_WITH_AGENT.override(true)
-    val panel = InsightContentPanel(mockController, scope, currentInsightFlow, TestAppInsightsTracker, projectRule.disposable)
+    val panel = InsightContentPanel(mockController, scope, currentInsightFlow, mockTracker, projectRule.disposable)
     currentInsightFlow.update { LoadingState.Ready(AiInsight("insight text", ISSUE1.sampleEvent)) }
 
     val fakeUi = FakeUi(panel)
@@ -338,7 +347,7 @@ class InsightContentPanelTest {
   fun `test suggest a fix flag shows bottom panel when fix with agent is off`() = runBlocking {
     StudioFlags.AQI_FIX_WITH_AGENT.override(false)
     StudioFlags.SUGGEST_A_FIX.override(true)
-    val panel = InsightContentPanel(mockController, scope, currentInsightFlow, TestAppInsightsTracker, projectRule.disposable)
+    val panel = InsightContentPanel(mockController, scope, currentInsightFlow, mockTracker, projectRule.disposable)
     currentInsightFlow.update { LoadingState.Ready(AiInsight("insight text", ISSUE1.sampleEvent)) }
 
     val fakeUi = FakeUi(panel)
@@ -350,6 +359,16 @@ class InsightContentPanelTest {
 
     StudioFlags.AQI_FIX_WITH_AGENT.clearOverride()
     StudioFlags.SUGGEST_A_FIX.clearOverride()
+  }
+
+  @Test
+  fun `test uiDataSnapshot provides necessary keys`() = runBlocking {
+    val sink = mock<DataSink>()
+    insightContentPanel.uiDataSnapshot(sink)
+
+    verify(sink)[AI_INSIGHT_TOOLKIT_KEY] = mockAiInsightToolkit
+    verify(sink)[APP_INSIGHTS_TRACKER_KEY] = mockTracker
+    verify(sink)[SELECTED_APP_ID_KEY] = "app1"
   }
 
   private suspend fun delayUntilStatusTextVisible() = delayUntilCondition(200) { insightContentPanel.emptyStateText.isStatusVisible }

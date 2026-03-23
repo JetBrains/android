@@ -18,6 +18,8 @@ package com.android.tools.idea.insights.ui
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
+import com.android.tools.idea.insights.ai.AiInsightToolkit
+import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.model.event.Event
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
@@ -35,6 +37,9 @@ import javax.swing.JPanel
 
 val REQUEST_SOURCE_KEY = DataKey.create<GeminiPluginApi.RequestSource>("RequestSource")
 val SELECTED_EVENT_KEY = DataKey.create<Event>("SelectedEvent")
+val AI_INSIGHT_TOOLKIT_KEY = DataKey.create<AiInsightToolkit>("AiInsightToolkit")
+val APP_INSIGHTS_TRACKER_KEY = DataKey.create<AppInsightsTracker>("AppInsightsTracker")
+val SELECTED_APP_ID_KEY = DataKey.create<String>("SelectedAppId")
 
 class AppInsightsContentPanel(
   projectController: AppInsightsProjectLevelController,

@@ -22,9 +22,12 @@ import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.mapReady
+import com.android.tools.idea.insights.ui.AI_INSIGHT_TOOLKIT_KEY
+import com.android.tools.idea.insights.ui.APP_INSIGHTS_TRACKER_KEY
 import com.android.tools.idea.insights.ui.AppInsightsStatusText
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TITLE_FORMAT
+import com.android.tools.idea.insights.ui.SELECTED_APP_ID_KEY
 import com.android.tools.idea.insights.ui.insight.onboarding.EnableInsightPanel
 import com.google.gct.login2.LoginFeature
 import com.intellij.openapi.Disposable
@@ -71,10 +74,10 @@ private const val GENERATING_INSIGHT = "Generating insight..."
 
 /** [JPanel] that is shown in the [InsightToolWindow] when an insight is available. */
 class InsightContentPanel(
-  controller: AppInsightsProjectLevelController,
+  private val controller: AppInsightsProjectLevelController,
   scope: CoroutineScope,
   currentInsightFlow: StateFlow<LoadingState<AiInsight?>>,
-  tracker: AppInsightsTracker,
+  private val tracker: AppInsightsTracker,
   parentDisposable: Disposable,
 ) : JPanel(), UiDataProvider, Disposable {
 
@@ -86,7 +89,7 @@ class InsightContentPanel(
 
   private val insightLinksPanel = InsightLinksPanel(controller, currentInsightFlow, tracker, this)
 
-  private val autoGenerateInsightPanel = AutoGenerateInsightPanel(controller)
+  private val autoGenerateInsightPanel = AutoGenerateInsightPanel(controller, tracker, this)
 
   private val insightPanel =
     JPanel(VerticalLayout(JBUI.scale(8))).apply {
@@ -325,6 +328,9 @@ class InsightContentPanel(
 
   override fun uiDataSnapshot(sink: DataSink) {
     sink[PlatformDataKeys.COPY_PROVIDER] = insightTextPane
+    sink[AI_INSIGHT_TOOLKIT_KEY] = controller.aiInsightToolkit
+    sink[APP_INSIGHTS_TRACKER_KEY] = tracker
+    sink[SELECTED_APP_ID_KEY] = selectedConnectionFlow.value?.appId
   }
 
   private enum class ShowCard {

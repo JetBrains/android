@@ -27,6 +27,7 @@ import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.EventDetails
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.InsightSentiment.Sentiment
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEventKt.agentActionDetails
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEventKt.generateInsightsAction
 import com.google.wireless.android.sdk.stats.DevServiceDeprecationInfo
 import com.intellij.openapi.project.Project
 
@@ -218,6 +219,16 @@ class AppInsightsTrackerImpl(private val project: Project, private val insightsP
             devServiceDeprecationInfo = deprecationInfo.toBuilder().apply { this.deliveryType = deliveryType }.build()
           }
           .build()
+    }
+  }
+
+  override fun logGenerateInsightAction(
+    unanonymizedAppId: String,
+    insightsAction: AppQualityInsightsUsageEvent.GenerateInsightsAction.Action,
+  ) {
+    log(unanonymizedAppId) {
+      type = AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.GENERATE_INSIGHTS_ACTION
+      generateInsightsAction = generateInsightsAction { action = insightsAction }
     }
   }
 

@@ -80,7 +80,7 @@ class InsightToolbarPanel(
     val actionGroup =
       DefaultActionGroup(copyAction, InsightRefreshAction(controller), upvoteAction, downvoteAction).apply {
         if (StudioFlags.AQI_FIX_WITH_AGENT.get()) {
-          add(InsightSettingGroup(controller.aiInsightToolkit))
+          add(InsightSettingGroup())
         }
       }
 

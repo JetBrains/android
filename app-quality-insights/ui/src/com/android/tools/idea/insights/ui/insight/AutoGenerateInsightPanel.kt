@@ -15,7 +15,12 @@
  */
 package com.android.tools.idea.insights.ui.insight
 
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
+import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.GenerateInsightsAction.Action
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.panels.HorizontalLayout
@@ -23,9 +28,21 @@ import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.NamedColorUtil
 import javax.swing.JPanel
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.stateIn
 
-class AutoGenerateInsightPanel(private val controller: AppInsightsProjectLevelController) : JPanel(VerticalLayout(16)) {
+class AutoGenerateInsightPanel(
+  private val controller: AppInsightsProjectLevelController,
+  private val tracker: AppInsightsTracker,
+  parentDisposable: Disposable,
+) : JPanel(VerticalLayout(16)), Disposable {
+
+  private val appIdFlow =
+    controller.state.mapNotNull { it.connections.selected?.appId }.stateIn(createCoroutineScope(), SharingStarted.Eagerly, null)
+
   init {
+    Disposer.register(parentDisposable, this)
     val label =
       JBLabel().apply {
         text = "<html><i>Insight auto generation is disabled by default to avoid unintentional charges.</i></html>"
@@ -34,9 +51,11 @@ class AutoGenerateInsightPanel(private val controller: AppInsightsProjectLevelCo
     add(label)
 
     val generateInsight =
-      createLink("Generate insight") { controller.refreshInsight(regenerateWithContext = false, forceGenerateNewInsight = true) }
+      createLink("Generate insight", Action.GENERATE_ONCE) {
+        controller.refreshInsight(regenerateWithContext = false, forceGenerateNewInsight = true)
+      }
     val enableAutoGenerate =
-      createLink("Enable auto-generation") {
+      createLink("Enable auto-generation", Action.ENABLE_AUTO_GENERATE) {
         controller.aiInsightToolkit.setAutoGenerate(true)
         controller.refreshInsight(false)
       }
@@ -48,5 +67,13 @@ class AutoGenerateInsightPanel(private val controller: AppInsightsProjectLevelCo
     add(linksPanel)
   }
 
-  private fun createLink(text: String, onClick: () -> Unit) = HyperlinkLabel(text).apply { addHyperlinkListener { onClick() } }
+  private fun createLink(text: String, action: Action, onClick: () -> Unit) =
+    HyperlinkLabel(text).apply {
+      addHyperlinkListener {
+        onClick()
+        appIdFlow.value?.let { tracker.logGenerateInsightAction(it, action) }
+      }
+    }
+
+  override fun dispose() = Unit
 }
