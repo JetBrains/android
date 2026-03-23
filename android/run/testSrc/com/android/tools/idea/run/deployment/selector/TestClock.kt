@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.run.deployment.selector
 
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 class TestClock : Clock {
   var time = DEFAULT_TIME

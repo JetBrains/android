@@ -20,24 +20,21 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.util.io.HttpRequests
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import org.jetbrains.annotations.TestOnly
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.file.Path
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.exists
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeMark
 import kotlin.time.TimeSource
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.datetime.Clock
-import org.jetbrains.annotations.TestOnly
-import java.io.InputStream
-import kotlin.time.Duration
 
 private val CONNECT_TIMEOUT = 5.seconds
 private val READ_TIMEOUT = 2.minutes

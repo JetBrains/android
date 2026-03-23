@@ -21,15 +21,15 @@ import com.android.tools.idea.gradle.project.sync.mutateGradleProperties
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import com.intellij.openapi.project.Project
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.internal.daemon.getDaemonsStatus
 import org.junit.rules.ExternalResource
 import java.io.File
 import kotlin.jvm.optionals.getOrNull
+import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Instant
 
 class MemoryConstrainedTestRule(
   private val projectName: String,

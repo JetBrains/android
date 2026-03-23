@@ -17,6 +17,14 @@ package com.android.tools.idea.downloads
 
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.progress.ProgressIndicator
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.yield
 import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
@@ -29,20 +37,11 @@ import kotlin.io.path.exists
 import kotlin.io.path.fileSize
 import kotlin.io.path.getLastModifiedTime
 import kotlin.io.path.setLastModifiedTime
+import kotlin.time.Clock
 import kotlin.time.Duration
+import kotlin.time.Instant
 import kotlin.time.TimeMark
 import kotlin.time.TimeSource
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.yield
-import kotlinx.datetime.Clock
-import kotlinx.datetime.toJavaInstant
-import kotlinx.datetime.toKotlinInstant
 
 private val NEGATIVE_INFINITY = Duration.INFINITE * -1
 
@@ -181,7 +180,7 @@ abstract class RemoteFileCache<IdentifierType>(
     // still serve it.
     if (cachedPath == this) {
       // Update the last modified time, because we have talked to the server.
-      setLastModifiedTime(FileTime.from(clock.now().toJavaInstant()))
+      setLastModifiedTime(FileTime.fromMillis(clock.now().toEpochMilliseconds()))
       return this to FetchStats(start.elapsedNow(), notModified = true)
     }
 
@@ -213,15 +212,15 @@ abstract class RemoteFileCache<IdentifierType>(
         start.elapsedNow(),
         numBytesFetched = numBytesFetched,
         numBytesCached = pathToReturn.fileSize(),
-      )
+    )
     // Set the last modified time using our injected clock.
-    pathToReturn.setLastModifiedTime(FileTime.from(clock.now().toJavaInstant()))
+    pathToReturn.setLastModifiedTime(FileTime.fromMillis(clock.now().toEpochMilliseconds()))
     return pathToReturn to stats
   }
 
   private fun Path.isFresh(maxAge: Duration): Boolean {
     if (!exists()) return false
-    val age = clock.now() - getLastModifiedTime().toInstant().toKotlinInstant()
+    val age = clock.now() - Instant.fromEpochMilliseconds(getLastModifiedTime().toMillis())
     return age < maxAge
   }
 

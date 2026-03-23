@@ -26,13 +26,13 @@ import com.android.tools.perflogger.EDivisiveAnalyzer
 import com.android.tools.perflogger.Metric
 import com.android.tools.perflogger.UTestAnalyzer
 import com.intellij.openapi.project.Project
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import org.jetbrains.annotations.SystemIndependent
 import org.junit.rules.ExternalResource
 import java.io.File
+import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
+import kotlin.time.Instant
 import com.android.tools.idea.gradle.project.sync.MeasurementCheckpoint as AndroidMeasurementCheckpoint
 
 

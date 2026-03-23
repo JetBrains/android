@@ -31,12 +31,12 @@ import com.intellij.testFramework.replaceService
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.guava.await
-import kotlinx.datetime.Clock
 import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
+import kotlin.time.Clock
 
 class DeviceSelectorIntegrationTest {
   @get:Rule val edtRule = EdtRule()
