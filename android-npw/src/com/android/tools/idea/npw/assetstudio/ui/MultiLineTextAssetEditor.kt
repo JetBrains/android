@@ -26,10 +26,14 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.JBColor
 import com.intellij.ui.border.CustomLineBorder
 import com.intellij.util.ArrayUtil
+import java.awt.Component
+import java.awt.Font
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
+import javax.swing.DefaultListCellRenderer
+import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.JTextPane
 
@@ -55,6 +59,23 @@ class MultiLineTextAssetEditor : JPanel(TabularLayout("4px,120px,*")), AssetComp
 
     val fontFamilies = TextAsset.getAllFontFamilies()
     val fontCombo = ComboBox(ArrayUtil.toStringArray(fontFamilies))
+    fontCombo.setRenderer(
+      object : DefaultListCellRenderer() {
+        override fun getListCellRendererComponent(
+          list: JList<*>?,
+          value: Any?,
+          index: Int,
+          isSelected: Boolean,
+          cellHasFocus: Boolean,
+        ): Component {
+          val component = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
+          if (value is String) {
+            component.font = Font(value, Font.PLAIN, component.font.size)
+          }
+          return component
+        }
+      }
+    )
 
     fontComboWrapper.add(fontCombo, constraints)
 
