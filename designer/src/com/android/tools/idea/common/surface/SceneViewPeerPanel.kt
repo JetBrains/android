@@ -37,6 +37,11 @@ import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Insets
+import java.awt.Rectangle
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
 import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.math.round
@@ -99,7 +104,7 @@ class SceneViewPeerPanel(
         get() = sceneView.y
 
       override val isFocusedContent: Boolean
-        get() = sceneView.isFocusedScene
+        get() = isFocusOwner || sceneView.isFocusedScene
 
       override fun getMargin(scale: Double): Insets {
         val margin =
@@ -196,6 +201,32 @@ class SceneViewPeerPanel(
   init {
     isOpaque = false
     layout = null
+    isFocusable = true
+
+    addFocusListener(
+      object : FocusAdapter() {
+        override fun focusGained(e: FocusEvent) {
+          sceneView.selectComponent(sceneView.firstComponent, allowToggle = false, ignoreIfAlreadySelected = true)
+          // Ensure that the focused preview is fully visible within the scroll pane.
+          scrollRectToVisible(Rectangle(0, 0, width, height))
+        }
+      }
+    )
+
+    addKeyListener(
+      object : KeyAdapter() {
+        override fun keyPressed(e: KeyEvent) {
+          // Delegate to parent's KeyListeners to allow navigation arrows to work when the panel
+          // has the focus
+          parent?.let { parent ->
+            for (listener in parent.keyListeners) {
+              listener.keyPressed(e)
+              if (e.isConsumed) break
+            }
+          }
+        }
+      }
+    )
 
     add(sceneViewTopPanel)
     add(sceneViewCenterPanel)

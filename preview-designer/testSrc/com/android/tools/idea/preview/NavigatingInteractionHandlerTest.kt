@@ -32,6 +32,7 @@ import com.android.tools.preview.config.createDeviceInstance
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.runInEdtAndGet
 import java.awt.Cursor
+import java.awt.event.KeyEvent
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -85,5 +86,41 @@ class NavigatingInteractionHandlerTest {
     previewModeManager.setMode(PreviewMode.Interactive(mock()))
 
     assertThat(handler.getCursorWhenNoInteraction(mouseX, mouseY, modifiersEx)).isEqualTo(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR))
+  }
+
+  @Test
+  fun testArrowKeyNavigationRequestsFocus() {
+    val model1 = runInEdtAndGet {
+      NlModelBuilderUtil.model(projectRule, "layout", "layout1.xml", ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER)).build()
+    }
+    val model2 = runInEdtAndGet {
+      NlModelBuilderUtil.model(projectRule, "layout", "layout2.xml", ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER)).build()
+    }
+    surface.addModelsWithoutRender(listOf(model1, model2))
+
+    val sceneView1 = surface.sceneManagers.first { it.model == model1 }.sceneViews.first()
+    val sceneView2 = surface.sceneManagers.first { it.model == model2 }.sceneViews.first()
+
+    surface.sceneManagers.first { it.model == model1 }.sceneViews.forEach { it.setLocation(0, 0) }
+    surface.sceneManagers.first { it.model == model2 }.sceneViews.forEach { it.setLocation(100, 0) }
+    // Move other scene views out of the way
+    surface.sceneManagers
+      .filter { it.model != model1 && it.model != model2 }
+      .forEach { it.sceneViews.forEach { sv -> sv.setLocation(0, 200) } }
+
+    val handler = NavigatingInteractionHandler(surface, mock(), true)
+
+    // Select first component in first sceneView
+    val component1 = sceneView1.firstComponent!!
+    sceneView1.selectionModel.setSelection(listOf(component1))
+
+    // Create a right arrow key event
+    val keyEvent =
+      KeyEvent(surface.interactionPane, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0, KeyEvent.VK_RIGHT, KeyEvent.CHAR_UNDEFINED)
+
+    // This should move selection and request focus on the second preview panel.
+    handler.keyPressedWithoutInteraction(keyEvent)
+
+    assertThat(sceneView2.selectionModel.isSelected(sceneView2.firstComponent!!)).isTrue()
   }
 }

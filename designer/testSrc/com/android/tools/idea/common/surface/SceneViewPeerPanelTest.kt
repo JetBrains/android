@@ -81,6 +81,32 @@ class SceneViewPeerPanelTest {
     val toolbarActions = sceneViewPeerPanel.getTopToolbarActions()
     assertTrue(toolbarActions.contains(anAction))
   }
+
+  @Test
+  fun `panel is focusable`() {
+    val sceneViewPeerPanel = createSceneViewPeerPanel(disposableRule.disposable, "")
+    assertTrue(sceneViewPeerPanel.isFocusable)
+  }
+
+  @Test
+  fun `focus gained selects component`() {
+    val sceneViewPeerPanel = createSceneViewPeerPanel(disposableRule.disposable, "")
+    val sceneView = sceneViewPeerPanel.sceneView
+    val component = Mockito.mock(com.android.tools.idea.common.model.NlComponent::class.java)
+
+    val treeReader = Mockito.mock(com.android.tools.idea.common.model.NlTreeReader::class.java)
+    Mockito.`when`(treeReader.components).thenReturn(com.google.common.collect.ImmutableList.of(component))
+    Mockito.`when`(sceneView.sceneManager.model.treeReader).thenReturn(treeReader)
+
+    val selectionModel = Mockito.mock(com.android.tools.idea.common.model.SelectionModel::class.java)
+    Mockito.`when`(sceneView.selectionModel).thenReturn(selectionModel)
+
+    sceneViewPeerPanel.focusListeners.forEach {
+      it.focusGained(java.awt.event.FocusEvent(sceneViewPeerPanel, java.awt.event.FocusEvent.FOCUS_GAINED))
+    }
+
+    Mockito.verify(selectionModel).setSelection(listOf(component))
+  }
 }
 
 private fun SceneViewPeerPanel.getTopToolbarActions(): List<AnAction> {
@@ -100,6 +126,9 @@ private fun createSceneView(parentDisposable: Disposable, modelName: String): Sc
     Mockito.mock(NlModel::class.java).apply {
       Mockito.`when`(this.organizationGroup).then { null }
       Mockito.`when`(this.displaySettings).then { DisplaySettings().apply { setDisplayName(modelName) } }
+      val treeReader = Mockito.mock(com.android.tools.idea.common.model.NlTreeReader::class.java)
+      Mockito.`when`(treeReader.components).thenReturn(com.google.common.collect.ImmutableList.of())
+      Mockito.`when`(this.treeReader).thenReturn(treeReader)
     }
   val sceneManager = Mockito.mock(SceneManager::class.java).apply { Mockito.`when`(this.model).then { model } }
   Disposer.register(parentDisposable, sceneManager)
