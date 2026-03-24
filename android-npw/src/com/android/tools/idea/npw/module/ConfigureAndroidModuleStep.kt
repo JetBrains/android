@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.module
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.contextLabel
 import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.model.RenderTemplateModel
@@ -63,9 +62,7 @@ class ConfigureAndroidModuleStep(model: NewAndroidModuleModel, minSdkLevel: Int,
 
         row("Minimum SDK") { cell(apiLevelCombo).align(AlignX.FILL) }
 
-        if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get()) {
-          generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
-        }
+        generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
       }
       .withBorder(empty(6))
 

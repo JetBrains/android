@@ -193,10 +193,6 @@ public final class StudioFlags {
     NPW, "show.fragment.gallery", "Show fragment gallery",
     "Show fragment gallery which contains fragment based templates");
 
-  public static final Flag<Boolean> NPW_SHOW_KTS_GRADLE_COMBO_BOX = new BooleanFlag(
-    NPW, "show.kts.gradle.combobox", "Show KTS/Gradle Combobox",
-    "Show KTS/Gradle Combobox to which build script is used for the generated code");
-
   public static final Flag<Boolean> NPW_PICK_LATEST_PATCH_AGP = new BooleanFlag(
     NPW, "use.patch.releases", "Use the latest patch release of AGP",
     "When enabled Studio will pick future patch releases of AGP for new projects.");

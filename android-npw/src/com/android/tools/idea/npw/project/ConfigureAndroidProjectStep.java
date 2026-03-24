@@ -99,8 +99,6 @@ import java.awt.BorderLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -217,20 +215,15 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myBindings.bindTwoWay(new SelectedItemProperty<>(myProjectLanguage), myProjectModel.getLanguage());
     myBindings.bindTwoWay(new SelectedProperty(myLaunchFirebaseCheckbox), myProjectModel.getLaunchFirebaseWizard());
 
-    if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get()) {
-      myBuildConfigurationLanguageCombo.addItem(BuildConfigurationLanguageForNewProject.KTS);
-      myBuildConfigurationLanguageCombo.addItem(BuildConfigurationLanguageForNewProject.Groovy);
-      myBindings.bind(myProjectModel.getUseGradleKts(), new TransformOptionalExpression<BuildConfigurationLanguageForNewProject, Boolean>(true, new SelectedItemProperty<>(myBuildConfigurationLanguageCombo)) {
-        @NotNull
-        @Override
-        protected Boolean transform(@NotNull BuildConfigurationLanguageForNewProject value) {
+    myBuildConfigurationLanguageCombo.addItem(BuildConfigurationLanguageForNewProject.KTS);
+    myBuildConfigurationLanguageCombo.addItem(BuildConfigurationLanguageForNewProject.Groovy);
+    myBindings.bind(myProjectModel.getUseGradleKts(), new TransformOptionalExpression<BuildConfigurationLanguageForNewProject, Boolean>(true, new SelectedItemProperty<>(myBuildConfigurationLanguageCombo)) {
+      @NotNull
+      @Override
+      protected Boolean transform(@NotNull BuildConfigurationLanguageForNewProject value) {
           return value.getUseKts();
         }
       });
-    } else {
-      myBuildConfigurationLanguageLabel.setVisible(false);
-      myBuildConfigurationLanguageCombo.setVisible(false);
-    }
 
     if ((StudioFlags.NPW_SHOW_AGP_VERSION_COMBO_BOX.get() && !ApplicationManager.getApplication().isUnitTestMode()) ||
         (StudioFlags.NPW_SHOW_AGP_VERSION_COMBO_BOX_EXPERIMENTAL_SETTING.get() &&

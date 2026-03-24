@@ -22,7 +22,6 @@ import com.android.tools.adtui.device.FormFactor.MOBILE
 import com.android.tools.adtui.validation.Validator
 import com.android.tools.adtui.validation.Validator.Result.Companion.OK
 import com.android.tools.adtui.validation.createValidator
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.benchmark.BenchmarkModuleType.MACROBENCHMARK
 import com.android.tools.idea.npw.benchmark.BenchmarkModuleType.MICROBENCHMARK
 import com.android.tools.idea.npw.contextLabel
@@ -131,9 +130,7 @@ class ConfigureBenchmarkModuleStep(model: NewBenchmarkModuleModel) :
 
         row("Minimum SDK") { cell(apiLevelCombo).align(AlignX.FILL) }
 
-        if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get()) {
-          generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
-        }
+        generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
       }
       .withBorder(empty(6))
 
