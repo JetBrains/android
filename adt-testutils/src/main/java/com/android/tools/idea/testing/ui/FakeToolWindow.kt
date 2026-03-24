@@ -18,7 +18,7 @@ package com.android.tools.idea.testing.ui
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Splitter
 import com.intellij.openapi.util.Disposer
@@ -44,6 +44,14 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.SwingConstants
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.Mockito.CALLS_REAL_METHODS
 import org.mockito.kotlin.any
@@ -188,6 +196,7 @@ private class FakeToolWindowManager(windowFactory: ToolWindowFactory, toolWindow
   ToolWindowHeadlessManagerImpl(project) {
 
   val toolWindow = FakeToolWindow(windowFactory, icon, this, project, toolWindowId)
+  val toolWindowScope = toolWindow.disposable.createCoroutineScope()
 
   override fun doRegisterToolWindow(id: String): ToolWindow = doRegisterToolWindow(id, toolWindow)
 
@@ -198,7 +207,7 @@ private class FakeToolWindowManager(windowFactory: ToolWindowFactory, toolWindow
   }
 
   override fun invokeLater(runnable: Runnable) {
-    ApplicationManager.getApplication().invokeLater(runnable)
+    toolWindowScope.launch(Dispatchers.EDT) { runnable.run() }
   }
 }
 
@@ -372,3 +381,40 @@ class SimpleToolWindowFactory : ToolWindowFactory {
 }
 
 val toolWindowBalloons = mutableListOf<ToolWindowBalloonShowOptions>()
+
+private fun Disposable.createCoroutineScope(
+  dispatcher: CoroutineContext = Dispatchers.Default,
+  extraContext: CoroutineContext = EmptyCoroutineContext,
+): CoroutineScope {
+  val job = SupervisorJob()
+  cancelJobOnDispose(job)
+  return CoroutineScope(job + dispatcher + extraContext)
+}
+
+/**
+ * Ensure [job] is canceled if it is still active when the disposable is disposed. If the disposable is already disposed, [job] will be
+ * canceled immediately.
+ */
+private fun Disposable.cancelJobOnDispose(job: Job) {
+  val disposableId = toString() // Don't capture the disposable inside the onDispose lambda.
+  val onDispose = {
+    if (!job.isCancelled) {
+      job.cancel(CancellationException("$disposableId has been disposed."))
+    }
+  }
+  val registered =
+    Disposer.tryRegister(
+      this@cancelJobOnDispose,
+      object : Disposable {
+        override fun dispose() {
+          onDispose()
+        }
+
+        override fun toString(): String {
+          return "$disposableId.cancelJobOnDispose(job=$job)"
+        }
+      },
+    )
+  // If the disposable was already disposed, cancel the job immediately.
+  if (!registered) onDispose()
+}
