@@ -81,6 +81,7 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
     renderer.enabledValue = type.isEnabled(node)
     renderer.deEmphasized = type.isDeEmphasized(node)
     renderer.isOpaque = false
+    renderer.ipad = JBInsets(0, type.leftMargin, 0, 0)
     renderer.generate()
     return renderer
   }
@@ -116,7 +117,6 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
 
     init {
       font = StartupUiUtil.labelFont
-      ipad = JBInsets(0, 0, 0, 0)
     }
 
     /** Reset all fields. */
