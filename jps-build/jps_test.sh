@@ -56,6 +56,7 @@ echo "--add-opens=java.desktop/sun.awt.image=ALL-UNNAMED" >> .test/args.txt
 echo "--add-opens=java.desktop/sun.font=ALL-UNNAMED" >> .test/args.txt
 echo "--add-opens=java.desktop/sun.java2d=ALL-UNNAMED" >> .test/args.txt
 echo "--add-opens=java.desktop/sun.swing=ALL-UNNAMED" >> .test/args.txt
+echo "--add-opens=java.desktop/sun.swing.text=ALL-UNNAMED" >> .test/args.txt
 echo "--add-opens=java.management/sun.management=ALL-UNNAMED" >> .test/args.txt
 echo "--add-opens=jdk.attach/sun.tools.attach=ALL-UNNAMED" >> .test/args.txt
 echo "--add-opens=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED" >> .test/args.txt
