@@ -198,22 +198,28 @@ class DesignToolsSplitEditorTest {
     splitEditor.selectSplitMode(true)
     // The circular sequence is ... Code <-> Split <-> Design <-> Code <-> Split <-> Design <-> Code
     // ...
-    dispatcher.dispatchKeyEvent(KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_LEFT))
+    dispatcher.pressAndRelease(KeyEvent.VK_LEFT, modifiers)
     assertThat(splitEditor.isTextMode()).isTrue()
 
-    dispatcher.dispatchKeyEvent(KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_LEFT))
+    dispatcher.pressAndRelease(KeyEvent.VK_LEFT, modifiers)
     assertThat(splitEditor.isDesignMode()).isTrue()
 
-    dispatcher.dispatchKeyEvent(KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_LEFT))
+    dispatcher.pressAndRelease(KeyEvent.VK_LEFT, modifiers)
     assertThat(splitEditor.isSplitMode()).isTrue()
 
-    dispatcher.dispatchKeyEvent(KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_RIGHT))
+    dispatcher.pressAndRelease(KeyEvent.VK_RIGHT, modifiers)
     assertThat(splitEditor.isDesignMode()).isTrue()
 
-    dispatcher.dispatchKeyEvent(KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_RIGHT))
+    dispatcher.pressAndRelease(KeyEvent.VK_RIGHT, modifiers)
     assertThat(splitEditor.isTextMode()).isTrue()
 
-    dispatcher.dispatchKeyEvent(KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_RIGHT))
+    dispatcher.pressAndRelease(KeyEvent.VK_RIGHT, modifiers)
     assertThat(splitEditor.isSplitMode()).isTrue()
+  }
+
+  private fun IdeKeyEventDispatcher.pressAndRelease(keyCode: Int, modifiers: Int) {
+    val component = KeyboardFocusManager.getCurrentKeyboardFocusManager().focusOwner
+    dispatchKeyEvent(KeyEvent(component, KeyEvent.KEY_PRESSED, 0, modifiers, keyCode, KeyEvent.CHAR_UNDEFINED))
+    dispatchKeyEvent(KeyEvent(component, KeyEvent.KEY_RELEASED, 0, modifiers, keyCode, KeyEvent.CHAR_UNDEFINED))
   }
 }
