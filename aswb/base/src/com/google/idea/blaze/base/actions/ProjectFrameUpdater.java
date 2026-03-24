@@ -15,9 +15,11 @@
  */
 package com.google.idea.blaze.base.actions;
 
+import com.android.annotations.concurrency.WorkerThread;
+import com.google.idea.blaze.base.project.startup.ProjectActivityJavaShim;
 import com.google.idea.common.experiments.BoolExperiment;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
 import com.intellij.openapi.wm.impl.ProjectFrameHelper;
 
@@ -28,13 +30,16 @@ import com.intellij.openapi.wm.impl.ProjectFrameHelper;
  * opened. This ensures that even if the menubar's normal updater has been garbage-collected, {@link
  * BlazeMenuGroup#update} is called at least once after a project has opened.
  */
-final class ProjectFrameUpdater implements ProjectManagerListener {
+final class ProjectFrameUpdater extends ProjectActivityJavaShim {
 
   BoolExperiment enabled = new BoolExperiment("blaze.menuBar.forceUpdate.onProjectOpen", true);
 
   @Override
-  public void projectOpened(Project project) {
-    if (!enabled.getValue()) {
+  @WorkerThread
+  public void runActivity(Project project) {
+    if (!enabled.getValue()
+        || ApplicationManager.getApplication().isHeadlessEnvironment()
+        || ApplicationManager.getApplication().isUnitTestMode()) {
       return;
     }
     ProjectFrameHelper frameHelper = WindowManagerEx.getInstanceEx().getFrameHelper(project);
