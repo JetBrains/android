@@ -159,7 +159,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_8_11_1 -> Version.parse("1.6.21")
         VERSION_8_13 -> Version.parse("1.6.21")
         VERSION_9_1_0 -> Version.parse("2.2.10")
-        VERSION_9_3_1 -> Version.parse("2.3.10")
+        VERSION_9_3_1 -> Version.parse("2.2.10")
         VERSION_FOR_DEV -> Version.parse(AGP_BUILT_IN_KOTLIN_VERSION)
       }
 

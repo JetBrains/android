@@ -198,7 +198,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.compose-compiler-gradle-plugin_2.2.10",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.22",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.9.22",
-        "@maven//:org.jetbrains.kotlin.plugin.compose.org.jetbrains.kotlin.plugin.compose.gradle.plugin_2.3.10",
+        "@maven//:org.jetbrains.kotlin.plugin.compose.org.jetbrains.kotlin.plugin.compose.gradle.plugin_2.0.21",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.6.4",
         "@maven//:org.junit.junit-bom_5.9.3",
     ],
