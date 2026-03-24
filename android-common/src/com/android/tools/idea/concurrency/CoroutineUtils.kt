@@ -107,14 +107,14 @@ fun Disposable.createCoroutineScope(
   extraContext: CoroutineContext = EmptyCoroutineContext,
 ): CoroutineScope {
   val job = SupervisorJob()
-  cancelJobOnDispose(this, job)
+  cancelJobOnDispose(job)
   return CoroutineScope(job + dispatcher + androidCoroutineExceptionHandler + extraContext)
 }
 
 /** Creates a [Job] tied to the lifecycle of a [Disposable]. */
 @Suppress("FunctionName") // mirroring upstream API.
 fun SupervisorJob(disposable: Disposable): Job {
-  return SupervisorJob().also { job -> cancelJobOnDispose(disposable, job) }
+  return SupervisorJob().also { job -> disposable.cancelJobOnDispose(job) }
 }
 
 /**
@@ -136,16 +136,16 @@ fun SupervisorJob(disposable: Disposable): Job {
 @Suppress("FunctionName") // Mirroring coroutines API, with many functions that look like constructors.
 fun AndroidCoroutineScope(disposable: Disposable, context: CoroutineContext = EmptyCoroutineContext): CoroutineScope {
   return CoroutineScope(SupervisorJob() + Dispatchers.Default + androidCoroutineExceptionHandler + context).apply {
-    cancelJobOnDispose(disposable, coroutineContext.job)
+    disposable.cancelJobOnDispose(coroutineContext.job)
   }
 }
 
 /**
- * Ensure [job] is canceled if it is still active when [disposable] is disposed. If the given [disposable] is already disposed, [job] will
- * be cancelled immediately.
+ * Ensure [job] is canceled if it is still active when the disposable is disposed. If the disposable is already disposed, [job] will be
+ * canceled immediately.
  */
-private fun cancelJobOnDispose(disposable: Disposable, job: Job) {
-  val disposableId = disposable.toString() // Don't capture the parent disposable inside the lambda.
+fun Disposable.cancelJobOnDispose(job: Job) {
+  val disposableId = toString() // Don't capture the disposable inside the onDispose lambda.
   val onDispose = {
     if (!job.isCancelled) {
       job.cancel(CancellationException("$disposableId has been disposed."))
@@ -153,14 +153,14 @@ private fun cancelJobOnDispose(disposable: Disposable, job: Job) {
   }
   val registered =
     Disposer.tryRegister(
-      disposable,
+      this@cancelJobOnDispose,
       object : Disposable {
         override fun dispose() {
           onDispose()
         }
 
         override fun toString(): String {
-          return "CancelJobOnDispose(job=$job,parent=$disposableId)"
+          return "$disposableId.cancelJobOnDispose(job=$job)"
         }
       },
     )
@@ -201,7 +201,7 @@ private class ApplicationCoroutineScopeDisposable : Disposable {
 
 /**
  * Launches a new coroutine that will be bound to the given [ProgressIndicatorEx]. If the indicator is stopped, the coroutine will be
- * cancelled. If the coroutine finishes or is cancelled, the indicator will also be stopped. This method also accepts an optional
+ * canceled. If the coroutine finishes or is canceled, the indicator will also be stopped. This method also accepts an optional
  * [CoroutineContext].
  */
 @Deprecated(
@@ -219,10 +219,10 @@ fun CoroutineScope.launchWithProgress(
   // We create a new scope that we will cancel if the progressIndicator is stopped.
   val scope = createChildScope()
 
-  /** Checks if [progressIndicator] is cancelled and cancels the scope. Returns true as long as the scope is still active. */
+  /** Checks if [progressIndicator] is canceled and cancels the scope. Returns true as long as the scope is still active. */
   fun checkProgressIndicatorState(): Boolean {
     if (progressIndicator.isCanceled) {
-      scope.cancel("User cancelled the refresh")
+      scope.cancel("User canceled the refresh")
     } else if (!progressIndicator.isRunning) {
       scope.cancel("The progress indicator is not running")
     }
@@ -275,7 +275,7 @@ interface AndroidCoroutinesAware : UserDataHolderEx, Disposable, CoroutineScope 
  * enqueued.
  */
 class UniqueTaskCoroutineLauncher(private val coroutineScope: CoroutineScope, description: String) {
-  // This mutex makes sure that the previous job is cancelled before a new one is started. This prevents several jobs to be executed at the
+  // This mutex makes sure that the previous job is canceled before a new one is started. This prevents several jobs to be executed at the
   // same time meaning that several tasks also cannot be executed at the same time, and therefore we do not need a mutex on a task execution
   // itself.
   private val jobMutex = Mutex()
@@ -307,8 +307,8 @@ class UniqueTaskCoroutineLauncher(private val coroutineScope: CoroutineScope, de
 /**
  * Utility function for creating a scope that is a child of the current scope.
  * * The new scope can optionally be a [supervisor][isSupervisor] scope.
- * * An optional [parentDisposable] can be used to ensure the new scope is [cancelled][CoroutineScope.cancel] when the [parentDisposable] is
- *   [disposed][Disposer.dispose]. The new scope is, as usual, also cancelled with its parent scope.
+ * * An optional [parentDisposable] can be used to ensure the new scope is [canceled][CoroutineScope.cancel] when the [parentDisposable] is
+ *   [disposed][Disposer.dispose]. The new scope is, as usual, also canceled with its parent scope.
  */
 fun CoroutineScope.createChildScope(
   isSupervisor: Boolean = false,
@@ -318,7 +318,7 @@ fun CoroutineScope.createChildScope(
   val newJob = if (isSupervisor) SupervisorJob(this.coroutineContext.job) else Job(this.coroutineContext.job)
   return CoroutineScope(this.coroutineContext + newJob + context).also { newScope ->
     // Attach new scope to [parentDisposable] lifecycle
-    parentDisposable?.apply { cancelJobOnDispose(parentDisposable, newScope.coroutineContext.job) }
+    parentDisposable?.apply { cancelJobOnDispose(newScope.coroutineContext.job) }
   }
 }
 
@@ -327,7 +327,7 @@ suspend fun <T> Deferred<T>.getCompletedOrNull(): T? {
   if (isCompleted) {
     return try {
       this.await()
-    } catch (t: Throwable) {
+    } catch (_: Throwable) {
       null
     }
   }
@@ -355,7 +355,7 @@ suspend fun getPsiFileSafely(project: Project, virtualFile: VirtualFile): PsiFil
 /** Scope passed to the runnable in [disposableCallbackFlow]. */
 interface CallbackFlowWithDisposableScope<T> : CoroutineScope {
   /**
-   * This disposable will be disposed if the [CoroutineScope] is cancelled or if the optional `parentDisposable` in [disposableCallbackFlow]
+   * This disposable will be disposed if the [CoroutineScope] is canceled or if the optional `parentDisposable` in [disposableCallbackFlow]
    * is disposed.
    */
   val disposable: Disposable
