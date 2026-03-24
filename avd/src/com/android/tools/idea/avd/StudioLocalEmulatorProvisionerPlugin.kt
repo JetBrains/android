@@ -82,7 +82,6 @@ import java.awt.Component
 import java.io.IOException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -178,9 +177,8 @@ class StudioLocalEmulatorDeviceHandle(
   private val project: Project?,
   internal val baseDeviceHandle: LocalEmulatorDeviceHandle,
   private val context: LocalEmulatorContext,
-  private val deviceHandleFlow: Flow<List<StudioLocalEmulatorDeviceHandle>>,
+  private val deviceHandleFlow: StateFlow<List<StudioLocalEmulatorDeviceHandle>>,
 ) : DeviceHandle by baseDeviceHandle {
-  // Do not cache this; getDefaultAvdManagerConnection() changes when the local SDK path changes.
   private val avdManagerConnection
     get() = AvdManagerConnection.getDefaultAvdManagerConnection()
 
@@ -333,7 +331,13 @@ class StudioLocalEmulatorDeviceHandle(
 
       override suspend fun wipeData() {
         withContext(Dispatchers.IO) {
-          if (!avdManagerConnection.wipeUserData(avdInfo)) {
+          if (avdManagerConnection.wipeUserData(avdInfo)) {
+            baseDeviceHandle.updatePairedPhone(null)
+            baseDeviceHandle.clearPairedGlasses()
+
+            // Then clean up companions
+            unpairFromCompanions()
+          } else {
             withContext(Dispatchers.EDT) {
               Messages.showErrorDialog(
                 project,
@@ -352,7 +356,9 @@ class StudioLocalEmulatorDeviceHandle(
 
       override suspend fun delete() {
         withContext(Dispatchers.IO) {
-          if (!avdManagerConnection.deleteAvd(avdInfo)) {
+          if (avdManagerConnection.deleteAvd(avdInfo)) {
+            unpairFromCompanions()
+          } else {
             withContext(Dispatchers.EDT) {
               if (
                 MessageDialogBuilder.okCancel(
@@ -373,6 +379,24 @@ class StudioLocalEmulatorDeviceHandle(
         }
       }
     }
+
+  private suspend fun unpairFromCompanions() {
+    val properties = state.properties
+    try {
+      val phoneId = properties.pairedPhoneId
+      if (phoneId != null) {
+        val phoneHandle = deviceHandleFlow.value.find { it.id == phoneId }
+        phoneHandle?.baseDeviceHandle?.removePairedGlasses(id)
+      }
+
+      properties.pairedGlassesInfos.forEach { glassesInfo ->
+        val glassesHandle = deviceHandleFlow.value.find { it.id == glassesInfo.id }
+        glassesHandle?.baseDeviceHandle?.updatePairedPhone(null)
+      }
+    } catch (e: Exception) {
+      logger.warn("Failed to unpair companions from $id", e)
+    }
+  }
 
   private val aiGlassesAutoPairingDisabledPropertyKey
     get() = "ai.glasses.auto.pairing.disabled.$id"
@@ -424,8 +448,8 @@ class StudioLocalEmulatorDeviceHandle(
     if (pairedPhone != null) {
       withContext(Dispatchers.IO) {
         glassesHandle.baseDeviceHandle.updatePairedPhone(pairedPhone.baseDeviceHandle)
-        // TODO android-merge updatePairedGlasses(handle) gone, new addPairedGlasses(id, mac) needs a MAC we don't have
-        // pairedPhone.baseDeviceHandle.updatePairedGlasses(glassesHandle.baseDeviceHandle)
+        // TODO(b/487779278): Update Pairing Wizard to save BT MAC to persistent storage
+        pairedPhone.baseDeviceHandle.addPairedGlasses(glassesHandle.id, null)
       }
     }
     return pairedPhone != null
@@ -434,15 +458,17 @@ class StudioLocalEmulatorDeviceHandle(
   override val unpairGlassesAction =
     object : UnpairGlassesAction {
       override suspend fun unpairGlasses() {
-        // TODO(b/458470193): Implement unpairing
+        withContext(Dispatchers.IO) {
+          baseDeviceHandle.updatePairedPhone(null)
+          baseDeviceHandle.clearPairedGlasses()
+
+          // Then clean up companions
+          unpairFromCompanions()
+        }
       }
 
       override val presentation: StateFlow<DeviceAction.Presentation> =
-        defaultPresentation.fromContext().enabledIf {
-          // TODO android-merge pairedGlassesId renamed to pairedGlassesInfos upstream
-          // it.properties.pairedPhoneId != null || it.properties.pairedGlassesId != null
-          it.properties.pairedPhoneId != null || it.properties.pairedGlassesInfos.isNotEmpty()
-        }
+        defaultPresentation.fromContext().enabledIf { it.properties.pairedPhoneId != null || it.properties.pairedGlassesInfos.isNotEmpty() }
     }
 
   private fun DeviceAction.Presentation.enabledIf(condition: (DeviceState) -> Boolean) =

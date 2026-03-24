@@ -277,7 +277,6 @@ class WifiPairableDeviceProvisionerPlugin(
     override val disambiguator: String?,
     override val wearPairingId: String?,
     override val pairedPhoneId: DeviceId?,
-    // TODO android-merge pairedGlassesId renamed to pairedGlassesInfos upstream
     override val pairedGlassesInfos: List<PairedGlassesInfo>,
     override val connectionType: ConnectionType?,
     override val deviceInfoProto: DeviceInfo,
@@ -317,7 +316,6 @@ class WifiPairableDeviceProvisionerPlugin(
           disambiguator = disambiguator,
           wearPairingId = wearPairingId,
           pairedPhoneId = pairedPhoneId,
-          // TODO android-merge pairedGlassesId renamed to pairedGlassesInfos upstream
           pairedGlassesInfos = pairedGlassesInfos,
           connectionType = connectionType,
           deviceInfoProto = deviceInfoProto.build(),

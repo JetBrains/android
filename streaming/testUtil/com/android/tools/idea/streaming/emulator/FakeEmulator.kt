@@ -994,10 +994,13 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           .apply {
             when (deviceType) {
               DeviceType.AI_GLASSES -> pairedPhoneId = pairedDeviceId
-              // TODO android-merge pairedGlassesId renamed to pairedGlassesInfos upstream
-              // else -> pairedGlassesId = pairedDeviceId
-              else ->
-                pairedGlassesInfos = listOfNotNull(pairedDeviceId?.let { PairedGlassesInfo(it, mac = null) })
+              else -> {
+                if (pairedDeviceId != null) {
+                  pairedGlassesInfos = listOf(PairedGlassesInfo(pairedDeviceId, null))
+                } else {
+                  pairedGlassesInfos = emptyList()
+                }
+              }
             }
           }
           .build()

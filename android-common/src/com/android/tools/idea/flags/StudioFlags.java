@@ -1844,13 +1844,6 @@ public final class StudioFlags {
     "Migreate emulator AEHD users to use WHPX instead."
   );
 
-  public static final Flag<Boolean> AI_GLASSES_PERSISTENT_PAIRING_ENABLED = new BooleanFlag(
-    DEVICE_MANAGER,
-    "ai.glasses.persistent.pairing.enabled",
-    "Enable persistent pairing for AI Glasses",
-    "If enabled, persists one-to-many pairing with AI Glasses across sessions."
-  );
-
   public static final Flag<Boolean> AI_GLASSES_PAIRING_RECONCILIATION_ENABLED = new BooleanFlag(
     DEVICE_MANAGER,
     "ai.glasses.pairing.reconciliation.enabled",
