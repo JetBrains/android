@@ -389,6 +389,10 @@ class PreviewPickerTests {
     val model = getFirstModel(fileContent)
     val preview = AnnotationFilePreviewElementFinder.findPreviewElements(fixture.project, fixture.findFileInTempDir("Test.kt")).first()
 
+    // When the parameter is not present, BooleanPsiCallParameter will assign "false" instead of "null"
+    assertEquals("false", model.properties["", "showBackground"].value)
+    assertEquals("false", model.properties["", "showSystemUi"].value)
+
     fun checkShowBackgroundChange(newValue: String?, expectedPropertyValue: String?) {
       model.properties["", "showBackground"].value = newValue
       assertEquals(expectedPropertyValue, model.properties["", "showBackground"].value)

@@ -80,6 +80,8 @@ import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.toUElement
 
+private const val INITIAL_FALLBACK_VALUE = "false"
+
 /** The model for pickers that handles calls to the Preview annotation in Compose. */
 internal class PreviewPickerPropertiesModel
 private constructor(
@@ -289,7 +291,8 @@ private class PreviewPropertiesProvider(private val defaultValues: Map<String, S
           parameterTypeNameIfStandard,
           argumentExpression,
           defaultValue,
-          initialValue,
+          // To prevent the Boolean Ui elements to be disabled, we assign a fallback value if the current initial value is null
+          initialValue ?: INITIAL_FALLBACK_VALUE,
         )
       else ->
         PsiCallParameterPropertyItem(
