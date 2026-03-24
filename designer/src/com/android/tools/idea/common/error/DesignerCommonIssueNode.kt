@@ -538,7 +538,16 @@ object PreprocessNodeComparator : Comparator<DesignerCommonIssueNode> {
       // no sorting option is selected.
       o1 is IssueNode && o2 is IssueNode && o1.issue is NlAtfIssue && o2.issue is NlAtfIssue -> o1.issue.summary.compareTo(o2.issue.summary)
       // Provide consistent ordering for everything else
-      else -> o1.name.compareTo(o2.name)
+      else -> {
+        val nameCompare = o1.name.compareTo(o2.name)
+        if (nameCompare == 0 && o1 is IssueNode && o2 is IssueNode) {
+          val descCompare = o1.issue.description.compareTo(o2.issue.description)
+          if (descCompare != 0) return descCompare
+          o1.issue.source.displayText.compareTo(o2.issue.source.displayText)
+        } else {
+          nameCompare
+        }
+      }
     }
   }
 }

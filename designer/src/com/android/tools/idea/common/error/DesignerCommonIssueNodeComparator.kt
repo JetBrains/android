@@ -62,9 +62,17 @@ object IssueNodeNameComparator : Comparator<DesignerCommonIssueNode> {
     if (isEqualsIgnoredCase != 0) {
       return isEqualsIgnoredCase
     }
-    // If they are same regardless the case, the lower case should be first.
-    // Node: 'a' compare to 'A' is positive, but we want the lower case be first. Reverse the result
-    // by using minus operator.
-    return -o1.name.compareTo(o2.name)
+
+    val nameCompare = o1.name.compareTo(o2.name)
+    if (nameCompare == 0 && o1 is IssueNode && o2 is IssueNode) {
+      val descCompare = o1.issue.description.compareTo(o2.issue.description)
+      if (descCompare != 0) return descCompare
+      return o1.issue.source.displayText.compareTo(o2.issue.source.displayText)
+    } else {
+      // If they are same regardless the case, the lower case should be first.
+      // Node: 'a' compare to 'A' is positive, but we want the lower case be first. Reverse the result
+      // by using minus operator.
+      return -nameCompare
+    }
   }
 }
