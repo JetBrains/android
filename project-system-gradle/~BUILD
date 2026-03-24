@@ -671,6 +671,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:equalsverifier",
         "@intellij//:tanvd.grazi",
         "//tools/adt/idea/.idea/libraries:google-api-client",
+        "@intellij//:org.jetbrains.idea.reposearch",
     ],
     test_jvm_flags = ["-Didea.skip.indices.initialization=true"],
     test_resources = ["testResources"],

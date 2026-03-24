@@ -12250,6 +12250,8 @@ jvm_library(
         "//plugins/kotlin/refactorings/rename.k2:kotlin-refactorings-rename-tests_test_lib",
         "//android/android-adb:adb-testUtil",
         "//android/android-adb:adb-testUtil_test_lib",
+        "//plugins/repository-search/common",
+        "//plugins/repository-search/common:common_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.core.tests` end

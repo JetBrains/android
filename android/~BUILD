@@ -248,6 +248,7 @@ iml_module(
         "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
         "//tools/adt/idea/android-adb:intellij.android.adb.testUtil",
+        "@intellij//:org.jetbrains.idea.reposearch",
     ],
     test_friends = ["//tools/adt/idea/android:intellij.android.core"],
     test_jvm_flags = [
