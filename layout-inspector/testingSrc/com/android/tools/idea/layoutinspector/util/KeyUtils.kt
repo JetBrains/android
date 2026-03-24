@@ -25,25 +25,25 @@ import java.awt.event.KeyEvent
 fun FakeUi.tab() = keyboard.pressAndRelease(KeyEvent.VK_TAB)
 
 /** Press and release meta/ctrl + key via the IdeEventQueue key dispatcher */
-fun zoomIn() {
+fun pressAndReleaseCtrlPlus() {
   val dispatcher = IdeEventQueue.getInstance().keyEventDispatcher
-  dispatcher.dispatchKeyEvent(createZoomKeyEvent(pressed = true, zoomIn = true))
-  dispatcher.dispatchKeyEvent(createZoomKeyEvent(pressed = false, zoomIn = true))
+  dispatcher.dispatchKeyEvent(createKeyEvent(pressed = true, KeyEvent.VK_ADD, '+'))
+  dispatcher.dispatchKeyEvent(createKeyEvent(pressed = false, KeyEvent.VK_ADD, '+'))
 }
 
 /** Press and release meta/ctrl - key via the IdeEventQueue key dispatcher */
-fun zoomOut() {
+fun pressAndReleaseCtrlMinus() {
   val dispatcher = IdeEventQueue.getInstance().keyEventDispatcher
-  dispatcher.dispatchKeyEvent(createZoomKeyEvent(pressed = true, zoomIn = false))
-  dispatcher.dispatchKeyEvent(createZoomKeyEvent(pressed = false, zoomIn = false))
+  dispatcher.dispatchKeyEvent(createKeyEvent(pressed = true, KeyEvent.VK_MINUS, '-'))
+  dispatcher.dispatchKeyEvent(createKeyEvent(pressed = false, KeyEvent.VK_MINUS, '-'))
 }
 
-private fun createZoomKeyEvent(pressed: Boolean, zoomIn: Boolean) =
+private fun createKeyEvent(pressed: Boolean, keyCode: Int, char: Char) =
   KeyEvent(
     KeyboardFocusManager.getCurrentKeyboardFocusManager().focusOwner,
     if (pressed) KeyEvent.KEY_PRESSED else KeyEvent.KEY_RELEASED,
     System.nanoTime(),
     if (SystemInfo.isMac) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK,
-    if (zoomIn) KeyEvent.VK_ADD else KeyEvent.VK_MINUS,
-    if (zoomIn) '+' else '-',
+    keyCode,
+    char,
   )

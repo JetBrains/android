@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
+import com.android.tools.adtui.ZOOMABLE_KEY
+import com.android.tools.adtui.Zoomable
+import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.stdui.CommonHyperLinkLabel
 import com.android.tools.adtui.stdui.SmallTextLabel
 import com.android.tools.adtui.workbench.ToolContent
@@ -48,9 +51,11 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CustomShortcutSet
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.invokeLater
@@ -90,7 +95,7 @@ private const val ICON_HORIZONTAL_BORDER = 10
 private const val TEXT_HORIZONTAL_BORDER = 5
 const val COMPONENT_TREE_NAME = "COMPONENT_TREE"
 
-class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<LayoutInspector> {
+class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<LayoutInspector>, UiDataProvider {
   @VisibleForTesting val nodeType = InspectorViewNodeType()
 
   @VisibleForTesting val componentTreeBuildResult = buildComponentTree(nodeType)
@@ -167,12 +172,31 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
         override fun isEnabled(tree: JTree) = componentTreePanel.isShowing && tree.rowCount > 0
       }
     val commonActionManager = CommonActionsManager.getInstance()
-    additionalActions =
-      listOf(
-        FilterGroupAction(),
-        commonActionManager.createExpandAllAction(treeExpander, tree),
-        commonActionManager.createCollapseAllAction(treeExpander, tree),
-      )
+    val expandAllAction = commonActionManager.createExpandAllAction(treeExpander, focusComponent)
+    val collapseAllAction = commonActionManager.createCollapseAllAction(treeExpander, focusComponent)
+    additionalActions = listOf(FilterGroupAction(), expandAllAction, collapseAllAction)
+  }
+
+  // Use this Zoomable to ignore zoom events while the component tree has focus.
+  // Do this such that the same keystrokes can be used to expand/collapse the tree.
+  private val ignoreZoomable =
+    object : Zoomable {
+      override val scale: Double = 1.0
+      override val screenScalingFactor: Double = 1.0
+
+      override fun zoom(type: ZoomType): Boolean = false
+
+      override fun canZoomIn(): Boolean = false
+
+      override fun canZoomOut(): Boolean = false
+
+      override fun canZoomToFit(): Boolean = false
+
+      override fun canZoomToActual(): Boolean = false
+    }
+
+  override fun uiDataSnapshot(sink: DataSink) {
+    sink[ZOOMABLE_KEY] = ignoreZoomable
   }
 
   private fun buildComponentTree(nodeType: InspectorViewNodeType): ComponentTreeBuildResult {

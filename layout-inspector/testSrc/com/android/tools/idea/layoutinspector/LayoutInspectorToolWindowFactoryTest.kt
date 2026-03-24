@@ -32,9 +32,9 @@ import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutI
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurable
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
+import com.android.tools.idea.layoutinspector.util.pressAndReleaseCtrlMinus
+import com.android.tools.idea.layoutinspector.util.pressAndReleaseCtrlPlus
 import com.android.tools.idea.layoutinspector.util.tab
-import com.android.tools.idea.layoutinspector.util.zoomIn
-import com.android.tools.idea.layoutinspector.util.zoomOut
 import com.android.tools.idea.sdk.AndroidProjectChecker
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ui.createFakeToolWindow
@@ -349,6 +349,7 @@ class LayoutInspectorToolWindowFactoryTest {
   fun testFocusNavigation() {
     val project = projectRule.project
     val disposable = projectRule.testRootDisposable
+    layoutInspectorRule.inspector.treeSettings.hideSystemNodes = false
     HeadlessDataManager.fallbackToProductionDataManager(disposable) // Necessary to properly find the zoomable controller via the data sink
     val toolWindow = createFakeToolWindow(project, disposable, LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
     val projectService = projectRule.mockProjectService(LayoutInspectorProjectService::class.java)
@@ -372,23 +373,18 @@ class LayoutInspectorToolWindowFactoryTest {
       val focusManager = FakeKeyboardFocusManager(disposable)
       focusManager.setActiveWindow(SwingUtilities.getWindowAncestor(standaloneUi))
       val settings = layoutInspectorRule.inspector.renderSettings
+      val tree = standaloneUi.componentTrees.single()
 
       // Start with focus on the standalone inspector UI
       standaloneUi.requestFocusInWindow()
       assertThat(focusManager.focusOwner).isEqualTo(standaloneUi)
       assertThat(settings.scalePercent).isEqualTo(100)
 
-      val model = layoutInspectorRule.inspectorModel
-      model.setSelection(model[VIEW2], SelectionOrigin.INTERNAL)
-
-      // Wait until the properties table is displaying attributes
-      waitForCondition(30.seconds) { standaloneUi.propertyTables.let { tables -> tables.isNotEmpty() && tables.all { it.itemCount > 3 } } }
-
       ui.tab()
       assertThat(focusManager.focusOwner).isInstanceOf(ActionButton::class.java)
 
       // Verify that the zoom controls shortcut keys are active from the action buttons
-      zoomOut()
+      pressAndReleaseCtrlMinus()
       assertThat(settings.scalePercent).isEqualTo(90)
 
       // Move out of the component tree toolbar
@@ -400,9 +396,21 @@ class LayoutInspectorToolWindowFactoryTest {
       assertThat(focusManager.focusOwner).isInstanceOf(TreeTable::class.java)
 
       // Verify that the zoom controls shortcut keys are active from the component tree
-      // TODO(b/485272696) the keystrokes should cause expand all/collapse all in the component tree
-      zoomIn()
-      assertThat(settings.scalePercent).isEqualTo(100)
+      // The keystrokes should cause expand all/collapse all in the component tree, so zoom is NOT performed.
+      assertThat(tree.rowCount).isEqualTo(4)
+      pressAndReleaseCtrlMinus()
+      assertThat(settings.scalePercent).isEqualTo(90)
+      assertThat(tree.rowCount).isEqualTo(2)
+      pressAndReleaseCtrlPlus()
+      assertThat(tree.rowCount).isEqualTo(12)
+      assertThat(settings.scalePercent).isEqualTo(90)
+
+      // Select VIEW2 such that the properties panel will be populated
+      val model = layoutInspectorRule.inspectorModel
+      model.setSelection(model[VIEW2], SelectionOrigin.INTERNAL)
+
+      // Wait until the properties table is displaying attributes
+      waitForCondition(30.seconds) { standaloneUi.propertyTables.let { tables -> tables.isNotEmpty() && tables.all { it.itemCount > 3 } } }
 
       // Move out of the component tree
       ui.tab()
@@ -411,8 +419,8 @@ class LayoutInspectorToolWindowFactoryTest {
       assertThat(focusManager.focusOwner).isInstanceOf(ActionButton::class.java)
 
       // Verify that the zoom controls shortcut keys are active from the zoom action buttons
-      zoomOut()
-      assertThat(settings.scalePercent).isEqualTo(90)
+      pressAndReleaseCtrlPlus()
+      assertThat(settings.scalePercent).isEqualTo(100)
 
       // Move out of the zoom buttons
       while (focusManager.focusOwner is ActionButton) {
@@ -423,8 +431,8 @@ class LayoutInspectorToolWindowFactoryTest {
       assertThat(SwingUtilities.getAncestorOfClass(InspectorPanelImpl::class.java, focusManager.focusOwner)).isNotNull()
 
       // Verify that the zoom controls shortcut keys are active from the attributes table
-      zoomIn()
-      assertThat(settings.scalePercent).isEqualTo(100)
+      pressAndReleaseCtrlMinus()
+      assertThat(settings.scalePercent).isEqualTo(90)
 
       // Move out of the attributes table
       while (SwingUtilities.getAncestorOfClass(InspectorPanelImpl::class.java, focusManager.focusOwner) != null) {
@@ -446,4 +454,7 @@ class LayoutInspectorToolWindowFactoryTest {
 
   private val Component.propertyTables: List<PTable>
     get() = findAllDescendants<PTable>().toList()
+
+  private val Component.componentTrees: List<TreeTable>
+    get() = findAllDescendants<TreeTable>().toList()
 }
