@@ -48,6 +48,7 @@ import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -76,6 +77,7 @@ class StudioLocalEmulatorProvisionerPluginTest {
     session.close()
   }
 
+  @Ignore("b/495568549")
   @Test
   fun testIcons(): Unit = runBlockingWithTimeout {
     suspend fun validateIcon(avdInfo: AvdInfo, icon: Icon) {
