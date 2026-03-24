@@ -734,6 +734,37 @@ class RenderErrorContributorImplTest {
     assertSize(2, issues)
   }
 
+  @Test
+  fun testDeduplicationByRootCause() {
+    val rootCause = Exception("Error 1")
+    val wrapper = java.lang.reflect.InvocationTargetException(rootCause)
+
+    val operation = LogOperation { logger: RenderLogger, _: RenderResult ->
+      logger.error(null, "Message", rootCause, null, null)
+      logger.error(null, "Message", wrapper, null, null)
+    }
+
+    val issues = getRenderOutput(fixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation)
+    assertSize(1, issues)
+    assertEquals("Error 1", issues[0]!!.summary)
+  }
+
+  @Test
+  fun testDistinctRootCausesAreReportedSeparately() {
+    val wrapper = java.lang.reflect.InvocationTargetException(Exception("Error 1"))
+    val wrapper2 = java.lang.reflect.InvocationTargetException(Exception("Error 2"))
+
+    val operation = LogOperation { logger: RenderLogger, _: RenderResult ->
+      logger.error(null, "Message 1", wrapper, null, null)
+      logger.error(null, "Message 2", wrapper2, null, null)
+    }
+
+    val issues = getRenderOutput(fixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation)
+    assertSize(2, issues)
+    assertEquals("Error 1", issues[0]!!.summary)
+    assertEquals("Error 2", issues[1]!!.summary)
+  }
+
   /** Tests that the RenderErrorContributor builds issues using the correct severity */
   @Test
   fun testIssueSeverity() {

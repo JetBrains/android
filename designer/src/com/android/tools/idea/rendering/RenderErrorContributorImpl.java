@@ -515,7 +515,8 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       HtmlBuilder builder = new HtmlBuilder();
 
       String html = message.getHtml();
-      Throwable throwable = message.getThrowable();
+      // Unwrap reflection-based exceptions to identify and deduplicate the real underlying cause.
+      Throwable throwable = ComposeRenderErrorContributor.unwrapIfInvocationTargetException(message.getThrowable());
 
       String summary = "Render problem";
       if (throwable != null) {

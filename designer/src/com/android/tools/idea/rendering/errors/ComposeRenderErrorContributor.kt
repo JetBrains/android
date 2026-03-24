@@ -22,6 +22,7 @@ import com.android.tools.rendering.HtmlLinkManager
 import com.android.tools.rendering.RenderLogger
 import com.android.utils.HtmlBuilder
 import com.intellij.lang.annotation.HighlightSeverity
+import java.lang.reflect.InvocationTargetException
 import java.util.concurrent.TimeoutException
 import javax.swing.event.HyperlinkListener
 
@@ -128,24 +129,39 @@ object ComposeRenderErrorContributor {
     linkHandler: HyperlinkListener = HyperlinkListener {},
   ): List<Issue> =
     logger.messages.mapNotNull { message ->
+      // We try to unwrap the exception in case it's an [InvocationTargetException] that should be unwrapped.
+      val unwrapped = unwrapIfInvocationTargetException(message.throwable)
       ComposeRenderErrorType.entries
-        .firstOrNull { it.predicate(message.throwable) }
+        .firstOrNull { it.predicate(unwrapped) }
         ?.let { errorType ->
           val builder =
             Issue.builder()
               .setSeverity(errorType.severity)
-              .setSummary(errorType.summary(message.throwable))
+              .setSummary(errorType.summary(unwrapped))
               .setLinkHandler(linkHandler)
-              .setThrowable(message.throwable)
+              .setThrowable(unwrapped)
 
-          errorType.htmlContentProvider?.let { provider -> builder.setHtmlContent(provider(linkManager, message.throwable)) }
-          errorType.messageTipProvider?.let { provider -> builder.addMessageTip(provider(linkManager, message.throwable)) }
+          errorType.htmlContentProvider?.let { provider -> builder.setHtmlContent(provider(linkManager, unwrapped)) }
+          errorType.messageTipProvider?.let { provider -> builder.addMessageTip(provider(linkManager, unwrapped)) }
 
           builder.build()
         }
     }
 
   // endregion
+
+  /**
+   * Unwraps [InvocationTargetException] recursively to get the original cause of a reflection-based failure. This is necessary because
+   * Compose Previews are invoked via reflection, and if they fail, the underlying reason for the failure is wrapped in an
+   * [InvocationTargetException].
+   *
+   * If the wrapper has no cause, the wrapper itself is returned.
+   */
+  @JvmStatic
+  tailrec fun unwrapIfInvocationTargetException(throwable: Throwable?): Throwable? {
+    val cause = (throwable as? InvocationTargetException)?.cause
+    return if (cause == null || cause === throwable) throwable else unwrapIfInvocationTargetException(cause)
+  }
 
   // region Internal implementation details
 
