@@ -828,6 +828,7 @@ studio_plugin(
             "//tools/vendor/google/ml/aiplugin/v2/agent-sdk-api:aiplugin.v2.agent-sdk-api",
             "//tools/vendor/google/ml/aiplugin/v2/agent-ui:aiplugin.v2.agent-ui",
             "//tools/vendor/google/ml/aiplugin/v2/agent-ui-api:aiplugin.v2.agent-ui-api",
+            "//tools/vendor/google/ml:aiplugin.v2.agent-uistate",
             "//tools/vendor/google/ml/aiplugin/v2/datamodel:aiplugin.v2.datamodel",
             "//tools/vendor/google/ml/aiplugin/android:aiplugin.android",
             "//tools/vendor/google/ml/aiplugin/android/gradle:aiplugin.android.gradle",
