@@ -1626,12 +1626,6 @@ public final class StudioFlags {
     COMPOSE, "project.uses.compose.override", "Forces the Compose project detection",
     "If enabled, the project will be treated as a Compose project, showing Previews if available and enhancing the Compose editing");
 
-  public static final Flag<Boolean> COMPOSE_ALLOCATION_LIMITER = new BooleanFlag(
-    COMPOSE, "allocation.limiter", "If enabled, limits allocations per render",
-    "If enabled, limits the number of allocations that user code can do in a single render action"
-    );
-
-
   public static final Flag<Boolean> COMPOSE_PREVIEW_GENERATE_PREVIEW_AGENTIC = new BooleanFlag(
     COMPOSE, "preview.generate.preview.action.agentic", "Use agents to generate Compose Previews",
     "Uses agentic approach when generating Compose Previews corresponding to the selected @Composable."

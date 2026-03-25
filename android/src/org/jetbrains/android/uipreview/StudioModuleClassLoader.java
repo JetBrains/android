@@ -18,7 +18,6 @@ import com.android.tools.rendering.classloading.ModuleClassLoader;
 import com.android.tools.rendering.classloading.ModuleClassLoaderDiagnosticsRead;
 import com.android.tools.rendering.classloading.ModuleClassLoaderDiagnosticsWrite;
 import com.android.tools.rendering.classloading.ViewMethodWrapperTransform;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.rendering.classloading.CooperativeInterruptTransform;
 import com.android.tools.idea.rendering.classloading.FilteringClassLoader;
 import com.android.tools.idea.rendering.classloading.FirewalledResourcesClassLoader;
@@ -146,10 +145,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
     ThreadLocalTrackingTransform::new,
     ThreadControllingTransform::new,
     CooperativeInterruptTransform::new,
-    visitor ->
-      StudioFlags.COMPOSE_ALLOCATION_LIMITER.get() ?
-        new RenderActionAllocationLimiterTransform(visitor) :
-        visitor, // Do not apply if the allocation limiter is disabled
+    RenderActionAllocationLimiterTransform::new,
     SdkIntReplacer::new,
     // Leave this transformation as last so the rest of the transformations operate on the regular names.
     visitor -> new RepackageTransform(visitor, PACKAGES_TO_RENAME, INTERNAL_PACKAGE)
