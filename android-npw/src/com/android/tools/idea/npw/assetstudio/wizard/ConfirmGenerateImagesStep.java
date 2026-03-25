@@ -20,7 +20,9 @@ import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleDimen
 import static com.android.tools.idea.npw.assetstudio.IconGenerator.getMdpiScaleFactor;
 import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.SIZE_FULL_BLEED_DP;
 
+import com.android.ide.common.util.AssetUtil;
 import com.android.resources.Density;
+import com.android.tools.adtui.ImageComponent;
 import com.android.tools.adtui.common.ProposedFileTreeCellRenderer;
 import com.android.tools.adtui.common.ProposedFileTreeModel;
 import com.android.tools.adtui.validation.Validator;
@@ -66,7 +68,10 @@ import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.NamedColorUtil;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Insets;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
@@ -105,7 +110,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
   private final List<NamedModuleTemplate> myTemplates;
   private final ValidatorPanel myValidatorPanel;
   private final ListenerManager myListeners = new ListenerManager();
-  private final JBLabel myPreviewIcon;
+  private final ImageComponent myPreviewIcon;
 
   private JPanel myRootPanel;
   private JComboBox<SourceSetItem> myPathsComboBox;
@@ -185,10 +190,18 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
     String alreadyExistsError = WizardUtils.toHtmlString("Some files (shown in red) will overwrite existing files.");
     myValidatorPanel.registerValidator(myFilesAlreadyExist, new FalseValidator(Validator.Severity.WARNING, alreadyExistsError));
 
-    myPreviewIcon = new JBLabel();
+    myPreviewIcon = new ImageComponent() {
+      @Override
+      protected void paintChildren(@NotNull Graphics g) {
+        if (myIcon == null) return;
+        BufferedImage image = getImage();
+        if (image != null) {
+          AssetUtil.drawCenterInside((Graphics2D)g, image, new Rectangle(0, 0, getWidth(), getHeight()));
+        }
+      }
+    };
     myPreviewIcon.setVisible(false);
-    myPreviewIcon.setHorizontalAlignment(SwingConstants.CENTER);
-    myPreviewIcon.setVerticalAlignment(SwingConstants.CENTER);
+    myPreviewIcon.setOpaque(false);
 
     myPreviewPanel.setLayout(new BorderLayout());
     myPreviewPanel.add(myPreviewIcon, BorderLayout.CENTER);
@@ -441,7 +454,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
     myPreviewFillPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
     jBScrollPane2.setViewportView(myPreviewFillPanel);
     myPreviewPanel = new CheckeredBackgroundPanel();
-    myPreviewFillPanel.add(myPreviewPanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
+    myPreviewFillPanel.add(myPreviewPanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
                                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                                null, null, null, 0, false));
