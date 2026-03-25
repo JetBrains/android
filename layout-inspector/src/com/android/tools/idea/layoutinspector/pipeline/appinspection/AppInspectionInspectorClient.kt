@@ -232,7 +232,6 @@ class AppInspectionInspectorClient(
       is SetFlagResult.Failure -> {
         showUnableToSetDebugViewAttributesBanner(notificationModel, setFlagResult.reason)
       }
-      is SetFlagResult.Cancelled -> {}
     }
   }
 

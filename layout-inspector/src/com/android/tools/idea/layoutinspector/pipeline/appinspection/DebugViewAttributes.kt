@@ -71,8 +71,6 @@ sealed class SetFlagResult {
       SECURITY_EXCEPTION,
     }
   }
-
-  data object Cancelled : SetFlagResult()
 }
 
 /**
@@ -102,8 +100,8 @@ class DebugViewAttributes(private val project: Project, private val adbSession: 
         is AdbCommandResult.Failure -> SetFlagResult.Failure()
         AdbCommandResult.SecurityException -> SetFlagResult.Failure(SECURITY_EXCEPTION)
       }
-    } catch (cancellation: CancellationException) {
-      SetFlagResult.Cancelled
+    } catch (e: CancellationException) {
+      throw e
     } catch (t: Throwable) {
       Logger.getInstance(DebugViewAttributes::class.java).warn(t)
       SetFlagResult.Failure()
