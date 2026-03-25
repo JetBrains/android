@@ -16,9 +16,12 @@
 <idea-plugin>
   <actions>
     <action id="WhatsNewAction" class="com.android.tools.idea.whatsnew.assistant.WhatsNewSidePanelAction" overrides="true"/>
+    <action id="WhatsNewEditorAction" class="com.android.tools.idea.whatsnew.assistant.v2.ui.WhatsNewEditorAction"
+            text="What's New in Android Studio"/>
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
+    <fileEditorProvider implementation="com.android.tools.idea.whatsnew.assistant.v2.ui.WhatsNewEditorProvider"/>
     <applicationService serviceImplementation="com.android.tools.idea.whatsnew.assistant.WhatsNewStartupActivity$WhatsNewService"/>
     <postStartupActivity implementation="com.android.tools.idea.whatsnew.assistant.WhatsNewStartupActivity"
                          order="before TipOfTheDayActivity"/>
