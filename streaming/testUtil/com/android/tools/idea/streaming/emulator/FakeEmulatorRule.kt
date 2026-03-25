@@ -47,7 +47,7 @@ class FakeEmulatorRule : TestRule {
 
   val avdRoot: Path by lazy { Files.createDirectories(userHome.resolve(".android/avd")) }
   private val emulators = mutableListOf<FakeEmulator>()
-  private var availableGrpcPort = 8554
+  private var availableGrpcPort = 8554 + instanceCounter++ // Don't reuse port numbers between tests to avoid interference.
   private var registrationDirectory: Path? = null
   private val savedUserHome = System.getProperty("user.home")
   private val tempDirectory = TemporaryDirectoryRule()
@@ -132,3 +132,5 @@ class FakeEmulatorRule : TestRule {
     }
   }
 }
+
+var instanceCounter: Int = 0
