@@ -21,11 +21,13 @@ import com.intellij.codeInsight.daemon.impl.analysis.DefaultHighlightingSettingP
 import com.intellij.grazie.spellcheck.GrazieSpellCheckingInspection
 import com.intellij.spellchecker.SpellCheckerSeveritiesProvider
 import com.intellij.testFramework.ExtensionTestUtil.maskExtensions
+import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
 import org.jetbrains.android.AndroidTestCase
 
 class AndroidGradleKtsSpellcheckingStrategyTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
+    (myFixture as CodeInsightTestFixtureImpl).canChangeDocumentDuringHighlighting(true)
     maskExtensions(DefaultHighlightingSettingProvider.EP_NAME, listOf(), myFixture.projectDisposable)
     maskExtensions(ProblemHighlightFilter.EP_NAME, listOf(), myFixture.projectDisposable)
     unmaskKotlinHighlightVisitor()
