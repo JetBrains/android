@@ -34,6 +34,7 @@ jvm_library(
     "//platform/core-api:core",
     "//platform/editor-ui-api:editor-ui",
     "//platform/platform-api:ide",
+    "//platform/ide-core",
     "//platform/util:util-ui",
     "//platform/util",
     "//platform/compose/markdown",
@@ -74,6 +75,7 @@ jvm_library(
     "//platform/editor-ui-api:editor-ui_test_lib",
     "//platform/platform-api:ide",
     "//platform/platform-api:ide_test_lib",
+    "//platform/ide-core",
     "//platform/util:util-ui",
     "//platform/util:util-ui_test_lib",
     "//platform/util",
@@ -101,6 +103,7 @@ jvm_library(
     "//platform/jewel/int-ui/int-ui-standalone:jewel-intUi-standalone",
     "//platform/jewel/int-ui/int-ui-standalone:jewel-intUi-standalone_test_lib",
   ],
+  runtime_deps = ["//platform/ide-core:ide-core_test_lib"],
   plugins = ["@lib//:compose-plugin"]
 )
 ### auto-generated section `build intellij.android.adt.ui.compose` end

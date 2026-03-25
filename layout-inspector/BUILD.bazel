@@ -90,6 +90,7 @@ jvm_library(
     "//plugins/kotlin/base/plugin",
     "//plugins/kotlin/base/scripting/scripting.shared",
     "//plugins/kotlin/base/util",
+    "//platform/progress/shared:ide-progress",
     "//android/device-manager-v2",
     "//fleet/util/core",
   ]
@@ -242,6 +243,7 @@ jvm_library(
     "//android/intellij.android.testutils:testutils",
     "//android/intellij.android.testutils:testutils_test_lib",
     "//platform/ide-core-impl",
+    "//platform/progress/shared:ide-progress",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "//platform/testFramework/common",
@@ -261,6 +263,7 @@ jvm_library(
     "//platform/platform-impl:ide-impl_test_lib",
     "//platform/platform-util-io:ide-util-io_test_lib",
     "//platform/ide-core-impl:ide-core-impl_test_lib",
+    "//platform/progress/shared:ide-progress_test_lib",
   ]
 )
 ### auto-generated section `build intellij.android.layout-inspector` end

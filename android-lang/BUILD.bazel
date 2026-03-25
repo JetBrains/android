@@ -51,6 +51,7 @@ jvm_library(
     "//platform/util/base",
     "//platform/util-rt",
     "//platform/util:util-ui",
+    "//platform/ide-core",
     "//plugins/kotlin/base/util",
     "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
   ]
@@ -99,6 +100,7 @@ jvm_library(
     "//platform/util/base:base_test_lib",
     "//platform/util-rt:util-rt_test_lib",
     "//platform/util:util-ui_test_lib",
+    "//platform/ide-core:ide-core_test_lib",
     "//plugins/kotlin/base/util:util_test_lib",
     "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable_test_lib",
   ]

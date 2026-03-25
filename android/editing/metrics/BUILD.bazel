@@ -66,10 +66,14 @@ jvm_library(
     "//platform/refactoring:refactoring_test_lib",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
+    "//platform/ide-core",
+    "//platform/util:util-ui",
+    "//platform/util:util-ui_test_lib",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
     "//android/adt-testutils",
     "//android/adt-testutils:adt-testutils_test_lib",
-  ]
+  ],
+  runtime_deps = ["//platform/ide-core:ide-core_test_lib"]
 )
 ### auto-generated section `build intellij.android.core.editing.metrics` end
 

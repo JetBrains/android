@@ -42,6 +42,7 @@ jvm_library(
     "//java/java-analysis-api:analysis",
     "//java/java-indexing-impl:indexing-impl",
     "//java/java-psi-api:psi",
+    "//java/java-frontback-psi-api:frontback-psi",
     "//platform/core-api:core",
     "//platform/core-impl",
     "//platform/core-ui",
@@ -96,6 +97,7 @@ jvm_library(
     "//java/java-analysis-api:analysis_test_lib",
     "//java/java-indexing-impl:indexing-impl_test_lib",
     "//java/java-psi-api:psi_test_lib",
+    "//java/java-frontback-psi-api:frontback-psi_test_lib",
     "//platform/core-api:core_test_lib",
     "//platform/core-impl:core-impl_test_lib",
     "//platform/core-ui:core-ui_test_lib",
@@ -193,6 +195,8 @@ jvm_library(
     "//platform/core-api:core_test_lib",
     "//platform/core-ui",
     "//platform/core-ui:core-ui_test_lib",
+    "//platform/core-impl",
+    "//platform/core-impl:core-impl_test_lib",
     "//platform/editor-ui-api:editor-ui",
     "//platform/editor-ui-api:editor-ui_test_lib",
     "//platform/lang-core",
@@ -205,8 +209,11 @@ jvm_library(
     "//platform/util:util_test_lib",
     "//platform/util/base",
     "//platform/util/base:base_test_lib",
+    "//platform/util-ex",
+    "//platform/util-ex:util-ex_test_lib",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
+    "//platform/ide-core",
     "//android/project-system",
     "//android/project-system:project-system_test_lib",
     "//java/java-impl:impl",
@@ -250,7 +257,10 @@ jvm_library(
     "//java/testFramework",
     "//java/testFramework:testFramework_test_lib",
   ],
-  runtime_deps = [":wear-designer-tests"]
+  runtime_deps = [
+    ":wear-designer-tests",
+    "//platform/ide-core:ide-core_test_lib",
+  ]
 )
 ### auto-generated section `build intellij.android.wear-designer.tests` end
 

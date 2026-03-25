@@ -74,10 +74,13 @@ jvm_library(
     "//platform/external-system-impl:externalSystem-impl_test_lib",
     "//platform/ide-core",
     "//platform/platform-impl:ide-impl",
+    "//platform/progress/shared:ide-progress",
     "//jps/model-api:model",
     "//jps/model-api:model_test_lib",
     "//platform/lang-core",
     "//platform/lang-core:lang-core_test_lib",
+    "//platform/lang-api:lang",
+    "//platform/lang-api:lang_test_lib",
     "//platform/projectModel-api:projectModel",
     "//platform/projectModel-api:projectModel_test_lib",
     "//platform/projectModel-impl",
@@ -101,6 +104,7 @@ jvm_library(
     ":gradle.project.sync",
     "//platform/ide-core:ide-core_test_lib",
     "//platform/platform-impl:ide-impl_test_lib",
+    "//platform/progress/shared:ide-progress_test_lib",
   ]
 )
 ### auto-generated section `build intellij.android.core.gradle.project.sync` end

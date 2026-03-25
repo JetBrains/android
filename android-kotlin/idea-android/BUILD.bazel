@@ -163,6 +163,8 @@ jvm_library(
     "//java/testFramework:testFramework_test_lib",
     "//java/idea-ui:ui",
     "//java/idea-ui:ui_test_lib",
+    "//java/java-syntax:syntax",
+    "//java/java-syntax:syntax_test_lib",
     "//platform/analysis-api:analysis",
     "//platform/analysis-api:analysis_test_lib",
     "//platform/analysis-impl",

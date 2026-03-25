@@ -51,6 +51,7 @@ jvm_library(
     "//xml/dom-openapi:dom",
     "//xml/xml-psi-api:psi",
     "//xml/xml-psi-impl:psi-impl",
+    "//xml/xml-parser:parser",
     "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
   ]
 )
@@ -98,6 +99,7 @@ jvm_library(
     "//xml/dom-openapi:dom_test_lib",
     "//xml/xml-psi-api:psi_test_lib",
     "//xml/xml-psi-impl:psi-impl_test_lib",
+    "//xml/xml-parser:parser_test_lib",
     "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable_test_lib",
   ]
 )

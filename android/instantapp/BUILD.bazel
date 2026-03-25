@@ -55,8 +55,12 @@ jvm_library(
     "//java/testFramework:testFramework_test_lib",
     "//platform/lang-core",
     "//platform/lang-core:lang-core_test_lib",
+    "//platform/ide-core",
   ],
-  runtime_deps = [":instantapp"]
+  runtime_deps = [
+    ":instantapp",
+    "//platform/ide-core:ide-core_test_lib",
+  ]
 )
 ### auto-generated section `build intellij.android.core.instantapp` end
 

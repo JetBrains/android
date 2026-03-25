@@ -54,8 +54,12 @@ jvm_library(
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon_test_lib",
     "//java/openapi:java",
     "//java/openapi:java_test_lib",
+    "//java/java-psi-api:psi",
+    "//java/java-psi-api:psi_test_lib",
     "//java/debugger/openapi:java-debugger",
     "//java/debugger/openapi:java-debugger_test_lib",
+    "//java/java-syntax:syntax",
+    "//java/java-syntax:syntax_test_lib",
     "//java/debugger/impl",
     "//java/debugger/impl:impl_test_lib",
     "//java/java-frontback-psi-api:frontback-psi",
@@ -81,6 +85,7 @@ jvm_library(
     "//platform/platform-api:ide",
     "//platform/platform-api:ide_test_lib",
     "//platform/platform-impl:ide-impl",
+    "//platform/ide-core",
     "//platform/lang-core",
     "//platform/lang-core:lang-core_test_lib",
     "//platform/lang-impl",
@@ -101,6 +106,8 @@ jvm_library(
     "//platform/util/base:base_test_lib",
     "//platform/util:util-ui",
     "//platform/util:util-ui_test_lib",
+    "//platform/util-ex",
+    "//platform/util-ex:util-ex_test_lib",
     "//plugins/kotlin/base/facet",
     "//plugins/kotlin/base/facet:facet_test_lib",
     "@lib//:jaxb-api",
@@ -110,6 +117,7 @@ jvm_library(
   runtime_deps = [
     ":sdk",
     "//platform/platform-impl:ide-impl_test_lib",
+    "//platform/ide-core:ide-core_test_lib",
   ]
 )
 ### auto-generated section `build intellij.android.core.sdk` end

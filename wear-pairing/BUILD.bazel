@@ -41,6 +41,7 @@ jvm_library(
     "//platform/ide-core",
     "//platform/ide-core-impl",
     "//platform/platform-util-io:ide-util-io",
+    "//platform/progress/shared:ide-progress",
     "//platform/projectModel-api:projectModel",
     "//platform/util",
     "//platform/util:util-ui",
@@ -106,6 +107,7 @@ jvm_library(
     "//platform/ide-core",
     "//platform/ide-core-impl",
     "//platform/platform-util-io:ide-util-io",
+    "//platform/progress/shared:ide-progress",
     "//platform/projectModel-api:projectModel",
     "//platform/projectModel-api:projectModel_test_lib",
     "//platform/util",
@@ -128,6 +130,7 @@ jvm_library(
     "//platform/ide-core:ide-core_test_lib",
     "//platform/ide-core-impl:ide-core-impl_test_lib",
     "//platform/platform-util-io:ide-util-io_test_lib",
+    "//platform/progress/shared:ide-progress_test_lib",
   ]
 )
 ### auto-generated section `build intellij.android.wear-pairing` end

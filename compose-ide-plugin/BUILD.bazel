@@ -353,6 +353,7 @@ jvm_library(
     "//platform/extensions:extensions_test_lib",
     "//platform/platform-api:ide",
     "//platform/platform-api:ide_test_lib",
+    "//platform/ide-core",
     "//platform/lang-api:lang",
     "//platform/lang-api:lang_test_lib",
     "//platform/lang-impl",
@@ -419,7 +420,10 @@ jvm_library(
     "//plugins/kotlin/code-insight/live-templates-shared:kotlin-code-insight-live-templates-shared",
     "//plugins/kotlin/code-insight/live-templates-shared:kotlin-code-insight-live-templates-shared_test_lib",
   ],
-  runtime_deps = [":compose-ide-plugin-tests"]
+  runtime_deps = [
+    ":compose-ide-plugin-tests",
+    "//platform/ide-core:ide-core_test_lib",
+  ]
 )
 ### auto-generated section `build intellij.android.compose-ide-plugin.tests` end
 

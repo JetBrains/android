@@ -57,12 +57,16 @@ jvm_library(
     "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
     "//platform/util:util_test_lib",
+    "//platform/ide-core",
     "//xml/dom-openapi:dom",
     "//xml/dom-openapi:dom_test_lib",
     "//xml/xml-psi-api:psi",
     "//xml/xml-psi-api:psi_test_lib",
   ],
-  runtime_deps = [":core-editing-tests"]
+  runtime_deps = [
+    ":core-editing-tests",
+    "//platform/ide-core:ide-core_test_lib",
+  ]
 )
 ### auto-generated section `build intellij.android.core.editing.tests` end
 

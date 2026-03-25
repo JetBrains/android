@@ -54,6 +54,7 @@ jvm_library(
     "//platform/util:util_test_lib",
     "//platform/platform-api:ide",
     "//platform/platform-api:ide_test_lib",
+    "//platform/ide-core",
     "//platform/lang-core",
     "//platform/lang-core:lang-core_test_lib",
     "//platform/util:util-ui",
@@ -77,7 +78,10 @@ jvm_library(
     "//libraries/kotlinx/coroutines/test",
     "//libraries/kotlinx/coroutines/test:test_test_lib",
   ],
-  runtime_deps = [":editors.strings"]
+  runtime_deps = [
+    ":editors.strings",
+    "//platform/ide-core:ide-core_test_lib",
+  ]
 )
 ### auto-generated section `build intellij.android.core.editors.strings` end
 

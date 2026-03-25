@@ -24,6 +24,7 @@ jvm_library(
     "//android/backup:backup-api",
     "//platform/analysis-api:analysis",
     "//platform/util/progress",
+    "//platform/util:util-ui",
     "//android/android-common:common",
     "//android/jps-model",
     "//android/android:core",
@@ -65,6 +66,7 @@ jvm_library(
     "//android/backup:backup-api_test_lib",
     "//platform/analysis-api:analysis_test_lib",
     "//platform/util/progress:progress_test_lib",
+    "//platform/util:util-ui_test_lib",
     "//android/android-common:common_test_lib",
     "//android/jps-model:jps-model_test_lib",
     "//android/android:core_test_lib",
@@ -192,10 +194,14 @@ jvm_library(
     "//libraries/protobuf:protobuf_test_lib",
     "//platform/execution",
     "//platform/execution:execution_test_lib",
+    "//platform/ide-core",
     "//android/android-adb:adb",
     "//android/android-adb:adb_test_lib",
   ],
-  runtime_deps = [":backup-tests"]
+  runtime_deps = [
+    ":backup-tests",
+    "//platform/ide-core:ide-core_test_lib",
+  ]
 )
 ### auto-generated section `build intellij.android.backup.tests` end
 

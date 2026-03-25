@@ -166,6 +166,8 @@ jvm_library(
     "//platform/util:util_test_lib",
     "//platform/util-rt",
     "//platform/util-rt:util-rt_test_lib",
+    "//platform/util:util-ui",
+    "//platform/util:util-ui_test_lib",
     "@lib//:mockito-kotlin",
     "//platform/analysis-api:analysis",
     "//platform/analysis-api:analysis_test_lib",

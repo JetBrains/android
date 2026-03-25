@@ -231,6 +231,8 @@ jvm_library(
     "//platform/indexing-api:indexing_test_lib",
     "//platform/lang-core",
     "//platform/lang-core:lang-core_test_lib",
+    "//platform/lang-api:lang",
+    "//platform/lang-api:lang_test_lib",
     "//platform/lang-impl",
     "//platform/lang-impl:lang-impl_test_lib",
     "//platform/projectModel-api:projectModel",

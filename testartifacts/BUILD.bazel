@@ -28,6 +28,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "//libraries/protobuf",
     "//java/openapi:java",
+    "//java/java-frontback-psi-api:frontback-psi",
     "//java/java-psi-api:psi",
     "//java/execution/impl",
     "//android/project-system",
@@ -41,6 +42,7 @@ jvm_library(
     "//platform/execution-impl",
     "//platform/extensions",
     "//platform/platform-api:ide",
+    "//platform/ide-core",
     "//platform/projectModel-api:projectModel",
     "//platform/testRunner",
     "//platform/util",
@@ -48,6 +50,7 @@ jvm_library(
     "//platform/util:util-ui",
     "//android/adt-ui-compose",
     "//android/artwork-compose",
+    "//platform/lang-api:lang",
   ],
   plugins = ["@lib//:compose-plugin"]
 )
@@ -66,6 +69,7 @@ jvm_library(
     "@lib//:kotlinc-kotlin-compiler-common-provided",
     "//libraries/protobuf:protobuf_test_lib",
     "//java/openapi:java_test_lib",
+    "//java/java-frontback-psi-api:frontback-psi_test_lib",
     "//java/java-psi-api:psi_test_lib",
     "//java/execution/impl:impl_test_lib",
     "//android/project-system:project-system_test_lib",
@@ -79,6 +83,7 @@ jvm_library(
     "//platform/execution-impl:execution-impl_test_lib",
     "//platform/extensions:extensions_test_lib",
     "//platform/platform-api:ide_test_lib",
+    "//platform/ide-core:ide-core_test_lib",
     "//platform/projectModel-api:projectModel_test_lib",
     "//platform/testRunner:testRunner_test_lib",
     "//platform/util:util_test_lib",
@@ -86,6 +91,7 @@ jvm_library(
     "//platform/util:util-ui_test_lib",
     "//android/adt-ui-compose:adt-ui-compose_test_lib",
     "//android/artwork-compose:artwork-compose_test_lib",
+    "//platform/lang-api:lang_test_lib",
   ],
   plugins = ["@lib//:compose-plugin"]
 )
@@ -197,6 +203,8 @@ jvm_library(
     "//java/execution/impl:impl_test_lib",
     "//java/java-psi-impl:psi-impl",
     "//java/java-psi-impl:psi-impl_test_lib",
+    "//java/java-psi-api:psi",
+    "//java/java-psi-api:psi_test_lib",
     "//java/testFramework",
     "//java/testFramework:testFramework_test_lib",
     "//plugins/gradle",
@@ -204,10 +212,15 @@ jvm_library(
     "//plugins/gradle/java",
     "//plugins/gradle/java:java_test_lib",
     "//platform/platform-util-io:ide-util-io",
+    "//platform/ide-core",
     "//platform/xdebugger-api:debugger",
     "//platform/xdebugger-api:debugger_test_lib",
     "//platform/smRunner",
     "//platform/smRunner:smRunner_test_lib",
+    "//platform/util:util-ui",
+    "//platform/util:util-ui_test_lib",
+    "//platform/testRunner",
+    "//platform/testRunner:testRunner_test_lib",
     "//xml/dom-openapi:dom",
     "//xml/dom-openapi:dom_test_lib",
     "//android/intellij.android.testutils:testutils",
@@ -218,6 +231,7 @@ jvm_library(
   runtime_deps = [
     ":testartifacts-tests",
     "//platform/platform-util-io:ide-util-io_test_lib",
+    "//platform/ide-core:ide-core_test_lib",
   ],
   plugins = ["@lib//:compose-plugin"]
 )

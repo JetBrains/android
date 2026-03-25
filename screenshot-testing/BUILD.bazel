@@ -37,6 +37,8 @@ jvm_library(
     "//platform/editor-ui-api:editor-ui",
     "//platform/execution-impl",
     "//platform/platform-impl:ide-impl",
+    "//platform/ide-core",
+    "//java/java-psi-api:psi",
     "//uast/uast-common:uast",
     "//plugins/kotlin/base/util",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
@@ -44,6 +46,7 @@ jvm_library(
     "//images",
     "//platform/diff-impl",
     "//platform/core-ui",
+    "//platform/util:util-ui",
   ],
   plugins = ["@lib//:compose-plugin"]
 )
@@ -71,6 +74,8 @@ jvm_library(
     "//platform/editor-ui-api:editor-ui_test_lib",
     "//platform/execution-impl:execution-impl_test_lib",
     "//platform/platform-impl:ide-impl_test_lib",
+    "//platform/ide-core:ide-core_test_lib",
+    "//java/java-psi-api:psi_test_lib",
     "//uast/uast-common:uast_test_lib",
     "//plugins/kotlin/base/util:util_test_lib",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
@@ -78,6 +83,7 @@ jvm_library(
     "//images:images_test_lib",
     "//platform/diff-impl:diff-impl_test_lib",
     "//platform/core-ui:core-ui_test_lib",
+    "//platform/util:util-ui_test_lib",
   ],
   plugins = ["@lib//:compose-plugin"]
 )
@@ -133,6 +139,8 @@ jvm_library(
     "//platform/core-api:core_test_lib",
     "//platform/core-impl",
     "//platform/core-impl:core-impl_test_lib",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/editor-ui-api:editor-ui_test_lib",
     "//platform/execution-impl",
     "//platform/execution-impl:execution-impl_test_lib",
     "//jps/model-api:model",
