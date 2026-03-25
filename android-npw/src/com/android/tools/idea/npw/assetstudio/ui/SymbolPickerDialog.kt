@@ -353,7 +353,7 @@ constructor(
           categoriesBox.selectedItem == SymbolsBundle.message("categories.all") ||
             it.metadata.categories.contains(categoriesBoxNameMap[categoriesBox.selectedItem])
         }
-        .filter { it.metadata.name.contains(searchField.text, true) }
+        .filter { it.metadata.name.contains(searchField.text.trim(), true) || it.displayName.contains(searchField.text.trim(), true) }
     filteredSymbolList.addAll(filtered)
     layoutModel.fireTableDataChanged()
 
@@ -364,6 +364,8 @@ constructor(
     pack()
     repaint()
   }
+
+  @TestOnly fun getCurrentSymbolNames() = filteredSymbolList.map { it.displayName }
 
   @VisibleForTesting
   public override fun createCenterPanel(): JComponent {

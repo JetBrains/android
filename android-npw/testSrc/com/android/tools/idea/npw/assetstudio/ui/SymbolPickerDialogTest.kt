@@ -163,6 +163,42 @@ class SymbolPickerDialogTest {
     }
 
   @Test
+  fun testSearch() =
+    runBlocking(Dispatchers.Main) {
+      val testDirectory = createTempDirectory()
+      val dialog =
+        SymbolPickerDialog(
+          projectRule.fixture.module.androidFacet!!,
+          projectRule.fixture.testRootDisposable,
+          TestSymbolsUrlProvider(testDirectory),
+          TestSymbolsMetadataUrlProvider,
+        )
+      val symbolsPicker = getInitializedIconPickerDialog(dialog)
+
+      UIUtil.findComponentsOfType(symbolsPicker.createCenterPanel(), SearchTextField::class.java).first().let { searchField ->
+        // Trailing characters are ignored
+        searchField.text = "  My    "
+        assertEquals(listOf("My Icon 1", "My Icon 2"), dialog.getCurrentSymbolNames())
+
+        // One icon found.
+        searchField.text = "  1"
+        assertEquals(listOf("My Icon 1"), dialog.getCurrentSymbolNames())
+
+        // One icon found.
+        searchField.text = "2    "
+        assertEquals(listOf("My Icon 2"), dialog.getCurrentSymbolNames())
+
+        // No icons found.
+        searchField.text = "Day"
+        assertEquals(emptyList<String>(), dialog.getCurrentSymbolNames())
+
+        // Case is ignored.
+        searchField.text = "my icon"
+        assertEquals(listOf("My Icon 1", "My Icon 2"), dialog.getCurrentSymbolNames())
+      }
+    }
+
+  @Test
   fun testSearchFieldConfiguredInPanelContext() =
     runBlocking(Dispatchers.Main) {
       HeadlessDataManager.fallbackToProductionDataManager(projectRule.fixture.testRootDisposable)
