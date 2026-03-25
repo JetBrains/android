@@ -22,13 +22,11 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.text.StringUtil;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +42,7 @@ public final class VectorAssetBrowser extends TextFieldWithBrowseButton implemen
   @NotNull private final List<ActionListener> myAssetListeners = new ArrayList<>(1);
 
   public VectorAssetBrowser() {
-    addBrowseFolderListener(null, createFileDescriptor("svg", "psd"));
+    addBrowseFolderListener(null, createSvgAndPsdFileDescriptor());
 
     TextProperty imagePathText = new TextProperty(getTextField());
     myBindings.bind(imagePathText, myAsset.path().transform(file -> file.map(File::getAbsolutePath).orElse("")));
@@ -76,8 +74,8 @@ public final class VectorAssetBrowser extends TextFieldWithBrowseButton implemen
     myAssetListeners.clear();
   }
 
-  private static FileChooserDescriptor createFileDescriptor(@NotNull String... extensions) {
-    return FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor().withFileFilter(
-        file -> Arrays.stream(extensions).anyMatch(e -> Comparing.equal(file.getExtension(), e, file.isCaseSensitive())));
+  private static FileChooserDescriptor createSvgAndPsdFileDescriptor() {
+    return FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor()
+        .withExtensionFilter("SVG and PSD", "svg", "psd");
   }
 }
