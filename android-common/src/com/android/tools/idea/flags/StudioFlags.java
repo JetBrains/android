@@ -2426,6 +2426,11 @@ public final class StudioFlags {
                     "Enable planning mode",
                     "When enabled, planning mode will be enabled.");
 
+  public static final Flag<Boolean> STUDIOBOT_ASK_FOR_MORE_DETAIL_ENABLED =
+    new BooleanFlag(STUDIOBOT, "ask.for.more.detail.enabled",
+                    "Enable the 'ask for more detail' feature",
+                    "When enabled, users can ask for more detail in planning mode markdown artifacts.");
+
   public static final Flag<Boolean> STUDIOBOT_STOP_BUTTON_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.stop.button.enabled",
                     "Enable Stop Button",
