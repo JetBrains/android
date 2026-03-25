@@ -6,6 +6,7 @@ package(default_visibility = DEFAULT_TEST_VISIBILITY)
 
 aswb_library(
     name = "QuerySummaryTestUtil",
+    testonly = 1,
     srcs = [
         "QuerySummaryTestBuilder.kt",
         "QuerySummaryTestUtil.java",
