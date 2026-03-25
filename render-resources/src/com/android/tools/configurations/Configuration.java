@@ -188,11 +188,8 @@ public class Configuration {
    */
   private String myDisplayName;
 
-  /** For nesting count use by {@link #startBulkEditing()} and {@link #finishBulkEditing()} */
-  private int myBulkEditingCount;
-
-  /** Optional set of listeners to notify via {@link #updated(int)} */
-  private final List<ConfigurationListener> myListeners = new ArrayList<>();
+  /** Handles listener notifications and bulk editing count */
+  private final ConfigurationListeners myListeners = new ConfigurationListeners();
 
   /** Dirty flags since last notify: corresponds to constants in {@link ConfigurationListener} */
   protected int myNotifyDirty;
@@ -204,44 +201,11 @@ public class Configuration {
 
   private long myModificationCount;
 
-  private float myFontScale = 1f;
   private int myUiModeFlagValue;
-  @NotNull private AdaptiveIconShape myAdaptiveShape = AdaptiveIconShape.getDefaultShape();
-  private boolean myUseThemedIcon = false;
-  private Wallpaper myWallpaper = null;
-  private final EnumMap<ImageTransformationType, Consumer<BufferedImage>> myImageTransformations = new EnumMap<>(ImageTransformationType.class);
-  private boolean myGestureNav = true;
-  private boolean myEdgeToEdge = true;
-  private FrameworkOverlay myCutoutOverlay = FrameworkOverlay.CUTOUT_NONE;
-  private FrameworkOverlay myDeviceOverlay = null;
 
-  private final ResourceItemResolver.ResourceProvider myResourceProvider = new ResourceItemResolver.ResourceProvider() {
-    @Override
-    public @Nullable ResourceResolver getResolver(boolean createIfNecessary) {
-      if (createIfNecessary) {
-        return getResourceResolver();
-      }
+  private final SystemUiPreferences mySystemUiPrefs = new SystemUiPreferences();
 
-      // Return the cached one if already there
-      return mySettings.getResolverCache().getCachedResourceResolver(
-        getTarget(), getTheme(), getFullConfig(), getOverlays()
-      );
-    }
-
-    @Override
-    public @Nullable ResourceRepository getFrameworkResources() {
-      ResourceRepositoryManager resourceRepositoryManager = getConfigModule().getResourceRepositoryManager();
-      return resourceRepositoryManager != null ? resourceRepositoryManager.getFrameworkResources(
-        resourceRepositoryManager.getLanguagesInProject(), getOverlays()
-      ) : null;
-    }
-
-    @Override
-    public @Nullable ResourceRepository getAppResources() {
-      ResourceRepositoryManager resourceRepositoryManager = getConfigModule().getResourceRepositoryManager();
-      return resourceRepositoryManager != null ? resourceRepositoryManager.getAppResources() : null;
-    }
-  };
+  private final ResourceItemResolver.ResourceProvider myResourceProvider = new ConfigurationResourceProvider(this);
 
   /**
    * Creates a new {@linkplain Configuration}
@@ -299,15 +263,8 @@ public class Configuration {
     myUiMode = from.getUiMode();
     myNightMode = from.getNightMode();
     myDisplayName = from.getDisplayName();
-    myFontScale = from.myFontScale;
     myUiModeFlagValue = from.myUiModeFlagValue;
-    myAdaptiveShape = from.myAdaptiveShape;
-    myUseThemedIcon = from.myUseThemedIcon;
-    myWallpaper = from.myWallpaper;
-    myDeviceOverlay = from.myDeviceOverlay;
-    myGestureNav = from.myGestureNav;
-    myCutoutOverlay = from.myCutoutOverlay;
-    myEdgeToEdge = from.myEdgeToEdge;
+    mySystemUiPrefs.copyFrom(from.mySystemUiPrefs);
   }
 
   @Override
@@ -589,7 +546,7 @@ public class Configuration {
 
   /**
    * Returns the edited {@link FolderConfiguration} (this is not a full configuration, so you can think of it as the "constraints" used by
-   * the {@link ConfigurationMatcher} to produce a full configuration.
+   * the {@code ConfigurationMatcher} to produce a full configuration.
    *
    * @return the constraints configuration
    */
@@ -902,33 +859,33 @@ public class Configuration {
 
   /**
    * Sets user preference for the scaling factor for fonts, relative to the base density scaling.
-   * See {@link android.content.res.Configuration#fontScale}
+   * See {@code android.content.res.Configuration#fontScale}
    *
    * @param fontScale The new scale. Must be greater than 0
    */
   public void setFontScale(float fontScale) {
     assert fontScale > 0f : "fontScale must be greater than 0";
 
-    if (myFontScale != fontScale) {
-      myFontScale = fontScale;
+    if (mySystemUiPrefs.getFontScale() != fontScale) {
+      mySystemUiPrefs.setFontScale(fontScale);
       updated(CFG_FONT_SCALE);
     }
   }
 
   /**
    * Returns user preference for the scaling factor for fonts, relative to the base density scaling.
-   * See {@link android.content.res.Configuration#fontScale}
+   * See {@code android.content.res.Configuration#fontScale}
    */
   public float getFontScale() {
-    return myFontScale;
+    return mySystemUiPrefs.getFontScale();
   }
 
   /**
    * Sets the {@link AdaptiveIconShape} to use when rendering
    */
   public void setAdaptiveShape(@NotNull AdaptiveIconShape adaptiveShape) {
-    if (myAdaptiveShape != adaptiveShape) {
-      myAdaptiveShape = adaptiveShape;
+    if (mySystemUiPrefs.getAdaptiveShape() != adaptiveShape) {
+      mySystemUiPrefs.setAdaptiveShape(adaptiveShape);
       updated(CFG_ADAPTIVE_SHAPE);
     }
   }
@@ -938,13 +895,13 @@ public class Configuration {
    */
   @NotNull
   public AdaptiveIconShape getAdaptiveShape() {
-    return myAdaptiveShape;
+    return mySystemUiPrefs.getAdaptiveShape();
   }
 
   public void setWallpaper(@Nullable Wallpaper wallpaper) {
-    if (!Objects.equals(myWallpaper, wallpaper)) {
-      myWallpaper = wallpaper;
-      myUseThemedIcon = wallpaper != null;
+    if (!Objects.equals(mySystemUiPrefs.getWallpaper(), wallpaper)) {
+      mySystemUiPrefs.setWallpaper(wallpaper);
+      mySystemUiPrefs.setUseThemedIcon(wallpaper != null);
       updated(CFG_THEME);
     }
   }
@@ -954,46 +911,46 @@ public class Configuration {
    */
   @Nullable
   public String getWallpaperPath() {
-    return myWallpaper != null ? myWallpaper.getResourcePath() : null;
+    return mySystemUiPrefs.getWallpaper() != null ? mySystemUiPrefs.getWallpaper().getResourcePath() : null;
   }
 
   /**
    * Sets whether the rendering should be edge-to-edge
    */
   public void setEdgeToEdge(boolean edgeToEdge) {
-    myEdgeToEdge = edgeToEdge;
+    mySystemUiPrefs.setEdgeToEdge(edgeToEdge);
   }
 
   /**
    * Returns whether the rendering should be edge-to-ege
    */
   public boolean isEdgeToEdge() {
-    return myEdgeToEdge;
+    return mySystemUiPrefs.isEdgeToEdge();
   }
 
   /**
    * Sets whether the rendering should use the gesture version of the navigation bar
    */
   public void setGestureNav(boolean gestureNav) {
-    myGestureNav = gestureNav;
+    mySystemUiPrefs.setGestureNav(gestureNav);
   }
 
   /**
    * Returns whether the rendering should use the gesture version of the navigation bar
    */
   public boolean isGestureNav() {
-    return myGestureNav;
+    return mySystemUiPrefs.isGestureNav();
   }
 
   /**
    * Sets the overlay to use for displaying the display cutout
    */
   public void setCutoutOverlay(FrameworkOverlay overlay) {
-    myCutoutOverlay = overlay;
+    mySystemUiPrefs.setCutoutOverlay(overlay);
   }
 
   public FrameworkOverlay getCutoutOverlay() {
-    return myCutoutOverlay;
+    return mySystemUiPrefs.getCutoutOverlay();
   }
 
   /**
@@ -1004,11 +961,7 @@ public class Configuration {
    */
   public void setImageTransformation(@NotNull ImageTransformationType type,
                                      @Nullable Consumer<BufferedImage> imageTransformation) {
-    if (imageTransformation == null) {
-      myImageTransformations.remove(type);
-    } else {
-      myImageTransformations.put(type, imageTransformation);
-    }
+    mySystemUiPrefs.setImageTransformation(type, imageTransformation);
   }
 
   /**
@@ -1019,10 +972,7 @@ public class Configuration {
    */
   @Nullable
   public Consumer<BufferedImage> getImageTransformation() {
-    if (myImageTransformations.isEmpty()) {
-      return null;
-    }
-    return (image) -> myImageTransformations.values().forEach(c -> c.accept(image));
+    return mySystemUiPrefs.getImageTransformation();
   }
 
 
@@ -1030,7 +980,7 @@ public class Configuration {
    * Returns whether to use the themed version of adaptive icons
    */
   public boolean getUseThemedIcon() {
-    return myUseThemedIcon;
+    return mySystemUiPrefs.getUseThemedIcon();
   }
 
   /**
@@ -1199,7 +1149,7 @@ public class Configuration {
    */
   public void startBulkEditing() {
     synchronized (this) {
-      myBulkEditingCount++;
+      myListeners.startBulkEditing();
     }
   }
 
@@ -1211,10 +1161,7 @@ public class Configuration {
   public void finishBulkEditing() {
     boolean notify = false;
     synchronized (this) {
-      myBulkEditingCount--;
-      if (myBulkEditingCount == 0) {
-        notify = true;
-      }
+      notify = myListeners.finishBulkEditing();
     }
 
     if (notify) {
@@ -1228,15 +1175,9 @@ public class Configuration {
     myFolderConfigDirty |= flags;
     myModificationCount++;
 
-    if (myBulkEditingCount == 0) {
+    if (!myListeners.isBulkEditing()) {
       int changed = myNotifyDirty;
-      ImmutableList<ConfigurationListener> listeners;
-      synchronized (myListeners) {
-        listeners = ImmutableList.copyOf(myListeners);
-      }
-      for (ConfigurationListener listener : listeners) {
-        listener.changed(changed);
-      }
+      myListeners.notifyListeners(changed);
 
       myNotifyDirty = 0;
     }
@@ -1248,9 +1189,7 @@ public class Configuration {
    * @param listener the listener to add
    */
   public void addListener(@NotNull ConfigurationListener listener) {
-    synchronized (myListeners) {
-      myListeners.add(listener);
-    }
+    myListeners.addListener(listener);
   }
 
   /**
@@ -1259,23 +1198,21 @@ public class Configuration {
    * @param listener the listener to remove
    */
   public void removeListener(@NotNull ConfigurationListener listener) {
-    synchronized (myListeners) {
-      myListeners.remove(listener);
-    }
+    myListeners.removeListener(listener);
   }
 
   public void useDeviceForCutout(@NotNull String deviceId) {
     Optional<FrameworkOverlay> deviceOverlay = Enums.getIfPresent(FrameworkOverlay.class, deviceId.toUpperCase(ROOT));
     if (deviceOverlay.isPresent()) {
-      myDeviceOverlay = deviceOverlay.get();
+      mySystemUiPrefs.setDeviceOverlay(deviceOverlay.get());
     } else {
-      myDeviceOverlay = null;
+      mySystemUiPrefs.setDeviceOverlay(null);
     }
   }
 
   private void updateDeviceOverlay() {
     if (myDevice == null) {
-      myDeviceOverlay = null;
+      mySystemUiPrefs.setDeviceOverlay(null);
     } else {
       useDeviceForCutout(myDevice.getId());
     }
@@ -1303,11 +1240,11 @@ public class Configuration {
   @NotNull
   public List<FrameworkOverlay> getOverlays() {
     List<FrameworkOverlay> overlays = new ArrayList<>(3);
-    overlays.add(myGestureNav ? FrameworkOverlay.NAV_GESTURE : FrameworkOverlay.NAV_3_BUTTONS);
-    if (myDeviceOverlay != null) {
-      overlays.add(myDeviceOverlay);
+    overlays.add(mySystemUiPrefs.isGestureNav() ? FrameworkOverlay.NAV_GESTURE : FrameworkOverlay.NAV_3_BUTTONS);
+    if (mySystemUiPrefs.getDeviceOverlay() != null) {
+      overlays.add(mySystemUiPrefs.getDeviceOverlay());
     }
-    overlays.add(myCutoutOverlay);
+    overlays.add(mySystemUiPrefs.getCutoutOverlay());
     return overlays;
   }
 
@@ -1325,14 +1262,14 @@ public class Configuration {
       .add("target", myTarget)
       .add("uimode", myUiMode)
       .add("nightmode", myNightMode)
-      .add("fontScale", myFontScale)
-      .add("adaptiveShape", myAdaptiveShape)
-      .add("useThemedIcon", myUseThemedIcon)
-      .add("wallpaper", myWallpaper)
-      .add("deviceOverlay", myDeviceOverlay)
-      .add("gestureNav", myGestureNav)
-      .add("cutoutOverlay", myCutoutOverlay)
-      .add("edgeToEdge", myEdgeToEdge)
+      .add("fontScale", mySystemUiPrefs.getFontScale())
+      .add("adaptiveShape", mySystemUiPrefs.getAdaptiveShape())
+      .add("useThemedIcon", mySystemUiPrefs.getUseThemedIcon())
+      .add("wallpaper", mySystemUiPrefs.getWallpaper())
+      .add("deviceOverlay", mySystemUiPrefs.getDeviceOverlay())
+      .add("gestureNav", mySystemUiPrefs.isGestureNav())
+      .add("cutoutOverlay", mySystemUiPrefs.getCutoutOverlay())
+      .add("edgeToEdge", mySystemUiPrefs.isEdgeToEdge())
       .toString();
   }
 
