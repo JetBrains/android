@@ -331,7 +331,7 @@ class SymbolPickerDialog(
           categoriesBox.selectedItem == SymbolsBundle.message("categories.all") ||
             it.metadata.categories.contains(categoriesBoxNameMap[categoriesBox.selectedItem])
         }
-        .filter { it.metadata.name.contains(searchField.text) }
+        .filter { it.metadata.name.contains(searchField.text, true) }
     filteredSymbolList.addAll(filtered)
     layoutModel.fireTableDataChanged()
 
