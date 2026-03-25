@@ -196,7 +196,7 @@ private class FakeToolWindowManager(windowFactory: ToolWindowFactory, toolWindow
   ToolWindowHeadlessManagerImpl(project) {
 
   val toolWindow = FakeToolWindow(windowFactory, icon, this, project, toolWindowId)
-  val toolWindowScope = toolWindow.disposable.createCoroutineScope()
+  val projectScope = project.createCoroutineScope()
 
   override fun doRegisterToolWindow(id: String): ToolWindow = doRegisterToolWindow(id, toolWindow)
 
@@ -207,7 +207,7 @@ private class FakeToolWindowManager(windowFactory: ToolWindowFactory, toolWindow
   }
 
   override fun invokeLater(runnable: Runnable) {
-    toolWindowScope.launch(Dispatchers.EDT) { runnable.run() }
+    projectScope.launch(Dispatchers.EDT) { runnable.run() }
   }
 }
 
