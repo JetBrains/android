@@ -57,7 +57,6 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -582,7 +581,6 @@ class OnDeviceRendererPanelTest {
   }
 
   @Test
-  @Ignore("b/459769542")
   fun testDisposeCancelsScope() = runTest {
     val (_, messenger) = buildMessenger()
     val onDeviceRenderingClient = OnDeviceRenderingClient(messenger = messenger)
