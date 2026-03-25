@@ -39,7 +39,7 @@ class NewVectorAssetAction : AndroidAssetStudioAction("Vector Asset", "Open Vect
     get() = JBUI.size(700, 540)
 
   override val wizardPreferredSize: Dimension
-    get() = wizardMinimumSize
+    get() = JBUI.size(800, 600)
 
   override val helpUrl: URL
     get() = toUrl("http://developer.android.com/tools/help/vector-asset-studio.html")
