@@ -97,7 +97,15 @@ class AnalysisScriptService(private val project: Project, private val scope: Cor
             .withEnvironment("JAVA_HOME", javaHome)
 
         val processResult = ExecUtil.execAndGetOutput(commandLine)
-        if (!processResult.checkSuccess(LOGGER)) return@withBackgroundProgress null
+        if (processResult.exitCode != 0) {
+          val extraInfo =
+            if (processResult.isTimeout) {
+              "Timed out.\n"
+            } else {
+              ""
+            }
+          throw ScriptCompilationError("$extraInfo${processResult.stderr}")
+        }
 
         // Load and run.
         val classLoader = URLClassLoader(arrayOf(outDir.toUri().toURL()), pluginClassLoader)

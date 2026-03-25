@@ -80,6 +80,8 @@ class AnalysisScriptApplicationStarter : ApplicationStarter {
       val project = projects[0]
       val result = project.getService(AnalysisScriptService::class.java).runAnalysisScript(scriptVirtualFile)
       return CliResult(0, result)
+    } catch (compilationError: ScriptCompilationError) {
+      return CliResult(1, "Compilation error: ${compilationError.message}")
     } catch (exception: Exception) {
       return CliResult(1, "Error: ${exception.stackTraceToString()}")
     }
