@@ -23,8 +23,10 @@ import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.application.EDT
+import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.util.Disposer
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.common.waitUntil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
@@ -126,5 +128,34 @@ class SourceCodeEditorWithMultiRepresentationPreviewTest {
     editor.selectNotify()
 
     assertTrue(editor.hasBeenActivatedForTest())
+  }
+
+  @Test
+  fun testSetStateCommitsDocument() = runBlocking {
+    val file = fixture.addFileToProject("src/Preview.kt", "")
+    val editorProvider = SourceCodeEditorProvider.forTesting(listOf(TestPreviewRepresentationProvider("Representation1", true)))
+    val editor =
+      withContext(Dispatchers.EDT) {
+        (editorProvider.createEditor(file.project, file.virtualFile) as TextEditorWithMultiRepresentationPreview<*>).also {
+          Disposer.register(projectRule.testRootDisposable, it)
+        }
+      }
+
+    // Capture initial state
+    val initialState = withContext(Dispatchers.EDT) { editor.getState(FileEditorStateLevel.FULL) }
+
+    // Modify document and call setState in the same EDT block to avoid implicit commits
+    withContext(Dispatchers.EDT) {
+      fixture.openFileInEditor(file.virtualFile)
+      fixture.type("some text")
+
+      val psiDocumentManager = PsiDocumentManager.getInstance(projectRule.project)
+      assertFalse(psiDocumentManager.isCommitted(fixture.editor.document))
+
+      editor.setState(initialState)
+
+      // Verify document is committed after setState
+      assertTrue(psiDocumentManager.isCommitted(fixture.editor.document))
+    }
   }
 }

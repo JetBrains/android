@@ -21,13 +21,17 @@ import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiDocumentManager
 
 /**
  * A [TextEditorWithMultiRepresentationPreview] where the preview part is [SourceCodePreview] and therefore it allows to have several
  * representations for a single source code file.
  */
-internal class SourceCodeEditorWithMultiRepresentationPreview(project: Project, textEditor: TextEditor, preview: SourceCodePreview) :
-  TextEditorWithMultiRepresentationPreview<SourceCodePreview>(project, textEditor, preview, "Source Code Editor With Preview") {
+internal class SourceCodeEditorWithMultiRepresentationPreview(
+  private val project: Project,
+  textEditor: TextEditor,
+  preview: SourceCodePreview,
+) : TextEditorWithMultiRepresentationPreview<SourceCodePreview>(project, textEditor, preview, "Source Code Editor With Preview") {
   override fun getState(level: FileEditorStateLevel): SourceCodeEditorWithMultiRepresentationPreviewState =
     SourceCodeEditorWithMultiRepresentationPreviewState(
       super.getState(level),
@@ -38,6 +42,7 @@ internal class SourceCodeEditorWithMultiRepresentationPreview(project: Project, 
 
   override fun setState(state: FileEditorState) {
     if (state is SourceCodeEditorWithMultiRepresentationPreviewState) {
+      runWriteAction { PsiDocumentManager.getInstance(project).commitDocument(myEditor.editor.document) }
       super.setState(state.parentState)
       runWriteAction { myEditor.setState(state.editorState) }
       preview.setState(state.previewState)
