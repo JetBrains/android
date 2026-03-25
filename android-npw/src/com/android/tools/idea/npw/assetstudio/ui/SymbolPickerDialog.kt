@@ -94,6 +94,7 @@ private const val COLUMN_COUNT: Int = 6
 private const val EXPECTED_NUMBER_OF_ICONS: Int = 6000
 private const val ICON_HEIGHT = 64
 private const val TEXT_HEIGHT = 16
+private const val PADDING_BOTTOM = 8
 private const val MAX_CACHE_SIZE = 2048
 
 class SymbolPickerDialog(
@@ -399,7 +400,7 @@ class SymbolPickerDialog(
     // Setup table visual properties and selection mode
     iconTable.background = iconBackgroundColor
     iconTable.tableHeader = null
-    iconTable.rowHeight = JBUI.scale(ICON_HEIGHT + TEXT_HEIGHT)
+    iconTable.rowHeight = JBUI.scale(ICON_HEIGHT + TEXT_HEIGHT + PADDING_BOTTOM)
     iconTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
     iconTable.setCellSelectionEnabled(true)
 
@@ -425,7 +426,7 @@ class SymbolPickerDialog(
 
     iconTable.getColumnModel().columnSelectionAllowed = true
     iconTable.setGridColor(iconBackgroundColor)
-    iconTable.setIntercellSpacing(JBUI.size(3, 3))
+    iconTable.setIntercellSpacing(JBUI.size(3, 0))
     iconTable.setRowMargin(0)
 
     // Add listeners for selecting icons

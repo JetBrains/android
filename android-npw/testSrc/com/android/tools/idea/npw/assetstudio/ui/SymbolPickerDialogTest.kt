@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.assetstudio.ui
 import com.android.tools.idea.material.icons.common.MaterialIconsMetadataUrlProvider
 import com.android.tools.idea.material.icons.common.MaterialSymbolsUrlProvider
 import com.android.tools.idea.material.icons.common.Symbols
+import com.android.tools.idea.npw.assetstudio.assets.MaterialSymbolsVirtualFile
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
@@ -26,9 +27,11 @@ import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.ui.SearchTextField
+import com.intellij.ui.components.JBLabel
 import com.intellij.ui.table.JBTable
 import com.intellij.util.WaitFor
 import com.intellij.util.io.createDirectories
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.io.File
 import java.net.URL
@@ -194,6 +197,49 @@ class SymbolPickerDialogTest {
         UIUtil.findComponentsOfType(symbolsPicker.createCenterPanel(), JButton::class.java).find { it.icon == AllIcons.General.Refresh }
       assertNotNull(refreshButton)
       assertEquals("Refresh", refreshButton.toolTipText)
+    }
+
+  @Test
+  fun testTablePadding() =
+    runBlocking(Dispatchers.Main) {
+      val testDirectory = createTempDirectory()
+      val symbolsPicker =
+        getInitializedIconPickerDialog(
+          SymbolPickerDialog(
+            projectRule.fixture.module.androidFacet!!,
+            projectRule.fixture.testRootDisposable,
+            TestSymbolsUrlProvider(testDirectory),
+            TestSymbolsMetadataUrlProvider,
+          )
+        )
+
+      val table = UIUtil.findComponentOfType(symbolsPicker.createCenterPanel(), JBTable::class.java)
+      assertNotNull(table)
+      // ICON_HEIGHT (64) + TEXT_HEIGHT (16) + PADDING_BOTTOM (8) = 88
+      assertEquals(JBUI.scale(88), table.rowHeight)
+    }
+
+  @Test
+  fun testRendererPadding() =
+    runBlocking(Dispatchers.Main) {
+      val testDirectory = createTempDirectory()
+      val symbolsPicker =
+        getInitializedIconPickerDialog(
+          SymbolPickerDialog(
+            projectRule.fixture.module.androidFacet!!,
+            projectRule.fixture.testRootDisposable,
+            TestSymbolsUrlProvider(testDirectory),
+            TestSymbolsMetadataUrlProvider,
+          )
+        )
+
+      val table = UIUtil.findComponentOfType(symbolsPicker.createCenterPanel(), JBTable::class.java)
+      assertNotNull(table)
+      val renderer = table.getDefaultRenderer(MaterialSymbolsVirtualFile::class.java)
+      val component = renderer.getTableCellRendererComponent(table, table.getValueAt(0, 0), false, false, 0, 0)
+      assertThat(component).isInstanceOf(JBLabel::class.java)
+      val label = component as JBLabel
+      assertEquals(JBUI.scale(8), label.insets.bottom)
     }
 
   private fun getInitializedIconPickerDialog(dialog: SymbolPickerDialog): SymbolPickerDialog {

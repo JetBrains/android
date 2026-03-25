@@ -72,6 +72,7 @@ class IconPickerCellLayoutRenderer(private val slowResourcePreviewManager: SlowR
 private const val ARC_SIZE = 5
 private const val BORDER_SIZE = 1
 private const val TEXT_HEIGHT = 16
+private const val PADDING_BOTTOM = 8
 
 private class IconPickerCellComponentXML : JBLabel() {
   /** Background color for selected icons */
@@ -81,7 +82,7 @@ private class IconPickerCellComponentXML : JBLabel() {
 
   init {
     isOpaque = false
-    border = JBUI.Borders.empty()
+    border = JBUI.Borders.emptyBottom(PADDING_BOTTOM)
     font = JBUI.Fonts.miniFont()
 
     horizontalTextPosition = CENTER
@@ -103,7 +104,7 @@ private class IconPickerCellComponentXML : JBLabel() {
     column: Int,
   ) {
     val cellRect = table.getCellRect(row, column, false)
-    val dimension = Dimension(cellRect.width, cellRect.height - TEXT_HEIGHT)
+    val dimension = Dimension(cellRect.width, cellRect.height - (TEXT_HEIGHT + PADDING_BOTTOM))
     val iconCallback = { file: VirtualFile, dimension: Dimension ->
       resourcePreviewManager.getIcon(
         DesignAsset(file, listOf(), ResourceType.LAYOUT),
