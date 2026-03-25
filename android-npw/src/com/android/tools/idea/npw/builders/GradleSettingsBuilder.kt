@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.npw.builders
 
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.wizard.template.DslLanguage
+import com.android.tools.idea.wizard.template.renderIf
+import com.android.tools.idea.wizard.template.withoutSkipLines
 import java.net.URL
 import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.FOOJAY_RESOLVER_CONVENTION_NAME
@@ -33,7 +36,7 @@ class GradleSettingsBuilder(
 
   fun build(): String {
     val settingsStringBuilder = StringBuilder()
-    val gradleSettings = GradleSettings(settingsStringBuilder)
+    val gradleSettings = GradleSettings(settingsStringBuilder, dslLanguage)
     builderFunction.invoke(gradleSettings)
 
     val escapedAppTitle = projectName.replace("$", "\\$").replace("'", "\\'")
@@ -45,7 +48,9 @@ class GradleSettingsBuilder(
         append("rootProject.name = \"$escapedAppTitle\"")
       }
       .toString()
+      .withoutSkipLines()
       .gradleSettingsToKtsIfKts(dslLanguage.isKts)
+      .gradleSettingsToDclIfDcl(dslLanguage.isDcl)
   }
 
   private fun String.gradleSettingsToKtsIfKts(isKts: Boolean): String =
@@ -58,19 +63,45 @@ class GradleSettingsBuilder(
     } else {
       this
     }
+
+  private fun String.gradleSettingsToDclIfDcl(isDcl: Boolean): String =
+    if (isDcl) {
+      // Find every single quote, but only if there isn't a backslash right in front of it.
+      // This is used to replace Groovy-style structural quotes (id '...') with KTS-style double quotes (id("...")),
+      // while preserving escaped single quotes within the project name.
+      val unescapedQuote = Regex("(?<!\\\\)'")
+      split("\n").joinToString("\n") {
+        it.replace(unescapedQuote, "\"").replace("id ", "id(").replace(Regex("""\s+version\s+("[^"]+")"""), ").version($1)")
+      }
+    } else {
+      this
+    }
 }
 
-class GradleSettings(private val settingsBuilder: StringBuilder) {
+class GradleSettings(private val settingsBuilder: StringBuilder, private val dslLanguage: DslLanguage) {
   fun withPluginManager(repositoriesUrls: List<URL>) {
     settingsBuilder.appendLine(
       """
 pluginManagement {
   repositories {${repositoriesUrls.toMavenUrlRepositories()}
+    ${
+        renderIf(dslLanguage.isKts || dslLanguage.isGroovy) {
+          """
     google {
       content {
         includeGroupByRegex("com\\.android.*")
         includeGroupByRegex("com\\.google.*")
         includeGroupByRegex("androidx.*")
+      }
+    }
+   """
+        }
+    }
+    ${
+        renderIf(dslLanguage.isDcl) {
+          """
+    google()
+          """
       }
     }
     mavenCentral()
@@ -91,11 +122,34 @@ plugins {
     )
   }
 
+  fun withAndroidEcosystemPlugin(agpVersion: AgpVersion) {
+    val pluginsHeader = "plugins {"
+    val index = settingsBuilder.indexOf(pluginsHeader)
+    if (index >= 0) {
+      settingsBuilder.insert(index + pluginsHeader.length, "\n    id 'com.android.ecosystem' version '$agpVersion'")
+    } else {
+      settingsBuilder.appendLine(
+        """
+plugins {
+    id 'com.android.ecosystem' version '$agpVersion'
+}"""
+          .trimIndent()
+      )
+    }
+  }
+
   fun withDependencyResolutionManagement(repositoriesUrls: List<URL>) {
+    val repositoriesMode =
+      if (dslLanguage.isDcl) {
+        "repositoriesMode = FAIL_ON_PROJECT_REPOS"
+      } else {
+        "repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)"
+      }
+
     settingsBuilder.appendLine(
       """
 dependencyResolutionManagement {
-  repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+  $repositoriesMode
   repositories {${repositoriesUrls.toMavenUrlRepositories()}
     google()
     mavenCentral()

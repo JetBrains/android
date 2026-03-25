@@ -16,11 +16,17 @@
 package com.android.tools.idea.npw.module.recipes.androidProject
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.wizard.template.DslLanguage
 import com.android.tools.idea.wizard.template.renderIf
 
 private val ANDROIDX_DEFAULT_IN_AGP = AgpVersion.parse("9.0.0-alpha01")
 
-fun androidProjectGradleProperties(agpVersion: AgpVersion, generateKotlin: Boolean, overridePathCheck: Boolean?): String {
+fun androidProjectGradleProperties(
+  agpVersion: AgpVersion,
+  generateKotlin: Boolean,
+  dslLanguage: DslLanguage,
+  overridePathCheck: Boolean?,
+): String {
   val androidXBlock =
     renderIf(agpVersion < ANDROIDX_DEFAULT_IN_AGP) {
       """
@@ -47,6 +53,16 @@ android.overridePathCheck=$overridePathCheck
 """
     }
 
+  val declarativeBlock =
+    renderIf(dslLanguage.isDcl) {
+      """
+      # Declarative declarations
+      android.experimental.declarative=true
+      org.gradle.kotlin.dsl.dcl=true
+      """
+        .trimIndent()
+    }
+
   return """
 # Project-wide Gradle settings.
 
@@ -69,6 +85,7 @@ org.gradle.jvmargs=-Xmx${maxHeapSize}m -Dfile.encoding=UTF-8
 $androidXBlock
 $kotlinStyleBlock
 $overridePathCheckBlock
+$declarativeBlock
 """
 }
 

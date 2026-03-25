@@ -70,7 +70,7 @@ class ExistingProjectModelData(
   override val applicationName: StringValueProperty = StringValueProperty()
   override val packageName: StringValueProperty = StringValueProperty()
   override val projectLocation: StringValueProperty = StringValueProperty(project.basePath!!)
-  override val dslLanguage: ObjectValueProperty<DslLanguage> = ObjectValueProperty(project.dclLanguageUsage())
+  override val dslLanguage: ObjectValueProperty<DslLanguage> = ObjectValueProperty(project.dslLanguageUsage())
   override val useVersionCatalog = BoolValueProperty(determineVersionCatalogUseForNewModule(project, isNewProject = false))
   override val viewBindingSupport = OptionalValueProperty<ViewBindingSupport>(project.isViewBindingSupported())
   override val isNewProject = false
@@ -262,9 +262,14 @@ internal fun Project.hasKtsUsage(): Boolean {
   return GradleProjectSystemUtil.projectBuildFilesTypes(this).contains(GradleProjectSystemUtil.BuildFileType.KOTLIN_SCRIPT)
 }
 
-internal fun Project.dclLanguageUsage(): DslLanguage {
+internal fun Project.hasDclUsage(): Boolean {
+  return GradleProjectSystemUtil.projectBuildFilesTypes(this).contains(GradleProjectSystemUtil.BuildFileType.DECLARATIVE)
+}
+
+internal fun Project.dslLanguageUsage(): DslLanguage {
   return when {
     this.hasKtsUsage() -> DslLanguage.KTS
+    this.hasDclUsage() -> DslLanguage.DCL
     else -> DslLanguage.GROOVY
   }
 }

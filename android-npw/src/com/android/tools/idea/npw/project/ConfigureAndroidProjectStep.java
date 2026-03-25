@@ -218,10 +218,16 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
       myBuildConfigurationLanguageCombo.addItem(BuildConfigurationLanguageForNewProject.KTS);
       myBuildConfigurationLanguageCombo.addItem(BuildConfigurationLanguageForNewProject.Groovy);
+
+      if (StudioFlags.NPW_SHOW_DCL.get()) {
+        myBuildConfigurationLanguageCombo.addItem(BuildConfigurationLanguageForNewProject.DCL);
+      }
+
       myBindings.bind(myProjectModel.getDslLanguage(), new SelectedItemProperty<>(myBuildConfigurationLanguageCombo).transform(
         selection -> selection.map(value -> switch (value) {
           case BuildConfigurationLanguageForNewProject.KTS -> DslLanguage.KTS;
           case BuildConfigurationLanguageForNewProject.Groovy -> DslLanguage.GROOVY;
+          case BuildConfigurationLanguageForNewProject.DCL -> DslLanguage.DCL;
           default -> DslLanguage.KTS;
         }).orElse(DslLanguage.KTS)
       ));

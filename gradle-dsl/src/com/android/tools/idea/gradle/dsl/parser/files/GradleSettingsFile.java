@@ -72,6 +72,7 @@ public class GradleSettingsFile extends GradleScriptFile {
     {"pluginManagement", PluginManagementDslElement.PLUGIN_MANAGEMENT_DSL_ELEMENT},
     {"defaults", DEFAULTS_DSL_ELEMENT},
     {"plugins", PluginsDslElement.PLUGINS},
+    {"include", INCLUDE}
   }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
 
   @Override

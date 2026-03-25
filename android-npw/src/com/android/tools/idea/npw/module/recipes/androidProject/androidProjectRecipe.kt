@@ -28,7 +28,10 @@ fun RecipeExecutor.androidProjectRecipe(data: ProjectTemplateData, appTitle: Str
   val topOut = data.rootDir
   val dslLanguage = data.dslLanguage
 
-  save(androidProjectBuildGradle(), topOut.resolve(dslLanguage.buildFileName))
+  // Declarative project do not require top level build.gradle files.
+  if (dslLanguage.isKts || dslLanguage.isGroovy) {
+    save(androidProjectBuildGradle(), topOut.resolve(dslLanguage.buildFileName))
+  }
 
   if (makeIgnore) {
     copy(resource("project_ignore"), topOut.resolve(".gitignore"))
@@ -38,7 +41,7 @@ fun RecipeExecutor.androidProjectRecipe(data: ProjectTemplateData, appTitle: Str
 
   save(androidProjectGradleSettings(appTitle, data.gradleVersion, data.agpVersion, data.additionalMavenRepos, dslLanguage), settingsFile)
   save(
-    androidProjectGradleProperties(data.agpVersion, language == Language.Kotlin, data.overridePathCheck),
+    androidProjectGradleProperties(data.agpVersion, language == Language.Kotlin, dslLanguage, data.overridePathCheck),
     topOut.resolve(FN_GRADLE_PROPERTIES),
   )
   save(androidProjectLocalProperties(data.sdkDir), topOut.resolve(FN_LOCAL_PROPERTIES))

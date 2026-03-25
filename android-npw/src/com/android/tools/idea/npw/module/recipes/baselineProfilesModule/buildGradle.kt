@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.module.recipes.baselineProfilesModule
 
 import com.android.sdklib.AndroidMajorVersion
 import com.android.sdklib.AndroidVersion
-import com.android.tools.idea.npw.module.recipes.androidModule.gradleToKtsIfKts
+import com.android.tools.idea.npw.module.recipes.androidModule.gradleToKtsOrDcl
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.flavorsConfigurationsBuildGradle
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 import com.android.tools.idea.npw.module.recipes.minSdk
@@ -147,5 +147,5 @@ dependencies {
 }
 
 """
-    .gradleToKtsIfKts(dslLanguage.isKts) + addTargetAppIdAsInstrumentationArgumentBlock
+    .gradleToKtsOrDcl(dslLanguage.isKts) + addTargetAppIdAsInstrumentationArgumentBlock
 }

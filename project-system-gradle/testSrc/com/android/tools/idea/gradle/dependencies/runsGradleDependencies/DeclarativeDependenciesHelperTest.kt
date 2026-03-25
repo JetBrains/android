@@ -53,17 +53,17 @@ class DeclarativeDependenciesHelperTest {
   val fakeDependencyMatcher = GroupNameDependencyMatcher("", "")
 
   @Test
-  fun testSimpleAddDeclarative() {
+  fun testAddDependencyToTopLevelDeclarative() {
     doDependenciesTest(
       SIMPLE_APPLICATION_DECLARATIVE,
       { _, moduleModel, helper ->
-        val updates = helper.addDependency("api", "com.example.libs:lib2:1.0", moduleModel)
+        val updates = helper.addDependency("implementation", "com.example.libs:lib3:1.0", moduleModel)
         assertThat(updates.size).isEqualTo(1)
       },
       {
         val buildFile = project.getTextForFile("app/build.gradle.dcl")
-        val dependencies = getBlockContent(buildFile, "androidApp.defaultConfig.dependencies")
-        assertThat(dependencies).contains("api(\"com.example.libs:lib2:1.0\")")
+        val dependencies = getBlockContent(buildFile, "androidApp.dependencies")
+        assertThat(dependencies).contains("implementation(\"com.example.libs:lib3:1.0\")")
       },
     )
   }

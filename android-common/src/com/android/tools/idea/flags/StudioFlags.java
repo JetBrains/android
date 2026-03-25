@@ -194,6 +194,10 @@ public final class StudioFlags {
     NPW, "show.fragment.gallery", "Show fragment gallery",
     "Show fragment gallery which contains fragment based templates");
 
+  public static final Flag<Boolean> NPW_SHOW_DCL = new BooleanFlag(
+    NPW, "show.dcl", "Show DCL in Combobox",
+    "Show Declarative as an option in the build script Combobox");
+
   public static final Flag<Boolean> NPW_PICK_LATEST_PATCH_AGP = new BooleanFlag(
     NPW, "use.patch.releases", "Use the latest patch release of AGP",
     "When enabled Studio will pick future patch releases of AGP for new projects.");

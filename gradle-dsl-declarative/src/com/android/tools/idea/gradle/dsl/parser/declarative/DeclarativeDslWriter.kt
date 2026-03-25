@@ -49,6 +49,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElem
 import com.android.tools.idea.gradle.dsl.parser.files.GradleScriptFile
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
 import com.android.tools.idea.gradle.dsl.parser.getNextValidParent
+import com.android.tools.idea.gradle.dsl.parser.include.IncludeDslElement
 import com.android.tools.idea.gradle.dsl.parser.maybeTrimForParent
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_MAP
@@ -83,7 +84,7 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
     val factory = DeclarativePsiFactory(project)
     val name = getNameTrimmedForParent(element)
     val externalNameInfo = maybeTrimForParent(element, this)
-    val syntax = externalNameInfo.syntax.takeUnless { it == UNKNOWN } ?: element.externalSyntax
+    val syntax = if (parent is IncludeDslElement) METHOD else externalNameInfo.syntax.takeUnless { it == UNKNOWN } ?: element.externalSyntax
     element.externalSyntax = syntax
     val psiElement =
       when (element) {
@@ -100,7 +101,7 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
             // when mapOf("first" to "second") argument is being created
             factory.createArgument(factory.createPair(element.name, element.value))
           } else if (parentPsiElement is DeclarativeArgumentsList) factory.createArgument(factory.createLiteral(element.value))
-          else if (parent is DependenciesDslElement || externalNameInfo.syntax == METHOD)
+          else if (parent is DependenciesDslElement || parent is IncludeDslElement || externalNameInfo.syntax == METHOD)
             factory.createOneParameterFactory(name, "\"placeholder\"")
           else if (parent is GradleDslInfixExpression) {
             // this is only for id("").value("") with restriction to one parameter function call chain
@@ -138,6 +139,8 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
         // constructed yet and methods may return exceptions/wrong results
         if (parentPsiElement.children.filterIsInstance<DeclarativeFactoryReceiver>().size > 1)
           parentPsiElement.addBefore(factory.createDot(), addedElement)
+      // Include a newline when adding a new top level block.
+      is DeclarativeFile,
       is DeclarativeBlockGroup -> addedElement.addAfter(factory.createNewline(), null)
       is DeclarativeArgumentsList -> if (parentPsiElement.arguments.size > 1) parentPsiElement.addBefore(comma, addedElement) else Unit
     // TODO add logic for inserting attribute in the first place

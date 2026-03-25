@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.factoryOf
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile
+import com.android.tools.idea.gradle.dsl.parser.include.IncludeDslElement
 import com.android.tools.idea.gradle.dsl.parser.mapToProperties
 import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement
 import com.intellij.openapi.command.WriteCommandAction
@@ -240,6 +241,33 @@ class DeclarativeDslWriterTest : LightPlatformTestCase() {
       """
         .trimIndent(),
       text,
+    )
+  }
+
+  fun testInclude() {
+    val file = VfsTestUtil.createFile(project.guessProjectDir()!!, "settings.gradle.dcl", "")
+    val dslFile = object : GradleSettingsFile(file, project, ":", BuildModelContext.create(project, Mockito.mock())) {}
+    dslFile.parse()
+
+    val include = IncludeDslElement(dslFile, GradleNameElement.create("include"))
+    dslFile.setNewElement(include)
+
+    val label = GradleDslLiteral(include, GradleNameElement.create("include"))
+    label.setValue(":app")
+    include.setNewElement(label)
+
+    WriteCommandAction.runWriteCommandAction(project) {
+      dslFile.applyChanges()
+      dslFile.saveAllChanges()
+    }
+
+    val text = VfsUtil.loadText(file).replace("\r", "")
+    assertEquals(
+      """
+      include(":app")
+      """
+        .trimIndent(),
+      text.trim(),
     )
   }
 

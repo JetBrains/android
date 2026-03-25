@@ -20,7 +20,7 @@ import com.android.sdklib.AndroidMajorVersion
 import com.android.tools.idea.gradle.dsl.android.api.android.KmpAndroidModel.Companion.KMP_ANDROID_MINIMUM_AGP_VERSION
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion.Companion.parse
 import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint
-import com.android.tools.idea.npw.module.recipes.androidModule.gradleToKtsIfKts
+import com.android.tools.idea.npw.module.recipes.androidModule.gradleToKtsOrDcl
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 import com.android.tools.idea.npw.module.recipes.minSdk
 
@@ -89,7 +89,7 @@ fun buildKmpGradle(agpVersion: AgpVersion, name: String, packageName: String, mi
     $kotlinBlock
     """
 
-  return allBlocks.gradleToKtsIfKts(true)
+  return allBlocks.gradleToKtsOrDcl(true)
 }
 
 private fun androidTargetConfig(agpVersion: AgpVersion, packageName: String, minApi: AndroidMajorVersion): String {

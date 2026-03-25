@@ -31,6 +31,8 @@ import com.android.tools.idea.gradle.dependencies.PluginsHelper
 import com.android.tools.idea.gradle.dsl.android.api.android.CompileSdkPropertyModel.Companion.COMPILE_SDK_BLOCK_VERSION
 import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
+import com.android.tools.idea.gradle.dsl.api.GradleDeclarativeBuildModel
+import com.android.tools.idea.gradle.dsl.api.GradleDeclarativeSettingsModel
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
@@ -111,7 +113,9 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       it.context.agpVersion = AndroidGradlePluginVersion.parse(projectTemplateData.agpVersion.toString())
     }
   }
-  private val projectSettingsModel: GradleSettingsModel? by lazy { projectBuildModel?.projectSettingsModel }
+  private val projectSettingsModel: GradleSettingsModel? by lazy {
+    projectBuildModel?.declarativeSettingsModel ?: projectBuildModel?.projectSettingsModel
+  }
   private val projectGradleBuildModel: GradleBuildModel? by lazy { projectBuildModel?.projectBuildModel }
   private val moduleGradleBuildModel: GradleBuildModel? by lazy {
     when {
@@ -201,9 +205,12 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   }
 
   override fun addClasspathDependency(mavenCoordinate: String, minRev: String?, forceAdding: Boolean) {
-    if (!forceAdding && (maybeGetPluginsFromSettings() != null || maybeGetPluginsFromProject() != null)) {
-      // If plugins are being declared on Settings or using plugins block in top-level build.gradle,
-      // we skip this since all work is handled in [applyPlugin]
+    // Skip legacy classpath dependencies if using Declarative Gradle (b/490330486) or if plugins
+    // are already managed via modern Settings or top-level plugins blocks.
+    if (
+      projectSettingsModel is GradleDeclarativeSettingsModel ||
+        (!forceAdding && (maybeGetPluginsFromSettings() != null || maybeGetPluginsFromProject() != null))
+    ) {
       return
     }
 
@@ -234,7 +241,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     toBase: Boolean,
     sourceSetName: String?,
   ) {
-    referencesExecutor.addDependency(configuration, mavenCoordinate, minRev, moduleDir, toBase, sourceSetName)
+    referencesExecutor.addDependency(mavenCoordinate, configuration, minRev, moduleDir, toBase, sourceSetName)
 
     val baseFeature = context.moduleTemplateData?.baseFeature
     val buildModel = getBuildModel(moduleDir, toBase, baseFeature) ?: return
@@ -638,6 +645,9 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       } else {
         projectBuildModel?.getModuleBuildModel(moduleDir) ?: return
       }
+
+    // b/490330486: CompileOptions is not currently supported in Declarative.
+    if (buildModel is GradleDeclarativeBuildModel) return
     val languageLevel = pickLanguageLevel()
 
     val agpApplied = buildModel.appliedPlugins().any { it.name().valueAsString()?.contains("android") == true }
@@ -679,7 +689,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     val compileSdkBlockVersion = VersionConstraint.agpFrom(COMPILE_SDK_BLOCK_VERSION)
 
     // AGP 8.13 supports new syntax for specifying compileSdk as a block
-    val isBlockAllowedAGP = compileSdkBlockVersion.isOkWith(agpVersion) && !isDeclarative
+    val isBlockAllowed = compileSdkBlockVersion.isOkWith(agpVersion) && !isDeclarative
     val apiLevelMajor = androidVersion.androidApiLevel.majorVersion
     val apiLevelMinor = androidVersion.androidApiLevel.minorVersion
 
@@ -694,7 +704,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
         androidModel.compileSdkVersion(afterElement)
       }
 
-    if (isBlockAllowedAGP) {
+    if (isBlockAllowed) {
       val config = compileSdkModel.toCompileSdkConfig() ?: return
       when {
         androidVersion.isPreview -> config.setPreviewVersion(androidVersion.apiStringWithExtension)

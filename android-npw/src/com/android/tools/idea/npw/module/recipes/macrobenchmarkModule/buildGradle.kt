@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.npw.module.recipes.macrobenchmarkModule
 
-import com.android.tools.idea.npw.module.recipes.androidModule.gradleToKtsIfKts
+import com.android.tools.idea.npw.module.recipes.androidModule.gradleToKtsOrDcl
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.flavorsConfigurationsBuildGradle
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.ProductFlavorsWithDimensions
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
@@ -97,5 +97,5 @@ androidComponents {
 }
 
 """
-    .gradleToKtsIfKts(dslLanguage.isKts)
+    .gradleToKtsOrDcl(dslLanguage.isKts)
 }

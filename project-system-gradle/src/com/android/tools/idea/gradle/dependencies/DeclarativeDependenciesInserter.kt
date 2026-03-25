@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dependencies
 
+import com.android.tools.idea.gradle.dsl.android.api.android.AndroidDeclarativeModel
 import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
@@ -52,6 +53,12 @@ class DeclarativeDependenciesInserter : DependenciesInserter() {
     if (maybeFlavorDependencyName != null) {
       val (flavorName, configName) = maybeFlavorDependencyName
       return addFlavorDependency(flavorName, configName, dependency, parsedModel, matcher)
+    }
+
+    // Declarative dependencies are added to the top level dependencies block.
+    val androidModel = parsedModel.android()
+    if (androidModel is AndroidDeclarativeModel) {
+      return addDependency(androidModel.dependencies(), matcher, configuration, dependency, mutableSetOf())
     }
 
     return addDefaultConfigDependency(configuration, dependency, parsedModel, matcher)

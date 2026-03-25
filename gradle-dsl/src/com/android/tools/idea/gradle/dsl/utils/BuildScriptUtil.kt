@@ -46,13 +46,8 @@ internal fun findGradleSettingsFile(dirPath: File): File {
   if (groovySettingsFile.isFile) return groovySettingsFile
   val kotlinSettingsFile = File(dirPath, FN_SETTINGS_GRADLE_KTS)
   if (kotlinSettingsFile.isFile) return kotlinSettingsFile
-  // Registry is used for a reason because 'StudioDeclarativeFlags' can't be used from 'gradle-dsl' main classloader
-  // since it's declared in the content module 'intellij.android.gradle.dsl.flags'
-  val isEnabled = Registry.`is`("gradle.declarative.studio.support", false)
-  if (isEnabled) {
-    val gradleDeclarativeSettingsFile = File(dirPath, FN_SETTINGS_GRADLE_DECLARATIVE)
-    if (gradleDeclarativeSettingsFile.isFile) return gradleDeclarativeSettingsFile
-  }
+  val gradleDeclarativeSettingsFile = File(dirPath, FN_SETTINGS_GRADLE_DECLARATIVE)
+  if (gradleDeclarativeSettingsFile.isFile) return gradleDeclarativeSettingsFile
 
   // Default to Groovy if none exist.
   return groovySettingsFile

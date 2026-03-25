@@ -16,7 +16,9 @@
 package com.android.tools.idea.npw.builder
 
 import com.android.SdkConstants
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.npw.builders.GradleSettingsBuilder
+import com.android.tools.idea.wizard.template.DslLanguage.DCL
 import com.android.tools.idea.wizard.template.DslLanguage.GROOVY
 import com.android.tools.idea.wizard.template.DslLanguage.KTS
 import java.net.URI
@@ -29,6 +31,7 @@ import org.junit.Test
 class GradleSettingsBuilderTest {
 
   private val gradleVersion = GradleVersion.version(SdkConstants.GRADLE_LATEST_VERSION)
+  private val agpVersion = AgpVersions.latestKnown
 
   @Test(expected = IllegalArgumentException::class)
   fun testBuildGradleSettingsWithProjectNameUsingBackslashResultsOnException() {
@@ -137,6 +140,45 @@ pluginManagement {
 }
 
 rootProject.name = "kotlinProject""""
+        .trimIndent()
+    assertEquals(expectedGradleSettings, gradleSettings)
+  }
+
+  @Test
+  fun testBuildDeclarativeGradleSettings() {
+    val gradleSettings =
+      GradleSettingsBuilder("dclProject", DCL) {
+          withDependencyResolutionManagement(listOfUrls("https://www.example.com/1"))
+          withFoojayPlugin(gradleVersion)
+          withAndroidEcosystemPlugin(agpVersion)
+          withPluginManager(listOfUrls("https://www.example.com/2"))
+        }
+        .build()
+
+    val expectedGradleSettings =
+      """
+dependencyResolutionManagement {
+  repositoriesMode = FAIL_ON_PROJECT_REPOS
+  repositories {
+    maven { url = uri("https://www.example.com/1") }
+    google()
+    mavenCentral()
+  }
+}
+plugins {
+    id("com.android.ecosystem").version("${agpVersion}")
+    id("org.gradle.toolchains.foojay-resolver-convention").version("${getFoojayPluginVersion(gradleVersion)}")
+}
+pluginManagement {
+  repositories {
+    maven { url = uri("https://www.example.com/2") }
+    google()
+    mavenCentral()
+    gradlePluginPortal()
+  }
+}
+
+rootProject.name = "dclProject""""
         .trimIndent()
     assertEquals(expectedGradleSettings, gradleSettings)
   }
