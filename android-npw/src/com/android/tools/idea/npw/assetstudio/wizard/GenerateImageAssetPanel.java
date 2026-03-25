@@ -472,7 +472,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
       }
     }, myIconExists);
     myValidatorPanel.registerValidator(
-      myOutputName, name -> Validator.Result.fromNullableMessage(myNameValidator.getErrorText(name.trim())));
+      myOutputName, name -> Validator.Result.fromNullableMessage(myNameValidator.getErrorText(name)));
 
     myValidatorPanel.registerValidator(myPreviewRenderingError, errorMessage -> {
       if (!errorMessage.isEmpty()) {
