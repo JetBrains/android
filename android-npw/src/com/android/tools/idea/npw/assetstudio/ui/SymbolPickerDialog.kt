@@ -535,6 +535,7 @@ class SymbolPickerDialog(
     // Add the filled checkbox and forced refresh button to the right of the 1st and 2nd rows of the
     // sliderPanel
     filledCheckBox.text = SymbolsBundle.message("label.filled")
+    refreshButton.toolTipText = SymbolsBundle.message("tooltip.refresh")
     slidersPanel.add(filledCheckBox, gridConstraintsHelper(3, 1, 0.0, fill = GridBagConstraints.NONE, insets = JBUI.emptyInsets()))
     slidersPanel.add(refreshButton, gridConstraintsHelper(3, 0, 0.0, fill = GridBagConstraints.NONE, insets = JBUI.emptyInsets()))
 

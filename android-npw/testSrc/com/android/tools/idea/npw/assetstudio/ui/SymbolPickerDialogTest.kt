@@ -21,6 +21,7 @@ import com.android.tools.idea.material.icons.common.Symbols
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
+import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.testFramework.PlatformTestUtil
@@ -33,6 +34,7 @@ import java.io.File
 import java.net.URL
 import java.nio.file.Path
 import java.util.Objects
+import javax.swing.JButton
 import javax.swing.JComboBox
 import javax.swing.JTable
 import junit.framework.TestCase
@@ -172,6 +174,26 @@ class SymbolPickerDialogTest {
       val providedField = context.getData(SearchTextField.KEY)
 
       assertThat(providedField).isNotNull()
+    }
+
+  @Test
+  fun testRefreshButtonHasTooltip() =
+    runBlocking(Dispatchers.Main) {
+      val testDirectory = createTempDirectory()
+      val symbolsPicker =
+        getInitializedIconPickerDialog(
+          SymbolPickerDialog(
+            projectRule.fixture.module.androidFacet!!,
+            projectRule.fixture.testRootDisposable,
+            TestSymbolsUrlProvider(testDirectory),
+            TestSymbolsMetadataUrlProvider,
+          )
+        )
+
+      val refreshButton =
+        UIUtil.findComponentsOfType(symbolsPicker.createCenterPanel(), JButton::class.java).find { it.icon == AllIcons.General.Refresh }
+      assertNotNull(refreshButton)
+      assertEquals("Refresh", refreshButton.toolTipText)
     }
 
   private fun getInitializedIconPickerDialog(dialog: SymbolPickerDialog): SymbolPickerDialog {
