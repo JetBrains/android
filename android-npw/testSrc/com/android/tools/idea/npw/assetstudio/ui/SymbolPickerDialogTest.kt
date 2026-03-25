@@ -17,7 +17,9 @@ package com.android.tools.idea.npw.assetstudio.ui
 
 import com.android.tools.idea.material.icons.common.MaterialIconsMetadataUrlProvider
 import com.android.tools.idea.material.icons.common.MaterialSymbolsUrlProvider
+import com.android.tools.idea.material.icons.common.SymbolConfiguration
 import com.android.tools.idea.material.icons.common.Symbols
+import com.android.tools.idea.material.icons.metadata.MaterialMetadataIcon
 import com.android.tools.idea.npw.assetstudio.assets.MaterialSymbolsVirtualFile
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
@@ -48,6 +50,7 @@ import kotlin.io.path.writeText
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
@@ -241,6 +244,26 @@ class SymbolPickerDialogTest {
       val label = component as JBLabel
       assertEquals(JBUI.scale(8), label.insets.bottom)
     }
+
+  @Test
+  fun testMaterialSymbolsVirtualFileContent() {
+    val symbolConfiguration = SymbolConfiguration(type = Symbols.OUTLINED, weight = 400, grade = 0, opticalSize = 24, filled = false)
+    val metadata =
+      MaterialMetadataIcon(
+        name = "home",
+        version = 1,
+        unsupportedFamilies = emptyArray(),
+        categories = arrayOf("home"),
+        tags = emptyArray(),
+        unicode = 0xe88a,
+      )
+    val fontPath = "/path/to/font.ttf"
+    val virtualFile = MaterialSymbolsVirtualFile(symbolConfiguration, metadata, fontPath)
+
+    val content = virtualFile.content.toString()
+    assertTrue(content.contains("android:layout_width=\"wrap_content\""))
+    assertTrue(content.contains("android:layout_height=\"wrap_content\""))
+  }
 
   private fun getInitializedIconPickerDialog(dialog: SymbolPickerDialog): SymbolPickerDialog {
     val pickerPanel = dialog.createCenterPanel()
