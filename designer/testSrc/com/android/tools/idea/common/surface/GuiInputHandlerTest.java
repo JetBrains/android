@@ -74,6 +74,7 @@ import java.awt.dnd.DropTargetContext;
 import java.awt.dnd.DropTargetListener;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.List;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
@@ -409,6 +410,21 @@ public class GuiInputHandlerTest extends LayoutTestCase {
                          screenView.getY() + screenView.getScaledContentSize().height,
                          0);
     Mockito.verify(surface).setCursor(AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.SE_RESIZE));
+  }
+
+  // Regression test for b/316303256
+  public void testMouseExitedResetsCursor() {
+    DesignSurface<?> surface = setupLinearLayoutCursorTest();
+    GuiInputHandler manager = surface.getGuiInputHandler();
+    Object listener = manager.getListener();
+    assertTrue(listener instanceof MouseListener);
+    MouseListener mouseListener = (MouseListener)listener;
+
+    // Trigger mouseExited
+    mouseListener.mouseExited(setupPanningMouseEvent(MouseEvent.MOUSE_EXITED, 0, 0));
+
+    // Verify cursor is reset
+    Mockito.verify(surface).setCursor(null);
   }
 
   public void testCursorChangeWhenSetPanningTrue() {
