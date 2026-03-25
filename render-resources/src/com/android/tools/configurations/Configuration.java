@@ -18,15 +18,11 @@ package com.android.tools.configurations;
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 import static com.android.tools.configurations.ConfigurationListener.CFG_ACTIVITY;
 import static com.android.tools.configurations.ConfigurationListener.CFG_ADAPTIVE_SHAPE;
-import static com.android.tools.configurations.ConfigurationListener.CFG_DEVICE;
-import static com.android.tools.configurations.ConfigurationListener.CFG_DEVICE_STATE;
 import static com.android.tools.configurations.ConfigurationListener.CFG_FONT_SCALE;
 import static com.android.tools.configurations.ConfigurationListener.CFG_LOCALE;
 import static com.android.tools.configurations.ConfigurationListener.CFG_NAME;
-import static com.android.tools.configurations.ConfigurationListener.CFG_NIGHT_MODE;
 import static com.android.tools.configurations.ConfigurationListener.CFG_TARGET;
 import static com.android.tools.configurations.ConfigurationListener.CFG_THEME;
-import static com.android.tools.configurations.ConfigurationListener.CFG_UI_MODE;
 import static com.android.tools.configurations.ConfigurationListener.MASK_FOLDERCONFIG;
 import static java.util.Locale.ROOT;
 
@@ -35,22 +31,17 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.ResourceItemResolver;
-import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.DeviceConfigHelper;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.ide.common.resources.configuration.NightModeQualifier;
-import com.android.ide.common.resources.configuration.ResourceQualifier;
-import com.android.ide.common.resources.configuration.ScreenOrientationQualifier;
-import com.android.ide.common.resources.configuration.ScreenSizeQualifier;
 import com.android.ide.common.resources.configuration.UiModeQualifier;
 import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.Density;
 import com.android.resources.LayoutDirection;
 import com.android.resources.NightMode;
-import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenSize;
 import com.android.resources.UiMode;
 import com.android.sdklib.IAndroidTarget;
@@ -60,7 +51,6 @@ import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.layoutlib.LayoutlibContext;
 import com.android.tools.res.FrameworkOverlay;
-import com.android.tools.res.ResourceRepositoryManager;
 import com.android.tools.res.ResourceUtils;
 import com.android.tools.sdk.AndroidPlatform;
 import com.android.tools.sdk.CompatibilityRenderTarget;
@@ -68,10 +58,8 @@ import com.android.tools.sdk.LayoutlibFactory;
 import com.google.common.base.Enums;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -85,19 +73,10 @@ import org.jetbrains.annotations.Nullable;
 public class Configuration {
   public static final String CUSTOM_DEVICE_ID = "Custom";
 
-  // Set of constants from {@link android.content.res.Configuration} to be used in setUiModeFlagValue.
-  public static final int UI_MODE_TYPE_MASK = 0x0000000f;
-  private static final int UI_MODE_TYPE_APPLIANCE = 0x00000005;
-  private static final int UI_MODE_TYPE_CAR = 0x00000003;
-  private static final int UI_MODE_TYPE_DESK = 0x00000002;
-  private static final int UI_MODE_TYPE_NORMAL = 0x00000001;
-  private static final int UI_MODE_TYPE_TELEVISION = 0x00000004;
-  private static final int UI_MODE_TYPE_VR_HEADSET = 0x00000007;
-  private static final int UI_MODE_TYPE_WATCH = 0x00000006;
-
-  private static final int UI_MODE_NIGHT_MASK = 0x00000030;
-  public static final int UI_MODE_NIGHT_YES = 0x00000020;
-  public static final int UI_MODE_NIGHT_NO = 0x00000010;
+  // Aliases for external callers to preserve public API compatibility
+  public static final int UI_MODE_TYPE_MASK = UiModeState.UI_MODE_TYPE_MASK;
+  public static final int UI_MODE_NIGHT_YES = UiModeState.UI_MODE_NIGHT_YES;
+  public static final int UI_MODE_NIGHT_NO = UiModeState.UI_MODE_NIGHT_NO;
 
   private static final ResourceReference postSplashAttrReference = ResourceReference.attr(
     ResourceNamespace.RES_AUTO, "postSplashScreenTheme"
@@ -131,34 +110,6 @@ public class Configuration {
   private String myTheme;
 
   /**
-   * A specific device to render with
-   */
-  @Nullable
-  private Device mySpecificDevice;
-
-  /**
-   * The specific device state
-   */
-  @Nullable
-  private State myState;
-
-  /**
-   * The computed effective device; if this configuration does not have a hardcoded specific device,
-   * it will be computed based on the current device list; this field caches the value.
-   */
-  @Nullable
-  private Device myDevice;
-
-  /**
-   * The device state to use. Used to update {@link #getDeviceState()} such that it returns a state
-   * suitable with whatever {@link #getDevice()} returns, since {@link #getDevice()} updates dynamically,
-   * and the specific {@link State} instances are tied to actual devices (through the
-   * {@link State#getHardware()} accessor).
-   */
-  @Nullable
-  private String myStateName;
-
-  /**
    * The activity associated with the layout. This is just a cached value of
    * the true value stored on the layout.
    */
@@ -170,18 +121,6 @@ public class Configuration {
    */
   @Nullable
   private Locale myLocale = null;
-
-  /**
-   * UI mode
-   */
-  @NotNull
-  private UiMode myUiMode = UiMode.NORMAL;
-
-  /**
-   * Night mode
-   */
-  @NotNull
-  private NightMode myNightMode = NightMode.NOTNIGHT;
 
   /**
    * The display name
@@ -201,9 +140,11 @@ public class Configuration {
 
   private long myModificationCount;
 
-  private int myUiModeFlagValue;
-
   private final SystemUiPreferences mySystemUiPrefs = new SystemUiPreferences();
+
+  private final UiModeState myUiModeState = new UiModeState();
+
+  private final DeviceStateResolver myDeviceStateResolver;
 
   private final ResourceItemResolver.ResourceProvider myResourceProvider = new ConfigurationResourceProvider(this);
 
@@ -214,17 +155,19 @@ public class Configuration {
     mySettings = settings;
     myEditedConfig = editedConfig;
 
+    myDeviceStateResolver = new DeviceStateResolver(new DeviceStateResolver.Context() {
+      @NotNull @Override public ConfigurationSettings getSettings() { return mySettings; }
+      @NotNull @Override public FolderConfiguration getEditedConfig() { return myEditedConfig; }
+      @Override public void updateDeviceOverlay() { Configuration.this.updateDeviceOverlay(); }
+      @Nullable @Override public Device computeBestDevice() { return Configuration.this.computeBestDevice(); }
+    });
+
     if (isLocaleSpecificLayout()) {
       myLocale = Locale.create(editedConfig);
     }
 
     if (isOrientationSpecificLayout()) {
-      ScreenOrientationQualifier qualifier = editedConfig.getScreenOrientationQualifier();
-      assert qualifier != null; // because isOrientationSpecificLayout()
-      ScreenOrientation orientation = qualifier.getValue();
-      if (orientation != null) {
-        myStateName = orientation.getShortDisplayValue();
-      }
+      myDeviceStateResolver.initFromEditedConfig();
     }
   }
 
@@ -255,15 +198,11 @@ public class Configuration {
     myTarget = from.myTarget; // avoid getTarget() since it fetches project state
     myLocale = from.myLocale;  // avoid getLocale() since it fetches project state
     myTheme = from.getTheme();
-    mySpecificDevice = from.mySpecificDevice;
-    myDevice = from.myDevice; // avoid getDevice() since it fetches project state
-    myStateName = from.myStateName;
-    myState = from.myState;
     myActivity = from.getActivity();
-    myUiMode = from.getUiMode();
-    myNightMode = from.getNightMode();
     myDisplayName = from.getDisplayName();
-    myUiModeFlagValue = from.myUiModeFlagValue;
+
+    myUiModeState.copyFrom(from.myUiModeState);
+    myDeviceStateResolver.copyFrom(from.myDeviceStateResolver);
     mySystemUiPrefs.copyFrom(from.mySystemUiPrefs);
   }
 
@@ -276,7 +215,7 @@ public class Configuration {
 
   @Nullable
   protected String getStateName() {
-    return myStateName;
+    return myDeviceStateResolver.getStateName();
   }
 
   public void save() { }
@@ -294,6 +233,12 @@ public class Configuration {
   @Nullable
   protected String calculateActivity() {
     return null;
+  }
+
+  @Slow
+  @Nullable
+  protected Device computeBestDevice() {
+    return mySettings.getDefaultDevice();
   }
 
   /**
@@ -328,19 +273,7 @@ public class Configuration {
   @Slow
   @Nullable
   public Device getDevice() {
-    Device cached = getCachedDevice();
-    if (cached != null) {
-      return cached;
-    }
-
-    if (mySpecificDevice != null) {
-      myDevice = mySpecificDevice;
-    }
-    else {
-      myDevice = computeBestDevice();
-    }
-    updateDeviceOverlay();
-    return myDevice;
+    return myDeviceStateResolver.getDevice();
   }
 
   /**
@@ -349,7 +282,7 @@ public class Configuration {
    */
   @Nullable
   public Device getCachedDevice() {
-    return myDevice;
+    return myDeviceStateResolver.getCachedDevice();
   }
 
   @Nullable
@@ -384,12 +317,6 @@ public class Configuration {
     }
   }
 
-  @Slow
-  @Nullable
-  protected Device computeBestDevice() {
-    return mySettings.getDefaultDevice();
-  }
-
   /**
    * Returns the chosen device state
    *
@@ -397,12 +324,7 @@ public class Configuration {
    */
   @Nullable
   public State getDeviceState() {
-    if (myState == null) {
-      Device device = getDevice();
-      myState = DeviceState.getDeviceState(device, myStateName);
-    }
-
-    return myState;
+    return myDeviceStateResolver.getDeviceState();
   }
 
   /**
@@ -425,7 +347,7 @@ public class Configuration {
    */
   @NotNull
   public UiMode getUiMode() {
-    return myUiMode;
+    return myUiModeState.getUiMode();
   }
 
   /**
@@ -435,7 +357,7 @@ public class Configuration {
    */
   @NotNull
   public NightMode getNightMode() {
-    return myNightMode;
+    return myUiModeState.getNightMode();
   }
 
   /**
@@ -575,112 +497,10 @@ public class Configuration {
    * @param preserveState if true, attempt to preserve the state associated with the config
    */
   public void setDevice(Device device, boolean preserveState) {
-    if (mySpecificDevice == device) {
-      // The specific device is already set to the correct device so simply clear myDevice
-      // which will be re-calculated to be the same as myDevice on the next query.
-      myDevice = null;
-      return;
+    int updateFlags = myDeviceStateResolver.setDevice(device, preserveState);
+    if (updateFlags != 0) {
+      updated(updateFlags);
     }
-
-    Device prevDevice = mySpecificDevice;
-    State prevState = myState;
-
-    myDevice = mySpecificDevice = device;
-    updateDeviceOverlay();
-
-    int updateFlags = CFG_DEVICE;
-
-    if (device != null) {
-      State state = null;
-      // Attempt to preserve the device state?
-      if (preserveState && prevDevice != null) {
-        if (prevState != null) {
-          FolderConfiguration oldConfig = DeviceConfigHelper.getFolderConfig(prevState);
-          if (oldConfig != null) {
-            String stateName = getClosestMatch(oldConfig, device.getAllStates());
-            state = device.getState(stateName);
-          } else {
-            state = device.getState(prevState.getName());
-          }
-        }
-      } else if (preserveState && myStateName != null) {
-        state = device.getState(myStateName);
-      }
-      if (state == null) {
-        state = device.getDefaultState();
-      }
-      if (myState != state) {
-        setDeviceStateName(state.getName());
-        myState = state;
-        updateFlags |= CFG_DEVICE_STATE;
-      }
-    }
-
-    updated(updateFlags);
-  }
-
-  /**
-   * Attempts to find a close state among a list
-   *
-   * @param oldConfig the reference config.
-   * @param states    the list of states to search through
-   * @return the name of the closest state match, or possibly null if no states are compatible
-   *         (this can only happen if the states don't have a single qualifier that is the same).
-   */
-  @Nullable
-  private static String getClosestMatch(@NotNull FolderConfiguration oldConfig, @NotNull List<State> states) {
-    // create 2 lists as we're going to go through one and put the
-    // candidates in the other.
-    List<State> list1 = new ArrayList<>(states.size());
-    List<State> list2 = new ArrayList<>(states.size());
-
-    list1.addAll(states);
-
-    final int count = FolderConfiguration.getQualifierCount();
-    for (int i = 0; i < count; i++) {
-      // compute the new candidate list by only taking states that have
-      // the same i-th qualifier as the old state
-      for (State s : list1) {
-        ResourceQualifier oldQualifier = oldConfig.getQualifier(i);
-
-        FolderConfiguration folderConfig = DeviceConfigHelper.getFolderConfig(s);
-        ResourceQualifier newQualifier = folderConfig != null ? folderConfig.getQualifier(i) : null;
-
-        if (oldQualifier == null) {
-          if (newQualifier == null) {
-            list2.add(s);
-          }
-        }
-        else if (oldQualifier.equals(newQualifier)) {
-          list2.add(s);
-        }
-      }
-
-      // at any moment if the new candidate list contains only one match, its name
-      // is returned.
-      if (list2.size() == 1) {
-        return list2.get(0).getName();
-      }
-
-      // if the list is empty, then all the new states failed. It is considered ok, and
-      // we move to the next qualifier anyway. This way, if a qualifier is different for
-      // all new states it is simply ignored.
-      if (!list2.isEmpty()) {
-        // move the candidates back into list1.
-        list1.clear();
-        list1.addAll(list2);
-        list2.clear();
-      }
-    }
-
-    // the only way to reach this point is if there's an exact match.
-    // (if there are more than one, then there's a duplicate state and it doesn't matter,
-    // we take the first one).
-    if (!list1.isEmpty()) {
-      return list1.get(0).getName();
-    }
-
-    return null;
   }
 
   /**
@@ -689,15 +509,9 @@ public class Configuration {
    * @param state the device state
    */
   public void setDeviceState(State state) {
-    if (myState != state) {
-      if (state != null) {
-        setDeviceStateName(state.getName());
-      } else {
-        myStateName = null;
-      }
-      myState = state;
-
-      updated(CFG_DEVICE_STATE);
+    int updateFlags = myDeviceStateResolver.setDeviceState(state);
+    if (updateFlags != 0) {
+      updated(updateFlags);
     }
   }
 
@@ -707,19 +521,9 @@ public class Configuration {
    * @param stateName the device state name
    */
   public void setDeviceStateName(@Nullable String stateName) {
-    ScreenOrientationQualifier qualifier = myEditedConfig.getScreenOrientationQualifier();
-    if (qualifier != null) {
-      ScreenOrientation orientation = qualifier.getValue();
-      if (orientation != null) {
-        stateName = orientation.getShortDisplayValue(); // Also used as state names
-      }
-    }
-
-    if (!Objects.equals(stateName, myStateName)) {
-      myStateName = stateName;
-      myState = null;
-
-      updated(CFG_DEVICE_STATE);
+    int updateFlags = myDeviceStateResolver.setDeviceStateName(stateName);
+    if (updateFlags != 0) {
+      updated(updateFlags);
     }
   }
 
@@ -766,13 +570,9 @@ public class Configuration {
    * @param night the night mode
    */
   public void setNightMode(@NotNull NightMode night) {
-    if (myNightMode != night) {
-      if (night == NightMode.NIGHT) {
-        setUiModeFlagValue((getUiModeFlagValue() & UI_MODE_TYPE_MASK) | UI_MODE_NIGHT_YES);
-      }
-      else {
-        setUiModeFlagValue((getUiModeFlagValue() & UI_MODE_TYPE_MASK) | UI_MODE_NIGHT_NO);
-      }
+    int updateFlags = myUiModeState.setNightMode(night);
+    if (updateFlags != 0) {
+      updated(updateFlags);
     }
   }
 
@@ -782,19 +582,9 @@ public class Configuration {
    * @param uiMode the UI mode
    */
   public void setUiMode(@NotNull UiMode uiMode) {
-    if (myUiMode != uiMode) {
-      int newUiTypeFlags = 0;
-      switch (uiMode) {
-        case NORMAL: newUiTypeFlags = UI_MODE_TYPE_NORMAL; break;
-        case DESK: newUiTypeFlags = UI_MODE_TYPE_DESK; break;
-        case WATCH: newUiTypeFlags = UI_MODE_TYPE_WATCH; break;
-        case TELEVISION: newUiTypeFlags = UI_MODE_TYPE_TELEVISION; break;
-        case APPLIANCE: newUiTypeFlags = UI_MODE_TYPE_APPLIANCE; break;
-        case CAR: newUiTypeFlags = UI_MODE_TYPE_CAR; break;
-        case VR_HEADSET: newUiTypeFlags = UI_MODE_TYPE_VR_HEADSET; break;
-      }
-
-      setUiModeFlagValue((getUiModeFlagValue() & UI_MODE_NIGHT_MASK) | newUiTypeFlags);
+    int updateFlags = myUiModeState.setUiMode(uiMode);
+    if (updateFlags != 0) {
+      updated(updateFlags);
     }
   }
 
@@ -802,38 +592,9 @@ public class Configuration {
    * Sets the raw value for uiMode. When setting it using this method, both UiMode and night mode might be updated as result.
    */
   public void setUiModeFlagValue(int uiMode) {
-    int modifiedElements = myUiModeFlagValue ^ uiMode;
-    myUiModeFlagValue = uiMode;
-
-    int updatedFlags = 0;
-
-    // Check if we need to update night mode
-    if ((modifiedElements & UI_MODE_NIGHT_MASK) != 0) {
-      if ((uiMode & UI_MODE_NIGHT_MASK) == UI_MODE_NIGHT_YES) {
-        myNightMode = NightMode.NIGHT;
-      }
-      else {
-        myNightMode = NightMode.NOTNIGHT;
-      }
-      updatedFlags |= CFG_NIGHT_MODE;
-    }
-
-    // Check if we need to update ui mode
-    if ((modifiedElements & UI_MODE_TYPE_MASK) != 0) {
-      switch (uiMode & UI_MODE_TYPE_MASK) {
-        case UI_MODE_TYPE_APPLIANCE: myUiMode = UiMode.APPLIANCE; break;
-        case UI_MODE_TYPE_CAR: myUiMode = UiMode.CAR; break;
-        case UI_MODE_TYPE_TELEVISION: myUiMode = UiMode.TELEVISION; break;
-        case UI_MODE_TYPE_WATCH: myUiMode = UiMode.WATCH; break;
-        case UI_MODE_TYPE_DESK: myUiMode = UiMode.DESK; break;
-        case UI_MODE_TYPE_VR_HEADSET: myUiMode = UiMode.VR_HEADSET; break;
-        default: myUiMode = UiMode.NORMAL;
-      }
-      updatedFlags |= CFG_UI_MODE;
-    }
-
-    if (updatedFlags != 0) {
-      updated(updatedFlags);
+    int updateFlags = myUiModeState.setUiModeFlagValue(uiMode);
+    if (updateFlags != 0) {
+      updated(updateFlags);
     }
   }
 
@@ -841,7 +602,7 @@ public class Configuration {
    * Returns the current flags for uiMode.
    */
   public int getUiModeFlagValue() {
-    return myUiModeFlagValue;
+    return myUiModeState.getUiModeFlagValue();
   }
 
   /**
@@ -1047,34 +808,7 @@ public class Configuration {
   /** Returns the screen size required for this configuration */
   @Nullable
   public ScreenSize getScreenSize() {
-    // Look up the screen size for the current state
-
-    State deviceState = getDeviceState();
-    if (deviceState != null) {
-      FolderConfiguration folderConfig = DeviceConfigHelper.getFolderConfig(deviceState);
-      if (folderConfig != null) {
-        ScreenSizeQualifier qualifier = folderConfig.getScreenSizeQualifier();
-        assert qualifier != null;
-        return qualifier.getValue();
-      }
-    }
-
-    ScreenSize screenSize = null;
-    Device device = getDevice();
-    if (device != null) {
-      List<State> states = device.getAllStates();
-      for (State state : states) {
-        FolderConfiguration folderConfig = DeviceConfigHelper.getFolderConfig(state);
-        if (folderConfig != null) {
-          ScreenSizeQualifier qualifier = folderConfig.getScreenSizeQualifier();
-          assert qualifier != null;
-          screenSize = qualifier.getValue();
-          break;
-        }
-      }
-    }
-
-    return screenSize;
+    return myDeviceStateResolver.getScreenSize();
   }
 
   private void checkThemePrefix() {
@@ -1116,28 +850,7 @@ public class Configuration {
    */
   @Nullable
   public State getNextDeviceState(@Nullable State from) {
-    Device device = getDevice();
-    if (device == null) {
-      return null;
-    }
-    List<State> states = device.getAllStates();
-    for (int i = 0; i < states.size(); i++) {
-      if (states.get(i) == from) {
-        return states.get((i + 1) % states.size());
-      }
-    }
-
-    // Search by name instead
-    if (from != null) {
-      String name = from.getName();
-      for (int i = 0; i < states.size(); i++) {
-        if (states.get(i).getName().equals(name)) {
-          return states.get((i + 1) % states.size());
-        }
-      }
-    }
-
-    return null;
+    return myDeviceStateResolver.getNextDeviceState(from);
   }
 
   /**
@@ -1211,10 +924,10 @@ public class Configuration {
   }
 
   private void updateDeviceOverlay() {
-    if (myDevice == null) {
+    if (myDeviceStateResolver.getCachedDevice() == null) {
       mySystemUiPrefs.setDeviceOverlay(null);
     } else {
-      useDeviceForCutout(myDevice.getId());
+      useDeviceForCutout(myDeviceStateResolver.getCachedDevice().getId());
     }
   }
 
@@ -1256,12 +969,12 @@ public class Configuration {
       .add("display", myDisplayName)
       .add("theme", myTheme)
       .add("activity", myActivity)
-      .add("device", myDevice)
-      .add("state", myState)
+      .add("device", myDeviceStateResolver.getCachedDevice())
+      .add("state", myDeviceStateResolver.getCachedState())
       .add("locale", myLocale)
       .add("target", myTarget)
-      .add("uimode", myUiMode)
-      .add("nightmode", myNightMode)
+      .add("uimode", myUiModeState.getUiMode())
+      .add("nightmode", myUiModeState.getNightMode())
       .add("fontScale", mySystemUiPrefs.getFontScale())
       .add("adaptiveShape", mySystemUiPrefs.getAdaptiveShape())
       .add("useThemedIcon", mySystemUiPrefs.getUseThemedIcon())
@@ -1279,19 +992,7 @@ public class Configuration {
   }
 
   public void setEffectiveDevice(@Nullable Device device, @Nullable State state) {
-    int updateFlags = 0;
-    if (myDevice != device) {
-      updateFlags = CFG_DEVICE;
-      myDevice = device;
-      updateDeviceOverlay();
-    }
-
-    if (myState != state) {
-      myState = state;
-      myStateName = state != null ? state.getName() : null;
-      updateFlags |= CFG_DEVICE_STATE;
-    }
-
+    int updateFlags = myDeviceStateResolver.setEffectiveDevice(device, state);
     if (updateFlags != 0) {
       updated(updateFlags);
     }
