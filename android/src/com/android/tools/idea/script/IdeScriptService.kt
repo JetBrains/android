@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.analysis
+package com.android.tools.idea.script
 
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.executors.DefaultRunExecutor
@@ -44,12 +44,12 @@ import org.jetbrains.kotlin.idea.base.plugin.artifacts.KotlinArtifacts
 import org.jetbrains.kotlin.name.NameUtils
 
 @Service(Service.Level.PROJECT)
-class AnalysisScriptService(private val project: Project, private val scope: CoroutineScope) {
-  val tempDir by lazy { FileUtilRt.createTempDirectory("run-analysis-script", null, true) }
+class IdeScriptService(private val project: Project, private val scope: CoroutineScope) {
+  val tempDir by lazy { FileUtilRt.createTempDirectory("run-ide-script", null, true) }
 
-  fun runAndOutputAnalysisScript(file: VirtualFile): Job {
+  fun runAndOutputIdeScript(file: VirtualFile): Job {
     return scope.launch {
-      val result: String? = withContext(Dispatchers.IO) { runAnalysisScript(file) }
+      val result: String? = withContext(Dispatchers.IO) { runIdeScript(file) }
       // TODO: catch exceptions and output as String?
 
       withContext(Dispatchers.EDT) {
@@ -65,15 +65,15 @@ class AnalysisScriptService(private val project: Project, private val scope: Cor
     }
   }
 
-  suspend fun runAnalysisScript(file: VirtualFile): String? {
-    if (!file.isInLocalFileSystem) throw IllegalArgumentException("Analysis script file must be in local file system: $file")
-    if (!file.name.endsWith(ANALYSIS_SCRIPT_EXTENSION))
-      throw IllegalArgumentException("Analysis script file must have $ANALYSIS_SCRIPT_EXTENSION extension: $file")
+  suspend fun runIdeScript(file: VirtualFile): String? {
+    if (!file.isInLocalFileSystem) throw IllegalArgumentException("IDE script file must be in local file system: $file")
+    if (!file.name.endsWith(IDE_SCRIPT_EXTENSION))
+      throw IllegalArgumentException("IDE script file must have $IDE_SCRIPT_EXTENSION extension: $file")
 
-    return withBackgroundProgress(project, "Executing analysis script...", cancellable = true) {
+    return withBackgroundProgress(project, "Executing IDE script...", cancellable = true) {
       val javaHome = System.getProperty("java.home") ?: throw RuntimeException("Could not get java.home directory of IDE")
-      val pluginClassLoader = AnalysisScriptService::class.java.classLoader
-      val pluginClasspath = analysisScriptClasspath ?: throw RuntimeException("Could not get IDE classpath")
+      val pluginClassLoader = IdeScriptService::class.java.classLoader
+      val pluginClasspath = ideScriptClasspath ?: throw RuntimeException("Could not get IDE classpath")
       createTempDirectory(tempDir.toPath(), "run").useDirectory { temp ->
         val argsFile = temp.resolve("args.txt")
         val outDir = temp.resolve("out")
@@ -82,7 +82,7 @@ class AnalysisScriptService(private val project: Project, private val scope: Cor
           writer.write(
             "-Xuse-fir-lt=false " +
               "-Xallow-any-scripts-in-source-roots " +
-              "-P plugin:kotlin.scripting:script-templates=${AnalysisScript::class.qualifiedName} " +
+              "-P plugin:kotlin.scripting:script-templates=${IdeScript::class.qualifiedName} " +
               "-P plugin:kotlin.scripting:disable-script-definitions-autoloading=true " +
               "-P plugin:kotlin.scripting:disable-standard-script=true " +
               "-d ${outDir.name} " +
@@ -115,7 +115,7 @@ class AnalysisScriptService(private val project: Project, private val scope: Cor
         val saveClassLoader = Thread.currentThread().contextClassLoader
         Thread.currentThread().contextClassLoader = clazz.javaClass.classLoader
         try {
-          val instance = constructor.newInstance(project) as AnalysisScript
+          val instance = constructor.newInstance(project) as IdeScript
           instance.result
         } finally {
           Thread.currentThread().contextClassLoader = saveClassLoader
@@ -125,7 +125,7 @@ class AnalysisScriptService(private val project: Project, private val scope: Cor
   }
 
   companion object {
-    val LOGGER = Logger.getInstance(AnalysisScriptService::class.java)
+    val LOGGER = Logger.getInstance(IdeScriptService::class.java)
   }
 }
 

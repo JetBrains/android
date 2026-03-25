@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.analysis
+package com.android.tools.idea.script
 
 import com.android.tools.idea.flags.StudioFlags.ANALYSIS_SCRIPTS
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -21,10 +21,10 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 
-class RunAnalysisScriptAction : AnAction() {
+class RunIdeScriptAction : AnAction() {
   override fun update(e: AnActionEvent) {
     val file = e.getData(CommonDataKeys.VIRTUAL_FILE)
-    e.presentation.isEnabledAndVisible = ANALYSIS_SCRIPTS.get() && file != null && file.name.endsWith(ANALYSIS_SCRIPT_EXTENSION)
+    e.presentation.isEnabledAndVisible = ANALYSIS_SCRIPTS.get() && file != null && file.name.endsWith(IDE_SCRIPT_EXTENSION)
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread {
@@ -34,6 +34,6 @@ class RunAnalysisScriptAction : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val file = e.getData(CommonDataKeys.VIRTUAL_FILE) ?: return
     val project = e.project ?: return
-    project.getService(AnalysisScriptService::class.java).runAndOutputAnalysisScript(file)
+    project.getService(IdeScriptService::class.java).runAndOutputIdeScript(file)
   }
 }

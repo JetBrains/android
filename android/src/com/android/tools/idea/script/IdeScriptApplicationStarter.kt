@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.analysis
+package com.android.tools.idea.script
 
 import com.intellij.ide.CliResult
 import com.intellij.openapi.application.ApplicationStarter
@@ -25,7 +25,7 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import java.io.File
 import kotlin.system.exitProcess
 
-class AnalysisScriptApplicationStarter : ApplicationStarter {
+class IdeScriptApplicationStarter : ApplicationStarter {
 
   override val requiredModality = NOT_IN_EDT
 
@@ -78,7 +78,7 @@ class AnalysisScriptApplicationStarter : ApplicationStarter {
       }
 
       val project = projects[0]
-      val result = project.getService(AnalysisScriptService::class.java).runAnalysisScript(scriptVirtualFile)
+      val result = project.getService(IdeScriptService::class.java).runIdeScript(scriptVirtualFile)
       return CliResult(0, result)
     } catch (compilationError: ScriptCompilationError) {
       return CliResult(1, "Compilation error: ${compilationError.message}")

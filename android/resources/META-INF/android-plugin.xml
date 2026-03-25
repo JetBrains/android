@@ -187,11 +187,11 @@
         description="Dismisses banner for Gradle project notifications">
     </action>
     <action
-        id="Android.RunAnalysisScript"
         internal="true"
-        class="com.android.tools.idea.analysis.RunAnalysisScriptAction"
-        text="Run As Analysis Script"
-        description="Runs the current file as an analysis script"
+        id="Android.RunIdeScript"
+        class="com.android.tools.idea.script.RunIdeScriptAction"
+        text="Run As IDE Script"
+        description="Runs the current file as an IDE script"
         icon="AllIcons.Actions.Execute">
       <add-to-group group-id="RunContextPopupGroup" anchor="first"/>
     </action>
@@ -669,7 +669,7 @@
 
     <internalFileTemplate name="Version_Catalog_File.versions" />
 
-    <appStarter id="run-analysis-script" implementation="com.android.tools.idea.analysis.AnalysisScriptApplicationStarter"/>
+    <appStarter id="run-ide-script" implementation="com.android.tools.idea.script.IdeScriptApplicationStarter"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
@@ -677,7 +677,7 @@
     <codeinsight.quickfix.registrar implementation="com.android.tools.idea.imports.AndroidMavenImportKotlinQuickFixRegistrar"/>
     <renameHandler implementation="org.jetbrains.android.refactoring.renaming.KotlinResourceRenameHandler" order="first"/>
     <k2KaModuleFactory implementation="org.jetbrains.android.augment.AndroidLightClassBase$AndroidLightClassKaModuleFactory"/>
-    <scriptDefinitionsProvider implementation="com.android.tools.idea.analysis.AnalysisScriptDefinitionProvider" />
+    <scriptDefinitionsProvider implementation="com.android.tools.idea.script.IdeScriptDefinitionProvider" />
   </extensions>
 
 

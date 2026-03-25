@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.analysis
+package com.android.tools.idea.script
 
 import com.android.tools.idea.flags.StudioFlags.ANALYSIS_SCRIPTS
 import com.intellij.ide.plugins.cl.PluginClassLoader
@@ -30,36 +30,36 @@ import kotlin.script.experimental.jvm.jvm
 import kotlin.script.experimental.jvm.updateClasspath
 import kotlin.script.experimental.jvm.util.classpathFromClassloader
 
-const val ANALYSIS_SCRIPT_EXTENSION = "analysis.kts"
+const val IDE_SCRIPT_EXTENSION = "ide.kts"
 
 @KotlinScript(
-  displayName = "Code Analysis Script",
-  fileExtension = ANALYSIS_SCRIPT_EXTENSION,
-  compilationConfiguration = AnalysisScriptCompilationConfiguration::class,
+  displayName = "IDE Script",
+  fileExtension = IDE_SCRIPT_EXTENSION,
+  compilationConfiguration = IdeScriptCompilationConfiguration::class,
 )
-abstract class AnalysisScript(val project: Project) {
+abstract class IdeScript(val project: Project) {
   var result: String? = null
 }
 
-class AnalysisScriptCompilationConfiguration :
+class IdeScriptCompilationConfiguration :
   ScriptCompilationConfiguration({
     defaultImports(Project::class)
-    jvm { updateClasspath(analysisScriptClasspath) }
+    jvm { updateClasspath(ideScriptClasspath) }
     ide { acceptedLocations(ScriptAcceptedLocation.Everywhere) }
   })
 
-class AnalysisScriptDefinitionProvider : ScriptDefinitionsProvider {
+class IdeScriptDefinitionProvider : ScriptDefinitionsProvider {
   override val id: String
-    get() = "AnalysisScriptDefinitionProvider"
+    get() = "IdeScriptDefinitionProvider"
 
   override fun getDefinitionClasses() =
     if (ANALYSIS_SCRIPTS.get()) {
-      listOf(AnalysisScript::class.qualifiedName!!)
+      listOf(IdeScript::class.qualifiedName!!)
     } else {
       emptyList()
     }
 
-  override fun getDefinitionsClassPath() = analysisScriptClasspath ?: emptyList()
+  override fun getDefinitionsClassPath() = ideScriptClasspath ?: emptyList()
 
   override fun useDiscovery() = false
 }
@@ -68,7 +68,7 @@ class AnalysisScriptDefinitionProvider : ScriptDefinitionsProvider {
 // "more forgiving" (most class loaders will have access to all classes). The code below, and in particular, the overriding of
 // getDefinitionsClassPath() above, is necessary when actually running a proper Android Studio release (or when running via Bazel).
 
-val analysisScriptClasspath by lazy { getClasspathFromClassLoader(AnalysisScript::class.java.classLoader) }
+val ideScriptClasspath by lazy { getClasspathFromClassLoader(IdeScript::class.java.classLoader) }
 
 @Suppress("UnstableApiUsage")
 private fun getClasspathFromClassLoader(classLoader: ClassLoader): List<File>? {

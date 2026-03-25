@@ -13,6 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.analysis
+package com.android.tools.idea.script
 
 class ScriptCompilationError(message: String? = null, cause: Throwable? = null) : Exception(message, cause)
