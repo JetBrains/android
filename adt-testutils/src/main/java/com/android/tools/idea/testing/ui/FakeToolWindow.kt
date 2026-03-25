@@ -39,7 +39,9 @@ import com.intellij.ui.content.ContentManagerListener
 import com.intellij.ui.content.impl.ContentImpl
 import com.intellij.util.SmartList
 import com.intellij.util.ui.EmptyIcon
+import java.awt.Component
 import java.awt.Container
+import java.beans.PropertyChangeSupport
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -349,9 +351,15 @@ class FakeContentManager : ToolWindowHeadlessManagerImpl.MockContentManager() {
   private fun createInternalDecorator(contentManager: ContentManager): InternalDecoratorImpl {
     val mockDecorator = mock<InternalDecoratorImpl>(defaultAnswer = CALLS_REAL_METHODS)
     try {
-      val field = Container::class.java.getDeclaredField("component")
+      var field = Container::class.java.getDeclaredField("component")
       field.isAccessible = true
       field.set(mockDecorator, ArrayList<Any>())
+      field = Component::class.java.getDeclaredField("changeSupport")
+      field.isAccessible = true
+      field.set(mockDecorator, PropertyChangeSupport(mockDecorator))
+      field = Component::class.java.getDeclaredField("objectLock")
+      field.isAccessible = true
+      field.set(mockDecorator, Any())
     } catch (e: Exception) {
       throw RuntimeException(e)
     }
