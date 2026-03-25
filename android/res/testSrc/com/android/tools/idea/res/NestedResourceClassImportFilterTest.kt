@@ -49,6 +49,7 @@ class NestedResourceClassImportFilterTest {
   /** Tests the actual behavior in the editor as specified by b/254492800. */
   @Test
   @RunsInEdt
+  @Ignore("b/388149042: no counterpart of ClassImportFilter")
   fun innerResourceClassNotImported_otherImport() {
     CodeStyle.getSettings(project).kotlinCustomSettings.IMPORT_NESTED_CLASSES = true
     configureStringResources()
