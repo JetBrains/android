@@ -40,7 +40,7 @@ object ComposeAnimationToolbarUpdater {
   ) {
     if (!previewManager.mode.value.isNormal) return
     try {
-      val hasAnimationsMethod = viewObj::class.java.declaredMethods.single { it.name == "hasAnimations" }.also { it.isAccessible = true }
+      val hasAnimationsMethod = viewObj::class.java.getDeclaredMethod("hasAnimations").also { it.isAccessible = true }
       val previewHasAnimations = hasAnimationsMethod.invoke(viewObj) as Boolean
       if (!previewElement.hasAnimations && previewHasAnimations) {
         animationToolingUsageTrackerFactory()
