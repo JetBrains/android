@@ -27,11 +27,12 @@ import com.google.idea.blaze.qsync.project.SnapshotProto.WorkspaceSnapshot;
 import com.google.idea.blaze.qsync.query.QuerySummary;
 import java.nio.file.Path;
 import java.util.Optional;
+import javax.annotation.Nullable;
 
 /** Serializes a {@link PostQuerySyncData} instance to a proto message. */
 public class SnapshotSerializer {
 
-  public static final int PROTO_VERSION = 3;
+  public static final int PROTO_VERSION = 4;
 
   static final ImmutableBiMap<Operation, SnapshotProto.WorkspaceFileChange.VcsOperation> OP_MAP =
       ImmutableBiMap.of(
@@ -56,6 +57,14 @@ public class SnapshotSerializer {
     snapshot.vcsState().ifPresent(this::visitVcsState);
     visitQuerySummary(snapshot.querySummary());
     visitBazelVersion(snapshot.bazelVersion());
+    return this;
+  }
+
+  @CanIgnoreReturnValue
+  public SnapshotSerializer visit(@Nullable ProjectStructureData projectStructureData) {
+    if (projectStructureData != null) {
+      visitProjectStructureData(projectStructureData);
+    }
     return this;
   }
 
@@ -109,5 +118,26 @@ public class SnapshotSerializer {
 
   private void visitBazelVersion(Optional<String> value) {
     value.ifPresent(proto::setBazelVersion);
+  }
+
+  private void visitProjectStructureData(ProjectStructureData projectStructureData) {
+    SnapshotProto.ProjectStructureData.Builder proto =
+        SnapshotProto.ProjectStructureData.newBuilder();
+    projectStructureData
+        .getPackageSourceSets()
+        .forEach(
+            (path, sourceSet) -> {
+              SnapshotProto.SourceSet.Builder sourceSetProto = SnapshotProto.SourceSet.newBuilder();
+              sourceSetProto.setWorkspaceRelativePath(path.toString());
+              sourceSet
+                  .getJavaSourceFiles()
+                  .forEach(p -> sourceSetProto.addJavaSourceFiles(p.toString()));
+              sourceSet
+                  .getNonJavaSourceFiles()
+                  .forEach(p -> sourceSetProto.addNonJavaSourceFiles(p.toString()));
+              proto.addPackageSourceSets(sourceSetProto.build());
+            });
+    projectStructureData.getActiveLanguages().forEach(l -> proto.addActiveLanguages(l.protoValue));
+    this.proto.setProjectStructureData(proto.build());
   }
 }
