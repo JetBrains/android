@@ -49,28 +49,7 @@ class StudioTracingController : AppLifecycleListener {
 
   override fun appStarted() {
     initializeTracing()
-    enableComposeCompositionTracing()
-  }
-
-  // Enable Compose Composition tracing in the Studio tracer.
-  // See https://developer.android.com/develop/ui/compose/tooling/tracing for more details
-  @OptIn(InternalComposeTracingApi::class)
-  private fun enableComposeCompositionTracing() {
-    Composer.setTracer(
-      object : CompositionTracer {
-        override fun traceEventStart(key: Int, dirty1: Int, dirty2: Int, info: String) {
-          beginSectionWithMetadata("compose", info)
-        }
-
-        override fun traceEventEnd() {
-          endSection()
-        }
-
-        override fun isTraceInProgress(): Boolean {
-          return isTracingEnabled()
-        }
-      }
-    )
+    initializeCompositionTracing()
   }
 
   override fun appWillBeClosed(isRestart: Boolean) {
@@ -87,6 +66,41 @@ class StudioTracingController : AppLifecycleListener {
   companion object {
     private val hook = Thread { Tracing.close(true) }
     private var hookRegistered = false
+    private var isCompositionTracingEnabled = false
+
+    @OptIn(InternalComposeTracingApi::class)
+    internal fun initializeCompositionTracing() {
+      if (PropertiesComponent.getInstance().getBoolean(COMPOSITION_TRACING_ENABLED_KEY, false)) {
+        if (!isCompositionTracingEnabled) {
+          enableComposeCompositionTracing()
+          isCompositionTracingEnabled = true
+        }
+      } else {
+        Composer.setTracer(null)
+        isCompositionTracingEnabled = false
+      }
+    }
+
+    // Enable Compose Composition tracing in the Studio tracer.
+    // See https://developer.android.com/develop/ui/compose/tooling/tracing for more details
+    @OptIn(InternalComposeTracingApi::class)
+    private fun enableComposeCompositionTracing() {
+      Composer.setTracer(
+        object : CompositionTracer {
+          override fun traceEventStart(key: Int, dirty1: Int, dirty2: Int, info: String) {
+            beginSectionWithMetadata("compose", info)
+          }
+
+          override fun traceEventEnd() {
+            endSection()
+          }
+
+          override fun isTraceInProgress(): Boolean {
+            return isTracingEnabled()
+          }
+        }
+      )
+    }
 
     internal fun initializeTracing() {
       val log = thisLogger()
