@@ -137,9 +137,7 @@ fun createDataContext(component: Component?, rootContext: DataContext): DataCont
 private fun DataSnapshotProvider?.toDataContext(parent: DataContext): DataContext =
   this?.let { CustomizedDataContext.withSnapshot(parent, this) } ?: parent
 
-private fun UiDataProvider.toDataSnapshotProvider(): DataSnapshotProvider = DataSnapshotProvider { sink ->
-  sink.uiDataSnapshot(this@toDataSnapshotProvider)
-}
+private fun UiDataProvider.toDataSnapshotProvider(): DataSnapshotProvider = DataSnapshotProvider { sink -> sink.uiDataSnapshot(this) }
 
 const val SEPARATOR_TEXT = "------------------------------------------------------"
 

@@ -200,12 +200,12 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
         previewElement to newModel
       }
       .let { elementModelList ->
-        if (this@updatePreviewsAndRefresh.isDisposed()) {
+        if (isDisposed()) {
           return@let emptyList()
         }
         // Reorder existing models and add placeholders altogether to improve performance and UX in
         // comparison with adding/reordering them one by one.
-        this.addModelsWithoutRender(elementModelList.map { it.second }).mapIndexed { idx, sceneManager ->
+        addModelsWithoutRender(elementModelList.map { it.second }).mapIndexed { idx, sceneManager ->
           val previewElement = elementModelList[idx].first
           previewElement to configureLayoutlibSceneManager(previewElement.displaySettings, sceneManager)
         }
@@ -271,7 +271,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.createOrReuseModelForPreview
     Configuration.create(configurationManager, FolderConfiguration.createDefault()).also {
       // Always use the imageTransformation from the surface, regardless of whether the model is
       // reused or new.
-      it.setImageTransformation(Configuration.ImageTransformationType.COLOR_BLIND_MODE, this.getGlobalImageTransformation())
+      it.setImageTransformation(Configuration.ImageTransformationType.COLOR_BLIND_MODE, getGlobalImageTransformation())
     }
   if (modelToReuse != null) {
     var forceReinflate = true
