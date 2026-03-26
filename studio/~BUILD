@@ -5,6 +5,7 @@ load("//tools/adt/idea/studio:searchable-options/android-studio/content.bzl", "S
 load("//tools/adt/idea/studio:studio.bzl", "android_studio", "android_studio_configuration", "studio_plugin")
 load("//tools/adt/idea/studio/rules:app-icon.bzl", "app_icon")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
+load("//tools/vendor/google/alt-lang:exports.bzl", "STUDIO_NDK_LSP_PLUGINS", "STUDIO_NDK_SEARCHABLE_OPTIONS_PLUGINS")
 load(":version.bzl", "STUDIO_CODENAME", "STUDIO_CONFIG", "STUDIO_MICRO_PATCH", "STUDIO_RELEASE_NUMBER", "STUDIO_VERSION")
 
 package(
@@ -943,10 +944,9 @@ android_studio_configuration(
     version_type = STUDIO_VERSION,
 )
 
-STUDIO_BASE_PLUGINS = [
+STUDIO_CORE_PLUGINS = [
     "//tools/adt/idea/studio:org.jetbrains.android",
     "//tools/adt/idea/studio:com.android.tools.apk",
-    "//tools/adt/idea/studio:com.android.tools.ndk",
     "//tools/adt/idea/studio:com.android.tools.design",
     "//tools/adt/idea/studio:androidx.compose.plugins.idea",
     "//tools/adt/idea/studio:com.google.services.git4insights",
@@ -962,6 +962,12 @@ STUDIO_BASE_PLUGINS = [
     "//tools/adt/idea/studio:com.android.tools.gradle.dsl",
 ]
 
+STUDIO_BASE_PLUGINS = STUDIO_CORE_PLUGINS + STUDIO_NDK_LSP_PLUGINS
+
+# Searchable options can't be controlled by --//tools/vendor/google/alt-lang/lsp4ij/as-plugin:enabled flag
+# because select() objects cannot be iterated over in Starlark macros during the loading phase.
+STUDIO_SEARCHABLE_OPTIONS_PLUGINS = STUDIO_CORE_PLUGINS + STUDIO_NDK_SEARCHABLE_OPTIONS_PLUGINS
+
 android_studio(
     name = "android-studio",
     codesign_entitlements = "codesign/entitlements.xml",
@@ -976,7 +982,7 @@ android_studio(
     platform = "@intellij//:intellij-sdk",
     plugins = STUDIO_BASE_PLUGINS,
     searchable_options_metadata = SEARCHABLE_OPTIONS,
-    searchable_options_plugin_lst = STUDIO_BASE_PLUGINS,
+    searchable_options_plugin_lst = STUDIO_SEARCHABLE_OPTIONS_PLUGINS,
     selector = "AndroidStudio",
     update_message_template = ":update_message.html",
     version_code_name = STUDIO_CODENAME,
@@ -1001,7 +1007,7 @@ android_studio(
         "//tools/vendor/google/optional-plugins:plugins",
     ],
     searchable_options_metadata = SEARCHABLE_OPTIONS,
-    searchable_options_plugin_lst = STUDIO_BASE_PLUGINS,
+    searchable_options_plugin_lst = STUDIO_SEARCHABLE_OPTIONS_PLUGINS,
     selector = "AndroidStudio",
     update_message_template = ":update_message.html",
     version_code_name = STUDIO_CODENAME,

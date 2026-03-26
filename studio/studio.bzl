@@ -1326,11 +1326,19 @@ def intellij_plugin_import(name, target_dir, exports, files = [], strip_prefix =
         **kwargs
     )
 
+CIDR_PLUGINS = [
+    "c",
+    "cidr-base",
+    "cidr-clangd",
+    "cidr-debugger",
+]
+
 def _intellij_platform_impl_os(ctx, platform, data, zip_out):
     files = platform.get(data).to_list()
     plugin_dir = "%splugins/" % platform.base_path
     base = []
     plugins = {}
+
     for file in files:
         if file not in data.mappings:
             fail("file %s not found in mappings" % file.path)
@@ -1343,6 +1351,10 @@ def _intellij_platform_impl_os(ctx, platform, data, zip_out):
         if len(parts) == 0:
             fail("Unexpected plugin file: " + rel)
         plugin = parts[0]
+        is_cidr = plugin in CIDR_PLUGINS
+
+        if not ctx.attr.include_cidr and is_cidr:
+            continue
         if plugin not in plugins:
             plugins[plugin] = []
         plugins[plugin].append((rel, file))
@@ -1393,6 +1405,7 @@ _intellij_platform = rule(
         "data": attr.label_list(allow_files = True),
         "studio_data": attr.label(providers = [StudioDataInfo]),
         "compress": attr.bool(),
+        "include_cidr": attr.bool(default = True),
         "_zipper": attr.label(
             default = Label("@bazel_tools//tools/zip:zipper"),
             cfg = "exec",
@@ -1528,6 +1541,10 @@ def intellij_platform(
         minor_version = spec.minor_version,
         exports = [":" + name + "_jars"],
         compress = is_release(),
+        include_cidr = select({
+            "//tools/vendor/google/alt-lang/lsp4ij/as-plugin:enabled-setting": False,
+            "//conditions:default": True,
+        }),
         package_metadata = [
             ":" + name + "_prebuilt_metadata",
         ],
