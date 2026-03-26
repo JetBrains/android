@@ -74,12 +74,10 @@ class MaterialVdIconsProvider {
      *   download finishes, this method will be called if the metadata does not match the local copy and a UI update is needed.
      */
     fun loadMaterialVdIcons(
-      // TODO studio-merge
       @UiThread refreshUiCallback: (MaterialVdIcons, Status) -> Unit,
       parentDisposable: Disposable,
       metadataUrlProvider: MaterialIconsMetadataUrlProvider? = null,
       iconsUrlProvider: MaterialIconsUrlProvider? = null,
-      // TODO studio-merge
       @UiThread onNewIconsAvailable: () -> Unit = {},
     ) {
       val metadataUrl = (metadataUrlProvider ?: getMetadataUrlProvider()).getMetadataUrl()
@@ -109,9 +107,7 @@ class MaterialVdIconsProvider {
 private fun loadMaterialVdIcons(
   metadata: MaterialIconsMetadata,
   iconsUrlProvider: MaterialIconsUrlProvider,
-  // TODO studio-merge
   @UiThread refreshUiCallback: (MaterialVdIcons, Status) -> Unit,
-  // TODO studio-merge
   @UiThread onNewIconsAvailable: () -> Unit,
   parentDisposable: Disposable,
 ) {
