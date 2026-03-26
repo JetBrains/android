@@ -1384,8 +1384,8 @@ internal class EmulatorView(
         val foldedState = if (imageFormat.hasFoldedDisplay()) " foldedDisplay={${shortDebugString(imageFormat.foldedDisplay)}}" else ""
         val mode = if (emulatorConfig.displayModes.size > 1) " ${imageFormat.displayMode}" else ""
         LOG.info(
-          "Screenshot for display ${imageFormat.display}: ${message.seq} ${width}x$height" +
-            "$mode$foldedState ${imageRotation * 90}° $latency ms latency"
+          "Screenshot #${message.seq} for display ${imageFormat.display}: ${width}x$height $mode$foldedState ${imageRotation * 90}°" +
+            " $latency ms latency"
         )
       }
       if (screenshotReceiver != this) {
