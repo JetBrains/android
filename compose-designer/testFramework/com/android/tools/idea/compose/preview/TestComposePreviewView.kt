@@ -34,6 +34,7 @@ import kotlinx.coroutines.CompletableDeferred
 
 /** A test implementation of [ComposePreviewView]. */
 class TestComposePreviewView : ComposePreviewView, JPanel {
+  var visibilityAndNotificationsCount = 0
   override val mainSurface: NlDesignSurface
   private val onRefreshCompletedCallback: () -> Unit
 
@@ -92,7 +93,9 @@ class TestComposePreviewView : ComposePreviewView, JPanel {
 
   override fun updateNotifications(parentEditor: FileEditor) {}
 
-  override fun updateVisibilityAndNotifications() {}
+  override fun updateVisibilityAndNotifications() {
+    visibilityAndNotificationsCount++
+  }
 
   override fun updateProgress(message: String) {}
 

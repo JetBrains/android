@@ -1200,8 +1200,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile, composePreviewViewProvider:
   ) = requestRefresh(type, completableDeferred)
 
   private fun requestVisibilityAndNotificationsUpdate() {
-    if (!hasRenderedAtLeastOnce.get()) return
-
     composePreviewFlowManager.run { this@ComposePreviewRepresentation.updateVisibilityAndNotifications(::updateBottomPanelVisibility) }
   }
 

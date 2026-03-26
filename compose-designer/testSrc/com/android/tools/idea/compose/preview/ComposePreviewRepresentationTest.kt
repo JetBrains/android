@@ -180,6 +180,27 @@ class ComposePreviewRepresentationTest {
   }
 
   @Test
+  fun testUpdateVisibilityAndNotificationsCalledOnBuildFailureWithoutRender() = runComposePreviewRepresentationTest {
+    val preview =
+      ComposePreviewRepresentation(previewPsiFile) { _, _, _, provider, _, _ ->
+        uiDataProvider = provider
+        composeView = TestComposePreviewView(mainSurface)
+        composeView
+      }
+    Disposer.register(fixture.testRootDisposable, preview)
+
+    withContext(Dispatchers.Default) {
+      preview.onActivate()
+      delayWhileRefreshingOrDumb(preview)
+
+      val countBefore = composeView.visibilityAndNotificationsCount
+      buildSystemServices.simulateArtifactBuild(ProjectSystemBuildManager.BuildStatus.FAILED)
+
+      waitForCondition(5.seconds) { composeView.visibilityAndNotificationsCount > countBefore }
+    }
+  }
+
+  @Test
   fun testPreviewInitialization() = runComposePreviewRepresentationTest {
     val preview = createPreviewAndCompile()
     mainSurface.models.forEach { assertTrue(preview.navigationHandler.defaultNavigationMap.contains(it)) }
@@ -1212,11 +1233,11 @@ class ComposePreviewRepresentationTest {
   /** Wrapper class to perform operations and expose properties that are common to most tests in this test class. */
   private class ComposePreviewRepresentationTestContext(
     val scope: CoroutineScope,
-    private val previewPsiFile: PsiFile,
+    val previewPsiFile: PsiFile,
     val mainSurface: NlDesignSurface,
     private val fixture: CodeInsightTestFixture,
     private val logger: Logger,
-    private val buildSystemServices: FakeBuildSystemFilePreviewServices,
+    val buildSystemServices: FakeBuildSystemFilePreviewServices,
   ) {
 
     private lateinit var preview: ComposePreviewRepresentation
@@ -1278,7 +1299,7 @@ class ComposePreviewRepresentationTest {
       delayUntilCondition(250, timeout = 5.seconds) { refresh && additionalCondition() }
     }
 
-    private suspend fun delayWhileRefreshingOrDumb(preview: ComposePreviewRepresentation) {
+    suspend fun delayWhileRefreshingOrDumb(preview: ComposePreviewRepresentation) {
       delayUntilCondition(250) { !(preview.status().isRefreshing || DumbService.getInstance(fixture.project).isDumb) }
     }
 
