@@ -379,6 +379,11 @@ constructor(
     return isBusy
   }
 
+  @TestOnly
+  fun isRefreshButtonEnabled(): Boolean {
+    return refreshButton.isEnabled
+  }
+
   /**
    * Function that, if required, downloads missing font files and metadata to the Sdk
    *
@@ -512,7 +517,18 @@ constructor(
     filledCheckBox.addItemListener { updateIconList() }
 
     // Add listeners for the refresh button and the search field
-    refreshButton.addActionListener { coroutineScope.launch { ensureFontsAndMetadataAreDownloaded(true) } }
+    refreshButton.addActionListener {
+      coroutineScope.launch {
+        // Disable the refresh button while download is in progress
+        UIUtil.invokeLaterIfNeeded { refreshButton.isEnabled = false }
+        try {
+          ensureFontsAndMetadataAreDownloaded(true)
+        } finally {
+          // Re-enable the button when refresh finishes or fails
+          UIUtil.invokeLaterIfNeeded { refreshButton.isEnabled = true }
+        }
+      }
+    }
 
     // Add listeners for the reset button, so the sliders are reset when clicking on it
     resetButton.addActionListener {

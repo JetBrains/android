@@ -27,6 +27,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
+import com.intellij.openapi.application.EDT
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.ui.SearchTextField
 import com.intellij.ui.components.JBLabel
@@ -54,6 +55,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.junit.Rule
 import org.junit.Test
 
@@ -289,6 +291,60 @@ class SymbolPickerDialogTest {
       assertThat(component).isInstanceOf(JBLabel::class.java)
       val label = component as JBLabel
       assertEquals(JBUI.scale(8), label.insets.bottom)
+    }
+
+  @Test
+  fun testRefreshButtonDisabledDuringRefresh() =
+    runBlocking(Dispatchers.Main) {
+      var isFetching = false
+      val slowMetadataUrlProvider =
+        object : MaterialIconsMetadataUrlProvider {
+          override fun getMetadataUrl(): URL? {
+            isFetching = true
+            // Delay for a bit to allow us to check the button state
+            Thread.sleep(500)
+            return IconPickerDialogTest::class.java.getClassLoader().getResource("images/material/icons/icons_metadata_test.txt")
+          }
+        }
+
+      val testDirectory = createTempDirectory()
+      val symbolsPicker =
+        getInitializedIconPickerDialog(
+          SymbolPickerDialog(
+            projectRule.fixture.module.androidFacet!!,
+            projectRule.fixture.testRootDisposable,
+            TestSymbolsUrlProvider(testDirectory),
+            slowMetadataUrlProvider,
+          )
+        )
+
+      assertThat(symbolsPicker.isRefreshButtonEnabled()).isTrue()
+
+      val refreshButton =
+        UIUtil.findComponentsOfType(symbolsPicker.createCenterPanel(), JButton::class.java).find { it.icon == AllIcons.General.Refresh }!!
+
+      // Click the button
+      withContext(Dispatchers.EDT) { refreshButton.doClick() }
+
+      // Now it should be fetching and button should be disabled
+      val wait: WaitFor =
+        object : WaitFor(3000) {
+          override fun condition(): Boolean {
+            PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+            return isFetching && !symbolsPicker.isRefreshButtonEnabled()
+          }
+        }
+      assertTrue(wait.isConditionRealized, "Should be fetching and button should be disabled")
+
+      // Now wait for it to finish, i.e. the button should be enabled again.
+      val finishWait: WaitFor =
+        object : WaitFor(3000) {
+          override fun condition(): Boolean {
+            PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+            return symbolsPicker.isRefreshButtonEnabled()
+          }
+        }
+      assertTrue(finishWait.isConditionRealized, "Button should be enabled")
     }
 
   @Test
