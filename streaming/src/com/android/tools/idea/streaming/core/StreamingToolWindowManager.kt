@@ -1160,16 +1160,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
     }
   }
 
-  private fun findPairedPhoneAvd(avd: AvdInfo): AvdInfo? {
-    val devices = deviceProvisioner.devices.value
-    val handle = devices.findByAvdFolder(avd.dataFolderPath)
-    val pairedPhoneId = handle?.state?.properties?.pairedPhoneId ?: return null
-    val pairedPhoneHandle = devices.find { it.id == pairedPhoneId }
-    val pairedPhoneFolder = pairedPhoneHandle?.avdFolder ?: return null
-    val avdManager = AvdManagerConnection.getDefaultAvdManagerConnection()
-    return avdManager.getAvds(false).find { it.dataFolderPath == pairedPhoneFolder }
-  }
-
   @AnyThread
   private fun invokeLater(block: suspend CoroutineScope.() -> Unit) {
     toolWindowScope.launch(Dispatchers.EDT) { block() }
@@ -1417,7 +1407,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
           avdManager.startAvd(project, avd, forceLaunchInToolWindow = true)
 
           if (avd.isAiGlassesDevice) {
-            val pairedPhoneAvd = findPairedPhoneAvd(avd)
+            val pairedPhoneAvd = deviceProvisioner.findPairedPhoneAvd(avd)
             if (pairedPhoneAvd != null) {
               val runningPairedPhone = RunningAvdTracker.getInstance().runningAvds[pairedPhoneAvd.dataFolderPath]
               if (runningPairedPhone == null || runningPairedPhone.isShuttingDown) {
@@ -1687,3 +1677,13 @@ private fun <K : Any, V> Cache<K, V>.remove(key: K): V? = getIfPresent(key)?.als
 private var Content.deviceId: StreamingDeviceId?
   get() = CONTENT_DEVICE_ID_KEY.get(this)
   set(deviceId) = CONTENT_DEVICE_ID_KEY.set(this, deviceId)
+
+private fun DeviceProvisioner.findPairedPhoneAvd(avd: AvdInfo): AvdInfo? {
+  val devices = devices.value
+  val handle = devices.findByAvdFolder(avd.dataFolderPath)
+  val pairedPhoneId = handle?.state?.properties?.pairedPhoneId ?: return null
+  val pairedPhoneHandle = devices.find { it.id == pairedPhoneId }
+  val pairedPhoneFolder = pairedPhoneHandle?.avdFolder ?: return null
+  val avdManager = AvdManagerConnection.getDefaultAvdManagerConnection()
+  return avdManager.getAvds(false).find { it.dataFolderPath == pairedPhoneFolder }
+}
