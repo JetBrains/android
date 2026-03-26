@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview.resize
 import com.android.annotations.concurrency.UiThread
 import com.android.flags.junit.FlagRule
 import com.android.testutils.delayUntilCondition
+import com.android.testutils.retryUntilPassing
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.adtui.swing.popup.PopupRule
@@ -42,6 +43,7 @@ import com.intellij.openapi.actionSystem.impl.ActionMenuItem
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
 import com.intellij.ui.components.fields.IntegerField
 import java.awt.BorderLayout
@@ -51,12 +53,12 @@ import java.awt.event.MouseEvent
 import java.awt.event.MouseListener
 import javax.swing.JPanel
 import javax.swing.JPopupMenu
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -76,7 +78,6 @@ class ResizeIntegrationTest {
   private lateinit var previewView: ComposePreviewView
 
   @Test
-  @Ignore("b/460851812")
   fun `resize and save integration test`() = runTest {
     val newWidth = 555
     val newHeight = 888
@@ -190,13 +191,22 @@ class ResizeIntegrationTest {
 
   private suspend fun clickContextMenuItem(text: String) =
     withContext(Dispatchers.EDT) {
-      val popupMenu = openContextMenu()
-      assertNotNull("Popup menu not found", popupMenu)
-      val actionMenuItem = popupMenu!!.findDescendant<ActionMenuItem> { it.text == text }
-      assertNotNull("Action '${text}' not found in popup", actionMenuItem)
+      var popupMenu: JPopupMenu? = null
+      var actionMenuItem: ActionMenuItem? = null
+      retryUntilPassing(10.seconds) {
+        // In some rare occurrences, the popup menu is displayed but the action items are not enabled yet
+        // Here we retry opening the context menu until the action is enabled
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+        popupMenu = openContextMenu()
+        assertNotNull("Popup menu not found", popupMenu)
+
+        actionMenuItem = popupMenu!!.findDescendant<ActionMenuItem> { it.text == text && it.isEnabled }
+        assertNotNull("Action '${text}' not found in popup", actionMenuItem)
+      }
+
       actionMenuItem!!.doClick()
       popupRule.mockPopup.hide()
-      popupMenu.isVisible = false
+      popupMenu?.isVisible = false
     }
 
   private suspend fun openResizePanel() =
@@ -209,8 +219,10 @@ class ResizeIntegrationTest {
       fakeUi.root.validate()
       fakeUi.layoutAndDispatchEvents()
 
-      val resizePanel = fakeUi.findComponent<ResizePanel>()
-      assertNotNull("ResizePanel not found", resizePanel)
+      retryUntilPassing(5.seconds) {
+        val resizePanel = fakeUi.findComponent<ResizePanel>()
+        assertNotNull("ResizePanel not found", resizePanel)
+      }
 
       @Suppress("DEPRECATION") fakeUi.updateToolbars()
       fakeUi.layoutAndDispatchEvents()
