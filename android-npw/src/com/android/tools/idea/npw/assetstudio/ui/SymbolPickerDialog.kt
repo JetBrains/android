@@ -30,6 +30,7 @@ import com.android.tools.idea.material.icons.common.SymbolConfiguration
 import com.android.tools.idea.material.icons.common.Symbols
 import com.android.tools.idea.material.icons.common.SymbolsSdkUrlProvider
 import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadata
+import com.android.tools.idea.material.icons.metadata.MaterialMetadataIcon
 import com.android.tools.idea.npw.assetstudio.assets.MaterialSymbolsVirtualFile
 import com.android.tools.idea.ui.resourcemanager.plugin.LayoutRenderOptions
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManagerImpl
@@ -97,11 +98,19 @@ private const val TEXT_HEIGHT = 16
 private const val PADDING_BOTTOM = 8
 private const val MAX_CACHE_SIZE = 2048
 
-class SymbolPickerDialog(
+class SymbolPickerDialog
+@JvmOverloads
+constructor(
   facet: AndroidFacet,
   parentDisposable: Disposable,
   materialSymbolsUrlProvider: MaterialSymbolsUrlProvider? = null,
   materialIconsMetadataUrlProvider: MaterialIconsMetadataUrlProvider? = null,
+  @VisibleForTesting
+  private val vdIconLoader:
+    suspend (SymbolConfiguration, MaterialMetadataIcon, MaterialIconsMetadata, MaterialSymbolsUrlProvider) -> VdIcon =
+    { sc, im, ims, sup ->
+      MaterialSymbolsLoader.loadVdIcon(sc, im, ims, sup)
+    },
 ) : DialogWrapper(false) {
 
   // The following arrays are the possible values for the visual customizations of Material Symbols
@@ -147,6 +156,8 @@ class SymbolPickerDialog(
 
   init {
     super.init()
+    // Since no icon is selected when opening the dialog, disable the OK button initially
+    isOKActionEnabled = false
     setupUI()
     title = SymbolsBundle.message("title")
     Disposer.register(parentDisposable, myDisposable)
@@ -267,7 +278,7 @@ class SymbolPickerDialog(
     isOKActionEnabled = false
 
     coroutineScope.launch {
-      val vdIcon = MaterialSymbolsLoader.loadVdIcon(icon.symbolConfiguration, icon.metadata, metadata, materialSymbolsUrlProvider)
+      val vdIcon = vdIconLoader(icon.symbolConfiguration, icon.metadata, metadata, materialSymbolsUrlProvider)
       selectedIcon = vdIcon
       isOKActionEnabled = true
     }

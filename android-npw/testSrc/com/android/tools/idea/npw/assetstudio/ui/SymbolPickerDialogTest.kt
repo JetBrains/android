@@ -311,6 +311,44 @@ class SymbolPickerDialogTest {
     assertTrue(content.contains("android:layout_height=\"wrap_content\""))
   }
 
+  @Test
+  fun testOkButtonDisabledInitiallyAndEnabledOnSelection() =
+    runBlocking(Dispatchers.Main) {
+      val testDirectory = createTempDirectory()
+      val dialog =
+        SymbolPickerDialog(
+          projectRule.fixture.module.androidFacet!!,
+          projectRule.fixture.testRootDisposable,
+          TestSymbolsUrlProvider(testDirectory),
+          TestSymbolsMetadataUrlProvider,
+          vdIconLoader = { _, _, _, _ -> org.mockito.Mockito.mock(com.android.ide.common.vectordrawable.VdIcon::class.java) },
+        )
+
+      try {
+        assertThat(dialog.isOKActionEnabled).isFalse()
+
+        // Initialize the dialog (loads icons and populates the table)
+        getInitializedIconPickerDialog(dialog)
+
+        // Select an icon in the table
+        val table = UIUtil.findComponentOfType(dialog.createCenterPanel(), JBTable::class.java)!!
+        table.setRowSelectionInterval(0, 0)
+        table.setColumnSelectionInterval(0, 0)
+
+        // Wait for the OK button to be enabled (async icon loading)
+        val waitOk =
+          object : WaitFor(3000) {
+            override fun condition(): Boolean {
+              PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+              return dialog.isOKActionEnabled
+            }
+          }
+        assertTrue(waitOk.isConditionRealized)
+      } finally {
+        dialog.close(0)
+      }
+    }
+
   private fun getInitializedIconPickerDialog(dialog: SymbolPickerDialog): SymbolPickerDialog {
     val pickerPanel = dialog.createCenterPanel()
     pickerPanel.isVisible = true
