@@ -155,7 +155,7 @@ def _add_optional_dependencies_to_plugin_xml(ctx, input_plugin_xml_file, modules
     args.extend(["--output", final_plugin_xml_file.path])
     for module in modules:
         args.append(module)
-        args.append(_filename_for_module_dependency(module))
+        args.append(_filename_for_module_dependency(ctx.attr.plugin_name, module))
     ctx.actions.run(
         executable = ctx.executable._append_optional_xml_elements,
         arguments = args,
@@ -166,9 +166,9 @@ def _add_optional_dependencies_to_plugin_xml(ctx, input_plugin_xml_file, modules
     )
     return final_plugin_xml_file
 
-def _filename_for_module_dependency(module):
+def _filename_for_module_dependency(prefix, module):
     """A unique filename for the optional xml dependency for a given module."""
-    return "optional-" + module + ".xml"
+    return "optional-" + prefix + "-" + module + ".xml"
 
 def _package_meta_inf_files(ctx, final_plugin_xml_file, module_to_merged_xmls):
     jar_name = ctx.attr.jar_name
@@ -180,7 +180,7 @@ def _package_meta_inf_files(ctx, final_plugin_xml_file, module_to_merged_xmls):
     args.extend([final_plugin_xml_file.path, "plugin.xml"])
     for module, merged_xml in module_to_merged_xmls.items():
         args.append(merged_xml.path)
-        args.append(_filename_for_module_dependency(module))
+        args.append(_filename_for_module_dependency(ctx.attr.plugin_name, module))
     for plugin_icon_file in ctx.files.plugin_icons:
         args.append(plugin_icon_file.path)
         args.append(plugin_icon_file.basename)
@@ -226,6 +226,7 @@ _intellij_plugin_jar = rule(
         "plugin_xml": attr.label(mandatory = True, allow_single_file = [".xml"]),
         "optional_plugin_xmls": attr.label_list(providers = [_OptionalPluginXmlInfo]),
         "jar_name": attr.string(mandatory = True),
+        "plugin_name": attr.string(mandatory = True),
         "deps": attr.label_list(providers = [[_IntellijPluginLibraryInfo]]),
         "plugin_icons": attr.label_list(allow_files = True),
         "_merge_xml_binary": attr.label(
@@ -315,6 +316,7 @@ def intellij_plugin(
         name = jar_target_name,
         deploy_jar = deploy_jar,
         jar_name = jar_name or (name + ".jar"),
+        plugin_name = name,
         deps = deps,
         plugin_xml = plugin_xml,
         optional_plugin_xmls = optional_plugin_xmls,
