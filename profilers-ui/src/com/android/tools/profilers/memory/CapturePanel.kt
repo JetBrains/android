@@ -256,6 +256,8 @@ private class CapturePanelUi(
           }
 
           fun updateLabel(label: StatLabel, filter: CaptureObjectInstanceFilter) {
+            // A local val is required for functionality because StatLabel.numValue doesn't store
+            // the value, it just updates the label and can't be used for any other purpose.
             val count = getFilteredInstanceCount(heap, selection.selectedClassTypeFilter, filter)
             label.numValue = count
             label.isVisible = true

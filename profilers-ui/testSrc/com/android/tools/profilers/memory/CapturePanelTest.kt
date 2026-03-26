@@ -29,15 +29,24 @@ import com.android.tools.profilers.SessionProfilersView
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.memory.adapters.FakeCaptureObject
 import com.android.tools.profilers.memory.adapters.FakeInstanceObject
+import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject
+import com.android.tools.profilers.memory.adapters.ValueObject.ValueType
 import com.android.tools.profilers.memory.adapters.classifiers.AllHeapSet
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
+import com.android.tools.profilers.memory.adapters.instancefilters.ActivityFragmentLeakInstanceFilter
+import com.android.tools.profilers.memory.adapters.instancefilters.AllClassTypeFilter
+import com.android.tools.profilers.memory.adapters.instancefilters.BitmapDuplicationInstanceFilter
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import icons.StudioIcons
 import javax.swing.JComponent
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 
 class CapturePanelTest {
 
@@ -103,13 +112,99 @@ class CapturePanelTest {
     assertThat(panel.component.getStatLabelValue("Shallow Size")).isEqualTo("${insts.sumOf { it.shallowSize }}")
   }
 
+  @Test
+  fun `panel shows warning icon for issues`() {
+    val fakeCapture = FakeCaptureObject.Builder().build()
+    fakeCapture.classDatabase.registerClass(1, 0, "android.app.Activity")
+
+    val capture = mock(HeapDumpCaptureObject::class.java)
+    `when`(capture.classDatabase).thenReturn(fakeCapture.classDatabase)
+    `when`(capture.activityFragmentLeakFilter).thenReturn(ActivityFragmentLeakInstanceFilter(fakeCapture.classDatabase))
+    `when`(capture.bitmapDuplicationFilter).thenReturn(BitmapDuplicationInstanceFilter(emptySet()))
+    `when`(capture.supportedClassTypeFilters).thenReturn(setOf(AllClassTypeFilter))
+    `when`(capture.instances).thenAnswer { fakeCapture.instances }
+    `when`(capture.classifierAttributes).thenReturn(fakeCapture.classifierAttributes)
+    `when`(capture.instanceAttributes).thenReturn(fakeCapture.instanceAttributes)
+    `when`(capture.isGroupingSupported(any())).thenReturn(true)
+    `when`(capture.isDoneLoading).thenReturn(true)
+    `when`(capture.isError).thenReturn(false)
+
+    val heap = HeapSet(capture, "heap", 1)
+
+    // Add a fake issue (e.g., leaked activity)
+    val leakedActivity =
+      FakeInstanceObject.Builder(fakeCapture, 1, "android.app.Activity")
+        .setHeapId(1)
+        .setDepth(1) // Required to be a leak
+        .addField("mDestroyed", ValueType.BOOLEAN, true) // Required to be a leak
+        .build()
+
+    heap.addDeltaInstanceObject(leakedActivity)
+
+    val stage = MainMemoryProfilerStage(profilers, FakeCaptureObjectLoader())
+    val selection = MemoryCaptureSelection(profilers.ideServices)
+    val profilersView = SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
+    val panel =
+      CapturePanel(profilersView, selection, null, profilers.timeline.selectionRange, FakeIdeProfilerComponents(), profilers.timeline, true)
+
+    selection.selectCaptureEntry(CaptureEntry(Any()) { capture })
+    selection.finishSelectingCaptureObject(capture)
+    selection.selectHeapSet(heap)
+
+    val leakLabel = panel.component.getStatLabel("Leaks")
+    assertThat(leakLabel).isNotNull()
+    assertThat(leakLabel!!.icon).isEqualTo(StudioIcons.Common.WARNING)
+    assertThat(leakLabel.isVisible).isTrue()
+  }
+
+  @Test
+  fun `panel does not show warning icon for 0 issues`() {
+    val fakeCapture = FakeCaptureObject.Builder().build()
+
+    val capture = mock(HeapDumpCaptureObject::class.java)
+    `when`(capture.classDatabase).thenReturn(fakeCapture.classDatabase)
+    `when`(capture.activityFragmentLeakFilter).thenReturn(ActivityFragmentLeakInstanceFilter(fakeCapture.classDatabase))
+    `when`(capture.bitmapDuplicationFilter).thenReturn(BitmapDuplicationInstanceFilter(emptySet()))
+    `when`(capture.supportedClassTypeFilters).thenReturn(setOf(AllClassTypeFilter))
+    `when`(capture.instances).thenAnswer { fakeCapture.instances }
+    `when`(capture.classifierAttributes).thenReturn(fakeCapture.classifierAttributes)
+    `when`(capture.instanceAttributes).thenReturn(fakeCapture.instanceAttributes)
+    `when`(capture.isGroupingSupported(any())).thenReturn(true)
+    `when`(capture.isDoneLoading).thenReturn(true)
+    `when`(capture.isError).thenReturn(false)
+
+    val heap = HeapSet(capture, "heap", 1)
+
+    val activity =
+      FakeInstanceObject.Builder(fakeCapture, 1, "android.app.Activity")
+        .setHeapId(1)
+        .setDepth(1)
+        .addField("mDestroyed", ValueType.BOOLEAN, false)
+        .build()
+
+    heap.addDeltaInstanceObject(activity)
+
+    val stage = MainMemoryProfilerStage(profilers, FakeCaptureObjectLoader())
+    val selection = MemoryCaptureSelection(profilers.ideServices)
+    val profilersView = SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
+    val panel =
+      CapturePanel(profilersView, selection, null, profilers.timeline.selectionRange, FakeIdeProfilerComponents(), profilers.timeline, true)
+
+    selection.selectCaptureEntry(CaptureEntry(Any()) { capture })
+    selection.finishSelectingCaptureObject(capture)
+
+    selection.selectHeapSet(heap)
+
+    val leakLabel = panel.component.getStatLabel("Leaks")
+    assertThat(leakLabel).isNotNull()
+    assertThat(leakLabel!!.icon).isNull()
+    assertThat(leakLabel.isVisible).isTrue()
+  }
+
   companion object {
-    fun JComponent.getStatLabelValue(desc: String): String? =
-      TreeWalker(this)
-        .descendantStream()
-        .filter { it is StatLabel && it.descText == desc }
-        .map { (it as StatLabel).numText }
-        .findFirst()
-        .orElse(null)
+    fun JComponent.getStatLabel(desc: String): StatLabel? =
+      TreeWalker(this).descendantStream().filter { it is StatLabel && it.descText == desc }.map { it as StatLabel }.findFirst().orElse(null)
+
+    fun JComponent.getStatLabelValue(desc: String): String? = getStatLabel(desc)?.numText
   }
 }
