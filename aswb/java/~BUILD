@@ -6,18 +6,14 @@ load(
 load(
     "//tools/adt/idea/aswb/build_defs:build_defs.bzl",
     "aswb_library",
-    "intellij_plugin",
     "intellij_plugin_library",
     "optional_plugin_xml",
-    "stamped_plugin_xml",
 )
 load(
     "//tools/adt/idea/aswb/testing:test_defs.bzl",
     "intellij_integration_test_suite",
     "intellij_unit_test_suite",
 )
-load("//tools/adt/idea/studio:studio.bzl", "intellij_plugin_import")
-load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 aswb_library(
     name = "java_lib",
@@ -144,46 +140,11 @@ java_binary(
     ],
 )
 
-stamped_plugin_xml(
-    name = "java_plugin_xml",
-    testonly = 1,
-    plugin_id = "com.google.idea.blaze.java",
-    plugin_name = "com.google.idea.blaze.java",
-)
-
-intellij_plugin(
-    name = "java_integration_test_plugin",
-    testonly = 1,
-    plugin_xml = ":java_plugin_xml",
-    deps = [
-        ":java",
-        "//tools/adt/idea/aswb/base",
-    ],
-)
-
-jvm_import(
-    name = "java_plugin_import",
-    testonly = 1,
-    jars = [
-        ":java_integration_test_plugin",
-    ],
-)
-
-intellij_plugin_import(
-    name = "com.google.idea.blaze.java",
-    testonly = 1,
-    overwrite_plugin_version = True,
-    target_dir = "java",
-    exports = [":java_plugin_import"],
-)
-
 intellij_integration_test_suite(
     name = "integration_tests",
     srcs = glob(
         ["tests/integrationtests/**/*.java"],
     ),
-    plugins = [":com.google.idea.blaze.java"],
-    required_plugins = "com.google.idea.blaze.java",
     tags = [
         "noci:studio-win",
     ],

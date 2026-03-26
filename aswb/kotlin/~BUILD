@@ -1,25 +1,18 @@
 load(
     "//tools/adt/idea/aswb:build-visibility.bzl",
-    "ASWB_SUBPACKAGES_VISIBILITY",
-    "KOTLIN_PACKAGE_VISIBILITY",
     "PLUGIN_PACKAGES_VISIBILITY",
 )
 load(
     "//tools/adt/idea/aswb/build_defs:build_defs.bzl",
     "aswb_library",
-    "combine_visibilities",
-    "intellij_plugin",
     "intellij_plugin_library",
     "optional_plugin_xml",
-    "stamped_plugin_xml",
 )
 load(
     "//tools/adt/idea/aswb/testing:test_defs.bzl",
     "intellij_integration_test_suite",
     "intellij_unit_test_suite",
 )
-load("//tools/adt/idea/studio:studio.bzl", "intellij_plugin_import")
-load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 licenses(["notice"])
 
@@ -78,49 +71,9 @@ intellij_unit_test_suite(
     ],
 )
 
-stamped_plugin_xml(
-    name = "kotlin_plugin_xml",
-    testonly = 1,
-    plugin_id = "com.google.idea.blaze.kotlin",
-    plugin_name = "com.google.idea.blaze.kotlin",
-)
-
-intellij_plugin(
-    name = "kotlin_integration_test_plugin",
-    testonly = 1,
-    optional_plugin_xmls = [":optional_xml"],
-    plugin_xml = ":kotlin_plugin_xml",
-    deps = [
-        ":kotlin",
-        "//tools/adt/idea/aswb/base",
-        "//tools/adt/idea/aswb/java",
-    ],
-)
-
-jvm_import(
-    name = "kotlin_plugin_import",
-    testonly = 1,
-    jars = [
-        ":kotlin_integration_test_plugin",
-    ],
-)
-
-intellij_plugin_import(
-    name = "com.google.idea.blaze.kotlin",
-    testonly = 1,
-    overwrite_plugin_version = True,
-    target_dir = "bazelkotlin",
-    exports = [":kotlin_plugin_import"],
-)
-
 intellij_integration_test_suite(
     name = "integration_tests",
     srcs = glob(["tests/integrationtests/**/*.java"]),
-    plugins = [
-        ":com.google.idea.blaze.kotlin",
-        "//tools/adt/idea/studio:org.jetbrains.android",
-    ],
-    required_plugins = "org.jetbrains.kotlin,com.google.idea.blaze.kotlin",
     tags = ["noci:studio-win"],
     test_package_root = "com.google.idea.blaze.kotlin",
     deps = [

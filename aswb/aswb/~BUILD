@@ -7,7 +7,6 @@ load(
     "//tools/adt/idea/aswb:build-visibility.bzl",
     "ASWB_PACKAGES_VISIBILITY",
     "ASWB_PLUGIN_PACKAGES_VISIBILITY",
-    "ASWB_SUBPACKAGES_VISIBILITY",
     "DEFAULT_TEST_VISIBILITY",
     "TEST_ASWB_SUBPACKAGES_VISIBILITY",
 )
@@ -27,8 +26,6 @@ load(
     "intellij_integration_test_suite",
     "intellij_unit_test_suite",
 )
-load("//tools/adt/idea/studio:studio.bzl", "intellij_plugin_import")
-load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 optional_plugin_xml(
     name = "optional_ndk_xml",
@@ -165,26 +162,10 @@ intellij_unit_test_suite(
 test_suite(
     name = "integration_tests",
     tests = [
-        #b/139825934 ":NdkDependenciesTest",
+        ":NdkDependenciesTest",
         ":normal_integration_tests",
     ],
     visibility = DEFAULT_TEST_VISIBILITY,
-)
-
-jvm_import(
-    name = "aswb_plugin_import",
-    testonly = 1,
-    jars = [
-        ":aswb_bazel",
-    ],
-)
-
-intellij_plugin_import(
-    name = "com.google.idea.bazel.aswb",
-    testonly = 1,
-    overwrite_plugin_version = True,
-    target_dir = "aswb",
-    exports = [":aswb_plugin_import"],
 )
 
 intellij_integration_test_suite(
@@ -202,13 +183,6 @@ intellij_integration_test_suite(
     data = [
         "tools/adt/idea/android/annotations/empty_file",
     ],
-    plugins = [
-        ":com.google.idea.bazel.aswb",
-        "//tools/adt/idea/studio:com.android.tools.ndk",
-        "//tools/adt/idea/studio:com.android.tools.design",
-        "//tools/adt/idea/studio:org.jetbrains.android",
-    ],
-    required_plugins = "com.google.idea.bazel.aswb,com.android.tools.ndk",
     tags = ["noci:studio-win"],
     test_package_root = "com.google.idea.blaze.android",
     deps = [
@@ -239,7 +213,6 @@ intellij_integration_test_suite(
 intellij_integration_test_suite(
     name = "NdkDependenciesTest",
     srcs = ["tests/integrationtests/com/google/idea/blaze/android/plugin/NdkDependenciesTest.java"],
-    required_plugins = "com.google.idea.bazel.aswb",
     tags = ["noci:studio-win"],
     test_package_root = "com.google.idea.blaze.android",
     runtime_deps = [
