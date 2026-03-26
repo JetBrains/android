@@ -289,6 +289,9 @@ def intellij_integration_test_suite(
         "-Didea.classpath.index.enabled=false",
         "-Djava.awt.headless=true",
         "-Dblaze.idea.api.version.file=$(location %s)" % api_version_txt_name,
+        "-Dintellij.ext.binary=/dev/null",
+        "-Dintellij.objfs_fetcher.binary=/dev/null",
+        "-Dintellij.regurgitator.binary=/dev/null",
     ])
     jvm_flags.extend(ADD_OPENS)
 
