@@ -164,7 +164,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.service
-import com.intellij.openapi.components.serviceAsync
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -2412,7 +2411,7 @@ private fun <T> openPreparedProject(
         // Unfortunately we do not have start-up activities run in tests so we have to trigger a refresh here.
         emulateStartupActivityForTest(project)
         val awaitGradleStartupActivity = project.coroutineScope.launch {
-          project.serviceAsync<ProjectSynchronizerUtil>().applyJpsModelToProjectModel()
+          ProjectSynchronizerUtil.getInstance(project).applyJpsModelToProjectModel()
           project.service<AndroidGradleProjectStartupActivity.StartupService>().awaitInitialization()
         }
         PlatformTestUtil.waitForFuture(awaitGradleStartupActivity.asCompletableFuture(), TimeUnit.MINUTES.toMillis(10))
