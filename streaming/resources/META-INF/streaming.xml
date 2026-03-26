@@ -307,6 +307,11 @@
             description="Benchmark embedded emulator or mirroring of physical device" internal="true">
       <add-to-group group-id="Internal.Android"/>
     </action>
+    <action id="android.streaming.glasses.pair.headsup" class="com.android.tools.idea.streaming.emulator.actions.PairHeadsUpAction"
+            icon="StudioIcons.DeviceExplorer.DEVICE_PAIRED" text="Trigger AI Glasses Pairing Heads Up"
+            description="Triggers an AI Glasses pairing heads-up event" internal="true">
+      <add-to-group group-id="Internal.Android"/>
+    </action>
 
     <!-- Placeholder group for placing the Backup App button registered in a separate module. -->
     <group id="android.streaming.backup" class="com.android.tools.idea.streaming.actions.BackupActionGroup"/>
