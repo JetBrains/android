@@ -373,7 +373,7 @@ internal class ComposePreviewViewImpl(
             workbench.hideLoading()
             workbench.showContent()
           } else {
-            val extraActions = listOfNotNull(createGeneratePreviewsActionData(), createScreenshotToCodeActionData())
+            val extraActions = listOfNotNull(createScreenshotToCodeActionData(), createGeneratePreviewsActionData())
             workbench.hideLoading()
             workbench.hideContent()
             workbench.loadingStopped(

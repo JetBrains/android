@@ -461,6 +461,21 @@ class ComposePreviewViewImplTest {
     checkEmptyPreviewState(emptyList())
   }
 
+  @Test
+  fun `empty preview state respects action order`() {
+    // Configure actions
+    fakeStudioBotActionFactory.previewGeneratorAction.apply {
+      templatePresentation.text = "Generate Preview for Composable"
+      isVisible = true
+    }
+    fakeStudioBotActionFactory.screenshotToCodeAction.apply {
+      templatePresentation.text = "Generate Code From Screenshot"
+      isVisible = true
+    }
+
+    checkEmptyPreviewState(listOf("Generate Code From Screenshot", "Generate Preview for Composable"))
+  }
+
   private fun configureComposePreviewView(psiFile: PsiFile) {
     mainFileSmartPointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
     previewView =
