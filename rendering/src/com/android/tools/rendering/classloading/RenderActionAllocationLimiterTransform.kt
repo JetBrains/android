@@ -78,7 +78,7 @@ class RenderActionAllocationLimiterTransform
 constructor(
   delegate: ClassVisitor,
   private val checkPercentage: Int = 1,
-  private val maxAllocationsPerRenderAction: Long = java.lang.Long.getLong("preview.allocation.limiter.max.threshold.count", 100_000),
+  private val maxAllocationsPerRenderAction: Long = java.lang.Long.getLong("preview.allocation.limiter.max.threshold.count", 25_000),
   private val shouldInstrument: (String, String) -> Boolean = { className, _ -> !className.startsWith("androidx/") },
 ) : ClassVisitor(Opcodes.ASM9, delegate), ClassVisitorUniqueIdProvider {
   init {

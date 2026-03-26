@@ -30,6 +30,7 @@ import com.android.tools.rendering.RenderLogger
 import com.android.tools.rendering.RenderProblem
 import com.android.tools.rendering.RenderResult
 import com.android.tools.rendering.RenderTask
+import com.android.tools.rendering.classloading.TooManyAllocationsException
 import com.android.tools.rendering.security.RenderSecurityException
 import com.google.common.truth.Truth
 import com.google.common.util.concurrent.Futures
@@ -416,6 +417,63 @@ class RenderErrorContributorImplTest {
       listOf(MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview.")),
       issues[0]!!,
     )
+  }
+
+  @Test
+  fun testTooManyAllocationsError() {
+    val operation = LogOperation { logger: RenderLogger, _: RenderResult ->
+      val throwable = TooManyAllocationsException("1 allocations exceeded in a single render action")
+      logger.error(null, null, throwable, null, null)
+    }
+
+    val issues = getRenderOutput(fixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation)
+    assertSize(1, issues)
+    assertHtmlEquals(
+      "The preview has been interrupted because it has too many allocations. " +
+        "This usually means that your code has a long loop or is doing too many allocations per render action." +
+        "<BR/><BR/><A HREF=\"\">Click here to disable the allocation limiter for this session.</A>",
+      issues[0]!!,
+    )
+    assertEquals("Too many allocations during preview rendering", issues[0]!!.summary)
+  }
+
+  @Test
+  fun testWrappedTooManyAllocationsError() {
+    val operation = LogOperation { logger: RenderLogger, _: RenderResult ->
+      val root = TooManyAllocationsException("1 allocations exceeded in a single render action")
+      val wrapped = NoClassDefFoundError("Could not initialize class com.example.myapplication.ui.theme.TypeKt")
+      wrapped.initCause(ExceptionInInitializerError(root))
+      logger.error(null, null, wrapped, null, null)
+    }
+
+    val issues = getRenderOutput(fixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation)
+    assertSize(1, issues)
+    assertHtmlEquals(
+      "The preview has been interrupted because it has too many allocations. " +
+        "This usually means that your code has a long loop or is doing too many allocations per render action." +
+        "<BR/><BR/><A HREF=\"\">Click here to disable the allocation limiter for this session.</A>",
+      issues[0]!!,
+    )
+    assertEquals("Too many allocations during preview rendering", issues[0]!!.summary)
+  }
+
+  @Test
+  fun testMessageBasedTooManyAllocationsError() {
+    val operation = LogOperation { logger: RenderLogger, _: RenderResult ->
+      // Simulate an error where the exception is part of the message but not the cause
+      val throwable = Exception("Some wrapper: com.android.tools.rendering.classloading.TooManyAllocationsException: message")
+      logger.error(null, null, throwable, null, null)
+    }
+
+    val issues = getRenderOutput(fixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation)
+    assertSize(1, issues)
+    assertHtmlEquals(
+      "The preview has been interrupted because it has too many allocations. " +
+        "This usually means that your code has a long loop or is doing too many allocations per render action." +
+        "<BR/><BR/><A HREF=\"\">Click here to disable the allocation limiter for this session.</A>",
+      issues[0]!!,
+    )
+    assertEquals("Too many allocations during preview rendering", issues[0]!!.summary)
   }
 
   @Test
