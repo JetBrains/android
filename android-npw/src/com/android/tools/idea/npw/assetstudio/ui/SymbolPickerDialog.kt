@@ -111,16 +111,25 @@ class SymbolPickerDialog(
   private val opticalSizeSliderValues = arrayOf(20, 24, 40, 48)
   private val categoriesBoxNameMap: MutableMap<String, String> = HashMap(EXPECTED_NUMBER_OF_ICONS)
 
+  companion object {
+    @VisibleForTesting const val DEFAULT_WEIGHT_INDEX = 3 // 400
+
+    @VisibleForTesting const val DEFAULT_GRADE_INDEX = 1 // 0
+
+    @VisibleForTesting const val DEFAULT_OPTICAL_SIZE_INDEX = 1 // 24
+  }
+
   private val loadingPanel = JBLoadingPanel(BorderLayout(), myDisposable)
   private val searchField = SearchTextField(false)
   private val contentPanel = SearchFieldProviderPanel(searchField)
 
   private val categoriesBox = ComboBox<String>()
   private val stylesBox = ComboBox<String>()
-  private val weightSlider = JSlider(0, weightSliderValues.size - 1)
-  private val gradeSlider = JSlider(0, gradeSliderValues.size - 1)
-  private val opticalSizeSlider = JSlider(0, opticalSizeSliderValues.size - 1)
+  private val weightSlider = JSlider(0, weightSliderValues.size - 1, DEFAULT_WEIGHT_INDEX)
+  private val gradeSlider = JSlider(0, gradeSliderValues.size - 1, DEFAULT_GRADE_INDEX)
+  private val opticalSizeSlider = JSlider(0, opticalSizeSliderValues.size - 1, DEFAULT_OPTICAL_SIZE_INDEX)
   private val refreshButton = JButton(AllIcons.General.Refresh)
+  private val resetButton = JButton(AllIcons.General.Reset)
   private val filledCheckBox = JCheckBox()
   private val iconsPanel = JPanel()
   private val licensePanel = JPanel()
@@ -131,9 +140,10 @@ class SymbolPickerDialog(
     fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: Any) = bundleRef.message(key, *params)
   }
 
-  private val weightLabel = JLabel(SymbolsBundle.message("label.weight").format(400))
-  private val gradeLabel = JLabel(SymbolsBundle.message("label.grade").format(0))
-  private val opticalSizeLabel = JLabel(SymbolsBundle.message("label.optical_size").format(24))
+  private val weightLabel = JLabel(SymbolsBundle.message("label.weight").format(weightSliderValues[DEFAULT_WEIGHT_INDEX]))
+  private val gradeLabel = JLabel(SymbolsBundle.message("label.grade").format(gradeSliderValues[DEFAULT_GRADE_INDEX]))
+  private val opticalSizeLabel =
+    JLabel(SymbolsBundle.message("label.optical_size").format(opticalSizeSliderValues[DEFAULT_OPTICAL_SIZE_INDEX]))
 
   init {
     super.init()
@@ -493,6 +503,13 @@ class SymbolPickerDialog(
     // Add listeners for the refresh button and the search field
     refreshButton.addActionListener { coroutineScope.launch { ensureFontsAndMetadataAreDownloaded(true) } }
 
+    // Add listeners for the reset button, so the sliders are reset when clicking on it
+    resetButton.addActionListener {
+      weightSlider.value = DEFAULT_WEIGHT_INDEX
+      gradeSlider.value = DEFAULT_GRADE_INDEX
+      opticalSizeSlider.value = DEFAULT_OPTICAL_SIZE_INDEX
+    }
+
     searchField.addDocumentListener(
       object : DocumentAdapter() {
         override fun textChanged(e: DocumentEvent) {
@@ -537,8 +554,13 @@ class SymbolPickerDialog(
     // sliderPanel
     filledCheckBox.text = SymbolsBundle.message("label.filled")
     refreshButton.toolTipText = SymbolsBundle.message("tooltip.refresh")
-    slidersPanel.add(filledCheckBox, gridConstraintsHelper(3, 1, 0.0, fill = GridBagConstraints.NONE, insets = JBUI.emptyInsets()))
+    resetButton.toolTipText = SymbolsBundle.message("tooltip.reset")
+    slidersPanel.add(
+      filledCheckBox,
+      gridConstraintsHelper(3, 1, 0.0, fill = GridBagConstraints.NONE, insets = JBUI.emptyInsets(), gridWidth = 2),
+    )
     slidersPanel.add(refreshButton, gridConstraintsHelper(3, 0, 0.0, fill = GridBagConstraints.NONE, insets = JBUI.emptyInsets()))
+    slidersPanel.add(resetButton, gridConstraintsHelper(4, 0, 0.0, fill = GridBagConstraints.NONE, insets = JBUI.emptyInsets()))
 
     // Add the sliders panel to the main component of the contentPanel
     panel1.add(

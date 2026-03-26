@@ -41,6 +41,7 @@ import java.nio.file.Path
 import java.util.Objects
 import javax.swing.JButton
 import javax.swing.JComboBox
+import javax.swing.JSlider
 import javax.swing.JTable
 import junit.framework.TestCase
 import kotlin.io.path.createFile
@@ -200,6 +201,51 @@ class SymbolPickerDialogTest {
         UIUtil.findComponentsOfType(symbolsPicker.createCenterPanel(), JButton::class.java).find { it.icon == AllIcons.General.Refresh }
       assertNotNull(refreshButton)
       assertEquals("Refresh", refreshButton.toolTipText)
+    }
+
+  @Test
+  fun testResetButtonResetsSliders() =
+    runBlocking(Dispatchers.Main) {
+      val testDirectory = createTempDirectory()
+      val symbolsPicker =
+        getInitializedIconPickerDialog(
+          SymbolPickerDialog(
+            projectRule.fixture.module.androidFacet!!,
+            projectRule.fixture.testRootDisposable,
+            TestSymbolsUrlProvider(testDirectory),
+            TestSymbolsMetadataUrlProvider,
+          )
+        )
+
+      val centerPanel = symbolsPicker.createCenterPanel()
+      val sliders = UIUtil.findComponentsOfType(centerPanel, JSlider::class.java)
+      assertEquals(3, sliders.size)
+      val weightSlider = sliders[0]
+      val gradeSlider = sliders[1]
+      val opticalSizeSlider = sliders[2]
+
+      // Initial defaults
+      assertEquals(SymbolPickerDialog.DEFAULT_WEIGHT_INDEX, weightSlider.value)
+      assertEquals(SymbolPickerDialog.DEFAULT_GRADE_INDEX, gradeSlider.value)
+      assertEquals(SymbolPickerDialog.DEFAULT_OPTICAL_SIZE_INDEX, opticalSizeSlider.value)
+
+      // Change values
+      weightSlider.value = 0
+      gradeSlider.value = 0
+      opticalSizeSlider.value = 0
+      assertEquals(0, weightSlider.value)
+      assertEquals(0, gradeSlider.value)
+      assertEquals(0, opticalSizeSlider.value)
+
+      val resetButton = UIUtil.findComponentsOfType(centerPanel, JButton::class.java).find { it.icon == AllIcons.General.Reset }
+      assertNotNull(resetButton)
+      assertEquals("Reset", resetButton.toolTipText)
+
+      resetButton.doClick()
+
+      assertEquals(SymbolPickerDialog.DEFAULT_WEIGHT_INDEX, weightSlider.value)
+      assertEquals(SymbolPickerDialog.DEFAULT_GRADE_INDEX, gradeSlider.value)
+      assertEquals(SymbolPickerDialog.DEFAULT_OPTICAL_SIZE_INDEX, opticalSizeSlider.value)
     }
 
   @Test
