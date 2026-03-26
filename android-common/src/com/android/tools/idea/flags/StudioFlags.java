@@ -2566,6 +2566,11 @@ public final class StudioFlags {
                     "Automatically refresh models in background.",
                     "When enabled, a background job will run every 24 hours to fetch available models for active providers.");
 
+  public static Flag<Boolean> MODEL_MANAGER_ENABLED =
+    new BooleanFlag(STUDIOBOT, "model.manager.enabled",
+                    "Enable the model manager..",
+                    "Allows individual features to use different models configured in model sets.");
+
   public static final Flag<Boolean> STUDIOBOT_INCLUDE_GRADLE_PROJECT_STRUCTURE_TOOLS_BY_DEFAULT =
     new BooleanFlag(STUDIOBOT, "include.gradle.project.structure.tools.by.default",
                     "Enable using Gradle project structure Agent tools by default",
