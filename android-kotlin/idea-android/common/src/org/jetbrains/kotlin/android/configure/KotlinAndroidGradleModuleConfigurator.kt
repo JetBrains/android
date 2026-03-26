@@ -302,10 +302,6 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         return false
     }
 
-    override fun queueSyncIfNeeded(project: Project) {
-        // Do nothing; we queue syncs for Gradle and Maven projects for Kotlin stdlib to be loaded before Java to Kotlin conversion
-    }
-
 
     companion object {
         private const val NAME = "android-gradle"
