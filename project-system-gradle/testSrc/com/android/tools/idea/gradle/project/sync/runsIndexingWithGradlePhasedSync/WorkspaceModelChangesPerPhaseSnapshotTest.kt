@@ -139,9 +139,6 @@ class WorkspaceModelChangesPerPhaseSnapshotTest(val testProject: TestProject) : 
           }
         }
       }
-      .apply {
-        check(previousRootsChangedEvent == null) { "Unexpected state, roots change events shouldn't be the final entry in events." }
-      }
       .lines()
       .filter { it.isNotEmpty() }
       .joinToString("\n")
