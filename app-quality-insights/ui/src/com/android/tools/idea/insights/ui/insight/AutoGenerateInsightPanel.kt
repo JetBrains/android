@@ -19,6 +19,7 @@ import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.GenerateInsightsAction.Action
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.HyperlinkLabel
@@ -26,7 +27,6 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.NamedColorUtil
 import javax.swing.JPanel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.mapNotNull
@@ -43,12 +43,6 @@ class AutoGenerateInsightPanel(
 
   init {
     Disposer.register(parentDisposable, this)
-    val label =
-      JBLabel().apply {
-        text = "<html><i>Insight auto generation is disabled by default to avoid unintentional charges.</i></html>"
-        foreground = NamedColorUtil.getInactiveTextColor()
-      }
-    add(label)
 
     val generateInsight =
       createLink("Generate insight", Action.GENERATE_ONCE) {
@@ -59,10 +53,21 @@ class AutoGenerateInsightPanel(
         controller.aiInsightToolkit.setAutoGenerate(true)
         controller.refreshInsight(false)
       }
+    val iconLabel =
+      JBLabel(AllIcons.General.Information).apply {
+        toolTipText =
+          """
+          <b>Insight auto-generation</b><br>
+          Automatically generate an AI insight for every issue you select using the model selected in the Agent tool window.<br>
+          Note: This may increase usage or charges. You can disable this anytime via the gear icon on any generated insight.
+          """
+            .trimIndent()
+      }
 
     val linksPanel = JPanel(HorizontalLayout(JBUI.scale(16)))
     linksPanel.add(generateInsight)
     linksPanel.add(enableAutoGenerate)
+    linksPanel.add(iconLabel)
 
     add(linksPanel)
   }
