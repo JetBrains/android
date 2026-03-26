@@ -2412,7 +2412,7 @@ private fun <T> openPreparedProject(
         // Unfortunately we do not have start-up activities run in tests so we have to trigger a refresh here.
         emulateStartupActivityForTest(project)
         val awaitGradleStartupActivity = project.coroutineScope.launch {
-          project.serviceAsync<ProjectSynchronizerUtil>().backgroundPostStartupProjectLoading()
+          project.serviceAsync<ProjectSynchronizerUtil>().applyJpsModelToProjectModel()
           project.service<AndroidGradleProjectStartupActivity.StartupService>().awaitInitialization()
         }
         PlatformTestUtil.waitForFuture(awaitGradleStartupActivity.asCompletableFuture(), TimeUnit.MINUTES.toMillis(10))
