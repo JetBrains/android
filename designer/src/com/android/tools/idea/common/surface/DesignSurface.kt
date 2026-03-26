@@ -72,6 +72,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.xml.XmlTag
 import com.intellij.ui.EditorNotifications
+import com.intellij.ui.components.Magnificator
+import com.intellij.ui.components.ZoomableViewport
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.containers.toArray
 import com.intellij.util.ui.JBUI
@@ -118,6 +120,12 @@ import org.jetbrains.annotations.VisibleForTesting
 
 private val LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 10
 private val LAYER_MOUSE_CLICK = LAYER_PROGRESS + 10
+/**
+ * The factor of magnification when evaluating the new scale value. This factor is a percentage, and increase/decrease the speed of
+ * increasing/decreasing the zoom level by magnifying. For example, when this value is 0.25 (25%), the speed of changing zoom level is
+ * reduced to 25%.
+ */
+private const val MAGNIFICATION_SENSITIVITY = 0.25
 
 /**
  * A generic design surface for use in a graphical editor.
@@ -145,7 +153,10 @@ abstract class DesignSurface<T : SceneManager>(
   // defined as open. "open" can be removed if we remove the mocks.
   open val selectionModel: SelectionModel = DefaultSelectionModel(),
   private val zoomControlsPolicy: ZoomControlsPolicy,
-) : EditorDesignSurface(BorderLayout()), Disposable, InteractableScenesSurface, ScaleListener, UiDataProvider {
+) : EditorDesignSurface(BorderLayout()), Disposable, InteractableScenesSurface, ScaleListener, UiDataProvider, ZoomableViewport {
+
+  /** The current scale of the magnification if we start the gesture or the action to magnify the [ZoomableViewport]. */
+  private var currentMagnificationScale = 1.0
 
   /** [CoroutineScope] to be used by any operations constrained to this DesignSurface */
   protected val scope = AndroidCoroutineScope(this)
@@ -505,6 +516,39 @@ abstract class DesignSurface<T : SceneManager>(
 
   /** The scrollbars value has changed. */
   val panningChanged = _panningChanged.asSharedFlow()
+
+  // ZoomableViewport implementation
+  override fun getMagnificator(): Magnificator? = Magnificator { _, at -> at }
+
+  override fun magnificationStarted(at: Point) {
+    currentMagnificationScale = zoomController.scale
+  }
+
+  override fun magnificationFinished(magnification: Double) {}
+
+  override fun magnify(magnification: Double) {
+    // The mousePoint represents the focal point for the magnification.
+    // The default center point is the center of the surface.
+    // We divide the width and height of the surface by 2 to get the exact center point.
+    val defaultCenterPoint = Point(width / 2, height / 2)
+
+    // We check if the mouse points to a specific point of the surface. However, if we are in a headless environment (like in tests) or if
+    // we can't get the actual pointer info, we default to the center of the surface because we want to zoom over the
+    // middle of the surface.
+    // Note that [GraphicsEnvironment.isHeadless()] needs to be checked before checking [MouseInfo] or an [HeadlessException] will be
+    // called.
+    val mousePointFromScreen =
+      if (GraphicsEnvironment.isHeadless()) {
+        defaultCenterPoint
+      } else {
+        MouseInfo.getPointerInfo()?.location?.also { SwingUtilities.convertPointFromScreen(it, interactionPane) }
+      }
+
+    // If any mouse point is detected, we change the scale and scroll towards the mouse point.
+    val mousePoint = mousePointFromScreen ?: defaultCenterPoint
+    val newScale = currentMagnificationScale + magnification * MAGNIFICATION_SENSITIVITY
+    zoomController.setScale(newScale, mousePoint.x, mousePoint.y)
+  }
 
   protected fun notifyPanningChanged() {
     scope.launch { _panningChanged.emit(Unit) }

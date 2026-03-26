@@ -481,6 +481,34 @@ class DesignSurfaceTest : LayoutTestCase() {
     surface.removeModels(listOf(model))
     assertTrue(surface.selectionModel.selection.isEmpty())
   }
+
+  fun testZoomMagnify() {
+    val surface = TestDesignSurface(project, testRootDisposable)
+    surface.zoomController.setScale(1.0)
+
+    val startPoint = Point(100, 100)
+    surface.magnificationStarted(startPoint)
+
+    // Zoom in: magnification > 0
+    // newScale = 1.0 [initial scale] + 0.4 [magnification] * 0.25 [sensitivity] = 1.1
+    surface.magnify(0.4)
+    assertEquals(1.1, surface.zoomController.scale, 0.01)
+
+    // Zoom out: magnification < 0
+    // newScale = 1.0 [initial scale] + (-0.4) [magnification] * 0.25 [sensitivity] = 0.9
+    surface.magnify(-0.4)
+    assertEquals(0.9, surface.zoomController.scale, 0.01)
+
+    // Ensure it respects boundaries (max scale is 10.0)
+    // 1.0 [initial scale] + 40 [magnification] * 0.25 [sensitivity] = 11.0 -> should be capped at 10.0
+    surface.magnify(40.0)
+    assertEquals(10.0, surface.zoomController.scale, 0.01)
+
+    // Ensure it respects boundaries (min scale is 0.01)
+    // 1.0 [initial scale] - 5 [magnification] * 0.25 [sensitivity] = -0.25 -> should be capped at 0.01
+    surface.magnify(-5.0)
+    assertEquals(0.01, surface.zoomController.scale, 0.01)
+  }
 }
 
 class TestInteractionHandler(surface: DesignSurface<*>) : InteractionHandlerBase(surface) {
