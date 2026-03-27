@@ -341,11 +341,7 @@ private abstract class Observer(parentDisposable: Disposable) : Disposable {
   @Volatile private var isDisposed = false
 
   init {
-    // TODO(b/405340706): replace tryRegister with register once the root cause of the early facet
-    // disposal is fixed
-    if (!Disposer.tryRegister(parentDisposable, this)) {
-      Disposer.dispose(this)
-    }
+    Disposer.register(parentDisposable, this)
   }
 
   /** Registration method that ensures this objects listeners are correctly wired up. This method will never be called more than once. */
@@ -413,11 +409,7 @@ private class ListenerMap<TKey, TObserver : ObserverWithListeners> {
         if (storedObserver === this@removeOnDisposal) map.remove(key)
       }
     }
-    // TODO(b/405340706): replace tryRegister with register once the root cause of the early facet
-    // disposal is fixed
-    if (!Disposer.tryRegister(this@removeOnDisposal, disposable)) {
-      Disposer.dispose(disposable)
-    }
+    Disposer.register(this@removeOnDisposal, disposable)
   }
 
   fun removeListener(key: TKey, listener: ResourceChangeListener) {
