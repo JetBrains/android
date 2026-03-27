@@ -24,12 +24,16 @@ import com.android.tools.idea.npw.model.NewProjectModel.Companion.nameToJavaPack
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.Language.Java
 import com.android.tools.idea.wizard.template.Language.Kotlin
+import com.intellij.testFramework.ApplicationRule
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
 
 class NewProjectModelTest {
+  @get:Rule val applicationRule = ApplicationRule()
+
   @Test
   fun nameToPackageReturnsSanitizedPackageName() {
     assertEquals("", nameToJavaPackage("#"))
