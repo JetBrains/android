@@ -96,6 +96,10 @@ import javax.swing.JRadioButton;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -111,6 +115,11 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   private static final AssetSourceType DEFAULT_ASSET_SOURCE_TYPE = AssetSourceType.CLIP_ART;
   @SuppressWarnings("UseJBColor") // Intentionally not using JBColor for Android icons.
   private static final Color DEFAULT_COLOR = Color.BLACK;
+
+  /**
+   * Opacity should be capped at 100, since it's a percentage and 100% represents full opacity.
+   */
+  private static final int OPACITY_MAX_VALUE = 100;
 
   private static final String VECTOR_ASSET_STEP_PROPERTY = "vectorAssetStep";
   private static final String OUTPUT_NAME_PROPERTY = "outputName";
@@ -389,7 +398,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     File file = myFileBrowser.getAsset().path().getValueOrNull();
     state.set(SOURCE_FILE_PROPERTY, file == null ? getProjectPath() : file.getPath(), getProjectPath());
     state.set(COLOR_PROPERTY, myColor.getValueOrNull(), DEFAULT_COLOR);
-    state.set(OPACITY_PERCENT_PROPERTY, myOpacityPercent.get(), 100);
+    state.set(OPACITY_PERCENT_PROPERTY, myOpacityPercent.get(), OPACITY_MAX_VALUE);
     state.set(AUTO_MIRRORED_PROPERTY, myAutoMirrored.get(), false);
     return state;
   }
@@ -408,7 +417,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
         String path = state.get(SOURCE_FILE_PROPERTY, getProjectPath());
         myFileBrowser.getAsset().path().setValue(new File(path));
         myColor.setValue(state.get(COLOR_PROPERTY, DEFAULT_COLOR));
-        myOpacityPercent.set(state.get(OPACITY_PERCENT_PROPERTY, 100));
+        myOpacityPercent.set(state.get(OPACITY_PERCENT_PROPERTY, OPACITY_MAX_VALUE));
         myAutoMirrored.set(state.get(AUTO_MIRRORED_PROPERTY, false));
       },
       ModalityState.any());
@@ -550,6 +559,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                   new Dimension(-1, 25), null, null, 0, false));
     myWidthTextField = new JFormattedTextField();
+    ((AbstractDocument)myWidthTextField.getDocument()).setDocumentFilter(new NumericDocumentFilter());
     myWidthTextField.setText("24");
     panel1.add(myWidthTextField,
                new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
@@ -560,6 +570,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
                new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     myHeightTextField = new JFormattedTextField();
+    ((AbstractDocument)myHeightTextField.getDocument()).setDocumentFilter(new NumericDocumentFilter());
     myHeightTextField.setText("24");
     panel1.add(myHeightTextField,
                new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
@@ -608,13 +619,14 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     myOpacitySlider.setPaintLabels(false);
     myOpacitySlider.setPaintTicks(false);
     myOpacitySlider.setPaintTrack(true);
-    myOpacitySlider.setValue(100);
+    myOpacitySlider.setValue(OPACITY_MAX_VALUE);
     panel2.add(myOpacitySlider, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
                                                     GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null,
                                                     null, 0, false));
     myOpacityValueTextField = new JTextField();
+    ((AbstractDocument)myOpacityValueTextField.getDocument()).setDocumentFilter(new NumericDocumentFilter(OPACITY_MAX_VALUE));
     myOpacityValueTextField.setHorizontalAlignment(4);
-    myOpacityValueTextField.setText("100");
+    myOpacityValueTextField.setText(String.valueOf(OPACITY_MAX_VALUE));
     panel2.add(myOpacityValueTextField, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                                             GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
                                                             new Dimension(30, -1), null, 0, false));
@@ -784,6 +796,103 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
       ParsePosition pos = new ParsePosition(0);
       Number number = myFormat.parse(value, pos);
       return number != null && pos.getIndex() == value.length() && number.doubleValue() > 0 ? Result.OK : myInvalidResult;
+    }
+  }
+
+  /**
+   * A {@link DocumentFilter} that restricts input to positive integers, optionally with a maximum value.
+   */
+  static final class NumericDocumentFilter extends DocumentFilter {
+    private final int myMax;
+
+    /**
+     * Creates a filter that allows any positive integer.
+     */
+    NumericDocumentFilter() {
+      this(Integer.MAX_VALUE);
+    }
+
+    /**
+     * Creates a filter that allows positive integers up to {@code max} (inclusive).
+     */
+    NumericDocumentFilter(int max) {
+      myMax = max;
+    }
+
+    @Override
+    public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
+      if (string == null) return;
+      StringBuilder sb = new StringBuilder();
+      String currentText = fb.getDocument().getText(0, fb.getDocument().getLength());
+      // Filter out invalid characters and ensure the result remains valid as we build it.
+      for (int i = 0; i < string.length(); i++) {
+        char c = string.charAt(i);
+        StringBuilder proposed = new StringBuilder(currentText);
+        proposed.insert(offset + sb.length(), c);
+        if (isValid(proposed.toString())) {
+          sb.append(c);
+          currentText = proposed.toString();
+        }
+      }
+      super.insertString(fb, offset, sb.toString(), attr);
+    }
+
+    @Override
+    public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
+      if (text == null) {
+        // Handle deletion. Ensure that deleting text doesn't result in an invalid state.
+        String currentText = fb.getDocument().getText(0, fb.getDocument().getLength());
+        StringBuilder proposed = new StringBuilder(currentText);
+        proposed.delete(offset, offset + length);
+        if (isValid(proposed.toString())) {
+          super.replace(fb, offset, length, null, attrs);
+        }
+        return;
+      }
+
+      StringBuilder sb = new StringBuilder();
+      String currentText = fb.getDocument().getText(0, fb.getDocument().getLength());
+      int currentLength = length;
+      // Filter the incoming text character by character.
+      for (int i = 0; i < text.length(); i++) {
+        char c = text.charAt(i);
+        StringBuilder proposed = new StringBuilder(currentText);
+        proposed.replace(offset + sb.length(), offset + sb.length() + currentLength, String.valueOf(c));
+        if (isValid(proposed.toString())) {
+          sb.append(c);
+          currentText = proposed.toString();
+          currentLength = 0; // After the first valid character, we've replaced the selection.
+        }
+      }
+
+      // If no characters from the new text were valid, but we were supposed to replace a selection,
+      // check if we can at least perform the deletion part of the replacement.
+      if (sb.isEmpty() && length > 0) {
+        StringBuilder proposed = new StringBuilder(fb.getDocument().getText(0, fb.getDocument().getLength()));
+        proposed.delete(offset, offset + length);
+        if (isValid(proposed.toString())) {
+          super.replace(fb, offset, length, "", attrs);
+        }
+      }
+      else {
+        super.replace(fb, offset, length, sb.toString(), attrs);
+      }
+    }
+
+    /**
+     * Checks if the given {@code result} string is a valid positive integer and within the allowed maximum.
+     */
+    private boolean isValid(String result) {
+      if (result.isEmpty()) return true;
+
+      if (!result.matches("\\d*")) return false;
+      try {
+        long val = Long.parseLong(result);
+        return val <= myMax;
+      }
+      catch (NumberFormatException e) {
+        return false;
+      }
     }
   }
 
