@@ -98,7 +98,7 @@ private const val TEXT_HEIGHT = 16
 private const val PADDING_BOTTOM = 8
 private const val MAX_CACHE_SIZE = 2048
 
-class SymbolPickerDialog
+open class SymbolPickerDialog
 @JvmOverloads
 constructor(
   facet: AndroidFacet,
@@ -358,9 +358,6 @@ constructor(
     if (filteredSymbolList.isEmpty()) {
       iconTable.emptyText.text = SymbolsBundle.message("table.empty")
     }
-
-    pack()
-    repaint()
   }
 
   @TestOnly fun getCurrentSymbolNames() = filteredSymbolList.map { it.displayName }

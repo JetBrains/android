@@ -484,6 +484,37 @@ class SymbolPickerDialogTest {
       }
     }
 
+  @Test
+  fun testUpdateFilterDoesNotPack() =
+    runBlocking(Dispatchers.Main) {
+      val testDirectory = createTempDirectory()
+      var packCount = 0
+      val dialog =
+        object :
+          SymbolPickerDialog(
+            projectRule.fixture.module.androidFacet!!,
+            projectRule.fixture.testRootDisposable,
+            TestSymbolsUrlProvider(testDirectory),
+            TestSymbolsMetadataUrlProvider,
+          ) {
+          override fun pack() {
+            super.pack()
+            packCount++
+          }
+        }
+
+      getInitializedIconPickerDialog(dialog)
+      val countBeforeAction = packCount
+
+      // Change a slider
+      val sliders = UIUtil.findComponentsOfType(dialog.createCenterPanel(), JSlider::class.java)
+      val weightSlider = sliders[0]
+      weightSlider.value = (weightSlider.value + 1) % weightSlider.maximum
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+      assertThat(packCount).isEqualTo(countBeforeAction)
+    }
+
   private fun getInitializedIconPickerDialog(dialog: SymbolPickerDialog): SymbolPickerDialog {
     val pickerPanel = dialog.createCenterPanel()
     pickerPanel.isVisible = true
