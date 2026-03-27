@@ -23,7 +23,6 @@ import com.android.tools.idea.observable.BindingsManager
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
-import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.android.tools.idea.wearpairing.AndroidWearPairingBundle.Companion.message
 import com.android.tools.idea.wearpairing.WearPairingManager.PairingState
@@ -163,8 +162,8 @@ class DevicesConnectionStep(
         }
 
         if (isFirstStage) {
-          phoneIDevice = model.selectedPhoneDevice.launchDeviceIfNeeded() ?: return@launch
-          wearIDevice = model.selectedWearDevice.launchDeviceIfNeeded() ?: return@launch
+          phoneIDevice = model.selectedPhoneDevice.value.launchDeviceIfNeeded() ?: return@launch
+          wearIDevice = model.selectedWearDevice.value.launchDeviceIfNeeded() ?: return@launch
           secondStageStep!!.phoneIDevice = phoneIDevice
           secondStageStep.wearIDevice = wearIDevice
 
@@ -407,12 +406,12 @@ class DevicesConnectionStep(
     canGoForward.set(true)
   }
 
-  private suspend fun OptionalProperty<PairingDevice>.launchDeviceIfNeeded(): IDevice? {
+  private suspend fun PairingDevice.launchDeviceIfNeeded(): IDevice? {
     try {
-      showUiLaunchingDevice(value.displayName)
+      showUiLaunchingDevice(displayName)
 
-      val iDevice = value.launch(project)
-      value.launch = { iDevice } // We can only launch AVDs once!
+      val iDevice = launch(project)
+      launch = { iDevice } // We can only launch AVDs once!
 
       // If it was not launched by us, it may still be booting. Wait for "boot complete".
       while (!iDevice.isOnline() || iDevice.getProperty("dev.bootcomplete") == null) {
@@ -423,9 +422,9 @@ class DevicesConnectionStep(
       return iDevice
     } catch (ex: Throwable) {
       showDeviceError(
-        header = message("wear.assistant.connection.alert.cant.start.device.title", value.displayName),
+        header = message("wear.assistant.connection.alert.cant.start.device.title", displayName),
         description = " ",
-        errorMessage = message("wear.assistant.connection.alert.cant.start.device.subtitle", value.displayName),
+        errorMessage = message("wear.assistant.connection.alert.cant.start.device.subtitle", displayName),
       )
       LOG.warn("Failed to launch device", ex)
       return null
