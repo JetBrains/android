@@ -1195,7 +1195,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
       val content2 = findContentBySerialNumber(device2SerialNumber) ?: return
 
       if (content1.manager == content2.manager) {
-        val decorator = content1.component.containingDecorator as? InternalDecoratorImpl ?: return
+        val decorator = content1.manager?.component?.containingDecorator as? InternalDecoratorImpl ?: return
         decorator.splitWithContent(content2, SwingConstants.BOTTOM, -1)
       }
 
