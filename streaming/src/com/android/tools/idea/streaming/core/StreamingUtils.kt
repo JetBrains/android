@@ -255,9 +255,9 @@ internal fun Iterable<DeviceHandle>.findByStreamingDeviceId(deviceId: StreamingD
   }
 }
 
-internal fun Iterable<DeviceHandle>.findByAvdFolder(avdFolder: Path): DeviceHandle? = firstOrNull { it.avdFolder == avdFolder }
+internal fun Iterable<DeviceHandle>.findByAvdFolder(avdFolder: Path): DeviceHandle? = find { it.avdFolder == avdFolder }
 
-private fun Iterable<DeviceHandle>.findBySerialNumber(serialNumber: String): DeviceHandle? = firstOrNull { it.serialNumber == serialNumber }
+internal fun Iterable<DeviceHandle>.findBySerialNumber(serialNumber: String): DeviceHandle? = find { it.serialNumber == serialNumber }
 
 /** AVD folder corresponding to the device handle, or null if the device is not an AVD. */
 internal val DeviceHandle.avdFolder: Path?

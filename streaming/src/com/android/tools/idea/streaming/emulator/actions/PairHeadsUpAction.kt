@@ -19,19 +19,21 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
-import com.android.tools.idea.streaming.core.findByAvdFolder
+import com.android.tools.idea.streaming.core.AbstractDevicePanel
+import com.android.tools.idea.streaming.core.findBySerialNumber
 import com.android.tools.idea.streaming.core.pairedPhoneId
 import com.android.tools.idea.streaming.core.serialNumber
-import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAware
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.ui.content.Content
 
 /**
  * Finds an AI Glasses AVD in the Running Devices window and calls [DeviceHeadsUpListener.userInvolvementRequired] with the serial numbers
- * of the AI Glasses and its paired phone.
+ * of the AI Glasses and its paired phone. If the glasses are not paired, the first running handheld device is used.
  */
 class PairHeadsUpAction : AnAction(), DumbAware {
 
@@ -39,27 +41,24 @@ class PairHeadsUpAction : AnAction(), DumbAware {
     val project = event.project ?: return
     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID) ?: return
 
-    val contents = toolWindow.contentManager.contentsRecursively
+    val contents: List<Content> = toolWindow.contentManager.contentsRecursively
+    val glassPanel = contents.findPanelOfDeviceType(DeviceType.AI_GLASSES) ?: return
+    val glassSerialNumber = glassPanel.id.serialNumber
+    val phoneSerialNumber =
+      getPairedPhoneSerialNumber(glassSerialNumber, project)
+        ?: contents.findPanelOfDeviceType(DeviceType.HANDHELD)?.id?.serialNumber
+        ?: return
 
-    for (content in contents) {
-      val panel = content.component as? EmulatorToolWindowPanel ?: continue
-      val emulator = panel.emulator
-      if (emulator.emulatorConfig.deviceType == DeviceType.AI_GLASSES) {
-        val glassSerialNumber = emulator.emulatorId.serialNumber
-        val avdFolder = emulator.emulatorId.avdFolder
+    project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).userInvolvementRequired(glassSerialNumber, phoneSerialNumber, project)
+  }
 
-        val deviceProvisioner = project.service<DeviceProvisionerService>().deviceProvisioner
-        val devices = deviceProvisioner.devices.value
+  private fun Iterable<Content>.findPanelOfDeviceType(deviceType: DeviceType): AbstractDevicePanel<*>? =
+    find { (it.component as? AbstractDevicePanel<*>)?.deviceType == deviceType }?.component as? AbstractDevicePanel<*>
 
-        val glassDevice = devices.findByAvdFolder(avdFolder) ?: continue
-        val pairedId = glassDevice.pairedPhoneId ?: continue
-
-        val pairedDevice = devices.find { it.id == pairedId } ?: continue
-        val phoneSerialNumber = pairedDevice.serialNumber ?: continue
-
-        project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).userInvolvementRequired(glassSerialNumber, phoneSerialNumber, project)
-        break
-      }
-    }
+  private fun getPairedPhoneSerialNumber(glassesSerialNumber: String, project: Project): String? {
+    val deviceProvisioner = project.service<DeviceProvisionerService>().deviceProvisioner
+    val devices = deviceProvisioner.devices.value
+    val pairedId = devices.findBySerialNumber(glassesSerialNumber)?.pairedPhoneId ?: return null
+    return devices.find { it.id == pairedId }?.serialNumber
   }
 }
