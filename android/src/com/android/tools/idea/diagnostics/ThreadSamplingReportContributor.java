@@ -15,20 +15,34 @@
  */
 package com.android.tools.idea.diagnostics;
 
+import static com.intellij.diagnostic.ThreadDumper.isEDT;
+
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.idea.diagnostics.freeze.ThreadCallTreeSorter;
 import com.android.tools.idea.diagnostics.util.FrameInfo;
 import com.android.tools.idea.diagnostics.util.ThreadCallTree;
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multiset;
+import com.google.common.collect.Multisets;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.intellij.diagnostic.LogMessage;
+import com.intellij.diagnostic.ThreadDump;
+import com.intellij.diagnostic.ThreadDumper;
 import com.intellij.openapi.diagnostic.Logger;
+// TODO: android-merge; com.intellij.platform.diagnostic.plugin.freeze is not in the studio-platform jar
+//import com.intellij.platform.diagnostic.plugin.freeze.FreezeReason;
+//import com.intellij.platform.diagnostic.plugin.freeze.PluginFreezeWatcher;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +51,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,6 +59,7 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.diagnostics.ThreadSamplingReportContributor");
   private static final int MAX_REPORT_LENGTH_BYTES = 200_000;
   public static final int DEBUGDATA_MAX_LIST_ENTRIES = 1_000;
+  private static final String NON_PLUGIN_FREEZE = "__NON_PLUGIN_FREEZE__";
 
   private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1, new ThreadFactoryBuilder().setNameFormat("ThreadSamplingReportContributor-%d").build());
   private final ThreadMXBean myThreadMXBean = ManagementFactory.getThreadMXBean();
@@ -58,6 +74,8 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
 
   private String myAwtStack = "";
   private String myReport = "";
+  private String myMainFreezeReasonPluginName = null;
+  private String myFreezeReasonPluginsOrdered = null;
   private String debugReport = "";
 
   private DiagnosticReportConfiguration myConfiguration;
@@ -109,6 +127,13 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
   public void generateReport(BiConsumer<String, String> saveReportCallback) {
     saveReportCallback.accept("hotPathStackTrace", getAWTStack());
     saveReportCallback.accept("profileDiagnostics", getReport());
+    if (myMainFreezeReasonPluginName != null) {
+      saveReportCallback.accept("plugin.name", myMainFreezeReasonPluginName);
+    }
+    if (myFreezeReasonPluginsOrdered != null) {
+      saveReportCallback.accept("plugin.names.ordered", myFreezeReasonPluginsOrdered);
+    }
+
     if (!debugReport.isEmpty()) {
       saveReportCallback.accept("freezeReportDebugInfo", debugReport);
     }
@@ -144,6 +169,42 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
     }
   }
 
+  // TODO: android-merge; PluginFreezeWatcher and FreezeReason are not in the studio-platform jar
+  //@SuppressWarnings("UnstableApiUsage")
+  //@Nullable
+  //private static FreezeReason computeFreezeReason(ThreadInfo[] allThreads) {
+  //  final LogMessage fakeLogMessage = new LogMessage(new Throwable(), null, Collections.emptyList());
+  //
+  //  ThreadDumper.sort(allThreads);
+  //  StringWriter writer = new StringWriter();
+  //  StackTraceElement[] edtStack = dumpThreadInfos(allThreads, writer);
+  //
+  //  // dumpedThreads required a NotNull LogMessage, but only uses it to include it into resulting FreezeReason. We don't need it there so
+  //  // it's ok to pass fake one.
+  //  return PluginFreezeWatcher.getInstance().dumpedThreads(fakeLogMessage, new ThreadDump(writer.toString(), edtStack, allThreads), 0);
+  //}
+
+  /**
+   * Reimplementation of {@link ThreadDumper#dumpThreadInfos} because it is a private method.
+   * And the similar {@link ThreadDumper#getThreadDumpInfo(ThreadInfo[], boolean)} will do the coroutine dump as well, that we don't need in
+   * this case and it will generate the unnecessary overhead.
+   */
+  @SuppressWarnings("UnstableApiUsage")
+  private static StackTraceElement [] dumpThreadInfos(ThreadInfo @NotNull [] threadInfo, @NotNull Writer f) {
+    StackTraceElement[] edtStack = null;
+    for (ThreadInfo info : threadInfo) {
+      if (info != null) {
+        String name = info.getThreadName();
+        StackTraceElement[] stackTrace = info.getStackTrace();
+        if (edtStack == null && isEDT(name)) {
+          edtStack = stackTrace;
+        }
+        ThreadDumper.dumpThreadInfo(info, f);
+      }
+    }
+    return edtStack;
+  }
+
   public String getAWTStack() {
     return myAwtStack;
   }
@@ -153,10 +214,19 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
     final Map<Long, ThreadCallTree> threadMap = new HashMap<>();
     long intervalMs = myConfiguration.getIntervalMs();
     long sampleCount;
+    Multiset<String> freezeReasonPluginNames = HashMultiset.create();
     synchronized (mySampledStacks) {
       sampleCount = mySampledStacks.size();
       LOG.info("Collected " + sampleCount + " samples");
       for (ThreadInfo[] sampledThreads : mySampledStacks) {
+        // TODO: android-merge; FreezeReason and computeFreezeReason need PluginFreezeWatcher, which is not in the studio-platform jar
+        //FreezeReason freezeReason = computeFreezeReason(sampledThreads.clone());
+        //if (freezeReason == null) {
+        //  freezeReasonPluginNames.add(NON_PLUGIN_FREEZE);
+        //}
+        //else {
+        //  freezeReasonPluginNames.add(freezeReason.getPluginId().toString());
+        //}
         for (ThreadInfo ti : sampledThreads) {
           ThreadCallTree callTree = threadMap.get(ti.getThreadId());
           if (callTree == null) {
@@ -181,6 +251,20 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
     }
 
     myReport = sb.toString();
+
+    // Find the most common plugin name across all freeze samples.
+    // If the majority of samples were not caused by a plugin - don't report it.
+    freezeReasonPluginNames.entrySet().stream()
+      .max(Comparator.comparingInt(Multiset.Entry::getCount))
+      .ifPresent(entry -> {
+        if (!NON_PLUGIN_FREEZE.equals(entry.getElement())) {
+          myMainFreezeReasonPluginName = entry.getElement();
+        }
+      });
+
+    myFreezeReasonPluginsOrdered = Multisets.copyHighestCountFirst(freezeReasonPluginNames).entrySet().stream()
+      .map(entry -> entry.getElement() + ":" + entry.getCount())
+      .collect(Collectors.joining(", "));
 
     // Setup debug data
     long captureTimeMs = totalFreezeDurationMs - timeElapsedBeforeCollectionStartedMs;

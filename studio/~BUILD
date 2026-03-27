@@ -492,6 +492,7 @@ studio_plugin(
         "@intellij//:intellij.libraries.skiko",
         "@intellij//:intellij.platform.debugger.impl.backend",
         "@intellij//:intellij.platform.debugger.impl.frontend",
+        "@intellij//:intellij.platform.diagnostic.freezes",
         "@intellij//:intellij.platform.images.xdebugger",
         "@intellij//:intellij.platform.jewel.foundation",
         "@intellij//:intellij.platform.jewel.ideLafBridge",
