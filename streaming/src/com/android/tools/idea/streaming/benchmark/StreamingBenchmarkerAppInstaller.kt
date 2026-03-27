@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.streaming.benchmark
 
-import com.android.adblib.AdbDeviceServices
+import com.android.adblib.AdbPackageManagerException
+import com.android.adblib.AdbSession
 import com.android.adblib.DeviceSelector
 import com.android.adblib.TextShellV2Collector
+import com.android.adblib.packageManagerServices
 import com.android.adblib.shellCommand
 import com.android.adblib.tools.install
 import com.android.tools.idea.adblib.AdbLibService
@@ -62,7 +64,7 @@ interface StreamingBenchmarkerAppInstaller {
     operator fun invoke(
       project: Project,
       deviceSerialNumber: String,
-      adb: AdbWrapper = AdbWrapper.around(AdbLibService.getSession(project).deviceServices),
+      adb: AdbWrapper = AdbWrapper.around(AdbLibService.getSession(project)),
     ): StreamingBenchmarkerAppInstaller = StreamingBenchmarkerAppInstallerImpl(project, deviceSerialNumber, adb)
   }
 
@@ -75,11 +77,11 @@ interface StreamingBenchmarkerAppInstaller {
     suspend fun uninstall(serialNumber: String): Boolean
 
     companion object {
-      fun around(adb: AdbDeviceServices): AdbWrapper =
+      fun around(session: AdbSession): AdbWrapper =
         object : AdbWrapper {
           override suspend fun install(serialNumber: String, path: Path): Boolean {
             return try {
-              adb.install(DeviceSelector.fromSerialNumber(serialNumber), listOf(path))
+              session.deviceServices.install(DeviceSelector.fromSerialNumber(serialNumber), listOf(path))
               true
             } catch (e: Exception) {
               false
@@ -87,18 +89,20 @@ interface StreamingBenchmarkerAppInstaller {
           }
 
           override suspend fun shellCommand(serialNumber: String, command: String): Boolean =
-            adb
+            session.deviceServices
               .shellCommand(DeviceSelector.fromSerialNumber(serialNumber), command)
               .withCollector(TextShellV2Collector())
               .execute()
               .first()
               .exitCode == 0
 
-          override suspend fun uninstall(serialNumber: String): Boolean {
-            // TODO android-merge AdbDeviceServices.uninstall()/UninstallResult got removed upstream, disabled for now
-            // adb.uninstall(DeviceSelector.fromSerialNumber(serialNumber), APP_PKG).status == UninstallResult.Status.SUCCESS
-            return false
-          }
+          override suspend fun uninstall(serialNumber: String): Boolean =
+            try {
+              session.packageManagerServices.uninstall(DeviceSelector.fromSerialNumber(serialNumber), APP_PKG)
+              true
+            } catch (e: AdbPackageManagerException) {
+              false
+            }
         }
     }
   }
