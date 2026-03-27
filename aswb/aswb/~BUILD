@@ -17,8 +17,6 @@ load(
     "intellij_plugin",
     "intellij_plugin_library",
     "optional_plugin_xml",
-    "plugin_deploy_zip",
-    "repackaged_files",
     "stamped_plugin_xml",
 )
 load(
@@ -247,44 +245,6 @@ intellij_plugin(
         "//tools/adt/idea/aswb/kotlin",
         "//tools/adt/idea/aswb/skylark",
         "//tools/adt/idea/aswb/terminal",
-    ],
-)
-
-repackaged_files(
-    name = "plugin_jar",
-    srcs = [":aswb_bazel"],
-    prefix = "aswb/lib",
-)
-
-repackaged_files(
-    name = "aspect_directory",
-    srcs = ["//tools/adt/idea/aswb/aspect:aspect_files"],
-    # Build aspect tools with Java 8 so they can work with any Java version in users workspace.
-    java_copts = [
-        "-source",
-        "8",
-        "-target",
-        "8",
-    ],
-    prefix = "aswb/aspect",
-    strip_prefix = "/tools/adt/idea/aswb/aspect",
-    visibility = ASWB_PACKAGES_VISIBILITY,
-)
-
-plugin_deploy_zip(
-    name = "aswb_bazel_zip",
-    srcs = [
-        ":aspect_directory",
-        ":plugin_jar",
-    ],
-    visibility = ["//visibility:public"],
-    zip_filename = "aswb_bazel.zip",
-)
-
-build_test(
-    name = "aswb_bazel_build_test",
-    targets = [
-        ":aswb_bazel_zip",
     ],
 )
 
