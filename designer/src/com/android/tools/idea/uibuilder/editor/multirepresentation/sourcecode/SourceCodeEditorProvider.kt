@@ -26,6 +26,7 @@ import com.intellij.ide.lightEdit.LightEdit
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.writeAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.extensions.ExtensionPointName
@@ -44,6 +45,7 @@ import com.intellij.openapi.fileEditor.impl.text.TextEditorState
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.util.SlowOperations
@@ -105,6 +107,10 @@ class SourceCodeEditorProvider private constructor(private val providers: Collec
     document: Document?,
     editorCoroutineScope: CoroutineScope,
   ): FileEditor {
+    val psiDocumentManager = PsiDocumentManager.getInstance(project)
+    if (document != null && !psiDocumentManager.isCommitted(document)) {
+      withContext(Dispatchers.Default) { writeAction { psiDocumentManager.commitDocument(document) } }
+    }
     val textEditor = PsiAwareTextEditorProvider().createFileEditor(project, file, document, editorCoroutineScope)
     val psiFile = readAction { PsiManager.getInstance(project).findFile(file) }
 
