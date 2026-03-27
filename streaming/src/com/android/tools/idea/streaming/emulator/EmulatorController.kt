@@ -25,6 +25,7 @@ import com.android.emulator.control.DisplayMode
 import com.android.emulator.control.DisplayModeValue
 import com.android.emulator.control.EmulatorControllerGrpc
 import com.android.emulator.control.EmulatorStatus
+import com.android.emulator.control.Environment
 import com.android.emulator.control.ExtendedControlsStatus
 import com.android.emulator.control.Image
 import com.android.emulator.control.ImageFormat
@@ -601,6 +602,17 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     emulatorControllerStub.setVirtualSceneCameraVelocity(
       cameraVelocity,
       DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetVirtualSceneCameraVelocityMethod()),
+    )
+  }
+
+  /** Sets the environment background for AI glasses. */
+  fun setEnvironment(environment: Environment, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("setEnvironment(${shortDebugString(environment)})")
+    }
+    emulatorControllerStub.setEnvironment(
+      environment,
+      DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetEnvironmentMethod()),
     )
   }
 
