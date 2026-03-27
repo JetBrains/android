@@ -38,6 +38,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.PathFileWrapper
 import com.android.sdklib.SystemImageTags
 import com.android.sdklib.devices.Device
+import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.internal.avd.ConfigKey
 import com.android.sdklib.internal.avd.EnvironmentKey
@@ -54,7 +55,6 @@ import java.io.File
 import java.nio.file.Files
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.listDirectoryEntries
-import kotlinx.coroutines.flow.map
 import org.junit.Rule
 import org.junit.Test
 
@@ -257,24 +257,19 @@ class AddDeviceWizardTest {
       val api34 = createLocalSystemImage("google_apis", listOf(), AndroidVersion(34))
       repoPackages.setLocalPkgInfos(listOf(api34))
 
-      val pixel3 = deviceManager.getDevice("pixel_3", "Google")!!
-      deviceManager.addUserDevice(
-        Device.Builder(pixel3)
-          .apply {
-            setName("APhone")
-            setId("aphone")
-          }
-          .build()
-      )
-      deviceManager.addUserDevice(
-        Device.Builder(pixel3)
-          .apply {
-            setName("ZPhone")
-            setId("zphone")
-          }
-          .build()
-      )
+      val phone = deviceManager.getDevice("medium_phone", "Generic")!!
+      for (letter in 'A'..'Z') {
+        deviceManager.addUserDevice(
+          Device.Builder(phone)
+            .apply {
+              setName("${letter}Phone")
+              setId("${letter}phone")
+            }
+            .build()
+        )
+      }
 
+      val deviceCount = deviceManager.getDevices(DeviceManager.ALL_DEVICES).size
       val source = createAddDeviceWizard()
       val wizard = createTestAddDeviceWizard(source)
 
@@ -282,7 +277,7 @@ class AddDeviceWizardTest {
 
       // Sort by name then arrow down to bring ZPhone into view
       composeTestRule.onNodeWithText("Name").performClick()
-      repeat(50) { composeTestRule.onRoot().performKeyInput { pressKey(Key.DirectionDown) } }
+      repeat(deviceCount) { composeTestRule.onRoot().performKeyInput { pressKey(Key.DirectionDown) } }
       composeTestRule.onNodeWithText("ZPhone").performClick()
 
       // Show the details, now we see ZPhone twice
