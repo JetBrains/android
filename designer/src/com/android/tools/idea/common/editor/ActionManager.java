@@ -19,10 +19,9 @@ import com.android.tools.adtui.stdui.KeyBindingKt;
 import com.android.tools.idea.common.model.DisplaySettings;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.sceneview.LabelPanel;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.surface.SceneViewErrorsPanel;
-import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.common.surface.sceneview.LabelPanel;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManagerUtilsKt;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -45,8 +44,7 @@ import org.jetbrains.annotations.Nullable;
 public abstract class ActionManager<S extends DesignSurface<?>> {
   protected final S mySurface;
 
-  @Nullable
-  private JComponent surfaceToolbar;
+  private @Nullable JComponent surfaceToolbar;
 
   protected ActionManager(@NotNull S surface) {
     mySurface = surface;
@@ -69,16 +67,14 @@ public abstract class ActionManager<S extends DesignSurface<?>> {
                                      JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
   }
 
-  @NotNull
-  public JComponent createToolbar() {
+  public @NotNull JComponent createToolbar() {
     return new ActionsToolbar(mySurface, mySurface).getToolbarComponent();
   }
 
   /**
    * Get the created surface toolbar. If the toolbar is not created, then it is created and returned.
    */
-  @NotNull
-  public JComponent getDesignSurfaceToolbar() {
+  public @NotNull JComponent getDesignSurfaceToolbar() {
     if (surfaceToolbar == null) {
       surfaceToolbar = new DesignSurfaceFloatingActionsToolbarProvider(mySurface, mySurface, mySurface).getFloatingToolbar();
     }
@@ -88,8 +84,7 @@ public abstract class ActionManager<S extends DesignSurface<?>> {
   /**
    * Returns a pre-registered action for the given action name. See {@link com.intellij.openapi.actionSystem.IdeActions}
    */
-  @Nullable
-  protected static AnAction getRegisteredActionByName(@NotNull String actionName) {
+  protected static @Nullable AnAction getRegisteredActionByName(@NotNull String actionName) {
     return com.intellij.openapi.actionSystem.ActionManager.getInstance().getAction(actionName);
   }
 
@@ -107,23 +102,20 @@ public abstract class ActionManager<S extends DesignSurface<?>> {
    * @param leafComponent The target component for the pop-up menu (e.g. The right-clicked component)
    * @param mouseEvent The mouse event that triggered the pop-up menu.
    */
-  @NotNull
-  public abstract DefaultActionGroup getPopupMenuActions(@Nullable NlComponent leafComponent, @NotNull MouseEvent mouseEvent);
+  public abstract @NotNull DefaultActionGroup getPopupMenuActions(@Nullable NlComponent leafComponent, @NotNull MouseEvent mouseEvent);
 
   /**
    * Creates the actions for the given {@link NlComponent}s.
    *
    * @param selection The selected {@link NlComponent}s in {@link DesignSurface}.
    */
-  @NotNull
-  public abstract DefaultActionGroup getToolbarActions(@NotNull List<NlComponent> selection);
+  public abstract @NotNull DefaultActionGroup getToolbarActions(@NotNull List<NlComponent> selection);
 
   /**
    * Returns the actions for the context toolbar of a {@link SceneView}. The actions should be
    * specific to a {@link SceneView}. The method returns an empty list if no toolbar is needed.
    */
-  @NotNull
-  public List<AnAction> getSceneViewContextToolbarActions() {
+  public @NotNull List<AnAction> getSceneViewContextToolbarActions() {
     return Collections.emptyList();
   }
 
@@ -131,8 +123,7 @@ public abstract class ActionManager<S extends DesignSurface<?>> {
    * Returns an action with the status icon for a {@link SceneView}.
    * The method returns null when the status icon is not needed.
    */
-  @Nullable
-  public AnAction getSceneViewStatusIconAction() {
+  public @Nullable AnAction getSceneViewStatusIconAction() {
     return null;
   }
 
@@ -140,8 +131,7 @@ public abstract class ActionManager<S extends DesignSurface<?>> {
    * Creates a {@link LabelPanel} with a label for a {@link SceneView}.
    * @param isPartOfOrganizationGroup defines whenever created {@link LabelPanel} belongs to Organization Group.
    */
-  @NotNull
-  public LabelPanel createSceneViewLabel(@NotNull SceneView sceneView,
+  public @NotNull LabelPanel createSceneViewLabel(@NotNull SceneView sceneView,
                                          CoroutineScope scope,
                                          StateFlow<Boolean> isPartOfOrganizationGroup) {
     DisplaySettings displaySettings = sceneView.getSceneManager().getModel().getDisplaySettings();
@@ -151,8 +141,7 @@ public abstract class ActionManager<S extends DesignSurface<?>> {
   /**
    * Creates a {@link SceneViewErrorsPanel} for a {link SceneView}.
    */
-  @NotNull
-  public JComponent createErrorPanel(@NotNull SceneView sceneView) {
+  public @NotNull JComponent createErrorPanel(@NotNull SceneView sceneView) {
     return new SceneViewErrorsPanel(() -> {
       // If there is a valid image, never display the error panel.
       if (LayoutlibSceneManagerUtilsKt.hasValidImage(sceneView)){
@@ -173,8 +162,7 @@ public abstract class ActionManager<S extends DesignSurface<?>> {
    * {@link com.android.tools.idea.ui.designer.overlays.OverlayProvider}is installed
    * and an overlay is being displayed/ cached.
    */
-  @Nullable
-  public JComponent getSceneViewLeftBar(@NotNull SceneView sceneView) {
+  public @Nullable JComponent getSceneViewLeftBar(@NotNull SceneView sceneView) {
     return null;
   }
 
@@ -182,8 +170,7 @@ public abstract class ActionManager<S extends DesignSurface<?>> {
    * Returns the right bar for a {@link SceneView}.
    * It is at the right of the {@link SceneView}.
    */
-  @Nullable
-  public JComponent getSceneViewRightBar(@NotNull SceneView sceneView) {
+  public @Nullable JComponent getSceneViewRightBar(@NotNull SceneView sceneView) {
     return null;
   }
 }
