@@ -49,7 +49,9 @@ class MemoryProbeTest {
     second.prev = first
     third.next = first
     third.prev = second
-    assertThat(check(first)).isIn(Range.closed(160L, 196L)) // Actual number can vary with JRE
+    // 3 * 40 bytes (minimum size of Chain) = 120 bytes minimum
+    // Note: DebugReflectionUtil.walkObjects in IntelliJ 2026.1+ now properly deduplicates root objects
+    assertThat(check(first)).isIn(Range.closed(120L, 156L)) // Actual number can vary with JRE
   }
 
   private fun check(value: Any): Long {
