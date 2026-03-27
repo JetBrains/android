@@ -1,3 +1,4 @@
+load("//tools/adt/idea/emulator-snapshots:emulator_test_env.bzl", "emulator_snapshot_data", "emulator_snapshot_jvm_flags")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 
 # managed by go/iml_to_build
@@ -165,7 +166,8 @@ iml_test(
         "//tools/adt/idea/streaming/screen-sharing-agent",
         "//tools/adt/idea/streaming/screen-sharing-agent:native/x86_64/libscreen-sharing-agent.so",
         "@system_image_android-30_default_x86_64//:x86_64-android-30-images",
-    ],
+    ] + emulator_snapshot_data("@system_image_android-30_default_x86_64//:x86_64-android-30-images"),
+    jvm_flags = emulator_snapshot_jvm_flags("@system_image_android-30_default_x86_64//:x86_64-android-30-images"),
     module = ":intellij.android.streaming.integration",
     tags = [
         "ci:studio-linux_very_flaky",  # b/303195243
@@ -189,7 +191,8 @@ iml_test(
         "//tools/adt/idea/streaming/screen-sharing-agent",
         "//tools/adt/idea/streaming/screen-sharing-agent:native/x86_64/libscreen-sharing-agent.so",
         "@system_image_android-35_default_x86_64//:x86_64-android-35-images",
-    ],
+    ] + emulator_snapshot_data("@system_image_android-35_default_x86_64//:x86_64-android-35-images"),
+    jvm_flags = emulator_snapshot_jvm_flags("@system_image_android-35_default_x86_64//:x86_64-android-35-images"),
     module = ":intellij.android.streaming.integration",
     tags = [
         "noci:studio-win",
@@ -211,7 +214,8 @@ iml_test(
         "//tools/adt/idea/streaming/screen-sharing-agent",
         "//tools/adt/idea/streaming/screen-sharing-agent:native/x86_64/libscreen-sharing-agent.so",
         "@system_image_android-35_default_x86_64//:x86_64-android-35-images",
-    ],
+    ] + emulator_snapshot_data("@system_image_android-35_default_x86_64//:x86_64-android-35-images"),
+    jvm_flags = emulator_snapshot_jvm_flags("@system_image_android-35_default_x86_64//:x86_64-android-35-images"),
     module = ":intellij.android.streaming.integration",
     tags = [
         "ci:studio-linux_very_flaky",  # b/271008444
