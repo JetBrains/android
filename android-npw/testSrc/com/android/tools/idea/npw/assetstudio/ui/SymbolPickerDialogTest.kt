@@ -441,6 +441,49 @@ class SymbolPickerDialogTest {
       }
     }
 
+  @Test
+  fun testOkButtonDoesNotBlinkOnSelectionChange() =
+    runBlocking(Dispatchers.Main) {
+      val testDirectory = createTempDirectory()
+      val dialog =
+        SymbolPickerDialog(
+          projectRule.fixture.module.androidFacet!!,
+          projectRule.fixture.testRootDisposable,
+          TestSymbolsUrlProvider(testDirectory),
+          TestSymbolsMetadataUrlProvider,
+          vdIconLoader = { _, _, _, _ -> org.mockito.Mockito.mock(com.android.ide.common.vectordrawable.VdIcon::class.java) },
+        )
+
+      try {
+        getInitializedIconPickerDialog(dialog)
+        val table = UIUtil.findComponentOfType(dialog.createCenterPanel(), JBTable::class.java)!!
+
+        // Select first icon and wait for OK to be enabled
+        table.setRowSelectionInterval(0, 0)
+        table.setColumnSelectionInterval(0, 0)
+        val waitOk =
+          object : WaitFor(3000) {
+            override fun condition(): Boolean {
+              PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+              return dialog.isOKActionEnabled
+            }
+          }
+        assertTrue(waitOk.isConditionRealized)
+
+        // Select another icon.
+        table.setColumnSelectionInterval(1, 1)
+
+        // Verify it remains enabled immediately, i.e. no blinking to false before dispatching events.
+        assertTrue(dialog.isOKActionEnabled, "OK button should not be disabled when changing selection")
+
+        // Also check the button remains enabled after dispatching events (for completeness).
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+        assertTrue(dialog.isOKActionEnabled)
+      } finally {
+        dialog.close(0)
+      }
+    }
+
   private fun getInitializedIconPickerDialog(dialog: SymbolPickerDialog): SymbolPickerDialog {
     val pickerPanel = dialog.createCenterPanel()
     pickerPanel.isVisible = true

@@ -275,8 +275,6 @@ constructor(
   }
 
   private fun selectVdIcon(icon: MaterialSymbolsVirtualFile) {
-    isOKActionEnabled = false
-
     coroutineScope.launch {
       val vdIcon = vdIconLoader(icon.symbolConfiguration, icon.metadata, metadata, materialSymbolsUrlProvider)
       selectedIcon = vdIcon
