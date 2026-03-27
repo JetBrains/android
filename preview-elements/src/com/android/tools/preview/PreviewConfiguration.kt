@@ -43,6 +43,9 @@ const val UNDEFINED_DIMENSION = -1
 const val MIN_DIMENSION_DP = 1
 const val MAX_DIMENSION_DP = 3000
 
+/** Maximum font scale that can be set for a preview. */
+const val MAX_FONT_SCALE = 10f
+
 /** Value to use for the wallpaper attribute when none has been specified. */
 private const val NO_WALLPAPER_SELECTED = -1
 
@@ -93,7 +96,7 @@ constructor(
         width = width?.takeIf { it != UNDEFINED_DIMENSION }?.coerceIn(MIN_DIMENSION_DP, MAX_DIMENSION_DP) ?: UNDEFINED_DIMENSION,
         height = height?.takeIf { it != UNDEFINED_DIMENSION }?.coerceIn(MIN_DIMENSION_DP, MAX_DIMENSION_DP) ?: UNDEFINED_DIMENSION,
         locale = locale ?: "",
-        fontScale = max(0f, fontScale ?: 1f),
+        fontScale = fontScale?.coerceIn(0f, MAX_FONT_SCALE) ?: 1f,
         uiMode = uiMode ?: 0,
         deviceSpec = device ?: NO_DEVICE_SPEC,
         wallpaper = wallpaper ?: NO_WALLPAPER_SELECTED,

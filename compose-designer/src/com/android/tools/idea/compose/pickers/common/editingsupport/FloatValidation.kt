@@ -19,10 +19,10 @@ import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.adtui.model.stdui.EditingValidation
 
-/** [EditingValidation] instance that validates for positive (>0) float numbers. */
-object FloatValidator : EditingValidation {
+/** [EditingValidation] instance that validates for positive (>0) float numbers, optionally checking against a maximum value. */
+class FloatValidator(private val maxValueAllowed: Float? = null) : EditingValidation {
   override fun invoke(editedValue: String?): Pair<EditingErrorCategory, String> {
     if (editedValue.isNullOrBlank()) return EDITOR_NO_ERROR
-    return validateFloat(editedValue = editedValue, validateSuffix = true, canBeZero = false)
+    return validateFloat(editedValue = editedValue, validateSuffix = true, canBeZero = false, maxValueAllowed = maxValueAllowed)
   }
 }
