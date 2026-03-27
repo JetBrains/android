@@ -62,6 +62,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 class AiInsightToolkitTest {
@@ -315,15 +316,24 @@ class AiInsightToolkitTest {
     assertThat(projectRule.project.service<AppInsightsSettings>().isInsightAutoGenerateEnabled("test@google.com")).isFalse()
   }
 
+  @Test
+  fun `showOnboarding calls first available contributor showOnboarding`() {
+    val contributor = mock<AiInsightContributor>()
+    whenever(contributor.canContribute()).thenReturn(true)
+    ExtensionTestUtil.maskExtensions(AiInsightContributor.EP_NAME, listOf(contributor), projectRule.disposable)
+
+    val toolkit = createToolkit()
+    toolkit.showOnboarding()
+
+    verify(contributor).showOnboarding(projectRule.project)
+  }
+
   private fun createToolkit(
     cache: AiInsightCache = AiInsightCache(),
     codeContextResolver: CodeContextResolver = FakeCodeContextResolver(emptyList()),
     fetchInsightCondition: (FailureType, Event) -> LoadingState.Done<AiInsight>? = { _, _ -> null },
   ) =
     object : AiInsightToolkit(projectRule.project, codeContextResolver, cache) {
-      override val aiInsightOnboardingProvider: InsightsOnboardingProvider
-        get() = StubInsightsOnboardingProvider()
-
       override suspend fun validateFetchInsightPrecondition(failureType: FailureType, event: Event) =
         fetchInsightCondition(failureType, event)
     }
@@ -336,6 +346,8 @@ class AiInsightToolkitTest {
     val contributor =
       object : AiInsightContributor {
         override fun canContribute() = true
+
+        override fun showOnboarding(project: Project) = Unit
 
         override suspend fun fetchInsight(
           connection: Connection,

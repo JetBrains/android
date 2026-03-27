@@ -22,7 +22,6 @@ import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerImpl
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.OfflineStatusManagerImpl
-import com.android.tools.idea.insights.ai.GeminiAiInsightsOnboardingProvider
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolverImpl
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.AppInsightsTrackerImpl
@@ -236,7 +235,7 @@ class VitalsConfigurationManager(
               AppInsightsToolWindowFactory.showBalloon(project, MessageType.ERROR, msg, hyperlinkListener)
             },
             defaultFilters = createVitalsFilters(),
-            aiInsightToolkit = VitalsAiInsightToolkit(project, GeminiAiInsightsOnboardingProvider(project), codeContextResolver),
+            aiInsightToolkit = VitalsAiInsightToolkit(project, codeContextResolver),
             cache = cache,
           )
         controllerDeferred.complete(vitalsController)

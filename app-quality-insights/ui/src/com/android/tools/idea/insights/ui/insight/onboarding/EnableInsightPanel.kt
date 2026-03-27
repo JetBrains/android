@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.insights.ui.insight.onboarding
 
-import com.android.tools.idea.insights.ai.InsightsOnboardingProvider
-import com.android.tools.idea.insights.model.connection.Connection
+import com.android.tools.idea.insights.ai.AiInsightToolkit
 import com.android.tools.idea.insights.ui.AppInsightsStatusText
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TITLE_FORMAT
@@ -25,16 +24,8 @@ import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import javax.swing.JButton
 import javax.swing.JPanel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 
-class EnableInsightPanel(
-  scope: CoroutineScope,
-  private val selectedConnectionStateFlow: StateFlow<Connection?>,
-  insightsOnboardingProvider: InsightsOnboardingProvider,
-) : JPanel(GridBagLayout()) {
+class EnableInsightPanel(toolkit: AiInsightToolkit) : JPanel(GridBagLayout()) {
   private val enableInsightEmptyText =
     AppInsightsStatusText(this) { true }
       .apply {
@@ -42,10 +33,7 @@ class EnableInsightPanel(
         appendLine("You can set up Gemini and enable insights via the button below.", EMPTY_STATE_TEXT_FORMAT, null)
       }
 
-  val button =
-    JButton("Enable Insights").apply {
-      addActionListener { selectedConnectionStateFlow.value?.let { insightsOnboardingProvider.performOnboardingAction(it) } }
-    }
+  val button = JButton("Enable Insights").apply { addActionListener { toolkit.showOnboarding() } }
 
   private val gbc =
     GridBagConstraints().apply {
@@ -62,7 +50,5 @@ class EnableInsightPanel(
 
     gbc.apply { gridy = 3 }
     add(button, gbc)
-
-    insightsOnboardingProvider.buttonEnabledState().onEach { enabled -> button.isEnabled = enabled }.launchIn(scope)
   }
 }

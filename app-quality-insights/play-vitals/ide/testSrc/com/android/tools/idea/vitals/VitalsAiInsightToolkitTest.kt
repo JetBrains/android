@@ -20,7 +20,6 @@ import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.AiInsightContributor
 import com.android.tools.idea.insights.ai.InsightSource
-import com.android.tools.idea.insights.ai.StubInsightsOnboardingProvider
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolverImpl
 import com.android.tools.idea.insights.model.connection.Connection
@@ -53,6 +52,8 @@ class VitalsAiInsightToolkitTest {
       object : AiInsightContributor {
         override fun canContribute(): Boolean = true
 
+        override fun showOnboarding(project: Project) = Unit
+
         override suspend fun fetchInsight(
           connection: Connection,
           event: Event,
@@ -64,8 +65,7 @@ class VitalsAiInsightToolkitTest {
       }
     ExtensionTestUtil.maskExtensions(AiInsightContributor.EP_NAME, listOf(client), projectRule.disposable)
 
-    aiInsightToolkit =
-      VitalsAiInsightToolkit(projectRule.project, StubInsightsOnboardingProvider(), CodeContextResolverImpl(projectRule.project))
+    aiInsightToolkit = VitalsAiInsightToolkit(projectRule.project, CodeContextResolverImpl(projectRule.project))
   }
 
   @Test

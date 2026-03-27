@@ -33,10 +33,7 @@ import com.android.tools.idea.insights.TEST_FILTERS
 import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.AiInsightToolkit
-import com.android.tools.idea.insights.ai.FakeAiInsightToolkit
-import com.android.tools.idea.insights.ai.StubInsightsOnboardingProvider
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
-import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.ui.AI_INSIGHT_TOOLKIT_KEY
 import com.android.tools.idea.insights.ui.APP_INSIGHTS_TRACKER_KEY
 import com.android.tools.idea.insights.ui.FakeGeminiPluginApi
@@ -61,18 +58,20 @@ import javax.swing.JButton
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.fail
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -100,8 +99,6 @@ class InsightContentPanelTest {
   private val secondaryText: String
     get() = insightContentPanel.emptyStateText.secondaryComponent.toString()
 
-  private val enableInsightDeferred = CompletableDeferred<Boolean>(null)
-
   private val mockController = mock<AppInsightsProjectLevelController>()
 
   private val mockAiInsightToolkit = mock<AiInsightToolkit>()
@@ -110,12 +107,6 @@ class InsightContentPanelTest {
 
   private lateinit var fakeGeminiPluginApi: FakeGeminiPluginApi
   private val scope = CoroutineScope(EmptyCoroutineContext)
-  private val onboardingProvider =
-    object : StubInsightsOnboardingProvider() {
-      override fun performOnboardingAction(connection: Connection) {
-        enableInsightDeferred.complete(true)
-      }
-    }
 
   @Before
   fun setup() = runBlocking {
@@ -131,11 +122,7 @@ class InsightContentPanelTest {
       .whenever(mockController)
       .state
     doReturn(projectRule.project).whenever(mockController).project
-    doReturn(FakeAiInsightToolkit(projectRule.project, aiInsightOnboardingProvider = onboardingProvider))
-      .whenever(mockController)
-      .aiInsightToolkit
     doReturn(mockAiInsightToolkit).whenever(mockController).aiInsightToolkit
-    doReturn(onboardingProvider).whenever(mockAiInsightToolkit).aiInsightOnboardingProvider
     doReturn(FAKE_INSIGHTS_PROVIDER).whenever(mockController).provider
     fakeGeminiPluginApi = FakeGeminiPluginApi()
     fakeGeminiPluginApi.available = false
@@ -207,6 +194,8 @@ class InsightContentPanelTest {
 
   @Test
   fun `test user needs onboarding shows enable insight button`() = runBlocking {
+    val mutex = Mutex(locked = true)
+    doAnswer { mutex.unlock() }.whenever(mockAiInsightToolkit).showOnboarding()
     currentInsightFlow.update { LoadingState.Unauthorized("") }
 
     val fakeUi = FakeUi(insightContentPanel)
@@ -222,7 +211,7 @@ class InsightContentPanelTest {
     assertThat(button.isVisible).isTrue()
 
     button.doClick()
-    assertThat(enableInsightDeferred.await()).isTrue()
+    withTimeout(2.seconds) { mutex.lock() }
   }
 
   @Test

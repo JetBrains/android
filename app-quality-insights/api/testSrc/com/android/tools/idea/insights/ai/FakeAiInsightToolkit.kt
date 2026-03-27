@@ -23,11 +23,8 @@ import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.intellij.openapi.project.Project
 
-open class FakeAiInsightToolkit(
-  project: Project,
-  codeContextResolver: CodeContextResolver = FakeCodeContextResolver(emptyList()),
-  override val aiInsightOnboardingProvider: InsightsOnboardingProvider = StubInsightsOnboardingProvider(),
-) : AiInsightToolkit(project, codeContextResolver) {
+open class FakeAiInsightToolkit(project: Project, codeContextResolver: CodeContextResolver = FakeCodeContextResolver(emptyList())) :
+  AiInsightToolkit(project, codeContextResolver) {
 
   private val fetchInsightCall = CallInProgress<LoadingState.Done<AiInsight>>()
 

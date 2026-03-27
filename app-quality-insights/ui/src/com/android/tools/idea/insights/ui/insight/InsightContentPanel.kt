@@ -118,8 +118,7 @@ class InsightContentPanel(
   private val selectedConnectionFlow =
     controller.state.map { state -> state.connections.selected }.stateIn(scope, SharingStarted.Eagerly, null)
 
-  private val enableInsightPanel =
-    EnableInsightPanel(scope, selectedConnectionFlow, controller.aiInsightToolkit.aiInsightOnboardingProvider)
+  private val enableInsightPanel = EnableInsightPanel(controller.aiInsightToolkit)
 
   private val loadingPanel =
     JBLoadingPanel(BorderLayout(), this).apply {

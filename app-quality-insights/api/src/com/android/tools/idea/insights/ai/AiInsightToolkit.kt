@@ -46,7 +46,10 @@ abstract class AiInsightToolkit(
   private val insightCache: AiInsightCache = AiInsightCache(),
 ) {
 
-  abstract val aiInsightOnboardingProvider: InsightsOnboardingProvider
+  /** Invokes onboarding action. */
+  fun showOnboarding() {
+    AiInsightContributor.getFirstAvailableContributor()?.showOnboarding(project)
+  }
 
   /**
    * Validates whether an AI insight can be fetched for the [fetchInsight] call.
