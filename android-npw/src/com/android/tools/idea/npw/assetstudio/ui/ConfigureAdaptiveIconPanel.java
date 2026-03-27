@@ -39,6 +39,7 @@ import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.assetstudio.wizard.PersistentState;
 import com.android.tools.idea.npw.assetstudio.wizard.PersistentStateUtil;
 import com.android.tools.idea.observable.AbstractProperty;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.ObservableValue;
@@ -281,6 +282,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
   private JPanel myMonochromeTrimOptionsPanel;
   private JSlider myMonochromeResizeSlider;
   private JTextField myMonochromeResizeValueTextField;
+  private JLabel myMonochromeResizeValueLabel;
   private JPanel myMonochromeAssetRadioButtonsPanel;
   private JPanel myMonochromeResizeSliderPanel;
   private JTextField myMonochromeLayerNameTextField;
@@ -795,7 +797,11 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     else {
       layoutPropertiesBuilder.put(new EnabledProperty(myForegroundTrimYesRadioButton), foregroundIsResizable);
       layoutPropertiesBuilder.put(new EnabledProperty(myForegroundTrimNoRadioButton), foregroundIsResizable);
+      layoutPropertiesBuilder.put(new EnabledProperty(myForegroundTrimLabel), foregroundIsResizable);
       layoutPropertiesBuilder.put(new EnabledProperty(myForegroundResizeSlider), foregroundIsResizable);
+      layoutPropertiesBuilder.put(new EnabledProperty(myForegroundResizeValueTextField), foregroundIsResizable);
+      layoutPropertiesBuilder.put(new EnabledProperty(myForegroundResizeLabel), foregroundIsResizable);
+      layoutPropertiesBuilder.put(new EnabledProperty(myForegroundResizeValueLabel), foregroundIsResizable);
     }
 
     // Show and hide selected asset types for monochrome layer
@@ -815,7 +821,11 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
       else {
         layoutPropertiesBuilder.put(new EnabledProperty(myMonochromeTrimYesRadioButton), monochromeIsResizable);
         layoutPropertiesBuilder.put(new EnabledProperty(myMonochromeTrimNoRadioButton), monochromeIsResizable);
+        layoutPropertiesBuilder.put(new EnabledProperty(myMonochromeTrimLabel), monochromeIsResizable);
         layoutPropertiesBuilder.put(new EnabledProperty(myMonochromeResizeSlider), monochromeIsResizable);
+        layoutPropertiesBuilder.put(new EnabledProperty(myMonochromeResizeValueTextField), monochromeIsResizable);
+        layoutPropertiesBuilder.put(new EnabledProperty(myMonochromeResizeLabel), monochromeIsResizable);
+        layoutPropertiesBuilder.put(new EnabledProperty(myMonochromeResizeValueLabel), monochromeIsResizable);
       }
     }
 
@@ -832,7 +842,11 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     else {
       layoutPropertiesBuilder.put(new EnabledProperty(myBackgroundTrimYesRadioButton), backgroundIsResizable);
       layoutPropertiesBuilder.put(new EnabledProperty(myBackgroundTrimNoRadioButton), backgroundIsResizable);
+      layoutPropertiesBuilder.put(new EnabledProperty(myBackgroundTrimLabel), backgroundIsResizable);
       layoutPropertiesBuilder.put(new EnabledProperty(myBackgroundResizeSlider), backgroundIsResizable);
+      layoutPropertiesBuilder.put(new EnabledProperty(myBackgroundResizeValueTextField), backgroundIsResizable);
+      layoutPropertiesBuilder.put(new EnabledProperty(myBackgroundResizeLabel), backgroundIsResizable);
+      layoutPropertiesBuilder.put(new EnabledProperty(myBackgroundResizeValueLabel), backgroundIsResizable);
     }
 
     layoutPropertiesBuilder.put(new EnabledProperty(myLegacyIconShapeComboBox), new SelectedProperty(myGenerateLegacyIconYesRadioButton));
@@ -1996,16 +2010,16 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     myMonochromeResizeValueTextField.setHorizontalAlignment(4);
     myMonochromeResizeValueTextField.setText("100");
     myMonochromeResizeSliderPanel.add(myMonochromeResizeValueTextField,
-                                      new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                                          GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
-                                                          new Dimension(30, -1), null, 0, false));
-    JLabel monochromeResizeValueLabel = new JLabel();
-    monochromeResizeValueLabel.setHorizontalAlignment(4);
-    monochromeResizeValueLabel.setText("%");
-    myMonochromeResizeSliderPanel.add(monochromeResizeValueLabel,
-                                      new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                                          GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
-                                                          new Dimension(-1, -1), null, 0, false));
+                                     new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                         GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                         new Dimension(30, -1), null, 0, false));
+    myMonochromeResizeValueLabel = new JLabel();
+    myMonochromeResizeValueLabel.setHorizontalAlignment(4);
+    myMonochromeResizeValueLabel.setText("%");
+    myMonochromeResizeSliderPanel.add(myMonochromeResizeValueLabel,
+                                     new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                         GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                         new Dimension(-1, -1), null, 0, false));
     final Spacer spacer2 = new Spacer();
     myMonochromeAllOptionsPanel.add(spacer2,
                                     new GridConstraints(5, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
@@ -2129,5 +2143,65 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     IMAGE,
     CLIP_ART,
     TEXT,
+  }
+
+  @VisibleForTesting
+  @NotNull
+  public ImageAssetBrowser getForegroundImageAssetBrowser() {
+    return myForegroundImageAssetBrowser;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  public ImageAssetBrowser getBackgroundImageAssetBrowser() {
+    return myBackgroundImageAssetBrowser;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  public JRadioButton getBackgroundColorRadioButton() {
+    return myBackgroundColorRadioButton;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  public JRadioButton getBackgroundImageRadioButton() {
+    return myBackgroundImageRadioButton;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  public JSlider getBackgroundResizeSlider() {
+    return myBackgroundResizeSlider;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  public JTextField getBackgroundResizeValueTextField() {
+    return myBackgroundResizeValueTextField;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  public JRadioButton getBackgroundTrimYesRadioButton() {
+    return myBackgroundTrimYesRadioButton;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  public JRadioButton getBackgroundTrimNoRadioButton() {
+    return myBackgroundTrimNoRadioButton;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  public JSlider getForegroundResizeSlider() {
+    return myForegroundResizeSlider;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  public JTextField getForegroundResizeValueTextField() {
+    return myForegroundResizeValueTextField;
   }
 }
