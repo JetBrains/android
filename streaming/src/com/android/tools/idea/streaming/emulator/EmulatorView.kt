@@ -831,7 +831,7 @@ internal class EmulatorView(
   }
 
   internal fun displayModeChanged(displayModeId: DisplayModeValue) {
-    val displayMode = emulatorConfig.displayModes.firstOrNull { it.displayModeId == displayModeId } ?: return
+    val displayMode = emulatorConfig.displayModes.find { it.displayModeId == displayModeId } ?: return
     requestScreenshotFeed(displayMode.displaySize, displayOrientationQuadrants)
   }
 
@@ -1375,7 +1375,7 @@ internal class EmulatorView(
       val imageFormat = message.format
       val imageRotation = imageFormat.rotation.rotation.number
       val frameOriginationTime: Long = message.timestampUs / 1000
-      val displayMode: DisplayMode? = emulatorConfig.displayModes.firstOrNull { it.displayModeId == imageFormat.displayMode }
+      val displayMode: DisplayMode? = emulatorConfig.displayModes.find { it.displayModeId == imageFormat.displayMode }
 
       val width = imageFormat.width
       val height = imageFormat.height

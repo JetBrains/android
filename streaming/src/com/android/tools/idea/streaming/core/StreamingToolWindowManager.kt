@@ -661,7 +661,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
 
   private fun findPairedContent(device: DeviceHandle, devices: List<DeviceHandle>): Content? {
     val pairedId = device.pairedPhoneId ?: device.pairedGlassesId ?: return null
-    return buildContentDeviceHandleMapping(devices).firstOrNull { it.second.id == pairedId }?.first
+    return buildContentDeviceHandleMapping(devices).find { it.second.id == pairedId }?.first
   }
 
   private fun removeEmulatorPanel(emulator: EmulatorController): Boolean {
@@ -734,7 +734,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
     val layoutStorage = PairedDevicesLayoutStorage.getInstance()
     for ((content, device) in deviceHandleContentPairs) {
       val pairedPhoneId = device.pairedPhoneId ?: continue
-      val pairedContent = deviceHandleContentPairs.firstOrNull { it.second.id == pairedPhoneId }?.first ?: continue
+      val pairedContent = deviceHandleContentPairs.find { it.second.id == pairedPhoneId }?.first ?: continue
       val layoutKey = device.id
       if (content.manager == pairedContent.manager) {
         if (content.isSelected) {
