@@ -169,10 +169,7 @@ iml_test(
     tags_linux = ["block-network"],
     # Commented out due to b/242358149
     # tags_mac = ["block-network"],
-    tags_windows = [
-        "block-network",
-        "noci:studio-win",  # b/401592795
-    ],
+    tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.projectsystem.gradle.GradleTokensTest",
 )
 
