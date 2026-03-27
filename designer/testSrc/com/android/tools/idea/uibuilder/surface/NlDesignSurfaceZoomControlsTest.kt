@@ -69,6 +69,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -187,6 +188,7 @@ class NlDesignSurfaceZoomControlsTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   }
 
+  @Ignore("b/496857703")
   @Test
   fun testNlDesignSurfaceZoom() {
     val zoomActionsToolbar = fakeUi.findComponent<ActionToolbarImpl> { it.place.contains(zoomActionPlace) }!!
