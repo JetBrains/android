@@ -2690,6 +2690,11 @@ public final class StudioFlags {
     new StringFlag(STUDIOBOT, "npa.mockup.image.generation.model.name",
                    "New Project agent Mockups generation model name", "The model name used for generating mockups inside new project agent", "gemini-3-pro-image-preview");
 
+  public static final Flag<Boolean> IMPORT_PROJECT_ENABLED =
+    new BooleanFlag(STUDIOBOT, "import.project.enabled",
+                    "Enable Import Project migration",
+                    "Enables the Import Project migration feature in the UI.");
+
   public enum DasherSupportMode {
     /**
      * Don't include any special treatment for dasher users.
