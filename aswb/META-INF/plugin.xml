@@ -1,0 +1,7 @@
+<idea-plugin>
+  <name>Bazel for Android Studio</name>
+  <id>com.google.idea.bazel.aswb</id>
+  <description>Bazel support in Android Studio</description>
+  <!-- version generated in build -->
+  <vendor>Google</vendor>
+</idea-plugin>

@@ -7,7 +7,8 @@ load(
     "DEFAULT_TEST_VISIBILITY",
     "create_plugin_packages_group",
 )
-load("//tools/adt/idea/aswb/build_defs:aswb_module.bzl", "aswb_module")
+load("//tools/adt/idea/aswb/build_defs:aswb_module.bzl", "aswb_module", "aswb_plugin_module")
+load("//tools/adt/idea/studio:studio.bzl", "studio_plugin")
 
 licenses(["notice"])
 
@@ -57,5 +58,39 @@ aswb_module(
         "//tools/adt/idea/aswb/skylark",
         "//tools/adt/idea/aswb/terminal",
         "//tools/adt/idea/aswb/vcs",
+    ],
+)
+
+aswb_plugin_module(
+    name = "aswb_plugin_xml",
+    plugin_xml = "META-INF/plugin.xml",
+    visibility = ["//tools/vendor/google/aswb:__pkg__"],
+    deps = [
+        ":aswb_core_module",
+        "//tools/vendor/google/aswb/plugin_api:plugin_api_module",
+    ],
+)
+
+studio_plugin(
+    name = "com.google.idea.bazel.aswb",
+    directory = "aswb",
+    libs = [
+        "//tools/base/annotations:annotations",
+        "@@maven//:com.google.auto.value.auto-value",
+        "@@maven//:com.google.auto.value.auto-value-annotations",
+        "@@maven//:org.jspecify.jspecify",
+        "@@maven//:com.google.errorprone.error_prone_annotations",
+    ],
+    modules = {
+        "aswb_core.jar": [
+            ":aswb_core_module",
+            "//tools/vendor/google/aswb/plugin_api:plugin_api_module",
+        ],
+        "aswb_core_plugin_xml.jar": ["//tools/adt/idea/aswb:aswb_plugin_xml"],
+    },
+    visibility = ["//visibility:public"],
+    deps = [
+        "//tools/adt/idea/studio:com.android.tools.design",
+        "//tools/adt/idea/studio:org.jetbrains.android",
     ],
 )
