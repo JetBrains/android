@@ -19,29 +19,17 @@ import com.android.tools.idea.apk.ApkFacet
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.DependencyScope
-import com.intellij.openapi.roots.ExternalLibraryDescriptor
-import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.config.ApiVersion
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.idea.base.projectStructure.ModuleSourceRootGroup
 import org.jetbrains.kotlin.idea.configuration.ConfigureKotlinStatus
 import org.jetbrains.kotlin.idea.configuration.KotlinProjectConfigurator
-import org.jetbrains.kotlin.idea.projectConfiguration.LibraryJarDescriptor
 import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 
 class KotlinApkModuleConfigurator : KotlinProjectConfigurator {
     override val name = "android-apk"
     override val presentableText = "Android APK"
     override val targetPlatform = JvmPlatforms.defaultJvmPlatform
-
-    override fun addLibraryDependency(module: Module,
-                                      element: PsiElement,
-                                      library: ExternalLibraryDescriptor,
-                                      libraryJarDescriptor: LibraryJarDescriptor,
-                                      scope: DependencyScope) {
-        return
-    }
 
     override fun changeGeneralFeatureConfiguration(module: Module,
                                                    feature: LanguageFeature,
