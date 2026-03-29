@@ -2,10 +2,8 @@
 # Description: Builds ASwB for blaze and bazel
 #
 
-load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load(
     "//tools/adt/idea/aswb:build-visibility.bzl",
-    "ASWB_PACKAGES_VISIBILITY",
     "ASWB_PLUGIN_PACKAGES_VISIBILITY",
     "DEFAULT_TEST_VISIBILITY",
     "TEST_ASWB_SUBPACKAGES_VISIBILITY",
@@ -14,10 +12,8 @@ load(
     "//tools/adt/idea/aswb/build_defs:build_defs.bzl",
     "aswb_library",
     "combine_visibilities",
-    "intellij_plugin",
     "intellij_plugin_library",
     "optional_plugin_xml",
-    "stamped_plugin_xml",
 )
 load(
     "//tools/adt/idea/aswb/testing:test_defs.bzl",
@@ -37,17 +33,6 @@ intellij_plugin_library(
     plugin_xmls = ["src/META-INF/aswb.xml"],
     visibility = ASWB_PLUGIN_PACKAGES_VISIBILITY,
     deps = [":aswb_lib"],
-)
-
-stamped_plugin_xml(
-    name = "stamped_plugin_xml",
-    changelog_file = "//tools/adt/idea/aswb:changelog",
-    description_file = "src/META-INF/description.html",
-    plugin_id = "com.google.idea.bazel.aswb",
-    plugin_name = "Bazel for Android Studio",
-    stamp_since_build = True,
-    stamp_until_build = True,
-    version_file = ":plugin_version.txt",
 )
 
 java_library(
@@ -157,15 +142,6 @@ intellij_unit_test_suite(
     ],
 )
 
-test_suite(
-    name = "integration_tests",
-    tests = [
-        ":NdkDependenciesTest",
-        ":normal_integration_tests",
-    ],
-    visibility = DEFAULT_TEST_VISIBILITY,
-)
-
 intellij_integration_test_suite(
     name = "normal_integration_tests",
     srcs = glob(
@@ -173,14 +149,7 @@ intellij_integration_test_suite(
             "tests/integrationtests/com/google/idea/blaze/android/**/*.java",
             "tests/integrationtests/com/google/idea/blaze/android/**/*.kt",
         ],
-        exclude = [
-            "tests/integrationtests/com/google/idea/blaze/android/plugin/NdkDependenciesTest.java",  # Extracted to separate target
-            "tests/integrationtests/com/google/idea/blaze/android/functional/AswbMergedManifestTest.java",  #b/222322106
-        ],
     ),
-    data = [
-        "tools/adt/idea/android/annotations/empty_file",
-    ],
     tags = ["noci:studio-win"],
     test_package_root = "com.google.idea.blaze.android",
     deps = [
@@ -206,66 +175,4 @@ intellij_integration_test_suite(
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
         "//tools/vendor/google/aswb/plugin_api:test_libs",
     ],
-)
-
-intellij_integration_test_suite(
-    name = "NdkDependenciesTest",
-    srcs = ["tests/integrationtests/com/google/idea/blaze/android/plugin/NdkDependenciesTest.java"],
-    tags = ["noci:studio-win"],
-    test_package_root = "com.google.idea.blaze.android",
-    runtime_deps = [
-        ":aswb_bazel",
-        "//tools/adt/idea/aswb/cpp:cpp_lib",
-        "//tools/adt/idea/aswb/java:java_lib",
-    ],
-    deps = [
-        ":aswb_lib",
-        "//tools/adt/idea/aswb/base",
-        "//tools/adt/idea/aswb/base:integration_test_utils",
-        "//tools/adt/idea/aswb/base:unit_test_utils",
-        "//tools/adt/idea/aswb/proto:proto_deps",
-        "//tools/adt/idea/aswb/third_party/java/junit",
-        "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
-        "//tools/vendor/google/aswb/plugin_api:test_libs",
-    ],
-)
-
-intellij_plugin(
-    name = "aswb_bazel",
-    plugin_xml = ":stamped_plugin_xml",
-    tags = [
-        "incomplete-deps",  # remove this suppression and add any missing deps, see go/java-import-deps-checking-lsc
-    ],
-    deps = [
-        ":aswb",
-        "//tools/adt/idea/aswb/base",
-        "//tools/adt/idea/aswb/cpp",
-        "//tools/adt/idea/aswb/dart",
-        "//tools/adt/idea/aswb/java",
-        "//tools/adt/idea/aswb/kotlin",
-        "//tools/adt/idea/aswb/skylark",
-        "//tools/adt/idea/aswb/terminal",
-    ],
-)
-
-genrule(
-    name = "create_empty_annotations_folder",
-    outs = ["tools/adt/idea/android/annotations/empty_file"],
-    cmd = "echo \"No contents\" > $@",
-)
-
-# Dump the plugin version to a file to be used in stamping the plugin xml
-genrule(
-    name = "plugin_version",
-    outs = ["plugin_version.txt"],
-    cmd = """
-# bazel-out/stable-status.txt is created when stamp = True
-# Value of BUILD_EMBED_LABEL key comes from --embed_label on the command line
-version="$$(grep BUILD_EMBED_LABEL bazel-out/stable-status.txt | cut -d ' ' -f 2)"
-# Set a default version if --embed_label was not specified
-if [ -z "$$version" ]; then version="99999999"; fi
-
-echo "$$version" > $@
-""",
-    stamp = True,
 )

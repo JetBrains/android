@@ -23,7 +23,6 @@ filegroup(
 test_suite(
     name = "aswb_tests",
     tests = [
-        "//tools/adt/idea/aswb/aswb:integration_tests",
         "//tools/adt/idea/aswb/aswb:unit_tests",
         "//tools/adt/idea/aswb/base:integration_tests",
         "//tools/adt/idea/aswb/base:unit_tests",
