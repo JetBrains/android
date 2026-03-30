@@ -52,7 +52,7 @@ public class FakeArtifactElement extends FakeElement {
   @NotNull private final Function<ArtifactDependencySpec, String> myGetter;
   @NotNull private final BiConsumer<ArtifactDependencySpecImpl, String> mySetter;
 
-  @NotNull private static final Pattern WRAPPED_VARIABLE_FORM = Pattern.compile("\\$\\{(.*)}");
+  @NotNull private static final Pattern WRAPPED_VARIABLE_FORM = Pattern.compile("\\$\\{([^}]*)}");
   @NotNull private static final Pattern UNWRAPPED_VARIABLE_FORM = Pattern.compile("\\$(([a-zA-Z]\\w*)(\\.([a-zA-Z]\\w+))*)");
 
   public static boolean shouldInterpolate(@Nullable String str) {
