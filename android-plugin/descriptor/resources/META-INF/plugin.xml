@@ -32,6 +32,8 @@
     <module name="intellij.platform.jewel.markdown.ideLafBridgeStyling"/>
     <module name="intellij.platform.jewel.ui"/>
     <!-- region Generated dependencies - run `Generate Product Layouts` to regenerate -->
+    <plugin id="org.intellij.groovy"/>
+    <plugin id="org.jetbrains.plugins.gradle"/>
     <module name="intellij.platform.execution.impl"/>
     <module name="intellij.platform.ide.internal"/>
     <!-- endregion -->

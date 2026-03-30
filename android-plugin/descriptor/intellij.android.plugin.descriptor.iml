@@ -9,5 +9,7 @@
     <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="intellij.groovy" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.gradle.java.plugin" scope="RUNTIME" />
   </component>
 </module>

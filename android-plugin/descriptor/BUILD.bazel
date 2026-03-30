@@ -232,6 +232,11 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//plugins/groovy",
+        "//plugins/gradle/java/plugin",
+    ],
 )
 
 jvm_library(
@@ -248,6 +253,8 @@ jvm_library(
         ":descriptor",
         "@lib//:studio-platform-provided",
         "@lib//:studio-test-platform",
+        "//plugins/groovy:groovy_test_lib",
+        "//plugins/gradle/java/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.plugin.descriptor` end
