@@ -63,25 +63,6 @@ java_library(
     ],
 )
 
-# exposed so plugins can optionally depend on it
-java_library(
-    name = "compiler_version_checker",
-    srcs = ["src/com/google/idea/blaze/cpp/CompilerVersionChecker.java"],
-    neverlink = 1,
-    deps = ["//tools/vendor/google/aswb/plugin_api"],
-)
-
-# exposed so plugins can optionally depend on it
-java_library(
-    name = "compiler_wrapper_provider",
-    srcs = ["src/com/google/idea/blaze/cpp/CompilerWrapperProvider.java"],
-    neverlink = 1,
-    deps = [
-        "//tools/vendor/google/aswb/plugin_api",
-        "//tools/vendor/google/aswb/plugin_api:jsr305",
-    ],
-)
-
 intellij_unit_test_suite(
     name = "unit_tests",
     srcs = glob(["tests/unittests/**/*.java"]),
