@@ -42,11 +42,11 @@ internal class EmulatorUiSettingsIntegrationTest {
   fun testUiSettings() = runBlocking {
     val tester = UiSettingsTester(rule.project, rule.serialNumber)
     tester.waitForLanguagesAppToRun()
-    val dialog = runInEdtAndGet { rule.openUiSettings() }
-    tester.testSettings(dialog)
+    val popup = runInEdtAndGet { rule.openUiSettings() }
+    tester.testSettings(popup)
 
     // Use the reset button in the panel to reset emulator settings.
-    tester.resetSettings(dialog)
+    tester.resetSettings(popup)
     tester.checkInitialSettings()
   }
 }

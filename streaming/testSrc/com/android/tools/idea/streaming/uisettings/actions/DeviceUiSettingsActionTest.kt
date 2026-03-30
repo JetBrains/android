@@ -20,9 +20,10 @@ import com.android.adblib.DevicePropertyNames
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.executeAction
 import com.android.tools.adtui.actions.updateAndGetActionPresentation
+import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.findDescendant
-import com.android.tools.adtui.swing.findModelessDialog
+import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.streaming.device.DeviceClient
 import com.android.tools.idea.streaming.device.DeviceDisplayPanel
 import com.android.tools.idea.streaming.device.DeviceView
@@ -36,12 +37,11 @@ import com.android.tools.idea.streaming.uisettings.ui.FONT_SCALE_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.GESTURE_NAVIGATION_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.SELECT_TO_SPEAK_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.TALKBACK_TITLE
-import com.android.tools.idea.streaming.uisettings.ui.UiSettingsDialog
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsPanel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
@@ -56,14 +56,14 @@ import kotlin.time.Duration.Companion.seconds
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.kotlin.mock
 
 /** Tests for [DeviceUiSettingsAction]. */
 @RunsInEdt
 class DeviceUiSettingsActionTest {
   private val agentRule = FakeScreenSharingAgentRule()
+  private val popupRule = JBPopupRule()
 
-  @get:Rule val ruleChain: RuleChain = RuleChain(agentRule, EdtRule(), HeadlessDialogRule())
+  @get:Rule val ruleChain: RuleChain = RuleChain(agentRule, popupRule, EdtRule(), HeadlessDialogRule())
 
   private val project
     get() = agentRule.project
@@ -88,7 +88,7 @@ class DeviceUiSettingsActionTest {
     val view = connectDeviceAndCreateView()
     executeAction("android.streaming.ui.settings", view, project, ActionPlaces.TOOLBAR)
     val dialog = waitForDialog()
-    assertThat(dialog.contentPanel.findDescendant<UiSettingsPanel>()).isNotNull()
+    assertThat(dialog.content.findDescendant<UiSettingsPanel>()).isNotNull()
   }
 
   @Test
@@ -96,7 +96,7 @@ class DeviceUiSettingsActionTest {
     val view = connectDeviceAndCreateView(isWear = true)
     executeAction("android.streaming.ui.settings", view, project, ActionPlaces.TOOLBAR)
     val dialog = waitForDialog()
-    val panel = dialog.contentPanel
+    val panel = dialog.content
     assertThat(panel.findDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }).isNull()
     assertThat(panel.findDescendant<JComboBox<*>> { it.name == APP_LANGUAGE_TITLE }).isNotNull()
     assertThat(panel.findDescendant<JCheckBox> { it.name == TALKBACK_TITLE }).isNotNull()
@@ -112,9 +112,8 @@ class DeviceUiSettingsActionTest {
     val view = connectDeviceAndCreateView()
     executeAction("android.streaming.ui.settings", view, project, ActionPlaces.TOOLBAR)
     val dialog = waitForDialog()
-    dialog.window.windowFocusListeners.forEach { it.windowLostFocus(mock()) }
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    assertThat(dialog.isDisposed).isTrue()
+    dialog.cancel() // Real popup will cancelOnWindowDeactivation
+    assertThat(dialog.isVisible).isFalse()
   }
 
   @Test
@@ -127,12 +126,10 @@ class DeviceUiSettingsActionTest {
     assertThat(dialog.isDisposed).isTrue()
   }
 
-  private fun waitForDialog(): DialogWrapper {
-    waitForCondition(10.seconds) { findDialog() != null }
-    return findDialog()!!
+  private fun waitForDialog(): JBPopup {
+    waitForCondition(10.seconds) { popupRule.fakePopupFactory.popupCount > 0 }
+    return popupRule.fakePopupFactory.getPopup<Any>(0)
   }
-
-  private fun findDialog() = findModelessDialog<UiSettingsDialog> { it.isShowing }
 
   private fun connectDeviceAndCreateView(apiLevel: Int = 33, isWear: Boolean = false): DeviceView {
     val device =
@@ -144,7 +141,6 @@ class DeviceUiSettingsActionTest {
         additionalDeviceProperties = if (isWear) mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "watch") else emptyMap(),
       )
     val view = createDeviceView(device, testRootDisposable)
-    view.setBounds(0, 0, 600, 800)
     waitForConnection(view)
     return view
   }
@@ -153,6 +149,8 @@ class DeviceUiSettingsActionTest {
     val deviceClient = DeviceClient(device.serialNumber, device.configuration, device.deviceState.cpuAbi)
     Disposer.register(parentDisposable, deviceClient)
     val panel = DeviceDisplayPanel(parentDisposable, deviceClient, PRIMARY_DISPLAY_ID, UNKNOWN_ORIENTATION, project, false)
+    panel.setBounds(0, 0, 600, 800)
+    FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
     return panel.displayView
   }
 

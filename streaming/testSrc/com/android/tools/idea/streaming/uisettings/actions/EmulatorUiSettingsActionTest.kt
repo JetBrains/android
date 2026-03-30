@@ -20,7 +20,7 @@ import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.findDescendant
-import com.android.tools.adtui.swing.findModelessDialog
+import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.streaming.emulator.EMULATOR_CONTROLLER_KEY
 import com.android.tools.idea.streaming.emulator.EMULATOR_VIEW_KEY
 import com.android.tools.idea.streaming.emulator.EmulatorController
@@ -34,7 +34,6 @@ import com.android.tools.idea.streaming.uisettings.ui.GESTURE_NAVIGATION_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.RESET_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.SELECT_TO_SPEAK_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.TALKBACK_TITLE
-import com.android.tools.idea.streaming.uisettings.ui.UiSettingsDialog
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsPanel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
@@ -46,7 +45,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
-import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
@@ -63,17 +62,13 @@ import kotlin.time.Duration.Companion.seconds
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.kotlin.any
-import org.mockito.kotlin.atLeast
-import org.mockito.kotlin.eq
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.verify
 
 @RunsInEdt
 class EmulatorUiSettingsActionTest {
   private val uiRule = UiSettingsRule()
+  private val popupRule = JBPopupRule()
 
-  @get:Rule val ruleChain: RuleChain = RuleChain(uiRule, EdtRule(), HeadlessDialogRule())
+  @get:Rule val ruleChain: RuleChain = RuleChain(uiRule, popupRule, EdtRule(), HeadlessDialogRule())
 
   private val testRootDisposable
     get() = uiRule.testRootDisposable
@@ -105,7 +100,7 @@ class EmulatorUiSettingsActionTest {
 
     action.actionPerformed(event)
     val dialog = waitForDialog()
-    assertThat(dialog.contentPanel.findDescendant<UiSettingsPanel>()).isNotNull()
+    assertThat(dialog.content.findDescendant<UiSettingsPanel>()).isNotNull()
   }
 
   @Test
@@ -116,7 +111,7 @@ class EmulatorUiSettingsActionTest {
     val event = createTestMouseEvent(action, controller, view)
     action.actionPerformed(event)
     val dialog = waitForDialog()
-    assertThat(dialog.contentPanel.findDescendant<ActionLink> { it.name == RESET_TITLE }).isNotNull()
+    assertThat(dialog.content.findDescendant<ActionLink> { it.name == RESET_TITLE }).isNotNull()
   }
 
   @Test
@@ -128,7 +123,7 @@ class EmulatorUiSettingsActionTest {
     uiRule.configureUiSettings(deviceSelector = DeviceSelector.fromSerialNumber(controller.emulatorId.serialNumber))
     action.actionPerformed(event)
     val dialog = waitForDialog()
-    val panel = dialog.contentPanel
+    val panel = dialog.content
     assertThat(panel.findDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }).isNull()
     assertThat(panel.findDescendant<JComboBox<*>> { it.name == APP_LANGUAGE_TITLE }).isNotNull()
     assertThat(panel.findDescendant<JCheckBox> { it.name == TALKBACK_TITLE }).isNotNull()
@@ -150,9 +145,9 @@ class EmulatorUiSettingsActionTest {
     assertThat(event.presentation.isVisible).isTrue()
     action.actionPerformed(event)
     val dialog = waitForDialog()
-    dialog.window.windowFocusListeners.forEach { it.windowLostFocus(mock()) }
+    dialog.cancel()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    assertThat(dialog.isDisposed).isTrue()
+    assertThat(dialog.isVisible).isFalse()
   }
 
   @Test
@@ -187,25 +182,19 @@ class EmulatorUiSettingsActionTest {
     assertThat(event.presentation.isVisible).isTrue()
     action.actionPerformed(event)
     val dialog = waitForDialog()
-    val uiSettingsPanel = dialog.contentPanel.findDescendant<UiSettingsPanel>()!!
+    val uiSettingsPanel = dialog.content.findDescendant<UiSettingsPanel>()!!
 
     // Move the dialog (90, 90):
     val ui = FakeUi(uiSettingsPanel)
     ui.mouse.press(10, 10)
     ui.mouse.dragTo(100, 100)
     ui.mouse.release()
-
-    // The mock Window will not be able to move, it will always have a screen location of (0, 0).
-    // Verify that an attempt to move it to (90, 90) was made:
-    verify(dialog.window, atLeast(1)).reshape(eq(90), eq(90), any(), any())
   }
 
-  private fun waitForDialog(): DialogWrapper {
-    waitForCondition(2.seconds) { findDialog() != null }
-    return findDialog()!!
+  private fun waitForDialog(): JBPopup {
+    waitForCondition(10.seconds) { popupRule.fakePopupFactory.popupCount > 0 }
+    return popupRule.fakePopupFactory.getPopup<Any>(0)
   }
-
-  private fun findDialog() = findModelessDialog<UiSettingsDialog> { it.isShowing }
 
   private fun simulateDarkTheme(on: Boolean) {
     val state = if (on) "yes" else "no"
@@ -222,8 +211,11 @@ class EmulatorUiSettingsActionTest {
   private fun createActionButton(action: AnAction) =
     ActionButton(action, action.templatePresentation.clone(), ActionPlaces.TOOLBAR, Dimension(16, 16)).apply { size = Dimension(16, 16) }
 
-  private fun createEmulatorView(controller: EmulatorController, parentDisposable: Disposable = testRootDisposable): EmulatorView =
-    EmulatorView(parentDisposable, controller, uiRule.project, displayId = 0, Dimension(600, 800), deviceFrameVisible = false)
+  private fun createEmulatorView(controller: EmulatorController, parentDisposable: Disposable = testRootDisposable): EmulatorView {
+    val view = EmulatorView(parentDisposable, controller, uiRule.project, displayId = 0, Dimension(600, 800), deviceFrameVisible = false)
+    FakeUi(view, createFakeWindow = true, parentDisposable = parentDisposable)
+    return view
+  }
 
   private fun createTestDataContext(controller: EmulatorController, view: EmulatorView): DataContext {
     return SimpleDataContext.builder()

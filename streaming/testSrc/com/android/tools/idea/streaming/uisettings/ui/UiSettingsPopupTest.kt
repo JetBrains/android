@@ -19,8 +19,8 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.adtui.swing.getDescendant
+import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.streaming.uisettings.binding.ChangeListener
 import com.android.tools.idea.streaming.uisettings.data.DEFAULT_LANGUAGE
 import com.android.tools.idea.streaming.uisettings.testutil.DANISH_LANGUAGE
@@ -31,6 +31,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.util.ui.JBDimension
 import java.awt.Dimension
 import java.awt.event.KeyEvent.VK_RIGHT
 import java.awt.event.KeyEvent.VK_SHIFT
@@ -38,6 +39,7 @@ import java.awt.event.KeyEvent.VK_SPACE
 import java.awt.event.KeyEvent.VK_TAB
 import javax.swing.JComboBox
 import javax.swing.JComponent
+import javax.swing.JPanel
 import javax.swing.JSlider
 import kotlin.time.Duration.Companion.seconds
 import org.junit.Before
@@ -46,14 +48,15 @@ import org.junit.Test
 import org.junit.rules.TestName
 
 @RunsInEdt
-class UiSettingsDialogTest {
+class UiSettingsPopupTest {
   private lateinit var model: UiSettingsModel
-  private lateinit var dialog: UiSettingsDialog
   private lateinit var panel: JComponent
   private lateinit var ui: FakeUi
+  private lateinit var focusManager: FakeKeyboardFocusManager
   private var lastCommand: String = ""
   private val nameRule = TestName()
   private val projectRule = ProjectRule()
+  private val popupRule = JBPopupRule()
   private val deviceTypeFromTestName: DeviceType
     get() =
       when {
@@ -64,16 +67,22 @@ class UiSettingsDialogTest {
         else -> DeviceType.HANDHELD
       }
 
-  @get:Rule val ruleChain = RuleChain(nameRule, projectRule, EdtRule())
+  @get:Rule val ruleChain = RuleChain(nameRule, projectRule, popupRule, EdtRule())
 
   @Before
   fun before() {
     val disposable = projectRule.disposable
-    enableHeadlessDialogs(disposable)
     model = createModel()
-    dialog = showUiSettingsDialog(projectRule.project, model, deviceTypeFromTestName, disposable)
-    panel = dialog.contentPanel
-    ui = FakeUi(panel, createFakeWindow = false, parentDisposable = disposable)
+    val parent = JPanel()
+    parent.size = JBDimension(800, 800)
+    FakeUi(parent, createFakeWindow = true, parentDisposable = disposable)
+    showUiSettingsPopup(model, deviceTypeFromTestName, parent, disposable)
+    val popup = popupRule.fakePopupFactory.getPopup<Any>(0)
+    panel = popup.content
+    ui = FakeUi(popup.content, createFakeWindow = true, parentDisposable = disposable)
+    focusManager = FakeKeyboardFocusManager(disposable)
+    focusManager.focusOwner = panel
+    panel.transferFocus()
   }
 
   private fun createModel(): UiSettingsModel {
@@ -101,10 +110,6 @@ class UiSettingsDialogTest {
 
   @Test
   fun testKeyboardAccessibility() {
-    val focusManager = FakeKeyboardFocusManager(projectRule.disposable)
-    focusManager.focusOwner = panel
-    panel.transferFocus()
-
     assertThat(focusManager.focusOwner?.name).isEqualTo(DARK_THEME_TITLE)
     ui.keyboard.pressAndRelease(VK_SPACE)
     waitForCondition(1.seconds) { lastCommand == "dark=true" }
@@ -180,9 +185,6 @@ class UiSettingsDialogTest {
   @Test
   fun testFirstFocusedComponentWithActiveResetLink() {
     model.screenDensity.setFromController(560)
-    val focusManager = FakeKeyboardFocusManager(projectRule.disposable)
-    focusManager.focusOwner = panel
-    panel.transferFocus()
 
     // The Reset link should not be selected as the first focused component:
     assertThat(focusManager.focusOwner?.name).isEqualTo(DARK_THEME_TITLE)
@@ -191,10 +193,6 @@ class UiSettingsDialogTest {
   @Test
   fun testFirstFocusedComponentWithActiveResetLinkForWear() {
     model.screenDensity.setFromController(560)
-    val focusManager = FakeKeyboardFocusManager(projectRule.disposable)
-    focusManager.focusOwner = panel
-    panel.transferFocus()
-
     // The Reset link should not be selected as the first focused component, and Wear does not have Dark Mode:
     assertThat(focusManager.focusOwner?.name).isEqualTo(APP_LANGUAGE_TITLE)
   }

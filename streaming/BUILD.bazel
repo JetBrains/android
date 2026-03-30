@@ -170,7 +170,11 @@ jvm_library(
         "//android/streaming:streaming_test_lib",
     ],
     visibility = ["//visibility:public"],
-    runtime_deps = [":streaming-integration"],
+    runtime_deps = [
+        # do not sort,
+        ":streaming-integration",
+        "//platform/ide-core:ide-core_test_lib",
+    ],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
@@ -215,6 +219,7 @@ jvm_library(
         "//platform/editor-ui-api:editor-ui_test_lib",
         "//platform/platform-api:ide",
         "//platform/platform-api:ide_test_lib",
+        "//platform/ide-core",
         "//platform/testFramework",
         "//platform/testFramework:testFramework_test_lib",
         "//platform/util",
