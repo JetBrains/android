@@ -18,6 +18,7 @@ def aswb_library(name, testonly = False, **kwargs):
     """A regular ASwB target."""
     kotlin_library(
         name = name,
+        module_name = "{}_{}".format(native.package_name(), name).replace("/", "_"),
         testonly = testonly,
         jvm_target = "21",
         lint_is_test_sources = testonly,
