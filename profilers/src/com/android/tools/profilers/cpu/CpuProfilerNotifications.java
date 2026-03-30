@@ -39,22 +39,6 @@ public final class CpuProfilerNotifications {
   );
 
   @NotNull
-  static Notification getCaptureStartFailure(long errorCode) {
-    if (errorCode == Trace.TraceStartStatus.ErrorCode.TRACER_ALREADY_RUNNING_UNABLE_RUN_PERFETTO_VALUE) {
-      return CAPTURE_START_FAILURE_TRACER_ALREADY_RUNNING;
-    }
-
-    // Default error notification for capture start failures.
-    return CAPTURE_START_FAILURE;
-  }
-
-  @NotNull
-  static Notification getCaptureStopFailure(String errorMessage) {
-    return createError("Recording failed to stop (" + errorMessage + ")",
-                       "Try recording another trace, or ");
-  }
-
-  @NotNull
   public static final Notification PARSING_FAILURE = createError(
     "Trace data was not recorded",
     "The profiler was unable to parse the method trace data. " +
@@ -80,4 +64,29 @@ public final class CpuProfilerNotifications {
     "The profiler was unable to parse the trace file. Please make sure the file " +
     "selected is a valid trace. Alternatively, try importing another file, or "
   );
+
+  @NotNull
+  static Notification getCaptureStartFailure(long errorCode) {
+    if (errorCode == Trace.TraceStartStatus.ErrorCode.TRACER_ALREADY_RUNNING_UNABLE_RUN_PERFETTO_VALUE) {
+      return CAPTURE_START_FAILURE_TRACER_ALREADY_RUNNING;
+    }
+
+    // Default error notification for capture start failures.
+    return CAPTURE_START_FAILURE;
+  }
+
+  @NotNull
+  static Notification getCaptureStopFailure(String errorMessage) {
+    return createError("Recording failed to stop (" + errorMessage + ")",
+                       "Try recording another trace, or ");
+  }
+
+  @NotNull
+  static Notification getCaptureParseFailure(@NotNull CpuCaptureMetadata.CaptureStatus status) {
+    return switch (status) {
+      case USER_ABORTED_PARSING -> PARSING_ABORTED;
+      case PREPROCESS_FAILURE -> PREPROCESS_FAILURE;
+      default -> PARSING_FAILURE;
+    };
+  }
 }

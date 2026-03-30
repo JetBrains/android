@@ -334,8 +334,8 @@ public class CpuCaptureStage extends Stage<Timeline> {
     return myTrackGroupTimeline;
   }
 
-  private void setState(State state) {
-    myState = state;
+  private void setState() {
+    myState = State.ANALYZING;
     myAspect.changed(Aspect.STATE);
   }
 
@@ -360,14 +360,12 @@ public class CpuCaptureStage extends Stage<Timeline> {
               .execute(() -> getStudioProfilers().setStage(getParentStage()));
           }
           else {
-            // If the user was importing a trace the user will be sent to the null stage with an warning + notification.
+            // If the user was importing a trace the user will be sent to the null stage with a warning + notification.
             getStudioProfilers().getIdeServices().getMainExecutor().execute(
               () -> {
                 // Deselect the imported session so user may import it again to retry.
                 getStudioProfilers().getSessionsManager().resetSessionSelection();
-                getStudioProfilers().setStage(new NullMonitorStage(
-                  getStudioProfilers(),
-                  "The profiler was unable to parse the trace file. Please make sure the file selected is a valid trace."));
+                getStudioProfilers().setStage(new NullMonitorStage(getStudioProfilers(), myCpuCaptureHandler.getErrorMessage()));
               });
           }
         }
@@ -375,7 +373,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
           LogUtils.log(getClass(), "CPU capture parse succeeded");
           myCapture = capture;
           onCaptureParsed(capture);
-          setState(State.ANALYZING);
+          setState();
           if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
             myTaskTracker.trackTaskFinished(TaskFinishedState.COMPLETED);
           }
@@ -481,15 +479,14 @@ public class CpuCaptureStage extends Stage<Timeline> {
       myTrackGroupModels.add(createInteractionTrackGroup());
     }
 
-    if (capture instanceof SystemTraceCpuCapture && capture.getSystemTraceData() != null) {
+    if (capture instanceof SystemTraceCpuCapture) {
       LogUtils.log(getClass(), "CPU capture contains system trace data");
       createDisplayPipelineTrackGroups((SystemTraceCpuCapture)capture)
         .forEach(myTrackGroupModels::add);
     }
 
     // In S with both timeline and lifecycle data, we move threads closer to display
-    if (capture instanceof SystemTraceCpuCapture && capture.getSystemTraceData() != null &&
-        !capture.getSystemTraceData().getAndroidFrameTimelineEvents().isEmpty()) {
+    if (capture instanceof SystemTraceCpuCapture && !capture.getSystemTraceData().getAndroidFrameTimelineEvents().isEmpty()) {
       // Thread states and trace events.
       myTrackGroupModels.add(createThreadsTrackGroup(capture));
       // CPU per-core usage and event etc. Systrace only.
@@ -497,7 +494,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
       // RSS memory counters.
       myTrackGroupModels.add(createRssMemoryTrackGroup(capture.getSystemTraceData()));
     } else {
-      if(capture instanceof SystemTraceCpuCapture && capture.getSystemTraceData() != null) {
+      if(capture instanceof SystemTraceCpuCapture) {
         // CPU per-core usage and event etc. Systrace only.
         myTrackGroupModels.add(createCpuCoresTrackGroup(capture.getMainThreadId(), capture.getSystemTraceData()));
         // RSS memory counters.
@@ -507,18 +504,19 @@ public class CpuCaptureStage extends Stage<Timeline> {
       myTrackGroupModels.add(createThreadsTrackGroup(capture));
     }
 
-    if (capture instanceof SystemTraceCpuCapture && capture.getSystemTraceData() != null &&
-        getStudioProfilers().getIdeServices().getFeatureConfig().getSystemTracePowerProfilerDisplayMode() !=
-        PowerProfilerDisplayMode.HIDE) {
-      // Power rail data is ODPM hardware exclusive, but we take a data driven approach for checking compatibility.
-      if (!capture.getSystemTraceData().getPowerRailCounters().isEmpty()) {
-        // Power rail counters.
-        myTrackGroupModels.add(createPowerRailsTrackGroup(capture.getSystemTraceData()));
-      }
+    if (capture instanceof SystemTraceCpuCapture) {
+      if (getStudioProfilers().getIdeServices().getFeatureConfig().getSystemTracePowerProfilerDisplayMode() !=
+          PowerProfilerDisplayMode.HIDE) {
+        // Power rail data is ODPM hardware exclusive, but we take a data driven approach for checking compatibility.
+        if (!capture.getSystemTraceData().getPowerRailCounters().isEmpty()) {
+          // Power rail counters.
+          myTrackGroupModels.add(createPowerRailsTrackGroup(capture.getSystemTraceData()));
+        }
 
-      if (!capture.getSystemTraceData().getBatteryDrainCounters().isEmpty()) {
-        // Battery drain counters.
-        myTrackGroupModels.add(createBatteryDrainTrackGroup(capture.getSystemTraceData()));
+        if (!capture.getSystemTraceData().getBatteryDrainCounters().isEmpty()) {
+          // Battery drain counters.
+          myTrackGroupModels.add(createBatteryDrainTrackGroup(capture.getSystemTraceData()));
+        }
       }
     }
 
@@ -554,8 +552,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
   private void onActiveSelectionChanged() {
     Object activeSelection = getMultiSelectionModel().getActiveSelectionKey();
     // If the range doesn't already cover a selection frame, switch to it
-    if (activeSelection instanceof AndroidFrameTimelineEvent) {
-      AndroidFrameTimelineEvent event = (AndroidFrameTimelineEvent)activeSelection;
+    if (activeSelection instanceof AndroidFrameTimelineEvent event) {
       getTimeline().getViewRange().adjustToContain(event.getExpectedStartUs(),
                                                    Math.max(event.getExpectedEndUs(), event.getActualEndUs()));
       trackFrameSelection();
@@ -679,7 +676,6 @@ public class CpuCaptureStage extends Stage<Timeline> {
   }
 
   private TrackGroupModel createJankDetectionTrackGroup(@NotNull SystemTraceCpuCapture capture) {
-    FeatureTracker featureTracker = getStudioProfilers().getIdeServices().getFeatureTracker();
     String toggleAllFrames = "All Frames";
     String toggleLifeCycle = "Lifecycle";
     TrackGroupModel.Builder displayBuilder = TrackGroupModel.newBuilder()
@@ -761,7 +757,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
     // Collapse threads for ART and SimplePerf traces.
     boolean collapseThreads = !(capture instanceof SystemTraceCpuCapture);
     List<CpuThreadInfo> threadInfos =
-      capture.getThreads().stream().sorted(CpuThreadComparator.withCaptureInfo(capture)).collect(Collectors.toList());
+      capture.getThreads().stream().sorted(CpuThreadComparator.withCaptureInfo(capture)).toList();
     String threadsTitle = String.format(Locale.getDefault(), "Threads (%d)", threadInfos.size());
     BoxSelectionModel boxSelectionModel = new BoxSelectionModel(myTrackGroupTimeline.getSelectionRange(),
                                                                 myTrackGroupTimeline.getViewRange());
@@ -865,29 +861,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
 
   private TrackGroupModel createBatteryDrainTrackGroup(@NotNull CpuSystemTraceData systemTraceData) {
     // If there is no power rail data, that means the device does not have the supporting hardware (ODPM).
-    boolean containsODPM = !systemTraceData.getPowerRailCounters().isEmpty();
-
-    // If the device contains a coulomb counter, then all the battery counters located in the
-    // Perfetto tracing configuration should have returned data in the system trace.
-    boolean containsCoulombCounter = systemTraceData.getBatteryDrainCounters().size() ==
-                                     PerfettoTraceConfigBuilders.getBatteryCountersCount();
-
-    String compatibilityMessage = "";
-
-    // The device does not contain ODPM or a coulomb counter.
-    if (!containsODPM && !containsCoulombCounter) {
-      compatibilityMessage = "You are currently using a device which does not support coulomb counters. " +
-                             "To view additional power data (such as charge, current, etc), we recommend " +
-                             "using a device which supports coulomb counters.";
-    }
-    // The device does not contain ODPM but contains a coulomb counter.
-    else if (!containsODPM) {
-      compatibilityMessage = "You are currently using a device that does not support On Device Power " +
-                             "Rails Monitor (ODPM), which measures power consumption per hardware component. " +
-                             "To view power rail data, we recommend using a device which supports ODPM, such " +
-                             "as Pixel 6a, Pixel 6, Pixel 6 Pro, Pixel 7a, Pixel 7, Pixel 7 Pro and beyond. " +
-                             "Battery info is available on devices running Android Q+.";
-    }
+    String compatibilityMessage = getCompatibilityMessage(systemTraceData);
 
     TrackGroupModel battery = TrackGroupModel.newBuilder()
       .setTitle("Battery")
@@ -918,6 +892,35 @@ public class CpuCaptureStage extends Stage<Timeline> {
 
     return battery;
   }
+
+  @NotNull
+  private static String getCompatibilityMessage(@NotNull CpuSystemTraceData systemTraceData) {
+    boolean containsODPM = !systemTraceData.getPowerRailCounters().isEmpty();
+
+    // If the device contains a coulomb counter, then all the battery counters located in the
+    // Perfetto tracing configuration should have returned data in the system trace.
+    boolean containsCoulombCounter = systemTraceData.getBatteryDrainCounters().size() ==
+                                     PerfettoTraceConfigBuilders.getBatteryCountersCount();
+
+    String compatibilityMessage = "";
+
+    // The device does not contain ODPM or a coulomb counter.
+    if (!containsODPM && !containsCoulombCounter) {
+      compatibilityMessage = "You are currently using a device which does not support coulomb counters. " +
+                             "To view additional power data (such as charge, current, etc), we recommend " +
+                             "using a device which supports coulomb counters.";
+    }
+    // The device does not contain ODPM but contains a coulomb counter.
+    else if (!containsODPM) {
+      compatibilityMessage = "You are currently using a device that does not support On Device Power " +
+                             "Rails Monitor (ODPM), which measures power consumption per hardware component. " +
+                             "To view power rail data, we recommend using a device which supports ODPM, such " +
+                             "as Pixel 6a, Pixel 6, Pixel 6 Pro, Pixel 7a, Pixel 7, Pixel 7 Pro and beyond. " +
+                             "Battery info is available on devices running Android Q+.";
+    }
+    return compatibilityMessage;
+  }
+
   private Unit runInBackground(Runnable work) {
     getStudioProfilers().getIdeServices().getPoolExecutor().execute(work);
     return Unit.INSTANCE;

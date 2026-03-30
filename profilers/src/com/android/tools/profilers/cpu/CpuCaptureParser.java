@@ -49,12 +49,12 @@ import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -85,9 +85,6 @@ public class CpuCaptureParser {
   @NotNull
   private final IdeProfilerServices myServices;
 
-  @NotNull
-  private final StudioProfilers myProfilers;
-
   private final AspectModel<CpuProfilerAspect> myAspect = new AspectModel<>();
 
   /**
@@ -116,7 +113,6 @@ public class CpuCaptureParser {
   private static final Logger LOGGER = Logger.getInstance(CpuCaptureParser.class);
 
   public CpuCaptureParser(@NotNull StudioProfilers profilers) {
-    myProfilers = profilers;
     myServices = profilers.getIdeServices();
     myCaptures = new HashMap<>();
   }
@@ -167,10 +163,6 @@ public class CpuCaptureParser {
     return myIsParsing;
   }
 
-  public long getParsingElapsedTimeMs() {
-    return System.currentTimeMillis() - myParsingStartTimeMs;
-  }
-
   /**
    * Updates {@link #myIsParsing} to false once the given {@link CompletableFuture<CpuCapture>} is done.
    */
@@ -187,6 +179,31 @@ public class CpuCaptureParser {
     myParsingStartTimeMs = System.currentTimeMillis();
     myIsParsing = true;
     myAspect.changed(CpuProfilerAspect.CAPTURE_PARSING);
+  }
+
+  /**
+   * Returns a {@link CpuCaptureMetadata.CaptureStatus} based on the given {@link CpuCapture} and {@link Throwable}.
+   */
+  @NotNull
+  public static CpuCaptureMetadata.CaptureStatus getCaptureStatus(@Nullable CpuCapture capture, @Nullable Throwable throwable) {
+    if (capture != null) {
+      return CpuCaptureMetadata.CaptureStatus.SUCCESS;
+    }
+
+    if (throwable == null) {
+      return CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_CAUSE_UNKNOWN;
+    }
+
+    return switch (getErrorReason(throwable)) {
+      case CancellationException ignored -> CpuCaptureMetadata.CaptureStatus.USER_ABORTED_PARSING;
+      case PreProcessorFailureException ignored -> CpuCaptureMetadata.CaptureStatus.PREPROCESS_FAILURE;
+      case InvalidPathParsingFailureException ignored -> CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_PATH_INVALID;
+      case ReadErrorParsingFailureException ignored -> CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_READ_ERROR;
+      case FileHeaderParsingFailureException ignored -> CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_FILE_HEADER_ERROR;
+      case UnknownParserParsingFailureException ignored -> CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_PARSER_UNKNOWN;
+      case ParsingFailureException ignored -> CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_PARSER_ERROR;
+      default -> CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_CAUSE_UNKNOWN;
+    };
   }
 
   /**
@@ -299,6 +316,10 @@ public class CpuCaptureParser {
     }
   }
 
+  private static @NotNull Throwable getErrorReason(@NotNull Throwable e) {
+    return e.getCause() != null ? e.getCause() : e;
+  }
+
   /**
    * Performs basic checks on the trace file to be parsed:
    * <ul>
@@ -306,14 +327,7 @@ public class CpuCaptureParser {
    *   <li>There were no issues on pre-processor that executed in the file.</li>
    * </ul>
    */
-  private static final class TraceFileValidationAction implements Runnable {
-    @NotNull
-    private final File traceFile;
-
-    private TraceFileValidationAction(@NotNull File traceFile) {
-      this.traceFile = traceFile;
-    }
-
+  private record TraceFileValidationAction(@NotNull File traceFile) implements Runnable {
     @Override
     public void run() {
       if (!traceFile.exists() || traceFile.isDirectory()) {
@@ -327,7 +341,6 @@ public class CpuCaptureParser {
       if (traceFile.length() == TracePreProcessor.FAILURE.size()) {
         try (InputStream is = new FileInputStream(traceFile)) {
           ByteString fileContent = ByteString.readFrom(is);
-
           if (TracePreProcessor.FAILURE.equals(fileContent)) {
             throw new PreProcessorFailureException();
           }
@@ -408,8 +421,8 @@ public class CpuCaptureParser {
     private final IdeProfilerServices services;
 
     // Parsers used by parseToCapture
-    private static final Supplier<TraceParser> ART_PARSER_SUPPLIER = () -> new ArtTraceParser();
-    private static final Supplier<TraceParser> SIMPLEPERF_PARSER_SUPPLIER = () -> new SimpleperfTraceParser();
+    private static final Supplier<TraceParser> ART_PARSER_SUPPLIER = ArtTraceParser::new;
+    private static final Supplier<TraceParser> SIMPLEPERF_PARSER_SUPPLIER = SimpleperfTraceParser::new;
     private final Supplier<TraceParser> ATRACE_PARSER_SUPPLIER = () -> new AtraceParser(getMainProcessSelector());
     private final Supplier<TraceParser> PERFETTO_PARSER_SUPPLIER =
       () -> new PerfettoParser(getMainProcessSelector(), getProfilerServices());
@@ -452,16 +465,17 @@ public class CpuCaptureParser {
     }
 
     private CpuCapture parseWith(@NotNull TraceType type, @NotNull File traceFile, long traceId) {
-      Supplier<TraceParser> parserSupplier = getParserSupplier(type);
-      TraceParser parser = parserSupplier.get();
       try {
+        Supplier<TraceParser> parserSupplier = getParserSupplier(type);
+        Objects.requireNonNull(parserSupplier, "No parser found for trace type: " + type);
+        TraceParser parser = parserSupplier.get();
         return parser.parse(traceFile, traceId);
       }
       catch (ProcessSelectorDialogAbortedException e) {
         throw new CancellationException("User aborted process choice dialog.");
       }
       catch (Throwable e) {
-          throw new CpuCaptureParser.ParsingFailureException(
+          throw new ParsingFailureException(
             String.format("Trace file '%s' failed to be parsed as %s.", traceFile.getAbsolutePath(), type), e);
       }
     }
@@ -515,59 +529,28 @@ public class CpuCaptureParser {
         metadata.setArtStopTimeoutSec(CpuProfilerStage.CPU_ART_STOP_TIMEOUT_SEC);
       }
 
+      CpuCaptureMetadata.CaptureStatus status = getCaptureStatus(capture, throwable);
+      metadata.setStatus(status);
+
+      // Parsing successful
       if (capture != null) {
-        metadata.setStatus(CpuCaptureMetadata.CaptureStatus.SUCCESS);
         // Set the parsing time at least 1 millisecond, to make it easy to verify in tests.
         metadata.setParsingTimeMs(Math.max(1, System.currentTimeMillis() - myParsingStartTimeMs));
         metadata.setCaptureDurationMs(TimeUnit.MICROSECONDS.toMillis(capture.getDurationUs()));
         metadata.setRecordDurationMs(calculateRecordDurationMs(capture));
         metadata.setHasComposeTracingNodes(checkHasComposeTracingNodes(capture));
-      }
-      else if (throwable != null) {
-        LOGGER.warn("Unable to parse capture: " + throwable.getMessage(), throwable.getCause());
-        if (throwable.getCause() instanceof CancellationException) {
-          metadata.setStatus(CpuCaptureMetadata.CaptureStatus.USER_ABORTED_PARSING);
-          myServices.showNotification(CpuProfilerNotifications.PARSING_ABORTED);
-          // Track that the task has finished with user cancellation.
+      } else {
+        LOGGER.warn("Unable to parse capture", throwable);
+        myServices.showNotification(CpuProfilerNotifications.getCaptureParseFailure(status));
+
+        // More granular preprocess failures are logged by preprocessors. Skip logging here.
+        if (status == CpuCaptureMetadata.CaptureStatus.PREPROCESS_FAILURE && !myServices.getFeatureConfig().isTaskBasedUxEnabled()) {
+          return;
+        }
+
+        if (status == CpuCaptureMetadata.CaptureStatus.USER_ABORTED_PARSING) {
           myTaskTracker.trackTaskFinished(TaskFinishedState.USER_CANCELLED);
         }
-        else if (throwable.getCause() instanceof PreProcessorFailureException) {
-          myServices.showNotification(CpuProfilerNotifications.PREPROCESS_FAILURE);
-          // More granular preprocess failures are logged by preprocessors. Skip logging here.
-          if (!myServices.getFeatureConfig().isTaskBasedUxEnabled()) {
-            return;
-          }
-          metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PREPROCESS_FAILURE);
-        }
-        else if (throwable.getCause() instanceof InvalidPathParsingFailureException) {
-          metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_PATH_INVALID);
-          myServices.showNotification(CpuProfilerNotifications.PARSING_FAILURE);
-        }
-        else if (throwable.getCause() instanceof ReadErrorParsingFailureException) {
-          metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_READ_ERROR);
-          myServices.showNotification(CpuProfilerNotifications.PARSING_FAILURE);
-        }
-        else if (throwable.getCause() instanceof UnknownParserParsingFailureException) {
-          metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_PARSER_UNKNOWN);
-          myServices.showNotification(CpuProfilerNotifications.PARSING_FAILURE);
-        }
-        else if (throwable.getCause() instanceof FileHeaderParsingFailureException) {
-          metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_FILE_HEADER_ERROR);
-          myServices.showNotification(CpuProfilerNotifications.PARSING_FAILURE);
-        }
-        else if (throwable.getCause() instanceof ParsingFailureException) {
-          metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_PARSER_ERROR);
-          myServices.showNotification(CpuProfilerNotifications.PARSING_FAILURE);
-        }
-        else {
-          metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_CAUSE_UNKNOWN);
-          myServices.showNotification(CpuProfilerNotifications.PARSING_FAILURE);
-        }
-      }
-      else {
-        LOGGER.warn("Unable to parse capture: no throwable.");
-        metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_CAUSE_UNKNOWN);
-        myServices.showNotification(CpuProfilerNotifications.PARSING_FAILURE);
       }
 
       // Don't report metrics for the same trace/capture twice. Can we track this in the metadata somehow?
@@ -634,18 +617,13 @@ public class CpuCaptureParser {
     }
 
     private CpuImportTraceMetadata.Technology technologyForProfilerType(@NotNull TraceType profilerType) {
-      switch (profilerType) {
-        case ART:
-          return CpuImportTraceMetadata.Technology.ART_TECHNOLOGY;
-        case SIMPLEPERF:
-          return CpuImportTraceMetadata.Technology.SIMPLEPERF_TECHNOLOGY;
-        case ATRACE:
-          return CpuImportTraceMetadata.Technology.ATRACE_TECHNOLOGY;
-        case PERFETTO:
-          return CpuImportTraceMetadata.Technology.PERFETTO_TECHNOLOGY;
-        default:
-          return CpuImportTraceMetadata.Technology.UNKNOWN_TECHNOLOGY;
-      }
+      return switch (profilerType) {
+        case ART -> CpuImportTraceMetadata.Technology.ART_TECHNOLOGY;
+        case SIMPLEPERF -> CpuImportTraceMetadata.Technology.SIMPLEPERF_TECHNOLOGY;
+        case ATRACE -> CpuImportTraceMetadata.Technology.ATRACE_TECHNOLOGY;
+        case PERFETTO -> CpuImportTraceMetadata.Technology.PERFETTO_TECHNOLOGY;
+        default -> CpuImportTraceMetadata.Technology.UNKNOWN_TECHNOLOGY;
+      };
     }
   }
 }
