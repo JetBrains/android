@@ -15,17 +15,8 @@
  */
 package com.android.tools.configurations;
 
-import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
-import static com.android.tools.configurations.ConfigurationListener.CFG_ACTIVITY;
-import static com.android.tools.configurations.ConfigurationListener.CFG_ADAPTIVE_SHAPE;
-import static com.android.tools.configurations.ConfigurationListener.CFG_FONT_SCALE;
-import static com.android.tools.configurations.ConfigurationListener.CFG_LOCALE;
-import static com.android.tools.configurations.ConfigurationListener.CFG_NAME;
-import static com.android.tools.configurations.ConfigurationListener.CFG_TARGET;
-import static com.android.tools.configurations.ConfigurationListener.CFG_THEME;
 import static com.android.tools.configurations.ConfigurationListener.MASK_FOLDERCONFIG;
 import static java.util.Locale.ROOT;
-
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -33,28 +24,15 @@ import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.ResourceItemResolver;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.DensityQualifier;
-import com.android.ide.common.resources.configuration.DeviceConfigHelper;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
-import com.android.ide.common.resources.configuration.NightModeQualifier;
-import com.android.ide.common.resources.configuration.UiModeQualifier;
-import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.Density;
-import com.android.resources.LayoutDirection;
 import com.android.resources.NightMode;
 import com.android.resources.ScreenSize;
 import com.android.resources.UiMode;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
-import com.android.tools.idea.layoutlib.LayoutLibrary;
-import com.android.tools.idea.layoutlib.RenderingException;
-import com.android.tools.layoutlib.LayoutlibContext;
 import com.android.tools.res.FrameworkOverlay;
-import com.android.tools.res.ResourceUtils;
-import com.android.tools.sdk.AndroidPlatform;
-import com.android.tools.sdk.CompatibilityRenderTarget;
-import com.android.tools.sdk.LayoutlibFactory;
 import com.google.common.base.Enums;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
@@ -97,36 +75,6 @@ public class Configuration {
   @NotNull
   protected final FolderConfiguration myEditedConfig;
 
-  /**
-   * The target of the project of the file being edited.
-   */
-  @Nullable
-  private IAndroidTarget myTarget;
-
-  /**
-   * The theme style to render with
-   */
-  @Nullable
-  private String myTheme;
-
-  /**
-   * The activity associated with the layout. This is just a cached value of
-   * the true value stored on the layout.
-   */
-  @Nullable
-  private String myActivity;
-
-  /**
-   * The locale to use for this configuration
-   */
-  @Nullable
-  private Locale myLocale = null;
-
-  /**
-   * The display name
-   */
-  private String myDisplayName;
-
   /** Handles listener notifications and bulk editing count */
   private final ConfigurationListeners myListeners = new ConfigurationListeners();
 
@@ -146,6 +94,8 @@ public class Configuration {
 
   private final DeviceStateResolver myDeviceStateResolver;
 
+  private final EnvironmentContext myEnvContext;
+
   private final ResourceItemResolver.ResourceProvider myResourceProvider = new ConfigurationResourceProvider(this);
 
   /**
@@ -162,8 +112,18 @@ public class Configuration {
       @Nullable @Override public Device computeBestDevice() { return Configuration.this.computeBestDevice(); }
     });
 
+    myEnvContext = new EnvironmentContext(new EnvironmentContext.Context() {
+      @NotNull @Override public ConfigurationSettings getSettings() { return mySettings; }
+      @NotNull @Override public FolderConfiguration getEditedConfig() { return myEditedConfig; }
+      @Nullable @Override public String calculateActivity() { return Configuration.this.calculateActivity(); }
+      @NotNull @Override public String getPreferredTheme() { return Configuration.this.getPreferredTheme(); }
+      @Nullable @Override public IAndroidTarget getTargetForRendering(@Nullable IAndroidTarget target) {
+        return Configuration.getTargetForRendering(target, mySettings.getConfigModule());
+      }
+    });
+
     if (isLocaleSpecificLayout()) {
-      myLocale = Locale.create(editedConfig);
+      myEnvContext.initFromEditedConfig();
     }
 
     if (isOrientationSpecificLayout()) {
@@ -195,12 +155,8 @@ public class Configuration {
     myFullConfig.set(from.myFullConfig);
     myFolderConfigDirty = from.myFolderConfigDirty;
     myProjectStateVersion = from.myProjectStateVersion;
-    myTarget = from.myTarget; // avoid getTarget() since it fetches project state
-    myLocale = from.myLocale;  // avoid getLocale() since it fetches project state
-    myTheme = from.getTheme();
-    myActivity = from.getActivity();
-    myDisplayName = from.getDisplayName();
 
+    myEnvContext.copyFrom(from.myEnvContext);
     myUiModeState.copyFrom(from.myUiModeState);
     myDeviceStateResolver.copyFrom(from.myDeviceStateResolver);
     mySystemUiPrefs.copyFrom(from.mySystemUiPrefs);
@@ -235,12 +191,6 @@ public class Configuration {
     return null;
   }
 
-  @Slow
-  @Nullable
-  protected Device computeBestDevice() {
-    return mySettings.getDefaultDevice();
-  }
-
   /**
    * Returns the associated activity
    *
@@ -248,22 +198,8 @@ public class Configuration {
    */
   @Nullable
   public final String getActivity() {
-    if (myActivity == NO_ACTIVITY) {
-      return null;
-    } else if (myActivity == null) {
-      myActivity = calculateActivity();
-      if (myActivity == null) {
-        myActivity = NO_ACTIVITY;
-        return null;
-      }
-    }
-
-    return myActivity;
+    return myEnvContext.getActivity();
   }
-
-  /** Special marker value which indicates that this activity has been checked and has no activity
-   * (whereas a null {@link #myActivity} field means that it has not yet been initialized */
-  private static final String NO_ACTIVITY = new String();
 
   /**
    * Returns the chosen device, computing the best one if the currently cached value is null.
@@ -288,33 +224,13 @@ public class Configuration {
   @Nullable
   public static FolderConfiguration getFolderConfig(@NotNull ConfigurationModelModule module, @NotNull State state, @NotNull Locale locale,
                                                     @Nullable IAndroidTarget target) {
-    FolderConfiguration currentConfig = DeviceConfigHelper.getFolderConfig(state);
-    if (currentConfig != null) {
-      if (locale.hasLanguage()) {
-        currentConfig.setLocaleQualifier(locale.qualifier);
-        LayoutLibrary layoutLib = getLayoutLibrary(target, module.getAndroidPlatform(), module.getLayoutlibContext());
-        if (layoutLib != null) {
-          if (layoutLib.isRtl(locale.toLocaleId())) {
-            currentConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.RTL));
-          }
-        }
-      }
-    }
-
-    return currentConfig;
+    return FolderConfigSynchronizer.getFolderConfig(module, state, locale, target);
   }
 
-  private static LayoutLibrary getLayoutLibrary(
-    @Nullable IAndroidTarget target, @Nullable AndroidPlatform platform, @NotNull LayoutlibContext context) {
-    if (target == null || platform == null) {
-      return null;
-    }
-
-    try {
-      return LayoutlibFactory.getLayoutLibrary(target, platform, context);
-    } catch (RenderingException ignored) {
-      return null;
-    }
+  @Slow
+  @Nullable
+  protected Device computeBestDevice() {
+    return mySettings.getDefaultDevice();
   }
 
   /**
@@ -334,10 +250,7 @@ public class Configuration {
    */
   @NotNull
   public Locale getLocale() {
-    if (myLocale == null) {
-      return mySettings.getLocale();
-    }
-    return myLocale;
+    return myEnvContext.getLocale();
   }
 
   /**
@@ -367,11 +280,7 @@ public class Configuration {
    */
   @NotNull
   public String getTheme() {
-    if (myTheme == null) {
-      return getPreferredTheme();
-    }
-
-    return myTheme;
+    return myEnvContext.getTheme();
   }
 
   /**
@@ -381,21 +290,7 @@ public class Configuration {
    */
   @Nullable
   public IAndroidTarget getTarget() {
-    if (myTarget == null) {
-      IAndroidTarget target = mySettings.getTarget();
-
-      // If the project-wide render target isn't a match for the version qualifier in this layout
-      // (for example, the render target is at API 11, and layout is in a -v14 folder) then pick
-      // a target which matches.
-      VersionQualifier version = myEditedConfig.getVersionQualifier();
-      if (target != null && version != null && version.getVersion() > target.getVersion().getFeatureLevel()) {
-        target = mySettings.getTarget(version.getVersion());
-      }
-
-      return getTargetForRendering(target, mySettings.getConfigModule());
-    }
-
-    return myTarget;
+    return myEnvContext.getTarget();
   }
 
   /**
@@ -404,15 +299,7 @@ public class Configuration {
    */
   @Nullable
   public IAndroidTarget getRealTarget() {
-    IAndroidTarget target = getTarget();
-
-    if (target instanceof CompatibilityRenderTarget) {
-      CompatibilityRenderTarget compatTarget = (CompatibilityRenderTarget)target;
-      return compatTarget.getRealTarget();
-    }
-    else {
-      return target;
-    }
+    return myEnvContext.getRealTarget();
   }
 
   /**
@@ -422,7 +309,7 @@ public class Configuration {
    */
   @Nullable
   public String getDisplayName() {
-    return myDisplayName;
+    return myEnvContext.getDisplayName();
   }
 
   /**
@@ -483,10 +370,9 @@ public class Configuration {
    * @param activity the activity
    */
   public void setActivity(@Nullable String activity) {
-    if (!Objects.equals(myActivity, activity)) {
-      myActivity = activity;
-
-      updated(CFG_ACTIVITY);
+    int updateFlags = myEnvContext.setActivity(activity);
+    if (updateFlags != 0) {
+      updated(updateFlags);
     }
   }
 
@@ -533,10 +419,9 @@ public class Configuration {
    * @param locale the locale
    */
   public void setLocale(@NotNull Locale locale) {
-    if (!Objects.equals(myLocale, locale)) {
-      myLocale = locale;
-
-      updated(CFG_LOCALE);
+    int updateFlags = myEnvContext.setLocale(locale);
+    if (updateFlags != 0) {
+      updated(updateFlags);
     }
   }
 
@@ -546,9 +431,9 @@ public class Configuration {
    * @param target rendering target
    */
   public void setTarget(@Nullable IAndroidTarget target) {
-    if (myTarget != target) {
-      myTarget = getTargetForRendering(target, mySettings.getConfigModule());
-      updated(CFG_TARGET);
+    int updateFlags = myEnvContext.setTarget(target);
+    if (updateFlags != 0) {
+      updated(updateFlags);
     }
   }
 
@@ -558,9 +443,9 @@ public class Configuration {
    * @param displayName the new display name
    */
   public void setDisplayName(@Nullable String displayName) {
-    if (!Objects.equals(myDisplayName, displayName)) {
-      myDisplayName = displayName;
-      updated(CFG_NAME);
+    int updateFlags = myEnvContext.setDisplayName(displayName);
+    if (updateFlags != 0) {
+      updated(updateFlags);
     }
   }
 
@@ -611,10 +496,9 @@ public class Configuration {
    * @param theme the theme
    */
   public void setTheme(@Nullable String theme) {
-    if (!Objects.equals(myTheme, theme)) {
-      myTheme = theme;
-      checkThemePrefix();
-      updated(CFG_THEME);
+    int updateFlags = myEnvContext.setTheme(theme);
+    if (updateFlags != 0) {
+      updated(updateFlags);
     }
   }
 
@@ -629,7 +513,7 @@ public class Configuration {
 
     if (mySystemUiPrefs.getFontScale() != fontScale) {
       mySystemUiPrefs.setFontScale(fontScale);
-      updated(CFG_FONT_SCALE);
+      updated(ConfigurationListener.CFG_FONT_SCALE);
     }
   }
 
@@ -647,7 +531,7 @@ public class Configuration {
   public void setAdaptiveShape(@NotNull AdaptiveIconShape adaptiveShape) {
     if (mySystemUiPrefs.getAdaptiveShape() != adaptiveShape) {
       mySystemUiPrefs.setAdaptiveShape(adaptiveShape);
-      updated(CFG_ADAPTIVE_SHAPE);
+      updated(ConfigurationListener.CFG_ADAPTIVE_SHAPE);
     }
   }
 
@@ -663,7 +547,7 @@ public class Configuration {
     if (!Objects.equals(mySystemUiPrefs.getWallpaper(), wallpaper)) {
       mySystemUiPrefs.setWallpaper(wallpaper);
       mySystemUiPrefs.setUseThemedIcon(wallpaper != null);
-      updated(CFG_THEME);
+      updated(ConfigurationListener.CFG_THEME);
     }
   }
 
@@ -750,56 +634,17 @@ public class Configuration {
    * rendering target, etc.
    */
   protected void syncFolderConfig() {
-    Device device = getDevice();
-    if (device == null) {
-      return;
-    }
-
-    // get the device config from the device/state combos.
-    State deviceState = getDeviceState();
-    if (deviceState == null) {
-      deviceState = device.getDefaultState();
-    }
-    FolderConfiguration config = getFolderConfig(mySettings.getConfigModule(), deviceState, getLocale(), getTarget());
-
-    // replace the config with the one from the device
-    myFullConfig.set(config);
-
-    // sync the selected locale
-    Locale locale = getLocale();
-    myFullConfig.setLocaleQualifier(locale.qualifier);
-    LayoutDirectionQualifier layoutDirectionQualifier = myEditedConfig.getLayoutDirectionQualifier();
-    if (layoutDirectionQualifier != null && layoutDirectionQualifier != layoutDirectionQualifier.getNullQualifier()) {
-      myFullConfig.setLayoutDirectionQualifier(layoutDirectionQualifier);
-    } else if (!locale.hasLanguage()) {
-      // Avoid getting the layout library if the locale doesn't have any language.
-      myFullConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.LTR));
-    } else {
-      ConfigurationModelModule configModule = mySettings.getConfigModule();
-      LayoutLibrary layoutLib = getLayoutLibrary(getTarget(), configModule.getAndroidPlatform(), configModule.getLayoutlibContext());
-      if (layoutLib != null) {
-        if (layoutLib.isRtl(locale.toLocaleId())) {
-          myFullConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.RTL));
-        } else {
-          myFullConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.LTR));
-        }
-      }
-    }
-
-    // Replace the UiMode with the selected one, if one is selected
-    UiMode uiMode = getUiMode();
-    myFullConfig.setUiModeQualifier(new UiModeQualifier(uiMode));
-
-    // Replace the NightMode with the selected one, if one is selected
-    NightMode nightMode = getNightMode();
-    myFullConfig.setNightModeQualifier(new NightModeQualifier(nightMode));
-
-    // replace the API level by the selection of the combo
-    IAndroidTarget target = getTarget();
-    if (target != null) {
-      int apiLevel = target.getVersion().getFeatureLevel();
-      myFullConfig.setVersionQualifier(new VersionQualifier(apiLevel));
-    }
+    FolderConfigSynchronizer.sync(
+      myFullConfig,
+      mySettings,
+      myEditedConfig,
+      getDevice(),
+      getDeviceState(),
+      getLocale(),
+      getTarget(),
+      getUiMode(),
+      getNightMode()
+    );
 
     myFolderConfigDirty = 0;
     myProjectStateVersion = mySettings.getStateVersion();
@@ -809,17 +654,6 @@ public class Configuration {
   @Nullable
   public ScreenSize getScreenSize() {
     return myDeviceStateResolver.getScreenSize();
-  }
-
-  private void checkThemePrefix() {
-    if (myTheme != null && !myTheme.startsWith(PREFIX_RESOURCE_REF)) {
-      if (myTheme.isEmpty()) {
-        myTheme = getPreferredTheme();
-        return;
-      }
-
-      myTheme = ResourceUtils.getStyleResourceUrl(myTheme);
-    }
   }
 
   /**
@@ -966,13 +800,13 @@ public class Configuration {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this.getClass())
-      .add("display", myDisplayName)
-      .add("theme", myTheme)
-      .add("activity", myActivity)
+      .add("display", myEnvContext.getDisplayName())
+      .add("theme", myEnvContext.getTheme())
+      .add("activity", myEnvContext.getActivity())
       .add("device", myDeviceStateResolver.getCachedDevice())
       .add("state", myDeviceStateResolver.getCachedState())
-      .add("locale", myLocale)
-      .add("target", myTarget)
+      .add("locale", myEnvContext.getLocale())
+      .add("target", myEnvContext.getTarget())
       .add("uimode", myUiModeState.getUiMode())
       .add("nightmode", myUiModeState.getNightMode())
       .add("fontScale", mySystemUiPrefs.getFontScale())
