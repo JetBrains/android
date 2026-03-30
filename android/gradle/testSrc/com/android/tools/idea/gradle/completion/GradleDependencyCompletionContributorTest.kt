@@ -37,12 +37,14 @@ import java.nio.charset.StandardCharsets
 @RunsInEdt
 class GradleDependencyCompletionContributorTest : AndroidTestCase() {
 
-  private val fakeMavenClassRegistryManager = createFakeMavenClassRegistryManager()
+  // KMT-2360 JetBrains patch: move mock creation to setUp() since they are cleared by clearInlineMocks
+  private lateinit var fakeMavenClassRegistryManager: MavenClassRegistryManager
 
   @Before
   override fun setUp() {
     super.setUp()
 
+    fakeMavenClassRegistryManager = createFakeMavenClassRegistryManager()
     ApplicationManager.getApplication().replaceService(
       MavenClassRegistryManager::class.java,
       fakeMavenClassRegistryManager,

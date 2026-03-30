@@ -62,6 +62,7 @@ import javax.swing.JPanel;
 import javax.swing.JRootPane;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import sun.awt.AWTAccessor;
 import sun.awt.NullComponentPeer;
 
@@ -136,7 +137,13 @@ public class WorkBenchTest extends WorkBenchTestCase {
       addSuppressedException(e);
     }
     finally {
-      super.tearDown();
+      try {
+        super.tearDown();
+      }
+      finally {
+        // KMT-2360 JetBrains patch: fix project leak
+        Mockito.framework().clearInlineMocks();
+      }
     }
   }
 
