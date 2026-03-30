@@ -13,7 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+<idea-plugin>
   <name>Gradle Declarative Support</name>
   <id>com.android.tools.gradle.dcl</id>
   <description>
@@ -30,12 +30,13 @@
     <plugin id="org.jetbrains.kotlin"/>
     <!-- region Generated dependencies - run `Generate Product Layouts` to regenerate -->
     <plugin id="com.intellij.gradle"/>
+    <module name="intellij.java.psi"/>
     <module name="intellij.gradle"/>
     <module name="intellij.gradle.java"/>
     <!-- endregion -->
   </dependencies>
 
-  <content>
+  <content namespace="jetbrains">
     <module name="intellij.android.gradle.declarative.lang" loading="embedded"/>
     <module name="intellij.android.gradle.declarative.lang.sync" loading="embedded"/>
     <module name="intellij.android.gradle.declarative.lang.flags" loading="embedded"/>

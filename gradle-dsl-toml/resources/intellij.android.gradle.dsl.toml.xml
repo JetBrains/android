@@ -2,6 +2,9 @@
 <idea-plugin package="com.android.tools.idea.gradle.dsl.parser.toml">
   <dependencies>
     <plugin id="org.toml.lang"/>
+    <!-- region Generated dependencies - run `Generate Product Layouts` to regenerate -->
+    <module name="intellij.toml.core"/>
+    <!-- endregion -->
   </dependencies>
 
   <extensions defaultExtensionNs="com.android.tools.idea.gradle.dsl">

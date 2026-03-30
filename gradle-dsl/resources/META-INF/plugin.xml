@@ -16,9 +16,14 @@
   <dependencies>
     <module name="intellij.java.backend"/>
     <module name="intellij.gradle"/>
+    <!-- region Generated dependencies - run `Generate Product Layouts` to regenerate -->
+    <module name="intellij.java.frontback.psi"/>
+    <module name="intellij.java.psi"/>
+    <module name="intellij.java.syntax"/>
+    <!-- endregion -->
   </dependencies>
 
-  <content>
+  <content namespace="jetbrains">
     <module name="intellij.android.gradle.dsl.groovy"/>
     <module name="intellij.android.gradle.dsl.kotlin"/>
     <module name="intellij.android.gradle.dsl.toml"/>

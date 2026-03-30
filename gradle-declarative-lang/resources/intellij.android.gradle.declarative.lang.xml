@@ -1,7 +1,8 @@
-<idea-plugin package="com.android.tools.idea.gradle.dcl.lang" >
+<idea-plugin package="com.android.tools.idea.gradle.dcl.lang" visibility="internal">
   <!-- region Generated dependencies - run `Generate Product Layouts` to regenerate -->
   <dependencies>
     <module name="intellij.gradle"/>
+    <module name="intellij.java.psi"/>
   </dependencies>
   <!-- endregion -->
 

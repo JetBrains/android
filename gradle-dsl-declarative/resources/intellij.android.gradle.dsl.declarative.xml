@@ -3,10 +3,11 @@
     <transformerFactory implementation="com.android.tools.idea.gradle.dsl.parser.declarative.DeclarativeDslTransformerFactory"/>
   </extensions>
 
+  <!-- region Generated dependencies - run `Generate Product Layouts` to regenerate -->
   <dependencies>
-    <!-- region Generated dependencies - run `Generate Product Layouts` to regenerate -->
     <plugin id="com.android.tools.gradle.dcl"/>
     <module name="intellij.gradle"/>
-    <!-- endregion -->
+    <module name="intellij.android.gradle.declarative.lang"/>
   </dependencies>
+  <!-- endregion -->
 </idea-plugin>

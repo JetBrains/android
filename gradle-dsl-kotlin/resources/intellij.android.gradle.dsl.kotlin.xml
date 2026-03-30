@@ -2,6 +2,10 @@
 <idea-plugin package="com.android.tools.idea.gradle.dsl.kotlin" >
   <dependencies>
     <plugin id="org.jetbrains.kotlin"/>
+    <!-- region Generated dependencies - run `Generate Product Layouts` to regenerate -->
+    <module name="intellij.java.psi"/>
+    <module name="intellij.java.psi.impl"/>
+    <!-- endregion -->
   </dependencies>
 
   <extensions defaultExtensionNs="com.android.tools.idea.gradle.dsl">
