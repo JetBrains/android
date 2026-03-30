@@ -14,34 +14,6 @@ class StudioTests(unittest.TestCase):
   """Performs basic tests on studio artifacts.
   """
 
-  def test_studio_files(self):
-
-    actual = {}
-    for platform in PLATFORMS:
-      name = "tools/adt/idea/studio/android-studio.%s.zip" % platform
-      with zipfile.ZipFile(name) as file:
-        actual[platform] = sorted(file.namelist())
-
-    expected = {}
-    for platform in PLATFORMS:
-      with open("tools/adt/idea/studio/tests/expected_%s.txt" % platform, "r") as txt:
-        expected[platform] = [line.strip() for line in sorted(txt.readlines())]
-
-    for platform in PLATFORMS:
-      if expected != actual:
-        undeclared_dir = os.getenv("TEST_UNDECLARED_OUTPUTS_DIR")
-        with open("%s/expected_%s.txt" % (undeclared_dir, platform), "w") as new_ex:
-          new_ex.writelines([line + "\n" for line in actual[platform]])
-        print("You can find the newly expected file in the undeclared output directory.")
-
-    for platform in PLATFORMS:
-      i = 0
-      while i < len(actual[platform]) and i < len(expected[platform]):
-        self.assertEqual(actual[platform][i], expected[platform][i], "Platform %s #%d - Expected \"%s\", got \"%s\"" % (platform, i, expected[platform][i], actual[platform][i]))
-        i += 1
-      self.assertEqual(i, len(expected[platform]), "Expected item did not appear")
-      self.assertEqual(i, len(actual[platform]), "Unexpected item")
-
   def test_version_metadata(self):
     # Parse version metadata.
     with zipfile.ZipFile(f"tools/adt/idea/studio/android-studio.linux.zip", "r") as distro:

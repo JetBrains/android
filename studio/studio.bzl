@@ -1141,6 +1141,34 @@ def android_studio(
             ],
         )
 
+        py_test(
+            name = "%s.%s.test_studio_files" % (name, config_name),
+            srcs = ["//tools/adt/idea/studio:tests/test_studio_files.py"],
+            data = native.glob([
+                "tests/expected_studio_files/%s/expected_linux.txt" % name,
+                "tests/expected_studio_files/%s/expected_mac.txt" % name,
+                "tests/expected_studio_files/%s/expected_mac_arm.txt" % name,
+                "tests/expected_studio_files/%s/expected_win.txt" % name,
+                "tests/expected_studio_files/%s/%s/expected_diff_linux.txt" % (name, config_name),
+                "tests/expected_studio_files/%s/%s/expected_diff_mac.txt" % (name, config_name),
+                "tests/expected_studio_files/%s/%s/expected_diff_mac_arm.txt" % (name, config_name),
+                "tests/expected_studio_files/%s/%s/expected_diff_win.txt" % (name, config_name),
+            ]) + [
+                ":%s.%s.linux.zip" % (name, config_name),
+                ":%s.%s.mac.zip" % (name, config_name),
+                ":%s.%s.mac_arm.zip" % (name, config_name),
+                ":%s.%s.win.zip" % (name, config_name),
+            ],
+            env = {
+                "ide": "%s/%s" % (native.package_name(), name),
+                "configuration": "%s" % config_name,
+            },
+            main = "test_studio_files.py",
+            tags = [
+                "noci:studio-win",  # b/234018495
+            ],
+        )
+
     # create update_searchable_options target for studio, that generates searchable_options for each configuration
     py_binary(
         name = "%s.update_searchable_options" % name,
@@ -1161,6 +1189,30 @@ def android_studio(
             )
         ],
         main = "update_searchable_options.py",
+        tags = [
+            "block_network",
+            "noci:studio-win",
+        ],
+    )
+
+    py_binary(
+        name = "%s.update_expected_studio_files" % name,
+        srcs = ["//tools/adt/idea/studio:tests/update_expected_studio_files.py"],
+        args = [
+            "--ide %s/%s" % (native.package_name(), name),
+            "--ide-configuration " + " ".join([Label(configuration).name for configuration in configurations]),
+        ],
+        data = [
+            file % (name, Label(configuration).name)
+            for configuration in configurations
+            for file in (
+                ":%s.%s.linux.zip",
+                ":%s.%s.mac.zip",
+                ":%s.%s.mac_arm.zip",
+                ":%s.%s.win.zip",
+            )
+        ],
+        main = "update_expected_studio_files.py",
         tags = [
             "block_network",
             "noci:studio-win",
