@@ -27,6 +27,10 @@
   <depends>org.jetbrains.idea.gradle.dsl</depends>
   <depends>com.intellij.modules.json</depends>
 
+  <dependencies>
+    <module name="intellij.xml.emmet"/>
+  </dependencies>
+
   <depends optional="true" config-file="android-plugin-androidstudio.xml">com.intellij.modules.androidstudio</depends>
   <depends optional="true" config-file="android-plugin-idea.xml">com.intellij.modules.idea</depends>
   <depends optional="true" config-file="android-webp.xml">intellij.webp</depends>
