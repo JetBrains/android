@@ -15,7 +15,7 @@
  */
 package com.google.idea.blaze.qsync.project;
 
-import static com.google.common.truth.Truth8.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.protobuf.Descriptors.EnumValueDescriptor;
 import com.google.idea.blaze.qsync.project.LanguageClassProto.LanguageClass;
@@ -33,12 +33,12 @@ public class QuerySyncLanguageTest {
       if (protoValue == LanguageClass.LANGUAGE_CLASS_UNSPECIFIED) {
         continue;
       }
-      assertThat(QuerySyncLanguage.fromProto(protoValue)).isPresent();
+      assertThat(QuerySyncLanguage.fromProto(protoValue)).isNotNull();
     }
   }
 
   @Test
-  public void proto_unspecified_maps_to_empty() {
-    assertThat(QuerySyncLanguage.fromProto(LanguageClass.LANGUAGE_CLASS_UNSPECIFIED)).isEmpty();
+  public void proto_unspecified_maps_to_null() {
+    assertThat(QuerySyncLanguage.fromProto(LanguageClass.LANGUAGE_CLASS_UNSPECIFIED)).isNull();
   }
 }

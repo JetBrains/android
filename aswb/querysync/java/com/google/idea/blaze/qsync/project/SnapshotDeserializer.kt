@@ -30,7 +30,6 @@ import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Path
 import java.util.Optional
-import kotlin.jvm.optionals.getOrNull
 
 /** Deserializes a [PostQuerySyncData] and [ProjectStructureData] instance from an input stream. */
 class SnapshotDeserializer private constructor() {
@@ -75,9 +74,7 @@ class SnapshotDeserializer private constructor() {
           ImmutableList.copyOf(proto.targetPatternsList.map { TargetPattern.parse(it) }),
         isAndroidWorkspace = proto.isAndroidWorkspace,
         languageClasses =
-          ImmutableSet.copyOf(
-            proto.languageClassesList.mapNotNull { QuerySyncLanguage.fromProto(it).getOrNull() }
-          ),
+          ImmutableSet.copyOf(proto.languageClassesList.mapNotNull { it.toQuerySyncLanguage() }),
         testSources = ImmutableSet.copyOf(proto.testSourcesList),
         systemExcludes = ImmutableSet.copyOf(proto.systemExcludesList.map { Path.of(it) }),
       )
@@ -104,8 +101,7 @@ class SnapshotDeserializer private constructor() {
           )
       }
 
-    val activeLanguages =
-      proto.activeLanguagesList.mapNotNull { QuerySyncLanguage.fromProto(it).getOrNull() }.toSet()
+    val activeLanguages = proto.activeLanguagesList.mapNotNull { it.toQuerySyncLanguage() }.toSet()
 
     return ProjectStructureData(packageSourceSets, activeLanguages)
   }
