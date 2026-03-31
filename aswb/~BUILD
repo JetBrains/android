@@ -40,6 +40,10 @@ aswb_module(
     name = "aswb_core_module",
     aswb_module_deps = ["//tools/vendor/google/aswb/plugin_api:plugin_api_module"],
     scope_prefixes = ["//tools/adt/idea/aswb/"],
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     visibility = ["//visibility:public"],
     deps = [
         "//tools/adt/idea/aswb/aswb",
