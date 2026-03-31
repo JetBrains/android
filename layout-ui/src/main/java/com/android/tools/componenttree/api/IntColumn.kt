@@ -16,7 +16,6 @@
 package com.android.tools.componenttree.api
 
 import com.android.tools.componenttree.treetable.IntTableCellRenderer
-import com.intellij.ui.components.JBLabel
 import java.awt.Color
 import java.awt.Rectangle
 import java.lang.Integer.max
@@ -50,6 +49,7 @@ inline fun <reified T> createIntColumn(
   noinline tooltip: (item: T) -> String? = { _ -> null },
   leftDivider: Boolean = false,
   foreground: Color? = null,
+  hasCustomCursor: Boolean = false,
   headerRenderer: TableCellRenderer? = null,
 ): ColumnInfo =
   SingleTypeIntColumn(
@@ -64,6 +64,7 @@ inline fun <reified T> createIntColumn(
     tooltip,
     leftDivider,
     foreground,
+    hasCustomCursor,
     headerRenderer,
   )
 
@@ -84,6 +85,7 @@ class SingleTypeIntColumn<T>(
   private val tooltip: (item: T) -> String?,
   override val leftDivider: Boolean,
   override val foreground: Color?,
+  override val hasCustomCursor: Boolean,
   override val headerRenderer: TableCellRenderer?,
 ) : IntColumn(name) {
   override fun getInt(item: Any): Int = cast(item)?.let { getter(it) } ?: 0
@@ -125,7 +127,7 @@ abstract class IntColumn(override val name: String) : ColumnInfo {
 
   override val width = -1
 
-  override var renderer: TableCellRenderer? = null
+  override var renderer: IntTableCellRenderer? = null
 
   override fun updateUI() {
     renderer = IntTableCellRenderer(this)
@@ -136,13 +138,12 @@ abstract class IntColumn(override val name: String) : ColumnInfo {
     val low = StringBuilder((minInt ?: minInt(data)).toString())
     high.forEachIndexed { i, c -> if (Character.isDigit(c)) high.setCharAt(i, '8') }
     low.forEachIndexed { i, c -> if (Character.isDigit(c)) low.setCharAt(i, '8') }
-    return max(widthOf(high), widthOf(low))
+    return max(widthOf(table, high), widthOf(table, low))
   }
 
-  private fun widthOf(str: StringBuilder): Int {
+  private fun widthOf(table: JTable, str: StringBuilder): Int {
     val renderer = renderer ?: IntTableCellRenderer(this)
-    val component: JBLabel = renderer as JBLabel
-    component.text = str.toString()
+    val component = renderer.getRenderComponentForStringValue(table, str.toString())
     return component.preferredSize.width
   }
 

@@ -28,6 +28,7 @@ import com.android.tools.componenttree.api.ViewNodeType
 import com.android.tools.componenttree.api.createIntColumn
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.hasCapability
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
@@ -90,6 +91,7 @@ fun AnActionEvent.treePanel(): LayoutInspectorTreePanel? =
 
 fun AnActionEvent.tree(): Tree? = treePanel()?.tree
 
+private const val CLICK_FOR_STATE_READ = "layout.inspector.active.state.read"
 private const val ICON_VERTICAL_BORDER = 5
 private const val ICON_HORIZONTAL_BORDER = 10
 private const val TEXT_HORIZONTAL_BORDER = 5
@@ -208,9 +210,11 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
         maxInt = { inspectorModel?.maxRecomposition?.count ?: 0 },
         minInt = { 0 },
         headerRenderer = createCountsHeader(),
+        hasCustomCursor = true,
         actionEnabled = { item -> isStateReadsEnabledForNode(item.view) },
         action = { item, _, _ -> showStateReadsForNode(item.view) },
         popup = ::showPopup,
+        tooltip = { item -> if (isStateReadsEnabledForNode(item.view)) LayoutInspectorBundle.message(CLICK_FOR_STATE_READ) else "" },
       )
 
     val recompositionChildCountColumn =

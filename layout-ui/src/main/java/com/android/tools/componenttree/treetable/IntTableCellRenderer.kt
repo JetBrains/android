@@ -21,8 +21,11 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.Component
+import java.awt.Cursor
+import java.awt.FlowLayout
 import java.awt.Font
 import java.awt.font.TextAttribute
+import javax.swing.JPanel
 import javax.swing.JTable
 import javax.swing.border.Border
 import javax.swing.table.TableCellRenderer
@@ -31,10 +34,13 @@ import javax.swing.table.TableCellRenderer
 fun ColumnInfo.createBorder(): Border = with(insets) { JBUI.Borders.empty(top, left + if (leftDivider) 1 else 0, bottom, right) }
 
 /** Renderer used each [IntColumn] specified. */
-class IntTableCellRenderer(private val columnInfo: IntColumn) : TableCellRenderer, JBLabel() {
+class IntTableCellRenderer(private val columnInfo: IntColumn) : TableCellRenderer {
+  private val panel = JPanel(FlowLayout())
+  private val label = JBLabel()
+
   init {
-    horizontalAlignment = CENTER
-    border = columnInfo.createBorder()
+    panel.add(label)
+    panel.border = columnInfo.createBorder()
   }
 
   override fun getTableCellRendererComponent(
@@ -48,17 +54,26 @@ class IntTableCellRenderer(private val columnInfo: IntColumn) : TableCellRendere
     val intValue = columnInfo.getInt(value).takeIf { it != 0 }
     val focused = table.hasFocus()
     val asLink = columnInfo.isActionEnabled(value)
-    text = intValue?.toString() ?: ""
-    background = UIUtil.getTableBackground(isSelected, focused)
-    foreground =
+    label.text = intValue?.toString() ?: ""
+    panel.background = UIUtil.getTableBackground(isSelected, focused)
+    label.foreground =
       when {
         asLink -> JBUI.CurrentTheme.Link.Foreground.ENABLED
         isSelected && focused -> UIUtil.getTableForeground(true, true)
         else -> columnInfo.foreground ?: UIUtil.getTableForeground(isSelected, focused)
       }
-    font = UIUtil.getLabelFont().withUnderline(asLink)
-    toolTipText = columnInfo.getTooltipText(value)
-    return this
+    label.font = UIUtil.getLabelFont().withUnderline(asLink)
+    panel.toolTipText = columnInfo.getTooltipText(value)
+    if (columnInfo.hasCustomCursor) {
+      label.cursor = if (asLink) Cursor.getPredefinedCursor(Cursor.HAND_CURSOR) else Cursor.getDefaultCursor()
+    }
+    return panel
+  }
+
+  fun getRenderComponentForStringValue(table: JTable, value: String): Component {
+    val component = getTableCellRendererComponent(table, 0, false, false, 0, 0)
+    label.text = value
+    return component
   }
 
   private fun Font.withUnderline(underline: Boolean): Font {
