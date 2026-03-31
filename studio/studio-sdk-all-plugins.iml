@@ -3,11 +3,11 @@
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="intellij.libraries.jetbrains.annotations" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.guava" />
+    <orderEntry type="module" module-name="intellij.libraries.jetbrains.annotations" />
     <orderEntry type="module" module-name="intellij.platform.core" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.projectModel" />
@@ -61,6 +61,7 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.cidr.util.serializer" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.cidr.util.ui" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.cidr.workspaceModel" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.cmake.psi" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.compose.ide.plugin.gradleTooling.rt" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.debugger.streams.backend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.debugger.streams.core" level="project" />

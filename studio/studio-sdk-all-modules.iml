@@ -22,6 +22,7 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.cidr.util.serializer" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.cidr.util.ui" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.cidr.workspaceModel" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.cmake.psi" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.compose.ide.plugin.gradleTooling.rt" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.debugger.streams.backend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.debugger.streams.core" level="project" />
