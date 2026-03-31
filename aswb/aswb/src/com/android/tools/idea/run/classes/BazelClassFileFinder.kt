@@ -26,8 +26,9 @@ import java.util.jar.JarFile
 import java.util.zip.ZipEntry
 import kotlin.streams.asSequence
 
-internal class BazelClassFileFinder(jars: Collection<Path>) : ClassFileFinder {
+class BazelClassFileFinder internal constructor(jars: Collection<Path>) : ClassFileFinder {
   private val classToJarMultimap = jars.asSequence().map { Jar(it) }.flatMap { it.entries }.groupBy({ it.toString() }, { it.jar })
+  val jarCountForLoggingOnly = jars.size
 
   override fun findClassFile(fqcn: String): ClassContent {
     val path = getPathFromFqcn(fqcn)
