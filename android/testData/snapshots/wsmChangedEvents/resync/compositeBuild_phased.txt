@@ -2,9 +2,12 @@ Workspace model changed #1, phase: INITIAL_PHASE
     Roots changed
     Added ModuleEntity for non-Gradle module, name: <omitted_for_snapshot_consistency>
     Added ContentRootEntity for non-Gradle module url: <omitted_for_snapshot_consistency>
-Workspace model changed #2, phase: PROJECT_MODEL_PHASE
+Workspace model changed #2, phase: BASE_SCRIPT_MODEL
     Roots changed
     Removed ModuleEntity for non-Gradle module, name: <omitted_for_snapshot_consistency>
+    Removed ContentRootEntity for non-Gradle module url: <omitted_for_snapshot_consistency>
+Workspace model changed #3, phase: PROJECT_MODEL_PHASE
+    Roots changed
     Replaced: ModuleEntity for ModuleId(name=TestCompositeLib3.app)
     With:     ModuleEntity for ModuleId(name=TestCompositeLib3.app)
     Replaced: ModuleEntity for ModuleId(name=TestCompositeLib3.lib)
@@ -17,8 +20,7 @@ Workspace model changed #2, phase: PROJECT_MODEL_PHASE
     With:     ModuleEntity for ModuleId(name=p.app)
     Replaced: ModuleEntity for ModuleId(name=p.lib)
     With:     ModuleEntity for ModuleId(name=p.lib)
-    Removed ContentRootEntity for non-Gradle module url: <omitted_for_snapshot_consistency>
-Workspace model changed #3, phase: SOURCE_SET_MODEL_PHASE
+Workspace model changed #4, phase: SOURCE_SET_MODEL_PHASE
     Roots changed
     Replaced: ModuleEntity for ModuleId(name=TestCompositeLib2.test)
     With:     ModuleEntity for ModuleId(name=TestCompositeLib2.test)
@@ -68,14 +70,11 @@ Workspace model changed #3, phase: SOURCE_SET_MODEL_PHASE
     Removed TestModulePropertiesEntity for TestCompositeLib3.TestCompositeLibNested_3.test
     Removed TestModulePropertiesEntity for TestCompositeLib4.test
     Removed TestModulePropertiesEntity for includedLib1.TestCompositeLibNested_1.test
-Workspace model changed #4, phase: DEPENDENCY_MODEL_PHASE
 Workspace model changed #5, phase: ADDITIONAL_MODEL_PHASE
-Workspace model changed #6, phase: N/A
     Replaced: JavaProjectSettingsEntity for the IDE project
     With:     JavaProjectSettingsEntity for the IDE project
+Workspace model changed #6, phase: N/A
 Workspace model changed #7, phase: N/A
-Workspace model changed #8, phase: N/A
-Workspace model changed #9, phase: N/A
     Replaced: ModuleEntity for ModuleId(name=TestCompositeLib2.main)
     With:     ModuleEntity for ModuleId(name=TestCompositeLib2.main)
     Replaced: ModuleEntity for ModuleId(name=TestCompositeLib2.test)
@@ -192,5 +191,3 @@ Workspace model changed #9, phase: N/A
     Removed LibraryMavenCoordinateEntity for Gradle: com.android.support:support-annotations:28.0.0
     Removed LibraryMavenCoordinateEntity for Gradle: org.jetbrains.kotlin:kotlin-stdlib:<AGP_BUILT_IN_KOTLIN_VERSION>
     Removed LibraryMavenCoordinateEntity for Gradle: org.jetbrains:annotations:13.0
-Workspace model changed #10, phase: N/A
-    Roots changed (special batch for previous workspace model change)

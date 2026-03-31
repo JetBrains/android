@@ -1718,6 +1718,7 @@ MODULE                        : kotlinMultiPlatform.app
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
+                    headerModeType                : any
                     returnValueChecker            : disable
                     useFirLT                      : true
             debugAndroidTest
@@ -1737,6 +1738,7 @@ MODULE                        : kotlinMultiPlatform.app
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
+                    headerModeType                : any
                     returnValueChecker            : disable
                     useFirLT                      : true
             debugUnitTest
@@ -1755,6 +1757,7 @@ MODULE                        : kotlinMultiPlatform.app
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
+                    headerModeType                : any
                     returnValueChecker            : disable
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
@@ -4397,6 +4400,7 @@ MODULE                        : kotlinMultiPlatform.module2
             isHMPPEnabled                 : true
         kotlinGradlePluginVersion
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
+        swiftExport                   : KotlinSwiftExportModelImpl
         - targets                     : android (KotlinTargetImpl)
             - compilations                : debug (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)
@@ -4463,6 +4467,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     - fragmentRefines             : androidDebug:commonMain
                     - fragments                   : androidDebug
                     - fragments                   : commonMain
+                    headerModeType                : any
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -4536,6 +4541,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
                     - fragments                   : androidInstrumentedTestDebug
+                    headerModeType                : any
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -4631,6 +4637,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     - fragmentRefines             : androidUnitTestDebug:commonTest
                     - fragments                   : androidUnitTestDebug
                     - fragments                   : commonTest
+                    headerModeType                : any
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -4762,6 +4769,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     - freeArgs                    : <ROOT>/module2/build/classes/kotlin/iosArm64/main/klib/module2
                     - freeArgs                    : library
                     - freeArgs                    : ios_arm64
+                    headerModeType                : any
                     multiPlatform                 : true
                     returnValueChecker            : disable
                     useFirLT                      : true
@@ -4901,6 +4909,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     - freeArgs                    : <ROOT>/module2/build/classes/kotlin/iosArm64/test/klib/module2_test
                     - freeArgs                    : library
                     - freeArgs                    : ios_arm64
+                    headerModeType                : any
                     multiPlatform                 : true
                     returnValueChecker            : disable
                     useFirLT                      : true
@@ -4979,6 +4988,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     - freeArgs                    : <ROOT>/module2/build/classes/kotlin/iosSimulatorArm64/main/klib/module2
                     - freeArgs                    : library
                     - freeArgs                    : ios_simulator_arm64
+                    headerModeType                : any
                     multiPlatform                 : true
                     returnValueChecker            : disable
                     useFirLT                      : true
@@ -5052,6 +5062,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     - freeArgs                    : <ROOT>/module2/build/classes/kotlin/iosSimulatorArm64/test/klib/module2_test
                     - freeArgs                    : library
                     - freeArgs                    : ios_simulator_arm64
+                    headerModeType                : any
                     multiPlatform                 : true
                     returnValueChecker            : disable
                     useFirLT                      : true
@@ -5130,6 +5141,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     - freeArgs                    : <ROOT>/module2/build/classes/kotlin/iosX64/main/klib/module2
                     - freeArgs                    : library
                     - freeArgs                    : ios_x64
+                    headerModeType                : any
                     multiPlatform                 : true
                     returnValueChecker            : disable
                     useFirLT                      : true
@@ -5203,6 +5215,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     - freeArgs                    : <ROOT>/module2/build/classes/kotlin/iosX64/test/klib/module2_test
                     - freeArgs                    : library
                     - freeArgs                    : ios_x64
+                    headerModeType                : any
                     multiPlatform                 : true
                     returnValueChecker            : disable
                     useFirLT                      : true
