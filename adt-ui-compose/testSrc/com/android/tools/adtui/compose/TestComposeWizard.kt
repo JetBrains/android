@@ -16,19 +16,21 @@
 package com.android.tools.adtui.compose
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
-import java.awt.Component
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import org.jetbrains.jewel.foundation.LocalComponent
 
 class TestComposeWizard(initialPage: @Composable WizardPageScope.() -> Unit) : WizardDialogScope {
 
@@ -44,10 +46,12 @@ class TestComposeWizard(initialPage: @Composable WizardPageScope.() -> Unit) : W
 
   @Composable
   fun Content() {
-    with(currentPageScope) { WizardPageScaffold(this@TestComposeWizard, currentPage) }
+    CompositionLocalProvider(LocalComponent provides component) {
+      with(currentPageScope) { WizardPageScaffold(this@TestComposeWizard, currentPage) }
+    }
   }
 
-  override val component: Component = JPanel()
+  override val component: JComponent = JPanel()
 
   override fun pushPage(page: @Composable (WizardPageScope.() -> Unit)) {
     pageStack.add(WizardPage(WizardPageScope(coroutineScope, state), page))
