@@ -31,10 +31,12 @@ import com.android.tools.idea.testing.ModelVersion
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.resolve
+import com.android.tools.idea.util.toVirtualFile
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.util.PathUtil
 import java.io.File
 import java.nio.file.Files
@@ -215,6 +217,11 @@ enum class TestProject(
     patch = { projectRoot ->
       if (modelVersion == ModelVersion.V2) {
         truncateForV2(projectRoot.resolve("settings.gradle"))
+
+        // Synchronize the file modification with VFS
+        projectRoot.toVirtualFile()?.let {
+          VfsUtilCore.processFilesRecursively(it) { true }
+        }
       }
     },
   ),
