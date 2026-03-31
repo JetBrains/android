@@ -22,6 +22,7 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtilCore.iterateChildrenRecursively
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileFilter
+import com.intellij.openapi.vfs.VirtualFileVisitor
 import com.intellij.openapi.vfs.isFile
 import com.intellij.util.indexing.IndexableSetContributor
 import java.io.File
@@ -34,16 +35,23 @@ class VersionCatalogFileIndexContributor : IndexableSetContributor() {
   }
 
   override fun getAdditionalProjectRootsToIndex(project: Project): Set<VirtualFile> {
-    val versionsTomlFilter = VirtualFileFilter { file ->
-      val versionFiles = ModuleManager.getInstance(project).modules.flatMap { getVersionCatalogFiles(it).values }.toSet()
-      (file.isDirectory && file.name == GRADLE_FOLDER) || file.name.endsWith(EXT_VERSIONS_TOML) || file in versionFiles
-    }
     val result = mutableSetOf<VirtualFile>()
+
+    val versionFiles = ModuleManager.getInstance(project).modules.flatMap { getVersionCatalogFiles(it).values }.toSet()
+    result.addAll(versionFiles)
+
+    val versionsTomlFilter = VirtualFileFilter { file -> file.name.endsWith(EXT_VERSIONS_TOML) }
+
     LocalFileSystem.getInstance().findFileByIoFile(File(project.basePath, GRADLE_FOLDER))?.let {
-      iterateChildrenRecursively(it, versionsTomlFilter) { file ->
-        if (file.isFile) result.add(file)
-        true
-      }
+      iterateChildrenRecursively(
+        it,
+        versionsTomlFilter,
+        { file ->
+          if (file.isFile) result.add(file)
+          true
+        },
+        VirtualFileVisitor.SKIP_ROOT,
+      )
     }
     return result
   }
