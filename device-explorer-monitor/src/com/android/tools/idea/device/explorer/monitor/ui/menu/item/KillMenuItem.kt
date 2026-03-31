@@ -24,7 +24,7 @@ class KillMenuItem(listener: DeviceMonitorActionsListener, private val context: 
   override fun getText(numOfNodes: Int): String {
     val processStr = if (numOfNodes > 1) "processes" else "process"
     return if (context == MenuContext.Toolbar) {
-      "<html><b>Kill $processStr</b><br>Executes command: <code>am kill</code></html>"
+      "<html><b>Kill $processStr</b><br>Terminates the target VM</html>"
     } else {
       "Kill $processStr"
     }
