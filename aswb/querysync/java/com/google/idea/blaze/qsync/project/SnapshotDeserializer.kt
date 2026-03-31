@@ -16,7 +16,6 @@
 package com.google.idea.blaze.qsync.project
 
 import com.android.tools.idea.protobuf.ExtensionRegistry
-import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.PrintOutput
@@ -67,16 +66,14 @@ class SnapshotDeserializer private constructor() {
   private fun visitProjectDefinition(proto: SnapshotProto.ProjectDefinition) {
     syncDataBuilder.setProjectDefinition(
       ProjectDefinition(
-        projectIncludes = ImmutableSet.copyOf(proto.includePathsList.map { Path.of(it) }),
-        projectExcludes = ImmutableSet.copyOf(proto.excludePathsList.map { Path.of(it) }),
+        projectIncludes = proto.includePathsList.map { Path.of(it) }.toSet(),
+        projectExcludes = proto.excludePathsList.map { Path.of(it) }.toSet(),
         deriveTargetsFromDirectories = proto.deriveTargetsFromDirectories,
-        targetPatterns =
-          ImmutableList.copyOf(proto.targetPatternsList.map { TargetPattern.parse(it) }),
+        targetPatterns = proto.targetPatternsList.map { TargetPattern.parse(it) },
         isAndroidWorkspace = proto.isAndroidWorkspace,
-        languageClasses =
-          ImmutableSet.copyOf(proto.languageClassesList.mapNotNull { it.toQuerySyncLanguage() }),
-        testSources = ImmutableSet.copyOf(proto.testSourcesList),
-        systemExcludes = ImmutableSet.copyOf(proto.systemExcludesList.map { Path.of(it) }),
+        languageClasses = proto.languageClassesList.mapNotNull { it.toQuerySyncLanguage() }.toSet(),
+        testSources = proto.testSourcesList.toSet(),
+        systemExcludes = proto.systemExcludesList.map { Path.of(it) }.toSet(),
       )
     )
   }
