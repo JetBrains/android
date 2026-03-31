@@ -52,25 +52,22 @@ public class NlModelHierarchyUpdater {
    * Update the hierarchy based on the render/inflate result.
    * @param result result after inflation. Must contain a valid ViewInfo.
    * @param model to be updated.
-   * @return whether update in component hierarchy caused a reverse update in the view hierarchy
    */
-  public static boolean updateHierarchy(@NotNull RenderResult result,
+  public static void updateHierarchy(@NotNull RenderResult result,
                                      @NotNull NlModel model) {
-    return updateHierarchy(getRootViews(result, model.getType()), model);
+    updateHierarchy(getRootViews(result, model.getType()), model);
   }
 
   /**
    * Update the hierarchy based on the inflated rootViews.
    * @param views list of views inflated that matches model file
    * @param model to be updated
-   * @return whether update in component hierarchy caused a reverse update in the view hierarchy
    */
-  public static boolean updateHierarchy(@NotNull List<ViewInfo> views, @NotNull NlModel model) {
+  public static void updateHierarchy(@NotNull List<ViewInfo> views, @NotNull NlModel model) {
     XmlTag root = getRootTag(model);
     if (root != null) {
-      return updateHierarchy(root, views, model);
+      updateHierarchy(root, views, model);
     }
-    return false;
   }
 
   /**
@@ -78,17 +75,15 @@ public class NlModelHierarchyUpdater {
    * @param rootTag xml tag of the root view from PsiFile (from model)
    * @param views list of views inflated that matches model file
    * @param model to be updated
-   * @return whether update in component hierarchy caused a reverse update in the view hierarchy
    */
-  public static boolean updateHierarchy(@NotNull XmlTag rootTag, @NotNull List<ViewInfo> views, @NotNull NlModel model) {
+  public static void updateHierarchy(@NotNull XmlTag rootTag, @NotNull List<ViewInfo> views, @NotNull NlModel model) {
     model.syncWithPsi(rootTag, ContainerUtil.map(views, ViewInfoTagSnapshotNode::new));
     model.updateAccessibility(views);
     updateBounds(views, model);
     ImmutableList<NlComponent> components = model.getTreeReader().getComponents();
     if (!components.isEmpty()) {
-      return updateScroll(components.get(0));
+      updateScroll(components.get(0));
     }
-    return false;
   }
 
   /**
