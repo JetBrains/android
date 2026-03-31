@@ -178,6 +178,7 @@ studiobot.agent.mode=COMPLETE:2025
 studiobot.agent.notifications=COMPLETE:2026
 studiobot.agent.plan.tool.enabled=INTERNAL
 studiobot.agent.query.status.banner.enabled=COMPLETE:2025
+studiobot.agentic.test.generation=PREVIEW
 studiobot.agents.md.files.context=COMPLETE:2025
 studiobot.ai.fix.error.editor.action=PREVIEW
 studiobot.ai.rename.action=COMPLETE:2024
