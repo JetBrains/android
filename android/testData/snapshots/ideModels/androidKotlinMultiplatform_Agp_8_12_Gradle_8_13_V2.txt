@@ -1930,7 +1930,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpFirstLib/build/classes/kotlin/android/deviceTest
                     jvmTarget                     : 11
-                    moduleName                    : kmpFirstLib_deviceTest
+                    moduleName                    : Kotlin Multiplatform:kmpFirstLib_deviceTest
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -1994,7 +1994,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpFirstLib/build/classes/kotlin/android/hostTest
                     jvmTarget                     : 11
-                    moduleName                    : kmpFirstLib_hostTest
+                    moduleName                    : Kotlin Multiplatform:kmpFirstLib_hostTest
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -2067,7 +2067,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpFirstLib/build/classes/kotlin/android/main
                     jvmTarget                     : 11
-                    moduleName                    : kmpFirstLib
+                    moduleName                    : Kotlin Multiplatform:kmpFirstLib
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -2192,7 +2192,7 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpJvmOnly/build/classes/kotlin/jvm/main
                     jvmTarget                     : 17
-                    moduleName                    : kmpJvmOnly
+                    moduleName                    : Kotlin Multiplatform:kmpJvmOnly
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -2274,7 +2274,7 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpJvmOnly/build/classes/kotlin/jvm/test
                     jvmTarget                     : 17
-                    moduleName                    : kmpJvmOnly_test
+                    moduleName                    : Kotlin Multiplatform:kmpJvmOnly_test
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -2522,7 +2522,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpSecondLib/build/classes/kotlin/android/main
                     jvmTarget                     : 11
-                    moduleName                    : kmpSecondLib
+                    moduleName                    : Kotlin Multiplatform:kmpSecondLib
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -2586,7 +2586,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/main
                     jvmTarget                     : 11
-                    moduleName                    : kmpSecondLib
+                    moduleName                    : Kotlin Multiplatform:kmpSecondLib
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -2668,7 +2668,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/test
                     jvmTarget                     : 11
-                    moduleName                    : kmpSecondLib_test
+                    moduleName                    : Kotlin Multiplatform:kmpSecondLib_test
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -2991,7 +2991,7 @@ MODULE                        : build-logic.lib-foo
                     backendThreads                : 1
                     destination                   : <ROOT>/build-logic/lib-foo/build/classes/kotlin/android/deviceTest
                     jvmTarget                     : 17
-                    moduleName                    : lib-foo_deviceTest
+                    moduleName                    : build-logic:lib-foo_deviceTest
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -3070,7 +3070,7 @@ MODULE                        : build-logic.lib-foo
                     backendThreads                : 1
                     destination                   : <ROOT>/build-logic/lib-foo/build/classes/kotlin/android/hostTest
                     jvmTarget                     : 17
-                    moduleName                    : lib-foo_hostTest
+                    moduleName                    : build-logic:lib-foo_hostTest
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -3143,7 +3143,7 @@ MODULE                        : build-logic.lib-foo
                     backendThreads                : 1
                     destination                   : <ROOT>/build-logic/lib-foo/build/classes/kotlin/android/main
                     jvmTarget                     : 17
-                    moduleName                    : lib-foo
+                    moduleName                    : build-logic:lib-foo
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none

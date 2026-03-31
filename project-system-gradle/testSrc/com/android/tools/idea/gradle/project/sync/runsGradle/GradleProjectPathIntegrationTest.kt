@@ -99,8 +99,6 @@ class GradleProjectPathIntegrationTest(private val phasedSync: Boolean) {
           .kmp-java.sample.commonTest ==> :kmp-java:sample/commonTest
           .kmp-java.sample.jvmMain ==> :kmp-java:sample/jvmMain
           .kmp-java.sample.jvmTest ==> :kmp-java:sample/jvmTest
-          .kmp-java.sample.main ==> :kmp-java:sample/MAIN
-          .kmp-java.sample.test ==> :kmp-java:sample/test
           .lib ==> :lib
           .lib.androidTest ==> :lib/ANDROID_TEST
           .lib.main ==> :lib/MAIN

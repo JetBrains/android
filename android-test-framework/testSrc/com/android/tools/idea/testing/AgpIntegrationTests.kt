@@ -129,6 +129,7 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
   //   - KGP 2.0 requires AGP 7.1.3+
   //   - KGP 2.1 requires AGP 7.3.1+ and Gradle 7.6.3+
   //   - KGP 2.3 requires AGP 8.2.2+
+  //   - KGP 2.4 requires AGP 8.5.2+
   AGP_70(
     agpVersion = "7.0.0",
     gradleVersion = "7.0.2",
@@ -201,9 +202,9 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
     modelVersion = ModelVersion.V2,
     compileSdk = "34",
   ),
-  AGP_83(agpVersion = "8.3.1", gradleVersion = "8.4", jdkVersion = JDK_17, compileSdk = "34"),
-  AGP_84(agpVersion = "8.4.0", gradleVersion = "8.6", jdkVersion = JDK_17, compileSdk = "34"),
-  AGP_85(agpVersion = "8.5.0", gradleVersion = "8.7", jdkVersion = JDK_17, compileSdk = "34"),
+  AGP_83(agpVersion = "8.3.1", kotlinVersion = "2.3.10", gradleVersion = "8.4", jdkVersion = JDK_17, compileSdk = "34"),
+  AGP_84(agpVersion = "8.4.0", kotlinVersion = "2.3.10", gradleVersion = "8.6", jdkVersion = JDK_17, compileSdk = "34"),
+  AGP_85(agpVersion = "8.5.0", kotlinVersion = "2.3.10", gradleVersion = "8.7", jdkVersion = JDK_17, compileSdk = "34"),
   AGP_86(agpVersion = "8.6.0", gradleVersion = "8.7", jdkVersion = JDK_17, compileSdk = "35"),
   AGP_87(agpVersion = "8.7.0", gradleVersion = "8.9", jdkVersion = JDK_17, compileSdk = "35"),
   AGP_88(agpVersion = "8.8.0", gradleVersion = "8.10.2", jdkVersion = JDK_17, compileSdk = "35"),

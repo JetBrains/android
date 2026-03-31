@@ -1679,7 +1679,7 @@ MODULE                        : MainActivity.app
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/localDebug
                     jvmTarget                     : 17
-                    moduleName                    : app_localDebug
+                    moduleName                    : MainActivity:app_localDebug
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -1699,7 +1699,7 @@ MODULE                        : MainActivity.app
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/localDebugAndroidTest
                     jvmTarget                     : 17
-                    moduleName                    : app_localDebugAndroidTest
+                    moduleName                    : MainActivity:app_localDebugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -1719,7 +1719,7 @@ MODULE                        : MainActivity.app
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/localDebugUnitTest
                     jvmTarget                     : 17
-                    moduleName                    : app_localDebugUnitTest
+                    moduleName                    : MainActivity:app_localDebugUnitTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -1799,7 +1799,7 @@ MODULE                        : MainActivity.javaLib
                     backendThreads                : 1
                     destination                   : <ROOT>/javaLib/build/classes/kotlin/main
                     jvmTarget                     : 17
-                    moduleName                    : javaLib
+                    moduleName                    : MainActivity:javaLib
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -1825,7 +1825,7 @@ MODULE                        : MainActivity.javaLib
                     backendThreads                : 1
                     destination                   : <ROOT>/javaLib/build/classes/kotlin/test
                     jvmTarget                     : 17
-                    moduleName                    : javaLib_test
+                    moduleName                    : MainActivity:javaLib_test
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -2924,7 +2924,7 @@ MODULE                        : MainActivity.lib
                     backendThreads                : 1
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debug
                     jvmTarget                     : 17
-                    moduleName                    : lib_debug
+                    moduleName                    : MainActivity:lib_debug
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -2943,7 +2943,7 @@ MODULE                        : MainActivity.lib
                     backendThreads                : 1
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugAndroidTest
                     jvmTarget                     : 17
-                    moduleName                    : lib_debugAndroidTest
+                    moduleName                    : MainActivity:lib_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -2962,7 +2962,7 @@ MODULE                        : MainActivity.lib
                     backendThreads                : 1
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugUnitTest
                     jvmTarget                     : 17
-                    moduleName                    : lib_debugUnitTest
+                    moduleName                    : MainActivity:lib_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true

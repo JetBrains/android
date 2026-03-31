@@ -908,6 +908,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: SecurityUI | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: SensitiveContentAnalysis | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: SensorKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+        LIBRARY                       : Kotlin/Native: ServicesAccountLinking | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: SharedWithYou | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: SharedWithYouCore | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: ShazamKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -1285,6 +1286,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: SensitiveContentAnalysis | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: SensorKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+            Scope                         : Test
+        LIBRARY                       : Kotlin/Native: ServicesAccountLinking | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: SharedWithYou | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
@@ -1669,6 +1672,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: SecurityUI | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: SensitiveContentAnalysis | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: SensorKit | ios_arm64 [=]
+        LIBRARY                       : Kotlin/Native: ServicesAccountLinking | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: SharedWithYou | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: SharedWithYouCore | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: ShazamKit | ios_arm64 [=]
@@ -2042,6 +2046,8 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: SensorKit | ios_arm64 [=]
             Scope                         : Test
+        LIBRARY                       : Kotlin/Native: ServicesAccountLinking | ios_arm64 [=]
+            Scope                         : Test
         LIBRARY                       : Kotlin/Native: SharedWithYou | ios_arm64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: SharedWithYouCore | ios_arm64 [=]
@@ -2324,6 +2330,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: SecurityUI | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: SensitiveContentAnalysis | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: SensorKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+        LIBRARY                       : Kotlin/Native: ServicesAccountLinking | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: SharedWithYou | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: SharedWithYouCore | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: ShazamKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -2550,6 +2557,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: SecurityUI | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: SensitiveContentAnalysis | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: SensorKit | ios_simulator_arm64 [=]
+        LIBRARY                       : Kotlin/Native: ServicesAccountLinking | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: SharedWithYou | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: SharedWithYouCore | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: ShazamKit | ios_simulator_arm64 [=]
@@ -2922,6 +2930,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: SensitiveContentAnalysis | ios_simulator_arm64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: SensorKit | ios_simulator_arm64 [=]
+            Scope                         : Test
+        LIBRARY                       : Kotlin/Native: ServicesAccountLinking | ios_simulator_arm64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: SharedWithYou | ios_simulator_arm64 [=]
             Scope                         : Test
@@ -3351,6 +3361,8 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: SensorKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
+        LIBRARY                       : Kotlin/Native: ServicesAccountLinking | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+            Scope                         : Test
         LIBRARY                       : Kotlin/Native: SharedWithYou | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: SharedWithYouCore | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -3622,6 +3634,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: SecurityUI | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: SensitiveContentAnalysis | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: SensorKit | ios_x64 [=]
+        LIBRARY                       : Kotlin/Native: ServicesAccountLinking | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: SharedWithYou | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: SharedWithYouCore | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: ShazamKit | ios_x64 [=]
@@ -3994,6 +4007,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: SensitiveContentAnalysis | ios_x64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: SensorKit | ios_x64 [=]
+            Scope                         : Test
+        LIBRARY                       : Kotlin/Native: ServicesAccountLinking | ios_x64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: SharedWithYou | ios_x64 [=]
             Scope                         : Test
@@ -4392,6 +4407,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: SecurityUI | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: SensitiveContentAnalysis | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: SensorKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+        LIBRARY                       : Kotlin/Native: ServicesAccountLinking | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: SharedWithYou | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: SharedWithYouCore | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: ShazamKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -4768,6 +4784,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: SensitiveContentAnalysis | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: SensorKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+            Scope                         : Test
+        LIBRARY                       : Kotlin/Native: ServicesAccountLinking | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: SharedWithYou | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
@@ -6238,6 +6256,14 @@ PROJECT                       : kotlinMultiPlatform
             *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_simulator_arm64/org.jetbrains.kotlin.native.platform.SensorKit
         LIBRARY                       : Kotlin/Native: SensorKit | ios_x64
             *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_x64/org.jetbrains.kotlin.native.platform.SensorKit
+        LIBRARY                       : Kotlin/Native: ServicesAccountLinking | [(ios_arm64, ios_simulator_arm64, ios_x64)]
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/commonized/<KOTLIN_VERSION>/(ios_arm64, ios_simulator_arm64, ios_x64)/org.jetbrains.kotlin.native.platform.ServicesAccountLinking
+        LIBRARY                       : Kotlin/Native: ServicesAccountLinking | ios_arm64
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_arm64/org.jetbrains.kotlin.native.platform.ServicesAccountLinking
+        LIBRARY                       : Kotlin/Native: ServicesAccountLinking | ios_simulator_arm64
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_simulator_arm64/org.jetbrains.kotlin.native.platform.ServicesAccountLinking
+        LIBRARY                       : Kotlin/Native: ServicesAccountLinking | ios_x64
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_x64/org.jetbrains.kotlin.native.platform.ServicesAccountLinking
         LIBRARY                       : Kotlin/Native: SharedWithYou | [(ios_arm64, ios_simulator_arm64, ios_x64)]
             *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/commonized/<KOTLIN_VERSION>/(ios_arm64, ios_simulator_arm64, ios_x64)/org.jetbrains.kotlin.native.platform.SharedWithYou
         LIBRARY                       : Kotlin/Native: SharedWithYou | ios_arm64

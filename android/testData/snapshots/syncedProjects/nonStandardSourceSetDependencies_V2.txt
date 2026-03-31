@@ -2395,7 +2395,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         Classes
             -                             : file://<PROJECT>/kmp-java/sample/build/classes/kotlin/jvm/main
             -                             : file://<PROJECT>/kmp-java/sample/build/classes/java/jvmMain
-            -                             : file://<PROJECT>/kmp-java/sample/build/classes/java/main
             -                             : file://<PROJECT>/kmp-java/sample/build/processedResources/jvm/main
         BUILD_TASKS
     MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.jvmTest
@@ -2463,40 +2462,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.kmp-java.sample.jvmMain
             Scope                         : Test
-        BUILD_TASKS
-    MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.main
-        ExternalModuleGroup           : NonStandardSourceSetDependencies.kmp-java
-        ExternalModuleType            : sourceSet
-        ExternalModuleVersion         : unspecified
-        LinkedProjectId               : :kmp-java:sample:main
-        LinkedProjectPath             : <PROJECT>/kmp-java/sample
-        RootProjectPath               : <PROJECT>
-        COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/NonStandardSourceSetDependencies.kmp-java.sample.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/NonStandardSourceSetDependencies.kmp-java.sample.main [-]
-            isCompilerPathInherited       : true
-            isExcludeOutput               : true
-        JDK                           : <NAME_CUT> JavaSDK
-        *isInherited                  : true
-        ORDER_ENTRY                   : <Module source>
-        BUILD_TASKS
-    MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.test
-        ExternalModuleGroup           : NonStandardSourceSetDependencies.kmp-java
-        ExternalModuleType            : sourceSet
-        ExternalModuleVersion         : unspecified
-        LinkedProjectId               : :kmp-java:sample:test
-        LinkedProjectPath             : <PROJECT>/kmp-java/sample
-        RootProjectPath               : <PROJECT>
-        COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/NonStandardSourceSetDependencies.kmp-java.sample.test [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/NonStandardSourceSetDependencies.kmp-java.sample.test [-]
-            isCompilerPathInherited       : true
-            isExcludeOutput               : true
-        TEST_MODULE_PROPERTIES
-            productionModuleName          : NonStandardSourceSetDependencies.kmp-java.sample.main
-        JDK                           : <NAME_CUT> JavaSDK
-        *isInherited                  : true
-        ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
     MODULE                        : NonStandardSourceSetDependencies.lib
         LINKED_ANDROID_MODULE_GROUP

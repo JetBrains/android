@@ -667,6 +667,7 @@ MODULE                        : kotlinMultiPlatform
                         - releaseRuntimeElements-published      : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
                         - releaseSourcesElements      : <ROOT>/module2/build/libs/module2-android-sources.jar [-]
                         - releaseSourcesElements-published      : <ROOT>/module2/build/libs/module2-android-sources.jar [-]
+                        - swiftPMDependenciesMetadataElementsForLockFiles : <ROOT>/module2/build/kotlin/swiftPMDependenciesMetadataForLockFiles [-]
                     - additionalArtifacts         : <ROOT>/module2/build/libs/module2-metadata.jar [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
@@ -1708,7 +1709,7 @@ MODULE                        : kotlinMultiPlatform.app
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debug
                     jvmTarget                     : 21
-                    moduleName                    : app_debug
+                    moduleName                    : kotlinMultiPlatform:app_debug
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -1728,7 +1729,7 @@ MODULE                        : kotlinMultiPlatform.app
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest
                     jvmTarget                     : 21
-                    moduleName                    : app_debugAndroidTest
+                    moduleName                    : kotlinMultiPlatform:app_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -1748,7 +1749,7 @@ MODULE                        : kotlinMultiPlatform.app
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest
                     jvmTarget                     : 21
-                    moduleName                    : app_debugUnitTest
+                    moduleName                    : kotlinMultiPlatform:app_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -2338,6 +2339,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:SecurityUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensitiveContentAnalysis:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensorKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:ServicesAccountLinking:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYou:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYouCore:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ShazamKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -2522,6 +2524,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:SecurityUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensitiveContentAnalysis:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensorKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:ServicesAccountLinking:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYou:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYouCore:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ShazamKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -2709,6 +2712,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:SecurityUI:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensitiveContentAnalysis:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensorKit:ios_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:ServicesAccountLinking:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYou:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYouCore:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ShazamKit:ios_arm64:<KOTLIN_VERSION>
@@ -2896,6 +2900,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:SecurityUI:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensitiveContentAnalysis:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensorKit:ios_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:ServicesAccountLinking:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYou:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYouCore:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ShazamKit:ios_arm64:<KOTLIN_VERSION>
@@ -3077,6 +3082,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:SecurityUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensitiveContentAnalysis:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensorKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:ServicesAccountLinking:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYou:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYouCore:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ShazamKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -3259,6 +3265,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:SecurityUI:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensitiveContentAnalysis:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensorKit:ios_simulator_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:ServicesAccountLinking:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYou:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYouCore:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ShazamKit:ios_simulator_arm64:<KOTLIN_VERSION>
@@ -3446,6 +3453,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:SecurityUI:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensitiveContentAnalysis:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensorKit:ios_simulator_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:ServicesAccountLinking:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYou:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYouCore:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ShazamKit:ios_simulator_arm64:<KOTLIN_VERSION>
@@ -3631,6 +3639,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:SecurityUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensitiveContentAnalysis:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensorKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:ServicesAccountLinking:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYou:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYouCore:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ShazamKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -3813,6 +3822,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:SecurityUI:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensitiveContentAnalysis:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensorKit:ios_x64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:ServicesAccountLinking:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYou:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYouCore:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ShazamKit:ios_x64:<KOTLIN_VERSION>
@@ -4000,6 +4010,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:SecurityUI:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensitiveContentAnalysis:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensorKit:ios_x64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:ServicesAccountLinking:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYou:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYouCore:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ShazamKit:ios_x64:<KOTLIN_VERSION>
@@ -4179,6 +4190,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:SecurityUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensitiveContentAnalysis:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensorKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:ServicesAccountLinking:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYou:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYouCore:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ShazamKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -4362,6 +4374,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:SecurityUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensitiveContentAnalysis:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensorKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:ServicesAccountLinking:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYou:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYouCore:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ShazamKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -4456,7 +4469,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     backendThreads                : 1
                     destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debug
                     jvmTarget                     : 21
-                    moduleName                    : module2_debug
+                    moduleName                    : kotlinMultiPlatform:module2_debug
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -4531,7 +4544,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     backendThreads                : 1
                     destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debugAndroidTest
                     jvmTarget                     : 21
-                    moduleName                    : module2_debugAndroidTest
+                    moduleName                    : kotlinMultiPlatform:module2_debugAndroidTest
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -4626,7 +4639,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     backendThreads                : 1
                     destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debugUnitTest
                     jvmTarget                     : 21
-                    moduleName                    : module2_debugUnitTest
+                    moduleName                    : kotlinMultiPlatform:module2_debugUnitTest
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none

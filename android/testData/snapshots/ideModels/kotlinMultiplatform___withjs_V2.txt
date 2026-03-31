@@ -626,20 +626,24 @@ MODULE                        : kotlinMultiPlatform
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                    - taskArtifacts               : <ROOT>/jsModule/build/libs/jsModule.klib [-]
+                    - taskArtifacts               : <ROOT>/jsModule/build/libs/jsModule-metadata.jar [-]
+                    - taskArtifacts               : <ROOT>/jsModule/build/libs/jsModule-js.klib [-]
                     configurationArtifacts
-                        - jsApiElements               : <ROOT>/jsModule/build/libs/jsModule.klib [-]
-                        - jsApiElements-published     : <ROOT>/jsModule/build/libs/jsModule.klib [-]
-                        - jsRuntimeElements           : <ROOT>/jsModule/build/libs/jsModule.klib [-]
-                        - jsRuntimeElements-published : <ROOT>/jsModule/build/libs/jsModule.klib [-]
+                        - jsApiElements               : <ROOT>/jsModule/build/libs/jsModule-js.klib [-]
+                        - jsApiElements-published     : <ROOT>/jsModule/build/libs/jsModule-js.klib [-]
+                        - jsPublicPackageJsonConfiguration      : <ROOT>/jsModule/build/tmp/jsPublicPackageJson/package.json [-]
+                        - jsRuntimeElements           : <ROOT>/jsModule/build/libs/jsModule-js.klib [-]
+                        - jsRuntimeElements-published : <ROOT>/jsModule/build/libs/jsModule-js.klib [-]
                         - jsSourcesElements           : <ROOT>/jsModule/build/libs/jsModule-js-sources.jar [-]
                         - jsSourcesElements-published : <ROOT>/jsModule/build/libs/jsModule-js-sources.jar [-]
-                        - publicPackageJsonConfiguration        : <ROOT>/jsModule/build/tmp/publicPackageJson/package.json [-]
-                    - additionalArtifacts         : <ROOT>/jsModule/build/libs/jsModule.klib [-]
+                        - metadataApiElements         : <ROOT>/jsModule/build/libs/jsModule-metadata.jar [-]
+                        - metadataSourcesElements     : <ROOT>/jsModule/build/libs/jsModule-kotlin-sources.jar [-]
+                    - additionalArtifacts         : <ROOT>/jsModule/build/libs/jsModule-metadata.jar [-]
+                    - additionalArtifacts         : <ROOT>/jsModule/build/libs/jsModule-js.klib [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
-                        browserTest                   : browserTest (DefaultExternalTask)
-                            qName                         : :jsModule:browserTest
+                        jsBrowserTest                 : jsBrowserTest (DefaultExternalTask)
+                            qName                         : :jsModule:jsBrowserTest
             module2                       : :module2 (DefaultExternalProject)
                 path                          : :module2 [-]
                 identityPath                  : :module2 [-]
@@ -677,8 +681,8 @@ MODULE                        : kotlinMultiPlatform
             configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
         taskModel                     : DefaultGradleTaskModel
             tasks
-                browserTest                   : browserTest (DefaultExternalTask)
-                    qName                         : :jsModule:browserTest
+                jsBrowserTest                 : jsBrowserTest (DefaultExternalTask)
+                    qName                         : :jsModule:jsBrowserTest
                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testDebugUnitTest
 MODULE                        : kotlinMultiPlatform.app
@@ -1698,7 +1702,7 @@ MODULE                        : kotlinMultiPlatform.app
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debug
                     jvmTarget                     : 21
-                    moduleName                    : app_debug
+                    moduleName                    : kotlinMultiPlatform:app_debug
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -1718,7 +1722,7 @@ MODULE                        : kotlinMultiPlatform.app
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest
                     jvmTarget                     : 21
-                    moduleName                    : app_debugAndroidTest
+                    moduleName                    : kotlinMultiPlatform:app_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -1738,7 +1742,7 @@ MODULE                        : kotlinMultiPlatform.app
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest
                     jvmTarget                     : 21
-                    moduleName                    : app_debugUnitTest
+                    moduleName                    : kotlinMultiPlatform:app_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -1778,32 +1782,101 @@ MODULE                        : kotlinMultiPlatform.jsModule
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
-        - taskNames                   : browserTest
-    kotlinMppGradleModel          : {main=main, test=test} (KotlinMPPGradleModelImpl)
+        - taskNames                   : jsBrowserTest
+    kotlinMppGradleModel          : {commonMain=commonMain, commonTest=commonTest, jsMain=jsMain, jsTest=jsTest, webMain=webMain, webTest=webTest} (KotlinMPPGradleModelImpl)
         dependencies
-            main
+            commonMain
                 - dependency                  : org.jetbrains.kotlin:kotlin-dom-api-compat:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-js:<KOTLIN_VERSION>
-            test
-                - dependency                  : :jsModule::jsModule/main
+            commonTest
+                - dependency                  : :jsModule::jsModule/commonMain
+                - dependency                  : :jsModule::jsModule/jsMain
+                - dependency                  : :jsModule::jsModule/webMain
+                - dependency                  : org.jetbrains.kotlin:kotlin-dom-api-compat:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-js:<KOTLIN_VERSION>
+            jsMain
+                - dependency                  : :jsModule::jsModule/commonMain
+                - dependency                  : :jsModule::jsModule/webMain
+                - dependency                  : org.jetbrains.kotlin:kotlin-dom-api-compat:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-js:<KOTLIN_VERSION>
+            jsTest
+                - dependency                  : :jsModule::jsModule/commonMain
+                - dependency                  : :jsModule::jsModule/commonTest
+                - dependency                  : :jsModule::jsModule/jsMain
+                - dependency                  : :jsModule::jsModule/webMain
+                - dependency                  : :jsModule::jsModule/webTest
+                - dependency                  : org.jetbrains.kotlin:kotlin-dom-api-compat:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-js:<KOTLIN_VERSION>
+            webMain
+                - dependency                  : :jsModule::jsModule/commonMain
+                - dependency                  : org.jetbrains.kotlin:kotlin-dom-api-compat:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-js:<KOTLIN_VERSION>
+            webTest
+                - dependency                  : :jsModule::jsModule/commonMain
+                - dependency                  : :jsModule::jsModule/commonTest
+                - dependency                  : :jsModule::jsModule/jsMain
+                - dependency                  : :jsModule::jsModule/webMain
                 - dependency                  : org.jetbrains.kotlin:kotlin-dom-api-compat:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-js:<KOTLIN_VERSION>
         extraFeatures                 : ExtraFeaturesImpl
             isHMPPEnabled                 : true
         kotlinGradlePluginVersion
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
+        swiftExport                   : KotlinSwiftExportModelImpl
         - targets                     : js (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
-                - allSourceSets               : main (KotlinSourceSetImpl)
+                - allSourceSets               : webMain (KotlinSourceSetImpl)
+                    actualPlatforms               : KotlinPlatformContainerImpl
+                        arePlatformsInitialized       : true
+                        - platforms                   : JS
+                    - allDependsOnSourceSets      : commonMain
+                    - declaredDependsOnSourceSets : commonMain
+                    languageSettings              : KotlinLanguageSettingsImpl
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    - resourceDirs                : <ROOT>/jsModule/src/webMain/resources [-]
+                    - sourceDirs                  : <ROOT>/jsModule/src/webMain/kotlin [-]
+                    platform                      : JS
+                - allSourceSets               : commonMain (KotlinSourceSetImpl)
                     actualPlatforms               : KotlinPlatformContainerImpl
                         arePlatformsInitialized       : true
                         - platforms                   : JS
                     languageSettings              : KotlinLanguageSettingsImpl
-                        - freeCompilerArgs            : -Xir-per-module-output-name=kotlinMultiPlatform-jsModule
-                    - resourceDirs                : <ROOT>/jsModule/src/main/resources [-]
-                    - sourceDirs                  : <ROOT>/jsModule/src/main/kotlin [-]
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    - resourceDirs                : <ROOT>/jsModule/src/commonMain/resources [-]
+                    - sourceDirs                  : <ROOT>/jsModule/src/commonMain/kotlin [-]
                     platform                      : JS
-                archiveFile                   : <ROOT>/jsModule/build/libs/jsModule.klib [-]
+                - allSourceSets               : jsMain (KotlinSourceSetImpl)
+                    actualPlatforms               : KotlinPlatformContainerImpl
+                        arePlatformsInitialized       : true
+                        - platforms                   : JS
+                    - allDependsOnSourceSets      : webMain
+                    - allDependsOnSourceSets      : commonMain
+                    - declaredDependsOnSourceSets : webMain
+                    languageSettings              : KotlinLanguageSettingsImpl
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                        - freeCompilerArgs            : -Xir-per-module-output-name=kotlinMultiPlatform-jsModule
+                    - resourceDirs                : <ROOT>/jsModule/src/jsMain/resources [-]
+                    - sourceDirs                  : <ROOT>/jsModule/src/jsMain/kotlin [-]
+                    platform                      : JS
+                archiveFile                   : <ROOT>/jsModule/build/libs/jsModule-js.klib [-]
                 compilerArguments             : K2JVMCompilerArguments
                     assertionsMode                : legacy
                     backendThreads                : 1
@@ -1811,44 +1884,111 @@ MODULE                        : kotlinMultiPlatform.jsModule
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     errors                        : ArgumentParseErrors
+                        - unknownArgs                 : -target
                         - unknownArgs                 : -main
                         - unknownArgs                 : -ir-output-name
                         - unknownArgs                 : -ir-output-dir
                         - unknownArgs                 : -source-map
                         - unknownArgs                 : -source-map-embed-sources
-                        - unknownArgs                 : -target
                         - unknownExtraFlags           : -Xir-produce-klib-dir
                         - unknownExtraFlags           : -Xir-per-module-output-name=kotlinMultiPlatform-jsModule
                         - unknownExtraFlags           : -Xir-module-name=kotlinMultiPlatform:jsModule
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
-                    - freeArgs                    : call
-                    - freeArgs                    : jsModule
-                    - freeArgs                    : <ROOT>/jsModule/build/classes/kotlin/main
-                    - freeArgs                    : never
+                    - fragmentRefines             : jsMain:webMain
+                    - fragmentRefines             : webMain:commonMain
+                    - fragments                   : jsMain
+                    - fragments                   : webMain
+                    - fragments                   : commonMain
                     - freeArgs                    : es5
+                    - freeArgs                    : call
+                    - freeArgs                    : kotlinMultiPlatform:jsModule
+                    - freeArgs                    : <ROOT>/jsModule/build/classes/kotlin/js/main
+                    - freeArgs                    : never
                     headerModeType                : any
+                    multiPlatform                 : true
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     returnValueChecker            : disable
                     useFirLT                      : true
-                - declaredSourceSets          : main (KotlinSourceSetImpl) (*seen*)
+                - declaredSourceSets          : jsMain (KotlinSourceSetImpl) (*seen*)
+                disambiguationClassifier      : js
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
                     pluginVersion                 : <CUT>
                 output                        : KotlinCompilationOutputImpl
-                    - classesDirs                 : <ROOT>/jsModule/build/classes/kotlin/main [-]
-                    effectiveClassesDir           : <ROOT>/jsModule/build/classes/kotlin/main [-]
+                    - classesDirs                 : <ROOT>/jsModule/build/classes/kotlin/js/main [-]
+                    effectiveClassesDir           : <ROOT>/jsModule/build/classes/kotlin/js/main [-]
                     resourcesDir                  : <ROOT>/jsModule/build/processedResources/js/main [-]
                 platform                      : JS
             - compilations                : test (KotlinCompilationImpl)
-                - allSourceSets               : test (KotlinSourceSetImpl)
+                - allSourceSets               : webTest (KotlinSourceSetImpl)
                     actualPlatforms               : KotlinPlatformContainerImpl
                         arePlatformsInitialized       : true
                         - platforms                   : JS
-                    - additionalVisibleSourceSets : main
+                    - additionalVisibleSourceSets : jsMain
+                    - additionalVisibleSourceSets : webMain
+                    - additionalVisibleSourceSets : commonMain
+                    - allDependsOnSourceSets      : commonTest
+                    - declaredDependsOnSourceSets : commonTest
                     isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
-                    - resourceDirs                : <ROOT>/jsModule/src/test/resources [-]
-                    - sourceDirs                  : <ROOT>/jsModule/src/test/kotlin [-]
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    - resourceDirs                : <ROOT>/jsModule/src/webTest/resources [-]
+                    - sourceDirs                  : <ROOT>/jsModule/src/webTest/kotlin [-]
+                    platform                      : JS
+                - allSourceSets               : commonTest (KotlinSourceSetImpl)
+                    actualPlatforms               : KotlinPlatformContainerImpl
+                        arePlatformsInitialized       : true
+                        - platforms                   : JS
+                    - additionalVisibleSourceSets : jsMain
+                    - additionalVisibleSourceSets : webMain
+                    - additionalVisibleSourceSets : commonMain
+                    isTestComponent               : true
+                    languageSettings              : KotlinLanguageSettingsImpl
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    - resourceDirs                : <ROOT>/jsModule/src/commonTest/resources [-]
+                    - sourceDirs                  : <ROOT>/jsModule/src/commonTest/kotlin [-]
+                    platform                      : JS
+                - allSourceSets               : jsTest (KotlinSourceSetImpl)
+                    actualPlatforms               : KotlinPlatformContainerImpl
+                        arePlatformsInitialized       : true
+                        - platforms                   : JS
+                    - additionalVisibleSourceSets : jsMain
+                    - additionalVisibleSourceSets : webMain
+                    - additionalVisibleSourceSets : commonMain
+                    - allDependsOnSourceSets      : webTest
+                    - allDependsOnSourceSets      : commonTest
+                    - declaredDependsOnSourceSets : webTest
+                    isTestComponent               : true
+                    languageSettings              : KotlinLanguageSettingsImpl
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                        - freeCompilerArgs            : -Xir-per-module-output-name=kotlinMultiPlatform-jsModule-test
+                    - resourceDirs                : <ROOT>/jsModule/src/jsTest/resources [-]
+                    - sourceDirs                  : <ROOT>/jsModule/src/jsTest/kotlin [-]
                     platform                      : JS
                 - associateCompilations       : KotlinCompilationCoordinatesImpl
                     compilationName               : main
@@ -1860,47 +2000,70 @@ MODULE                        : kotlinMultiPlatform.jsModule
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     errors                        : ArgumentParseErrors
+                        - unknownArgs                 : -target
                         - unknownArgs                 : -main
                         - unknownArgs                 : -ir-output-name
                         - unknownArgs                 : -ir-output-dir
                         - unknownArgs                 : -source-map
                         - unknownArgs                 : -source-map-embed-sources
-                        - unknownArgs                 : -target
                         - unknownExtraFlags           : -Xir-produce-klib-dir
                         - unknownExtraFlags           : -Xir-per-module-output-name=kotlinMultiPlatform-jsModule-test
                         - unknownExtraFlags           : -Xir-module-name=kotlinMultiPlatform:jsModule_test
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
-                    - freeArgs                    : call
-                    - freeArgs                    : jsModule_test
-                    - freeArgs                    : <ROOT>/jsModule/build/classes/kotlin/test
-                    - freeArgs                    : never
+                    - fragmentRefines             : jsTest:webTest
+                    - fragmentRefines             : webTest:commonTest
+                    - fragments                   : jsTest
+                    - fragments                   : webTest
+                    - fragments                   : commonTest
                     - freeArgs                    : es5
+                    - freeArgs                    : call
+                    - freeArgs                    : kotlinMultiPlatform:jsModule_test
+                    - freeArgs                    : <ROOT>/jsModule/build/classes/kotlin/js/test
+                    - freeArgs                    : never
                     headerModeType                : any
+                    multiPlatform                 : true
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     returnValueChecker            : disable
                     useFirLT                      : true
-                - declaredSourceSets          : test (KotlinSourceSetImpl) (*seen*)
+                - declaredSourceSets          : jsTest (KotlinSourceSetImpl) (*seen*)
+                disambiguationClassifier      : js
                 isTestComponent               : true
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
                     pluginVersion                 : <CUT>
                 output                        : KotlinCompilationOutputImpl
-                    - classesDirs                 : <ROOT>/jsModule/build/classes/kotlin/test [-]
-                    effectiveClassesDir           : <ROOT>/jsModule/build/classes/kotlin/test [-]
+                    - classesDirs                 : <ROOT>/jsModule/build/classes/kotlin/js/test [-]
+                    effectiveClassesDir           : <ROOT>/jsModule/build/classes/kotlin/js/test [-]
                     resourcesDir                  : <ROOT>/jsModule/build/processedResources/js/test [-]
                 platform                      : JS
+            disambiguationClassifier      : js
             jar                           : KotlinTargetJarImpl
-                archiveFile                   : <ROOT>/jsModule/build/libs/jsModule.klib [-]
+                archiveFile                   : <ROOT>/jsModule/build/libs/jsModule-js.klib [-]
             platform                      : JS
             - testRunTasks                : KotlinTestRunTaskImpl
                 compilationName               : test
-                taskName                      : browserTest
+                taskName                      : jsBrowserTest
         sourceSets
-            main                          : main (KotlinSourceSetImpl) (*seen*)
-            test                          : test (KotlinSourceSetImpl) (*seen*)
+            commonMain                    : commonMain (KotlinSourceSetImpl) (*seen*)
+            commonTest                    : commonTest (KotlinSourceSetImpl) (*seen*)
+            jsMain                        : jsMain (KotlinSourceSetImpl) (*seen*)
+            jsTest                        : jsTest (KotlinSourceSetImpl) (*seen*)
+            webMain                       : webMain (KotlinSourceSetImpl) (*seen*)
+            webTest                       : webTest (KotlinSourceSetImpl) (*seen*)
     externalProject               : :jsModule (DefaultExternalProject) (*seen*)
-MODULE                        : kotlinMultiPlatform.jsModule.main
-MODULE                        : kotlinMultiPlatform.jsModule.test
+MODULE                        : kotlinMultiPlatform.jsModule.commonMain
+MODULE                        : kotlinMultiPlatform.jsModule.commonTest
+MODULE                        : kotlinMultiPlatform.jsModule.jsMain
+MODULE                        : kotlinMultiPlatform.jsModule.jsTest
+MODULE                        : kotlinMultiPlatform.jsModule.webMain
+MODULE                        : kotlinMultiPlatform.jsModule.webTest
 MODULE                        : kotlinMultiPlatform.module2
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>
@@ -2362,7 +2525,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     backendThreads                : 1
                     destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debug
                     jvmTarget                     : 21
-                    moduleName                    : module2_debug
+                    moduleName                    : kotlinMultiPlatform:module2_debug
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -2436,7 +2599,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     backendThreads                : 1
                     destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debugAndroidTest
                     jvmTarget                     : 21
-                    moduleName                    : module2_debugAndroidTest
+                    moduleName                    : kotlinMultiPlatform:module2_debugAndroidTest
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -2512,7 +2675,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     backendThreads                : 1
                     destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debugUnitTest
                     jvmTarget                     : 21
-                    moduleName                    : module2_debugUnitTest
+                    moduleName                    : kotlinMultiPlatform:module2_debugUnitTest
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none

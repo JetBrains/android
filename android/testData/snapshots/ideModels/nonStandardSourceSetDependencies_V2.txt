@@ -1192,16 +1192,16 @@ MODULE                        : NonStandardSourceSetDependencies
                                     - dependencies                : DefaultFileCollectionDependency
                                         - files                       : <ROOT>/kmp-java/sample/build/classes/java/jvmMain [-]
                                         - files                       : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
-                                        - files                       : <ROOT>/kmp-java/sample/build/classes/java/main [-]
                                         - files                       : <ROOT>/kmp-java/sample/build/processedResources/jvm/main [-]
                                     sources
                                         SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                            - srcDirs                     : <ROOT>/kmp-java/sample/src/jvmMain/java [-]
                                             outputDir                     : <ROOT>/kmp-java/sample/out/jvmMain/classes [-]
                                             - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/java/jvmMain [-]
                                             - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
-                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/java/main [-]
                                             patterns                      : FilePatternSetImpl
                                         RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                            - srcDirs                     : <ROOT>/kmp-java/sample/src/jvmMain/resources [-]
                                             outputDir                     : <ROOT>/kmp-java/sample/out/jvmMain/resources [-]
                                             - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/processedResources/jvm/main [-]
                                             patterns                      : FilePatternSetImpl
@@ -1212,78 +1212,24 @@ MODULE                        : NonStandardSourceSetDependencies
                                         - files                       : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
                                     - dependencies                : DefaultFileCollectionDependency
                                         - files                       : <ROOT>/kmp-java/sample/build/classes/java/jvmMain [-]
-                                    - dependencies                : DefaultFileCollectionDependency
-                                        - files                       : <ROOT>/kmp-java/sample/build/classes/java/main [-]
-                                    - dependencies                : DefaultExternalLibraryDependency
-                                        file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                                    - dependencies                : DefaultExternalLibraryDependency (*seen*)
                                     - dependencies                : DefaultExternalLibraryDependency (*seen*)
                                     - dependencies                : DefaultFileCollectionDependency
                                         - files                       : <ROOT>/kmp-java/sample/build/classes/java/jvmTest [-]
                                         - files                       : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/test [-]
-                                        - files                       : <ROOT>/kmp-java/sample/build/classes/java/test [-]
                                         - files                       : <ROOT>/kmp-java/sample/build/processedResources/jvm/test [-]
                                     - dependencies                : DefaultFileCollectionDependency
                                         - files                       : <ROOT>/kmp-java/sample/build/processedResources/jvm/main [-]
                                     sources
                                         SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                            - srcDirs                     : <ROOT>/kmp-java/sample/src/jvmTest/java [-]
                                             outputDir                     : <ROOT>/kmp-java/sample/out/jvmTest/classes [-]
                                             - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/java/jvmTest [-]
                                             - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/test [-]
-                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/java/test [-]
                                             patterns                      : FilePatternSetImpl
                                         RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
-                                            outputDir                     : <ROOT>/kmp-java/sample/out/jvmTest/resources [-]
-                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/processedResources/jvm/test [-]
-                                            patterns                      : FilePatternSetImpl
-                                main
-                                    sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                                    targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                                    - artifacts                   : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
-                                    - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                                    - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                                    - dependencies                : DefaultFileCollectionDependency
-                                        - files                       : <ROOT>/kmp-java/sample/build/classes/java/main [-]
-                                        - files                       : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
-                                        - files                       : <ROOT>/kmp-java/sample/build/classes/java/jvmMain [-]
-                                        - files                       : <ROOT>/kmp-java/sample/build/processedResources/jvm/main [-]
-                                    sources
-                                        SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
-                                            - srcDirs                     : <ROOT>/kmp-java/sample/src/jvmMain/java [-]
-                                            outputDir                     : <ROOT>/kmp-java/sample/out/production/classes [-]
-                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/java/main [-]
-                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
-                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/java/jvmMain [-]
-                                            patterns                      : FilePatternSetImpl
-                                        RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
-                                            - srcDirs                     : <ROOT>/kmp-java/sample/src/jvmMain/resources [-]
-                                            outputDir                     : <ROOT>/kmp-java/sample/out/production/resources [-]
-                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/processedResources/jvm/main [-]
-                                            patterns                      : FilePatternSetImpl
-                                test
-                                    sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                                    targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                                    - dependencies                : DefaultFileCollectionDependency (*seen*)
-                                    - dependencies                : DefaultFileCollectionDependency (*seen*)
-                                    - dependencies                : DefaultFileCollectionDependency (*seen*)
-                                    - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                                    - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                                    - dependencies                : DefaultFileCollectionDependency
-                                        - files                       : <ROOT>/kmp-java/sample/build/classes/java/test [-]
-                                        - files                       : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/test [-]
-                                        - files                       : <ROOT>/kmp-java/sample/build/classes/java/jvmTest [-]
-                                        - files                       : <ROOT>/kmp-java/sample/build/processedResources/jvm/test [-]
-                                    - dependencies                : DefaultFileCollectionDependency (*seen*)
-                                    sources
-                                        TEST                          : alljava (DefaultExternalSourceDirectorySet)
-                                            - srcDirs                     : <ROOT>/kmp-java/sample/src/jvmTest/java [-]
-                                            outputDir                     : <ROOT>/kmp-java/sample/out/test/classes [-]
-                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/java/test [-]
-                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/test [-]
-                                            - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/java/jvmTest [-]
-                                            patterns                      : FilePatternSetImpl
-                                        TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
                                             - srcDirs                     : <ROOT>/kmp-java/sample/src/jvmTest/resources [-]
-                                            outputDir                     : <ROOT>/kmp-java/sample/out/test/resources [-]
+                                            outputDir                     : <ROOT>/kmp-java/sample/out/jvmTest/resources [-]
                                             - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/processedResources/jvm/test [-]
                                             patterns                      : FilePatternSetImpl
                         taskModel                     : DefaultGradleTaskModel
@@ -2119,7 +2065,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debug
                     jvmTarget                     : 1.8
-                    moduleName                    : app_debug
+                    moduleName                    : NonStandardSourceSetDependencies:app_debug
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -2139,7 +2085,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest
                     jvmTarget                     : 1.8
-                    moduleName                    : app_debugAndroidTest
+                    moduleName                    : NonStandardSourceSetDependencies:app_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -2159,7 +2105,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest
                     jvmTarget                     : 1.8
-                    moduleName                    : app_debugUnitTest
+                    moduleName                    : NonStandardSourceSetDependencies:app_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -2267,7 +2213,7 @@ MODULE                        : NonStandardSourceSetDependencies.common
                     backendThreads                : 1
                     destination                   : <ROOT>/common/build/classes/kotlin/jvm/main
                     jvmTarget                     : 21
-                    moduleName                    : common
+                    moduleName                    : NonStandardSourceSetDependencies:common
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -2349,7 +2295,7 @@ MODULE                        : NonStandardSourceSetDependencies.common
                     backendThreads                : 1
                     destination                   : <ROOT>/common/build/classes/kotlin/jvm/test
                     jvmTarget                     : 21
-                    moduleName                    : common_test
+                    moduleName                    : NonStandardSourceSetDependencies:common_test
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -2422,7 +2368,7 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
                     backendThreads                : 1
                     destination                   : <ROOT>/desktop/build/classes/kotlin/main
                     jvmTarget                     : 21
-                    moduleName                    : desktop
+                    moduleName                    : NonStandardSourceSetDependencies:desktop
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -2447,7 +2393,7 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
                     backendThreads                : 1
                     destination                   : <ROOT>/desktop/build/classes/kotlin/test
                     jvmTarget                     : 21
-                    moduleName                    : desktop_test
+                    moduleName                    : NonStandardSourceSetDependencies:desktop_test
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -3493,7 +3439,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     backendThreads                : 1
                     destination                   : <ROOT>/feature-a/build/tmp/kotlin-classes/debug
                     jvmTarget                     : 21
-                    moduleName                    : feature-a_debug
+                    moduleName                    : NonStandardSourceSetDependencies:feature-a_debug
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -3512,7 +3458,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     backendThreads                : 1
                     destination                   : <ROOT>/feature-a/build/tmp/kotlin-classes/debugAndroidTest
                     jvmTarget                     : 21
-                    moduleName                    : feature-a_debugAndroidTest
+                    moduleName                    : NonStandardSourceSetDependencies:feature-a_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -3532,7 +3478,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     backendThreads                : 1
                     destination                   : <ROOT>/feature-a/build/tmp/kotlin-classes/debugUnitTest
                     jvmTarget                     : 21
-                    moduleName                    : feature-a_debugUnitTest
+                    moduleName                    : NonStandardSourceSetDependencies:feature-a_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -4015,7 +3961,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     backendThreads                : 1
                     destination                   : <ROOT>/feature-b/build/tmp/kotlin-classes/debug
                     jvmTarget                     : 21
-                    moduleName                    : feature-b_debug
+                    moduleName                    : NonStandardSourceSetDependencies:feature-b_debug
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -4089,7 +4035,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     backendThreads                : 1
                     destination                   : <ROOT>/feature-b/build/tmp/kotlin-classes/debugAndroidTest
                     jvmTarget                     : 21
-                    moduleName                    : feature-b_debugAndroidTest
+                    moduleName                    : NonStandardSourceSetDependencies:feature-b_debugAndroidTest
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -4165,7 +4111,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     backendThreads                : 1
                     destination                   : <ROOT>/feature-b/build/tmp/kotlin-classes/debugUnitTest
                     jvmTarget                     : 21
-                    moduleName                    : feature-b_debugUnitTest
+                    moduleName                    : NonStandardSourceSetDependencies:feature-b_debugUnitTest
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -4247,7 +4193,7 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     backendThreads                : 1
                     destination                   : <ROOT>/javaLibrary/build/classes/kotlin/main
                     jvmTarget                     : 21
-                    moduleName                    : javaLibrary
+                    moduleName                    : NonStandardSourceSetDependencies:javaLibrary
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -4272,7 +4218,7 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     backendThreads                : 1
                     destination                   : <ROOT>/javaLibrary/build/classes/kotlin/test
                     jvmTarget                     : 21
-                    moduleName                    : javaLibrary_test
+                    moduleName                    : NonStandardSourceSetDependencies:javaLibrary_test
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -4297,7 +4243,7 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     backendThreads                : 1
                     destination                   : <ROOT>/javaLibrary/build/classes/kotlin/testEnv
                     jvmTarget                     : 21
-                    moduleName                    : javaLibrary_testEnv
+                    moduleName                    : NonStandardSourceSetDependencies:javaLibrary_testEnv
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -4425,7 +4371,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     backendThreads                : 1
                     destination                   : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main
                     jvmTarget                     : 21
-                    moduleName                    : sample
+                    moduleName                    : NonStandardSourceSetDependencies.kmp-java:sample
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -4452,11 +4398,9 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
                     pluginVersion                 : <CUT>
-                    - pureKotlinSourceFolders     : <ROOT>/kmp-java/sample/src/jvmMain/kotlin
                 output                        : KotlinCompilationOutputImpl
                     - classesDirs                 : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
                     - classesDirs                 : <ROOT>/kmp-java/sample/build/classes/java/jvmMain [-]
-                    - classesDirs                 : <ROOT>/kmp-java/sample/build/classes/java/main [-]
                     effectiveClassesDir           : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
                     resourcesDir                  : <ROOT>/kmp-java/sample/build/processedResources/jvm/main [-]
                 platform                      : JVM
@@ -4509,7 +4453,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     backendThreads                : 1
                     destination                   : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/test
                     jvmTarget                     : 21
-                    moduleName                    : sample_test
+                    moduleName                    : NonStandardSourceSetDependencies.kmp-java:sample_test
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -4537,11 +4481,9 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
                     pluginVersion                 : <CUT>
-                    - pureKotlinSourceFolders     : <ROOT>/kmp-java/sample/src/jvmTest/kotlin [-]
                 output                        : KotlinCompilationOutputImpl
                     - classesDirs                 : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/test [-]
                     - classesDirs                 : <ROOT>/kmp-java/sample/build/classes/java/jvmTest [-]
-                    - classesDirs                 : <ROOT>/kmp-java/sample/build/classes/java/test [-]
                     effectiveClassesDir           : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/test [-]
                     resourcesDir                  : <ROOT>/kmp-java/sample/build/processedResources/jvm/test [-]
                 platform                      : JVM
@@ -4860,8 +4802,6 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
 MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.commonTest
 MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.jvmMain
 MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.jvmTest
-MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.main
-MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.test
 MODULE                        : NonStandardSourceSetDependencies.lib
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>
@@ -5319,7 +5259,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     backendThreads                : 1
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debug
                     jvmTarget                     : 21
-                    moduleName                    : manual-test-fixtures_debug
+                    moduleName                    : NonStandardSourceSetDependencies:manual-test-fixtures_debug
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -5338,7 +5278,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     backendThreads                : 1
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugAndroidTest
                     jvmTarget                     : 21
-                    moduleName                    : manual-test-fixtures_debugAndroidTest
+                    moduleName                    : NonStandardSourceSetDependencies:manual-test-fixtures_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -5358,7 +5298,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     backendThreads                : 1
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugUnitTest
                     jvmTarget                     : 21
-                    moduleName                    : manual-test-fixtures_debugUnitTest
+                    moduleName                    : NonStandardSourceSetDependencies:manual-test-fixtures_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true

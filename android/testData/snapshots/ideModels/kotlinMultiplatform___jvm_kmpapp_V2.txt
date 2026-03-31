@@ -1931,7 +1931,7 @@ MODULE                        : kotlinMultiPlatform.app
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debug
                     jvmTarget                     : 21
-                    moduleName                    : app_debug
+                    moduleName                    : kotlinMultiPlatform:app_debug
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -2007,7 +2007,7 @@ MODULE                        : kotlinMultiPlatform.app
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest
                     jvmTarget                     : 21
-                    moduleName                    : app_debugAndroidTest
+                    moduleName                    : kotlinMultiPlatform:app_debugAndroidTest
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -2102,7 +2102,7 @@ MODULE                        : kotlinMultiPlatform.app
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest
                     jvmTarget                     : 21
-                    moduleName                    : app_debugUnitTest
+                    moduleName                    : kotlinMultiPlatform:app_debugUnitTest
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -2171,7 +2171,7 @@ MODULE                        : kotlinMultiPlatform.app
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/classes/kotlin/jvm/main
                     jvmTarget                     : 21
-                    moduleName                    : app
+                    moduleName                    : kotlinMultiPlatform:app
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -2236,7 +2236,7 @@ MODULE                        : kotlinMultiPlatform.app
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/classes/kotlin/jvm/test
                     jvmTarget                     : 21
-                    moduleName                    : app_test
+                    moduleName                    : kotlinMultiPlatform:app_test
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -2782,7 +2782,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     backendThreads                : 1
                     destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debug
                     jvmTarget                     : 21
-                    moduleName                    : module2_debug
+                    moduleName                    : kotlinMultiPlatform:module2_debug
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -2857,7 +2857,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     backendThreads                : 1
                     destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debugAndroidTest
                     jvmTarget                     : 21
-                    moduleName                    : module2_debugAndroidTest
+                    moduleName                    : kotlinMultiPlatform:module2_debugAndroidTest
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -2952,7 +2952,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     backendThreads                : 1
                     destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debugUnitTest
                     jvmTarget                     : 21
-                    moduleName                    : module2_debugUnitTest
+                    moduleName                    : kotlinMultiPlatform:module2_debugUnitTest
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -3021,7 +3021,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     backendThreads                : 1
                     destination                   : <ROOT>/module2/build/classes/kotlin/jvm/main
                     jvmTarget                     : 21
-                    moduleName                    : module2
+                    moduleName                    : kotlinMultiPlatform:module2
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -3086,7 +3086,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     backendThreads                : 1
                     destination                   : <ROOT>/module2/build/classes/kotlin/jvm/test
                     jvmTarget                     : 21
-                    moduleName                    : module2_test
+                    moduleName                    : kotlinMultiPlatform:module2_test
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
