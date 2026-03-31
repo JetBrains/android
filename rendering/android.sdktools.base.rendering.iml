@@ -16,7 +16,7 @@
     <orderEntry type="library" name="studio-platform" level="project" />
     <orderEntry type="library" name="studio-platform" level="project" />
     <orderEntry type="library" name="kxml2" level="project" />
-    <orderEntry type="library" name="asm-tools" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.asm.tools" />
     <orderEntry type="library" name="studio-platform" level="project" />
     <orderEntry type="library" name="studio-platform" level="project" />
     <orderEntry type="library" name="studio-platform" level="project" />
