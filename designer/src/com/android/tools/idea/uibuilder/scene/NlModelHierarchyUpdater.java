@@ -81,8 +81,9 @@ public class NlModelHierarchyUpdater {
     model.updateAccessibility(views);
     updateBounds(views, model);
     ImmutableList<NlComponent> components = model.getTreeReader().getComponents();
-    if (!components.isEmpty()) {
-      updateScroll(components.get(0));
+    if (!components.isEmpty() && handleScroll(components.getFirst())) {
+      // If there is scrolling involved, this will update the SceneManager to show the correct location for bounding boxes.
+      model.notifyListenersModelChangedOnLayout(false);
     }
   }
 
@@ -130,11 +131,11 @@ public class NlModelHierarchyUpdater {
   }
 
   /**
-   * Update the scroll in the View hierarchy from the saved scroll in the components' hierarchy. Returns whether there was any scroll
-   * update required or not.
+   * Updates the scroll in the View hierarchy from the saved scroll in the components' hierarchy. Returns whether the component
+   * or its children are scrolled by a non-zero amount.
    */
-  private static boolean updateScroll(@NotNull NlComponent component) {
-    boolean scrollHasChanged = false;
+  private static boolean handleScroll(@NotNull NlComponent component) {
+    boolean hasNonZeroScroll = false;
     ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(component);
     Object viewObject = viewInfo != null ? viewInfo.getViewObject() : null;
 
@@ -142,8 +143,8 @@ public class NlModelHierarchyUpdater {
       ViewGroup viewGroup = (ViewGroup)viewObject;
       int savedScrollX = NlComponentHelperKt.getScrollX(component);
       int savedScrollY = NlComponentHelperKt.getScrollY(component);
+      hasNonZeroScroll = savedScrollX != 0 || savedScrollY != 0;
       if (savedScrollX != viewGroup.getScrollX() || savedScrollY != viewGroup.getScrollY()) {
-        scrollHasChanged = true;
         viewGroup.setScrollX(savedScrollX);
         viewGroup.setScrollY(savedScrollY);
       }
@@ -151,9 +152,9 @@ public class NlModelHierarchyUpdater {
 
     List<NlComponent> children = component.getChildren();
     for (NlComponent child : children) {
-      scrollHasChanged = scrollHasChanged || updateScroll(child);
+      hasNonZeroScroll = hasNonZeroScroll || handleScroll(child);
     }
-    return scrollHasChanged;
+    return hasNonZeroScroll;
   }
 
   private static void updateBounds(@NotNull ViewInfo view,
