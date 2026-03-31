@@ -16,7 +16,7 @@ if [[ -x "tools/base/bazel/bazel" ]]; then
   BAZEL="tools/base/bazel/bazel"
 fi
 
-TARGETS=$($BAZEL query 'kind("py_binary", filter(".*update_searchable_options.*", //...))' --noshow_progress 2>/dev/null)
+TARGETS=$($BAZEL query 'kind("py_binary", filter(".*update_searchable_options.*", //...))' --noshow_progress)
 
 if [[ -z "$TARGETS" ]]; then
   echo "No targets found."
