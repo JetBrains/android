@@ -28,6 +28,8 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.platform.ide.progress.ModalTaskOwner
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
@@ -37,6 +39,7 @@ import java.awt.Dimension
 import java.awt.event.KeyEvent
 import java.util.UUID
 import javax.swing.JPanel
+import kotlinx.coroutines.delay
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -64,6 +67,15 @@ class FindSelectedLibVersionDeclarationActionIntegrationTest {
   @After
   fun tearDown() {
     UsageTracker.cleanAfterTesting()
+    // This is a workaround for b/498243530
+    // These tests trigger editor opening with active RangeBlinker.
+    // RangeBlinker do several blinks. At this moment this happens on an App level coroutine.
+    // If editor or project is disposed before blinking is done editor and project references are leaked.
+    // Note, closing editor does not help and only makes leak happen immediately.
+    // The only workarounds for here I see are 1) wait 2) cancel coroutine. But since blinking is happening on app
+    // level coroutine I do not know the right way to cancel it.
+    // TODO (b/498573086): remove workaround when this is fixed and merged.
+    runWithModalProgressBlocking(ModalTaskOwner.guess(), "") { delay(6000) }
   }
 
   @Test
