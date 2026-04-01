@@ -64,7 +64,7 @@
         errorLine2="     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/app_bar_main.xml"
-            line="25"
+            line="26"
             column="6"/>
     </issue>
 

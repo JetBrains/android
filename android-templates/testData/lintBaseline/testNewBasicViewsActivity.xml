@@ -49,7 +49,7 @@
         errorLine2="     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/activity_main.xml"
-            line="24"
+            line="25"
             column="6"/>
     </issue>
 

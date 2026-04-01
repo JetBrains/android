@@ -25,13 +25,35 @@
     </issue>
 
     <issue
+        id="UnusedResources"
+        message="The resource `R.dimen.activity_horizontal_margin` appears to be unused"
+        errorLine1="    &lt;dimen name=&quot;activity_horizontal_margin&quot;>16dp&lt;/dimen>"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/dimens.xml"
+            line="3"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.dimen.activity_vertical_margin` appears to be unused"
+        errorLine1="    &lt;dimen name=&quot;activity_vertical_margin&quot;>16dp&lt;/dimen>"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/dimens.xml"
+            line="4"
+            column="12"/>
+    </issue>
+
+    <issue
         id="Autofill"
         message="Missing `autofillHints` attribute"
         errorLine1="    &lt;EditText"
         errorLine2="     ~~~~~~~~">
         <location
             file="src/main/res/layout-w1240dp/activity_login.xml"
-            line="14"
+            line="10"
             column="6"/>
     </issue>
 
@@ -42,7 +64,7 @@
         errorLine2="     ~~~~~~~~">
         <location
             file="src/main/res/layout/activity_login.xml"
-            line="14"
+            line="10"
             column="6"/>
     </issue>
 
@@ -53,7 +75,7 @@
         errorLine2="         ~~~~~~~~">
         <location
             file="src/main/res/layout-w936dp/activity_login.xml"
-            line="20"
+            line="16"
             column="10"/>
     </issue>
 
@@ -64,7 +86,7 @@
         errorLine2="     ~~~~~~~~">
         <location
             file="src/main/res/layout-w1240dp/activity_login.xml"
-            line="26"
+            line="22"
             column="6"/>
     </issue>
 
@@ -75,7 +97,7 @@
         errorLine2="     ~~~~~~~~">
         <location
             file="src/main/res/layout/activity_login.xml"
-            line="26"
+            line="22"
             column="6"/>
     </issue>
 
@@ -86,7 +108,7 @@
         errorLine2="         ~~~~~~~~">
         <location
             file="src/main/res/layout-w936dp/activity_login.xml"
-            line="32"
+            line="28"
             column="10"/>
     </issue>
 
