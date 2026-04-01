@@ -298,15 +298,21 @@ internal class EmulatorToolWindowPanel(disposableParent: Disposable, private val
     }
   }
 
+  override fun setBounds(x: Int, y: Int, width: Int, height: Int) {
+    val wasZeroSize = this.width == 0 || this.height == 0
+    super.setBounds(x, y, width, height)
+    if (wasZeroSize && width > 0 && height > 0 && connected) {
+      displayConfigurator.refreshDisplayConfiguration()
+    }
+  }
+
   private inner class DisplayConfigurator(private val project: Project) : DisplayConfigurationListener {
 
     var displayDescriptors = emptyList<DisplayDescriptor>()
 
     @AnyThread
-    override fun displayConfigurationChanged(displayConfigs: List<DisplayConfiguration>?) {
-      if (displayConfigs == null) {
-        refreshDisplayConfiguration()
-      } else {
+    override fun displayConfigurationChanged(displayConfigs: List<DisplayConfiguration>) {
+      EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
         displayConfigurationReceived(displayConfigs)
       }
     }
@@ -331,17 +337,20 @@ internal class EmulatorToolWindowPanel(disposableParent: Disposable, private val
 
     private fun displayConfigurationReceived(displayConfigs: List<DisplayConfiguration>) {
       val primaryDisplayView = primaryDisplayView ?: return
-      val newDisplays = getDisplayDescriptors(primaryDisplayView, displayConfigs)
-      if (newDisplays.size == 1 && displayDescriptors.size <= 1 || newDisplays == displayDescriptors) {
-        return
-      }
+      val availableSpace = centerPanel.sizeWithoutInsets
+      if (availableSpace.width > 0 && availableSpace.height > 0) {
+        val newDisplays = getDisplayDescriptors(primaryDisplayView, displayConfigs)
+        if (newDisplays.size == 1 && displayDescriptors.size <= 1 || newDisplays == displayDescriptors) {
+          return
+        }
 
-      removeDisplayPanels { displayPanel -> !newDisplays.any { it.displayId == displayPanel.displayId } }
-      val layoutRoot = computeBestLayout(centerPanel.sizeWithoutInsets, newDisplays.map { it.size })
-      val rootPanel = buildLayout(layoutRoot, newDisplays)
-      displayDescriptors = newDisplays
-      setRootPanel(rootPanel)
-      ActivityTracker.getInstance().inc()
+        removeDisplayPanels { displayPanel -> !newDisplays.any { it.displayId == displayPanel.displayId } }
+        val layoutRoot = computeBestLayout(availableSpace, newDisplays.map { it.size })
+        val rootPanel = buildLayout(layoutRoot, newDisplays)
+        displayDescriptors = newDisplays
+        setRootPanel(rootPanel)
+        ActivityTracker.getInstance().inc()
+      }
     }
 
     fun buildLayout(multiDisplayState: MultiDisplayState) {

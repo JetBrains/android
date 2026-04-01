@@ -21,7 +21,6 @@ import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.UiThread
 import com.android.emulator.ImageConverter
 import com.android.emulator.control.DisplayConfiguration
-import com.android.emulator.control.DisplayConfigurationsChangedNotification
 import com.android.emulator.control.DisplayModeValue
 import com.android.emulator.control.Image as ImageMessage
 import com.android.emulator.control.ImageFormat
@@ -901,7 +900,7 @@ internal class EmulatorView(
         when {
           message.hasCameraNotification() -> virtualSceneCameraActive = message.cameraNotification.active
           message.hasDisplayConfigurationsChangedNotification() ->
-            checkDisplayConfigurationsAndNotifyDisplayConfigurationListeners(message.displayConfigurationsChangedNotification)
+            notifyDisplayConfigurationListeners(message.displayConfigurationsChangedNotification.displayConfigurations.displaysList)
           message.hasPosture() -> updateCurrentPosture(message.posture.value)
           message.hasXrOptions() -> updateXrOptions(message.xrOptions)
           message.hasMicrophoneState() -> microphoneInput = message.microphoneState.realAudioEnabled
@@ -910,18 +909,7 @@ internal class EmulatorView(
       }
     }
 
-    private fun checkDisplayConfigurationsAndNotifyDisplayConfigurationListeners(notification: DisplayConfigurationsChangedNotification) {
-      val displayConfigs = notification.displayConfigurations.displaysList
-      // Check for b/290831895.
-      if (displayConfigs.find { it.width <= 0 || it.height <= 0 } != null) {
-        LOG.error("Invalid display configuration in $notification")
-        notifyDisplayConfigurationListeners(null)
-      } else {
-        notifyDisplayConfigurationListeners(displayConfigs)
-      }
-    }
-
-    private fun notifyDisplayConfigurationListeners(displayConfigs: List<DisplayConfiguration>?) {
+    private fun notifyDisplayConfigurationListeners(displayConfigs: List<DisplayConfiguration>) {
       for (listener in displayConfigurationListeners) {
         listener.displayConfigurationChanged(displayConfigs)
       }
