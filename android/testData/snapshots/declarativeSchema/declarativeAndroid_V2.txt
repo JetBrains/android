@@ -813,6 +813,10 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.ApplicationDeclarativeDefinition
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.ApplicationAndroidResources
+                    - MemberFunctionName            : buildTypes
+                      Receiver ReferenceType        : com.android.build.api.dsl.ApplicationDeclarativeDefinition
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_DeclarativeApplicationBuildType
                     - MemberFunctionName            : bundle
                       Receiver ReferenceType        : com.android.build.api.dsl.ApplicationDeclarativeDefinition
                       Parameters
@@ -7914,6 +7918,17 @@ Projects:
                           - Name                          : name
                             Value SimpleType              : STRING
                       Block ReferenceType           : com.android.build.api.dsl.ApkSigningConfig
+                Properties
+                Supertypes                    :
+            org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_DeclarativeApplicationBuildType
+                Name                          : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_DeclarativeApplicationBuildType
+                MemberFunctions
+                    - MemberFunctionName            : buildType
+                      Receiver ReferenceType        : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_DeclarativeApplicationBuildType
+                      Parameters
+                          - Name                          : name
+                            Value SimpleType              : STRING
+                      Block ReferenceType           : com.android.build.api.dsl.DeclarativeApplicationBuildType
                 Properties
                 Supertypes                    :
             org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_DeclarativeApplicationFlavor
@@ -10425,6 +10440,10 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.ApplicationDeclarativeDefinition
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.ApplicationAndroidResources
+                    - MemberFunctionName            : buildTypes
+                      Receiver ReferenceType        : com.android.build.api.dsl.ApplicationDeclarativeDefinition
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_DeclarativeApplicationBuildType
                     - MemberFunctionName            : bundle
                       Receiver ReferenceType        : com.android.build.api.dsl.ApplicationDeclarativeDefinition
                       Parameters
@@ -17526,6 +17545,17 @@ Settings:
                           - Name                          : name
                             Value SimpleType              : STRING
                       Block ReferenceType           : com.android.build.api.dsl.ApkSigningConfig
+                Properties
+                Supertypes                    :
+            org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_DeclarativeApplicationBuildType
+                Name                          : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_DeclarativeApplicationBuildType
+                MemberFunctions
+                    - MemberFunctionName            : buildType
+                      Receiver ReferenceType        : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_DeclarativeApplicationBuildType
+                      Parameters
+                          - Name                          : name
+                            Value SimpleType              : STRING
+                      Block ReferenceType           : com.android.build.api.dsl.DeclarativeApplicationBuildType
                 Properties
                 Supertypes                    :
             org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_DeclarativeApplicationFlavor
