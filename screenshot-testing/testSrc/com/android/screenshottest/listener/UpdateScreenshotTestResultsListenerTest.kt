@@ -43,7 +43,7 @@ class UpdateScreenshotTestResultsListenerTest {
   @Test
   fun testOnTestCaseFinished_extractsDataCorrectly() {
     val dialog = mock(UpdateReferenceImagesDialog::class.java)
-    val listener = UpdateScreenshotTestResultsListener(dialog)
+    val listener = UpdateScreenshotTestResultsListener(dialog) { it.run() }
 
     val mockDevice = mock(AndroidDevice::class.java)
     val mockSuite = mock(AndroidTestSuite::class.java)
@@ -92,7 +92,7 @@ class UpdateScreenshotTestResultsListenerTest {
   @Test
   fun testOnTestCaseFinished_cleansPreviewName() {
     val dialog = mock(UpdateReferenceImagesDialog::class.java)
-    val listener = UpdateScreenshotTestResultsListener(dialog)
+    val listener = UpdateScreenshotTestResultsListener(dialog) { it.run() }
     val mockDevice = mock(AndroidDevice::class.java)
     val mockSuite = mock(AndroidTestSuite::class.java)
 
@@ -132,7 +132,7 @@ class UpdateScreenshotTestResultsListenerTest {
   @Test
   fun testOnTestCaseFinished_handlesMissingArtifacts() {
     val dialog = mock(UpdateReferenceImagesDialog::class.java)
-    val listener = UpdateScreenshotTestResultsListener(dialog)
+    val listener = UpdateScreenshotTestResultsListener(dialog) { it.run() }
 
     val mockDevice = mock(AndroidDevice::class.java)
     val mockSuite = mock(AndroidTestSuite::class.java)
@@ -169,7 +169,7 @@ class UpdateScreenshotTestResultsListenerTest {
   @Test
   fun testOnTestCaseFinished_partialArtifacts() {
     val dialog = mock(UpdateReferenceImagesDialog::class.java)
-    val listener = UpdateScreenshotTestResultsListener(dialog)
+    val listener = UpdateScreenshotTestResultsListener(dialog) { it.run() }
     val mockDevice = mock(AndroidDevice::class.java)
     val mockSuite = mock(AndroidTestSuite::class.java)
 
@@ -204,7 +204,7 @@ class UpdateScreenshotTestResultsListenerTest {
   @Test
   fun testOnTestCaseFinished_propagatesTestResult() {
     val dialog = mock(UpdateReferenceImagesDialog::class.java)
-    val listener = UpdateScreenshotTestResultsListener(dialog)
+    val listener = UpdateScreenshotTestResultsListener(dialog) { it.run() }
     val mockDevice = mock(AndroidDevice::class.java)
     val mockSuite = mock(AndroidTestSuite::class.java)
 
@@ -232,7 +232,7 @@ class UpdateScreenshotTestResultsListenerTest {
   @Test
   fun testOnTestSuiteFinished() {
     val dialog = mock(UpdateReferenceImagesDialog::class.java)
-    val listener = UpdateScreenshotTestResultsListener(dialog)
+    val listener = UpdateScreenshotTestResultsListener(dialog) { it.run() }
     val mockDevice = mock(AndroidDevice::class.java)
     val mockSuite = mock(AndroidTestSuite::class.java)
 

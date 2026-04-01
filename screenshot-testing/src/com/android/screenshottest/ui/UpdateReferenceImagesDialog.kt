@@ -81,7 +81,7 @@ import org.jetbrains.jewel.ui.component.Text
  * live-updating image viewer on the right.
  */
 class UpdateReferenceImagesDialog(
-  private val project: Project?,
+  val project: Project?,
   private val logger: Logger = Logger.getInstance(UpdateReferenceImagesDialog::class.java),
 ) : DialogWrapper(project) {
 

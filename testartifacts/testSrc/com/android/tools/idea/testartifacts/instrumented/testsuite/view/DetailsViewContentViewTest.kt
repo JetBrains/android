@@ -285,6 +285,8 @@ class DetailsViewContentViewTest {
       .thenReturn(mapOf("PreviewScreenshot.newImagePath" to "/path/to/newImage"))
 
     view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.get()
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
 
     assertThat(view.myScreenshotTab.isHidden).isFalse()
     assertThat(view.myScreenshotAttributesTab.isHidden).isFalse()
@@ -300,6 +302,8 @@ class DetailsViewContentViewTest {
     whenever(mockTestResults.getLogcat(testDevice)).thenReturn("")
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("")
     view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.get()
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
 
     view.myLogsView.waitAllRequests()
 

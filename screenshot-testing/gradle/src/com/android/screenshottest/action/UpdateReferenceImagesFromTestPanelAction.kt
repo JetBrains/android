@@ -20,6 +20,8 @@ import com.android.screenshottest.util.UPDATE_ACTION_DESCRIPTION
 import com.android.screenshottest.util.UPDATE_ACTION_TEXT
 import com.android.screenshottest.util.UpdateReferenceImagesDialogManager
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.logScreenshotTestEvent
 import com.google.wireless.android.sdk.stats.ScreenshotTestComposePreviewEvent
 import com.intellij.ide.DataManager
@@ -29,7 +31,9 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.util.concurrency.AppExecutorUtil
 import javax.swing.JButton
 import javax.swing.JComponent
 
@@ -58,34 +62,35 @@ class UpdateReferenceImagesFromTestPanelAction : AnAction(UPDATE_ACTION_TEXT, UP
     val allTestCases = results.getAllTestCases()
     LOG.debug("Processing ${allTestCases.size} test cases")
 
-    for (testCase in allTestCases) {
-      val artifacts = testCase.additionalTestArtifacts
-      val methodName = artifacts["PreviewScreenshot.methodName"]
-      val previewName = artifacts["PreviewScreenshot.previewName"]
-      if (methodName != null && previewName != null) {
-        val testId = "${testCase.className}.$methodName.$previewName"
-        val previewDetails =
-          PreviewDetails(
-            testId = testId,
-            className = testCase.className,
-            methodName = methodName,
-            previewName = previewName,
-            testResult = testCase.result,
-            destImagePath = artifacts["PreviewScreenshot.refImagePath"],
-            srcImagePath = artifacts["PreviewScreenshot.newImagePath"],
-            diffImagePath = artifacts["PreviewScreenshot.diffImagePath"],
-            diffPercent = artifacts["PreviewScreenshot.diffPercent"],
-          )
-        LOG.debug("PreviewDetails: $previewDetails")
-        dialog.updateDialogWithTestResult(
-          previewDetails,
-          testCase.result == com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult.FAILED,
-        )
+    AppExecutorUtil.getAppExecutorService().submit {
+      for (testCase in allTestCases) {
+        val artifacts = testCase.additionalTestArtifacts
+        val methodName = artifacts["PreviewScreenshot.methodName"]
+        val previewName = artifacts["PreviewScreenshot.previewName"]
+        if (methodName != null && previewName != null) {
+          val testId = "${testCase.className}.$methodName.$previewName"
+          val previewDetails =
+            PreviewDetails(
+              testId = testId,
+              className = testCase.className,
+              methodName = methodName,
+              previewName = previewName,
+              testResult = testCase.result,
+              destImagePath = ScreenshotTestUtils.resolvePath(project, testCase.className, artifacts["PreviewScreenshot.refImagePath"]),
+              srcImagePath = ScreenshotTestUtils.resolvePath(project, testCase.className, artifacts["PreviewScreenshot.newImagePath"]),
+              diffImagePath = ScreenshotTestUtils.resolvePath(project, testCase.className, artifacts["PreviewScreenshot.diffImagePath"]),
+              diffPercent = artifacts["PreviewScreenshot.diffPercent"],
+            )
+
+          LOG.debug("PreviewDetails: $previewDetails")
+          dialog.updateDialogWithTestResult(previewDetails, testCase.result == AndroidTestCaseResult.FAILED)
+        }
+      }
+      ApplicationManager.getApplication().invokeLater {
+        dialog.onTestSuiteFinished()
+        dialog.show()
       }
     }
-
-    dialog.onTestSuiteFinished()
-    dialog.show()
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent {

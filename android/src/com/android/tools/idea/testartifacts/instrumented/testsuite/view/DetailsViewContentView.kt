@@ -24,6 +24,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Journey
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkLinkListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.getName
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.logScreenshotTestEvent
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.html.HtmlEscapers
@@ -54,6 +55,7 @@ import com.intellij.ui.components.panels.NonOpaquePanel
 import com.intellij.ui.tabs.JBTabs
 import com.intellij.ui.tabs.JBTabsFactory.createTabs
 import com.intellij.ui.tabs.TabInfo
+import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.messages.MessageBus
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -63,6 +65,7 @@ import java.awt.Dimension
 import java.awt.FlowLayout
 import java.util.Arrays
 import java.util.Locale
+import java.util.concurrent.Future
 import javax.accessibility.AccessibleContext
 import javax.accessibility.AccessibleRole
 import javax.swing.JPanel
@@ -360,49 +363,58 @@ class DetailsViewContentView(
     myBenchmarkTab.isHidden = benchmarkOutputIsEmpty
   }
 
+  @VisibleForTesting var pathResolutionFuture: Future<*>? = null
+
   private fun setAdditionalTestArtifacts(additionalTestArtifacts: Map<String, String>, testResults: AndroidTestResults?) {
-    val newImage = additionalTestArtifacts["PreviewScreenshot.newImagePath"]
-    val refImage = additionalTestArtifacts["PreviewScreenshot.refImagePath"]
-    val diffImage = additionalTestArtifacts["PreviewScreenshot.diffImagePath"]
-    val diffPercentString = additionalTestArtifacts["PreviewScreenshot.diffPercent"]?.takeIf { it.isNotBlank() }
-    val diffPercent: Double? = diffPercentString?.toDoubleOrNull()
+    val className = testResults?.className
 
-    val shouldButtonBeVisible = (newImage != null || refImage != null || diffImage != null)
+    // Perform path resolution in background to avoid blocking the UI thread
+    pathResolutionFuture =
+      AppExecutorUtil.getAppExecutorService().submit {
+        val newImage = ScreenshotTestUtils.resolvePath(project, className, additionalTestArtifacts["PreviewScreenshot.newImagePath"])
+        val refImage = ScreenshotTestUtils.resolvePath(project, className, additionalTestArtifacts["PreviewScreenshot.refImagePath"])
+        val diffImage = ScreenshotTestUtils.resolvePath(project, className, additionalTestArtifacts["PreviewScreenshot.diffImagePath"])
+        val diffPercentString = additionalTestArtifacts["PreviewScreenshot.diffPercent"]?.takeIf { it.isNotBlank() }
+        val diffPercent: Double? = diffPercentString?.toDoubleOrNull()
 
-    if (shouldButtonBeVisible) {
-      myScreenshotAttributesTab.isHidden = false
-      myScreenshotTab.isHidden = false
+        ApplicationManager.getApplication().invokeLater {
+          val shouldButtonBeVisible = (newImage != null || refImage != null || diffImage != null)
 
-      // If we are about to hide Device Info but it was selected, swap to Screenshot first
-      if (tabs.selectedInfo == myDeviceInfoTab) {
-        tabs.select(myScreenshotTab, false)
+          if (shouldButtonBeVisible) {
+            myScreenshotAttributesTab.isHidden = false
+            myScreenshotTab.isHidden = false
+
+            // If we are about to hide Device Info but it was selected, swap to Screenshot first
+            if (tabs.selectedInfo == myDeviceInfoTab) {
+              tabs.select(myScreenshotTab, false)
+            }
+            myDeviceInfoTab.isHidden = true
+            myScreenshotResultView.newImagePath = newImage ?: ""
+            myScreenshotResultView.refImagePath = refImage ?: ""
+            myScreenshotResultView.diffImagePath = diffImage ?: ""
+            myScreenshotResultView.testFailed = (myAndroidTestCaseResult == AndroidTestCaseResult.FAILED)
+            myScreenshotResultView.updateView()
+            myScreenshotAttributesView.updateData(
+              refImage,
+              newImage,
+              testResults?.methodName,
+              testResults?.className,
+              myAndroidTestCaseResult,
+              diffPercent,
+            )
+          } else {
+            // If we are about to hide Screenshots but one was selected, swap to Logs first
+            val activeTab = tabs.selectedInfo
+            if (activeTab == myScreenshotTab || activeTab == myScreenshotAttributesTab) {
+              tabs.select(logsTab, false)
+            }
+
+            myScreenshotTab.isHidden = true
+            myScreenshotAttributesTab.isHidden = true
+            myDeviceInfoTab.isHidden = false
+          }
+        }
       }
-      myDeviceInfoTab.isHidden = true
-      myScreenshotResultView.newImagePath = newImage ?: ""
-      myScreenshotResultView.refImagePath = refImage ?: ""
-      myScreenshotResultView.diffImagePath = diffImage ?: ""
-      myScreenshotResultView.testFailed = (myAndroidTestCaseResult == AndroidTestCaseResult.FAILED)
-      myScreenshotResultView.updateView()
-      myScreenshotAttributesView.updateData(
-        refImage,
-        newImage,
-        testResults?.methodName,
-        testResults?.className,
-        myAndroidTestCaseResult,
-        diffPercent,
-      )
-    } else {
-      // If we are about to hide Screenshots but one was selected, swap to Logs first
-      val activeTab = tabs.selectedInfo
-      if (activeTab == myScreenshotTab || activeTab == myScreenshotAttributesTab) {
-        tabs.select(logsTab, false)
-      }
-
-      myScreenshotTab.isHidden = true
-      myScreenshotAttributesTab.isHidden = true
-      myDeviceInfoTab.isHidden = false
-    }
-
     val journeyActionArtifacts = JourneyActionArtifacts.parseFromAdditionalTestArtifacts(additionalTestArtifacts)
     myJourneysResultsPanel.updateArtifacts(journeyActionArtifacts)
     myJourneyScreenshotsTab.isHidden = journeyActionArtifacts.isEmpty()

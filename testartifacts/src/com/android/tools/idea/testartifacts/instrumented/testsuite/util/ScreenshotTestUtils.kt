@@ -15,7 +15,15 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.util
 
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
+import com.intellij.openapi.module.ModuleUtilCore
+import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.project.IndexNotReadyException
+import com.intellij.openapi.project.Project
+import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.search.GlobalSearchScope
 import java.awt.image.BufferedImage
 import java.io.File
 import java.nio.file.Files
@@ -23,6 +31,7 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
 import javax.imageio.ImageIO
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -40,6 +49,57 @@ const val NOT_APPLICABLE = "N/A"
 data class ImageMetadata(val dimensions: String = NOT_APPLICABLE, val size: String = NOT_APPLICABLE, val date: String = NOT_APPLICABLE)
 
 object ScreenshotTestUtils {
+  private val classToRootPathCache = ConcurrentHashMap<String, String>()
+
+  /**
+   * Resolves a relative path to an absolute path based on the Gradle external root project path of the given class.
+   *
+   * @param project The IntelliJ project.
+   * @param className The fully qualified name of the test class.
+   * @param path The relative path to resolve.
+   * @return The absolute path, or the original path if it cannot be resolved.
+   */
+  fun resolvePath(project: Project?, className: String?, path: String?): String? {
+    if (path == null) return null
+    val file = File(path)
+    if (file.isAbsolute) return path
+    val p = project ?: return path
+    val basePath = p.basePath ?: return path
+
+    val rootPath =
+      if (className != null) {
+        classToRootPathCache.getOrPut(className) {
+          var foundPath = basePath
+          try {
+            ReadAction.compute<Unit, Exception> {
+              val projectScope = GlobalSearchScope.projectScope(p)
+              val psiClass = JavaPsiFacade.getInstance(p).findClass(className, projectScope)
+              if (psiClass != null) {
+                val module = ModuleUtilCore.findModuleForPsiElement(psiClass)
+                if (module != null) {
+                  val externalRootPath = ExternalSystemApiUtil.getExternalRootProjectPath(module)
+                  if (externalRootPath != null) {
+                    foundPath = externalRootPath
+                  }
+                }
+              }
+            }
+          } catch (e: ProcessCanceledException) {
+            throw e
+          } catch (e: IndexNotReadyException) {
+            LOG.warn("Index not ready while resolving absolute path for class name $className", e)
+          } catch (e: Exception) {
+            LOG.warn("Failed to resolve absolute path using class name $className", e)
+          }
+          foundPath
+        }
+      } else {
+        basePath
+      }
+
+    return File(rootPath, path).absolutePath
+  }
+
   /**
    * Calculates the match percentage from a difference ratio.
    *
