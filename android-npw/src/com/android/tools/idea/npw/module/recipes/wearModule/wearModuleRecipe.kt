@@ -18,7 +18,6 @@ package com.android.tools.idea.npw.module.recipes.wearModule
 import com.android.tools.idea.npw.module.recipes.IconsGenerationStyle
 import com.android.tools.idea.npw.module.recipes.generateCommonModule
 import com.android.tools.idea.npw.module.recipes.generateManifest
-import com.android.tools.idea.wizard.template.DslLanguage
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 
@@ -28,20 +27,14 @@ private const val WATCH_FEATURE_BLOCK =
     <uses-feature android:name="android.hardware.type.watch" />
   """
 
-fun RecipeExecutor.generateWearModule(
-  data: ModuleTemplateData,
-  appTitle: String?,
-  dslLanguage: DslLanguage,
-  useVersionCatalog: Boolean = true,
-) {
+fun RecipeExecutor.generateWearModule(data: ModuleTemplateData, appTitle: String?, useVersionCatalog: Boolean = true) {
   if (data.isWatchFace) {
-    generateWearWatchFaceModule(data, appTitle, dslLanguage, useVersionCatalog)
+    generateWearWatchFaceModule(data, appTitle, useVersionCatalog)
     return
   }
   generateCommonModule(
     data,
     appTitle,
-    dslLanguage,
     generateManifest(
       hasApplicationBlock = !data.isLibrary,
       theme = "@android:style/Theme.DeviceDefault",
@@ -58,17 +51,11 @@ fun RecipeExecutor.generateWearModule(
   addDependency("com.google.android.gms:play-services-wearable:+")
 }
 
-private fun RecipeExecutor.generateWearWatchFaceModule(
-  data: ModuleTemplateData,
-  appTitle: String?,
-  dslLanguage: DslLanguage,
-  useVersionCatalog: Boolean = true,
-) {
+private fun RecipeExecutor.generateWearWatchFaceModule(data: ModuleTemplateData, appTitle: String?, useVersionCatalog: Boolean = true) {
   generateCommonModule(
     data = data,
     appTitle = appTitle,
     appTitleResName = "watch_face_name",
-    dslLanguage = dslLanguage,
     manifestXml = generateManifest(hasApplicationBlock = false, usesFeatureBlock = WATCH_FEATURE_BLOCK),
     iconsGenerationStyle = IconsGenerationStyle.NONE,
     themesXml = null,

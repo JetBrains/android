@@ -23,7 +23,6 @@ import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 import com.android.tools.idea.npw.module.recipes.minSdk
 import com.android.tools.idea.npw.module.recipes.targetSdk
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
-import com.android.tools.idea.wizard.template.DslLanguage
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.TemplateKotlinSupport
 import com.android.tools.idea.wizard.template.renderIf
@@ -35,11 +34,11 @@ private val BENCHMARK_MIN_API = AndroidMajorVersion(28)
 fun baselineProfilesBuildGradle(
   newModule: ModuleTemplateData,
   flavors: ProductFlavorsWithDimensions,
-  dslLanguage: DslLanguage,
   targetModule: Module,
   useGmd: GmdSpec?,
   useInstrumentationArgumentForAppId: Boolean,
 ): String {
+  val dslLanguage = newModule.projectTemplateData.dslLanguage
   val packageName = newModule.packageName
   val apis = newModule.apis
   val language = newModule.projectTemplateData.language

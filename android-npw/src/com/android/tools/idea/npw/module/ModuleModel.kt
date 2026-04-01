@@ -126,6 +126,7 @@ abstract class ModuleModel(
           if (agpVersion == null) {
             agpVersion = this@ModuleModel.agpVersionSelector.get().resolveVersion(AgpVersions::getAvailableVersions)
           }
+          dslLanguage = this@ModuleModel.dslLanguage.get()
         }
         formFactor = this@ModuleModel.formFactor.get()
         category = this@ModuleModel.category.get()

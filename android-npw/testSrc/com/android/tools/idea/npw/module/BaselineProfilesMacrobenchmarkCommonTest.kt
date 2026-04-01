@@ -64,6 +64,7 @@ class BaselineProfilesMacrobenchmarkCommonTest {
     whenever(projectTemplateDataMock.kotlinVersion).thenReturn("1.8.10")
     whenever(projectTemplateDataMock.androidXSupport).thenReturn(true)
     whenever(projectTemplateDataMock.kotlinSupport).thenReturn(TemplateKotlinSupport.IMPLICIT_BUILT_IN_KOTLIN)
+    whenever(projectTemplateDataMock.dslLanguage).thenReturn(KTS)
 
     whenever(newModuleData.projectTemplateData).thenReturn(projectTemplateDataMock)
     whenever(newModuleData.rootDir).thenReturn(File(""))
@@ -73,7 +74,6 @@ class BaselineProfilesMacrobenchmarkCommonTest {
     with(BaselineProfilesMacrobenchmarkCommon) {
       mockExecutor.createModule(
         newModule = newModuleData,
-        dslLanguage = KTS,
         macrobenchmarkMinRev = macrobenchmarkMinRev,
         buildGradleContent = gradleContent,
         customizeModule = customizeModule,

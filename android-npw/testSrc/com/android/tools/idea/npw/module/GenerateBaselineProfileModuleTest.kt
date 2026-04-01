@@ -200,6 +200,7 @@ class GenerateBaselineProfileModuleTest {
               this.kotlinVersion = kotlinVersion
               topOut = tmpFolderRule.root
               applicationPackage = packageName
+              this.dslLanguage = dslLanguage
             }
             .build(),
         themesData = ThemesData("appname"),
@@ -230,7 +231,6 @@ class GenerateBaselineProfileModuleTest {
       DefaultRecipeExecutor(renderingContext)
         .generateBaselineProfilesModule(
           newModule = newModuleTemplateData,
-          dslLanguage = dslLanguage,
           useGmd = useGmd,
           targetModule = projectRule.getModule(MODULE_NAME_APP),
         )

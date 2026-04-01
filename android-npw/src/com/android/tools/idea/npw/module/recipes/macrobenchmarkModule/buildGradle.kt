@@ -23,18 +23,17 @@ import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 import com.android.tools.idea.npw.module.recipes.minSdk
 import com.android.tools.idea.npw.module.recipes.targetSdk
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
-import com.android.tools.idea.wizard.template.DslLanguage
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.intellij.openapi.module.Module
 
 fun macrobenchmarksBuildGradle(
   newModule: ModuleTemplateData,
   flavors: ProductFlavorsWithDimensions,
-  dslLanguage: DslLanguage,
   targetModule: Module,
   benchmarkBuildTypeName: String,
   useVersionCatalog: Boolean,
 ): String {
+  val dslLanguage = newModule.projectTemplateData.dslLanguage
   val packageName = newModule.packageName
   val apis = newModule.apis
   val language = newModule.projectTemplateData.language

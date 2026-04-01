@@ -55,8 +55,7 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
   var applicationName: String? = null
   var builtInKotlinDefaultEnabled = true
   var kotlinSupport: TemplateKotlinSupport? = null
-  // TODO android-merge DslLanguage is new upstream, not wired to anything real yet, just defaulting to KTS below
-  var dslLanguage: DslLanguage? = null
+  var dslLanguage: DslLanguage = DslLanguage.KTS
 
   internal fun setEssentials(project: Project) {
     applicationName = project.name
@@ -107,6 +106,6 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
             !builtInKotlinDefaultEnabled -> TemplateKotlinSupport.EXPLICIT_BUILT_IN_KOTLIN
             else -> TemplateKotlinSupport.IMPLICIT_BUILT_IN_KOTLIN
           },
-      dslLanguage = dslLanguage ?: DslLanguage.KTS, // TODO android-merge
+      dslLanguage,
     )
 }

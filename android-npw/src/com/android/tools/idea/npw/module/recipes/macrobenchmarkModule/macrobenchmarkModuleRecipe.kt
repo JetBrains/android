@@ -28,7 +28,6 @@ import com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.src.main.e
 import com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.src.main.exampleMacrobenchmarkKt
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
 import com.android.tools.idea.util.toIoFile
-import com.android.tools.idea.wizard.template.DslLanguage
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
@@ -41,12 +40,7 @@ private const val EXAMPLE_BENCHMARK_NAME = "ExampleStartupBenchmark"
 private const val BENCHMARK_BUILD_TYPE_NAME = "benchmark"
 private const val MACROBENCHMARK_MIN_REV = "1.2.0-beta01"
 
-fun RecipeExecutor.generateMacrobenchmarkModule(
-  newModule: ModuleTemplateData,
-  dslLanguage: DslLanguage,
-  targetModule: Module,
-  useVersionCatalog: Boolean,
-) {
+fun RecipeExecutor.generateMacrobenchmarkModule(newModule: ModuleTemplateData, targetModule: Module, useVersionCatalog: Boolean) {
   val projectBuildModel = ProjectBuildModel.getOrLog(targetModule.project)
   val targetModuleAndroidModel = projectBuildModel?.getModuleBuildModel(targetModule)?.android() ?: return
   val targetModuleGradleModel = GradleAndroidModel.get(targetModule) ?: return
@@ -65,12 +59,10 @@ fun RecipeExecutor.generateMacrobenchmarkModule(
 
   createModule(
     newModule = newModule,
-    dslLanguage = dslLanguage,
     macrobenchmarkMinRev = MACROBENCHMARK_MIN_REV,
     buildGradleContent =
       macrobenchmarksBuildGradle(
         newModule = newModule,
-        dslLanguage = dslLanguage,
         targetModule = targetModule,
         flavors = flavors,
         benchmarkBuildTypeName = benchmarkBuildTypeName,

@@ -22,7 +22,6 @@ import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androi
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleStrings
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleThemes
 import com.android.tools.idea.wizard.template.CppStandardType
-import com.android.tools.idea.wizard.template.DslLanguage
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
@@ -37,7 +36,6 @@ enum class IconsGenerationStyle {
 fun RecipeExecutor.generateCommonModule(
   data: ModuleTemplateData,
   appTitle: String?, // may be null only for libraries
-  dslLanguage: DslLanguage,
   manifestXml: String,
   generateGenericLocalTests: Boolean = false,
   generateGenericInstrumentedTests: Boolean = false,
@@ -55,6 +53,7 @@ fun RecipeExecutor.generateCommonModule(
 ) {
   val (projectData, srcOut, resOut, manifestOut, instrumentedTestOut, localTestOut, _, moduleOut) = data
   val (useAndroidX, agpVersion) = projectData
+  val dslLanguage = projectData.dslLanguage
   val language = projectData.language
   val isLibraryProject = data.isLibrary
   val packageName = data.packageName

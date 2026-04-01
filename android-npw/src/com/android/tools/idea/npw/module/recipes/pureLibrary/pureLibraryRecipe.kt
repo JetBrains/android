@@ -20,13 +20,13 @@ import com.android.tools.idea.npw.module.recipes.gitignore
 import com.android.tools.idea.npw.module.recipes.pureLibrary.src.placeholderJava
 import com.android.tools.idea.npw.module.recipes.pureLibrary.src.placeholderKt
 import com.android.tools.idea.npw.module.recipes.setKotlinVersion
-import com.android.tools.idea.wizard.template.DslLanguage
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 
-fun RecipeExecutor.generatePureLibrary(moduleData: ModuleTemplateData, className: String, dslLanguage: DslLanguage) {
+fun RecipeExecutor.generatePureLibrary(moduleData: ModuleTemplateData, className: String) {
   val (projectData, srcOut) = moduleData
+  val dslLanguage = projectData.dslLanguage
   val moduleOut = moduleData.rootDir
   val language = projectData.language
   val packageName = moduleData.packageName

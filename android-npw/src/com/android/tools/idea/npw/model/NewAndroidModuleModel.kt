@@ -177,7 +177,6 @@ class NewAndroidModuleModel(
               generateAndroidModule(
                 data = data as ModuleTemplateData,
                 appTitle = applicationName.get(),
-                dslLanguage = dslLanguage.get(),
                 useVersionCatalog = useVersionCatalog.get(),
               )
             }
@@ -185,7 +184,6 @@ class NewAndroidModuleModel(
               generateWearModule(
                 data = data as ModuleTemplateData,
                 appTitle = applicationName.get(),
-                dslLanguage = dslLanguage.get(),
                 useVersionCatalog = useVersionCatalog.get(),
               )
             }
@@ -193,7 +191,6 @@ class NewAndroidModuleModel(
               generateAutomotiveModule(
                 data = data as ModuleTemplateData,
                 appTitle = applicationName.get(),
-                dslLanguage = dslLanguage.get(),
                 useVersionCatalog = useVersionCatalog.get(),
               )
             }
@@ -201,7 +198,6 @@ class NewAndroidModuleModel(
               generateTvModule(
                 data = data as ModuleTemplateData,
                 appTitle = applicationName.get(),
-                dslLanguage = dslLanguage.get(),
                 useVersionCatalog = useVersionCatalog.get(),
               )
             }
@@ -210,7 +206,6 @@ class NewAndroidModuleModel(
               generateXRModule(
                 data = data as ModuleTemplateData,
                 appTitle = applicationName.get(),
-                dslLanguage = dslLanguage.get(),
                 useVersionCatalog = useVersionCatalog.get(),
               )
             }

@@ -38,7 +38,6 @@ object BaselineProfilesMacrobenchmarkCommon {
    */
   fun RecipeExecutor.createModule(
     newModule: ModuleTemplateData,
-    dslLanguage: DslLanguage,
     macrobenchmarkMinRev: String,
     buildGradleContent: String,
     minCompileSdk: AndroidVersion? = null,
@@ -47,6 +46,7 @@ object BaselineProfilesMacrobenchmarkCommon {
     addIncludeToSettings(newModule.name)
 
     // Create build.gradle(.kts) with the content from [buildGradle] lambda
+    val dslLanguage = newModule.projectTemplateData.dslLanguage
     val buildFile = dslLanguage.buildFileName
     save(buildGradleContent, newModule.rootDir.resolve(buildFile))
 

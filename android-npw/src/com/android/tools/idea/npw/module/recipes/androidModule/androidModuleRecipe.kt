@@ -25,7 +25,6 @@ import com.android.tools.idea.npw.module.recipes.generateCommonModule
 import com.android.tools.idea.npw.module.recipes.generateManifest
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.CppStandardType
-import com.android.tools.idea.wizard.template.DslLanguage
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
@@ -34,7 +33,6 @@ import com.android.tools.idea.wizard.template.has
 fun RecipeExecutor.generateAndroidModule(
   data: ModuleTemplateData,
   appTitle: String?, // may be null only for libraries
-  dslLanguage: DslLanguage,
   enableCpp: Boolean = false,
   cppStandard: CppStandardType = CppStandardType.`Toolchain Default`,
   useVersionCatalog: Boolean = true,
@@ -46,7 +44,6 @@ fun RecipeExecutor.generateAndroidModule(
   generateCommonModule(
     data = data,
     appTitle = appTitle,
-    dslLanguage = dslLanguage,
     manifestXml =
       generateManifest(
         hasApplicationBlock = !data.isLibrary,

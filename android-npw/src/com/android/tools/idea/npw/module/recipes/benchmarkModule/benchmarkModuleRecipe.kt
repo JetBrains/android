@@ -21,7 +21,6 @@ import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.androidTest
 import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.androidTest.exampleBenchmarkKt
 import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.main.androidManifestXml
 import com.android.tools.idea.npw.module.recipes.gitignore
-import com.android.tools.idea.wizard.template.DslLanguage
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
@@ -29,8 +28,9 @@ import com.android.tools.idea.wizard.template.RecipeExecutor
 private const val minRev = "1.2.4"
 private const val exampleBenchmarkName = "ExampleBenchmark"
 
-fun RecipeExecutor.generateBenchmarkModule(moduleData: ModuleTemplateData, dslLanguage: DslLanguage, useVersionCatalog: Boolean) {
+fun RecipeExecutor.generateBenchmarkModule(moduleData: ModuleTemplateData, useVersionCatalog: Boolean) {
   val projectData = moduleData.projectTemplateData
+  val dslLanguage = projectData.dslLanguage
   val testOut = moduleData.testDir
   val packageName = moduleData.packageName
   val moduleOut = moduleData.rootDir

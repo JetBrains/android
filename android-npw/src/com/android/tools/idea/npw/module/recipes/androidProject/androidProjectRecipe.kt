@@ -17,7 +17,6 @@ package com.android.tools.idea.npw.module.recipes.androidProject
 
 import com.android.SdkConstants.FN_GRADLE_PROPERTIES
 import com.android.SdkConstants.FN_LOCAL_PROPERTIES
-import com.android.tools.idea.wizard.template.DslLanguage
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
@@ -25,14 +24,9 @@ import java.io.File
 
 private fun resource(path: String) = File("templates/project", path)
 
-fun RecipeExecutor.androidProjectRecipe(
-  data: ProjectTemplateData,
-  appTitle: String,
-  language: Language,
-  dslLanguage: DslLanguage,
-  makeIgnore: Boolean = true,
-) {
+fun RecipeExecutor.androidProjectRecipe(data: ProjectTemplateData, appTitle: String, language: Language, makeIgnore: Boolean = true) {
   val topOut = data.rootDir
+  val dslLanguage = data.dslLanguage
 
   save(androidProjectBuildGradle(), topOut.resolve(dslLanguage.buildFileName))
 

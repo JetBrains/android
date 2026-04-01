@@ -26,7 +26,6 @@ import com.android.tools.idea.npw.module.recipes.addTestDependencies
 import com.android.tools.idea.npw.module.recipes.androidModule.buildGradle
 import com.android.tools.idea.npw.module.recipes.dynamicFeatureModule.res.values.stringsXml
 import com.android.tools.idea.npw.module.recipes.gitignore
-import com.android.tools.idea.wizard.template.DslLanguage
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
@@ -37,10 +36,10 @@ fun RecipeExecutor.generateDynamicFeatureModule(
   fusing: Boolean,
   downloadInstallKind: DownloadInstallKind,
   deviceFeatures: Collection<DeviceFeatureModel>,
-  dslLanguage: DslLanguage,
   useVersionCatalog: Boolean,
 ) {
   val (projectData, srcOut, _, manifestOut, instrumentedTestOut, localTestOut, _, moduleOut) = moduleData
+  val dslLanguage = projectData.dslLanguage
   val apis = moduleData.apis
   val (buildApi, targetApi, minApi, _) = apis
   val useAndroidX = moduleData.projectTemplateData.androidXSupport
