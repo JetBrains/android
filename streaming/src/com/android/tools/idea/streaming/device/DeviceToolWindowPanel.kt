@@ -57,6 +57,7 @@ import java.util.concurrent.TimeoutException
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -106,6 +107,7 @@ internal class DeviceToolWindowPanel(
     }
 
   private var contentDisposable: Disposable? = null
+  private var contentScope: CoroutineScope? = null
   override var primaryDisplayView: DeviceView? = null
     private set
 
@@ -119,6 +121,7 @@ internal class DeviceToolWindowPanel(
         ActivityTracker.getInstance().inc()
       }
     }
+  private val displayConfigurator = DisplayConfigurator()
 
   init {
     Disposer.register(disposableParent, this)
@@ -138,6 +141,7 @@ internal class DeviceToolWindowPanel(
     val disposable = Disposer.newDisposable()
     Disposer.register(this, disposable)
     contentDisposable = disposable
+    contentScope = disposable.createCoroutineScope()
 
     val uiState = savedUiState as DeviceUiState? ?: DeviceUiState()
     val initialOrientation = uiState.orientation
@@ -155,7 +159,6 @@ internal class DeviceToolWindowPanel(
     mainToolbar.targetComponent = deviceView
     secondaryToolbar.targetComponent = deviceView
     centerPanel.addToCenter(primaryDisplayPanel)
-    val displayConfigurator = DisplayConfigurator()
 
     deviceView.addConnectionStateListener(
       object : ConnectionStateListener {
@@ -169,7 +172,7 @@ internal class DeviceToolWindowPanel(
                   removeDeviceStateListener(deviceStateListener)
                 }
                 addDisplayListener(displayConfigurator)
-                displayConfigurator.initialize()
+                contentScope?.launch { displayConfigurator.refreshDisplayConfiguration() }
                 addDeviceStateListener(deviceStateListener)
               }
 
@@ -190,6 +193,8 @@ internal class DeviceToolWindowPanel(
       }
     )
 
+    contentScope?.launch { displayConfigurator.refreshDisplayConfiguration() }
+
     installFileDropHandler(this, id.serialNumber, deviceView, project)
   }
 
@@ -198,6 +203,7 @@ internal class DeviceToolWindowPanel(
     val uiState = DeviceUiState()
     val disposable = contentDisposable ?: return uiState
     contentDisposable = null
+    contentScope = null
     uiState.orientation = primaryDisplayView?.displayOrientationQuadrants ?: 0
     for (displayPanel in displayPanels) {
       uiState.zoomScrollState[displayPanel.displayId] = displayPanel.zoomScrollState
@@ -233,28 +239,36 @@ internal class DeviceToolWindowPanel(
   private fun createScreenRecorderParameters(deviceController: DeviceController): ScreenRecordingParameters =
     ScreenRecordingParameters(deviceSerialNumber, deviceClient.deviceName, deviceConfig.featureLevel, deviceController, null)
 
+  override fun setBounds(x: Int, y: Int, width: Int, height: Int) {
+    val wasZeroSize = this.width == 0 || this.height == 0
+    super.setBounds(x, y, width, height)
+    if (wasZeroSize && width > 0 && height > 0 && primaryDisplayView?.isConnected == true) {
+      contentScope?.launch { displayConfigurator.refreshDisplayConfiguration() }
+    }
+  }
+
   private inner class DisplayConfigurator : DeviceController.DisplayListener {
 
     /** Display descriptors sorted by display ID. */
-    var displayDescriptors: List<DisplayDescriptor> = displayPanels.map { DisplayDescriptor(it.displayId, 0, 0) }
+    private var displayDescriptors: List<DisplayDescriptor> = emptyList()
+    /** Display descriptors received from the mirrored device but not yet propagated to [displayDescriptors]. */
+    private var pendingDisplayDescriptors: List<DisplayDescriptor>? = null
 
-    @AnyThread
-    fun initialize() {
-      contentDisposable?.createCoroutineScope()?.launch {
-        val displays =
-          try {
-            deviceController?.getDisplayConfigurations() ?: return@launch
+    suspend fun refreshDisplayConfiguration() {
+      val displays =
+        pendingDisplayDescriptors
+          ?: try {
+            deviceController?.getDisplayConfigurations() ?: return
           } catch (_: TimeoutException) {
             thisLogger().warn("Timed out waiting for display configurations from ${deviceClient.deviceName}")
-            return@launch
+            return
           }
-        if (displays.isEmpty()) {
-          return@launch // All displays are turned off.
-        }
-        EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
-          if (contentDisposable != null) {
-            reconfigureDisplayPanels(displays)
-          }
+      if (displays.isEmpty()) {
+        return // All displays are turned off.
+      }
+      EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
+        if (contentDisposable != null) {
+          reconfigureDisplayPanels(displays)
         }
       }
     }
@@ -263,6 +277,11 @@ internal class DeviceToolWindowPanel(
     override fun onDisplayAddedOrChanged(displayId: Int, width: Int, height: Int, rotation: Int, displayType: DisplayType) {
       EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
         if (contentDisposable != null) {
+          val displayDescriptors = pendingDisplayDescriptors ?: displayDescriptors
+          if (displayDescriptors.isEmpty()) {
+            contentScope?.launch { refreshDisplayConfiguration() }
+            return@invokeLater // Display descriptors haven't been received yet.
+          }
           val newDisplays = displayDescriptors.toMutableList()
           val pos = newDisplays.binarySearch { it.displayId.compareTo(displayId) }
           if (pos >= 0) {
@@ -282,6 +301,11 @@ internal class DeviceToolWindowPanel(
     override fun onDisplayRemoved(displayId: Int) {
       EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
         if (contentDisposable != null) {
+          val displayDescriptors = pendingDisplayDescriptors ?: displayDescriptors
+          if (displayDescriptors.isEmpty()) {
+            contentScope?.launch { refreshDisplayConfiguration() }
+            return@invokeLater // Display descriptors haven't been received yet.
+          }
           if (displayDescriptors.find { it.displayId == displayId } != null) {
             val newDisplays = displayDescriptors.filterTo(mutableListOf()) { it.displayId != displayId }
             reconfigureDisplayPanels(newDisplays)
@@ -292,6 +316,12 @@ internal class DeviceToolWindowPanel(
 
     fun reconfigureDisplayPanels(newDisplays: List<DisplayDescriptor>) {
       thisLogger().info("Device displays: ${newDisplays.joinToString(", ")}")
+      pendingDisplayDescriptors = newDisplays
+      val availableSpace = centerPanel.sizeWithoutInsets
+      if (availableSpace.width <= 0 || availableSpace.height <= 0) {
+        return
+      }
+
       adjustDisplayDescriptors(newDisplays)
       if (newDisplays.size == 1 && displayDescriptors.size <= 1 || newDisplays == displayDescriptors) {
         return
@@ -301,12 +331,12 @@ internal class DeviceToolWindowPanel(
         displayPanel.displayId != PRIMARY_DISPLAY_ID && !newDisplays.any { it.displayId == displayPanel.displayId }
       }
 
-      val availableSpace = centerPanel.sizeWithoutInsets
-      contentDisposable?.createCoroutineScope()?.launch {
+      contentScope?.launch {
         val layoutRoot = computeBestLayout(availableSpace, newDisplays.map { it.size })
         withContext(Dispatchers.EDT) {
           val rootPanel = buildLayout(layoutRoot, newDisplays)
           displayDescriptors = newDisplays
+          pendingDisplayDescriptors = null
           setRootPanel(rootPanel)
           ActivityTracker.getInstance().inc()
         }
