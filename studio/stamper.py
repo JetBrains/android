@@ -21,7 +21,11 @@ def _read_status_file(info_file):
 
 def _get_build_id(build_info):
   label = build_info["BUILD_EMBED_LABEL"]
-  return label if label else "SNAPSHOT"
+  # For local builds and presubmit builds we still need the build number
+  # to be parsable by BuildNumber.parseBuildNumber() in IntelliJ.
+  if not label or label.startswith("P"):
+    return "SNAPSHOT"
+  return label
 
 
 def _format_build_date(build_version):
