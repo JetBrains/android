@@ -22,7 +22,7 @@ import com.android.adblib.ddmlibcompatibility.debugging.associatedIDevice
 import com.android.adblib.packageManager
 import com.android.adblib.serialNumber
 import com.android.adblib.tools.debugging.jdwpProcessTracker
-import com.android.adblib.tools.debugging.sendDdmsExit
+import com.android.adblib.tools.debugging.sendVmExit
 import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.Client
 import com.android.tools.idea.backup.BackupManager
@@ -75,7 +75,7 @@ constructor(
       withContext(workerThreadDispatcher) {
         try {
           val processes = device.jdwpProcessTracker.processesFlow.value
-          processes.find { it.pid == process.pid }?.sendDdmsExit(1)
+          processes.find { it.pid == process.pid }?.sendVmExit(1)
         } catch (e: IOException) {
           thisLogger().warn("`killProcess` failed for pid ${process.pid}", e)
         }
