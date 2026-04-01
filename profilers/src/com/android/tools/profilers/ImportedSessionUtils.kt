@@ -68,7 +68,12 @@ object ImportedSessionUtils {
   ) {
     withFileImportedOnce(sessionsManager, file) { startTimestampsEpochMs, startTime, endTime ->
       val config = sessionsManager.studioProfilers.ideServices.featureConfig
-      val taskType = CpuCaptureParserUtil.getFileTraceType(file, TraceType.UNSPECIFIED)?.toTaskType()
+      val taskType =
+        if (sessionType == SessionStarted.SessionType.CPU_CAPTURE) {
+          CpuCaptureParserUtil.getFileTraceType(file, TraceType.UNSPECIFIED)?.toTaskType()
+        } else {
+          null
+        }
       val openInEditor = taskType != null && ProfilerInEditorUtils.isEditorEnabled(config, taskType)
 
       val fileToImport =

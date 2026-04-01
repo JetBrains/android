@@ -74,7 +74,7 @@ public class PerfettoProducer implements TrebuchetBufferProducer {
       CodedInputStream inputStream = CodedInputStream.newInstance(new FileInputStream(file));
       ExtensionRegistryLite packetRegistry = ExtensionRegistryLite.newInstance();
       PerfettoTrace.registerAllExtensions(packetRegistry);
-      PerfettoTrace.TracePacket packet = readOnePacket(inputStream, packetRegistry);
+      PerfettoTrace.TracePacket packet = readOnePacket(inputStream, packetRegistry, true);
       // If we can load 1 packet then we assume this is a perfetto file.
       return packet != null;
     }
@@ -92,9 +92,10 @@ public class PerfettoProducer implements TrebuchetBufferProducer {
    * Note: This accepts a CodedInputStream instead of input stream because CodedInputStream reads more than it needs and is buffered.
    * Note: This accepts the packet registry so we can reuse this API in the static function to check perfetto trace headers.
    *
+   * @param isHeaderVerification if true, suppresses warnings about unknown tags since we expect them when probing non-perfetto files.
    * @return Null is returned for end of stream, otherwise a trace packet is returned.
    */
-  private static PerfettoTrace.TracePacket readOnePacket(CodedInputStream stream, ExtensionRegistryLite packetRegistry) {
+  private static PerfettoTrace.TracePacket readOnePacket(CodedInputStream stream, ExtensionRegistryLite packetRegistry, boolean isHeaderVerification) {
     try {
       // Coded Input Streams by default only let you read in 64KB of data from one proto message. Because our root level proto message is
       // greater than this we need to reset the size counter each time we read a new packet.
@@ -107,7 +108,9 @@ public class PerfettoProducer implements TrebuchetBufferProducer {
       // Since we know the layout of the Trace proto, we know it has one field that is a repeated field. So we expect to tag to match this
       // value. If it does not we throw an error since we can't processes unknown tags.
       if (tag != DescriptorProtos.FieldDescriptorProto.Type.TYPE_GROUP_VALUE) {
-        getLogger().error(String.format("Encountered unknown tag (%d) when attempting to parse perfetto capture.", tag));
+        if (!isHeaderVerification) {
+          getLogger().error(String.format("Encountered unknown tag (%d) when attempting to parse perfetto capture.", tag));
+        }
         return null;
       }
       return stream.readMessage(PerfettoTrace.TracePacket.parser(), packetRegistry);
@@ -166,7 +169,7 @@ public class PerfettoProducer implements TrebuchetBufferProducer {
     PerfettoTrace.registerAllExtensions(packetRegistry);
     CodedInputStream inputStream = CodedInputStream.newInstance(new FileInputStream(file));
     PerfettoTrace.TracePacket packet;
-    while ((packet = readOnePacket(inputStream, packetRegistry)) != null) {
+    while ((packet = readOnePacket(inputStream, packetRegistry, false)) != null) {
       if (packet.hasFtraceEvents()) {
         PerfettoTrace.FtraceEventBundle bundle = packet.getFtraceEvents();
         for (PerfettoTrace.FtraceEvent event : bundle.getEventList()) {
@@ -201,7 +204,7 @@ public class PerfettoProducer implements TrebuchetBufferProducer {
 
     // Do a second pass on the file now that we have all thread names do a second pass on the file to generate the lines for trebuchet.
     inputStream = CodedInputStream.newInstance(new FileInputStream(file));
-    while ((packet = readOnePacket(inputStream, packetRegistry)) != null) {
+    while ((packet = readOnePacket(inputStream, packetRegistry, false)) != null) {
       if (packet.hasFtraceEvents()) {
         PerfettoTrace.FtraceEventBundle bundle = packet.getFtraceEvents();
         for (PerfettoTrace.FtraceEvent event : bundle.getEventList()) {
@@ -255,7 +258,7 @@ public class PerfettoProducer implements TrebuchetBufferProducer {
     //<...>-29454 (-----) [002] ...1 1214209.724359: tracing_mark_write: trace_event_clock_sync: parent_ts=539454.250000
     myGeneratedTrebuchetLines.add(formatter.formatEventPrefix(boottimeClock.getTimestamp(), 0, Short.MAX_VALUE) +
                                   String.format("tracing_mark_write: trace_event_clock_sync: parent_ts=%.6f",
-                                               nanosToSeconds(monotonicClock.getTimestamp())));
+                                                nanosToSeconds(monotonicClock.getTimestamp())));
     //<...>-29454 (-----) [002] ...1 1214209.724366: tracing_mark_write: trace_event_clock_sync: realtime_ts=1520548500187
     myGeneratedTrebuchetLines.add(formatter.formatEventPrefix(boottimeClock.getTimestamp(), 0, Short.MAX_VALUE) +
                                   "tracing_mark_write: trace_event_clock_sync: realtime_ts=" +
@@ -348,7 +351,7 @@ public class PerfettoProducer implements TrebuchetBufferProducer {
       }
     }
     if ((state & TASK_STATE_HIGH_BIT_MASK) != 0) {
-        mappedState.append("+");
+      mappedState.append("+");
     }
     return mappedState.toString();
   }
