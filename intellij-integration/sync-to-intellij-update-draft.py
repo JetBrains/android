@@ -89,9 +89,11 @@ def fetch_revision(project: ET.Element):
 
 
 def find_repo_root(cd: Path) -> Path:
-    while cd != cd.root:
+    while True:
         if cd.joinpath('.repo').is_dir():
             return cd
+        if cd == cd.parent:
+            break
         cd = cd.parent
     sys.exit('ERROR: failed to find repo root')
 
