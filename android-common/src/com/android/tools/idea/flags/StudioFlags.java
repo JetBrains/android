@@ -1831,6 +1831,13 @@ public final class StudioFlags {
     "Enable the support of AI Glasses device in the device manager"
   );
 
+  public static final Flag<Boolean> AI_GLASSES_DISPLAYLESS_DEVICE_SUPPORT_ENABLED = new BooleanFlag(
+    DEVICE_MANAGER,
+    "ai.glasses.displayless.device.support.enabled",
+    "AI Glasses Displayless Support Enabled",
+    "Enable the support of the displayless AI Glasses device in the device manager"
+  );
+
   public static final Flag<Boolean> AI_GLASSES_DISPLAY_SETTING_ENABLED = new BooleanFlag(
     DEVICE_MANAGER,
     "ai.glasses.display.setting.enabled",

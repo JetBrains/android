@@ -49,6 +49,7 @@ import org.jetbrains.jewel.foundation.theme.LocalTextStyle
 @Composable
 fun DeviceScreenDiagram(width: Int, height: Int, modifier: Modifier = Modifier, diagonalLength: String = "", round: Boolean = false) {
   check(!round || height == width) { "Round screens have equal width and height" }
+  check(width > 0 && height > 0) { "Screen dimensions cannot be zero" }
 
   val textMeasurer = rememberTextMeasurer()
   val textStyle = LocalTextStyle.current

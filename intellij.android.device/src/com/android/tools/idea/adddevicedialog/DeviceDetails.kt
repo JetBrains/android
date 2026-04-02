@@ -62,13 +62,15 @@ fun DeviceDetails(device: DeviceProfile, modifier: Modifier = Modifier, systemIm
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
       Text(device.name, fontWeight = FontWeight.Bold, fontSize = LocalTextStyle.current.fontSize * 1.2)
 
-      DeviceScreenDiagram(
-        device.resolution.width,
-        device.resolution.height,
-        diagonalLength = device.diagonalLengthString(),
-        round = device.isRound,
-        modifier = Modifier.widthIn(max = 200.dp).heightIn(max = 200.dp).align(Alignment.CenterHorizontally),
-      )
+      if (device.hasScreen()) {
+        DeviceScreenDiagram(
+          device.resolution.width,
+          device.resolution.height,
+          diagonalLength = device.diagonalLengthString(),
+          round = device.isRound,
+          modifier = Modifier.widthIn(max = 200.dp).heightIn(max = 200.dp).align(Alignment.CenterHorizontally),
+        )
+      }
 
       if (systemImage != null && systemImage is RemoteSystemImage) {
         val imageSize = (systemImage.`package` as? RemotePackage)?.archive?.complete?.size
@@ -98,8 +100,12 @@ fun DeviceDetails(device: DeviceProfile, modifier: Modifier = Modifier, systemIm
       }
 
       Header("Screen")
-      LabeledValue("Resolution", device.resolution.toString())
-      LabeledValue("Density", "${device.displayDensity} dpi")
+      if (device.hasScreen()) {
+        LabeledValue("Resolution", device.resolution.toString())
+        LabeledValue("Density", "${device.displayDensity} dpi")
+      } else {
+        Text("None")
+      }
     }
   }
 }

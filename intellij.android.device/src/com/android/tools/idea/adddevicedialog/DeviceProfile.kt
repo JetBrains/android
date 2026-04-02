@@ -91,6 +91,8 @@ interface DeviceProfile {
   }
 }
 
+fun DeviceProfile.hasScreen(): Boolean = resolution.width > 0 && resolution.height > 0
+
 fun DeviceProfile.update(block: DeviceProfile.Builder.() -> Unit): DeviceProfile = toBuilder().apply(block).build()
 
 object FormFactors {

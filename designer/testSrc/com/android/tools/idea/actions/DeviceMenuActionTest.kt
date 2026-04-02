@@ -79,7 +79,11 @@ class DeviceMenuActionTest {
   @JvmField @Rule val projectRule = AndroidProjectRule.withAndroidModel().onEdt()
   @get:Rule
   val flagRules =
-    RuleChain(FlagRule(StudioFlags.AI_GLASSES_DEVICE_SUPPORT_ENABLED, true), FlagRule(StudioFlags.XR_GLASSES_DEVICE_SUPPORT_ENABLED, true))
+    RuleChain(
+      FlagRule(StudioFlags.AI_GLASSES_DEVICE_SUPPORT_ENABLED, true),
+      FlagRule(StudioFlags.AI_GLASSES_DISPLAYLESS_DEVICE_SUPPORT_ENABLED, true),
+      FlagRule(StudioFlags.XR_GLASSES_DEVICE_SUPPORT_ENABLED, true),
+    )
 
   private fun getReferenceDevicesExpected(): String {
     return """
