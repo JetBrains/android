@@ -249,6 +249,7 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
   }
 
   private fun waitForPopup(): JBPopup {
+    // Opening the popup can be slow since it involved receiving the initial state via adb from the device.
     waitForCondition(10.seconds) { popupRule.fakePopupFactory.popupCount > 0 }
     return findPopup()
   }
