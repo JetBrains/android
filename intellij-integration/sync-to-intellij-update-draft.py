@@ -42,14 +42,21 @@ def main():
     with ThreadPoolExecutor() as executor:
         executor.map(fetch_revision, projects)
 
-    # Sync.
-    with tempfile.NamedTemporaryFile(suffix='-intellij-update-draft-manifest.xml') as manifest:
+    # Write the manifest to disk so we can sync to it.
+    # Note: on Windows we need to close() the file before using it from another subprocess.
+    with tempfile.NamedTemporaryFile(suffix='-ij-update-manifest.xml', delete=False) as manifest:
+        manifest_path = manifest.name
         manifest.write(manifest_content.encode())
+
+    # Sync.
+    try:
         repo = shutil.which('repo')  # Handles repo.cmd scripts properly on Windows.
-        sync_cmd = [repo, 'sync', '--detach', '-m', manifest.name, *args]
+        sync_cmd = [repo, 'sync', '--detach', '-m', manifest_path, *args]
         print('Running:', shlex.join(sync_cmd))
         if subprocess.run(sync_cmd).returncode != 0:
             sys.exit('ERROR: repo sync failed')
+    finally:
+        Path(manifest_path).unlink(missing_ok=True)
 
     print()
     print('Done. To return to studio-main, just run repo sync.')
