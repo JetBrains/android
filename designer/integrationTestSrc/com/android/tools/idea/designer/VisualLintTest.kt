@@ -69,7 +69,7 @@ class VisualLintTest {
         10,
         TimeUnit.SECONDS,
       )
-      system.installation.ideaLog.waitForMatchingLine(".*Visual Lint analysis finished, 2 errors found", 10, TimeUnit.SECONDS)
+      system.installation.ideaLog.waitForMatchingLine(".*Visual Lint analysis finished, 3 errors found", 10, TimeUnit.SECONDS)
 
       // Make button 100dp wide instead of 0dp (corresponding to match_parent). That should fix one
       // of the issues.
@@ -79,7 +79,7 @@ class VisualLintTest {
         10,
         TimeUnit.SECONDS,
       )
-      system.installation.ideaLog.waitForMatchingLine(".*Visual Lint analysis finished, 1 error found", 60, TimeUnit.SECONDS)
+      system.installation.ideaLog.waitForMatchingLine(".*Visual Lint analysis finished, 2 errors found", 60, TimeUnit.SECONDS)
     }
   }
 }
