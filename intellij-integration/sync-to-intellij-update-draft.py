@@ -4,6 +4,7 @@ from pathlib import Path
 import json
 import os
 import shlex
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -44,7 +45,8 @@ def main():
     # Sync.
     with tempfile.NamedTemporaryFile(suffix='-intellij-update-draft-manifest.xml') as manifest:
         manifest.write(manifest_content.encode())
-        sync_cmd = ['repo', 'sync', '--detach', '-m', manifest.name, *args]
+        repo = shutil.which('repo')  # Handles repo.cmd scripts properly on Windows.
+        sync_cmd = [repo, 'sync', '--detach', '-m', manifest.name, *args]
         print('Running:', shlex.join(sync_cmd))
         if subprocess.run(sync_cmd).returncode != 0:
             sys.exit('ERROR: repo sync failed')
