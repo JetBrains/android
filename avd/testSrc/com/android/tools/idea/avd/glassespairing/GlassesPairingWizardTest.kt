@@ -50,6 +50,7 @@ import com.google.protobuf.Message.Builder
 import com.google.wireless.android.play.playlog.proto.ClientAnalytics
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GlassesPairingEvent
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.ApplicationRule
 import java.util.concurrent.CopyOnWriteArrayList
@@ -135,13 +136,16 @@ class GlassesPairingWizardTest {
       val devicesFlow = MutableStateFlow(listOf(phone, glasses))
 
       val pairingFlow = MutableStateFlow<PairingState>(PairingState.NotStarted)
-      fun pair(g: DeviceHandle, p: DeviceHandle, project: Project?): Flow<PairingState> {
-        assertThat(g).isSameAs(glasses)
-        assertThat(p).isSameAs(phone)
-        return pairingFlow
-      }
+      val pairer =
+        object : GlassesPairer {
+          override fun pair(g: DeviceHandle, p: DeviceHandle, project: Project?, onMacRetrieved: (String) -> Unit): Flow<PairingState> {
+            assertThat(g).isSameAs(glasses)
+            assertThat(p).isSameAs(phone)
+            return pairingFlow
+          }
+        }
 
-      val glassesWizard = GlassesPairingWizard(null, coroutineScope, devicesFlow, glasses, ::pair, { true })
+      val glassesWizard = GlassesPairingWizard(null, coroutineScope, devicesFlow, glasses, pairer, { true })
       val wizard = TestComposeWizard { with(glassesWizard) { SelectDevicePage() } }
 
       composeTestRule.setContent { wizard.Content() }
@@ -203,7 +207,7 @@ class GlassesPairingWizardTest {
     val glasses = TestDeviceHandle(this@runTest, "G", activationDelay = 8.seconds, bootDelay = 5.seconds)
     val phone = TestDeviceHandle(this@runTest, "P", activationDelay = 8.seconds, bootDelay = 5.seconds)
 
-    val states = flow { launchGlassesAndPhone(glasses, phone) }.toList()
+    val states = launchGlassesAndPhone(glasses, phone).toList()
 
     assertThat(states)
       .containsExactly(
@@ -224,7 +228,7 @@ class GlassesPairingWizardTest {
 
     val duration =
       testTimeSource.measureTime {
-        val states = flow { launchGlassesAndPhone(glasses, phone) }.toList()
+        val states = launchGlassesAndPhone(glasses, phone).toList()
 
         assertThat(states)
           .containsExactly(
@@ -276,9 +280,15 @@ class GlassesPairingWizardTest {
         )
       val devicesFlow = MutableStateFlow(listOf(phone, glasses))
 
-      fun pair(g: DeviceHandle, p: DeviceHandle, project: Project?): Flow<PairingState> = flow { delay(Long.MAX_VALUE) }
+      val pairer =
+        object : GlassesPairer {
+          override fun pair(g: DeviceHandle, p: DeviceHandle, project: Project?, onMacRetrieved: (String) -> Unit): Flow<PairingState> =
+            flow {
+              delay(Long.MAX_VALUE)
+            }
+        }
 
-      val glassesWizard = GlassesPairingWizard(null, coroutineScope, devicesFlow, glasses, ::pair, { true })
+      val glassesWizard = GlassesPairingWizard(null, coroutineScope, devicesFlow, glasses, pairer, { true })
       val wizard = TestComposeWizard { with(glassesWizard) { SelectDevicePage() } }
 
       composeTestRule.setContent { wizard.Content() }
@@ -293,9 +303,9 @@ class GlassesPairingWizardTest {
       composeTestRule.mainClock.advanceTimeBy(1000)
       testScheduler.advanceTimeBy(1000)
 
-      // Now advance by 10 minutes to trigger the timeout
-      testScheduler.advanceTimeBy(10.minutes.inWholeMilliseconds + 1000)
-      composeTestRule.mainClock.advanceTimeBy(10.minutes.inWholeMilliseconds + 1000)
+      // Now advance by 15 minutes to trigger the timeout
+      testScheduler.advanceTimeBy(15.minutes.inWholeMilliseconds + 1000)
+      composeTestRule.mainClock.advanceTimeBy(15.minutes.inWholeMilliseconds + 1000)
       composeTestRule.mainClock.advanceTimeByFrame()
 
       composeTestRule.onNodeWithText("Pairing timed out").assertIsDisplayed()
@@ -347,11 +357,14 @@ class GlassesPairingWizardTest {
       val devicesFlow = MutableStateFlow(listOf(phone, glasses))
 
       val pairingFlow = MutableStateFlow<PairingState>(PairingState.NotStarted)
-      fun pair(g: DeviceHandle, p: DeviceHandle, project: Project?): Flow<PairingState> {
-        return pairingFlow
-      }
+      val pairer =
+        object : GlassesPairer {
+          override fun pair(g: DeviceHandle, p: DeviceHandle, project: Project?, onMacRetrieved: (String) -> Unit): Flow<PairingState> {
+            return pairingFlow
+          }
+        }
 
-      val glassesWizard = GlassesPairingWizard(null, coroutineScope, devicesFlow, glasses, ::pair, { true })
+      val glassesWizard = GlassesPairingWizard(null, coroutineScope, devicesFlow, glasses, pairer, { true })
       val wizard = TestComposeWizard { with(glassesWizard) { SelectDevicePage() } }
 
       composeTestRule.setContent { wizard.Content() }
@@ -402,7 +415,7 @@ class GlassesPairingWizardTest {
 
   @Test
   fun testShowEnforcesSingleInstance() = runTest {
-    val coroutineScope = CoroutineScope(UnconfinedTestDispatcher())
+    val coroutineScope = CoroutineScope(UnconfinedTestDispatcher(testScheduler))
     val devicesFlow = MutableStateFlow(emptyList<DeviceHandle>())
     val glasses =
       FakeDeviceProvisionerPlugin.FakeDeviceHandle(
@@ -442,7 +455,7 @@ class GlassesPairingWizardTest {
 
   @Test
   fun testShowRejectsMultipleDevices() = runTest {
-    val coroutineScope = CoroutineScope(UnconfinedTestDispatcher())
+    val coroutineScope = CoroutineScope(UnconfinedTestDispatcher(testScheduler))
     val devicesFlow = MutableStateFlow(emptyList<DeviceHandle>())
     val glasses1 =
       FakeDeviceProvisionerPlugin.FakeDeviceHandle(
@@ -513,18 +526,19 @@ class GlassesPairingWizardTest {
 
     val controller = TestWizardController()
     val controllers = mutableListOf(controller)
+    val lockService = ApplicationManager.getApplication().getService(GlassesPairingLockService::class.java)
 
-    assertThat(GlassesPairingWizard.isWizardOpen.value).isFalse()
+    assertThat(lockService.isWizardOpen.value).isFalse()
 
     val job = launch { GlassesPairingWizard.showCore(null, null, devicesFlow, glasses) { _, _, _, _, _, _ -> controllers.removeAt(0) } }
 
-    yieldUntil { GlassesPairingWizard.isWizardOpen.value }
-    assertThat(GlassesPairingWizard.isWizardOpen.value).isTrue()
+    yieldUntil { lockService.isWizardOpen.value }
+    assertThat(lockService.isWizardOpen.value).isTrue()
 
     controller.close(false)
     job.join()
 
-    assertThat(GlassesPairingWizard.isWizardOpen.value).isFalse()
+    assertThat(lockService.isWizardOpen.value).isFalse()
   }
 
   @Test
@@ -582,7 +596,7 @@ class GlassesPairingWizardTest {
           isAiGlassesCompatible = true
         }
 
-      val newPhone = FakeDeviceProvisionerPlugin.FakeDeviceHandle("p2", this, DeviceState.Disconnected(newPhoneProps))
+      val newPhone = FakeDeviceProvisionerPlugin.FakeDeviceHandle("New_Phone", this, DeviceState.Disconnected(newPhoneProps))
 
       val addDeviceDialog = AddDeviceDialog { _, _, _, _ ->
         // Update devicesFlow when dialog "finishes"
