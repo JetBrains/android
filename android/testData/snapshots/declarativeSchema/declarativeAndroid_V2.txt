@@ -636,6 +636,14 @@ Projects:
                                 - ConcreteGeneric SimpleType    : STRING
                                 - ConcreteGeneric ReferenceType : kotlin.Any
                       Function SimpleType           : UNIT
+                    - MemberFunctionName            : baselineProfile
+                      Receiver ReferenceType        : com.android.build.api.dsl.ApplicationBuildType
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.BaselineProfile
+                    - MemberFunctionName            : baselineProfile
+                      Receiver ReferenceType        : com.android.build.api.dsl.ApplicationBuildType
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.BaselineProfile
                     - MemberFunctionName            : buildConfigField
                       Receiver ReferenceType        : com.android.build.api.dsl.ApplicationBuildType
                       Parameters
@@ -765,6 +773,8 @@ Projects:
                 Properties
                     - PropertyName                  : applicationIdSuffix
                       Property SimpleType           : STRING
+                    - PropertyName                  : baselineProfile
+                      Property ReferenceType        : com.android.build.api.dsl.BaselineProfile
                     - PropertyName                  : enableAndroidTestCoverage
                       Property SimpleType           : BOOLEAN
                     - PropertyName                  : enableUnitTestCoverage
@@ -3054,6 +3064,14 @@ Projects:
                                 - ConcreteGeneric SimpleType    : STRING
                                 - ConcreteGeneric ReferenceType : kotlin.Any
                       Function SimpleType           : UNIT
+                    - MemberFunctionName            : baselineProfile
+                      Receiver ReferenceType        : com.android.build.api.dsl.DeclarativeApplicationBuildType
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.BaselineProfile
+                    - MemberFunctionName            : baselineProfile
+                      Receiver ReferenceType        : com.android.build.api.dsl.DeclarativeApplicationBuildType
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.BaselineProfile
                     - MemberFunctionName            : buildConfigField
                       Receiver ReferenceType        : com.android.build.api.dsl.DeclarativeApplicationBuildType
                       Parameters
@@ -3187,6 +3205,8 @@ Projects:
                 Properties
                     - PropertyName                  : applicationIdSuffix
                       Property SimpleType           : STRING
+                    - PropertyName                  : baselineProfile
+                      Property ReferenceType        : com.android.build.api.dsl.BaselineProfile
                     - PropertyName                  : dependencies
                       Property ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                     - PropertyName                  : enableAndroidTestCoverage
@@ -10294,6 +10314,14 @@ Settings:
                                 - ConcreteGeneric SimpleType    : STRING
                                 - ConcreteGeneric ReferenceType : kotlin.Any
                       Function SimpleType           : UNIT
+                    - MemberFunctionName            : baselineProfile
+                      Receiver ReferenceType        : com.android.build.api.dsl.ApplicationBuildType
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.BaselineProfile
+                    - MemberFunctionName            : baselineProfile
+                      Receiver ReferenceType        : com.android.build.api.dsl.ApplicationBuildType
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.BaselineProfile
                     - MemberFunctionName            : buildConfigField
                       Receiver ReferenceType        : com.android.build.api.dsl.ApplicationBuildType
                       Parameters
@@ -10423,6 +10451,8 @@ Settings:
                 Properties
                     - PropertyName                  : applicationIdSuffix
                       Property SimpleType           : STRING
+                    - PropertyName                  : baselineProfile
+                      Property ReferenceType        : com.android.build.api.dsl.BaselineProfile
                     - PropertyName                  : enableAndroidTestCoverage
                       Property SimpleType           : BOOLEAN
                     - PropertyName                  : enableUnitTestCoverage
@@ -12712,6 +12742,14 @@ Settings:
                                 - ConcreteGeneric SimpleType    : STRING
                                 - ConcreteGeneric ReferenceType : kotlin.Any
                       Function SimpleType           : UNIT
+                    - MemberFunctionName            : baselineProfile
+                      Receiver ReferenceType        : com.android.build.api.dsl.DeclarativeApplicationBuildType
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.BaselineProfile
+                    - MemberFunctionName            : baselineProfile
+                      Receiver ReferenceType        : com.android.build.api.dsl.DeclarativeApplicationBuildType
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.BaselineProfile
                     - MemberFunctionName            : buildConfigField
                       Receiver ReferenceType        : com.android.build.api.dsl.DeclarativeApplicationBuildType
                       Parameters
@@ -12845,6 +12883,8 @@ Settings:
                 Properties
                     - PropertyName                  : applicationIdSuffix
                       Property SimpleType           : STRING
+                    - PropertyName                  : baselineProfile
+                      Property ReferenceType        : com.android.build.api.dsl.BaselineProfile
                     - PropertyName                  : dependencies
                       Property ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                     - PropertyName                  : enableAndroidTestCoverage
