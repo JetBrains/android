@@ -1132,6 +1132,46 @@ class EmulatorViewTest {
     assertThat(shortDebugString(call.getNextRequest(2.seconds))).isEqualTo("xr_head_movement_event { delta_z: $TRANSLATION_STEP_SIZE }")
   }
 
+  @Test
+  fun testAiGlasses() {
+    val panel = createEmulatorDisplayPanel { path -> FakeEmulator.createAiGlassesAvd(path) }
+    fakeUi = FakeUi(panel, 2.0)
+
+    fakeUi.root.size = Dimension(200, 300)
+    fakeUi.layoutAndDispatchEvents()
+    var call = getStreamScreenshotCallAndWaitForFrame()
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 400 height: 600")
+    assertAppearance("AiGlasses1")
+
+    executeAction("android.streaming.zoom.fit.inner", view, project)
+    fakeUi.layoutAndDispatchEvents()
+    call = getStreamScreenshotCallAndWaitForFrame()
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 1066 height: 900")
+    assertAppearance("AiGlasses2")
+
+    executeAction("android.streaming.zoom.in", view, project)
+    fakeUi.layoutAndDispatchEvents()
+    call = getStreamScreenshotCallAndWaitForFrame()
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 1200 height: 900")
+    assertAppearance("AiGlasses3")
+
+    executeAction("android.streaming.zoom.out", view, project)
+    fakeUi.layoutAndDispatchEvents()
+    call = getStreamScreenshotCallAndWaitForFrame()
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 600 height: 580")
+
+    executeAction("android.streaming.zoom.fit.inner", view, project)
+    fakeUi.root.size = Dimension(250, 300)
+    fakeUi.layoutAndDispatchEvents()
+    call = getStreamScreenshotCallAndWaitForFrame()
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 1200 height: 900")
+    assertAppearance("AiGlasses4")
+
+    executeAction("android.streaming.zoom.fit.inner", view, project)
+    fakeUi.layoutAndDispatchEvents()
+    assertAppearance("AiGlasses5")
+  }
+
   private fun createRootContainer(): HeadlessRootPaneContainer =
     HeadlessRootPaneContainer(NotificationHolderPanel(createEmulatorDisplayPanel()))
 

@@ -40,6 +40,7 @@ internal class ZoomToolbarProvider private constructor(component: JComponent, pa
             add(actionManager.getAction("android.streaming.zoom.out"))
             add(actionManager.getAction("android.streaming.zoom.actual"))
             add(actionManager.getAction("android.streaming.zoom.fit"))
+            add(actionManager.getAction("android.streaming.zoom.fit.inner"))
           }
         }
     }

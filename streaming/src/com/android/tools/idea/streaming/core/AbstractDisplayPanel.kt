@@ -161,6 +161,7 @@ internal abstract class AbstractDisplayPanel<T : AbstractDisplayView>(disposable
           add(actionManager.getAction("android.streaming.zoom.out"))
           add(actionManager.getAction("android.streaming.zoom.actual"))
           add(actionManager.getAction("android.streaming.zoom.fit"))
+          add(actionManager.getAction("android.streaming.zoom.fit.inner"))
           add(Separator())
           add(ZoomLevelIndicator())
           add(FloatingToolbarContainer.CollapserAction())

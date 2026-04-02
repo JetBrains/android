@@ -506,7 +506,7 @@ class DeviceAdapterTest {
 
     override fun canZoom() = false
 
-    override fun computeActualSize() = deviceDisplaySize
+    override fun computeActualSize(framing: Framing) = deviceDisplaySize
 
     override fun dispose() {}
 

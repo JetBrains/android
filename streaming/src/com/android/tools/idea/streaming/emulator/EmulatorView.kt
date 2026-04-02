@@ -239,6 +239,16 @@ internal class EmulatorView(
   override val deviceDisplaySize: Dimension
     get() = screenshotShape.activeDisplayRegion?.size ?: displaySize ?: emulatorConfig.displaySize
 
+  override val hasInnerPart: Boolean
+    get() = emulatorConfig.environmentSize != null
+
+  override var framing: Framing
+    get() = super.framing
+    set(value) {
+      super.framing = value
+      EventQueue.invokeLater { requestScreenshotFeed() }
+    }
+
   private var deviceScaleFactor: Double = 1.0
 
   @get:VisibleForTesting
@@ -294,7 +304,7 @@ internal class EmulatorView(
 
   /** The size of the device including frame in device pixels. */
   val displaySizeWithFrame: Dimension
-    get() = computeActualSize(screenshotShape.orientation)
+    get() = computeActualSize(framing, screenshotShape.orientation)
 
   var microphoneInput: Boolean? = null
     set(value) {
@@ -523,14 +533,19 @@ internal class EmulatorView(
     requestScreenshotFeed()
   }
 
-  override fun computeActualSize(): Dimension = computeActualSize(screenshotShape.orientation)
+  override fun computeActualSize(framing: Framing): Dimension = computeActualSize(framing, screenshotShape.orientation)
 
-  private fun computeActualSize(orientationQuadrants: Int): Dimension {
+  private fun computeActualSize(framing: Framing, orientationQuadrants: Int): Dimension {
     val skin = getSkin()
     return if (skin != null && deviceFrameVisible) {
       skin.getRotatedFrameSize(orientationQuadrants, deviceDisplaySize)
     } else {
-      deviceDisplaySize.rotatedByQuadrants(orientationQuadrants)
+      val environmentSize = emulatorConfig.environmentSize
+      if (environmentSize == null || framing == Framing.INNER) {
+        deviceDisplaySize.rotatedByQuadrants(orientationQuadrants)
+      } else {
+        environmentSize.rotatedByQuadrants(orientationQuadrants)
+      }
     }
   }
 
@@ -672,18 +687,31 @@ internal class EmulatorView(
     val maxSize = computeMaxImageSize()
     val maxWidth = maxSize.width.toDouble()
     val maxHeight = maxSize.height.toDouble()
+    var w = screenshotShape.width
+    var h = screenshotShape.height
     return if (skin == null) {
-      val scale = roundScale(min(maxWidth / screenshotShape.width, maxHeight / screenshotShape.height))
-      val w = screenshotShape.width.scaled(scale)
-      val h = screenshotShape.height.scaled(scale)
+      val scale =
+        if (framing == Framing.INNER) {
+          val environmentSize = checkNotNull(emulatorConfig.environmentSize)
+          roundScale(
+            min(
+              maxWidth / deviceDisplaySize.width * environmentSize.width / w,
+              maxHeight / deviceDisplaySize.height * environmentSize.height / h,
+            )
+          )
+        } else {
+          roundScale(min(maxWidth / w, maxHeight / h))
+        }
+      w = w.scaled(scale)
+      h = h.scaled(scale)
       Rectangle((physicalWidth - w) / 2, (physicalHeight - h) / 2, w, h)
     } else {
       val frameRectangle = skin.frameRectangle
       val scale = roundScale(min(maxWidth / frameRectangle.width, maxHeight / frameRectangle.height))
       val fw = frameRectangle.width.scaled(scale)
       val fh = frameRectangle.height.scaled(scale)
-      val w = screenshotShape.width.scaled(scale)
-      val h = screenshotShape.height.scaled(scale)
+      w = w.scaled(scale)
+      h = h.scaled(scale)
       Rectangle((physicalWidth - fw) / 2 - frameRectangle.x.scaled(scale), (physicalHeight - fh) / 2 - frameRectangle.y.scaled(scale), w, h)
     }
   }
@@ -695,17 +723,27 @@ internal class EmulatorView(
   private fun requestScreenshotFeed(displaySize: Dimension, orientationQuadrants: Int) {
     if (isConnected && width != 0 && height != 0) {
       val maxSize = physicalSize.rotatedByQuadrants(-orientationQuadrants)
-      val skin = getSkin()
-      if (skin != null && deviceFrameVisible) {
-        // Scale down to leave space for the device frame.
-        val layout = skin.layout
-        maxSize.width = maxSize.width.scaledDown(layout.displaySize.width, layout.frameRectangle.width)
-        maxSize.height = maxSize.height.scaledDown(layout.displaySize.height, layout.frameRectangle.height)
-      }
+      val environmentSize = emulatorConfig.environmentSize
+      if (environmentSize == null) {
+        val skin = getSkin()
+        if (skin != null && deviceFrameVisible) {
+          // Scale down to leave space for the device frame.
+          val layout = skin.layout
+          maxSize.width = maxSize.width.scaledDown(layout.displaySize.width, layout.frameRectangle.width)
+          maxSize.height = maxSize.height.scaledDown(layout.displaySize.height, layout.frameRectangle.height)
+        }
 
-      // Limit by the display resolution.
-      maxSize.width = maxSize.width.coerceAtMost(displaySize.width)
-      maxSize.height = maxSize.height.coerceAtMost(displaySize.height)
+        // Limit by the display resolution.
+        maxSize.width = maxSize.width.coerceAtMost(displaySize.width)
+        maxSize.height = maxSize.height.coerceAtMost(displaySize.height)
+      } else {
+        if (framing == Framing.INNER) {
+          maxSize.width = maxSize.width.scaledDown(environmentSize.width, displaySize.width)
+          maxSize.height = maxSize.height.scaledDown(environmentSize.height, displaySize.height)
+        }
+        maxSize.width = maxSize.width.coerceAtMost(environmentSize.width)
+        maxSize.height = maxSize.height.coerceAtMost(environmentSize.height)
+      }
 
       val maxImageSize = maxSize.rotatedByQuadrants(orientationQuadrants)
 
@@ -1455,7 +1493,10 @@ internal class EmulatorView(
 
       notifySourceFrameListeners(image)
 
-      val displayShape = DisplayShape(width, height, imageRotation, activeDisplayRegion, displayMode, message.seq.toUInt())
+      val environmentSize = emulatorConfig.environmentSize
+      // TODO: Use imageFormat.withEnvironment when available.
+      val withEnvironment = environmentSize == null || displayId != PRIMARY_DISPLAY_ID
+      val displayShape = DisplayShape(width, height, imageRotation, activeDisplayRegion, displayMode, withEnvironment, message.seq.toUInt())
       val screenshot = Screenshot(displayShape, image, frameOriginationTime)
       val skinLayout = skinLayoutCache.getCached(displayShape, currentPosture?.posture)
       if (skinLayout == null) {
@@ -1613,6 +1654,7 @@ internal class EmulatorView(
     val orientation: Int,
     val activeDisplayRegion: Rectangle? = null,
     val displayMode: DisplayMode? = null,
+    val withEnvironment: Boolean = false,
     val frameNumber: UInt = 0u,
   )
 

@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.emulator
 import com.android.SdkConstants.ANDROID_HOME_ENV
 import com.android.emulator.control.DisplayModeValue
 import com.android.emulator.control.Posture.PostureValue
+import com.android.repository.Revision
 import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SystemImageTags.AI_GLASSES_TAG
@@ -32,10 +33,12 @@ import com.android.sdklib.SystemImageTags.WEAR_TAG
 import com.android.sdklib.SystemImageTags.XR_HEADSET_TAG
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.internal.avd.ConfigKey
+import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.streaming.core.FOLDING_STATE_ICONS
 import com.android.utils.asSeparatedListContains
 import com.google.common.base.Splitter
 import com.google.common.collect.ImmutableMap
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.text.StringUtil.parseInt
 import java.awt.Dimension
 import java.nio.file.Path
@@ -114,9 +117,18 @@ private constructor(
 
       val avdName = configIni["avd.ini.displayname"] ?: avdFolder.fileName.toString().removeSuffix(".avd").replace('_', ' ')
 
-      val w = parseInt(configIni["environment.width"], 0)
-      val h = parseInt(configIni["environment.height"], 0)
-      val environmentSize = if (w > 0 && h > 0) Dimension(w, h) else null
+      // TODO: Remove emulator version check after 2026-09-01.
+      val environmentSizeSupported =
+        ApplicationManager.getApplication().isUnitTestMode ||
+          AvdManagerConnection.getDefaultAvdManagerConnection().emulator?.version?.let { it >= Revision(36, 6, 3) } ?: false
+      val environmentSize =
+        if (environmentSizeSupported) {
+          val w = parseInt(configIni["environment.width"], 0)
+          val h = parseInt(configIni["environment.height"], 0)
+          if (w > 0 && h > 0) Dimension(w, h) else null
+        } else {
+          null
+        }
 
       val skinPath = getSkinPath(configIni, androidSdkRoot)
       val tagIds = configIni[ConfigKey.TAG_IDS] ?: configIni[ConfigKey.TAG_ID]

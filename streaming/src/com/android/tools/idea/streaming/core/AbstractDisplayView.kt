@@ -368,17 +368,17 @@ internal abstract class AbstractDisplayView(project: Project, override val displ
     }
   }
 
-  override fun canZoom(type: ZoomType): Boolean {
-    return when (type) {
+  override fun canZoom(zoomType: ZoomType): Boolean {
+    return when (zoomType) {
       ZoomType.IN,
-      ZoomType.OUT -> deviceType == DeviceType.XR_HEADSET || super.canZoom(type)
-      else -> deviceType != DeviceType.XR_HEADSET && super.canZoom(type)
+      ZoomType.OUT -> deviceType == DeviceType.XR_HEADSET || super.canZoom(zoomType)
+      else -> deviceType != DeviceType.XR_HEADSET && super.canZoom(zoomType)
     }
   }
 
-  override fun zoom(type: ZoomType): Boolean {
+  override fun zoom(zoomType: ZoomType): Boolean {
     if (deviceType == DeviceType.XR_HEADSET) {
-      when (type) {
+      when (zoomType) {
         ZoomType.IN -> xrInputController?.sendTranslation(0F, 0F, -TRANSLATION_STEP_SIZE) // Move forward.
         ZoomType.OUT -> xrInputController?.sendTranslation(0F, 0F, TRANSLATION_STEP_SIZE) // Move backward.
         else -> {}
@@ -386,7 +386,7 @@ internal abstract class AbstractDisplayView(project: Project, override val displ
       return false
     }
 
-    return super.zoom(type)
+    return super.zoom(zoomType)
   }
 
   internal fun interface FrameListener {

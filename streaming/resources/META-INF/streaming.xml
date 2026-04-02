@@ -300,6 +300,16 @@
         <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta SLASH" replace-all="true"/>
         <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta DIVIDE" />
       </action>
+      <action id="android.streaming.zoom.fit.inner"
+          icon="AllIcons.General.FitContent"
+          class="com.android.tools.idea.streaming.actions.ZoomAction$FitInner"
+          text="Zoom to Fit Display in Window"
+          description="Zoom the view to fit the display image in the available space">
+        <keyboard-shortcut keymap="$default" first-keystroke="control shift SLASH" />
+        <keyboard-shortcut keymap="$default" first-keystroke="control shift DIVIDE" />
+        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta shift SLASH" replace-all="true"/>
+        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta shift DIVIDE" />
+      </action>
     </group>
 
     <action id="android.streaming.benchmark" class="com.android.tools.idea.streaming.benchmark.StreamingBenchmarkAction"

@@ -444,7 +444,10 @@ internal class DeviceView(
     }
   }
 
-  override fun computeActualSize(): Dimension = computeActualSize(displayOrientationQuadrants)
+  override fun computeActualSize(framing: Framing): Dimension {
+    require(framing == Framing.OUTER) { "Unexpected framing value $framing" }
+    return computeActualSize(displayOrientationQuadrants)
+  }
 
   private fun computeActualSize(rotationQuadrants: Int): Dimension = deviceDisplaySize.rotatedByQuadrants(rotationQuadrants)
 
