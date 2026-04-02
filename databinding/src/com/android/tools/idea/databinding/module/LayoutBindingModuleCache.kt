@@ -16,6 +16,7 @@
 package com.android.tools.idea.databinding.module
 
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
 import com.android.tools.idea.databinding.BindingLayout
 import com.android.tools.idea.databinding.BindingLayoutGroup
@@ -38,10 +39,14 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.res.CacheableResourceRepository
+import com.android.tools.res.LocalResourceRepository
+import com.google.common.collect.ListMultimap
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.vfs.VirtualFile
@@ -204,23 +209,45 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
     ApplicationManager.getApplication().assertReadAccessAllowed()
 
     val project = module.project
+    val moduleResources = StudioResourceRepositoryManager.getModuleResources(facet)
+    val moduleModificationTracker = ModuleResourceModificationTracker(moduleResources)
+
     return CachedValuesManager.getManager(project).getCachedValue(facet) {
-      val moduleResources = StudioResourceRepositoryManager.getModuleResources(facet)
-      val modificationTracker = ModificationTracker { moduleResources.modificationCount }
-      val layoutResources = moduleResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT)
+      val groupsWithClasses =
+        getBindingLayoutGroups(project, facet, moduleResources, moduleModificationTracker).associateWith {
+          createLightBindingClasses(facet, it)
+        }
+      CachedValueProvider.Result(groupsWithClasses, moduleModificationTracker, BindingXmlIndexModificationTracker.getInstance(project))
+    }
+  }
+
+  private fun getBindingLayoutGroups(
+    project: Project,
+    facet: AndroidFacet,
+    moduleResources: LocalResourceRepository<VirtualFile>,
+    moduleModificationTracker: ModificationTracker,
+  ): Set<BindingLayoutGroup> {
+    return CachedValuesManager.getManager(project).getCachedValue(facet) {
       val bindingLayoutGroups =
-        layoutResources
+        getLayoutResources(project, facet, moduleResources, moduleModificationTracker)
           .values()
           .mapNotNull { resource -> BindingLayout.tryCreate(facet, resource) }
           .groupBy { info -> info.file.name }
           .map { entry -> BindingLayoutGroup(entry.value) }
           .toSet()
+      CachedValueProvider.Result(bindingLayoutGroups, moduleModificationTracker, BindingXmlIndexModificationTracker.getInstance(project))
+    }
+  }
 
-      val groupsWithClasses = bindingLayoutGroups.associateWith { createLightBindingClasses(facet, it) }
-
-      // Note: LocalResourceRepository and BindingXmlIndex are updated at different times,
-      // so we must incorporate both into the modification count (see b/283753328).
-      CachedValueProvider.Result(groupsWithClasses, modificationTracker, BindingXmlIndexModificationTracker.getInstance(project))
+  private fun getLayoutResources(
+    project: Project,
+    facet: AndroidFacet,
+    moduleResources: LocalResourceRepository<VirtualFile>,
+    moduleModificationTracker: ModificationTracker,
+  ): ListMultimap<String, ResourceItem> {
+    return CachedValuesManager.getManager(project).getCachedValue(facet) {
+      val layoutResources = moduleResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT)
+      CachedValueProvider.Result(layoutResources, moduleModificationTracker, BindingXmlIndexModificationTracker.getInstance(project))
     }
   }
 
@@ -278,5 +305,9 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
     override fun isSearchInModuleContent(aModule: Module) = true
 
     override fun isSearchInLibraries() = false
+  }
+
+  private data class ModuleResourceModificationTracker(private val repository: CacheableResourceRepository) : ModificationTracker {
+    override fun getModificationCount() = repository.modificationCount
   }
 }
