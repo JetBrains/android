@@ -15,29 +15,31 @@
  */
 package com.android.tools.idea.devicemanagerv2
 
-import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.adtui.actions.componentToRestoreFocusTo
-import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
-import com.android.tools.idea.deviceprovisioner.launchCatchingDeviceActionException
-import com.google.wireless.android.sdk.stats.DeviceManagerEvent
+import com.android.tools.idea.deviceprovisioner.EditableDeviceHandle
+import com.android.tools.idea.deviceprovisioner.deviceHandle
+import com.android.tools.idea.deviceprovisioner.runCatchingDeviceActionExceptionBlocking
+import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.VIRTUAL_EDIT_ACTION
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 
-/** Invokes the DeviceHandle's edit action, if available. */
-class EditDeviceAction : DumbAwareAction("Edit", "Edit this device", AllIcons.Actions.Edit) {
-  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+internal class EditDeviceAction : DumbAwareAction("Edit", "Edit this device", AllIcons.Actions.Edit) {
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    e.updateFromDeviceAction(DeviceHandle::editAction)
+    e.presentation.isEnabledAndVisible = e.deviceHandle() is EditableDeviceHandle
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val handle = DEVICE_HANDLE_KEY.getData(e.dataContext) ?: return
+    val handle = e.deviceHandle() as? EditableDeviceHandle ?: return
 
-    DeviceManagerUsageTracker.logDeviceManagerEvent(DeviceManagerEvent.EventKind.VIRTUAL_EDIT_ACTION)
+    DeviceManagerUsageTracker.logDeviceManagerEvent(VIRTUAL_EDIT_ACTION)
 
-    handle.launchCatchingDeviceActionException { handle.editAction?.edit(e.componentToRestoreFocusTo()) }
+    runCatchingDeviceActionExceptionBlocking(e.project, handle.state.properties.title) {
+      handle.edit(e.project, e.componentToRestoreFocusTo())
+    }
   }
 }

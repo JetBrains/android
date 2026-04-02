@@ -53,8 +53,6 @@ internal class FakeDeviceHandle(
   override val activationAction = FakeActivationAction()
   override val deactivationAction = FakeDeactivationAction()
   override val repairDeviceAction = FakeRepairDeviceAction()
-  override val showAction = FakeShowAction()
-  override val duplicateAction = FakeDuplicateAction()
   override val wipeDataAction = FakeWipeDataAction()
   override val deleteAction = FakeDeleteAction()
   override val coldBootAction = FakeColdBootAction()
@@ -116,16 +114,6 @@ internal class FakeDeviceHandle(
     }
   }
 
-  inner class FakeShowAction : com.android.sdklib.deviceprovisioner.ShowAction {
-    var invoked = 0
-
-    override suspend fun show() {
-      invoked++
-    }
-
-    override val presentation = MutableStateFlow(StudioDefaultDeviceActionPresentation.fromContext())
-  }
-
   inner class FakeWipeDataAction : com.android.sdklib.deviceprovisioner.WipeDataAction {
     var invoked = 0
 
@@ -140,16 +128,6 @@ internal class FakeDeviceHandle(
     var invoked = 0
 
     override suspend fun delete() {
-      invoked++
-    }
-
-    override val presentation = MutableStateFlow(StudioDefaultDeviceActionPresentation.fromContext())
-  }
-
-  inner class FakeDuplicateAction : com.android.sdklib.deviceprovisioner.DuplicateAction {
-    var invoked = 0
-
-    override suspend fun duplicate(parent: Component?) {
       invoked++
     }
 

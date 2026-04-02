@@ -15,29 +15,31 @@
  */
 package com.android.tools.idea.devicemanagerv2
 
-import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.adtui.actions.componentToRestoreFocusTo
+import com.android.tools.idea.deviceprovisioner.DuplicatableDeviceHandle
 import com.android.tools.idea.deviceprovisioner.deviceHandle
-import com.android.tools.idea.deviceprovisioner.launchCatchingDeviceActionException
+import com.android.tools.idea.deviceprovisioner.runCatchingDeviceActionExceptionBlocking
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.VIRTUAL_DUPLICATE_ACTION
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 
-class DuplicateDeviceAction : DumbAwareAction("Duplicate", "Duplicate this device", AllIcons.Actions.Copy) {
-  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+internal class DuplicateDeviceAction : DumbAwareAction("Duplicate", "Duplicate this device", AllIcons.Actions.Copy) {
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    e.updateFromDeviceAction(DeviceHandle::duplicateAction)
+    e.presentation.isEnabledAndVisible = e.deviceHandle() is DuplicatableDeviceHandle
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val deviceHandle = e.deviceHandle()
-    val duplicateAction = deviceHandle?.duplicateAction ?: return
+    val handle = e.deviceHandle() as? DuplicatableDeviceHandle ?: return
 
     DeviceManagerUsageTracker.logDeviceManagerEvent(VIRTUAL_DUPLICATE_ACTION)
 
-    deviceHandle.launchCatchingDeviceActionException(project = e.project) { duplicateAction.duplicate(e.componentToRestoreFocusTo()) }
+    runCatchingDeviceActionExceptionBlocking(e.project, handle.state.properties.title) {
+      handle.duplicate(e.project, e.componentToRestoreFocusTo())
+    }
   }
 }

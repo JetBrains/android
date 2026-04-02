@@ -15,29 +15,29 @@
  */
 package com.android.tools.idea.devicemanagerv2
 
-import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.tools.idea.deviceprovisioner.ShowableOnDiskDeviceHandle
 import com.android.tools.idea.deviceprovisioner.deviceHandle
-import com.android.tools.idea.deviceprovisioner.launchCatchingDeviceActionException
+import com.android.tools.idea.deviceprovisioner.runCatchingDeviceActionExceptionBlocking
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.VIRTUAL_SHOW_ON_DISK_ACTION
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 
-class ShowAction : DumbAwareAction("Show", "Show this device", AllIcons.Actions.Show) {
-  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+internal class ShowOnDiskAction : DumbAwareAction("Show", "Show this device", AllIcons.Actions.Show) {
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    e.updateFromDeviceAction(DeviceHandle::showAction)
+    e.presentation.isEnabledAndVisible = e.deviceHandle() is ShowableOnDiskDeviceHandle
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val deviceHandle = e.deviceHandle()
-    val showAction = deviceHandle?.showAction ?: return
+    val handle = e.deviceHandle() as? ShowableOnDiskDeviceHandle ?: return
 
     // TODO: generalize to non-AVDs when they implement it
     DeviceManagerUsageTracker.logDeviceManagerEvent(VIRTUAL_SHOW_ON_DISK_ACTION)
 
-    deviceHandle.launchCatchingDeviceActionException(project = e.project) { showAction.show() }
+    runCatchingDeviceActionExceptionBlocking(e.project, handle.state.properties.title) { handle.show() }
   }
 }
