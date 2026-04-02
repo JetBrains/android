@@ -126,28 +126,6 @@ public class CpuProfilerTestUtils {
   }
 
   /**
-   * Note: the AspectObserver is passed in because Aspect dependencies are weak references. Instantiating a temporary instance in this
-   * method would mean that it can be GC'd before the aspect has a chance to fire.
-   */
-  static CountDownLatch waitForParsingStartFinish(CpuProfilerStage stage, AspectObserver observer) {
-    CountDownLatch parsingLatch = new CountDownLatch(2);
-    stage.getCaptureParser().getAspect().addDependency(observer).onChange(CpuProfilerAspect.CAPTURE_PARSING, () -> {
-      if (parsingLatch.getCount() == 2) {
-        assertThat(stage.getCaptureParser().isParsing()).isTrue();
-      }
-      else {
-        assertThat(stage.getCaptureParser().isParsing()).isFalse();
-      }
-      parsingLatch.countDown();
-      if (parsingLatch.getCount() == 0) {
-        stage.getCaptureParser().getAspect().removeDependencies(observer);
-      }
-    });
-
-    return parsingLatch;
-  }
-
-  /**
    * Convenience method for starting, stopping, and parsing a capture successfully.
    * <p>
    * Note that a CpuTraceInfo will be auto-generated and added to the cpu service id'd by the current timer's timestamp. If this method
