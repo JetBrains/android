@@ -58,6 +58,7 @@ import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.colors.CodeInsightColors
 import com.intellij.openapi.editor.colors.EditorColorsManager
+import com.intellij.openapi.editor.ex.util.EditorUtil
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.options.ShowSettingsUtil
@@ -275,6 +276,7 @@ class BuildAnalyzerViewController(
   private fun blinkPropertyTextInEditor(editor: Editor, property: IProperty) {
     val blinkingAttributes = EditorColorsManager.getInstance().globalScheme.getAttributes(CodeInsightColors.BLINKING_HIGHLIGHTS_ATTRIBUTES)
     val rangeBlinker = RangeBlinker(editor = editor, attributes = blinkingAttributes, timeToLive = 6, parentDisposable = null)
+    EditorUtil.disposeWithEditor(editor, rangeBlinker)
     rangeBlinker.resetMarkers(listOf(property.psiElement.textRange))
     rangeBlinker.startBlinking()
   }
