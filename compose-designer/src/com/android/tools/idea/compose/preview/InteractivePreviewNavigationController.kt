@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.compose.StudioComposePanel
 import com.android.tools.environment.Logger
 import com.android.tools.idea.compose.preview.interactive.NavigationControlsContent
+import com.android.tools.idea.preview.analytics.InteractivePreviewUsageTracker
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.openapi.actionSystem.DataKey
 import java.lang.reflect.Method
@@ -41,7 +42,10 @@ enum class BackNavigationEdge(val visibleName: String) {
  *
  * @param onAfterPanelUpdate A callback invoked immediately after the controller's visibility state changes (i.e., after a show/hide call).
  */
-class InteractivePreviewNavigationController(private val onAfterPanelUpdate: () -> Unit = {}) {
+class InteractivePreviewNavigationController(
+  private val usageTrackerProvider: () -> InteractivePreviewUsageTracker,
+  private val onAfterPanelUpdate: () -> Unit = {},
+) {
 
   private val showNavigationControlsProvider = { StudioComposePanel { NavigationControlsContent(this) } }
 
@@ -194,6 +198,7 @@ class InteractivePreviewNavigationController(private val onAfterPanelUpdate: () 
     if (activeBackNavigationPanelInInteractiveMode == null) {
       activeBackNavigationPanelInInteractiveMode = showNavigationControlsProvider()
       onAfterPanelUpdate()
+      usageTrackerProvider().trackNavigationPanelVisibilityChange(isShown = true)
     }
   }
 
@@ -208,6 +213,7 @@ class InteractivePreviewNavigationController(private val onAfterPanelUpdate: () 
     if (activeBackNavigationPanelInInteractiveMode != null) {
       activeBackNavigationPanelInInteractiveMode = null
       onAfterPanelUpdate()
+      usageTrackerProvider().trackNavigationPanelVisibilityChange(isShown = false)
     }
   }
 
@@ -224,6 +230,12 @@ class InteractivePreviewNavigationController(private val onAfterPanelUpdate: () 
    * @return True if navigation controls are enabled.
    */
   fun isNavigationControlsShown(): Boolean = activeBackNavigationPanelInInteractiveMode != null
+
+  fun trackNavigationProgressPress() = usageTrackerProvider().trackNavigationPanelProgressPress()
+
+  fun trackNavigationBackPress() = usageTrackerProvider().trackNavigationPanelBackPress()
+
+  fun trackEdgeDropdownPress() = usageTrackerProvider().trackNavigationPanelEdgeDropdownPress()
 
   companion object {
     private const val CAN_BACK_PRESS = "canBackPress"

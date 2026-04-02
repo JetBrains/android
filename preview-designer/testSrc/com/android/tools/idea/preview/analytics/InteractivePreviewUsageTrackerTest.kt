@@ -70,4 +70,68 @@ class InteractivePreviewUsageTrackerTest {
     assertEquals(interactiveEvent.startupTimeMs, 500)
     assertEquals(interactiveEvent.peerPreviews, 3)
   }
+
+  @Test
+  fun testTrackBackNavigationFromPanel() {
+    myInteractivePreviewUsageTracker.trackNavigationPanelBackPress()
+
+    assertNotNull(myLastEventBuilder)
+
+    val event = myLastEventBuilder!!.build()
+
+    assertEquals(event.kind, AndroidStudioEvent.EventKind.INTERACTIVE_PREVIEW_EVENT)
+
+    val interactiveEvent = event.interactivePreviewEvent
+    assertEquals(interactiveEvent.type, InteractivePreviewEvent.InteractivePreviewEventType.NAVIGATION_PANEL_BACK_PRESS)
+  }
+
+  @Test
+  fun testTrackBackNavigationEdgeSelected() {
+    myInteractivePreviewUsageTracker.trackNavigationPanelEdgeDropdownPress()
+
+    assertNotNull(myLastEventBuilder)
+
+    val event = myLastEventBuilder!!.build()
+
+    assertEquals(event.kind, AndroidStudioEvent.EventKind.INTERACTIVE_PREVIEW_EVENT)
+
+    val interactiveEvent = event.interactivePreviewEvent
+    assertEquals(interactiveEvent.type, InteractivePreviewEvent.InteractivePreviewEventType.NAVIGATION_PANEL_EDGE_DROPDOWN_PRESS)
+  }
+
+  @Test
+  fun testTrackBackNavigationProgress() {
+    myInteractivePreviewUsageTracker.trackNavigationPanelProgressPress()
+
+    assertNotNull(myLastEventBuilder)
+
+    val event = myLastEventBuilder!!.build()
+
+    assertEquals(event.kind, AndroidStudioEvent.EventKind.INTERACTIVE_PREVIEW_EVENT)
+
+    val interactiveEvent = event.interactivePreviewEvent
+    assertEquals(interactiveEvent.type, InteractivePreviewEvent.InteractivePreviewEventType.NAVIGATION_PANEL_PROGRESS_PRESS)
+  }
+
+  @Test
+  fun testTrackNavigationPanelVisibilityChange() {
+    myInteractivePreviewUsageTracker.trackNavigationPanelVisibilityChange(isShown = true)
+
+    assertNotNull(myLastEventBuilder)
+
+    val event = myLastEventBuilder!!.build()
+
+    assertEquals(event.kind, AndroidStudioEvent.EventKind.INTERACTIVE_PREVIEW_EVENT)
+
+    val interactiveEvent = event.interactivePreviewEvent
+    assertEquals(interactiveEvent.type, InteractivePreviewEvent.InteractivePreviewEventType.NAVIGATION_PANEL_VISIBILITY_CHANGE)
+    assertEquals(interactiveEvent.navigationPanelShown, true)
+
+    myInteractivePreviewUsageTracker.trackNavigationPanelVisibilityChange(isShown = false)
+    val event2 = myLastEventBuilder!!.build()
+    assertEquals(event2.kind, AndroidStudioEvent.EventKind.INTERACTIVE_PREVIEW_EVENT)
+    val interactiveEvent2 = event2.interactivePreviewEvent
+    assertEquals(interactiveEvent2.type, InteractivePreviewEvent.InteractivePreviewEventType.NAVIGATION_PANEL_VISIBILITY_CHANGE)
+    assertEquals(interactiveEvent2.navigationPanelShown, false)
+  }
 }

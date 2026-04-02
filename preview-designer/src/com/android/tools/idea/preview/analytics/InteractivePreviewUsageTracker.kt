@@ -38,6 +38,22 @@ interface InteractivePreviewUsageTracker {
    */
   fun logStartupTime(timeMs: Int, peers: Int)
 
+  /** Logs the Progress Bar clicks of the Navigation Panel */
+  fun trackNavigationPanelProgressPress()
+
+  /** Logs the Back Press clicks of the Navigation Panel */
+  fun trackNavigationPanelBackPress()
+
+  /**
+   * Logs the action that changes the visibility of the Navigation Panel
+   *
+   * @param isShown: true if the visibility changed to show the Navigation Panel, false otherwise
+   */
+  fun trackNavigationPanelVisibilityChange(isShown: Boolean)
+
+  /** Logs the type of the preferred Edge when Performing Back Navigation */
+  fun trackNavigationPanelEdgeDropdownPress()
+
   companion object {
     private val NOP_TRACKER = InteractiveNopTracker()
     private val MANAGER =
@@ -54,6 +70,14 @@ class InteractiveNopTracker : InteractivePreviewUsageTracker {
   override fun logInteractiveSession(fps: Int, durationMs: Int, userInteractions: Int) {}
 
   override fun logStartupTime(timeMs: Int, peers: Int) {}
+
+  override fun trackNavigationPanelProgressPress() {}
+
+  override fun trackNavigationPanelBackPress() {}
+
+  override fun trackNavigationPanelVisibilityChange(isShown: Boolean) {}
+
+  override fun trackNavigationPanelEdgeDropdownPress() {}
 }
 
 private val LOG: Logger
@@ -80,13 +104,31 @@ class InteractivePreviewUsageTrackerImpl(
     }
   }
 
+  override fun trackNavigationPanelProgressPress() {
+    logInteractiveEvent(InteractivePreviewEvent.InteractivePreviewEventType.NAVIGATION_PANEL_PROGRESS_PRESS)
+  }
+
+  override fun trackNavigationPanelBackPress() {
+    logInteractiveEvent(InteractivePreviewEvent.InteractivePreviewEventType.NAVIGATION_PANEL_BACK_PRESS)
+  }
+
+  override fun trackNavigationPanelVisibilityChange(isShown: Boolean) {
+    logInteractiveEvent(InteractivePreviewEvent.InteractivePreviewEventType.NAVIGATION_PANEL_VISIBILITY_CHANGE) {
+      it.navigationPanelShown = isShown
+    }
+  }
+
+  override fun trackNavigationPanelEdgeDropdownPress() {
+    logInteractiveEvent(InteractivePreviewEvent.InteractivePreviewEventType.NAVIGATION_PANEL_EDGE_DROPDOWN_PRESS)
+  }
+
   /**
    * A generic method to log any [InteractivePreviewEvent]. Accepts [type] of the event and a [consumer] to customize the event fileds based
    * on its [type].
    */
   private fun logInteractiveEvent(
     type: InteractivePreviewEvent.InteractivePreviewEventType,
-    consumer: (InteractivePreviewEvent.Builder) -> Unit,
+    consumer: (InteractivePreviewEvent.Builder) -> Unit = {},
   ) {
     try {
       myExecutor.execute {

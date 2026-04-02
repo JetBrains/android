@@ -563,6 +563,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile, composePreviewViewProvider:
           .buildString()
     }
 
+  private val usageTrackerProvider = { InteractivePreviewUsageTracker.getInstance(surface) }
+
   /**
    * Controls the bottom panel responsible for managing back navigation within an [Interactive] Preview.
    *
@@ -577,7 +579,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile, composePreviewViewProvider:
    *   call).
    */
   private val interactivePreviewNavigationController by lazy {
-    InteractivePreviewNavigationController(onAfterPanelUpdate = { updateBottomPanelVisibility() })
+    InteractivePreviewNavigationController(
+      usageTrackerProvider = usageTrackerProvider,
+      onAfterPanelUpdate = { updateBottomPanelVisibility() },
+    )
   }
 
   private suspend fun startInteractivePreview(instance: ComposePreviewElementInstance<*>) {
@@ -590,7 +595,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile, composePreviewViewProvider:
     val startUpStart = System.currentTimeMillis()
     invalidateAndRefresh(if (quickRefresh) ComposePreviewRefreshType.QUICK else ComposePreviewRefreshType.NORMAL)
     // Currently it will re-create classloader and will be slower than switch from static
-    InteractivePreviewUsageTracker.getInstance(surface).logStartupTime((System.currentTimeMillis() - startUpStart).toInt(), peerPreviews)
+    usageTrackerProvider().logStartupTime((System.currentTimeMillis() - startUpStart).toInt(), peerPreviews)
     interactiveManager.start()
     requestVisibilityAndNotificationsUpdate()
     ActivityTracker.getInstance().inc()
@@ -745,7 +750,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile, composePreviewViewProvider:
         composeWorkBench.mainSurface,
         fpsLimitFlow.value,
         { surface.sceneManagers },
-        { InteractivePreviewUsageTracker.getInstance(surface) },
+        usageTrackerProvider,
         delegateInteractionHandler,
       )
       .also { Disposer.register(this@ComposePreviewRepresentation, it) }

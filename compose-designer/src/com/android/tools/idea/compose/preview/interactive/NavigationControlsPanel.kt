@@ -89,6 +89,7 @@ fun NavigationControlsPanel(modifier: Modifier = Modifier, interactivePreviewNav
         enabled = true,
         onClick = {
           interactivePreviewNavigationController.backPressCompleted()
+          interactivePreviewNavigationController.trackNavigationBackPress()
           backStarted = false
           sliderPosition = 0f
         },
@@ -103,7 +104,7 @@ fun NavigationControlsPanel(modifier: Modifier = Modifier, interactivePreviewNav
           Text(text = message("action.navigate.back.button.text"))
         }
       }
-      DropDownAction(modifier, message("action.navigate.back.navigation.edge.label"), selectedEdge)
+      DropDownAction(modifier, message("action.navigate.back.navigation.edge.label"), selectedEdge, interactivePreviewNavigationController)
     }
     Row(
       modifier =
@@ -127,6 +128,7 @@ fun NavigationControlsPanel(modifier: Modifier = Modifier, interactivePreviewNav
             }
             sliderPosition = it
           },
+          onValueChangeFinished = { interactivePreviewNavigationController.trackNavigationProgressPress() },
         )
         SideEffect {
           if (backStarted) {
@@ -147,14 +149,27 @@ fun NavigationControlsPanel(modifier: Modifier = Modifier, interactivePreviewNav
  */
 @OptIn(ExperimentalJewelApi::class)
 @Composable
-private fun DropDownAction(modifier: Modifier = Modifier, label: String, selectedEdge: MutableState<BackNavigationEdge>) =
+private fun DropDownAction(
+  modifier: Modifier = Modifier,
+  label: String,
+  selectedEdge: MutableState<BackNavigationEdge>,
+  interactivePreviewNavigationController: InteractivePreviewNavigationController,
+) =
   Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
     Text(text = label, modifier = Modifier.padding(8.dp))
     Dropdown(
       modifier = Modifier.testTag(NavigationControlsPanelTestTags.edgeDropdown),
       menuContent = {
         for (edge in BackNavigationEdge.entries) {
-          selectableItem(selected = selectedEdge.value == edge, onClick = { selectedEdge.value = edge }) { Text(text = edge.visibleName) }
+          selectableItem(
+            selected = selectedEdge.value == edge,
+            onClick = {
+              selectedEdge.value = edge
+              interactivePreviewNavigationController.trackEdgeDropdownPress()
+            },
+          ) {
+            Text(text = edge.visibleName)
+          }
         }
       },
     ) {

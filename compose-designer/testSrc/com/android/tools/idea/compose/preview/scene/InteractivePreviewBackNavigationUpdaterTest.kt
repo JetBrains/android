@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.scene
 
 import com.android.tools.idea.compose.preview.InteractivePreviewNavigationController
 import com.android.tools.idea.compose.preview.TestComposePreviewManager
+import com.android.tools.idea.preview.analytics.InteractiveNopTracker
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.preview.PreviewConfiguration
@@ -42,7 +43,7 @@ class InteractivePreviewBackNavigationUpdaterTest {
 
   @Before
   fun setUp() {
-    myInteractivePreviewNavigationController = InteractivePreviewNavigationController()
+    myInteractivePreviewNavigationController = InteractivePreviewNavigationController({ InteractiveNopTracker() })
   }
 
   val composable =
