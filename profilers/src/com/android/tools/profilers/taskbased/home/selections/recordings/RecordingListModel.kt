@@ -51,6 +51,7 @@ class RecordingListModel(
   }
 
   fun onRecordingSelection(newRecording: SessionItem?) {
+    if (_selectedRecording.value == newRecording) return
     val recordingTaskType = newRecording?.getTaskType() ?: ProfilerTaskType.UNSPECIFIED
     setTaskSelection(recordingTaskType)
     _selectedRecording.value = newRecording

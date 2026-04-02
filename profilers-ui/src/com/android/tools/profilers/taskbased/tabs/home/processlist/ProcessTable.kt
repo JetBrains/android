@@ -129,9 +129,9 @@ fun ProcessTable(
       selectionMode = SelectionMode.Single,
       onSelectedIndexesChange = {
         // The - 1 is to account for the sticky header.
-        if (it.isNotEmpty() && processList[it.first() - 1] != selectedProcess) {
-          val newSelectedDeviceProcess = processList[it.first() - 1]
-          onProcessSelection(newSelectedDeviceProcess)
+        if (it.isNotEmpty() && it.first() > 0) {
+          val selectedDeviceProcess = processList[it.first() - 1]
+          onProcessSelection(selectedDeviceProcess)
         }
       },
     ) {

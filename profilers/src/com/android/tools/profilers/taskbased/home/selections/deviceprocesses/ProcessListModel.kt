@@ -290,6 +290,7 @@ class ProcessListModel(val profilers: StudioProfilers) : AspectObserver() {
   }
 
   fun onProcessSelection(newProcess: Common.Process) {
+    if (newProcess == _selectedProcess.value) return
     _selectedProcess.value = newProcess
     _isPreferredProcessSelected.value = newProcess.name == _preferredProcessName.value
   }
