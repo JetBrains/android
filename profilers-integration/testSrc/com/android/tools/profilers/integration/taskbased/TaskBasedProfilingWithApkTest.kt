@@ -43,6 +43,7 @@ class TaskBasedProfilingWithApkTest : ProfilersTestBase() {
    */
   @Test
   fun test() {
+    system.installation.addVmOption("-Dprofiler.system.trace.in.editor=false")
     profileAppUsingApk(
       enableTaskBasedProfiling = true,
       testFunction = { studio, adb ->

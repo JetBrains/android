@@ -88,6 +88,21 @@ iml_test(
 )
 
 iml_test(
+    name = "SystemTraceInEditorTaskTest",
+    timeout = "long",
+    data = profilers_test_common_data,
+    module = ":intellij.android.profilers.integration",
+    tags = ["studio-e2e-test"],
+    tags_linux = ["block-network"],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.profilers.integration.taskbased.SystemTraceInEditorTaskTest",
+)
+
+iml_test(
     name = "HeapDumpTaskTest",
     timeout = "long",
     data = profilers_test_common_data,
@@ -226,6 +241,23 @@ iml_test(
 )
 
 iml_test(
+    name = "StartupSystemTraceInEditorTaskTest",
+    timeout = "long",
+    data = profilers_test_common_data,
+    module = ":intellij.android.profilers.integration",
+    tags = ["studio-e2e-test"],
+    tags_linux = [
+        "block-network",
+    ],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.profilers.integration.taskbased.StartupSystemTraceInEditorTaskTest",
+)
+
+iml_test(
     name = "StartupJavaKotlinMethodRecordingTaskTest",
     timeout = "long",
     data = profilers_test_common_data,
@@ -280,6 +312,25 @@ iml_test(
         "noci:studio-win",
     ],
     test_class = "com.android.tools.profilers.integration.taskbased.TaskBasedProfilingWithApkTest",
+)
+
+iml_test(
+    name = "TaskBasedProfilingWithApkInEditorTest",
+    timeout = "long",
+    data = profilers_test_common_data + [
+        ":helloworldapk",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platforms/android-31",
+    ],
+    module = ":intellij.android.profilers.integration",
+    tags = ["studio-e2e-test"],
+    tags_linux = [
+        "block-network",
+    ],
+    tags_windows = [
+        "noci:studio-win",
+    ],
+    test_class = "com.android.tools.profilers.integration.taskbased.TaskBasedProfilingWithApkInEditorTest",
 )
 
 iml_test(

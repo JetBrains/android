@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import com.android.tools.asdriver.tests.AndroidStudio
 import com.android.tools.profilers.integration.ProfilersTaskTestBase
 import org.junit.Test
 
-class SystemTraceTaskTest : ProfilersTaskTestBase() {
+class SystemTraceInEditorTaskTest : ProfilersTaskTestBase() {
 
   override fun selectTask(studio: AndroidStudio) {
     selectSystemTraceTask(studio)
@@ -32,34 +32,20 @@ class SystemTraceTaskTest : ProfilersTaskTestBase() {
 
   override fun verifyTaskStopped(studio: AndroidStudio) {
     verifyIdeaLog(".*PROFILER\\:\\s+CPU\\s+capture\\s+stop\\s+succeeded\$", 300)
-    verifyIdeaLog(".*PROFILER\\:\\s+CPU\\s+capture\\s+contains\\s+system\\s+trace\\s+data\$", 600)
+    // Wait for the editor to open (early signal)
+    verifyIdeaLog(".*Perfetto\\s+file\\s+editor\\s+opened\\s+for\\s+file:.*", 600)
+    // Wait for the editor to fully load the trace data (late success signal)
+    verifyIdeaLog(".*High\\s+level\\s+trace\\s+data\\s+loaded.*", 600)
   }
 
   override fun verifyUIComponents(studio: AndroidStudio) {
-    studio.waitForComponentByClass("CpuAnalysisSummaryTab", "FullTraceSummaryDetailsView")
+    // Wait for the actual Perfetto View or Trace Component
+    studio.waitForComponentByClass("PerfettoView")
   }
 
-  /**
-   * Validate system trace task workflow is working.
-   *
-   * Test Steps:
-   * 1. Import "minApp" in the testData directory of this module.
-   * 2. Deploy App and open profiler tool window, set to debuggable mode.
-   * 3. Select device -> process -> task-> starting point.
-   * 4. Start the task
-   * 5. Stop the task
-   *
-   * Test Verifications:
-   * 1. Verify if the profiler tool window is opened.
-   * 2. Verify if Transport proxy is created for the device.
-   * 3. Verify task start succeeded.
-   * 4. Verify task stop succeeded.
-   * 5. Verify if the capture is parsed successfully.
-   * 6. Verify UI components after capture is parsed.
-   */
   @Test
   fun test() {
-    system.installation.addVmOption("-Dprofiler.system.trace.in.editor=false")
+    system.installation.addVmOption("-Dprofiler.system.trace.in.editor=true")
     testTask()
   }
 }
