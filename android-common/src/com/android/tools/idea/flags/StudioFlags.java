@@ -53,8 +53,9 @@ import org.jetbrains.annotations.VisibleForTesting;
  * features entirely or branch internal logic of features, e.g. for experimentation or easy
  * rollback.
  * <p>
- * For information on how to add your own flags, see the README.md file under
- * "//tools/base/flags".
+ * For information on how to add your own flags, see tools/base/flags/README.md.
+ * <p>
+ * Values of Boolean flags are defined in tools/adt/idea/android-common/flags/resources/feature_flags.txt.
  */
 public final class StudioFlags {
   public static final Flags FLAGS = createFlags();
