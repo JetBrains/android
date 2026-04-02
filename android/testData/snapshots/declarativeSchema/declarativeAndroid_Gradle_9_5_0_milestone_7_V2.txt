@@ -599,6 +599,31 @@ Projects:
                     - PropertyName                  : wearAppUnbundled
                       Property SimpleType           : BOOLEAN
                 Supertypes                    : com.android.build.api.dsl.BaseFlavor,com.android.build.api.dsl.VariantDimension,kotlin.Any,com.android.build.api.dsl.ApplicationVariantDimension
+            com.android.build.api.dsl.ApplicationBuildFeatures
+                Name                          : com.android.build.api.dsl.ApplicationBuildFeatures
+                MemberFunctions
+                Properties
+                    - PropertyName                  : aidl
+                      Property SimpleType           : BOOLEAN
+                    - PropertyName                  : buildConfig
+                      Property SimpleType           : BOOLEAN
+                    - PropertyName                  : compose
+                      Property SimpleType           : BOOLEAN
+                    - PropertyName                  : dataBinding
+                      Property SimpleType           : BOOLEAN
+                    - PropertyName                  : mlModelBinding
+                      Property SimpleType           : BOOLEAN
+                    - PropertyName                  : prefab
+                      Property SimpleType           : BOOLEAN
+                    - PropertyName                  : renderScript
+                      Property SimpleType           : BOOLEAN
+                    - PropertyName                  : resValues
+                      Property SimpleType           : BOOLEAN
+                    - PropertyName                  : shaders
+                      Property SimpleType           : BOOLEAN
+                    - PropertyName                  : viewBinding
+                      Property SimpleType           : BOOLEAN
+                Supertypes                    : com.android.build.api.dsl.BuildFeatures,org.gradle.api.plugins.ExtensionAware,kotlin.Any
             com.android.build.api.dsl.ApplicationBuildType
                 Name                          : com.android.build.api.dsl.ApplicationBuildType
                 MemberFunctions
@@ -813,6 +838,10 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.ApplicationDeclarativeDefinition
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.ApplicationAndroidResources
+                    - MemberFunctionName            : buildFeatures
+                      Receiver ReferenceType        : com.android.build.api.dsl.ApplicationDeclarativeDefinition
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.ApplicationBuildFeatures
                     - MemberFunctionName            : buildTypes
                       Receiver ReferenceType        : com.android.build.api.dsl.ApplicationDeclarativeDefinition
                       Parameters
@@ -932,6 +961,8 @@ Projects:
                       Property DataClassWithType    : kotlin.collections.Set
                       GenericTypes
                           - ConcreteGeneric SimpleType    : STRING
+                    - PropertyName                  : buildFeatures
+                      Property ReferenceType        : com.android.build.api.dsl.ApplicationBuildFeatures
                     - PropertyName                  : buildToolsVersion
                       Property SimpleType           : STRING
                     - PropertyName                  : bundle
@@ -10226,6 +10257,31 @@ Settings:
                     - PropertyName                  : wearAppUnbundled
                       Property SimpleType           : BOOLEAN
                 Supertypes                    : com.android.build.api.dsl.BaseFlavor,com.android.build.api.dsl.VariantDimension,kotlin.Any,com.android.build.api.dsl.ApplicationVariantDimension
+            com.android.build.api.dsl.ApplicationBuildFeatures
+                Name                          : com.android.build.api.dsl.ApplicationBuildFeatures
+                MemberFunctions
+                Properties
+                    - PropertyName                  : aidl
+                      Property SimpleType           : BOOLEAN
+                    - PropertyName                  : buildConfig
+                      Property SimpleType           : BOOLEAN
+                    - PropertyName                  : compose
+                      Property SimpleType           : BOOLEAN
+                    - PropertyName                  : dataBinding
+                      Property SimpleType           : BOOLEAN
+                    - PropertyName                  : mlModelBinding
+                      Property SimpleType           : BOOLEAN
+                    - PropertyName                  : prefab
+                      Property SimpleType           : BOOLEAN
+                    - PropertyName                  : renderScript
+                      Property SimpleType           : BOOLEAN
+                    - PropertyName                  : resValues
+                      Property SimpleType           : BOOLEAN
+                    - PropertyName                  : shaders
+                      Property SimpleType           : BOOLEAN
+                    - PropertyName                  : viewBinding
+                      Property SimpleType           : BOOLEAN
+                Supertypes                    : com.android.build.api.dsl.BuildFeatures,org.gradle.api.plugins.ExtensionAware,kotlin.Any
             com.android.build.api.dsl.ApplicationBuildType
                 Name                          : com.android.build.api.dsl.ApplicationBuildType
                 MemberFunctions
@@ -10440,6 +10496,10 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.ApplicationDeclarativeDefinition
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.ApplicationAndroidResources
+                    - MemberFunctionName            : buildFeatures
+                      Receiver ReferenceType        : com.android.build.api.dsl.ApplicationDeclarativeDefinition
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.ApplicationBuildFeatures
                     - MemberFunctionName            : buildTypes
                       Receiver ReferenceType        : com.android.build.api.dsl.ApplicationDeclarativeDefinition
                       Parameters
@@ -10559,6 +10619,8 @@ Settings:
                       Property DataClassWithType    : kotlin.collections.Set
                       GenericTypes
                           - ConcreteGeneric SimpleType    : STRING
+                    - PropertyName                  : buildFeatures
+                      Property ReferenceType        : com.android.build.api.dsl.ApplicationBuildFeatures
                     - PropertyName                  : buildToolsVersion
                       Property SimpleType           : STRING
                     - PropertyName                  : bundle
