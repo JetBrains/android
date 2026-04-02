@@ -34,10 +34,8 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.replaceService
 import com.intellij.util.ThreeState
-import org.junit.After
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -52,7 +50,7 @@ class BasicAndroidMonitorTest {
 
   private lateinit var project: Project
   private lateinit var monitor: LiveEditProjectMonitor
-  private lateinit var service: LiveEditService
+  private lateinit var service: LiveEditServiceImpl
   private var client = mock<Client>()
   private lateinit var connection: FakeLiveEditAdbListener
 
@@ -87,6 +85,7 @@ class BasicAndroidMonitorTest {
     connection = FakeLiveEditAdbListener()
     clients = clients.plus(client)
     service = LiveEditServiceImpl(project, MoreExecutors.directExecutor(), connection)
+    project.replaceService(LiveEditServiceImpl::class.java, service, projectRule.testRootDisposable)
     monitor = service.getDeployMonitor()
 
     whenever(device.serialNumber).thenReturn("1")
@@ -144,10 +143,5 @@ class BasicAndroidMonitorTest {
     val unknownDevice: IDevice = mock()
     val status = monitor.status(unknownDevice)
     assertThat(status).isEqualTo(LiveEditStatus.Disabled)
-  }
-
-  @After
-  fun dispose() {
-    Disposer.dispose(service)
   }
 }
