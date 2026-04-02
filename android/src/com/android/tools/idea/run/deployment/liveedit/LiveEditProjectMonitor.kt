@@ -230,7 +230,7 @@ open class LiveEditProjectMonitor(liveEditService: LiveEditService, private val 
     if (!supportLiveEdits(device)) {
       logger.info(
         "Live edit not support for device API %d targeting app %s",
-        device.getVersion().androidApiLevel,
+        device.getVersion().apiLevel,
         applicationProjectContext.applicationId,
       )
       liveEditDevices.addDevice(device, LiveEditStatus.UnsupportedVersion, app)
