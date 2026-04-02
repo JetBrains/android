@@ -326,15 +326,11 @@ class DetailsViewContentView(
     myAndroidDevice = androidDevice
     refreshTestResultLabel()
     myDeviceInfoTableView.setAndroidDevice(androidDevice)
-
-    updateSelectedTab()
   }
 
   private fun setAndroidTestCaseResult(result: AndroidTestCaseResult?) {
     myAndroidTestCaseResult = result
     refreshTestResultLabel()
-
-    updateSelectedTab()
   }
 
   private fun setLogcat(logcat: String) {
@@ -343,8 +339,6 @@ class DetailsViewContentView(
     if (needsRefreshLogsView) {
       myLogcat = logcat
       refreshLogsView()
-
-      updateSelectedTab()
     }
   }
 
@@ -354,8 +348,6 @@ class DetailsViewContentView(
       myErrorStackTrace = errorStackTrace
       refreshTestResultLabel()
       refreshLogsView()
-
-      updateSelectedTab()
     }
   }
 
@@ -366,8 +358,6 @@ class DetailsViewContentView(
     }
     val benchmarkOutputIsEmpty = benchmarkText.lines.isEmpty()
     myBenchmarkTab.isHidden = benchmarkOutputIsEmpty
-
-    updateSelectedTab()
   }
 
   private fun setAdditionalTestArtifacts(additionalTestArtifacts: Map<String, String>, testResults: AndroidTestResults?) {
@@ -382,6 +372,11 @@ class DetailsViewContentView(
     if (shouldButtonBeVisible) {
       myScreenshotAttributesTab.isHidden = false
       myScreenshotTab.isHidden = false
+
+      // If we are about to hide Device Info but it was selected, swap to Screenshot first
+      if (tabs.selectedInfo == myDeviceInfoTab) {
+        tabs.select(myScreenshotTab, false)
+      }
       myDeviceInfoTab.isHidden = true
       myScreenshotResultView.newImagePath = newImage ?: ""
       myScreenshotResultView.refImagePath = refImage ?: ""
@@ -397,15 +392,20 @@ class DetailsViewContentView(
         diffPercent,
       )
     } else {
+      // If we are about to hide Screenshots but one was selected, swap to Logs first
+      val activeTab = tabs.selectedInfo
+      if (activeTab == myScreenshotTab || activeTab == myScreenshotAttributesTab) {
+        tabs.select(logsTab, false)
+      }
+
       myScreenshotTab.isHidden = true
       myScreenshotAttributesTab.isHidden = true
+      myDeviceInfoTab.isHidden = false
     }
 
     val journeyActionArtifacts = JourneyActionArtifacts.parseFromAdditionalTestArtifacts(additionalTestArtifacts)
     myJourneysResultsPanel.updateArtifacts(journeyActionArtifacts)
     myJourneyScreenshotsTab.isHidden = journeyActionArtifacts.isEmpty()
-
-    updateSelectedTab()
   }
 
   fun setResults(androidDevice: AndroidDevice, testResults: AndroidTestResults) {
@@ -487,23 +487,25 @@ class DetailsViewContentView(
   }
 
   private fun updateSelectedTab() {
-    val lastSelectedTab = this.lastTabSelectedByUser
+    ApplicationManager.getApplication().invokeLater {
+      val lastSelectedTab = this.lastTabSelectedByUser
 
-    // Let's always default to the tab last selected by the user (if it's visible)
-    if (lastSelectedTab != null && !lastSelectedTab.isHidden) {
-      tabs.select(lastSelectedTab, false)
-      return
-    }
+      // Let's always default to the tab last selected by the user (if it's visible)
+      if (lastSelectedTab != null && !lastSelectedTab.isHidden) {
+        tabs.select(lastSelectedTab, false)
+        return@invokeLater
+      }
 
-    // Otherwise select the first visible tab in the ordered set defined below
-    for (tab in setOf(myJourneyScreenshotsTab, myScreenshotTab, myBenchmarkTab, logsTab, myDeviceInfoTab)) {
-      if (!tab.isHidden) {
-        tabs.select(tab, false)
+      // Otherwise select the first visible tab in the ordered set defined below
+      for (tab in setOf(myJourneyScreenshotsTab, myScreenshotTab, myBenchmarkTab, logsTab, myDeviceInfoTab)) {
+        if (!tab.isHidden) {
+          tabs.select(tab, false)
 
-        // We only want to track tabs selected by the user - so reset it to the previous value
-        this.lastTabSelectedByUser = lastSelectedTab
+          // We only want to track tabs selected by the user - so reset it to the previous value
+          this.lastTabSelectedByUser = lastSelectedTab
 
-        return
+          return@invokeLater
+        }
       }
     }
   }

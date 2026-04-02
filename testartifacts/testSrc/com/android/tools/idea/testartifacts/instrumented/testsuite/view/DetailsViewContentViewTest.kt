@@ -240,6 +240,7 @@ class DetailsViewContentViewTest {
     view.myBenchmarkView.waitAllRequests()
     assertThat(view.myBenchmarkView.text).isEqualTo("test benchmark message\n")
     assertThat(view.myBenchmarkTab.isHidden).isFalse()
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
     assertThat(view.tabs.selectedInfo).isEqualTo(view.myBenchmarkTab)
   }
 
@@ -380,6 +381,7 @@ class DetailsViewContentViewTest {
 
     view.setResults(testDevice, mockTestResults)
 
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
     assertThat(view.tabs.selectedInfo).isEqualTo(view.myJourneyScreenshotsTab)
   }
 
