@@ -47,6 +47,7 @@ import com.android.sdklib.deviceprovisioner.ShowAction
 import com.android.sdklib.deviceprovisioner.Snapshot
 import com.android.sdklib.deviceprovisioner.UnpairGlassesAction
 import com.android.sdklib.deviceprovisioner.WipeDataAction
+import com.android.sdklib.deviceprovisioner.awaitReady
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdInfo.AvdStatus
 import com.android.sdklib.internal.avd.BootMode
@@ -207,8 +208,13 @@ class StudioLocalEmulatorDeviceHandle(
     }
   }
 
-  private suspend fun isUnpairedAiGlasses(): Boolean =
-    state.properties.deviceType == DeviceType.AI_GLASSES && state.connectedDevice?.isUnpaired() == true
+  private suspend fun isUnpairedAiGlasses(): Boolean {
+    if (state.properties.deviceType == DeviceType.AI_GLASSES) {
+      awaitReady()
+      return state.connectedDevice?.isUnpaired() == true
+    }
+    return false
+  }
 
   private suspend fun ConnectedDevice.isUnpaired() = with(AiGlassesPairing(session)) { getPairedBluetoothDeviceCount() == 0 }
 
