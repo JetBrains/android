@@ -33,9 +33,10 @@ import com.android.tools.idea.avdmanager.skincombobox.SkinCollector
 import com.android.tools.idea.avdmanager.skincombobox.SkinComboBoxModel
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeAvdManagers
-import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
+import com.intellij.platform.ide.progress.ModalTaskOwner
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import java.awt.Component
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
@@ -97,30 +98,32 @@ internal class EditVirtualDeviceDialog(
   }
 
   companion object {
-    suspend fun show(project: Project?, parent: Component?, avdInfo: AvdInfo, mode: Mode): Boolean {
-      val skins =
-        withContext(Dispatchers.Default) {
-          SkinComboBoxModel.merge(listOf(NoSkin.INSTANCE), SkinCollector.updateAndCollect()).toImmutableList()
+    fun show(project: Project?, parent: Component?, avdInfo: AvdInfo, mode: Mode): Boolean {
+      val owner = project?.let { ModalTaskOwner.project(it) } ?: parent?.let { ModalTaskOwner.component(parent) } ?: ModalTaskOwner.guess()
+      val (skins, baseDevice, systemImageFlow) =
+        runWithModalProgressBlocking(owner, "Loading") {
+          val skins =
+            withContext(Dispatchers.Default) {
+              SkinComboBoxModel.merge(listOf(NoSkin.INSTANCE), SkinCollector.updateAndCollect()).toImmutableList()
+            }
+          val baseDevice =
+            DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevice(avdInfo.deviceName, avdInfo.deviceManufacturer)
+          val systemImageFlow = ISystemImages.systemImageFlow(AndroidSdks.getInstance().tryToChooseSdkHandler())
+          Triple(skins, baseDevice, systemImageFlow)
         }
-      val baseDevice = DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevice(avdInfo.deviceName, avdInfo.deviceManufacturer)
 
       if (baseDevice == null) {
-        withContext(Dispatchers.EDT) {
-          Messages.showErrorDialog(
-            parent,
-            "The hardware profile for this device is no longer present. Please create a new device.",
-            "Edit Device",
-          )
-        }
+        Messages.showErrorDialog(
+          parent,
+          "The hardware profile for this device is no longer present. Please create a new device.",
+          "Edit Device",
+        )
         return false
       }
 
-      val systemImageFlow = ISystemImages.systemImageFlow(AndroidSdks.getInstance().tryToChooseSdkHandler())
       val dialog = EditVirtualDeviceDialog(avdInfo, baseDevice, mode, systemImageFlow, skins)
-      return withContext(Dispatchers.EDT) {
-        val wizard = with(dialog) { ComposeWizard(project, "Edit Device", parent, minimumSize = DEVICE_DIALOG_MIN_SIZE) { Page() } }
-        wizard.showAndGet()
-      }
+      val wizard = with(dialog) { ComposeWizard(project, "Edit Device", parent, minimumSize = DEVICE_DIALOG_MIN_SIZE) { Page() } }
+      return wizard.showAndGet()
     }
   }
 }

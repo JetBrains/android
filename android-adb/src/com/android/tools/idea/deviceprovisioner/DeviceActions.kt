@@ -49,6 +49,21 @@ suspend fun runCatchingDeviceActionException(project: Project?, title: String, b
 }
 
 /**
+ * Runs the supplied block, which should invoke a DeviceAction. In the case of a DeviceActionException, logs the exception and shows an
+ * error dialog with the supplied title.
+ */
+fun runCatchingDeviceActionExceptionBlocking(project: Project?, title: String, block: () -> Unit) {
+  try {
+    block()
+  } catch (e: DeviceActionCanceledException) {
+    logger<DeviceAction>().info(e.message)
+  } catch (e: DeviceActionException) {
+    logger<DeviceAction>().warn(e)
+    Messages.showErrorDialog(project, e.message, title)
+  }
+}
+
+/**
  * Launches a coroutine in the DeviceHandle's [scope] that runs the given [block]. Any [DeviceActionException] is caught, logged, and
  * displayed in an error popup.
  *
@@ -81,13 +96,13 @@ fun <DeviceTemplateT : DeviceTemplate> DeviceTemplateT.launchCatchingDeviceActio
  * Returns the DeviceHandle associated with the existing event. Note that this depends on some component related to the event implementing
  * [DataProvider] and supplying the handle.
  */
-fun AnActionEvent.deviceHandle() = DEVICE_HANDLE_KEY.getData(dataContext)
+fun AnActionEvent.deviceHandle(): DeviceHandle? = DEVICE_HANDLE_KEY.getData(dataContext)
 
 /**
  * Returns the DeviceTemplate associated with the existing event. Note that this depends on some component related to the event implementing
  * [DataProvider] and supplying the handle.
  */
-fun AnActionEvent.deviceTemplate() = DEVICE_TEMPLATE_KEY.getData(dataContext)
+fun AnActionEvent.deviceTemplate(): DeviceTemplate? = DEVICE_TEMPLATE_KEY.getData(dataContext)
 
 /** Returns the [ReservationAction] for [DeviceHandle]; null if the handle does not have [ReservationAction] */
 internal fun AnActionEvent.reservationAction() = deviceHandle()?.reservationAction
