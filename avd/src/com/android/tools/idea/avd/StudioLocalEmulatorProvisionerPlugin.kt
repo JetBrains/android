@@ -83,6 +83,7 @@ import java.awt.Component
 import java.io.IOException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -202,9 +203,19 @@ class StudioLocalEmulatorDeviceHandle(
   private val defaultPresentation: DeviceAction.DefaultPresentation = StudioDefaultDeviceActionPresentation
 
   private suspend fun doActivate(action: suspend () -> Unit) {
-    baseDeviceHandle.activate(action)
-    if (isUnpairedAiGlasses()) {
-      launchAutomaticGlassesPairing()
+    // If we have a companion phone, launch it in parallel when we launch.
+    val companionHandle = state.properties.pairedPhoneId?.let { phoneId -> deviceHandleFlow.value.find { it.id == phoneId } }
+    if (companionHandle != null && companionHandle.activationAction.presentation.value.enabled) {
+      coroutineScope {
+        launch { baseDeviceHandle.activate(action) }
+        launch { companionHandle.activationAction.activate() }
+      }
+    } else {
+      baseDeviceHandle.activate(action)
+
+      if (isUnpairedAiGlasses()) {
+        launchAutomaticGlassesPairing()
+      }
     }
   }
 
