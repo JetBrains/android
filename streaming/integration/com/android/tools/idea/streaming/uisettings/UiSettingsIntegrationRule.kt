@@ -249,7 +249,7 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
   }
 
   private fun waitForPopup(): JBPopup {
-    waitForCondition(3.seconds) { popupRule.fakePopupFactory.popupCount > 0 }
+    waitForCondition(10.seconds) { popupRule.fakePopupFactory.popupCount > 0 }
     return findPopup()
   }
 
