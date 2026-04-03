@@ -74,6 +74,7 @@ public class NonBlazeProducerSuppressor implements StartupActivity {
       ImmutableList.of(
           "com.android.studio.ml.journeys.gradle.runconfiguration.JourneysTestSuiteRunConfigurationProducer",
           "com.intellij.gradle.java.groovy.execution.GradleGroovyScriptRunConfigurationProducer",
+          "org.jetbrains.plugins.gradle.execution.GradleGroovyScriptRunConfigurationProducer",
           "org.jetbrains.plugins.gradle.execution.test.runner.AllInDirectoryGradleConfigurationProducer",
           "org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer",
           "org.jetbrains.plugins.gradle.execution.test.runner.PatternGradleConfigurationProducer",
