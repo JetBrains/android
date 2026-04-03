@@ -47,7 +47,6 @@ fun RecipeExecutor.generateCommonModule(
   enableCpp: Boolean = false,
   cppStandard: CppStandardType = CppStandardType.`Toolchain Default`,
   noKtx: Boolean = false,
-  useVersionCatalog: Boolean,
   appTitleResName: String = "app_name",
   hasCode: Boolean = true,
 ) {
@@ -78,7 +77,6 @@ fun RecipeExecutor.generateCommonModule(
       addLintOptions = addLintOptions,
       enableCpp = enableCpp,
       cppStandard = cppStandard,
-      useVersionCatalog = useVersionCatalog,
       hasCode = hasCode,
       kotlinSupport = projectData.kotlinSupport,
     ),

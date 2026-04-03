@@ -66,13 +66,8 @@ class NewBenchmarkModuleModel(project: Project, moduleParent: String, projectSyn
       override val recipe: Recipe
         get() = { td: TemplateData ->
           when (benchmarkModuleType.get()) {
-            MICROBENCHMARK -> generateBenchmarkModule(moduleData = td as ModuleTemplateData, useVersionCatalog = useVersionCatalog.get())
-            MACROBENCHMARK ->
-              generateMacrobenchmarkModule(
-                newModule = td as ModuleTemplateData,
-                targetModule = targetModule.value,
-                useVersionCatalog = useVersionCatalog.get(),
-              )
+            MICROBENCHMARK -> generateBenchmarkModule(moduleData = td as ModuleTemplateData)
+            MACROBENCHMARK -> generateMacrobenchmarkModule(newModule = td as ModuleTemplateData, targetModule = targetModule.value)
           }
         }
     }

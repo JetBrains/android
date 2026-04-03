@@ -27,9 +27,9 @@ private const val WATCH_FEATURE_BLOCK =
     <uses-feature android:name="android.hardware.type.watch" />
   """
 
-fun RecipeExecutor.generateWearModule(data: ModuleTemplateData, appTitle: String?, useVersionCatalog: Boolean = true) {
+fun RecipeExecutor.generateWearModule(data: ModuleTemplateData, appTitle: String?) {
   if (data.isWatchFace) {
-    generateWearWatchFaceModule(data, appTitle, useVersionCatalog)
+    generateWearWatchFaceModule(data, appTitle)
     return
   }
   generateCommonModule(
@@ -45,13 +45,12 @@ fun RecipeExecutor.generateWearModule(data: ModuleTemplateData, appTitle: String
     themesXml = null,
     colorsXml = null,
     noKtx = true,
-    useVersionCatalog = useVersionCatalog,
   )
 
   addDependency("com.google.android.gms:play-services-wearable:+")
 }
 
-private fun RecipeExecutor.generateWearWatchFaceModule(data: ModuleTemplateData, appTitle: String?, useVersionCatalog: Boolean = true) {
+private fun RecipeExecutor.generateWearWatchFaceModule(data: ModuleTemplateData, appTitle: String?) {
   generateCommonModule(
     data = data,
     appTitle = appTitle,
@@ -61,7 +60,6 @@ private fun RecipeExecutor.generateWearWatchFaceModule(data: ModuleTemplateData,
     themesXml = null,
     colorsXml = null,
     noKtx = true,
-    useVersionCatalog = useVersionCatalog,
     hasCode = false,
   )
 }

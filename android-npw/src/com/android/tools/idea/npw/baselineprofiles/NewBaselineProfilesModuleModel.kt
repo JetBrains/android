@@ -64,12 +64,7 @@ class NewBaselineProfilesModuleModel(project: Project, moduleParent: String, pro
       object : ModuleTemplateRenderer() {
         override val recipe: Recipe
           get() = {
-            generateBaselineProfilesModule(
-              newModule = it as ModuleTemplateData,
-              useGmd = useGmd.get(),
-              targetModule = targetModule.value,
-              useVersionCatalog = useVersionCatalog.get(),
-            )
+            generateBaselineProfilesModule(newModule = it as ModuleTemplateData, useGmd = useGmd.get(), targetModule = targetModule.value)
           }
       }
 }

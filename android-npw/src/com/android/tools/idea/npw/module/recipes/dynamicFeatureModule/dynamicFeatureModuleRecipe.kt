@@ -36,7 +36,6 @@ fun RecipeExecutor.generateDynamicFeatureModule(
   fusing: Boolean,
   downloadInstallKind: DownloadInstallKind,
   deviceFeatures: Collection<DeviceFeatureModel>,
-  useVersionCatalog: Boolean,
 ) {
   val (projectData, srcOut, _, manifestOut, instrumentedTestOut, localTestOut, _, moduleOut) = moduleData
   val dslLanguage = projectData.dslLanguage
@@ -67,7 +66,6 @@ fun RecipeExecutor.generateDynamicFeatureModule(
       targetApi = targetApi,
       useAndroidX = useAndroidX,
       baseFeatureName = baseFeature.name,
-      useVersionCatalog = useVersionCatalog,
       kotlinSupport = projectData.kotlinSupport,
     ),
     moduleOut.resolve(buildFile),

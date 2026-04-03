@@ -91,7 +91,6 @@ class DynamicFeatureModel(
             fusing = featureFusing.get(),
             downloadInstallKind = downloadInstallKind.value,
             deviceFeatures = deviceFeatures,
-            useVersionCatalog = useVersionCatalog.get(),
           )
         }
 

@@ -31,12 +31,10 @@ fun macrobenchmarksBuildGradle(
   flavors: ProductFlavorsWithDimensions,
   targetModule: Module,
   benchmarkBuildTypeName: String,
-  useVersionCatalog: Boolean,
 ): String {
   val dslLanguage = newModule.projectTemplateData.dslLanguage
   val packageName = newModule.packageName
   val apis = newModule.apis
-  val language = newModule.projectTemplateData.language
   val agpVersion = newModule.projectTemplateData.agpVersion
   // TODO(b/149203281): Fix support for composite builds.
   val targetModuleGradlePath = targetModule.getGradleProjectPath()?.path

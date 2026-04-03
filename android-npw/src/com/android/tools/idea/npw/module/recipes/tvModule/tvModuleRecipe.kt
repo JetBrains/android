@@ -21,7 +21,7 @@ import com.android.tools.idea.npw.module.recipes.generateManifest
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 
-fun RecipeExecutor.generateTvModule(data: ModuleTemplateData, appTitle: String, useVersionCatalog: Boolean = true) {
+fun RecipeExecutor.generateTvModule(data: ModuleTemplateData, appTitle: String) {
   generateCommonModule(
     data,
     appTitle,
@@ -29,6 +29,5 @@ fun RecipeExecutor.generateTvModule(data: ModuleTemplateData, appTitle: String, 
     iconsGenerationStyle = IconsGenerationStyle.MIPMAP_SQUARE_ONLY,
     themesXml = null,
     colorsXml = null,
-    useVersionCatalog = useVersionCatalog,
   )
 }

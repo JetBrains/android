@@ -174,40 +174,18 @@ class NewAndroidModuleModel(
       get() =
         when (formFactor.get()) {
           FormFactor.Mobile -> { data: TemplateData ->
-              generateAndroidModule(
-                data = data as ModuleTemplateData,
-                appTitle = applicationName.get(),
-                useVersionCatalog = useVersionCatalog.get(),
-              )
+              generateAndroidModule(data = data as ModuleTemplateData, appTitle = applicationName.get())
             }
           FormFactor.Wear -> { data: TemplateData ->
-              generateWearModule(
-                data = data as ModuleTemplateData,
-                appTitle = applicationName.get(),
-                useVersionCatalog = useVersionCatalog.get(),
-              )
+              generateWearModule(data = data as ModuleTemplateData, appTitle = applicationName.get())
             }
           FormFactor.Car -> { data: TemplateData ->
-              generateAutomotiveModule(
-                data = data as ModuleTemplateData,
-                appTitle = applicationName.get(),
-                useVersionCatalog = useVersionCatalog.get(),
-              )
+              generateAutomotiveModule(data = data as ModuleTemplateData, appTitle = applicationName.get())
             }
-          FormFactor.Tv -> { data: TemplateData ->
-              generateTvModule(
-                data = data as ModuleTemplateData,
-                appTitle = applicationName.get(),
-                useVersionCatalog = useVersionCatalog.get(),
-              )
-            }
+          FormFactor.Tv -> { data: TemplateData -> generateTvModule(data = data as ModuleTemplateData, appTitle = applicationName.get()) }
           FormFactor.XR,
           FormFactor.AiGlasses -> { data: TemplateData ->
-              generateXRModule(
-                data = data as ModuleTemplateData,
-                appTitle = applicationName.get(),
-                useVersionCatalog = useVersionCatalog.get(),
-              )
+              generateXRModule(data = data as ModuleTemplateData, appTitle = applicationName.get())
             }
           FormFactor.Generic -> { data: TemplateData -> generateGenericModule(data as ModuleTemplateData) }
         }

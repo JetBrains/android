@@ -54,7 +54,6 @@ fun RecipeExecutor.generateBaselineProfilesModule(
   newModule: ModuleTemplateData,
   targetModule: Module,
   useGmd: Boolean,
-  useVersionCatalog: Boolean = true,
   useConfigurationCaching: Boolean = true,
 ) {
   val targetModuleGradleModel = GradleAndroidModel.get(targetModule) ?: return

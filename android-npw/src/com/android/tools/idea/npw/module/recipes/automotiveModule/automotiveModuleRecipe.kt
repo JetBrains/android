@@ -21,7 +21,7 @@ import com.android.tools.idea.npw.module.recipes.generateManifest
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 
-fun RecipeExecutor.generateAutomotiveModule(data: ModuleTemplateData, appTitle: String, useVersionCatalog: Boolean = true) {
+fun RecipeExecutor.generateAutomotiveModule(data: ModuleTemplateData, appTitle: String) {
   val usesFeatureBlock =
     """
 <uses-feature
@@ -42,7 +42,6 @@ fun RecipeExecutor.generateAutomotiveModule(data: ModuleTemplateData, appTitle: 
     generateGenericInstrumentedTests = true,
     themesXml = basicThemesXml("android:Theme.Material.Light.DarkActionBar", data.themesData.main.name),
     colorsXml = null,
-    useVersionCatalog = useVersionCatalog,
   )
   addDependency("com.android.support:appcompat-v7:${data.apis.appCompatVersion}.+")
 }

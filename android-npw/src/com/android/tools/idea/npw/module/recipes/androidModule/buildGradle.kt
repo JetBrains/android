@@ -42,7 +42,6 @@ fun buildGradle(
   addLintOptions: Boolean = false,
   enableCpp: Boolean = false,
   cppStandard: CppStandardType = CppStandardType.`Toolchain Default`,
-  useVersionCatalog: Boolean,
   hasCode: Boolean = true,
   kotlinSupport: TemplateKotlinSupport,
 ): String {

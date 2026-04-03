@@ -28,7 +28,7 @@ import com.android.tools.idea.wizard.template.RecipeExecutor
 private const val minRev = "1.2.4"
 private const val exampleBenchmarkName = "ExampleBenchmark"
 
-fun RecipeExecutor.generateBenchmarkModule(moduleData: ModuleTemplateData, useVersionCatalog: Boolean) {
+fun RecipeExecutor.generateBenchmarkModule(moduleData: ModuleTemplateData) {
   val projectData = moduleData.projectTemplateData
   val dslLanguage = projectData.dslLanguage
   val testOut = moduleData.testDir
