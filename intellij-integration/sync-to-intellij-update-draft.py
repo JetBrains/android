@@ -50,8 +50,7 @@ def main():
 
     # Sync.
     try:
-        repo = shutil.which('repo')  # Handles repo.cmd scripts properly on Windows.
-        sync_cmd = [repo, 'sync', '--detach', '-m', manifest_path, *args]
+        sync_cmd = [which('repo'), 'sync', '--detach', '-m', manifest_path, *args]
         print('Running:', shlex.join(sync_cmd))
         if subprocess.run(sync_cmd).returncode != 0:
             sys.exit('ERROR: repo sync failed')
@@ -101,10 +100,20 @@ def find_repo_root(cd: Path) -> Path:
 # Like subprocess.check_output() but with logging.
 def run(*args: str):
     print('Running:', shlex.join(args))
+    args = [which(args[0]), *args[1:]]
     result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if result.returncode != 0:
         sys.exit(f'ERROR: command failed\n{result.stdout}\n{result.stderr}')
     return result.stdout
+
+
+# Uses shutil.which() to find the full path to a command. This is helpful on Windows
+# for supporting command suffixes beyond just .exe (such as .cmd, .bat, etc.).
+def which(command: str) -> str:
+    result = shutil.which(command)
+    if not result:
+        sys.exit(f"ERROR: '{command}' is missing from PATH, please install it")
+    return result
 
 
 if __name__ == '__main__':
