@@ -55,9 +55,9 @@ interface ConfigurablePreviewElement<T> : PreviewElement<T> {
 }
 
 /** Contains settings for rendering. */
-@ConsistentCopyVisibility
 data class PreviewConfiguration
-internal constructor(
+// Android-Merge: make the constructor public for sake of copy method, or it won't compile with the Kotlin version used at JB
+constructor(
   val apiLevel: Int,
   val width: Int,
   val height: Int,
@@ -104,15 +104,6 @@ internal constructor(
         imageTransformation = imageTransformation,
       )
   }
-
-  fun withDeviceSpec(deviceSpec: String): PreviewConfiguration = copy(deviceSpec = deviceSpec)
-
-  fun withFontScale(fontScale: Float): PreviewConfiguration = copy(fontScale = fontScale)
-
-  fun withUiMode(uiMode: Int): PreviewConfiguration = copy(uiMode = uiMode)
-
-  fun withImageTransformation(imageTransformation: Consumer<BufferedImage>?): PreviewConfiguration =
-    copy(imageTransformation = imageTransformation)
 }
 
 /** Applies the [ConfigurablePreviewElement] settings to the given [renderConfiguration]. */
