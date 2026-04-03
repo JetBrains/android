@@ -25,6 +25,7 @@ import com.android.emulator.control.DisplayConfigurationsChangedNotification
 import com.android.emulator.control.DisplayMode as DisplayModeMessage
 import com.android.emulator.control.EmulatorControllerGrpc
 import com.android.emulator.control.EmulatorStatus
+import com.android.emulator.control.Environment
 import com.android.emulator.control.ExtendedControlsStatus
 import com.android.emulator.control.FoldedDisplay
 import com.android.emulator.control.Image
@@ -243,6 +244,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
 
   val deviceId: DeviceId = DeviceId(LocalEmulatorProvisionerPlugin.PLUGIN_ID, false, "path=$avdFolder")
   val deviceHandle: FakeDeviceHandle = FakeDeviceHandle(this)
+
+  val environment = mutableMapOf<String, String>()
 
   val environmentImage: BufferedImage? = config.environmentSize?.let { loadEnvironmentImage(it) }
 
@@ -644,6 +647,13 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
 
     override fun getXrOptions(request: Empty, responseObserver: StreamObserver<XrOptions>) {
       executor.execute { sendResponse(responseObserver, xrOptions) }
+    }
+
+    override fun setEnvironment(request: Environment, responseObserver: StreamObserver<Empty>) {
+      executor.execute {
+        environment.clear()
+        environment.putAll(request.environmentMap)
+      }
     }
 
     override fun setMicrophoneState(request: MicrophoneState, responseObserver: StreamObserver<Empty>) {
@@ -1064,13 +1074,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           .apply {
             when (deviceType) {
               DeviceType.AI_GLASSES -> pairedPhoneId = pairedDeviceId
-              else -> {
-                if (pairedDeviceId != null) {
-                  pairedGlassesInfos = listOf(PairedGlassesInfo(pairedDeviceId, null))
-                } else {
-                  pairedGlassesInfos = emptyList()
-                }
-              }
+              else -> pairedGlassesInfos = pairedDeviceId?.let { listOf(PairedGlassesInfo(pairedDeviceId, null)) } ?: emptyList()
             }
           }
           .build()
