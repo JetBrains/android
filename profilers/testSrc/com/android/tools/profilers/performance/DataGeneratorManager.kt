@@ -30,7 +30,6 @@ class DataGeneratorManager(connection: Connection, performantDb: Boolean) {
       myGenerators.add(MemoryLiveAllocationGenerator(connection))
     } else {
       myGenerators.add(EventsGenerator(connection))
-      myGenerators.add(CpuGenerator(connection))
       myGenerators.add(NetworkGenerator(connection))
       myGenerators.add(MemoryGenerator(connection))
     }
