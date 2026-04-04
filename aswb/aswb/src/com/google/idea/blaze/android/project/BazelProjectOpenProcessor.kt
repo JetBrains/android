@@ -49,9 +49,6 @@ class BazelProjectOpenProcessor : ProjectOpenProcessor() {
     return file.path.contains(BLAZEPROJECT) || file.path.contains(BAZELPROJECT)
   }
 
-  override fun doOpenProject(virtualFile: VirtualFile, projectToClose: Project?, forceOpenInNewFrame: Boolean): Project? =
-    error("Not expected to be called")
-
   override suspend fun openProjectAsync(virtualFile: VirtualFile, projectToClose: Project?, forceOpenInNewFrame: Boolean): Project? {
     val file = if (checkIfProjectFile(virtualFile)) virtualFile.parent else virtualFile
     return ProjectManagerEx.getInstanceEx()
