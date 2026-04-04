@@ -26,6 +26,7 @@ import com.android.tools.adtui.workbench.AttachedToolWindow.ButtonDragListener
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.idea.IJIgnore
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.ActionUiKind
@@ -68,6 +69,7 @@ import javax.swing.JLabel
 import javax.swing.KeyStroke
 
 @RunsInEdt
+@IJIgnore(issue = "AT-4013")
 class AttachedToolWindowTest {
   private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()

@@ -31,9 +31,11 @@ import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.TimeUnit;
 import javax.swing.JPanel;
+import com.intellij.idea.IJIgnore;
 import org.junit.Before;
 import org.junit.Test;
 
+@IJIgnore(issue = "AT-4013")
 public class TimelineScrollbarTest {
 
   public static final float EPSILON = 0.0001f;

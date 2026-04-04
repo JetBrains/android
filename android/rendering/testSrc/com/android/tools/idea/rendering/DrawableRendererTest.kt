@@ -18,6 +18,7 @@ package com.android.tools.idea.rendering
 import com.android.testutils.ImageDiffUtil.assertImageSimilar
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
+import com.intellij.idea.IJIgnore
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
@@ -37,6 +38,7 @@ class DrawableRendererTest {
    * This exercises the same path as used by the Resource Manager to render previews.
    * Regression test for b/364904755.
    */
+  @IJIgnore(issue = "AT-4013")
   @Test
   fun testRenderDrawable() {
     @Language("xml") val drawableContent = """

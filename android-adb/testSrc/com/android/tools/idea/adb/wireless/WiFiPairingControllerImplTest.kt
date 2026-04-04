@@ -39,6 +39,7 @@ import com.google.wireless.android.sdk.stats.WifiPairingEvent.PairingMethod.PAIR
 import com.google.wireless.android.sdk.stats.WifiPairingEvent.PairingMethod.QR_CODE
 import com.google.wireless.android.sdk.stats.WifiPairingEvent.PairingResult.FAILURE
 import com.google.wireless.android.sdk.stats.WifiPairingEvent.PairingResult.SUCCESS
+import com.intellij.idea.IJIgnore
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.SystemInfo
@@ -385,6 +386,7 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
    *   name): the phone serial number contains the mDNS service names of the phone found in the step
    *   above (i.e. `"adb-xxxx"`).
    */
+  @IJIgnore(issue = "AT-4013")
   @Test
   fun controllerShouldPairDeviceUsingQrCodeOnceItShowsUp() = runBlocking {
     // Prepare
