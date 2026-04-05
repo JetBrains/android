@@ -348,7 +348,7 @@ class FakeContentManager : ToolWindowHeadlessManagerImpl.MockContentManager() {
   }
 
   @Suppress("UnstableApiUsage")
-  private fun createInternalDecorator(contentManager: ContentManager): InternalDecoratorImpl {
+  private fun createInternalDecorator(contentManager: FakeContentManager): InternalDecoratorImpl {
     val mockDecorator = mock<InternalDecoratorImpl>(defaultAnswer = CALLS_REAL_METHODS)
     try {
       var field = Container::class.java.getDeclaredField("component")
@@ -368,9 +368,9 @@ class FakeContentManager : ToolWindowHeadlessManagerImpl.MockContentManager() {
     doAnswer { contentManager }.whenever(mockDecorator).contentManager
     doAnswer { true }.whenever(mockDecorator).isVisible
 
-    doAnswer { FakeToolWindow.unsplit(contentManager, it.getArgument(0)) }.whenever(mockDecorator).unsplit(any())
+    doAnswer { contentManager.unsplit(it.getArgument(0)) }.whenever(mockDecorator).unsplit(any())
 
-    doAnswer { FakeToolWindow.split(it.getArgument(0), it.getArgument(1), it.getArgument(2)) }
+    doAnswer { contentManager.splitWithContent(it.getArgument(0), it.getArgument(1), it.getArgument(2)) }
       .whenever(mockDecorator)
       .splitWithContent(any(), anyInt(), anyInt())
 

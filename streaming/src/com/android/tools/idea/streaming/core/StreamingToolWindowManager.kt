@@ -44,6 +44,8 @@ import com.android.tools.idea.streaming.MirroringState
 import com.android.tools.idea.streaming.actions.ToggleFloatingXrToolbarAction
 import com.android.tools.idea.streaming.actions.toolWindowContents
 import com.android.tools.idea.streaming.core.AbstractDevicePanel.UiState
+import com.android.tools.idea.streaming.core.StreamingDeviceId.EmulatorDeviceId
+import com.android.tools.idea.streaming.core.StreamingDeviceId.PhysicalDeviceId
 import com.android.tools.idea.streaming.device.DeviceClient
 import com.android.tools.idea.streaming.device.DeviceConfiguration
 import com.android.tools.idea.streaming.device.DeviceToolWindowPanel
@@ -114,8 +116,6 @@ import com.intellij.ui.popup.list.ListPopupImpl
 import com.intellij.util.Alarm
 import com.intellij.util.IncorrectOperationException
 import com.intellij.util.concurrency.AppExecutorUtil.createBoundedApplicationPoolExecutor
-import com.intellij.util.containers.ComparatorUtil.max
-import com.intellij.util.containers.ComparatorUtil.min
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.EDT
 import icons.StudioIcons
@@ -492,7 +492,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
       for (content in contentManager.contents) {
         val deviceId = content.deviceId ?: continue
         when (deviceId) {
-          is StreamingDeviceId.EmulatorDeviceId -> {
+          is EmulatorDeviceId -> {
             val emulator = emulators.find { it.emulatorId == deviceId.emulatorId }
             if (emulator == null || emulator.isShuttingDown) {
               savedUiState.remove(deviceId)
@@ -500,7 +500,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
             }
           }
 
-          is StreamingDeviceId.PhysicalDeviceId -> {
+          is PhysicalDeviceId -> {
             val clientWithHandle = deviceClients[deviceId.serialNumber]
             if (clientWithHandle == null) {
               savedUiState.remove(deviceId)
@@ -596,53 +596,35 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
     val contentManager = targetContentManager ?: toolWindow.contentManager
     val placeholderContent = contentManager.placeholderContent
 
-    var splitLayout: PairLayout? = null
-    val devices = deviceProvisioner.devices.value
-    val device = devices.findByStreamingDeviceId(panel.id)
-    val pairedContent = device?.let { findPairedContent(it, devices) }
-    if (pairedContent != null) {
-      val layout =
-        when (device.deviceType) {
-          DeviceType.AI_GLASSES -> PairedDevicesLayoutStorage.getInstance().getLayout(device.id)
-          else -> device.pairedGlassesId?.let { PairedDevicesLayoutStorage.getInstance().getLayout(it) }?.withOppositeSide()
-        }
-      if (layout != null) {
-        val decorator = pairedContent.component.containingDecorator
-        if (decorator != null) {
-          pairedContent.manager!!.addContent(content)
-          if (layout.side != PairLayout.FIRST_ONLY && layout.side != PairLayout.SECOND_ONLY) {
-            @Suppress("UnstableApiUsage") (decorator as InternalDecoratorImpl).splitWithContent(content, layout.side, -1)
-            (content.component.containingDecorator?.parent as? Splitter)?.proportion = layout.splitRatio
-          }
-          splitLayout = layout
-        }
+    var contentAdded = false
+    var activation = ActivationLevel.CREATE_TAB
+    val pairLayoutAndDecorator = getPairLayoutAndDecorator(panel)
+    if (pairLayoutAndDecorator != null) {
+      val (layout, decorator) = pairLayoutAndDecorator
+      if (layout.side == PairLayout.FIRST_ONLY) {
+        activation = ActivationLevel.ACTIVATE_TAB
+      } else if (layout.side != PairLayout.SECOND_ONLY) {
+        @Suppress("UnstableApiUsage") (decorator as InternalDecoratorImpl).splitWithContent(content, layout.side, -1)
+        contentAdded = true
+        (content.component.containingDecorator?.parent as? Splitter)?.proportion = layout.splitRatio
+        createContentIfNecessary(panel)
       }
+    } else {
+      pairedDevicesLayoutUpdateRequired = true
     }
-    if (splitLayout == null) {
+    if (!contentAdded) {
       contentManager.addContent(content) // Add panel to the end.
     }
 
     if (!content.isSelected) {
       val deviceId = panel.id
-      var activation =
-        max(
-          recentAttentionRequests.remove(deviceId.serialNumber) ?: ActivationLevel.CREATE_TAB,
-          (deviceId as? StreamingDeviceId.EmulatorDeviceId)?.emulatorId?.avdFolder?.let(recentAvdLaunches::remove)
-            ?: ActivationLevel.CREATE_TAB,
-        )
-      if (splitLayout != null) {
-        when (splitLayout.side) {
-          PairLayout.FIRST_ONLY -> activation = max(activation, ActivationLevel.ACTIVATE_TAB)
-          PairLayout.SECOND_ONLY -> activation = min(activation, ActivationLevel.CREATE_TAB)
-        }
-      }
+      activation =
+        activation
+          .coerceAtLeast(recentAttentionRequests.remove(deviceId.serialNumber) ?: ActivationLevel.CREATE_TAB)
+          .coerceAtLeast(deviceId.avdFolder?.let(recentAvdLaunches::remove) ?: ActivationLevel.CREATE_TAB)
       if (activation >= ActivationLevel.SELECT_TAB) {
         content.select(activation)
       }
-    }
-
-    if (splitLayout == null) {
-      pairedDevicesLayoutUpdateRequired = true
     }
 
     placeholderContent?.removeAndDispose() // Remove the placeholder panel.
@@ -657,9 +639,28 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
     logger.error("An attempt to add a duplicate panel ${content.simpleId} ${content.displayName}")
   }
 
-  private fun findPairedContent(device: DeviceHandle, devices: List<DeviceHandle>): Content? {
-    val pairedId = device.pairedPhoneId ?: device.pairedGlassesId ?: return null
-    return buildContentDeviceHandleMapping(devices).find { it.second.id == pairedId }?.first
+  private fun getPairLayoutAndDecorator(panel: AbstractDevicePanel<*>): Pair<PairLayout, InternalDecorator>? {
+    val devices = deviceProvisioner.devices.value
+    val device = devices.findByStreamingDeviceId(panel.id) ?: return null
+    val mapping = buildContentDeviceHandleMapping(devices)
+    val predicate: (Pair<Content, DeviceHandle>) -> Boolean =
+      when (device.deviceType) {
+        DeviceType.AI_GLASSES -> {
+          val pairedPhoneId = device.pairedPhoneId ?: return null
+          { it.second.id == pairedPhoneId }
+        }
+        else -> {
+          { it.second.pairedPhoneId == device.id }
+        }
+      }
+    val (pairedContent, pairedDevice) = mapping.find(predicate) ?: return null
+    val layout =
+      when (device.deviceType) {
+        DeviceType.AI_GLASSES -> PairedDevicesLayoutStorage.getInstance().getLayout(device.id)
+        else -> PairedDevicesLayoutStorage.getInstance().getLayout(pairedDevice.id)?.withOppositeSide()
+      } ?: return null
+    val decorator = pairedContent.component.containingDecorator ?: return null
+    return Pair(layout, decorator)
   }
 
   private fun removeEmulatorPanel(emulator: EmulatorController): Boolean {
@@ -708,10 +709,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
         val panel = content.component
         if (panel is AbstractDevicePanel<*>) {
           if (content.isSelected) {
-            if (!panel.hasContent) {
-              // The panel became visible - create its content.
-              panel.createContent(deviceFrameVisible, savedUiState.remove(panel.id))
-            }
+            createContentIfNecessary(panel)
           } else {
             if (panel.hasContent) {
               // The panel is no longer visible - destroy its content.
@@ -723,6 +721,13 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
     }
 
     updatePairedDevicesLayouts()
+  }
+
+  private fun createContentIfNecessary(panel: AbstractDevicePanel<*>) {
+    if (!panel.hasContent) {
+      // The panel became visible - create its content.
+      panel.createContent(deviceFrameVisible, savedUiState.remove(panel.id))
+    }
   }
 
   private fun updatePairedDevicesLayouts() {
@@ -775,11 +780,11 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
   private fun findContentByDeviceId(deviceId: StreamingDeviceId): Content? = findContent { it.deviceId == deviceId }
 
   private fun findContentByEmulatorId(emulatorId: EmulatorId): Content? = findContent {
-    (it.deviceId as? StreamingDeviceId.EmulatorDeviceId)?.emulatorId == emulatorId
+    (it.deviceId as? EmulatorDeviceId)?.emulatorId == emulatorId
   }
 
   private fun findContentByAvdFolder(avdFolder: Path): Content? = findContent {
-    (it.deviceId as? StreamingDeviceId.EmulatorDeviceId)?.emulatorId?.avdFolder == avdFolder
+    (it.deviceId as? EmulatorDeviceId)?.emulatorId?.avdFolder == avdFolder
   }
 
   private fun findContentBySerialNumber(serialNumber: String): Content? = findContent { it.deviceId?.serialNumber == serialNumber }
@@ -1673,6 +1678,9 @@ private fun <K : Any, V> Cache<K, V>.remove(key: K): V? = getIfPresent(key)?.als
 private var Content.deviceId: StreamingDeviceId?
   get() = CONTENT_DEVICE_ID_KEY.get(this)
   set(deviceId) = CONTENT_DEVICE_ID_KEY.set(this, deviceId)
+
+private val StreamingDeviceId.avdFolder: Path?
+  get() = (this as? EmulatorDeviceId)?.emulatorId?.avdFolder
 
 private fun DeviceProvisioner.findPairedPhoneAvd(avd: AvdInfo): AvdInfo? {
   val devices = devices.value
