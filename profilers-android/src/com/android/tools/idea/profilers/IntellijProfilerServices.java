@@ -368,7 +368,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   public List<ProfilingConfiguration> getTaskCpuProfilerConfigs(int apiLevel) {
     CpuProfilerConfigsState configsState = CpuProfilerConfigsState.getInstance(myProject);
     List<ProfilingConfiguration> configs = CpuProfilerConfigConverter.toProfilingConfiguration(configsState.getSavedTaskConfigsIfPresentOrDefault(), apiLevel);
-    if (!StudioFlags.PROFILER_LEAKCANARY_MILESTONE2.get()) {
+    if (!StudioFlags.PROFILER_LEAKCANARY.get()) {
       return ContainerUtil.filter(configs, c -> c.getTraceType() != ProfilingConfiguration.TraceType.LEAKCANARY);
     }
     return configs;
@@ -680,11 +680,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     @Override
     public boolean isLeakCanaryEnabled() {
       return StudioFlags.PROFILER_LEAKCANARY.get();
-    }
-
-    @Override
-    public boolean isLeakCanaryMilestone2Enabled() {
-      return StudioFlags.PROFILER_LEAKCANARY_MILESTONE2.get();
     }
 
     @Override

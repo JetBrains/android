@@ -105,8 +105,6 @@ object TaskBasedUxStrings {
   const val LEAKCANARY_TOTAL_LEAKED_HEADER_TEXT = "Total leaked"
   const val LEAKCANARY_LEAK_LIST_EMPTY_INITIAL_MESSAGE =
     "Try to reproduce leaks by triggering potentially " + "leaking actions within your app while the recording is ongoing."
-  const val LEAKCANARY_INSTALLATION_REQUIRED_MESSAGE =
-    "This task requires LeakCanary to be installed into your app for any leaks to be visible in Android Studio."
   const val LEAKCANARY_NO_LEAK_FOUND_MESSAGE = "No leaks found."
   const val LEAKCANARY_MISSING_MESSAGE =
     "LeakCanary is missing. Retry after adding the dependency: debugImplementation " + "'com.squareup.leakcanary:leakcanary-android:2.14'."

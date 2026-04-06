@@ -348,9 +348,9 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
    *
    * By default, the LeakCanary task requires a debuggable process.
    *
-   * When the milestone 2 feature flag is enabled, this method also initiates and monitors an asynchronous pre-start verification check. It
-   * attempts to attach a JVMTI agent to the running process to confirm if the `studio-leakcanary` library is installed and fetch its
-   * threshold. During this check, it returns transient error states (like [StartTaskSelectionErrorCode.LEAKCANARY_CHECK_IN_PROGRESS] or
+   * This method also initiates and monitors an asynchronous pre-start verification check. It attempts to attach a JVMTI agent to the
+   * running process to confirm if the `studio-leakcanary` library is installed and fetch its threshold. During this check, it returns
+   * transient error states (like [StartTaskSelectionErrorCode.LEAKCANARY_CHECK_IN_PROGRESS] or
    * [StartTaskSelectionErrorCode.LEAKCANARY_CHECK_TIMEOUT]) to proactively disable the "Start" button in the UI until the presence is
    * successfully confirmed.
    *
@@ -366,33 +366,34 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
       updateStateToIdle()
       return StartTaskSelectionError(StartTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS)
     }
+    // Bypass LeakCanary presence check in testing mode because tests use dummy apps.
+    if (profilers.ideServices.featureConfig.isTestingModeEnabled) {
+      return null
+    }
 
-    if (profilers.ideServices.featureConfig.isLeakCanaryMilestone2Enabled) {
+    val streamId = profilers.getStreamId(device)
+    val processId = "${streamId}:${process.pid}"
 
-      val streamId = profilers.getStreamId(device)
-      val processId = "${streamId}:${process.pid}"
+    // If the user selects a new process, or if a previous check timed out and cleared its ID,
+    // lock the state to 'CHECKING' and immediately fire off the background verification task.
+    // This guard ensures we only launch the expensive background agent attachment once per selection.
+    if (!isProcessLastChecked(processId)) {
+      verifyLeakCanaryPresenceAsync(device, process, streamId)
+      return StartTaskSelectionError(StartTaskSelectionErrorCode.LEAKCANARY_CHECK_IN_PROGRESS)
+    }
 
-      // If the user selects a new process, or if a previous check timed out and cleared its ID,
-      // lock the state to 'CHECKING' and immediately fire off the background verification task.
-      // This guard ensures we only launch the expensive background agent attachment once per selection.
-      if (!isProcessLastChecked(processId)) {
-        verifyLeakCanaryPresenceAsync(device, process, streamId)
-        return StartTaskSelectionError(StartTaskSelectionErrorCode.LEAKCANARY_CHECK_IN_PROGRESS)
+    // If the background task is still running, keep the UI in the "Checking..." loading state.
+    if (isCheckInProgress.get()) {
+      return StartTaskSelectionError(StartTaskSelectionErrorCode.LEAKCANARY_CHECK_IN_PROGRESS)
+    }
+
+    // If the check has finished but LeakCanary wasn't found, map the internal failure reason
+    // to the appropriate UI error message (either a timeout warning or a missing dependency error).
+    if (!isPresent.get()) {
+      if (_checkState.value == LeakCanaryCheckState.TIMEOUT) {
+        return StartTaskSelectionError(StartTaskSelectionErrorCode.LEAKCANARY_CHECK_TIMEOUT)
       }
-
-      // If the background task is still running, keep the UI in the "Checking..." loading state.
-      if (isCheckInProgress.get()) {
-        return StartTaskSelectionError(StartTaskSelectionErrorCode.LEAKCANARY_CHECK_IN_PROGRESS)
-      }
-
-      // If the check has finished but LeakCanary wasn't found, map the internal failure reason
-      // to the appropriate UI error message (either a timeout warning or a missing dependency error).
-      if (!isPresent.get()) {
-        if (_checkState.value == LeakCanaryCheckState.TIMEOUT) {
-          return StartTaskSelectionError(StartTaskSelectionErrorCode.LEAKCANARY_CHECK_TIMEOUT)
-        }
-        return StartTaskSelectionError(StartTaskSelectionErrorCode.LEAKCANARY_NOT_FOUND)
-      }
+      return StartTaskSelectionError(StartTaskSelectionErrorCode.LEAKCANARY_NOT_FOUND)
     }
     return null
   }

@@ -36,7 +36,6 @@ import com.android.tools.profilers.tasks.args.singleartifact.leakcanary.LeakCana
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
 import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
-import junit.framework.TestCase.assertNull
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
@@ -200,7 +199,10 @@ class LeakCanaryTaskHandlerTest : WithFakeTimer {
       leakCanaryTaskHandler.checkSupportForDeviceAndProcess(device, profileableProcess)!!.startTaskSelectionErrorCode,
       StartTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS,
     )
-    assertNull(leakCanaryTaskHandler.checkSupportForDeviceAndProcess(device, debuggableProcess))
+    assertEquals(
+      leakCanaryTaskHandler.checkSupportForDeviceAndProcess(device, debuggableProcess)!!.startTaskSelectionErrorCode,
+      StartTaskSelectionErrorCode.LEAKCANARY_CHECK_IN_PROGRESS,
+    )
 
     ideProfilerServices.setDebuggerAttached(true)
     assertNotNull(leakCanaryTaskHandler.checkSupportForDeviceAndProcess(device, debuggableProcess))

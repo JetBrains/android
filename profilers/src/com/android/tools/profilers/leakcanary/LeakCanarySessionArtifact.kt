@@ -41,7 +41,6 @@ class LeakCanarySessionArtifact(
 
   override val artifactProto: LeakCanary.LeakCanaryAnalysisEnded = leakCanaryAnalysisEnded
 
-  // When export/import is supported (Milestone 2) we need to fetch from the Info.
   override val name = "LeakCanary"
 
   override val timestampNs = leakCanaryAnalysisEnded.endTimestamp

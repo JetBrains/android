@@ -214,7 +214,7 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
 
         // The only way the user would be able to set `isProfilingFromProcessStart` to be true is if they already selected a startup-capable
         // task. Thus, it is safe to enable the corresponding startup config for the selected task.
-        if (selectedTaskType == ProfilerTaskType.LEAKCANARY && profilers.ideServices.featureConfig.isLeakCanaryMilestone2Enabled) {
+        if (selectedTaskType == ProfilerTaskType.LEAKCANARY) {
           profilers.ideServices.addDependency(GoogleMavenArtifactId.LEAKCANARY, DependencyType.DEBUG_IMPLEMENTATION).thenAccept { success ->
             if (success) {
               startTaskAction.run()

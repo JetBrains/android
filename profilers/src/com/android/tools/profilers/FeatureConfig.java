@@ -28,7 +28,6 @@ public interface FeatureConfig {
   boolean isTaskBasedUxEnabled();
   boolean isTraceboxEnabled();
   boolean isLeakCanaryEnabled();
-  boolean isLeakCanaryMilestone2Enabled();
   boolean isTaskTitleV2Enabled();
   boolean isSystemTraceInEditorEnabled();
   boolean isMethodTraceInEditorEnabled();

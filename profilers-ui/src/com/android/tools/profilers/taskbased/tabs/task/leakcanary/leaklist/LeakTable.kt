@@ -91,13 +91,7 @@ private fun LeakListHeader() {
 }
 
 @Composable
-fun LeakListContent(
-  leaks: List<Leak>,
-  selectedLeak: Leak?,
-  isRecording: Boolean,
-  isMilestone2Enabled: Boolean,
-  onLeakSelection: (Leak) -> Unit,
-) {
+fun LeakListContent(leaks: List<Leak>, selectedLeak: Leak?, isRecording: Boolean, onLeakSelection: (Leak) -> Unit) {
   Column {
     LeakListHeader()
     Divider(
@@ -107,7 +101,7 @@ fun LeakListContent(
       orientation = Orientation.Horizontal,
     )
     if (leaks.isEmpty()) {
-      NoLeaksMessageText(isRecording, isMilestone2Enabled)
+      NoLeaksMessageText(isRecording)
     } else {
       LeakTable(leaks, selectedLeak, onLeakSelection)
     }
@@ -139,7 +133,7 @@ fun LeakTable(leaks: List<Leak>, selectedLeak: Leak?, onLeakSelection: (Leak) ->
 }
 
 @Composable
-fun NoLeaksMessageText(isRecording: Boolean, isMilestone2Enabled: Boolean) {
+fun NoLeaksMessageText(isRecording: Boolean) {
   Box(modifier = Modifier.fillMaxSize().padding(horizontal = 15.dp), contentAlignment = Alignment.Center) {
     Column(
       modifier = Modifier.fillMaxSize(),
@@ -149,14 +143,6 @@ fun NoLeaksMessageText(isRecording: Boolean, isMilestone2Enabled: Boolean) {
       if (isRecording) {
         EllipsisText(text = TaskBasedUxStrings.LEAKCANARY_LEAK_LIST_EMPTY_INITIAL_MESSAGE, maxLines = 3, textAlign = TextAlign.Center)
         Spacer(modifier = Modifier.height(10.dp))
-        if (!isMilestone2Enabled) {
-          EllipsisText(
-            text = TaskBasedUxStrings.LEAKCANARY_INSTALLATION_REQUIRED_MESSAGE,
-            maxLines = 3,
-            fontStyle = FontStyle.Italic,
-            textAlign = TextAlign.Center,
-          )
-        }
       } else {
         EllipsisText(
           text = TaskBasedUxStrings.LEAKCANARY_NO_LEAK_FOUND_MESSAGE,

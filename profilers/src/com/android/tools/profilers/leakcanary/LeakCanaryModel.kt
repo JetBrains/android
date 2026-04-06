@@ -102,8 +102,6 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
   val isLeakCanaryPresent = _isLeakCanaryPresent.asStateFlow()
   private val _isStopping = MutableStateFlow(false)
   val isStopping = _isStopping.asStateFlow()
-  val isLeakCanaryMilestone2Enabled
-    get() = profilers.ideServices.featureConfig.isLeakCanaryMilestone2Enabled
 
   @VisibleForTesting var leakcanaryMode = StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE
 
@@ -142,21 +140,20 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
    * Evaluates all conditions to determine if the educational feature banner should be displayed.
    *
    * The banner is only shown if ALL the following conditions are met:
-   * 1. The Milestone 2 feature flag is enabled.
-   * 2. The user has not permanently suppressed the banner (by dismissing it or changing settings).
-   * 3. The current mode is Studio mode (ON_HOST).
+   * 1. The user has not permanently suppressed the banner (by dismissing it or changing settings).
+   * 2. The current mode is Studio mode (ON_HOST).
    */
   private fun shouldShowEducationalBanner(): Boolean {
     val doNotShowAgain = profilers.ideServices.persistentProfilerPreferences.getBoolean(KEY_LEAKCANARY_BANNER_DO_NOT_SHOW, false)
     val isStudioMode = leakcanaryMode == StartLeakCanaryTaskData.LeakCanaryMode.ON_HOST
 
-    if (!isLeakCanaryMilestone2Enabled || !isStudioMode || doNotShowAgain) {
+    if (!isStudioMode || doNotShowAgain) {
       return false
     }
     return true
   }
 
-  /** Updates whether the milestone 2 feature banner should be displayed to the user. */
+  /** Updates whether the feature banner should be displayed to the user. */
   private fun updateBannerVisibility() {
     _isBannerVisible.value = shouldShowEducationalBanner()
   }
@@ -187,9 +184,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
   }
 
   fun startListening() {
-    if (isLeakCanaryMilestone2Enabled) {
-      updateModeFromSettings()
-    }
+    updateModeFromSettings()
     profilers.updater.register(this)
     setIsRecording(true)
     checkPresenceAndFetchThreshold()
@@ -281,9 +276,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
   }
 
   private fun checkPresenceAndFetchThreshold() {
-    if (!isLeakCanaryMilestone2Enabled) {
-      checkLeakCanaryPresence()
-    } else if (leakcanaryMode == StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE) {
+    if (leakcanaryMode == StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE) {
 
       val thresholdValue = profilers.ideServices.temporaryProfilerPreferences.getInt("LEAKCANARY_THRESHOLD", -1)
       if (thresholdValue != -1) {
@@ -404,38 +397,6 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
         logger.warn("Failed to fetch retained visible threshold", e)
         profilers.transportPoller.unregisterListener(listener)
       }
-    }
-  }
-
-  private fun checkLeakCanaryPresence() {
-    val command =
-      Commands.Command.newBuilder()
-        .apply {
-          streamId = profilers.session.streamId
-          pid = profilers.session.pid
-          sessionId = profilers.session.sessionId
-          type = Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT
-        }
-        .build()
-
-    profilers.ideServices.poolExecutor.execute {
-      val response = profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build())
-
-      val listener =
-        TransportEventListener(
-          eventKind = Common.Event.Kind.LEAKCANARY_PRESENCE_CHECK,
-          executor = profilers.ideServices.poolExecutor,
-          filter = { it.commandId == response.commandId },
-          streamId = { profilers.session.streamId },
-          processId = { profilers.session.pid },
-          callback = { event ->
-            val isPresent = event.leakcanaryPresenceCheck.isPresent
-            logger.info("LeakCanary presence check returned: $isPresent")
-            profilers.ideServices.mainExecutor.execute { _isLeakCanaryPresent.value = isPresent }
-            true // Unregister listener after first event.
-          },
-        )
-      profilers.transportPoller.registerListener(listener)
     }
   }
 

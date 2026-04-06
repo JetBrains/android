@@ -35,7 +35,6 @@ class LeakCanaryBannerTest {
   @Before
   fun setup() {
     ideProfilerServices = FakeIdeProfilerServices()
-    ideProfilerServices.enableLeakCanaryMilestone2(true)
   }
 
   @Test

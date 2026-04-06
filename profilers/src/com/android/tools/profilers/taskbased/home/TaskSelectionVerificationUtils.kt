@@ -74,7 +74,7 @@ object TaskSelectionVerificationUtils {
     val isProcessPreferred = isSelectedProcessPreferred(selectedProcess, profilers)
     val isTaskSupported =
       if (selectedTaskType == ProfilerTaskType.LEAKCANARY) {
-        profilers.ideServices.featureConfig.isLeakCanaryMilestone2Enabled
+        true
       } else {
         profilers.ideServices.isTaskSupportedOnStartup(selectedTaskType)
       }
@@ -167,7 +167,7 @@ object TaskSelectionVerificationUtils {
 
     val isTaskSupported =
       if (selectedTaskType == ProfilerTaskType.LEAKCANARY) {
-        profilers.ideServices.featureConfig.isLeakCanaryMilestone2Enabled
+        true
       } else {
         profilers.ideServices.isTaskSupportedOnStartup(selectedTaskType)
       }

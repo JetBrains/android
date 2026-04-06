@@ -163,16 +163,7 @@ class LeakCanaryActionBarTest : WithFakeTimer {
   }
 
   @Test
-  fun `test force heap dump button not visible when flag is disabled`() {
-    ideProfilerServices.enableLeakCanaryMilestone2(false)
-    leakCanaryModel.setIsRecording(true)
-    composeTestRule.setContent { LeakCanaryActionBar(leakCanaryModel = leakCanaryModel) }
-    composeTestRule.onNodeWithText(LEAKCANARY_FORCE_DUMP).assertDoesNotExist()
-  }
-
-  @Test
   fun `test force heap dump button visible and clickable when flag is enabled`() {
-    ideProfilerServices.enableLeakCanaryMilestone2(true)
     val mockHeapDumper: LeakCanaryHeapDumper = mock()
 
     leakCanaryModel = LeakCanaryModel(profilers, mockHeapDumper)
@@ -193,8 +184,6 @@ class LeakCanaryActionBarTest : WithFakeTimer {
 
   @Test
   fun `test force heap dump button visible but disabled when flag is enabled and count is 0`() {
-    ideProfilerServices.enableLeakCanaryMilestone2(true)
-
     val mockHeapDumper: LeakCanaryHeapDumper = mock()
 
     leakCanaryModel = LeakCanaryModel(profilers, mockHeapDumper)
@@ -209,7 +198,6 @@ class LeakCanaryActionBarTest : WithFakeTimer {
 
   @Test
   fun `test force heap dump button disabled when object retained is equal to threshold`() {
-    ideProfilerServices.enableLeakCanaryMilestone2(true)
     val mockHeapDumper: LeakCanaryHeapDumper = mock()
 
     leakCanaryModel = LeakCanaryModel(profilers, mockHeapDumper)
