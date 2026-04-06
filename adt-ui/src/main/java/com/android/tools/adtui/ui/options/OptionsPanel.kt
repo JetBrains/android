@@ -218,8 +218,14 @@ class OptionsPanel : JComponent() {
       if (property.description.isNotEmpty()) {
         groupPanel.add(
           JLabel(property.description).apply {
-            // Match the horizontal position of the control (120px label + component indent)
-            val leftPadding = if (property.indent) 140 else 120
+            // Match the horizontal position of the control
+            // For boolean binders, the control is a Checkbox which doesn't have a 120px preceding label
+            val leftPadding =
+              if (property.binder is BooleanBinder) {
+                if (property.indent) 44 else 24
+              } else {
+                if (property.indent) 140 else 120
+              }
             border = JBUI.Borders.emptyLeft(leftPadding)
             foreground = JBColor(0x4E4E4E, 0xB5B5B5)
           }

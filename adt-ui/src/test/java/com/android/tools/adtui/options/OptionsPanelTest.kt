@@ -189,6 +189,21 @@ class OptionsPanelTest {
   }
 
   @Test
+  fun booleanDescriptionPaddingTest() {
+    val panel = OptionsPanel()
+    val provider = BoolBindingProvider()
+    val walker = TreeWalker(panel)
+    panel.setOption(provider, false, false)
+
+    val descriptionLabels = walker.descendants().filterIsInstance(JLabel::class.java).filter { it.text == "Desc" }
+    assertThat(descriptionLabels).isNotEmpty()
+
+    val descriptionLabel = descriptionLabels[0]
+    val insets = descriptionLabel.border.getBorderInsets(descriptionLabel)
+    assertThat(insets.left).isEqualTo(24)
+  }
+
+  @Test
   fun intDropdownValuesTest() {
     val panel = OptionsPanel()
     val provider = IntDropdownValuesProvider()
