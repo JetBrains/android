@@ -92,7 +92,6 @@ import java.util.Locale
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
-import kotlin.math.max
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import org.jetbrains.annotations.TestOnly
@@ -209,8 +208,10 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     }
 
     val maxDisplayPixels =
-      config.displayModes.maxOfOrNull { it.displaySize.width * it.displaySize.height }
-        ?: max(config.displayWidth * config.displayHeight, config.additionalDisplays.values.maxOfOrNull { it.width * it.height } ?: 0)
+      (config.displayWidth * config.displayHeight)
+        .coerceAtLeast(config.displayModes.maxOfOrZero { it.displaySize.width * it.displaySize.height })
+        .coerceAtLeast(config.additionalDisplays.values.maxOfOrZero { it.width * it.height })
+        .coerceAtLeast(config.environmentSize?.let { it.width * it.height } ?: 0)
     val maxInboundMessageSize = maxDisplayPixels * 3 + 100 // Three bytes per pixel plus some overhead.
     connectGrpcOrIncreaseMaxInboundMessageSize(maxInboundMessageSize)
   }
@@ -967,6 +968,8 @@ private class ImageResponseMarshaller : Marshaller<Image> {
     }
   }
 }
+
+private inline fun <T> Iterable<T>.maxOfOrZero(selector: (T) -> Int): Int = maxOfOrNull(selector) ?: 0
 
 private val EMPTY_OBSERVER = EmptyStreamObserver<Any>()
 
