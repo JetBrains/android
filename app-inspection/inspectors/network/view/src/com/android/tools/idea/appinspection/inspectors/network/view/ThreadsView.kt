@@ -30,6 +30,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInsp
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.SelectionRangeDataFetcher
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
+import com.android.tools.idea.appinspection.inspectors.network.view.constants.NETWORK_NAME_COLOR
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.NETWORK_RECEIVING_COLOR
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.NETWORK_SENDING_COLOR
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.NETWORK_THREADS_VIEW_TOOLTIP_DIVIDER
@@ -236,7 +237,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
 
     private fun drawConnectionName(g2d: Graphics2D, data: ConnectionData, endLimit: Double) {
       g2d.font = font
-      g2d.color = foreground
+      g2d.color = NETWORK_NAME_COLOR
       val start = rangeToPosition(data.requestStartTimeUs.toDouble())
       val end = if (data.connectionEndTimeUs > 0) rangeToPosition(data.connectionEndTimeUs.toDouble()) else endLimit
       val metrics = getFontMetrics(font)
