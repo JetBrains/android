@@ -100,6 +100,7 @@ def update_searchable_options(work_dir, workspace_dir, out, ide_path, configurat
 
       with open(os.path.join(os.path.join(config_work_dir,"options"), "content.json"), "r") as content_file:
         content = json.loads(content_file.read())
+      plugin_list = dict(sorted(plugin_list.items(), key=lambda item: item[1]))
       f.write("    \"%s\": {\n" % configuration)
       for plugin_dir, id in plugin_list.items():
         if id not in plugins:
