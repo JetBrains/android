@@ -99,6 +99,8 @@ import org.jetbrains.annotations.TestOnly
 
 /** Controls a running Emulator. */
 class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposable) : UserDataHolderBase(), Disposable {
+
+  val log = Logger.getInstance("EmulatorController: ${emulatorId.avdName}")
   private val imageResponseMarshaller = ImageResponseMarshaller()
   private val streamScreenshotMethod =
     EmulatorControllerGrpc.getStreamScreenshotMethod()
@@ -171,9 +173,9 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     if (connectionStateReference.compareAndSet(oldState, newState)) {
       if (newState == ConnectionState.DISCONNECTED) {
         if (oldState == ConnectionState.CONNECTED) {
-          LOG.info("Disconnected from ${emulatorConfig.avdName} on port ${emulatorId.grpcPort}")
+          log.info("Disconnected from ${emulatorConfig.avdName} on port ${emulatorId.grpcPort}")
         } else {
-          LOG.warn("Unable to connect to ${emulatorConfig.avdName} on port ${emulatorId.grpcPort}")
+          log.warn("Unable to connect to ${emulatorConfig.avdName} on port ${emulatorId.grpcPort}")
         }
       }
       for (listener in connectionStateListeners) {
@@ -203,7 +205,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     try {
       loadSkins(config)
     } catch (e: Throwable) {
-      LOG.warn("Unable to load skins", e)
+      log.warn("Unable to load skins", e)
     }
 
     val maxDisplayPixels =
@@ -221,7 +223,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
         EmulatorConfiguration.readAvdDefinition(emulatorId.avdFolder)
       } catch (e: Exception) {
         val message = e.message ?: e.javaClass.name
-        LOG.warn("Error while loading configuration for ${emulatorId.avdName} - $message")
+        log.warn("Error while loading configuration for ${emulatorId.avdName} - $message")
         EmulatorConfiguration.createStub(emulatorId.avdName, emulatorId.avdFolder)
       }
     return emulatorConfig.isValid
@@ -362,7 +364,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
    */
   fun injectAudio(streamObserver: ClientResponseObserver<AudioPacket, Empty>): StreamObserver<AudioPacket> {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("injectAudio()")
+      log.info("injectAudio()")
     }
     return emulatorControllerStub.injectAudio(
       DelegatingClientResponseObserver(streamObserver, EmulatorControllerGrpc.getInjectAudioMethod())
@@ -374,7 +376,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       // Don't log the actual clipboard contents to protect user privacy.
       val clipDataForLogging = shortDebugString(clipData.toBuilder().setText("<clipboard contents>").build())
-      LOG.info("setClipboard($clipDataForLogging)")
+      log.info("setClipboard($clipDataForLogging)")
     }
     emulatorControllerStub.setClipboard(clipData, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetClipboardMethod()))
   }
@@ -382,7 +384,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /** Streams contents of the clipboard. */
   fun streamClipboard(streamObserver: StreamObserver<ClipData>): Cancelable {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("streamClipboard()")
+      log.info("streamClipboard()")
     }
     val method = EmulatorControllerGrpc.getStreamClipboardMethod()
     val call = emulatorControllerStub.channel.newCall(method, emulatorControllerStub.callOptions)
@@ -394,7 +396,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   fun setDisplayMode(displayModeValue: DisplayModeValue, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
     val displayMode = DisplayMode.newBuilder().setValue(displayModeValue).build()
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("setDisplayMode(${shortDebugString(displayMode)})")
+      log.info("setDisplayMode(${shortDebugString(displayMode)})")
     }
     emulatorControllerStub.setDisplayMode(
       displayMode,
@@ -405,7 +407,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /** Sets the XR-related options. */
   fun setXrOptions(xrOptions: XrOptions, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("setXrOptions(${shortDebugString(xrOptions)})")
+      log.info("setXrOptions(${shortDebugString(xrOptions)})")
     }
     emulatorControllerStub.setXrOptions(xrOptions, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetXrOptionsMethod()))
   }
@@ -413,7 +415,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /** Retrieves the XR-related options. */
   fun getXrOptions(streamObserver: StreamObserver<XrOptions>) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("getXrOptions()")
+      log.info("getXrOptions()")
     }
     emulatorControllerStub.getXrOptions(
       EMPTY_PROTO,
@@ -424,7 +426,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /** Sets the state of microphone input. */
   fun setMicrophoneState(microphoneState: MicrophoneState, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("setMicrophoneState(${shortDebugString(microphoneState)})")
+      log.info("setMicrophoneState(${shortDebugString(microphoneState)})")
     }
     emulatorControllerStub.setMicrophoneState(
       microphoneState,
@@ -435,7 +437,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /** Retrieves the state of microphone input. */
   fun getMicrophoneState(streamObserver: StreamObserver<MicrophoneState>) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("getMicrophoneState()")
+      log.info("getMicrophoneState()")
     }
     emulatorControllerStub.getMicrophoneState(
       EMPTY_PROTO,
@@ -451,7 +453,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
    */
   private fun streamInputEvent(streamObserver: StreamObserver<Empty> = getEmptyObserver()): StreamObserver<InputEvent> {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("streamInputEvent()")
+      log.info("streamInputEvent()")
     }
     val sender =
       emulatorControllerStub.streamInputEvent(DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getStreamInputEventMethod()))
@@ -468,7 +470,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
             else -> EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS.get()
           }
         if (loggingEnabled) {
-          LOG.info("streamInputEvent: sending ${shortDebugString(message)})")
+          log.info("streamInputEvent: sending ${shortDebugString(message)})")
         }
         sender?.onNext(message)
       }
@@ -485,7 +487,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /** Streams emulator notifications. */
   fun streamNotification(streamObserver: StreamObserver<Notification>): Cancelable {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("streamNotification()")
+      log.info("streamNotification()")
     }
     val method = EmulatorControllerGrpc.getStreamNotificationMethod()
     val call = emulatorControllerStub.channel.newCall(method, emulatorControllerStub.callOptions)
@@ -497,7 +499,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   fun getPhysicalModel(physicalType: PhysicalModelValue.PhysicalType, streamObserver: StreamObserver<PhysicalModelValue>) {
     val modelValue = PhysicalModelValue.newBuilder().setTarget(physicalType).build()
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("getPhysicalModel(${shortDebugString(modelValue)})")
+      log.info("getPhysicalModel(${shortDebugString(modelValue)})")
     }
     emulatorControllerStub.getPhysicalModel(
       modelValue,
@@ -508,7 +510,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /** Sets a physical model value. */
   fun setPhysicalModel(modelValue: PhysicalModelValue, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("setPhysicalModel(${shortDebugString(modelValue)})")
+      log.info("setPhysicalModel(${shortDebugString(modelValue)})")
     }
     emulatorControllerStub.setPhysicalModel(
       modelValue,
@@ -519,7 +521,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /** Retrieves a screenshot of an Emulator display. */
   fun getScreenshot(imageFormat: ImageFormat, streamObserver: StreamObserver<Image>) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("getScreenshot(${shortDebugString(imageFormat)})")
+      log.info("getScreenshot(${shortDebugString(imageFormat)})")
     }
     emulatorControllerStub.getScreenshot(
       imageFormat,
@@ -535,7 +537,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
    */
   fun streamScreenshot(imageFormat: ImageFormat, streamObserver: StreamObserver<Image>): Cancelable {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("streamScreenshot(${shortDebugString(imageFormat)})")
+      log.info("streamScreenshot(${shortDebugString(imageFormat)})")
     }
     val call = emulatorControllerStub.channel.newCall(streamScreenshotMethod, emulatorControllerStub.callOptions)
     ClientCalls.asyncServerStreamingCall(call, imageFormat, DelegatingStreamObserver(streamObserver, streamScreenshotMethod))
@@ -545,7 +547,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /** Retrieves the status of the emulator. */
   fun getStatus(streamObserver: StreamObserver<EmulatorStatus>) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("getStatus()")
+      log.info("getStatus()")
     }
     emulatorControllerStub.getStatus(EMPTY_PROTO, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getGetStatusMethod()))
   }
@@ -553,7 +555,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /** Sets a virtual machine state. */
   fun setVmState(vmState: VmRunState, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("setVmState(${shortDebugString(vmState)})")
+      log.info("setVmState(${shortDebugString(vmState)})")
     }
     emulatorControllerStub.setVmState(vmState, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetVmStateMethod()))
   }
@@ -561,7 +563,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /** Retrieves configurations of all displays. */
   fun getDisplayConfigurations(streamObserver: StreamObserver<DisplayConfigurations>) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("getDisplayConfigurations()")
+      log.info("getDisplayConfigurations()")
     }
     emulatorControllerStub.getDisplayConfigurations(
       EMPTY_PROTO,
@@ -575,7 +577,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     streamObserver: StreamObserver<DisplayConfigurations> = getEmptyObserver(),
   ) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("setDisplayConfigurations(${shortDebugString(displayConfigurations)})")
+      log.info("setDisplayConfigurations(${shortDebugString(displayConfigurations)})")
     }
     emulatorControllerStub.setDisplayConfigurations(
       displayConfigurations,
@@ -586,7 +588,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /** Changes orientation of the virtual scene camera. */
   fun rotateVirtualSceneCamera(cameraRotation: RotationRadian, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("rotateVirtualSceneCamera(${shortDebugString(cameraRotation)})")
+      log.info("rotateVirtualSceneCamera(${shortDebugString(cameraRotation)})")
     }
     emulatorControllerStub.rotateVirtualSceneCamera(
       cameraRotation,
@@ -597,7 +599,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /** Changes velocity of the virtual scene camera. */
   fun setVirtualSceneCameraVelocity(cameraVelocity: Velocity, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("setVirtualSceneCameraVelocity(${shortDebugString(cameraVelocity)})")
+      log.info("setVirtualSceneCameraVelocity(${shortDebugString(cameraVelocity)})")
     }
     emulatorControllerStub.setVirtualSceneCameraVelocity(
       cameraVelocity,
@@ -608,7 +610,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /** Sets the environment background for AI glasses. */
   fun setEnvironment(environment: Environment, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("setEnvironment(${shortDebugString(environment)})")
+      log.info("setEnvironment(${shortDebugString(environment)})")
     }
     emulatorControllerStub.setEnvironment(
       environment,
@@ -624,7 +626,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
    */
   fun listSnapshots(snapshotFilter: SnapshotFilter, streamObserver: StreamObserver<SnapshotList> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("listSnapshots()")
+      log.info("listSnapshots()")
     }
     snapshotServiceStub.listSnapshots(
       snapshotFilter,
@@ -641,7 +643,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   fun loadSnapshot(snapshotId: String, streamObserver: StreamObserver<SnapshotPackage> = getEmptyObserver()) {
     val snapshot = SnapshotPackage.newBuilder().setSnapshotId(snapshotId).build()
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("loadSnapshot(${shortDebugString(snapshot)})")
+      log.info("loadSnapshot(${shortDebugString(snapshot)})")
     }
     snapshotServiceStub.loadSnapshot(snapshot, DelegatingStreamObserver(streamObserver, SnapshotServiceGrpc.getLoadSnapshotMethod()))
   }
@@ -658,7 +660,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
    */
   fun pushSnapshot(streamObserver: ClientResponseObserver<SnapshotPackage, SnapshotPackage>): StreamObserver<SnapshotPackage> {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("pushSnapshot()")
+      log.info("pushSnapshot()")
     }
     return snapshotServiceStub.pushSnapshot(DelegatingClientResponseObserver(streamObserver, SnapshotServiceGrpc.getPushSnapshotMethod()))
   }
@@ -672,7 +674,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   fun saveSnapshot(snapshotId: String, streamObserver: StreamObserver<SnapshotPackage> = getEmptyObserver()) {
     val snapshot = SnapshotPackage.newBuilder().setSnapshotId(snapshotId).build()
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("saveSnapshot(${shortDebugString(snapshot)})")
+      log.info("saveSnapshot(${shortDebugString(snapshot)})")
     }
     snapshotServiceStub.saveSnapshot(snapshot, DelegatingStreamObserver(streamObserver, SnapshotServiceGrpc.getSaveSnapshotMethod()))
   }
@@ -686,7 +688,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   fun deleteSnapshot(snapshotId: String, streamObserver: StreamObserver<SnapshotPackage> = getEmptyObserver()) {
     val snapshot = SnapshotPackage.newBuilder().setSnapshotId(snapshotId).build()
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("deleteSnapshot(${shortDebugString(snapshot)})")
+      log.info("deleteSnapshot(${shortDebugString(snapshot)})")
     }
     snapshotServiceStub.deleteSnapshot(snapshot, DelegatingStreamObserver(streamObserver, SnapshotServiceGrpc.getSaveSnapshotMethod()))
   }
@@ -699,7 +701,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
    */
   fun showExtendedControls(pane: PaneEntry, streamObserver: StreamObserver<ExtendedControlsStatus> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("showExtendedControls(${shortDebugString(pane)})")
+      log.info("showExtendedControls(${shortDebugString(pane)})")
     }
     uiControllerStub.showExtendedControls(pane, DelegatingStreamObserver(streamObserver, UiControllerGrpc.getShowExtendedControlsMethod()))
   }
@@ -711,7 +713,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
    */
   fun closeExtendedControls(streamObserver: StreamObserver<ExtendedControlsStatus> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("closeExtendedControls()")
+      log.info("closeExtendedControls()")
     }
     uiControllerStub.closeExtendedControls(
       EMPTY_PROTO,
@@ -728,7 +730,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   fun setUiTheme(style: ThemingStyle.Style, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
     val themingStyle = ThemingStyle.newBuilder().setStyle(style).build()
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("setUiTheme(${shortDebugString(themingStyle)})")
+      log.info("setUiTheme(${shortDebugString(themingStyle)})")
     }
     uiControllerStub.setUiTheme(themingStyle, DelegatingStreamObserver(streamObserver, UiControllerGrpc.getSetUiThemeMethod()))
   }
@@ -748,7 +750,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       }
 
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("getVmState()")
+      log.info("getVmState()")
     }
     val timeout = if (connectionState == ConnectionState.CONNECTED) 3L else 15L
     emulatorControllerStub
@@ -826,7 +828,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
             (t.status.code != Status.Code.CANCELLED &&
               (t.status.code != Status.Code.UNAVAILABLE || emulatorState.get() == EmulatorState.RUNNING)))
       ) {
-        LOG.warn("${method.fullMethodName} call failed - ${t.message}")
+        log.warn("${method.fullMethodName} call failed - ${t.message}")
       }
 
       val error = if (connection == connectionReference.get()) t else RetryException()
@@ -861,7 +863,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     @AnyThread fun connectionStateChanged(emulator: EmulatorController, connectionState: ConnectionState)
   }
 
-  private class TokenCallCredentials(private val token: String) : CallCredentials() {
+  private inner class TokenCallCredentials(private val token: String) : CallCredentials() {
 
     override fun applyRequestMetadata(requestInfo: RequestInfo, executor: Executor, applier: MetadataApplier) {
       executor.execute {
@@ -870,7 +872,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
           headers.put(AUTHORIZATION_METADATA_KEY, "Bearer $token")
           applier.apply(headers)
         } catch (e: Throwable) {
-          LOG.error(e)
+          log.error(e)
           applier.fail(Status.UNAUTHENTICATED.withCause(e))
         }
       }
@@ -979,5 +981,4 @@ private val EMPTY_REGISTRY = ExtensionRegistryLite.getEmptyRegistry()
 
 private val AUTHORIZATION_METADATA_KEY = Metadata.Key.of("authorization", Metadata.ASCII_STRING_MARSHALLER)
 private val KEEP_ALIVE_INTERVAL_MILLIS = TimeUnit.MINUTES.toMillis(2)
-private val LOG = Logger.getInstance(EmulatorController::class.java)
 private val EMPTY_PROTO = Empty.getDefaultInstance()

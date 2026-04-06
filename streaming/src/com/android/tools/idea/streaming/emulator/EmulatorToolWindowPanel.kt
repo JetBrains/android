@@ -77,13 +77,12 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import org.jetbrains.annotations.TestOnly
 
-private val LOG
-  get() = Logger.getInstance(EmulatorToolWindowPanel::class.java)
-
 /** Provides view of one AVD in the Running Devices tool window. */
 internal class EmulatorToolWindowPanel(disposableParent: Disposable, private val project: Project, val emulator: EmulatorController) :
   AbstractDevicePanel<EmulatorDisplayPanel>(StreamingDeviceId.ofEmulator(emulator.emulatorId), EMULATOR_MAIN_TOOLBAR_ID),
   ConnectionStateListener {
+
+  val log = Logger.getInstance("EmulatorToolWindowPanel: ${emulator.emulatorId.avdName}")
 
   private val displayConfigurator = DisplayConfigurator(project)
   private var contentDisposable: Disposable? = null
@@ -166,7 +165,7 @@ internal class EmulatorToolWindowPanel(disposableParent: Disposable, private val
   /** Populates the emulator panel with content. */
   override fun createContent(deviceFrameVisible: Boolean, savedUiState: UiState?) {
     if (contentDisposable != null) {
-      LOG.error(IllegalStateException("$title: content already exists"))
+      log.error(IllegalStateException("$title: content already exists"))
       return
     }
 
@@ -197,7 +196,7 @@ internal class EmulatorToolWindowPanel(disposableParent: Disposable, private val
       try {
         displayConfigurator.buildLayout(multiDisplayState)
       } catch (e: RuntimeException) {
-        LOG.error("Corrupted multi-display state", e)
+        log.error("Corrupted multi-display state", e)
         // Corrupted multi-display state. Start with a single display.
         centerPanel.addToCenter(primaryDisplayPanel)
       }
@@ -323,9 +322,9 @@ internal class EmulatorToolWindowPanel(disposableParent: Disposable, private val
         object : EmptyStreamObserver<DisplayConfigurations>() {
           override fun onNext(message: DisplayConfigurations) {
             if (StudioFlags.EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-              LOG.info("Display configurations: " + shortDebugString(message))
+              log.info("Display configurations: " + shortDebugString(message))
             } else {
-              LOG.debug("Display configurations: " + shortDebugString(message))
+              log.debug("Display configurations: " + shortDebugString(message))
             }
             EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
               displayConfigurationReceived(message.displaysList)

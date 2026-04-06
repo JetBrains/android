@@ -208,6 +208,8 @@ internal class EmulatorView(
   ConnectionStateListener,
   EmulatorSettingsListener {
 
+  val log = Logger.getInstance("EmulatorView: ${emulator.emulatorId.avdName} display $displayId")
+
   override var displayOrientationQuadrants: Int
     get() = screenshotShape.orientation
     internal set(value) {
@@ -793,7 +795,7 @@ internal class EmulatorView(
       try {
         listener.frameReceived(frameNumber, displayOrientationQuadrants, frame)
       } catch (t: Throwable) {
-        LOG.error(t)
+        log.error(t)
       }
     }
   }
@@ -925,7 +927,7 @@ internal class EmulatorView(
   private inner class NotificationReceiver : EmptyStreamObserver<EmulatorNotification>() {
 
     override fun onNext(message: EmulatorNotification) {
-      LOG.info("Received notification: ${shortDebugString(message)}")
+      log.info("Received notification: ${shortDebugString(message)}")
 
       if (notificationReceiver != this) {
         return // This notification feed has already been canceled.
@@ -954,7 +956,7 @@ internal class EmulatorView(
     }
 
     private fun updateCurrentPosture(posture: PostureValue) {
-      emulatorConfig.postures.find { it.posture == posture }?.let { currentPosture = it } ?: LOG.error("Unexpected posture: $posture")
+      emulatorConfig.postures.find { it.posture == posture }?.let { currentPosture = it } ?: log.error("Unexpected posture: $posture")
     }
 
     private fun updateXrOptions(xrOptions: XrOptions) {
@@ -1409,7 +1411,7 @@ internal class EmulatorView(
         val latency = arrivalTime - frameOriginationTime
         val foldedState = if (imageFormat.hasFoldedDisplay()) " foldedDisplay={${shortDebugString(imageFormat.foldedDisplay)}}" else ""
         val mode = if (emulatorConfig.displayModes.size > 1) " ${imageFormat.displayMode}" else ""
-        LOG.info(
+        log.info(
           "Screenshot #${message.seq} for display ${imageFormat.display}: ${width}x$height $mode$foldedState ${imageRotation * 90}°" +
             " $latency ms latency"
         )
@@ -1422,12 +1424,12 @@ internal class EmulatorView(
       if (width == 0 || height == 0) {
         expectedFrameNumber++
         val adjective = if (width == 0 && height == 0) "empty" else "degenerate"
-        LOG.error("Invalid ImageMessage for display ${imageFormat.display}: $adjective ${width}x$height image")
+        log.error("Invalid ImageMessage for display ${imageFormat.display}: $adjective ${width}x$height image")
         return // Ignore invalid screenshot.
       }
 
       if (message.image.size() != width * height * 3) {
-        LOG.error(
+        log.error(
           "Inconsistent ImageMessage for display ${imageFormat.display}: ${width}x$height" +
             " image contains ${message.image.size()} bytes instead of ${width * height * 3}"
         )
@@ -1528,7 +1530,7 @@ internal class EmulatorView(
             displayMode.hasPostures -> ", foldedDisplay is not set"
             else -> ""
           }
-        LOG.error(
+        log.error(
           "Inconsistent ImageMessage for display ${imageFormat.display}: the $imageDimensions display image has different aspect" +
             " ratio than the ${displayMode.width}x${displayMode.height} display in the ${displayMode.displayModeId} mode$foldedState"
         )
@@ -1658,8 +1660,8 @@ internal class EmulatorView(
     val frameNumber: UInt = 0u,
   )
 
-  private class Stats : Disposable {
-    @GuardedBy("this") private var data = Data()
+  private inner class Stats : Disposable {
+    @GuardedBy("this") private var data = StatsData()
     private val alarm = Alarm(this)
 
     init {
@@ -1693,7 +1695,7 @@ internal class EmulatorView(
     }
 
     @Synchronized
-    private fun getAndSetData(newData: Data): Data {
+    private fun getAndSetData(newData: StatsData): StatsData {
       val oldData = data
       data = newData
       return oldData
@@ -1704,31 +1706,31 @@ internal class EmulatorView(
     }
 
     private fun logAndReset() {
-      getAndSetData(Data()).log()
+      getAndSetData(StatsData()).log()
       scheduleNextLogging()
     }
+  }
 
-    private class Data {
-      var frameCount = 0
-      var droppedFrameCount = 0
-      var droppedFrameCountBeforeArrival = 0
-      var pixelCount = 0L
-      val latencyEndToEnd = Histogram(1)
-      val latencyOfArrival = Histogram(1)
-      val collectionStart = System.currentTimeMillis()
+  private inner class StatsData {
+    var frameCount = 0
+    var droppedFrameCount = 0
+    var droppedFrameCountBeforeArrival = 0
+    var pixelCount = 0L
+    val latencyEndToEnd = Histogram(1)
+    val latencyOfArrival = Histogram(1)
+    val collectionStart = System.currentTimeMillis()
 
-      fun log() {
-        if (frameCount != 0) {
-          val frameRate = String.format(Locale.ROOT, "%.2g", frameCount * 1000.0 / (System.currentTimeMillis() - collectionStart))
-          val frameSize = (pixelCount.toDouble() / frameCount).roundToInt()
-          val neverArrived = if (droppedFrameCountBeforeArrival != 0) " (${droppedFrameCountBeforeArrival} never arrived)" else ""
-          val dropped = if (droppedFrameCount != 0) " dropped frames: $droppedFrameCount$neverArrived" else ""
-          LOG.info(
-            "Frames: $frameCount $dropped average frame rate: $frameRate average frame size: $frameSize pixels\n" +
-              "latency: ${shortDebugString(latencyEndToEnd.toProto())}\n" +
-              "latency of arrival: ${shortDebugString(latencyOfArrival.toProto())}"
-          )
-        }
+    fun log() {
+      if (frameCount != 0) {
+        val frameRate = String.format(Locale.ROOT, "%.2g", frameCount * 1000.0 / (System.currentTimeMillis() - collectionStart))
+        val frameSize = (pixelCount.toDouble() / frameCount).roundToInt()
+        val neverArrived = if (droppedFrameCountBeforeArrival != 0) " (${droppedFrameCountBeforeArrival} never arrived)" else ""
+        val dropped = if (droppedFrameCount != 0) " dropped frames: $droppedFrameCount$neverArrived" else ""
+        log.info(
+          "Frames: $frameCount $dropped average frame rate: $frameRate average frame size: $frameSize pixels\n" +
+            "latency: ${shortDebugString(latencyEndToEnd.toProto())}\n" +
+            "latency of arrival: ${shortDebugString(latencyOfArrival.toProto())}"
+        )
       }
     }
   }
@@ -1757,8 +1759,6 @@ private const val CTRL_SHIFT_DOWN_MASK = CTRL_DOWN_MASK or SHIFT_DOWN_MASK
 private val STATS_LOG_INTERVAL_MILLIS = StudioFlags.EMBEDDED_EMULATOR_STATISTICS_INTERVAL_SECONDS.get().toLong() * 1000
 
 internal const val EMULATOR_SCROLL_ADJUSTMENT_FACTOR = 120f
-
-private val LOG = Logger.getInstance(EmulatorView::class.java)
 
 private val SkinLayout.isDisplayRounded: Boolean
   get() = displayCornerSize.width > 0 && displayCornerSize.height > 0
