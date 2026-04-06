@@ -18,6 +18,7 @@ package com.android.tools.idea.debug
 import com.android.repository.api.UpdatablePackage
 import com.android.repository.testframework.FakePackage.FakeRemotePackage
 import com.android.sdklib.AndroidVersion
+import com.android.testutils.runInDebuggerThread
 import com.android.tools.idea.debug.AndroidPositionManager.Companion.changeClassExtensionToJava
 import com.android.tools.idea.debug.AndroidPositionManager.MyXDebugSessionListener
 import com.android.tools.idea.execution.common.AndroidSessionInfo
@@ -478,9 +479,10 @@ class AndroidPositionManagerTest {
 
   @Test
   fun getAllClasses_InterfaceWithStaticMethod_hasResults_addsCompanion() {
-    @Language("JAVA")
-    val text =
-      """
+    runInDebuggerThread(project, projectRule.testRootDisposable, mockVirtualMachineProxyImpl) {
+      @Language("JAVA")
+      val text =
+        """
       package p1.p2;
 
       interface Foo {
@@ -489,20 +491,22 @@ class AndroidPositionManagerTest {
         }
       }
       """
-        .trimIndent()
-    val file = setupFromFile(text)
-    val position = file.getBreakpointPosition()
+          .trimIndent()
+      val file = setupFromFile(text)
+      val position = file.getBreakpointPosition()
 
-    val types = myPositionManager.getAllClasses(position)
+      val types = myPositionManager.getAllClasses(position)
 
-    assertThat(types.map { it.name() }).containsExactly("p1.p2.Foo", "p1.p2.Foo$-CC")
+      assertThat(types.map { it.name() }).containsExactly("p1.p2.Foo", "p1.p2.Foo$-CC")
+    }
   }
 
   @Test
   fun getAllClasses_InterfaceWithDefaultMethod_hasResults_addsCompanion() {
-    @Language("JAVA")
-    val text =
-      """
+    runInDebuggerThread(project, projectRule.testRootDisposable, mockVirtualMachineProxyImpl) {
+      @Language("JAVA")
+      val text =
+        """
       package p1.p2;
 
       interface Foo {
@@ -511,66 +515,72 @@ class AndroidPositionManagerTest {
         }
       }
       """
-        .trimIndent()
-    val file = setupFromFile(text)
-    val position = file.getBreakpointPosition()
+          .trimIndent()
+      val file = setupFromFile(text)
+      val position = file.getBreakpointPosition()
 
-    val types = myPositionManager.getAllClasses(position)
+      val types = myPositionManager.getAllClasses(position)
 
-    assertThat(types.map { it.name() }).containsExactly("p1.p2.Foo", "p1.p2.Foo$-CC")
+      assertThat(types.map { it.name() }).containsExactly("p1.p2.Foo", "p1.p2.Foo$-CC")
+    }
   }
 
   @Test
   fun getAllClasses_InnerInterfaceWithStaticMethod_hasResults_addsCompanion() {
-    @Language("JAVA")
-    val text =
-      """
-      package p1.p2;
+    runInDebuggerThread(project, projectRule.testRootDisposable, mockVirtualMachineProxyImpl) {
+      @Language("JAVA")
+      val text =
+        """
+        package p1.p2;
 
-      interface Foo {
-        interface Bar {
-          static void bar() {
-            int test = 2; // break here
+        interface Foo {
+          interface Bar {
+            static void bar() {
+              int test = 2; // break here
+            }
           }
         }
-      }
-      """
-        .trimIndent()
-    val file = setupFromFile(text)
-    val position = file.getBreakpointPosition()
+        """
+          .trimIndent()
+      val file = setupFromFile(text)
+      val position = file.getBreakpointPosition()
 
-    val types = myPositionManager.getAllClasses(position)
+      val types = myPositionManager.getAllClasses(position)
 
-    assertThat(types.map { it.name() }).containsExactly("p1.p2.Foo\$Bar", "p1.p2.Foo\$Bar$-CC")
+      assertThat(types.map { it.name() }).containsExactly("p1.p2.Foo\$Bar", "p1.p2.Foo\$Bar$-CC")
+    }
   }
 
   @Test
   fun getAllClasses_SimpleClass_noResults_doesNotAddCompanion() {
-    @Language("JAVA")
-    val text =
-      """
-      package p1.p2;
+    runInDebuggerThread(project, projectRule.testRootDisposable, mockVirtualMachineProxyImpl) {
+      @Language("JAVA")
+      val text =
+        """
+        package p1.p2;
 
-      class Foo {
-        static void bar() {
-          int test = 2; // break here
+        class Foo {
+          static void bar() {
+            int test = 2; // break here
+          }
         }
-      }
-      """
-        .trimIndent()
-    val file = setupFromFile(text)
-    val position = file.getBreakpointPosition()
+        """
+          .trimIndent()
+      val file = setupFromFile(text)
+      val position = file.getBreakpointPosition()
 
-    val types = myPositionManager.getAllClasses(position)
+      val types = myPositionManager.getAllClasses(position)
 
-    assertThat(types.map { it.name() }).containsExactly("p1.p2.Foo")
+      assertThat(types.map { it.name() }).containsExactly("p1.p2.Foo")
+    }
   }
 
   @Test
   fun getAllClasses_InterfaceWithStaticInitializer__doesNotAddCompanion() {
-    @Language("JAVA")
-    val text =
-      """
+    runInDebuggerThread(project, projectRule.testRootDisposable, mockVirtualMachineProxyImpl) {
+      @Language("JAVA")
+      val text =
+        """
       package p1.p2;
 
       interface Foo {
@@ -578,20 +588,22 @@ class AndroidPositionManagerTest {
           .concat("bar"); // break here
       }
       """
-        .trimIndent()
-    val file = setupFromFile(text)
-    val position = file.getBreakpointPosition()
+          .trimIndent()
+      val file = setupFromFile(text)
+      val position = file.getBreakpointPosition()
 
-    val types = myPositionManager.getAllClasses(position)
+      val types = myPositionManager.getAllClasses(position)
 
-    assertThat(types.map { it.name() }).containsExactly("p1.p2.Foo")
+      assertThat(types.map { it.name() }).containsExactly("p1.p2.Foo")
+    }
   }
 
   @Test
   fun getAllClasses_IgnoresUnrelatedInnerClass() {
-    @Language("JAVA")
-    val text =
-      """
+    runInDebuggerThread(project, projectRule.testRootDisposable, mockVirtualMachineProxyImpl) {
+      @Language("JAVA")
+      val text =
+        """
       package p1.p2;
 
       interface Foo {
@@ -606,13 +618,14 @@ class AndroidPositionManagerTest {
         }
       }
       """
-        .trimIndent()
-    val file = setupFromFile(text)
-    val position = file.getBreakpointPosition()
+          .trimIndent()
+      val file = setupFromFile(text)
+      val position = file.getBreakpointPosition()
 
-    val types = myPositionManager.getAllClasses(position)
+      val types = myPositionManager.getAllClasses(position)
 
-    assertThat(types.map { it.name() }).containsExactly("p1.p2.Foo", "p1.p2.Foo$-CC")
+      assertThat(types.map { it.name() }).containsExactly("p1.p2.Foo", "p1.p2.Foo$-CC")
+    }
   }
 
   class FakeClassPrepareRequest(private val filter: String, delegate: ClassPrepareRequest = mock()) : ClassPrepareRequest by delegate {
