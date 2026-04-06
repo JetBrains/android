@@ -16,6 +16,9 @@
 package com.android.tools.idea.res
 
 import com.android.resources.aar.AarResourceRepository
+import com.android.tools.idea.projectsystem.TestResourceResolutionToken
+import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.util.androidFacet
 import com.android.tools.res.LocalResourceRepository
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.vfs.VirtualFile
@@ -51,7 +54,7 @@ private constructor(
   init {
     val manager = StudioResourceRepositoryManager.getInstance(facet)
     setChildren(
-      localResources ?: computeLocalRepositories(manager),
+      localResources ?: computeLocalRepositories(facet, manager),
       libraryResources ?: computeLibraryResources(manager),
       listOf(PredefinedSampleDataResourceRepository.getInstance()),
     )
@@ -59,7 +62,7 @@ private constructor(
 
   override fun refreshChildren() {
     val manager = StudioResourceRepositoryManager.getInstance(facet)
-    refreshChildren(computeLocalRepositories(manager), computeLibraryResources(manager))
+    refreshChildren(computeLocalRepositories(facet, manager), computeLibraryResources(manager))
   }
 
   @VisibleForTesting
@@ -84,8 +87,28 @@ private constructor(
       return repository
     }
 
-    private fun computeLocalRepositories(manager: StudioResourceRepositoryManager) =
-      listOf(manager.projectResources, manager.sampleDataResources)
+    private fun computeLocalRepositories(
+      facet: AndroidFacet,
+      manager: StudioResourceRepositoryManager,
+    ): List<LocalResourceRepository<VirtualFile>> {
+      val localRepositories = mutableListOf<LocalResourceRepository<VirtualFile>>()
+      localRepositories.add(manager.projectResources)
+      localRepositories.add(manager.sampleDataResources)
+
+      // In screenshot testing, the test module is a separate module where the tests live
+      // in its MAIN source set. For such modules to render correctly, we must include
+      // the additional resource dependencies (like the production module) provided by the
+      // project system.
+      val androidModuleSystem = facet.module.getModuleSystem()
+      val extraModules = TestResourceResolutionToken.getAdditionalLocalResourceDependencies(androidModuleSystem)
+      for (extraModule in extraModules) {
+        val extraFacet = extraModule.androidFacet
+        if (extraFacet != null && extraFacet != facet) {
+          localRepositories.add(StudioResourceRepositoryManager.getProjectResources(extraFacet))
+        }
+      }
+      return localRepositories.distinct()
+    }
 
     private fun computeLibraryResources(manager: StudioResourceRepositoryManager): Collection<AarResourceRepository> =
       manager.libraryResources

@@ -18,7 +18,7 @@ package com.android.tools.idea.rendering
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.resources.AndroidManifestPackageNameUtils
 import com.android.projectmodel.ExternalAndroidLibrary
-import com.android.tools.idea.projectsystem.DependencyScopeType
+import com.android.tools.idea.projectsystem.TestResourceResolutionToken
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.util.dependsOn
@@ -35,19 +35,40 @@ class StudioModuleDependencies(private val module: Module) : ModuleDependencies 
 
   override fun dependsOnAndroidx(): Boolean = module.getModuleSystem().useAndroidX
 
-  override fun getResourcePackageNames(includeExternalLibraries: Boolean): List<String> =
-    ((sequenceOf(module) +
-          // Get all project (not external libraries) dependencies
-          AndroidDependenciesCache.getAllAndroidDependencies(module, false).map { it.module }.asSequence())
-        .map { it.getModuleSystem().getPackageName() } +
-        // Get all external (libraries) dependencies
-        when (includeExternalLibraries) {
-          true -> module.getModuleSystem().getAndroidLibraryDependencies(DependencyScopeType.MAIN).map { getPackageName(it) }.asSequence()
-          false -> emptySequence<String>()
-        })
-      .filterNotNull()
-      .distinct()
-      .toList()
+  override fun getResourcePackageNames(includeExternalLibraries: Boolean): List<String> {
+    val moduleSystem = module.getModuleSystem()
+    val mainModule = moduleSystem.getProductionAndroidModule()
+
+    val projectDependencies = buildSet {
+      add(module)
+      if (mainModule != null && mainModule != module) {
+        add(mainModule)
+      }
+      addAll(AndroidDependenciesCache.getAllAndroidDependencies(module, false).map { it.module })
+      addAll(moduleSystem.getResourceModuleDependencies())
+
+      addAll(TestResourceResolutionToken.getAdditionalLocalResourceDependencies(moduleSystem))
+    }
+
+    val externalDependencies =
+      if (includeExternalLibraries) {
+        // Note: findDependenciesWithResources internally delegates to FindDependenciesWithResourcesToken
+        // which automatically detects the correct scope (e.g., MAIN, ANDROID_TEST, SCREENSHOT_TEST)
+        // based on the module, ensuring test dependencies are safely isolated.
+        com.android.tools.idea.findDependenciesWithResources(module).values
+      } else {
+        emptyList()
+      }
+
+    val packages = LinkedHashSet<String>()
+    for (projectDep in projectDependencies) {
+      projectDep.getModuleSystem().getPackageName()?.let { packages.add(it) }
+    }
+    for (extDep in externalDependencies) {
+      getPackageName(extDep)?.let { packages.add(it) }
+    }
+    return packages.toList()
+  }
 
   override fun findViewClass(fqcn: String): ViewClass? {
     val facade = JavaPsiFacade.getInstance(module.project)

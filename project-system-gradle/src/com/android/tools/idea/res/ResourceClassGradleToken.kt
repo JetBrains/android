@@ -18,13 +18,14 @@ package com.android.tools.idea.res
 import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.projectsystem.gradle.isAndroidTestModule
+import com.android.tools.idea.projectsystem.gradle.isScreenshotTestModule
 import com.android.tools.idea.res.ModuleRClass.SourceSet
 import com.intellij.openapi.module.Module
 
 class ResourceClassGradleToken : ResourceClassToken<GradleProjectSystem>, GradleToken {
   override fun getSourceSet(projectSystem: GradleProjectSystem, module: Module): SourceSet =
     when {
-      module.isAndroidTestModule() -> SourceSet.TEST
+      module.isAndroidTestModule() || module.isScreenshotTestModule() -> SourceSet.TEST
       else -> SourceSet.MAIN
     }
 }

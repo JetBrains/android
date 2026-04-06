@@ -17,7 +17,7 @@ package com.android.tools.idea.res
 
 import com.android.annotations.concurrency.Slow
 import com.android.resources.aar.AarResourceRepository
-import com.android.tools.idea.projectsystem.DependencyScopeType
+import com.android.tools.idea.projectsystem.TestResourceResolutionToken
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProductionAndroidModule
 import com.android.tools.idea.util.androidFacet
@@ -45,29 +45,38 @@ class TestAppResourceRepository private constructor(private val facet: AndroidFa
       val moduleTestResources = StudioResourceRepositoryManager.getInstance(facet).testModuleResources
       val localRepositories = mutableListOf(moduleTestResources)
       val androidModuleSystem = facet.getModuleSystem()
-      val holderModule = androidModuleSystem.getHolderModule()
-      localRepositories.addAll(
-        androidModuleSystem
-          .getAndroidTestDirectResourceModuleDependencies()
-          .filter { it.getModuleSystem().getHolderModule() != holderModule }
-          .mapNotNull { it.androidFacet }
-          .map { StudioResourceRepositoryManager.getModuleResources(it) }
-      )
+      val productionModule = facet.getProductionAndroidModule()
 
-      if (facet.configuration.isLibraryProject) {
-        // In library projects, there's only one APK when testing and the test R class contains all
-        // resources.
-        facet.getProductionAndroidModule().androidFacet?.let { localRepositories += StudioResourceRepositoryManager.getAppResources(it) }
+      // TestAppResourceRepository is used for the TEST source set of a module. For test
+      // modules (like screenshot or instrumentation tests) to resolve resources correctly,
+      // we must include the additional resource dependencies provided by the project system.
+      val extraModules = TestResourceResolutionToken.getAdditionalLocalResourceDependencies(androidModuleSystem)
+      for (extraModule in extraModules) {
+        val extraFacet = extraModule.androidFacet
+        if (extraFacet != null && extraFacet != facet) {
+          localRepositories += StudioResourceRepositoryManager.getProjectResources(extraFacet)
+        }
       }
 
-      return localRepositories
+      if (facet.configuration.isLibraryProject) {
+        // In library projects, there is a unified classpath/resource space.
+        // The test R class contains all resources, including the main app's module dependencies.
+        productionModule
+          ?.androidFacet
+          ?.takeIf { it != facet }
+          ?.let { localRepositories += StudioResourceRepositoryManager.getAppResources(it) }
+      }
+
+      return localRepositories.distinct()
     }
 
     private fun computeLibraryRepositories(facet: AndroidFacet): List<AarResourceRepository> {
       val androidModuleSystem = facet.getModuleSystem()
       val aarCache = AarResourceRepositoryCache.instance
 
-      return androidModuleSystem.getAndroidLibraryDependencies(DependencyScopeType.ANDROID_TEST).map { aarCache.getSourceRepository(it) }
+      val scope = TestResourceResolutionToken.getTestResourceLibraryScope(androidModuleSystem)
+
+      return androidModuleSystem.getAndroidLibraryDependencies(scope).map { aarCache.getSourceRepository(it) }
     }
   }
 }

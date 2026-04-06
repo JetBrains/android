@@ -20,6 +20,9 @@ import static com.android.tools.idea.res.ResourcesTestsUtil.addBinaryAarDependen
 import static com.android.tools.idea.res.ResourcesTestsUtil.getSingleItem;
 import static com.android.tools.idea.testing.AndroidTestUtils.waitForUpdates;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -31,14 +34,21 @@ import com.android.projectmodel.DynamicResourceValue;
 import com.android.resources.ResourceType;
 import com.android.resources.aar.AarSourceResourceRepository;
 import com.android.tools.idea.aar.AarTestUtils;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemService;
+import com.android.tools.idea.projectsystem.TestResourceResolutionToken;
 import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.res.MultiResourceRepository;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.extensions.ExtensionPoint;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
@@ -283,6 +293,22 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
                                  new ResourceReference(localLibNamespace, ResourceType.STRING, "this_namespace"),
                                  new ResourceReference(localLibNamespace, ResourceType.STRING, "app_name"),
                                  true);
+  }
+
+  public void testTokenAdditionalResourceDependencies() {
+    AndroidProjectSystem projectSystem = ProjectSystemService.getInstance(getProject()).getProjectSystem();
+    AndroidModuleSystem moduleSystem = projectSystem.getModuleSystem(myModule);
+    TestResourceResolutionToken<AndroidProjectSystem> mockToken = mock(TestResourceResolutionToken.class);
+    when(mockToken.isApplicable(projectSystem)).thenReturn(true);
+    when(mockToken.computeAdditionalLocalResourceDependencies(moduleSystem))
+        .thenReturn(ImmutableList.of());
+    ApplicationManager.getApplication().getExtensionArea()
+        .getExtensionPoint(TestResourceResolutionToken.getEP_NAME())
+        .registerExtension(mockToken, getTestRootDisposable());
+
+    LocalResourceRepository<?> appResources = StudioResourceRepositoryManager.getAppResources(myFacet);
+
+    verify(mockToken).computeAdditionalLocalResourceDependencies(moduleSystem);
   }
 
   public void testLibraryResources() {

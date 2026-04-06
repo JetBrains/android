@@ -35,6 +35,8 @@
                     interface="com.android.tools.idea.projectsystem.DynamicAppFeatureOnFeatureToken"/>
     <extensionPoint qualifiedName="com.android.tools.idea.projectsystem.findDependenciesWithResourcesToken"
                     interface="com.android.tools.idea.projectsystem.FindDependenciesWithResourcesToken"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.projectsystem.testResourceResolutionToken"
+                    interface="com.android.tools.idea.projectsystem.TestResourceResolutionToken"/>
     <extensionPoint qualifiedName="com.android.tools.idea.projectsystem.androidIconProviderProjectToken"
                     interface="com.android.tools.idea.projectsystem.AndroidIconProviderProjectToken"/>
     <extensionPoint qualifiedName="org.jetbrains.android.facet.resourceFolderManagerToken"
