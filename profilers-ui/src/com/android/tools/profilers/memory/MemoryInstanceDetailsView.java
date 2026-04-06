@@ -29,7 +29,6 @@ import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.stdui.CloseButton;
-import com.android.tools.adtui.stdui.CommonTabbedPane;
 import com.android.tools.adtui.stdui.ContextMenuItem;
 import com.android.tools.adtui.stdui.StandardColors;
 import com.android.tools.idea.codenavigation.CodeLocation;
@@ -54,6 +53,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.ui.JBEmptyBorder;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -135,7 +135,7 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
       .onChange(CaptureSelectionAspect.CURRENT_FIELD_PATH, this::fieldChanged);
     myIdeProfilerComponents = ideProfilerComponents;
 
-    myTabsPanel = new CommonTabbedPane();
+    myTabsPanel = new JBTabbedPane();
     myTabsPanel.addChangeListener(this::trackActiveTab);
     myAllocationStackTraceView = ideProfilerComponents.createStackView(selection.getAllocationStackTraceModel());
     myDeallocationStackTraceView = ideProfilerComponents.createStackView(selection.getDeallocationStackTraceModel());
@@ -410,8 +410,8 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
     }
     builder.setTreeSorter((Comparator<MemoryObjectTreeNode<MemoryObject>> comparator, SortOrder order) -> {
       assert myFieldTree != null;
-      DefaultTreeModel treeModel = (DefaultTreeModel) myFieldTree.getModel();
-      MemoryObjectTreeNode<MemoryObject> root = (MemoryObjectTreeNode<MemoryObject>) treeModel.getRoot();
+      DefaultTreeModel treeModel = (DefaultTreeModel)myFieldTree.getModel();
+      MemoryObjectTreeNode<MemoryObject> root = (MemoryObjectTreeNode<MemoryObject>)treeModel.getRoot();
       root.sort(comparator);
       treeModel.nodeStructureChanged(root);
     });
@@ -440,7 +440,8 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
           Object node = path.getLastPathComponent();
           InstanceObject instance = getInstanceObjectFromTreeNode(node);
           if (instance != null && instance.isTransient()) {
-            return String.format("Class '%s' is from system image and has no active instance", instance.getClassEntry().getSimpleClassName());
+            return String.format("Class '%s' is from system image and has no active instance",
+                                 instance.getClassEntry().getSimpleClassName());
           }
         }
         return super.getToolTipText(e);
@@ -620,7 +621,8 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
           Object node = path.getLastPathComponent();
           InstanceObject instance = getInstanceObjectFromTreeNode(node);
           if (instance != null && instance.isTransient()) {
-            return String.format("Class '%s' is from system image and has no active instance", instance.getClassEntry().getSimpleClassName());
+            return String.format("Class '%s' is from system image and has no active instance",
+                                 instance.getClassEntry().getSimpleClassName());
           }
         }
         return super.getToolTipText(e);
