@@ -31,6 +31,8 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.verticalScroll
@@ -39,6 +41,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -66,6 +69,7 @@ import java.awt.Desktop
 import java.io.File
 import javax.accessibility.AccessibleRole
 import javax.swing.JComponent
+import kotlinx.coroutines.launch
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
@@ -201,6 +205,8 @@ class ScreenshotAttributesView {
     }
 
     val scrollState = rememberScrollState()
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val scope = rememberCoroutineScope()
 
     val matchText =
       currentState.matchPercentage?.let { "Match: $it" }
@@ -237,13 +243,18 @@ class ScreenshotAttributesView {
               else -> GrayText(text)
             }
           }
-          KeyValueRow("Preview") { BlueText(currentState.methodName) }
+          KeyValueRow("Preview") {
+            BlueText(
+              text = currentState.methodName,
+              modifier = Modifier.clickable { scope.launch { bringIntoViewRequester.bringIntoView() } },
+            )
+          }
           KeyValueRow("Related Composables") { BlueText(currentState.className) }
         }
 
         Section("Preview configuration") { CodeSnippet("@Preview(${currentState.methodName})") }
 
-        Section("File info") {
+        Section("File info", modifier = Modifier.bringIntoViewRequester(bringIntoViewRequester)) {
           FileInfoTable(
             refMetadata.dimensions,
             newMetadata.dimensions,
@@ -268,8 +279,8 @@ class ScreenshotAttributesView {
  * @param content The content of the section.
  */
 @Composable
-private fun Section(title: String, content: @Composable () -> Unit) {
-  Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+private fun Section(title: String, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+  Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
     BoldLightText(title, modifier = Modifier.focusable(true).semantics { heading() })
     Column(modifier = Modifier.padding(start = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) { content() }
   }
