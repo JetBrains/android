@@ -385,6 +385,47 @@ class DetailsViewContentViewTest {
     assertThat(view.tabs.selectedInfo).isEqualTo(view.myJourneyScreenshotsTab)
   }
 
+  @Test
+  fun testTabFallbackWhenCurrentTabHidden() {
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
+    val testDevice = device("device id", "device name")
+
+    whenever(mockTestResults.getBenchmark(testDevice)).thenReturn(BenchmarkOutput("test benchmark message"))
+    view.setResults(testDevice, mockTestResults)
+    view.myBenchmarkView.waitAllRequests()
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+
+    assertThat(view.tabs.selectedInfo).isEqualTo(view.myBenchmarkTab)
+
+    whenever(mockTestResults.getBenchmark(testDevice)).thenReturn(BenchmarkOutput.Empty)
+    view.setResults(testDevice, mockTestResults)
+    view.myBenchmarkView.waitAllRequests()
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+
+    assertThat(view.tabs.selectedInfo).isEqualTo(view.logsTab)
+  }
+
+  @Test
+  fun testSwapBeforeHideWhenDeviceInfoHidden() {
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
+    val testDevice = device("device id", "device name")
+
+    view.setResults(testDevice, mockTestResults)
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+
+    view.tabs.select(view.myDeviceInfoTab, false)
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+    assertThat(view.tabs.selectedInfo).isEqualTo(view.myDeviceInfoTab)
+
+    whenever(mockTestResults.getAdditionalTestArtifacts(testDevice))
+      .thenReturn(mapOf("PreviewScreenshot.newImagePath" to "/path/to/newImage"))
+
+    view.setResults(testDevice, mockTestResults)
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+
+    assertThat(view.tabs.selectedInfo).isEqualTo(view.myScreenshotTab)
+  }
+
   private fun device(id: String, name: String): AndroidDevice {
     return AndroidDevice(id, name, name, AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(29))
   }
