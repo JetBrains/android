@@ -87,7 +87,6 @@ internal sealed class EmulatorEnvironmentAction : AbstractEmulatorAction(configF
     // TODO: Remove emulator version check after 2026-09-01.
     val emulatorSupported =
       ApplicationManager.getApplication().isUnitTestMode ||
-        // TODO: Replace with emulator version that contains fixes for b/499028965 and b/499030315.
-        AvdManagerConnection.getDefaultAvdManagerConnection().emulator?.version?.let { it >= Revision(99, 9, 9) } ?: false
+        AvdManagerConnection.getDefaultAvdManagerConnection().emulator?.version?.let { it >= Revision(36, 6, 4) } ?: false
   }
 }
