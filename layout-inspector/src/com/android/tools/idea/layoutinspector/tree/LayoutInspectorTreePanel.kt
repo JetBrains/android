@@ -287,24 +287,15 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   }
 
   private fun createCountsHeader(): TableCellRenderer {
-    return createIconHeader(
-      StudioIcons.LayoutInspector.Toolbar.RECOMPOSITION_COUNT,
-      toolTipText = "Number of times this composable has been recomposed",
-    )
+    return createIconHeader(StudioIcons.LayoutInspector.Toolbar.RECOMPOSITION_COUNT, toolTipText = "Recompositions")
   }
 
   private fun createChildCountsHeader(): TableCellRenderer {
-    return createIconHeader(
-      StudioIcons.LayoutInspector.Toolbar.RECOMPOSITION_CHILDREN_COUNT,
-      toolTipText = "Number of times children of this composable has been recomposed",
-    )
+    return createIconHeader(StudioIcons.LayoutInspector.Toolbar.RECOMPOSITION_CHILDREN_COUNT, toolTipText = "Child Recompositions")
   }
 
   private fun createSkipsHeader(): TableCellRenderer {
-    return createIconHeader(
-      StudioIcons.LayoutInspector.Toolbar.RECOMPOSITION_SKIPPED,
-      toolTipText = "Number of times recomposition for this component has been skipped",
-    )
+    return createIconHeader(StudioIcons.LayoutInspector.Toolbar.RECOMPOSITION_SKIPPED, toolTipText = "Skipped Recompositions")
   }
 
   private fun createIconHeader(icon: Icon, toolTipText: String? = null): TableCellRenderer {
