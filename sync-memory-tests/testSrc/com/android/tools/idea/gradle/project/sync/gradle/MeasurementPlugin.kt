@@ -82,7 +82,10 @@ object MeasurementPluginConfig {
 class MeasurementPlugin @Inject constructor(private val registry: BuildEventsListenerRegistry) : Plugin<Gradle>, BuildAdapter() {
   override fun apply(gradle: Gradle) {
     gradle.addBuildListener(this)
-    registry.onTaskCompletion(gradle.sharedServices.registerIfAbsent("measurement-service", MeasurementService::class.java) {})
+
+    val serviceProvider = gradle.sharedServices.registerIfAbsent("measurement-service", MeasurementService::class.java) {}
+    registry.onTaskCompletion(serviceProvider)
+    serviceProvider.get()
   }
 
   override fun beforeSettings(settings: Settings) {
