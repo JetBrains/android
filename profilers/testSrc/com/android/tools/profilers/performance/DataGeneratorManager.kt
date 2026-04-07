@@ -26,12 +26,9 @@ class DataGeneratorManager(connection: Connection, performantDb: Boolean) {
   private var myGenerators: MutableList<DataGenerator> = ArrayList()
 
   init {
-    if (performantDb) {
-      myGenerators.add(MemoryLiveAllocationGenerator(connection))
-    } else {
+    if (!performantDb) {
       myGenerators.add(EventsGenerator(connection))
       myGenerators.add(NetworkGenerator(connection))
-      myGenerators.add(MemoryGenerator(connection))
     }
   }
 

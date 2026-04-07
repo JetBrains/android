@@ -21,7 +21,6 @@ import static javax.swing.SortOrder.DESCENDING;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
-import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profilers.memory.ClassGrouping;
 import com.android.tools.profilers.memory.adapters.classifiers.AllHeapSet;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
@@ -139,10 +138,6 @@ public interface CaptureObject extends MemoryObject {
     return null;
   }
 
-  @Nullable
-  default MemoryServiceGrpc.MemoryServiceBlockingStub getClient() {
-    return null;
-  }
 
   default boolean isExportable() {
     return false;

@@ -26,13 +26,11 @@ import com.android.tools.datastore.DataStoreService.BackingNamespace;
 import com.android.tools.datastore.database.DeviceProcessTable;
 import com.android.tools.datastore.database.UnifiedEventsTable;
 import com.android.tools.datastore.service.EventService;
-import com.android.tools.datastore.service.MemoryService;
 import com.android.tools.datastore.service.ProfilerService;
 import com.android.tools.datastore.service.TransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.EventServiceGrpc;
-import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.android.tools.profiler.proto.Transport.AgentStatusRequest;
 import com.android.tools.profiler.proto.Transport.GetDevicesRequest;
@@ -93,7 +91,6 @@ public class DataStoreServiceTest extends DataStorePollerTest {
       .addService(new FakeTransportService().bindService())
       .addService(new ProfilerServiceStub().bindService())
       .addService(new EventServiceStub().bindService())
-      .addService(new MemoryServiceStub().bindService())
       .build();
     myService.start();
   }
@@ -116,7 +113,6 @@ public class DataStoreServiceTest extends DataStorePollerTest {
     expectedServices.add(TransportService.class);
     expectedServices.add(ProfilerService.class);
     expectedServices.add(EventService.class);
-    expectedServices.add(MemoryService.class);
 
     List<ServicePassThrough> services = myDataStore.getRegisteredServices();
     for (ServicePassThrough service : services) {
@@ -239,9 +235,6 @@ public class DataStoreServiceTest extends DataStorePollerTest {
     assertThat(mapping).isNotNull();
     assertThat(mapping.realStreamId()).isEqualTo(realStreamId);
     assertThat(mapping.realPid()).isEqualTo(realPid);
-  }
-
-  private static class MemoryServiceStub extends MemoryServiceGrpc.MemoryServiceImplBase {
   }
 
   private static class EventServiceStub extends EventServiceGrpc.EventServiceImplBase {

@@ -20,7 +20,6 @@ import com.android.annotations.Nullable;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
-import com.android.tools.datastore.poller.MemoryDataPoller;
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -33,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 public class StudioLegacyAllocationTracker implements LegacyAllocationTracker {
 
   private static Logger getLogger() {
-    return Logger.getInstance(MemoryDataPoller.class);
+    return Logger.getInstance(StudioLegacyAllocationTracker.class);
   }
 
   private IDevice myDevice;
