@@ -259,7 +259,6 @@ studiobot.show.thoughts=PREVIEW
 studiobot.skills.enabled=COMPLETE:2026
 studiobot.studiobot.apply.changes.action=INTERNAL
 studiobot.support.gias.enterprise=COMPLETE:2025
-studiobot.ui.v2.enabled=INTERNAL
 studiobot.use.bm25.find.files=COMPLETE:2026
 studiobot.use.bm25.grep=PREVIEW
 studiobot.verify.user.tier.in.aida.rpcs=COMPLETE:2025
