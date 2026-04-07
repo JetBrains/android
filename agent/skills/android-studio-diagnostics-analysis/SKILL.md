@@ -15,6 +15,7 @@ This skill provides tools to analyze Android Studio diagnostic zip files (often 
 ## Available scripts
 
 - **`scripts/analyze_diagnostics.py`** — Parses `SystemInfo.log` and `Thread Dumps/` to produce a Markdown report. Supports `--json` output.
+- **`scripts/analyze_coroutines.py`** — Parses coroutine dumps in thread dumps to detect deadlocks and summarize states.
 
 ## Workflow
 
@@ -45,3 +46,4 @@ It is critical to distinguish between the primary issue and secondary, unrelated
 - [IntelliJ Platform Threading Model](https://plugins.jetbrains.com/docs/intellij/threading-model.html) — Essential for understanding Read/Write locks and the EDT.
 - [Oracle: Using Thread Dumps](https://docs.oracle.com/cd/E13150_01/jrockit_jvm/jrockit/geninfo/diagnos/using_threaddumps.html) — General guide on interpreting JVM thread dumps and identifying deadlocks.
 - [Diagnostics Report Format](references/diagnostic_format.md) — Internal documentation on the structure of Android Studio diagnostic reports.
+- [Coroutine Dump Analysis](references/coroutine_dump.md) — Detailed guide on analyzing Kotlin coroutines in thread dumps.
