@@ -15,11 +15,8 @@
  */
 package com.android.testutils
 
-import com.intellij.debugger.engine.DebuggerManagerThreadImpl
+import com.intellij.debugger.engine.DebugProcessImpl
 import com.intellij.debugger.engine.events.DebuggerCommandImpl
-import com.intellij.debugger.jdi.VirtualMachineProxyImpl
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.project.Project
 
 /**
  * Run a block of code in the Debugger Manager Thread
@@ -27,15 +24,14 @@ import com.intellij.openapi.project.Project
  * If the block of code throws an exception, raise it to the caller.
  */
 fun runInDebuggerThread(
-  project: Project,
-  disposableParent: Disposable,
-  vmProxy: VirtualMachineProxyImpl,
+  debugProcess: DebugProcessImpl,
   test: () -> Unit,
   ) {
-  val threadManager = DebuggerManagerThreadImpl.createTestInstance(disposableParent, project)
-  @Suppress("UnstableApiUsage") threadManager.setVmProxy(vmProxy)
+  val managerThread = debugProcess.managerThread
+  @Suppress("UnstableApiUsage") managerThread.setVmProxy(debugProcess.virtualMachineProxy)
+
   var failure: Throwable? = null
-  threadManager.invokeAndWait(
+  managerThread.invokeAndWait(
     object : DebuggerCommandImpl() {
       override fun action() {
         try {

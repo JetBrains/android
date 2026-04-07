@@ -479,7 +479,7 @@ class AndroidPositionManagerTest {
 
   @Test
   fun getAllClasses_InterfaceWithStaticMethod_hasResults_addsCompanion() {
-    runInDebuggerThread(project, projectRule.testRootDisposable, mockVirtualMachineProxyImpl) {
+    runInDebuggerThread(mockDebugProcessImpl) {
       @Language("JAVA")
       val text =
         """
@@ -503,7 +503,7 @@ class AndroidPositionManagerTest {
 
   @Test
   fun getAllClasses_InterfaceWithDefaultMethod_hasResults_addsCompanion() {
-    runInDebuggerThread(project, projectRule.testRootDisposable, mockVirtualMachineProxyImpl) {
+    runInDebuggerThread(mockDebugProcessImpl) {
       @Language("JAVA")
       val text =
         """
@@ -527,7 +527,7 @@ class AndroidPositionManagerTest {
 
   @Test
   fun getAllClasses_InnerInterfaceWithStaticMethod_hasResults_addsCompanion() {
-    runInDebuggerThread(project, projectRule.testRootDisposable, mockVirtualMachineProxyImpl) {
+    runInDebuggerThread(mockDebugProcessImpl) {
       @Language("JAVA")
       val text =
         """
@@ -553,7 +553,7 @@ class AndroidPositionManagerTest {
 
   @Test
   fun getAllClasses_SimpleClass_noResults_doesNotAddCompanion() {
-    runInDebuggerThread(project, projectRule.testRootDisposable, mockVirtualMachineProxyImpl) {
+    runInDebuggerThread(mockDebugProcessImpl) {
       @Language("JAVA")
       val text =
         """
@@ -577,7 +577,7 @@ class AndroidPositionManagerTest {
 
   @Test
   fun getAllClasses_InterfaceWithStaticInitializer__doesNotAddCompanion() {
-    runInDebuggerThread(project, projectRule.testRootDisposable, mockVirtualMachineProxyImpl) {
+    runInDebuggerThread(mockDebugProcessImpl) {
       @Language("JAVA")
       val text =
         """
@@ -600,7 +600,7 @@ class AndroidPositionManagerTest {
 
   @Test
   fun getAllClasses_IgnoresUnrelatedInnerClass() {
-    runInDebuggerThread(project, projectRule.testRootDisposable, mockVirtualMachineProxyImpl) {
+    runInDebuggerThread(mockDebugProcessImpl) {
       @Language("JAVA")
       val text =
         """

@@ -67,7 +67,7 @@ class ComposePositionManagerTest {
         classType("a.ComposableSingletons\$TestKt\$lambda-1") { method("invoke", lines = listOf(5, 6, 7)) }
       }
 
-    runInDebuggerThread(project, projectRule.testRootDisposable, debugProcess.virtualMachineProxy) {
+    runInDebuggerThread(debugProcess) {
       val composePositionManager = ComposePositionManagerFactory().createPositionManager(debugProcess) as ComposePositionManager
       val position = SourcePosition.createFromLine(file, 5)
       composePositionManager.createPrepareRequests(mock(), position)
@@ -109,7 +109,7 @@ class ComposePositionManagerTest {
 
         classType("a.ComposableSingletons\$Test2Kt\$lambda-1") { method("invoke", lines = listOf(5, 6, 7)) }
       }
-    runInDebuggerThread(project, projectRule.testRootDisposable, debugProcess.virtualMachineProxy) {
+    runInDebuggerThread(debugProcess) {
       val composePositionManager = ComposePositionManagerFactory().createPositionManager(debugProcess) as ComposePositionManager
       val sourcePosition = SourcePosition.createFromLine(file, 5)
       composePositionManager.createPrepareRequests(mock(), sourcePosition)
