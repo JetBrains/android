@@ -17,6 +17,7 @@ package com.android.tools.idea.testartifacts.instrumented
 
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.ProcessCanceledException
 import org.junit.Test
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
@@ -25,6 +26,16 @@ import org.mockito.kotlin.mock
 
 /** Unit test for [AndroidTestConfigurationProducer] */
 class AndroidTestProducerUtilsTest {
+
+  @Test(expected = ProcessCanceledException::class)
+  fun getOptionsShouldRethrowControlFlowException() {
+    val mockLogger = mock<Logger>()
+
+    val extensionThatThrowsControlFlowException = mock<TestRunConfigurationOptions>()
+    `when`(extensionThatThrowsControlFlowException.getExtraOptions(any())).thenThrow(ProcessCanceledException())
+
+    getOptions(existingOptions = "-e key1 value1", mock(), listOf(extensionThatThrowsControlFlowException), mockLogger)
+  }
 
   @Test
   fun extraOptionsAreAddedByExtension() {
