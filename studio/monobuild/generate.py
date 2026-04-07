@@ -460,6 +460,15 @@ def parse_intellij_source_map(intellij: JpsProject, source_map_file: Path) -> di
         ET.Element("orderEntry", {"type": "module", "module-name": "intellij.tools.updater"})
     ]
 
+    # Hack: the 'compose.ui.ui.test.junit4.desktop' module-level library appears to be missing from module-descriptors.jar,
+    # probably related to the fact that AndroidStudioProperties has a special layout spec for it.
+    compose_desktop_junit_name = 'intellij.libraries.compose.foundation.desktop.junit.org.jetbrains.compose.ui.ui.test.junit4.desktop'
+    compose_desktop_junit = find_module_library(intellij, compose_desktop_junit_name)
+    if compose_desktop_junit is not None:
+        res["intellij-test-framework"].append(copy.deepcopy(compose_desktop_junit))
+    else:
+        print(f"Warning: failed to find module library {compose_desktop_junit_name} to be manually included with intellij-test-framework")
+
     return res
 
 
