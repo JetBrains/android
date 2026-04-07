@@ -78,7 +78,7 @@ internal abstract class AbstractXrInputController : Disposable {
     get() = true
 
   @Volatile
-  var inputMode: XrInputMode = XrInputMode.INTERACTION
+  var inputMode: XrInputMode = XrInputMode.MOUSE
     @UiThread
     set(value) {
       if (field != value) {
@@ -386,7 +386,7 @@ internal abstract class AbstractXrInputController : Disposable {
 
 internal enum class XrInputMode {
   /** Mouse and keyboard events are used to interact with running apps. */
-  INTERACTION,
+  MOUSE,
   /** Mouse is used to interact with running apps simulating hand tracking. */
   HAND,
   /** Mouse is used to interact with running apps simulating eye tracking. */

@@ -165,27 +165,36 @@
         <keyboard-shortcut first-keystroke="meta shift W" keymap="Mac OS X 10.5+"/>
       </action>
       <action id="android.streaming.xr.interaction"
-              class="com.android.tools.idea.streaming.actions.StreamingXrInputModeAction$Interaction"
+          class="com.android.tools.idea.streaming.actions.StreamingXrInputModeAction$Interaction"
+          icon="StudioIcons.Emulator.XR.INTERACT"
+          text="Interact with Apps"
+          description="Mouse and keyboard are used to interact with running apps">
+        <keyboard-shortcut first-keystroke="control I" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="control I" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="control I" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.streaming.xr.interaction.mouse"
+              class="com.android.tools.idea.streaming.actions.StreamingXrInputModeAction$InteractionMouse"
               icon="StudioIcons.Emulator.XR.INTERACT"
-              text="Interact with Apps"
+              text="Interact with Apps - Mouse"
               description="Mouse and keyboard are used to interact with running apps">
         <keyboard-shortcut first-keystroke="control I" keymap="$default"/>
         <keyboard-shortcut first-keystroke="control I" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="control I" keymap="Mac OS X 10.5+"/>
       </action>
-      <action id="android.streaming.xr.hand.tracking"
-              class="com.android.tools.idea.streaming.actions.StreamingXrInputModeAction$HandTracking"
+      <action id="android.streaming.xr.interaction.hand"
+              class="com.android.tools.idea.streaming.actions.StreamingXrInputModeAction$InteractionHand"
               icon="StudioIcons.Emulator.XR.HAND_TRACKING"
-              text="Hand Tracking"
+              text="Interact with Apps - Hand Tracking"
               description="Mouse is used to simulate hand tracking. The arrow keys control direction of the view.">
         <keyboard-shortcut first-keystroke="control H" keymap="$default"/>
         <keyboard-shortcut first-keystroke="control H" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="control H" keymap="Mac OS X 10.5+"/>
       </action>
-      <action id="android.streaming.xr.eye.tracking"
-              class="com.android.tools.idea.streaming.actions.StreamingXrInputModeAction$EyeTracking"
+      <action id="android.streaming.xr.interaction.eye"
+              class="com.android.tools.idea.streaming.actions.StreamingXrInputModeAction$InteractionEye"
               icon="StudioIcons.Emulator.XR.EYE_GAZE"
-              text="Eye Tracking"
+              text="Interact with Apps - Eye Tracking"
               description="Mouse is used to simulate eye tracking. The arrow keys control direction of the view.">
         <keyboard-shortcut first-keystroke="control Y" keymap="$default"/>
         <keyboard-shortcut first-keystroke="control Y" keymap="Mac OS X"/>
@@ -341,9 +350,13 @@
 
     <group id="android.streaming.xr.navigation.group" class="com.android.tools.idea.streaming.actions.XrMainToolbarGroup">
       <group id="android.streaming.xr.input.mode.group" class="com.android.tools.idea.streaming.actions.StreamingXrOnlyGroup">
+        <group id="android.streaming.xr.input.mode.dropdown" class="com.android.tools.idea.streaming.actions.StreamingXrInputModePopupGroup"
+               text="Interact with Apps" description="Select mode of interaction with running apps" popup="true">
+          <reference ref="android.streaming.xr.interaction.mouse"/>
+          <reference ref="android.streaming.xr.interaction.hand"/>
+          <reference ref="android.streaming.xr.interaction.eye"/>
+        </group>
         <reference ref="android.streaming.xr.interaction"/>
-        <reference ref="android.streaming.xr.hand.tracking"/>
-        <reference ref="android.streaming.xr.eye.tracking"/>
         <reference ref="android.streaming.xr.view.direction"/>
         <reference ref="android.streaming.xr.location.in.space.xy"/>
         <reference ref="android.streaming.xr.location.in.space.z"/>

@@ -447,18 +447,26 @@ class EmulatorToolWindowPanelTest {
     waitForCondition(2.seconds) { xrInputController.passthroughCoefficient != UNKNOWN_PASSTHROUGH_COEFFICIENT }
     assertAppearance("XrToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
 
-    assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.INTERACTION)
+    assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.MOUSE)
     val modes =
       mapOf(
-        "Interact with Apps" to XrInputMode.INTERACTION,
-        "Hand Tracking" to XrInputMode.HAND,
-        "Eye Tracking" to XrInputMode.EYE,
         "View Direction" to XrInputMode.VIEW_DIRECTION,
         "Move Right/Left and Up/Down" to XrInputMode.LOCATION_IN_SPACE_XY,
         "Move Forward/Backward" to XrInputMode.LOCATION_IN_SPACE_Z,
       )
     for ((actionName, mode) in modes) {
       fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == actionName })
+      assertThat(xrInputController.inputMode).isEqualTo(mode)
+    }
+
+    val actionIdsAndModes =
+      mapOf(
+        "android.streaming.xr.interaction.hand" to XrInputMode.HAND,
+        "android.streaming.xr.interaction.eye" to XrInputMode.EYE,
+        "android.streaming.xr.interaction.mouse" to XrInputMode.MOUSE,
+      )
+    for ((actionId, mode) in actionIdsAndModes) {
+      executeAction(actionId, emulatorView, project)
       assertThat(xrInputController.inputMode).isEqualTo(mode)
     }
 
@@ -578,7 +586,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 600 height: 565")
 
     val xrInputController = EmulatorXrInputController.getInstance(project, emulatorView.emulator)
-    val testCases = mapOf(XrInputMode.HAND to "xr_hand_event", XrInputMode.EYE to "xr_eye_event", XrInputMode.INTERACTION to "mouse_event")
+    val testCases = mapOf(XrInputMode.HAND to "xr_hand_event", XrInputMode.EYE to "xr_eye_event", XrInputMode.MOUSE to "mouse_event")
     var streamInputCall: GrpcCallRecord? = null
     for ((inputMode, expectedEvent) in testCases) {
       xrInputController.inputMode = inputMode
@@ -674,7 +682,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_velocity_event { x: -1.0 y: -1.0 }")
 
     fakeUi.expandFloatingToolbar()
-    fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == "Interact with Apps" })
+    xrInputController.inputMode = XrInputMode.MOUSE
     // Switching to Interact with Apps resets state of the navigation keys.
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_velocity_event { }")
     fakeUi.keyboard.release(VK_A)

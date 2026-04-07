@@ -22,11 +22,16 @@ import com.android.tools.idea.streaming.core.FloatingToolbarContainer
 import com.android.tools.idea.streaming.xr.XrInputMode
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.KeepPopupOnPerform
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.project.DumbAware
 
 /** Sets an input mode for an XR AVD. */
 sealed class StreamingXrInputModeAction(private val inputMode: XrInputMode) : ToggleAction(), DumbAware {
+
+  init {
+    templatePresentation.keepPopupOnPerform = KeepPopupOnPerform.Never // Don't keep the popup open after selecting an input mode.
+  }
 
   override fun isSelected(event: AnActionEvent): Boolean = getXrInputController(event)?.inputMode == inputMode
 
@@ -49,15 +54,33 @@ sealed class StreamingXrInputModeAction(private val inputMode: XrInputMode) : To
     event.presentation.enableRichTooltip(this)
   }
 
-  class Interaction : StreamingXrInputModeAction(XrInputMode.INTERACTION)
+  class InteractionMouse : StreamingXrInputModeAction(XrInputMode.MOUSE) {
 
-  class HandTracking : StreamingXrInputModeAction(XrInputMode.HAND)
+    override fun update(event: AnActionEvent) {
+      super.update(event)
+      if (!StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.get() && !StudioFlags.EMBEDDED_EMULATOR_XR_EYE_TRACKING.get()) {
+        event.presentation.isEnabledAndVisible = false
+      }
+    }
+  }
 
-  class EyeTracking : StreamingXrInputModeAction(XrInputMode.EYE)
+  class InteractionHand : StreamingXrInputModeAction(XrInputMode.HAND)
+
+  class InteractionEye : StreamingXrInputModeAction(XrInputMode.EYE)
 
   class ViewDirection : StreamingXrInputModeAction(XrInputMode.VIEW_DIRECTION)
 
   class LocationInSpaceXY : StreamingXrInputModeAction(XrInputMode.LOCATION_IN_SPACE_XY)
 
   class LocationInSpaceZ : StreamingXrInputModeAction(XrInputMode.LOCATION_IN_SPACE_Z)
+
+  class Interaction : StreamingXrInputModeAction(XrInputMode.MOUSE) {
+
+    override fun update(event: AnActionEvent) {
+      super.update(event)
+      if (StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.get() || StudioFlags.EMBEDDED_EMULATOR_XR_EYE_TRACKING.get()) {
+        event.presentation.isEnabledAndVisible = false
+      }
+    }
+  }
 }
