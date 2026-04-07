@@ -19,10 +19,12 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.flags.StudioFlags.PHASED_SYNC_DEPENDENCY_RESOLUTION_ENABLED
 import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.jdk.JdkAnalyticsTracker.reportGradleJdkConfiguration
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID
+import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_MODELS_UPDATED_TOPIC
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -71,6 +73,9 @@ import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionContext
 import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelperExtension
+import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
+import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncListener as PlatformGradleSyncListener
+import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase
 
 private val SYNC_NOTIFICATION_GROUP: NotificationGroup by lazy {
   NotificationGroupManager.getInstance().getNotificationGroup("Gradle Sync")
@@ -359,7 +364,7 @@ class GradleSyncStateHolder constructor(private val project: Project) {
   }
 
   private fun syncPublisher(block: GradleSyncListenerWithRoot.() -> Unit) {
-    fun publish() {
+    publish {
       with(project.messageBus.syncPublisher(GRADLE_SYNC_TOPIC)) { block() }
       // Publish to the project-system-wide topic after publishing to our internal topic unless it is an in-progress-state. There is no
       // reason for our callers to handle in-progress states and `SyncResultListener` has `syncEnded()` method only.
@@ -367,10 +372,13 @@ class GradleSyncStateHolder constructor(private val project: Project) {
         project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(syncResult)
       }
     }
+  }
+
+  private fun publish(block: () -> Unit) {
     if (ApplicationManager.getApplication().isUnitTestMode) {
-      publish()
+      block()
     } else {
-      invokeLaterIfProjectAlive(project, ::publish)
+      invokeLaterIfProjectAlive(project, block)
     }
   }
 
@@ -452,7 +460,7 @@ class GradleSyncStateHolder constructor(private val project: Project) {
     }
   }
 
-  class SyncStateUpdater : ExternalSystemTaskNotificationListener, BuildProgressListener {
+  class SyncStateUpdater : ExternalSystemTaskNotificationListener, BuildProgressListener, PlatformGradleSyncListener {
 
     private fun ExternalSystemTaskId.findProjectOrLog(): Project? {
       val project = findProject()
@@ -478,6 +486,7 @@ class GradleSyncStateHolder constructor(private val project: Project) {
         return
       }
       project.getService(SyncViewManager::class.java).addListener(this, disposable)
+      project.messageBus.connect(disposable).subscribe(PlatformGradleSyncListener.TOPIC, this)
     }
 
     override fun onSuccess(projectPath: String, id: ExternalSystemTaskId) {
@@ -538,6 +547,17 @@ class GradleSyncStateHolder constructor(private val project: Project) {
     private fun stopTrackingTask(project: Project, buildId: ExternalSystemTaskId): @SystemIndependent String? {
       val syncStateUpdaterService = project.getService(SyncStateUpdaterService::class.java)
       return syncStateUpdaterService.stopTrackingTask(buildId)
+    }
+
+    override fun onSyncPhaseCompleted(context: ProjectResolverContext, phase: GradleSyncPhase) {
+      if (
+        phase == GradleSyncPhase.SOURCE_SET_MODEL_PHASE ||
+          (phase == GradleSyncPhase.DEPENDENCY_MODEL_PHASE && PHASED_SYNC_DEPENDENCY_RESOLUTION_ENABLED.get())
+      ) {
+        getInstance(context.project).publish {
+          context.project.messageBus.syncPublisher(PROJECT_SYSTEM_MODELS_UPDATED_TOPIC).androidModelsUpdated()
+        }
+      }
     }
   }
 

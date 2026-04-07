@@ -36,6 +36,19 @@ import org.jetbrains.annotations.TestOnly
 @Service(Service.Level.PROJECT)
 @State(name = "AndroidProjectSystem", storages = [Storage("AndroidProjectSystem.xml")], reloadable = false)
 class ProjectSystemService(val project: Project) : PersistentStateComponent<ProjectSystemService.State> {
+
+  init {
+    // Make sure all project systems call `androidModelsUpdated` and listeners are not left hanging.
+    project.messageBus
+      .connect()
+      .subscribe(
+        PROJECT_SYSTEM_SYNC_TOPIC,
+        ProjectSystemSyncManager.SyncResultListener { _ ->
+          project.messageBus.syncPublisher(PROJECT_SYSTEM_MODELS_UPDATED_TOPIC).androidModelsUpdated()
+        },
+      )
+  }
+
   /**
    * A state for the mini state machine around updating the view of the project system:
    *

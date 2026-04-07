@@ -121,9 +121,25 @@ interface ProjectSystemSyncManager {
   fun interface SyncResultListener {
     @AnyThread fun syncEnded(result: SyncResult)
   }
+
+  fun interface AndroidModelsUpdatedListener {
+    @AnyThread fun androidModelsUpdated()
+  }
 }
 
 /** Endpoint for broadcasting changes in global sync status */
 @JvmField val PROJECT_SYSTEM_SYNC_TOPIC = Topic(SyncResultListener::class.java)
+
+/**
+ * Notifies the IDE that Android models are available for early updates. If a project system supports phased sync and such data is ready,
+ * this topic can be triggered to update IDE components before the full sync completes. It is safe to call this multiple times. By default,
+ * this is triggered automatically when sync finishes (regardless of outcome) across all project systems.
+ */
+@JvmField
+val PROJECT_SYSTEM_MODELS_UPDATED_TOPIC =
+  Topic<ProjectSystemSyncManager.AndroidModelsUpdatedListener>(
+    "Android models",
+    ProjectSystemSyncManager.AndroidModelsUpdatedListener::class.java,
+  )
 
 fun Trigger.toReason(): ProjectSystemSyncManager.SyncReason = ProjectSystemSyncManager.SyncReason(this)

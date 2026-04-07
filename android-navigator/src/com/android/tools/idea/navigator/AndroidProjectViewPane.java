@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.navigator;
 
+import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_MODELS_UPDATED_TOPIC;
 import static com.intellij.openapi.actionSystem.CommonDataKeys.PSI_ELEMENT;
 import static com.intellij.openapi.actionSystem.CommonDataKeys.VIRTUAL_FILE;
 import static com.intellij.openapi.actionSystem.CommonDataKeys.VIRTUAL_FILE_ARRAY;
@@ -34,6 +35,7 @@ import com.android.tools.idea.navigator.nodes.FileGroupNode;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.android.tools.idea.navigator.nodes.android.BuildScriptTreeStructureProvider;
 import com.android.tools.idea.project.AndroidNotification;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.util.CommonAndroidUtil;
 import com.intellij.diagnostic.VMOptions;
@@ -106,37 +108,44 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
     ProjectWideFacetListenersRegistry.getInstance(project).registerListener(new ProjectWideFacetAdapter<Facet>() {
       @Override
       public void facetAdded(@NotNull Facet facet) {
-        somethingChanged();
+        somethingChanged(project);
       }
 
       @Override
       public void facetRemoved(@NotNull Facet facet) {
-        somethingChanged();
-      }
-
-      private void somethingChanged() {
-        if (!isProcessingChanges.getAndSet(true)) {
-          // Wait until other actions are over, in particular wait for all facets to be added.
-          ApplicationManager.getApplication().invokeLater(() -> {
-            try {
-              if (project.isDisposed()) return;
-              ProjectView projectView = ProjectView.getInstance(project);
-              AbstractProjectViewPane pane = projectView.getProjectViewPaneById(ID);
-              boolean visible = isInitiallyVisible();
-              if (visible && pane == null) {
-                projectView.addProjectPane(AndroidProjectViewPane.this);
-              }
-              else if (!visible && pane != null) {
-                projectView.removeProjectPane(pane);
-              }
-            }
-            finally {
-              isProcessingChanges.set(false);
-            }
-          }, project.getDisposed());
-        }
+        somethingChanged(project);
       }
     });
+
+    project.getMessageBus()
+      .connect(this)
+      .subscribe(PROJECT_SYSTEM_MODELS_UPDATED_TOPIC,
+                 (ProjectSystemSyncManager.AndroidModelsUpdatedListener)() -> {
+                   somethingChanged(project);
+                 });
+  }
+
+  private void somethingChanged(Project project) {
+    if (!isProcessingChanges.getAndSet(true)) {
+      // Wait until other actions are over, in particular wait for all facets to be added.
+      ApplicationManager.getApplication().invokeLater(() -> {
+        try {
+          if (project.isDisposed()) return;
+          ProjectView projectView = ProjectView.getInstance(project);
+          AbstractProjectViewPane pane = projectView.getProjectViewPaneById(ID);
+          boolean visible = isInitiallyVisible();
+          if (visible && pane == null) {
+            projectView.addProjectPane(AndroidProjectViewPane.this);
+          }
+          else if (!visible && pane != null) {
+            projectView.removeProjectPane(pane);
+          }
+        }
+        finally {
+          isProcessingChanges.set(false);
+        }
+      }, project.getDisposed());
+    }
   }
 
   @NotNull
@@ -377,7 +386,8 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
 
   @VisibleForTesting
   public boolean isDefaultPane(@NotNull Project project, @NotNull IdeInfo ideInfo, @Nullable AndroidProjectViewSettings settings) {
-    if (!(ProjectSystemUtil.getProjectSystem(myProject).isAndroidProjectViewSupported() && CommonAndroidUtil.getInstance().isAndroidProject(myProject))) {
+    if (!(ProjectSystemUtil.getProjectSystem(myProject).isAndroidProjectViewSupported() &&
+          CommonAndroidUtil.getInstance().isAndroidProject(myProject))) {
       return false;
     }
     if ((!ideInfo.isAndroidStudio()) && (!ideInfo.isGameTools())) {
@@ -467,12 +477,13 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
 
         if (properties.containsKey(PROJECT_VIEW_DEFAULT_KEY)) {
           properties.remove(PROJECT_VIEW_DEFAULT_KEY);
-          try(FileOutputStream outputStream = new FileOutputStream(propertiesFilePath.toFile())) {
+          try (FileOutputStream outputStream = new FileOutputStream(propertiesFilePath.toFile())) {
             properties.store(outputStream, null);
           }
           return "This property has been removed from " + propertiesFilePath;
         }
-      } catch (IOException ignore) {
+      }
+      catch (IOException ignore) {
         // If the custom property does not exist in custom properties, or we are unable to remove it,
         // we will show a generic notification indicating that the custom property should be removed
         // in favor or the UI setting

@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.navigator.runsIndexingWithGradle
 
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectOther
+import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_MODELS_UPDATED_TOPIC
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
@@ -29,6 +33,7 @@ import com.android.tools.idea.testing.dumpAndroidProjectView
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.IconLoader
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.IconManager
 import com.intellij.ui.icons.CoreIconManager
@@ -89,6 +94,54 @@ class AndroidGradleProjectViewSnapshotComparisonTest : SnapshotComparisonTest {
       AndroidGradleTests.restoreJdk()
     }
   }
+
+  @Test
+  @RunsInEdt
+  fun testFirstAndroidModelsUpdate_PhasedSync() {
+    enablePhasedSync()
+    val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
+    val (earlyViewDump, _) = preparedProject.dumpAndroidViewBeforeAndAfterSyncFinishes()
+    assertIsEqualToSnapshot(earlyViewDump)
+    clearPhasedSync()
+  }
+
+  private fun PreparedTestProject.dumpAndroidViewBeforeAndAfterSyncFinishes(): Pair<String, String> {
+    var earlyViewDump: String? = null
+    return open(
+      updateOptions = { options ->
+        options.copy(
+          onProjectCreated = {
+            messageBus
+              .connect()
+              .subscribe(
+                PROJECT_SYSTEM_MODELS_UPDATED_TOPIC,
+                ProjectSystemSyncManager.AndroidModelsUpdatedListener {
+                  invokeAndWaitIfNeeded {
+                    if (earlyViewDump == null) {
+                      earlyViewDump = this.dumpAndroidProjectView().removeFileIconAddress()
+                    }
+                  }
+                },
+              )
+          }
+        )
+      }
+    ) { project: Project ->
+      earlyViewDump.orEmpty() to project.dumpAndroidProjectView().removeFileIconAddress()
+    }
+  }
+
+  private fun enablePhasedSync() {
+    StudioFlags.PHASED_SYNC_ENABLED.override(true)
+    Registry.get("gradle.phased.sync.enabled").setValue(true)
+  }
+
+  private fun clearPhasedSync() {
+    StudioFlags.PHASED_SYNC_ENABLED.clearOverride()
+    Registry.get("gradle.phased.sync.enabled").setValue(StudioFlags.PHASED_SYNC_ENABLED.get())
+  }
+
+  internal fun String.removeFileIconAddress(): String = replace(Regex("FileIcon@[a-z0-9]*"), "FileIcon@0")
 
   override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/projectViews"
 
