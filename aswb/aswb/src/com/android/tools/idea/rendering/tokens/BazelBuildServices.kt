@@ -167,8 +167,11 @@ internal class BazelBuildServices : BuildSystemFilePreviewServices.BuildServices
     context: BlazeContext,
   ) {
     try {
-      val finder = buildOutcomeCache.cacheOutput(project, label, output, context).classFileFinder as BazelClassFileFinder
-      EventLoggingService.getInstance().log(ComposablePreviewsEvent(project, finder.jarCountForLoggingOnly))
+      val finder = buildOutcomeCache.cacheOutput(project, label, output, context).classFileFinder
+
+      if (finder is BazelClassFileFinder) {
+        EventLoggingService.getInstance().log(ComposablePreviewsEvent(project, finder.jarCountForLoggingOnly))
+      }
     } catch (exception: Exception) {
       val status =
         when (exception) {
