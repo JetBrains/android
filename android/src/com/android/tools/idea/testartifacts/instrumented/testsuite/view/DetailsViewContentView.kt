@@ -289,10 +289,16 @@ class DetailsViewContentView(
               westPanel.add(AndroidTestSuiteView.MyItemSeparator())
               add(westPanel, BorderLayout.WEST)
 
-              // Wrap the error label in a scroll pane
+              // Wrap the error label in a FlowLayout identical to westPanel to vertically center it
+              val errorLabelContainer = NonOpaquePanel(FlowLayout(FlowLayout.LEFT, 0, 0))
+              errorLabelContainer.add(myTestResultLabel)
+              // Add a rigid area to force the row height to match the separator's 24px height.
+              errorLabelContainer.add(javax.swing.Box.createRigidArea(Dimension(0, com.intellij.ui.scale.JBUIScale.scale(24))))
+
+              // Wrap the error label container in a scroll pane
               val scrollPane =
                 JBScrollPane(
-                  myTestResultLabel,
+                  errorLabelContainer,
                   ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
                   ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED,
                 )
