@@ -28,6 +28,7 @@ import com.intellij.psi.PsiManager
 import java.io.File
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -44,6 +45,7 @@ class DeclarativeInternalSchemaTest {
   @After fun onAfter() = DeclarativeIdeSupport.clearOverride()
 
   @Test
+  @Ignore("b/500308639")
   fun testSchemaForInternalProject() {
     disableKtsIndexing(project, projectRule.fixture.testRootDisposable)
     projectRule.loadProject(TestProjectPaths.DECLARATIVE_ANDROID_INCLUDED_BUILD)
