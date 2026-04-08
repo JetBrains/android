@@ -52,6 +52,8 @@ class VitalsAiInsightToolkitTest {
       object : AiInsightContributor {
         override fun canContribute(): Boolean = true
 
+        override fun isModelAvailable() = true
+
         override fun showOnboarding(project: Project) = Unit
 
         override suspend fun fetchInsight(

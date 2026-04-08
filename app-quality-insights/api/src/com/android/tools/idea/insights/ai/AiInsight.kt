@@ -34,8 +34,8 @@ data class AiModelInfo(val name: String?, val providerName: String?) {
     get() =
       when {
         providerName != null && name != null -> "$providerName > $name"
-        else -> name ?: providerName ?: ""
-      }
+        else -> name ?: providerName
+      }?.let { "From $it" } ?: ""
 
   companion object {
     val EMPTY = AiModelInfo(null, null)

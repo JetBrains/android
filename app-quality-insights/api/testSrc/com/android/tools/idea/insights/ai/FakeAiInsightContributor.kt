@@ -15,36 +15,19 @@
  */
 package com.android.tools.idea.insights.ai
 
+import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.event.Event
-import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
-import kotlinx.coroutines.delay
-import org.jetbrains.annotations.TestOnly
 
-interface AiInsightContributor {
-  suspend fun fetchInsight(connection: Connection, event: Event, project: Project, codeContextResolver: CodeContextResolver): AiInsight
+class FakeAiInsightContributor : AiInsightContributor {
+  var modelAvailable = true
+  var generatedInsight = DEFAULT_AI_INSIGHT
 
-  fun canContribute(): Boolean
+  override fun canContribute() = true
 
-  fun isModelAvailable(): Boolean
-
-  fun showOnboarding(project: Project)
-
-  companion object {
-    val EP_NAME = ExtensionPointName<AiInsightContributor>("com.android.tools.idea.insights.ai.aiInsightContributor")
-
-    fun getFirstAvailableContributor() = EP_NAME.extensions.firstOrNull { it.canContribute() }
-  }
-}
-
-// Stub AI insight contributor to be used for E2E testing.
-@TestOnly
-class StubAiInsightContributor : AiInsightContributor {
-  override fun canContribute() = java.lang.Boolean.getBoolean("appinsights.generate.fake.insight")
-
-  override fun isModelAvailable() = false
+  override fun isModelAvailable() = modelAvailable
 
   override fun showOnboarding(project: Project) = Unit
 
@@ -54,9 +37,6 @@ class StubAiInsightContributor : AiInsightContributor {
     project: Project,
     codeContextResolver: CodeContextResolver,
   ): AiInsight {
-    delay(2000)
-    return AiInsight(rawInsight = "Fake insight for testing purposes.", event = event, insightSource = InsightSource.STUDIO_BOT)
+    return generatedInsight
   }
 }
-
-const val FILE_PHRASE = "The fix should likely be in "

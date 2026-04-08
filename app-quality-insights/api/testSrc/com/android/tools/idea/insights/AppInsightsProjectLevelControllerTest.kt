@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights
 
 import com.android.testutils.time.FakeClock
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.android.tools.idea.insights.client.IssueResponse
@@ -36,6 +37,8 @@ import com.android.tools.idea.insights.model.issue.VisibilityType
 import com.android.tools.idea.insights.model.note.Note
 import com.android.tools.idea.insights.model.note.NoteState
 import com.android.tools.idea.testing.AndroidExecutorsRule
+import com.android.tools.idea.testing.disposable
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import java.time.Duration
@@ -1332,6 +1335,34 @@ class AppInsightsProjectLevelControllerTest {
 
     state = controllerRule.consumeNext()
     assertThat(state.currentInsight).isEqualTo(LoadingState.Ready(DEFAULT_AI_INSIGHT))
+  }
+
+  @Test
+  fun `when model is not available, fetch insight emits correct error state when flag is disabled`() = runBlocking {
+    StudioFlags.AQI_FIX_WITH_AGENT.overrideForTest(false, projectRule.disposable)
+    controllerRule.consumeInitialState(
+      state = LoadingState.Ready(IssueResponse(listOf(ISSUE1), emptyList(), emptyList(), emptyList(), DEFAULT_FETCHED_PERMISSIONS)),
+      eventsState = LoadingState.Ready(EventPage(listOf(), "")),
+      insightState = LoadingState.Ready(DEFAULT_AI_INSIGHT),
+    )
+
+    controllerRule.fakeGeminiPluginApi.available = false
+    controllerRule.controller.refreshInsight(false)
+
+    assertThat(controllerRule.consumeNext().currentInsight).isEqualTo(LoadingState.Unauthorized("Gemini is not enabled"))
+  }
+
+  @Test
+  fun `when model is not available, fetch insight emits correct error state when flag is enabled`() = runBlocking {
+    StudioFlags.AQI_FIX_WITH_AGENT.overrideForTest(true, projectRule.disposable)
+    controllerRule.consumeInitialState(
+      state = LoadingState.Ready(IssueResponse(listOf(ISSUE1), emptyList(), emptyList(), emptyList(), DEFAULT_FETCHED_PERMISSIONS)),
+      eventsState = LoadingState.Ready(EventPage(listOf(), "")),
+    )
+
+    controllerRule.fakeAiInsightContributor.modelAvailable = false
+    controllerRule.controller.refreshInsight(false)
+    assertThat(controllerRule.consumeNext().currentInsight).isEqualTo(LoadingState.NoModelAvailable)
   }
 
   @Test

@@ -270,6 +270,33 @@ class AiInsightToolkitTest {
   }
 
   @Test
+  fun `isModelAvailable returns result from GeminiPluginApi when flag is disabled`() {
+    StudioFlags.AQI_FIX_WITH_AGENT.overrideForTest(false, projectRule.disposable)
+    val toolkit = createToolkit()
+
+    fakeGeminiPluginApi.available = true
+    assertThat(toolkit.isModelAvailable()).isTrue()
+
+    fakeGeminiPluginApi.available = false
+    assertThat(toolkit.isModelAvailable()).isFalse()
+  }
+
+  @Test
+  fun `isModelAvailable returns result from first available contributor when flag is enabled`() {
+    StudioFlags.AQI_FIX_WITH_AGENT.overrideForTest(true, projectRule.disposable)
+    val contributor = mock<AiInsightContributor>()
+    whenever(contributor.canContribute()).thenReturn(true)
+    whenever(contributor.isModelAvailable()).thenReturn(true)
+    ExtensionTestUtil.maskExtensions(AiInsightContributor.EP_NAME, listOf(contributor), projectRule.disposable)
+
+    val toolkit = createToolkit()
+    assertThat(toolkit.isModelAvailable()).isTrue()
+
+    whenever(contributor.isModelAvailable()).thenReturn(false)
+    assertThat(toolkit.isModelAvailable()).isFalse()
+  }
+
+  @Test
   fun `fetchInsight returns failure when auto-generation is disabled and not forced`() = runBlocking {
     StudioFlags.AQI_FIX_WITH_AGENT.overrideForTest(true, projectRule.disposable)
     val toolkit = createToolkit()
@@ -346,6 +373,8 @@ class AiInsightToolkitTest {
     val contributor =
       object : AiInsightContributor {
         override fun canContribute() = true
+
+        override fun isModelAvailable() = true
 
         override fun showOnboarding(project: Project) = Unit
 

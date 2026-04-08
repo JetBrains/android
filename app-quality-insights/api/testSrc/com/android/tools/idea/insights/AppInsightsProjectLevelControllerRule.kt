@@ -19,6 +19,8 @@ import com.android.testutils.time.FakeClock
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.ai.AiInsightContributor
+import com.android.tools.idea.insights.ai.FakeAiInsightContributor
 import com.android.tools.idea.insights.ai.FakeAiInsightToolkit
 import com.android.tools.idea.insights.ai.FakeGeminiPluginApi
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
@@ -105,6 +107,7 @@ class AppInsightsProjectLevelControllerRule(
   private lateinit var cache: AppInsightsCache
 
   lateinit var fakeGeminiPluginApi: FakeGeminiPluginApi
+  lateinit var fakeAiInsightContributor: FakeAiInsightContributor
   lateinit var geminiToolkit: FakeAiInsightToolkit
 
   override fun before(description: Description) {
@@ -118,6 +121,8 @@ class AppInsightsProjectLevelControllerRule(
     fakeGeminiPluginApi = FakeGeminiPluginApi()
     geminiToolkit = FakeAiInsightToolkit(projectProvider())
     ExtensionTestUtil.maskExtensions(GeminiPluginApi.EP_NAME, listOf(fakeGeminiPluginApi), disposable)
+    fakeAiInsightContributor = FakeAiInsightContributor()
+    ExtensionTestUtil.maskExtensions(AiInsightContributor.EP_NAME, listOf(fakeAiInsightContributor), disposable)
     controller =
       AppInsightsProjectLevelControllerImpl(
         provider,
