@@ -267,13 +267,13 @@ internal class DeviceViewTest {
       // Check mouse input.
       fakeUi.mouse.moveTo(40, 30)
       assertThat(getNextControlMessageAndWaitForFrame())
-        .isEqualTo(MotionEventMessage(listOf(expectedCoordinates[i * 2]), MotionEventMessage.ACTION_HOVER_ENTER, 0, 0, 0, false))
+        .isEqualTo(MotionEventMessage(listOf(expectedCoordinates[i * 2]), MotionEventMessage.ACTION_HOVER_ENTER, 0, 0, 0, true))
       assertThat(getNextControlMessageAndWaitForFrame())
-        .isEqualTo(MotionEventMessage(listOf(expectedCoordinates[i * 2]), MotionEventMessage.ACTION_HOVER_MOVE, 0, 0, 0, false))
+        .isEqualTo(MotionEventMessage(listOf(expectedCoordinates[i * 2]), MotionEventMessage.ACTION_HOVER_MOVE, 0, 0, 0, true))
 
       fakeUi.mouse.press(40, 30)
       assertThat(getNextControlMessageAndWaitForFrame())
-        .isEqualTo(MotionEventMessage(listOf(expectedCoordinates[i * 2]), MotionEventMessage.ACTION_HOVER_EXIT, 0, 0, 0, false))
+        .isEqualTo(MotionEventMessage(listOf(expectedCoordinates[i * 2]), MotionEventMessage.ACTION_HOVER_EXIT, 0, 0, 0, true))
       assertThat(getNextControlMessageAndWaitForFrame())
         .isEqualTo(MotionEventMessage(listOf(expectedCoordinates[i * 2]), MotionEventMessage.ACTION_DOWN, 0, 0, 0, false))
 
@@ -334,12 +334,12 @@ internal class DeviceViewTest {
     // Check mouse leaving the device view while hovering.
     fakeUi.mouse.moveTo(55, 10)
     assertThat(agent.getNextControlMessage(2.seconds))
-      .isEqualTo(MotionEventMessage(listOf(MotionEventMessage.Pointer(683, 266, 0)), MotionEventMessage.ACTION_HOVER_ENTER, 0, 0, 0, false))
+      .isEqualTo(MotionEventMessage(listOf(MotionEventMessage.Pointer(683, 266, 0)), MotionEventMessage.ACTION_HOVER_ENTER, 0, 0, 0, true))
     assertThat(agent.getNextControlMessage(2.seconds))
-      .isEqualTo(MotionEventMessage(listOf(MotionEventMessage.Pointer(683, 266, 0)), MotionEventMessage.ACTION_HOVER_MOVE, 0, 0, 0, false))
+      .isEqualTo(MotionEventMessage(listOf(MotionEventMessage.Pointer(683, 266, 0)), MotionEventMessage.ACTION_HOVER_MOVE, 0, 0, 0, true))
     fakeUi.mouse.moveTo(60, -10)
     assertThat(agent.getNextControlMessage(2.seconds))
-      .isEqualTo(MotionEventMessage(listOf(MotionEventMessage.Pointer(813, 0, 0)), MotionEventMessage.ACTION_HOVER_EXIT, 0, 0, 0, false))
+      .isEqualTo(MotionEventMessage(listOf(MotionEventMessage.Pointer(813, 0, 0)), MotionEventMessage.ACTION_HOVER_EXIT, 0, 0, 0, true))
   }
 
   @Test
@@ -431,16 +431,16 @@ internal class DeviceViewTest {
     fakeUi.keyboard.setFocus(view)
     fakeUi.mouse.moveTo(mousePosition)
     assertThat(getNextControlMessageAndWaitForFrame())
-      .isEqualTo(MotionEventMessage(listOf(MotionEventMessage.Pointer(663, 707, 0)), MotionEventMessage.ACTION_HOVER_ENTER, 0, 0, 0, false))
+      .isEqualTo(MotionEventMessage(listOf(MotionEventMessage.Pointer(663, 707, 0)), MotionEventMessage.ACTION_HOVER_ENTER, 0, 0, 0, true))
     assertThat(getNextControlMessageAndWaitForFrame())
-      .isEqualTo(MotionEventMessage(listOf(MotionEventMessage.Pointer(663, 707, 0)), MotionEventMessage.ACTION_HOVER_MOVE, 0, 0, 0, false))
+      .isEqualTo(MotionEventMessage(listOf(MotionEventMessage.Pointer(663, 707, 0)), MotionEventMessage.ACTION_HOVER_MOVE, 0, 0, 0, true))
     fakeUi.keyboard.press(VK_CONTROL)
     fakeUi.layoutAndDispatchEvents()
     assertAppearance("MultiTouch1")
 
     fakeUi.mouse.press(mousePosition)
     assertThat(getNextControlMessageAndWaitForFrame())
-      .isEqualTo(MotionEventMessage(listOf(MotionEventMessage.Pointer(663, 707, 0)), MotionEventMessage.ACTION_HOVER_EXIT, 0, 0, 0, false))
+      .isEqualTo(MotionEventMessage(listOf(MotionEventMessage.Pointer(663, 707, 0)), MotionEventMessage.ACTION_HOVER_EXIT, 0, 0, 0, true))
     assertThat(getNextControlMessageAndWaitForFrame())
       .isEqualTo(
         MotionEventMessage(
@@ -1108,9 +1108,9 @@ internal class DeviceViewTest {
     fakeUi.keyboard.setFocus(view)
     fakeUi.mouse.moveTo(mousePosition)
     assertThat(getNextControlMessageAndWaitForFrame())
-      .isEqualTo(MotionEventMessage(listOf(MotionEventMessage.Pointer(663, 707, 0)), MotionEventMessage.ACTION_HOVER_ENTER, 0, 0, 0, false))
+      .isEqualTo(MotionEventMessage(listOf(MotionEventMessage.Pointer(663, 707, 0)), MotionEventMessage.ACTION_HOVER_ENTER, 0, 0, 0, true))
     assertThat(getNextControlMessageAndWaitForFrame())
-      .isEqualTo(MotionEventMessage(listOf(MotionEventMessage.Pointer(663, 707, 0)), MotionEventMessage.ACTION_HOVER_MOVE, 0, 0, 0, false))
+      .isEqualTo(MotionEventMessage(listOf(MotionEventMessage.Pointer(663, 707, 0)), MotionEventMessage.ACTION_HOVER_MOVE, 0, 0, 0, true))
     fakeUi.keyboard.press(VK_CONTROL)
     fakeUi.layoutAndDispatchEvents()
     assertAppearance("MultiTouch1")
