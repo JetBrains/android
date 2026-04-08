@@ -14,8 +14,63 @@ intellij_plugin = _intellij_plugin
 intellij_plugin_library = _intellij_plugin_library
 optional_plugin_xml = _optional_plugin_xml
 
+def _get_resource_strip_prefix_for_path(resource_path):
+    """Helper function that returns the resource_strip_prefix for given resource_path followed the heuristic of java_library
+
+      This function follows the rule of java_library to decide potential resource_strip_prefix.
+      First looks for Maven's standard directory layout, (a "src" directory followed by a "resources" directory grandchild). If that
+      is not found, Bazel then looks for the topmost directory named "java" or "javatests" (so, for example, if a resource is at
+      <workspace root>/x/java/y/java/z, the path of the resource will be y/java/z. Otherwise, returns empty string to indicate no
+      resource_strip_prefix meet heuristic.
+    Args:
+           resource_path: The full path to resources from package root.
+    """
+    segments = resource_path.split("/")
+
+    # 1. Maven Heuristic: Look for "src/*/resources"
+    # We look for 'src', then a middle folder (e.g. 'main'), then 'resources'
+    for i in range(len(segments) - 2):
+        if segments[i] == "src" and segments[i + 2] == "resources":
+            # Strip everything up to and including the 'resources' folder
+            return "/".join(segments[:i + 3])
+
+    # 2. Java/JavaTests Heuristic: Look for the topmost "java" or "javatests"
+    for i in range(len(segments)):
+        if segments[i] == "java" or segments[i] == "javatests":
+            # Strip everything up to and including 'java' or 'javatests'
+            return "/".join(segments[:i + 1])
+
+    return ""
+
+def _normalize_path(pkg, res):
+    if res.startswith("//"):
+        return res[2:].replace(":", "/")
+
+    if res.startswith(":"):
+        return pkg + "/" + res[1:]
+
+    return pkg + "/" + res
+
+def _get_resource_strip_prefix(resources):
+    resource_strip_prefix_for_all = ""
+
+    # If any of the resources are not under the directory, the function cannot help to define resource_strip_prefix, return ""
+    for _, res in enumerate(resources):
+        full_path = _normalize_path(native.package_name(), res)
+        resource_strip_prefix_for_current_resourcs = _get_resource_strip_prefix_for_path(full_path)
+
+        if not resource_strip_prefix_for_current_resourcs or (resource_strip_prefix_for_all and resource_strip_prefix_for_current_resourcs != resource_strip_prefix_for_all):
+            resource_strip_prefix_for_all = ""
+            break
+        resource_strip_prefix_for_all = resource_strip_prefix_for_current_resourcs
+
+    return resource_strip_prefix_for_all
+
 def aswb_library(name, testonly = False, **kwargs):
     """A regular ASwB target."""
+    if "resources" in kwargs and "resource_strip_prefix" not in kwargs:
+        kwargs["resource_strip_prefix"] = _get_resource_strip_prefix(kwargs["resources"])
+
     kotlin_library(
         name = name,
         module_name = "{}_{}".format(native.package_name(), name).replace("/", "_"),
@@ -183,42 +238,6 @@ def api_version_txt(name, check_eap, application_info_json = None, **kwargs):
         cmd = cmd,
         tools = [api_version_txt_tool],
         **kwargs
-    )
-
-def _transition_impl(_, attr):
-    return {"//command_line_option:javacopt": attr.java_copts}
-
-_java_copts_transition = transition(
-    implementation = _transition_impl,
-    inputs = [],
-    outputs = ["//command_line_option:javacopt"],
-)
-
-repackaged_files_data = provider()
-
-def _strip_external_workspace_prefix(short_path):
-    """If this target is sitting in an external workspace, return the workspace-relative path."""
-    if short_path.startswith("../") or short_path.startswith("external/"):
-        return "/".join(short_path.split("/")[2:])
-    return short_path
-
-def unescape_filenames(name, srcs):
-    """Macro to generate files with spaces in their names instead of underscores.
-
-    For each file in the srcs, a file will be generated with the same name but with all underscores
-    replaced with spaces.
-
-    Args:
-      name: The name of the generator rule
-      srcs: A list of source files to process
-    """
-    outs = [s.replace("_", " ") for s in srcs]
-    cmd = "&&".join(["cp \"{}\" $(@D)/\"{}\"".format(s, d) for (s, d) in zip(srcs, outs)])
-    native.genrule(
-        name = name,
-        srcs = srcs,
-        outs = outs,
-        cmd = cmd,
     )
 
 def combine_visibilities(*args):
