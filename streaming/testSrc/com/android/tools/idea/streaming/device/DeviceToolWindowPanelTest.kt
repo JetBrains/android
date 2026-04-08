@@ -151,8 +151,6 @@ class DeviceToolWindowPanelTest {
 
   @Before
   fun setUp() {
-    StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.overrideForTest(true, testRootDisposable)
-    StudioFlags.EMBEDDED_EMULATOR_XR_EYE_TRACKING.overrideForTest(true, testRootDisposable)
     HeadlessDataManager.fallbackToProductionDataManager(testRootDisposable) // Necessary to properly update toolbar button states.
     (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(TestDataProvider(project), testRootDisposable)
     val mockScreenRecordingCache = mock<ScreenRecordingSupportedCache>()
@@ -323,23 +321,13 @@ class DeviceToolWindowPanelTest {
     assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.MOUSE)
     val modes =
       mapOf(
+        "Interact with Apps" to XrInputMode.MOUSE,
         "View Direction" to XrInputMode.VIEW_DIRECTION,
         "Move Right/Left and Up/Down" to XrInputMode.LOCATION_IN_SPACE_XY,
         "Move Forward/Backward" to XrInputMode.LOCATION_IN_SPACE_Z,
       )
     for ((actionName, mode) in modes) {
       fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == actionName })
-      assertThat(xrInputController.inputMode).isEqualTo(mode)
-    }
-
-    val actionIdsAndModes =
-      mapOf(
-        "android.streaming.xr.interaction.hand" to XrInputMode.HAND,
-        "android.streaming.xr.interaction.eye" to XrInputMode.EYE,
-        "android.streaming.xr.interaction.mouse" to XrInputMode.MOUSE,
-      )
-    for ((actionId, mode) in actionIdsAndModes) {
-      executeAction(actionId, panel.primaryDisplayView!!, project)
       assertThat(xrInputController.inputMode).isEqualTo(mode)
     }
 
@@ -445,7 +433,7 @@ class DeviceToolWindowPanelTest {
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(XrVelocityMessage(-1f, -1f, 0f))
 
     fakeUi.expandFloatingToolbar()
-    xrInputController.inputMode = XrInputMode.MOUSE
+    fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == "Interact with Apps" })
     // Switching to Interact with Apps resets state of the navigation keys.
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(XrVelocityMessage(0f, 0f, 0f))
     fakeUi.keyboard.release(VK_A)

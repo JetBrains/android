@@ -46,6 +46,8 @@ abstract class AbstractEmulatorAction(private val configFilter: Predicate<Emulat
 
 internal fun getEmulatorController(event: AnActionEvent): EmulatorController? = event.getData(EMULATOR_CONTROLLER_KEY)
 
+internal fun isEmulator(event: AnActionEvent): Boolean = getEmulatorController(event) != null
+
 internal fun getEmulatorConfig(event: AnActionEvent): EmulatorConfiguration? = getEmulatorController(event)?.emulatorConfig
 
 internal fun getEmulatorView(event: AnActionEvent): EmulatorView? = event.getData(EMULATOR_VIEW_KEY)
