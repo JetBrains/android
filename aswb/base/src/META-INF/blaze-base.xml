@@ -217,7 +217,7 @@
     <trafficLightRendererContributor implementation="com.google.idea.blaze.base.qsync.QuerySyncTrafficLightRendererContributor"/>
     <editorNotificationProvider implementation="com.google.idea.blaze.base.qsync.UnsyncedFileEditorNotificationProvider" />
 
-    <projectService serviceImplementation="com.google.idea.blaze.base.sync.SyncPhaseCoordinator"/>
+
     <projectService serviceInterface="com.google.idea.blaze.base.run.RuntimeArtifactCache"
                     serviceImplementation="com.google.idea.blaze.base.run.RuntimeArtifactCacheImpl" />
     <projectService serviceInterface="com.google.idea.blaze.base.sync.status.BlazeSyncStatus"
@@ -249,8 +249,7 @@
         serviceImplementation="com.google.idea.blaze.base.sync.aspects.BlazeIdeInterfaceAspectsImpl"/>
     <projectService serviceInterface="com.google.idea.blaze.base.toolwindow.TasksToolWindowService"
                     serviceImplementation="com.google.idea.blaze.base.toolwindow.TasksToolWindowServiceImpl"/>
-    <projectService serviceInterface="com.google.idea.blaze.base.targetmaps.TransitiveDependencyMap"
-                    serviceImplementation="com.google.idea.blaze.base.targetmaps.TransitiveDependencyMap"/>
+
     <projectService serviceImplementation="com.google.idea.blaze.base.settings.BlazeImportSettingsManager"/>
     <projectService serviceImplementation="com.google.idea.blaze.base.sync.status.BlazeSyncStatusStateManager"/>
     <projectService
