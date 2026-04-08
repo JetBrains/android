@@ -1426,6 +1426,12 @@ public final class StudioFlags {
     "If enabled, the APIs that are annotated with @RestrictTo will have lower priority in the completion list."
     );
 
+  public static final Flag<Boolean> EDITOR_ENABLE_CHANGE_REVIEW_AGENT = new BooleanFlag(
+    EDITOR, "enable.change.review.agent",
+    "Enable the Change Review agent.",
+    "If enabled, the change review agent is available."
+  );
+
   //endregion
 
   //region Unified App Bundle
