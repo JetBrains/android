@@ -456,6 +456,7 @@ filegroup(
         "//tools/vendor/google/ml/aiplugin/editor/prediction-services/integration:aida_protobuf",
         "//tools/vendor/google/ml/aiplugin/rag/lucene:lucene-aiplugin",
         "//tools/vendor/google/ml/gemini-coder:libgemini-coder_proto",
+        "//tools/vendor/google/optional-plugins:liboptional-plugins",
         "//tools/vendor/google/url-assistant:urlassistant_proto",
         "//tools/vendor/modelcontextprotocol/kotlin-sdk:mcp-sdk-libraries",
     ],
