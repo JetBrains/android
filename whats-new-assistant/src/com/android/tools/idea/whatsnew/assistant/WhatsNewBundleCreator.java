@@ -68,7 +68,13 @@ public class WhatsNewBundleCreator implements AssistantBundleCreator {
 
   public WhatsNewBundleCreator(@NotNull WhatsNewURLProvider urlProvider,
                                @NotNull Revision studioRevision) {
-    this(urlProvider, studioRevision, new WhatsNewConnectionOpener(), true);
+    this(urlProvider, studioRevision, true);
+  }
+
+  public WhatsNewBundleCreator(@NotNull WhatsNewURLProvider urlProvider,
+                               @NotNull Revision studioRevision,
+                               boolean allowDownload) {
+    this(urlProvider, studioRevision, new WhatsNewConnectionOpener(), allowDownload);
   }
 
   @VisibleForTesting

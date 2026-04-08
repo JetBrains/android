@@ -1,0 +1,285 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (C) 2026 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<tutorialBundle
+    name="What's New"
+    resourceRoot="/"
+    stepByStep="false"
+    hideStepIndex="true"
+    version="2026.1.0.00">
+  <feature
+      name="What's New in Narwhal Feature Drop">
+    <tutorial
+        key="whats-new"
+        label=" What's New in Narwhal Feature Drop"
+        icon="stable/product-icon.svg"
+        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/preview-release-notes/2025-1-2"
+        remoteLinkLabel="Read in a browser">
+      <description>
+        <![CDATA[
+          This panel describes some of the new features and behavior changes
+          included in this update.
+
+          To open this panel again later, select **Help > What's New in Android Studio**
+          from the main menu.
+          ]]>
+      </description>
+      <step label="Studio Labs features available">
+        <stepElement>
+          <image
+              src="https://www.gstatic.com/devrel-devsite/prod/va0c14339cfd6d9ab177114d5825fc3f29dc166d5e178822c1d1efe7d037760a4/android/images/dynamic-content-card-default.png"
+              description="Placeholder image"/>
+          <section>
+            <![CDATA[
+            Studio Labs lets you try out the latest AI experimental features in a stable version
+            of Android Studio, so you can more quickly integrate our AI assistance offerings in your
+            development workflow. To enable the features, go to **Studio Labs** in settings.
+
+            [Learn more ↗](https://d.android.com/r/studio-ui/gemini/labs)
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Gemini in Android Studio's Agent mode">
+        <stepElement>
+          <image src="https://d.android.com/studio/releases/assistant/2025.1.2/agent-mode-cropped.png"
+                 description="Gemini in Android Studio's Agent mode"/>
+          <section>
+            <![CDATA[
+            Gemini in Android Studio's Agent mode is a new AI feature designed to handle
+            complex, multi-stage development tasks that go beyond what you can experience by
+            chatting with Gemini. To use Agent mode, click **Gemini** in the sidebar and then
+            select the **Agent** tab. You can describe a complex goal, like generating unit tests or
+            fixing errors, and the agent formulates an execution plan that spans multiple files in
+            your project. The agent suggests edits and iteratively fixes bugs to reach the
+            goal. You can review, accept, or reject the proposed changes and ask the agent to
+            iterate on your feedback.
+
+            [Learn more ↗](https://d.android.com/r/studio-ui/gemini/agent-mode)
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Rules in Gemini">
+        <stepElement>
+          <image
+              src="https://d.android.com/studio/releases/assistant/2025.1.2/rules-cropped.png"
+              description="Rules in Gemini"/>
+          <section>
+            <![CDATA[
+            Rules in Gemini let you define preferred coding styles or output formats within the
+            [Prompt Library](d.android.com/studio/releases#prompt-library). You can also
+            mention your preferred tech stack and languages. When you set these preferences once,
+            they are automatically applied to all subsequent prompts sent to Gemini.
+
+            [Learn more ↗](https://d.android.com/r/studio-ui/gemini/rules)
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Embedded XR Emulator">
+        <stepElement>
+          <image
+              src="https://www.gstatic.com/devrel-devsite/prod/va0c14339cfd6d9ab177114d5825fc3f29dc166d5e178822c1d1efe7d037760a4/android/images/dynamic-content-card-default.png"
+              description="Placeholder image"/>
+          <section>
+            <![CDATA[
+            The XR Emulator now launches by default in the embedded state. You can now deploy your
+            application, navigate the 3D space and use the Layout Inspector directly inside Android
+            Studio.
+
+            [Learn more ↗](https://d.android.com/r/studio-ui/test/xr-emulator)
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="XR project template">
+        <stepElement>
+          <image
+              src="https://www.gstatic.com/devrel-devsite/prod/va0c14339cfd6d9ab177114d5825fc3f29dc166d5e178822c1d1efe7d037760a4/android/images/dynamic-content-card-default.png"
+              description="Placeholder image"/>
+          <section>
+            <![CDATA[
+            Android Narwhal Feature Drop introduces a new project template specifically designed for
+            Jetpack XR. This provides a solid foundation with boilerplate code to begin your immersive
+            experience development journey right away.
+
+            [Learn more ↗](https://d.android.com/r/studio-ui/build/xr-template)
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Embedded Layout Inspector for XR">
+        <stepElement>
+          <image
+              src="https://www.gstatic.com/devrel-devsite/prod/va0c14339cfd6d9ab177114d5825fc3f29dc166d5e178822c1d1efe7d037760a4/android/images/dynamic-content-card-default.png"
+              description="Placeholder image"/>
+          <section>
+            <![CDATA[
+            The embedded Layout Inspector now supports XR applications, which lets you inspect and
+            optimize your UI layout within the XR environment. Get detailed insights into your app's
+            component structure and identify potential layout issues to create more polished and performant
+            experiences.
+
+            [Learn more ↗](https://d.android.com/r/studio-ui/test/xr-layout-inspector)
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="16 KB page size support">
+        <stepElement>
+          <image
+              src="https://www.gstatic.com/devrel-devsite/prod/va0c14339cfd6d9ab177114d5825fc3f29dc166d5e178822c1d1efe7d037760a4/android/images/dynamic-content-card-default.png"
+              description="Placeholder image"/>
+          <section>
+            <![CDATA[
+            Android Studio Narwhal Feature Drop adds improved support for
+            [transitioning to 16 KB page sizes](https://d.android.com/guide/practices/page-sizes).
+            To help you navigate this transition smoothly, Android Studio now offers proactive
+            warnings when building APKs or Android App Bundles that are incompatible with 16 KB devices.
+            Using the APK Analyzer, you can also find out which libraries are incompatible with 16 KB
+            devices. To test your apps in this new environment, a dedicated 16 KB emulator target is also
+            available in Android Studio alongside existing 4 KB images.
+
+            [Learn more ↗](https://d.android.com/r/studio-ui/build/16kb-support)
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Transform UI with AI">
+        <stepElement>
+          <image
+              src="https://www.gstatic.com/devrel-devsite/prod/va0c14339cfd6d9ab177114d5825fc3f29dc166d5e178822c1d1efe7d037760a4/android/images/dynamic-content-card-default.png"
+              description="Placeholder image"/>
+          <section>
+            <![CDATA[
+            You can now transform UI code within the Compose Preview environment using natural language
+            directly in the preview. To use it, right-click in the Compose Preview and select **Transform
+            UI With AI**. Then enter your natural language requests, such as "Center align these
+            buttons," to guide Gemini in adjusting your layout or styling, or select specific UI elements
+            in the preview for better context. Gemini will then edit your Compose UI code in place, which
+            you can review and approve, speeding up the UI development workflow.
+
+            [Learn more ↗](https://d.android.com/r/studio-ui/gemini/transform-ui)
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Compose preview navigation improvements">
+        <stepElement>
+          <image
+              src="https://www.gstatic.com/devrel-devsite/prod/va0c14339cfd6d9ab177114d5825fc3f29dc166d5e178822c1d1efe7d037760a4/android/images/dynamic-content-card-default.png"
+              description="Placeholder image"/>
+          <section>
+            <![CDATA[
+            Compose preview interaction is now more efficient with the latest navigation
+            improvements. Click on the preview name to jump to the preview definition or
+            click the individual component to jump to the function where it's defined. Hover
+            states provide immediate visual feedback as you mouse over a preview frame.
+            Improved keyboard arrow navigation eases movement through multiple previews,
+            enabling faster UI iteration and refinement.
+
+            [Learn more ↗](https://d.android.com/r/studio-ui/test/comp-preview-nav)
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Compose preview picker">
+        <stepElement>
+          <image
+              src="https://www.gstatic.com/devrel-devsite/prod/va0c14339cfd6d9ab177114d5825fc3f29dc166d5e178822c1d1efe7d037760a4/android/images/dynamic-content-card-default.png"
+              description="Placeholder image"/>
+          <section>
+            <![CDATA[
+            The Compose preview picker is now available. To try it out, click any
+            `@Preview` annotation in your Compose code.
+
+            [Learn more ↗](https://d.android.com/r/studio-ui/test/preview-picker)
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Child recomposition in Layout Inspector">
+        <stepElement>
+          <image
+              src="https://www.gstatic.com/devrel-devsite/prod/va0c14339cfd6d9ab177114d5825fc3f29dc166d5e178822c1d1efe7d037760a4/android/images/dynamic-content-card-default.png"
+              description="Placeholder image"/>
+          <section>
+            <![CDATA[
+            Layout Inspector supports Child recomposition counts. You can now see recomposition
+            counts even if the composable that is recomposing is collapsed under a parent in the
+            component tree. When you see the child recomposition counts increase, you can open up the
+            tree and find where the recompositions are happening.
+
+            [Learn more ↗](https://d.android.com/r/studio-ui/design/inspector-child-recomp)
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Partner Device Labs available with Android Device Streaming">
+        <stepElement>
+          <image
+              src="https://www.gstatic.com/devrel-devsite/prod/va0c14339cfd6d9ab177114d5825fc3f29dc166d5e178822c1d1efe7d037760a4/android/images/dynamic-content-card-default.png"
+              description="Placeholder image"/>
+          <section>
+            <![CDATA[
+
+            [Partner Device Labs](https://d.android.com/studio/run/android-device-streaming#2P)
+            expands the catalog of devices available in Android Device Streaming by
+            allowing you to connect to devices hosted by OEM partners, such as Samsung, Xiaomi,
+            OPPO, vivo, and OnePlus. To get started, click on **'+' > Add Remote Device** from
+            the Device Manager and import a device from one of the partner device labs. To enable
+            access, an Editor or Owner of your Firebase project must enable each lab from the
+            [Google Cloud Console](https://console.cloud.google.com/omnilab/partner-lab).
+
+
+            [Learn more ↗](https://d.android.com/r/studio-ui/device-streaming/2P)
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="K2 mode by default">
+        <stepElement>
+          <image
+              src="https://www.gstatic.com/devrel-devsite/prod/va0c14339cfd6d9ab177114d5825fc3f29dc166d5e178822c1d1efe7d037760a4/android/images/dynamic-content-card-default.png"
+              description="Placeholder image"/>
+          <section>
+            <![CDATA[
+            Android Studio now uses the K2 Kotlin compiler by default. This next-generation compiler
+            brings significant performance improvements to the IDE and your builds. By enabling K2, we
+            are paving the way for future Kotlin programming language features and an even faster, more
+            robust development experience in Kotlin.
+
+            [Learn more ↗](https://d.android.com/r/studio-ui/ide/k2-mode)
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <footerStep label="">
+        <stepElement>
+          <image
+              src="https://www.gstatic.com/devrel-devsite/prod/va0c14339cfd6d9ab177114d5825fc3f29dc166d5e178822c1d1efe7d037760a4/android/images/dynamic-content-card-default.png"
+              description="Placeholder image"/>
+          <section>
+            <![CDATA[
+              Last updated 03/24/2025
+            ]]>
+          </section>
+        </stepElement>
+      </footerStep>
+    </tutorial>
+  </feature>
+</tutorialBundle>

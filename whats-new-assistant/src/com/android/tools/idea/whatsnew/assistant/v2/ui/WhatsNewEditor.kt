@@ -16,6 +16,7 @@
 package com.android.tools.idea.whatsnew.assistant.v2.ui
 
 import com.android.tools.adtui.compose.StudioComposePanel
+import com.android.tools.idea.whatsnew.assistant.v2.model.toWhatsNewData
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.util.UserDataHolderBase
@@ -24,8 +25,8 @@ import java.beans.PropertyChangeListener
 import javax.swing.JComponent
 import org.jetbrains.annotations.Nls
 
-class WhatsNewEditor(val virtualFile: VirtualFile) : UserDataHolderBase(), FileEditor {
-  var panel: JComponent = StudioComposePanel { WhatsNewPanel() }
+class WhatsNewEditor(val virtualFile: WhatsNewVirtualFile) : UserDataHolderBase(), FileEditor {
+  var panel: JComponent = StudioComposePanel { WhatsNewPanel(virtualFile.bundle.toWhatsNewData()) }
 
   override fun getComponent(): JComponent = panel
 

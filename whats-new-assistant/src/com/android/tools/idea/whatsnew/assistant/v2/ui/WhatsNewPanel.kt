@@ -16,5 +16,6 @@
 package com.android.tools.idea.whatsnew.assistant.v2.ui
 
 import androidx.compose.runtime.Composable
+import com.android.tools.idea.whatsnew.assistant.v2.model.WhatsNewData
 
-@Composable fun WhatsNewPanel() {}
+@Composable fun WhatsNewPanel(whatsNewData: WhatsNewData) {}

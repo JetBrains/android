@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.whatsnew.assistant.v2.ui
 
+import com.android.tools.idea.whatsnew.assistant.WhatsNewBundle
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorPolicy
 import com.intellij.openapi.fileEditor.FileEditorProvider
@@ -31,7 +32,7 @@ class WhatsNewEditorProvider: FileEditorProvider {
 
   override fun createEditor(project: Project,
                             file: VirtualFile): FileEditor {
-    return WhatsNewEditor(file)
+    return WhatsNewEditor(file as WhatsNewVirtualFile)
   }
 
   override fun getEditorTypeId(): @NonNls String {
@@ -44,7 +45,7 @@ class WhatsNewEditorProvider: FileEditorProvider {
   }
 }
 
-class WhatsNewVirtualFile: LightVirtualFile() {
+class WhatsNewVirtualFile(val bundle: WhatsNewBundle): LightVirtualFile() {
   override fun getPresentableName(): @NlsSafe String {
     return "What's New"
   }
