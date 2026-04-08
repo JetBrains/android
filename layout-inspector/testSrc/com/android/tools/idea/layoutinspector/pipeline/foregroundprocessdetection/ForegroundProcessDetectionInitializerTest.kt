@@ -22,6 +22,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.appinspection.internal.process.TransportProcessDescriptor
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.layoutinspector.DeviceProvisionerServiceCleanUpRule
 import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
 import com.android.tools.idea.layoutinspector.pipeline.fakeDevice
@@ -36,15 +37,13 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.replaceService
-import com.intellij.util.concurrency.SameThreadExecutor
 import java.util.Collections.synchronizedList
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.asCoroutineDispatcher
 import layout_inspector.LayoutInspector
 import org.junit.Before
 import org.junit.Rule
@@ -79,8 +78,9 @@ class ForegroundProcessDetectionInitializerTest {
 
   private val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
   private val provisionerServiceRule = DeviceProvisionerServiceCleanUpRule { projectRule.project }
+  private val disposableRule = DisposableRule()
 
-  @get:Rule val chain = RuleChain(projectRule, grpcServerRule, streamManagerRule, provisionerServiceRule)
+  @get:Rule val chain = RuleChain(projectRule, grpcServerRule, streamManagerRule, provisionerServiceRule, disposableRule)
 
   @Before
   fun setup() {
@@ -113,7 +113,7 @@ class ForegroundProcessDetectionInitializerTest {
       project = projectRule.project,
       processModel = processModel,
       deviceModel = deviceModel,
-      coroutineScope = CoroutineScope(SameThreadExecutor.INSTANCE.asCoroutineDispatcher()),
+      coroutineScope = disposableRule.disposable.createCoroutineScope(),
       streamManager = streamManagerRule.streamManager,
       foregroundProcessListener = foregroundProcessListener,
       metrics = ForegroundProcessDetectionMetrics,
@@ -142,7 +142,7 @@ class ForegroundProcessDetectionInitializerTest {
       project = projectRule.project,
       processModel = processModel,
       deviceModel = deviceModel,
-      coroutineScope = CoroutineScope(SameThreadExecutor.INSTANCE.asCoroutineDispatcher()),
+      coroutineScope = disposableRule.disposable.createCoroutineScope(),
       streamManager = streamManagerRule.streamManager,
       foregroundProcessListener = foregroundProcessListener,
       metrics = ForegroundProcessDetectionMetrics,
@@ -218,7 +218,7 @@ class ForegroundProcessDetectionInitializerTest {
         project = projectRule.project,
         processModel = processModel,
         deviceModel = deviceModel,
-        coroutineScope = CoroutineScope(SameThreadExecutor.INSTANCE.asCoroutineDispatcher()),
+        coroutineScope = disposableRule.disposable.createCoroutineScope(),
         streamManager = streamManagerRule.streamManager,
         transportClient = transportClient,
         metrics = ForegroundProcessDetectionMetrics,
