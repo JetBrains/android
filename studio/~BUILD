@@ -89,7 +89,7 @@ studio_plugin(
         "//prebuilts/tools/common/m2:tensorflow-lite-metadata",
         "//prebuilts/tools/common/m2:trace-perfetto-library",
         "//prebuilts/tools/common/m2:oauth2",
-        "//prebuilts/tools/common/m2:okio-2.8.0",
+        "//prebuilts/tools/common/m2:okio-jvm-3.9.0",
         "//prebuilts/tools/common/m2:google-api-services-drive-v3-rev20241027-2.0.0",
         "//prebuilts/tools/common/m2:shark-2.14",
         "//prebuilts/tools/common/m2:shark-android-2.14",
