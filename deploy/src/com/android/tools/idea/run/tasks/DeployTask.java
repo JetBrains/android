@@ -34,7 +34,6 @@ import com.intellij.openapi.project.Project;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import com.intellij.openapi.util.Computable;
 import org.jetbrains.annotations.NotNull;
 
@@ -180,7 +179,7 @@ public class DeployTask extends AbstractDeployTask {
       return "App restart successful without requiring a re-install.";
     } else {
       return "App restart successful without re-installing the following APK(s): " +
-             skippedApkList.stream().collect(Collectors.joining(", "));
+             String.join(", ", skippedApkList);
     }
   }
 }

@@ -17,15 +17,13 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.deployer.Deployer;
-import com.android.tools.deployer.DeployerApplicationTerminator;
-import com.android.tools.deployer.common.DeployerException;
 import com.android.tools.deployer.common.Canceller;
+import com.android.tools.deployer.common.DeployerException;
 import com.android.tools.idea.run.ApkInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 import com.intellij.openapi.util.Computable;
 import org.jetbrains.annotations.NotNull;
 
@@ -71,7 +69,7 @@ public class ApplyChangesTask extends AbstractDeployTask {
       return "Activity restarted. No code or resource changes detected.";
     } else {
       return "Activity restarted without re-installing the following APK(s): " +
-             skippedApkList.stream().collect(Collectors.joining(", "));
+             String.join(", ", skippedApkList);
     }
   }
 }

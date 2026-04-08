@@ -18,10 +18,10 @@ package com.android.tools.idea.debug
 import com.android.ddmlib.IDevice
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.deploy.proto.Deploy.FindDexResponse
-import com.android.tools.deployer.common.AdbClient
 import com.android.tools.deployer.AdbInstaller
-import com.android.tools.deployer.common.Installer
 import com.android.tools.deployer.MetricsRecorder
+import com.android.tools.deployer.common.AdbClient
+import com.android.tools.deployer.common.Installer
 import com.android.tools.idea.debug.DexFinder.Result
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.run.AndroidRunConfiguration
@@ -216,7 +216,7 @@ private suspend fun findModule(element: KtElement): Module? {
   }
 }
 
-fun newInstaller(device: IDevice): Installer {
+fun newInstaller(device: IDevice): com.android.tools.deployer.common.Installer {
   val metrics = MetricsRecorder()
   val adb = AdbClient(device, DexFinder.LOGGER)
   return AdbInstaller(LocalInstallerPathManager.getLocalInstaller(), adb, metrics.deployMetrics, DexFinder.LOGGER, AdbInstaller.Mode.DAEMON)

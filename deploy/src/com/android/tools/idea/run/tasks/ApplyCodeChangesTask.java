@@ -19,9 +19,8 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.tools.deployer.ClassRedefiner;
 import com.android.tools.deployer.Deployer;
-import com.android.tools.deployer.DeployerApplicationTerminator;
-import com.android.tools.deployer.common.DeployerException;
 import com.android.tools.deployer.common.Canceller;
+import com.android.tools.deployer.common.DeployerException;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.util.DebuggerRedefiner;
 import com.google.common.collect.ImmutableMap;
@@ -29,7 +28,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 import com.intellij.openapi.util.Computable;
 import org.jetbrains.annotations.NotNull;
 
@@ -108,7 +106,7 @@ public class ApplyCodeChangesTask extends AbstractDeployTask {
       return "No code changes detected.";
     } else {
       return "No code changes detected. The ollowing APK(s) are not installed: " +
-             skippedApkList.stream().collect(Collectors.joining(", "));
+             String.join(", ", skippedApkList);
     }
   }
 }
