@@ -586,20 +586,20 @@ class AndroidPositionManagerTest {
       @Language("JAVA")
       val text =
         """
-      package p1.p2;
+        package p1.p2;
 
-      interface Foo {
-        static void bar() {
-          int test = 2; // break here
-        }
-        
-        class Unrelated {
-          static void unrelated() {
-            int test = true;
+        interface Foo {
+          static void bar() {
+            int test = 2; // break here
+          }
+
+          class Unrelated {
+            static void unrelated() {
+              int test = true;
+            }
           }
         }
-      }
-      """
+        """
           .trimIndent()
       val file = setupFromFile(text)
       val position = file.getBreakpointPosition()

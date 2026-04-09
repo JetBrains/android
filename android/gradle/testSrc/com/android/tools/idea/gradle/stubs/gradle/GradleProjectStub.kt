@@ -96,6 +96,7 @@ class GradleProjectStub(private val name: String, private val path: String, root
   override fun getBuildDirectory() = null
 
   override fun getProjectDirectory() = null
+
   override fun getBuildTreePath(): String? = null
 
   override fun getProjectIdentifier() = projectIdentifier

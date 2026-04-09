@@ -43,7 +43,10 @@ object EnvironmentUtils {
     // Workaround registering an GradleJvmResolver to resolve gradleJVM = '#JAVA_HOME', since EelApi implementation
     // doesn't expose any easy and maintainable way of overriding environment variables IJPL-197722
     val javaHomeGradleJvmResolver = JavaHomeGradleJvmResolver(environmentVariablesMap)
-    val gradleJvmResolverExtensionPoint = ApplicationManager.getApplication().extensionArea.getExtensionPoint<GradleJvmResolver>("org.jetbrains.plugins.gradle.gradleJvmResolver")
+    val gradleJvmResolverExtensionPoint =
+      ApplicationManager.getApplication()
+        .extensionArea
+        .getExtensionPoint<GradleJvmResolver>("org.jetbrains.plugins.gradle.gradleJvmResolver")
     gradleJvmResolverExtensionPoint.registerExtension(javaHomeGradleJvmResolver, disposable)
 
     handleSpecialCasesEnvironmentVariables(environmentVariablesMap, disposable)

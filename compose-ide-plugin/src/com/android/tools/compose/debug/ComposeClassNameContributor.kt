@@ -7,14 +7,14 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 
 /**
- * The Compose Compiler Plugin transforms 'Composable' lambdas into singletons.
- * For each source file, a corresponding 'ComposableSingletons$<ClassName>' class is emitted, containing the lambda.
- * The exact name of this class is computed by [computeComposableSingletonsClassName] and contributed as candate for lambdas.
+ * The Compose Compiler Plugin transforms 'Composable' lambdas into singletons. For each source file, a corresponding
+ * 'ComposableSingletons$<ClassName>' class is emitted, containing the lambda. The exact name of this class is computed by
+ * [computeComposableSingletonsClassName] and contributed as candate for lambdas.
  */
 internal class ComposeClassNameContributor : ClassNameProvider.ClassNameContributor {
   override fun contributeClassNameCandidatesForElement(element: PsiElement): List<String> {
     /* Contribute the `ComposableSingleton` as top level name */
-    if(element is KtFile) return listOf(computeComposableSingletonsClassName(element))
+    if (element is KtFile) return listOf(computeComposableSingletonsClassName(element))
 
     /* Contribute the `ComposableSingleton` as name for lambdas */
     val file = element.containingFile as? KtFile ?: return emptyList()
