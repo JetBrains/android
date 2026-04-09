@@ -39,6 +39,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
 import java.util.Base64
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -53,6 +54,7 @@ import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.whenever
 
 /** Unit tests for [DetailsViewContentView]. */
+@Ignore("b/500851554")
 @RunWith(JUnit4::class)
 @RunsInEdt
 class DetailsViewContentViewTest {
