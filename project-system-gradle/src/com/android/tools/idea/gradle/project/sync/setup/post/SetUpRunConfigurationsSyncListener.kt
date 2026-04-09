@@ -15,13 +15,24 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
 import com.android.tools.idea.project.AndroidRunConfigurationsManager
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.Project
-import org.jetbrains.annotations.SystemIndependent
+import com.intellij.util.concurrency.AppExecutorUtil
+import java.util.concurrent.Callable
 
-class SetUpRunConfigurationsSyncListener : GradleSyncListenerWithRoot {
-  override fun syncSucceeded(project: Project, rootProjectPath: @SystemIndependent String) {
-    AndroidRunConfigurationsManager.getInstance(project).createProjectRunConfigurations()
+class SetUpRunConfigurationsSyncListener(private val project: Project) : ProjectSystemSyncManager.AndroidModelsUpdatedListener {
+  override fun androidModelsUpdated() {
+    val callable = Callable {
+      if (project.isDisposed) return@Callable
+      AndroidRunConfigurationsManager.getInstance(project).createProjectRunConfigurations()
+    }
+
+    // create any run configurations, even if indexing hasn't finished yet.
+    ReadAction.nonBlocking(callable).submit(AppExecutorUtil.getAppExecutorService())
+
+    // once indexing is finished, potentially create more run configurations
+    ReadAction.nonBlocking(callable).inSmartMode(project).coalesceBy(this).submit(AppExecutorUtil.getAppExecutorService())
   }
 }

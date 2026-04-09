@@ -3055,10 +3055,6 @@ PROJECT                       : project
                 ASSEMBLE                      : <PROJECT>::TestCompositeLib4:testClasses
                 REBUILD                       : <PROJECT>::TestCompositeLib4:clean, <PROJECT>::TestCompositeLib4:testClasses
                 COMPILE_JAVA                  : <PROJECT>::TestCompositeLib4:compileTestJava
-    RUN_CONFIGURATION             : TestCompositeLib1.app
-        *class*                       : AndroidRunConfiguration
-        ModuleName                    : TestCompositeLib1.app
-        Module                        : TestCompositeLib1.app
     RUN_CONFIGURATION             : TestCompositeLib3.app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : TestCompositeLib3.app
@@ -3067,6 +3063,10 @@ PROJECT                       : project
         *class*                       : AndroidRunConfiguration
         ModuleName                    : project.app
         Module                        : project.app
+    RUN_CONFIGURATION             : includedLib1.app
+        *class*                       : AndroidRunConfiguration
+        ModuleName                    : TestCompositeLib1.app
+        Module                        : TestCompositeLib1.app
     LIBRARY_TABLE
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/

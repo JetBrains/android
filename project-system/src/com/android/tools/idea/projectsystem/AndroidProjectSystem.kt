@@ -160,6 +160,10 @@ interface AndroidProjectSystem : ModuleHierarchyProvider {
    * returned from this [Comparator].)
    */
   fun getProjectSystemModuleTypeComparator(): Comparator<Module> = defaultProjectSystemModuleTypeComparator
+
+  fun getDisplayNameForRunConfiguration(module: Module): String {
+    return module.getModuleSystem().getDisplayNameForModuleGroup().replace(" ", "_")
+  }
 }
 
 private val defaultProjectSystemModuleTypeComparator: Comparator<Module> = Comparator.comparingInt { 0 }

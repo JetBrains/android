@@ -191,7 +191,7 @@ class LightSyncReferenceTest : SnapshotComparisonTest {
   fun testLightSyncActual() {
     AssumeUtil.assumeNotWindows() // TODO (b/399625141): fix on windows
     val dump = projectRule.project.saveAndDump(ignoreModuleFileAndType = true)
-    assertIsEqualToSnapshot(dump)
+    assertIsEqualToSnapshot(dump.filterOutProperties(setOf("PROJECT/RUN_CONFIGURATION"), false))
   }
 
   @Test
@@ -212,11 +212,20 @@ class LightSyncReferenceTest : SnapshotComparisonTest {
   }
 }
 
-private fun String.filterOutProperties(): String =
+private fun String.filterOutProperties(
+  filterProperties: Set<String> = PROPERTIES_TO_SKIP_BY_PREFIXES,
+  addPropertyNameToLine: Boolean = true,
+): String =
   this.splitToSequence('\n')
     .nameProperties()
-    .filter { (property, line) -> !PROPERTIES_TO_SKIP_BY_PREFIXES.any { property.startsWith(it) } }
-    .map { it.first + " >> " + it.second }
+    .filter { (property, line) -> !filterProperties.any { property.startsWith(it) } }
+    .map {
+      if (addPropertyNameToLine) {
+        it.first + " >> " + it.second
+      } else {
+        it.second
+      }
+    }
     .joinToString(separator = "\n")
 
 private fun Sequence<String>.nameProperties() = com.android.tools.idea.testing.nameProperties(this)

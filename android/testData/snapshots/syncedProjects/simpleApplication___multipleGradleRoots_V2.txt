@@ -1108,7 +1108,7 @@ PROJECT                       : project
         *class*                       : AndroidRunConfiguration
         ModuleName                    : gradle_project_1.app
         Module                        : gradle_project_1.app
-    RUN_CONFIGURATION             : gradle_project_name.app
+    RUN_CONFIGURATION             : gradle_project_2.app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : gradle_project_name.app
         Module                        : gradle_project_name.app

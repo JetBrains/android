@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.util;
 
 import static com.android.SdkConstants.VALUE_FALSE;
+import static com.android.SdkConstants.VALUE_TRUE;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 
 import com.android.annotations.concurrency.Slow;
@@ -23,13 +24,20 @@ import com.android.annotations.concurrency.WorkerThread;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.NullOutputReceiver;
 import com.android.tools.idea.model.AndroidManifestIndex;
+import com.android.tools.idea.projectsystem.SourceProviders;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
+import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.project.Project;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.StreamSupport;
+import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.UsesFeature;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class LaunchUtils {
@@ -65,12 +73,33 @@ public class LaunchUtils {
       return false;
     }
 
-    return ReadAction.nonBlocking(
-      () -> AndroidManifestIndex.getDataForMergedManifestContributors(facet)
+    Project project = facet.getModule().getProject();
+    return ReadAction.compute(() -> {
+      if (DumbService.isDumb(project)) {
+        // indexing in progress, check all current manifests (including flavor and build type ones like debug).
+        return SourceProviders.getInstance(facet).getCurrentSourceProviders().stream()
+          .flatMap(provider -> StreamSupport.stream(provider.getManifestFiles().spliterator(), false))
+          .map(file -> AndroidUtils.loadDomElement(facet.getModule(), file, Manifest.class))
+          .filter(Objects::nonNull)
+          .anyMatch(manifest ->
+                      manifest.getUsesFeatures().stream().anyMatch(feature ->
+                                                                     UsesFeature.HARDWARE_TYPE_WATCH.equals(feature.getName().getValue()) &&
+                                                                     isRequired(feature))
+          );
+      }
+      // indexing completed, can check merged manifest
+      return AndroidManifestIndex.getDataForMergedManifestContributors(facet)
         .flatMap((it) -> it.getUsedFeatures().stream())
         .filter((it) -> UsesFeature.HARDWARE_TYPE_WATCH.equals(it.getName()))
-        .anyMatch((it) -> !VALUE_FALSE.equals(it.getRequired())))
-      .inSmartMode(facet.getModule().getProject()).executeSynchronously();
+        .anyMatch((it) -> !VALUE_FALSE.equals(it.getRequired()));
+    });
+  }
+
+  /**
+   * Checks if uses-feature is required (either no `required` attribute used, or set to true).
+   */
+  private static boolean isRequired(@NotNull UsesFeature feature) {
+    return !feature.getRequired().exists() || VALUE_TRUE.equals(feature.getRequired().getStringValue());
   }
 
 

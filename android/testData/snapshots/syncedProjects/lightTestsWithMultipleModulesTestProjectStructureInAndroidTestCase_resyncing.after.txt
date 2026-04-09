@@ -517,6 +517,14 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
                 SOURCE_GEN                    : :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
                 BASELINE_PROFILE_GEN          : :lib:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :lib:generateBaselineProfile
+    RUN_CONFIGURATION             : app
+        *class*                       : AndroidRunConfiguration
+        ModuleName                    : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.app
+        Module                        : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.app
+    RUN_CONFIGURATION             : lib
+        *class*                       : AndroidRunConfiguration
+        ModuleName                    : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.lib
+        Module                        : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.lib
     LIBRARY_TABLE
         LIBRARY                       : Gradle: com.example:library:1.0
             *SOURCES                      : jar://<TEMP>/.gradle/libraryFolder/samples.jar!/ [-]

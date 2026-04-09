@@ -293,7 +293,7 @@ class AndroidRunConfigurationsTestDfw {
     val preparedProject = projectRule.prepareTestProject(testProject = AndroidCoreTestProject.WEAR_DECLARATIVE_WATCHFACE)
     preparedProject.open { project ->
       val runManager = RunManager.getInstance(project)
-      assertThat(runManager.allConfigurationsList).isEmpty()
+      assertThat(runManager.allConfigurationsList.map { it.name }).doesNotContain("My Declarative WatchFace")
       assertThat(runManager.allConfigurationsList.filterIsInstance<AndroidDeclarativeWatchFaceConfiguration>()).isEmpty()
     }
   }

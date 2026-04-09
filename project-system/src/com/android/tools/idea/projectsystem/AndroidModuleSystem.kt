@@ -349,6 +349,10 @@ interface AndroidModuleSystem : SampleDataDirectoryProvider, ModuleHierarchyProv
       Type.TYPE_FUSED_LIBRARY,
       Type.TYPE_NON_ANDROID -> false
     }
+
+  fun getDisplayNameForRunConfiguration(): String {
+    return module.project.getProjectSystem().getDisplayNameForRunConfiguration(module)
+  }
 }
 
 /**

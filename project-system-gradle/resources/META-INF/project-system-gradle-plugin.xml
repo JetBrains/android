@@ -248,7 +248,7 @@
     <listener class="com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder$DataImportListener"
               topic="com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener"/>
     <listener class="com.android.tools.idea.gradle.project.sync.setup.post.SetUpRunConfigurationsSyncListener"
-              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
+              topic="com.android.tools.idea.projectsystem.ProjectSystemSyncManager$AndroidModelsUpdatedListener"/>
     <listener class="com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTrackerSyncListener"
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
     <listener class="com.android.tools.idea.gradle.project.sync.setup.post.RecordAgpVersionSyncListener"

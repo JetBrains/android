@@ -54,6 +54,7 @@ import com.android.tools.idea.projectsystem.TestComponentType
 import com.android.tools.idea.projectsystem.createSourceProvidersForLegacyModule
 import com.android.tools.idea.projectsystem.emptySourceProvider
 import com.android.tools.idea.projectsystem.getAndroidFacets
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.scopeTypeByName
 import com.android.tools.idea.res.AndroidInnerClassFinder
@@ -70,6 +71,7 @@ import com.android.tools.idea.run.configuration.AndroidWearConfiguration
 import com.android.tools.idea.util.androidFacet
 import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -81,6 +83,7 @@ import com.intellij.platform.backend.workspace.workspaceModel
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
+import com.intellij.util.PathUtil
 import java.io.File
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.PersistentSet
@@ -89,6 +92,7 @@ import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.collections.immutable.toPersistentSet
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.plugins.gradle.settings.GradleSettings
 
 open class GradleProjectSystem(override val project: Project) : AndroidProjectSystem {
   private val moduleHierarchyProvider: GradleModuleHierarchyProvider = GradleModuleHierarchyProvider.getInstance(project)
@@ -356,6 +360,35 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
   override fun supportsProfilingMode() = true
 
   override fun getProjectSystemModuleTypeComparator(): Comparator<Module> = gradleProjectSystemModuleTypeComparator
+
+  override fun getDisplayNameForRunConfiguration(module: Module): String {
+    val gradleIdentityPath = module.getGradleIdentityPath()
+    if (gradleIdentityPath == null || gradleIdentityPath == ":") {
+      // phased sync scenario, or non-gradle module, or root module.
+      if (mySyncManager.getLastSyncResult() == ProjectSystemSyncManager.SyncResult.UNKNOWN && project.name == "project") {
+        val path = module.getGradleProjectPath()?.toHolder()?.path?.removePrefix(":")?.takeIf { it.isNotEmpty() }
+        if (path != null) {
+          return path.replace(':', '.')
+        }
+      }
+      return module.getModuleSystem().getDisplayNameForModule().replace(" ", "_")
+    }
+
+    val identityName = gradleIdentityPath.removePrefix(":").replace(':', '.')
+
+    // If there are multiple independent Gradle builds linked to this IDEA project,
+    // we need to prepend the build name to avoid collisions.
+    val linkedProjectsSettings = GradleSettings.getInstance(project).linkedProjectsSettings
+    if (linkedProjectsSettings.size > 1) {
+      val externalRootPath = ExternalSystemApiUtil.getExternalRootProjectPath(module)
+      if (externalRootPath != null) {
+        val buildName = PathUtil.suggestFileName(File(externalRootPath).name, true, false)
+        return "$buildName.$identityName"
+      }
+    }
+
+    return identityName
+  }
 
   fun isManagedDevicesEnabled(project: Project, currentModule: Module?): Boolean {
     val selectedModules = currentModule?.let { arrayOf(it) } ?: project.modules

@@ -281,7 +281,7 @@ class OpenProjectIntegrationTest {
         // As such these existing configuration will be mapped to null and a new configuration for the app module created.
         // We don't remove this configuration to avoid losing importing config the user has set up.
         Truth.assertThat(runConfigurations.associate { it.name to it.configurationModule?.module?.name })
-          .isEqualTo(mapOf("app" to "My36.app", "app.sub36" to "My36.app.sub36", "sub36" to null, "All Tests Sub 36" to null))
+          .isEqualTo(mapOf("app" to "My36.app", "sub36" to "My36.app.sub36", "All Tests Sub 36" to null))
       }
 
       val projectImlFiles = collectProjectImlFiles(preparedProject)
