@@ -2564,11 +2564,16 @@ public final class StudioFlags {
                     "When enabled, a setting and various UI is made visible to configure the local Gemma model, and when provided and " +
                     "enabled it adds Gemma model option to Chat model picker.");
 
-  public static Flag<Boolean> REMOTE_MODELS_ENABLED =
+  public static final Flag<Boolean> REMOTE_MODELS_ENABLED =
     new BooleanFlag(STUDIOBOT, "remote.models.enabled",
                     "Add remote models for Chat.",
                     "When enabled, a setting and various UI is made visible to configure remote models, and when provided and " +
                     "enabled it add remote model option to Chat model picker.");
+
+  public static final Flag<Boolean> STUDIOBOT_AUTO_REFRESH_MODELS =
+    new BooleanFlag(STUDIOBOT, "auto.refresh.models",
+                    "Automatically refresh models in background.",
+                    "When enabled, a background job will run every 24 hours to fetch available models for active providers.");
 
   public static final Flag<Boolean> STUDIOBOT_INCLUDE_GRADLE_PROJECT_STRUCTURE_TOOLS_BY_DEFAULT =
     new BooleanFlag(STUDIOBOT, "include.gradle.project.structure.tools.by.default",

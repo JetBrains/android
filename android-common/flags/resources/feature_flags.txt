@@ -189,6 +189,7 @@ studiobot.ask.mode.in.dropdown.enabled=INTERNAL
 studiobot.ask.user.tool.enabled=COMPLETE:2026
 studiobot.askgemini.include.build.files.in.context=PREVIEW
 studiobot.attachments=COMPLETE:2025
+studiobot.auto.refresh.models=INTERNAL
 studiobot.bring.your.own.key=COMPLETE:2025
 studiobot.chat.context.attachment.changes=INTERNAL
 studiobot.chat.enable.context.attachment=COMPLETE:2025
