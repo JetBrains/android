@@ -1414,12 +1414,6 @@ public final class StudioFlags {
     "If enabled, causes the translations editor to reload data when resource files are edited"
   );
 
-  public static final Flag<Boolean> REMOTE_SDK_DOCUMENTATION_FETCH_VIA_CONTENT_SERVING_API_ENABLED = new BooleanFlag(
-    EDITOR, "remote.sdk.documentation.fetch.via.content.serving.api.enabled",
-    "Enable use of the ContentServing API for fetching Android SDK documentation.",
-    "If enabled, calls a OnePlatform HTTP API instead of the developers.android.com web server for documentation."
-    );
-
   public static final Flag<Boolean> RESTRICT_TO_COMPLETION_WEIGHER = new BooleanFlag(
     EDITOR, "restrict.to.completion.weigher",
     "Enable use of the weigher that demotes elements annotated with @RestrictTo.",
