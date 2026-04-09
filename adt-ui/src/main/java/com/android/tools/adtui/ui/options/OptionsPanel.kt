@@ -31,22 +31,27 @@ import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
 import com.intellij.util.ui.JBUI
 import java.awt.Component
+import java.awt.Container
 import java.awt.FlowLayout
 import java.awt.Font
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
+import java.awt.KeyboardFocusManager
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.util.Locale
+import javax.swing.AbstractButton
 import javax.swing.DefaultListCellRenderer
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JPanel
+import javax.swing.JRadioButton
 import javax.swing.JSeparator
 import javax.swing.JSlider
 import javax.swing.JSpinner
 import javax.swing.SpinnerNumberModel
+import javax.swing.SwingUtilities
 
 /**
  * The OptionsPanel control is dynamically populated based on the currently set {@link OptionsProvider}. This control will enumerate all
@@ -90,6 +95,18 @@ class OptionsPanel : JComponent() {
   }
 
   private fun updateOptionProvider() {
+    // Cache the currently focused button text so we can restore focus after the UI rebuild.
+    val focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().focusOwner
+
+    // ONLY save the focus state if the currently focused component is actually INSIDE this OptionsPanel,
+    // to prevent stealing focus from other parts of Android Studio during the initial load.
+    val focusedText =
+      if (focusOwner != null && SwingUtilities.isDescendingFrom(focusOwner, this)) {
+        (focusOwner as? AbstractButton)?.text
+      } else {
+        null
+      }
+
     removeAll()
     groups.clear()
     if (option == null) {
@@ -167,6 +184,25 @@ class OptionsPanel : JComponent() {
     buildPropertyUI(properties.values.toList().sortedBy { it.name })
     revalidate()
     repaint()
+
+    // Restore focus to the new instance of the previously focused component
+    if (focusedText != null) {
+      val componentToFocus = findComponentWithText(this, focusedText)
+      SwingUtilities.invokeLater { componentToFocus?.requestFocusInWindow() }
+    }
+  }
+
+  private fun findComponentWithText(container: Container, text: String): Component? {
+    for (component in container.components) {
+      if (component is AbstractButton && component.text == text) {
+        return component
+      }
+      if (component is Container) {
+        val found = findComponentWithText(component, text)
+        if (found != null) return found
+      }
+    }
+    return null
   }
 
   private fun buildHeader(propertyInfo: PropertyInfo?) {
