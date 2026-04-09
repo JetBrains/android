@@ -4626,6 +4626,18 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
                       Function ReferenceType        : org.gradle.api.artifacts.Dependency
+                    - MemberFunctionName            : platform
+                      Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - MemberFunctionName            : platform
+                      Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : project
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
@@ -4669,7 +4681,7 @@ Projects:
                             Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ProjectDependency
                 Properties
-                Supertypes                    : org.gradle.api.artifacts.dsl.GradleDependencies,org.gradle.api.artifacts.dsl.Dependencies,kotlin.Any
+                Supertypes                    : org.gradle.api.artifacts.dsl.GradleDependencies,org.gradle.api.artifacts.dsl.Dependencies,kotlin.Any,org.gradle.api.plugins.jvm.PlatformDependencyModifiers
             com.android.build.api.dsl.DependenciesInfo
                 Name                          : com.android.build.api.dsl.DependenciesInfo
                 MemberFunctions
@@ -8404,6 +8416,11 @@ Projects:
                 Supertypes                    : org.gradle.api.file.FileSystemLocationProperty,org.gradle.api.provider.Property,org.gradle.api.provider.Provider,kotlin.Any,org.gradle.api.provider.HasConfigurableValue,org.gradle.api.provider.SupportsConvention
             org.gradle.api.plugins.ExtensionAware
                 Name                          : org.gradle.api.plugins.ExtensionAware
+                MemberFunctions
+                Properties
+                Supertypes                    : kotlin.Any
+            org.gradle.api.plugins.jvm.PlatformDependencyModifiers
+                Name                          : org.gradle.api.plugins.jvm.PlatformDependencyModifiers
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
@@ -14304,6 +14321,18 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
                       Function ReferenceType        : org.gradle.api.artifacts.Dependency
+                    - MemberFunctionName            : platform
+                      Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - MemberFunctionName            : platform
+                      Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : project
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
@@ -14347,7 +14376,7 @@ Settings:
                             Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ProjectDependency
                 Properties
-                Supertypes                    : org.gradle.api.artifacts.dsl.GradleDependencies,org.gradle.api.artifacts.dsl.Dependencies,kotlin.Any
+                Supertypes                    : org.gradle.api.artifacts.dsl.GradleDependencies,org.gradle.api.artifacts.dsl.Dependencies,kotlin.Any,org.gradle.api.plugins.jvm.PlatformDependencyModifiers
             com.android.build.api.dsl.DependenciesInfo
                 Name                          : com.android.build.api.dsl.DependenciesInfo
                 MemberFunctions
@@ -18082,6 +18111,11 @@ Settings:
                 Supertypes                    : org.gradle.api.file.FileSystemLocationProperty,org.gradle.api.provider.Property,org.gradle.api.provider.Provider,kotlin.Any,org.gradle.api.provider.HasConfigurableValue,org.gradle.api.provider.SupportsConvention
             org.gradle.api.plugins.ExtensionAware
                 Name                          : org.gradle.api.plugins.ExtensionAware
+                MemberFunctions
+                Properties
+                Supertypes                    : kotlin.Any
+            org.gradle.api.plugins.jvm.PlatformDependencyModifiers
+                Name                          : org.gradle.api.plugins.jvm.PlatformDependencyModifiers
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
