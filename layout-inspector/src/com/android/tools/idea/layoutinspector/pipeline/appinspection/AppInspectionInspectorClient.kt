@@ -382,7 +382,7 @@ class AppInspectionInspectorClient(
   fun updateRecompositionCountSettings() {
     coroutineScope.launch(loggingExceptionHandler) {
       composeInspector?.updateSettings()
-      composeInspector?.recompositionStateReadsCache?.clear()
+      composeInspector?.recompositionCache?.clear()
     }
   }
 

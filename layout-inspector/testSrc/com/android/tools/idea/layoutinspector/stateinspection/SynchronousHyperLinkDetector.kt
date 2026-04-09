@@ -28,7 +28,7 @@ internal class SynchronousHyperLinkDetectorFactory : HyperLinkDetectorFactory {
 
 /** HyperLinkDetector used in tests with synchronous execution. */
 internal class SynchronousHyperLinkDetector(editor: EditorEx, scope: CoroutineScope, activatedLinkListener: EditorHyperlinkListener) :
-  StateInspectionHyperLinkDetector(editor, scope, activatedLinkListener) {
+  RecompositionHyperLinkDetector(editor, scope, activatedLinkListener) {
 
   override fun detectHyperlinks() {
     // The write action allows the AsyncFilterRunner used by EditorHyperlinkSupport to run all

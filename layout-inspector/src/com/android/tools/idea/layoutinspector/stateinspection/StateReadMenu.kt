@@ -18,7 +18,7 @@ package com.android.tools.idea.layoutinspector.stateinspection
 import com.android.tools.idea.layoutinspector.hasCapability
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.model.InspectorStateReadModel
+import com.android.tools.idea.layoutinspector.model.InspectorRecompositionModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -28,8 +28,8 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 
 const val STATE_READS_MIN_VERSION = "1.10.0"
 
-/** Create a "State Reads" menu group. */
-fun createStateReadMenuGroup(selected: ComposeViewNode, inspectorModel: InspectorModel): AnAction {
+/** Create an "Observe Recomposition" menu group. */
+fun createObserveRecompositionMenuGroup(selected: ComposeViewNode, inspectorModel: InspectorModel): AnAction {
   return object : ActionGroup("Observe Recomposition", true) {
     override fun update(event: AnActionEvent) {
       val inspector = LayoutInspectorRootPanel.get(event)
@@ -49,7 +49,7 @@ fun createStateReadMenuGroup(selected: ComposeViewNode, inspectorModel: Inspecto
     }
 
     override fun getChildren(event: AnActionEvent?): Array<AnAction> {
-      val model = inspectorModel.stateReadsModel
+      val model = inspectorModel.recompositionModel
       val result = mutableListOf<AnAction>()
       result.add(ObserveNodeAction(model, selected))
       result.add(ObserveAllAction(model))
@@ -59,7 +59,7 @@ fun createStateReadMenuGroup(selected: ComposeViewNode, inspectorModel: Inspecto
   }
 }
 
-private class ObserveNodeAction(private val model: InspectorStateReadModel, val topNode: ComposeViewNode) : AnAction("Observe Node") {
+private class ObserveNodeAction(private val model: InspectorRecompositionModel, val topNode: ComposeViewNode) : AnAction("Observe Node") {
   override fun actionPerformed(event: AnActionEvent) {
     if (model.isNodeObserved(topNode)) {
       model.stopObservingNode(topNode)
@@ -70,7 +70,7 @@ private class ObserveNodeAction(private val model: InspectorStateReadModel, val 
 
     // Close the StateInspectionPanel if nothing is observed:
     if (!model.isObservingAny()) {
-      model.stopShowingStateReads()
+      model.stopShowingRecompositionDetails()
     }
   }
 
@@ -82,7 +82,7 @@ private class ObserveNodeAction(private val model: InspectorStateReadModel, val 
   }
 }
 
-private class ObserveAllAction(private val model: InspectorStateReadModel) : AnAction("Observe All") {
+private class ObserveAllAction(private val model: InspectorRecompositionModel) : AnAction("Observe All") {
   override fun actionPerformed(event: AnActionEvent) {
     model.observeAll()
     LayoutInspectorRootPanel.get(event)?.currentClient?.stats?.observingAllSelected()
@@ -95,13 +95,13 @@ private class ObserveAllAction(private val model: InspectorStateReadModel) : AnA
   }
 }
 
-private class ObserveNoneAction(private val model: InspectorStateReadModel) : AnAction("Observe None") {
+private class ObserveNoneAction(private val model: InspectorRecompositionModel) : AnAction("Observe None") {
   override fun actionPerformed(event: AnActionEvent) {
     model.observeNone()
     LayoutInspectorRootPanel.get(event)?.currentClient?.stats?.observingNoneSelected()
 
     // Close the StateInspectionPanel since nothing is observed:
-    model.stopShowingStateReads()
+    model.stopShowingRecompositionDetails()
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT

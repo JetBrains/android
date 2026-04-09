@@ -62,17 +62,17 @@ private const val LINK_OFFSET_X = 50
 private const val LINK_OFFSET_Y = 6
 
 /**
- * Integration test that involves: [StateInspectionPanel], [StateInspectionModel],
+ * Integration test that involves: [RecompositionUiPanel], [RecompositionUiModel],
  * [com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient], and
- * [com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecompositionStateReadCache].
+ * [com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecompositionCache].
  */
 @RunsInEdt
-class StateInspectionPanelIntegrationTest {
+class RecompositionUiPanelIntegrationTest {
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
   private val inspectionRule = AppInspectionInspectorRule(projectRule)
   private val inspectorRule =
     LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider()), projectRule) { it.name == MODERN_PROCESS.name }
-  private lateinit var panel: StateInspectionPanel
+  private lateinit var panel: RecompositionUiPanel
 
   @get:Rule val rule = RuleChain(TestScopeRule(), projectRule, inspectionRule, inspectorRule, EdtRule())
 
@@ -218,16 +218,16 @@ class StateInspectionPanelIntegrationTest {
     inspectorRule.inspectorClient.stats.observingSingleNodeSelected()
   }
 
-  private fun clickOnStackTrace(ui: FakeUi, panel: StateInspectionPanel) {
+  private fun clickOnStackTrace(ui: FakeUi, panel: RecompositionUiPanel) {
     clickOnFirstMatch(ui, panel, "Text.kt:")
     clickOnFirstMatch(ui, panel, "MainActivity.kt:")
   }
 
-  private fun clickOnAILink(ui: FakeUi, panel: StateInspectionPanel) {
+  private fun clickOnAILink(ui: FakeUi, panel: RecompositionUiPanel) {
     clickOnFirstMatch(ui, panel, "(Explain with AI)")
   }
 
-  private fun clickOnFirstMatch(ui: FakeUi, panel: StateInspectionPanel, searchText: String) {
+  private fun clickOnFirstMatch(ui: FakeUi, panel: RecompositionUiPanel, searchText: String) {
     val editor = panel.getUserData(STATE_READ_EDITOR_KEY)!!
     val offset = editor.document.text.indexOf(searchText)
     val point = editor.offsetToXY(offset)
@@ -235,7 +235,7 @@ class StateInspectionPanelIntegrationTest {
     ui.mouse.click(xy.x + LINK_OFFSET_X, xy.y + LINK_OFFSET_Y)
   }
 
-  private fun StateInspectionPanel.checkContent(dataFile: String) {
+  private fun RecompositionUiPanel.checkContent(dataFile: String) {
     var expectedText = ""
     if (dataFile.isNotEmpty()) {
       val file = "${TEST_DATA_PATH}/$dataFile"
@@ -245,7 +245,7 @@ class StateInspectionPanelIntegrationTest {
     waitForCondition(10.seconds) { editor.document.text == expectedText }
   }
 
-  private fun StateInspectionPanel.checkComposableInspected() {
+  private fun RecompositionUiPanel.checkComposableInspected() {
     val editor = getUserData(STATE_READ_EDITOR_KEY)
     waitForCondition(10.seconds) {
       val data = editor!!.getUserData(LAYOUT_INSPECTOR_COMPOSABLE_INSPECTED_KEY)
@@ -253,7 +253,7 @@ class StateInspectionPanelIntegrationTest {
     }
   }
 
-  private fun StateInspectionPanel.buttonWithIcon(icon: Icon): ActionButton =
+  private fun RecompositionUiPanel.buttonWithIcon(icon: Icon): ActionButton =
     getDescendant<ActionButton> { it.action.templatePresentation.icon == icon }
 
   private fun FakeUi.click(button: ActionButton) {
@@ -261,10 +261,10 @@ class StateInspectionPanelIntegrationTest {
     mouse.click(point.x, point.y)
   }
 
-  private fun createPanel(): StateInspectionPanel {
+  private fun createPanel(): RecompositionUiPanel {
     val model = inspectorRule.inspectorModel
     val detectorFactory = SynchronousHyperLinkDetectorFactory()
-    val panel = createStateInspectionPanel(inspectorRule.inspector, projectRule.testRootDisposable, detectorFactory)
+    val panel = createRecompositionUiPanel(inspectorRule.inspector, projectRule.testRootDisposable, detectorFactory)
     panel.size = Dimension(800, 600)
     return panel
   }
@@ -283,6 +283,6 @@ class StateInspectionPanelIntegrationTest {
 
   private fun requestStateReads() {
     val model = inspectorRule.inspectorModel
-    model.stateReadsModel.requestStateReadFor(model[COMPOSE1] as ComposeViewNode)
+    model.recompositionModel.requestRecompositionDataFor(model[COMPOSE1] as ComposeViewNode)
   }
 }

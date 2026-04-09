@@ -103,7 +103,7 @@ private val STATE_READ_STARTS = listOf(SNAPSHOT_READABLE, DERIVED_SNAPSHOT_STATE
  * - the start of the exception stacktrace (common to all/most state reads)
  * - the end of the exception stacktrace (usually doesn't hold informative data)
  */
-internal class StateInspectionFoldingDetector(private val editor: Editor, private val scope: CoroutineScope) {
+internal class RecompositionFoldingDetector(private val editor: Editor, private val scope: CoroutineScope) {
   private val document = editor.document
   private val foldingModel = editor.foldingModel as? FoldingModelEx
   private var lines: List<String> = emptyList()

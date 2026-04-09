@@ -34,13 +34,13 @@ import org.jetbrains.annotations.TestOnly
 
 private const val CLICK_LINK_ACTION_ID = "ClickLink"
 
-internal class StateInspectionHyperLinkDetectorFactory : HyperLinkDetectorFactory {
+internal class RecompositionHyperLinkDetectorFactory : HyperLinkDetectorFactory {
   override fun create(editor: EditorEx, scope: CoroutineScope, activatedLinkListener: EditorHyperlinkListener): HyperLinkDetector =
-    StateInspectionHyperLinkDetector(editor, scope, activatedLinkListener)
+    RecompositionHyperLinkDetector(editor, scope, activatedLinkListener)
 }
 
 /** A Hyperlink detector that adds hyperlinks to an [Editor] */
-internal open class StateInspectionHyperLinkDetector(
+internal open class RecompositionHyperLinkDetector(
   private val editor: EditorEx,
   scope: CoroutineScope,
   private val activatedLinkListener: EditorHyperlinkListener,
@@ -62,7 +62,7 @@ internal open class StateInspectionHyperLinkDetector(
         // readAction.
         val filters = smartReadAction(project) { ConsoleViewUtil.computeConsoleFilters(project, null, GlobalSearchScope.allScope(project)) }
         // Allow custom extensions to add hyperlinks:
-        LayoutInspectorStateInspectionFilterProvider.EP_NAME.extensionList.map { it.create(editor) }.forEach { filter.addFilter(it) }
+        LayoutInspectorRecompositionFilterProvider.EP_NAME.extensionList.map { it.create(editor) }.forEach { filter.addFilter(it) }
 
         filters.forEach { filter.addFilter(it) }
 

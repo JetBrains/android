@@ -27,7 +27,7 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
-import com.android.tools.idea.layoutinspector.stateinspection.createStateReadMenuGroup
+import com.android.tools.idea.layoutinspector.stateinspection.createObserveRecompositionMenuGroup
 import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
 import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -86,7 +86,7 @@ fun showViewContextMenu(
           result.add(Separator.create())
         }
         if (selectedView is ComposeViewNode && StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_STATE_READS.get()) {
-          val stateReadGroup = createStateReadMenuGroup(selectedView, inspectorModel)
+          val stateReadGroup = createObserveRecompositionMenuGroup(selectedView, inspectorModel)
           result.add(stateReadGroup)
         }
         result.add(GotoDeclarationAction)

@@ -17,5 +17,5 @@ package com.android.tools.idea.layoutinspector.stateinspection
 
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 
-/** Specifies a [composable] and a [recomposition] which identifies a set of state reads. */
-data class StateReadKey(val composable: ComposeViewNode, val recomposition: Int)
+/** Specifies a [composable] and a [recomposition] which identifies recomposition details. */
+data class RecompositionKey(val composable: ComposeViewNode, val recomposition: Int)

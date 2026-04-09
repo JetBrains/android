@@ -19,13 +19,13 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 
 /** Provides a way to customize the text shown in the first line of a state read trace. */
-interface LayoutInspectorStateReadRewriter {
+interface LayoutInspectorRecompositionRewriter {
 
   /** Given the first line of a state [read] return a different line to use instead. */
   fun rewriteStateRead(project: Project, read: String): String
 
   companion object {
-    internal val EP_NAME: ExtensionPointName<LayoutInspectorStateReadRewriter> =
-      ExtensionPointName.create("com.android.tools.idea.layoutinspector.stateinspection.stateReadRewriter")
+    internal val EP_NAME: ExtensionPointName<LayoutInspectorRecompositionRewriter> =
+      ExtensionPointName.create("com.android.tools.idea.layoutinspector.stateinspection.recompositionRewriter")
   }
 }

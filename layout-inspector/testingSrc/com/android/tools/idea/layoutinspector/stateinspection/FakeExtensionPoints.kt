@@ -31,18 +31,18 @@ fun installFakeExtensionPoints(disposable: Disposable) {
       override fun navigate(project: Project) {}
     }
   val provider = FakeFilterProvider(hyperLinkInfo)
-  ExtensionTestUtil.maskExtensions(LayoutInspectorStateInspectionFilterProvider.EP_NAME, listOf(provider), disposable)
+  ExtensionTestUtil.maskExtensions(LayoutInspectorRecompositionFilterProvider.EP_NAME, listOf(provider), disposable)
   val rewriter =
-    object : LayoutInspectorStateReadRewriter {
+    object : LayoutInspectorRecompositionRewriter {
       override fun rewriteStateRead(project: Project, read: String): String {
         return "$read $EXPLAIN_WITH_AI"
       }
     }
-  ExtensionTestUtil.maskExtensions(LayoutInspectorStateReadRewriter.EP_NAME, listOf(rewriter), disposable)
+  ExtensionTestUtil.maskExtensions(LayoutInspectorRecompositionRewriter.EP_NAME, listOf(rewriter), disposable)
 }
 
-/** [LayoutInspectorStateInspectionFilterProvider] that adds a (Ask Gemini) text to each state read. */
-private class FakeFilterProvider(private val link: HyperlinkInfo) : LayoutInspectorStateInspectionFilterProvider {
+/** [LayoutInspectorRecompositionFilterProvider] that adds a (Ask Gemini) text to each state read. */
+private class FakeFilterProvider(private val link: HyperlinkInfo) : LayoutInspectorRecompositionFilterProvider {
   override fun create(editor: EditorEx): Filter {
     return FilterForTest(link)
   }

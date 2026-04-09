@@ -70,9 +70,10 @@
     <extensionPoint qualifiedName="com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.getComposeLayoutInspectorJarToken"
                     interface="com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.GetComposeLayoutInspectorJarToken"/>
     <extensionPoint qualifiedName="com.android.tools.idea.layoutinspector.stateinspection.filterProvider"
-                    interface="com.android.tools.idea.layoutinspector.stateinspection.LayoutInspectorStateInspectionFilterProvider" />
-    <extensionPoint qualifiedName="com.android.tools.idea.layoutinspector.stateinspection.stateReadRewriter"
-                    interface="com.android.tools.idea.layoutinspector.stateinspection.LayoutInspectorStateReadRewriter" />
+                    interface="com.android.tools.idea.layoutinspector.stateinspection.LayoutInspectorRecompositionFilterProvider" />
+    <extensionPoint qualifiedName="com.android.tools.idea.layoutinspector.stateinspection.recompositionRewriter"
+                    interface="com.android.tools.idea.layoutinspector.stateinspection.LayoutInspectorRecompositionRewriter"
+                    name="com.android.tools.idea.layoutinspector.stateinspection.recompositionRewriter"/>
     <extensionPoint qualifiedName="com.android.tools.idea.layoutinspector.resource.getLambdaResolutionToken"
                     interface="com.android.tools.idea.layoutinspector.resource.LambdaResolutionToken"/>
   </extensionPoints>

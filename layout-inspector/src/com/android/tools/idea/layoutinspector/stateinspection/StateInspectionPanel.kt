@@ -68,28 +68,28 @@ private const val INVALIDATED_LAYER = 10
 private const val KEY_EMPTY = "EMPTY_STATE"
 private const val KEY_EDITOR = "EDITOR"
 
-/** Convenience function for creating a StateInspectionPanel */
-internal fun createStateInspectionPanel(
+/** Convenience function for creating a RecompositionUiPanel */
+internal fun createRecompositionUiPanel(
   layoutInspector: LayoutInspector,
   parentDisposable: Disposable,
-  hyperLinkDetectorFactory: HyperLinkDetectorFactory = StateInspectionHyperLinkDetectorFactory(),
-): StateInspectionPanel {
+  hyperLinkDetectorFactory: HyperLinkDetectorFactory = RecompositionHyperLinkDetectorFactory(),
+): RecompositionUiPanel {
   val inspectorModel = layoutInspector.inspectorModel
   val project = inspectorModel.project
   val stats = { layoutInspector.currentClient.stats }
-  val model = StateInspectionModelImpl(inspectorModel, layoutInspector.coroutineScope, parentDisposable) { stats().stateReadsShown() }
+  val model = RecompositionUiModelImpl(inspectorModel, layoutInspector.coroutineScope, parentDisposable) { stats().stateReadsShown() }
   val uiScope = parentDisposable.createCoroutineScope(extraContext = Dispatchers.EDT)
-  return StateInspectionPanel(model, project, stats, uiScope, parentDisposable, hyperLinkDetectorFactory)
+  return RecompositionUiPanel(model, project, stats, uiScope, parentDisposable, hyperLinkDetectorFactory)
 }
 
-/** A panel to display state reads for recompositions. */
-internal class StateInspectionPanel(
-  model: StateInspectionModel,
+/** A panel to display recomposition details. */
+internal class RecompositionUiPanel(
+  model: RecompositionUiModel,
   project: Project,
   stats: () -> SessionStatistics,
   scope: CoroutineScope,
   parentDisposable: Disposable,
-  hyperLinkDetectorFactory: HyperLinkDetectorFactory = StateInspectionHyperLinkDetectorFactory(),
+  hyperLinkDetectorFactory: HyperLinkDetectorFactory = RecompositionHyperLinkDetectorFactory(),
 ) : AdtSecondaryPanel(BorderLayout()) {
   private var innerPanel: InnerStateInspectionPanel? = null
     set(value) {
@@ -110,7 +110,7 @@ internal class StateInspectionPanel(
         innerPanel =
           if (!show) null
           else
-            InnerStateInspectionPanel(this@StateInspectionPanel, model, stats, project, scope, hyperLinkDetectorFactory, parentDisposable)
+            InnerStateInspectionPanel(this@RecompositionUiPanel, model, stats, project, scope, hyperLinkDetectorFactory, parentDisposable)
       }
     }
   }
@@ -121,8 +121,8 @@ internal class StateInspectionPanel(
  * the (heavy) editor is not created unless it is needed.
  */
 private class InnerStateInspectionPanel(
-  private val parent: StateInspectionPanel,
-  model: StateInspectionModel,
+  private val parent: RecompositionUiPanel,
+  model: RecompositionUiModel,
   private val stats: () -> SessionStatistics,
   project: Project,
   parentScope: CoroutineScope,
@@ -145,7 +145,7 @@ private class InnerStateInspectionPanel(
   private val editor = createStateReadEditor(project, this)
   private val listener = EditorHyperlinkListener { logUsageEvent(it) }
   private val hyperlinkDetector = hyperLinkDetectorFactory.create(editor, scope, listener)
-  private val foldingDetector = StateInspectionFoldingDetector(editor, scope)
+  private val foldingDetector = RecompositionFoldingDetector(editor, scope)
   private val prev = ActionButton(model.prevAction, null, UNKNOWN, DEFAULT_MINIMUM_BUTTON_SIZE)
   private val next = ActionButton(model.nextAction, null, UNKNOWN, DEFAULT_MINIMUM_BUTTON_SIZE)
   private val minimize = ActionButton(model.minimizeAction, null, UNKNOWN, DEFAULT_MINIMUM_BUTTON_SIZE)
@@ -154,7 +154,7 @@ private class InnerStateInspectionPanel(
     isFocusable = false
     Disposer.register(parentDisposable, this)
     parent.putUserData(STATE_READ_EDITOR_KEY, editor) // For testing
-    title.text = LayoutInspectorBundle.message("layout.inspector.recomposition.state.reads")
+    title.text = LayoutInspectorBundle.message("layout.inspector.recomposition.details")
     title.border = JBUI.Borders.empty(2, 5)
     prev.maximumSize = DEFAULT_MINIMUM_BUTTON_SIZE
     prev.isFocusable = true
@@ -196,7 +196,7 @@ private class InnerStateInspectionPanel(
     parent.putUserData(STATE_READ_EDITOR_KEY, null)
   }
 
-  private suspend fun update(content: StateInspectionContent) {
+  private suspend fun update(content: RecompositionContent) {
     recompositionText.text = content.recompositionText
     stateReadCountText.text = content.stateReadsText
     editor.putUserData(LAYOUT_INSPECTOR_COMPOSABLE_INSPECTED_KEY, content.composableInspected)

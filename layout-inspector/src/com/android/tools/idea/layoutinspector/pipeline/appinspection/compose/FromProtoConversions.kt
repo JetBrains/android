@@ -91,11 +91,11 @@ private fun ComposableNode.countNodes(counts: Counts, depth: Int) {
 
 private data class Counts(var nodes: Int, var systemNodes: Int, var depth: Int)
 
-fun convertStateRead(
+fun convertRecompositionResponse(
   response: GetRecompositionStateReadResponse,
   lookup: ViewNodeAndResourceLookup,
-): Map<Int, List<RecomposeStateReadData>> {
-  val result = mutableMapOf<Int, List<RecomposeStateReadData>>()
+): Map<Int, RecompositionDetails> {
+  val result = mutableMapOf<Int, RecompositionDetails>()
   val stringTable = StringTableImpl(response.stringsList)
   val valueGenerator = ComposeParametersDataGenerator(stringTable, lookup)
   response.readList.forEach { read -> result[read.recompositionNumber] = convertRecompositionStateRead(read, stringTable, valueGenerator) }
@@ -106,21 +106,23 @@ fun convertRecompositionStateRead(
   read: StateReadGroup,
   stringTable: StringTable,
   valueGenerator: ComposeParametersDataGenerator,
-): List<RecomposeStateReadData> {
-  return read.readList.map { read ->
-    val item = valueGenerator.generateItem(-1L, -1L, ParameterKind.Unknown, read.value)
-    RecomposeStateReadData(
-      item,
-      read.valueInstanceHash,
-      read.invalidated,
-      read.stackTraceLineList.map {
-        TraceElement(
-          declaringClass = stringTable[it.declaringClass],
-          methodName = stringTable[it.methodName],
-          fileName = stringTable[it.fileName],
-          lineNumber = it.lineNumber,
-        )
-      },
-    )
-  }
+): RecompositionDetails {
+  val reads =
+    read.readList.map { read ->
+      val item = valueGenerator.generateItem(-1L, -1L, ParameterKind.Unknown, read.value)
+      RecomposeStateReadData(
+        item,
+        read.valueInstanceHash,
+        read.invalidated,
+        read.stackTraceLineList.map {
+          TraceElement(
+            declaringClass = stringTable[it.declaringClass],
+            methodName = stringTable[it.methodName],
+            fileName = stringTable[it.fileName],
+            lineNumber = it.lineNumber,
+          )
+        },
+      )
+    }
+  return RecompositionDetails(reads)
 }

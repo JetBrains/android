@@ -20,16 +20,16 @@ import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.extensions.ExtensionPointName
 
 /**
- * Provides a [Filter] that is applicable only to the state inspection in the Layout Inspector. A [Filter] is used by EditorHyperlinkSupport
- * to format certain text sequences as hyperlinks.
+ * Provides a [Filter] that is applicable only to the recomposition details in the Layout Inspector. A [Filter] is used by
+ * EditorHyperlinkSupport to format certain text sequences as hyperlinks.
  */
-interface LayoutInspectorStateInspectionFilterProvider {
+interface LayoutInspectorRecompositionFilterProvider {
 
   /** Creates a [Filter] for the text in the [editor]. */
   fun create(editor: EditorEx): Filter
 
   companion object {
-    val EP_NAME: ExtensionPointName<LayoutInspectorStateInspectionFilterProvider> =
+    val EP_NAME: ExtensionPointName<LayoutInspectorRecompositionFilterProvider> =
       ExtensionPointName.create("com.android.tools.idea.layoutinspector.stateinspection.filterProvider")
   }
 }

@@ -27,7 +27,7 @@ import org.junit.Test
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData/stateinspection"
 
-class StateInspectionFoldingDetectorTest {
+class RecompositionFoldingDetectorTest {
   private val projectRule = AndroidProjectRule.inMemory()
 
   @get:Rule val rule = RuleChain(TestScopeRule(), projectRule)
@@ -37,7 +37,7 @@ class StateInspectionFoldingDetectorTest {
     val file = "${TEST_DATA_PATH}/state_reads_1_2.txt"
     val text = TestUtils.resolveWorkspacePathUnchecked(file).readText()
     val editor = runInEdtAndGet { projectRule.createEditorWithContent(text) }
-    val detector = StateInspectionFoldingDetector(editor, this)
+    val detector = RecompositionFoldingDetector(editor, this)
     detector.detectFolding()?.join()
     validateFoldingModel(editor.foldingModel) {
       fold(startLine = 2, endLine = 12, "<detailed value...>")
@@ -53,7 +53,7 @@ class StateInspectionFoldingDetectorTest {
     val file = "${TEST_DATA_PATH}/state_reads_unrecognized_exception.txt"
     val text = TestUtils.resolveWorkspacePathUnchecked(file).readText()
     val editor = runInEdtAndGet { projectRule.createEditorWithContent(text) }
-    val detector = StateInspectionFoldingDetector(editor, this)
+    val detector = RecompositionFoldingDetector(editor, this)
     detector.detectFolding()?.join()
     validateFoldingModel(editor.foldingModel) {
       fold(39, 47, "<9 more...>")
@@ -66,7 +66,7 @@ class StateInspectionFoldingDetectorTest {
     val file = "${TEST_DATA_PATH}/state_reads_derived_snapshot_state_read.txt"
     val text = TestUtils.resolveWorkspacePathUnchecked(file).readText()
     val editor = runInEdtAndGet { projectRule.createEditorWithContent(text) }
-    val detector = StateInspectionFoldingDetector(editor, this)
+    val detector = RecompositionFoldingDetector(editor, this)
     detector.detectFolding()?.join()
     validateFoldingModel(editor.foldingModel) {
       fold(2, 5, "<4 more...>")

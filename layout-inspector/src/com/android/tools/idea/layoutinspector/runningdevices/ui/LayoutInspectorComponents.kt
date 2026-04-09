@@ -23,7 +23,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.runningdevices.SPLITTER_KEY
 import com.android.tools.idea.layoutinspector.runningdevices.actions.UiConfig
-import com.android.tools.idea.layoutinspector.stateinspection.createStateInspectionPanel
+import com.android.tools.idea.layoutinspector.stateinspection.createRecompositionUiPanel
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
@@ -168,7 +168,7 @@ private fun createToolsPanel(
     OnePixelSplitter(true, SPLITTER_KEY, 0.65f).apply {
       name = STATE_READ_SPLITTER_NAME
       firstComponent = workBench
-      secondComponent = createStateInspectionPanel(layoutInspector, disposable)
+      secondComponent = createRecompositionUiPanel(layoutInspector, disposable)
       setBlindZone { JBUI.insets(0, 1) }
     }
 

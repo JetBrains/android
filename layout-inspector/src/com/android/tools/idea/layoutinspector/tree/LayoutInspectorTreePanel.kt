@@ -211,10 +211,10 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
         minInt = { 0 },
         headerRenderer = createCountsHeader(),
         hasCustomCursor = true,
-        actionEnabled = { item -> isStateReadsEnabledForNode(item.view) },
-        action = { item, _, _ -> showStateReadsForNode(item.view) },
+        actionEnabled = { item -> isRecompositionsObservedForNode(item.view) },
+        action = { item, _, _ -> showRecompositionDetailsForNode(item.view) },
         popup = ::showPopup,
-        tooltip = { item -> if (isStateReadsEnabledForNode(item.view)) LayoutInspectorBundle.message(CLICK_FOR_STATE_READ) else "" },
+        tooltip = { item -> if (isRecompositionsObservedForNode(item.view)) LayoutInspectorBundle.message(CLICK_FOR_STATE_READ) else "" },
       )
 
     val recompositionChildCountColumn =
@@ -350,7 +350,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       interactions.setColumnVisibility(3, show)
       if (!show) {
         // When recompositions are hidden we want to stop showing recomposition details as well.
-        inspectorModel?.stateReadsModel?.stopShowingStateReads()
+        inspectorModel?.recompositionModel?.stopShowingRecompositionDetails()
       }
     }
   }
@@ -671,17 +671,17 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     updateRecompositionColumnVisibility()
   }
 
-  private fun isStateReadsEnabledForNode(view: ViewNode): Boolean {
+  private fun isRecompositionsObservedForNode(view: ViewNode): Boolean {
     return StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_STATE_READS.get() &&
       layoutInspector.hasCapability(Capability.CAN_OBSERVE_RECOMPOSE_STATE_READS) &&
       view.recompositions.count > 0 &&
       view is ComposeViewNode &&
-      inspectorModel?.stateReadsModel?.isNodeObserved(view) == true
+      inspectorModel?.recompositionModel?.isNodeObserved(view) == true
   }
 
-  private fun showStateReadsForNode(view: ViewNode) {
-    if (isStateReadsEnabledForNode(view)) {
-      inspectorModel?.stateReadsModel?.requestStateReadFor(view as ComposeViewNode)
+  private fun showRecompositionDetailsForNode(view: ViewNode) {
+    if (isRecompositionsObservedForNode(view)) {
+      inspectorModel?.recompositionModel?.requestRecompositionDataFor(view as ComposeViewNode)
     }
   }
 

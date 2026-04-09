@@ -15,42 +15,42 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecomposeStateReadResult
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecompositionDetailsResult
 import com.android.tools.idea.layoutinspector.stateinspection.ObservedNodes
 import com.android.tools.idea.layoutinspector.stateinspection.ObservedNodes.All
 import com.android.tools.idea.layoutinspector.stateinspection.ObservedNodes.None
 import com.android.tools.idea.layoutinspector.stateinspection.ObservedNodes.Some
-import com.android.tools.idea.layoutinspector.stateinspection.StateReadKey
+import com.android.tools.idea.layoutinspector.stateinspection.RecompositionKey
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-/** Data for compose State Reads */
-class InspectorStateReadModel {
+/** Data for compose recompositions */
+class InspectorRecompositionModel {
 
-  /** The nodes state reads are observed for. */
-  private val _observedForStateReads = MutableStateFlow<ObservedNodes>(None)
-  val observedForStateReads: StateFlow<ObservedNodes> = _observedForStateReads.asStateFlow()
+  /** The nodes recompositions are observed for. */
+  private val _observedForRecompositions = MutableStateFlow<ObservedNodes>(None)
+  val observedForRecompositions: StateFlow<ObservedNodes> = _observedForRecompositions.asStateFlow()
 
-  /** The key that state reads are requested for. */
-  private val _stateReadRequested = MutableStateFlow<StateReadKey?>(null)
-  val stateReadRequested = _stateReadRequested.asStateFlow()
+  /** The key that recomposition data is requested for. */
+  private val _recompositionDataRequested = MutableStateFlow<RecompositionKey?>(null)
+  val recompositionDataRequested = _recompositionDataRequested.asStateFlow()
 
-  /** The state reads for [stateReadRequested] */
-  val stateReads = MutableStateFlow<RecomposeStateReadResult?>(null)
+  /** The recomposition details for [recompositionDataRequested] */
+  val recompositionDetails = MutableStateFlow<RecompositionDetailsResult?>(null)
 
-  fun requestStateReadFor(node: ComposeViewNode, recomposition: Int = node.recompositions.count) {
-    _stateReadRequested.value = StateReadKey(node, recomposition)
+  fun requestRecompositionDataFor(node: ComposeViewNode, recomposition: Int = node.recompositions.count) {
+    _recompositionDataRequested.value = RecompositionKey(node, recomposition)
   }
 
-  fun stopShowingStateReads() {
-    _stateReadRequested.value = null
-    stateReads.value = null
+  fun stopShowingRecompositionDetails() {
+    _recompositionDataRequested.value = null
+    recompositionDetails.value = null
   }
 
   fun observeNode(node: ComposeViewNode) {
-    val current = _observedForStateReads.value
-    _observedForStateReads.value =
+    val current = _observedForRecompositions.value
+    _observedForRecompositions.value =
       when (current) {
         is All -> All // Switch from All to Some is not supported
         is None -> Some(setOf(node.anchorHash))
@@ -59,8 +59,8 @@ class InspectorStateReadModel {
   }
 
   fun stopObservingNode(node: ComposeViewNode) {
-    val current = _observedForStateReads.value
-    _observedForStateReads.value =
+    val current = _observedForRecompositions.value
+    _observedForRecompositions.value =
       when (current) {
         is All -> All // Switch from All to Some is not supported
         is None -> None
@@ -69,19 +69,19 @@ class InspectorStateReadModel {
   }
 
   fun observeAll() {
-    _observedForStateReads.value = All
+    _observedForRecompositions.value = All
   }
 
   fun observeNone() {
-    _observedForStateReads.value = None
+    _observedForRecompositions.value = None
   }
 
-  fun isObservingAll(): Boolean = _observedForStateReads.value == All
+  fun isObservingAll(): Boolean = _observedForRecompositions.value == All
 
-  fun isObservingAny(): Boolean = _observedForStateReads.value != None
+  fun isObservingAny(): Boolean = _observedForRecompositions.value != None
 
   fun isNodeObserved(node: ComposeViewNode): Boolean {
-    return when (val current = _observedForStateReads.value) {
+    return when (val current = _observedForRecompositions.value) {
       is All -> true
       is None -> false
       is Some -> current.nodeAnchors.contains(node.anchorHash)

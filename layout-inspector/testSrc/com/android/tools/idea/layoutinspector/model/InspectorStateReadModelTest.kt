@@ -27,7 +27,7 @@ import com.intellij.testFramework.RuleChain
 import org.junit.Rule
 import org.junit.Test
 
-class InspectorStateReadModelTest {
+class InspectorRecompositionModelTest {
   private val disposableRule = DisposableRule()
 
   @get:Rule val rule = RuleChain(TestScopeRule(), disposableRule, ApplicationRule())
@@ -37,17 +37,17 @@ class InspectorStateReadModelTest {
     val model = createModel()
     val compose2 = model[COMPOSE2] as ComposeViewNode
     val compose8 = model[COMPOSE8] as ComposeViewNode
-    assertThat(model.stateReadsModel.isNodeObserved(model.node(COMPOSE2))).isFalse()
+    assertThat(model.recompositionModel.isNodeObserved(model.node(COMPOSE2))).isFalse()
 
-    model.stateReadsModel.observeNode(model.node(COMPOSE2))
-    assertThat(model.stateReadsModel.observedForStateReads.value).isEqualTo(Some(setOf(compose2.anchorHash)))
-    assertThat(model.stateReadsModel.isNodeObserved(model.node(COMPOSE2))).isTrue()
-    assertThat(model.stateReadsModel.isNodeObserved(model.node(COMPOSE8))).isFalse()
+    model.recompositionModel.observeNode(model.node(COMPOSE2))
+    assertThat(model.recompositionModel.observedForRecompositions.value).isEqualTo(Some(setOf(compose2.anchorHash)))
+    assertThat(model.recompositionModel.isNodeObserved(model.node(COMPOSE2))).isTrue()
+    assertThat(model.recompositionModel.isNodeObserved(model.node(COMPOSE8))).isFalse()
 
-    model.stateReadsModel.observeNode(model.node(COMPOSE8))
-    assertThat(model.stateReadsModel.observedForStateReads.value).isEqualTo(Some(setOf(compose2.anchorHash, compose8.anchorHash)))
-    assertThat(model.stateReadsModel.isNodeObserved(model.node(COMPOSE2))).isTrue()
-    assertThat(model.stateReadsModel.isNodeObserved(model.node(COMPOSE8))).isTrue()
+    model.recompositionModel.observeNode(model.node(COMPOSE8))
+    assertThat(model.recompositionModel.observedForRecompositions.value).isEqualTo(Some(setOf(compose2.anchorHash, compose8.anchorHash)))
+    assertThat(model.recompositionModel.isNodeObserved(model.node(COMPOSE2))).isTrue()
+    assertThat(model.recompositionModel.isNodeObserved(model.node(COMPOSE8))).isTrue()
   }
 
   @Test
@@ -57,43 +57,43 @@ class InspectorStateReadModelTest {
     val compose3 = model[COMPOSE3] as ComposeViewNode
     val compose4 = model[COMPOSE4] as ComposeViewNode
     val compose5 = model[COMPOSE5] as ComposeViewNode
-    model.stateReadsModel.observeNode(compose2)
-    model.stateReadsModel.observeNode(compose3)
-    model.stateReadsModel.observeNode(compose4)
-    model.stateReadsModel.observeNode(compose5)
-    assertThat(model.stateReadsModel.observedForStateReads.value)
+    model.recompositionModel.observeNode(compose2)
+    model.recompositionModel.observeNode(compose3)
+    model.recompositionModel.observeNode(compose4)
+    model.recompositionModel.observeNode(compose5)
+    assertThat(model.recompositionModel.observedForRecompositions.value)
       .isEqualTo(Some(setOf(compose2.anchorHash, compose3.anchorHash, compose4.anchorHash, compose5.anchorHash)))
-    assertThat(model.stateReadsModel.isNodeObserved(model.node(COMPOSE2))).isTrue()
-    assertThat(model.stateReadsModel.isNodeObserved(model.node(COMPOSE4))).isTrue()
-    assertThat(model.stateReadsModel.isNodeObserved(model.node(COMPOSE5))).isTrue()
+    assertThat(model.recompositionModel.isNodeObserved(model.node(COMPOSE2))).isTrue()
+    assertThat(model.recompositionModel.isNodeObserved(model.node(COMPOSE4))).isTrue()
+    assertThat(model.recompositionModel.isNodeObserved(model.node(COMPOSE5))).isTrue()
 
-    model.stateReadsModel.stopObservingNode(compose4)
-    assertThat(model.stateReadsModel.observedForStateReads.value)
+    model.recompositionModel.stopObservingNode(compose4)
+    assertThat(model.recompositionModel.observedForRecompositions.value)
       .isEqualTo(Some(setOf(compose2.anchorHash, compose3.anchorHash, compose5.anchorHash)))
-    assertThat(model.stateReadsModel.isNodeObserved(compose4)).isFalse()
-    model.stateReadsModel.stopObservingNode(compose5)
-    assertThat(model.stateReadsModel.observedForStateReads.value).isEqualTo(Some(setOf(compose2.anchorHash, compose3.anchorHash)))
-    assertThat(model.stateReadsModel.isNodeObserved(compose5)).isFalse()
+    assertThat(model.recompositionModel.isNodeObserved(compose4)).isFalse()
+    model.recompositionModel.stopObservingNode(compose5)
+    assertThat(model.recompositionModel.observedForRecompositions.value).isEqualTo(Some(setOf(compose2.anchorHash, compose3.anchorHash)))
+    assertThat(model.recompositionModel.isNodeObserved(compose5)).isFalse()
   }
 
   @Test
   fun testObserveAll() {
     val model = createModel()
-    model.stateReadsModel.observeAll()
-    assertThat(model.stateReadsModel.isObservingAll()).isTrue()
-    assertThat(model.stateReadsModel.observedForStateReads.value).isEqualTo(All)
-    assertThat(model.stateReadsModel.isNodeObserved(model.node(COMPOSE3))).isTrue()
+    model.recompositionModel.observeAll()
+    assertThat(model.recompositionModel.isObservingAll()).isTrue()
+    assertThat(model.recompositionModel.observedForRecompositions.value).isEqualTo(All)
+    assertThat(model.recompositionModel.isNodeObserved(model.node(COMPOSE3))).isTrue()
   }
 
   @Test
   fun testObserveNone() {
     val model = createModel()
-    model.stateReadsModel.observeNode(model.node(COMPOSE2))
-    model.stateReadsModel.observeNode(model.node(COMPOSE3))
-    model.stateReadsModel.observeNone()
-    assertThat(model.stateReadsModel.observedForStateReads.value).isEqualTo(None)
-    assertThat(model.stateReadsModel.isObservingAll()).isFalse()
-    assertThat(model.stateReadsModel.isObservingAny()).isFalse()
+    model.recompositionModel.observeNode(model.node(COMPOSE2))
+    model.recompositionModel.observeNode(model.node(COMPOSE3))
+    model.recompositionModel.observeNone()
+    assertThat(model.recompositionModel.observedForRecompositions.value).isEqualTo(None)
+    assertThat(model.recompositionModel.isObservingAll()).isFalse()
+    assertThat(model.recompositionModel.isObservingAny()).isFalse()
   }
 
   private fun InspectorModel.node(id: Long): ComposeViewNode = get(id) as ComposeViewNode

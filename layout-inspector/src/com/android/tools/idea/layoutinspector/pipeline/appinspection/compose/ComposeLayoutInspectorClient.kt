@@ -416,7 +416,7 @@ class ComposeLayoutInspectorClient(
 
   val parametersCache = ComposeParametersCache(this, model)
 
-  val recompositionStateReadsCache = RecompositionStateReadCache(this, model, scope)
+  val recompositionCache = RecompositionCache(this, model, scope)
 
   /** The caller will supply a running (increasing) number, that can be used to coordinate the responses from varies commands. */
   private var lastGeneration = 0
@@ -516,7 +516,7 @@ class ComposeLayoutInspectorClient(
   }
 
   /**
-   * Get recomposition state reads for a composable and a range of recompositions.
+   * Get recomposition details for a composable and a range of recomposition numbers.
    *
    * @param anchorHash The anchor hash of the composable to retrieve state reads for
    * @param recompositionNumberStart the lower recomposition number of the range
@@ -524,7 +524,7 @@ class ComposeLayoutInspectorClient(
    * @param includeExtra If false: return state reads for the specified recompositions only. If true: include extra recompositions after
    *   recomposition_number_end if any of the recompositions in the specified range doesn't have state reads.
    */
-  suspend fun getRecompositionStateReads(
+  suspend fun getRecompositionDetails(
     anchorHash: Int,
     recompositionNumberStart: Int,
     recompositionNumberEnd: Int,
@@ -549,7 +549,7 @@ class ComposeLayoutInspectorClient(
   suspend fun updateSettings(keepRecompositionCounts: Boolean = false): UpdateSettingsResponse {
     lastGenerationReset = lastGeneration
     logDiagnostics(ComposeLayoutInspectorClient::class.java, "Sending: UpdateSettingsCommand")
-    val observations = model.stateReadsModel.observedForStateReads.value
+    val observations = model.recompositionModel.observedForRecompositions.value
     val maxStateReads = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_MAX_STATE_READS.get()
     val response =
       messenger.sendCommand {
@@ -589,7 +589,7 @@ class ComposeLayoutInspectorClient(
 
   fun disconnect() {
     logDiagnostics(ComposeLayoutInspectorClient::class.java, "disconnect")
-    recompositionStateReadsCache.disconnect()
+    recompositionCache.disconnect()
     messenger.scope.cancel()
   }
 }

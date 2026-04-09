@@ -39,7 +39,7 @@ import org.junit.Test
 
 private val PROCESS = DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
-class RecompositionStateReadCacheTest {
+class RecompositionCacheTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val inspectionRule = AppInspectionInspectorRule(projectRule)
   private val inspectorRule =
@@ -65,20 +65,20 @@ class RecompositionStateReadCacheTest {
     var lastCommand: Command? = null
     inspectionRule.composeInspector.listenWhen({ true }) { command -> lastCommand = command }
 
-    model.stateReadsModel.observeAll()
+    model.recompositionModel.observeAll()
     waitForCondition(10.seconds) { lastCommand?.specializedCase == Command.SpecializedCase.UPDATE_SETTINGS_COMMAND }
     assertThat(lastCommand!!.updateSettingsCommand.stateReadSettings)
       .isEqualTo(StateReadSettings.newBuilder().apply { allBuilder.maxStateReads = 5000 }.build())
     lastCommand = null
 
-    model.stateReadsModel.observeNone()
+    model.recompositionModel.observeNone()
     waitForCondition(10.seconds) { lastCommand?.specializedCase == Command.SpecializedCase.UPDATE_SETTINGS_COMMAND }
     assertThat(lastCommand!!.updateSettingsCommand.stateReadSettings)
       .isEqualTo(StateReadSettings.newBuilder().apply { noneBuilder }.build())
     lastCommand = null
 
-    model.stateReadsModel.observeNode(model[COMPOSE2] as ComposeViewNode)
-    model.stateReadsModel.observeNode(model[COMPOSE3] as ComposeViewNode)
+    model.recompositionModel.observeNode(model[COMPOSE2] as ComposeViewNode)
+    model.recompositionModel.observeNode(model[COMPOSE3] as ComposeViewNode)
     waitForCondition(10.seconds) { lastCommand?.specializedCase == Command.SpecializedCase.UPDATE_SETTINGS_COMMAND }
     assertThat(lastCommand!!.updateSettingsCommand.stateReadSettings.byId.composableToObserveList).containsExactly(103, 104)
     assertThat(lastCommand!!.updateSettingsCommand.stateReadSettings.byId.maxStateReads).isEqualTo(5000)

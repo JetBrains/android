@@ -32,7 +32,7 @@ import org.junit.Test
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData/stateinspection"
 
 @RunsInEdt
-class StateInspectionHyperLinkDetectorTest {
+class RecompositionHyperLinkDetectorTest {
   private val projectRule = AndroidProjectRule.inMemory()
 
   @get:Rule val rule = RuleChain(TestScopeRule(), projectRule, EdtRule())

@@ -59,13 +59,13 @@ import org.junit.Rule
 import org.junit.Test
 
 @RunsInEdt
-class StateInspectionPanelTest {
+class RecompositionUiPanelTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val fileOpenRule = FileOpenCaptureRule(projectRule)
 
   @get:Rule val chain = RuleChain(TestScopeRule(), projectRule, fileOpenRule, EdtRule())
 
-  private val model = TestStateInspectionModel()
+  private val model = TestRecompositionUiModel()
   private val stats = FakeSessionStats()
   private val testDispatcher = StandardTestDispatcher()
   private val testScope = TestScope(testDispatcher)
@@ -78,7 +78,7 @@ class StateInspectionPanelTest {
 
   @Test
   fun testNoEditorCreatedInitially() {
-    val panel = StateInspectionPanel(model, projectRule.project, { stats }, testScope, disposable)
+    val panel = RecompositionUiPanel(model, projectRule.project, { stats }, testScope, disposable)
     testDispatcher.scheduler.advanceUntilIdle()
     assertThat(panel.componentCount).isEqualTo(0)
     assertThat(panel.getUserData(STATE_READ_EDITOR_KEY)).isNull()
@@ -87,7 +87,7 @@ class StateInspectionPanelTest {
 
   @Test
   fun testEditorDestroyedWhenHidden() {
-    val panel = StateInspectionPanel(model, projectRule.project, { stats }, testScope, disposable)
+    val panel = RecompositionUiPanel(model, projectRule.project, { stats }, testScope, disposable)
     assertThat(panel.componentCount).isEqualTo(0)
     assertThat(panel.getUserData(STATE_READ_EDITOR_KEY)).isNull()
     testDispatcher.scheduler.advanceUntilIdle()
@@ -105,25 +105,25 @@ class StateInspectionPanelTest {
 
   @Test
   fun testRecompositionText() {
-    val panel = StateInspectionPanel(model, projectRule.project, { stats }, testScope, disposable)
+    val panel = RecompositionUiPanel(model, projectRule.project, { stats }, testScope, disposable)
     model.show.value = true
     advanceUntilIdle()
     val label = panel.getDescendant<JLabel> { it.name == RECOMPOSITION_TEXT_LABEL_NAME }
     assertThat(label.text).isEqualTo("")
 
-    model.content.value = StateInspectionContent(recompositionText = "Testing")
+    model.content.value = RecompositionContent(recompositionText = "Testing")
     advanceUntilIdle()
     assertThat(label.text).isEqualTo("Testing")
   }
 
   @Test
   fun testEmptyStateText() {
-    val panel = StateInspectionPanel(model, projectRule.project, { stats }, testScope, disposable)
+    val panel = RecompositionUiPanel(model, projectRule.project, { stats }, testScope, disposable)
     model.show.value = true
     advanceUntilIdle()
     assertThat(panel.findDescendant<JLabel> { it.name == EMPTY_STATE_NAME }).isNull()
 
-    model.content.value = StateInspectionContent(emptyStateText = "Hello\nWorld")
+    model.content.value = RecompositionContent(emptyStateText = "Hello\nWorld")
     advanceUntilIdle()
     val emptyState = panel.findDescendant<JLabel> { it.name == EMPTY_STATE_NAME }
     assertThat(emptyState?.text).isEqualTo("<html><p>Hello</p><p>World</p></html>")
@@ -135,27 +135,27 @@ class StateInspectionPanelTest {
 
   @Test
   fun testStateReadText() {
-    val panel = StateInspectionPanel(model, projectRule.project, { stats }, testScope, disposable)
+    val panel = RecompositionUiPanel(model, projectRule.project, { stats }, testScope, disposable)
     model.show.value = true
     advanceUntilIdle()
     val label = panel.getDescendant<JLabel> { it.name == STATE_READ_TEXT_LABEL_NAME }
     assertThat(label.text).isEqualTo("")
 
-    model.content.value = StateInspectionContent(stateReadsText = "Testing")
+    model.content.value = RecompositionContent(stateReadsText = "Testing")
     advanceUntilIdle()
     assertThat(label.text).isEqualTo("Testing")
   }
 
   @Test
   fun testStackTraceText() {
-    val panel = StateInspectionPanel(model, projectRule.project, { stats }, testScope, disposable)
+    val panel = RecompositionUiPanel(model, projectRule.project, { stats }, testScope, disposable)
     model.show.value = true
     testDispatcher.scheduler.advanceUntilIdle()
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     val editor = panel.getUserData(STATE_READ_EDITOR_KEY)!!
     assertThat(editor.document.text).isEqualTo("")
 
-    model.content.value = StateInspectionContent(stackTraceText = "Testing")
+    model.content.value = RecompositionContent(stackTraceText = "Testing")
     testDispatcher.scheduler.advanceUntilIdle()
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     assertThat(editor.document.text).isEqualTo("Testing")
@@ -178,14 +178,14 @@ class StateInspectionPanelTest {
 
   @Test
   fun testStateInspectionData() {
-    val panel = StateInspectionPanel(model, projectRule.project, { stats }, testScope, disposable)
+    val panel = RecompositionUiPanel(model, projectRule.project, { stats }, testScope, disposable)
     model.show.value = true
     advanceUntilIdle()
     val editor = panel.getUserData(STATE_READ_EDITOR_KEY)!!
     assertThat(editor.getUserData(LAYOUT_INSPECTOR_COMPOSABLE_INSPECTED_KEY)).isNull()
 
     val data = ComposableDefinition("composable", "MyFile.kt")
-    model.content.value = StateInspectionContent(composableInspected = data)
+    model.content.value = RecompositionContent(composableInspected = data)
     advanceUntilIdle()
     assertThat(editor.getUserData(LAYOUT_INSPECTOR_COMPOSABLE_INSPECTED_KEY)).isEqualTo(data)
   }
@@ -202,14 +202,14 @@ class StateInspectionPanelTest {
   }
 
   private fun testButton(buttonAction: TestAction) {
-    val panel = StateInspectionPanel(model, projectRule.project, { stats }, testScope, disposable)
+    val panel = RecompositionUiPanel(model, projectRule.project, { stats }, testScope, disposable)
     model.show.value = true
     advanceUntilIdle()
     val button = panel.getDescendant<ActionButton> { it.action == buttonAction }
     assertThat(button.isEnabled).isFalse()
 
     buttonAction.enabled = true
-    model.content.value = StateInspectionContent(updates = 2)
+    model.content.value = RecompositionContent(updates = 2)
     advanceUntilIdle()
     assertThat(button.isEnabled).isTrue()
 
@@ -223,7 +223,7 @@ class StateInspectionPanelTest {
     assertThat(buttonAction.performedCount).isEqualTo(2)
 
     buttonAction.enabled = false
-    model.content.value = StateInspectionContent(updates = 3)
+    model.content.value = RecompositionContent(updates = 3)
     testDispatcher.scheduler.advanceUntilIdle()
     assertThat(button.isEnabled).isFalse()
   }
@@ -234,7 +234,7 @@ class StateInspectionPanelTest {
     val button = JButton()
     button.isFocusable = true
     container.add(button, BorderLayout.NORTH)
-    val panel = StateInspectionPanel(model, projectRule.project, { stats }, testScope, disposable)
+    val panel = RecompositionUiPanel(model, projectRule.project, { stats }, testScope, disposable)
     model.show.value = true
     model.prevAction.enabled = true
     model.nextAction.enabled = true
@@ -285,12 +285,12 @@ class StateInspectionPanelTest {
     installFakeExtensionPoints(projectRule.testRootDisposable)
     projectRule.fixture.addFileToProject("src/com/example/recompositiontest/MainActivity.kt", "")
     val detectorFactory = SynchronousHyperLinkDetectorFactory()
-    val panel = StateInspectionPanel(model, projectRule.project, { stats }, testScope, disposable, detectorFactory)
+    val panel = RecompositionUiPanel(model, projectRule.project, { stats }, testScope, disposable, detectorFactory)
     model.prevAction.enabled = true
     model.nextAction.enabled = true
     model.show.value = true
     model.content.value =
-      StateInspectionContent(
+      RecompositionContent(
         stackTraceText =
           """
           State read value: [b, c] <invalidated> (Explain with AI)
@@ -356,9 +356,9 @@ class StateInspectionPanelTest {
     fileOpenRule.checkEditorOpened("MainActivity.kt", true)
   }
 
-  class TestStateInspectionModel : StateInspectionModel {
+  class TestRecompositionUiModel : RecompositionUiModel {
     override val show = MutableStateFlow(false)
-    override val content = MutableStateFlow(StateInspectionContent())
+    override val content = MutableStateFlow(RecompositionContent())
     override val recompositions = MutableStateFlow(0)
     override val prevAction = TestAction()
     override val nextAction = TestAction()

@@ -62,7 +62,7 @@ import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
 
 @RunsInEdt
-class StateReadMenuTest {
+class ObserveRecompositionMenuTest {
   private val disposableRule = DisposableRule()
   private val flagRule = FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_STATE_READS, true)
 
@@ -100,7 +100,7 @@ class StateReadMenuTest {
   fun testNoLineInfo() {
     val compose1 = model[COMPOSE1] as ComposeViewNode
     whenever(client.capabilities).thenReturn(setOf(Capability.CAN_OBSERVE_RECOMPOSE_STATE_READS))
-    val stateReadMenu = createStateReadMenuGroup(compose1, model)
+    val stateReadMenu = createObserveRecompositionMenuGroup(compose1, model)
     stateReadMenu.checkText(event, "Observe Recomposition (No Source Information Found)")
     stateReadMenu.checkIsNotEnabled(event)
   }
@@ -109,7 +109,7 @@ class StateReadMenuTest {
   fun testStateReadsNotSupported() {
     whenever(client.capabilities).thenReturn(setOf(Capability.HAS_LINE_NUMBER_INFORMATION))
     val compose1 = model[COMPOSE1] as ComposeViewNode
-    val stateReadMenu = createStateReadMenuGroup(compose1, model)
+    val stateReadMenu = createObserveRecompositionMenuGroup(compose1, model)
     stateReadMenu.checkText(event, "Observe Recomposition (Needs Compose 1.10.0+)")
     stateReadMenu.checkIsNotEnabled(event)
   }
@@ -118,27 +118,27 @@ class StateReadMenuTest {
   fun testStateReadMenu() {
     val compose2 = model[COMPOSE2] as ComposeViewNode
     val compose3 = model[COMPOSE3] as ComposeViewNode
-    val stateReadMenu = createStateReadMenuGroup(compose2, model)
+    val stateReadMenu = createObserveRecompositionMenuGroup(compose2, model)
     stateReadMenu.checkIsEnabled(event)
     val actions = stateReadMenu.children(event)
     assertThat(actions.map { it.templateText }).containsExactly("Observe Node", "Observe All", "Observe None")
     val observeNode = actions[0]
     observeNode.checkText(event, "Observe Node")
     ActionUtil.performAction(observeNode, event)
-    assertThat(model.stateReadsModel.observedForStateReads.value).isEqualTo(Some(setOf(compose2.anchorHash)))
+    assertThat(model.recompositionModel.observedForRecompositions.value).isEqualTo(Some(setOf(compose2.anchorHash)))
     observeNode.checkText(event, "Stop Observing Node")
     ActionUtil.performAction(observeNode, event)
-    assertThat(model.stateReadsModel.observedForStateReads.value).isEqualTo(None)
+    assertThat(model.recompositionModel.observedForRecompositions.value).isEqualTo(None)
 
     val observeAll = actions[1]
     observeAll.checkText(event, "Observe All")
     ActionUtil.performAction(observeAll, event)
-    assertThat(model.stateReadsModel.observedForStateReads.value).isEqualTo(All)
+    assertThat(model.recompositionModel.observedForRecompositions.value).isEqualTo(All)
 
     val observeNone = actions[2]
     observeNone.checkText(event, "Observe None")
     ActionUtil.performAction(observeNone, event)
-    assertThat(model.stateReadsModel.observedForStateReads.value).isEqualTo(None)
+    assertThat(model.recompositionModel.observedForRecompositions.value).isEqualTo(None)
 
     val data = DynamicLayoutInspectorSession.newBuilder()
     client.stats.save(data)

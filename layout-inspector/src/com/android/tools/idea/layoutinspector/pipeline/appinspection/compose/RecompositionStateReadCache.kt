@@ -20,7 +20,7 @@ import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.stateinspection.ObservedNodes
-import com.android.tools.idea.layoutinspector.stateinspection.StateReadKey
+import com.android.tools.idea.layoutinspector.stateinspection.RecompositionKey
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.drop
@@ -31,15 +31,11 @@ import kotlinx.coroutines.launch
 private const val MAX_CACHE_SIZE = 2000
 
 /**
- * Cache for recomposition state reads.
+ * Cache for each recomposition.
  *
- * Data missing from the cache will be loaded via the [client] and stored as an instance of [RecomposeStateReadData].
+ * Data missing from the cache will be loaded via the [client] and stored as an instance of [RecompositionDetails].
  */
-class RecompositionStateReadCache(
-  private val client: ComposeLayoutInspectorClient,
-  private val model: InspectorModel,
-  parentScope: CoroutineScope,
-) {
+class RecompositionCache(private val client: ComposeLayoutInspectorClient, private val model: InspectorModel, parentScope: CoroutineScope) {
   private val scope = parentScope.createChildScope()
   private val cache = LruCache()
   private var pendingRequest: Key? = null
@@ -47,7 +43,7 @@ class RecompositionStateReadCache(
     object : InspectorModel.ModificationListener {
       override fun onModification(oldWindow: AndroidWindow?, newWindow: AndroidWindow?, isStructuralChange: Boolean) {
         val pending = pendingRequest ?: return
-        val composable = model.stateReadsModel.stateReadRequested.value?.composable
+        val composable = model.recompositionModel.recompositionDataRequested.value?.composable
         if (composable == null || composable.anchorHash != pending.anchorHash) {
           // The composable from the pending request is no longer the requested node.
           pendingRequest = null
@@ -56,9 +52,9 @@ class RecompositionStateReadCache(
         if (composable.recompositions.count > pending.recomposition) {
           pendingRequest = null
           scope.launch {
-            // No state reads were found for the last requested composable.
+            // No recomposition details were found for the last requested composable.
             // Try again now that there have been more recompositions.
-            requestRecompositionStateReads(composable, composable.recompositions.count)
+            requestRecompositionDetails(composable, composable.recompositions.count)
           }
         }
       }
@@ -68,8 +64,8 @@ class RecompositionStateReadCache(
     model.addModificationListener(modificationListener)
     scope.launch {
       // The ComposeInspectorClient will send an updateSettings command to the agent during creation
-      // with the initial observedForStateReads value of None. There is no need to send it again.
-      model.stateReadsModel.observedForStateReads.drop(1).collect { observing ->
+      // with the initial observedForRecompositions value of None. There is no need to send it again.
+      model.recompositionModel.observedForRecompositions.drop(1).collect { observing ->
         client.updateSettings(keepRecompositionCounts = true)
         when (observing) {
           is ObservedNodes.None -> clear()
@@ -79,8 +75,8 @@ class RecompositionStateReadCache(
       }
     }
     scope.launch {
-      model.stateReadsModel.stateReadRequested.filterNotNull().collect { key ->
-        requestRecompositionStateReads(key.composable, key.recomposition)
+      model.recompositionModel.recompositionDataRequested.filterNotNull().collect { key ->
+        requestRecompositionDetails(key.composable, key.recomposition)
       }
     }
   }
@@ -90,26 +86,26 @@ class RecompositionStateReadCache(
     scope.cancel()
   }
 
-  private suspend fun requestRecompositionStateReads(composable: ComposeViewNode, recomposition: Int) {
+  private suspend fun requestRecompositionDetails(composable: ComposeViewNode, recomposition: Int) {
     val key = Key(composable.anchorHash, recomposition)
     val node = lookup(key) ?: fetchDataFor(key)
-    val result = node.toRecomposeStateReadResult(composable)
+    val result = node.toRecompositionDetailsResult(composable)
 
-    model.stateReadsModel.stateReads.emit(result)
-    if (result == RecomposeStateReadResult.Waiting) {
+    model.recompositionModel.recompositionDetails.emit(result)
+    if (result == RecompositionDetailsResult.Waiting) {
       pendingRequest = Key(composable.anchorHash, composable.recompositions.count)
     }
   }
 
-  // Lookup the wanted state reads in the cache.
-  // Side effect: Make sure the state reads for the previous recomposition is loaded if it exists.
-  private suspend fun lookup(key: Key): StateReadNode? {
+  // Lookup the wanted recomposition details in the cache.
+  // Side effect: Make sure the recomposition details for the previous recomposition is loaded if it exists.
+  private suspend fun lookup(key: Key): RecompositionNode? {
     val node = cache[key] ?: return null
     if (node.recomposition == 1 || node.prev?.recomposition == key.recomposition - 1) {
       return node
     }
 
-    // We do not have the state reads for the previous recomposition: try to load it such that the
+    // We do not have the recomposition details for the previous recomposition: try to load it such that the
     // UI can display an enabled previous control.
     // TODO: Add data such that we don't repeat loading the same (empty) previous state reads.
     fetchDataFor(key.prev)
@@ -117,31 +113,31 @@ class RecompositionStateReadCache(
   }
 
   /**
-   * Fetch state reads data from the agent.
+   * Fetch recomposition details from the agent.
    *
-   * @param key the composable and recomposition we want to load state reads for.
+   * @param key the composable and recomposition we want to load recomposition details for.
    */
-  private suspend fun fetchDataFor(key: Key): StateReadNode {
+  private suspend fun fetchDataFor(key: Key): RecompositionNode {
     val hasPrev = cache.contains(key.prev)
     val hasNext = cache.contains(key.next)
     val start = maxOf(1, key.recomposition - (if (!hasPrev) 4 else 0))
     val end = key.recomposition + (if (!hasNext) 4 else 0)
     val response =
-      client.getRecompositionStateReads(
+      client.getRecompositionDetails(
         anchorHash = key.anchorHash,
         recompositionNumberStart = start,
         recompositionNumberEnd = end,
         includeExtra = true,
       )
-    var first: StateReadNode? = null
-    convertStateRead(response, model).forEach { (recomposition, reads) ->
-      val node = StateReadNode(recomposition, reads)
+    var first: RecompositionNode? = null
+    convertRecompositionResponse(response, model).forEach { (recomposition, details) ->
+      val node = RecompositionNode(recomposition, details)
       cache[Key(key.anchorHash, recomposition)] = node
       first = first ?: node
     }
     if (first == null) {
-      // No state reads were found.
-      return StateReadNode.WAITING_NODE
+      // No recomposition details were found.
+      return RecompositionNode.WAITING_NODE
     }
     if (first.recomposition > start) {
       val prev = first.prev
@@ -151,7 +147,7 @@ class RecompositionStateReadCache(
       }
     }
 
-    // Return the state reads closest to the recomposition requested:
+    // Return the recomposition details closest to the recomposition requested:
     var prev = first
     var actual = first
     while (actual != null && actual.recomposition < key.recomposition) {
@@ -165,7 +161,7 @@ class RecompositionStateReadCache(
     cache.clear()
   }
 
-  /** A composable and recomposition pair that may have State Read data */
+  /** A composable and recomposition pair that may have recomposition details */
   private data class Key(val anchorHash: Int, val recomposition: Int) {
     val prev: Key
       get() = Key(anchorHash, recomposition - 1)
@@ -174,46 +170,46 @@ class RecompositionStateReadCache(
       get() = Key(anchorHash, recomposition + 1)
   }
 
-  /** State reads for a [Key] */
-  private class StateReadNode(
+  /** Recomposition details for a [Key] as a linked list */
+  private class RecompositionNode(
     /** The recomposition number of these state reads */
     val recomposition: Int,
-    /** The state read data. */
-    val reads: List<RecomposeStateReadData>,
+    /** The details of this recomposition. */
+    val details: RecompositionDetails,
   ) {
     companion object {
-      val WAITING_NODE = StateReadNode(recomposition = 0, emptyList())
+      val WAITING_NODE = RecompositionNode(recomposition = 0, RecompositionDetails(emptyList()))
     }
 
     /** The State reads for the next recomposition we have data for. */
-    var next: StateReadNode? = null
+    var next: RecompositionNode? = null
     /** The State reads for the previous recomposition we have data for. */
-    var prev: StateReadNode? = null
+    var prev: RecompositionNode? = null
 
-    fun toRecomposeStateReadResult(composable: ComposeViewNode): RecomposeStateReadResult {
+    fun toRecompositionDetailsResult(composable: ComposeViewNode): RecompositionDetailsResult {
       return if (this === WAITING_NODE) {
-        RecomposeStateReadResult.Waiting
+        RecompositionDetailsResult.Waiting
       } else {
-        RecomposeStateReadResult.StateReads(StateReadKey(composable, recomposition), reads, prev != null)
+        RecompositionDetailsResult.RecompositionDetailsData(RecompositionKey(composable, recomposition), details, prev != null)
       }
     }
   }
 
   /**
-   * LRU cache from [Key] to [StateReadNode]. The cache maintains a double linked list of [StateReadNode] for each anchorHash value. The
-   * purpose of the linked list is to be able to determine if we have any values prior go a given [StateReadNode]. The value discarded when
-   * the cache is full: is the least recent accessed value.
+   * LRU cache from [Key] to [RecompositionNode]. The cache maintains a double linked list of [RecompositionNode] for each anchorHash value.
+   * The purpose of the linked list is to be able to determine if we have any values prior go a given [RecompositionNode]. The value
+   * discarded when the cache is full: is the least recent accessed value.
    */
-  private class LruCache : LinkedHashMap<RecompositionStateReadCache.Key, RecompositionStateReadCache.StateReadNode>(16, 0.75f, true) {
-    private val top = mutableMapOf<Int, RecompositionStateReadCache.StateReadNode>()
+  private class LruCache : LinkedHashMap<Key, RecompositionNode>(16, 0.75f, true) {
+    private val top = mutableMapOf<Int, RecompositionNode>()
 
-    override fun get(key: RecompositionStateReadCache.Key): RecompositionStateReadCache.StateReadNode? {
+    override fun get(key: Key): RecompositionNode? {
       val node = super.get(key)
       node?.prev?.access(key.anchorHash)
       return node
     }
 
-    override fun put(key: Key, value: StateReadNode): StateReadNode? {
+    override fun put(key: Key, value: RecompositionNode): RecompositionNode? {
       val result = super.put(key, value)
 
       // Update the doubly linked list in top:
@@ -245,11 +241,11 @@ class RecompositionStateReadCache(
       return null
     }
 
-    override fun remove(key: RecompositionStateReadCache.Key): RecompositionStateReadCache.StateReadNode {
+    override fun remove(key: Key): RecompositionNode {
       error("Not implemented")
     }
 
-    override fun removeEldestEntry(eldest: Map.Entry<RecompositionStateReadCache.Key, RecompositionStateReadCache.StateReadNode>): Boolean {
+    override fun removeEldestEntry(eldest: Map.Entry<Key, RecompositionNode>): Boolean {
       if (size < MAX_CACHE_SIZE) {
         return false
       }
@@ -273,7 +269,7 @@ class RecompositionStateReadCache(
     }
 
     // Move this node in front of the LRU cache i.e. less likely to be discarded
-    private fun RecompositionStateReadCache.StateReadNode.access(anchorHash: Int) {
+    private fun RecompositionNode.access(anchorHash: Int) {
       super.get(Key(anchorHash, this.recomposition))
     }
 
@@ -288,7 +284,7 @@ class RecompositionStateReadCache(
       }
     }
 
-    fun dropAllPriorTo(anchorHash: Int, node: RecompositionStateReadCache.StateReadNode) {
+    fun dropAllPriorTo(anchorHash: Int, node: RecompositionNode) {
       var prev = node.prev
       while (prev != null) {
         super.remove(Key(anchorHash, prev.recomposition))

@@ -56,7 +56,7 @@ class InspectorModel(
   val scheduler: ScheduledExecutorService? = null,
   processesModel: ProcessesModel? = null,
 ) : ViewNodeAndResourceLookup {
-  val stateReadsModel = InspectorStateReadModel()
+  val recompositionModel = InspectorRecompositionModel()
 
   fun interface SelectionListener {
     fun onSelection(oldNode: ViewNode?, newNode: ViewNode?, origin: SelectionOrigin)
@@ -279,7 +279,7 @@ class InspectorModel(
   }
 
   private fun resetRecompositionCounters() {
-    stateReadsModel.stopShowingStateReads()
+    recompositionModel.stopShowingRecompositionDetails()
     maxRecomposition.reset()
     maxHighlight = 0f
     updateAll { node -> (node as? ComposeViewNode)?.resetRecomposeCounts() }

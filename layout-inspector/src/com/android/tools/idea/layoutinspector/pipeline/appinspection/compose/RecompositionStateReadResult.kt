@@ -15,23 +15,29 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
-import com.android.tools.idea.layoutinspector.stateinspection.StateReadKey
+import com.android.tools.idea.layoutinspector.stateinspection.RecompositionKey
 
-/** A result from a state read request. */
-sealed class RecomposeStateReadResult {
-  /** No state reads recorded yet. Waiting for a recomposition to happen. */
-  object Waiting : RecomposeStateReadResult()
+/** A result from a recomposition details request. */
+sealed class RecompositionDetailsResult {
+  /** No recomposition details recorded yet. Waiting for a recomposition to happen. */
+  object Waiting : RecompositionDetailsResult()
 
-  /** State reads received from the device. */
-  data class StateReads(
-    /** The composable and recomposition these state reads are for. */
-    val key: StateReadKey,
-    /** The state reads for this [key]. */
-    val reads: List<RecomposeStateReadData>,
-    /** There are state reads available to go back. */
-    val hasStateReadsForPreviousRecomposition: Boolean = false,
-  ) : RecomposeStateReadResult()
+  /** Recomposition details received from the device. */
+  data class RecompositionDetailsData(
+    /** The composable and recomposition these details are for. */
+    val key: RecompositionKey,
+    /** The details of this recomposition. */
+    val details: RecompositionDetails,
+    /** There are data available to go back to the previous recomposition. */
+    val hasDataForPreviousRecomposition: Boolean = false,
+  ) : RecompositionDetailsResult()
 }
+
+/** The details for a recomposition. */
+data class RecompositionDetails(
+  /** The state reads of the recomposition. */
+  val reads: List<RecomposeStateReadData>
+)
 
 /** Holds data for a single state read in compose for a given composable and recomposition number. */
 data class RecomposeStateReadData(
