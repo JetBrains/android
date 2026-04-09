@@ -91,4 +91,28 @@ class DeviceStateResolverTest {
     val duplicateFlags = resolver.setDeviceStateName("Landscape")
     assertEquals("Should return 0 when the state name does not actually change", 0, duplicateFlags)
   }
+
+  @Test
+  fun testSetDeviceWithNullStatePreservesStateName() {
+    val context = StubContext()
+    val resolver = DeviceStateResolver(context)
+
+    // Given a resolver with a device, but a null state
+    val prevDevice = Mockito.mock(Device::class.java)
+    resolver.setDevice(prevDevice, false)
+    resolver.setDeviceState(null)
+
+    // And a state name we want to preserve
+    resolver.setDeviceStateName("MyState")
+
+    // When we set a new device and ask to preserve state
+    val newDevice = Mockito.mock(Device::class.java)
+    val expectedState = Mockito.mock(State::class.java)
+    Mockito.`when`(newDevice.getState("MyState")).thenReturn(expectedState)
+
+    resolver.setDevice(newDevice, true)
+
+    // Then the new device's state should be set based on the preserved state name
+    assertSame(expectedState, resolver.getDeviceState())
+  }
 }

@@ -93,15 +93,15 @@ class DeviceStateResolver(private val context: Context) {
     if (newDevice != null) {
       var newState: State? = null
       // Attempt to preserve the device state?
-      if (preserveState && prevDevice != null) {
-        if (prevState != null) {
-          val oldConfig = DeviceConfigHelper.getFolderConfig(prevState)
-          if (oldConfig != null) {
-            val matchName = getClosestMatch(oldConfig, newDevice.allStates)
-            newState = newDevice.getState(matchName)
-          } else {
-            newState = newDevice.getState(prevState.name)
-          }
+      // If the prevDevice exists but its state was null, it now correctly falls
+      // through to the 'else if' block to try and preserve the stateName string!
+      if (preserveState && prevDevice != null && prevState != null) {
+        val oldConfig = DeviceConfigHelper.getFolderConfig(prevState)
+        if (oldConfig != null) {
+          val matchName = getClosestMatch(oldConfig, newDevice.allStates)
+          newState = newDevice.getState(matchName)
+        } else {
+          newState = newDevice.getState(prevState.name)
         }
       } else if (preserveState && stateName != null) {
         newState = newDevice.getState(stateName)
