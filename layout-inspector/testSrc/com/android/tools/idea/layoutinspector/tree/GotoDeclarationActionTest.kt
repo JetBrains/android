@@ -157,7 +157,7 @@ class GotoDeclarationActionTest {
     GotoDeclaration.navigateToSelectedView(inspector.coroutineScope, model, inspector.currentClient, notificationModel)
     waitForCondition(10.seconds) { notificationModel.hasNotification(NO_COMPOSE_SOURCE_INFO_NODE_KEY) }
     assertThat(notificationModel.notifications.single().message)
-      .isEqualTo("No source information found for Greeting Composable. Perhaps the code is from an obfuscated 3rd party library ?")
+      .isEqualTo("No source information found for Greeting Composable. Perhaps the code is from an obfuscated 3rd party library?")
   }
 
   @Test
