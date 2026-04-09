@@ -76,12 +76,9 @@ class AndroidAnnotationSupportTest {
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     myFixture.checkHighlighting()
 
-    // TODO(b/495877458): Remove old quick fix text after merge.
     myFixture
       .getAllQuickFixes()
-      .find {
-        it.text == "Annotate overriding method parameters as '@NonNull'" || it.text == "Annotate overriding method parameters as non-null"
-      }!!
+      .find { it.text == "Annotate overriding method parameters as non-null" }!!
       .invoke(projectRule.project, myFixture.editor, myFixture.file)
 
     myFixture.checkResult(
