@@ -21,7 +21,6 @@ import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.downloads.RemoteFileCache
 import com.android.tools.idea.downloads.RemoteFileCache.FetchStats
 import com.android.tools.idea.downloads.UrlFileCache
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.googleapis.GoogleApiKeyProvider
 import com.android.tools.idea.googleapis.GoogleApiKeyProvider.GoogleApi.CONTENT_SERVING
 import com.android.tools.idea.stats.getEditorFileTypeForAnalytics
@@ -161,9 +160,6 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
 
   @Before
   fun setUp() {
-    StudioFlags.REMOTE_SDK_DOCUMENTATION_FETCH_VIA_CONTENT_SERVING_API_ENABLED.override(
-      testConfig.useContentServingApi != ContentServingApiState.DISABLED
-    )
     project.replaceService(UrlFileCache::class.java, mockUrlFileCache, fixture.testRootDisposable)
     val providers = if (testConfig.useContentServingApi == ContentServingApiState.MISSING_PROVIDER) listOf() else listOf(fakeApiKeyProvider)
     ExtensionTestUtil.maskExtensions(GoogleApiKeyProvider.EP_NAME, providers, fixture.testRootDisposable)
@@ -453,7 +449,6 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
 
   enum class ContentServingApiState {
     ENABLED,
-    DISABLED,
     MISSING_PROVIDER,
   }
 
@@ -503,9 +498,8 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
     fun data(): List<TestConfig> {
       val kotlinConfigs = JAVA_CONFIGS.map { it.copy(language = KotlinLanguage.INSTANCE) }
       val enabledConfigs = JAVA_CONFIGS + kotlinConfigs
-      val disabledConfigs = enabledConfigs.map { it.copy(useContentServingApi = ContentServingApiState.DISABLED) }
       val missingConfigs = enabledConfigs.map { it.copy(useContentServingApi = ContentServingApiState.MISSING_PROVIDER) }
-      return enabledConfigs + disabledConfigs + missingConfigs
+      return enabledConfigs + missingConfigs
     }
   }
 }

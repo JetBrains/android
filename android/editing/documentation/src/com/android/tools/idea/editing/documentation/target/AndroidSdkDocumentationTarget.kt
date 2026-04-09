@@ -20,7 +20,6 @@ import com.android.tools.idea.downloads.RemoteFileCache.FetchStats
 import com.android.tools.idea.downloads.RemoteFileCache.RemoteFileCacheException
 import com.android.tools.idea.downloads.UrlFileCache
 import com.android.tools.idea.editing.documentation.AndroidJavaDocExternalFilter
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.googleapis.GoogleApiKeyProvider
 import com.android.tools.idea.googleapis.GoogleApiKeyProvider.GoogleApi.CONTENT_SERVING
 import com.android.tools.idea.stats.getEditorFileTypeForAnalytics
@@ -66,11 +65,7 @@ sealed class AndroidSdkDocumentationTarget<T>(
   private val url: String,
   private val localJavaDocInfo: String?,
 ) : DocumentationTarget where T : PsiElement, T : Navigatable {
-  private val contentServingApiKey by lazy {
-    GoogleApiKeyProvider.getApiKey(CONTENT_SERVING)?.takeIf {
-      StudioFlags.REMOTE_SDK_DOCUMENTATION_FETCH_VIA_CONTENT_SERVING_API_ENABLED.get()
-    }
-  }
+  private val contentServingApiKey by lazy { GoogleApiKeyProvider.getApiKey(CONTENT_SERVING) }
 
   /** A [String] we can use to refer to this element. */
   protected abstract val displayName: String?
