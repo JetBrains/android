@@ -26,6 +26,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.layoutinspector.DeviceProvisionerServiceCleanUpRule
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.NotificationModel
@@ -85,7 +86,7 @@ class InspectorClientLaunchMonitorTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val provisionerServiceRule = DeviceProvisionerServiceCleanUpRule { projectRule.project }
 
-  @get:Rule val chain = RuleChain(projectRule, provisionerRule, provisionerServiceRule)
+  @get:Rule val chain = RuleChain(TestScopeRule(), projectRule, provisionerRule, provisionerServiceRule)
 
   @Before
   fun before() {

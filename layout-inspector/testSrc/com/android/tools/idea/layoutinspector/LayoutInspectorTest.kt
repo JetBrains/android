@@ -59,7 +59,7 @@ class LayoutInspectorTest {
 
   @get:Rule val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("ForegroundProcessDetectionTest", transportService)
 
-  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(adbRule)!!
+  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(TestScopeRule()).around(projectRule).around(adbRule)!!
 
   private lateinit var layoutInspector: LayoutInspector
   private lateinit var deviceModel: DeviceModel

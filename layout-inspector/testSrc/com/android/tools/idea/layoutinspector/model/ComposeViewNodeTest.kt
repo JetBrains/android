@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.tools.idea.layoutinspector.SYSTEM_PKG
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.google.common.truth.Truth.assertThat
@@ -30,7 +31,7 @@ private val EXAMPLE = packageNameHash("com.example.myexampleapp")
 class ComposeViewNodeTest {
   private val disposableRule = DisposableRule()
 
-  @get:Rule val chain = RuleChain(disposableRule, ApplicationRule())
+  @get:Rule val chain = RuleChain(TestScopeRule(), disposableRule, ApplicationRule())
 
   @Test
   fun testIsSystemNode() {

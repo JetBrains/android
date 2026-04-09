@@ -38,6 +38,7 @@ import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.SYSTEM_PKG
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.compose
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
@@ -129,7 +130,8 @@ class LayoutInspectorTreePanelTest {
   private var updateSettingsCommands = 0
   private var updateSettingsLatch: ReportingCountDownLatch? = null
 
-  @get:Rule val ruleChain = RuleChain(projectRule, appInspectorRule, inspectorRule, fileOpenCaptureRule, nameRule, EdtRule())
+  @get:Rule
+  val ruleChain = RuleChain(TestScopeRule(), projectRule, appInspectorRule, inspectorRule, fileOpenCaptureRule, nameRule, EdtRule())
 
   @Before
   fun setUp() {

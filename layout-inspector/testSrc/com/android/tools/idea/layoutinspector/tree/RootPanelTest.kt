@@ -21,6 +21,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescript
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcess
@@ -44,7 +45,9 @@ class RootPanelTest {
   private val appInspectorRule = AppInspectionInspectorRule(androidProjectRule)
   private val layoutInspectorRule = LayoutInspectorRule(listOf(appInspectorRule.createInspectorClientProvider()), androidProjectRule)
 
-  @get:Rule val ruleChain = RuleChain.outerRule(androidProjectRule).around(appInspectorRule).around(layoutInspectorRule).around(EdtRule())!!
+  @get:Rule
+  val ruleChain =
+    RuleChain.outerRule(TestScopeRule()).around(androidProjectRule).around(appInspectorRule).around(layoutInspectorRule).around(EdtRule())!!
 
   private val fakeDeviceDescriptor =
     object : DeviceDescriptor {

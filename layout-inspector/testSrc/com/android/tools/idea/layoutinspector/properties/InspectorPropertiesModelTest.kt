@@ -20,6 +20,7 @@ import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ROOT
@@ -33,6 +34,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
@@ -51,9 +53,10 @@ class InspectorPropertiesModelTest {
       .setState(Common.Device.State.ONLINE)
       .build()
 
-  @get:Rule val disposableRule = DisposableRule()
+  private val disposableRule = DisposableRule()
+  private val projectRule = ProjectRule()
 
-  @get:Rule val projectRule = ProjectRule()
+  @get:Rule val rule = RuleChain(TestScopeRule(), disposableRule, projectRule)
 
   @Test
   fun testListenersAreClearedOnDispose() {

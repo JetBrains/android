@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.stateinspection
 
 import com.android.testutils.TestUtils
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.execution.impl.EditorHyperlinkListener
 import com.intellij.openapi.editor.ex.EditorEx
@@ -34,7 +35,7 @@ private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData/sta
 class StateInspectionHyperLinkDetectorTest {
   private val projectRule = AndroidProjectRule.inMemory()
 
-  @get:Rule val rule = RuleChain(projectRule, EdtRule())
+  @get:Rule val rule = RuleChain(TestScopeRule(), projectRule, EdtRule())
 
   @Before
   fun before() {

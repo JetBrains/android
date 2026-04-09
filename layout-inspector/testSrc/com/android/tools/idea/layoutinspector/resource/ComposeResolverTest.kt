@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.resource
 
 import com.android.testutils.TestUtils
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -35,7 +36,7 @@ class ComposeResolverTest {
   private val projectRule = AndroidProjectRule.withSdk()
   private val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
 
-  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(fileOpenCaptureRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(TestScopeRule()).around(projectRule).around(fileOpenCaptureRule).around(EdtRule())!!
 
   @Before
   fun setup() {

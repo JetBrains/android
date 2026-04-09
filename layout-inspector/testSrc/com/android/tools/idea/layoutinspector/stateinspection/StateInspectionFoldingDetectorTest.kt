@@ -16,7 +16,9 @@
 package com.android.tools.idea.layoutinspector.stateinspection
 
 import com.android.testutils.TestUtils
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.runInEdtAndGet
 import kotlin.io.path.readText
 import kotlinx.coroutines.test.runTest
@@ -26,7 +28,9 @@ import org.junit.Test
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData/stateinspection"
 
 class StateInspectionFoldingDetectorTest {
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  private val projectRule = AndroidProjectRule.inMemory()
+
+  @get:Rule val rule = RuleChain(TestScopeRule(), projectRule)
 
   @Test
   fun testFolding() = runTest {

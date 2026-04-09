@@ -19,6 +19,7 @@ import com.android.testutils.waitForCondition
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.profiler.proto.Common
@@ -26,6 +27,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorTransportError
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
 import kotlin.time.Duration.Companion.seconds
 import org.junit.Rule
 import org.junit.Test
@@ -47,9 +49,10 @@ class TransportErrorListenerTest {
       .setState(Common.Device.State.ONLINE)
       .build()
 
-  @get:Rule val projectRule = ProjectRule()
+  private val projectRule = ProjectRule()
+  private val disposableRule = DisposableRule()
 
-  @get:Rule val disposableRule = DisposableRule()
+  @get:Rule val rule = RuleChain(TestScopeRule(), projectRule, disposableRule)
 
   @Test
   fun testErrorShowsBanner() {

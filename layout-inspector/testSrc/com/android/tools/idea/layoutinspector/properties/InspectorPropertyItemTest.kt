@@ -21,6 +21,7 @@ import com.android.SdkConstants.ATTR_TEXT_SIZE
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.adtui.workbench.PropertiesComponentMock
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -50,7 +51,7 @@ abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidP
   protected val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
   protected var model: InspectorModel? = null
 
-  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(fileOpenCaptureRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(TestScopeRule()).around(projectRule).around(fileOpenCaptureRule).around(EdtRule())!!
 
   @Before
   fun setUp() {

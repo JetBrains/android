@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetecti
 
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.concurrency.coroutineScope
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
 import com.android.tools.idea.layoutinspector.pipeline.fakeDevice
 import com.android.tools.idea.transport.TransportClient
@@ -28,6 +29,7 @@ import com.android.tools.profiler.proto.TransportServiceGrpc.TransportServiceBlo
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAutoConnectInfo
 import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
 import kotlin.test.fail
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -49,7 +51,9 @@ import org.mockito.kotlin.mock
 
 class HandshakeExecutorTest {
 
-  @get:Rule val projectRule = ProjectRule()
+  private val projectRule = ProjectRule()
+
+  @get:Rule val rule = RuleChain(TestScopeRule(), projectRule)
 
   private val pollingIntervalMs = 200L
 

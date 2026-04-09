@@ -19,6 +19,7 @@ import com.android.testutils.waitForCondition
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
@@ -49,7 +50,9 @@ class LayoutInspectorLoadingObserverTest {
       isPreferredProcess = { it.name == MODERN_PROCESS.name },
     )
 
-  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(appInspectorRule).around(inspectorRule).around(EdtRule())
+  @get:Rule
+  val ruleChain: RuleChain =
+    RuleChain.outerRule(TestScopeRule()).around(projectRule).around(appInspectorRule).around(inspectorRule).around(EdtRule())
 
   @Before
   fun before() {

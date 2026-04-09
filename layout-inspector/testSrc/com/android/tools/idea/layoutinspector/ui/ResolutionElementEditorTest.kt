@@ -28,6 +28,7 @@ import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ResolutionStackModel
 import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
@@ -78,7 +79,12 @@ class ResolutionElementEditorTest {
   @get:Rule val testName = TestName()
   @get:Rule
   val ruleChain =
-    RuleChain.outerRule(projectRule).around(IntelliJLafRule()).around(PortableUiFontRule()).around(EdtRule()).around(IconLoaderRule())!!
+    RuleChain.outerRule(TestScopeRule())
+      .around(projectRule)
+      .around(IntelliJLafRule())
+      .around(PortableUiFontRule())
+      .around(EdtRule())
+      .around(IconLoaderRule())!!
 
   @Test
   fun testPaintClosed() = runBlocking {

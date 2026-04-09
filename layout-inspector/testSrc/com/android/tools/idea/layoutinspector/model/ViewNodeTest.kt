@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.model
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.google.common.truth.Truth.assertThat
@@ -34,7 +35,7 @@ private val LAYOUT_MAIN = ResourceReference(ResourceNamespace.RES_AUTO, Resource
 class ViewNodeTest {
   private val disposableRule = DisposableRule()
 
-  @get:Rule val rule = RuleChain(ApplicationRule(), disposableRule)
+  @get:Rule val rule = RuleChain(TestScopeRule(), ApplicationRule(), disposableRule)
 
   val disposable
     get() = disposableRule.disposable

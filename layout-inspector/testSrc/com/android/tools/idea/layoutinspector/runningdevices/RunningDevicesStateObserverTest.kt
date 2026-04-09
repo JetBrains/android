@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices
 
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.core.StreamingDeviceId
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
@@ -23,6 +24,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.components.BorderLayoutPanel
 import javax.swing.JPanel
@@ -33,9 +35,11 @@ import org.junit.Test
 @RunsInEdt
 class RunningDevicesStateObserverTest {
 
-  @get:Rule val edtRule = EdtRule()
+  private val edtRule = EdtRule()
 
-  @get:Rule val displayViewRule = EmulatorViewRule()
+  private val displayViewRule = EmulatorViewRule()
+
+  @get:Rule val rule = RuleChain(TestScopeRule(), displayViewRule, edtRule)
 
   private lateinit var fakeToolWindow: ToolWindowEx
 

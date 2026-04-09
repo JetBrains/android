@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.stateinspection.ObservedNodes.All
 import com.android.tools.idea.layoutinspector.stateinspection.ObservedNodes.None
@@ -29,7 +30,7 @@ import org.junit.Test
 class InspectorStateReadModelTest {
   private val disposableRule = DisposableRule()
 
-  @get:Rule val rule = RuleChain(disposableRule, ApplicationRule())
+  @get:Rule val rule = RuleChain(TestScopeRule(), disposableRule, ApplicationRule())
 
   @Test
   fun testObserveNode() {

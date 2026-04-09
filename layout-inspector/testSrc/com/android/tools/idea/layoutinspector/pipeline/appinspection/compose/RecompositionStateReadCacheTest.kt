@@ -19,6 +19,7 @@ import com.android.testutils.waitForCondition
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.COMPOSE2
 import com.android.tools.idea.layoutinspector.model.COMPOSE3
@@ -44,7 +45,7 @@ class RecompositionStateReadCacheTest {
   private val inspectorRule =
     LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider()), projectRule) { it.name == PROCESS.name }
 
-  @get:Rule val rule = RuleChain(projectRule, inspectionRule, inspectorRule)
+  @get:Rule val rule = RuleChain(TestScopeRule(), projectRule, inspectionRule, inspectorRule)
 
   @Test
   fun testSettingsUpdated() {

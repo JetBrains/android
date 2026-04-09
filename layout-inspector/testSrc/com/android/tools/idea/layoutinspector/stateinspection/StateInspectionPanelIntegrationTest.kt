@@ -25,6 +25,7 @@ import com.android.tools.adtui.swing.getDescendant
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
 import com.android.tools.idea.layoutinspector.model.COMPOSE2
@@ -73,7 +74,7 @@ class StateInspectionPanelIntegrationTest {
     LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider()), projectRule) { it.name == MODERN_PROCESS.name }
   private lateinit var panel: StateInspectionPanel
 
-  @get:Rule val rule = RuleChain(projectRule, inspectionRule, inspectorRule, EdtRule())
+  @get:Rule val rule = RuleChain(TestScopeRule(), projectRule, inspectionRule, inspectorRule, EdtRule())
 
   @Before
   fun before() {

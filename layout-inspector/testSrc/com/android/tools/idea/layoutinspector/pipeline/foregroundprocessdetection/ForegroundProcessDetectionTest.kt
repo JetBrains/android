@@ -24,6 +24,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescript
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.pipeline.fakeDevice
@@ -72,7 +73,9 @@ class ForegroundProcessDetectionTest {
   private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("ForegroundProcessDetectionTest", transportService)
   private val streamManagerRule = TransportStreamManagerRule(grpcServerRule)
 
-  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(adbRule).around(grpcServerRule).around(streamManagerRule)
+  @get:Rule
+  val ruleChain: RuleChain =
+    RuleChain.outerRule(TestScopeRule()).around(projectRule).around(adbRule).around(grpcServerRule).around(streamManagerRule)
 
   private val timestampGenerator = AtomicLong()
 

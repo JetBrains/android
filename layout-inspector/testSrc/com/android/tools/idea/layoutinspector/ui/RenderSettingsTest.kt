@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.adtui.workbench.PropertiesComponentMock
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_PURPLE_ARGB
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_RED_ARGB
 import com.google.common.truth.Truth.assertThat
@@ -34,7 +35,7 @@ class RenderSettingsTest {
   private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
 
-  @get:Rule val ruleChain = RuleChain(projectRule, DeviceViewSettingsRule(), disposableRule)
+  @get:Rule val ruleChain = RuleChain(TestScopeRule(), projectRule, DeviceViewSettingsRule(), disposableRule)
 
   @Before
   fun before() {

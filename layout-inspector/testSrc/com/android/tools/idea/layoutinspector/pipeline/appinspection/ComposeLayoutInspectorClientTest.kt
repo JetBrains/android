@@ -36,6 +36,7 @@ import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.Info
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
@@ -87,7 +88,13 @@ class ComposeLayoutInspectorClientTest {
   private val releaseFolderFlagRule = FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_RELEASE_FOLDER)
 
   @get:Rule
-  val rule = RuleChain.outerRule(projectRule).around(adbRule).around(devFlagRule).around(devFolderFlagRule).around(releaseFolderFlagRule)!!
+  val rule =
+    RuleChain.outerRule(TestScopeRule())
+      .around(projectRule)
+      .around(adbRule)
+      .around(devFlagRule)
+      .around(devFolderFlagRule)
+      .around(releaseFolderFlagRule)!!
 
   @Before
   fun before() {

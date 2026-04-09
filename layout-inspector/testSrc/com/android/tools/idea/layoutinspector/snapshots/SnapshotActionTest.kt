@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.snapshots
 
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.ui.LAYOUT_INSPECTOR_DATA_KEY
@@ -58,7 +59,7 @@ class SnapshotActionTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
 
-  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(fileOpenCaptureRule)!!
+  @get:Rule val ruleChain = RuleChain.outerRule(TestScopeRule()).around(projectRule).around(fileOpenCaptureRule)!!
   @get:Rule val edtRule = EdtRule()
 
   @Test

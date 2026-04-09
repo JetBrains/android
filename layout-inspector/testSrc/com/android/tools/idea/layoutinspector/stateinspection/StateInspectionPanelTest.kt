@@ -22,6 +22,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.adtui.swing.getDescendant
 import com.android.tools.idea.layoutinspector.FakeSessionStats
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ui.FileOpenCaptureRule
 import com.google.common.truth.Truth.assertThat
@@ -62,7 +63,7 @@ class StateInspectionPanelTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val fileOpenRule = FileOpenCaptureRule(projectRule)
 
-  @get:Rule val chain = RuleChain(projectRule, fileOpenRule, EdtRule())
+  @get:Rule val chain = RuleChain(TestScopeRule(), projectRule, fileOpenRule, EdtRule())
 
   private val model = TestStateInspectionModel()
   private val stats = FakeSessionStats()

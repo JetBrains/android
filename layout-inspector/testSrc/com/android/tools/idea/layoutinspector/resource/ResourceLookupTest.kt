@@ -23,6 +23,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.DEVICE_1
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
@@ -34,6 +35,7 @@ import com.android.tools.idea.layoutinspector.setApplicationIdForTest
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.RuleChain
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.ColorIcon
 import java.awt.Color
@@ -46,7 +48,9 @@ import org.junit.Test
 
 class ResourceLookupTest {
 
-  @JvmField @Rule val projectRule = AndroidProjectRule.inMemory()
+  private val projectRule = AndroidProjectRule.inMemory()
+
+  @get:Rule val rule = RuleChain(TestScopeRule(), projectRule)
 
   @Test
   fun testUpdateConfiguration() {

@@ -30,6 +30,7 @@ import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.SelectDeviceAction
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -65,7 +66,7 @@ class SelectDeviceActionTest {
   private val deviceProvisionerRule = DeviceProvisionerRule()
   private val disposableRule = DisposableRule()
 
-  @get:Rule val rule = RuleChain(deviceProvisionerRule, disposableRule)
+  @get:Rule val rule = RuleChain(TestScopeRule(), deviceProvisionerRule, disposableRule)
 
   private val deviceProvisioner
     get() = deviceProvisionerRule.deviceProvisioner

@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
@@ -65,7 +66,7 @@ class StateReadMenuTest {
   private val disposableRule = DisposableRule()
   private val flagRule = FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_STATE_READS, true)
 
-  @get:Rule val rule = RuleChain(ApplicationRule(), disposableRule, flagRule, EdtRule())
+  @get:Rule val rule = RuleChain(TestScopeRule(), ApplicationRule(), disposableRule, flagRule, EdtRule())
   private lateinit var model: InspectorModel
   private lateinit var mockLayoutInspector: LayoutInspector
   private lateinit var client: InspectorClient

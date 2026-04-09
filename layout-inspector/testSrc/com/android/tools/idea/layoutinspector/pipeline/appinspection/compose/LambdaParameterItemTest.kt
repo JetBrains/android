@@ -19,6 +19,7 @@ import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
@@ -50,7 +51,8 @@ class LambdaParameterItemTest {
   private val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
   private val popupRule = JBPopupRule()
 
-  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(popupRule).around(fileOpenCaptureRule).around(EdtRule())!!
+  @get:Rule
+  val ruleChain = RuleChain.outerRule(TestScopeRule()).around(projectRule).around(popupRule).around(fileOpenCaptureRule).around(EdtRule())!!
 
   @Before
   fun before() {

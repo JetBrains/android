@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.laf.HeadlessTableUI
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.PropertySection
@@ -57,7 +58,7 @@ class ShowMoreElementsItemTest {
 
   private val disposableRule = DisposableRule()
 
-  @get:Rule val rules = RuleChain(ApplicationRule(), EdtRule(), disposableRule)
+  @get:Rule val rules = RuleChain(TestScopeRule(), ApplicationRule(), EdtRule(), disposableRule)
 
   @Before
   fun before() {

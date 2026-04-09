@@ -23,6 +23,7 @@ import com.android.resources.ResourceType
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.devtools.ChromeDevTools
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
@@ -80,7 +81,7 @@ class ViewContextMenuFactoryTest {
   private val flagRule1 = FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_STATE_READS, true)
   private val flagRule2 = FlagRule(StudioFlags.DYNAMIC_LAYOUT_CHROME_DEVTOOLS_MENU, true)
 
-  @get:Rule val rule = RuleChain(ApplicationRule(), disposableRule, flagRule1, flagRule2)
+  @get:Rule val rule = RuleChain(TestScopeRule(), ApplicationRule(), disposableRule, flagRule1, flagRule2)
 
   private var source: JComponent? = mock()
   private var popupMenuComponent: JPopupMenu? = mock()

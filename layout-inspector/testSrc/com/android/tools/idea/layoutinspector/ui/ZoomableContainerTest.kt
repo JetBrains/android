@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.ui
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
@@ -41,7 +42,7 @@ class ZoomableContainerTest {
 
   private val projectRule = AndroidProjectRule.inMemory().onEdt()
 
-  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule())
+  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(TestScopeRule()).around(projectRule).around(EdtRule())
 
   private lateinit var contentPanel: JPanel
   private lateinit var container: ZoomableContainer

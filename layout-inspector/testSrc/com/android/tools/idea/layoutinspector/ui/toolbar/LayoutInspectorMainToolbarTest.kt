@@ -20,6 +20,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.runningdevices.allChildren
@@ -54,7 +55,8 @@ class LayoutInspectorMainToolbarTest {
     )
 
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(androidProjectRule).around(appInspectorRule).around(layoutInspectorRule).around(EdtRule())
+  val ruleChain: RuleChain =
+    RuleChain.outerRule(TestScopeRule()).around(androidProjectRule).around(appInspectorRule).around(layoutInspectorRule).around(EdtRule())
 
   @Before
   fun setUp() {

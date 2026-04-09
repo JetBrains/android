@@ -26,6 +26,7 @@ import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.COMPOSE4
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -104,7 +105,7 @@ class AppInspectionPropertiesProviderTest {
       it.name == MODERN_PROCESS.name
     }
 
-  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(inspectionRule).around(inspectorRule)!!
+  @get:Rule val ruleChain = RuleChain.outerRule(TestScopeRule()).around(projectRule).around(inspectionRule).around(inspectorRule)!!
 
   private lateinit var inspectorState: FakeInspectorState
 

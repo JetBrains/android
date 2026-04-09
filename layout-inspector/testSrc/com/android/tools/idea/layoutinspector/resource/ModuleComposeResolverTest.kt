@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.resource
 
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.packageNameHash
 import com.android.tools.idea.projectsystem.gradle.isMainModule
@@ -55,7 +56,7 @@ class ModuleComposeResolverTest {
       .onEdt()
   private val fileOpenCaptureRule = FileOpenCaptureRule(projectRule.projectRule)
 
-  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(fileOpenCaptureRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(TestScopeRule()).around(projectRule).around(fileOpenCaptureRule).around(EdtRule())!!
 
   private lateinit var appConfig: RunnerAndConfigurationSettings
   private lateinit var twoConfig: RunnerAndConfigurationSettings

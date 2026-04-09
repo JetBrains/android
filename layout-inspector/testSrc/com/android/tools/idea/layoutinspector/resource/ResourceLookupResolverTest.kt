@@ -30,6 +30,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
@@ -57,7 +58,7 @@ class ResourceLookupResolverTest {
   // Explicitly specify the SDK to avoid failures in SDK upgrades.
   private val projectRule = AndroidProjectRule.withSdk(AndroidVersion(VersionCodes.VANILLA_ICE_CREAM))
 
-  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(TestScopeRule()).around(projectRule).around(EdtRule())!!
 
   @Before
   fun setUp() {

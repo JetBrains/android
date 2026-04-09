@@ -24,6 +24,7 @@ import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.layoutinspector.DeviceProvisionerServiceCleanUpRule
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
 import com.android.tools.idea.layoutinspector.pipeline.fakeDevice
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -80,7 +81,7 @@ class ForegroundProcessDetectionInitializerTest {
   private val provisionerServiceRule = DeviceProvisionerServiceCleanUpRule { projectRule.project }
   private val disposableRule = DisposableRule()
 
-  @get:Rule val chain = RuleChain(projectRule, grpcServerRule, streamManagerRule, provisionerServiceRule, disposableRule)
+  @get:Rule val chain = RuleChain(TestScopeRule(), projectRule, grpcServerRule, streamManagerRule, provisionerServiceRule, disposableRule)
 
   @Before
   fun setup() {

@@ -16,11 +16,13 @@
 package com.android.tools.idea.layoutinspector.resource
 
 import com.android.testutils.TestUtils
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.psi.PsiElement
+import com.intellij.testFramework.RuleChain
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -28,7 +30,9 @@ import org.junit.Test
 
 class LambdaResolverTest {
   // TODO: Investigate why inMemory() fails on Windows...
-  @get:Rule val projectRule = AndroidProjectRule.onDisk()
+  private val projectRule = AndroidProjectRule.onDisk()
+
+  @get:Rule val rule = RuleChain(TestScopeRule(), projectRule)
 
   @Before
   fun before() {

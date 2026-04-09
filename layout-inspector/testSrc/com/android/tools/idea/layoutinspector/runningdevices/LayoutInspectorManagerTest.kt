@@ -26,6 +26,7 @@ import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.FakeForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.NotificationModel
@@ -54,6 +55,7 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.util.ui.components.BorderLayoutPanel
@@ -69,11 +71,13 @@ import org.mockito.kotlin.whenever
 
 class LayoutInspectorManagerTest {
 
-  @get:Rule val applicationRule = ApplicationRule()
+  private val applicationRule = ApplicationRule()
 
-  @get:Rule val edtRule = EdtRule()
+  private val edtRule = EdtRule()
 
-  @get:Rule val displayViewRule = EmulatorViewRule()
+  private val displayViewRule = EmulatorViewRule()
+
+  @get:Rule val rule = RuleChain(TestScopeRule(), applicationRule, edtRule, displayViewRule)
 
   private lateinit var layoutInspector: LayoutInspector
   private lateinit var notificationModel: NotificationModel

@@ -42,7 +42,7 @@ class ShowLayoutInspectorActionTest {
   private val applicationRule = ApplicationRule()
   private val disposableRule = DisposableRule()
 
-  @get:Rule val chain = RuleChain(applicationRule, projectRule, disposableRule, EdtRule())
+  @get:Rule val chain = RuleChain(TestScopeRule(), applicationRule, projectRule, disposableRule, EdtRule())
 
   @Before
   fun setUp() {

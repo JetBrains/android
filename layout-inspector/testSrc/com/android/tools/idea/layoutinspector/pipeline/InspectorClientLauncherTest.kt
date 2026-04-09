@@ -25,6 +25,7 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.DEVICE_2
 import com.android.tools.idea.layoutinspector.DeviceProvisionerServiceCleanUpRule
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.model.NotificationModel
@@ -59,7 +60,7 @@ class InspectorClientLauncherTest {
   private val adbRule = FakeAdbServerAdbLibRule { addDeviceHandler(FakeShellCommandHandler()) }
   private val provisionerServiceRule = DeviceProvisionerServiceCleanUpRule { projectRule.project }
 
-  @get:Rule val ruleChain = RuleChain(projectRule, disposableRule, adbRule, provisionerServiceRule)
+  @get:Rule val ruleChain = RuleChain(TestScopeRule(), projectRule, disposableRule, adbRule, provisionerServiceRule)
 
   @Before
   fun before() {
@@ -509,7 +510,7 @@ class InspectorClientLauncherMetricsTest {
   private val adbRule = FakeAdbServerAdbLibRule { addDeviceHandler(FakeShellCommandHandler()) }
   private val provisionerServiceRule = DeviceProvisionerServiceCleanUpRule { projectRule.project }
 
-  @get:Rule val ruleChain = RuleChain(projectRule, disposableRule, adbRule, provisionerServiceRule)
+  @get:Rule val ruleChain = RuleChain(TestScopeRule(), projectRule, disposableRule, adbRule, provisionerServiceRule)
 
   @Before
   fun before() {

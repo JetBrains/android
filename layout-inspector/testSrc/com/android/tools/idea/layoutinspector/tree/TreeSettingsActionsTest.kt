@@ -22,6 +22,7 @@ import com.android.resources.ResourceType
 import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -71,7 +72,7 @@ class TreeSettingsActionsTest {
   private val studioFlagRule = FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_STATE_READS, true)
   private val disposableRule = DisposableRule()
 
-  @get:Rule val chain = RuleChain(disposableRule, studioFlagRule)
+  @get:Rule val chain = RuleChain(TestScopeRule(), disposableRule, studioFlagRule)
 
   private val treeSettings = FakeTreeSettings()
   private val model = createModel()

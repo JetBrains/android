@@ -27,6 +27,7 @@ import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.layoutinspector.FakeForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ROOT
@@ -73,7 +74,7 @@ class EmbeddedLayoutInspectorInjectionTest {
   private val emulatorViewRule = EmulatorViewRule()
   private val testName = TestName()
 
-  @get:Rule val ruleChain = RuleChain(emulatorViewRule, testName, PortableUiFontRule(), EdtRule())
+  @get:Rule val ruleChain = RuleChain(TestScopeRule(), emulatorViewRule, testName, PortableUiFontRule(), EdtRule())
 
   private val disposable
     get() = emulatorViewRule.disposable

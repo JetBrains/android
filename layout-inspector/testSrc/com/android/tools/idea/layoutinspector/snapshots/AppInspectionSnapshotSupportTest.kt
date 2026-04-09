@@ -26,6 +26,7 @@ import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.NotificationModel
@@ -106,7 +107,7 @@ class AppInspectionSnapshotSupportTest {
       it.name == PROCESS.name
     }
 
-  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(appInspectorRule).around(inspectorRule)!!
+  @get:Rule val ruleChain = RuleChain.outerRule(TestScopeRule()).around(projectRule).around(appInspectorRule).around(inspectorRule)!!
 
   @Before
   fun setUp() {

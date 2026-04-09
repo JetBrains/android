@@ -40,6 +40,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
@@ -124,7 +125,8 @@ class AppInspectionInspectorClientTest {
 
   private val usageRule = MetricsTrackerRule()
 
-  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(inspectionRule).around(inspectorRule).around(usageRule)!!
+  @get:Rule
+  val ruleChain = RuleChain.outerRule(TestScopeRule()).around(projectRule).around(inspectionRule).around(inspectorRule).around(usageRule)!!
 
   @Before
   fun before() {
@@ -1005,7 +1007,9 @@ class AppInspectionInspectorClientWithFailingClientTest {
       it.name == MODERN_PROCESS.name
     }
 
-  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(inspectionRule).around(inspectorRule).around(usageTrackerRule)!!
+  @get:Rule
+  val ruleChain =
+    RuleChain.outerRule(TestScopeRule()).around(projectRule).around(inspectionRule).around(inspectorRule).around(usageTrackerRule)!!
 
   @Before
   fun setUp() {

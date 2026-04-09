@@ -19,6 +19,7 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.FakeSessionStats
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.NotificationModel
@@ -51,7 +52,7 @@ class NavigationUtilsTest {
   private val androidProjectRule = AndroidProjectRule.Companion.withSdk()
   private val fileOpenCaptureRule = FileOpenCaptureRule(androidProjectRule)
 
-  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(androidProjectRule).around(fileOpenCaptureRule)
+  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(TestScopeRule()).around(androidProjectRule).around(fileOpenCaptureRule)
 
   @get:Rule val edtRule = EdtRule()
 

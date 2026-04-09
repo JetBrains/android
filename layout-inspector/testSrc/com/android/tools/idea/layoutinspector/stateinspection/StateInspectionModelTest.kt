@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.stateinspection
 
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
 import com.android.tools.idea.layoutinspector.model.COMPOSE2
@@ -57,7 +58,7 @@ private const val ANCHOR2 = 102
 class StateInspectionModelTest {
   private val disposableRule = DisposableRule()
   private val projectRule = ProjectRule()
-  @get:Rule val chain = RuleChain(projectRule, disposableRule)
+  @get:Rule val chain = RuleChain(TestScopeRule(), projectRule, disposableRule)
 
   private lateinit var inspectorModel: InspectorModel
   private lateinit var view1: ViewNode

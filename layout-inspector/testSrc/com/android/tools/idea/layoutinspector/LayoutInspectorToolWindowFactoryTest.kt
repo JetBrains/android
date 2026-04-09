@@ -84,7 +84,7 @@ class LayoutInspectorToolWindowFactoryTest {
       it.name == MODERN_PROCESS.name
     }
 
-  @get:Rule val ruleChain = RuleChain(projectRule, appInspectionRule, layoutInspectorRule, EdtRule())
+  @get:Rule val ruleChain = RuleChain(TestScopeRule(), projectRule, appInspectionRule, layoutInspectorRule, EdtRule())
 
   @Before
   fun setUp() {
