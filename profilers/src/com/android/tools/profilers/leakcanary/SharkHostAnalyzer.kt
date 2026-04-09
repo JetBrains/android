@@ -42,6 +42,7 @@ class SharkHostAnalyzer {
    * @return A [shark.HeapAnalysis] object which can be a [shark.HeapAnalysisSuccess] or [shark.HeapAnalysisFailure].
    */
   fun analyze(hprofFile: File, onProgress: (Int) -> Unit): HeapAnalysis {
+    logger.info("Starting Shark host analysis on file: ${hprofFile.absolutePath}")
     var analysisResult: HeapAnalysis
     try {
       val analyzer = HeapAnalyzer { step ->

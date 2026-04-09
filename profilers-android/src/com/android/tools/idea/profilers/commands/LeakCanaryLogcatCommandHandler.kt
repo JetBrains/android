@@ -118,6 +118,7 @@ class LeakCanaryLogcatCommandHandler(
         .build()
     try {
       transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(setModeCommand).build())
+      logger.info("Sent SET_STUDIO_LEAKCANARY_MODE command to transport.")
     } catch (e: Exception) {
       isTaskStarted = false
       logger.warn("Failed to execute set StudioLeakCanary mode command", e)
@@ -138,6 +139,7 @@ class LeakCanaryLogcatCommandHandler(
    * agent, And a session ended event effectively terminating the task.
    */
   private fun stopTrace(command: Commands.Command) {
+    logger.info("Stopping LeakCanary trace and resetting state.")
     val endTime = getCurrentTimestampInNs()
 
     // Only stop object count tracking if we were in ON_HOST mode
@@ -151,6 +153,7 @@ class LeakCanaryLogcatCommandHandler(
           .build()
       try {
         transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(stopObjectCountCommand).build())
+        logger.info("Sent STOP_LEAKCANARY_OBJECT_COUNT_TRACKING command to transport.")
       } catch (e: Exception) {
         logger.warn("Failed to execute stop object count tracking command", e)
       }
@@ -169,6 +172,7 @@ class LeakCanaryLogcatCommandHandler(
         .build()
     try {
       transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(endSessionCommand).build())
+      logger.info("Sent END_SESSION command to transport.")
     } catch (e: Exception) {
       logger.warn("Failed to execute end session command", e)
     }
@@ -217,6 +221,7 @@ class LeakCanaryLogcatCommandHandler(
         .setTimestamp(timestampNs)
         .build()
     )
+    logger.info("Added LEAKCANARY_ANALYSIS_STATUS event to transport.")
   }
 
   private fun sendDeviceError(errorType: ErrorType) {
@@ -230,6 +235,7 @@ class LeakCanaryLogcatCommandHandler(
         .setTimestamp(getCurrentTimestampInNs())
         .build()
     )
+    logger.info("Added LEAKCANARY_DEVICE_ERROR event to transport. Error: $errorType")
   }
 
   /**
@@ -250,6 +256,7 @@ class LeakCanaryLogcatCommandHandler(
           .setTimestamp(getCurrentTimestampInNs())
           .build()
       )
+      logger.info("Added parsed LEAKCANARY_ANALYSIS event to transport.")
     } catch (e: Exception) {
       logger.warn("Failed to parse LeakCanary logcat message. Skipping event.", e)
       sendDeviceError(LEAKCANARY_ERROR_LOGCAT_PARSING_FAILURE)
@@ -270,7 +277,7 @@ class LeakCanaryLogcatCommandHandler(
     val logcatService: LogcatService = LogcatService.getInstance(ProjectManager.getInstance().defaultProject)
     logCollectionJob =
       scope.launch {
-        logger.info("Coroutine Started")
+        logger.info("Started LeakCanary logcat collection coroutine for PID $pid")
         logcatService.readLogcat(serialNumber = device.serialNumber, sdk = device.version.androidApiLevel, maxHistoryEntries = 0).collect {
           logcatMessages ->
           logcatMessages.forEach { logcatMessage ->
@@ -352,6 +359,7 @@ class LeakCanaryLogcatCommandHandler(
         isCapturingCompleteTrace = false
         inMetaSectionOfCompleteTrace = false
         sendLeakCanaryAnalysisEvent(capturedLogsForCompleteTrace.toString())
+        logger.info("Successfully parsed and sent complete LeakCanary trace to event queue.")
         capturedLogsForCompleteTrace.clear()
         handled = true
 
@@ -420,6 +428,7 @@ Heap dump duration: Unknown
       logcatMessage.message.split("\n").forEach { line ->
         if (inLastFrameOfPartialTrace && initialTabSpace !in line) {
           sendLeakCanaryAnalysisEvent(convertPartialToCompleteTrace(capturedLogsForPartialTrace))
+          logger.info("Successfully parsed and sent partial LeakCanary trace to event queue.")
           capturedLogsForPartialTrace.clear()
           inLastFrameOfPartialTrace = false
         }
