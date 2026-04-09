@@ -123,8 +123,7 @@ class QuerySyncProject(
   @JvmRecord
   data class QueryCoreSyncResult(
     val postQuerySyncData: PostQuerySyncData,
-    val graph: BuildGraphData,
-    val projectStructureData: ProjectStructureData,
+    val graph: BuildGraphData
   )
 
   @Throws(BuildException::class)
@@ -141,11 +140,10 @@ class QuerySyncProject(
 
   fun computeQueryCoreSyncResult(context: BlazeContext, postQuerySyncData: PostQuerySyncData): QueryCoreSyncResult {
     val graph = buildGraphData(postQuerySyncData, context)
-    val projectStructureData = computeProjectStructureData(context, postQuerySyncData.projectDefinition(), graph)
-    return QueryCoreSyncResult(postQuerySyncData, graph, projectStructureData)
+   return QueryCoreSyncResult(postQuerySyncData, graph)
   }
 
-  private fun computeProjectStructureData(
+  fun computeProjectStructureData(
     context: BlazeContext,
     projectDefinition: ProjectDefinition,
     graph: BuildGraphData,

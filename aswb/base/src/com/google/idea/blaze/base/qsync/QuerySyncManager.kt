@@ -248,8 +248,11 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
         }
       } else {
         updateCurrentSnapshot(context) {
-          val coreSyncResult = assertProjectLoaded().computeQueryCoreSyncResult(context, existingPostQuerySyncData)
-          applySyncResult(coreSyncResult, coreSyncResult.projectStructureData)
+         val coreSyncResult =
+            assertProjectLoaded().computeQueryCoreSyncResult(context, existingPostQuerySyncData)
+         val projectStructureData = assertProjectLoaded().computeProjectStructureData(
+           context, existingPostQuerySyncData.projectDefinition(), coreSyncResult.graph)
+         applySyncResult(coreSyncResult, projectStructureData)
         }
       }
       val buildTriggered = autoEnableCodeAnalysis(context, startup = true)
@@ -473,7 +476,9 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     val queryInstant = Clock.System.now()
     val postQuerySyncData = assertProjectLoaded().computePostQuerySyncData(context, lastQuery)
     val coreSyncResult = assertProjectLoaded().syncQueryCore(context, postQuerySyncData)
-    updateCurrentSnapshot(context) { applySyncResult(coreSyncResult, coreSyncResult.projectStructureData) }
+   val projectStructureData = assertProjectLoaded().computeProjectStructureData(
+      context, postQuerySyncData.projectDefinition(), coreSyncResult.graph)
+    updateCurrentSnapshot(context) { applySyncResult(coreSyncResult, projectStructureData) }
     lastQueryInstant = queryInstant
   }
 
