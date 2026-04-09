@@ -2,7 +2,7 @@ Workspace model changed #1, phase: INITIAL_PHASE
     Roots changed
     Added ModuleEntity for non-Gradle module, name: <omitted_for_snapshot_consistency>
     Added ContentRootEntity for non-Gradle module url: <omitted_for_snapshot_consistency>
-Workspace model changed #2, phase: BASE_SCRIPT_MODEL
+Workspace model changed #2, phase: PROJECT_MODEL_PHASE
     Roots changed
     Removed ModuleEntity for non-Gradle module, name: <omitted_for_snapshot_consistency>
     Removed ContentRootEntity for non-Gradle module url: <omitted_for_snapshot_consistency>
