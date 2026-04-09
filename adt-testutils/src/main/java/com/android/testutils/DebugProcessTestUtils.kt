@@ -13,16 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.compose.debug.utils
+package com.android.testutils
 
 import com.intellij.debugger.engine.DebugProcessImpl
 import com.intellij.debugger.engine.events.DebuggerCommandImpl
 import com.intellij.debugger.impl.PrioritizedTask
 import java.util.concurrent.CompletableFuture
 
-fun DebugProcessImpl.invokeOnDebuggerManagerThread(f: () -> Unit) {
-  val future = CompletableFuture<Unit>()
-
+/**
+ * Run a block of code in the Debugger Manager Thread
+ *
+ * If the block of code throws an exception, raise it to the caller.
+ */
+fun <T> DebugProcessImpl.invokeOnDebuggerManagerThread(f: () -> T): T {
+  val future = CompletableFuture<T>()
+  @Suppress("UnstableApiUsage") managerThread.setVmProxy(virtualMachineProxy)
   managerThread.invokeAndWait(
     object : DebuggerCommandImpl(PrioritizedTask.Priority.NORMAL) {
       override fun action() {
@@ -34,6 +39,5 @@ fun DebugProcessImpl.invokeOnDebuggerManagerThread(f: () -> Unit) {
       }
     }
   )
-
-  future.get()
+  return future.get()
 }

@@ -18,7 +18,7 @@ package com.android.tools.idea.debug
 import com.android.repository.api.UpdatablePackage
 import com.android.repository.testframework.FakePackage.FakeRemotePackage
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.runInDebuggerThread
+import com.android.testutils.invokeOnDebuggerManagerThread
 import com.android.tools.idea.debug.AndroidPositionManager.Companion.changeClassExtensionToJava
 import com.android.tools.idea.debug.AndroidPositionManager.MyXDebugSessionListener
 import com.android.tools.idea.execution.common.AndroidSessionInfo
@@ -66,7 +66,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.any
-import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
@@ -84,12 +83,14 @@ class AndroidPositionManagerTest {
   private val project
     get() = projectRule.project
 
+  private val debuggerManagerThreadImpl: DebuggerManagerThreadImpl by lazy {
+    DebuggerManagerThreadImpl.createTestInstance(projectRule.testRootDisposable, project)
+  }
   private val mockDebugProcessImpl: DebugProcessImpl = mock()
   private val mockDebuggerSession: DebuggerSession = mock()
   private val mockXDebugSession: XDebugSession = mock()
   private val mockProcessHandler: ProcessHandler = mock()
   private val mockCompoundPositionManager: CompoundPositionManager = mock()
-  private val mockDebuggerManagerThreadImpl: DebuggerManagerThreadImpl = mock()
   private val mockSdkSourcePositionFinder: SdkSourcePositionFinder = mock()
   private val mockVirtualMachineProxyImpl: VirtualMachineProxyImpl = mock()
   private val mockClassPrepareRequestor: ClassPrepareRequestor = mock()
@@ -114,7 +115,7 @@ class AndroidPositionManagerTest {
   fun setUp() {
     whenever(mockDebugProcessImpl.session).thenReturn(mockDebuggerSession)
     whenever(mockDebugProcessImpl.positionManager).thenReturn(mockCompoundPositionManager)
-    whenever(mockDebugProcessImpl.managerThread).thenReturn(mockDebuggerManagerThreadImpl)
+    whenever(mockDebugProcessImpl.managerThread).thenReturn(debuggerManagerThreadImpl)
     whenever(mockDebugProcessImpl.project).thenReturn(project)
     whenever(mockDebugProcessImpl.searchScope).thenReturn(GlobalSearchScope.allScope(project))
     whenever(mockDebugProcessImpl.virtualMachineProxy).thenReturn(mockVirtualMachineProxyImpl)
@@ -231,11 +232,8 @@ class AndroidPositionManagerTest {
     DumbService.getInstance(project).smartInvokeLater { semaphore.release() }
     semaphore.acquire()
 
-    // A task will have been put onto the mock debugger manager thread. Get it and invoke it.
-    val runnableCaptor = argumentCaptor<Runnable>()
-    verify(mockDebuggerManagerThreadImpl).invoke(any(), runnableCaptor.capture())
-    val runnable = runnableCaptor.firstValue
-    runnable.run()
+    // Invoke and wait for an empty debugger command to clear out any waiting command.
+    mockDebugProcessImpl.invokeOnDebuggerManagerThread {}
 
     // Now the cache should have been cleared.
     verify(mockCompoundPositionManager).clearCache()
@@ -250,11 +248,8 @@ class AndroidPositionManagerTest {
     DumbService.getInstance(project).smartInvokeLater { semaphore.release() }
     semaphore.acquire()
 
-    // A task will have been put onto the mock debugger manager thread. Get it and invoke it.
-    val runnableCaptor = argumentCaptor<Runnable>()
-    verify(mockDebuggerManagerThreadImpl).invoke(any(), runnableCaptor.capture())
-    val runnable = runnableCaptor.firstValue
-    runnable.run()
+    // Invoke and wait for an empty debugger command to clear out any waiting command.
+    mockDebugProcessImpl.invokeOnDebuggerManagerThread {}
 
     // Invoke and wait for an empty runnable to clear out any waiting tasks (which include the refresh we want to test).
     ApplicationManager.getApplication().invokeAndWait {}
@@ -275,11 +270,8 @@ class AndroidPositionManagerTest {
     DumbService.getInstance(project).smartInvokeLater { semaphore.release() }
     semaphore.acquire()
 
-    // A task will have been put onto the mock debugger manager thread. Get it and invoke it.
-    val runnableCaptor = argumentCaptor<Runnable>()
-    verify(mockDebuggerManagerThreadImpl).invoke(any(), runnableCaptor.capture())
-    val runnable = runnableCaptor.firstValue
-    runnable.run()
+    // Invoke and wait for an empty debugger command to clear out any waiting command.
+    mockDebugProcessImpl.invokeOnDebuggerManagerThread {}
 
     // Invoke and wait for an empty runnable to clear out any waiting tasks (which include the refresh we want to test).
     ApplicationManager.getApplication().invokeAndWait {}
@@ -479,10 +471,9 @@ class AndroidPositionManagerTest {
 
   @Test
   fun getAllClasses_InterfaceWithStaticMethod_hasResults_addsCompanion() {
-    runInDebuggerThread(mockDebugProcessImpl) {
-      @Language("JAVA")
-      val text =
-        """
+    @Language("JAVA")
+    val text =
+      """
       package p1.p2;
 
       interface Foo {
@@ -491,22 +482,20 @@ class AndroidPositionManagerTest {
         }
       }
       """
-          .trimIndent()
-      val file = setupFromFile(text)
-      val position = file.getBreakpointPosition()
+        .trimIndent()
+    val file = setupFromFile(text)
+    val position = file.getBreakpointPosition()
 
-      val types = myPositionManager.getAllClasses(position)
+    val types = mockDebugProcessImpl.invokeOnDebuggerManagerThread { myPositionManager.getAllClasses(position) }
 
-      assertThat(types.map { it.name() }).containsExactly("p1.p2.Foo", "p1.p2.Foo$-CC")
-    }
+    assertThat(types.map { it.name() }).containsExactly("p1.p2.Foo", "p1.p2.Foo$-CC")
   }
 
   @Test
   fun getAllClasses_InterfaceWithDefaultMethod_hasResults_addsCompanion() {
-    runInDebuggerThread(mockDebugProcessImpl) {
-      @Language("JAVA")
-      val text =
-        """
+    @Language("JAVA")
+    val text =
+      """
       package p1.p2;
 
       interface Foo {
@@ -515,72 +504,66 @@ class AndroidPositionManagerTest {
         }
       }
       """
-          .trimIndent()
-      val file = setupFromFile(text)
-      val position = file.getBreakpointPosition()
+        .trimIndent()
+    val file = setupFromFile(text)
+    val position = file.getBreakpointPosition()
 
-      val types = myPositionManager.getAllClasses(position)
+    val types = mockDebugProcessImpl.invokeOnDebuggerManagerThread { myPositionManager.getAllClasses(position) }
 
-      assertThat(types.map { it.name() }).containsExactly("p1.p2.Foo", "p1.p2.Foo$-CC")
-    }
+    assertThat(types.map { it.name() }).containsExactly("p1.p2.Foo", "p1.p2.Foo$-CC")
   }
 
   @Test
   fun getAllClasses_InnerInterfaceWithStaticMethod_hasResults_addsCompanion() {
-    runInDebuggerThread(mockDebugProcessImpl) {
-      @Language("JAVA")
-      val text =
-        """
-        package p1.p2;
+    @Language("JAVA")
+    val text =
+      """
+      package p1.p2;
 
-        interface Foo {
-          interface Bar {
-            static void bar() {
-              int test = 2; // break here
-            }
-          }
-        }
-        """
-          .trimIndent()
-      val file = setupFromFile(text)
-      val position = file.getBreakpointPosition()
-
-      val types = myPositionManager.getAllClasses(position)
-
-      assertThat(types.map { it.name() }).containsExactly("p1.p2.Foo\$Bar", "p1.p2.Foo\$Bar$-CC")
-    }
-  }
-
-  @Test
-  fun getAllClasses_SimpleClass_noResults_doesNotAddCompanion() {
-    runInDebuggerThread(mockDebugProcessImpl) {
-      @Language("JAVA")
-      val text =
-        """
-        package p1.p2;
-
-        class Foo {
+      interface Foo {
+        interface Bar {
           static void bar() {
             int test = 2; // break here
           }
         }
-        """
-          .trimIndent()
-      val file = setupFromFile(text)
-      val position = file.getBreakpointPosition()
+      }
+      """
+        .trimIndent()
+    val file = setupFromFile(text)
+    val position = file.getBreakpointPosition()
 
-      val types = myPositionManager.getAllClasses(position)
+    val types = mockDebugProcessImpl.invokeOnDebuggerManagerThread { myPositionManager.getAllClasses(position) }
 
-      assertThat(types.map { it.name() }).containsExactly("p1.p2.Foo")
-    }
+    assertThat(types.map { it.name() }).containsExactly("p1.p2.Foo\$Bar", "p1.p2.Foo\$Bar$-CC")
+  }
+
+  @Test
+  fun getAllClasses_SimpleClass_noResults_doesNotAddCompanion() {
+    @Language("JAVA")
+    val text =
+      """
+      package p1.p2;
+
+      class Foo {
+        static void bar() {
+          int test = 2; // break here
+        }
+      }
+      """
+        .trimIndent()
+    val file = setupFromFile(text)
+    val position = file.getBreakpointPosition()
+
+    val types = mockDebugProcessImpl.invokeOnDebuggerManagerThread { myPositionManager.getAllClasses(position) }
+
+    assertThat(types.map { it.name() }).containsExactly("p1.p2.Foo")
   }
 
   @Test
   fun getAllClasses_InterfaceWithStaticInitializer__doesNotAddCompanion() {
-    runInDebuggerThread(mockDebugProcessImpl) {
-      @Language("JAVA")
-      val text =
-        """
+    @Language("JAVA")
+    val text =
+      """
       package p1.p2;
 
       interface Foo {
@@ -588,19 +571,18 @@ class AndroidPositionManagerTest {
           .concat("bar"); // break here
       }
       """
-          .trimIndent()
-      val file = setupFromFile(text)
-      val position = file.getBreakpointPosition()
+        .trimIndent()
+    val file = setupFromFile(text)
+    val position = file.getBreakpointPosition()
 
-      val types = myPositionManager.getAllClasses(position)
+    val types = mockDebugProcessImpl.invokeOnDebuggerManagerThread { myPositionManager.getAllClasses(position) }
 
-      assertThat(types.map { it.name() }).containsExactly("p1.p2.Foo")
-    }
+    assertThat(types.map { it.name() }).containsExactly("p1.p2.Foo")
   }
 
   @Test
   fun getAllClasses_IgnoresUnrelatedInnerClass() {
-    runInDebuggerThread(mockDebugProcessImpl) {
+    mockDebugProcessImpl.invokeOnDebuggerManagerThread {
       @Language("JAVA")
       val text =
         """

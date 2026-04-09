@@ -15,19 +15,17 @@
  */
 package com.android.tools.compose.debug.render
 
+import com.android.testutils.invokeOnDebuggerManagerThread
 import com.android.tools.compose.debug.utils.MockClassObjectReference
 import com.android.tools.compose.debug.utils.MockStringReference
 import com.android.tools.compose.debug.utils.MockValueDescriptor
-import com.android.tools.compose.debug.utils.invokeOnDebuggerManagerThread
+import com.android.tools.compose.debug.utils.getRenderers
 import com.android.tools.compose.debug.utils.mockDebugProcess
 import com.android.tools.compose.debug.utils.mockEvaluationContext
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.debugger.engine.DebugProcessImpl
 import com.intellij.debugger.engine.jdi.VirtualMachineProxy
-import com.intellij.debugger.jdi.VirtualMachineProxyImpl
-import com.intellij.debugger.settings.NodeRendererSettings
-import com.intellij.debugger.ui.tree.render.CompoundReferenceRenderer
 import com.intellij.debugger.ui.tree.render.EnumerationChildrenRenderer
 import com.sun.jdi.ReferenceType
 import org.junit.Rule
@@ -58,26 +56,21 @@ class KotlinMapEntryRendererTest {
 
     val thisObjectType: ReferenceType = VirtualMachineProxy.getCurrent().classesByName("java.util.Map\$Entry").first()
 
-    debugProcess.invokeOnDebuggerManagerThread {
-      // 1. check `Kotlin MapEntry` is the first selected renderer by default.
-      val renderer =
-        NodeRendererSettings.getInstance()
-          .getAllRenderers(projectRule.project)
-          .filter { it.isEnabled }
-          .first { (it as? CompoundReferenceRenderer)?.isApplicableAsync(thisObjectType)?.get() == true }
-      assertThat(renderer.name).isEqualTo("Kotlin MapEntry")
+    // 1. check `Kotlin MapEntry` is the first selected renderer by default.
+    val renderers = project.getRenderers()
+    val renderer = debugProcess.invokeOnDebuggerManagerThread { renderers.first { it.isApplicableAsync(thisObjectType).get() == true } }
+    assertThat(renderer.name).isEqualTo("Kotlin MapEntry")
 
-      val thisObjectValue = MockClassObjectReference(thisObjectType, VirtualMachineProxyImpl.getCurrent().virtualMachine)
-      val evaluationContext = mockEvaluationContext(debugProcess, thisObjectValue)
-      val thisValueDescriptor = MockValueDescriptor(project, thisObjectValue)
+    val thisObjectValue = MockClassObjectReference(thisObjectType, debugProcess.virtualMachineProxy.virtualMachine)
+    val evaluationContext = mockEvaluationContext(debugProcess, thisObjectValue)
+    val thisValueDescriptor = MockValueDescriptor(project, thisObjectValue)
 
-      // 2. check if the label is properly rendered - it should be "key -> value".
-      val label = renderer.calcLabel(thisValueDescriptor, evaluationContext, mock())
-      assertThat(label).isEqualTo("key1 -> value1")
+    // 2. check if the label is properly rendered - it should be "key -> value".
+    val label = debugProcess.invokeOnDebuggerManagerThread { renderer.calcLabel(thisValueDescriptor, evaluationContext, mock()) }
+    assertThat(label).isEqualTo("key1 -> value1")
 
-      // 3. check if `EnumerationChildrenRenderer` is the children renderer.
-      val childrenRenderer = (renderer as CompoundReferenceRenderer).childrenRenderer as EnumerationChildrenRenderer
-      assertThat(childrenRenderer.children.map { it.myName }).containsExactly("key", "value")
-    }
+    // 3. check if `EnumerationChildrenRenderer` is the children renderer.
+    val childrenRenderer = renderer.childrenRenderer as EnumerationChildrenRenderer
+    assertThat(childrenRenderer.children.map { it.myName }).containsExactly("key", "value")
   }
 }
