@@ -355,14 +355,21 @@ final class TasksTreeView extends AbstractView<Tree> {
     public void treeNodesInserted(TreeModelEvent e) {
 
       TreePath pathToParent = e.getTreePath();
-      DefaultMutableTreeNode addedNode = objectToTreeNode(e.getChildren()[0]);
-      Task addedTask = treeNodeToTask(addedNode);
+      if (tree == null || pathToParent == null) {
+        return;
+      }
 
-      // Auto-expand tree to show only one level below top-level tasks (grandchildren remain
-      // collapsed by default). The tree is expanded at the top-level task if it is not a leaf node
-      // at the time of insertion, or if it exists in the tree as a leaf and a child task is added
-      // to it.
-      if (tree != null && pathToParent != null) {
+      Task parentTask = treeNodeToTask(pathToParent.getLastPathComponent());
+      boolean parentHasOneChild = model.tasksTreeProperty().getChildren(parentTask).size() == 1;
+
+      for (Object childNode : e.getChildren()) {
+        DefaultMutableTreeNode addedNode = objectToTreeNode(childNode);
+        Task addedTask = treeNodeToTask(addedNode);
+
+        // Auto-expand tree to show only one level below top-level tasks (grandchildren remain
+        // collapsed by default). The tree is expanded at the top-level task if it is not a leaf node
+        // at the time of insertion, or if it exists in the tree as a leaf and a child task is added
+        // to it.
 
         // Added task is top-level task with children
         if (model.tasksTreeProperty().isTopLevelTask(addedTask) && !addedNode.isLeaf()) {
@@ -372,27 +379,23 @@ final class TasksTreeView extends AbstractView<Tree> {
           }
         } else {
           // Added task is child of top-level task
-          Task parentTask = treeNodeToTask(pathToParent.getLastPathComponent());
           if (model.tasksTreeProperty().isTopLevelTask(parentTask)) {
             if (!tree.isExpanded(pathToParent)) {
               tree.expandPath(pathToParent);
             }
           }
         }
-      }
 
-      Task parentTask = treeNodeToTask(pathToParent.getLastPathComponent());
-      boolean parentHasOneChild = model.tasksTreeProperty().getChildren(parentTask).size() == 1;
+        boolean shouldSelect =
+            pathToParent.getPathCount() == 1
+                || parentHasOneChild
+                || BlazeUserSettings.getInstance().getSelectNewestChildTask();
 
-      boolean shouldSelect =
-          model.tasksTreeProperty().isTopLevelTask(addedTask)
-              || parentHasOneChild
-              || BlazeUserSettings.getInstance().getSelectNewestChildTask();
-
-      if (shouldSelect) {
-        TreePath fullPath = pathToParent.pathByAddingChild(addedNode);
-        TreeUtil.selectPath(tree, fullPath, false);
-        model.selectedTaskProperty().setValue(addedTask);
+        if (shouldSelect) {
+          TreePath fullPath = pathToParent.pathByAddingChild(addedNode);
+          TreeUtil.selectPath(tree, fullPath, false);
+          model.selectedTaskProperty().setValue(addedTask);
+        }
       }
     }
 
