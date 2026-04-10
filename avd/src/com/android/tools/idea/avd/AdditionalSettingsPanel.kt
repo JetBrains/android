@@ -57,10 +57,7 @@ internal fun AdditionalSettingsPanel(state: ConfigureDevicePanelState, modifier:
   val device = state.device
   Column(modifier, verticalArrangement = Arrangement.spacedBy(Padding.EXTRA_LARGE)) {
     when {
-      device.isEnvironmentAllowed() -> {
-        if (device.aiGlassesDisplayMode != AiGlassesDisplayMode.NONE) {
-          GlassesEnvironmentSelector(device, state)
-        }
+      device.formFactor == FormFactors.AI_GLASSES -> {
         if (StudioFlags.AI_GLASSES_DISPLAY_SETTING_ENABLED.get()) {
           GlassesDisplaySelector(device)
         }

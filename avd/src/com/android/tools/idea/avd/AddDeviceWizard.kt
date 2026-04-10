@@ -309,9 +309,7 @@ internal class AddDeviceWizard(
 
   private suspend fun finish(device: VirtualDevice): Boolean {
     val avdInfo = withContext(Dispatchers.IO) { VirtualDevices(avdManager).add(device) }
-    if (avdInfo != null) {
-      onAdd(avdInfo)
-    }
+    onAdd(avdInfo)
     return true
   }
 }

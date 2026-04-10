@@ -41,15 +41,22 @@ import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.internal.avd.ConfigKey
+import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.adtui.compose.TestComposeWizard
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
+import com.android.tools.idea.avdmanager.EnvironmentsUpdater
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.sdk.AndroidSdks
+import com.android.tools.idea.sdk.AndroidSdksImpl
 import com.google.common.truth.Truth.assertThat
 import com.intellij.idea.IJIgnore
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.registerOrReplaceServiceInstance
 import java.nio.file.Files
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.listDirectoryEntries
@@ -60,6 +67,7 @@ import org.junit.Test
 class AddDeviceWizardTest {
   @get:Rule val edtRule = EdtRule()
   @get:Rule val applicationRule = ApplicationRule()
+  @get:Rule val disposableRule = DisposableRule()
   @get:Rule val composeTestRule = createStudioComposeTestRule()
   @get:Rule val aiGlassesFlagRule = FlagRule(StudioFlags.AI_GLASSES_DEVICE_SUPPORT_ENABLED, true)
   @get:Rule val xrGlassesFlagRule = FlagRule(StudioFlags.XR_GLASSES_DEVICE_SUPPORT_ENABLED, true)
@@ -145,6 +153,21 @@ class AddDeviceWizardTest {
     // The AVD needs to be on a real filesystem for the copy of the default environment to work.
     val fixture = SdkFixture(avdRoot = createTempDirectory("AddAiGlassesDeviceTest"))
     with(fixture) {
+      // We need to inject the SDK for EnvironmentsUpdater.
+      val androidSdks =
+        object : AndroidSdksImpl() {
+          override fun tryToChooseSdkHandler(): AndroidSdkHandler {
+            return sdkHandler
+          }
+        }
+      ApplicationManager.getApplication()?.registerOrReplaceServiceInstance(AndroidSdks::class.java, androidSdks, disposableRule.disposable)
+      // The EnvironmentsUpdater service is registered in android-avd.xml. A test application that loads it already owns an instance,
+      // and a second one copies the same environment files concurrently.
+      val application = ApplicationManager.getApplication()
+      if (application?.getService(EnvironmentsUpdater::class.java) == null) {
+        application?.registerOrReplaceServiceInstance(EnvironmentsUpdater::class.java, EnvironmentsUpdater(), disposableRule.disposable)
+      }
+
       val api36Glasses = createLocalSystemImage("ai-glasses", listOf(SystemImageTags.AI_GLASSES_TAG), AndroidVersion(36, null, 9, false))
       repoPackages.setLocalPkgInfos(listOf(api36Glasses))
 
@@ -161,9 +184,8 @@ class AddDeviceWizardTest {
 
       composeTestRule.onNodeWithText(api36Glasses.displayName).assertIsSelected()
       composeTestRule.onNodeWithText("Additional settings").performClick()
-      // Glasses have background, not skin.
+      // Glasses have an environment, not skin, which is configured at runtime.
       composeTestRule.onNodeWithText("skin", substring = true, ignoreCase = true).assertDoesNotExist()
-      composeTestRule.onNodeWithText("Background").assertIsDisplayed()
       // We need to disable the external storage, since we can't run mksdcard.
       composeTestRule.onNode(hasText("None") and hasParent(hasTestTag("StorageGroup"))).performClick()
 
@@ -176,10 +198,6 @@ class AddDeviceWizardTest {
       val properties = checkNotNull(AvdManager.parseIniFile(PathFileWrapper(avdFolder.resolve("config.ini")), null))
       assertThat(properties[ConfigKey.LCD_TRANSPARENT]).isEqualTo("yes")
       assertThat(properties[ConfigKey.FORCE_COLD_BOOT_MODE]).isEqualTo("yes")
-
-      // TODO studio-merge AvdManager.parseEnvironmentFile got removed upstream, dropped these assertions
-      // val environment = AvdManager.parseEnvironmentFile(avdFolder, null)
-      // assertThat(environment[EnvironmentKey.IMAGE]).isEqualTo("environment" + File.separator + defaultEnvironments().first().fileName)
     }
   }
 
@@ -223,10 +241,6 @@ class AddDeviceWizardTest {
       val avdFolder = avdRoot.listDirectoryEntries("*.avd").single()
       val properties = checkNotNull(AvdManager.parseIniFile(PathFileWrapper(avdFolder.resolve("config.ini")), null))
       assertThat(properties[ConfigKey.LCD_TRANSPARENT]).isNotEqualTo("yes")
-
-      // TODO studio-merge AvdManager.parseEnvironmentFile got removed upstream, dropped these assertions
-      // val environment = AvdManager.parseEnvironmentFile(avdFolder, null)
-      // assertThat(environment).isEmpty()
     }
   }
 

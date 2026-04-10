@@ -267,7 +267,6 @@ internal object TestDevices {
       )
       .apply {
         name = "AI Glasses"
-        environment = null
         frontCamera = AvdCamera.NONE
         rearCamera = AvdCamera.NONE
         speed = AvdNetworkSpeed.FULL

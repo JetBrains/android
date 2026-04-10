@@ -66,7 +66,6 @@ internal class VirtualDevice(
   var image: ISystemImage? by mutableStateOf(null)
   var skin: Skin by mutableStateOf(NoSkin.INSTANCE)
   var avdFolder: Path? by mutableStateOf(null)
-  var environment: Path? by mutableStateOf(null)
   var frontCamera: AvdCamera by mutableStateOf(AvdCamera.NONE)
   var rearCamera: AvdCamera by mutableStateOf(AvdCamera.NONE)
   var speed: AvdNetworkSpeed by mutableStateOf(EmulatedProperties.DEFAULT_NETWORK_SPEED)
@@ -97,8 +96,6 @@ internal class VirtualDevice(
 
   fun hasPlayStore(image: ISystemImage) = hasPlaystore && image.getServices() == Services.GOOGLE_PLAY_STORE
 
-  fun isEnvironmentAllowed(): Boolean = formFactor == FormFactors.AI_GLASSES
-
   /** Initializes the device based on its device profile. */
   fun initializeFromProfile() {
     name = deviceProfile.displayName
@@ -123,7 +120,6 @@ internal class VirtualDevice(
     image = avdBuilder.systemImage
     skin = avdBuilder.skin.toSkin()
     avdFolder = avdBuilder.avdFolder
-    environment = avdBuilder.environment
     frontCamera = avdBuilder.frontCamera
     rearCamera = avdBuilder.backCamera
     speed = avdBuilder.networkSpeed
@@ -161,7 +157,6 @@ internal fun AvdBuilder.copyFrom(device: VirtualDevice) {
 
   sdCard = requireNotNull(device.expandedStorage).toSdCard()
   skin = device.skin.toAvdSkin()
-  environment = device.environment
 
   screenOrientation = device.orientation
   cpuCoreCount = device.cpuCoreCount

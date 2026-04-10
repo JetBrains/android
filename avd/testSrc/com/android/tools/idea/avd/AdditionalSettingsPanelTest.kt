@@ -182,25 +182,6 @@ class AdditionalSettingsPanelTest {
   }
 
   @Test
-  fun xrGlassesBackgroundValidation() {
-    val device = TestDevices.aiGlasses()
-    val fileSystem = createInMemoryFileSystem()
-
-    val state = configureDevicePanelState(device)
-
-    rule.setContent {
-      provideCompositionLocals { CompositionLocalProvider(LocalFileSystem provides fileSystem) { AdditionalSettingsPanel(state) } }
-    }
-
-    rule.onNode(hasText("None") and hasTestTag("GlassesEnvironmentDropdown")).assertIsDisplayed()
-    rule.onNodeWithTag("GlassesEnvironmentDropdown").performClick()
-    rule.onNodeWithText(defaultEnvironments().first().fileName).performClick()
-    rule.waitForIdle()
-
-    assertThat(state.device.environment).isEqualTo(defaultEnvironments().first().toPath())
-  }
-
-  @Test
   fun aiGlassesDisplayModeValidation() {
     val device = TestDevices.aiGlasses()
     val fileSystem = createInMemoryFileSystem()
@@ -212,13 +193,10 @@ class AdditionalSettingsPanelTest {
     }
 
     rule.onNode(hasText("Monocular Right") and hasTestTag("GlassesDisplayTypeDropdown")).assertIsDisplayed()
-    rule.onNodeWithTag("GlassesEnvironmentDropdown").assertIsDisplayed()
 
     rule.onNodeWithTag("GlassesDisplayTypeDropdown").performClick()
     rule.onNodeWithTag("GlassesDisplayTypeDropdownMenuItem_NONE", useUnmergedTree = true).performClick()
     rule.waitForIdle()
-
-    rule.onNodeWithTag("GlassesEnvironmentDropdown").assertDoesNotExist()
 
     assertThat(state.device.aiGlassesDisplayMode).isEqualTo(AiGlassesDisplayMode.NONE)
   }

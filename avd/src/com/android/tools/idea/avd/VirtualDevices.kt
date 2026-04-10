@@ -20,13 +20,18 @@ import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.internal.avd.AvdNames
 import com.android.sdklib.internal.avd.uniquifyAvdFolder
 import com.android.sdklib.internal.avd.uniquifyAvdName
+import com.android.tools.idea.adddevicedialog.FormFactors
+import com.android.tools.idea.avdmanager.EnvironmentsUpdater
 
 internal class VirtualDevices(private val avdManager: AvdManager) {
-  internal fun add(device: VirtualDevice): AvdInfo? {
+  internal suspend fun add(device: VirtualDevice): AvdInfo {
     val avdBuilder = avdManager.createAvdBuilder(device.deviceProfile)
     avdBuilder.copyFrom(device)
     avdBuilder.avdName = avdManager.uniquifyAvdName(AvdNames.cleanAvdName(device.name))
     avdBuilder.avdFolder = avdManager.uniquifyAvdFolder(avdBuilder.avdName)
+    if (device.formFactor == FormFactors.AI_GLASSES) {
+      avdBuilder.environment = EnvironmentsUpdater.getInstance().getUpdatedFile("indoor-study-dark.jpg")
+    }
 
     return avdManager.createAvd(avdBuilder)
   }
