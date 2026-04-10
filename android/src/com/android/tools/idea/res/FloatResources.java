@@ -284,7 +284,7 @@ public class FloatResources {
     static float applyDimension(int unit, float value, Configuration config) {
       Device device = config.getCachedDevice();
       float xdpi = 493.0f; // assume Nexus 6 density
-      if (device != null) {
+      if (device != null && device.getDefaultHardware().getScreen() != null) {
         xdpi = (float) device.getDefaultHardware().getScreen().getXdpi();
       }
 

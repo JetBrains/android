@@ -500,24 +500,26 @@ public final class AvdDeviceData {
     Hardware defaultHardware = device.getDefaultHardware();
     Screen screen = defaultHardware.getScreen();
 
-    myDensity.set(screen.getPixelDensity());
-    myDiagonalScreenSize.set(screen.getDiagonalLength());
-    myScreenResolutionWidth.set(screen.getXDimension());
-    myScreenResolutionHeight.set(screen.getYDimension());
-    myOriginalDpi = AvdScreenData.calculateDpi(
-      myScreenResolutionWidth.get(), myScreenResolutionHeight.get(), myDiagonalScreenSize.get(), myIsScreenRound.get());
-    myScreenFoldedXOffset.set(screen.getFoldedXOffset());
-    myScreenFoldedYOffset.set(screen.getFoldedYOffset());
-    myScreenFoldedWidth.set(screen.getFoldedWidth());
-    myScreenFoldedHeight.set(screen.getFoldedHeight());
-    myScreenFoldedXOffset2.set(screen.getFoldedXOffset2());
-    myScreenFoldedYOffset2.set(screen.getFoldedYOffset2());
-    myScreenFoldedWidth2.set(screen.getFoldedWidth2());
-    myScreenFoldedHeight2.set(screen.getFoldedHeight2());
-    myScreenFoldedXOffset3.set(screen.getFoldedXOffset3());
-    myScreenFoldedYOffset3.set(screen.getFoldedYOffset3());
-    myScreenFoldedWidth3.set(screen.getFoldedWidth3());
-    myScreenFoldedHeight3.set(screen.getFoldedHeight3());
+    if (screen != null) {
+      myDensity.set(screen.getPixelDensity());
+      myDiagonalScreenSize.set(screen.getDiagonalLength());
+      myScreenResolutionWidth.set(screen.getXDimension());
+      myScreenResolutionHeight.set(screen.getYDimension());
+      myOriginalDpi = AvdScreenData.calculateDpi(
+        myScreenResolutionWidth.get(), myScreenResolutionHeight.get(), myDiagonalScreenSize.get(), myIsScreenRound.get());
+      myScreenFoldedXOffset.set(screen.getFoldedXOffset());
+      myScreenFoldedYOffset.set(screen.getFoldedYOffset());
+      myScreenFoldedWidth.set(screen.getFoldedWidth());
+      myScreenFoldedHeight.set(screen.getFoldedHeight());
+      myScreenFoldedXOffset2.set(screen.getFoldedXOffset2());
+      myScreenFoldedYOffset2.set(screen.getFoldedYOffset2());
+      myScreenFoldedWidth2.set(screen.getFoldedWidth2());
+      myScreenFoldedHeight2.set(screen.getFoldedHeight2());
+      myScreenFoldedXOffset3.set(screen.getFoldedXOffset3());
+      myScreenFoldedYOffset3.set(screen.getFoldedYOffset3());
+      myScreenFoldedWidth3.set(screen.getFoldedWidth3());
+      myScreenFoldedHeight3.set(screen.getFoldedHeight3());
+    }
     myRamStorage.set(defaultHardware.getRam());
     myHasHardwareButtons.set(defaultHardware.getButtonType() == ButtonType.HARD);
     myHasHardwareKeyboard.set(defaultHardware.getKeyboard() != Keyboard.NOKEY);

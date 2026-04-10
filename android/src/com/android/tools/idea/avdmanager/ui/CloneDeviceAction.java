@@ -33,7 +33,9 @@ public class CloneDeviceAction extends DeviceUiAction {
 
   @Override
   public boolean isEnabled() {
-    return myProvider.getDevice() != null && !myProvider.getDevice().getDefaultHardware().getScreen().isFoldable();
+    return myProvider.getDevice() != null &&
+           myProvider.getDevice().getDefaultHardware().getScreen() != null &&
+           !myProvider.getDevice().getDefaultHardware().getScreen().isFoldable();
   }
 
   @Override
