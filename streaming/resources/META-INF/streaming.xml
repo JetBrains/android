@@ -145,12 +145,21 @@
       <group id="android.emulator.environments" class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentActionGroup"
              icon="icons.StudioIcons.Emulator.XR.ENVIRONMENT" text="Environment" description="Select environment for AI Glasses"
              popup="true">
-        <action id="android.emulator.environment.empty" class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentAction$Empty"
-                text="No Environment" description="Select no environment"/>
-        <action id="android.emulator.environment.default" class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentAction$DefaultImage"
-                text="Default Environment" description="Select default environment"/>
-        <action id="android.emulator.environment.custom" class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentAction$Custom"
+        <action id="android.emulator.environment.indoor.study.dark"
+                class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentAction$IndoorStudyDarkImage"
+                text="Indoor Study Dark" description="Select indoor study dark environment"/>
+        <action id="android.emulator.environment.outdoor.city.bright"
+                class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentAction$OutdoorCityBrightImage"
+                text="Outdoor City Bright" description="Select outdoor city bright environment"/>
+        <action id="android.emulator.environment.outdoor.nature.bright"
+                class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentAction$OutdoorNatureBrightImage"
+                text="Outdoor Nature Bright" description="Select outdoor nature bright environment"/>
+        <action id="android.emulator.environment.custom"
+                class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentAction$Custom"
                 text="Custom Environment..." description="Select a custom environment"/>
+        <action id="android.emulator.environment.empty"
+                class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentAction$Empty"
+                text="No Environment" description="Select no environment"/>
       </group>
       <action id="android.device.home.button" class="com.android.tools.idea.streaming.actions.StreamingHomeButtonAction"
               icon="StudioIcons.Emulator.Toolbar.HOME" text="Home" description="Press the Home button of the device">

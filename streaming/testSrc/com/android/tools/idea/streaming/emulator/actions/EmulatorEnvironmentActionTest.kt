@@ -80,19 +80,23 @@ class EmulatorEnvironmentActionTest {
   }
 
   @Test
-  fun testDefaultEnvironment() {
+  fun testBuiltInEnvironments() {
     val environmentsUpdater = mock<EnvironmentsUpdater>()
     runBlocking {
       doAnswer { Path.of("/Sdk/environments/${it.getArgument<String>(0)}") }.whenever(environmentsUpdater).getUpdatedFile(any())
     }
     ApplicationManager.getApplication().replaceService(EnvironmentsUpdater::class.java, environmentsUpdater, testRootDisposable)
-    val action = ActionManager.getInstance().getAction("android.emulator.environment.default")
-    executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
+    val environments = listOf("indoor-study-dark", "outdoor-city-bright", "outdoor-nature-bright")
+    for (environment in environments) {
+      val actionId = "android.emulator.environment.${environment.replace('-', '.')}"
+      val action = ActionManager.getInstance().getAction(actionId)
+      executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
 
-    val call = emulator.getNextGrpcCall(2.seconds)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setEnvironment")
-    assertThat(shortDebugString(call.request))
-      .isEqualTo("environment { key: \"scene.mode\" value: \"imagefile:/Sdk/environments/default-background-1.png\" }")
+      val call = emulator.getNextGrpcCall(2.seconds)
+      assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setEnvironment")
+      assertThat(shortDebugString(call.request))
+        .isEqualTo("environment { key: \"scene.mode\" value: \"imagefile:/Sdk/environments/$environment.jpg\" }")
+    }
   }
 
   @Test

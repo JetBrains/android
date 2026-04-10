@@ -60,7 +60,11 @@ internal sealed class EmulatorEnvironmentAction : AbstractEmulatorAction(configF
     override suspend fun prepareEnvironment(project: Project?): Environment = Environment.newBuilder().build()
   }
 
-  class DefaultImage : BuiltInImage("default-background-1.png")
+  class IndoorStudyDarkImage : BuiltInImage("indoor-study-dark.jpg")
+
+  class OutdoorCityBrightImage : BuiltInImage("outdoor-city-bright.jpg")
+
+  class OutdoorNatureBrightImage : BuiltInImage("outdoor-nature-bright.jpg")
 
   open class Custom : EmulatorEnvironmentAction() {
     override suspend fun prepareEnvironment(project: Project?): Environment? {
