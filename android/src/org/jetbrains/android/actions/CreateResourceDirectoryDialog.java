@@ -15,8 +15,8 @@
  */
 package org.jetbrains.android.actions;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.resources.ResourceFolderType;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -29,20 +29,25 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFileSystemItem;
 import com.intellij.ui.EnumComboBoxModel;
-import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.dsl.listCellRenderer.BuilderKt;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Insets;
 import java.util.Collection;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.text.JTextComponent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.DeviceConfiguratorPanel;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.text.JTextComponent;
-import java.awt.*;
 import org.jetbrains.annotations.TestOnly;
 
 /**
@@ -91,7 +96,7 @@ public class CreateResourceDirectoryDialog extends CreateResourceDirectoryDialog
     myValidatorFactory = validatorFactory;
     myForceDirectoryDoesNotExist = forceDirectoryDoesNotExist;
     myResourceTypeComboBox.setModel(new EnumComboBoxModel<>(ResourceFolderType.class));
-    myResourceTypeComboBox.setRenderer(SimpleListCellRenderer.create("", ResourceFolderType::getName));
+    myResourceTypeComboBox.setRenderer(BuilderKt.textListCellRenderer("", ResourceFolderType::getName));
 
     myDeviceConfiguratorPanel = setupDeviceConfigurationPanel(myResourceTypeComboBox, myDirectoryNameTextField, myErrorLabel);
     myDeviceConfiguratorWrapper.add(myDeviceConfiguratorPanel, BorderLayout.CENTER);

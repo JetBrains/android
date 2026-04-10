@@ -25,19 +25,23 @@ import com.intellij.openapi.ui.InputValidatorEx;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorTextField;
-import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.dsl.listCellRenderer.BuilderKt;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Insets;
+import java.util.Collection;
+import javax.swing.Action;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.Collection;
 
 public class NewStringKeyDialog extends DialogWrapper {
   private JPanel myPanel;
@@ -85,7 +89,7 @@ public class NewStringKeyDialog extends DialogWrapper {
     myResourceFolderComboBox = new ComboBox<>(ResourceFolderManager.getInstance(myFacet).getFolders().toArray(VirtualFile.EMPTY_ARRAY));
     myResourceFolderComboBox.setName("resourceFolderComboBox");
 
-    myResourceFolderComboBox.setRenderer(SimpleListCellRenderer.create(
+    myResourceFolderComboBox.setRenderer(BuilderKt.textListCellRenderer(
       "", folder -> VirtualFiles.toString(folder, myFacet.getModule().getProject())));
   }
 

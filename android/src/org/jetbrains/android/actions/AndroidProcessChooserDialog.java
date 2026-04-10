@@ -49,12 +49,12 @@ import com.intellij.psi.xml.XmlElement;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.DoubleClickListener;
-import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.dsl.listCellRenderer.BuilderKt;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
@@ -286,7 +286,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
     runConfigurations.add(null);
     runConfigurations.addAll(existingValidRunConfigurations);
     myDebuggerRunConfigCombo.setModel(new CollectionComboBoxModel<>(runConfigurations));
-    myDebuggerRunConfigCombo.setRenderer(SimpleListCellRenderer.create("[Use default settings]", RunConfigurationWithDebugger::getName));
+    myDebuggerRunConfigCombo.setRenderer(BuilderKt.textListCellRenderer("[Use default settings]", RunConfigurationWithDebugger::getName));
 
     // The run configuration dropdown is initialized to the project's currently selected run configuration; if there is no run configuration,
     // then [Use default settings] remains as the default initial selection.
@@ -320,7 +320,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
     List<AndroidDebugger> androidDebuggers = getAndroidDebuggers(configuration);
     androidDebuggers.sort((left, right) -> left.getId().compareTo(right.getId()));
     myDebuggerTypeCombo.setModel(new CollectionComboBoxModel(androidDebuggers));
-    myDebuggerTypeCombo.setRenderer(SimpleListCellRenderer.create("", AndroidDebugger::getDisplayName));
+    myDebuggerTypeCombo.setRenderer(BuilderKt.textListCellRenderer("", AndroidDebugger::getDisplayName));
 
     // Populate which entry is selected in the debugger dropdown (even if it's disabled).
     AndroidDebugger selectedDebugger = null;

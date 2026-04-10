@@ -23,9 +23,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.LabeledComponent;
 import com.intellij.ui.BrowserHyperlinkListener;
-import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBRadioButton;
 import com.intellij.ui.components.JBTextField;
+import com.intellij.ui.dsl.listCellRenderer.BuilderKt;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
@@ -117,7 +117,7 @@ public class AndroidProfilersPanel {
 
     myStartupCpuConfigsComboBox.setModel(new DefaultComboBoxModel<>(CpuProfilerConfigsState.getInstance(myProject).getConfigs()
                                                                       .toArray(new CpuProfilerConfig[0])));
-    myStartupCpuConfigsComboBox.setRenderer(SimpleListCellRenderer.create("", CpuProfilerConfig::getName));
+    myStartupCpuConfigsComboBox.setRenderer(BuilderKt.textListCellRenderer("", CpuProfilerConfig::getName));
     myStartupCpuConfigsComboBox.setSelectedIndex(0);
   }
 

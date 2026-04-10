@@ -57,9 +57,9 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColorPanel;
-import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.dsl.listCellRenderer.BuilderKt;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
@@ -242,7 +242,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
     for (Shape shape : SHAPE_NAMES.keySet()) {
       shapesModel.addElement(shape);
     }
-    myShapeComboBox.setRenderer(SimpleListCellRenderer.create("", SHAPE_NAMES::get));
+    myShapeComboBox.setRenderer(BuilderKt.textListCellRenderer("", SHAPE_NAMES::get));
     myShapeComboBox.setModel(shapesModel);
     myShapeComboBox.setSelectedItem(Shape.SQUARE);
 

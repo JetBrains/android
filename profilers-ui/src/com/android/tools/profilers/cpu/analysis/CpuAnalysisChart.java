@@ -34,7 +34,7 @@ import com.android.tools.profilers.cpu.capturedetails.TreeDetailsView;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.HelpTooltip;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.ui.SimpleListCellRenderer;
+import com.intellij.ui.dsl.listCellRenderer.BuilderKt;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -123,7 +123,7 @@ public class CpuAnalysisChart extends CpuAnalysisTab<CpuAnalysisChartModel<?>> {
       new JComboBoxView<>(clockTypeSelector, getModel().getAspectModel(), CpuAnalysisChartModel.Aspect.CLOCK_TYPE,
                           getModel()::getClockTypes, getModel()::getClockType, getModel()::setClockType);
     clockTypes.bind();
-    clockTypeSelector.setRenderer(SimpleListCellRenderer.create("", value ->
+    clockTypeSelector.setRenderer(BuilderKt.textListCellRenderer("", value ->
       value == ClockType.GLOBAL ? "Wall Clock Time" :
       value == ClockType.THREAD ? "Thread Time" : ""));
     clockTypeSelector.setEnabled(getModel().isCaptureDualClock());

@@ -22,7 +22,7 @@ import com.android.tools.idea.execution.common.debug.AndroidDebuggerState;
 import com.google.common.collect.Maps;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.ui.CollectionComboBoxModel;
-import com.intellij.ui.SimpleListCellRenderer;
+import com.intellij.ui.dsl.listCellRenderer.BuilderKt;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import java.awt.BorderLayout;
@@ -60,7 +60,7 @@ public class AndroidDebuggerPanel {
         }
       }
     });
-    myDebuggerType.setRenderer(SimpleListCellRenderer.create("", AndroidDebugger::getDisplayName));
+    myDebuggerType.setRenderer(BuilderKt.textListCellRenderer("", AndroidDebugger::getDisplayName));
 
     for (AndroidDebugger androidDebugger : myAndroidDebuggerContext.getAndroidDebuggers()) {
       AndroidDebuggerConfigurable<AndroidDebuggerState> configurable = androidDebugger.createConfigurable(runConfiguration);
