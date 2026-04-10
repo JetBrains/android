@@ -89,7 +89,7 @@ class ExistingProjectModelData(
   override val prompt = StringValueProperty()
   override val displayText = StringValueProperty("")
   override val imageAttachments: ObjectValueProperty<List<VirtualFile>> = ObjectValueProperty(listOf())
-  override val sourceProjectType = ObjectValueProperty(SourceProjectType.OTHER)
+  override val sourceProjectType = ObjectValueProperty(SourceProjectType.UNKNOWN)
   override val importSourcePath = StringValueProperty("")
 
   private fun runRenderer(renderer: (Project) -> Unit) {

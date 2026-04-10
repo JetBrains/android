@@ -103,11 +103,16 @@ import org.jetbrains.android.util.AndroidUtils
 private val logger: Logger
   get() = logger<NewProjectModel>()
 
-/** The source project type for migration/import. */
-enum class SourceProjectType {
-  IOS,
-  REACT_NATIVE,
-  OTHER,
+/**
+ * The source project type for migration/import.
+ *
+ * @param importProjectType The equivalent [GeminiPluginApi.ImportProjectType].
+ */
+enum class SourceProjectType(val importProjectType: GeminiPluginApi.ImportProjectType) {
+  IOS(GeminiPluginApi.ImportProjectType.IOS),
+  REACT_NATIVE(GeminiPluginApi.ImportProjectType.REACT_NATIVE),
+  FLUTTER(GeminiPluginApi.ImportProjectType.FLUTTER),
+  UNKNOWN(GeminiPluginApi.ImportProjectType.UNKNOWN),
 }
 
 interface ProjectModelData {
@@ -186,7 +191,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
                       prompt.get(),
                       imageAttachments.get(),
                       displayText.get().takeIf { it.isNotBlank() },
-                      sourceProjectType = sourceProjectType.get().name,
+                      importProjectType = sourceProjectType.get().importProjectType,
                     )
                 } else {
                   GeminiPluginApi.getInstance().launchNewProjectAgent(newProject, prompt.get(), imageAttachments.get())
