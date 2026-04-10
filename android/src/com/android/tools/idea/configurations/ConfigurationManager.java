@@ -368,7 +368,6 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
   @NotNull
   public ImmutableList<Locale> getLocalesInProject() {
     ResourceRepositoryManager repositoryManager = myConfigurationModule.getResourceRepositoryManager();
-    assert repositoryManager != null;
     return repositoryManager.getLocalesInProject();
   }
 

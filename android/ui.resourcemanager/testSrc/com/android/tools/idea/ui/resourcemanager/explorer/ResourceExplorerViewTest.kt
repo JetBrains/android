@@ -36,6 +36,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.PlatformTestUtil.waitWithEventsDispatching
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.components.JBLabel
@@ -259,7 +260,7 @@ class ResourceExplorerViewTest {
       )
     Disposer.register(disposable, view)
 
-    waitAndAssert<AssetListView>(view) { list -> list != null }
+    waitWithEventsDispatching("AssetListView did not appear", { UIUtil.findComponentOfType(view, AssetListView::class.java) != null }, 60)
     return view
   }
 }

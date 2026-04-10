@@ -35,6 +35,7 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.PlatformTestUtil.waitWithEventsDispatching
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndGet
@@ -118,7 +119,14 @@ class ShowFileInResourceManagerActionTest {
       // Right after opening the ResourceManager, request to select the file from app module
       resourceExplorer.selectAsset(rule.module.androidFacet!!, appDrawable.virtualFile)
     }
-    waitAndAssert<SectionList>(resourceExplorer) { it?.selectedValue != null }
+    waitWithEventsDispatching(
+      "Asset was not selected in time",
+      {
+        val sectionList = UIUtil.findComponentOfType(resourceExplorer, SectionList::class.java)
+        sectionList?.selectedValue != null
+      },
+      30,
+    )
 
     val selected = UIUtil.findComponentsOfType(resourceExplorer, SectionList::class.java)[0].selectedValue as ResourceAssetSet
     assertEquals("icon", selected.name)

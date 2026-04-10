@@ -137,26 +137,31 @@ class ResourceImportDialogViewModelTest {
     var validFile: VirtualFile? = null
     var validFileWithPrefix: VirtualFile? = null
     var invalidFile: VirtualFile? = null
-    runInEdtAndWait {
-      val dir = FileUtil.createTempDirectory(getTestDataDirectory(), "_images")
-      validFile = FileUtil.createTempFile(dir, "baCKground image-1", SdkConstants.DOT_XML).toVirtualFile(true)
-      validFileWithPrefix = FileUtil.createTempFile(dir, "ic_baCKground image-1", SdkConstants.DOT_XML).toVirtualFile(true)
-      invalidFile = FileUtil.createTempFile(dir, "baCKground imag@e-1", SdkConstants.DOT_XML).toVirtualFile(true)
+    var dir: File? = null
+    try {
+      runInEdtAndWait {
+        dir = FileUtil.createTempDirectory("ResourceImportDialogViewModelTest", "_images")
+        validFile = FileUtil.createTempFile(dir, "baCKground image-1", SdkConstants.DOT_XML).toVirtualFile(true)
+        validFileWithPrefix = FileUtil.createTempFile(dir, "ic_baCKground image-1", SdkConstants.DOT_XML).toVirtualFile(true)
+        invalidFile = FileUtil.createTempFile(dir, "baCKground imag@e-1", SdkConstants.DOT_XML).toVirtualFile(true)
+      }
+      var asset = DesignAsset(validFile!!, emptyList(), ResourceType.DRAWABLE)
+      var viewModel = ResourceImportDialogViewModel(rule.module.androidFacet!!, sequenceOf(asset))
+      assertThat(viewModel.assetSets.first().name).isEqualTo("background_image_1")
+      assertNull(viewModel.getValidationInfo())
+
+      asset = DesignAsset(validFileWithPrefix!!, emptyList(), ResourceType.DRAWABLE)
+      viewModel = ResourceImportDialogViewModel(rule.module.androidFacet!!, sequenceOf(asset))
+      assertThat(viewModel.assetSets.first().name).isEqualTo("ic_background_image_1")
+      assertNull(viewModel.getValidationInfo())
+
+      asset = DesignAsset(invalidFile!!, emptyList(), ResourceType.DRAWABLE)
+      viewModel = ResourceImportDialogViewModel(rule.module.androidFacet!!, sequenceOf(asset))
+      assertThat(viewModel.assetSets.first().name).isEqualTo("background_imag_e_1")
+      assertNull(viewModel.getValidationInfo())
+    } finally {
+      dir?.let { FileUtil.delete(it) }
     }
-    var asset = DesignAsset(validFile!!, emptyList(), ResourceType.DRAWABLE)
-    var viewModel = ResourceImportDialogViewModel(rule.module.androidFacet!!, sequenceOf(asset))
-    assertThat(viewModel.assetSets.first().name).isEqualTo("background_image_1")
-    assertNull(viewModel.getValidationInfo())
-
-    asset = DesignAsset(validFileWithPrefix!!, emptyList(), ResourceType.DRAWABLE)
-    viewModel = ResourceImportDialogViewModel(rule.module.androidFacet!!, sequenceOf(asset))
-    assertThat(viewModel.assetSets.first().name).isEqualTo("ic_background_image_1")
-    assertNull(viewModel.getValidationInfo())
-
-    asset = DesignAsset(invalidFile!!, emptyList(), ResourceType.DRAWABLE)
-    viewModel = ResourceImportDialogViewModel(rule.module.androidFacet!!, sequenceOf(asset))
-    assertThat(viewModel.assetSets.first().name).isEqualTo("background_imag_e_1")
-    assertNull(viewModel.getValidationInfo())
   }
 
   private fun getTestFiles(vararg path: String): List<VirtualFile> {

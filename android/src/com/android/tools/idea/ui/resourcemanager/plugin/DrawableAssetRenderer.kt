@@ -58,6 +58,9 @@ class DrawableAssetRenderer : DesignAssetRenderer {
   private val documentBuilder = DocumentBuilderFactory.newDefaultInstance().newDocumentBuilder()
 
   private fun createRenderer(module: Module, targetFile: VirtualFile): CompletableFuture<DrawableRenderer> {
+    if (module.isDisposed || module.project.isDisposed) {
+      return CompletableFuture<DrawableRenderer>().also { it.completeExceptionally(IllegalStateException("Module or project is disposed")) }
+    }
     val facet =
       AndroidFacet.getInstance(module)
         ?: return CompletableFuture<DrawableRenderer>().also {
