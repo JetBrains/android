@@ -67,4 +67,12 @@ class LiveEditAppTest {
     val liveEditApp = LiveEditApp(setOf(TestResources.getFile("/FakeBadR8.apk").toPath()), minApiDevice)
     Truth.assertThat(liveEditApp.minAPI).isEqualTo(actualApkDesugaredMinApi)
   }
+
+  @Test
+  fun testMissingApk() {
+    val expectedMinApi = 30
+    val missingApkPath = java.nio.file.Paths.get("does_not_exist.apk")
+    val liveEditApp = LiveEditApp(setOf(missingApkPath), expectedMinApi)
+    Truth.assertThat(liveEditApp.minAPI).isEqualTo(expectedMinApi)
+  }
 }

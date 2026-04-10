@@ -65,10 +65,18 @@ class LiveEditApp(
   }
 
   private fun MutableSet<MinApiLevel>.extractMinApiFromDexMarkers(apk: Path) {
-    val consumer = LiveEditMarkerInfoConsumer()
-    ExtractMarker.run(ExtractMarkerCommand.builder().addProgramFiles(apk).setMarkerInfoConsumer(consumer).build())
-    journal("Apk '${apk.fileName}' contains minAPI = ${consumer.minApis}")
-    this.addAll(consumer.minApis)
+    try {
+      val consumer = LiveEditMarkerInfoConsumer()
+      ExtractMarker.run(ExtractMarkerCommand.builder().addProgramFiles(apk).setMarkerInfoConsumer(consumer).build())
+      journal("Apk '${apk.fileName}' contains minAPI = ${consumer.minApis}")
+      this.addAll(consumer.minApis)
+    } catch (e: com.android.tools.r8.CompilationFailedException) {
+      journal("Failed to read or parse DEX markers from '${apk.fileName}': ${e.message}")
+    } catch (e: java.io.IOException) {
+      journal("Failed to read APK or extract minAPI from '${apk.fileName}': ${e.message}")
+    } catch (e: java.lang.RuntimeException) {
+      journal("Malformed DEX markers in '${apk.fileName}': ${e.message}")
+    }
   }
 
   private fun journal(msg: String) {
