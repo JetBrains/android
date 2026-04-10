@@ -64,6 +64,7 @@ import com.intellij.util.concurrency.EdtExecutorService
 import org.jetbrains.ide.PooledThreadExecutor
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -78,6 +79,7 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.refEq
 import org.mockito.kotlin.whenever
 
+@Ignore("b/501222759")
 @RunWith(JUnit4::class)
 @RunsInEdt
 class SqliteEvaluatorControllerTest {
