@@ -247,8 +247,14 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
       profilers.ideServices.poolExecutor.execute {
         try {
           profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(forceDumpCommand).build())
+          logger.info(
+            "Sent FORCE_DUMP_LEAKCANARY_ON_DEVICE command to transport. streamId: ${forceDumpCommand.streamId}, pid: ${forceDumpCommand.pid}, sessionId: ${forceDumpCommand.sessionId}"
+          )
         } catch (e: Exception) {
-          logger.warn("Failed to execute force dump on device command", e)
+          logger.warn(
+            "Failed to execute FORCE_DUMP_LEAKCANARY_ON_DEVICE command. streamId: ${forceDumpCommand.streamId}, pid: ${forceDumpCommand.pid}, sessionId: ${forceDumpCommand.sessionId}",
+            e,
+          )
         }
       }
     } else {
@@ -404,9 +410,15 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
       try {
         val response =
           profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(fetchThresholdCommand).build())
+        logger.info(
+          "Sent GET_LEAKCANARY_THRESHOLD command to transport. streamId: ${fetchThresholdCommand.streamId}, pid: ${fetchThresholdCommand.pid}, sessionId: ${fetchThresholdCommand.sessionId}"
+        )
         commandIdFuture.complete(response.commandId)
       } catch (e: Exception) {
-        logger.warn("Failed to fetch retained visible threshold", e)
+        logger.warn(
+          "Failed to fetch retained visible threshold. streamId: ${fetchThresholdCommand.streamId}, pid: ${fetchThresholdCommand.pid}, sessionId: ${fetchThresholdCommand.sessionId}",
+          e,
+        )
         profilers.transportPoller.unregisterListener(listener)
       }
     }
@@ -530,8 +542,14 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
     profilers.ideServices.poolExecutor.execute {
       try {
         profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(cmd).build())
+        logger.info(
+          "Sent ${if (enable) "START_LEAKCANARY_TASK" else "STOP_LEAKCANARY_TASK"} command to transport. streamId: ${cmd.streamId}, pid: ${cmd.pid}, sessionId: ${cmd.sessionId}"
+        )
       } catch (e: Exception) {
-        logger.warn("Failed to toggle LeakCanary tracking", e)
+        logger.warn(
+          "Failed to execute ${if (enable) "START_LEAKCANARY_TASK" else "STOP_LEAKCANARY_TASK"} command. streamId: ${cmd.streamId}, pid: ${cmd.pid}, sessionId: ${cmd.sessionId}",
+          e,
+        )
       }
     }
   }

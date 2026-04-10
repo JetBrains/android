@@ -97,6 +97,9 @@ class LeakCanaryLogcatCommandHandler(
    * current mode so that the device-side integration library can configure itself accordingly (ON_DEVICE vs ON_HOST).
    */
   private fun startTrace(command: Commands.Command) {
+    logger.info(
+      "Handling START_LEAKCANARY_TASK command. streamId: ${command.streamId}, pid: ${command.pid}, sessionId: ${command.sessionId}"
+    )
     currentMode = command.getStartLeakcanaryTask().mode
     logger.info("LeakCanary task started in $currentMode mode.")
     startTimeNs = getCurrentTimestampInNs()
@@ -118,10 +121,15 @@ class LeakCanaryLogcatCommandHandler(
         .build()
     try {
       transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(setModeCommand).build())
-      logger.info("Sent SET_STUDIO_LEAKCANARY_MODE command to transport.")
+      logger.info(
+        "Sent SET_STUDIO_LEAKCANARY_MODE command to transport. streamId: ${command.streamId}, pid: $pid, sessionId: ${command.sessionId}"
+      )
     } catch (e: Exception) {
       isTaskStarted = false
-      logger.warn("Failed to execute set StudioLeakCanary mode command", e)
+      logger.warn(
+        "Failed to execute set StudioLeakCanary mode command. streamId: ${command.streamId}, pid: $pid, sessionId: ${command.sessionId}",
+        e,
+      )
     }
 
     if (currentMode == LeakCanaryMode.ON_DEVICE) {
@@ -139,6 +147,9 @@ class LeakCanaryLogcatCommandHandler(
    * agent, And a session ended event effectively terminating the task.
    */
   private fun stopTrace(command: Commands.Command) {
+    logger.info(
+      "Handling STOP_LEAKCANARY_TASK command. streamId: ${command.streamId}, pid: ${command.pid}, sessionId: ${command.sessionId}"
+    )
     logger.info("Stopping LeakCanary trace and resetting state.")
     val endTime = getCurrentTimestampInNs()
 
@@ -153,9 +164,14 @@ class LeakCanaryLogcatCommandHandler(
           .build()
       try {
         transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(stopObjectCountCommand).build())
-        logger.info("Sent STOP_LEAKCANARY_OBJECT_COUNT_TRACKING command to transport.")
+        logger.info(
+          "Sent STOP_LEAKCANARY_OBJECT_COUNT_TRACKING command to transport. streamId: ${command.streamId}, pid: $pid, sessionId: ${command.sessionId}"
+        )
       } catch (e: Exception) {
-        logger.warn("Failed to execute stop object count tracking command", e)
+        logger.warn(
+          "Failed to execute stop object count tracking command. streamId: ${command.streamId}, pid: $pid, sessionId: ${command.sessionId}",
+          e,
+        )
       }
     } else {
       resetTrackingState()
@@ -172,9 +188,9 @@ class LeakCanaryLogcatCommandHandler(
         .build()
     try {
       transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(endSessionCommand).build())
-      logger.info("Sent END_SESSION command to transport.")
+      logger.info("Sent END_SESSION command to transport. streamId: ${command.streamId}, pid: $pid, sessionId: ${command.sessionId}")
     } catch (e: Exception) {
-      logger.warn("Failed to execute end session command", e)
+      logger.warn("Failed to execute end session command. streamId: ${command.streamId}, pid: $pid, sessionId: ${command.sessionId}", e)
     }
   }
 

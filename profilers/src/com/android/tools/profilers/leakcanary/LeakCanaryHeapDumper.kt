@@ -98,9 +98,19 @@ class LeakCanaryHeapDumper(private val profilers: StudioProfilers) {
         .setType(Commands.Command.CommandType.HEAP_DUMP)
         .setShouldEndSession(false)
         .build()
-    val response = profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(dumpCommand).build())
-    logger.info("Sent HEAP_DUMP command to transport with ID: ${response.commandId}")
-    return response.commandId
+    try {
+      val response = profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(dumpCommand).build())
+      logger.info(
+        "Sent HEAP_DUMP command to transport with ID: ${response.commandId}. streamId: ${dumpCommand.streamId}, pid: ${dumpCommand.pid}, sessionId: ${dumpCommand.sessionId}"
+      )
+      return response.commandId
+    } catch (e: Exception) {
+      logger.warn(
+        "Failed to send HEAP_DUMP command to transport. streamId: ${dumpCommand.streamId}, pid: ${dumpCommand.pid}, sessionId: ${dumpCommand.sessionId}",
+        e,
+      )
+      throw e
+    }
   }
 
   /** Waits for the heap dump status event and returns the HeapDumpInfo. */
@@ -243,8 +253,17 @@ class LeakCanaryHeapDumper(private val profilers: StudioProfilers) {
         .setSendLeakcanaryAnalysis(analysisData)
         .build()
 
-    profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build())
-    logger.info("Sent SEND_LEAKCANARY_ANALYSIS command to transport.")
+    try {
+      profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build())
+      logger.info(
+        "Sent SEND_LEAKCANARY_ANALYSIS command to transport. streamId: ${command.streamId}, pid: ${command.pid}, sessionId: ${command.sessionId}"
+      )
+    } catch (e: Exception) {
+      logger.warn(
+        "Failed to send SEND_LEAKCANARY_ANALYSIS command to transport. streamId: ${command.streamId}, pid: ${command.pid}, sessionId: ${command.sessionId}",
+        e,
+      )
+    }
   }
 
   /** Sends a command to perfa to indicate that the host-side heap dump download and analysis is complete. */
@@ -259,7 +278,16 @@ class LeakCanaryHeapDumper(private val profilers: StudioProfilers) {
         .setType(Commands.Command.CommandType.SIGNAL_HEAP_DUMP_COMPLETE)
         .setSignalHeapDumpComplete(data)
         .build()
-    profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build())
-    logger.info("Sent SIGNAL_HEAP_DUMP_COMPLETE command to transport.")
+    try {
+      profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build())
+      logger.info(
+        "Sent SIGNAL_HEAP_DUMP_COMPLETE command to transport. streamId: ${command.streamId}, pid: ${command.pid}, sessionId: ${command.sessionId}"
+      )
+    } catch (e: Exception) {
+      logger.warn(
+        "Failed to send SIGNAL_HEAP_DUMP_COMPLETE command to transport. streamId: ${command.streamId}, pid: ${command.pid}, sessionId: ${command.sessionId}",
+        e,
+      )
+    }
   }
 }

@@ -162,9 +162,15 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
       try {
         val response =
           profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(fetchThresholdCommand).build())
+        logger.info(
+          "Sent GET_LEAKCANARY_THRESHOLD command to transport. streamId: ${fetchThresholdCommand.streamId}, pid: ${fetchThresholdCommand.pid}, sessionId: ${fetchThresholdCommand.sessionId}"
+        )
         commandIdFuture.complete(response.commandId)
       } catch (e: Exception) {
-        logger.warn(e, "Failed to fetch retained visible threshold")
+        logger.warn(
+          e,
+          "Failed to send GET_LEAKCANARY_THRESHOLD command. streamId: ${fetchThresholdCommand.streamId}, pid: ${fetchThresholdCommand.pid}, sessionId: ${fetchThresholdCommand.sessionId}",
+        )
         if (isCompleted.compareAndSet(false, true)) {
           timer.cancel()
           profilers.transportPoller.unregisterListener(listener)
@@ -529,10 +535,14 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
     try {
       // Execute the command via gRPC. This network call blocks the background thread until it finishes.
       val response = profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build())
-      logger.info("Sent GET_LEAKCANARY_THRESHOLD command to transport for $processId")
+      logger.info(
+        "Sent GET_LEAKCANARY_THRESHOLD command to transport for $processId. streamId: ${command.streamId}, pid: ${command.pid}, sessionId: ${command.sessionId}"
+      )
       commandIdFuture.complete(response.commandId)
     } catch (e: Exception) {
-      logger.warn("PROFILER: Failed to send GET_LEAKCANARY_THRESHOLD command for $processId\n${e.message}")
+      logger.warn(
+        "PROFILER: Failed to send GET_LEAKCANARY_THRESHOLD command for $processId. streamId: ${command.streamId}, pid: ${command.pid}, sessionId: ${command.sessionId}\n${e.message}"
+      )
       // If the gRPC network call fails, we must manually clean up the listener to prevent a memory leak.
       profilers.transportPoller.unregisterListener(listener)
       updateStateToTimeout(processId)
@@ -592,6 +602,9 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
     try {
       // Fire the command to the device.
       profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build())
+      logger.info(
+        "Sent ATTACH_AGENT command to transport. streamId: ${attachCommand.streamId}, pid: ${attachCommand.pid}, sessionId: ${attachCommand.sessionId}, agentLib: ${attachCommand.attachAgent.agentLibFileName}, agentConfig: ${attachCommand.attachAgent.agentConfigPath}, packageName: ${attachCommand.attachAgent.packageName}"
+      )
       return try {
         // Block the background thread until the listener catches the ATTACHED event or we hit the 7-second timeout.
         agentAttachedFuture.get(AGENT_ATTACH_TIMEOUT_MS, java.util.concurrent.TimeUnit.MILLISECONDS)
