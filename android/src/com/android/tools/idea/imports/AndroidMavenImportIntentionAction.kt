@@ -60,6 +60,7 @@ import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteActio
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.types.KaClassType
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.base.analysis.api.utils.allowAnalysisFromWriteActionInEdt
 import org.jetbrains.kotlin.idea.base.facet.implementedModules
 import org.jetbrains.kotlin.idea.base.facet.implementingModules
 import org.jetbrains.kotlin.idea.base.facet.isMultiPlatformModule
@@ -480,7 +481,6 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     private fun PsiElement.findElementAtAbsoluteOffset(targetOffset: Int): PsiElement? =
       findElementAt(targetOffset - textRange.startOffset)
 
-    @OptIn(KaAllowAnalysisOnEdt::class)
     private fun KtDotQualifiedExpression.formText(): Pair<String, String>? {
       val referenceNameElement =
         when (val selector = selectorExpression) {
@@ -495,15 +495,10 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       val receiverExpr =
         (receiverExpression as? KtDotQualifiedExpression)?.selectorExpression ?: receiverExpression
       if (KotlinPluginModeProvider.isK2Mode()) {
-        allowAnalysisOnEdt {
-          @OptIn(KaAllowAnalysisFromWriteAction::class)
-          //allowAnalysisFromWriteAction {
-            analyze(receiverExpr) {
-              (receiverExpr.expressionType as? KaClassType)?.classId?.asFqNameString()?.let {
-                return left.text to it
-              }
-            }
-          //}
+        allowAnalysisFromWriteActionInEdt(receiverExpr) {
+          (receiverExpr.expressionType as? KaClassType)?.classId?.asFqNameString()?.let {
+            return left.text to it
+          }
         }
       } else {
         val receiverType = receiverExpr.resolveExprType()?.takeUnless { it is ErrorType }

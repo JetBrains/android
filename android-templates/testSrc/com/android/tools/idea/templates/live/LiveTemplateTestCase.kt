@@ -90,9 +90,9 @@ abstract class LiveTemplateTestCase : AndroidTestCase(AndroidVersion(SDK_VERSION
     // Then:
     assertFalse(
       "Unexpected template '$template' present in completion.",
-      myFixture.lookupElements!!
-        .filterIsInstance<LiveTemplateLookupElement>()
-        .any { it.lookupString == template }
+      myFixture.lookupElements
+        ?.filterIsInstance<LiveTemplateLookupElement>()
+        ?.any { it.lookupString == template } ?: false
     )
   }
 
