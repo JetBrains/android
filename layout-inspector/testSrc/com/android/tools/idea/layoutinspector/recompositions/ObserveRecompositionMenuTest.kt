@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.stateinspection
+package com.android.tools.idea.layoutinspector.recompositions
 
 import com.android.flags.junit.FlagRule
 import com.android.ide.common.rendering.api.ResourceNamespace
@@ -35,9 +35,9 @@ import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
-import com.android.tools.idea.layoutinspector.stateinspection.ObservedNodes.All
-import com.android.tools.idea.layoutinspector.stateinspection.ObservedNodes.None
-import com.android.tools.idea.layoutinspector.stateinspection.ObservedNodes.Some
+import com.android.tools.idea.layoutinspector.recompositions.ObservedNodes.All
+import com.android.tools.idea.layoutinspector.recompositions.ObservedNodes.None
+import com.android.tools.idea.layoutinspector.recompositions.ObservedNodes.Some
 import com.android.tools.idea.layoutinspector.ui.LAYOUT_INSPECTOR_DATA_KEY
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType

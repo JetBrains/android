@@ -19,8 +19,8 @@ import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.stateinspection.ObservedNodes
-import com.android.tools.idea.layoutinspector.stateinspection.RecompositionKey
+import com.android.tools.idea.layoutinspector.recompositions.ObservedNodes
+import com.android.tools.idea.layoutinspector.recompositions.RecompositionKey
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.drop

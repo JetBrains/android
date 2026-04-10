@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.stateinspection
+package com.android.tools.idea.layoutinspector.recompositions
 
-import com.intellij.openapi.util.Key
-
-/** The key to indicate which composable is currently being inspected for state reads */
-val LAYOUT_INSPECTOR_COMPOSABLE_INSPECTED_KEY = Key.create<ComposableDefinition>("ComposableDefinition")
-
-/** Specifies a composable. */
-data class ComposableDefinition(
-  // The name of the composable.
-  val composable: String,
-  // The name of the file where the composable appears.
-  val fileName: String,
-)
+/** An interface that [LayoutInspectorRecompositionFilterProvider] can use to mark that a HyperLinkInfo is from "Explain with AI". */
+interface LayoutInspectorExplainWithAIHyperLinkInfo

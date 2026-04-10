@@ -45,9 +45,9 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capabilit
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AttachErrorInfo
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.toAttachErrorInfo
-import com.android.tools.idea.layoutinspector.stateinspection.ObservedNodes.All
-import com.android.tools.idea.layoutinspector.stateinspection.ObservedNodes.None
-import com.android.tools.idea.layoutinspector.stateinspection.ObservedNodes.Some
+import com.android.tools.idea.layoutinspector.recompositions.ObservedNodes.All
+import com.android.tools.idea.layoutinspector.recompositions.ObservedNodes.None
+import com.android.tools.idea.layoutinspector.recompositions.ObservedNodes.Some
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.Token

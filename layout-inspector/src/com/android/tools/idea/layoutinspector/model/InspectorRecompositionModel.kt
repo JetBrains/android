@@ -16,11 +16,11 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecompositionDetailsResult
-import com.android.tools.idea.layoutinspector.stateinspection.ObservedNodes
-import com.android.tools.idea.layoutinspector.stateinspection.ObservedNodes.All
-import com.android.tools.idea.layoutinspector.stateinspection.ObservedNodes.None
-import com.android.tools.idea.layoutinspector.stateinspection.ObservedNodes.Some
-import com.android.tools.idea.layoutinspector.stateinspection.RecompositionKey
+import com.android.tools.idea.layoutinspector.recompositions.ObservedNodes
+import com.android.tools.idea.layoutinspector.recompositions.ObservedNodes.All
+import com.android.tools.idea.layoutinspector.recompositions.ObservedNodes.None
+import com.android.tools.idea.layoutinspector.recompositions.ObservedNodes.Some
+import com.android.tools.idea.layoutinspector.recompositions.RecompositionKey
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

@@ -68,7 +68,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewNod
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewResource
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewString
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.sendEvent
-import com.android.tools.idea.layoutinspector.stateinspection.RecompositionKey
+import com.android.tools.idea.layoutinspector.recompositions.RecompositionKey
 import com.android.tools.idea.layoutinspector.ui.FakeRenderSettings
 import com.android.tools.idea.layoutinspector.util.DECOR_VIEW
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings

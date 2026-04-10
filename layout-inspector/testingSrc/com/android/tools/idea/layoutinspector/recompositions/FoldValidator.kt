@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.stateinspection
+package com.android.tools.idea.layoutinspector.recompositions
 
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.editor.FoldingModel

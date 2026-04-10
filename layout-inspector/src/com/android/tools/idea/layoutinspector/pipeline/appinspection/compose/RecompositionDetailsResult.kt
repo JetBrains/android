@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
-import com.android.tools.idea.layoutinspector.stateinspection.RecompositionKey
+import com.android.tools.idea.layoutinspector.recompositions.RecompositionKey
 
 /** A result from a recomposition details request. */
 sealed class RecompositionDetailsResult {
