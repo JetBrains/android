@@ -381,9 +381,17 @@ final class TasksTreeView extends AbstractView<Tree> {
         }
       }
 
-      // Select top-level task when added.
-      if (BlazeUserSettings.getInstance().getSelectNewestChildTask()
-          || model.tasksTreeProperty().isTopLevelTask(addedTask)) {
+      Task parentTask = treeNodeToTask(pathToParent.getLastPathComponent());
+      boolean parentHasOneChild = model.tasksTreeProperty().getChildren(parentTask).size() == 1;
+
+      boolean shouldSelect =
+          model.tasksTreeProperty().isTopLevelTask(addedTask)
+              || parentHasOneChild
+              || BlazeUserSettings.getInstance().getSelectNewestChildTask();
+
+      if (shouldSelect) {
+        TreePath fullPath = pathToParent.pathByAddingChild(addedNode);
+        TreeUtil.selectPath(tree, fullPath, false);
         model.selectedTaskProperty().setValue(addedTask);
       }
     }
