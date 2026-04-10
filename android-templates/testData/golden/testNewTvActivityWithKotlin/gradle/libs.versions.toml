@@ -1,5 +1,5 @@
 [versions]
-agp = "9.2.0-alpha06"
+agp = "9.2.0-alpha08"
 coreKtx = "1.10.1"
 leanback = "1.2.0"
 glide = "4.11.0"

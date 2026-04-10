@@ -14,6 +14,17 @@
     </issue>
 
     <issue
+        id="RiskyLibrary"
+        message="**[Prevents app release in Google Play Console]** com.google.android.gms:play-services-ads version 21.5.0 has been reported as problematic by its author and will block publishing of your app to Play Console.&#xA;**Note:** As of June 30th 2025, this version is sunset. For more information, please visit https://developers.google.com/admob/android/deprecation."
+        errorLine1="playServicesAds = &quot;21.5.0&quot;"
+        errorLine2="                  ~~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="8"
+            column="19"/>
+    </issue>
+
+    <issue
         id="UnusedResources"
         message="The resource `R.dimen.fragment_horizontal_margin` appears to be unused"
         errorLine1="    &lt;dimen name=&quot;fragment_horizontal_margin&quot;>16dp&lt;/dimen>"

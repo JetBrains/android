@@ -27,7 +27,7 @@
     <issue
         id="RedundantLabel"
         message="Redundant label can be removed"
-        errorLine1="            android:label=&quot;@string/app_name&quot;>"
+        errorLine1="            android:label=&quot;@string/app_name&quot;"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/AndroidManifest.xml"
