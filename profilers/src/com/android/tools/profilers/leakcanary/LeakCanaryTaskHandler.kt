@@ -72,8 +72,8 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
   val checkState = _checkState.asStateFlow()
 
   // Total timeout for the entire check sequence: Agent Attach + Broadcast Round Trip.
-  // Derived from: Agent Attach (7s) + Broadcast (2s) + Buffer (2s) = 11s.
-  private val LEAKCANARY_CHECK_TIMEOUT_MS = 11000L
+  // Derived from: Agent Attach (7s) + Broadcast (3s) + Buffer (4s) = 14s.
+  private val LEAKCANARY_CHECK_TIMEOUT_MS = 14000L
   // Timeout for the JVMTI agent to attach. Cold attachment can take 3-5s on slower devices.
   private val AGENT_ATTACH_TIMEOUT_MS = 7000L
 
