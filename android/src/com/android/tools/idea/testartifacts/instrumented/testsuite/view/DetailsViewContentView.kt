@@ -39,6 +39,8 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -65,6 +67,7 @@ import java.awt.Dimension
 import java.awt.FlowLayout
 import java.util.Arrays
 import java.util.Locale
+import java.util.concurrent.Callable
 import java.util.concurrent.Future
 import javax.accessibility.AccessibleContext
 import javax.accessibility.AccessibleRole
@@ -72,7 +75,7 @@ import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants
 
 /** Shows detailed tests results for a selected device. */
-class DetailsViewContentView(
+open class DetailsViewContentView(
   parentDisposable: Disposable,
   private val project: Project,
   logger: AndroidTestSuiteLogger,
@@ -119,6 +122,7 @@ class DetailsViewContentView(
 
     // Journey results tab
     myJourneysResultsPanel = JourneysResultsPanel(project)
+    Disposer.register(this, myJourneysResultsPanel)
     myJourneyScreenshotsTab = TabInfo(myJourneysResultsPanel)
     myJourneyScreenshotsTab.setText("Results")
     myJourneyScreenshotsTab.setTooltipText("Show the actions taken by Gemini")
@@ -127,6 +131,7 @@ class DetailsViewContentView(
 
     // Screenshot tab
     myScreenshotResultView = ScreenshotResultView(project)
+    Disposer.register(this, myScreenshotResultView)
     myScreenshotTab = TabInfo(myScreenshotResultView.getComponent())
     myScreenshotTab.setText("Screenshot")
     myScreenshotTab.setTooltipText("Show screenshot information")
@@ -135,6 +140,7 @@ class DetailsViewContentView(
 
     // Screenshot attributes tab
     myScreenshotAttributesView = ScreenshotAttributesView()
+    Disposer.register(this, myScreenshotAttributesView)
     myScreenshotAttributesTab = TabInfo(myScreenshotAttributesView.getComponent())
     myScreenshotAttributesTab.setText("Attributes")
     myScreenshotAttributesTab.setTooltipText("Show preview attributes")
@@ -375,15 +381,25 @@ class DetailsViewContentView(
     val className = testResults?.className
 
     // Perform path resolution in background to avoid blocking the UI thread
+    pathResolutionFuture?.cancel(true)
     pathResolutionFuture =
-      AppExecutorUtil.getAppExecutorService().submit {
-        val newImage = ScreenshotTestUtils.resolvePath(project, className, additionalTestArtifacts["PreviewScreenshot.newImagePath"])
-        val refImage = ScreenshotTestUtils.resolvePath(project, className, additionalTestArtifacts["PreviewScreenshot.refImagePath"])
-        val diffImage = ScreenshotTestUtils.resolvePath(project, className, additionalTestArtifacts["PreviewScreenshot.diffImagePath"])
-        val diffPercentString = additionalTestArtifacts["PreviewScreenshot.diffPercent"]?.takeIf { it.isNotBlank() }
-        val diffPercent: Double? = diffPercentString?.toDoubleOrNull()
+      ReadAction.nonBlocking(
+          Callable {
+            val newImage = ScreenshotTestUtils.resolvePath(project, className, additionalTestArtifacts["PreviewScreenshot.newImagePath"])
+            val refImage = ScreenshotTestUtils.resolvePath(project, className, additionalTestArtifacts["PreviewScreenshot.refImagePath"])
+            val diffImage = ScreenshotTestUtils.resolvePath(project, className, additionalTestArtifacts["PreviewScreenshot.diffImagePath"])
+            val diffPercentString = additionalTestArtifacts["PreviewScreenshot.diffPercent"]?.takeIf { it.isNotBlank() }
+            val diffPercent: Double? = diffPercentString?.toDoubleOrNull()
+            listOf(newImage, refImage, diffImage, diffPercent)
+          }
+        )
+        .expireWith(this)
+        .finishOnUiThread(ModalityState.any()) { results ->
+          val newImage = results[0] as? String
+          val refImage = results[1] as? String
+          val diffImage = results[2] as? String
+          val diffPercent = results[3] as? Double
 
-        ApplicationManager.getApplication().invokeLater {
           val shouldButtonBeVisible = (newImage != null || refImage != null || diffImage != null)
 
           if (shouldButtonBeVisible) {
@@ -420,7 +436,8 @@ class DetailsViewContentView(
             myDeviceInfoTab.isHidden = false
           }
         }
-      }
+        .submit(AppExecutorUtil.getAppExecutorService())
+
     val journeyActionArtifacts = JourneyActionArtifacts.parseFromAdditionalTestArtifacts(additionalTestArtifacts)
     myJourneysResultsPanel.updateArtifacts(journeyActionArtifacts)
     myJourneyScreenshotsTab.isHidden = journeyActionArtifacts.isEmpty()
@@ -486,7 +503,7 @@ class DetailsViewContentView(
   }
 
   @VisibleForTesting
-  fun refreshLogsView() {
+  open fun refreshLogsView() {
     needsRefreshLogsView = false
     myLogsView.clear()
 
@@ -539,6 +556,7 @@ class DetailsViewContentView(
   }
 
   override fun dispose() {
+    pathResolutionFuture?.cancel(true)
     // Clear the logcat message to reduce the impact of the memory leak. b/446684393.
     myLogcat = ""
     myErrorStackTrace = ""

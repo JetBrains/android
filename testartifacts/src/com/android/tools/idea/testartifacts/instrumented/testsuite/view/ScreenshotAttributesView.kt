@@ -61,8 +61,10 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.util.Screensh
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils.loadImageMetadata
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.accessibility.AccessibilityUtils
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.util.ColorProgressBar
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.ui.JBColor
 import java.awt.Desktop
@@ -79,7 +81,7 @@ import org.jetbrains.jewel.ui.theme.colorPalette
 private val LOG = Logger.getInstance(ScreenshotAttributesView::class.java)
 
 /** A view that displays the attributes of a screenshot. */
-class ScreenshotAttributesView {
+class ScreenshotAttributesView : Disposable {
   /**
    * Represents the state of the screenshot attributes view.
    *
@@ -104,8 +106,10 @@ class ScreenshotAttributesView {
   var state by mutableStateOf(ScreenshotAttributesState())
     private set
 
+  private var composePanel: JComponent? = null
   private val panel: JComponent by lazy {
-    val composePanel = StudioComposePanel { ScreenshotAttributesUi(state) }
+    val localComposePanel = StudioComposePanel { ScreenshotAttributesUi(state) }
+    composePanel = localComposePanel
     object : javax.swing.JPanel(java.awt.BorderLayout()) {
         override fun getAccessibleContext(): javax.accessibility.AccessibleContext {
           if (accessibleContext == null) {
@@ -125,7 +129,7 @@ class ScreenshotAttributesView {
       }
       .apply {
         isOpaque = false
-        add(composePanel, java.awt.BorderLayout.CENTER)
+        add(localComposePanel, java.awt.BorderLayout.CENTER)
       }
   }
 
@@ -269,6 +273,10 @@ class ScreenshotAttributesView {
       }
       VerticalScrollbar(adapter = rememberScrollbarAdapter(scrollState), modifier = Modifier.fillMaxHeight())
     }
+  }
+
+  override fun dispose() {
+    (composePanel as? Disposable)?.let { Disposer.dispose(it) }
   }
 }
 

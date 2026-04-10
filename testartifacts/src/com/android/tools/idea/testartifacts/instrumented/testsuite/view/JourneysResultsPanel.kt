@@ -35,60 +35,62 @@ import androidx.compose.ui.unit.dp
 import com.android.tools.adtui.compose.StudioComposePanel
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.JourneyActionArtifacts
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
 import java.awt.BorderLayout
 import java.io.File
+import javax.swing.JComponent
 import javax.swing.JOptionPane
 import javax.swing.JPanel
 
-class JourneysResultsPanel(private val project: Project) : JPanel(BorderLayout()) {
+class JourneysResultsPanel(private val project: Project) : JPanel(BorderLayout()), Disposable {
 
   private val journeyArtifacts: MutableState<List<JourneyActionArtifacts>> = mutableStateOf(emptyList())
   private val shouldResetScroll: MutableState<Boolean> = mutableStateOf(false)
+  private val composePanel: JComponent
 
   init {
-    this.add(
-      StudioComposePanel {
-        val artifacts by remember { journeyArtifacts }
-        val listState = rememberLazyListState()
-        val numArtifacts by remember { derivedStateOf { artifacts.size } }
+    composePanel = StudioComposePanel {
+      val artifacts by remember { journeyArtifacts }
+      val listState = rememberLazyListState()
+      val numArtifacts by remember { derivedStateOf { artifacts.size } }
 
-        LaunchedEffect(shouldResetScroll.value) {
-          if (shouldResetScroll.value) {
-            listState.scrollToItem(0)
-            shouldResetScroll.value = false
+      LaunchedEffect(shouldResetScroll.value) {
+        if (shouldResetScroll.value) {
+          listState.scrollToItem(0)
+          shouldResetScroll.value = false
+        }
+      }
+
+      Row {
+        LazyColumn(
+          modifier = Modifier.fillMaxSize().padding(vertical = 16.dp).weight(1f, fill = true),
+          state = listState,
+          verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+          items(count = numArtifacts) { index ->
+            val artifact = artifacts[index]
+            JourneysResultsView(
+              modifier = Modifier.fillMaxHeight(),
+              artifact = artifact,
+              index = index,
+              numEntries = artifacts.size,
+              onImageDoubleClicked = {
+                if (artifact.screenshotImage != null) {
+                  openImageInEditor(File(artifact.screenshotImage))
+                }
+              },
+            )
           }
         }
-
-        Row {
-          LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(vertical = 16.dp).weight(1f, fill = true),
-            state = listState,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-          ) {
-            items(count = numArtifacts) { index ->
-              val artifact = artifacts[index]
-              JourneysResultsView(
-                modifier = Modifier.fillMaxHeight(),
-                artifact = artifact,
-                index = index,
-                numEntries = artifacts.size,
-                onImageDoubleClicked = {
-                  if (artifact.screenshotImage != null) {
-                    openImageInEditor(File(artifact.screenshotImage))
-                  }
-                },
-              )
-            }
-          }
-          VerticalScrollbar(adapter = rememberScrollbarAdapter(listState), modifier = Modifier.fillMaxHeight())
-        }
-      },
-      BorderLayout.CENTER,
-    )
+        VerticalScrollbar(adapter = rememberScrollbarAdapter(listState), modifier = Modifier.fillMaxHeight())
+      }
+    }
+    this.add(composePanel, BorderLayout.CENTER)
   }
 
   fun updateArtifacts(artifacts: List<JourneyActionArtifacts>) {
@@ -114,5 +116,9 @@ class JourneysResultsPanel(private val project: Project) : JPanel(BorderLayout()
 
     val descriptor = OpenFileDescriptor(project, virtualFile)
     FileEditorManager.getInstance(project).openEditor(descriptor, true)
+  }
+
+  override fun dispose() {
+    (composePanel as? Disposable)?.let { Disposer.dispose(it) }
   }
 }

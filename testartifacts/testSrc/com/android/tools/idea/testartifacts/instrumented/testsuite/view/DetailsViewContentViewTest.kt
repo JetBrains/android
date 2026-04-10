@@ -34,12 +34,13 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
 import java.util.Base64
+import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -47,14 +48,12 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Answers
 import org.mockito.Mock
-import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.whenever
 
 /** Unit tests for [DetailsViewContentView]. */
-@Ignore("b/500851554")
 @RunWith(JUnit4::class)
 @RunsInEdt
 class DetailsViewContentViewTest {
@@ -68,18 +67,52 @@ class DetailsViewContentViewTest {
 
   @get:Rule val rules: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule()).around(disposableRule)
 
+  private val createdViews = mutableListOf<DetailsViewContentView>()
+
+  private fun createView(): DetailsViewContentView {
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
+    createdViews.add(view)
+    return view
+  }
+
   @Before
   fun setup() {
     MockitoAnnotations.openMocks(this)
+    createdViews.clear()
+  }
+
+  @After
+  fun tearDown() {
+    try {
+      createdViews.forEach { view ->
+        view.pathResolutionFuture?.let {
+          try {
+            PlatformTestUtil.waitForFuture(it)
+          } catch (e: Exception) {
+            // Ignore expected CancellationExceptions or other failures during cleanup.
+          }
+        }
+        view.myScreenshotResultView.imageLoadFutures.forEach { future ->
+          try {
+            PlatformTestUtil.waitForFuture(future)
+          } catch (e: Exception) {}
+        }
+      }
+    } finally {
+      createdViews.clear()
+    }
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   }
 
   @Test
   fun testResultLabelOnPassing() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
+    val view = createView()
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getTestCaseResult(testDevice)).thenReturn(AndroidTestCaseResult.PASSED)
 
     view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
 
     assertThat(view.myDeviceTestResultLabel.text).isEqualTo("<html>device name</html>")
     assertThat(view.myTestResultLabel.text).isEqualTo("<html><font color='#6cad74'>Passed</font></html>")
@@ -87,12 +120,14 @@ class DetailsViewContentViewTest {
 
   @Test
   fun testResultLabelOnFailing() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
+    val view = createView()
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getTestCaseResult(testDevice)).thenReturn(AndroidTestCaseResult.FAILED)
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("")
 
     view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
 
     assertThat(view.myDeviceTestResultLabel.text).isEqualTo("<html>device name</html>")
     assertThat(view.myTestResultLabel.text).isEqualTo("<html><font color='#b81708'>Failed</font></html>")
@@ -100,12 +135,14 @@ class DetailsViewContentViewTest {
 
   @Test
   fun testResultLabelOnFailingWithErrorStackTrace() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
+    val view = createView()
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getTestCaseResult(testDevice)).thenReturn(AndroidTestCaseResult.FAILED)
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("ErrorStackTrace")
 
     view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
 
     assertThat(view.myDeviceTestResultLabel.text).isEqualTo("<html>device name</html>")
     assertThat(view.myTestResultLabel.text).isEqualTo("<html><font color='#b81708'>Failed</font> ErrorStackTrace</html>")
@@ -113,12 +150,14 @@ class DetailsViewContentViewTest {
 
   @Test
   fun testResultLabelHtmlEscaping() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
+    val view = createView()
     val testDevice = device("device id", "<device name>")
     whenever(mockTestResults.getTestCaseResult(testDevice)).thenReturn(AndroidTestCaseResult.FAILED)
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("<ErrorStackTrace>")
 
     view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
 
     assertThat(view.myDeviceTestResultLabel.text).isEqualTo("<html>&lt;device name&gt;</html>")
     assertThat(view.myTestResultLabel.text).isEqualTo("<html><font color='#b81708'>Failed</font> &lt;ErrorStackTrace&gt;</html>")
@@ -126,11 +165,13 @@ class DetailsViewContentViewTest {
 
   @Test
   fun testResultLabelOnRunning() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
+    val view = createView()
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getTestCaseResult(testDevice)).thenReturn(AndroidTestCaseResult.IN_PROGRESS)
 
     view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
 
     assertThat(view.myDeviceTestResultLabel.text).isEqualTo("<html>device name</html>")
     assertThat(view.myTestResultLabel.text).isEqualTo("Running on device name")
@@ -138,11 +179,13 @@ class DetailsViewContentViewTest {
 
   @Test
   fun testResultLabelNoTestStatus() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
+    val view = createView()
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getTestCaseResult(testDevice)).thenReturn(null)
 
     view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
 
     assertThat(view.myDeviceTestResultLabel.text).isEqualTo("<html>device name</html>")
     assertThat(view.myTestResultLabel.text).isEqualTo("No test status available")
@@ -150,12 +193,14 @@ class DetailsViewContentViewTest {
 
   @Test
   fun logsView() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
+    val view = createView()
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getLogcat(testDevice)).thenReturn("test logcat message")
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("")
 
     view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
 
     view.myLogsView.waitAllRequests()
     assertThat(view.myLogsView.text).isEqualTo("test logcat message\n")
@@ -163,12 +208,14 @@ class DetailsViewContentViewTest {
 
   @Test
   fun logsViewWithErrorStackTrace() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
+    val view = createView()
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getLogcat(testDevice)).thenReturn("test logcat message")
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("error stack trace")
 
     view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
 
     view.myLogsView.waitAllRequests()
     assertThat(view.myLogsView.text).isEqualTo("test logcat message\nerror stack trace")
@@ -176,11 +223,13 @@ class DetailsViewContentViewTest {
 
   @Test
   fun logsViewWithNoLogsAndErrorStackTrace() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
+    val view = createView()
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("error stack trace")
 
     view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
 
     view.myLogsView.waitAllRequests()
     assertThat(view.myLogsView.text).isEqualTo("error stack trace")
@@ -188,10 +237,12 @@ class DetailsViewContentViewTest {
 
   @Test
   fun logsViewWithNoMessage() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
+    val view = createView()
     val testDevice = device("device id", "device name")
 
     view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
 
     view.myLogsView.waitAllRequests()
     assertThat(view.myLogsView.text).isEqualTo("No logs available")
@@ -200,44 +251,61 @@ class DetailsViewContentViewTest {
 
   @Test
   fun logsViewShouldClearPreviousMessage() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
+    val view = createView()
     val testDevice = device("device id", "device name")
 
     whenever(mockTestResults.getLogcat(testDevice)).thenReturn("test logcat message")
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("")
     view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
     view.myLogsView.waitAllRequests()
     assertThat(view.myLogsView.text).isEqualTo("test logcat message\n")
 
     whenever(mockTestResults.getLogcat(testDevice)).thenReturn("test logcat message 2")
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("")
     view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
     view.myLogsView.waitAllRequests()
     assertThat(view.myLogsView.text).isEqualTo("test logcat message 2\n")
   }
 
   @Test
   fun logsViewShouldShouldNotRefreshWhenMessageUnchanged() {
-    val view = spy(DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions))
+    var refreshCount = 0
+    val view =
+      object : DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions) {
+        override fun refreshLogsView() {
+          super.refreshLogsView()
+          refreshCount++
+        }
+      }
+    createdViews.add(view)
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getLogcat(testDevice)).thenReturn("test logcat message")
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("")
 
     view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
     view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
     view.myLogsView.waitAllRequests()
 
-    verify(view, times(1)).refreshLogsView()
+    assertThat(refreshCount).isEqualTo(1)
     assertThat(view.myLogsView.text).isEqualTo("test logcat message\n")
   }
 
   @Test
   fun benchmarkTab() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
+    val view = createView()
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getBenchmark(testDevice)).thenReturn(BenchmarkOutput("test benchmark message"))
 
     view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
 
     view.myBenchmarkView.waitAllRequests()
     assertThat(view.myBenchmarkView.text).isEqualTo("test benchmark message\n")
@@ -248,11 +316,13 @@ class DetailsViewContentViewTest {
 
   @Test
   fun benchmarkTabIsHiddenIfNoOutput() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
+    val view = createView()
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getBenchmark(testDevice)).thenReturn(BenchmarkOutput.Empty)
 
     view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
 
     view.myBenchmarkView.waitAllRequests()
     assertThat(view.myBenchmarkView.text).isEqualTo("")
@@ -261,7 +331,7 @@ class DetailsViewContentViewTest {
 
   @Test
   fun logging() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
+    val view = createView()
     verify(mockLogger).addImpressionWhenDisplayed(view.myLogsView.component, ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_LOG_VIEW)
     verify(mockLogger)
       .addImpressionWhenDisplayed(
@@ -272,7 +342,7 @@ class DetailsViewContentViewTest {
 
   @Test
   fun screenshotTabsHiddenByDefault() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
+    val view = createView()
 
     assertThat(view.myScreenshotTab.isHidden).isTrue()
     assertThat(view.myScreenshotAttributesTab.isHidden).isTrue()
@@ -281,13 +351,13 @@ class DetailsViewContentViewTest {
 
   @Test
   fun screenshotTabsDisplayedForScreenshotTests() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
+    val view = createView()
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getAdditionalTestArtifacts(testDevice))
       .thenReturn(mapOf("PreviewScreenshot.newImagePath" to "/path/to/newImage"))
 
     view.setResults(testDevice, mockTestResults)
-    view.pathResolutionFuture?.get()
+    view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
     com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
 
     assertThat(view.myScreenshotTab.isHidden).isFalse()
@@ -297,14 +367,14 @@ class DetailsViewContentViewTest {
 
   @Test
   fun screenshotLogsTabAlwaysDisplayedForScreenshotTests() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
+    val view = createView()
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getAdditionalTestArtifacts(testDevice))
       .thenReturn(mapOf("PreviewScreenshot.newImagePath" to "/path/to/newImage"))
     whenever(mockTestResults.getLogcat(testDevice)).thenReturn("")
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("")
     view.setResults(testDevice, mockTestResults)
-    view.pathResolutionFuture?.get()
+    view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
     com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
 
     view.myLogsView.waitAllRequests()
@@ -318,25 +388,27 @@ class DetailsViewContentViewTest {
 
   @Test
   fun journeysResultsTabHiddenByDefault() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
+    val view = createView()
 
     assertThat(view.myJourneyScreenshotsTab.isHidden).isTrue()
   }
 
   @Test
   fun journeysResultsTabDisplayedWhenJourneyArtifactsExist() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
+    val view = createView()
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getAdditionalTestArtifacts(testDevice)).thenReturn(mapOf("Journeys.Step" to createEncodedJourneyArtifact()))
 
     view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
 
     assertThat(view.myJourneyScreenshotsTab.isHidden).isFalse()
   }
 
   @Test
   fun logsTabIsSelectedWhenErrorProvidedAndUserHasNotYetSelectedATab() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
+    val view = createView()
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getLogcat(testDevice)).thenReturn("This is a test\n")
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("error stack trace")
@@ -344,48 +416,53 @@ class DetailsViewContentViewTest {
     whenever(mockTestResults.getBenchmark(testDevice)).thenReturn(BenchmarkOutput.Empty)
 
     view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
 
     assertThat(view.tabs.selectedInfo).isEqualTo(view.logsTab)
   }
 
   @Test
   fun logsAreAutomaticallyScrolledToTheEnd() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
+    val view = createView()
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getLogcat(testDevice)).thenReturn("This is a test\n".repeat(100))
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("error stack trace")
 
     view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
     view.myLogsView.waitAllRequests()
 
-    runInEdtAndWait {
-      assertThat(view.myLogsView.editor?.caretModel?.logicalPosition?.line)
-        .isEqualTo(view.myLogsView.editor?.document?.lineCount?.minus(1) ?: -1)
-    }
+    assertThat(view.myLogsView.editor?.caretModel?.logicalPosition?.line)
+      .isEqualTo(view.myLogsView.editor?.document?.lineCount?.minus(1) ?: -1)
   }
 
   @Test
   fun logsTabIsNotSelectedWhenErrorProvidedAndUserHasAlreadySelectedADifferentTab() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
+    val view = createView()
     view.tabs.select(view.myDeviceInfoTab, false)
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("error stack trace")
 
     view.refreshLogsView()
     view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
 
     assertThat(view.tabs.selectedInfo).isEqualTo(view.myDeviceInfoTab)
   }
 
   @Test
   fun journeysTabIsSelectedByDefaultWhenUserHasntSelectedATabYet() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
+    val view = createView()
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getAdditionalTestArtifacts(testDevice)).thenReturn(mapOf("Journeys.Step" to createEncodedJourneyArtifact()))
     // The Journeys tab should be selected even though there is an error stack trace
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("error stack trace")
 
     view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
 
     com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
     assertThat(view.tabs.selectedInfo).isEqualTo(view.myJourneyScreenshotsTab)
@@ -393,11 +470,12 @@ class DetailsViewContentViewTest {
 
   @Test
   fun testTabFallbackWhenCurrentTabHidden() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
+    val view = createView()
     val testDevice = device("device id", "device name")
 
     whenever(mockTestResults.getBenchmark(testDevice)).thenReturn(BenchmarkOutput("test benchmark message"))
     view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
     view.myBenchmarkView.waitAllRequests()
     com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
 
@@ -405,6 +483,7 @@ class DetailsViewContentViewTest {
 
     whenever(mockTestResults.getBenchmark(testDevice)).thenReturn(BenchmarkOutput.Empty)
     view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
     view.myBenchmarkView.waitAllRequests()
     com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
 
@@ -413,10 +492,11 @@ class DetailsViewContentViewTest {
 
   @Test
   fun testSwapBeforeHideWhenDeviceInfoHidden() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
+    val view = createView()
     val testDevice = device("device id", "device name")
 
     view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
     com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
 
     view.tabs.select(view.myDeviceInfoTab, false)
@@ -427,6 +507,7 @@ class DetailsViewContentViewTest {
       .thenReturn(mapOf("PreviewScreenshot.newImagePath" to "/path/to/newImage"))
 
     view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
     com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
 
     assertThat(view.tabs.selectedInfo).isEqualTo(view.myScreenshotTab)
@@ -461,12 +542,15 @@ class DetailsViewContentViewTest {
   fun `dispose cleans up resources`() {
     val parentDisposable = Disposer.newDisposable(disposableRule.disposable)
     val view = DetailsViewContentView(parentDisposable, projectRule.project, mockLogger, headerActions)
+    createdViews.add(view)
 
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getLogcat(testDevice)).thenReturn("test logcat message")
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("error stack trace")
 
     view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
 
     assertThat(view.myLogcat).isEqualTo("test logcat message")
     assertThat(view.myErrorStackTrace).isEqualTo("error stack trace")
