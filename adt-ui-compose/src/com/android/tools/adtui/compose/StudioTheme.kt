@@ -21,8 +21,6 @@ import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import org.jetbrains.jewel.bridge.theme.SwingBridgeTheme
-import org.jetbrains.jewel.bridge.theme.retrieveDefaultTextStyle
-import org.jetbrains.jewel.bridge.theme.retrieveEditorTextStyle
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.intui.markdown.bridge.create
@@ -37,8 +35,12 @@ import org.jetbrains.jewel.markdown.rendering.MarkdownBlockRenderer
 fun StudioTheme(content: @Composable () -> Unit) {
   SwingBridgeTheme {
     val provider = StudioMarkdownFactory
+    val defaultTextStyle = JewelTheme.defaultTextStyle
+    val editorTextStyle = JewelTheme.editorTextStyle
     val markdownStyling =
-      remember(JewelTheme.name, provider) { provider.createDefaultStyling(retrieveDefaultTextStyle(), retrieveEditorTextStyle()) }
+      remember(JewelTheme.name, provider, defaultTextStyle, editorTextStyle) {
+        provider.createDefaultStyling(defaultTextStyle, editorTextStyle)
+      }
     val processorExtensions = getDefaultMarkdownProcessors()
     val markdownProcessor = remember { MarkdownProcessor(processorExtensions) }
     val renderExtensions = getDefaultRenderExtensions(markdownStyling)

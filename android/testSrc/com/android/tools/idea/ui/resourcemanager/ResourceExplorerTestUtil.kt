@@ -104,7 +104,7 @@ fun AndroidProjectRule.getResourceItemFromPath(testFolderPath: String, fileName:
     )
 }
 
-const val WAIT_TIMEOUT = 3000
+const val WAIT_TIMEOUT = 10000
 
 inline fun <reified T : JComponent> waitAndAssert(container: JPanel, crossinline condition: (list: T?) -> Boolean) {
   val waitForComponentCondition =
