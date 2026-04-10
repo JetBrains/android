@@ -72,7 +72,6 @@ class InformationPopupImplTest {
           size = Dimension(200, 100)
           add(popup.popupComponent, BorderLayout.CENTER)
         },
-        1.0,
         true,
       )
 
@@ -102,7 +101,6 @@ class InformationPopupImplTest {
           size = Dimension(200, 100)
           add(popup.popupComponent, BorderLayout.CENTER)
         },
-        1.0,
         true,
       )
 
@@ -145,7 +143,6 @@ class InformationPopupImplTest {
           size = Dimension(200, 100)
           add(popup.popupComponent, BorderLayout.CENTER)
         },
-        1.0,
         true,
       )
 
@@ -184,7 +181,7 @@ class InformationPopupImplTest {
         add(popup.popupComponent, BorderLayout.CENTER)
       }
 
-    val fakeUi = FakeUi(parent, 1.0, true)
+    val fakeUi = FakeUi(parent, true)
     popup.showPopup(disposableRule.disposable, parent)
 
     assertEquals("Action 1, Action 2", fakeUi.findAllComponents<AnActionLink>().joinToString(", ") { it.text })
@@ -231,7 +228,6 @@ class InformationPopupImplTest {
           size = Dimension(200, 100)
           add(popup.popupComponent, BorderLayout.CENTER)
         },
-        1.0,
         true,
       )
 
@@ -260,7 +256,6 @@ class InformationPopupImplTest {
           size = Dimension(200, 100)
           add(popup.popupComponent, BorderLayout.CENTER)
         },
-        1.0,
         true,
       )
 
@@ -286,7 +281,6 @@ class InformationPopupImplTest {
           size = Dimension(200, 100)
           add(popup.popupComponent, BorderLayout.CENTER)
         },
-        1.0,
         true,
       )
 
@@ -319,7 +313,6 @@ class InformationPopupImplTest {
           size = Dimension(200, 100)
           add(popup.popupComponent, BorderLayout.CENTER)
         },
-        1.0,
         true,
       )
 

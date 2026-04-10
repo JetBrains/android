@@ -20,30 +20,30 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents;
 import static org.mockito.Mockito.when;
 
-import com.android.tools.adtui.swing.laf.HeadlessTableUI;
-import com.android.tools.idea.editors.strings.action.AddKeyAction;
-import com.android.tools.idea.editors.strings.action.AddLocaleAction;
-import com.android.tools.idea.editors.strings.action.ReloadStringResourcesAction;
-import com.android.tools.idea.editors.strings.action.RemoveKeysAction;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.DataProvider;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager;
 import com.android.tools.adtui.swing.FakeUi;
+import com.android.tools.adtui.swing.laf.HeadlessTableUI;
 import com.android.tools.idea.actions.BrowserHelpAction;
+import com.android.tools.idea.editors.strings.action.AddKeyAction;
+import com.android.tools.idea.editors.strings.action.AddLocaleAction;
 import com.android.tools.idea.editors.strings.action.FilterKeysAction;
 import com.android.tools.idea.editors.strings.action.FilterLocalesAction;
+import com.android.tools.idea.editors.strings.action.ReloadStringResourcesAction;
+import com.android.tools.idea.editors.strings.action.RemoveKeysAction;
 import com.android.tools.idea.editors.strings.model.StringResourceKey;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.editors.strings.table.StringTableCellEditor;
 import com.android.tools.idea.editors.strings.table.filter.NeedsTranslationsRowFilter;
 import com.android.tools.idea.res.ModuleResourceRepository;
-import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.idea.res.StringResourceWriter;
+import com.android.tools.res.LocalResourceRepository;
 import com.intellij.ide.impl.HeadlessDataManager;
 import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -64,7 +64,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.AbstractButton;
 import javax.swing.CellEditor;
 import javax.swing.DefaultCellEditor;
-import javax.swing.JComponent;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import org.jetbrains.android.AndroidTestCase;
@@ -318,7 +317,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     myPanel.stopLoading();
 
     myPanel.getLoadingPanel().setSize(1200, 2000);
-    FakeUi ui = new FakeUi(myPanel.getLoadingPanel(), 1.0, true, getTestRootDisposable());
+    FakeUi ui = new FakeUi(myPanel.getLoadingPanel(), true, getTestRootDisposable());
 
     FakeKeyboardFocusManager focusManager = new FakeKeyboardFocusManager(getTestRootDisposable());
     focusManager.setFocusOwner(myTable.getFrozenTable());
@@ -414,7 +413,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     myTable.getFrozenTable().setUI(new HeadlessTableUI());
     myTable.getScrollableTable().setUI(new HeadlessTableUI());
     myPanel.getLoadingPanel().setSize(1200, 2000);
-    FakeUi ui = new FakeUi(myPanel.getLoadingPanel(), 1.0, true, getTestRootDisposable());
+    FakeUi ui = new FakeUi(myPanel.getLoadingPanel(), true, getTestRootDisposable());
 
     // The translation field is enabled in all columns of the scrollable table:
     clickCell(ui, 0, 4);
@@ -446,7 +445,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     myPanel.getTable().getFrozenTable().setUI(new HeadlessTableUI());
     myPanel.getTable().getScrollableTable().setUI(new HeadlessTableUI());
     myPanel.getLoadingPanel().setSize(1200, 2000);
-    FakeUi ui = new FakeUi(myPanel.getLoadingPanel(), 1.0, true, getTestRootDisposable());
+    FakeUi ui = new FakeUi(myPanel.getLoadingPanel(), true, getTestRootDisposable());
 
     // The translation field is enabled in all columns of the scrollable table:
     clickCell(ui, 0, 4);
@@ -477,7 +476,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     myTable.getModel().setValueAt(benglaText, 1, 5);
 
     myPanel.getLoadingPanel().setSize(1200, 2000);
-    new FakeUi(myPanel.getLoadingPanel(), 1.0, true, getTestRootDisposable());
+    new FakeUi(myPanel.getLoadingPanel(), true, getTestRootDisposable());
 
     TextFieldWithBrowseButton textField = myPanel.myTranslationTextField;
     int width = textField.getWidth();

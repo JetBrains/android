@@ -148,7 +148,7 @@ class SlotsPanelTest {
       }
     }
     slotsPanel.size = Dimension(1000, 1000)
-    val myUi = FakeUi(slotsPanel, 1.0)
+    val myUi = FakeUi(slotsPanel)
 
     ImageDiffUtil.assertImageSimilar(TestUtils.resolveWorkspacePathUnchecked(GOLDEN_IMAGE_PATH), myUi.render(), 1.0)
   }

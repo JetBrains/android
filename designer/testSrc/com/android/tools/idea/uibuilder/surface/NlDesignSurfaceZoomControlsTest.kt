@@ -160,7 +160,7 @@ class NlDesignSurfaceZoomControlsTest {
           setBounds(0, 0, 1000, 1000)
         }
 
-      FakeUi(outerPanel, 1.0, true).apply {
+      FakeUi(outerPanel, true).apply {
         updateToolbars()
         layoutAndDispatchEvents()
       }

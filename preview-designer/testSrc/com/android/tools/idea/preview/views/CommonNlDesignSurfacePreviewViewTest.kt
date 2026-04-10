@@ -85,7 +85,6 @@ class CommonNlDesignSurfacePreviewViewTest {
             size = Dimension(1000, 800)
             add(previewView.component, BorderLayout.CENTER)
           },
-          1.0,
           true,
         )
       fakeUi.root.validate()

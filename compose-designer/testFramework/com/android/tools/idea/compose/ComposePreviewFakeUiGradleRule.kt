@@ -119,7 +119,6 @@ class ComposePreviewFakeUiGradleRule(
             size = Dimension(1000, 800)
             add(previewView, BorderLayout.CENTER)
           },
-          1.0,
           true,
         )
       fakeUi.root.validate()

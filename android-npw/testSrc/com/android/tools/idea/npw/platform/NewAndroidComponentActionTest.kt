@@ -212,7 +212,7 @@ class NewAndroidComponentActionTest {
 
     UIUtil.invokeAndWaitIfNeeded {
       modelWizard.contentPanel.setSize(640, 480)
-      val fakeUi = FakeUi(modelWizard.contentPanel, 1.0, false, projectRule.testRootDisposable)
+      val fakeUi = FakeUi(modelWizard.contentPanel, parentDisposable = projectRule.testRootDisposable)
       try {
         fakeUi.layoutAndDispatchEvents()
       } catch (_: InterruptedException) {}

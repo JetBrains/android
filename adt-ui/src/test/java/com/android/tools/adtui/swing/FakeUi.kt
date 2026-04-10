@@ -33,22 +33,15 @@ import com.intellij.openapi.wm.impl.IdeGlassPaneImpl
 import com.intellij.openapi.wm.impl.TestWindowManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.registerServiceInstance
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService
 import com.intellij.util.ui.UIUtil
 import java.awt.Component
 import java.awt.Container
-import java.awt.Graphics2D
-import java.awt.GraphicsConfiguration
-import java.awt.GraphicsDevice
-import java.awt.ImageCapabilities
 import java.awt.Point
-import java.awt.Rectangle
 import java.awt.Window
 import java.awt.geom.AffineTransform
 import java.awt.image.BufferedImage
-import java.awt.image.ColorModel
-import java.awt.image.ImageObserver
-import java.awt.image.VolatileImage
 import java.util.concurrent.Future
 import javax.swing.JLabel
 import javax.swing.JRootPane
@@ -59,29 +52,16 @@ import kotlin.time.Duration.Companion.seconds
  * A utility class to interact with Swing components in unit tests.
  *
  * @param root the top-level component
- * @param screenScale size of a virtual pixel in physical pixels; used for emulating a HiDPI screen
  * @param parentDisposable if provided, FakeUi will use it to clean up
  */
-class FakeUi
-@JvmOverloads
-constructor(val root: Component, screenScale: Double = 1.0, createFakeWindow: Boolean = false, parentDisposable: Disposable? = null) {
+class FakeUi @JvmOverloads constructor(val root: Component, createFakeWindow: Boolean = false, parentDisposable: Disposable? = null) {
 
   @JvmField val keyboard: FakeKeyboard = FakeKeyboard()
 
   @JvmField val mouse: FakeMouse = FakeMouse(this, keyboard)
 
-  var screenScale: Double
-    get() = screenScaleInternal
-    set(value) {
-      if (screenScaleInternal != value) {
-        screenScaleInternal = value
-        ComponentAccessor.setGraphicsConfiguration(getTopLevelComponent(root), FakeGraphicsConfiguration(value))
-      }
-    }
-
   val glassPane: IdeGlassPaneImpl?
 
-  private var screenScaleInternal: Double = screenScale
   private var lastActivityTrackerCount: Int = ActivityTracker.getInstance().count
 
   init {
@@ -106,9 +86,6 @@ constructor(val root: Component, screenScale: Double = 1.0, createFakeWindow: Bo
     }
     glassPane = (getTopLevelComponent(root) as? JRootPane)?.glassPane as? IdeGlassPaneImpl
 
-    if (screenScale != 1.0) {
-      ComponentAccessor.setGraphicsConfiguration(getTopLevelComponent(root), FakeGraphicsConfiguration(screenScale))
-    }
     if (!root.isPreferredSizeSet) {
       root.preferredSize = root.size
     }
@@ -145,6 +122,7 @@ constructor(val root: Component, screenScale: Double = 1.0, createFakeWindow: Bo
 
   /** Renders the given component and returns the image reflecting its appearance. */
   fun render(component: Component): BufferedImage {
+    val screenScale = JBUIScale.scale(1.0f).toDouble()
     val image =
       BufferedImage((component.width * screenScale).toInt(), (component.height * screenScale).toInt(), BufferedImage.TYPE_INT_ARGB)
     val graphics = image.createGraphics()
@@ -332,64 +310,6 @@ constructor(val root: Component, screenScale: Double = 1.0, createFakeWindow: Bo
   }
 
   class RelativePoint(@JvmField val component: Component, @JvmField val x: Int, @JvmField val y: Int)
-
-  private class FakeGraphicsConfiguration(scale: Double) : GraphicsConfiguration() {
-
-    private val transform: AffineTransform = AffineTransform.getScaleInstance(scale, scale)
-    private val device: GraphicsDevice = FakeGraphicsDevice(this)
-
-    override fun getDevice(): GraphicsDevice = device
-
-    override fun createCompatibleVolatileImage(width: Int, height: Int, caps: ImageCapabilities?, transparency: Int): VolatileImage =
-      FakeVolatileImage(width, height, caps)
-
-    override fun getColorModel(): ColorModel = ColorModel.getRGBdefault()
-
-    override fun getColorModel(transparency: Int): ColorModel = ColorModel.getRGBdefault()
-
-    override fun getDefaultTransform(): AffineTransform = transform
-
-    override fun getNormalizingTransform(): AffineTransform = transform
-
-    override fun getBounds(): Rectangle = Rectangle()
-  }
-
-  private class FakeVolatileImage(private val width: Int, private val height: Int, private val capabilities: ImageCapabilities?) :
-    VolatileImage() {
-
-    private val bufferedImage = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
-
-    override fun getWidth(): Int = width
-
-    override fun getWidth(observer: ImageObserver?): Int = width
-
-    override fun getHeight(): Int = height
-
-    override fun getHeight(observer: ImageObserver?): Int = height
-
-    override fun getProperty(name: String, observer: ImageObserver?): Any? = null
-
-    override fun getCapabilities(): ImageCapabilities? = capabilities
-
-    override fun getSnapshot(): BufferedImage = bufferedImage
-
-    override fun createGraphics(): Graphics2D = bufferedImage.createGraphics()
-
-    override fun validate(gc: GraphicsConfiguration): Int = IMAGE_OK
-
-    override fun contentsLost(): Boolean = false
-  }
-
-  private class FakeGraphicsDevice(private val defaultConfiguration: GraphicsConfiguration) : GraphicsDevice() {
-
-    override fun getType(): Int = TYPE_RASTER_SCREEN
-
-    override fun getIDstring(): String = "FakeDevice"
-
-    override fun getConfigurations(): Array<GraphicsConfiguration> = emptyArray()
-
-    override fun getDefaultConfiguration(): GraphicsConfiguration = defaultConfiguration
-  }
 }
 
 private fun getTopLevelComponent(component: Component): Component {

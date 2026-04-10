@@ -17,9 +17,9 @@ package com.android.tools.idea.streaming.core
 
 import com.android.tools.adtui.util.scaled
 import com.intellij.ide.ActivityTracker
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.Dimension
-import java.beans.PropertyChangeEvent
 import java.beans.PropertyChangeListener
 import kotlin.math.floor
 import kotlin.math.min
@@ -28,10 +28,10 @@ import kotlin.math.roundToInt
 private val ZOOM_LEVELS = doubleArrayOf(0.0625, 0.125, 0.25, 0.5, 1.0, 2.0, 4.0)
 
 /** A [BorderLayoutPanel] with zoom support. */
-internal abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable, PropertyChangeListener {
+internal abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
 
   override val screenScalingFactor: Double
-    get() = if (cachedScreenScale > 0.0) cachedScreenScale else getCurrentScreenScaleOr(1.0)
+    get() = JBUIScale.scale(1.0f).toDouble()
 
   /** Width in physical pixels. */
   protected val physicalWidth
@@ -51,7 +51,7 @@ internal abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable, PropertyC
   internal val explicitlySetPreferredSize: Dimension?
     get() = if (isPreferredSizeSet) preferredSize else null
 
-  private var cachedScreenScale = 0.0
+  private val userScaleListener = PropertyChangeListener { onScreenScaleChanged() }
 
   /**
    * An integer number represented as Double. If zero, indicates that fractional scale above 1 is not allowed. Otherwise, indicates that
@@ -70,8 +70,14 @@ internal abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable, PropertyC
 
   protected open fun onScreenScaleChanged() {}
 
-  init {
-    addPropertyChangeListener(this)
+  override fun addNotify() {
+    super.addNotify()
+    JBUIScale.addUserScaleChangeListener(userScaleListener)
+  }
+
+  override fun removeNotify() {
+    super.removeNotify()
+    JBUIScale.removeUserScaleChangeListener(userScaleListener)
   }
 
   protected fun roundDownIfNecessary(scale: Double): Double {
@@ -145,22 +151,6 @@ internal abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable, PropertyC
       ActivityTracker.getInstance().inc() // Trigger a toolbar update.
     }
   }
-
-  override fun propertyChange(event: PropertyChangeEvent) {
-    if (event.propertyName == "graphicsConfiguration") {
-      val newScreenScale = getCurrentScreenScaleOr(0.0)
-      if (newScreenScale != 0.0 && newScreenScale != cachedScreenScale) {
-        cachedScreenScale = newScreenScale
-        onScreenScaleChanged()
-      }
-    }
-  }
-
-  final override fun addPropertyChangeListener(listener: PropertyChangeListener) {
-    super.addPropertyChangeListener(listener)
-  }
-
-  private fun getCurrentScreenScaleOr(defaultValue: Double) = graphicsConfiguration?.defaultTransform?.scaleX ?: defaultValue
 
   /** Computes the maximum allowed size of the device display image in physical pixels. */
   protected fun computeMaxImageSize(): Dimension = (explicitlySetPreferredSize ?: size).scaled(screenScalingFactor)

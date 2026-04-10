@@ -76,7 +76,7 @@ public final class FrozenColumnTableTest {
     frozenColumnTable.getScrollableTable().createDefaultColumnsFromModel();
     JScrollPane pane = (JScrollPane)frozenColumnTable.getScrollPane();
     pane.setBounds(0, 0, 800, 20);
-    new FakeUi(pane, 1.0, true);
+    new FakeUi(pane, true);
     pane.doLayout();
     assertThat(pane.getVerticalScrollBar().isVisible()).isTrue();
   }
@@ -99,7 +99,7 @@ public final class FrozenColumnTableTest {
     JPanel panel = new JPanel(new BorderLayout());
     panel.add(frozenTable, BorderLayout.CENTER);
     panel.add(frozenColumnTable.getScrollPane(), BorderLayout.WEST);
-    FakeUi ui = new FakeUi(panel, 1.0, true, myRule.getDisposable());
+    FakeUi ui = new FakeUi(panel, true, myRule.getDisposable());
     FakeKeyboardFocusManager focusManager = new FakeKeyboardFocusManager(myRule.getDisposable());
     focusManager.setFocusOwner(frozenColumnTable.getFrozenTable());
     moveTo(frozenColumnTable, 1, 3);
@@ -330,7 +330,7 @@ public final class FrozenColumnTableTest {
     frozenColumnTable.getScrollableTable().createDefaultColumnsFromModel();
     JScrollPane pane = (JScrollPane)frozenColumnTable.getScrollPane();
     pane.setBounds(0, 0, 800, 100);
-    new FakeUi(pane, 1.0, true);
+    new FakeUi(pane, true);
     pane.doLayout();
 
     assertEquals(0, frozenColumnTable.getSelectedModelRows().length);
@@ -361,7 +361,7 @@ public final class FrozenColumnTableTest {
     scrollableTable.createDefaultColumnsFromModel();
     Component panel = frozenColumnTable.getScrollPane();
     panel.setSize(2000, 2000);
-    FakeUi ui = new FakeUi(panel, 1.0, true, myRule.getDisposable());
+    FakeUi ui = new FakeUi(panel, true, myRule.getDisposable());
 
     Point p = getCellLocation(frozenTable, 1, 1, panel);
     ui.mouse.click(p.x, p.y);
@@ -403,7 +403,7 @@ public final class FrozenColumnTableTest {
     Rectangle cell = frozenTable.getCellRect(0, 0, true);
     Component scrollPane = frozenColumnTable.getScrollPane();
     scrollPane.setSize(new Dimension(300, 3 * cell.height));
-    FakeUi ui = new FakeUi(scrollPane, 1.0, true, myRule.getDisposable());
+    FakeUi ui = new FakeUi(scrollPane, true, myRule.getDisposable());
     scrollPane.doLayout();
     FakeKeyboardFocusManager focusManager = new FakeKeyboardFocusManager(myRule.getDisposable());
     focusManager.setFocusOwner(frozenColumnTable.getFrozenTable());

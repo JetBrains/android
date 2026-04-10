@@ -160,7 +160,6 @@ class ResizeIntegrationTest {
             size = Dimension(1000, 800)
             add(previewRepresentation.component, BorderLayout.CENTER)
           },
-          1.0,
           true,
         )
 

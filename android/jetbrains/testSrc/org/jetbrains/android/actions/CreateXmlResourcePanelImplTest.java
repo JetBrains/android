@@ -161,7 +161,7 @@ public final class CreateXmlResourcePanelImplTest {
                                                                                  validatorModule -> IdeResourceNameValidator
                                                                                    .forResourceName(ResourceType.COLOR));
     xmlResourcePanel.getPanel().setSize(640, 480);
-    FakeUi fakeUi = new FakeUi(xmlResourcePanel.getPanel(), 1.0, true, myProjectRule.getTestRootDisposable());
+    FakeUi fakeUi = new FakeUi(xmlResourcePanel.getPanel(), true, myProjectRule.getTestRootDisposable());
     fakeUi.layoutAndDispatchEvents();
 
     // Select first element

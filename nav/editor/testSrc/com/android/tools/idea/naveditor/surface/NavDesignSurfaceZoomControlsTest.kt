@@ -249,7 +249,7 @@ class NavDesignSurfaceZoomControlsTest {
             add(surface, BorderLayout.CENTER)
             setBounds(0, 0, 1000, 1000)
           }
-        FakeUi(outerPanel, 1.0, true)
+        FakeUi(outerPanel, true)
       }
 
     // Ensure the initial zoom of NavDesignSurface is zoom-to-fit.
@@ -317,7 +317,7 @@ class NavDesignSurfaceZoomControlsTest {
             add(surface, BorderLayout.CENTER)
             setBounds(0, 0, 1000, 1000)
           }
-        FakeUi(outerPanel, 1.0, true)
+        FakeUi(outerPanel, true)
       }
 
     // Ensure the initial zoom of NavDesignSurface is zoom-to-fit.
@@ -374,7 +374,7 @@ class NavDesignSurfaceZoomControlsTest {
             add(surface, BorderLayout.CENTER)
             setBounds(0, 0, 1000, 1000)
           }
-        FakeUi(outerPanel, 1.0, true)
+        FakeUi(outerPanel, true)
       }
 
     // Ensure the initial zoom of NavDesignSurface is zoom-to-fit.

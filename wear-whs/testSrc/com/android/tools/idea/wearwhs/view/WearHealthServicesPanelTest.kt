@@ -378,7 +378,7 @@ class WearHealthServicesPanelTest {
 
   @Test
   fun `stale data is shown as a warning icon`(): Unit = runBlocking {
-    val fakeUi = FakeUi(createWhsPanel().component, createFakeWindow = false)
+    val fakeUi = FakeUi(createWhsPanel().component)
 
     val label = fakeUi.waitForDescendant<JLabel> { it.icon == AllIcons.Empty && it.text == message("wear.whs.panel.exercise.inactive") }
 
