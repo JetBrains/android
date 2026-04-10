@@ -1079,8 +1079,11 @@ android_studio(
     plugins = STUDIO_BASE_PLUGINS + [
         "//tools/vendor/google/optional-plugins:plugins",
     ],
-    searchable_options_metadata = SEARCHABLE_OPTIONS,
-    searchable_options_plugin_lst = STUDIO_SEARCHABLE_OPTIONS_PLUGINS,
+    searchable_options_deps = {
+        "canary": [":android-studio.canary.searchable-options"],
+        "nightly": [":android-studio.nightly.searchable-options"],
+        "stable": [":android-studio.stable.searchable-options"],
+    },
     selector = "AndroidStudio",
     update_message_template = ":update_message.html",
     version_code_name = STUDIO_CODENAME,
