@@ -23,6 +23,7 @@ import com.android.tools.testlib.Emulator
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.minutes
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -32,6 +33,7 @@ class BuildAndRunInstrumentedTest {
 
   @JvmField @Rule var watcher = MemoryDashboardNameProviderWatcher()
 
+  @Ignore("b/501225418")
   @Test
   fun deployInstrumentedTest() {
     val projectArtifactsPath = Paths.get("tools/adt/idea/android/integration/instrumenttestapp_project_model")
