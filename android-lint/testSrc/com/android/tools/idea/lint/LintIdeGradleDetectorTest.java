@@ -42,6 +42,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.ExtensionTestUtil;
+import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
@@ -336,6 +337,12 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
 
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + extension, "build" + extension);
     myFixture.configureFromExistingVirtualFile(file);
+
+    if (extension.equals(".gradle.kts")) {
+      // KotlinScriptResolutionService will trigger an asynchronous rootsChanged event after processing the file, invalidating highlighting.
+      // In tests, this breaks unnecessarily with a fatal exception, so we apply the same fix from e.g. AbstractKotlinHighlightVisitorTest.
+      ((CodeInsightTestFixtureImpl)myFixture).canChangeDocumentDuringHighlighting(true);
+    }
     myFixture.checkHighlighting(true, false, false);
 
     if (quickFixName != null) {
