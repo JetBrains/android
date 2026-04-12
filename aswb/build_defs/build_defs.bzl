@@ -70,6 +70,8 @@ def aswb_library(name, testonly = False, **kwargs):
     """A regular ASwB target."""
     if "resources" in kwargs and "resource_strip_prefix" not in kwargs:
         kwargs["resource_strip_prefix"] = _get_resource_strip_prefix(kwargs["resources"])
+        if not kwargs["resource_strip_prefix"]:
+            fail("Missing 'resource_strip_prefix' attribute. Please set 'resource_strip_prefix' for your resources to prevent loading failures caused by unexpected paths in the output jar.")
 
     kotlin_library(
         name = name,

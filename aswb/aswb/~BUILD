@@ -81,6 +81,7 @@ aswb_library(
             "src/**/*.kt",
         ],
     ),
+    resource_strip_prefix = "",
     resources = glob(
         [
             "resources/**/*",
