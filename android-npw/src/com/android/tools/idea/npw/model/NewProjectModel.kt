@@ -135,6 +135,7 @@ interface ProjectModelData {
   val sourceProjectType: ObjectValueProperty<SourceProjectType>
   val importSourcePath: StringProperty
   val imageAttachments: ObjectValueProperty<List<VirtualFile>>
+  val userSkillDirectories: ObjectValueProperty<List<File>>
 }
 
 class NewProjectModel : WizardModel(), ProjectModelData {
@@ -156,6 +157,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val prompt = StringValueProperty("")
   override val displayText = StringValueProperty("")
   override val imageAttachments: ObjectValueProperty<List<VirtualFile>> = ObjectValueProperty(listOf())
+  override val userSkillDirectories: ObjectValueProperty<List<File>> = ObjectValueProperty(listOf())
   val launchFirebaseWizard = BoolValueProperty(false)
   override val sourceProjectType = ObjectValueProperty<SourceProjectType>(SourceProjectType.IOS)
   override val importSourcePath = StringValueProperty("")
@@ -167,6 +169,17 @@ class NewProjectModel : WizardModel(), ProjectModelData {
           val projectBaseDirectory = File(projectLocation.get())
           val newProject =
             GradleProjectImporter.getInstance().createProject(projectName, projectBaseDirectory, useDefaultProjectAsTemplate = true)
+
+          // Copy user skills
+          val skillDirs = userSkillDirectories.get()
+          if (skillDirs.isNotEmpty()) {
+            val agentsDir = File(projectBaseDirectory, ".agents")
+            agentsDir.mkdirs()
+            skillDirs.forEach { skillDir ->
+              val targetDir = File(agentsDir, skillDir.name)
+              skillDir.copyRecursively(targetDir, overwrite = true)
+            }
+          }
 
           // Arguably some of these things should be in the OpenProjectTask's beforeOpen
           newProject.service<ProjectSystemService>().setProviderId(GradleProjectSystemProvider.ID)
