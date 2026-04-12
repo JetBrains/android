@@ -86,6 +86,7 @@ import com.intellij.pom.java.LanguageLevel
 import java.io.File
 import java.io.IOException
 import java.net.URL
+import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.Locale
 import java.util.Optional
@@ -127,6 +128,7 @@ interface ProjectModelData {
   val prompt: StringProperty
   val displayText: StringProperty
   val sourceProjectType: ObjectValueProperty<SourceProjectType>
+  val importSourcePath: StringProperty
   val imageAttachments: ObjectValueProperty<List<VirtualFile>>
 }
 
@@ -150,8 +152,8 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val displayText = StringValueProperty("")
   override val imageAttachments: ObjectValueProperty<List<VirtualFile>> = ObjectValueProperty(listOf())
   val launchFirebaseWizard = BoolValueProperty(false)
-  val isImportProject = BoolValueProperty(false)
   override val sourceProjectType = ObjectValueProperty<SourceProjectType>(SourceProjectType.IOS)
+  override val importSourcePath = StringValueProperty("")
 
   private fun runRenderer(renderer: (Project) -> Unit) {
     object : Task.Backgroundable(null, message("android.compile.messages.generating.r.java.content.name"), false) {
@@ -176,7 +178,8 @@ class NewProjectModel : WizardModel(), ProjectModelData {
               // ExternalToolWindowManager). We want the Gemini window to be shown instead, so
               // delay opening the Gemini window until after Gradle has finished.
               ToolWindowManager.getInstance(newProject).invokeLater {
-                if (isImportProject.get()) {
+                val sPath = importSourcePath.get()
+                if (sPath.isNotEmpty()) {
                   GeminiPluginApi.getInstance()
                     .launchImportProjectAgent(
                       newProject,
@@ -319,8 +322,18 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       try {
         val projectRoot = VfsUtilCore.virtualToIoFile(project.baseDir)
         setGradleWrapperExecutable(projectRoot)
-      } catch (e: IOException) {
-        logger.warn("Failed to update Gradle wrapper permissions", e)
+
+        val sPath = importSourcePath.get()
+        if (sPath.isNotEmpty()) {
+          val importSourceLink = File(projectRoot, "importSource")
+          if (!importSourceLink.exists()) {
+            Files.createSymbolicLink(importSourceLink.toPath(), Paths.get(sPath))
+            // This is required so the new link is visible to the VFS
+            VfsUtil.markDirtyAndRefresh(false, true, true, project.baseDir)
+          }
+        }
+      } catch (e: Exception) {
+        logger.warn("Failed to update Gradle wrapper permissions or create symbolic link", e)
       }
     }
 
