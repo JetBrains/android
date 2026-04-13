@@ -34,10 +34,15 @@ import com.intellij.openapi.project.Project
 // class GeminiPerfettoAiService(private val project: Project) : PerfettoAiService {
 class GeminiPerfettoAiService(private val project: Project) {
   fun generateQuery(prompt: String) {
-    sendPromptWithSkill(
-      "Generate Perfetto SQL Query: $prompt",
-      "You are a Perfetto SQL expert. Use the 'perfetto-sql' skill for this request.",
-    )
+    val systemInstruction =
+      """
+      You are a specialist in generating Perfetto SQL queries.
+      You translate natural language requests into efficient SQLite queries using the Perfetto Standard Library.
+      Use the 'perfetto-sql' skill for this request.
+      """
+        .trimIndent()
+
+    sendPromptWithSkill("Generate Perfetto SQL Query: $prompt", systemInstruction)
   }
 
   /**
