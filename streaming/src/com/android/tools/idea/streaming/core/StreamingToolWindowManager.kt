@@ -547,19 +547,22 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
 
   private fun adoptContentManager(contentManager: ContentManager) {
     if (contentManager !in contentManagers) {
-      contentManagers.add(contentManager)
-      contentManager.addContentManagerListener(contentManagerListener)
-      contentManager.addSelectedPanelDataProvider()
-      contentManager.component.containingDecorator?.addContainerListener(decoratorListener)
-      Disposer.register(contentManager) {
-        contentManagers.remove(contentManager)
-        // When the tool window switches from a split to a non-split state by dragging a tab,
-        // ToolWindowContentUi.update is not called after component tree takes its final shape.
-        // This causes the tool window name to become visible when it should be hidden.
-        // To compensate for that we trigger a layout update explicitly.
-        toolWindow.updateContentUi()
+      if (Disposer.tryRegister(contentManager) { removeContentManager(contentManager) }) {
+        contentManagers.add(contentManager)
+        contentManager.addContentManagerListener(contentManagerListener)
+        contentManager.addSelectedPanelDataProvider()
+        contentManager.component.containingDecorator?.addContainerListener(decoratorListener)
       }
     }
+  }
+
+  private fun removeContentManager(contentManager: ContentManager) {
+    contentManagers.remove(contentManager)
+    // When the tool window switches from a split to a non-split state by dragging a tab,
+    // ToolWindowContentUi.update is not called after component tree takes its final shape.
+    // This causes the tool window name to become visible when it should be hidden.
+    // To compensate for that we trigger a layout update explicitly.
+    toolWindow.updateContentUi()
   }
 
   private fun addEmulatorPanel(emulator: EmulatorController) {
