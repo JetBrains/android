@@ -797,7 +797,6 @@ public final class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  @Ignore("b/303111904")
   public void captureParsingFailureShowsErrorBalloon() throws InterruptedException, IOException {
     ProfilingConfiguration config = new ArtSampledConfiguration("My Config");
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
