@@ -2867,7 +2867,7 @@ android-studio/plugins/cidr-base/lib/modules/intellij.cidr.util.ui.jar
 android-studio/plugins/cidr-base/lib/modules/intellij.cidr.workspaceModel.jar
 android-studio/plugins/cidr-base/lib/modules/intellij.cmake.psi.jar
 android-studio/plugins/cidr-clangd/bin/clang/linux/x64/bin/clangd
-android-studio/plugins/cidr-clangd/bin/clang/linux/x64/bin/libc++.so.1
+android-studio/plugins/cidr-clangd/bin/clang/linux/x64/bin/libc++.so
 android-studio/plugins/cidr-clangd/lib/LICENSE.txt
 android-studio/plugins/cidr-clangd/lib/cidr-clangd.jar
 android-studio/plugins/cidr-clangd/lib/modules/intellij.cidr.clangd.clangFormat.jar
