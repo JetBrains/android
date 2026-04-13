@@ -531,10 +531,6 @@ internal class EmulatorView(
 
   override fun canZoom(): Boolean = isConnected
 
-  override fun onScreenScaleChanged() {
-    requestScreenshotFeed()
-  }
-
   override fun computeActualSize(framing: Framing): Dimension = computeActualSize(framing, screenshotShape.orientation)
 
   private fun computeActualSize(framing: Framing, orientationQuadrants: Int): Dimension {

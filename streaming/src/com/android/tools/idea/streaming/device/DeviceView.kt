@@ -438,12 +438,6 @@ internal class DeviceView(
 
   override fun canZoom(): Boolean = connectionState == ConnectionState.CONNECTED
 
-  override fun onScreenScaleChanged() {
-    if (isConnected && physicalWidth > 0 && physicalHeight > 0) {
-      updateVideoSize()
-    }
-  }
-
   override fun computeActualSize(framing: Framing): Dimension {
     require(framing == Framing.OUTER) { "Unexpected framing value $framing" }
     return computeActualSize(displayOrientationQuadrants)

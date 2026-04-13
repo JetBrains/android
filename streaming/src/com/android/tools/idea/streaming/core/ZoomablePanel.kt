@@ -17,10 +17,10 @@ package com.android.tools.idea.streaming.core
 
 import com.android.tools.adtui.util.scaled
 import com.intellij.ide.ActivityTracker
+import com.intellij.ui.JreHiDpiUtil
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.Dimension
-import java.beans.PropertyChangeListener
 import kotlin.math.floor
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -31,7 +31,7 @@ private val ZOOM_LEVELS = doubleArrayOf(0.0625, 0.125, 0.25, 0.5, 1.0, 2.0, 4.0)
 internal abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
 
   override val screenScalingFactor: Double
-    get() = JBUIScale.scale(1.0f).toDouble()
+    get() = if (JreHiDpiUtil.isJreHiDPI(this.graphicsConfiguration)) JBUIScale.sysScale(this).toDouble() else 1.0
 
   /** Width in physical pixels. */
   protected val physicalWidth
@@ -51,8 +51,6 @@ internal abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
   internal val explicitlySetPreferredSize: Dimension?
     get() = if (isPreferredSizeSet) preferredSize else null
 
-  private val userScaleListener = PropertyChangeListener { onScreenScaleChanged() }
-
   /**
    * An integer number represented as Double. If zero, indicates that fractional scale above 1 is not allowed. Otherwise, indicates that
    * fractional scale is allowed between `fractionalScaleRange` and `fractionalScaleRange` + 1.
@@ -67,18 +65,6 @@ internal abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
 
   /** Returns true if the panel contains zoomable content. */
   protected abstract fun canZoom(): Boolean
-
-  protected open fun onScreenScaleChanged() {}
-
-  override fun addNotify() {
-    super.addNotify()
-    JBUIScale.addUserScaleChangeListener(userScaleListener)
-  }
-
-  override fun removeNotify() {
-    super.removeNotify()
-    JBUIScale.removeUserScaleChangeListener(userScaleListener)
-  }
 
   protected fun roundDownIfNecessary(scale: Double): Double {
     val roundedScale = roundDownIfGreaterThanOne(scale)

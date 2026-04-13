@@ -26,7 +26,7 @@ import com.android.tools.adtui.actions.executeAction
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeMouse
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.adtui.swing.UserScaleFactorRule
+import com.android.tools.adtui.swing.HiDpiRule
 import com.android.tools.adtui.swing.replaceKeyboardFocusManager
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.analytics.crash.CrashReport
@@ -93,7 +93,6 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestDataProvider
 import com.intellij.testFramework.assertInstanceOf
-import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ConcurrencyUtil
 import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap
 import java.awt.Dimension
@@ -162,7 +161,7 @@ internal class DeviceViewTest {
   private val crashReporterRule = CrashReporterRule()
   private val notificationRule = NotificationRule()
   private val goldenImageRule = GoldenImageRule("tools/adt/idea/streaming/testData/DeviceViewTest/golden")
-  private val userScaleRule = UserScaleFactorRule()
+  private val hiDpiRule = HiDpiRule()
   @get:Rule
   val ruleChain =
     RuleChain(
@@ -173,7 +172,7 @@ internal class DeviceViewTest {
       ClipboardSynchronizationDisablementRule(),
       goldenImageRule,
       EdtRule(),
-      userScaleRule,
+      hiDpiRule,
     )
   @get:Rule val usageTrackerRule = UsageTrackerRule()
   private lateinit var device: FakeScreenSharingAgentRule.FakeDevice
@@ -206,7 +205,7 @@ internal class DeviceViewTest {
 
   @Test
   fun testFrameListener() {
-    createDeviceView(200, 300, 2.0)
+    createDeviceView(200, 300, retinaMode = true)
     var frameListenerCalls = 0u
 
     val frameListener = AbstractDisplayView.FrameListener { _, _, _, _ -> ++frameListenerCalls }
@@ -235,7 +234,7 @@ internal class DeviceViewTest {
 
   @Test
   fun testResizingRotationAndMouseInput() {
-    createDeviceView(200, 300, 2.0)
+    createDeviceView(200, 300, retinaMode = true)
     assertThat(agent.commandLine)
       .matches(
         "CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME app_process" +
@@ -345,7 +344,7 @@ internal class DeviceViewTest {
 
   @Test
   fun testUpsideDownMouseInput() {
-    createDeviceView(200, 300, 2.0)
+    createDeviceView(200, 300, retinaMode = true)
     waitForFrame()
     assertThat(view.displayRectangle).isEqualTo(Rectangle(61, 0, 277, 600))
     assertThat(view.displayOrientationQuadrants).isEqualTo(0)
@@ -378,7 +377,7 @@ internal class DeviceViewTest {
 
   @Test
   fun testRightClick() {
-    createDeviceView(200, 300, 2.0)
+    createDeviceView(200, 300, retinaMode = true)
     waitForFrame()
     assertThat(view.displayRectangle).isEqualTo(Rectangle(61, 0, 277, 600))
     assertThat(view.displayOrientationQuadrants).isEqualTo(0)
@@ -404,7 +403,7 @@ internal class DeviceViewTest {
         additionalDeviceProperties = mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,watch"),
       )
 
-    createDeviceView(100, 150, 2.0)
+    createDeviceView(100, 150, retinaMode = true)
     assertThat(agent.commandLine)
       .matches(
         "CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME app_process" +
@@ -419,7 +418,7 @@ internal class DeviceViewTest {
 
   @Test
   fun testMultiTouch() {
-    createDeviceView(50, 100, 2.0)
+    createDeviceView(50, 100, retinaMode = true)
     waitForFrame()
     assertThat(view.displayRectangle).isEqualTo(Rectangle(4, 0, 92, 200))
 
@@ -490,7 +489,7 @@ internal class DeviceViewTest {
 
   @Test
   fun testKeyboardInput() {
-    createDeviceView(150, 250, 1.5)
+    createDeviceView(150, 250, retinaMode = true)
     waitForFrame()
 
     // Check keyboard input.
@@ -594,11 +593,11 @@ internal class DeviceViewTest {
 
   @Test
   fun testZoom() {
-    createDeviceView(100, 200, 2.0)
+    createDeviceView(100, 200, retinaMode = true)
     waitForFrame()
 
     // Check zoom.
-    assertThat(view.scale).isWithin(1e-4).of(screenScale * fakeUi.root.height / device.displaySize.height)
+    assertThat(view.scale).isWithin(1e-4).of(fakeUi.screenScalingFactor * fakeUi.root.height / device.displaySize.height)
     assertThat(view.canZoom(ZoomType.IN)).isTrue()
     assertThat(view.canZoom(ZoomType.OUT)).isFalse()
     assertThat(view.canZoom(ZoomType.ACTUAL)).isTrue()
@@ -647,7 +646,7 @@ internal class DeviceViewTest {
         when {
           view.displayOrientationQuadrants % 2 == 0 -> SetMaxVideoResolutionMessage(view.displayId, Dimension(270, 586))
           SystemInfo.isMac && !isRunningInBazelTest() -> SetMaxVideoResolutionMessage(view.displayId, Dimension(294, 372))
-          else -> SetMaxVideoResolutionMessage(view.displayId, Dimension(294, 360))
+          else -> SetMaxVideoResolutionMessage(view.displayId, Dimension(294, 380))
         }
       assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(expected)
       executeAction("android.device.rotate.right", view, project)
@@ -660,17 +659,8 @@ internal class DeviceViewTest {
   }
 
   @Test
-  fun testScreenScaleChange() {
-    createDeviceView(100, 200, 1.5)
-    waitForFrame()
-
-    JBUIScale.setUserScaleFactorForTest(2.0f)
-    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetMaxVideoResolutionMessage(view.displayId, Dimension(200, 400)))
-  }
-
-  @Test
   fun testClipboardSynchronization() {
-    createDeviceView(100, 200, 1.5)
+    createDeviceView(100, 200, retinaMode = true)
     waitForFrame()
 
     val settings = DeviceMirroringSettings.getInstance()
@@ -687,7 +677,7 @@ internal class DeviceViewTest {
 
   @Test
   fun testBitRateReduction() {
-    createDeviceView(500, 1000, screenScale = 1.0)
+    createDeviceView(500, 1000)
     waitForFrame()
 
     agent.bitRate = 2000000
@@ -746,7 +736,7 @@ internal class DeviceViewTest {
 
   @Test
   fun testAgentCrashAndReconnect() {
-    createDeviceView(500, 1000, screenScale = 1.0)
+    createDeviceView(500, 1000)
     waitForFrame()
     assertThat(view.displayRectangle).isEqualTo(Rectangle(19, 0, 462, 1000))
     assertThat(view.displayOrientationQuadrants).isEqualTo(0)
@@ -912,7 +902,7 @@ internal class DeviceViewTest {
 
   @Test
   fun testEmptyFrame() {
-    createDeviceView(200, 300)
+    createDeviceView(200, 300, retinaMode = true)
     waitForFrame()
 
     runBlocking { agent.produceEmptyVideoFrame(PRIMARY_DISPLAY_ID) }
@@ -922,7 +912,7 @@ internal class DeviceViewTest {
 
   @Test
   fun testInvalidFrameRecovery() {
-    createDeviceView(200, 300)
+    createDeviceView(200, 300, retinaMode = true)
     waitForFrame()
 
     val loggedErrors = executeCapturingLoggedWarnings {
@@ -937,7 +927,7 @@ internal class DeviceViewTest {
 
   @Test
   fun testMetricsCollection() {
-    createDeviceView(200, 300, 2.0)
+    createDeviceView(200, 300, retinaMode = true)
     waitForFrame()
     Disposer.dispose(view)
     val mirroringSessions = usageTrackerRule.deviceMirroringSessions()
@@ -1104,7 +1094,7 @@ internal class DeviceViewTest {
 
   @Test
   fun testDisableMultiTouchDuringHardwareInput() {
-    createDeviceView(50, 100)
+    createDeviceView(50, 100, retinaMode = true)
     waitForFrame()
     assertThat(view.displayRectangle).isEqualTo(Rectangle(4, 0, 92, 200))
 
@@ -1196,7 +1186,7 @@ internal class DeviceViewTest {
         Dimension(2560, 2558),
         additionalDeviceProperties = mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,xr"),
       )
-    createDeviceView(200, 300)
+    createDeviceView(200, 300, retinaMode = true)
     waitForFrame()
 
     fakeUi.mouse.moveTo(50, 100)
@@ -1240,7 +1230,7 @@ internal class DeviceViewTest {
 
   @Test
   fun testErrorNotification() {
-    createDeviceView(200, 300, 2.0)
+    createDeviceView(200, 300, retinaMode = true)
     waitForFrame()
     runBlocking { agent.writeToStderr("NOTIFICATION Notification to be shown to the user\n") }
     waitForCondition(2.seconds) { notificationRule.notifications.isNotEmpty() }
@@ -1250,8 +1240,10 @@ internal class DeviceViewTest {
     assertThat(notification.type).isEqualTo(NotificationType.WARNING)
   }
 
-  private fun createDeviceView(width: Int, height: Int, screenScale: Double = 2.0) {
-    JBUIScale.setUserScaleFactorForTest(screenScale.toFloat())
+  private fun createDeviceView(width: Int, height: Int, retinaMode: Boolean = false) {
+    if (retinaMode) {
+      hiDpiRule.setRetinaMode()
+    }
     createDeviceViewWithoutWaitingForAgent(width, height)
     waitForCondition(15, SECONDS) { agent.isRunning }
   }
@@ -1327,6 +1319,3 @@ private fun CrashReport.toPartMap(): Map<String, String> {
   }
   return parts
 }
-
-val screenScale: Double
-  get() = JBUIScale.scale(1.0f).toDouble()

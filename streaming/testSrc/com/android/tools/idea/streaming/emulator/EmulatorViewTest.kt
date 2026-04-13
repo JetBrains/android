@@ -25,8 +25,8 @@ import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeMouse
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessRootPaneContainer
+import com.android.tools.adtui.swing.HiDpiRule
 import com.android.tools.adtui.swing.IconLoaderRule
-import com.android.tools.adtui.swing.UserScaleFactorRule
 import com.android.tools.adtui.swing.replaceKeyboardFocusManager
 import com.android.tools.adtui.ui.NotificationHolderPanel
 import com.android.tools.analytics.UsageTrackerRule
@@ -79,7 +79,6 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.EditorNotificationPanel
-import com.intellij.ui.scale.JBUIScale
 import java.awt.Component
 import java.awt.DefaultKeyboardFocusManager
 import java.awt.Dimension
@@ -148,9 +147,8 @@ class EmulatorViewTest {
 
   private val emulatorViewRule = EmulatorViewRule()
   private val goldenImageRule = GoldenImageRule("tools/adt/idea/streaming/testData/EmulatorViewTest/golden")
-  private val userScaleRule = UserScaleFactorRule()
-  @get:Rule
-  val ruleChain = RuleChain(emulatorViewRule, ClipboardSynchronizationDisablementRule(), goldenImageRule, EdtRule(), userScaleRule)
+  private val hiDpiRule = HiDpiRule()
+  @get:Rule val ruleChain = RuleChain(emulatorViewRule, ClipboardSynchronizationDisablementRule(), goldenImageRule, EdtRule(), hiDpiRule)
   @get:Rule val usageTrackerRule = UsageTrackerRule()
   private lateinit var view: EmulatorView
   private val fakeEmulator: FakeEmulator by lazy { emulatorViewRule.getFakeEmulator(view) }
@@ -182,7 +180,7 @@ class EmulatorViewTest {
 
   @Test
   fun testResizingRotationAndMouseInput() {
-    JBUIScale.setUserScaleFactorForTest(2.0f)
+    hiDpiRule.setRetinaMode()
     fakeUi = FakeUi(createEmulatorDisplayPanel())
     val inputEvents = LinkedBlockingDeque<AndroidInputEvent>()
     val inputListener =
@@ -209,7 +207,7 @@ class EmulatorViewTest {
     call = getStreamScreenshotCallAndWaitForFrame()
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 454 height: 738")
     val skinHeight = 3245
-    assertThat(view.scale).isWithin(1e-4).of(fakeUi.root.height * screenScale / skinHeight)
+    assertThat(view.scale).isWithin(1e-4).of(fakeUi.root.height * fakeUi.screenScalingFactor / skinHeight)
     assertThat(view.canZoom(ZoomType.IN)).isTrue()
     assertThat(view.canZoom(ZoomType.OUT)).isFalse()
     assertThat(view.canZoom(ZoomType.ACTUAL)).isTrue()
@@ -344,7 +342,8 @@ class EmulatorViewTest {
 
   @Test
   fun testRightClick() {
-    JBUIScale.setUserScaleFactorForTest(2.0f)
+    hiDpiRule.setRetinaMode()
+    hiDpiRule.setSysScale(2.0f)
     fakeUi = FakeUi(createEmulatorDisplayPanel())
     fakeUi.root.size = Dimension(200, 300)
     fakeUi.layoutAndDispatchEvents()
@@ -361,7 +360,7 @@ class EmulatorViewTest {
 
   @Test
   fun testKeyboardInput() {
-    JBUIScale.setUserScaleFactorForTest(2.0f)
+    hiDpiRule.setRetinaMode()
     fakeUi = FakeUi(createEmulatorDisplayPanel())
 
     fakeUi.keyboard.setFocus(view)
@@ -507,7 +506,7 @@ class EmulatorViewTest {
 
   @Test
   fun testFolding() {
-    JBUIScale.setUserScaleFactorForTest(2.0f)
+    hiDpiRule.setRetinaMode()
     val panel = createEmulatorDisplayPanel { path -> FakeEmulator.createFoldableAvd(path) }
     fakeUi = FakeUi(panel)
 
@@ -538,7 +537,7 @@ class EmulatorViewTest {
   /** Checks that the mouse button release event is sent when the mouse leaves the device display. */
   @Test
   fun testSwipe() {
-    JBUIScale.setUserScaleFactorForTest(1.5f)
+    hiDpiRule.setRetinaMode()
     fakeUi = FakeUi(createEmulatorDisplayPanel())
 
     fakeUi.root.size = Dimension(200, 300)
@@ -549,16 +548,16 @@ class EmulatorViewTest {
     fakeUi.mouse.press(100, 100)
     val call = fakeEmulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
-    assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("mouse_event { x: 734 y: 1014 buttons: 1 }")
+    assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("mouse_event { x: 733 y: 1014 buttons: 1 }")
     fakeUi.mouse.dragTo(140, 100)
-    assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("mouse_event { x: 1168 y: 1014 buttons: 1 }")
+    assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("mouse_event { x: 1166 y: 1014 buttons: 1 }")
     fakeUi.mouse.dragTo(180, 100)
     assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("mouse_event { x: 1439 y: 1014 }")
   }
 
   @Test
   fun testMultiTouch() {
-    JBUIScale.setUserScaleFactorForTest(2.0f)
+    hiDpiRule.setRetinaMode()
     fakeUi = FakeUi(createEmulatorDisplayPanel())
 
     fakeUi.root.size = Dimension(200, 300)
@@ -629,7 +628,7 @@ class EmulatorViewTest {
 
   @Test
   fun testSkinButtons() {
-    JBUIScale.setUserScaleFactorForTest(2.0f)
+    hiDpiRule.setRetinaMode()
     val panel = createEmulatorDisplayPanel { path: Path -> FakeEmulator.createAvdWithSkinButtons(path) }
     fakeUi = FakeUi(panel)
 
@@ -852,7 +851,7 @@ class EmulatorViewTest {
 
   @Test
   fun testFocusTraversalKeysAreSentToDeviceWhenHardwareInputEnabled() {
-    JBUIScale.setUserScaleFactorForTest(2.0f)
+    hiDpiRule.setRetinaMode()
     fakeUi = FakeUi(createEmulatorDisplayPanel())
     fakeUi.root.size = Dimension(200, 300)
     fakeUi.layoutAndDispatchEvents()
@@ -958,7 +957,7 @@ class EmulatorViewTest {
 
   @Test
   fun testDisableMultiTouchDuringHardwareInput() {
-    JBUIScale.setUserScaleFactorForTest(2.0f)
+    hiDpiRule.setRetinaMode()
     fakeUi = FakeUi(createEmulatorDisplayPanel())
     fakeUi.root.size = Dimension(200, 300)
     fakeUi.layoutAndDispatchEvents()
@@ -1013,7 +1012,7 @@ class EmulatorViewTest {
 
   @Test
   fun testMetaKeysReleasedWhenHardwareInputDisabled() {
-    JBUIScale.setUserScaleFactorForTest(2.0f)
+    hiDpiRule.setRetinaMode()
     fakeUi = FakeUi(createEmulatorDisplayPanel())
 
     // Enable hardware input.
@@ -1035,7 +1034,7 @@ class EmulatorViewTest {
 
   @Test
   fun testMetaKeysReleasedWhenLostFocusDuringHardwareInput() {
-    JBUIScale.setUserScaleFactorForTest(2.0f)
+    hiDpiRule.setRetinaMode()
     fakeUi = FakeUi(createEmulatorDisplayPanel())
 
     // Enable hardware input.
@@ -1056,23 +1055,8 @@ class EmulatorViewTest {
   }
 
   @Test
-  fun testScreenScaleChange() {
-    fakeUi = FakeUi(createEmulatorDisplayPanel(), createFakeWindow = true)
-
-    // Check initial appearance.
-    fakeUi.root.size = Dimension(400, 600)
-    fakeUi.layoutAndDispatchEvents()
-    var call = getStreamScreenshotCallAndWaitForFrame()
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 363 height: 547")
-
-    JBUIScale.setUserScaleFactorForTest(1.5f)
-    call = getStreamScreenshotCallAndWaitForFrame()
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 545 height: 820")
-  }
-
-  @Test
   fun testClipboardSynchronization() {
-    JBUIScale.setUserScaleFactorForTest(2.0f)
+    hiDpiRule.setRetinaMode()
     fakeUi = FakeUi(createEmulatorDisplayPanel())
 
     fakeUi.root.size = Dimension(200, 300)
@@ -1100,7 +1084,7 @@ class EmulatorViewTest {
 
   @Test
   fun testMetricsCollection() {
-    JBUIScale.setUserScaleFactorForTest(2.0f)
+    hiDpiRule.setRetinaMode()
     fakeUi = FakeUi(createEmulatorDisplayPanel())
 
     fakeUi.root.size = Dimension(200, 300)
@@ -1133,7 +1117,7 @@ class EmulatorViewTest {
 
   @Test
   fun testXrZoom() {
-    JBUIScale.setUserScaleFactorForTest(2.0f)
+    hiDpiRule.setRetinaMode()
     val panel = createEmulatorDisplayPanel { path -> FakeEmulator.createXrHeadsetAvd(path) }
     fakeUi = FakeUi(panel)
 
@@ -1151,7 +1135,7 @@ class EmulatorViewTest {
 
   @Test
   fun testAiGlasses() {
-    JBUIScale.setUserScaleFactorForTest(2.0f)
+    hiDpiRule.setRetinaMode()
     val panel = createEmulatorDisplayPanel { path -> FakeEmulator.createAiGlassesAvd(path) }
     fakeUi = FakeUi(panel)
 
@@ -1176,7 +1160,7 @@ class EmulatorViewTest {
     executeAction("android.streaming.zoom.out", view, project)
     fakeUi.layoutAndDispatchEvents()
     call = getStreamScreenshotCallAndWaitForFrame()
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 600 height: 560")
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 600 height: 580")
 
     executeAction("android.streaming.zoom.fit.inner", view, project)
     fakeUi.root.size = Dimension(250, 300)
@@ -1235,6 +1219,3 @@ private fun UsageTrackerRule.deviceMirroringSessions(): List<AndroidStudioEvent>
   usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DEVICE_MIRRORING_SESSION }.map { it.studioEvent }
 
 private fun getKeyStroke(action: String) = KeymapUtil.getKeyStroke(KeymapUtil.getActiveKeymapShortcuts(action))!!
-
-val screenScale: Double
-  get() = JBUIScale.scale(1.0f).toDouble()

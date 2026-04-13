@@ -21,6 +21,7 @@ import com.android.testutils.waitForCondition
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeMouse.Button.LEFT
 import com.android.tools.adtui.swing.FakeMouse.Button.RIGHT
+import com.android.tools.adtui.util.scaled
 import com.android.tools.idea.concurrency.executeAsync
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
@@ -33,6 +34,7 @@ import com.intellij.openapi.wm.impl.IdeGlassPaneImpl
 import com.intellij.openapi.wm.impl.TestWindowManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.registerServiceInstance
+import com.intellij.ui.JreHiDpiUtil
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService
 import com.intellij.util.ui.UIUtil
@@ -61,6 +63,8 @@ class FakeUi @JvmOverloads constructor(val root: Component, createFakeWindow: Bo
   @JvmField val mouse: FakeMouse = FakeMouse(this, keyboard)
 
   val glassPane: IdeGlassPaneImpl?
+
+  val screenScalingFactor: Double = if (JreHiDpiUtil.isJreHiDPI(root.graphicsConfiguration)) JBUIScale.sysScale(root).toDouble() else 1.0
 
   private var lastActivityTrackerCount: Int = ActivityTracker.getInstance().count
 
@@ -122,11 +126,10 @@ class FakeUi @JvmOverloads constructor(val root: Component, createFakeWindow: Bo
 
   /** Renders the given component and returns the image reflecting its appearance. */
   fun render(component: Component): BufferedImage {
-    val screenScale = JBUIScale.scale(1.0f).toDouble()
     val image =
-      BufferedImage((component.width * screenScale).toInt(), (component.height * screenScale).toInt(), BufferedImage.TYPE_INT_ARGB)
+      BufferedImage(component.width.scaled(screenScalingFactor), component.height.scaled(screenScalingFactor), BufferedImage.TYPE_INT_ARGB)
     val graphics = image.createGraphics()
-    graphics.transform = AffineTransform.getScaleInstance(screenScale, screenScale)
+    graphics.transform = AffineTransform.getScaleInstance(screenScalingFactor, screenScalingFactor)
     component.printAll(graphics)
     graphics.dispose()
     return image
