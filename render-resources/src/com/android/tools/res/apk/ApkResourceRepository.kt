@@ -131,7 +131,13 @@ private fun TypeChunk.Entry.createResValue(
       if (this.value() != null) {
         throw IllegalArgumentException("Unexpected [${this.value()}] value for STYLE")
       }
-      val styleValue = StyleResourceValueImpl(resRef, null, null)
+      val parentStyle =
+        if (this.parentEntry() != 0) {
+          resLookUp(this.parentEntry())?.getQualifiedName()
+        } else {
+          null
+        }
+      val styleValue = StyleResourceValueImpl(resRef, parentStyle, null)
       this.values().forEach { (i, v) ->
         val itemName = resLookUp(i)?.qualifiedName ?: "$i"
         val itemVal = formatVal(v, stringPool, resLookUp)

@@ -138,5 +138,10 @@ class ApkResourceRepositoryTest {
     assertEquals("#FFFF0000", colorsArrayItem.getElement(0))
     assertEquals("#FF00FF00", colorsArrayItem.getElement(1))
     assertEquals("#FF0000FF", colorsArrayItem.getElement(2))
+
+    val themeRes = apkRes.getResources(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STYLE, "Theme.AllResources"))[0]
+
+    val themeItem = themeRes.resourceValue as StyleResourceValue
+    assertEquals("Theme.MaterialComponents.DayNight.DarkActionBar", themeItem.parentStyleName)
   }
 }
