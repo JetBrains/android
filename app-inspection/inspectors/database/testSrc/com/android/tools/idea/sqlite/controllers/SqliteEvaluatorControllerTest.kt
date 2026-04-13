@@ -16,8 +16,6 @@
 package com.android.tools.idea.sqlite.controllers
 
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
-import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureCancellation
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.EmptySqliteResultSet
@@ -46,6 +44,7 @@ import com.android.tools.idea.testing.ProjectServiceRule
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.SettableFuture
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.ide.util.PropertiesComponent
@@ -53,18 +52,19 @@ import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.testFramework.runInEdtAndWait
-import com.intellij.util.concurrency.EdtExecutorService
+import java.util.concurrent.CancellationException
+import java.util.concurrent.Executor
+import java.util.concurrent.Executors
+import kotlin.test.fail
 import org.jetbrains.ide.PooledThreadExecutor
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -79,7 +79,6 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.refEq
 import org.mockito.kotlin.whenever
 
-@Ignore("b/501222759")
 @RunWith(JUnit4::class)
 @RunsInEdt
 class SqliteEvaluatorControllerTest {
@@ -100,10 +99,14 @@ class SqliteEvaluatorControllerTest {
   private val viewFactory = FakeDatabaseInspectorViewsFactory()
   private val sqliteEvaluatorView = viewFactory.sqliteEvaluatorView
   private val mockDatabaseConnection = mock(DatabaseConnection::class.java)
-  private val edtExecutor = EdtExecutorService.getInstance()
+  // SqliteEvaluatorController is all @UiThread so the tests must run in EDT. However, we mock out all UI components so we don't have to use
+  // the actual EDT Executor. This simplifies things because we can `get()` all futures directly instead of pumping events through the EDT.
+  // We use a single thread executor to mimic the sequential behavior of the EDT executor.
+  private val edtExecutor = Executors.newSingleThreadExecutor()
+  private val taskExecutor = MoreExecutors.directExecutor()
   private val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
   private val databaseInspectorModel = OpenDatabaseInspectorModel()
-  private val databaseRepository by lazy { spy(OpenDatabaseRepository(project, edtExecutor)) }
+  private val databaseRepository by lazy { spy(OpenDatabaseRepository(project, taskExecutor)) }
   private val successfulInvocationNotificationInvocations = mutableListOf<String>()
   private val tempDirTestFixture = IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture()
   private val sqliteUtil = SqliteTestUtil(tempDirTestFixture)
@@ -120,7 +123,7 @@ class SqliteEvaluatorControllerTest {
       {},
       {},
       edtExecutor,
-      edtExecutor,
+      taskExecutor,
     )
   }
 
@@ -137,7 +140,7 @@ class SqliteEvaluatorControllerTest {
   @After
   fun tearDown() {
     if (realDatabaseConnection != null) {
-      pumpEventsAndWaitForFuture(realDatabaseConnection!!.close())
+      realDatabaseConnection!!.close().get()
     }
     sqliteUtil.tearDown()
   }
@@ -203,7 +206,7 @@ class SqliteEvaluatorControllerTest {
     sqliteEvaluatorController.setUp()
 
     // Act
-    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement))
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement).get()
 
     // Assert
     verify(mockDatabaseConnection).query(sqlStatement)
@@ -225,9 +228,9 @@ class SqliteEvaluatorControllerTest {
     sqliteEvaluatorController.setUp()
 
     // Act
-    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement1))
-    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement2))
-    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement3))
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement1).get()
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement2).get()
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement3).get()
 
     // Assert
     verify(sqliteEvaluatorView).setQueryHistory(listOf("SELECT1", "SELECT2", "fake query"))
@@ -249,11 +252,11 @@ class SqliteEvaluatorControllerTest {
     sqliteEvaluatorController.setUp()
 
     // Act
-    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement1))
-    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement2))
-    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement3))
-    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement4))
-    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement5))
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement1).get()
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement2).get()
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement3).get()
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement4).get()
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement5).get()
 
     // Assert
     verify(sqliteEvaluatorView).setQueryHistory(listOf("SELECT5", "SELECT4", "SELECT3", "SELECT2", "SELECT1"))
@@ -275,12 +278,12 @@ class SqliteEvaluatorControllerTest {
     sqliteEvaluatorController.setUp()
 
     // Act
-    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement1))
-    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement2))
-    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement3))
-    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement4))
-    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement5))
-    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement3))
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement1).get()
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement2).get()
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement3).get()
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement4).get()
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement5).get()
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement3).get()
 
     // Assert
     verify(sqliteEvaluatorView).setQueryHistory(listOf("SELECT3", "SELECT5", "SELECT4", "SELECT2", "SELECT1"))
@@ -296,8 +299,7 @@ class SqliteEvaluatorControllerTest {
     sqliteEvaluatorController.setUp()
 
     // Act
-    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement)
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement).get()
 
     // Assert
     verify(mockDatabaseConnection).execute(sqlStatement)
@@ -392,9 +394,7 @@ class SqliteEvaluatorControllerTest {
     sqliteEvaluatorController.setUp()
 
     // Act
-    pumpEventsAndWaitForFuture(
-      sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, SqliteStatement(SqliteStatementType.UPDATE, "fake stmt"))
-    )
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, SqliteStatement(SqliteStatementType.UPDATE, "fake stmt")).get()
 
     // Assert
     verify(sqliteEvaluatorView.tableView, times(0)).updateRows(emptyList())
@@ -410,9 +410,7 @@ class SqliteEvaluatorControllerTest {
     sqliteEvaluatorController.setUp()
 
     // Act
-    pumpEventsAndWaitForFuture(
-      sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, SqliteStatement(SqliteStatementType.SELECT, "SELECT"))
-    )
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, SqliteStatement(SqliteStatementType.SELECT, "SELECT")).get()
 
     // Assert
     verify(sqliteEvaluatorView.tableView).updateRows(sqliteResultSet.rows.map { RowDiffOperation.AddRow(it) })
@@ -428,9 +426,7 @@ class SqliteEvaluatorControllerTest {
     sqliteEvaluatorController.setUp()
 
     // Act
-    pumpEventsAndWaitForFuture(
-      sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, SqliteStatement(SqliteStatementType.SELECT, "SELECT"))
-    )
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, SqliteStatement(SqliteStatementType.SELECT, "SELECT")).get()
 
     // Assert
     verify(sqliteEvaluatorView.tableView).updateRows(sqliteResultSet.rows.map { RowDiffOperation.AddRow(it) })
@@ -448,12 +444,8 @@ class SqliteEvaluatorControllerTest {
       .thenReturn(Futures.immediateFuture(Unit))
 
     // Act
-    pumpEventsAndWaitForFuture(
-      sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, SqliteStatement(SqliteStatementType.UPDATE, "fake stmt"))
-    )
-    pumpEventsAndWaitForFuture(
-      sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, SqliteStatement(SqliteStatementType.UPDATE, "fake stmt"))
-    )
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, SqliteStatement(SqliteStatementType.UPDATE, "fake stmt")).get()
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, SqliteStatement(SqliteStatementType.UPDATE, "fake stmt")).get()
 
     // Assert
     verify(mockListener, times(2)).onSqliteStatementExecuted(databaseId)
@@ -471,12 +463,8 @@ class SqliteEvaluatorControllerTest {
     val orderVerifier = inOrder(sqliteEvaluatorView.tableView)
 
     // Act
-    pumpEventsAndWaitForFuture(
-      sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, SqliteStatement(SqliteStatementType.SELECT, "SELECT"))
-    )
-    pumpEventsAndWaitForFuture(
-      sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, SqliteStatement(SqliteStatementType.SELECT, "SELECT"))
-    )
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, SqliteStatement(SqliteStatementType.SELECT, "SELECT")).get()
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, SqliteStatement(SqliteStatementType.SELECT, "SELECT")).get()
 
     // Assert
     orderVerifier.verify(sqliteEvaluatorView.tableView).showTableColumns(sqliteResultSet._columns.toViewColumns())
@@ -494,12 +482,10 @@ class SqliteEvaluatorControllerTest {
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
 
     sqliteEvaluatorController.setUp()
-    pumpEventsAndWaitForFuture(
-      sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, SqliteStatement(SqliteStatementType.SELECT, "SELECT"))
-    )
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, SqliteStatement(SqliteStatementType.SELECT, "SELECT")).get()
 
     // Act
-    pumpEventsAndWaitForFuture(sqliteEvaluatorController.refreshData())
+    sqliteEvaluatorController.refreshData().get()
 
     // Assert
     verify(sqliteEvaluatorView.tableView, times(2)).startTableLoading()
@@ -512,15 +498,14 @@ class SqliteEvaluatorControllerTest {
     whenever(mockDatabaseConnection.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT")))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
 
+    sqliteEvaluatorController()
     sqliteEvaluatorController.setUp()
-    pumpEventsAndWaitForFuture(
-      sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, SqliteStatement(SqliteStatementType.SELECT, "SELECT"))
-    )
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, SqliteStatement(SqliteStatementType.SELECT, "SELECT")).get()
 
     // Act
     val future1 = sqliteEvaluatorController.refreshData()
     val future2 = sqliteEvaluatorController.refreshData()
-    pumpEventsAndWaitForFuture(future2)
+    future2.get()
     val future3 = sqliteEvaluatorController.refreshData()
 
     // Assert
@@ -537,10 +522,15 @@ class SqliteEvaluatorControllerTest {
     sqliteEvaluatorController.setUp()
 
     // Act
-    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, SqliteStatement(SqliteStatementType.UNKNOWN, "fake stmt"))
-    Disposer.dispose(sqliteEvaluatorController)
-    // Assert
-    pumpEventsAndWaitForFutureCancellation(executeFuture)
+    try {
+      val future =
+        sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, SqliteStatement(SqliteStatementType.UNKNOWN, "fake stmt"))
+      Disposer.dispose(sqliteEvaluatorController)
+      future.get()
+      fail("Expected to be canceled")
+    } catch (_: CancellationException) {
+      // Assert
+    }
   }
 
   @Test
@@ -568,19 +558,15 @@ class SqliteEvaluatorControllerTest {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet()
     whenever(mockDatabaseConnection.query(any())).thenReturn(Futures.immediateFuture(sqliteResultSet))
+    val sqliteEvaluatorController = sqliteEvaluatorController(edtExecutor = MoreExecutors.directExecutor())
     sqliteEvaluatorController.setUp()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-    pumpEventsAndWaitForFuture(
-      sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, SqliteStatement(SqliteStatementType.SELECT, "fake stmt"))
-    )
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, SqliteStatement(SqliteStatementType.SELECT, "fake stmt")).get()
 
     viewFactory.tableView.listeners.first().toggleLiveUpdatesInvoked()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Act
     sqliteEvaluatorController.notifyDataMightBeStale()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
     // 1st invocation by setUp, 2nd by toggleLiveUpdatesInvoked, 3rd by notifyDataMightBeStale
@@ -601,8 +587,7 @@ class SqliteEvaluatorControllerTest {
     sqliteEvaluatorController.setUp()
 
     // Act
-    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, SqliteStatement(sqliteStatementType, sqliteStatement))
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, SqliteStatement(sqliteStatementType, sqliteStatement)).get()
 
     // Assert
     verify(mockDatabaseConnection).execute(SqliteStatement(sqliteStatementType, sqliteStatement))
@@ -624,10 +609,9 @@ class SqliteEvaluatorControllerTest {
     sqliteEvaluatorController.setUp()
 
     // Act
-    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement1))
-    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement2))
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement1).get()
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement2).get()
     viewFactory.tableView.listeners.forEach { it.refreshDataInvoked() }
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
     verify(sqliteEvaluatorView.tableView).showTableColumns(sqliteResultSet1._columns.toViewColumns())
@@ -638,9 +622,7 @@ class SqliteEvaluatorControllerTest {
   fun testRunSelectStatementWithSemicolon() {
     val sqliteFile = sqliteUtil.createAdHocSqliteDatabase("db", "create table t1 (c1 int)", "insert into t1 values (42)")
     realDatabaseConnection =
-      pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(disposable, sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
-      )
+      getJdbcDatabaseConnection(disposable, sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE)).get()
     val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
     runDispatching { databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!) }
     val sqliteRow = SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny(42))))
@@ -648,10 +630,7 @@ class SqliteEvaluatorControllerTest {
     sqliteEvaluatorController.setUp()
 
     // Act
-    pumpEventsAndWaitForFuture(
-      sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, createSqliteStatement(project, "SELECT * FROM t1;"))
-    )
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, createSqliteStatement(project, "SELECT * FROM t1;")).get()
 
     // Assert
     verify(sqliteEvaluatorView).showSqliteStatement("SELECT * FROM t1;")
@@ -666,19 +645,16 @@ class SqliteEvaluatorControllerTest {
   fun testRunPragmaStatement() {
     val sqliteFile = sqliteUtil.createAdHocSqliteDatabase("db", "create table t1 (c1 int)", "insert into t1 values (42)")
     realDatabaseConnection =
-      pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(disposable, sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
-      )
+      getJdbcDatabaseConnection(disposable, sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE)).get()
     val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
     runDispatching { databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!) }
     databaseInspectorModel.addDatabaseSchema(databaseId, SqliteSchema(emptyList()))
     sqliteEvaluatorController.setUp()
 
     // Act
-    pumpEventsAndWaitForFuture(
-      sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, createSqliteStatement(project, "pragma table_info('sqlite_master')"))
-    )
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    sqliteEvaluatorController
+      .showAndExecuteSqlStatement(databaseId, createSqliteStatement(project, "pragma table_info('sqlite_master')"))
+      .get()
 
     // Assert
     verify(sqliteEvaluatorView).showSqliteStatement("pragma table_info('sqlite_master')")
@@ -690,19 +666,14 @@ class SqliteEvaluatorControllerTest {
   fun testRunPragmaStatementSetVariable() {
     val sqliteFile = sqliteUtil.createAdHocSqliteDatabase("db", "create table t1 (c1 int)", "insert into t1 values (42)")
     realDatabaseConnection =
-      pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(disposable, sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
-      )
+      getJdbcDatabaseConnection(disposable, sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE)).get()
     val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
     runDispatching { databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!) }
     databaseInspectorModel.addDatabaseSchema(databaseId, SqliteSchema(emptyList()))
     sqliteEvaluatorController.setUp()
 
     // Act
-    pumpEventsAndWaitForFuture(
-      sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, createSqliteStatement(project, "PRAGMA cache_size = 2"))
-    )
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, createSqliteStatement(project, "PRAGMA cache_size = 2")).get()
 
     // Assert
     verify(sqliteEvaluatorView).showSqliteStatement("PRAGMA cache_size = 2")
@@ -713,19 +684,14 @@ class SqliteEvaluatorControllerTest {
   fun testRunInsertStatementWithSemicolon() {
     val sqliteFile = sqliteUtil.createAdHocSqliteDatabase("db", "create table t1 (c1 int)", "insert into t1 values (42)")
     realDatabaseConnection =
-      pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(disposable, sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
-      )
+      getJdbcDatabaseConnection(disposable, sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE)).get()
     val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
     runDispatching { databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!) }
     databaseInspectorModel.addDatabaseSchema(databaseId, SqliteSchema(emptyList()))
     sqliteEvaluatorController.setUp()
 
     // Act
-    pumpEventsAndWaitForFuture(
-      sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, createSqliteStatement(project, "INSERT INTO t1 VALUES (0);"))
-    )
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, createSqliteStatement(project, "INSERT INTO t1 VALUES (0);")).get()
 
     // Assert
     verify(sqliteEvaluatorView).showSqliteStatement("INSERT INTO t1 VALUES (0);")
@@ -737,9 +703,7 @@ class SqliteEvaluatorControllerTest {
   fun testRunSelectStatementWithoutSemicolon() {
     val sqliteFile = sqliteUtil.createAdHocSqliteDatabase("db", "create table t1 (c1 int)", "insert into t1 values (42)")
     realDatabaseConnection =
-      pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(disposable, sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
-      )
+      getJdbcDatabaseConnection(disposable, sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE)).get()
     val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
     runDispatching { databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!) }
     val sqliteRow = SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny(42))))
@@ -747,10 +711,7 @@ class SqliteEvaluatorControllerTest {
     sqliteEvaluatorController.setUp()
 
     // Act
-    pumpEventsAndWaitForFuture(
-      sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, createSqliteStatement(project, "SELECT * FROM t1"))
-    )
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, createSqliteStatement(project, "SELECT * FROM t1")).get()
 
     // Assert
     verify(sqliteEvaluatorView).showSqliteStatement("SELECT * FROM t1")
@@ -765,9 +726,7 @@ class SqliteEvaluatorControllerTest {
   fun testRunSelectStatementWithTrailingLineComment() {
     val sqliteFile = sqliteUtil.createAdHocSqliteDatabase("db", "create table t1 (c1 int)", "insert into t1 values (42)")
     realDatabaseConnection =
-      pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(disposable, sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
-      )
+      getJdbcDatabaseConnection(disposable, sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE)).get()
     val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
     val sqliteRow = SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny(42))))
     runDispatching { databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!) }
@@ -775,10 +734,7 @@ class SqliteEvaluatorControllerTest {
     sqliteEvaluatorController.setUp()
 
     // Act
-    pumpEventsAndWaitForFuture(
-      sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, createSqliteStatement(project, "SELECT * FROM t1 --comment"))
-    )
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, createSqliteStatement(project, "SELECT * FROM t1 --comment")).get()
 
     // Assert
     verify(sqliteEvaluatorView).showSqliteStatement("SELECT * FROM t1 --comment")
@@ -842,7 +798,7 @@ class SqliteEvaluatorControllerTest {
     sqliteEvaluatorController.setUp()
 
     // Act
-    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(fileDatabaseId, sqlStatement))
+    sqliteEvaluatorController.showAndExecuteSqlStatement(fileDatabaseId, sqlStatement).get()
 
     // Assert
     verify(mockDatabaseConnection, times(0)).execute(sqlStatement)
@@ -863,7 +819,7 @@ class SqliteEvaluatorControllerTest {
     sqliteEvaluatorView.listeners.first().onDatabaseSelected(liveDatabaseId)
     sqliteEvaluatorView.listeners.first().onDatabaseSelected(fileDatabaseId)
     val sqlStatement = SqliteStatement(SqliteStatementType.SELECT, "SELECT")
-    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(fileDatabaseId, sqlStatement))
+    sqliteEvaluatorController.showAndExecuteSqlStatement(fileDatabaseId, sqlStatement).get()
     sqliteEvaluatorView.listeners.first().onDatabaseSelected(liveDatabaseId)
     sqliteEvaluatorView.listeners.first().onDatabaseSelected(fileDatabaseId)
 
@@ -877,7 +833,7 @@ class SqliteEvaluatorControllerTest {
   @Test
   fun selectedDatabase_withoutInitialDatabase_isFirstInOrder() {
     val databaseInspectorModel = OpenDatabaseInspectorModel()
-    val databaseRepository = OpenDatabaseRepository(project, edtExecutor)
+    val databaseRepository = OpenDatabaseRepository(project, taskExecutor)
     val database1 = SqliteDatabaseId.fromLiveDatabase("db1", 1)
     val database2 = SqliteDatabaseId.fromLiveDatabase("db2", 2)
     runDispatching {
@@ -896,7 +852,7 @@ class SqliteEvaluatorControllerTest {
   @Test
   fun selectedDatabase_withInitialDatabase_isInitialDatabase() {
     val databaseInspectorModel = OpenDatabaseInspectorModel()
-    val databaseRepository = OpenDatabaseRepository(project, edtExecutor)
+    val databaseRepository = OpenDatabaseRepository(project, taskExecutor)
     val database1 = SqliteDatabaseId.fromLiveDatabase("db1", 1)
     val database2 = SqliteDatabaseId.fromLiveDatabase("db2", 2)
     runDispatching {
@@ -915,7 +871,7 @@ class SqliteEvaluatorControllerTest {
   @Test
   fun selectedDatabase_ignoresStandardDatabase() {
     val databaseInspectorModel = OpenDatabaseInspectorModel()
-    val databaseRepository = OpenDatabaseRepository(project, edtExecutor)
+    val databaseRepository = OpenDatabaseRepository(project, taskExecutor)
     val workDb = SqliteDatabaseId.fromLiveDatabase("androidx.work.workdb", 1)
     val database2 = SqliteDatabaseId.fromLiveDatabase("db2", 2)
     runDispatching {
@@ -934,7 +890,7 @@ class SqliteEvaluatorControllerTest {
   @Test
   fun selectedDatabase_noOtherOption_selectsStandardDatabase() {
     val databaseInspectorModel = OpenDatabaseInspectorModel()
-    val databaseRepository = OpenDatabaseRepository(project, edtExecutor)
+    val databaseRepository = OpenDatabaseRepository(project, taskExecutor)
     val workDb = SqliteDatabaseId.fromLiveDatabase("androidx.work.workdb", 1)
     runDispatching { databaseRepository.addDatabaseConnection(workDb, mockDatabaseConnection) }
     databaseInspectorModel.addDatabaseSchema(workDb, SqliteSchema(emptyList()))
@@ -949,19 +905,24 @@ class SqliteEvaluatorControllerTest {
     databaseInspectorModel: OpenDatabaseInspectorModel = this.databaseInspectorModel,
     databaseRepository: OpenDatabaseRepository = this.databaseRepository,
     initialDatabaseId: SqliteDatabaseId? = null,
-  ) =
-    SqliteEvaluatorController(
-      project,
-      databaseInspectorModel,
-      databaseRepository,
-      initialDatabaseId,
-      sqliteEvaluatorView,
-      { successfulInvocationNotificationInvocations.add(it) },
-      {},
-      {},
-      edtExecutor,
-      edtExecutor,
-    )
+    edtExecutor: Executor = this.edtExecutor,
+  ): SqliteEvaluatorController {
+    val controller =
+      SqliteEvaluatorController(
+        project,
+        databaseInspectorModel,
+        databaseRepository,
+        initialDatabaseId,
+        sqliteEvaluatorView,
+        { successfulInvocationNotificationInvocations.add(it) },
+        {},
+        {},
+        edtExecutor,
+        taskExecutor,
+      )
+    Disposer.register(disposable) { runInEdtAndWait { Disposer.dispose(controller) } }
+    return controller
+  }
 
   private fun evaluateSqlExecuteFailure(sqliteStatementType: SqliteStatementType, sqliteStatement: String) {
     // Prepare
@@ -972,8 +933,7 @@ class SqliteEvaluatorControllerTest {
     sqliteEvaluatorController.setUp()
 
     // Act
-    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, SqliteStatement(sqliteStatementType, sqliteStatement))
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, SqliteStatement(sqliteStatementType, sqliteStatement)).get()
 
     // Assert
     verify(mockDatabaseConnection).execute(SqliteStatement(sqliteStatementType, sqliteStatement))
@@ -996,8 +956,7 @@ class SqliteEvaluatorControllerTest {
     sqliteEvaluatorController.setUp()
 
     // Act
-    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, SqliteStatement(sqliteStatementType, sqliteStatement))
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, SqliteStatement(sqliteStatementType, sqliteStatement)).get()
 
     // Assert
     verify(mockDatabaseConnection).query(SqliteStatement(sqliteStatementType, sqliteStatement))
