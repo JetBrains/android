@@ -27,8 +27,8 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
-import com.intellij.openapi.ui.popup.JBPopup
-import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.openapi.ui.JBPopupMenu
+import com.intellij.ui.PopupMenuListenerAdapter
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
@@ -36,6 +36,7 @@ import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.event.PopupMenuEvent
 import org.jetbrains.annotations.VisibleForTesting
 
 /** Distance between the bottom bound of model name and top bound of SceneView. */
@@ -123,22 +124,8 @@ class SceneViewTopPanel(
 
   /** [AnAction] that displays the actions of the given [ActionGroup] in a popup. */
   @VisibleForTesting
-  class ShowActionGroupInPopupAction(val actionGroup: DefaultActionGroup) :
+  inner class ShowActionGroupInPopupAction(val actionGroup: DefaultActionGroup) :
     ToggleAction("Show Toolbar Actions", null, StudioIcons.Common.OVERFLOW) {
-
-    private fun createPopup(e: AnActionEvent): JBPopup =
-      JBPopupFactory.getInstance()
-        .createActionGroupPopup(
-          /* title = */ null,
-          /* actionGroup = */ actionGroup,
-          /* dataContext = */ e.dataContext,
-          /* aid = */ JBPopupFactory.ActionSelectionAid.SPEEDSEARCH,
-          /* showDisabledActions = */ true,
-          /* disposeCallback = */ { Toggleable.setSelected(e.presentation, false) },
-          /* maxRowCount = */ -1,
-          /* preselectCondition = */ null,
-          /* actionPlace = */ null,
-        )
 
     override fun isSelected(e: AnActionEvent): Boolean {
       return Toggleable.isSelected(e.presentation)
@@ -147,8 +134,18 @@ class SceneViewTopPanel(
     override fun setSelected(e: AnActionEvent, state: Boolean) {
       if (!state) return
       val component = e.inputEvent?.component as? JComponent ?: return
-      val popup = createPopup(e)
-      popup.showUnderneathOf(component)
+      val am = ActionManager.getInstance()
+      val popupMenu = am.createActionPopupMenu(e.place, actionGroup)
+      popupMenu.setTargetComponent(toolbarTargetComponent)
+      val menu = popupMenu.component
+      menu.addPopupMenuListener(
+        object : PopupMenuListenerAdapter() {
+          override fun popupMenuWillBecomeInvisible(event: PopupMenuEvent?) {
+            Toggleable.setSelected(e.presentation, false)
+          }
+        }
+      )
+      JBPopupMenu.showBelow(component, menu)
     }
 
     override fun update(e: AnActionEvent) {

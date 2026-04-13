@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.common.surface
 
+import com.android.tools.adtui.actions.createTestActionEvent
 import com.android.tools.idea.common.model.DisplaySettings
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneManager
+import com.android.tools.idea.common.surface.sceneview.SceneViewTopPanel
 import com.android.tools.idea.uibuilder.surface.TestSceneView
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
@@ -106,6 +109,18 @@ class SceneViewPeerPanelTest {
     }
 
     Mockito.verify(selectionModel).setSelection(listOf(component))
+  }
+
+  @Test
+  fun `overflow action is a toggle action`() {
+    val sceneViewPeerPanel = createSceneViewPeerPanel(disposableRule.disposable, "", toolbarOverflowActions = listOf(anAction()))
+    val overflowAction =
+      sceneViewPeerPanel.getTopToolbarActions().filterIsInstance<SceneViewTopPanel.ShowActionGroupInPopupAction>().single()
+
+    val event = createTestActionEvent(overflowAction)
+    assertFalse(overflowAction.isSelected(event))
+    Toggleable.setSelected(event.presentation, true)
+    assertTrue(overflowAction.isSelected(event))
   }
 }
 
