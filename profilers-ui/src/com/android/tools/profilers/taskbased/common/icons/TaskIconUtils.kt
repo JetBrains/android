@@ -41,6 +41,24 @@ object TaskIconUtils {
     return iconKey
   }
 
+  /** Return the corresponding task icon painter for a task type. To be used in the v2 task selection grid. */
+  @Composable
+  fun getTaskIconKey(taskType: ProfilerTaskType): IntelliJIconKey {
+    val iconKey =
+      when (taskType) {
+        ProfilerTaskType.UNSPECIFIED -> throw IllegalStateException("No task icon is available for the UNSPECIFIED task type.")
+        ProfilerTaskType.CALLSTACK_SAMPLE -> StudioIconsCompose.Profiler.Tasksv2.CallstackSample
+        ProfilerTaskType.SYSTEM_TRACE -> StudioIconsCompose.Profiler.Tasksv2.SystemTrace
+        ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> StudioIconsCompose.Profiler.Tasksv2.JavaKotlinMethodTrace
+        ProfilerTaskType.HEAP_DUMP -> StudioIconsCompose.Profiler.Tasksv2.HeapDump
+        ProfilerTaskType.NATIVE_ALLOCATIONS -> StudioIconsCompose.Profiler.Tasksv2.NativeAllocations
+        ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS -> StudioIconsCompose.Profiler.Tasksv2.JavaKotlinAllocations
+        ProfilerTaskType.LIVE_VIEW -> StudioIconsCompose.Profiler.Tasksv2.LiveView
+        ProfilerTaskType.LEAKCANARY -> StudioIconsCompose.Profiler.Tasksv2.FindMemoryLeaks
+      }
+    return iconKey
+  }
+
   /** Utility to fetch the corresponding task icon for a task type. To be used for the task tab icon. */
   fun getTaskIcon(taskType: ProfilerTaskType): Icon {
     return when (taskType) {

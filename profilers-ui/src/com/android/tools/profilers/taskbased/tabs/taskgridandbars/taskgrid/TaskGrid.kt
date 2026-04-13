@@ -37,10 +37,15 @@ import androidx.compose.ui.Modifier
 import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.MAX_NUM_TASKS_IN_ROW
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_GRID_HORIZONTAL_PADDING_DP
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_GRID_HORIZONTAL_PADDING_V2_DP
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_GRID_HORIZONTAL_SPACE_DP
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_GRID_HORIZONTAL_SPACE_V2_DP
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_GRID_VERTICAL_PADDING_DP
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_GRID_VERTICAL_PADDING_V2_DP
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_GRID_VERTICAL_SPACE_DP
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_GRID_VERTICAL_SPACE_V2_DP
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_WIDTH_DP
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_WIDTH_V2_DP
 import com.android.tools.profilers.taskbased.task.TaskGridModel
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.TaskSupportUtils
@@ -75,6 +80,34 @@ private fun TaskGridContainer(taskGridModel: TaskGridModel, taskGridContent: (Pr
 }
 
 @Composable
+private fun TaskGridContainerV2(taskGridModel: TaskGridModel, taskGridContent: (ProfilerTaskType, LazyGridScope) -> Unit) {
+  val listState = rememberLazyGridState()
+  val selectedTask by taskGridModel.selectedTaskType.collectAsState()
+
+  Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    LazyVerticalGrid(
+      columns = GridCells.Adaptive(TASK_WIDTH_V2_DP),
+      state = listState,
+      modifier =
+        Modifier.align(Alignment.Center)
+          .widthIn(
+            max =
+              ((TASK_WIDTH_V2_DP * MAX_NUM_TASKS_IN_ROW) +
+                (TASK_GRID_HORIZONTAL_SPACE_V2_DP * (MAX_NUM_TASKS_IN_ROW - 1)) +
+                (TASK_GRID_HORIZONTAL_PADDING_V2_DP * 2))
+          )
+          .padding(horizontal = TASK_GRID_HORIZONTAL_PADDING_V2_DP),
+      horizontalArrangement = Arrangement.spacedBy(TASK_GRID_HORIZONTAL_SPACE_V2_DP),
+      verticalArrangement = Arrangement.spacedBy(TASK_GRID_VERTICAL_SPACE_V2_DP),
+      contentPadding = PaddingValues(vertical = TASK_GRID_VERTICAL_PADDING_V2_DP),
+    ) {
+      taskGridContent(selectedTask, this)
+    }
+    VerticalScrollbar(adapter = rememberScrollbarAdapter(listState), modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd))
+  }
+}
+
+@Composable
 fun TaskGrid(taskGridModel: TaskGridModel, taskTypes: List<ProfilerTaskType>) {
   val sortedTaskTypes = taskTypes.sortedBy { it.rank }
   TaskGridContainer(taskGridModel) { selectedTask: ProfilerTaskType, lazyGridScope: LazyGridScope ->
@@ -99,6 +132,20 @@ fun TaskGrid(taskGridModel: TaskGridModel, selectedRecording: SessionItem?, task
         }
       ) { (taskType, _) ->
         taskType.let { TaskGridItem(task = it, isSelectedTask = it == selectedTask, onTaskSelection = taskGridModel::onTaskSelection) }
+      }
+    }
+  }
+}
+
+@Composable
+fun TaskGridV2(taskGridModel: TaskGridModel, taskTypes: List<ProfilerTaskType>) {
+  val sortedTaskTypes = taskTypes.sortedBy { it.rank }
+  TaskGridContainerV2(taskGridModel) { selectedTask: ProfilerTaskType, lazyGridScope: LazyGridScope ->
+    with(lazyGridScope) {
+      items(sortedTaskTypes) { taskType ->
+        taskType.let { task ->
+          TaskGridItemV2(task = task, isSelectedTask = task == selectedTask, onTaskSelection = { taskGridModel.onTaskSelection(it) })
+        }
       }
     }
   }

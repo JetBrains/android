@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,18 @@ package com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskgrid
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.TooltipPlacement
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.FocusInteraction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -41,16 +44,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.android.tools.profilers.taskbased.common.constants.colors.TaskBasedUxColors.TASK_HOVER_BACKGROUND_COLOR
 import com.android.tools.profilers.taskbased.common.constants.colors.TaskBasedUxColors.TASK_SELECTION_BACKGROUND_COLOR
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_HEIGHT_V2_DP
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_TOOLTIP_WIDTH_DP
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings
 import com.android.tools.profilers.taskbased.common.icons.TaskIconUtils
 import com.android.tools.profilers.tasks.ProfilerTaskType
+import com.intellij.openapi.editor.colors.EditorColorsManager
 import org.jetbrains.jewel.foundation.modifier.onHover
+import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.ButtonState
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
@@ -58,14 +64,13 @@ import org.jetbrains.jewel.ui.component.Tooltip
 import org.jetbrains.jewel.ui.focusOutline
 
 @Composable
-fun TaskGridItem(task: ProfilerTaskType, isSelectedTask: Boolean, onTaskSelection: (task: ProfilerTaskType) -> Unit) {
-  TaskIconAndDescriptionWrapper(task = task, isSelectedTask = isSelectedTask, onTaskSelection = onTaskSelection)
+fun TaskGridItemV2(task: ProfilerTaskType, isSelectedTask: Boolean, onTaskSelection: (task: ProfilerTaskType) -> Unit) {
+  TaskIconAndDescriptionWrapperV2(task = task, isSelectedTask = isSelectedTask, onTaskSelection = onTaskSelection)
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun TaskIconAndDescriptionWrapper(task: ProfilerTaskType, isSelectedTask: Boolean, onTaskSelection: (task: ProfilerTaskType) -> Unit) {
-
+fun TaskIconAndDescriptionWrapperV2(task: ProfilerTaskType, isSelectedTask: Boolean, onTaskSelection: (task: ProfilerTaskType) -> Unit) {
   var isHovered by remember { mutableStateOf(false) }
   val interactionSource = remember { MutableInteractionSource() }
   var buttonState by remember(interactionSource) { mutableStateOf(ButtonState.of(enabled = true)) }
@@ -80,57 +85,44 @@ fun TaskIconAndDescriptionWrapper(task: ProfilerTaskType, isSelectedTask: Boolea
   }
 
   Tooltip(
-    { Text(TaskBasedUxStrings.getTaskTooltip(task), modifier = Modifier.width(TASK_TOOLTIP_WIDTH_DP)) },
+    { Text(TaskBasedUxStrings.getTaskTooltip(task, true), modifier = Modifier.width(TASK_TOOLTIP_WIDTH_DP)) },
     tooltipPlacement = TooltipPlacement.ComponentRect(),
   ) {
     Box(
-      contentAlignment = Alignment.Center,
       modifier =
         Modifier.padding(vertical = 5.dp)
           .fillMaxWidth()
-          .focusOutline(buttonState, RoundedCornerShape(2.dp))
-          .clip(shape = RoundedCornerShape(4.dp))
+          .heightIn(min = TASK_HEIGHT_V2_DP)
+          .testTag("TaskGridItem")
+          .focusOutline(buttonState, RoundedCornerShape(8.dp))
+          .clip(shape = RoundedCornerShape(8.dp))
+          .border(width = 1.dp, color = JewelTheme.globalColors.borders.normal, shape = RoundedCornerShape(8.dp))
           .background(
             if (isSelectedTask) {
               TASK_SELECTION_BACKGROUND_COLOR
             } else if (isHovered) {
               TASK_HOVER_BACKGROUND_COLOR
             } else {
-              Color.Transparent
+              Color(EditorColorsManager.getInstance().globalScheme.defaultBackground.rgb)
             }
           )
-          .selectable(selected = isSelectedTask, interactionSource = interactionSource, indication = null) { onTaskSelection(task) }
+          .selectable(selected = isSelectedTask, interactionSource = interactionSource, indication = null, role = Role.RadioButton) {
+            onTaskSelection(task)
+          }
           .onHover { isHovered = it }
-          .testTag("TaskGridItem"),
     ) {
-      TaskIconAndDescription(task = task, this)
-    }
-  }
-}
+      val taskTitle = TaskBasedUxStrings.getTaskShortName(task, true)
+      val taskDescription = TaskBasedUxStrings.getTaskDescriptions(task)
 
-@Composable
-fun TaskIconAndDescription(task: ProfilerTaskType, boxScope: BoxScope) {
-  val taskTitle = TaskBasedUxStrings.getTaskTitle(task)
-  val taskSubtitle = TaskBasedUxStrings.getTaskShortName(task, false)
-
-  with(boxScope) {
-    Column(
-      modifier = Modifier.align(Alignment.Center).fillMaxWidth().padding(vertical = 20.dp, horizontal = 10.dp).testTag(task.description)
-    ) {
-      Icon(
-        TaskIconUtils.getLargeTaskIconKey(task),
-        contentDescription = task.description,
-        modifier = Modifier.align(Alignment.CenterHorizontally),
-      )
-      Spacer(modifier = Modifier.height(10.dp))
-      Text(
-        text = taskTitle,
-        textAlign = TextAlign.Center,
-        fontWeight = FontWeight.SemiBold,
-        modifier = Modifier.align(Alignment.CenterHorizontally),
-      )
-      Spacer(modifier = Modifier.height(5.dp))
-      Text(text = taskSubtitle, textAlign = TextAlign.Center, color = Color.Gray, modifier = Modifier.align(Alignment.CenterHorizontally))
+      Column(modifier = Modifier.fillMaxWidth().padding(16.dp).testTag(task.description)) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.testTag("TaskGridItemV2")) {
+          Icon(TaskIconUtils.getTaskIconKey(task), contentDescription = task.description, modifier = Modifier.size(26.dp))
+          Spacer(modifier = Modifier.width(10.dp))
+          Text(text = taskTitle, fontWeight = FontWeight.Bold)
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(text = taskDescription)
+      }
     }
   }
 }

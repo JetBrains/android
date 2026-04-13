@@ -377,6 +377,10 @@ public final class StudioFlags {
     PROFILER, "system.trace.in.editor", "Open System Trace in Editor",
     "Opens System Trace files in a new editor tab");
 
+  public static final Flag<Boolean> PROFILER_HOME_TAB_V2 = new BooleanFlag(
+    PROFILER, "home.tab.v2", "Home Tab V2",
+    "Enable the redesigned Home Tab in Profilers");
+
   public static final Flag<Boolean> PROFILER_METHOD_TRACE_IN_EDITOR = new BooleanFlag(
     PROFILER, "method.trace.in.editor", "Open Method Trace in Editor",
     "Opens Java/Kotlin Method Trace files in a new editor tab");

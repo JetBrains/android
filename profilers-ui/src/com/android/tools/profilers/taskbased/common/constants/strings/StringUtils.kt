@@ -15,15 +15,19 @@
  */
 package com.android.tools.profilers.taskbased.common.constants.strings
 
-import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.getTaskSubtitle
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.getTaskShortName
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.getTaskTitle
 import com.android.tools.profilers.tasks.ProfilerTaskType
 
 object StringUtils {
-  fun getTaskTabTitle(taskType: ProfilerTaskType): String {
-    val taskTitle = getTaskTitle(taskType)
-    val taskSubtitle = getTaskSubtitle(taskType)
+  fun getTaskTabTitle(taskType: ProfilerTaskType, isProfilerHomeTabV2Enabled: Boolean): String {
+    val taskSubtitle = getTaskShortName(taskType, isProfilerHomeTabV2Enabled)
 
+    if (isProfilerHomeTabV2Enabled) {
+      return taskSubtitle
+    }
+
+    val taskTitle = getTaskTitle(taskType)
     if (taskTitle.isBlank()) {
       return "Task not supported yet"
     }

@@ -30,6 +30,7 @@ public interface FeatureConfig {
   boolean isLeakCanaryEnabled();
   boolean isSystemTraceInEditorEnabled();
   boolean isMethodTraceInEditorEnabled();
+  boolean isProfilerHomeTabV2Enabled();
 
   PowerProfilerDisplayMode getSystemTracePowerProfilerDisplayMode();
   // Add new features alphabetically instead of at the end of the list

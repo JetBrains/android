@@ -26,6 +26,7 @@ import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.TaskActionBar
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.TopBar
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskgrid.TaskGrid
+import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskgrid.TaskGridV2
 
 @Composable
 private fun TaskGridAndBarsContainer(
@@ -50,7 +51,13 @@ fun TaskGridAndBars(taskHomeTabModel: TaskHomeTabModel, ideProfilerComponents: I
   val taskGridModel = taskHomeTabModel.taskGridModel
 
   TaskGridAndBarsContainer(
-    taskGrid = { TaskGrid(taskGridModel = taskGridModel, taskTypes = taskTypes) },
+    taskGrid = {
+      if (profilers.ideServices.featureConfig.isProfilerHomeTabV2Enabled) {
+        TaskGridV2(taskGridModel = taskGridModel, taskTypes = taskTypes)
+      } else {
+        TaskGrid(taskGridModel = taskGridModel, taskTypes = taskTypes)
+      }
+    },
     topBar = { TopBar(profilers, ideProfilerComponents) },
     taskActionBar = { TaskActionBar(taskHomeTabModel) },
   )

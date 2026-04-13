@@ -128,6 +128,8 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
 
   private boolean myMethodTraceInEditorEnabled = false;
 
+  private boolean myProfilerHomeTabV2Enabled = false;
+
   /**
    * Whether power and battery data tracks should be visible in system trace and if shown,
    * which graph display style will be used for the power and battery tracks.
@@ -273,6 +275,11 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isSystemTraceInEditorEnabled() {
         return mySystemTraceInEditorEnabled;
+      }
+
+      @Override
+      public boolean isProfilerHomeTabV2Enabled() {
+        return myProfilerHomeTabV2Enabled;
       }
     };
   }
@@ -476,6 +483,10 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableMethodTraceInEditor(boolean enabled) {
     myMethodTraceInEditorEnabled = enabled;
+  }
+
+  public void enableProfilerHomeTabV2(boolean enabled) {
+    myProfilerHomeTabV2Enabled = enabled;
   }
 
   @Override

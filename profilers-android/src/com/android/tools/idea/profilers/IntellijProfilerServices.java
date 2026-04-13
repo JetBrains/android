@@ -691,5 +691,10 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     public boolean isMethodTraceInEditorEnabled() {
       return StudioFlags.PROFILER_METHOD_TRACE_IN_EDITOR.get();
     }
+
+    @Override
+    public boolean isProfilerHomeTabV2Enabled() {
+      return StudioFlags.PROFILER_HOME_TAB_V2.get();
+    }
   }
 }
