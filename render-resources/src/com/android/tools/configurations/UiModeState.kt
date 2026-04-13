@@ -19,7 +19,9 @@ import com.android.resources.NightMode
 import com.android.resources.UiMode
 import com.google.common.annotations.VisibleForTesting
 
-/** Encapsulates the bitwise logic for parsing Android UI Mode and Night Mode flags. */
+/**
+ * Encapsulates the logic for Android UI Mode and Night Mode state.
+ */
 class UiModeState {
   var uiMode: UiMode = UiMode.NORMAL
     private set
@@ -27,45 +29,36 @@ class UiModeState {
   var nightMode: NightMode = NightMode.NOTNIGHT
     private set
 
+  /** The raw integer flag value representing the UI and Night mode combinations. */
   var uiModeFlagValue: Int = 0
     private set
 
   /**
-   * Sets the night mode property and calculates the corresponding raw flag value.
+   * Sets the night mode property.
    *
    * @param night The new [NightMode] to apply.
-   * @return A bitmask containing [ConfigurationListener.CFG_NIGHT_MODE] if the state changed, or 0 if the state remained the same. This is
-   *   used by the Configuration facade to notify listeners of specific changes.
+   * @return A bitmask containing [ConfigurationListener.CFG_NIGHT_MODE] if the state changed, or 0 if the state remained the same.
    */
   fun setNightMode(night: NightMode): Int {
     if (this.nightMode != night) {
-      return setUiModeFlagValue(
-        (this.uiModeFlagValue and UI_MODE_TYPE_MASK) or (if (night == NightMode.NIGHT) UI_MODE_NIGHT_YES else UI_MODE_NIGHT_NO)
-      )
+      // Route through setUiModeFlagValue to ensure strict bitwise change detection
+      val newFlags = (this.uiModeFlagValue and UI_MODE_TYPE_MASK) or night.flagValue
+      return setUiModeFlagValue(newFlags)
     }
     return 0
   }
 
   /**
-   * Sets the UI mode property and calculates the corresponding raw flag value.
+   * Sets the UI mode property.
    *
    * @param uiMode The new [UiMode] to apply.
-   * @return A bitmask containing [ConfigurationListener.CFG_UI_MODE] if the state changed, or 0 if the state remained the same. This is
-   *   used by the Configuration facade to notify listeners of specific changes.
+   * @return A bitmask containing [ConfigurationListener.CFG_UI_MODE] if the state changed, or 0 if the state remained the same.
    */
   fun setUiMode(uiMode: UiMode): Int {
     if (this.uiMode != uiMode) {
-      var newUiTypeFlags = 0
-      when (uiMode) {
-        UiMode.NORMAL -> newUiTypeFlags = UI_MODE_TYPE_NORMAL
-        UiMode.DESK -> newUiTypeFlags = UI_MODE_TYPE_DESK
-        UiMode.WATCH -> newUiTypeFlags = UI_MODE_TYPE_WATCH
-        UiMode.TELEVISION -> newUiTypeFlags = UI_MODE_TYPE_TELEVISION
-        UiMode.APPLIANCE -> newUiTypeFlags = UI_MODE_TYPE_APPLIANCE
-        UiMode.CAR -> newUiTypeFlags = UI_MODE_TYPE_CAR
-        UiMode.VR_HEADSET -> newUiTypeFlags = UI_MODE_TYPE_VR_HEADSET
-      }
-      return setUiModeFlagValue((this.uiModeFlagValue and UI_MODE_NIGHT_MASK) or newUiTypeFlags)
+      // Route through setUiModeFlagValue to ensure strict bitwise change detection
+      val newFlags = (this.uiModeFlagValue and UI_MODE_NIGHT_MASK) or uiMode.flagValue
+      return setUiModeFlagValue(newFlags)
     }
     return 0
   }
@@ -73,30 +66,22 @@ class UiModeState {
   /**
    * Sets the raw bitwise flag value for the UI mode, which may update both the [uiMode] and [nightMode] properties simultaneously.
    *
-   * @param uiMode The raw integer flag value.
-   * @return A bitmask of [ConfigurationListener] dirty flags (e.g., [ConfigurationListener.CFG_UI_MODE] and/or
-   *   [ConfigurationListener.CFG_NIGHT_MODE]) representing exactly which properties were modified. Returns 0 if no changes occurred.
+   * @param flags The raw integer flag value.
+   * @return A bitmask of [ConfigurationListener] dirty flags representing exactly which properties were modified. Returns 0 if no changes
+   *   occurred.
    */
-  fun setUiModeFlagValue(uiMode: Int): Int {
-    val modifiedElements = this.uiModeFlagValue xor uiMode
-    this.uiModeFlagValue = uiMode
+  fun setUiModeFlagValue(flags: Int): Int {
+    val modifiedElements = this.uiModeFlagValue xor flags
+    this.uiModeFlagValue = flags
     var updatedFlags = 0
 
     if ((modifiedElements and UI_MODE_NIGHT_MASK) != 0) {
-      this.nightMode = if ((uiMode and UI_MODE_NIGHT_MASK) == UI_MODE_NIGHT_YES) NightMode.NIGHT else NightMode.NOTNIGHT
+      this.nightMode = if ((flags and UI_MODE_NIGHT_MASK) == UI_MODE_NIGHT_YES) NightMode.NIGHT else NightMode.NOTNIGHT
       updatedFlags = updatedFlags or ConfigurationListener.CFG_NIGHT_MODE
     }
 
     if ((modifiedElements and UI_MODE_TYPE_MASK) != 0) {
-      when (uiMode and UI_MODE_TYPE_MASK) {
-        UI_MODE_TYPE_APPLIANCE -> this.uiMode = UiMode.APPLIANCE
-        UI_MODE_TYPE_CAR -> this.uiMode = UiMode.CAR
-        UI_MODE_TYPE_TELEVISION -> this.uiMode = UiMode.TELEVISION
-        UI_MODE_TYPE_WATCH -> this.uiMode = UiMode.WATCH
-        UI_MODE_TYPE_DESK -> this.uiMode = UiMode.DESK
-        UI_MODE_TYPE_VR_HEADSET -> this.uiMode = UiMode.VR_HEADSET
-        else -> this.uiMode = UiMode.NORMAL
-      }
+      this.uiMode = uiModeFromFlag(flags)
       updatedFlags = updatedFlags or ConfigurationListener.CFG_UI_MODE
     }
 
@@ -110,24 +95,46 @@ class UiModeState {
   }
 
   companion object {
-    const val UI_MODE_TYPE_MASK: Int = 0x0000000f
-    const val UI_MODE_NIGHT_YES: Int = 0x00000020
-    const val UI_MODE_NIGHT_NO: Int = 0x00000010
+    const val UI_MODE_TYPE_MASK = 0x0000000f
+    const val UI_MODE_NIGHT_YES = 0x00000020
+    const val UI_MODE_NIGHT_NO = 0x00000010
 
-    @VisibleForTesting const val UI_MODE_TYPE_APPLIANCE: Int = 0x00000005
-
-    @VisibleForTesting const val UI_MODE_TYPE_CAR: Int = 0x00000003
-
-    @VisibleForTesting const val UI_MODE_TYPE_DESK: Int = 0x00000002
-
-    @VisibleForTesting const val UI_MODE_TYPE_NORMAL: Int = 0x00000001
-
-    @VisibleForTesting const val UI_MODE_TYPE_TELEVISION: Int = 0x00000004
-
-    @VisibleForTesting const val UI_MODE_TYPE_VR_HEADSET: Int = 0x00000007
-
-    @VisibleForTesting const val UI_MODE_TYPE_WATCH: Int = 0x00000006
+    @VisibleForTesting const val UI_MODE_TYPE_APPLIANCE = 0x00000005
+    @VisibleForTesting const val UI_MODE_TYPE_CAR = 0x00000003
+    @VisibleForTesting const val UI_MODE_TYPE_DESK = 0x00000002
+    @VisibleForTesting const val UI_MODE_TYPE_NORMAL = 0x00000001
+    @VisibleForTesting const val UI_MODE_TYPE_TELEVISION = 0x00000004
+    @VisibleForTesting const val UI_MODE_TYPE_VR_HEADSET = 0x00000007
+    @VisibleForTesting const val UI_MODE_TYPE_WATCH = 0x00000006
 
     private const val UI_MODE_NIGHT_MASK = 0x00000030
+
+    private val UiMode.flagValue: Int
+      get() =
+        when (this) {
+          UiMode.NORMAL -> UI_MODE_TYPE_NORMAL
+          UiMode.DESK -> UI_MODE_TYPE_DESK
+          UiMode.WATCH -> UI_MODE_TYPE_WATCH
+          UiMode.TELEVISION -> UI_MODE_TYPE_TELEVISION
+          UiMode.APPLIANCE -> UI_MODE_TYPE_APPLIANCE
+          UiMode.CAR -> UI_MODE_TYPE_CAR
+          UiMode.VR_HEADSET -> UI_MODE_TYPE_VR_HEADSET
+          else -> UI_MODE_TYPE_NORMAL
+        }
+
+    private val NightMode.flagValue: Int
+      get() = if (this == NightMode.NIGHT) UI_MODE_NIGHT_YES else UI_MODE_NIGHT_NO
+
+    private fun uiModeFromFlag(flag: Int): UiMode {
+      return when (flag and UI_MODE_TYPE_MASK) {
+        UI_MODE_TYPE_APPLIANCE -> UiMode.APPLIANCE
+        UI_MODE_TYPE_CAR -> UiMode.CAR
+        UI_MODE_TYPE_TELEVISION -> UiMode.TELEVISION
+        UI_MODE_TYPE_WATCH -> UiMode.WATCH
+        UI_MODE_TYPE_DESK -> UiMode.DESK
+        UI_MODE_TYPE_VR_HEADSET -> UiMode.VR_HEADSET
+        else -> UiMode.NORMAL
+      }
+    }
   }
 }

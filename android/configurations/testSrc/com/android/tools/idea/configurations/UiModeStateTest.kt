@@ -53,4 +53,23 @@ class UiModeStateTest {
     assertThat(clone.nightMode).isEqualTo(NightMode.NIGHT)
     assertThat(clone.uiModeFlagValue).isEqualTo(original.uiModeFlagValue)
   }
+
+  @Test
+  fun testEnumSettersUpdateBitmaskDirectly() {
+    val state = UiModeState()
+
+    // 0 represents the uninitialized/undefined state in Android's bitmask, which
+    // downstream consumers (like the Layout Editor) rely on. Even though the default
+    // enum is UiMode.NORMAL (1), we strictly preserve 0 until explicitly mutated.
+    assertThat(state.uiModeFlagValue).isEqualTo(0)
+
+    val uiFlags = state.setUiMode(UiMode.CAR)
+    val nightFlags = state.setNightMode(NightMode.NIGHT)
+
+    assertThat(uiFlags).isEqualTo(ConfigurationListener.CFG_UI_MODE)
+    assertThat(nightFlags).isEqualTo(ConfigurationListener.CFG_NIGHT_MODE)
+
+    val expectedRawInteger = UiModeState.UI_MODE_TYPE_CAR or UiModeState.UI_MODE_NIGHT_YES
+    assertThat(state.uiModeFlagValue).isEqualTo(expectedRawInteger)
+  }
 }
