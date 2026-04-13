@@ -46,13 +46,11 @@ import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.IndexingTestUtil
-import com.intellij.util.indexing.UnindexedFilesScanner
 import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
 import java.awt.Point
@@ -538,9 +536,7 @@ class NavDesignSurfaceTest : NavTestCase() {
   private fun addClass(@Language("JAVA") content: String): PsiClass {
     val result = WriteCommandAction.runWriteCommandAction(project, Computable<PsiClass> { myFixture.addClass(content) })
     WriteAction.runAndWait<RuntimeException> { PsiDocumentManager.getInstance(myModule.project).commitAllDocuments() }
-    val dumbService = DumbService.getInstance(project)
-    UnindexedFilesScanner(project).queue()
-    dumbService.completeJustSubmittedTasks()
+    IndexingTestUtil.waitUntilIndexesAreReady(project)
     return result
   }
 
@@ -551,9 +547,7 @@ class NavDesignSurfaceTest : NavTestCase() {
       PsiDocumentManager.getInstance(project).commitDocument(document)
     }
     WriteAction.runAndWait<RuntimeException> { PsiDocumentManager.getInstance(myModule.project).commitAllDocuments() }
-    val dumbService = DumbService.getInstance(project)
-    UnindexedFilesScanner(project).queue()
-    dumbService.completeJustSubmittedTasks()
+    IndexingTestUtil.waitUntilIndexesAreReady(project)
   }
 
   fun testActivateAddNavigator() {
