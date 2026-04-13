@@ -173,14 +173,14 @@ private fun createModalDialogAndInteractWithIt(
 private fun dispatchNextInvocationEventIfAny(): AWTEvent? {
   // Code similar to EDT.dispatchAllInvocationEvents.
   @Suppress("UnstableApiUsage")
-  resetThreadContext().use {
+  return resetThreadContext {
     val eventQueue = Toolkit.getDefaultToolkit().systemEventQueue
     while (eventQueue.peekEvent() != null) {
       try {
         val event = eventQueue.nextEvent
         if (event is InvocationEvent) {
           dispatchEventMethod.invoke(eventQueue, event)
-          return event
+          return@resetThreadContext event
         }
       } catch (e: InvocationTargetException) {
         ExceptionUtil.rethrowAllAsUnchecked(e.cause)
@@ -188,7 +188,7 @@ private fun dispatchNextInvocationEventIfAny(): AWTEvent? {
         ExceptionUtil.rethrow(e)
       }
     }
-    return null
+    return@resetThreadContext null
   }
 }
 
