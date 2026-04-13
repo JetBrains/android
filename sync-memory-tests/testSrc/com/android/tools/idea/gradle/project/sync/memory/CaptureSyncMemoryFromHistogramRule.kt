@@ -95,18 +95,14 @@ class CaptureSyncMemoryFromHistogramRule(
     Metric(metricName).apply {
       addSamples(MEMORY_BENCHMARK, Metric.MetricSample(measurement.first.toEpochMilliseconds(), measurement.second))
       if (!disableAnalyzers) {
-        val runningFromReleaseBranch = System.getProperty("running.from.release.branch").toBoolean()
         val toleratedChange = 0.05 // 5%
         val analyzer =
           when {
             metricToCompareAgainst != null ->
               UTestAnalyzer.forMetricComparison(metricToCompareAgainst, relativeShiftValue = toleratedChange)
-            // When running from a release branch, an additional analyzer to make a comparison
-            // between the release branch and the main branch is added.
-            runningFromReleaseBranch -> UTestAnalyzer.forComparingWithMainBranch(relativeShiftValue = toleratedChange)
             else -> EDivisiveAnalyzer
           }
-        val usingUTestAnalyzers = runningFromReleaseBranch || metricToCompareAgainst != null
+        val usingUTestAnalyzers = metricToCompareAgainst != null
         if (usingUTestAnalyzers) {
           // U-Test analyzers expect at least 3 points in the data to be available to make a meaningful comparison.
           // For memory benchmarks, we only have one very stable data point, so we can use the same data point 3 times

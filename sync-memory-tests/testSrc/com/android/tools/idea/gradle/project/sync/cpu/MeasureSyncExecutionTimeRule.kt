@@ -179,9 +179,6 @@ class MeasureSyncExecutionTimeRule(
         val analyzer =
           when {
             metricToCompareAgainst != null -> UTestAnalyzer.forMetricComparison(metricToCompareAgainst)
-            // When running from a release branch, an additional analyzer to make a comparison
-            // between the release branch and the main branch is added.
-            System.getProperty("running.from.release.branch").toBoolean() -> UTestAnalyzer.forComparingWithMainBranch()
             else -> EDivisiveAnalyzer
           }
         setAnalyzers(CPU_BENCHMARK, listOf(analyzer))
