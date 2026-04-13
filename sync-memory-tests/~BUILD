@@ -42,26 +42,6 @@ iml_module(
                 "perfgate-release",
             ],
         },
-        # Release branch tests with comparison to main branch
-        "Benchmark2000CpuReleaseBranch": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark2000CpuTest",
-            "exec_properties": LARGE_MACHINE,
-            "tags": [
-                "perfgate-release",
-            ],
-            "additional_jvm_args": ["-Drunning.from.release.branch=true"],
-        },
-        "Benchmark2000MemoryReleaseBranch": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark2000MemoryTest",
-            "exec_properties": LARGE_MACHINE,
-            "tags": [
-                "perfgate-release",
-            ],
-            "additional_jvm_args": [
-                "-Drunning.from.release.branch=true",
-                "-Xmx6g",
-            ],
-        },
         # Comparison tests
         "Benchmark2000CpuLatestGradleTest": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark2000CpuLatestGradleTest",
