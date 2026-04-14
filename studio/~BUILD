@@ -916,7 +916,7 @@ studio_plugin(
             "//tools/vendor/google/ml/aiplugin/cloudcode-core:aiplugin.cloudcode-core",
             "//tools/vendor/google/ml/aiplugin/ij-platform:aiplugin.ij-platform",
             "//tools/vendor/google/ml:aiplugin.login.sdkcompat",
-            "//tools/vendor/modelcontextprotocol/kotlin-sdk:mcp.kotlin-sdk.sdkcompat",
+            "//tools/vendor/modelcontextprotocol/kotlin-sdk:mcp.kotlin-sdk",
         ],
     },
     resources = {
