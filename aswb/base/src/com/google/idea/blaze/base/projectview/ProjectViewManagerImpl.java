@@ -27,6 +27,7 @@ import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.exception.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nullable;
@@ -43,7 +44,7 @@ public final class ProjectViewManagerImpl extends ProjectViewManager {
   @Nullable
   @Override
   public ProjectViewSet getProjectViewSet() {
-      return BlazeImportSettingsManager.getInstance(project).getProjectViewSet();
+    return BlazeImportSettingsManager.getInstance(project).getProjectViewSet();
   }
 
   @Override
@@ -52,16 +53,21 @@ public final class ProjectViewManagerImpl extends ProjectViewManager {
   }
 
   @Override
-  public ProjectViewSet doLoadProjectView(BlazeContext context, BlazeImportSettings importSettings) throws ConfigurationException {
+  public ProjectViewSet doLoadProjectView(BlazeContext context, BlazeImportSettings importSettings)
+      throws ConfigurationException {
     final var projectViewRootFile = new File(importSettings.getProjectViewFile());
     ProjectViewParser rootParser = new ProjectViewParser(BlazeContext.create(), null);
     rootParser.parseProjectViewFile(projectViewRootFile, List.of(WorkspaceLocationSection.PARSER));
     final var rootProjectViewSet = rootParser.getResult();
-    final var rootProjectView = Optional.ofNullable(rootProjectViewSet.getTopLevelProjectViewFile()).map(it -> it.projectView);
-    final var workspaceLocation = rootProjectView.map(it -> it.getScalarValue(WorkspaceLocationSection.KEY));
+    final var rootProjectView =
+        Optional.ofNullable(rootProjectViewSet.getTopLevelProjectViewFile())
+            .map(it -> it.projectView);
+    final var workspaceLocation =
+        rootProjectView.map(it -> it.getScalarValue(WorkspaceLocationSection.KEY));
     final WorkspacePathResolver workspacePathResolver;
-    workspacePathResolver =
-      new WorkspacePathResolverImpl(WorkspaceRoot.fromProto(workspaceLocation.orElseGet(importSettings::getWorkspaceRoot)));
+    String location = workspaceLocation.orElseGet(importSettings::getWorkspaceRoot);
+    File locationFile = resolveWorkspaceRoot(projectViewRootFile, location);
+    workspacePathResolver = new WorkspacePathResolverImpl(new WorkspaceRoot(locationFile));
 
     ProjectViewParser parser = new ProjectViewParser(context, workspacePathResolver);
     parser.parseProjectViewFile(projectViewRootFile);
@@ -71,5 +77,10 @@ public final class ProjectViewManagerImpl extends ProjectViewManager {
           "Failed to read project view from " + projectViewRootFile.getAbsolutePath());
     }
     return parser.getResult();
+  }
+
+  public static File resolveWorkspaceRoot(File projectViewRootFile, String workspaceLocation) {
+    Path parent = projectViewRootFile.getParentFile().toPath();
+    return parent.resolve(workspaceLocation).toAbsolutePath().normalize().toFile();
   }
 }
