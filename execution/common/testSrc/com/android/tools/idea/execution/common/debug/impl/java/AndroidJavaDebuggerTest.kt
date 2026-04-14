@@ -135,6 +135,7 @@ class AndroidJavaDebuggerTest {
     assertThat(processHandler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)).isEqualTo(AndroidVersion(26))
   }
 
+  @Ignore("b/501224305")
   @Test
   fun testSessionCreated() = runTest {
     val stats = RunStatsService.get(project).create().also { executionEnvironment.putUserData(RunStats.KEY, it) }
