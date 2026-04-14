@@ -17,20 +17,19 @@ package com.android.tools.idea.adb.wireless
 
 import com.android.adblib.AdbFailResponseException
 import com.android.adblib.AdbFeatures
-import com.android.adblib.AdbHostServices
 import com.android.adblib.DeviceAddress
 import com.android.adblib.DeviceInfo
-import com.android.adblib.DeviceList
 import com.android.adblib.DeviceSelector
 import com.android.adblib.DeviceState
 import com.android.adblib.MdnsServices
 import com.android.adblib.ServerStatus
 import com.android.adblib.deviceProperties
+import com.android.adblib.trackDevices
 import com.android.tools.idea.adblib.AdbLibService
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.util.LineSeparator
-import java.net.InetAddress
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -106,16 +105,23 @@ class AdbServiceWrapperAdbLibImpl(private val project: Project) : AdbServiceWrap
   }
 
   override suspend fun waitForOnlineDevice(pairingResult: PairingResult): AdbOnlineDevice {
-    return withTimeoutOrNull(ADB_DEVICE_CONNECT_MILLIS) {
-      withContext(Dispatchers.IO) {
-        // Track device changes
-        val hostServices = AdbLibService.getSession(project).hostServices
-        val deviceListFlow = hostServices.trackDevices(AdbHostServices.DeviceInfoFormat.LONG_FORMAT)
+    val ipAddress = pairingResult.ipAddress.hostAddress
+    val mdnsId = pairingResult.mdnsServiceId
 
-        // This essentially "loops" until we get a list of device containing the paired device
-        val pairedDeviceInfo = deviceListFlow.mapNotNull { it.getPairedDevice(pairingResult) }.first()
-        createAdbOnlineDevice(pairedDeviceInfo)
-      }
+    return withTimeoutOrNull(ADB_DEVICE_CONNECT_MILLIS.milliseconds) {
+      val session = AdbLibService.getSession(project)
+      session
+        .trackDevices()
+        .mapNotNull { deviceList ->
+          deviceList.firstOrNull { device ->
+            device.deviceState == DeviceState.ONLINE &&
+              ((mdnsId.isNotEmpty() && device.serialNumber.startsWith(mdnsId)) ||
+                (device.serialNumber.startsWith(ipAddress) &&
+                  (device.serialNumber.length == ipAddress.length || device.serialNumber[ipAddress.length] == ':')))
+          }
+        }
+        .first()
+        .let { createAdbOnlineDevice(it) }
     } ?: throw AdbCommandException("Device did not connect within specified timeout", -1, emptyList())
   }
 
@@ -133,10 +139,6 @@ class AdbServiceWrapperAdbLibImpl(private val project: Project) : AdbServiceWrap
     return session.hostServices.hostFeatures()
   }
 
-  private fun DeviceList.getPairedDevice(pairingResult: PairingResult): DeviceInfo? {
-    return firstOrNull { it.deviceState == DeviceState.ONLINE && sameDevice(it, pairingResult) }
-  }
-
   private suspend fun createAdbOnlineDevice(device: DeviceInfo): AdbOnlineDevice {
     val properties = getDeviceProperties(device)
     return AdbOnlineDevice(device.serialNumber, properties)
@@ -146,19 +148,5 @@ class AdbServiceWrapperAdbLibImpl(private val project: Project) : AdbServiceWrap
     val deviceServices = AdbLibService.getSession(project).deviceServices
     val props = deviceServices.deviceProperties(DeviceSelector.fromSerialNumber(device.serialNumber)).all()
     return props.associate { it.name to it.value }
-  }
-
-  private fun sameDevice(device: DeviceInfo, pairingResult: PairingResult): Boolean {
-    return sameIpAddress(device, pairingResult.ipAddress) || sameMdnsService(device, pairingResult.mdnsServiceId)
-  }
-
-  private fun sameMdnsService(device: DeviceInfo, mdnsServiceId: String): Boolean {
-    return device.serialNumber.startsWith(mdnsServiceId)
-  }
-
-  private fun sameIpAddress(device: DeviceInfo, ipAddress: InetAddress): Boolean {
-    // Note: pre-release versions of ADB used to set IP:PORT as the serial number of the device
-    val comps = device.serialNumber.split(":")
-    return comps.size == 2 && comps[0] == ipAddress.hostAddress
   }
 }

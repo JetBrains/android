@@ -20,6 +20,7 @@ import com.android.adblib.ServerStatus
 import com.android.annotations.concurrency.AnyThread
 import com.android.ddmlib.IDevice
 import com.intellij.openapi.project.Project
+import java.io.IOException
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -46,8 +47,8 @@ interface AdbServiceWrapper {
   /**
    * Returns when the device corresponding to [pairingResult] is visible as a `connected` device to the underlying ADB implementation.
    *
-   * Throws a [AdbCommandException] in case the device does not show up as online within a "reasonable" timeout (chosen by the
-   * implementation).
+   * @throws AdbCommandException if the device does not show up as online within a "reasonable" timeout (chosen by the implementation).
+   * @throws IOException if an error occurs while tracking devices (e.g., the ADB server is shut down).
    */
   @AnyThread suspend fun waitForOnlineDevice(pairingResult: PairingResult): AdbOnlineDevice
 
