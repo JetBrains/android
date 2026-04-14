@@ -52,14 +52,10 @@ class SnapshotDeserializer private constructor() {
         deserializer.syncDataBuilder.setBazelVersion(Optional.of(proto.getBazelVersion()))
       }
       if (proto.hasProjectStructureData()) {
-        deserializer.projectStructureData =
-          deserializer.visitProjectStructureData(proto.projectStructureData)
+        deserializer.projectStructureData = deserializer.visitProjectStructureData(proto.projectStructureData)
       }
       deserializer.visitQuerySummay(proto.querySummary)
-      return SerializedProjectStructureAndQueryData(
-        deserializer.syncDataBuilder.build(),
-        deserializer.projectStructureData,
-      )
+      return SerializedProjectStructureAndQueryData(deserializer.syncDataBuilder.build(), deserializer.projectStructureData)
     }
   }
 
@@ -86,9 +82,7 @@ class SnapshotDeserializer private constructor() {
     syncDataBuilder.setQuerySummary(proto)
   }
 
-  private fun visitProjectStructureData(
-    proto: SnapshotProto.ProjectStructureData
-  ): ProjectStructureData {
+  private fun visitProjectStructureData(proto: SnapshotProto.ProjectStructureData): ProjectStructureData {
     val packageSourceSets =
       proto.packageSourceSetsList.associate { sourceSet ->
         Path.of(sourceSet.workspaceRelativePath) to
@@ -109,12 +103,9 @@ private fun convertVcsState(proto: SnapshotProto.VcsState): VcsState {
     proto.getWorkspaceId(),
     proto.getUpstreamRevision(),
     ImmutableSet.copyOf(
-      proto.workingSetList.map {
-        WorkspaceFileChange(it.getOperation().toOperation(), Path.of(it.getWorkspaceRelativePath()))
-      }
+      proto.workingSetList.map { WorkspaceFileChange(it.getOperation().toOperation(), Path.of(it.getWorkspaceRelativePath())) }
     ),
-    if (proto.hasWorkspaceSnapshot()) Optional.of(Path.of(proto.workspaceSnapshot.getPath()))
-    else Optional.empty(),
+    if (proto.hasWorkspaceSnapshot()) Optional.of(Path.of(proto.workspaceSnapshot.getPath())) else Optional.empty(),
   )
 }
 

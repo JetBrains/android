@@ -91,10 +91,7 @@ class ProjectStructureReaderTest {
     packageSourceSets: Map<String, SourceSet> = emptyMap(),
     languages: Set<QuerySyncLanguage> = emptySet(),
   ): ProjectStructureData {
-    return ProjectStructureData(
-      packageSourceSets = packageSourceSets.mapKeys { Path.of(it.key) },
-      activeLanguages = languages,
-    )
+    return ProjectStructureData(packageSourceSets = packageSourceSets.mapKeys { Path.of(it.key) }, activeLanguages = languages)
   }
 
   // Helper to compare ProjectStructureData instances, ignoring list order.
@@ -104,10 +101,8 @@ class ProjectStructureReaderTest {
     for (key in expected.packageSourceSets.keys) {
       val actualSourceSet = actual.packageSourceSets[key]!!
       val expectedSourceSet = expected.packageSourceSets[key]!!
-      assertThat(actualSourceSet.javaSourceFiles)
-        .containsExactlyElementsIn(expectedSourceSet.javaSourceFiles)
-      assertThat(actualSourceSet.nonJavaSourceFiles)
-        .containsExactlyElementsIn(expectedSourceSet.nonJavaSourceFiles)
+      assertThat(actualSourceSet.javaSourceFiles).containsExactlyElementsIn(expectedSourceSet.javaSourceFiles)
+      assertThat(actualSourceSet.nonJavaSourceFiles).containsExactlyElementsIn(expectedSourceSet.nonJavaSourceFiles)
     }
   }
 
@@ -127,8 +122,7 @@ class ProjectStructureReaderTest {
           mapOf(
             "java/com/example" to
               SourceSet(
-                javaSourceFiles =
-                  listOf(Path.of("java/com/example/MyClass.java"), Path.of("java/com/example/MyClass.kt")),
+                javaSourceFiles = listOf(Path.of("java/com/example/MyClass.java"), Path.of("java/com/example/MyClass.kt")),
                 nonJavaSourceFiles = emptyList(),
               )
           ),
@@ -152,15 +146,9 @@ class ProjectStructureReaderTest {
         packageSourceSets =
           mapOf(
             "java/com/example/one" to
-              SourceSet(
-                javaSourceFiles = listOf(Path.of("java/com/example/one/One.java")),
-                nonJavaSourceFiles = emptyList(),
-              ),
+              SourceSet(javaSourceFiles = listOf(Path.of("java/com/example/one/One.java")), nonJavaSourceFiles = emptyList()),
             "java/com/example/two" to
-              SourceSet(
-                javaSourceFiles = listOf(Path.of("java/com/example/two/Two.kt")),
-                nonJavaSourceFiles = emptyList(),
-              ),
+              SourceSet(javaSourceFiles = listOf(Path.of("java/com/example/two/Two.kt")), nonJavaSourceFiles = emptyList()),
           ),
         languages = setOf(QuerySyncLanguage.JVM),
       )
@@ -182,15 +170,9 @@ class ProjectStructureReaderTest {
         packageSourceSets =
           mapOf(
             "java/com/example" to
-              SourceSet(
-                javaSourceFiles = listOf(Path.of("java/com/example/Parent.java")),
-                nonJavaSourceFiles = emptyList(),
-              ),
+              SourceSet(javaSourceFiles = listOf(Path.of("java/com/example/Parent.java")), nonJavaSourceFiles = emptyList()),
             "java/com/example/child" to
-              SourceSet(
-                javaSourceFiles = listOf(Path.of("java/com/example/child/Child.java")),
-                nonJavaSourceFiles = emptyList(),
-              ),
+              SourceSet(javaSourceFiles = listOf(Path.of("java/com/example/child/Child.java")), nonJavaSourceFiles = emptyList()),
           ),
         languages = setOf(QuerySyncLanguage.JVM),
       )
@@ -224,10 +206,7 @@ class ProjectStructureReaderTest {
         packageSourceSets =
           mapOf(
             "java/com/example" to
-              SourceSet(
-                javaSourceFiles = listOf(Path.of("java/com/example/Inc.java")),
-                nonJavaSourceFiles = emptyList(),
-              ),
+              SourceSet(javaSourceFiles = listOf(Path.of("java/com/example/Inc.java")), nonJavaSourceFiles = emptyList()),
             "javatests/com/example" to SourceSet(emptyList(), emptyList()),
           ),
         languages = setOf(QuerySyncLanguage.JVM),
@@ -252,15 +231,9 @@ class ProjectStructureReaderTest {
         packageSourceSets =
           mapOf(
             "java/com/example" to
-              SourceSet(
-                javaSourceFiles = listOf(Path.of("java/com/example/Inc.java")),
-                nonJavaSourceFiles = emptyList(),
-              ),
+              SourceSet(javaSourceFiles = listOf(Path.of("java/com/example/Inc.java")), nonJavaSourceFiles = emptyList()),
             "java/com/example/excluded" to
-              SourceSet(
-                javaSourceFiles = listOf(Path.of("java/com/example/excluded/Exc.java")),
-                nonJavaSourceFiles = emptyList(),
-              ),
+              SourceSet(javaSourceFiles = listOf(Path.of("java/com/example/excluded/Exc.java")), nonJavaSourceFiles = emptyList()),
           ),
         languages = setOf(QuerySyncLanguage.JVM),
       )
@@ -281,10 +254,7 @@ class ProjectStructureReaderTest {
         packageSourceSets =
           mapOf(
             "java/com/example/foo" to
-              SourceSet(
-                javaSourceFiles = listOf(Path.of("java/com/example/foo/Foo.java")),
-                nonJavaSourceFiles = emptyList(),
-              )
+              SourceSet(javaSourceFiles = listOf(Path.of("java/com/example/foo/Foo.java")), nonJavaSourceFiles = emptyList())
           ),
         languages = setOf(QuerySyncLanguage.JVM),
       )
@@ -316,10 +286,7 @@ class ProjectStructureReaderTest {
         packageSourceSets =
           mapOf(
             "java/com/example" to
-              SourceSet(
-                javaSourceFiles = listOf(Path.of("java/com/example/MyClass.java")),
-                nonJavaSourceFiles = emptyList(),
-              )
+              SourceSet(javaSourceFiles = listOf(Path.of("java/com/example/MyClass.java")), nonJavaSourceFiles = emptyList())
           ),
         languages = setOf(QuerySyncLanguage.JVM),
       )
@@ -343,10 +310,7 @@ class ProjectStructureReaderTest {
         packageSourceSets =
           mapOf(
             "java/com/example" to
-              SourceSet(
-                javaSourceFiles = listOf(Path.of("java/com/example/MyClass.java")),
-                nonJavaSourceFiles = emptyList(),
-              )
+              SourceSet(javaSourceFiles = listOf(Path.of("java/com/example/MyClass.java")), nonJavaSourceFiles = emptyList())
           ),
         languages = setOf(QuerySyncLanguage.JVM),
       )
@@ -370,18 +334,11 @@ class ProjectStructureReaderTest {
           mapOf(
             "java/com/example" to
               SourceSet(
-                javaSourceFiles =
-                  listOf(
-                    Path.of("java/com/example/MyClass.java"),
-                    Path.of("java/com/example/subdir/AnotherClass.kt"),
-                  ),
+                javaSourceFiles = listOf(Path.of("java/com/example/MyClass.java"), Path.of("java/com/example/subdir/AnotherClass.kt")),
                 nonJavaSourceFiles = emptyList(),
               ),
             "java/com/example/another" to
-              SourceSet(
-                javaSourceFiles = listOf(Path.of("java/com/example/another/Other.java")),
-                nonJavaSourceFiles = emptyList(),
-              ),
+              SourceSet(javaSourceFiles = listOf(Path.of("java/com/example/another/Other.java")), nonJavaSourceFiles = emptyList()),
           ),
         languages = setOf(QuerySyncLanguage.JVM),
       )
@@ -406,10 +363,7 @@ class ProjectStructureReaderTest {
         packageSourceSets =
           mapOf(
             "java/com/example" to
-              SourceSet(
-                javaSourceFiles = listOf(Path.of("java/com/example/MyClass.java")),
-                nonJavaSourceFiles = emptyList(),
-              )
+              SourceSet(javaSourceFiles = listOf(Path.of("java/com/example/MyClass.java")), nonJavaSourceFiles = emptyList())
           ),
         languages = setOf(QuerySyncLanguage.JVM),
       )
@@ -436,10 +390,7 @@ class ProjectStructureReaderTest {
         packageSourceSets =
           mapOf(
             "java/com/example" to
-              SourceSet(
-                javaSourceFiles = listOf(Path.of("java/com/example/Inc.java")),
-                nonJavaSourceFiles = emptyList(),
-              )
+              SourceSet(javaSourceFiles = listOf(Path.of("java/com/example/Inc.java")), nonJavaSourceFiles = emptyList())
           ),
         languages = setOf(QuerySyncLanguage.JVM),
       )
@@ -467,10 +418,7 @@ class ProjectStructureReaderTest {
         packageSourceSets =
           mapOf(
             "java/com/example" to
-              SourceSet(
-                javaSourceFiles = listOf(Path.of("java/com/example/MyClass.java")),
-                nonJavaSourceFiles = emptyList(),
-              )
+              SourceSet(javaSourceFiles = listOf(Path.of("java/com/example/MyClass.java")), nonJavaSourceFiles = emptyList())
           ),
         languages = setOf(QuerySyncLanguage.JVM),
       )
@@ -497,16 +445,9 @@ class ProjectStructureReaderTest {
       expectedStructure(
         packageSourceSets =
           mapOf(
-            "java" to
-              SourceSet(
-                javaSourceFiles = listOf(Path.of("java/RootClass.java")),
-                nonJavaSourceFiles = emptyList(),
-              ),
+            "java" to SourceSet(javaSourceFiles = listOf(Path.of("java/RootClass.java")), nonJavaSourceFiles = emptyList()),
             "java/com/example" to
-              SourceSet(
-                javaSourceFiles = listOf(Path.of("java/com/example/MyClass.java")),
-                nonJavaSourceFiles = emptyList(),
-              ),
+              SourceSet(javaSourceFiles = listOf(Path.of("java/com/example/MyClass.java")), nonJavaSourceFiles = emptyList()),
           ),
         languages = setOf(QuerySyncLanguage.JVM),
       )
@@ -536,8 +477,7 @@ class ProjectStructureReaderTest {
           mapOf(
             "java/com/example" to
               SourceSet(
-                javaSourceFiles =
-                  listOf(Path.of("java/com/example/MyClass.java"), Path.of("java/com/example/MyModule.kt")),
+                javaSourceFiles = listOf(Path.of("java/com/example/MyClass.java"), Path.of("java/com/example/MyModule.kt")),
                 nonJavaSourceFiles =
                   listOf(
                     Path.of("java/com/example/native/stuff.c"),

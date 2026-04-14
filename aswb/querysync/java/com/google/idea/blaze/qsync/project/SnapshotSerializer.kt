@@ -27,8 +27,7 @@ import com.google.idea.blaze.qsync.query.QuerySummary
 /** Serializes a [PostQuerySyncData] instance to a proto message. */
 class SnapshotSerializer() {
 
-  private val proto: SnapshotProto.Snapshot.Builder =
-    SnapshotProto.Snapshot.newBuilder().setVersion(PROTO_VERSION)
+  private val proto: SnapshotProto.Snapshot.Builder = SnapshotProto.Snapshot.newBuilder().setVersion(PROTO_VERSION)
 
   @VisibleForTesting
   constructor(protoVersion: Int) : this() {
@@ -66,18 +65,14 @@ class SnapshotSerializer() {
   }
 
   private fun visitVcsState(vcsState: VcsState) {
-    proto.vcsStateBuilder
-      .setWorkspaceId(vcsState.workspaceId)
-      .setUpstreamRevision(vcsState.upstreamRevision)
+    proto.vcsStateBuilder.setWorkspaceId(vcsState.workspaceId).setUpstreamRevision(vcsState.upstreamRevision)
     vcsState.workingSet.forEach { change -> proto.vcsStateBuilder.addWorkingSet(toProto(change)) }
     vcsState.workspaceSnapshotPath
       .map { WorkspaceSnapshot.newBuilder().setPath(it.toString()).build() }
       .ifPresent { proto.vcsStateBuilder.setWorkspaceSnapshot(it) }
   }
 
-  private fun toProto(
-    change: com.google.idea.blaze.common.vcs.WorkspaceFileChange
-  ): SnapshotProto.WorkspaceFileChange =
+  private fun toProto(change: com.google.idea.blaze.common.vcs.WorkspaceFileChange): SnapshotProto.WorkspaceFileChange =
     SnapshotProto.WorkspaceFileChange.newBuilder()
       .setOperation(change.operation.toProto())
       .setWorkspaceRelativePath(change.workspaceRelativePath.toString())

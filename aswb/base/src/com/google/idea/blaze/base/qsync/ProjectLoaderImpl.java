@@ -307,14 +307,14 @@ public class ProjectLoaderImpl implements ProjectLoader {
             workspaceRoot.path(),
             enableExperimentalQuery.getValue(),
             snapshotHolder::getCurrent);
-    ProjectStructureReader projectStructureReader = ProjectStructureReader.Companion.create(new FileExtensions());
-    boolean readProjectStructureFromDirectory = querySyncUserPreferences.getLoadProjectStructureFromDirectoryTraversal();
+    ProjectStructureReader projectStructureReader =
+        ProjectStructureReader.Companion.create(new FileExtensions());
+    boolean readProjectStructureFromDirectory =
+        querySyncUserPreferences.getLoadProjectStructureFromDirectoryTraversal();
 
     ProjectBuilder snapshotBuilder =
         new ProjectBuilder(
-            createPackageReader(),
-            createParallelPackageReader(),
-            workspaceRoot.path());
+            createPackageReader(), createParallelPackageReader(), workspaceRoot.path());
     QueryRunner queryRunner = createQueryRunner(buildSystem);
     ProjectQuerier projectQuerier =
         createProjectQuerier(

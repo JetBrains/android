@@ -28,9 +28,8 @@ data class SourceSet(
 /**
  * A data class to hold the information required to setup a basic project structure.
  *
- * This class encapsulates a subset of data from [BuildGraphData] that is needed by
- * [GraphToProjectConverter] to setup a basic project. Its contents can be instantiated from a
- * directory traversal and without running `bazel query`.
+ * This class encapsulates a subset of data from [BuildGraphData] that is needed by [GraphToProjectConverter] to setup a basic project. Its
+ * contents can be instantiated from a directory traversal and without running `bazel query`.
  */
 data class ProjectStructureData(
   /** Map from build package path (relative to workspace root) to its source files. */
@@ -38,7 +37,6 @@ data class ProjectStructureData(
   val activeLanguages: Set<QuerySyncLanguage>,
 ) {
   companion object {
-    @JvmField
-    val EMPTY = ProjectStructureData(packageSourceSets = emptyMap(), activeLanguages = emptySet())
+    @JvmField val EMPTY = ProjectStructureData(packageSourceSets = emptyMap(), activeLanguages = emptySet())
   }
 }
