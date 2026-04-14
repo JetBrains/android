@@ -113,7 +113,12 @@ class AndroidJavaDebuggerTest {
     javaDebugger = AndroidJavaDebugger()
   }
 
-  @After fun tearDown() = runTest { XDebuggerManager.getInstance(project).debugSessions.forEach { it.stop() } }
+  @After
+  fun tearDown() = runTest {
+    // If we call stop before the virtual machine initialize, the JDI Internal Event Handler thread may leak.
+    Thread.sleep(250)
+    XDebuggerManager.getInstance(project).debugSessions.forEach { it.stop() }
+  }
 
   private val onDebugProcessDestroyed: (IDevice) -> Unit = { device -> device.forceStop(appId) }
 
@@ -135,7 +140,6 @@ class AndroidJavaDebuggerTest {
     assertThat(processHandler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)).isEqualTo(AndroidVersion(26))
   }
 
-  @Ignore("b/501224305")
   @Test
   fun testSessionCreated() = runTest {
     val stats = RunStatsService.get(project).create().also { executionEnvironment.putUserData(RunStats.KEY, it) }
@@ -182,8 +186,6 @@ class AndroidJavaDebuggerTest {
   @Test
   fun testSessionName() = runTest {
     val session = DebugSessionStarter.attachDebuggerToClientAndShowTab(project, client, AndroidJavaDebugger(), AndroidDebuggerState())
-    Thread.sleep(250)
-    // Let the virtual machine initialize. Otherwise, JDI Internal Event Handler thread is leaked.
 
     assertThat(session).isNotNull()
     assertThat(client.clientData.pid).isAtLeast(0)
@@ -289,8 +291,6 @@ class AndroidJavaDebuggerTest {
         destroyRunningProcess = { isDestroyed.set(true) },
         indicator = EmptyProgressIndicator(),
       )
-    Thread.sleep(250)
-    // Let the virtual machine initialize. Otherwise, JDI Internal Event Handler thread is leaked.
 
     @Suppress("UnstableApiUsage") val processHandler = session.debugProcess.processHandler
     val latch = CountDownLatch(1)
@@ -330,8 +330,6 @@ class AndroidJavaDebuggerTest {
         EmptyProgressIndicator(),
       )
 
-    Thread.sleep(250)
-    // Let the virtual machine initialize. Otherwise, JDI Internal Event Handler thread is leaked.
     session.debugProcess.processHandler.detachProcess()
     session.debugProcess.processHandler.waitFor()
     verify(spyClient).notifyVmMirrorExited()
