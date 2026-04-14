@@ -26,7 +26,6 @@ import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerActio
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.ReadAction
-import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
@@ -93,23 +92,19 @@ internal open class PsiCallParameterPropertyItem(
 
   override var value: String?
     get() {
-      // JetBrains patch (KMT-2006): Establish a read action; the getter reads PSI and calls
-      // analyze(), and can be called off the EDT without a read lock.
-      runReadAction {
-        if (!isCachedValueValid) {
-          val expression = argumentExpression
-          val literalValue = expression?.tryEvaluateLiteralAsText()
-          if (literalValue != null || expression == null) {
-            cachedValue = literalValue
-            isCachedValueValid = true
+      if (!isCachedValueValid) {
+        val expression = argumentExpression
+        val literalValue = ReadAction.compute<String?, Throwable> { expression?.tryEvaluateLiteralAsText() }
+        if (literalValue != null || expression == null) {
+          cachedValue = literalValue
+          isCachedValueValid = true
+        } else {
+          if (ApplicationManager.getApplication().isDispatchThread) {
+            triggerAsyncValueUpdate()
           } else {
-            if (ApplicationManager.getApplication().isDispatchThread) {
-              triggerAsyncValueUpdate()
-            } else {
-              // If called from a background thread, we can perform the analysis synchronously
-              cachedValue = analyze(expression) { expression.tryEvaluateConstantAsText(this) }
-              isCachedValueValid = true
-            }
+            // If called from a background thread, we can perform the analysis synchronously
+            cachedValue = ReadAction.compute<String?, Throwable> { analyze(expression) { expression.tryEvaluateConstantAsText(this) } }
+            isCachedValueValid = true
           }
         }
       }
