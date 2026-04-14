@@ -47,7 +47,6 @@ import com.android.sdklib.SystemImageTags
 import com.android.sdklib.deviceprovisioner.AbstractAvdScanner
 import com.android.sdklib.deviceprovisioner.DeviceActionException
 import com.android.sdklib.deviceprovisioner.DeviceHandle
-import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
 import com.android.sdklib.deviceprovisioner.awaitReady
@@ -64,6 +63,7 @@ import com.android.tools.idea.avd.showAddDeviceDialog
 import com.android.tools.idea.avdmanager.AvdScannerService
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.DeviceHeadsUpListener
+import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.GlassesPairingEvent
 import com.intellij.openapi.application.UI
 import com.intellij.openapi.diagnostic.Logger
@@ -92,8 +92,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -119,16 +121,10 @@ import org.jetbrains.jewel.ui.component.Text
 
 internal interface WizardController {
   suspend fun show(): Boolean
-
-  fun focus()
 }
 
 private class ComposeWizardController(val wizard: ComposeWizard) : WizardController {
   override suspend fun show() = wizard.showNonModal()
-
-  override fun focus() {
-    wizard.window?.toFront()
-  }
 }
 
 fun interface AddDeviceDialog {
@@ -153,7 +149,13 @@ internal constructor(
   private val avdScanner: () -> AbstractAvdScanner = { AvdScannerService.instance },
 ) {
   companion object {
-    private val activeWizards = mutableMapOf<DeviceId, WizardController>()
+    private val _isWizardOpen = MutableStateFlow(false)
+    val isWizardOpen: StateFlow<Boolean> = _isWizardOpen.asStateFlow()
+
+    @VisibleForTesting
+    fun resetForTesting() {
+      _isWizardOpen.value = false
+    }
 
     /**
      * Shows the Glasses Pairing wizard dialog, returning the paired phone if pairing is successful.
@@ -183,10 +185,8 @@ internal constructor(
         return null
       }
 
-      val key = glassesHandle.id
-      // If a wizard for this device is already running, bring it to the front and return.
-      activeWizards[key]?.let {
-        it.focus()
+      // If a wizard is already running, return null.
+      if (isWizardOpen.value) {
         return null
       }
 
@@ -198,7 +198,7 @@ internal constructor(
           with(wizard) { SelectDevicePage() }
         }
 
-      activeWizards[key] = controller
+      _isWizardOpen.value = true
 
       try {
         if (controller.show()) {
@@ -206,10 +206,10 @@ internal constructor(
         }
         return null
       } finally {
-        // Ensure we cancel the wizard's scope and remove it from the active map when it closes
+        // Ensure we cancel the wizard's scope and reset the global open state when it closes
         // (either normally or via exception).
         wizard.coroutineScope.cancel()
-        activeWizards.remove(key)
+        _isWizardOpen.value = false
       }
     }
   }

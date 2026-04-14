@@ -420,8 +420,10 @@ class StudioLocalEmulatorDeviceHandle(
 
   suspend fun launchAutomaticGlassesPairing() {
     if (PropertiesComponent.getInstance().isTrueValue(aiGlassesAutoPairingDisabledPropertyKey)) return
+    if (GlassesPairingWizard.isWizardOpen.value) return
 
     withContext(Dispatchers.EDT) {
+      if (GlassesPairingWizard.isWizardOpen.value) return@withContext
       val parent = WindowManager.getInstance().suggestParentWindow(project)
       while (!pairGlasses(parent) && !confirmPairingWizardCancellation()) {}
     }
@@ -452,7 +454,16 @@ class StudioLocalEmulatorDeviceHandle(
       }
 
       override val presentation: StateFlow<DeviceAction.Presentation> =
-        defaultPresentation.fromContext().enabledIf { it.properties.deviceType == DeviceType.AI_GLASSES }
+        stateFlow
+          .combine(GlassesPairingWizard.isWizardOpen) { deviceState: DeviceState, isOpen: Boolean ->
+            val enabled = deviceState.properties.deviceType == DeviceType.AI_GLASSES
+            if (isOpen && enabled) {
+              defaultPresentation.fromContext().copy(enabled = false, detail = "Pairing already in progress")
+            } else {
+              defaultPresentation.fromContext().copy(enabled = enabled)
+            }
+          }
+          .stateIn(this@StudioLocalEmulatorDeviceHandle.scope, SharingStarted.Eagerly, defaultPresentation.fromContext())
     }
 
   private suspend fun pairGlasses(parent: Component?): Boolean {

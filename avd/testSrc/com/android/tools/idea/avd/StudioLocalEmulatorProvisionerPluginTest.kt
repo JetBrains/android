@@ -22,6 +22,7 @@ import com.android.adblib.utils.createChildScope
 import com.android.sdklib.SystemImageTags
 import com.android.sdklib.deviceprovisioner.AbstractAvdScanner
 import com.android.sdklib.deviceprovisioner.DeviceAction
+import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.sdklib.deviceprovisioner.DeviceType
@@ -36,6 +37,8 @@ import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdInfo.AvdStatus
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
+import com.android.tools.idea.avd.glassespairing.GlassesPairingWizard
+import com.android.tools.idea.avd.glassespairing.WizardController
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.sdk.AndroidSdks
@@ -53,11 +56,11 @@ import javax.swing.Icon
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberProperties
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.takeWhile
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -108,6 +111,7 @@ class StudioLocalEmulatorProvisionerPluginTest {
     avdManager.close()
     session.close()
     AvdManagerConnection.resetConnectionFactory()
+    GlassesPairingWizard.resetForTesting()
   }
 
   @Test
@@ -165,6 +169,49 @@ class StudioLocalEmulatorProvisionerPluginTest {
   }
 
   @Test
+  fun testPairGlassesActionDisabledWhenWizardOpen() = runTest {
+    val handleScope = this.createChildScope()
+    val handle =
+      StudioLocalEmulatorDeviceHandle(
+        null,
+        baseDeviceHandle =
+          LocalEmulatorDeviceHandle(
+            context = testContext(this),
+            avdScanner = NullAvdScanner(handleScope),
+            scope = handleScope,
+            extensions = emptyList(),
+            initialAvdInfo = makeAvdInfo(createInMemoryFileSystemAndFolder("avds"), 1, tag = SystemImageTags.AI_GLASSES_TAG),
+          ),
+        context = testContext(this),
+        deviceHandleFlow = MutableStateFlow(emptyList()),
+      )
+
+    // Wait for the action to become enabled (it might take a moment for the flow to emit)
+    handle.pairGlassesAction.presentation.first { it.enabled }
+
+    val completion = CompletableDeferred<Boolean>()
+    val job = launch {
+      GlassesPairingWizard.showCore(null, null, MutableStateFlow(emptyList<DeviceHandle>()), handle) { _, _, _, _, _, _ ->
+        object : WizardController {
+          override suspend fun show(): Boolean = completion.await()
+        }
+      }
+    }
+
+    yieldUntil { GlassesPairingWizard.isWizardOpen.value }
+    yieldUntil { !handle.pairGlassesAction.presentation.value.enabled }
+
+    assertThat(handle.pairGlassesAction.presentation.value.detail).isEqualTo("Pairing already in progress")
+
+    completion.complete(false)
+    job.join()
+
+    yieldUntil { handle.pairGlassesAction.presentation.value.enabled }
+
+    handleScope.cancel()
+  }
+
+  @Test
   fun deviceWrapping(): Unit = runBlockingWithTimeout {
     avdManager.createAvd()
 
@@ -199,7 +246,7 @@ class StudioLocalEmulatorProvisionerPluginTest {
     val handle = provisioner.devices.value[0]
     val activationAction = handle.activationAction!!
 
-    activationAction.presentation.takeWhile { !it.enabled }.collect()
+    activationAction.presentation.first { it.enabled }
 
     avdManager.avds[0] = avdManager.makeAvdInfo(1, avdStatus = AvdStatus.ERROR_IMAGE_MISSING)
     plugin.refreshDevices()
@@ -404,8 +451,8 @@ class StudioLocalEmulatorProvisionerPluginTest {
     val glassesHandle =
       provisioner.devices.value.find { it.state.properties.deviceType == DeviceType.AI_GLASSES } as StudioLocalEmulatorDeviceHandle
 
-    glassesHandle.activationAction.presentation.takeWhile { !it.enabled }.collect()
-    phoneHandle.activationAction.presentation.takeWhile { !it.enabled }.collect()
+    glassesHandle.activationAction.presentation.first { it.enabled }
+    phoneHandle.activationAction.presentation.first { it.enabled }
 
     // Verify that the glasses device is correctly paired to the phone device
     yieldUntil { (glassesHandle.state.properties as LocalEmulatorProperties).pairedPhoneId != null }
