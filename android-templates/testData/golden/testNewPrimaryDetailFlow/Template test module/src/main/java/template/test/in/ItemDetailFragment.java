@@ -30,14 +30,6 @@ public class ItemDetailFragment extends Fragment {
      * represents.
      */
     public static final String ARG_ITEM_ID = "item_id";
-
-    /**
-     * The placeholder content this fragment is presenting.
-     */
-    private PlaceholderContent.PlaceholderItem mItem;
-    private CollapsingToolbarLayout mToolbarLayout;
-    private TextView mTextView;
-
     private final View.OnDragListener dragListener = (v, event) -> {
         if (event.getAction() == DragEvent.ACTION_DROP) {
             ClipData.Item clipDataItem = event.getClipData().getItemAt(0);
@@ -46,6 +38,12 @@ public class ItemDetailFragment extends Fragment {
         }
         return true;
     };
+    /**
+     * The placeholder content this fragment is presenting.
+     */
+    private PlaceholderContent.PlaceholderItem mItem;
+    private CollapsingToolbarLayout mToolbarLayout;
+    private TextView mTextView;
     private FragmentItemDetailBinding binding;
 
     /**
