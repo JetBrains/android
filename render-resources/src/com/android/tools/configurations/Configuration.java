@@ -695,9 +695,7 @@ public class Configuration {
    * listener updates are deferred until the bulk operation is complete.
    */
   public void startBulkEditing() {
-    synchronized (this) {
-      myListeners.startBulkEditing();
-    }
+    myListeners.startBulkEditing();
   }
 
   /**
@@ -706,12 +704,7 @@ public class Configuration {
    * for details.
    */
   public void finishBulkEditing() {
-    boolean notify = false;
-    synchronized (this) {
-      notify = myListeners.finishBulkEditing();
-    }
-
-    if (notify) {
+    if (myListeners.finishBulkEditing()) {
       updated(0);
     }
   }
