@@ -48,8 +48,8 @@
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/editor/prediction-services/integration/aiplugin.editor.prediction-services.integration.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/editor/prediction-services/integration/aiplugin.editor.prediction-services.integration.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/editor/prediction/aiplugin.editor.prediction-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/editor/prediction/aiplugin.editor.prediction-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/editor/evals/aiplugin.editor.prediction.collection.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/editor/evals/aiplugin.editor.prediction.collection.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/editor/change-review/aiplugin.editor.change-review-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/editor/change-review/aiplugin.editor.change-review-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/editor/change-review/aiplugin.editor.change-review.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/editor/change-review/aiplugin.editor.change-review.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/editor/change-review/aiplugin.editor.change-review-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/editor/change-review/aiplugin.editor.change-review-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/experimental/aiplugin.experimental.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/experimental/aiplugin.experimental.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/ij-platform/aiplugin.ij-platform.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/ij-platform/aiplugin.ij-platform.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/ij-platform-plugin/aiplugin.ij-platform-plugin.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/ij-platform-plugin/aiplugin.ij-platform-plugin.iml" />
@@ -506,7 +506,6 @@
       <module fileurl="file://$PROJECT_DIR$/../../base/wizard/template-plugin/intellij.android.wizardTemplate.plugin.iml" filepath="$PROJECT_DIR$/../../base/wizard/template-plugin/intellij.android.wizardTemplate.plugin.iml" />
       <module fileurl="file://$PROJECT_DIR$/lint/intellij.lint.iml" filepath="$PROJECT_DIR$/lint/intellij.lint.iml" />
       <module fileurl="file://$PROJECT_DIR$/lint/tests/intellij.lint.tests.iml" filepath="$PROJECT_DIR$/lint/tests/intellij.lint.tests.iml" />
-      <module fileurl="file://$PROJECT_DIR$/adt-ui-compose/jewel.sdkcompat/jewel.sdkcompat.iml" filepath="$PROJECT_DIR$/adt-ui-compose/jewel.sdkcompat/jewel.sdkcompat.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/journeys/integration/journeys.integration.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/journeys/integration/journeys.integration.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/lldb-integration-tests/lldb-integration-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/lldb-integration-tests/lldb-integration-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/redhat-developer/lsp4ij/lsp4ij.iml" filepath="$PROJECT_DIR$/../../vendor/redhat-developer/lsp4ij/lsp4ij.iml" />

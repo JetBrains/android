@@ -170,7 +170,6 @@ studio_plugin(
             "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
             "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model",
             "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
-            "//tools/adt/idea/adt-ui-compose/jewel.sdkcompat:jewel.sdkcompat",
         ],
         "android-common.jar": [
             "//tools/adt/idea/android-common:intellij.android.common",

@@ -30,12 +30,17 @@ import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBas
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_NOTIFICATION_TOOLTIP_MAX_WIDTH_DP
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TOOLTIP_VERTICAL_SPACING_DP
 import com.android.tools.profilers.taskbased.common.text.EllipsisText
+import com.intellij.openapi.util.registry.Registry
 import kotlin.time.Duration
-import main.utils.tooltips.TooltipStyleFactory.createTooltipStyle
+import kotlin.time.Duration.Companion.milliseconds
+import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.Tooltip
+import org.jetbrains.jewel.ui.component.styling.TooltipMetrics
+import org.jetbrains.jewel.ui.component.styling.TooltipStyle
 import org.jetbrains.jewel.ui.icon.IntelliJIconKey
+import org.jetbrains.jewel.ui.theme.tooltipStyle
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -57,7 +62,22 @@ fun NotificationWithTooltip(
       }
     },
     content = { NotificationIconAndText(notificationText, iconKey, iconDescription) },
-    style = createTooltipStyle(Duration.ZERO),
+    style =
+      JewelTheme.tooltipStyle.metrics.let {
+        TooltipStyle(
+          JewelTheme.tooltipStyle.colors,
+          TooltipMetrics(
+            it.contentPadding,
+            Duration.ZERO,
+            it.cornerSize,
+            it.borderWidth,
+            it.shadowSize,
+            it.placement,
+            Registry.intValue("ide.helptooltip.regular.dismissDelay").milliseconds,
+            Registry.intValue("ide.helptooltip.full.dismissDelay").milliseconds,
+          ),
+        )
+      },
   )
 }
 
