@@ -123,7 +123,9 @@ public class AndroidStudioInstallation extends IdeInstallation<AndroidStudio> {
     String config = System.getProperty("studio.test.configuration");
     if (config != null) {
       androidStudioDirectory = androidStudioDirectory + "." + config;
+      TestLogger.log("Using config: %s", config);
     }
+    TestLogger.log("Android Studio Directory set to: %s", androidStudioDirectory);
 
     Path sourceDir = TestUtils.getBinPath(androidStudioDirectory);
     Path workDir = Files.createTempDirectory(options.testFileSystem.getRoot(), "android-studio");
@@ -248,16 +250,14 @@ public class AndroidStudioInstallation extends IdeInstallation<AndroidStudio> {
     if (forceSafeMode) {
       studioExecutable = "android-studio/bin/studio_safe.sh";
       if (SystemInfo.isMac) {
-        boolean isPreview = isMacPreview(workDir);
-        studioExecutable = isPreview ? "Android Studio Preview.app/Contents/bin/studio_safe.sh" : "Android Studio.app/Contents/bin/studio_safe.sh";
+        studioExecutable = String.format("%s/Contents/bin/studio_safe.sh", getMacStudioApp(workDir));
       } else if (SystemInfo.isWindows) {
         studioExecutable = "android-studio/bin/studio_safe.bat";
       }
     } else {
       studioExecutable = "android-studio/bin/studio";
       if (SystemInfo.isMac) {
-        boolean isPreview = isMacPreview(workDir);
-        studioExecutable = isPreview ? "Android Studio Preview.app/Contents/MacOS/studio" : "Android Studio.app/Contents/MacOS/studio";
+        studioExecutable = String.format("%s/Contents/MacOS/studio", getMacStudioApp(workDir));
       } else if (SystemInfo.isWindows) {
         studioExecutable = String.format("android-studio/bin/studio%s.exe", CpuArch.isIntel32() ? "" : "64");
       }
@@ -319,17 +319,27 @@ public class AndroidStudioInstallation extends IdeInstallation<AndroidStudio> {
 
   private static String getStudioDirectory(Path workDir) {
     if (SystemInfo.isMac) {
-      if (isMacPreview(workDir)) {
-        return "Android Studio Preview.app/Contents";
-      } else {
-        return "Android Studio.app/Contents";
-      }
+      return String.format("%s/Contents", getMacStudioApp(workDir));
     }
     return "android-studio";
   }
 
   private static boolean isMacPreview(Path workDir) {
     return (SystemInfo.isMac && Files.exists(workDir.resolve("Android Studio Preview.app")));
+  }
+
+  private static boolean isMacNightly(Path workDir) {
+    return (SystemInfo.isMac && Files.exists(workDir.resolve("Android Studio Nightly.app")));
+  }
+
+  private static String getMacStudioApp(Path workDir) {
+    if (isMacPreview(workDir)) {
+      return "Android Studio Preview.app";
+    }
+    if (isMacNightly(workDir)) {
+      return "Android Studio Nightly.app";
+    }
+    return "Android Studio.app";
   }
 
   @Override

@@ -2,7 +2,7 @@ load("@rules_java//java:defs.bzl", "java_library")
 load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION", "INTEGRATION_TEST_SYSTEM_IMAGE", "KOTLIN_ARTIFACTS_FOR_TESTS")
 load("//tools/adt/idea/emulator-snapshots:emulator_test_env.bzl", "emulator_snapshot_data", "emulator_snapshot_jvm_flags", "emulator_test_jvm_flags")
 load("//tools/adt/idea/studio:studio.bzl", "studio_project_model")
-load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
+load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test", "studio_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 
 # managed by go/iml_to_build
@@ -37,9 +37,15 @@ open_project_data = [
     INTEGRATION_TEST_GRADLE_VERSION,
 ]
 
-iml_test(
+studio_test(
     name = "OpenProjectTest",
     timeout = "long",
+    # To run test for a single config, like "canary", use target OpenProjectTest_canary
+    configs = [
+        "canary",
+        "nightly",
+        "stable",
+    ],
     data = open_project_data,
     module = ":intellij.android.core.integration",
     tags = [
