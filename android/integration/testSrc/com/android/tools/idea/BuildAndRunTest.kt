@@ -25,7 +25,6 @@ import com.android.tools.testlib.LogFile
 import com.intellij.openapi.util.SystemInfo
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -55,7 +54,6 @@ class BuildAndRunTest {
    *   Project builds successfully and runs on the emulator
    *   </pre>
    */
-  @Ignore("b/501225418")
   @Test
   fun deploymentTest() {
     val projectArtifactsPath = Paths.get("tools/adt/idea/android/integration/minapp_project_model")

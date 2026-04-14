@@ -28,7 +28,6 @@ import com.android.tools.testlib.Emulator
 import java.nio.file.Paths
 import java.time.Instant
 import java.util.concurrent.TimeUnit
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -39,7 +38,6 @@ class BuildAndRunKMPTest {
 
   val metric = Metric("Time-elapsed")
 
-  @Ignore("b/501225418")
   @Test
   fun buildAndRunKmpTest() {
     val benchmark = createBenchmark()

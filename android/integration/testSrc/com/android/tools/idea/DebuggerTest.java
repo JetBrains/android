@@ -27,7 +27,6 @@ import com.android.tools.testlib.Adb;
 import com.android.tools.testlib.Emulator;
 import java.nio.file.Path;
 import java.time.Instant;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -40,7 +39,6 @@ public class DebuggerTest {
 
   public Metric metric = new Metric("Time-elapsed");
 
-  @Ignore("b/501225418")
   @Test
   public void runDebuggerTest() throws Exception {
     Path projectArtifactsPath = Path.of("tools/adt/idea/android/integration/mindebugapp_project_model");

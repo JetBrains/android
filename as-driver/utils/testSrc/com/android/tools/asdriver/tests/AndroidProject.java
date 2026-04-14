@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class AndroidProject {
@@ -75,7 +77,7 @@ public class AndroidProject {
     Files.createDirectories(targetProject);
     FileUtils.copyDirectory(project.toFile(), targetProject.toFile());
     setJdkDir(targetProject);
-    injectGradle();
+    injectGradleForPreSync();
     isInstalled = true;
     return targetProject;
   }
@@ -100,6 +102,24 @@ public class AndroidProject {
         </project>
         """;
     Files.writeString(dotIdea.resolve("gradle.xml"), xmlContent);
+  }
+
+  protected void injectGradleForPreSync() throws IOException {
+    Path wrapper = targetProject.resolve("gradle/wrapper/gradle-wrapper.properties");
+    String content = Files.readString(wrapper);
+    String distributionFileName = distribution.getFileName().toString();
+
+    Path projectRootDist = targetProject.getParent().resolve(distributionFileName);
+    if (!Files.exists(projectRootDist)) {
+      Files.copy(distribution, projectRootDist, StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    Path wrapperDir = wrapper.getParent();
+    String relativeUrl = wrapperDir.relativize(projectRootDist).toString().replace('\\', '/');
+    String newContent = content.replaceAll("distributionUrl=.*", Matcher.quoteReplacement("distributionUrl=" + relativeUrl));
+    if (!newContent.equals(content)) {
+      Files.writeString(wrapper, newContent);
+    }
   }
 
   protected void injectGradle() throws IOException {
