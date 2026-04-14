@@ -18,13 +18,13 @@ package com.google.idea.blaze.qsync
 import com.google.common.collect.ImmutableSet
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.exception.BuildException
-import com.google.idea.blaze.qsync.GraphToProjectConverter.Companion.initializeProjectStructureData
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.PostQuerySyncData
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
+import com.google.idea.blaze.qsync.project.ProjectStructureData
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.testdata.TestData
 import java.io.IOException
@@ -68,7 +68,7 @@ class TestDataSyncRunner(private val context: Context<*>, private val javaPackag
       GraphToProjectConverter(javaPackagePrefixReader = javaPackagePrefixReader, context = context, projectDefinition = projectDefinition)
     val update = ProjectProtoUpdate(existingProject = ProjectProto.Project.getDefaultInstance())
     converter.configureProject(
-      initializeProjectStructureData(context, buildGraphData, projectDefinition.projectIncludes),
+      ProjectStructureData.fromGraph(context, buildGraphData, projectDefinition.projectIncludes),
       ProjectPath.ExternalRepositoryFinder.createEmptyForTests(),
       update,
     )
@@ -85,7 +85,7 @@ class TestDataSyncRunner(private val context: Context<*>, private val javaPackag
             BuildGraphData.ProtoRules.forTests(),
           )
           .parse(),
-      projectStructureData = initializeProjectStructureData(context, buildGraphData, projectDefinition.projectIncludes),
+      projectStructureData = ProjectStructureData.fromGraph(context, buildGraphData, projectDefinition.projectIncludes),
       artifactState = ArtifactTracker.State.EMPTY,
       project = project,
       incompleteTargets = emptySet(),

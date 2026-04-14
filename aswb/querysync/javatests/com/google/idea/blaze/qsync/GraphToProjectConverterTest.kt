@@ -23,13 +23,13 @@ import com.google.idea.blaze.common.NoopContext
 import com.google.idea.blaze.common.Output
 import com.google.idea.blaze.common.PrintOutput
 import com.google.idea.blaze.common.TargetPatternCollection
-import com.google.idea.blaze.qsync.GraphToProjectConverter.Companion.initializeProjectStructureData
 import com.google.idea.blaze.qsync.java.PackageReader
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectPath.Companion.workspaceRelativeForTests
 import com.google.idea.blaze.qsync.project.ProjectPath.ExternalRepositoryFinder.Companion.createEmptyForTests
 import com.google.idea.blaze.qsync.project.ProjectProto
+import com.google.idea.blaze.qsync.project.ProjectStructureData
 import com.google.idea.blaze.qsync.project.ProjectStructureRoot
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage
 import com.google.idea.blaze.qsync.project.SourceSet
@@ -751,7 +751,7 @@ private fun GraphToProjectConverter.configureProject(
 ): ProjectProto.Project {
   val update = ProjectProtoUpdate(ProjectProto.Project.getDefaultInstance())
   configureProject(
-    initializeProjectStructureData(QuerySyncTestUtils.NOOP_CONTEXT, graph, projectDefinition.projectIncludes),
+    ProjectStructureData.fromGraph(QuerySyncTestUtils.NOOP_CONTEXT, graph, projectDefinition.projectIncludes),
     externalRepositoryFinder,
     update,
   )

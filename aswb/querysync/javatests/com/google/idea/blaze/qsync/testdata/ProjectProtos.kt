@@ -17,11 +17,12 @@ package com.google.idea.blaze.qsync.testdata
 
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.GraphToProjectConverter
-import com.google.idea.blaze.qsync.GraphToProjectConverter.Companion.initializeProjectStructureData
 import com.google.idea.blaze.qsync.QuerySyncTestUtils
+import com.google.idea.blaze.qsync.fromGraph
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
+import com.google.idea.blaze.qsync.project.ProjectStructureData
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import java.io.IOException
@@ -54,7 +55,7 @@ object ProjectProtos {
     val update = ProjectProtoUpdate(ProjectProto.Project.getDefaultInstance())
     val graph = BuildGraphs.forTestProject(project)
     converter.configureProject(
-      initializeProjectStructureData(QuerySyncTestUtils.NOOP_CONTEXT, graph, setOf(workspaceImportDirectory)),
+      ProjectStructureData.fromGraph(QuerySyncTestUtils.NOOP_CONTEXT, graph, setOf(workspaceImportDirectory)),
       ProjectPath.ExternalRepositoryFinder.createEmptyForTests(),
       update,
     )

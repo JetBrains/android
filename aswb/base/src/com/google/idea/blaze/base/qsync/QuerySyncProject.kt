@@ -36,10 +36,10 @@ import com.google.idea.blaze.common.artifact.BuildArtifactCache
 import com.google.idea.blaze.common.vcs.VcsState
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.BlazeQueryParser
-import com.google.idea.blaze.qsync.GraphToProjectConverter
 import com.google.idea.blaze.qsync.ProjectBuilder
 import com.google.idea.blaze.qsync.ProjectStructureReader
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
+import com.google.idea.blaze.qsync.fromGraph
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.PostQuerySyncData
 import com.google.idea.blaze.qsync.project.ProjectDefinition
@@ -150,7 +150,7 @@ class QuerySyncProject(
     val projectStructureData =
       (if (readProjectStructureFromDirectory) {
         readProjectStructureFromDirectory(context, projectDefinition)
-      } else null) ?: GraphToProjectConverter.initializeProjectStructureData(context, graph, projectDefinition.projectIncludes)
+      } else null) ?: ProjectStructureData.fromGraph(context, graph, projectDefinition.projectIncludes)
     return projectStructureData
   }
 
