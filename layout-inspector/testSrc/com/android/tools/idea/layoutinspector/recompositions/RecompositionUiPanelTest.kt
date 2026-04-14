@@ -155,7 +155,7 @@ class RecompositionUiPanelTest {
     val editor = panel.getUserData(STATE_READ_EDITOR_KEY)!!
     assertThat(editor.document.text).isEqualTo("")
 
-    model.content.value = RecompositionContent(stackTraceText = "Testing")
+    model.content.value = RecompositionContent(detailsText = "Testing")
     testDispatcher.scheduler.advanceUntilIdle()
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     assertThat(editor.document.text).isEqualTo("Testing")
@@ -291,7 +291,7 @@ class RecompositionUiPanelTest {
     model.show.value = true
     model.content.value =
       RecompositionContent(
-        stackTraceText =
+        detailsText =
           """
           State read value: [b, c] <invalidated> (Explain with AI)
               at com.example.recompositiontest.MainActivityKt.Item(MainActivity.kt:60)

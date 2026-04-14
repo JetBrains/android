@@ -40,11 +40,12 @@ class RecompositionFoldingDetectorTest {
     val detector = RecompositionFoldingDetector(editor, this)
     detector.detectFolding()?.join()
     validateFoldingModel(editor.foldingModel) {
-      fold(startLine = 2, endLine = 12, "<detailed value...>")
-      fold(startLine = 13, endLine = 19, "<7 more...>")
-      fold(startLine = 26, endLine = 79, "<54 more...>")
-      fold(startLine = 82, endLine = 90, "<9 more...>")
-      fold(startLine = 95, endLine = 122, "<28 more...>")
+      fold(3, 12, "<detailed value...>")
+      fold(16, 26, "<detailed value...>")
+      fold(27, 33, "<7 more...>")
+      fold(40, 93, "<54 more...>")
+      fold(96, 104, "<9 more...>")
+      fold(109, 136, "<28 more...>")
     }
   }
 

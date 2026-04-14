@@ -172,18 +172,18 @@ class RecompositionCache(private val client: ComposeLayoutInspectorClient, priva
 
   /** Recomposition details for a [Key] as a linked list */
   private class RecompositionNode(
-    /** The recomposition number of these state reads */
+    /** The recomposition number of these state inspection details */
     val recomposition: Int,
     /** The details of this recomposition. */
     val details: RecompositionDetails,
   ) {
     companion object {
-      val WAITING_NODE = RecompositionNode(recomposition = 0, RecompositionDetails(emptyList()))
+      val WAITING_NODE = RecompositionNode(recomposition = 0, details = RecompositionDetails(emptyList(), emptyList()))
     }
 
-    /** The State reads for the next recomposition we have data for. */
+    /** The Recomposition Details for the next recomposition we have data for. */
     var next: RecompositionNode? = null
-    /** The State reads for the previous recomposition we have data for. */
+    /** The Recomposition Details for the previous recomposition we have data for. */
     var prev: RecompositionNode? = null
 
     fun toRecompositionDetailsResult(composable: ComposeViewNode): RecompositionDetailsResult {

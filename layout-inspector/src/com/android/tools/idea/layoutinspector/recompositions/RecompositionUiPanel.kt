@@ -202,7 +202,7 @@ private class InnerStateInspectionPanel(
     editor.putUserData(LAYOUT_INSPECTOR_COMPOSABLE_INSPECTED_KEY, content.composableInspected)
     showEmptyStateText(content.emptyStateText)
     updateButtons(prev, next, minimize)
-    setTextInEditor(content.stackTraceText)
+    setTextInEditor(content.detailsText)
   }
 
   private fun showEmptyStateText(message: String) {

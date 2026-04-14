@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.recompositions
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.concurrency.createChildScope
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -25,6 +26,7 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterGroupItem
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterItem
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecomposeStateReadData
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecompositionDetails
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecompositionDetailsResult
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecompositionDetailsResult.RecompositionDetailsData
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecompositionDetailsResult.Waiting
@@ -47,12 +49,14 @@ import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 
 private const val MAX_EXPRESSION_LENGTH = 80
+private const val PARAMETER_CHANGES = "Parameter changes:"
 private const val STATE_READ_START_LINE = "State read value: "
 private const val STACK_TRACE_START_LINE = "    at "
 private const val PREV_DESCRIPTION_KEY = "layout.inspector.recomposition.prev"
 private const val NEXT_DESCRIPTION_KEY = "layout.inspector.recomposition.next"
 private const val HIDE_DESCRIPTION_KEY = "layout.inspector.recomposition.hide"
 private const val NO_STATE_READS_ID = "layout.inspector.recomposition.no-state-reads"
+private const val NO_RECOMPOSITION_DETAILS = "layout.inspector.recomposition.no-details"
 
 internal const val INVALIDATED = "<invalidated>"
 
@@ -64,8 +68,8 @@ data class RecompositionContent(
   val emptyStateText: String = "",
   /** Text with the number of state reads for the current recomposition */
   val stateReadsText: String = "",
-  /** Text with the stack traces of all the state reads for this recomposition */
-  val stackTraceText: String = "",
+  /** Text with parameter changes and stack traces of all the state reads for this recomposition */
+  val detailsText: String = "",
   /** Specifies which composable that we are showing state reads for. */
   val composableInspected: ComposableDefinition? = null,
   /** An update count. Only meant for tests */
@@ -151,8 +155,9 @@ internal class RecompositionUiModelImpl(
         }
       }
     }
-    scope.launch { model.recompositionModel.recompositionDetails.filterNotNull().collect { result -> showResult(result) } }
     scope.launch { model.recompositionModel.observedForRecompositions.collect { updateStateOfSelection(model.selection) } }
+    scope.launch { model.recompositionModel.recompositionDetails.filterNotNull().collect { showResult(it) } }
+
     Disposer.register(parentDisposable) {
       model.removeSelectionListener(listener)
       model.removeModificationListener(updateListener)
@@ -198,24 +203,22 @@ internal class RecompositionUiModelImpl(
       hasStateReadsForPreviousRecomposition = result.hasDataForPreviousRecomposition
       _show.value = true
       _recompositions.value = model.selection?.recompositions?.count ?: 0
-      if (result.details.reads.isEmpty()) {
-        _content.value =
-          RecompositionContent(
-            recompositionText = generateRecompositionText(result.key),
-            stateReadsText = generateStateReadsText(result.details.reads.size),
-            emptyStateText = LayoutInspectorBundle.message(NO_STATE_READS_ID),
-            updates = _content.value.updates + 1,
-          )
-      } else {
-        _content.value =
-          RecompositionContent(
-            recompositionText = generateRecompositionText(result.key),
-            stateReadsText = generateStateReadsText(result.details.reads.size),
-            stackTraceText = generateStackTraces(result.details.reads),
-            composableInspected = ComposableDefinition(node.qualifiedName, node.composeFilename),
-            updates = _content.value.updates + 1,
-          )
-      }
+      val hasData = result.details.parameterChanges.isNotEmpty() || result.details.reads.isNotEmpty()
+      val emptyText =
+        when {
+          hasData -> ""
+          StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_PARAMETER_CHANGES.get() -> LayoutInspectorBundle.message(NO_RECOMPOSITION_DETAILS)
+          else -> LayoutInspectorBundle.message(NO_STATE_READS_ID)
+        }
+      _content.value =
+        RecompositionContent(
+          recompositionText = generateRecompositionText(result.key),
+          stateReadsText = generateStateReadsText(result.details.reads.size),
+          detailsText = generateDetailsText(result.details),
+          composableInspected = ComposableDefinition(node.qualifiedName, node.composeFilename),
+          emptyStateText = emptyText,
+          updates = _content.value.updates + 1,
+        )
     }
     resultShown()
   }
@@ -225,8 +228,8 @@ internal class RecompositionUiModelImpl(
     if (model.recompositionModel.recompositionDataRequested.value != key) {
       model.recompositionModel.requestRecompositionDataFor(composable, recomposition)
     } else {
-      // The user navigated back to an observable composable from either a View or a non
-      // observable composable. The result may still hold the state reads for the wanted composable
+      // The user navigated back to an observable composable from either a View or a
+      // non-observable composable. The result may still hold the state reads for the wanted composable
       // and recomposition.
       showResultFor(key, model.recompositionModel.recompositionDetails.value ?: Waiting)
     }
@@ -293,48 +296,65 @@ internal class RecompositionUiModelImpl(
     return LayoutInspectorBundle.message("layout.inspector.state.read.count", readCount.toString())
   }
 
-  private fun generateStackTraces(reads: List<RecomposeStateReadData>): String {
+  private fun generateDetailsText(details: RecompositionDetails): String {
     val builder = StringBuilder()
-    var index = 0
-    reads.forEach { data ->
-      index++
-      generateStateReadLine(builder, data.value, data.invalidated)
-      data.stacktrace.forEach { trace ->
-        val fileName = trace.fileName.takeIf { it.isNotEmpty() } ?: "Unknown Source"
-        builder.appendLine("$STACK_TRACE_START_LINE${trace.declaringClass}.${trace.methodName}($fileName:${trace.lineNumber})")
-      }
-      builder.appendLine()
-    }
+    builder.appendParameterChanges(details.parameterChanges)
+    builder.appendStackTraces(details.reads)
     return builder.toString()
   }
 
-  private fun generateStateReadLine(builder: StringBuilder, item: ParameterItem, invalidated: Boolean) {
+  private fun StringBuilder.appendParameterChanges(parameterChanges: List<ParameterItem>) {
+    if (parameterChanges.isEmpty()) {
+      return
+    }
+    appendLine(PARAMETER_CHANGES)
+    parameterChanges.forEach { parameter ->
+      append("- ${parameter.name}: ")
+      val maxLengthReached = generateExpressionWithLengthLimit(parameter)
+      appendLine()
+
+      // Write the full value if we cut off the end of the value expression:
+      if (maxLengthReached) {
+        // Use the name: "value" such that the folding detector can find the generated value section
+        generateValue(parameter, 0, "value")
+        appendLine() // terminates the value
+        appendLine() // add an empty line for easy folding recognition
+      }
+    }
+    appendLine()
+  }
+
+  private fun StringBuilder.appendStackTraces(reads: List<RecomposeStateReadData>) {
+    reads.forEach { data ->
+      generateStateReadLine(data.value, data.invalidated)
+      data.stacktrace.forEach { trace ->
+        val fileName = trace.fileName.takeIf { it.isNotEmpty() } ?: "Unknown Source"
+        appendLine("$STACK_TRACE_START_LINE${trace.declaringClass}.${trace.methodName}($fileName:${trace.lineNumber})")
+      }
+      appendLine()
+    }
+  }
+
+  private fun StringBuilder.generateStateReadLine(item: ParameterItem, invalidated: Boolean) {
     val message = StringBuilder()
     message.append(STATE_READ_START_LINE)
-    generateExpression(message, item)
-    var maxLengthReached = false
-    if (message.length > MAX_EXPRESSION_LENGTH) {
-      // Limit the expression for the value:
-      message.delete(MAX_EXPRESSION_LENGTH, message.length)
-      message.append("...")
-      maxLengthReached = true
-    }
+    val maxLengthReached = message.generateExpressionWithLengthLimit(item)
     if (invalidated) {
       message.append(" $INVALIDATED")
     }
     var read = message.toString()
     LayoutInspectorRecompositionRewriter.EP_NAME.extensionList.forEach { read = it.rewriteStateRead(model.project, read) }
-    builder.appendLine(read)
+    appendLine(read)
 
     // Write the full value if we cut off the end of the value expression:
     if (maxLengthReached) {
-      generateValue(builder, item, 0)
-      builder.appendLine() // terminates the value
-      builder.appendLine() // generates an empty line before the stacktrace
+      generateValue(item, 0)
+      appendLine() // terminates the value
+      appendLine() // generates an empty line before the stacktrace
     }
   }
 
-  private fun generateValue(builder: StringBuilder, item: ParameterItem, indent: Int) {
+  private fun StringBuilder.generateValue(item: ParameterItem, indent: Int, nameOverride: String? = null) {
     val spacing = "  ".repeat(indent)
     val children = (item as? ParameterGroupItem)?.children ?: emptyList()
     val isList = item.type == PropertyType.ITERABLE
@@ -345,42 +365,56 @@ internal class RecompositionUiModelImpl(
         isList -> ""
         else -> item.value
       }
-    builder.append("$spacing${item.name}: $value")
+    append("$spacing${nameOverride ?: item.name}: $value")
     if (children.isEmpty()) {
       return
     }
-    builder.append(if (isList) "[" else " {")
+    append(if (isList) "[" else " {")
     var separator = ""
     children.forEach { child ->
-      builder.appendLine(separator)
+      appendLine(separator)
       separator = ","
-      generateValue(builder, child, indent + 1)
+      generateValue(child, indent + 1)
     }
-    builder.appendLine()
-    builder.append("$spacing${if (isList) "]" else "}"}")
+    appendLine()
+    append("$spacing${if (isList) "]" else "}"}")
   }
 
-  private fun generateExpression(builder: StringBuilder, item: ParameterItem) {
-    if (builder.length > MAX_EXPRESSION_LENGTH) {
+  private fun StringBuilder.generateExpressionWithLengthLimit(item: ParameterItem): Boolean {
+    val expression = StringBuilder()
+    expression.generateExpression(item)
+    var maxLengthReached = false
+    if (expression.length > MAX_EXPRESSION_LENGTH) {
+      // Limit the expression for the value:
+      expression.delete(MAX_EXPRESSION_LENGTH, expression.length)
+      expression.append("...")
+      maxLengthReached = true
+    }
+    append(expression)
+    return maxLengthReached
+  }
+
+  private fun StringBuilder.generateExpression(item: ParameterItem) {
+    if (length > MAX_EXPRESSION_LENGTH) {
       return
     }
     val value = item.value ?: item.name.takeIf { it == "..." }.orEmpty()
     val isList = value.startsWith("List")
     if (!isList) {
-      builder.append(value)
+      append(value)
     }
     val group = item as? ParameterGroupItem
     if (group != null) {
-      builder.append(if (isList) "[" else "(")
+      append(if (isList) "[" else "(")
       var separator = ""
       group.children.forEach { element ->
-        builder.append(separator)
-        generateExpression(builder, element)
+        append(separator)
+        generateExpression(element)
         separator = ", "
       }
-      builder.append(if (isList) "]" else ")")
+      append(if (isList) "]" else ")")
     } else if (isList) {
-      builder.append("[]")
+      append("[]")
     }
   }
 

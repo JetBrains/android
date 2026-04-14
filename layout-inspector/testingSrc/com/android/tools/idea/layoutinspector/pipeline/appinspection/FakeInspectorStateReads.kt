@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.RecompositionStateReadResponse
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.RecompositionStateReadResponseBuilder
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeComposeLayoutInspector
 import com.google.common.truth.Truth.assertThat
@@ -232,11 +231,19 @@ class FakeInspectorStateReads(private val composeInspector: FakeComposeLayoutIns
     return true
   }
 
-  private val anchor1Empty = RecompositionStateReadResponse { AnchorHash(COMPOSE1_ANCHOR_HASH) }
-
   private fun RecompositionStateReadResponseBuilder.addStateReadGroup2() {
     StateReadGroup {
       Recomposition(2)
+      ParameterChange("complex", Type.STRING, "Complex") {
+        Element("alpha", Type.FLOAT, 0.9f)
+        Element("color", Type.COLOR, 0xFF0000)
+        Element("fontSize", Type.DIMENSION_SP, 14f)
+        Element("fontWeight", Type.STRING, "W500")
+        Element("fontFamily", Type.STRING, "SansSerif")
+        Element("padding", Type.DIMENSION_DP, 40.0f)
+        Element("text", Type.STRING, "This is the default string in this complex value.")
+      }
+      ParameterChange("simple", Type.INT32, 32)
       StateRead {
         Parameter("value", Type.STRING, "TextStyle") {
           Element("color", Type.STRING, "Unspecified")
@@ -273,6 +280,7 @@ class FakeInspectorStateReads(private val composeInspector: FakeComposeLayoutIns
   private fun RecompositionStateReadResponseBuilder.addStateReadGroup4() {
     StateReadGroup {
       Recomposition(4)
+      ParameterChange("alpha", Type.FLOAT, 1.0f)
       StateRead {
         Parameter("value", Type.ITERABLE, "List[2]") {
           Element("[0]", Type.STRING, "b")
@@ -288,6 +296,7 @@ class FakeInspectorStateReads(private val composeInspector: FakeComposeLayoutIns
   private fun RecompositionStateReadResponseBuilder.addStateReadGroup102() {
     StateReadGroup {
       Recomposition(102)
+      ParameterChange("color", Type.STRING, "Red")
       StateRead {
         Parameter("value", Type.STRING, "TextStyle") {
           Element("color", Type.STRING, "Unspecified")
@@ -308,6 +317,7 @@ class FakeInspectorStateReads(private val composeInspector: FakeComposeLayoutIns
   private fun RecompositionStateReadResponseBuilder.addStateReadGroup103() {
     StateReadGroup {
       Recomposition(103)
+      ParameterChange("alpha", Type.FLOAT, 0.5f)
       StateRead {
         Parameter("value", Type.ITERABLE, "List[6]") {
           Element("[0]", Type.STRING, "a")
@@ -326,6 +336,7 @@ class FakeInspectorStateReads(private val composeInspector: FakeComposeLayoutIns
   private fun RecompositionStateReadResponseBuilder.addStateReadGroup104() {
     StateReadGroup {
       Recomposition(104)
+      ParameterChange("alpha", Type.FLOAT, 0.7f)
       StateRead {
         Parameter("value", Type.ITERABLE, "List[2]") {
           Element("[0]", Type.STRING, "b")

@@ -561,10 +561,14 @@ class ComposeLayoutInspectorClient(
               stateReadSettingsBuilder.apply {
                 when (observations) {
                   is None -> noneBuilder
-                  is All -> allBuilder.maxStateReads = maxStateReads
+                  is All -> {
+                    allBuilder.maxStateReads = maxStateReads
+                    allBuilder.includeParameterChanges = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_PARAMETER_CHANGES.get()
+                  }
                   is Some -> {
                     byIdBuilder.addAllComposableToObserve(observations.nodeAnchors)
                     byIdBuilder.maxStateReads = maxStateReads
+                    byIdBuilder.includeParameterChanges = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_PARAMETER_CHANGES.get()
                   }
                 }
               }

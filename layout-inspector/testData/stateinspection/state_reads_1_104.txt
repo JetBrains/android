@@ -1,5 +1,5 @@
 Parameter changes:
-- alpha: 1.0
+- alpha: 0.7
 
 State read value: [b, c] <invalidated> (Explain with AI)
     at androidx.compose.runtime.CompositionImpl.recordReadOf(Composition.kt:1015)

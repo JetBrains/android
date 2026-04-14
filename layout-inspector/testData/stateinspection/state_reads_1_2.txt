@@ -1,4 +1,18 @@
-State read value: TextStyle(Unspecified, 14.0sp, W500, SansSerif, 0.1sp, Unspeci... (Explain with AI)
+Parameter changes:
+- complex: Complex(0.9, #FF0000, 14.0sp, W500, SansSerif, 40.0dp, This is the default strin...
+value: Complex {
+  alpha: 0.9,
+  color: #FF0000,
+  fontSize: 14.0sp,
+  fontWeight: W500,
+  fontFamily: SansSerif,
+  padding: 40.0dp,
+  text: This is the default string in this complex value.
+}
+
+- simple: 32
+
+State read value: TextStyle(Unspecified, 14.0sp, W500, SansSerif, 0.1sp, Unspecified, Unspecified,... (Explain with AI)
 value: TextStyle {
   color: Unspecified,
   fontSize: 14.0sp,

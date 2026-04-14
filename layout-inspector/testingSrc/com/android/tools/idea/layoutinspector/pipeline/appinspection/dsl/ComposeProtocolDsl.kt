@@ -172,6 +172,12 @@ class StateReadGroupBuilder(private val strings: TestStringTable) {
     builder.recompositionNumber = value
   }
 
+  fun ParameterChange(name: String, type: Type, value: Any, init: ParameterBuilder.() -> Unit = {}) {
+    val parameter = ParameterBuilder(name, type, value, strings)
+    parameter.init()
+    builder.addParameterChanges(parameter.build())
+  }
+
   fun StateRead(init: StateReadBuilder.() -> Unit) {
     val read = StateReadBuilder(strings)
     read.init()

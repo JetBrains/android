@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.recompositions
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
@@ -32,6 +33,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.Recompo
 import com.android.tools.idea.layoutinspector.properties.DimensionUnits
 import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
 import com.android.tools.idea.layoutinspector.window
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -126,7 +128,7 @@ class RecompositionUiModelTest {
     assertThat(model.show.value).isFalse()
     assertThat(content.recompositionText).isEmpty()
     assertThat(content.stateReadsText).isEmpty()
-    assertThat(content.stackTraceText).isEmpty()
+    assertThat(content.detailsText).isEmpty()
     assertThat(content.composableInspected).isNull()
     assertThat(content.emptyStateText).isEmpty()
     assertThat(content.updates).isEqualTo(0)
@@ -151,7 +153,7 @@ class RecompositionUiModelTest {
     assertThat(content.emptyStateText)
       .isEqualTo("The selected composable has not recomposed yet.\n" + "Try interacting with the app to cause recompositions.")
     assertThat(content.stateReadsText).isEmpty()
-    assertThat(content.stackTraceText).isEmpty()
+    assertThat(content.detailsText).isEmpty()
     assertThat(content.composableInspected).isNull()
     assertThat(model.prevAction.isEnabled()).isFalse()
     assertThat(model.nextAction.isEnabled()).isFalse()
@@ -167,7 +169,7 @@ class RecompositionUiModelTest {
     assertThat(content.recompositionText).isEqualTo("Recomposition 2")
     assertThat(content.emptyStateText).isEmpty()
     assertThat(content.stateReadsText).isEqualTo("State Reads: 1")
-    assertThat(content.stackTraceText)
+    assertThat(content.detailsText)
       .isEqualTo(
         """
         State read value: 1.0dp <invalidated>
@@ -217,7 +219,7 @@ class RecompositionUiModelTest {
       )
 
     assertThat(content.stateReadsText).isEmpty()
-    assertThat(content.stackTraceText).isEmpty()
+    assertThat(content.detailsText).isEmpty()
     assertThat(content.composableInspected).isNull()
     assertThat(model.prevAction.isEnabled()).isFalse()
     assertThat(model.nextAction.isEnabled()).isFalse()
@@ -234,7 +236,7 @@ class RecompositionUiModelTest {
     assertThat(content.recompositionText).isEqualTo("Recomposition 2")
     assertThat(content.emptyStateText).isEmpty()
     assertThat(content.stateReadsText).isEqualTo("State Reads: 1")
-    assertThat(content.stackTraceText)
+    assertThat(content.detailsText)
       .isEqualTo(
         """
         State read value: 1.0dp <invalidated>
@@ -264,7 +266,7 @@ class RecompositionUiModelTest {
       .isEqualTo("The selected composable is not being observed.\n" + "Select a different node to see recomposition details.")
 
     assertThat(content.stateReadsText).isEmpty()
-    assertThat(content.stackTraceText).isEmpty()
+    assertThat(content.detailsText).isEmpty()
     assertThat(content.composableInspected).isNull()
     assertThat(model.prevAction.isEnabled()).isFalse()
     assertThat(model.nextAction.isEnabled()).isFalse()
@@ -283,7 +285,7 @@ class RecompositionUiModelTest {
     assertThat(content.emptyStateText)
       .isEqualTo("The selected composable has not recomposed yet.\n" + "Try interacting with the app to cause recompositions.")
     assertThat(content.stateReadsText).isEmpty()
-    assertThat(content.stackTraceText).isEmpty()
+    assertThat(content.detailsText).isEmpty()
     assertThat(content.composableInspected).isNull()
     assertThat(model.prevAction.isEnabled()).isFalse()
     assertThat(model.nextAction.isEnabled()).isFalse()
@@ -337,7 +339,7 @@ class RecompositionUiModelTest {
     assertThat(content.updates).isEqualTo(4)
     assertThat(content.recompositionText).isEqualTo("Waiting for interactions")
     assertThat(content.stateReadsText).isEmpty()
-    assertThat(content.stackTraceText).isEmpty()
+    assertThat(content.detailsText).isEmpty()
 
     inspectorModel.recompositionModel.recompositionDetails.emit(read3Anchor1.convert(compose1, 3))
     testScheduler.advanceUntilIdle()
@@ -356,7 +358,7 @@ class RecompositionUiModelTest {
     assertThat(content.updates).isEqualTo(6)
     assertThat(content.recompositionText).isEqualTo("Waiting for interactions")
     assertThat(content.stateReadsText).isEmpty()
-    assertThat(content.stackTraceText).isEmpty()
+    assertThat(content.detailsText).isEmpty()
 
     inspectorModel.recompositionModel.recompositionDetails.emit(read2Anchor1.convert(compose1, 2))
     testScheduler.advanceUntilIdle()
@@ -375,7 +377,7 @@ class RecompositionUiModelTest {
     assertThat(content.updates).isEqualTo(8)
     assertThat(content.recompositionText).isEqualTo("Waiting for interactions")
     assertThat(content.stateReadsText).isEmpty()
-    assertThat(content.stackTraceText).isEmpty()
+    assertThat(content.detailsText).isEmpty()
 
     inspectorModel.recompositionModel.recompositionDetails.emit(read1Anchor1.convert(compose1, 1, hasPrevious = false))
     testScheduler.advanceUntilIdle()
@@ -403,9 +405,10 @@ class RecompositionUiModelTest {
     val emptyResult =
       RecompositionDetailsResult.RecompositionDetailsData(
         RecompositionKey(compose1, 2),
-        RecompositionDetails(emptyList()),
+        RecompositionDetails(emptyList(), emptyList()),
         hasDataForPreviousRecomposition = false,
       )
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_PARAMETER_CHANGES.overrideForTest(false, disposableRule.disposable)
     inspectorModel.recompositionModel.recompositionDetails.emit(emptyResult)
     testScheduler.advanceUntilIdle()
 
@@ -414,9 +417,9 @@ class RecompositionUiModelTest {
     assertThat(content.stateReadsText).isEqualTo("State Reads: 0")
     assertThat(content.emptyStateText)
       .isEqualTo(
-        "The selected composable recomposed without making any state reads.\nMost likely a parameter change caused this recomposition."
+        "The selected composable recomposed without making any state reads.\n" + "Most likely a parameter change caused this recomposition."
       )
-    assertThat(content.stackTraceText).isEmpty()
+    assertThat(content.detailsText).isEmpty()
     assertThat(results).isEqualTo(1)
 
     // Now request recomposition 3 which has state reads
@@ -432,8 +435,21 @@ class RecompositionUiModelTest {
     assertThat(content.recompositionText).isEqualTo("Recomposition 3")
     assertThat(content.stateReadsText).isEqualTo("State Reads: 1")
     assertThat(content.emptyStateText).isEmpty()
-    assertThat(content.stackTraceText).isNotEmpty()
+    assertThat(content.detailsText).isNotEmpty()
     assertThat(results).isEqualTo(2)
+
+    // Emulate empty state reads for recomposition 2 again. This time with parameter changes turned on:
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_PARAMETER_CHANGES.overrideForTest(true, disposableRule.disposable)
+    inspectorModel.recompositionModel.recompositionDetails.emit(emptyResult)
+    testScheduler.advanceUntilIdle()
+
+    content = model.content.value
+    assertThat(content.recompositionText).isEqualTo("Recomposition 2")
+    assertThat(content.stateReadsText).isEqualTo("State Reads: 0")
+    assertThat(content.emptyStateText)
+      .isEqualTo("No parameter changes nor state reads were detected when the selected composable recomposed.")
+    assertThat(content.detailsText).isEmpty()
+    assertThat(results).isEqualTo(3)
   }
 
   @Test

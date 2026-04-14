@@ -26,7 +26,7 @@ sealed class RecompositionDetailsResult {
   data class RecompositionDetailsData(
     /** The composable and recomposition these details are for. */
     val key: RecompositionKey,
-    /** The details of this recomposition. */
+    /** The details of this recomposition (parameter changes and state reads). */
     val details: RecompositionDetails,
     /** There are data available to go back to the previous recomposition. */
     val hasDataForPreviousRecomposition: Boolean = false,
@@ -36,7 +36,9 @@ sealed class RecompositionDetailsResult {
 /** The details for a recomposition. */
 data class RecompositionDetails(
   /** The state reads of the recomposition. */
-  val reads: List<RecomposeStateReadData>
+  val reads: List<RecomposeStateReadData>,
+  /** The parameter changes. */
+  val parameterChanges: List<ParameterItem>,
 )
 
 /** Holds data for a single state read in compose for a given composable and recomposition number. */

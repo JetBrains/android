@@ -23,6 +23,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findAllDescendants
 import com.android.tools.adtui.swing.getDescendant
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.TestScopeRule
@@ -37,6 +38,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspecti
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.FakeInspectorStateReads
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 import com.intellij.icons.AllIcons
@@ -102,6 +104,7 @@ class RecompositionUiPanelIntegrationTest {
 
   @Test
   fun testPanelWithStateReads() {
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_PARAMETER_CHANGES.overrideForTest(true, projectRule.testRootDisposable)
     imitateObserveAllMode()
     val state = FakeInspectorStateReads(inspectionRule.composeInspector)
     state.createFakeStateReads()
@@ -133,7 +136,7 @@ class RecompositionUiPanelIntegrationTest {
     ui.click(prev)
     waitForCondition(10.seconds) { recompositionText.text == "Recomposition 3" }
     val emptyStateLabel = panel.getDescendant<JLabel> { it.name == EMPTY_STATE_NAME }
-    waitForCondition(10.seconds) { emptyStateLabel.text.contains("without making any state reads") }
+    waitForCondition(10.seconds) { emptyStateLabel.text.contains("No parameter changes nor state reads were detected") }
     panel.checkContent("")
     waitForCondition(10.seconds) { prev.isEnabled }
     waitForCondition(10.seconds) { next.isEnabled }
@@ -147,7 +150,7 @@ class RecompositionUiPanelIntegrationTest {
 
     ui.click(next)
     waitForCondition(10.seconds) { recompositionText.text == "Recomposition 3" }
-    waitForCondition(10.seconds) { emptyStateLabel.text.contains("without making any state reads") }
+    waitForCondition(10.seconds) { emptyStateLabel.text.contains("No parameter changes nor state reads were detected") }
     panel.checkContent("")
     waitForCondition(10.seconds) { prev.isEnabled }
     waitForCondition(10.seconds) { next.isEnabled }
@@ -262,10 +265,9 @@ class RecompositionUiPanelIntegrationTest {
   }
 
   private fun createPanel(): RecompositionUiPanel {
-    val model = inspectorRule.inspectorModel
     val detectorFactory = SynchronousHyperLinkDetectorFactory()
     val panel = createRecompositionUiPanel(inspectorRule.inspector, projectRule.testRootDisposable, detectorFactory)
-    panel.size = Dimension(800, 600)
+    panel.size = Dimension(1200, 600)
     return panel
   }
 
