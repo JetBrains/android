@@ -202,6 +202,7 @@ open class ProfilersTestBase {
 
   protected fun deployApp(studio: AndroidStudio, adb: Adb) {
     studio.executeAction("Run")
+    waitForAppDeploymentStarted("com.example.minapp", 300)
     waitForAppToBeDeployed(adb, ".*Hello Minimal World!.*")
   }
 
