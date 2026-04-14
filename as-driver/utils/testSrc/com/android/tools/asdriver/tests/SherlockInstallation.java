@@ -86,6 +86,10 @@ public class SherlockInstallation extends IdeInstallation<Sherlock> {
       this.addVmOption("-Ddisable.android.first.run=true");
     }
 
+    // Some e2e tests run with Internet access to use GCP remote-devices APIs. However, this would cause e2e tests to publish analytics. In
+    // order to avoid counting e2e tests as if they were real users, we disable Analytics in all e2e tests.
+    this.addVmOption("-Ddisable.analytics=true");
+
     bundlePlugin(TestUtils.getBinPath("tools/adt/idea/as-driver/asdriver.plugin-sherlock-sdk.zip"));
     setConsentGranted(true);
   }
