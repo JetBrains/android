@@ -97,6 +97,7 @@ class PreviewDetailsPanel(private val project: Project? = null) : JPanel(CardLay
     }
 
   private val toolbarAnalytics = ScreenshotToolbarAnalytics(project)
+  private val loadingFutures = mutableMapOf<ImageWithToolbarPanel, java.util.concurrent.Future<*>>()
 
   // Panels for the "All" view (3-way split) in single preview mode.
   private val newImagePanel =
@@ -392,33 +393,43 @@ class PreviewDetailsPanel(private val project: Project? = null) : JPanel(CardLay
 
   private fun loadImageAsync(filePath: String?, targetPanel: ImageWithToolbarPanel, placeholder: String) {
     targetPanel.setPlaceholder(placeholder)
+    loadingFutures[targetPanel]?.cancel(true)
     if (filePath == null) {
       targetPanel.setImage(null)
       if (placeholder == NO_NEW_IMAGE_TEXT) {
         // Log the SCREENSHOT_DIALOG_RENDER_FAILURE event if image doesn't exist
         logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_RENDER_FAILURE, project)
       }
+      loadingFutures.remove(targetPanel)
       return
     }
-    AppExecutorUtil.getAppExecutorService().submit {
-      val image =
-        try {
-          val file = File(filePath)
-          if (file.exists()) {
-            ImageIO.read(file)
-          } else {
-            // Log the SCREENSHOT_DIALOG_RENDER_FAILURE event if file doesn't exist
+    var future: java.util.concurrent.Future<*>? = null
+    future =
+      AppExecutorUtil.getAppExecutorService().submit {
+        val image =
+          try {
+            val file = File(filePath)
+            if (file.exists()) {
+              ImageIO.read(file)
+            } else {
+              // Log the SCREENSHOT_DIALOG_RENDER_FAILURE event if file doesn't exist
+              logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_RENDER_FAILURE, project)
+              null
+            }
+          } catch (e: Exception) {
+            LOG.error("Error loading screenshot image from path: $filePath", e)
+            // Log the SCREENSHOT_DIALOG_RENDER_FAILURE event on exception
             logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_RENDER_FAILURE, project)
-            null
+            null // Log the error, the placeholder text will be shown.
           }
-        } catch (e: Exception) {
-          LOG.error("Error loading screenshot image from path: $filePath", e)
-          // Log the SCREENSHOT_DIALOG_RENDER_FAILURE event on exception
-          logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_RENDER_FAILURE, project)
-          null // Log the error, the placeholder text will be shown.
+        UIUtil.invokeLaterIfNeeded {
+          if (loadingFutures[targetPanel] === future) {
+            targetPanel.setImage(image)
+            loadingFutures.remove(targetPanel)
+          }
         }
-      UIUtil.invokeLaterIfNeeded { targetPanel.setImage(image) }
-    }
+      }
+    loadingFutures[targetPanel] = future!!
   }
 
   private fun updateScreenshotAttributesView(previewData: PreviewDetails) {
