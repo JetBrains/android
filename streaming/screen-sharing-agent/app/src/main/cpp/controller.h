@@ -84,6 +84,8 @@ private:
   void ProcessKeyboardEvent(Jni jni, const KeyEventMessage& message);
   void ProcessTextInput(const TextInputMessage& message);
   void InjectMotionEvent(const MotionEvent& input_event);
+  // Injects an event that cancels the current gesture.
+  void InjectCancelMotionEvent();
   void InjectKeyEvent(const KeyEvent& input_event);
   void InjectInputEvent(const JObject& input_event);
 

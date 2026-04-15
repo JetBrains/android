@@ -119,6 +119,8 @@ bool IsMirrorableDisplay(const DisplayInfo& display_info) {
   return display_info.IsValid() && display_info.IsOn() && (display_info.flags & DisplayInfo::FLAG_PRIVATE) == 0;
 }
 
+int32_t hover_move_count = 0;
+
 }  // namespace
 
 Controller::Controller(int socket_fd)
@@ -389,8 +391,20 @@ void Controller::ProcessMessage(const ControlMessage& message) {
 void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
   nanoseconds event_time = UptimeNanos();
   int32_t action = message.action();
-  Log::V("Controller::ProcessMotionEvent action:%d", action);
   int32_t display_id = message.display_id();
+  if (action == AMOTION_EVENT_ACTION_HOVER_MOVE && ++hover_move_count > 3) {
+    Log::V("Controller::ProcessMotionEvent action:%d action_button:%d button_state:%d num_pointers:%zu is_mouse:%s display_id:%d",
+           action, message.action_button(), message.button_state(), message.pointers().size(), message.is_mouse() ? "true" : "false",
+           message.display_id());
+  } else {
+    Log::D("Controller::ProcessMotionEvent action:%d action_button:%d button_state:%d num_pointers:%zu is_mouse:%s display_id:%d",
+           action, message.action_button(), message.button_state(), message.pointers().size(), message.is_mouse() ? "true" : "false",
+           message.display_id());
+    if (action != AMOTION_EVENT_ACTION_HOVER_MOVE) {
+      hover_move_count = 0;
+    }
+  }
+
   DisplayInfo display_info = Agent::GetDisplayInfo(display_id);
   if (!display_info.IsValid()) {
     return;
@@ -556,7 +570,7 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
         event.action = AMOTION_EVENT_ACTION_UP;
         event.action_button = 0;
       } else {
-        for (int i = event.pointer_count; --i > 1;) {
+        for (int i = event.pointer_count; --i > 0;) {
           event.action = AMOTION_EVENT_ACTION_POINTER_UP | (i << AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
           pointer_helper_->SetPointerPressure(pointer_coordinates_.GetElement(jni_, i), 0);
           InjectMotionEvent(event);
@@ -634,16 +648,24 @@ void Controller::InjectMotionEvent(const MotionEvent& event) {
   if (motion_event.IsNull()) {
     return;  // The error has already been logged.
   }
-  if (event.action == AMOTION_EVENT_ACTION_HOVER_MOVE || Log::IsEnabled(Log::Level::VERBOSE)) {
+  if (event.action == AMOTION_EVENT_ACTION_HOVER_MOVE && hover_move_count > 3 && Log::IsEnabled(Log::Level::VERBOSE)) {
     Log::V("motion_event: %s", motion_event.ToString().c_str());
   } else if (Log::IsEnabled(Log::Level::DEBUG)) {
     Log::D("motion_event: %s", motion_event.ToString().c_str());
   }
+
   if (Agent::device_type() == DeviceType::XR) {
     InjectXrMotionEvent(motion_event);
   } else {
     InjectInputEvent(motion_event);
   }
+}
+
+void Controller::InjectCancelMotionEvent() {
+  MotionEvent event(Jvm::GetJni());
+  event.action = AMOTION_EVENT_ACTION_CANCEL;
+  event.event_time_millis = duration_cast<milliseconds>(UptimeNanos()).count();
+  InjectInputEvent(event.ToJava());
 }
 
 void Controller::InjectKeyEvent(const KeyEvent& event) {
@@ -668,6 +690,7 @@ void Controller::InjectInputEvent(const JObject& input_event) {
       }
     } else {
       Log::E("Unable to inject an input event %s", JString::ValueOf(input_event).c_str());
+      InjectCancelMotionEvent(); // Terminate the current gesture to prevent rejection of subsequent motion events.
     }
   }
 }
