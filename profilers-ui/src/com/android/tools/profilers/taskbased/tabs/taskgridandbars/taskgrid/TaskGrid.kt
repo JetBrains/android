@@ -81,12 +81,7 @@ fun TaskGrid(taskGridModel: TaskGridModel, taskTypes: List<ProfilerTaskType>) {
     with(lazyGridScope) {
       items(sortedTaskTypes) { taskType ->
         taskType.let { task ->
-          TaskGridItem(
-            task = task,
-            isSelectedTask = task == selectedTask,
-            onTaskSelection = { taskGridModel.onTaskSelection(it) },
-            isTaskTitleV2Enabled = taskGridModel.profilers.ideServices.featureConfig.isTaskTitleV2Enabled,
-          )
+          TaskGridItem(task = task, isSelectedTask = task == selectedTask, onTaskSelection = { taskGridModel.onTaskSelection(it) })
         }
       }
     }
@@ -103,14 +98,7 @@ fun TaskGrid(taskGridModel: TaskGridModel, selectedRecording: SessionItem?, task
           selectedRecording != null && TaskSupportUtils.isTaskSupportedByRecording(it.value, selectedRecording)
         }
       ) { (taskType, _) ->
-        taskType.let {
-          TaskGridItem(
-            task = it,
-            isSelectedTask = it == selectedTask,
-            onTaskSelection = taskGridModel::onTaskSelection,
-            isTaskTitleV2Enabled = taskGridModel.profilers.ideServices.featureConfig.isTaskTitleV2Enabled,
-          )
-        }
+        taskType.let { TaskGridItem(task = it, isSelectedTask = it == selectedTask, onTaskSelection = taskGridModel::onTaskSelection) }
       }
     }
   }

@@ -683,11 +683,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     }
 
     @Override
-    public boolean isTaskTitleV2Enabled() {
-      return StudioFlags.PROFILER_TASK_TITLE_V2.get();
-    }
-
-    @Override
     public boolean isSystemTraceInEditorEnabled() {
       return StudioFlags.PROFILER_SYSTEM_TRACE_IN_EDITOR.get();
     }

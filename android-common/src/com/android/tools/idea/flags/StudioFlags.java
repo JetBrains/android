@@ -366,10 +366,6 @@ public final class StudioFlags {
     PROFILER, "task.based.ux", "Task-based UX",
     "Enables a simpler profilers UX, with tabs for specific tasks which an app developer usually performs (e.g. Reduce jank)");
 
-  public static final Flag<Boolean> PROFILER_TASK_TITLE_V2 = new BooleanFlag(
-    PROFILER, "task.title.v2", "Task Title V2",
-    "Enables more distinguishable descriptions for profiler tasks");
-
   public static final Flag<Boolean> PROFILER_LEAKCANARY = new BooleanFlag(
     PROFILER, "leakcanary", "LeakCanary",
     "Enables the integration of leakCanary and display of leaks");

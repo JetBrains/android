@@ -177,36 +177,22 @@ object TaskBasedUxStrings {
       "'${PROFILE_WITH_COMPLETE_DATA_ACTION_NAME}' in the main toolbar's more " +
       "actions menu. This will trigger a rebuild."
 
-  fun getTaskTitle(taskType: ProfilerTaskType, isTaskTitleV2Enabled: Boolean) =
-    if (isTaskTitleV2Enabled) {
-      when (taskType) {
-        ProfilerTaskType.SYSTEM_TRACE -> "Record App and System Performance Data"
-        ProfilerTaskType.HEAP_DUMP -> "Analyze Memory Usage"
-        ProfilerTaskType.CALLSTACK_SAMPLE -> "Analyze Time Spent per Call Stack"
-        ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS -> "Record Memory Allocations (Java/Kotlin)"
-        ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> "Record Method Calls"
-        ProfilerTaskType.NATIVE_ALLOCATIONS -> "Record Memory Allocations (Native)"
-        ProfilerTaskType.LIVE_VIEW -> "View Live Telemetry"
-        ProfilerTaskType.LEAKCANARY -> "Find Memory Leaks with LeakCanary"
-        ProfilerTaskType.UNSPECIFIED -> ""
-      }
-    } else {
-      when (taskType) {
-        ProfilerTaskType.SYSTEM_TRACE -> "Capture System Activities"
-        ProfilerTaskType.HEAP_DUMP -> "Analyze Memory Usage"
-        ProfilerTaskType.CALLSTACK_SAMPLE -> "Find CPU Hotspots"
-        ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS -> "Track Memory Consumption"
-        ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> "Find CPU Hotspots"
-        ProfilerTaskType.NATIVE_ALLOCATIONS -> "Track Memory Consumption"
-        ProfilerTaskType.LIVE_VIEW -> "View Live Telemetry"
-        ProfilerTaskType.LEAKCANARY -> "Find Memory Leaks with LeakCanary"
-        ProfilerTaskType.UNSPECIFIED -> ""
-      }
+  fun getTaskTitle(taskType: ProfilerTaskType) =
+    when (taskType) {
+      ProfilerTaskType.SYSTEM_TRACE -> "Capture System Activities"
+      ProfilerTaskType.HEAP_DUMP -> "Analyze Memory Usage"
+      ProfilerTaskType.CALLSTACK_SAMPLE -> "Find CPU Hotspots"
+      ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS -> "Track Memory Consumption"
+      ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> "Find CPU Hotspots"
+      ProfilerTaskType.NATIVE_ALLOCATIONS -> "Track Memory Consumption"
+      ProfilerTaskType.LIVE_VIEW -> "View Live Telemetry"
+      ProfilerTaskType.LEAKCANARY -> "Find Memory Leaks with LeakCanary"
+      ProfilerTaskType.UNSPECIFIED -> ""
     }
 
-  fun getTaskSubtitle(taskType: ProfilerTaskType, isTaskTitleV2Enabled: Boolean) =
+  fun getTaskSubtitle(taskType: ProfilerTaskType) =
     when (taskType) {
-      ProfilerTaskType.CALLSTACK_SAMPLE -> if (isTaskTitleV2Enabled) "Stack Sampling" else "Callstack Sample"
+      ProfilerTaskType.CALLSTACK_SAMPLE -> "Callstack Sample"
 
       ProfilerTaskType.SYSTEM_TRACE,
       ProfilerTaskType.HEAP_DUMP,

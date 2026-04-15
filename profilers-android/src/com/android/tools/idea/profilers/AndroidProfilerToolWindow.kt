@@ -266,7 +266,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
    */
   fun createTaskTab(taskType: ProfilerTaskType, taskArgs: TaskArgs) {
     val taskTab = findTaskTab()
-    val taskTabTitle = StringUtils.getTaskTabTitle(taskType, profilers.ideServices.featureConfig.isTaskTitleV2Enabled)
+    val taskTabTitle = StringUtils.getTaskTabTitle(taskType)
 
     val taskIcon = TaskIconUtils.getTaskIcon(taskType)
     if (taskTab != null) {
@@ -292,7 +292,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
   /** Closes the Profiler task tab for a specified task type. */
   fun closeTaskTab(taskType: ProfilerTaskType) {
     val contentManager = window.getContentManager()
-    val taskTabTitle = StringUtils.getTaskTabTitle(taskType, profilers.ideServices.featureConfig.isTaskTitleV2Enabled)
+    val taskTabTitle = StringUtils.getTaskTabTitle(taskType)
     val taskTab = contentManager.contents.find { it.displayName == taskTabTitle || it.tabName == taskTabTitle }
     taskTab?.let { content -> contentManager.removeContent(content, true) }
   }

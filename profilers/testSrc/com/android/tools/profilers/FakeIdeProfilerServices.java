@@ -124,11 +124,6 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
    */
   private boolean myLeakCanaryEnabled = true;
 
-  /**
-   * Whether the V2 of Task Title should be used.
-   */
-  private boolean myTaskTitleV2Enabled = false;
-
   private boolean mySystemTraceInEditorEnabled = false;
 
   private boolean myMethodTraceInEditorEnabled = false;
@@ -273,11 +268,6 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isLeakCanaryEnabled() {
         return myLeakCanaryEnabled;
-      }
-
-      @Override
-      public boolean isTaskTitleV2Enabled() {
-        return myTaskTitleV2Enabled;
       }
 
       @Override

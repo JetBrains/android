@@ -30,7 +30,7 @@ class StringUtilsTest(private val taskType: ProfilerTaskType) {
 
   @Test
   fun testGettingTaskTabTitle() {
-    val taskTabTitle = StringUtils.getTaskTabTitle(taskType, isTaskTitleV2Enabled = false)
+    val taskTabTitle = StringUtils.getTaskTabTitle(taskType)
     when (taskType) {
       ProfilerTaskType.SYSTEM_TRACE -> assertEquals(taskTabTitle, "Capture System Activities (System Trace)")
       ProfilerTaskType.HEAP_DUMP -> assertEquals(taskTabTitle, "Analyze Memory Usage (Heap Dump)")
