@@ -129,7 +129,7 @@ class PreviewDetailsPanel(private val project: Project? = null) : JPanel(CardLay
   // Common actions for the "All" view toolbar.
   private val commonZoomInAction =
     LoggedAction(
-      object : AnAction("Zoom In", null, AllIcons.General.ZoomIn) {
+      object : AnAction("Zoom In", "Zoom In", AllIcons.General.ZoomIn) {
         override fun actionPerformed(e: AnActionEvent) {
           multiViewPanels.forEach { it.zoomIn() }
         }
@@ -143,7 +143,7 @@ class PreviewDetailsPanel(private val project: Project? = null) : JPanel(CardLay
 
   private val commonZoomOutAction =
     LoggedAction(
-      object : AnAction("Zoom Out", null, AllIcons.General.ZoomOut) {
+      object : AnAction("Zoom Out", "Zoom Out", AllIcons.General.ZoomOut) {
         override fun actionPerformed(e: AnActionEvent) {
           multiViewPanels.forEach { it.zoomOut() }
         }
@@ -226,6 +226,7 @@ class PreviewDetailsPanel(private val project: Project? = null) : JPanel(CardLay
         verticalScrollBarPolicy = JBScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED
         horizontalScrollBarPolicy = JBScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
         border = null
+        accessibleContext.accessibleName = "Previews list"
       }
     multiplePreviewsPanel.add(scrollPane, BorderLayout.CENTER)
 
