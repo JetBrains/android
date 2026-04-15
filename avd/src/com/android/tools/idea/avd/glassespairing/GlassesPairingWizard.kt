@@ -55,7 +55,6 @@ import com.android.sdklib.deviceprovisioner.pairWithNestedState
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.adtui.compose.ComposeWizard
 import com.android.tools.adtui.compose.WizardAction
-import com.android.tools.adtui.compose.WizardButton
 import com.android.tools.adtui.compose.WizardPageScope
 import com.android.tools.idea.adddevicedialog.FormFactors
 import com.android.tools.idea.avd.VirtualDeviceProfile
@@ -76,6 +75,7 @@ import java.awt.Dimension
 import java.awt.Window
 import java.io.IOException
 import java.text.Collator
+import javax.swing.JComponent
 import javax.swing.SwingUtilities
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -111,10 +111,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
+import org.jetbrains.jewel.foundation.LocalComponent
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyListState
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
 import org.jetbrains.jewel.ui.component.CircularProgressIndicator
+import org.jetbrains.jewel.ui.component.ExternalLink
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IndeterminateHorizontalProgressBar
 import org.jetbrains.jewel.ui.component.Text
@@ -260,19 +262,54 @@ internal constructor(
       }
       .stateIn(coroutineScope, started = SharingStarted.Eagerly, initialValue = PairingState.NotStarted)
 
+  fun WizardPageScope.launchCreateCompatibleDevice(component: JComponent, state: SelectableLazyListState) {
+    coroutineScope.launch {
+      val createdAvd =
+        addDeviceDialog.show(
+          project = project,
+          parent = component,
+          virtualDeviceFilter = { it.formFactor == FormFactors.PHONE },
+          systemImageFilter = { it.tags.contains(SystemImageTags.AI_GLASSES_COMPATIBLE_TAG) },
+        )
+      // Force focus back to this panel after the dialog closes; because this dialog is non-modal, it doesn't happen on its own
+      withContext(Dispatchers.UI) { ((component as? Window) ?: SwingUtilities.getWindowAncestor(component))?.toFront() }
+      if (createdAvd != null) {
+        avdScanner().rescan()
+        coroutineScope.launch {
+          val createdRow =
+            withTimeoutOrNull(5.seconds) {
+              deviceRowFlow.mapNotNull { rows -> rows.find { it.state.properties.title == createdAvd.displayName } }.first()
+            }
+
+          if (createdRow != null) {
+            phone = createdRow
+            val currentSorted = deviceRowFlow.value.sortedWith(compareBy(Collator.getInstance()) { it.name })
+            val index = currentSorted.indexOfFirst { it.handle.id == createdRow.handle.id }
+            if (index >= 0) {
+              state.selectedKeys = setOf(createdRow.handle.id)
+              state.scrollToItem(index)
+            }
+          }
+        }
+      }
+    }
+  }
+
   @Composable
   internal fun WizardPageScope.SelectDevicePage() {
     val devices: ImmutableList<DeviceRow> by deviceRowFlow.collectAsState()
     val sortedDevices = remember(devices) { devices.sortedWith(compareBy(Collator.getInstance()) { it.name }).toImmutableList() }
 
+    val component = LocalComponent.current
     val state = getOrCreateState { SelectableLazyListState(LazyListState()) }
     Column(Modifier.padding(20.dp)) {
       if (sortedDevices.isEmpty()) {
-        PairingStateHorizontalProgress(
-          header = "No compatible AVDs found.",
-          detail =
-            "Glasses pairing requires a Canary system image that includes AI Glasses support.\n\n" + "Please create one in Device Manager.",
-          showProgressBar = false,
+        LargeText(text = "No compatible AVDs found.")
+        Text("Glasses pairing requires a Phone AVD with a system image that includes AI Glasses support.", Modifier.padding(top = 20.dp))
+        ExternalLink(
+          "Create a compatible device",
+          onClick = { launchCreateCompatibleDevice(component, state) },
+          Modifier.padding(top = 10.dp),
         )
       } else {
         LargeText("Select a device to pair", Modifier.padding(bottom = 8.dp))
@@ -283,49 +320,15 @@ internal constructor(
             GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_DEVICE_SELECTED)
           },
           state,
+          Modifier.weight(1f),
+        )
+        ExternalLink(
+          "Create a new compatible device",
+          onClick = { launchCreateCompatibleDevice(component, state) },
+          Modifier.padding(top = 10.dp),
         )
       }
     }
-    leftSideButtons =
-      remember(sortedDevices) {
-        listOf(
-          WizardButton(
-            "Create new device...",
-            WizardAction {
-              coroutineScope.launch {
-                val createdAvd =
-                  addDeviceDialog.show(
-                    project = project,
-                    parent = component,
-                    virtualDeviceFilter = { it.formFactor == FormFactors.PHONE },
-                    systemImageFilter = { it.tags.contains(SystemImageTags.AI_GLASSES_COMPATIBLE_TAG) },
-                  )
-                // Force focus back to this panel after the dialog closes; because this dialog is non-modal, it doesn't happen on its own
-                withContext(Dispatchers.UI) { ((component as? Window) ?: SwingUtilities.getWindowAncestor(component))?.toFront() }
-                if (createdAvd != null) {
-                  avdScanner().rescan()
-                  coroutineScope.launch {
-                    val createdRow =
-                      withTimeoutOrNull(5.seconds) {
-                        deviceRowFlow.mapNotNull { rows -> rows.find { it.state.properties.title == createdAvd.displayName } }.first()
-                      }
-
-                    if (createdRow != null) {
-                      phone = createdRow
-                      val currentSorted = deviceRowFlow.value.sortedWith(compareBy(Collator.getInstance()) { it.name })
-                      val index = currentSorted.indexOfFirst { it.handle.id == createdRow.handle.id }
-                      if (index >= 0) {
-                        state.selectedKeys = setOf(createdRow.handle.id)
-                        state.scrollToItem(index)
-                      }
-                    }
-                  }
-                }
-              }
-            },
-          )
-        )
-      }
     nextAction =
       when (val phone = phone) {
         null -> WizardAction.Disabled

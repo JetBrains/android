@@ -603,7 +603,7 @@ class GlassesPairingWizardTest {
 
       composeTestRule.setContent { wizard.Content() }
 
-      composeTestRule.onNodeWithText("Create new device...").performClick()
+      composeTestRule.onNodeWithText("Create a new compatible device").performClick()
 
       // The onClick handler is running in 'coroutineScope' (which is 'this').
       // Since it's StandardTestDispatcher, it needs help to progress.
