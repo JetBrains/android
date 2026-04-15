@@ -15,6 +15,13 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.unit.dp
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.google.common.truth.Truth.assertThat
@@ -168,5 +175,48 @@ class ScreenshotAttributesViewTest {
     )
     assertThat(view.state.refLocation).isEqualTo("N/A")
     assertThat(view.state.newLocation).isEqualTo(newFile.absolutePath)
+  }
+
+  @Test
+  fun clickingPreviewName_triggersScrollToDetails() {
+    val refFile = File.createTempFile("ref", ".png").apply { deleteOnExit() }
+    view.updateData(
+      refImagePath = refFile.absolutePath,
+      newImagePath = null,
+      testMethodName = "myMethod",
+      testClassName = "MyClass",
+      result = AndroidTestCaseResult.PASSED,
+      diffPercent = null,
+    )
+
+    composeTestRule.setContent { Box(modifier = Modifier.height(100.dp)) { view.ScreenshotAttributesUi(view.state) } }
+
+    composeTestRule.onNodeWithText("myMethod").performClick()
+    composeTestRule.waitForIdle()
+
+    // Verify that "File info" is now displayed after scrolling.
+    composeTestRule.onNodeWithText("File info").assertIsDisplayed()
+  }
+
+  @Test
+  fun clickableFileLink_isClickable() {
+    val refFile = File.createTempFile("ref", ".png").apply { deleteOnExit() }
+    view.updateData(
+      refImagePath = refFile.absolutePath,
+      newImagePath = null,
+      testMethodName = "myMethod",
+      testClassName = "MyClass",
+      result = AndroidTestCaseResult.PASSED,
+      diffPercent = null,
+    )
+
+    composeTestRule.setContent { view.ScreenshotAttributesUi(view.state) }
+
+    // Verify it exists and is displayed.
+    composeTestRule.onNodeWithText(refFile.absolutePath).assertIsDisplayed()
+
+    // Verify it is clickable by performing a click.
+    composeTestRule.onNodeWithText(refFile.absolutePath).performClick()
+    composeTestRule.waitForIdle()
   }
 }
