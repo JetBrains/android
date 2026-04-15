@@ -470,7 +470,21 @@ class InsightContentPanelTest {
 
     val regenerateLink = fakeUi.findComponent<HyperlinkLabel> { it.text == "Regenerate" } ?: fail("Regenerate link not found")
     regenerateLink.doClick()
-    verify(mockController).refreshInsight(regenerateWithContext = false, forceGenerateNewInsight = false)
+    verify(mockController).refreshInsight(regenerateWithContext = false, forceGenerateNewInsight = true)
+  }
+
+  @Test
+  fun `test clicking regenerate generates insight irrespective of auto generate setting`() = runBlocking {
+    StudioFlags.AQI_FIX_WITH_AGENT.overrideForTest(true, projectRule.disposable)
+    val panel = InsightContentPanel(mockController, scope, currentInsightFlow, mockTracker, projectRule.disposable)
+    currentInsightFlow.update { LoadingState.NoModelAvailable }
+
+    val fakeUi = FakeUi(panel)
+    val regenerateLink = fakeUi.findComponent<HyperlinkLabel> { it.text == "Regenerate" } ?: fail("Regenerate link not found")
+    regenerateLink.doClick()
+
+    verify(mockController).refreshInsight(regenerateWithContext = false, forceGenerateNewInsight = true)
+    verify(mockTracker).logGenerateInsightAction("app1", Action.GENERATE_ONCE)
   }
 
   private suspend fun delayUntilStatusTextVisible() = delayUntilCondition(200) { insightContentPanel.emptyStateText.isStatusVisible }

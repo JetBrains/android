@@ -92,7 +92,7 @@ class AutoGenerateInsightPanel(
         }
       val regenerateInsight =
         createLink("Regenerate", Action.GENERATE_ONCE) {
-          controller.refreshInsight(regenerateWithContext = false, forceGenerateNewInsight = false)
+          controller.refreshInsight(regenerateWithContext = false, forceGenerateNewInsight = true)
         }
       val actionGroup = DefaultActionGroup(InsightSettingGroup())
       val toolbar = ActionManager.getInstance().createActionToolbar("AutoGenerateInsightPanel", actionGroup, true)
