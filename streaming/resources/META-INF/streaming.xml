@@ -348,6 +348,7 @@
           <reference ref="android.streaming.xr.interaction.eye"/>
         </group>
         <reference ref="android.streaming.xr.interaction"/>
+        <separator/>
         <reference ref="android.streaming.xr.view.direction"/>
         <reference ref="android.streaming.xr.location.in.space.xy"/>
         <reference ref="android.streaming.xr.location.in.space.z"/>
