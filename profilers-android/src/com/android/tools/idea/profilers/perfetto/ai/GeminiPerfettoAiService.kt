@@ -33,7 +33,7 @@ import com.intellij.openapi.project.Project
 // not a pending merge step.
 // class GeminiPerfettoAiService(private val project: Project) : PerfettoAiService {
 class GeminiPerfettoAiService(private val project: Project) {
-  fun generateQuery(prompt: String) {
+  fun generateQuery(prompt: String, traceFilePath: String) {
     val systemInstruction =
       """
       You are a specialist in generating Perfetto SQL queries.
@@ -42,7 +42,7 @@ class GeminiPerfettoAiService(private val project: Project) {
       """
         .trimIndent()
 
-    sendPromptWithSkill("Generate Perfetto SQL Query: $prompt", systemInstruction)
+    sendPromptWithSkill("Generate Perfetto SQL Query: $prompt. The trace file is available at: $traceFilePath", systemInstruction)
   }
 
   /**
