@@ -401,7 +401,7 @@ private class EnumBinder(private val onUpdate: () -> Unit) : OptionsBinder {
           addActionListener {
             data.value = constant
             // Trigger a refresh of the panel to update visibility of other components
-            onUpdate()
+            SwingUtilities.invokeLater { onUpdate() }
           }
         }
       buttonGroup.add(radioButton)
