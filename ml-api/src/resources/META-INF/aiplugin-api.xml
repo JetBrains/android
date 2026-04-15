@@ -19,5 +19,7 @@
                     interface="com.android.tools.idea.gemini.StudioBotExternalFlags" />
     <extensionPoint qualifiedName="com.android.tools.idea.gemini.geminiPluginApi"
                     interface="com.android.tools.idea.gemini.GeminiPluginApi" />
+    <extensionPoint qualifiedName="com.android.tools.idea.gemini.nepFineTuneDataListener"
+                    interface="com.android.tools.idea.gemini.NepFineTuneDataListener" />
   </extensionPoints>
 </idea-plugin>

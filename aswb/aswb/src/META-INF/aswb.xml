@@ -123,7 +123,6 @@
   <extensions defaultExtensionNs="com.google.gct.testrecorder.run">
     <testRecorderRunConfigurationProxyProvider implementation="com.google.idea.blaze.android.run.testrecorder.TestRecorderBlazeCommandRunConfigurationProxyProvider" />
   </extensions>
-
   <extensions defaultExtensionNs="com.android.tools.idea">
     <rendering.tokens.buildSystemFilePreviewServices implementation="com.android.tools.idea.rendering.tokens.BazelBuildSystemFilePreviewServices"/>
     <liveedit.tokens.buildSystemLiveEditServices implementation="com.android.tools.idea.run.deployment.liveedit.tokens.BazelBuildSystemLiveEditServices"/>
@@ -141,6 +140,7 @@
   <extensions defaultExtensionNs="com.android.tools.idea">
     <projectsystem.ApplicationProjectContextProvider
             implementation="com.google.idea.blaze.android.run.BazelApplicationProjectContextProvider"/>
+    <gemini.nepFineTuneDataListener implementation="com.google.idea.blaze.base.editor.BlazeNepFineTuneDataLogger"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools">
