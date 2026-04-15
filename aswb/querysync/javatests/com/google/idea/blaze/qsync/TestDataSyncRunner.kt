@@ -68,7 +68,7 @@ class TestDataSyncRunner(private val context: Context<*>, private val javaPackag
       GraphToProjectConverter(javaPackagePrefixReader = javaPackagePrefixReader, context = context, projectDefinition = projectDefinition)
     val update = ProjectProtoUpdate(existingProject = ProjectProto.Project.getDefaultInstance())
     converter.configureProject(
-      initializeProjectStructureData(buildGraphData),
+      initializeProjectStructureData(context, buildGraphData, projectDefinition.projectIncludes),
       ProjectPath.ExternalRepositoryFinder.createEmptyForTests(),
       update,
     )
@@ -85,7 +85,7 @@ class TestDataSyncRunner(private val context: Context<*>, private val javaPackag
             BuildGraphData.ProtoRules.forTests(),
           )
           .parse(),
-      projectStructureData = initializeProjectStructureData(buildGraphData),
+      projectStructureData = initializeProjectStructureData(context, buildGraphData, projectDefinition.projectIncludes),
       artifactState = ArtifactTracker.State.EMPTY,
       project = project,
       incompleteTargets = emptySet(),

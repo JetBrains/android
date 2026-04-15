@@ -90,23 +90,28 @@ class SnapshotSerializer() {
 
   private fun visitProjectStructureData(projectStructureData: ProjectStructureData) {
     val structureProto = SnapshotProto.ProjectStructureData.newBuilder()
-    projectStructureData.packageSourceSets.forEach { (path, sourceSet) ->
-      structureProto.addPackageSourceSets(
-        SnapshotProto.SourceSet.newBuilder()
-          .apply {
-            setWorkspaceRelativePath(path.toString())
-            addAllJavaSourceFiles(sourceSet.javaSourceFiles.map { it.toString() })
-            addAllNonJavaSourceFiles(sourceSet.nonJavaSourceFiles.map { it.toString() })
-          }
-          .build()
-      )
+    projectStructureData.roots.forEach { root ->
+      val rootProto = SnapshotProto.ProjectStructureRoot.newBuilder().setProjectStructureRootPath(root.projectStructureRootPath.toString())
+
+      root.packageSourceSets.forEach { (path, sourceSet) ->
+        rootProto.addPackageSourceSets(
+          SnapshotProto.SourceSet.newBuilder()
+            .apply {
+              setWorkspaceRelativePath(path.toString())
+              addAllJavaSourceFiles(sourceSet.javaSourceFiles.map { it.toString() })
+              addAllNonJavaSourceFiles(sourceSet.nonJavaSourceFiles.map { it.toString() })
+            }
+            .build()
+        )
+      }
+      structureProto.addRoots(rootProto.build())
     }
     structureProto.addAllActiveLanguages(projectStructureData.activeLanguages.map { it.protoValue })
     proto.setProjectStructureData(structureProto.build())
   }
 
   companion object {
-    const val PROTO_VERSION: Int = 4
+    const val PROTO_VERSION: Int = 5
 
     private fun Operation.toProto(): VcsOperation =
       when (this) {

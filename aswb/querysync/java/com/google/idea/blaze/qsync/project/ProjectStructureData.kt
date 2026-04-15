@@ -25,18 +25,17 @@ data class SourceSet(
   val nonJavaSourceFiles: List<Path> = emptyList(),
 )
 
+/** Data class to hold the source sets associated with a project structure root. */
+data class ProjectStructureRoot(val projectStructureRootPath: Path, val packageSourceSets: Map<Path, SourceSet>)
+
 /**
  * A data class to hold the information required to setup a basic project structure.
  *
  * This class encapsulates a subset of data from [BuildGraphData] that is needed by [GraphToProjectConverter] to setup a basic project. Its
  * contents can be instantiated from a directory traversal and without running `bazel query`.
  */
-data class ProjectStructureData(
-  /** Map from build package path (relative to workspace root) to its source files. */
-  val packageSourceSets: Map<Path, SourceSet>,
-  val activeLanguages: Set<QuerySyncLanguage>,
-) {
+data class ProjectStructureData(val roots: List<ProjectStructureRoot>, val activeLanguages: Set<QuerySyncLanguage>) {
   companion object {
-    @JvmField val EMPTY = ProjectStructureData(packageSourceSets = emptyMap(), activeLanguages = emptySet())
+    @JvmField val EMPTY = ProjectStructureData(roots = emptyList(), activeLanguages = emptySet())
   }
 }

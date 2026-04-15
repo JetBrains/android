@@ -83,18 +83,24 @@ class SnapshotDeserializer private constructor() {
   }
 
   private fun visitProjectStructureData(proto: SnapshotProto.ProjectStructureData): ProjectStructureData {
-    val packageSourceSets =
-      proto.packageSourceSetsList.associate { sourceSet ->
-        Path.of(sourceSet.workspaceRelativePath) to
-          SourceSet(
-            javaSourceFiles = sourceSet.javaSourceFilesList.map { Path.of(it) },
-            nonJavaSourceFiles = sourceSet.nonJavaSourceFilesList.map { Path.of(it) },
-          )
+    val roots =
+      proto.rootsList.map { rootProto ->
+        ProjectStructureRoot(
+          projectStructureRootPath = Path.of(rootProto.projectStructureRootPath),
+          packageSourceSets =
+            rootProto.packageSourceSetsList.associate { sourceSet ->
+              Path.of(sourceSet.workspaceRelativePath) to
+                SourceSet(
+                  javaSourceFiles = sourceSet.javaSourceFilesList.map { Path.of(it) },
+                  nonJavaSourceFiles = sourceSet.nonJavaSourceFilesList.map { Path.of(it) },
+                )
+            },
+        )
       }
 
     val activeLanguages = proto.activeLanguagesList.mapNotNull { it.toQuerySyncLanguage() }.toSet()
 
-    return ProjectStructureData(packageSourceSets, activeLanguages)
+    return ProjectStructureData(roots, activeLanguages)
   }
 }
 

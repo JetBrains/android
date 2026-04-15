@@ -146,7 +146,8 @@ class QuerySyncProject(
     val projectStructureData =
       (if (readProjectStructureFromDirectory) {
         readProjectStructureFromDirectory(context, postQuerySyncData.projectDefinition())
-      } else null) ?: GraphToProjectConverter.initializeProjectStructureData(graph)
+      } else null)
+        ?: GraphToProjectConverter.initializeProjectStructureData(context, graph, postQuerySyncData.projectDefinition().projectIncludes)
     return QueryCoreSyncResult(postQuerySyncData, graph, projectStructureData)
   }
 

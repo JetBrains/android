@@ -53,7 +53,11 @@ object ProjectProtos {
       )
     val update = ProjectProtoUpdate(ProjectProto.Project.getDefaultInstance())
     val graph = BuildGraphs.forTestProject(project)
-    converter.configureProject(initializeProjectStructureData(graph), ProjectPath.ExternalRepositoryFinder.createEmptyForTests(), update)
+    converter.configureProject(
+      initializeProjectStructureData(QuerySyncTestUtils.NOOP_CONTEXT, graph, setOf(workspaceImportDirectory)),
+      ProjectPath.ExternalRepositoryFinder.createEmptyForTests(),
+      update,
+    )
     converter.configureProject(graph, ProjectPath.ExternalRepositoryFinder.createEmptyForTests(), update)
     return update.build()
   }

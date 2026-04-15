@@ -29,6 +29,7 @@ import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectStructureData
+import com.google.idea.blaze.qsync.project.ProjectStructureRoot
 import com.google.idea.blaze.qsync.project.ProjectTarget.SourceType
 import com.google.idea.blaze.qsync.project.SourceSet
 import com.google.idea.blaze.qsync.project.TestSourceGlobMatcher
@@ -44,7 +45,7 @@ import kotlinx.coroutines.runBlocking
 class GraphToProjectConverter(
   private val javaPackagePrefixReader: JavaPackagePrefixReader,
   private val context: Context<*>,
-  private val projectDefinition: ProjectDefinition,
+  val projectDefinition: ProjectDefinition,
 ) {
 
   /**
@@ -76,23 +77,26 @@ class GraphToProjectConverter(
    *       see the comment on that function.
    * </pre>
    *
-   * @param srcFiles all the files that should be included.
-   * @param packages the BUILD files to create source roots for.
+   * @param context the operation context.
+   * @param roots the project structure roots to calculate source roots for.
    * @return the content roots in the following form : Content Root -> Source Root -> package prefix. A content root contains multiple
    *   source roots, each one with a package prefix.
    */
   @VisibleForTesting
   @Throws(BuildException::class)
-  fun calculateJavaRootSources(context: Context<*>, packageSourceSets: Map<Path, SourceSet>): Map<Path, Map<Path, String>> {
-    val packages = PackageSet(packageSourceSets.keys)
-    val sourceFiles = packageSourceSets.values.flatMap { it.javaSourceFiles }
+  fun calculateJavaRootSources(context: Context<*>, roots: List<ProjectStructureRoot>): Map<Path, Map<Path, String>> {
+    val allPackageSourceSets = roots.flatMap { it.packageSourceSets.entries }.associate { it.key to it.value }
+    val packages = PackageSet(allPackageSourceSets.keys)
+    val sourceFiles = allPackageSourceSets.values.flatMap { it.javaSourceFiles }
     val prefixes = runBlocking { javaPackagePrefixReader.readPrefixes(context, packages, sourceFiles) }
 
-    // All packages split by their content roots
-    val rootToPrefix = splitByRoot(prefixes)
+    val split =
+      roots.associate { root ->
+        val rootPath = root.projectStructureRootPath
+        rootPath to prefixes.filter { it.key.startsWith(rootPath) }.mapKeys { rootPath.relativize(it.key) }
+      }
 
-    // Merging packages that can share the same prefix
-    return mergeCompatibleSourceRoots(rootToPrefix)
+    return mergeCompatibleSourceRoots(split)
   }
 
   /**
@@ -102,34 +106,24 @@ class GraphToProjectConverter(
    * @return mapping of content roots (project includes) to directories (relative to the content root) containing proto files.
    */
   @VisibleForTesting
-  fun nonJavaSourceFolders(nonJavaSrcFiles: Collection<Path>): Map<Path, Collection<Path>> {
-    data class SourceFolder(val root: Path, val contentRoot: Path)
-    return nonJavaSrcFiles
-      .mapNotNull { it.parent }
-      .distinct()
-      .mapNotNull { SourceFolder(root = it, contentRoot = projectDefinition.getIncludingContentRoot(it) ?: return@mapNotNull null) }
-      .groupBy({ it.contentRoot }, { it.contentRoot.relativize(it.root) })
-  }
-
-  @VisibleForTesting
-  fun splitByRoot(prefixes: Map<Path, String>): ImmutableMap<Path, ImmutableMap<Path, String>> {
-    val split: ImmutableMap.Builder<Path, ImmutableMap<Path, String>> = ImmutableMap.builder()
-    for (root in projectDefinition.projectIncludes) {
-      val inRoot: ImmutableMap.Builder<Path, String> = ImmutableMap.builder()
-      for (pkg in prefixes.entries) {
-        val rel = pkg.key
-        if (root.toString().isEmpty() || rel.startsWith(root)) {
-          val relToRoot = root.relativize(rel)
-          inRoot.put(relToRoot, pkg.value)
-        }
+  fun nonJavaSourceFolders(roots: List<ProjectStructureRoot>): Map<Path, Collection<Path>> {
+    return roots
+      .associate { root ->
+        val rootPath = root.projectStructureRootPath
+        val relDirs =
+          root.packageSourceSets.values
+            .flatMap { it.nonJavaSourceFiles }
+            .mapNotNull { it.parent }
+            .distinct()
+            .filter { projectDefinition.getIncludingContentRoot(it) != null }
+            .map { rootPath.relativize(it) }
+        rootPath to relDirs
       }
-      split.put(root, inRoot.buildKeepingLast())
-    }
-    return split.buildKeepingLast()
+      .filterValues { it.isNotEmpty() }
   }
 
   companion object {
-    fun initializeProjectStructureData(graph: BuildGraphData): ProjectStructureData {
+    fun initializeProjectStructureData(context: Context<*>, graph: BuildGraphData, projectIncludes: Set<Path>): ProjectStructureData {
       val javaSourceFiles = graph.getJavaSourceFiles()
       val nonJavaSourceFiles = graph.getSourceFilesByRuleKindAndType({ t -> !RuleKinds.isJava(t) }, *SourceType.all()).values.flatten()
 
@@ -168,7 +162,33 @@ class GraphToProjectConverter(
           )
         }
 
-      return ProjectStructureData(packageSourceSets = finalSourcesMap, activeLanguages = graph.getActiveLanguages())
+      val sourcesByRoot = associateByProjectRoot(finalSourcesMap, projectIncludes, context)
+
+      val roots =
+        sourcesByRoot.map { (includeRoot, packageMap) ->
+          ProjectStructureRoot(projectStructureRootPath = includeRoot, packageSourceSets = packageMap)
+        }
+
+      return ProjectStructureData(roots = roots, activeLanguages = graph.getActiveLanguages())
+    }
+
+    private fun associateByProjectRoot(
+      finalSourcesMap: Map<Path, SourceSet>,
+      projectIncludes: Set<Path>,
+      context: Context<*>,
+    ): Map<Path, Map<Path, SourceSet>> {
+      val sortedIncludes = projectIncludes.sortedByDescending { it.nameCount }
+      val result = mutableMapOf<Path, MutableMap<Path, SourceSet>>()
+
+      for ((pkgPath, sourceSet) in finalSourcesMap) {
+        val includeRoot = sortedIncludes.find { pkgPath.startsWith(it) }
+        if (includeRoot != null) {
+          result.computeIfAbsent(includeRoot) { mutableMapOf() }[pkgPath] = sourceSet
+        } else {
+          context.output(PrintOutput.log("WARNING: Package $pkgPath is outside all project structure roots"))
+        }
+      }
+      return result
     }
 
     private fun relativeParentOf(path: Path): Path? {
@@ -367,9 +387,8 @@ class GraphToProjectConverter(
     if (projectDefinition.isAndroidWorkspace) {
       markAsAndroidModule()
     }
-    val javaSourceRoots = calculateJavaRootSources(context, packages.packageSourceSets)
-    val allNonJavaSourceFiles = packages.packageSourceSets.values.flatMap { it.nonJavaSourceFiles }
-    val rootToNonJavaSource = nonJavaSourceFolders(allNonJavaSourceFiles)
+    val javaSourceRoots = calculateJavaRootSources(context, packages.roots)
+    val rootToNonJavaSource = nonJavaSourceFolders(packages.roots)
     val excludesByRootDirectory = projectDefinition.excludesByRootDirectory
     val testSourceGlobMatcher = TestSourceGlobMatcher.create(projectDefinition)
     for (dir in projectDefinition.projectIncludes) {

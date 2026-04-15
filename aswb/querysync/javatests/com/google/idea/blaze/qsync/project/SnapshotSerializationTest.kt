@@ -175,9 +175,16 @@ class SnapshotSerializationTest {
 
     val originalProjectStructureData =
       ProjectStructureData(
-        packageSourceSets =
-          mapOf(
-            Path.of("project/path") to SourceSet(javaSourceFiles = listOf(Path.of("A.java")), nonJavaSourceFiles = listOf(Path.of("B.txt")))
+        roots =
+          listOf(
+            ProjectStructureRoot(
+              projectStructureRootPath = Path.of("project"),
+              packageSourceSets =
+                mapOf(
+                  Path.of("project/path") to
+                    SourceSet(javaSourceFiles = listOf(Path.of("A.java")), nonJavaSourceFiles = listOf(Path.of("B.txt")))
+                ),
+            )
           ),
         activeLanguages = setOf(QuerySyncLanguage.JVM),
       )
@@ -191,7 +198,7 @@ class SnapshotSerializationTest {
 
     Truth.assertThat(deserializedSnapshot).isNotNull()
     Truth.assertThat(deserializedSnapshot!!.queryData).isEqualTo(originalSyncData)
-    Truth.assertThat(deserializedSnapshot.projectStructureData?.packageSourceSets).isEqualTo(originalProjectStructureData.packageSourceSets)
+    Truth.assertThat(deserializedSnapshot.projectStructureData?.roots).isEqualTo(originalProjectStructureData.roots)
     Truth.assertThat(deserializedSnapshot.projectStructureData?.activeLanguages).isEqualTo(originalProjectStructureData.activeLanguages)
   }
 
