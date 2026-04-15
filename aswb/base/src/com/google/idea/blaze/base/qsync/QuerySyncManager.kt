@@ -94,22 +94,31 @@ import kotlinx.coroutines.guava.await
 /**
  * The project component for a query based sync.
  *
- * This class manages sync'ing the intelliJ project state to the state of the Bazel project in the workspace, as well as building
- * dependencies of the project.
+ * This class manages sync'ing the intelliJ project state to the state of the Bazel project in the
+ * workspace, as well as building dependencies of the project.
  *
- * The sync'd state of a project is represented by [QuerySyncProjectSnapshot]. During the sync process, different parts of that are
- * available at different phases:
- * * [ProjectDefinition]: the input to the sync process that can be created from the project configuration. This class remained unchanged
- *   throughout sync.
- * * [PostQuerySyncData]: the state after the query invocation has been made, or after a delta has been applied to that. This class is the
- *   input and output to the partial update operation, and also contains the data that will be persisted to disk over an IDE restart.
- * * [QuerySyncProjectSnapshot]: the full project state, created in the last phase of sync from [PostQuerySyncData].
+ * The sync'd state of a project is represented by [QuerySyncProjectSnapshot]. During the sync
+ * process, different parts of that are available at different phases:
+ * * [ProjectDefinition]: the input to the sync process that can be created from the project
+ *   configuration. This class remained unchanged throughout sync.
+ * * [PostQuerySyncData]: the state after the query invocation has been made, or after a delta has
+ *   been applied to that. This class is the input and output to the partial update operation, and
+ *   also contains the data that will be persisted to disk over an IDE restart.
+ * * [QuerySyncProjectSnapshot]: the full project state, created in the last phase of sync from
+ *   [PostQuerySyncData].
  */
 class QuerySyncManager
 @VisibleForTesting
 @NonInjectable
-constructor(private val project: Project, private val coroutineScope: CoroutineScope, private val loader: ProjectLoader) : Disposable {
-  constructor(project: Project, coroutineScope: CoroutineScope) : this(project, coroutineScope, createProjectLoader(project))
+constructor(
+  private val project: Project,
+  private val coroutineScope: CoroutineScope,
+  private val loader: ProjectLoader,
+) : Disposable {
+  constructor(
+    project: Project,
+    coroutineScope: CoroutineScope,
+  ) : this(project, coroutineScope, createProjectLoader(project))
 
   val ideProject: Project
     get() = project
@@ -122,16 +131,23 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
 
   private var lastQueryInstant: Instant = Instant.DISTANT_PAST
 
-  private var lastProjectUpdateFromSnapshot: QuerySyncProjectSnapshot = QuerySyncProjectSnapshot.EMPTY
-  private var lastProjectUpdateFromArtifactState: ArtifactTracker.State = ArtifactTracker.State.EMPTY
+  private var lastProjectUpdateFromSnapshot: QuerySyncProjectSnapshot =
+    QuerySyncProjectSnapshot.EMPTY
+  private var lastProjectUpdateFromArtifactState: ArtifactTracker.State =
+    ArtifactTracker.State.EMPTY
 
   private val syncStatus: QuerySyncStatus = QuerySyncStatus(project)
-  val fileListener: QuerySyncAsyncFileListener = QuerySyncAsyncFileListener.createAndListen(project, this)
+  val fileListener: QuerySyncAsyncFileListener =
+    QuerySyncAsyncFileListener.createAndListen(project, this)
   private val cacheCleaner: CacheCleaner = CacheCleaner(project)
 
   @VisibleForTesting
   val artifactStore: ProjectArtifactStore =
-    ProjectArtifactStore(Path.of(project.basePath!!), project.service<BuildArtifactCache>(), FileRefresher(project))
+    ProjectArtifactStore(
+      Path.of(project.basePath!!),
+      project.service<BuildArtifactCache>(),
+      FileRefresher(project),
+    )
   private val userPreferences: QuerySyncUserPreferences
     get() = QuerySyncUserPreferencesProvider.getInstance(ideProject).userPreferences
 
@@ -163,7 +179,8 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     val subTitle: String
     val operationType: OperationType
 
-    @Throws(BuildException::class) fun execute(context: BlazeContext, querySyncManager: QuerySyncManager)
+    @Throws(BuildException::class)
+    fun execute(context: BlazeContext, querySyncManager: QuerySyncManager)
   }
 
   fun interface ThrowingScopedOperation {
@@ -175,20 +192,33 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
   val snapshotHolder: SnapshotHolder =
     SnapshotHolder().also { snapshotHolder ->
       snapshotHolder.addListener({ _, _, _ -> projectModificationTracker_.incModificationCount() })
-      QuerySyncProjectListenerProvider.createListenersFor(this).forEach { snapshotHolder.addListener(it) }
+      QuerySyncProjectListenerProvider.createListenersFor(this).forEach {
+        snapshotHolder.addListener(it)
+      }
     }
 
   @CanIgnoreReturnValue
-  fun reloadProject(querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin): ListenableFuture<Boolean> {
+  fun reloadProject(
+    querySyncActionStats: QuerySyncActionStatsScope,
+    taskOrigin: TaskOrigin,
+  ): ListenableFuture<Boolean> {
     return coroutineScope
-      .async { runOperationWithToolWindow(this, querySyncActionStats, taskOrigin, reloadProjectOperation()) }
+      .async {
+        runOperationWithToolWindow(this, querySyncActionStats, taskOrigin, reloadProjectOperation())
+      }
       .asListenableFuture()
   }
 
   private fun reloadProjectOperation(): QuerySyncOperation =
-    operation(title = "Loading project", subTitle = "Re-loading project", operationType = OperationType.SYNC) { context ->
+    operation(
+      title = "Loading project",
+      subTitle = "Re-loading project",
+      operationType = OperationType.SYNC,
+    ) { context ->
       val result = reloadProjectIfDefinitionHasChanged(context)
-      syncStatsScope(context) { context -> syncQueryData(context, result.existingPostQuerySyncData) }
+      syncStatsScope(context) { context ->
+        syncQueryData(context, result.existingPostQuerySyncData)
+      }
     }
 
   private class ReloadProjectResult(
@@ -202,11 +232,16 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     reloadProjectDefinitionIfChanged(context)
     val loadedProject =
       loadedProject?.takeUnless {
-        val currentProjectViewSet = BlazeImportSettingsManager.getInstance(ideProject).projectViewSet
+        val currentProjectViewSet =
+          BlazeImportSettingsManager.getInstance(ideProject).projectViewSet
         it.projectDefinition != loader.loadProjectDefinition(currentProjectViewSet).definition
-      } ?: runCatching { loader.loadProject() }.getOrElse { throw BuildException("Failed to load project", it) }
+      }
+        ?: runCatching { loader.loadProject() }
+          .getOrElse { throw BuildException("Failed to load project", it) }
     val existingSnapshotData =
-      currentSnapshot.getOrNull()?.let { SerializedProjectStructureAndQueryData(it.queryData, it.projectStructureData) }
+      currentSnapshot.getOrNull()?.let {
+        SerializedProjectStructureAndQueryData(it.queryData, it.projectStructureData)
+      }
         ?: runCatching { readSnapshotFromDisk(context) }
           .getOrElse {
             context.output(PrintOutput("Failed to read snapshot from disk. Error: ${it.message}"))
@@ -214,7 +249,8 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
             null
           }
     this.loadedProject = loadedProject
-    projectModificationTracker_.incModificationCount() // Loaded project should be managed by the SnapshotHolder.
+    projectModificationTracker_
+      .incModificationCount() // Loaded project should be managed by the SnapshotHolder.
     return ReloadProjectResult(
       project = loadedProject,
       existingPostQuerySyncData = existingSnapshotData?.queryData,
@@ -233,12 +269,23 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
   @CanIgnoreReturnValue
   fun onStartup(querySyncActionStats: QuerySyncActionStatsScope): ListenableFuture<Boolean> {
     return coroutineScope
-      .async { runOperationWithToolWindow(this, querySyncActionStats, TaskOrigin.STARTUP, startupOperation()) }
+      .async {
+        runOperationWithToolWindow(
+          this,
+          querySyncActionStats,
+          TaskOrigin.STARTUP,
+          startupOperation(),
+        )
+      }
       .asListenableFuture()
   }
 
   private fun startupOperation(): QuerySyncOperation =
-    operation(title = "Loading project", subTitle = "Initializing project structure", operationType = OperationType.SYNC) { context ->
+    operation(
+      title = "Loading project",
+      subTitle = "Initializing project structure",
+      operationType = OperationType.SYNC,
+    ) { context ->
       val result = reloadProjectIfDefinitionHasChanged(context)
       val existingPostQuerySyncData = result.existingPostQuerySyncData
       if (existingPostQuerySyncData == null || userPreferences.refreshQueryDataOnStartup) {
@@ -248,7 +295,8 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
         }
       } else {
         updateCurrentSnapshot(context) {
-          val coreSyncResult = assertProjectLoaded().computeQueryCoreSyncResult(context, existingPostQuerySyncData)
+          val coreSyncResult =
+            assertProjectLoaded().computeQueryCoreSyncResult(context, existingPostQuerySyncData)
           applySyncResult(coreSyncResult, coreSyncResult.projectStructureData)
         }
       }
@@ -260,41 +308,75 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
 
   private fun autoEnableComposeBasicDependenciesIfNeeded(context: BlazeContext) {
     val snapshot = currentSnapshot.getOrNull()
-    if (snapshot != null && BazelComposeToolingProjectLabelProvider.isComposeProject(project, snapshot.graph)) {
+    if (
+      snapshot != null &&
+        BazelComposeToolingProjectLabelProvider.isComposeProject(project, snapshot.graph)
+    ) {
       val label = BazelComposeToolingProjectLabelProvider.getComposeToolingLabel(project)
       if (label != null) {
         // TODO: solodkyy - This is a little bit inefficient
-        if (!assertProjectLoaded().artifactTracker.stateSnapshot.deprecatedSyncedTargetKeys().contains(label)) {
-          assertProjectLoaded().buildDependencies(context, DependencyTracker.DependencyBuildRequest.specialTarget(setOf(label)))
+        if (
+          !assertProjectLoaded()
+            .artifactTracker
+            .stateSnapshot
+            .deprecatedSyncedTargetKeys()
+            .contains(label)
+        ) {
+          assertProjectLoaded()
+            .buildDependencies(
+              context,
+              DependencyTracker.DependencyBuildRequest.specialTarget(setOf(label)),
+            )
         }
       }
     }
   }
 
   @CanIgnoreReturnValue
-  fun reapplyProjectStructure(querySyncActionStats: QuerySyncActionStatsScope): ListenableFuture<Boolean> {
+  fun reapplyProjectStructure(
+    querySyncActionStats: QuerySyncActionStatsScope
+  ): ListenableFuture<Boolean> {
     return coroutineScope
-      .async { runOperationWithToolWindow(this, querySyncActionStats, TaskOrigin.USER_ACTION, reapplyProjectStructureOperation()) }
+      .async {
+        runOperationWithToolWindow(
+          this,
+          querySyncActionStats,
+          TaskOrigin.USER_ACTION,
+          reapplyProjectStructureOperation(),
+        )
+      }
       .asListenableFuture()
   }
 
   private fun reapplyProjectStructureOperation(): QuerySyncOperation =
-    operation(title = "Updating project structure", subTitle = "Re-applying project structure", operationType = OperationType.SYNC) {
-      context ->
+    operation(
+      title = "Updating project structure",
+      subTitle = "Re-applying project structure",
+      operationType = OperationType.SYNC,
+    ) { context ->
       lastProjectUpdateFromArtifactState = ArtifactTracker.State.EMPTY
       lastProjectUpdateFromSnapshot = QuerySyncProjectSnapshot.EMPTY
       updateCurrentSnapshot(context) { copy(project = ProjectProto.Project.getDefaultInstance()) }
     }
 
   @CanIgnoreReturnValue
-  fun fullSync(querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin): ListenableFuture<Boolean> {
+  fun fullSync(
+    querySyncActionStats: QuerySyncActionStatsScope,
+    taskOrigin: TaskOrigin,
+  ): ListenableFuture<Boolean> {
     return coroutineScope
-      .async { runOperationWithToolWindow(this, querySyncActionStats, taskOrigin, fullSyncOperation()) }
+      .async {
+        runOperationWithToolWindow(this, querySyncActionStats, taskOrigin, fullSyncOperation())
+      }
       .asListenableFuture()
   }
 
   private fun fullSyncOperation(): QuerySyncOperation =
-    operation(title = "Updating project structure", subTitle = "Re-importing project", operationType = OperationType.SYNC) { context ->
+    operation(
+      title = "Updating project structure",
+      subTitle = "Re-importing project",
+      operationType = OperationType.SYNC,
+    ) { context ->
       val result = reloadProjectIfDefinitionHasChanged(context)
       syncStatsScope(context) { context -> syncQueryData(context, postQuerySyncData = null) }
       if (userPreferences.commitProjectStructureAfterQuery) {
@@ -304,16 +386,27 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     }
 
   @CanIgnoreReturnValue
-  fun deltaSync(querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin): ListenableFuture<Boolean> {
+  fun deltaSync(
+    querySyncActionStats: QuerySyncActionStatsScope,
+    taskOrigin: TaskOrigin,
+  ): ListenableFuture<Boolean> {
     return coroutineScope
-      .async { runOperationWithToolWindow(this, querySyncActionStats, taskOrigin, deltaSyncOperation()) }
+      .async {
+        runOperationWithToolWindow(this, querySyncActionStats, taskOrigin, deltaSyncOperation())
+      }
       .asListenableFuture()
   }
 
   private fun deltaSyncOperation(): QuerySyncOperation =
-    operation(title = "Updating project structure", subTitle = "Refreshing project", operationType = OperationType.SYNC) { context ->
+    operation(
+      title = "Updating project structure",
+      subTitle = "Refreshing project",
+      operationType = OperationType.SYNC,
+    ) { context ->
       val result = reloadProjectIfDefinitionHasChanged(context)
-      syncStatsScope(context) { context -> syncQueryData(context, result.existingPostQuerySyncData) }
+      syncStatsScope(context) { context ->
+        syncQueryData(context, result.existingPostQuerySyncData)
+      }
       if (userPreferences.commitProjectStructureAfterQuery) {
         updateProjectStructureAndSnapshot(context)
       }
@@ -326,11 +419,20 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     taskOrigin: TaskOrigin,
   ): ListenableFuture<Boolean> {
     return coroutineScope
-      .async { runOperationWithToolWindow(this, querySyncActionStats, taskOrigin, syncQueryDataIfNeededOperation(workspaceRelativePaths)) }
+      .async {
+        runOperationWithToolWindow(
+          this,
+          querySyncActionStats,
+          taskOrigin,
+          syncQueryDataIfNeededOperation(workspaceRelativePaths),
+        )
+      }
       .asListenableFuture()
   }
 
-  private fun syncQueryDataIfNeededOperation(workspaceRelativePaths: Collection<Path>): QuerySyncOperation =
+  private fun syncQueryDataIfNeededOperation(
+    workspaceRelativePaths: Collection<Path>
+  ): QuerySyncOperation =
     operation(
       title = "Updating build structure",
       subTitle = "Refreshing build structure",
@@ -338,7 +440,10 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
       applyProjectStructureChanges = false,
     ) { context ->
       assertProjectLoaded()
-      if (fileListener.hasModifiedBuildFiles() || getTargetsToBuildByPaths(workspaceRelativePaths).any { it.requiresQueryDataRefresh() }) {
+      if (
+        fileListener.hasModifiedBuildFiles() ||
+          getTargetsToBuildByPaths(workspaceRelativePaths).any { it.requiresQueryDataRefresh() }
+      ) {
         val result = reloadProjectIfDefinitionHasChanged(context)
         syncQueryData(context, result.existingPostQuerySyncData)
       }
@@ -356,7 +461,11 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
       withSyncEventsPublished(context) {
         statsScope?.let { context.push(it) }
         operation.execute(context, this)
-        logSyncStats(context, loadedProject, currentSnapshot.getOrNull()) // Not logging new project stats on exception.
+        logSyncStats(
+          context,
+          loadedProject,
+          currentSnapshot.getOrNull(),
+        ) // Not logging new project stats on exception.
       }
     }
   }
@@ -369,8 +478,15 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     operation: suspend CoroutineScope.(BlazeContext) -> Unit,
   ): Boolean {
     val resultFuture = blockingContext {
-      ProgressiveTaskWithProgressIndicator.builder(project, title).submitTaskWithResult { indicator ->
-        runTaskWithToolWindow(project, title, subTitle, taskOrigin, BlazeUserSettings.getInstance()) { context ->
+      ProgressiveTaskWithProgressIndicator.builder(project, title).submitTaskWithResult { indicator
+        ->
+        runTaskWithToolWindow(
+          project,
+          title,
+          subTitle,
+          taskOrigin,
+          BlazeUserSettings.getInstance(),
+        ) { context ->
           context.push(ProgressIndicatorScope(indicator))
           context.addCancellationHandler { indicator.cancel() }
           runBlockingCancellable { operation(context) }
@@ -408,7 +524,10 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     operation: QuerySyncOperation,
   ): Boolean =
     runOperation(statsScope, taskOrigin, operation) { op ->
-      bazelOutputToolWindowScope(coroutineScope, operation.title, operation.subTitle, taskOrigin) { context -> op(context) }
+      bazelOutputToolWindowScope(coroutineScope, operation.title, operation.subTitle, taskOrigin) {
+        context ->
+        op(context)
+      }
     }
 
   private fun <T> withSyncEventsPublished(context: BlazeContext, block: () -> T): T {
@@ -471,14 +590,17 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
   private fun syncQueryData(context: BlazeContext, postQuerySyncData: PostQuerySyncData?) {
     val queryInstant = Clock.System.now()
     val coreSyncResult = assertProjectLoaded().syncQueryCore(context, postQuerySyncData)
-    updateCurrentSnapshot(context) { applySyncResult(coreSyncResult, coreSyncResult.projectStructureData) }
+    updateCurrentSnapshot(context) {
+      applySyncResult(coreSyncResult, coreSyncResult.projectStructureData)
+    }
     lastQueryInstant = queryInstant
   }
 
   private fun autoEnableCodeAnalysis(context: BlazeContext, startup: Boolean = false): Boolean {
     val project = loadedProject ?: return false
     // Checking the state of the tracker directly as the snapshot has not been yet updated.
-    val codeAnalysisHasBeenEnabled = this.loadedProject?.artifactTracker?.stateSnapshot?.targets()?.isNotEmpty() ?: false
+    val codeAnalysisHasBeenEnabled =
+      this.loadedProject?.artifactTracker?.stateSnapshot?.targets()?.isNotEmpty() ?: false
     if (userPreferences.enableCodeAnalysisOnSync && !(codeAnalysisHasBeenEnabled && startup)) {
       project.buildDependencies(context, DependencyTracker.DependencyBuildRequest.wholeProject())
       return true
@@ -488,8 +610,10 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
 
   @Throws(BuildException::class)
   fun updateProjectStructureAndSnapshot(context: BlazeContext) {
-    val newSnapshot: QuerySyncProjectSnapshot = currentSnapshot.orElse(QuerySyncProjectSnapshot.EMPTY)
-    val newArtifactState = loadedProject?.artifactTracker?.stateSnapshot ?: ArtifactTracker.State.EMPTY
+    val newSnapshot: QuerySyncProjectSnapshot =
+      currentSnapshot.orElse(QuerySyncProjectSnapshot.EMPTY)
+    val newArtifactState =
+      loadedProject?.artifactTracker?.stateSnapshot ?: ArtifactTracker.State.EMPTY
     if (
       lastProjectUpdateFromSnapshot.queryData == newSnapshot.queryData &&
         lastProjectUpdateFromSnapshot.graph == newSnapshot.graph &&
@@ -501,7 +625,13 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     }
     val loadedProject = assertProjectLoaded()
     val snapshot = currentSnapshot.getOrDefault(QuerySyncProjectSnapshot.EMPTY)
-    val result = loadedProject.createProjectStructure(context, snapshot.queryData, snapshot.graph, snapshot.projectStructureData)
+    val result =
+      loadedProject.createProjectStructure(
+        context,
+        snapshot.queryData,
+        snapshot.graph,
+        snapshot.projectStructureData,
+      )
     val updatedSnapshot =
       onNewSnapshot(
         context,
@@ -569,7 +699,11 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
   private fun writeToDisk(snapshot: QuerySyncProjectSnapshot) {
     AtomicFileWriter.create(getSnapshotFilePath(ideProject)).use { writer ->
       GZIPOutputStream(writer.outputStream).use { zip ->
-        val message = SnapshotSerializer().visit(snapshot.queryData).visit(snapshot.projectStructureData).toProto()
+        val message =
+          SnapshotSerializer()
+            .visit(snapshot.queryData)
+            .visit(snapshot.projectStructureData)
+            .toProto()
         val codedOutput = CodedOutputStream.newInstance(zip, 1024 * 1024)
         message.writeTo(codedOutput)
         codedOutput.flush()
@@ -596,15 +730,29 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
       return Futures.immediateFuture(true)
     }
     return coroutineScope
-      .async { runOperationWithToolWindow(this, querySyncActionStats, taskOrigin, enableAnalysisOperation(targets)) }
+      .async {
+        runOperationWithToolWindow(
+          this,
+          querySyncActionStats,
+          taskOrigin,
+          enableAnalysisOperation(targets),
+        )
+      }
       .asListenableFuture()
   }
 
   fun enableAnalysisOperation(targets: Set<Label>): QuerySyncOperation =
-    operation(title = "Building dependencies", subTitle = "Building...", operationType = OperationType.BUILD_DEPS) { context ->
+    operation(
+      title = "Building dependencies",
+      subTitle = "Building...",
+      operationType = OperationType.BUILD_DEPS,
+    ) { context ->
       assertProjectLoaded()
-      context.output(PrintOutput.output("Building dependencies for:\n  " + Joiner.on("\n  ").join(targets)))
-      assertProjectLoaded().buildDependencies(context, DependencyTracker.DependencyBuildRequest.multiTarget(targets))
+      context.output(
+        PrintOutput.output("Building dependencies for:\n  " + Joiner.on("\n  ").join(targets))
+      )
+      assertProjectLoaded()
+        .buildDependencies(context, DependencyTracker.DependencyBuildRequest.multiTarget(targets))
     }
 
   @CanIgnoreReturnValue
@@ -617,27 +765,55 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
       return Futures.immediateFuture(true)
     }
     return coroutineScope
-      .async { runOperationWithToolWindow(this, querySyncActionStats, taskOrigin, enableAnalysisForReverseDependenciesOperation(targets)) }
+      .async {
+        runOperationWithToolWindow(
+          this,
+          querySyncActionStats,
+          taskOrigin,
+          enableAnalysisForReverseDependenciesOperation(targets),
+        )
+      }
       .asListenableFuture()
   }
 
-  private fun enableAnalysisForReverseDependenciesOperation(targets: Set<Label>): QuerySyncOperation =
-    operation(title = "Building dependencies for affected targets", subTitle = "Building...", operationType = OperationType.BUILD_DEPS) {
-      context ->
+  private fun enableAnalysisForReverseDependenciesOperation(
+    targets: Set<Label>
+  ): QuerySyncOperation =
+    operation(
+      title = "Building dependencies for affected targets",
+      subTitle = "Building...",
+      operationType = OperationType.BUILD_DEPS,
+    ) { context ->
       val loadedProject = assertProjectLoaded()
-      context.output(PrintOutput.output("Building reverse dependencies for:\n  " + Joiner.on("\n  ").join(targets)))
+      context.output(
+        PrintOutput.output(
+          "Building reverse dependencies for:\n  " + Joiner.on("\n  ").join(targets)
+        )
+      )
       if (
         loadedProject.buildDependencies(
           context,
-          DependencyTracker.DependencyBuildRequest.multiTarget(loadedProject.getTargetsDependingOn(targets)),
+          DependencyTracker.DependencyBuildRequest.multiTarget(
+            loadedProject.getTargetsDependingOn(targets)
+          ),
         )
       ) {}
     }
 
   @CanIgnoreReturnValue
-  fun enableAnalysisForWholeProject(querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin): ListenableFuture<Boolean> {
+  fun enableAnalysisForWholeProject(
+    querySyncActionStats: QuerySyncActionStatsScope,
+    taskOrigin: TaskOrigin,
+  ): ListenableFuture<Boolean> {
     return coroutineScope
-      .async { runOperationWithToolWindow(this, querySyncActionStats, taskOrigin, enableAnalysisForWholeProjectOperation()) }
+      .async {
+        runOperationWithToolWindow(
+          this,
+          querySyncActionStats,
+          taskOrigin,
+          enableAnalysisForWholeProjectOperation(),
+        )
+      }
       .asListenableFuture()
   }
 
@@ -648,27 +824,52 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
       operationType = OperationType.BUILD_DEPS,
     ) { context ->
       context.output(PrintOutput.output("Building project dependencies..."))
-      assertProjectLoaded().buildDependencies(context, DependencyTracker.DependencyBuildRequest.wholeProject())
+      assertProjectLoaded()
+        .buildDependencies(context, DependencyTracker.DependencyBuildRequest.wholeProject())
     }
 
   @CanIgnoreReturnValue
-  fun clearAllDependencies(querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin): ListenableFuture<Boolean> {
+  fun clearAllDependencies(
+    querySyncActionStats: QuerySyncActionStatsScope,
+    taskOrigin: TaskOrigin,
+  ): ListenableFuture<Boolean> {
     return coroutineScope
-      .async { runOperationWithToolWindow(this, querySyncActionStats, taskOrigin, clearAllDependenciesOperation()) }
+      .async {
+        runOperationWithToolWindow(
+          this,
+          querySyncActionStats,
+          taskOrigin,
+          clearAllDependenciesOperation(),
+        )
+      }
       .asListenableFuture()
   }
 
   private fun clearAllDependenciesOperation(): QuerySyncOperation =
-    operation(title = "Clearing dependencies", subTitle = "Removing all built dependencies", operationType = OperationType.OTHER) { context
-      ->
+    operation(
+      title = "Clearing dependencies",
+      subTitle = "Removing all built dependencies",
+      operationType = OperationType.OTHER,
+    ) { context ->
       val assertProjectLoaded = assertProjectLoaded()
-      runCatching { assertProjectLoaded.artifactTracker.clear() }.getOrElse { throw BuildException("Failed to clear dependency info", it) }
+      runCatching { assertProjectLoaded.artifactTracker.clear() }
+        .getOrElse { throw BuildException("Failed to clear dependency info", it) }
     }
 
   @CanIgnoreReturnValue
-  fun resetQuerySyncState(querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin): ListenableFuture<Boolean> {
+  fun resetQuerySyncState(
+    querySyncActionStats: QuerySyncActionStatsScope,
+    taskOrigin: TaskOrigin,
+  ): ListenableFuture<Boolean> {
     return coroutineScope
-      .async { runOperationWithToolWindow(this, querySyncActionStats, taskOrigin, resetQuerySyncOperation()) }
+      .async {
+        runOperationWithToolWindow(
+          this,
+          querySyncActionStats,
+          taskOrigin,
+          resetQuerySyncOperation(),
+        )
+      }
       .asListenableFuture()
   }
 
@@ -701,7 +902,9 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
       loadedProject
         .runCatching { loadedProject.artifactTracker.clear() }
         .getOrElse { throw BuildException("Failed to clear dependency info", it) }
-      updateCurrentSnapshot(context) { copy(queryData = PostQuerySyncData.EMPTY, graph = BuildGraphData.EMPTY) }
+      updateCurrentSnapshot(context) {
+        copy(queryData = PostQuerySyncData.EMPTY, graph = BuildGraphData.EMPTY)
+      }
     }
   }
 
@@ -738,38 +941,58 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     val projectViewManager = ProjectViewManager.getInstance(project)
     val importSettings = BlazeImportSettingsManager.getInstance(project).importSettings ?: return
     val currentProjectViewSet =
-      projectViewManager.doLoadProjectView(BlazeContext.create(), /* Load silently for comparison*/ importSettings)
+      projectViewManager.doLoadProjectView(
+        BlazeContext.create(), /* Load silently for comparison*/
+        importSettings,
+      )
     if (BlazeImportSettingsManager.getInstance(project).projectViewSet != currentProjectViewSet) {
       ProjectViewManager.getInstance(project).reloadProjectView(context)
     }
   }
 
   /** Displays error notification popup balloon in IDE. */
-  fun notifyError(title: String, content: String) = notifyInternal(title, content, NotificationType.ERROR)
+  fun notifyError(title: String, content: String) =
+    notifyInternal(title, content, NotificationType.ERROR)
 
   /** Displays warning notification popup balloon in IDE. */
-  fun notifyWarning(title: String, content: String) = notifyInternal(title, content, NotificationType.WARNING)
+  fun notifyWarning(title: String, content: String) =
+    notifyInternal(title, content, NotificationType.WARNING)
 
   private fun notifyInternal(title: String, content: String, notificationType: NotificationType) {
-    Notifications.Bus.notify(Notification(NOTIFICATION_GROUP, title, content, notificationType), project)
+    Notifications.Bus.notify(
+      Notification(NOTIFICATION_GROUP, title, content, notificationType),
+      project,
+    )
   }
 
   fun cleanCacheNow() = cacheCleaner.cleanNow()
 
   fun purgeBuildCache(actionScope: QuerySyncActionStatsScope) {
     coroutineScope
-      .async { runOperationWithToolWindow(this, actionScope, TaskOrigin.USER_ACTION, purgeBuildCacheOperation()) }
+      .async {
+        runOperationWithToolWindow(
+          this,
+          actionScope,
+          TaskOrigin.USER_ACTION,
+          purgeBuildCacheOperation(),
+        )
+      }
       .asListenableFuture()
   }
 
   private fun purgeBuildCacheOperation(): QuerySyncOperation =
-    operation(title = "Purging build cache", subTitle = "Deleting all cached build artifacts", operationType = OperationType.OTHER) {
-      context ->
+    operation(
+      title = "Purging build cache",
+      subTitle = "Deleting all cached build artifacts",
+      operationType = OperationType.OTHER,
+    ) { context ->
       assertProjectLoaded().buildArtifactCache.purge()
     }
 
   val querySyncUrl: Optional<String>
-    get() = BuildSystemProvider.getBuildSystemProvider(Blaze.getBuildSystemName(project))?.querySyncDocumentationUrl ?: Optional.empty()
+    get() =
+      BuildSystemProvider.getBuildSystemProvider(Blaze.getBuildSystemName(project))
+        ?.querySyncDocumentationUrl ?: Optional.empty()
 
   fun getDependencyTracker(): DependencyTracker? = loadedProject?.dependencyTracker
 
@@ -778,7 +1001,9 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
   }
 
   fun getBugreportFiles(): Map<String, ByteSource> {
-    return ImmutableMap.builder<String, ByteSource>().putAll(artifactStore.getBugreportFiles()).build()
+    return ImmutableMap.builder<String, ByteSource>()
+      .putAll(artifactStore.getBugreportFiles())
+      .build()
   }
 
   override fun dispose() = Unit
@@ -786,7 +1011,9 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
   companion object {
     const val NOTIFICATION_GROUP: String = "QuerySyncBuild"
 
-    @JvmStatic fun getInstance(project: Project): QuerySyncManager = project.getService(QuerySyncManager::class.java)
+    @JvmStatic
+    fun getInstance(project: Project): QuerySyncManager =
+      project.getService(QuerySyncManager::class.java)
 
     @JvmStatic
     fun createOperation(
@@ -822,21 +1049,34 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     }
 
     private fun createProjectLoader(project: Project): ProjectLoader {
-      val buildSystemName = Blaze.getBuildSystemName(project) ?: error("Cannot determine the build system")
+      val buildSystemName =
+        Blaze.getBuildSystemName(project) ?: error("Cannot determine the build system")
       val buildSystemProvider =
-        BuildSystemProvider.getBuildSystemProvider(buildSystemName) ?: error("Cannot get BuildSystemProvider for $buildSystemName")
+        BuildSystemProvider.getBuildSystemProvider(buildSystemName)
+          ?: error("Cannot get BuildSystemProvider for $buildSystemName")
       return buildSystemProvider.createProjectLoader(project)
     }
   }
 }
 
-fun QuerySyncManager.updateCurrentSnapshot(context: BlazeContext, mutator: QuerySyncProjectSnapshot.() -> QuerySyncProjectSnapshot) {
-  snapshotHolder.setCurrent(context, assertProjectLoaded(), currentSnapshot.orElse(QuerySyncProjectSnapshot.EMPTY).mutator())
+fun QuerySyncManager.updateCurrentSnapshot(
+  context: BlazeContext,
+  mutator: QuerySyncProjectSnapshot.() -> QuerySyncProjectSnapshot,
+) {
+  snapshotHolder.setCurrent(
+    context,
+    assertProjectLoaded(),
+    currentSnapshot.orElse(QuerySyncProjectSnapshot.EMPTY).mutator(),
+  )
 }
 
 fun QuerySyncProjectSnapshot.applySyncResult(
   coreSyncResult: QuerySyncProject.QueryCoreSyncResult,
   projectStructureData: ProjectStructureData,
 ): QuerySyncProjectSnapshot {
-  return copy(queryData = coreSyncResult.postQuerySyncData, graph = coreSyncResult.graph, projectStructureData = projectStructureData)
+  return copy(
+    queryData = coreSyncResult.postQuerySyncData,
+    graph = coreSyncResult.graph,
+    projectStructureData = projectStructureData,
+  )
 }
