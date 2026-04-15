@@ -21,6 +21,7 @@ import com.android.prefs.AndroidLocationsException
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.repository.api.ProgressIndicator
 import com.android.repository.api.RepoPackage
+import com.android.sdklib.SystemImageTags
 import com.android.sdklib.deviceprovisioner.DeviceActionCanceledException
 import com.android.sdklib.deviceprovisioner.DeviceActionException
 import com.android.sdklib.deviceprovisioner.ProcessHandleProvider
@@ -455,7 +456,9 @@ constructor(
     private fun canLaunchInToolWindow(avd: AvdInfo, project: Project?): Boolean {
       return project != null &&
         ToolWindowManager.getInstance(project).getToolWindow("Running Devices") != null &&
-        (StudioFlags.EMBEDDED_EMULATOR_ALLOW_AI_GLASSES_AVD.get() || !avd.isAiGlassesDevice)
+        (StudioFlags.EMBEDDED_EMULATOR_ALLOW_AI_GLASSES_AVD.get() || !avd.isAiGlassesDevice) &&
+        (StudioFlags.EMBEDDED_EMULATOR_ALLOW_DESKTOP_SDK37PLUS_AVD.get() ||
+          !(avd.hasTag(SystemImageTags.DESKTOP_TAG.getId()) && avd.androidVersion.isAtLeast(37)))
     }
 
     @JvmStatic
