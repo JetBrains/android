@@ -17,15 +17,18 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.module.Module
+import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
+import org.jetbrains.kotlin.analysis.api.KaIdeApi
+import org.jetbrains.kotlin.analysis.api.components.KaCompilationOptionsBuilder
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArgumentsConfigurator
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2MetadataCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
 import org.jetbrains.kotlin.cli.common.arguments.toLanguageVersionSettings
-import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.create
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.idea.base.projectStructure.languageVersionSettings
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
@@ -46,6 +49,80 @@ import org.jetbrains.kotlin.psi.KtFile
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+@KaExperimentalApi
+fun KaCompilationOptionsBuilder.configureCommonKotlinCompilationOptions(module: Module, file: KtFile) {
+  if (file.module != module) {
+    // *Note*: currently all 3 callers satisfy this condition and [module] parameter is going to be removed once both compose previews and
+    // live edit migration to build system specific extension points is completed.
+    error("$file must belong to $module")
+  }
+
+  configureModuleName(module)
+
+  // This flag was created mostly for experimental Live Edit for ASwB. We should no longer be relying it
+  // once we can fetch flags from QuerySync
+  //
+  // see ApplicationLiveEditServices.getKotlinCompilerConfiguration which current not implemented on the Blaze side.
+  if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_COMPILER_FLAGS.get().isNotEmpty()) {
+    val flags = StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_COMPILER_FLAGS.get().split(" ")
+    val mainKotlinCompilerOptions = parseCommandLineArguments<K2JVMCompilerArguments>(flags)
+    val languageSettings = mainKotlinCompilerOptions.toLanguageVersionSettings(CommonCompilerArgumentsConfigurator.Reporter.DoNothing)
+    configureLanguageVersionSettings(languageSettings)
+  } else {
+    configureLanguageVersionSettings(file.languageVersionSettings)
+  }
+
+  // TODO(b/367786795): We met an exception from JVM IR CodeGen in the middle of K2 LiveEdit. It was caused by an
+  //  optimization similar to constant propagation. As explained in https://youtrack.jetbrains.com/issue/KT-70261,
+  //  "It is kind of experimental (because of -X) but only because the whole interpretation and optimization
+  //  thing is experimental.", we simply pass `-Xignore-const-optimization-errors`. When the optimization is
+  //  stable, we can drop this.
+  @OptIn(KaIdeApi::class)
+  ignoreConstOptimizationErrors(true)
+}
+
+@KaExperimentalApi
+fun KaCompilationOptionsBuilder.configureModuleName(module: Module) {
+  val moduleNameFromFacet = KotlinFacet.get(module)?.let { kotlinFacet ->
+    when (val compilerArguments = kotlinFacet.configuration.settings.compilerArguments) {
+      is K2JVMCompilerArguments -> compilerArguments.moduleName
+      is K2MetadataCompilerArguments -> compilerArguments.moduleName
+      else -> null
+    }
+  }
+
+  moduleName(moduleNameFromFacet ?: module.name)
+}
+
+@KaExperimentalApi
+@OptIn(KaIdeApi::class)
+fun KaCompilationOptionsBuilder.configureLanguageVersionSettings(languageVersionSettings: LanguageVersionSettings) {
+  languageVersionSettings(languageVersionSettings)
+
+  // Needed so we can diff changes to method parameters and parameter annotations.
+  jvmGenerateParameterMetadata(true)
+
+  when(StudioFlags.CLOSURE_SCHEME.get()!!) {
+    StudioFlags.ClosureScheme.CLASS -> {
+      jvmUseInvokeDynamicForSamConversions(false)
+      jvmUseInvokeDynamicForLambdas(false)
+    }
+    StudioFlags.ClosureScheme.INDY -> {
+      jvmUseInvokeDynamicForSamConversions(true)
+      jvmUseInvokeDynamicForLambdas(true)
+    }
+  }
+
+  // Link via signatures and not descriptors.
+  //
+  // This ensures that even if the project has descriptors for basic types from multiple stdlib
+  // versions, they all end up mapping to the basic types from the stdlib used for the current
+  // compilation.
+  //
+  // See b/256957527 for details.
+  jvmLinkViaSignatures(true)
+}
 
 fun getCompilerConfiguration(
   module: Module,
