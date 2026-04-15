@@ -387,6 +387,28 @@ public class TransportServiceProxyTest {
     assertThat(transportDevice.getBootId()).isEqualTo("boot-id");
   }
 
+  @Test
+  public void testArtVersionCodeRetrievedFromDevice() throws Exception {
+    IDevice mockDevice = createMockDevice(37, new Client[0]);
+    doAnswer(invocation -> {
+      Object[] args = invocation.getArguments();
+      byte[] bytes = "package:com.google.android.art versionCode:373399999\n".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+      ((IShellOutputReceiver)args[1]).addOutput(bytes, 0, bytes.length);
+      ((IShellOutputReceiver)args[1]).flush();
+      return null;
+    }).when(mockDevice).executeShellCommand(org.mockito.ArgumentMatchers.matches(".*com\\.google\\.android\\.art.*"), any(IShellOutputReceiver.class), org.mockito.ArgumentMatchers.anyLong(), any(java.util.concurrent.TimeUnit.class));
+
+    Common.Device profilerDevice = TransportServiceProxy.transportDeviceFromIDevice(mockDevice);
+    assertThat(profilerDevice.getArtVersionCode()).isEqualTo(373399999L);
+  }
+
+  @Test
+  public void testArtVersionCodeDefaultsToZeroOnOlderDevices() throws Exception {
+    IDevice mockDevice = createMockDevice(30, new Client[0]); // API < 31 (S)
+    Common.Device profilerDevice = TransportServiceProxy.transportDeviceFromIDevice(mockDevice);
+    assertThat(profilerDevice.getArtVersionCode()).isEqualTo(0L);
+  }
+
   /**
    * @param uniqueName Name should be unique across tests.
    */

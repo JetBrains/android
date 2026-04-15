@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers;
 
 import static com.android.tools.profilers.StudioProfilers.DAEMON_DEVICE_DIR_PATH;
+import static com.android.tools.profilers.cpu.config.ArtMethodTraceOutputFormatKt.getArtMethodTraceOutputVersion;
 
 import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
@@ -257,6 +258,11 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
 
     // Set the options field of the TraceConfiguration with the respective profiling configuration.
     profilingConfiguration.addOptions(configurationBuilder, Map.of(AdditionalOptions.APP_PKG_NAME, appPackageName));
+
+    if (configurationBuilder.hasArtOptions()) {
+      configurationBuilder.getArtOptionsBuilder().setProfilerOutputVersion(getArtMethodTraceOutputVersion(profilerDevice, StudioFlags.PROFILER_METHOD_TRACE_IN_EDITOR.get()));
+    }
+
     Trace.TraceConfiguration configuration = configurationBuilder.build();
 
     try {
@@ -286,6 +292,13 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     }
 
     StringBuilder argsBuilder = new StringBuilder("--start-profiler ").append(traceFilePath);
+
+    // Version 1 is the default on-device behavior. The argument --profiler_output_version is omitted
+    // when output version is 1 as older devices (API < 35) do not recognize it.
+    int profilerOutputVersion = configuration.getArtOptions().getProfilerOutputVersion();
+    if (profilerOutputVersion > 1) {
+      argsBuilder.append(" --profiler-output-version ").append(profilerOutputVersion);
+    }
     if (startupConfig.getTechnology() == CpuProfilerConfig.Technology.SAMPLED_JAVA) {
       argsBuilder.append(" --sampling ").append(startupConfig.getSamplingIntervalUs());
     }
@@ -299,7 +312,6 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
   private static boolean isAtLeast(@NotNull IDevice device, int version) {
     return device.getVersion().getFeatureLevel() >= version;
   }
-
 
   @Nullable
   private static AndroidRunConfigurationBase getSelectedRunConfiguration(@NotNull Project project) {

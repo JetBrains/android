@@ -438,6 +438,7 @@ class TransportServiceProxy(
 
     private const val EMULATOR = "Emulator"
     const val PRE_LOLLIPOP_FAILURE_REASON = "Pre-Lollipop devices are not supported."
+    private val ART_VERSION_CODE_REGEX = Regex("package:com\\.google\\.android\\.art versionCode:(\\d+)")
 
     /**
      * Converts an [IDevice] object into a [Common.Device].
@@ -465,7 +466,40 @@ class TransportServiceProxy(
         .setCpuAbi(device.getProperty(IDevice.PROP_DEVICE_CPU_ABI))
         .setState(convertState(device.state))
         .setUnsupportedReason(getDeviceUnsupportedReason(device))
+        .setArtVersionCode(getArtVersionCode(device))
         .build()
+    }
+
+    /**
+     * Retrieves the version code of the com.google.android.art mainline module.
+     *
+     * The ART mainline module was introduced in Android 12 (API 31 - S). For devices running older Android versions, this method will
+     * immediately return 0.
+     *
+     * @param device the IDevice to query.
+     * @return the ART module version code, or 0L if not supported or an error occurs.
+     */
+    private fun getArtVersionCode(device: IDevice): Long {
+      if (device.version.featureLevel < AndroidVersion.VersionCodes.S) {
+        return 0L
+      }
+
+      val receiver = com.android.ddmlib.CollectingOutputReceiver()
+      try {
+        device.executeShellCommand(
+          "pm list packages --apex-only --show-versioncode com.google.android.art",
+          receiver,
+          2,
+          java.util.concurrent.TimeUnit.SECONDS,
+        )
+        val matchResult = ART_VERSION_CODE_REGEX.find(receiver.output)
+        if (matchResult != null) {
+          return matchResult.groupValues[1].toLong()
+        }
+      } catch (e: Exception) {
+        log.debug("Failed to check ART package version from device $device", e)
+      }
+      return 0L
     }
 
     private fun IDevice.getId(bootId: String) =

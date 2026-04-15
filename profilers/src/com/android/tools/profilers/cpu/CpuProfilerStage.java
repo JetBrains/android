@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import static com.android.tools.profilers.StudioProfilers.DAEMON_DEVICE_DIR_PATH;
+import static com.android.tools.profilers.cpu.config.ArtMethodTraceOutputFormatKt.getArtMethodTraceOutputVersion;
 
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.DurationDataModel;
@@ -374,6 +375,12 @@ CpuProfilerStage extends StreamingStage implements InterimStage {
 
     config.addOptions(configurationBuilder, Map.of(AdditionalOptions.APP_PKG_NAME, process.getName(), AdditionalOptions.SYMBOL_DIRS,
                                                    getStudioProfilers().getIdeServices().getNativeSymbolsDirectories()));
+
+    boolean isMethodTraceInEditorEnabled = getStudioProfilers().getIdeServices().getFeatureConfig().isMethodTraceInEditorEnabled();
+    if (configurationBuilder.hasArtOptions()) {
+      configurationBuilder.getArtOptionsBuilder().setProfilerOutputVersion(getArtMethodTraceOutputVersion(getStudioProfilers().getDevice(), isMethodTraceInEditorEnabled));
+    }
+
     Trace.TraceConfiguration configuration = configurationBuilder.build();
 
     // Execute a start trace command for cpu-based tracing and registers a listener for event reception and handling.
