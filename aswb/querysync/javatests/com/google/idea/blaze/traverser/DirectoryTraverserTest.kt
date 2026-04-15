@@ -39,7 +39,7 @@ class DirectoryTraverserTest {
           "d" to emptyList(),
         )
 
-      val processor = DirectoryProcessor { currentDir ->
+      val processor = DirectoryProcessor { _, currentDir ->
         processedDirs.add(currentDir)
         val subDirs = structure[currentDir.toString()]?.map { Path.of(it) } ?: emptyList()
         DirectoryContents(emptyList(), subDirs)
@@ -48,6 +48,33 @@ class DirectoryTraverserTest {
       traverseIncludedDirectories(listOf(Path.of("root")), processor)
 
       assertThat(processedDirs).containsExactly(Path.of("root"), Path.of("a"), Path.of("b"), Path.of("c"), Path.of("d"))
+    }
+  }
+
+  @Test
+  fun testTraverseIncludedDirectoriesWithNestedIncludes() {
+    runBlocking {
+      val processedDirs = ConcurrentHashMap<Path, Path>() // Maps currentDir to its assigned rootDir
+      val structure =
+        mapOf("root" to listOf("root/a", "root/b"), "root/a" to listOf("root/a/c"), "root/a/c" to emptyList(), "root/b" to emptyList())
+
+      val processor = DirectoryProcessor { rootDir, currentDir ->
+        processedDirs[currentDir] = rootDir
+        val subDirs = structure[currentDir.toString()]?.map { Path.of(it) } ?: emptyList()
+        DirectoryContents(emptyList(), subDirs)
+      }
+
+      // Seed both 'root' and 'root/a'
+      traverseIncludedDirectories(listOf(Path.of("root"), Path.of("root/a")), processor)
+
+      // Files in 'root' (but not in 'root/a') should be assigned to 'root'
+      assertThat(processedDirs[Path.of("root")]).isEqualTo(Path.of("root"))
+      assertThat(processedDirs[Path.of("root/b")]).isEqualTo(Path.of("root"))
+
+      // 'root/a' and its subdirectories should be assigned to 'root/a'
+      // because 'root/a' was seeded first and should not be claimed by 'root'
+      assertThat(processedDirs[Path.of("root/a")]).isEqualTo(Path.of("root/a"))
+      assertThat(processedDirs[Path.of("root/a/c")]).isEqualTo(Path.of("root/a"))
     }
   }
 }

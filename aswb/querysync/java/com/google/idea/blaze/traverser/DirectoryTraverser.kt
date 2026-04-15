@@ -37,41 +37,63 @@ data class DirectoryContents(val files: List<Path>, val subDirectories: List<Pat
 
 /** Defines the contract for processing a directory during traversal. */
 fun interface DirectoryProcessor {
-  fun processDirectory(currentDir: Path): DirectoryContents?
+  /**
+   * Processes a directory.
+   *
+   * @param rootDir The closest matching root directory from the initial include list that this directory belongs to.
+   * @param currentDir The directory currently being processed.
+   */
+  fun processDirectory(rootDir: Path, currentDir: Path): DirectoryContents?
 }
 
+/**
+ * Traverses the specified directories concurrently and processes them, partitioning the work by the most specific root provided in
+ * [includeAbsolute].
+ *
+ * If [includeAbsolute] contains overlapping roots (e.g., `/a` and `/a/b`), this method ensures that each directory is processed with the
+ * closest (most specific) matching root. A more general root will not traverse into directories that are covered by a more specific root.
+ *
+ * Discovered subdirectories inherit the same root as their parent directory.
+ *
+ * @param includeAbsolute The list of absolute paths to start the traversal from.
+ * @param directoryProcessor The processor to apply to each directory.
+ */
 suspend fun traverseIncludedDirectories(includeAbsolute: List<Path>, directoryProcessor: DirectoryProcessor) {
+  data class ScanTask(val rootDir: Path, val currentDir: Path)
+
   coroutineScope {
-    val directoryChannel = Channel<Path>(Channel.UNLIMITED)
+    val directoryChannel = Channel<ScanTask>(Channel.UNLIMITED)
     val activeDirCount = AtomicInteger(0)
     val visitedDirs = ConcurrentHashMap.newKeySet<Path>()
 
-    suspend fun offerDir(dir: Path) {
+    suspend fun offerDir(rootDir: Path, dir: Path) {
       if (visitedDirs.add(dir)) {
         activeDirCount.incrementAndGet()
-        directoryChannel.send(dir)
+        directoryChannel.send(ScanTask(rootDir, dir))
       }
+    }
+
+    // Seed initial directories first
+    includeAbsolute.forEach { rootDir -> offerDir(rootDir, rootDir) }
+
+    // If no directories to start with, close channel
+    if (activeDirCount.get() == 0) {
+      directoryChannel.close()
     }
 
     repeat(WORKER_COUNT.value) {
       launch(QuerySyncDispatchers.IO) {
-        for (dir in directoryChannel) {
+        for (task in directoryChannel) {
           runCatching {
-              val contents = directoryProcessor.processDirectory(dir)
-              contents?.subDirectories?.forEach { subDir -> offerDir(subDir) }
+              val contents = directoryProcessor.processDirectory(task.rootDir, task.currentDir)
+              contents?.subDirectories?.forEach { subDir -> offerDir(task.rootDir, subDir) }
             }
-            .getOrElse { t -> thisLogger().error("Failed processing $dir", t) }
+            .getOrElse { t -> thisLogger().error("Failed processing ${task.currentDir}", t) }
           if (activeDirCount.decrementAndGet() == 0) {
             directoryChannel.close()
           }
         }
       }
-    }
-    // Seed initial directories
-    includeAbsolute.forEach { rootDir -> offerDir(rootDir) }
-    // If no directories to start with, close channel
-    if (activeDirCount.get() == 0) {
-      directoryChannel.close()
     }
   }
 }

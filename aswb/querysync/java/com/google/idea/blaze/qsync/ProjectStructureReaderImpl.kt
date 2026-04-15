@@ -90,8 +90,8 @@ internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtens
       }
     }
 
-    val directoryProcessor = DirectoryProcessor { currentDir ->
-      val contents = directoryProcessorImpl.processDirectory(currentDir)
+    val directoryProcessor = DirectoryProcessor { rootDir, currentDir ->
+      val contents = directoryProcessorImpl.processDirectory(rootDir, currentDir)
       if (contents != null) {
         for (file in contents.files) {
           val result = fileProcessor.processRegularFile(file, currentDir)

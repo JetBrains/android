@@ -33,7 +33,7 @@ class DirectoryProcessorImpl(private val context: Context<*>, private val exclud
     val WORKSPACE_FILE_NAMES = setOf("MODULE.bazel", "WORKSPACE", "WORKSPACE.bazel")
   }
 
-  override fun processDirectory(currentDir: Path): DirectoryContents? {
+  override fun processDirectory(rootDir: Path, currentDir: Path): DirectoryContents? {
     if (excludeAbsolute.any { currentDir.startsWith(it) }) {
       return null
     }

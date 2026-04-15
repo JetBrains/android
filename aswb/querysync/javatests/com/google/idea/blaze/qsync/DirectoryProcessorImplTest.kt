@@ -58,7 +58,7 @@ class DirectoryProcessorImplTest {
     runBlocking {
       createDirectory("empty")
       val processor = DirectoryProcessorImpl(context, emptySet())
-      val result = processor.processDirectory(workspaceRoot.resolve("empty"))
+      val result = processor.processDirectory(workspaceRoot, workspaceRoot.resolve("empty"))
 
       assertThat(result).isEqualTo(DirectoryContents(emptyList(), emptyList()))
     }
@@ -73,7 +73,7 @@ class DirectoryProcessorImplTest {
       createDirectory("dir1/subdir2")
 
       val processor = DirectoryProcessorImpl(context, emptySet())
-      val result = processor.processDirectory(workspaceRoot.resolve("dir1"))
+      val result = processor.processDirectory(workspaceRoot, workspaceRoot.resolve("dir1"))
 
       assertThat(result?.files).containsExactly(workspaceRoot.resolve("dir1/file1.txt"), workspaceRoot.resolve("dir1/file2.txt"))
       assertThat(result?.subDirectories).containsExactly(workspaceRoot.resolve("dir1/subdir1"), workspaceRoot.resolve("dir1/subdir2"))
@@ -91,11 +91,11 @@ class DirectoryProcessorImplTest {
       val processor = DirectoryProcessorImpl(context, excludes)
 
       // Processing a directory within the excluded set
-      val excludedResult = processor.processDirectory(workspaceRoot.resolve("dir1/excluded"))
+      val excludedResult = processor.processDirectory(workspaceRoot, workspaceRoot.resolve("dir1/excluded"))
       assertThat(excludedResult).isNull()
 
       // Processing the parent, the excluded subdir should not be listed in subDirectories
-      val parentResult = processor.processDirectory(workspaceRoot.resolve("dir1"))
+      val parentResult = processor.processDirectory(workspaceRoot, workspaceRoot.resolve("dir1"))
       assertThat(parentResult?.files).containsExactly(workspaceRoot.resolve("dir1/file1.txt"))
       assertThat(parentResult?.subDirectories).isEmpty()
     }
@@ -110,7 +110,7 @@ class DirectoryProcessorImplTest {
       createFile("dir1/nested/file2.txt")
 
       val processor = DirectoryProcessorImpl(context, emptySet())
-      val result = processor.processDirectory(workspaceRoot.resolve("dir1/nested"))
+      val result = processor.processDirectory(workspaceRoot, workspaceRoot.resolve("dir1/nested"))
       assertThat(result).isNull()
     }
   }
@@ -124,7 +124,7 @@ class DirectoryProcessorImplTest {
       createFile("dir1/nested/file2.txt")
 
       val processor = DirectoryProcessorImpl(context, emptySet())
-      val result = processor.processDirectory(workspaceRoot.resolve("dir1/nested"))
+      val result = processor.processDirectory(workspaceRoot, workspaceRoot.resolve("dir1/nested"))
       assertThat(result).isNull()
     }
   }
@@ -141,7 +141,7 @@ class DirectoryProcessorImplTest {
 
       try {
         val processor = DirectoryProcessorImpl(context, emptySet())
-        val result = processor.processDirectory(unreadableDir)
+        val result = processor.processDirectory(workspaceRoot, unreadableDir)
         assertThat(result).isNull() // Expect null because the directory is not readable
       } finally {
         // Restore readability for cleanup
