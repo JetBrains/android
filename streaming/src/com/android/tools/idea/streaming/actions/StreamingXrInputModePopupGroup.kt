@@ -19,10 +19,11 @@ import com.android.tools.idea.streaming.xr.XrInputMode
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.Toggleable
 import icons.StudioIcons
 
 /** Displays a popup menu of XR input modes. */
-internal class StreamingXrInputModePopupGroup : DefaultActionGroup() {
+internal class StreamingXrInputModePopupGroup : DefaultActionGroup(), Toggleable {
 
   override fun update(event: AnActionEvent) {
     val presentation = event.presentation
@@ -32,12 +33,15 @@ internal class StreamingXrInputModePopupGroup : DefaultActionGroup() {
       return
     }
 
+    val inputMode = controller.inputMode
     presentation.icon =
-      when (controller.inputMode) {
+      when (inputMode) {
         XrInputMode.HAND -> StudioIcons.Emulator.XR.HAND_TRACKING
         XrInputMode.EYE -> StudioIcons.Emulator.XR.EYE_GAZE
         else -> StudioIcons.Emulator.XR.INTERACT
       }
+
+    Toggleable.setSelected(presentation, inputMode == XrInputMode.HAND || inputMode == XrInputMode.EYE || inputMode == XrInputMode.MOUSE)
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
