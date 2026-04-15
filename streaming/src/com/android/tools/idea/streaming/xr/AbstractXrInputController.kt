@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.xr
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
@@ -78,7 +79,7 @@ internal abstract class AbstractXrInputController : Disposable {
     get() = true
 
   @Volatile
-  var inputMode: XrInputMode = XrInputMode.MOUSE
+  var inputMode: XrInputMode = if (StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.get()) XrInputMode.HAND else XrInputMode.MOUSE
     @UiThread
     set(value) {
       if (field != value) {

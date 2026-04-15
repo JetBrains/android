@@ -55,16 +55,6 @@ sealed class StreamingXrInputModeAction(private val inputMode: XrInputMode) : To
     event.presentation.enableRichTooltip(this)
   }
 
-  class InteractionMouse : StreamingXrInputModeAction(XrInputMode.MOUSE) {
-
-    override fun update(event: AnActionEvent) {
-      super.update(event)
-      if (!isHandOrEyeTrackingEnabled(event)) {
-        event.presentation.isEnabledAndVisible = false
-      }
-    }
-  }
-
   class InteractionHand : StreamingXrInputModeAction(XrInputMode.HAND)
 
   class InteractionEye : StreamingXrInputModeAction(XrInputMode.EYE)

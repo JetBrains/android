@@ -173,19 +173,10 @@
         <keyboard-shortcut first-keystroke="control I" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="control I" keymap="Mac OS X 10.5+"/>
       </action>
-      <action id="android.streaming.xr.interaction.mouse"
-              class="com.android.tools.idea.streaming.actions.StreamingXrInputModeAction$InteractionMouse"
-              icon="StudioIcons.Emulator.XR.INTERACT"
-              text="Interact with Apps - Mouse"
-              description="Mouse and keyboard are used to interact with running apps">
-        <keyboard-shortcut first-keystroke="control I" keymap="$default"/>
-        <keyboard-shortcut first-keystroke="control I" keymap="Mac OS X"/>
-        <keyboard-shortcut first-keystroke="control I" keymap="Mac OS X 10.5+"/>
-      </action>
       <action id="android.streaming.xr.interaction.hand"
               class="com.android.tools.idea.streaming.actions.StreamingXrInputModeAction$InteractionHand"
               icon="StudioIcons.Emulator.XR.HAND_TRACKING"
-              text="Interact with Apps - Hand Tracking"
+              text="Hand Tracking"
               description="Mouse is used to simulate hand tracking. The arrow keys control direction of the view.">
         <keyboard-shortcut first-keystroke="control H" keymap="$default"/>
         <keyboard-shortcut first-keystroke="control H" keymap="Mac OS X"/>
@@ -194,7 +185,7 @@
       <action id="android.streaming.xr.interaction.eye"
               class="com.android.tools.idea.streaming.actions.StreamingXrInputModeAction$InteractionEye"
               icon="StudioIcons.Emulator.XR.EYE_GAZE"
-              text="Interact with Apps - Eye Tracking"
+              text="Eye Tracking"
               description="Mouse is used to simulate eye tracking. The arrow keys control direction of the view.">
         <keyboard-shortcut first-keystroke="control Y" keymap="$default"/>
         <keyboard-shortcut first-keystroke="control Y" keymap="Mac OS X"/>
@@ -352,7 +343,7 @@
       <group id="android.streaming.xr.input.mode.group" class="com.android.tools.idea.streaming.actions.StreamingXrOnlyGroup">
         <group id="android.streaming.xr.input.mode.dropdown" class="com.android.tools.idea.streaming.actions.StreamingXrInputModePopupGroup"
                text="Interact with Apps" description="Select mode of interaction with running apps" popup="true">
-          <reference ref="android.streaming.xr.interaction.mouse"/>
+          <separator text="App Interaction Mode"/>
           <reference ref="android.streaming.xr.interaction.hand"/>
           <reference ref="android.streaming.xr.interaction.eye"/>
         </group>

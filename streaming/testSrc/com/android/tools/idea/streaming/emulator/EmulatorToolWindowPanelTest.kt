@@ -447,7 +447,7 @@ class EmulatorToolWindowPanelTest {
     waitForCondition(2.seconds) { xrInputController.passthroughCoefficient != UNKNOWN_PASSTHROUGH_COEFFICIENT }
     assertAppearance("XrToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
 
-    assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.MOUSE)
+    assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.HAND)
     val modes =
       mapOf(
         "View Direction" to XrInputMode.VIEW_DIRECTION,
@@ -460,11 +460,7 @@ class EmulatorToolWindowPanelTest {
     }
 
     val actionIdsAndModes =
-      mapOf(
-        "android.streaming.xr.interaction.hand" to XrInputMode.HAND,
-        "android.streaming.xr.interaction.eye" to XrInputMode.EYE,
-        "android.streaming.xr.interaction.mouse" to XrInputMode.MOUSE,
-      )
+      mapOf("android.streaming.xr.interaction.hand" to XrInputMode.HAND, "android.streaming.xr.interaction.eye" to XrInputMode.EYE)
     for ((actionId, mode) in actionIdsAndModes) {
       executeAction(actionId, emulatorView, project)
       assertThat(xrInputController.inputMode).isEqualTo(mode)
