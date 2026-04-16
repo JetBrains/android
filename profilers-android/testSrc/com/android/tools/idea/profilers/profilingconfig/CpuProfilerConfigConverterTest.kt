@@ -56,23 +56,28 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun toProfilingConfigurationSampledLegacy() {
-    val config =
-      CpuProfilerConfig().apply {
-        name = "MyConfiguration"
-        technology = CpuProfilerConfig.Technology.SAMPLED_JAVA
-        samplingIntervalUs = 1234
-        bufferSizeMb = 5678
-        dualClock = true
-      }
+    StudioFlags.PROFILER_METHOD_TRACE_IN_EDITOR.override(false)
+    try {
+      val config =
+        CpuProfilerConfig().apply {
+          name = "MyConfiguration"
+          technology = CpuProfilerConfig.Technology.SAMPLED_JAVA
+          samplingIntervalUs = 1234
+          bufferSizeMb = 5678
+          dualClock = true
+        }
 
-    val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.N)
-    assertThat(profilingConfiguration).isInstanceOf(ArtSampledConfigurationLegacy::class.java)
-    assertThat((profilingConfiguration as ArtSampledConfigurationLegacy).name).isEqualTo(config.name)
-    assertThat(profilingConfiguration.traceType).isEqualTo(TraceType.ART)
-    assertThat(profilingConfiguration.profilingSamplingIntervalUs).isEqualTo(config.samplingIntervalUs)
-    assertThat(profilingConfiguration.profilingBufferSizeInMb).isEqualTo(5678)
-    assertThat(profilingConfiguration.requiredDeviceLevel).isEqualTo(0)
-    assertThat(profilingConfiguration.dualClock).isEqualTo(config.dualClock)
+      val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.N)
+      assertThat(profilingConfiguration).isInstanceOf(ArtSampledConfigurationLegacy::class.java)
+      assertThat((profilingConfiguration as ArtSampledConfigurationLegacy).name).isEqualTo(config.name)
+      assertThat(profilingConfiguration.traceType).isEqualTo(TraceType.ART)
+      assertThat(profilingConfiguration.profilingSamplingIntervalUs).isEqualTo(config.samplingIntervalUs)
+      assertThat(profilingConfiguration.profilingBufferSizeInMb).isEqualTo(5678)
+      assertThat(profilingConfiguration.requiredDeviceLevel).isEqualTo(0)
+      assertThat(profilingConfiguration.dualClock).isEqualTo(config.dualClock)
+    } finally {
+      StudioFlags.PROFILER_METHOD_TRACE_IN_EDITOR.clearOverride()
+    }
   }
 
   @Test
@@ -103,22 +108,27 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun toProfilingConfigurationInstrumentedLegacy() {
-    val config =
-      CpuProfilerConfig().apply {
-        name = "MyConfiguration"
-        technology = CpuProfilerConfig.Technology.INSTRUMENTED_JAVA
-        samplingIntervalUs = 1234
-        bufferSizeMb = 5678
-        dualClock = false
-      }
+    StudioFlags.PROFILER_METHOD_TRACE_IN_EDITOR.override(false)
+    try {
+      val config =
+        CpuProfilerConfig().apply {
+          name = "MyConfiguration"
+          technology = CpuProfilerConfig.Technology.INSTRUMENTED_JAVA
+          samplingIntervalUs = 1234
+          bufferSizeMb = 5678
+          dualClock = false
+        }
 
-    val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.UPSIDE_DOWN_CAKE)
-    assertThat(profilingConfiguration).isInstanceOf(ArtInstrumentedConfigurationLegacy::class.java)
-    assertThat((profilingConfiguration as ArtInstrumentedConfigurationLegacy).name).isEqualTo(config.name)
-    assertThat(profilingConfiguration.traceType).isEqualTo(TraceType.ART)
-    assertThat(profilingConfiguration.profilingBufferSizeInMb).isEqualTo(5678)
-    assertThat(profilingConfiguration.requiredDeviceLevel).isEqualTo(0)
-    assertThat(profilingConfiguration.dualClock).isEqualTo(config.dualClock)
+      val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.UPSIDE_DOWN_CAKE)
+      assertThat(profilingConfiguration).isInstanceOf(ArtInstrumentedConfigurationLegacy::class.java)
+      assertThat((profilingConfiguration as ArtInstrumentedConfigurationLegacy).name).isEqualTo(config.name)
+      assertThat(profilingConfiguration.traceType).isEqualTo(TraceType.ART)
+      assertThat(profilingConfiguration.profilingBufferSizeInMb).isEqualTo(5678)
+      assertThat(profilingConfiguration.requiredDeviceLevel).isEqualTo(0)
+      assertThat(profilingConfiguration.dualClock).isEqualTo(config.dualClock)
+    } finally {
+      StudioFlags.PROFILER_METHOD_TRACE_IN_EDITOR.clearOverride()
+    }
   }
 
   @Test
@@ -336,8 +346,8 @@ class CpuProfilerConfigConverterTest {
       }
 
     val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.P)
-    assertThat(profilingConfiguration).isInstanceOf(ArtSampledConfigurationLegacy::class.java)
-    assertThat((profilingConfiguration as ArtSampledConfigurationLegacy).name).isEqualTo(config.name)
+    assertThat(profilingConfiguration).isInstanceOf(ArtSampledConfigurationWallClock::class.java)
+    assertThat((profilingConfiguration as ArtSampledConfigurationWallClock).name).isEqualTo(config.name)
     assertThat(profilingConfiguration.traceType).isEqualTo(TraceType.ART)
     assertThat(profilingConfiguration.profilingSamplingIntervalUs).isEqualTo(1234)
     assertThat(profilingConfiguration.profilingBufferSizeInMb).isEqualTo(5678)
