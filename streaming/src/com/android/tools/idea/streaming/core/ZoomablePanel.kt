@@ -31,7 +31,7 @@ private val ZOOM_LEVELS = doubleArrayOf(0.0625, 0.125, 0.25, 0.5, 1.0, 2.0, 4.0)
 internal abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
 
   override val screenScalingFactor: Double
-    get() = if (JreHiDpiUtil.isJreHiDPI(this.graphicsConfiguration)) JBUIScale.sysScale(this).toDouble() else 1.0
+    get() = if (JreHiDpiUtil.isJreHiDPI(graphicsConfiguration)) JBUIScale.sysScale(this).toDouble() else 1.0
 
   /** Width in physical pixels. */
   protected val physicalWidth
