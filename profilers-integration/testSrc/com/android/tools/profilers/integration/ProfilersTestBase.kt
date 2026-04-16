@@ -23,8 +23,11 @@ import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import com.android.tools.testlib.Adb
 import com.android.tools.testlib.Emulator
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import java.util.logging.Logger
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import org.junit.AssumptionViolatedException
 import org.junit.Rule
@@ -37,6 +40,44 @@ import org.junit.Rule
  * All Profiler integration tests should extend this class.
  */
 open class ProfilersTestBase {
+  val SETUP_TIMEOUT_SECONDS: Long = run {
+    val totalTestTimeout = System.getenv("TEST_TIMEOUT")?.toLongOrNull()?.seconds ?: 15.minutes
+
+    /**
+     * Preemptively times out the setup phase a [setupTimeoutBuffer] duration before the global test timeout. This ensures slow
+     * infrastructure (like Gradle sync) results in a gracefully skipped test rather than a Profiler test failure or hang.
+     *
+     * If the total test timeout is less than or equal to the buffer time, use the total test timeout for setup.
+     */
+    val setupTimeoutBuffer = 5.minutes
+
+    val timeout =
+      if (totalTestTimeout > setupTimeoutBuffer) {
+        totalTestTimeout - setupTimeoutBuffer
+      } else {
+        totalTestTimeout
+      }
+
+    timeout.inWholeSeconds
+  }
+
+  protected fun runWithTimeout(timeoutSecs: Long, block: () -> Unit) {
+    val executor = Executors.newSingleThreadExecutor()
+    val future = executor.submit(block)
+
+    try {
+      future.get(timeoutSecs, TimeUnit.SECONDS)
+    } catch (e: TimeoutException) {
+      future.cancel(true)
+      throw AssumptionViolatedException("Skipping test. Setup steps took too long", e)
+    } catch (e: InterruptedException) {
+      future.cancel(true)
+      Thread.currentThread().interrupt()
+      throw RuntimeException("The waiting thread was interrupted", e)
+    } finally {
+      executor.shutdownNow()
+    }
+  }
 
   protected fun getLogger(): Logger {
     return Logger.getLogger(ProfilersTestBase::class.java.getName())
@@ -50,36 +91,6 @@ open class ProfilersTestBase {
   @JvmField @Rule val system: AndroidSystem = AndroidSystem.standard()
 
   @JvmField @Rule var watcher = MemoryDashboardNameProviderWatcher()
-
-  protected fun sessionBasedProfiling(testFunction: ((studio: AndroidStudio, adb: Adb) -> Unit)) {
-    // Disabling the profiler task-based ux and verbose logs behind the flag.
-    system.installation.addVmOption("-Dprofiler.task.based.ux=false")
-    system.installation.addVmOption("-Dprofiler.testing.mode=true")
-
-    // Open android project, and set a fixed distribution
-    val project = AndroidProject(projectPath)
-
-    // Create a maven repo and set it up in the installation and environment
-    system.installRepo(MavenRepo(repoManifestPath))
-
-    system.runAdb { adb ->
-      system.runEmulator(systemImage) { emulator ->
-        system.runStudio(project, watcher.dashboardName) { studio ->
-          // Waiting for sync and build.
-          studio.waitForSync()
-          studio.waitForIndex()
-          // Assume project build will be triggered by `testFunction` if needed.
-          // Waiting for emulator to boot up.
-          emulator.waitForBoot()
-          adb.waitForDevice(emulator)
-
-          getLogger().info("Test set-up completed, invoking the test function.")
-          // Test Function or test steps to be executed.
-          testFunction.invoke(studio, adb)
-        }
-      }
-    }
-  }
 
   protected fun taskBasedProfiling(deployApp: Boolean, testFunction: ((studio: AndroidStudio, adb: Adb) -> Unit)) {
     // Enabling profiler task-based ux and verbose logs behind the flag.
@@ -96,13 +107,15 @@ open class ProfilersTestBase {
     system.runAdb { adb ->
       system.runEmulator(systemImage) { emulator ->
         system.runStudio(project, watcher.dashboardName) { studio ->
-          // Waiting for sync and build.
-          studio.waitForSync()
-          studio.waitForIndex()
-          // Assume project build will be triggered by `testFunction` if needed.
-          // Waiting for emulator to boot up.
-          emulator.waitForBoot()
-          adb.waitForDevice(emulator)
+          getLogger().info("Starting gradle sync and index process with timeout: $SETUP_TIMEOUT_SECONDS")
+          runWithTimeout(SETUP_TIMEOUT_SECONDS) {
+            studio.waitForSync()
+            studio.waitForIndex()
+            // Assume project build will be triggered by `testFunction` if needed.
+
+            emulator.waitForBoot()
+            adb.waitForDevice(emulator)
+          }
 
           if (deployApp) {
             deployApp(studio, adb)
@@ -220,35 +233,6 @@ open class ProfilersTestBase {
     studio.executeAction("Android.ProfileWithLowOverhead")
 
     adb.runCommand("logcat") { waitForLog(".*Hello Minimal World!.*", 180.seconds) }
-  }
-
-  protected fun stopProfilingSession(studio: AndroidStudio) {
-    studio.executeAction("Android.StopProfilingSession")
-    verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+stopped.*support\\s+level\\s+\\=.*", 600)
-  }
-
-  protected fun startSystemTrace(studio: AndroidStudio) {
-    studio.executeAction("Android.StartSystemTrace")
-  }
-
-  protected fun startCallstackSample(studio: AndroidStudio) {
-    studio.executeAction("Android.StartCallstackSample")
-  }
-
-  protected fun stopCpuCapture(studio: AndroidStudio) {
-    studio.executeAction("Android.StopCpuCapture")
-  }
-
-  protected fun startHeapDump(studio: AndroidStudio) {
-    studio.executeAction("Android.StartHeapDump")
-  }
-
-  protected fun startNativeAllocations(studio: AndroidStudio) {
-    studio.executeAction("Android.StartNativeAllocations")
-  }
-
-  protected fun stopNativeAllocations(studio: AndroidStudio) {
-    studio.executeAction("Android.StopNativeAllocations")
   }
 
   protected fun selectSystemTraceTask(studio: AndroidStudio) {
