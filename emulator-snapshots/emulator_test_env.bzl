@@ -20,11 +20,11 @@ EMULATOR_PATH_JVM_FLAGS = select({
 })
 
 _SYSTEM_IMAGE_TO_SNAPSHOT = {
-    "@system_image_android-30_default_x86_64//:x86_64-android-30-images": "//tools/adt/idea/emulator-snapshots:emulator_quickboot_api_30_snapshot",
+    "//prebuilts/studio/sdk:system_image_android-30_default": "//tools/adt/idea/emulator-snapshots:emulator_quickboot_api_30_snapshot",
     "//prebuilts/studio/sdk:system_image_android-31_default": "//tools/adt/idea/emulator-snapshots:emulator_quickboot_api_31_snapshot",
     "//prebuilts/studio/sdk:system_image_android-33_default": "//tools/adt/idea/emulator-snapshots:emulator_quickboot_api_33_snapshot",
-    "@system_image_android-33_aosp_atd_x86_64//:x86_64-android-33AospAtd-images": "//tools/adt/idea/emulator-snapshots:emulator_quickboot_api_33_aosp_atd_snapshot",
-    "@system_image_android-35_default_x86_64//:x86_64-android-35-images": "//tools/adt/idea/emulator-snapshots:emulator_quickboot_api_35_snapshot",
+    "//prebuilts/studio/sdk:system_image_android-33_aosp_atd": "//tools/adt/idea/emulator-snapshots:emulator_quickboot_api_33_aosp_atd_snapshot",
+    "//prebuilts/studio/sdk:system_image_android-35_default": "//tools/adt/idea/emulator-snapshots:emulator_quickboot_api_35_snapshot",
 }
 
 def emulator_test_jvm_flags(system_image):

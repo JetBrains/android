@@ -31,8 +31,8 @@ java_library(
 
 emulator_quickboot_snapshot(
     name = "emulator_quickboot_api_30_snapshot",
-    jvm_flags = emulator_test_jvm_flags("@system_image_android-30_default_x86_64//:x86_64-android-30-images"),
-    system_image = "@system_image_android-30_default_x86_64//:x86_64-android-30-images",
+    jvm_flags = emulator_test_jvm_flags("//prebuilts/studio/sdk:system_image_android-30_default"),
+    system_image = "//prebuilts/studio/sdk:system_image_android-30_default",
     visibility = ["//visibility:public"],
 )
 
@@ -52,15 +52,15 @@ emulator_quickboot_snapshot(
 
 emulator_quickboot_snapshot(
     name = "emulator_quickboot_api_33_aosp_atd_snapshot",
-    jvm_flags = emulator_test_jvm_flags("@system_image_android-33_aosp_atd_x86_64//:x86_64-android-33AospAtd-images"),
-    system_image = "@system_image_android-33_aosp_atd_x86_64//:x86_64-android-33AospAtd-images",
+    jvm_flags = emulator_test_jvm_flags("//prebuilts/studio/sdk:system_image_android-33_aosp_atd"),
+    system_image = "//prebuilts/studio/sdk:system_image_android-33_aosp_atd",
     visibility = ["//visibility:public"],
 )
 
 emulator_quickboot_snapshot(
     name = "emulator_quickboot_api_35_snapshot",
-    jvm_flags = emulator_test_jvm_flags("@system_image_android-35_default_x86_64//:x86_64-android-35-images"),
-    system_image = "@system_image_android-35_default_x86_64//:x86_64-android-35-images",
+    jvm_flags = emulator_test_jvm_flags("//prebuilts/studio/sdk:system_image_android-35_default"),
+    system_image = "//prebuilts/studio/sdk:system_image_android-35_default",
     visibility = ["//visibility:public"],
 )
 

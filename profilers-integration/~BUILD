@@ -54,7 +54,7 @@ iml_test(
     name = "ProfileWithLowOverheadTest",
     timeout = "long",
     data = profilers_test_common_data_base + [
-        "@system_image_android-33PlayStore_default_x86_64//:x86_64-android-33PlayStore-images",
+        "//prebuilts/studio/sdk:system_image_android-33PlayStore_default",
     ],
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
