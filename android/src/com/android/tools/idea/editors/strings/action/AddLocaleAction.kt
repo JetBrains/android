@@ -23,7 +23,7 @@ import com.android.tools.idea.editors.strings.model.StringResourceKey
 import com.android.tools.idea.res.StringResourceWriter
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.ui.popup.JBPopupFactory
-import com.intellij.ui.SimpleListCellRenderer
+import com.intellij.ui.dsl.listCellRenderer.textListCellRenderer
 import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
@@ -52,10 +52,7 @@ internal constructor(private val stringResourceWriter: StringResourceWriter) :
             event.panel.reloadData()
           }
         }
-        .setRenderer(
-            SimpleListCellRenderer.create { label, value, _ ->
-              label.text = Locale.getLocaleLabel(value, /* brief= */ false)
-            })
+        .setRenderer(textListCellRenderer("") { Locale.getLocaleLabel(it, /* brief= */ false) })
         .createPopup()
         .showUnderneathOf(event.inputEvent!!.component)
   }

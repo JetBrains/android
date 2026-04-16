@@ -23,9 +23,9 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.CardLayoutPanel
 import com.intellij.ui.CollectionComboBoxModel
-import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.panels.HorizontalLayout
+import com.intellij.ui.dsl.listCellRenderer.textListCellRenderer
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Component
@@ -47,7 +47,7 @@ class BuildAnalyzerComboBoxView(
 
   val dataSetCombo = ComboBox(CollectionComboBoxModel(model.availableDataSets)).apply {
     name = "dataSetCombo"
-    renderer = SimpleListCellRenderer.create { label, value, _ -> label.text = value.uiName }
+    renderer = textListCellRenderer("") { it.uiName }
     selectedItem = this@BuildAnalyzerComboBoxView.model.selectedData
     addItemListener { event ->
       if (fireActionHandlerEvents && event.stateChange == ItemEvent.SELECTED) {

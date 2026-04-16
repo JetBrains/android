@@ -28,7 +28,6 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.CardLayoutPanel
 import com.intellij.ui.CollectionComboBoxModel
 import com.intellij.ui.OnePixelSplitter
-import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SpeedSearchComparator
 import com.intellij.ui.TreeSpeedSearch
@@ -37,6 +36,7 @@ import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.JBPanelWithEmptyText
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.panels.HorizontalLayout
+import com.intellij.ui.dsl.listCellRenderer.textListCellRenderer
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.JBUI
@@ -86,7 +86,7 @@ class TasksPageView(
     CollectionComboBoxModel(model.availableGroupings.toMutableList(), TasksDataPageModel.Grouping.BY_TASK_CATEGORY)
   ).apply {
     name = "tasksGroupingComboBox"
-    renderer = SimpleListCellRenderer.create { label, value, _ -> label.text = value.uiName }
+    renderer = textListCellRenderer("") { it.uiName }
     addItemListener { event ->
       if (fireActionHandlerEvents && event.stateChange == ItemEvent.SELECTED) {
         actionHandlers.tasksGroupingSelectionUpdated(event.item as TasksDataPageModel.Grouping)
