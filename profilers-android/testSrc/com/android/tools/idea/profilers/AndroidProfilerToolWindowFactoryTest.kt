@@ -9,6 +9,7 @@ import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
+import com.android.tools.profilers.taskbased.common.constants.strings.StringUtils
 import com.android.tools.profilers.taskbased.home.OpenHomeTabListener
 import com.android.tools.profilers.taskbased.pastrecordings.OpenPastRecordingsTabListener
 import com.android.tools.profilers.taskbased.task.OpenProfilerTaskTabListener
@@ -277,7 +278,8 @@ class AndroidProfilerToolWindowFactoryTest {
     waitForCondition(5L, TimeUnit.SECONDS) {
       toolWindow.contentManager.contentCount == 3 &&
         toolWindow.contentManager.selectedContent != null &&
-        toolWindow.contentManager.selectedContent!!.displayName == "Capture System Activities (System Trace)"
+        toolWindow.contentManager.selectedContent!!.displayName ==
+          StringUtils.getTaskTabTitle(ProfilerTaskType.SYSTEM_TRACE, StudioFlags.PROFILER_HOME_TAB_V2.get())
     }
 
     // Store task tab content to be used to make sure the re-opened task tab is the same as the original task tab.

@@ -133,7 +133,7 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
 
   private boolean myMethodTraceInEditorEnabled = false;
 
-  private boolean myProfilerHomeTabV2Enabled = false;
+  private boolean myProfilerHomeTabV2Enabled = true;
 
   private String myLastLeakRawTrace;
   private Leak myLastLeak;

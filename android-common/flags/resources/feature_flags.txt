@@ -141,6 +141,7 @@ phased.sync.disable.bridge.data.service=INTERNAL
 phased.sync.enabled=INTERNAL
 playpolicyinsights.play.policy.insights=COMPLETE:2025
 preview.essentials.mode=PREVIEW
+profiler.home.tab.v2=PREVIEW
 profiler.leakcanary=PREVIEW
 profiler.method.trace.in.editor=INTERNAL
 profiler.system.trace.in.editor=PREVIEW
