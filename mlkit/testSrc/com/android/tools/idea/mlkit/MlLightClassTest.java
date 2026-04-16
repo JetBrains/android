@@ -17,6 +17,7 @@ package com.android.tools.idea.mlkit;
 
 import static com.android.tools.idea.mlkit.MlProjectTestUtil.setupTestMlProject;
 import static com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt.getMainModule;
+import static com.android.tools.idea.testing.AndroidProjectRuleKt.onEdt;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.containers.ContainerUtil.map;
 
@@ -29,6 +30,7 @@ import com.android.tools.idea.mlkit.viewer.TfliteModelFileType;
 import com.android.tools.idea.project.DefaultModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.testing.AndroidTestUtils;
+import com.android.tools.idea.testing.EdtAndroidProjectRule;
 import com.android.tools.idea.testing.JavaLibraryDependency;
 import com.android.tools.tests.AdtTestKotlinArtifacts;
 import com.google.common.collect.ImmutableList;
@@ -56,24 +58,36 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.jetbrains.android.AndroidTestCase;
+import com.android.tools.idea.testing.AndroidProjectRule;
+import com.intellij.openapi.module.Module;
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
+import com.intellij.testFramework.RunsInEdt;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
-@Ignore("b/503023793")
-public class MlLightClassTest extends AndroidTestCase {
+@RunWith(JUnit4.class)
+@RunsInEdt
+public class MlLightClassTest {
+
+  @Rule
+  public EdtAndroidProjectRule projectRule = onEdt(AndroidProjectRule.withAndroidModels());
+
+  private JavaCodeInsightTestFixture myFixture;
+  private Module myModule;
 
   private final static String AGP_VERSION_SUPPORTING_ML = "4.2.0-alpha08";
   private final static String AGP_VERSION_NOT_SUPPORTING_ML = "4.2.0-alpha07";
 
-  @Override
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
+    myFixture = (JavaCodeInsightTestFixture) projectRule.getFixture();
 
     // ML model size is over default 2.5 MiB
     PersistentFSConstants.setMaxIntellisenseFileSize(100_000_000);
-
-    ((DefaultModuleSystem)ProjectSystemUtil.getModuleSystem(myModule)).setMlModelBindingEnabled(true);
 
     // Pull in tflite model, which has image(i.e. name: image1) as input tensor and labels as output tensor
     myFixture.setTestDataPath(TestUtils.resolveWorkspacePath("prebuilts/tools/common/mlkit/testData/models").toString());
@@ -101,6 +115,7 @@ public class MlLightClassTest extends AndroidTestCase {
     myModule = ModuleManager.getInstance(myFixture.getProject()).getModules()[0];
   }
 
+  @Test
   public void testHighlighting_java() {
     setupProject(AGP_VERSION_SUPPORTING_ML);
     myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "ml/mobilenet_model.tflite");
@@ -194,6 +209,7 @@ public class MlLightClassTest extends AndroidTestCase {
     myFixture.checkHighlighting();
   }
 
+  @Test
   public void testHighlighting_newAPINotExistInLowAGP_java() {
     setupProject(AGP_VERSION_NOT_SUPPORTING_ML);
     VirtualFile ssdModelFile = myFixture.copyFileToProject("ssd_mobilenet_odt_metadata_v1.2.tflite", "ml/ssd_model_v2.tflite");
@@ -244,6 +260,7 @@ public class MlLightClassTest extends AndroidTestCase {
     myFixture.checkHighlighting();
   }
 
+  @Test
   public void testHighlighting_modelWithoutMetadata_java() {
     setupProject(AGP_VERSION_SUPPORTING_ML);
     VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_no_metadata.tflite", "ml/my_plain_model.tflite");
@@ -282,6 +299,7 @@ public class MlLightClassTest extends AndroidTestCase {
     myFixture.checkHighlighting();
   }
 
+  @Test
   public void testHighlighting_modelWithV2Metadata_java() {
     setupProject(AGP_VERSION_SUPPORTING_ML);
     VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata_v2.tflite", "ml/my_model_v2.tflite");
@@ -315,6 +333,7 @@ public class MlLightClassTest extends AndroidTestCase {
     myFixture.checkHighlighting();
   }
 
+  @Test
   public void testHighlighting_invokeConstructorThrowError_java() {
     setupProject(AGP_VERSION_SUPPORTING_ML);
     VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_no_metadata.tflite", "ml/my_plain_model.tflite");
@@ -349,6 +368,7 @@ public class MlLightClassTest extends AndroidTestCase {
     myFixture.checkHighlighting();
   }
 
+  @Test
   public void testHighlighting_invokeConstructorWithContextThrowError_java() {
     setupProject(AGP_VERSION_SUPPORTING_ML);
     VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_no_metadata.tflite", "ml/my_plain_model.tflite");
@@ -383,6 +403,7 @@ public class MlLightClassTest extends AndroidTestCase {
     myFixture.checkHighlighting();
   }
 
+  @Test
   public void testHighlighting_kotlin() {
     setupProjectWithKotlin(AGP_VERSION_SUPPORTING_ML);
     myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "ml/mobilenet_model.tflite");
@@ -461,6 +482,7 @@ public class MlLightClassTest extends AndroidTestCase {
     myFixture.checkHighlighting();
   }
 
+  @Test
   public void testHighlighting_modelWithoutMetadata_kotlin() {
     setupProjectWithKotlin(AGP_VERSION_SUPPORTING_ML);
     VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_no_metadata.tflite", "ml/my_plain_model.tflite");
@@ -492,6 +514,7 @@ public class MlLightClassTest extends AndroidTestCase {
     myFixture.checkHighlighting();
   }
 
+  @Test
   public void testHighlighting_modelFileOverwriting() {
     setupProject(AGP_VERSION_SUPPORTING_ML);
     String targetModelFilePath = "ml/my_model.tflite";
@@ -567,6 +590,7 @@ public class MlLightClassTest extends AndroidTestCase {
 b/215645288 */
   }
 
+  @Test
   public void testLightModelClassNavigation() {
     setupProject(AGP_VERSION_SUPPORTING_ML);
     VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "ml/my_model.tflite");
@@ -582,7 +606,7 @@ b/215645288 */
         }
       });
     extension.setPluginDescriptor(new DefaultPluginDescriptor("test"));
-    BinaryFileTypeDecompilers.getInstance().getPoint().registerExtension(extension, getProject());
+    BinaryFileTypeDecompilers.getInstance().getPoint().registerExtension(extension, myFixture.getProject());
 
     AndroidTestUtils.loadNewFile(myFixture,
                                  "/src/p1/p2/MainActivity.java",
@@ -605,6 +629,7 @@ b/215645288 */
     assertThat(FileEditorManager.getInstance(myFixture.getProject()).getCurrentFile()).isEqualTo(modelVirtualFile);
   }
 
+  @Test
   public void testCompleteProcessMethod() {
     setupProject(AGP_VERSION_SUPPORTING_ML);
     VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "ml/my_model.tflite");
@@ -647,6 +672,7 @@ b/215645288 */
       "}");
   }
 
+  @Test
   public void testCompleteNewInstanceMethod() {
     setupProject(AGP_VERSION_SUPPORTING_ML);
     VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "ml/my_model.tflite");
@@ -687,6 +713,7 @@ b/215645288 */
       "}");
   }
 
+  @Test
   public void testCompleteInnerClass() {
     setupProject(AGP_VERSION_SUPPORTING_ML);
     VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "ml/my_model.tflite");
@@ -733,6 +760,7 @@ b/215645288 */
                           "}");
   }
 
+  @Test
   public void testCompleteInnerInputClassWithoutOuterClass() {
     setupProject(AGP_VERSION_SUPPORTING_ML);
     VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "ml/my_model.tflite");
@@ -786,6 +814,7 @@ b/215645288 */
   }
 
 
+  @Test
   public void testCompleteModelClass() {
     setupProject(AGP_VERSION_SUPPORTING_ML);
     VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "ml/my_model.tflite");
@@ -830,6 +859,7 @@ b/215645288 */
                           "}");
   }
 
+  @Test
   public void testModuleService() {
     setupProject(AGP_VERSION_SUPPORTING_ML);
     VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "ml/my_model.tflite");
@@ -842,6 +872,7 @@ b/215645288 */
     assertThat(ModuleUtilCore.findModuleForPsiElement(lightClasses.get(0))).isEqualTo(getMainModule(myModule));
   }
 
+  @Test
   public void testFallbackApisAreDeprecated() {
     setupProject(AGP_VERSION_SUPPORTING_ML);
     VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "ml/my_model.tflite");
@@ -861,6 +892,7 @@ b/215645288 */
     assertThat(deprecatedGetMethods.get(0).getName()).isEqualTo("getProbabilityAsTensorBuffer");
   }
 
+  @Test
   public void testBrokenFiles() {
     setupProject(AGP_VERSION_SUPPORTING_ML);
     VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "ml/my_model.tflite");
@@ -875,6 +907,7 @@ b/215645288 */
       .isNull();
   }
 
+  @Test
   public void testModelApiGenEventIsLogged() throws Exception {
     setupProject(AGP_VERSION_SUPPORTING_ML);
     TestUsageTracker usageTracker = new TestUsageTracker(new VirtualTimeScheduler());
