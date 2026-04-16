@@ -69,15 +69,15 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.GuiUtils;
-import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.NonOpaquePanel;
-import com.intellij.util.ModalityUiUtil;
+import com.intellij.ui.dsl.listCellRenderer.BuilderKt;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.util.ModalityUiUtil;
 import com.intellij.util.ui.AnimatedIcon;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
@@ -210,7 +210,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
 
     myValidatorPanel = new ValidatorPanel(this, myRootPanel, /* hideOnSuccess */ true, "Conversion Issues", "Encountered Issues:");
 
-    myPreviewResolutionComboBox.setRenderer(SimpleListCellRenderer.create("", Density::getResourceValue));
+    myPreviewResolutionComboBox.setRenderer(BuilderKt.textListCellRenderer("", Density::getResourceValue));
     DefaultComboBoxModel<Density> densitiesModel = new DefaultComboBoxModel<>();
     densitiesModel.addElement(Density.MEDIUM);
     densitiesModel.addElement(Density.HIGH);

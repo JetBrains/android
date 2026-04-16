@@ -34,10 +34,10 @@ import com.intellij.ui.OnePixelSplitter;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.SimpleColoredComponent;
-import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
+import com.intellij.ui.dsl.listCellRenderer.BuilderKt;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.table.JBTable;
 import com.intellij.uiDesigner.core.GridConstraints;
@@ -82,7 +82,7 @@ public class ResourceTablePanel {
     Collection<PackageChunk> packages = resourceTableChunk.getPackages();
     StringPoolChunk stringPool = resourceTableChunk.getStringPool();
     myPackageCombo.setModel(new CollectionComboBoxModel<>(ImmutableList.copyOf(packages)));
-    myPackageCombo.setRenderer(SimpleListCellRenderer.create("<No Resources>", PackageChunk::getPackageName));
+    myPackageCombo.setRenderer(BuilderKt.textListCellRenderer("<No Resources>", PackageChunk::getPackageName));
     myPackageCombo.setMinimumAndPreferredWidth(JBUIScale.scale(250));
     myPackageCombo.addItemListener(e -> {
       if (e.getStateChange() == ItemEvent.SELECTED) {
@@ -113,7 +113,7 @@ public class ResourceTablePanel {
 
   private void onPackageSelected(PackageChunk packageChunk, StringPoolChunk stringPool) {
     myTypesList.setModel(new CollectionListModel<>(packageChunk.getTypeSpecChunks()));
-    myTypesList.setCellRenderer(SimpleListCellRenderer.create("", TypeSpecChunk::getTypeName));
+    myTypesList.setCellRenderer(BuilderKt.textListCellRenderer("", TypeSpecChunk::getTypeName));
     myTypesList.addListSelectionListener(e -> {
       TypeSpecChunk selectedValue = myTypesList.getSelectedValue();
       if (selectedValue == null) {

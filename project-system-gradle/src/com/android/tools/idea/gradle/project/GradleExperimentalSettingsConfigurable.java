@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import static com.android.tools.idea.gradle.project.SyncDueMessageKt.SYNC_DUE_DIALOG_SHOWN;
 import static com.android.tools.idea.gradle.project.SyncDueMessageKt.SYNC_DUE_APP_WIDE_SNOOZE_EXPIRATION_DATE;
+import static com.android.tools.idea.gradle.project.SyncDueMessageKt.SYNC_DUE_DIALOG_SHOWN;
 
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.flags.ExperimentalConfigurable;
@@ -31,7 +31,7 @@ import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.ui.EnumComboBoxModel;
-import com.intellij.ui.SimpleListCellRenderer;
+import com.intellij.ui.dsl.listCellRenderer.BuilderKt;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
@@ -74,7 +74,7 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
     myShowAgpVersionChooserInNewProjectWizard.setVisible(StudioFlags.NPW_SHOW_AGP_VERSION_COMBO_BOX_EXPERIMENTAL_SETTING.get());
     autoSyncBehaviorComboBox.setModel(new EnumComboBoxModel<>(AutoSyncBehavior.class));
     autoSyncBehaviorComboBox.setRenderer(
-      SimpleListCellRenderer.create("", behavior -> AndroidBundle.message(behavior.getLabelBundleKey())));
+      BuilderKt.textListCellRenderer("", behavior -> AndroidBundle.message(behavior.getLabelBundleKey())));
     boolean showAutoSyncControlInExperimentalSettings =
       StudioFlags.SHOW_GRADLE_AUTO_SYNC_SETTING_UI.get() && !StudioFlags.SHOW_GRADLE_AUTO_SYNC_SETTING_IN_NON_EXPERIMENTAL_UI.get();
     autoSyncBehaviorComboBox.getParent().setVisible(showAutoSyncControlInExperimentalSettings);

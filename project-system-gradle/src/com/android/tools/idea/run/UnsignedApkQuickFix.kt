@@ -34,8 +34,8 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.HyperlinkLabel
-import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.dsl.listCellRenderer.textListCellRenderer
 import java.awt.BorderLayout
 import java.awt.FlowLayout
 import java.util.function.Consumer
@@ -171,7 +171,7 @@ class SigningConfigSelectorDialog(signingConfigs: Collection<SigningConfigModel>
       Consumer { item: SigningConfigModel -> signingConfigComboBox.addItem(item) }
     )
     signingConfigComboBox.renderer =
-      SimpleListCellRenderer.create("<unnamed>", SigningConfigModel::name)
+      textListCellRenderer("<unnamed>", SigningConfigModel::name)
     init()
   }
 

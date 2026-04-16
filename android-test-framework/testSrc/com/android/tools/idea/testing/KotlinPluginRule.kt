@@ -39,6 +39,6 @@ class KotlinPluginRule(private val pluginKind: KotlinPluginMode) : ExternalResou
   }
 
   companion object {
-    private const val PROPERTY_NAME = "idea.kotlin.plugin.use.k1"
+    private const val PROPERTY_NAME = "idea.kotlin.plugin.use.k1.obsolete"
   }
 }

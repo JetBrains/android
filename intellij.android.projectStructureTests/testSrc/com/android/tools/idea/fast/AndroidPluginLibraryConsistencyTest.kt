@@ -18,6 +18,10 @@ import java.nio.file.Path
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.readText
 
+private const val STUDIO_PLATFORM = "studio-platform"
+
+private const val STUDIO_TEST_PLATFORM = "studio-test-platform"
+
 class AndroidPluginLibraryConsistencyTest : AndroidPluginProjectConsistencyTestCase() {
   @Rule
   @JvmField
@@ -42,20 +46,20 @@ class AndroidPluginLibraryConsistencyTest : AndroidPluginProjectConsistencyTestC
   fun `'studio-platform' and 'studio-test-platform' libraries are defined with a proper scope`() {
     for ((moduleName, moduleLibraries) in androidModuleLibrariesCatalog) {
       val studioPlatformLibraries = moduleLibraries
-        .filter { it.libraryName == "studio-platform" || it.libraryName == "studio-test-platform" }
+        .filter { it.libraryName == STUDIO_PLATFORM || it.libraryName == STUDIO_TEST_PLATFORM }
         .distinctBy { it.libraryName }
 
       val moduleLibraryDiffReport = ModuleLibraryDiffReport.NO_DIFF
 
       for (library in studioPlatformLibraries) {
         val expectedLibraryScope = when (library.libraryName) {
-          "studio-platform" -> JpsJavaDependencyScope.PROVIDED
-          "studio-test-platform" -> JpsJavaDependencyScope.TEST
+          STUDIO_PLATFORM -> JpsJavaDependencyScope.PROVIDED
+          STUDIO_TEST_PLATFORM -> JpsJavaDependencyScope.TEST
           else -> library.scope
         }
 
         if (library.scope != expectedLibraryScope) {
-          if (moduleName == "intellij.android.plugin" && library.libraryName == "studio-platform") {
+          if (moduleName == "intellij.android.plugin" && library.libraryName == STUDIO_PLATFORM) {
             // IDEA-356251
             logger<AndroidPluginModuleConsistencyTest>()
               .warn("'$moduleName' module specifies '${library.libraryName}' as a '${library.scope}' dependency. " +

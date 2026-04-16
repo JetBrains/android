@@ -41,10 +41,10 @@ import com.intellij.ui.CheckBoxList;
 import com.intellij.ui.ComboboxWithBrowseButton;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.RawCommandLineEditor;
-import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
+import com.intellij.ui.dsl.listCellRenderer.BuilderKt;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
@@ -588,7 +588,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     });
 
     myUpdateProjectPropertiesCombo.setModel(new DefaultComboBoxModel(new Object[]{"", Boolean.TRUE.toString(), Boolean.FALSE.toString()}));
-    myUpdateProjectPropertiesCombo.setRenderer(SimpleListCellRenderer.create(
+    myUpdateProjectPropertiesCombo.setRenderer(BuilderKt.textListCellRenderer(
       "No", value -> value.isEmpty() ? "Ask" : Boolean.parseBoolean(value) ? "Yes" : "No"));
     buildImportedOptionsList();
 

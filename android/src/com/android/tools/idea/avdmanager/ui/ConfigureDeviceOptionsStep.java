@@ -41,10 +41,10 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.EnumComboBoxModel;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.BrowserLink;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.dsl.listCellRenderer.BuilderKt;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
@@ -120,7 +120,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
     myDeviceTypeComboBox.setModel(new CollectionComboBoxModel<>(new ArrayList<>(AvdWizardUtils.ALL_DEVICE_TAGS)));
 
-    myDeviceTypeComboBox.setRenderer(SimpleListCellRenderer.create(
+    myDeviceTypeComboBox.setRenderer(BuilderKt.textListCellRenderer(
       DEFAULT_DEVICE_TYPE_LABEL, value -> SystemImageTags.DEFAULT_TAG.equals(value) ? DEFAULT_DEVICE_TYPE_LABEL : value.getDisplay()));
 
     myScrollPane.getVerticalScrollBar().setUnitIncrement(10);
@@ -245,7 +245,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
 
   private void createUIComponents() {
     myNavigationControlsCombo = new ComboBox<>(new EnumComboBoxModel<>(Navigation.class));
-    myNavigationControlsCombo.setRenderer(SimpleListCellRenderer.create("", Navigation::getShortDisplayValue));
+    myNavigationControlsCombo.setRenderer(BuilderKt.textListCellRenderer("", Navigation::getShortDisplayValue));
 
     myHardwareSkinHelpLabel = new BrowserLink("How do I create a custom hardware skin?", CREATE_SKIN_HELP_LINK);
     createDefaultSkinComboBox();
