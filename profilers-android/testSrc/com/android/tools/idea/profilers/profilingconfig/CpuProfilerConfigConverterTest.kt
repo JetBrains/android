@@ -339,20 +339,25 @@ class CpuProfilerConfigConverterTest {
   fun toProfilingConfigurationUnspecified() {
     // Not going to specify name and technology to trigger CpuProfilerConfig's default constructor.
     // This should default to use sampled java configuration (ART Sampled).
-    val config =
-      CpuProfilerConfig().apply {
-        samplingIntervalUs = 1234
-        bufferSizeMb = 5678
-      }
+    StudioFlags.PROFILER_METHOD_TRACE_IN_EDITOR.override(true)
+    try {
+      val config =
+        CpuProfilerConfig().apply {
+          samplingIntervalUs = 1234
+          bufferSizeMb = 5678
+        }
 
-    val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.P)
-    assertThat(profilingConfiguration).isInstanceOf(ArtSampledConfigurationWallClock::class.java)
-    assertThat((profilingConfiguration as ArtSampledConfigurationWallClock).name).isEqualTo(config.name)
-    assertThat(profilingConfiguration.traceType).isEqualTo(TraceType.ART)
-    assertThat(profilingConfiguration.profilingSamplingIntervalUs).isEqualTo(1234)
-    assertThat(profilingConfiguration.profilingBufferSizeInMb).isEqualTo(5678)
-    assertThat(profilingConfiguration.requiredDeviceLevel).isEqualTo(0)
-    assertThat(profilingConfiguration.dualClock).isEqualTo(false)
+      val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.P)
+      assertThat(profilingConfiguration).isInstanceOf(ArtSampledConfigurationWallClock::class.java)
+      assertThat((profilingConfiguration as ArtSampledConfigurationWallClock).name).isEqualTo(config.name)
+      assertThat(profilingConfiguration.traceType).isEqualTo(TraceType.ART)
+      assertThat(profilingConfiguration.profilingSamplingIntervalUs).isEqualTo(1234)
+      assertThat(profilingConfiguration.profilingBufferSizeInMb).isEqualTo(5678)
+      assertThat(profilingConfiguration.requiredDeviceLevel).isEqualTo(0)
+      assertThat(profilingConfiguration.dualClock).isEqualTo(false)
+    } finally {
+      StudioFlags.PROFILER_METHOD_TRACE_IN_EDITOR.clearOverride()
+    }
   }
 
   @Test
