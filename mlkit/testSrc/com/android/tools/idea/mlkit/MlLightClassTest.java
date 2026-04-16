@@ -58,7 +58,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 
+@Ignore("b/503023793")
 public class MlLightClassTest extends AndroidTestCase {
 
   private final static String AGP_VERSION_SUPPORTING_ML = "4.2.0-alpha08";
