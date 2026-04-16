@@ -22,6 +22,7 @@ import com.android.tools.idea.run.classes.BazelClassFileFinder
 import com.android.tools.idea.run.classes.BuildOutcome
 import com.android.tools.idea.run.classes.BuildOutcomeCache
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.base.Stopwatch
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.SettableFuture
 import com.google.idea.blaze.base.logging.ComposablePreviewsEvent
@@ -115,6 +116,8 @@ internal class BazelBuildServices : BuildSystemFilePreviewServices.BuildServices
     return coroutineScope.async {
       val buildResultSettableFuture = SettableFuture.create<BuildSystemFilePreviewServices.BuildListener.BuildResult>()
       try {
+        val stopwatch = Stopwatch.createStarted()
+
         withContext(Dispatchers.EDT) {
           listeners.forEach { listener ->
             listener.buildStarted(BuildSystemFilePreviewServices.BuildListener.BuildMode.COMPILE, buildResultSettableFuture)
@@ -134,6 +137,9 @@ internal class BazelBuildServices : BuildSystemFilePreviewServices.BuildServices
 
         val succeeded = qSyncManager.runOperationWithToolWindow(this, scope, QuerySyncManager.TaskOrigin.USER_ACTION, operation)
         buildResultSettableFuture.set(newBuildResult(succeeded, project))
+
+        EventLoggingService.getInstance().log(ComposablePreviewsEvent(project, stopwatch.elapsed()))
+
         succeeded
       } catch (e: CancellationException) {
         buildOutcomeCache.invalidate(label, ProjectSystemBuildManager.BuildStatus.CANCELLED)
@@ -170,7 +176,7 @@ internal class BazelBuildServices : BuildSystemFilePreviewServices.BuildServices
       val finder = buildOutcomeCache.cacheOutput(project, label, output, context).classFileFinder
 
       if (finder is BazelClassFileFinder) {
-        EventLoggingService.getInstance().log(ComposablePreviewsEvent(project, finder.jarCountForLoggingOnly))
+        EventLoggingService.getInstance().log(ComposablePreviewsEvent(project, internalJarCount = finder.jarCountForLoggingOnly))
       }
     } catch (exception: Exception) {
       val status =

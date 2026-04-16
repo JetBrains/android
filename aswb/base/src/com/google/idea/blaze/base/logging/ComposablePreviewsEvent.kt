@@ -17,5 +17,6 @@
 package com.google.idea.blaze.base.logging
 
 import com.intellij.openapi.project.Project
+import java.time.Duration
 
-class ComposablePreviewsEvent(val project: Project, val internalJarCount: Int) : LoggedEvent
+class ComposablePreviewsEvent(val project: Project, val buildDuration: Duration? = null, val internalJarCount: Int? = null) : LoggedEvent
