@@ -2046,6 +2046,10 @@ public final class StudioFlags {
     new BooleanFlag(APP_LINKS_ASSISTANT, "use.agent.sdk.v2",
                     "Use the V2 agent SDK for deep linking AI features",
                     "When enabled, the user will be redirected to use the trajectory based agent SDK.");
+  public static final Flag<Boolean> APP_LINKS_ASSISTANT_INTEGRATE_MANIFEST_UPDATE_IN_AGENT =
+    new BooleanFlag(APP_LINKS_ASSISTANT, "integrate.manifest.update.in.agent",
+                    "Integrate Manifest Update in App Links Agent",
+                    "When enabled, the App Links Assistant agent will automatically handle manifest updates.");
   // endregion App Links Assistant
 
   // region TargetSDKVersion Upgrade Assistant
