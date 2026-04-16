@@ -28,6 +28,7 @@ class AdbConfigurableUiTest : LightPlatform4TestCase() {
 
   override fun setUp() {
     super.setUp()
+    AdbService.disabled = true
     myAdbOptionsService = AdbOptionsService.getInstance()
     myOriginalOptions = myAdbOptionsService.getOptionsUpdater()
     myConfigurable =
@@ -40,6 +41,7 @@ class AdbConfigurableUiTest : LightPlatform4TestCase() {
   override fun tearDown() {
     // Restore the AdbOptionsService singleton to its original state so it doesn't break other tests
     myOriginalOptions.commit()
+    AdbService.disabled = false
     super.tearDown() // clears all fields of this class (!) so do it last
   }
 
