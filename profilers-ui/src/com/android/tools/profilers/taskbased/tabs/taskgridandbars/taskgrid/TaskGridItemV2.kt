@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -92,6 +93,7 @@ fun TaskIconAndDescriptionWrapperV2(task: ProfilerTaskType, isSelectedTask: Bool
       modifier =
         Modifier.padding(vertical = 5.dp)
           .fillMaxWidth()
+          .fillMaxHeight()
           .heightIn(min = TASK_HEIGHT_V2_DP)
           .testTag("TaskGridItem")
           .focusOutline(buttonState, RoundedCornerShape(8.dp))
