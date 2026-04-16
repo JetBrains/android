@@ -19,10 +19,13 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.CancellableTimeoutException
 import com.android.tools.idea.insights.Filters
+import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.RevertibleException
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.ai.AiInsightToolkit
+import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.client.AppInsightsClient
 import com.android.tools.idea.insights.client.FetchSource
 import com.android.tools.idea.insights.events.AiInsightFetched
@@ -40,6 +43,7 @@ import com.android.tools.idea.insights.events.NoteDeleted
 import com.android.tools.idea.insights.events.NotesFetched
 import com.android.tools.idea.insights.events.RollbackAddNoteRequest
 import com.android.tools.idea.insights.events.RollbackDeleteNoteRequest
+import com.android.tools.idea.insights.events.StateTransition
 import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.connection.ConnectionMode
 import com.android.tools.idea.insights.model.event.EventPage
@@ -333,7 +337,19 @@ class ActionDispatcher(
                 action.issueFatality,
                 action.event,
                 action.forceGenerateNewInsight,
-              )
+              ) {
+                // Emit a loading state to show that the insight is actually generating now.
+                eventEmitter(
+                  object : ChangeEvent {
+                    override fun transition(
+                      state: AppInsightsState,
+                      tracker: AppInsightsTracker,
+                      provider: InsightsProvider,
+                      cache: AppInsightsCache,
+                    ) = StateTransition(state.copy(currentInsight = LoadingState.Loading("Generating insight...")), Action.NONE)
+                  }
+                )
+              }
             }
           }
         eventEmitter(AiInsightFetched(insight))

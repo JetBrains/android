@@ -54,6 +54,7 @@ import com.intellij.util.application
 import kotlin.test.fail
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -353,6 +354,31 @@ class AiInsightToolkitTest {
     toolkit.showOnboarding()
 
     verify(contributor).showOnboarding(projectRule.project)
+  }
+
+  @Test
+  fun `fetchInsight calls callback before fetching the insight`() = runBlocking {
+    val mutex = Mutex(locked = true)
+    val toolkit = createToolkit()
+    setupAiInsightContributor()
+
+    toolkit.fetchInsight(CONNECTION1, ISSUE1.id, null, ISSUE1.issueDetails.fatality, ISSUE1.sampleEvent) { mutex.unlock() }
+
+    assertThat(mutex.isLocked).isFalse()
+  }
+
+  @Test
+  fun `fetchInsight does not call callback when insight is returned from cache`() = runBlocking {
+    val mutex = Mutex(locked = true)
+    val cache = AiInsightCache()
+    cache.putAiInsight(CONNECTION1, ISSUE1.id, null, AI_INSIGHT_WITH_CODE_CONTEXT)
+    val toolkit = createToolkit(cache)
+
+    toolkit.fetchInsight(CONNECTION1, ISSUE1.id, null, ISSUE1.issueDetails.fatality, ISSUE1.sampleEvent) {
+      fail("Should not call the callback")
+    }
+
+    assertThat(mutex.isLocked).isTrue()
   }
 
   private fun createToolkit(

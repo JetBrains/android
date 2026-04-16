@@ -68,7 +68,7 @@ private const val TEMPORARY_KILL_SWITCH_MESSAGE = "Cannot process request for di
 
 @VisibleForTesting const val GEMINI_NOT_AVAILABLE = "Gemini is not available"
 
-private const val GENERATING_INSIGHT = "Generating insight..."
+private const val DEFAULT_LOADING_TEXT = "Fetching issue data..."
 
 /** [JPanel] that is shown in the [InsightToolWindow] when an insight is available. */
 class InsightContentPanel(
@@ -125,7 +125,7 @@ class InsightContentPanel(
 
   private val loadingPanel =
     JBLoadingPanel(BorderLayout(), this).apply {
-      setLoadingText(GENERATING_INSIGHT)
+      setLoadingText(DEFAULT_LOADING_TEXT)
       border = JBUI.Borders.empty()
       add(insightScrollPanel, BorderLayout.CENTER)
       if (!StudioFlags.AQI_FIX_WITH_AGENT.get()) {
@@ -209,7 +209,7 @@ class InsightContentPanel(
               if (aiInsight.message.isNotEmpty()) {
                 loadingPanel.setLoadingText(aiInsight.message)
               } else {
-                loadingPanel.setLoadingText(GENERATING_INSIGHT)
+                loadingPanel.setLoadingText(DEFAULT_LOADING_TEXT)
               }
               showContentCard(ShowCard.LOADING)
             }

@@ -148,10 +148,10 @@ class InsightContentPanelTest {
     val fakeUi = FakeUi(insightContentPanel)
 
     val loadingPanel = fakeUi.findComponent<JBLoadingPanel>() ?: fail("Loading panel not found")
-    assertThat(loadingPanel.getLoadingText()).isEqualTo("Generating insight...")
+    assertThat(loadingPanel.getLoadingText()).isEqualTo("Fetching issue data...")
 
-    currentInsightFlow.update { LoadingState.Loading("Regenerating insight...") }
-    waitForCondition(2.seconds) { loadingPanel.getLoadingText() == "Regenerating insight..." }
+    currentInsightFlow.update { LoadingState.Loading("Generating insight...") }
+    waitForCondition(2.seconds) { loadingPanel.getLoadingText() == "Generating insight..." }
   }
 
   @Test
