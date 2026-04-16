@@ -15,6 +15,8 @@
  */
 package com.android.tools.asdriver.tests;
 
+import com.android.repository.api.ProgressIndicatorAdapter;
+import com.android.repository.util.InstallerUtil;
 import com.android.testutils.RepoLinker;
 import com.android.testutils.TestUtils;
 import java.nio.file.Files;
@@ -22,35 +24,62 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * Manages an offline Maven repository in integration tests.
+ *
+ * <p>The repository can be defined either by an artifact manifest file or a ZIP archive.
+ *
+ * <p>It handles the configuration of the {@code STUDIO_CUSTOM_REPO} environment variable and adds
+ * necessary VM options to the Android Studio installation to use the offline repository.
+ */
 public class MavenRepo {
-  private final String manifest;
-  private boolean skipInitScriptInjection;
+  private final String path;
+  private boolean skipInitScriptInjection = false;
 
-  public MavenRepo(String manifest) {
-    this.manifest = manifest;
+  public MavenRepo(String path) {
+    this.path = path;
   }
 
+  /** Disables the injection of the repository into Gradle via an init script. */
   public MavenRepo withoutInitScript() {
-    skipInitScriptInjection = true;
+    this.skipInitScriptInjection = true;
     return this;
   }
 
-  public void install(Path tempDir, AndroidStudioInstallation install, HashMap<String, String> env) throws Exception {
-
-    Path offlineRepoManifest = TestUtils.resolveWorkspacePathUnchecked(manifest);
+  /**
+   * Installs the repository by configuring the environment and populating the repository directory
+   * if necessary.
+   *
+   * @param tempDir A temporary directory available for the installation.
+   * @param install The Android Studio installation to configure.
+   * @param env The environment variables map to update.
+   */
+  public void install(Path tempDir, AndroidStudioInstallation install, HashMap<String, String> env)
+      throws Exception {
+    Path resolvedPath = TestUtils.resolveWorkspacePathUnchecked(path);
     Path repoDir;
-    if (!Files.exists(offlineRepoManifest)) {
+    if (!Files.exists(resolvedPath)) {
       // If running in the IDE linking the repo is very hard as the paths are ../maven and that does not exist in
       // the source tree, so we approximate by using the prebuilt repo. We could do better by analyzing each file
       // individually and determine if they are in bazel-bin or in prebuilts
       repoDir = TestUtils.resolveWorkspacePath("prebuilts/tools/common/m2/repository");
     } else {
       repoDir = tempDir.resolve("offline-repo");
-      System.out.printf("Linking offline repo %s to %s%n", offlineRepoManifest, repoDir);
 
-      RepoLinker linker = new RepoLinker();
-      List<String> artifacts = Files.readAllLines(offlineRepoManifest);
-      linker.link(repoDir, artifacts, TestUtils::resolveWorkspacePathUnchecked);
+      if (!Files.exists(repoDir)) {
+        Files.createDirectories(repoDir);
+      }
+
+      if (path.endsWith(".zip")) {
+        System.out.println("Unzipping offline repo " + resolvedPath + " to " + repoDir);
+        InstallerUtil.unzip(resolvedPath, repoDir, Files.size(resolvedPath), new ProgressIndicatorAdapter() {});
+      } else {
+        System.out.printf("Linking offline repo %s to %s%n", resolvedPath, repoDir);
+
+        RepoLinker linker = new RepoLinker();
+        List<String> artifacts = Files.readAllLines(resolvedPath);
+        linker.link(repoDir, artifacts, TestUtils::resolveWorkspacePathUnchecked);
+      }
     }
 
     env.put("STUDIO_CUSTOM_REPO", repoDir.toString());
