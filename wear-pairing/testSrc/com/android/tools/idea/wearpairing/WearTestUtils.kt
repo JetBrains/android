@@ -20,8 +20,8 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.sdklib.internal.avd.AvdInfo
 import com.google.common.util.concurrent.Futures
+import org.mockito.Mockito.mock
 import org.mockito.kotlin.any
-import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
 private fun IDevice.addExecuteShellCommandReply(requestHandler: (request: String) -> String) {
@@ -41,7 +41,8 @@ internal fun PairingDevice.buildIDevice(
   properties: Map<String, String> = emptyMap(),
   shellCommandHandler: (String) -> (String) = { throw IllegalStateException("Unknown ADB request $it") },
 ): IDevice {
-  return mock<IDevice>().apply {
+  val clz = Class.forName("com.android.adblib.ddmlibcompatibility.debugging.AdblibIDeviceWrapper") as Class<IDevice>
+  return mock(clz).apply {
     whenever(isOnline).thenReturn(true)
     whenever(isEmulator).thenReturn(this@buildIDevice.isEmulator)
     whenever(name).thenReturn(displayName)

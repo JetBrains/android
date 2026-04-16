@@ -45,6 +45,7 @@ import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 import javax.swing.JButton
 import org.junit.Test
+import org.mockito.Mockito.mock
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
@@ -157,7 +158,7 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
     }
 
   private fun mockWearDevice(avdWearInfo: AvdInfo) =
-    mock<IDevice>().apply {
+    mock(Class.forName("com.android.adblib.ddmlibcompatibility.debugging.AdblibIDeviceWrapper") as Class<IDevice>).apply {
       whenever(isOnline).thenReturn(true)
       whenever(isEmulator).thenReturn(true)
       whenever(name).thenReturn(avdWearInfo.name)
