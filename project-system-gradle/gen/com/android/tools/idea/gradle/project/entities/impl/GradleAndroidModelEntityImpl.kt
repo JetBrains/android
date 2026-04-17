@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:OptIn(EntityStorageInstrumentationApi::class)
+
 package com.android.tools.idea.gradle.project.entities.impl
 
 import com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity
@@ -32,11 +34,10 @@ import com.intellij.platform.workspace.storage.impl.EntityLink
 import com.intellij.platform.workspace.storage.impl.ModifiableWorkspaceEntityBase
 import com.intellij.platform.workspace.storage.impl.WorkspaceEntityBase
 import com.intellij.platform.workspace.storage.impl.WorkspaceEntityData
-import com.intellij.platform.workspace.storage.impl.extractOneToOneParent
-import com.intellij.platform.workspace.storage.impl.updateOneToOneParentOfChild
 import com.intellij.platform.workspace.storage.instrumentation.EntityStorageInstrumentation
 import com.intellij.platform.workspace.storage.instrumentation.EntityStorageInstrumentationApi
 import com.intellij.platform.workspace.storage.instrumentation.MutableEntityStorageInstrumentation
+import com.intellij.platform.workspace.storage.instrumentation.instrumentation
 import com.intellij.platform.workspace.storage.metadata.model.EntityMetadata
 
 @GeneratedCodeApiVersion(3)
@@ -53,7 +54,8 @@ internal class GradleAndroidModelEntityImpl(private val dataSource: GradleAndroi
   }
 
   override val module: ModuleEntity
-    get() = snapshot.extractOneToOneParent(MODULE_CONNECTION_ID, this)!!
+    get() = snapshot.instrumentation.getParent(MODULE_CONNECTION_ID, this) as? ModuleEntity ?: error(
+      "Parent module not found for GradleAndroidModelEntity")
   override val gradleAndroidModel: GradleAndroidModel
     get() {
       readField("gradleAndroidModel")
@@ -102,7 +104,7 @@ internal class GradleAndroidModelEntityImpl(private val dataSource: GradleAndroi
         error("Field WorkspaceEntity#entitySource should be initialized")
       }
       if (_diff != null) {
-        if (_diff.extractOneToOneParent<WorkspaceEntityBase>(MODULE_CONNECTION_ID, this) == null) {
+        if (_diff.instrumentation.getParentBuilder(MODULE_CONNECTION_ID, this) == null) {
           error("Field GradleAndroidModelEntity#module should be initialized")
         }
       }
@@ -141,12 +143,13 @@ internal class GradleAndroidModelEntityImpl(private val dataSource: GradleAndroi
       get() {
         val _diff = diff
         return if (_diff != null) {
-          @OptIn(EntityStorageInstrumentationApi::class)
           ((_diff as MutableEntityStorageInstrumentation).getParentBuilder(MODULE_CONNECTION_ID, this) as? ModuleEntityBuilder)
-          ?: (this.entityLinks[EntityLink(false, MODULE_CONNECTION_ID)]!! as ModuleEntityBuilder)
+          ?: (this.entityLinks[EntityLink(false, MODULE_CONNECTION_ID)] as? ModuleEntityBuilder) ?: error(
+            "module is null for GradleAndroidModelEntity")
         }
         else {
-          this.entityLinks[EntityLink(false, MODULE_CONNECTION_ID)]!! as ModuleEntityBuilder
+          (this.entityLinks[EntityLink(false, MODULE_CONNECTION_ID)] as? ModuleEntityBuilder) ?: error(
+            "module is null for GradleAndroidModelEntity")
         }
       }
       set(value) {
@@ -160,7 +163,7 @@ internal class GradleAndroidModelEntityImpl(private val dataSource: GradleAndroi
           _diff.addEntity(value as ModifiableWorkspaceEntityBase<WorkspaceEntity, *>)
         }
         if (_diff != null && (value !is ModifiableWorkspaceEntityBase<*, *> || value.diff != null)) {
-          _diff.updateOneToOneParentOfChild(MODULE_CONNECTION_ID, this, value)
+          _diff.instrumentation.addChild(MODULE_CONNECTION_ID, value, this)
         }
         else {
           if (value is ModifiableWorkspaceEntityBase<*, *>) {
@@ -199,7 +202,6 @@ internal class GradleAndroidModelEntityData : WorkspaceEntityData<GradleAndroidM
     return modifiable
   }
 
-  @OptIn(EntityStorageInstrumentationApi::class)
   override fun createEntity(snapshot: EntityStorageInstrumentation): GradleAndroidModelEntity {
     val entityId = createEntityId()
     return snapshot.initializeEntity(entityId) {
