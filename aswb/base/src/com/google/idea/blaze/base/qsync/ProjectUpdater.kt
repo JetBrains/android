@@ -94,7 +94,10 @@ class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
 
   override fun onNewProjectStructure(context: Context<*>, querySyncProject: ReadonlyQuerySyncProject, graph: QuerySyncProjectSnapshot) {
     val newProjectProtoSnapshot = graph.project
-    if (lastProjectProtoSnapshot == newProjectProtoSnapshot) {
+    if (
+      lastProjectProtoSnapshot.copy(ccWorkspace = ProjectProto.CcWorkspace.getDefaultInstance()) ==
+        newProjectProtoSnapshot.copy(ccWorkspace = ProjectProto.CcWorkspace.getDefaultInstance())
+    ) {
       context.output(PrintOutput.output("IDE project structure up-to-date"))
       return
     }
