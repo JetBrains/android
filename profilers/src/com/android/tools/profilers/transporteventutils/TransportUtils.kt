@@ -29,7 +29,7 @@ object TransportUtils {
     processId: Int,
     commandId: Int,
     callback: Function<Common.Event, Boolean>,
-  ) {
+  ): TransportEventListener {
     val eventListener =
       TransportEventListener(
         eventKind = eventKind,
@@ -41,5 +41,6 @@ object TransportUtils {
       )
 
     profilers.transportPoller.registerListener(eventListener)
+    return eventListener
   }
 }

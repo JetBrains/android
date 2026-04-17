@@ -48,7 +48,7 @@ import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.taskbased.task.interim.RecordingScreenModel;
 import com.android.tools.profilers.tasks.analytics.TaskStartFailedMetadata;
 import com.android.tools.profilers.tasks.analytics.TaskStopFailedMetadata;
-import com.android.tools.profilers.tasks.analytics.TaskTracker;
+import com.android.tools.profilers.transporteventutils.TransportListenerTracker;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.Arrays;
 import java.util.List;
@@ -121,8 +121,8 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
                                    () -> {
                                      if (isTrackingAllocations()) {
                                        getStudioProfilers().getIdeServices()
-                                         .getFeatureTracker()
-                                         .trackRecordAllocations();
+                                       .getFeatureTracker()
+                                       .trackRecordAllocations();
                                      }
                                      trackAllocations(
                                        !isTrackingAllocations());
@@ -130,11 +130,13 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
     ));
 
   public MainMemoryProfilerStage(@NotNull StudioProfilers profilers) {
-    this(profilers, new CaptureObjectLoader(), () -> {});
+    this(profilers, new CaptureObjectLoader(), () -> {
+    });
   }
 
   public MainMemoryProfilerStage(@NotNull StudioProfilers profilers, @NotNull CaptureObjectLoader loader) {
-    this(profilers, loader, () -> {});
+    this(profilers, loader, () -> {
+    });
   }
 
   /**
@@ -150,6 +152,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
                                  @NotNull CaptureObjectLoader loader,
                                  @NotNull Runnable stopAction) {
     super(profilers, loader);
+    myListenerTracker = new TransportListenerTracker(profilers);
     myIsMemoryCaptureOnly =
       profilers.getSessionsManager().getSelectedSessionMetaData().getType() == Common.SessionMetaData.SessionType.MEMORY_CAPTURE;
 
@@ -181,6 +184,8 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
       myRecordingScreenModel = null;
     }
   }
+
+  private final TransportListenerTracker myListenerTracker;
 
   public RecordingOptionsModel getRecordingOptionsModel() {
     return myRecordingOptionsModel;
@@ -231,6 +236,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
     if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled() && myRecordingScreenModel != null) {
       getStudioProfilers().getUpdater().unregister(myRecordingScreenModel);
     }
+    myListenerTracker.onExit();
   }
 
   @NotNull
@@ -322,26 +328,31 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
 
     getStudioProfilers().getClient().executeAsync(dumpCommand, ide.getPoolExecutor())
       .thenAcceptAsync(response -> {
-        TransportEventListener statusListener = new TransportEventListener(Common.Event.Kind.TRACE_STATUS,
-                                                                           getStudioProfilers().getIdeServices().getMainExecutor(),
-                                                                           event -> event.getCommandId() == response.getCommandId(),
-                                                                           () -> getSessionData().getStreamId(),
-                                                                           () -> getSessionData().getPid(),
-                                                                           event -> {
-                                                                             if (event.getTraceStatus().hasTraceStartStatus()) {
-                                                                               // trace status event is a start tracing event
-                                                                               nativeAllocationTrackingStart(event.getTraceStatus()
-                                                                                                               .getTraceStartStatus());
-                                                                             }
-                                                                             else {
-                                                                               // unknown/undefined trace status event found
-                                                                               myTaskTracker.trackStartTaskFailed(new TaskStartFailedMetadata(Trace.TraceStartStatus.getDefaultInstance(), null, null));
-                                                                               getLogger().error("Invalid trace status event received.");
-                                                                             }
-                                                                             // unregisters the listener.
-                                                                             return true;
-                                                                           });
+        TransportEventListener statusListener =
+          new TransportEventListener(Common.Event.Kind.TRACE_STATUS,
+                                     getStudioProfilers().getIdeServices().getMainExecutor(),
+                                     event -> event.getCommandId() == response.getCommandId(),
+                                     () -> getSessionData().getStreamId(),
+                                     () -> getSessionData().getPid(),
+                                     event -> {
+                                       if (event.getTraceStatus().hasTraceStartStatus()) {
+                                         // trace status event is a start tracing event
+                                         nativeAllocationTrackingStart(event.getTraceStatus()
+                                                                         .getTraceStartStatus());
+                                       }
+                                       else {
+                                         // unknown/undefined trace status event found
+                                         myTaskTracker.trackStartTaskFailed(
+                                           new TaskStartFailedMetadata(
+                                             Trace.TraceStartStatus.getDefaultInstance(), null,
+                                             null));
+                                         getLogger().error("Invalid trace status event received.");
+                                       }
+                                       // unregisters the listener.
+                                       return true;
+                                     });
         getStudioProfilers().getTransportPoller().registerListener(statusListener);
+        myListenerTracker.trackListener(statusListener, false);
       }, ide.getPoolExecutor());
   }
 
@@ -371,29 +382,32 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
 
     getStudioProfilers().getClient().executeAsync(dumpCommand, getStudioProfilers().getIdeServices().getPoolExecutor())
       .thenAcceptAsync(response -> {
-        TransportEventListener statusListener = new TransportEventListener(Common.Event.Kind.TRACE_STATUS,
-                                                                           getStudioProfilers().getIdeServices().getMainExecutor(),
-                                                                           event -> event.getCommandId() == response.getCommandId(),
-                                                                           () -> getSessionData().getStreamId(),
-                                                                           () -> getSessionData().getPid(),
-                                                                           event -> {
-                                                                             if (event.getTraceStatus().hasTraceStopStatus()) {
-                                                                               // trace status event is a stop tracing event
-                                                                               nativeAllocationTrackingStop(
-                                                                                 event.getTraceStatus().getTraceStopStatus());
-                                                                             }
-                                                                             else {
-                                                                               cleanupFailedCapture();
-                                                                               // unknown/undefined trace status event found
-                                                                               if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
-                                                                                 myTaskTracker.trackStopTaskFailed(new TaskStopFailedMetadata(Trace.TraceStopStatus.getDefaultInstance(), null, null));
-                                                                               }
-                                                                               getLogger().error("Invalid trace status event received.");
-                                                                             }
-                                                                             // unregisters the listener.
-                                                                             return true;
-                                                                           });
+        TransportEventListener statusListener =
+          new TransportEventListener(Common.Event.Kind.TRACE_STATUS,
+                                     getStudioProfilers().getIdeServices().getMainExecutor(),
+                                     event -> event.getCommandId() == response.getCommandId(),
+                                     () -> getSessionData().getStreamId(),
+                                     () -> getSessionData().getPid(),
+                                     event -> {
+                                       if (event.getTraceStatus().hasTraceStopStatus()) {
+                                         // trace status event is a stop tracing event
+                                         nativeAllocationTrackingStop(
+                                           event.getTraceStatus().getTraceStopStatus());
+                                       }
+                                       else {
+                                         cleanupFailedCapture();
+                                         // unknown/undefined trace status event found
+                                         if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+                                           myTaskTracker.trackStopTaskFailed(
+                                             new TaskStopFailedMetadata(Trace.TraceStopStatus.getDefaultInstance(), null, null));
+                                         }
+                                         getLogger().error("Invalid trace status event received.");
+                                       }
+                                       // unregisters the listener.
+                                       return true;
+                                     });
         getStudioProfilers().getTransportPoller().registerListener(statusListener);
+        myListenerTracker.trackListener(statusListener, true);
       }, getStudioProfilers().getIdeServices().getPoolExecutor());
   }
 
@@ -491,18 +505,20 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
     CompletableFuture.runAsync(() -> {
       Transport.ExecuteResponse response = getStudioProfilers().getClient().getTransportClient().execute(
         Transport.ExecuteRequest.newBuilder().setCommand(dumpCommand).build());
-      TransportEventListener statusListener = new TransportEventListener(Common.Event.Kind.MEMORY_HEAP_DUMP_STATUS,
-                                                                         getStudioProfilers().getIdeServices().getMainExecutor(),
-                                                                         event -> event.getCommandId() == response.getCommandId(),
-                                                                         () -> getSessionData().getStreamId(),
-                                                                         () -> getSessionData().getPid(),
-                                                                         event -> {
-                                                                           handleHeapDumpStart(
-                                                                             event.getMemoryHeapdumpStatus().getStatus());
-                                                                           // unregisters the listener.
-                                                                           return true;
-                                                                         });
+      TransportEventListener statusListener =
+        new TransportEventListener(Common.Event.Kind.MEMORY_HEAP_DUMP_STATUS,
+                                   getStudioProfilers().getIdeServices().getMainExecutor(),
+                                   event -> event.getCommandId() == response.getCommandId(),
+                                   () -> getSessionData().getStreamId(),
+                                   () -> getSessionData().getPid(),
+                                   event -> {
+                                     handleHeapDumpStart(
+                                       event.getMemoryHeapdumpStatus().getStatus());
+                                     // unregisters the listener.
+                                     return true;
+                                   });
       getStudioProfilers().getTransportPoller().registerListener(statusListener);
+      myListenerTracker.trackListener(statusListener, false);
     }, getStudioProfilers().getIdeServices().getPoolExecutor());
     getTimeline().setStreaming(true);
     getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_MEMORY_CAPTURE, true);
@@ -539,7 +555,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
    * @return the actual status, which may be different from the input
    */
   public void trackAllocations(boolean enable) {
-    MemoryProfiler.trackAllocations(getStudioProfilers(), getSessionData(), enable, true, status -> {
+    TransportEventListener listener = MemoryProfiler.trackAllocations(getStudioProfilers(), getSessionData(), enable, true, status -> {
       switch (status.getStatus()) {
         case SUCCESS:
           setTrackingAllocations(enable);
@@ -573,6 +589,10 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
         getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_MEMORY_CAPTURE, true);
       }
     });
+
+    if (listener != null) {
+      myListenerTracker.trackListener(listener, !enable);
+    }
   }
 
   public long getAllocationTrackingElapsedTimeNs() {

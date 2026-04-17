@@ -11,6 +11,7 @@ import com.android.tools.profilers.memory.adapters.CaptureObject
 import com.android.tools.profilers.tasks.analytics.TaskFinishedState
 import com.android.tools.profilers.tasks.analytics.TaskStartFailedMetadata
 import com.android.tools.profilers.tasks.analytics.TaskStopFailedMetadata
+import com.android.tools.profilers.transporteventutils.TransportListenerTracker
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import java.util.concurrent.Executor
@@ -51,6 +52,8 @@ private constructor(
   val isStatic
     get() = hasStartedTracking && hasEndedTracking
 
+  private val myListenerTracker = TransportListenerTracker(studioProfilers)
+
   private var lastTrackingEvent = Common.Event.getDefaultInstance()
 
   private val allocationDurationData = makeModel(CaptureDataSeries::ofAllocationInfos)
@@ -79,6 +82,7 @@ private constructor(
           true
         }
       studioProfilers.transportPoller.registerListener(listener)
+      myListenerTracker.trackListener(listener, false)
     }
   }
 
@@ -133,6 +137,7 @@ private constructor(
     timeline.selectionRange.removeDependencies(this)
     captureSelection.selectedCapture?.unload()
     studioProfilers.sessionsManager.unsetTaskDb(sessionData)
+    myListenerTracker.onExit()
   }
 
   @VisibleForTesting
@@ -198,50 +203,52 @@ private constructor(
    * should be started or not. endSession: Boolean which indicates if current session should be ended or not.
    */
   private fun trackAllocations(enable: Boolean, endSession: Boolean) {
-    MemoryProfiler.trackAllocations(profilers = studioProfilers, session = sessionData, enable = enable, endSession = endSession) { status
-      ->
-      when (status?.status) {
-        TrackStatus.Status.SUCCESS -> {
-          if (enable) {
-            logger.info("PROFILER: Java/Kotlin Allocations capture start succeeded")
-          }
-          // At this point, allocation tracking has been stopped by the user, indicating that the task is complete.
-          else {
-            if (studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
-              myTaskTracker.trackTaskFinished(TaskFinishedState.COMPLETED)
+    val listener =
+      MemoryProfiler.trackAllocations(profilers = studioProfilers, session = sessionData, enable = enable, endSession = endSession) { status
+        ->
+        when (status?.status) {
+          TrackStatus.Status.SUCCESS -> {
+            if (enable) {
+              logger.info("PROFILER: Java/Kotlin Allocations capture start succeeded")
             }
-            logger.info("PROFILER: Java/Kotlin Allocations capture stop succeeded")
-          }
-        }
-        TrackStatus.Status.IN_PROGRESS,
-        TrackStatus.Status.NOT_ENABLED -> {
-          // Still in progress or not enabled yet. Not enabled yet usually happens in stage exit.
-        }
-        else -> {
-          val isTaskBasedUxEnabled = studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled
-          // TrackStatus.Status.UNSPECIFIED, TrackStatus.Status.NOT_PROFILING,
-          // TrackStatus.Status.FAILURE_UNKNOWN, TrackStatus.Status.UNRECOGNIZED, status is null
-          // All these cases denotes there is failure.
-          if (enable) {
-            // start task failure
-            if (isTaskBasedUxEnabled) {
-              myTaskTracker.trackStartTaskFailed(TaskStartFailedMetadata(allocationTrackStatus = status))
+            // At this point, allocation tracking has been stopped by the user, indicating that the task is complete.
+            else {
+              if (studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
+                myTaskTracker.trackTaskFinished(TaskFinishedState.COMPLETED)
+              }
+              logger.info("PROFILER: Java/Kotlin Allocations capture stop succeeded")
             }
-            logger.info("PROFILER: Java/Kotlin Allocations capture start failed")
-          } else {
-            // stop task failure
-            if (isTaskBasedUxEnabled) {
-              myTaskTracker.trackStopTaskFailed(
-                TaskStopFailedMetadata(allocationTrackStatus = status, traceStopStatus = null, cpuCaptureMetadata = null)
-              )
-            }
-            logger.info("PROFILER: Java/Kotlin Allocations capture stop failed")
           }
+          TrackStatus.Status.IN_PROGRESS,
+          TrackStatus.Status.NOT_ENABLED -> {
+            // Still in progress or not enabled yet. Not enabled yet usually happens in stage exit.
+          }
+          else -> {
+            val isTaskBasedUxEnabled = studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled
+            // TrackStatus.Status.UNSPECIFIED, TrackStatus.Status.NOT_PROFILING,
+            // TrackStatus.Status.FAILURE_UNKNOWN, TrackStatus.Status.UNRECOGNIZED, status is null
+            // All these cases denotes there is failure.
+            if (enable) {
+              // start task failure
+              if (isTaskBasedUxEnabled) {
+                myTaskTracker.trackStartTaskFailed(TaskStartFailedMetadata(allocationTrackStatus = status))
+              }
+              logger.info("PROFILER: Java/Kotlin Allocations capture start failed")
+            } else {
+              // stop task failure
+              if (isTaskBasedUxEnabled) {
+                myTaskTracker.trackStopTaskFailed(
+                  TaskStopFailedMetadata(allocationTrackStatus = status, traceStopStatus = null, cpuCaptureMetadata = null)
+                )
+              }
+              logger.info("PROFILER: Java/Kotlin Allocations capture stop failed")
+            }
 
-          cleanupFailedCapture()
+            cleanupFailedCapture()
+          }
         }
       }
-    }
+    listener?.let { myListenerTracker.trackListener(it, !enable) }
   }
 
   fun stopTracking() {

@@ -52,6 +52,7 @@ import com.android.tools.profilers.taskbased.task.interim.RecordingScreenModel;
 import com.android.tools.profilers.tasks.ProfilerTaskType;
 import com.android.tools.profilers.tasks.analytics.TaskStartFailedMetadata;
 import com.android.tools.profilers.tasks.analytics.TaskStopFailedMetadata;
+import com.android.tools.profilers.transporteventutils.TransportListenerTracker;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.intellij.openapi.diagnostic.Logger;
@@ -148,6 +149,8 @@ CpuProfilerStage extends StreamingStage implements InterimStage {
   @Nullable
   private EventMonitor myEventMonitor;
 
+  private final TransportListenerTracker myListenerTracker;
+
   public CpuProfilerStage(@NotNull StudioProfilers profilers) {
     this(profilers, new CpuCaptureParser(profilers), CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN, () -> {});
   }
@@ -179,6 +182,7 @@ CpuProfilerStage extends StreamingStage implements InterimStage {
                            CpuCaptureMetadata.CpuProfilerEntryPoint entryPoint,
                            @NotNull Runnable stopAction) {
     super(profilers);
+    myListenerTracker = new TransportListenerTracker(profilers);
     mySession = profilers.getSession();
     myCpuDataProvider = new CpuDataProvider(profilers, getTimeline());
     myProfilerConfigModel = new CpuProfilerConfigModel(profilers, this);
@@ -322,6 +326,7 @@ CpuProfilerStage extends StreamingStage implements InterimStage {
 
     getRangeSelectionModel().clearListeners();
     getUpdatableManager().releaseAll();
+    myListenerTracker.onExit();
   }
 
   @Nullable
@@ -373,7 +378,7 @@ CpuProfilerStage extends StreamingStage implements InterimStage {
 
     // Execute a start trace command for cpu-based tracing and registers a listener for event reception and handling.
     // The startCapturingCallback with be called on event reception.
-    CpuProfiler.startTracing(getStudioProfilers(), mySession, configuration, this::startCapturingCallback, null);
+    CpuProfiler.startTracing(getStudioProfilers(), mySession, configuration, this::startCapturingCallback, null, listener -> myListenerTracker.trackListener(listener, false));
 
     getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_CPU_CAPTURE, true);
     getInstructionsEaseOutModel().setCurrentRatio(1);
@@ -411,7 +416,7 @@ CpuProfilerStage extends StreamingStage implements InterimStage {
     // Set myCaptureStopTimeNs before updating the state because the timestamp may be used to construct stopping panel.
     myCaptureStopTimeNs = currentTimeNs();
     setCaptureState(CaptureState.STOPPING);
-    CpuProfiler.stopTracing(getStudioProfilers(), mySession, myInProgressTraceInfo.getConfiguration(), this::stopCapturingCallback, null);
+    CpuProfiler.stopTracing(getStudioProfilers(), mySession, myInProgressTraceInfo.getConfiguration(), this::stopCapturingCallback, null, listener -> myListenerTracker.trackListener(listener, true));
   }
 
   public long getCaptureStartTimeNs() {

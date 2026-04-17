@@ -21,7 +21,7 @@ import static com.android.tools.profilers.ImportedSessionUtils.makeEndedEvent;
 import static com.android.tools.profilers.cpu.CpuCaptureParserUtil.getFileTraceType;
 
 import com.android.tools.adtui.model.Range;
-import com.android.tools.idea.transport.EventStreamServer;
+import com.android.tools.idea.transport.poller.TransportEventListener;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Trace;
@@ -165,7 +165,8 @@ public class CpuProfiler implements StudioProfiler {
                   session,
                   mostRecentTrace.getConfiguration(),
                   null,
-                  null);
+                  null,
+                  listener -> {});
     }
   }
 
@@ -336,7 +337,8 @@ public class CpuProfiler implements StudioProfiler {
                                   @NotNull Common.Session session,
                                   @NotNull Trace.TraceConfiguration configuration,
                                   @NotNull Consumer<Trace.TraceStartStatus> statusResponseHandler,
-                                  @Nullable Consumer<Trace.TraceInfo> cpuTraceResponseHandler) {
+                                  @Nullable Consumer<Trace.TraceInfo> cpuTraceResponseHandler,
+                                  @NotNull Consumer<TransportEventListener> listenerTracker) {
     Executor poolExecutor = profilers.getIdeServices().getPoolExecutor();
     Commands.Command startCommand = Commands.Command.newBuilder()
       .setStreamId(session.getStreamId())
@@ -355,8 +357,9 @@ public class CpuProfiler implements StudioProfiler {
           // unregisters the listener.
           return true;
         };
-        TransportUtils.registerListener(profilers, Common.Event.Kind.TRACE_STATUS,
+        TransportEventListener statusListener = TransportUtils.registerListener(profilers, Common.Event.Kind.TRACE_STATUS,
                                         session.getStreamId(), session.getPid(), response.getCommandId(), traceStatusEventCallback);
+        listenerTracker.accept(statusListener);
         if (cpuTraceResponseHandler != null) {
           Function<Common.Event, Boolean> cpuTraceEventCallback = event -> {
             if (event.getTraceData().hasTraceStarted()) {
@@ -365,8 +368,9 @@ public class CpuProfiler implements StudioProfiler {
             // unregisters the listener.
             return true;
           };
-          TransportUtils.registerListener(profilers, Common.Event.Kind.CPU_TRACE,
+          TransportEventListener cpuTraceListener = TransportUtils.registerListener(profilers, Common.Event.Kind.CPU_TRACE,
                                           session.getStreamId(), session.getPid(), response.getCommandId(), cpuTraceEventCallback);
+          listenerTracker.accept(cpuTraceListener);
         }
       }, poolExecutor);
   }
@@ -375,7 +379,8 @@ public class CpuProfiler implements StudioProfiler {
                                  @NotNull Common.Session session,
                                  @NotNull Trace.TraceConfiguration configuration,
                                  @Nullable Consumer<Trace.TraceStopStatus> statusResponseHandler,
-                                 @Nullable Consumer<Trace.TraceInfo> cpuTraceResponseHandler) {
+                                 @Nullable Consumer<Trace.TraceInfo> cpuTraceResponseHandler,
+                                 @NotNull Consumer<TransportEventListener> listenerTracker) {
     Executor poolExecutor = profilers.getIdeServices().getPoolExecutor();
     Commands.Command.Builder stopCommandBuilder = Commands.Command.newBuilder()
       .setStreamId(session.getStreamId())
@@ -401,8 +406,9 @@ public class CpuProfiler implements StudioProfiler {
             // unregisters the listener.
             return true;
           };
-          TransportUtils.registerListener(profilers, Common.Event.Kind.TRACE_STATUS,
+          TransportEventListener statusListener = TransportUtils.registerListener(profilers, Common.Event.Kind.TRACE_STATUS,
                                           session.getStreamId(), session.getPid(), response.getCommandId(), traceStatusEventCallback);
+          listenerTracker.accept(statusListener);
         }
         if (cpuTraceResponseHandler != null) {
           Function<Common.Event, Boolean> cpuTraceEventCallback = event -> {
@@ -412,8 +418,9 @@ public class CpuProfiler implements StudioProfiler {
             // unregisters the listener.
             return true;
           };
-          TransportUtils.registerListener(profilers, Common.Event.Kind.CPU_TRACE,
+          TransportEventListener cpuTraceListener = TransportUtils.registerListener(profilers, Common.Event.Kind.CPU_TRACE,
                                           session.getStreamId(), session.getPid(), response.getCommandId(), cpuTraceEventCallback);
+          listenerTracker.accept(cpuTraceListener);
         }
       }, poolExecutor);
   }

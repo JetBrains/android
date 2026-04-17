@@ -84,13 +84,14 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
 
   override fun startProfiling(session: Common.Session) {}
 
-  override fun stopProfiling(session: Common.Session) =
+  override fun stopProfiling(session: Common.Session) {
     try {
       // Stop any ongoing allocation tracking sessions (either legacy or jvmti-based).
       trackAllocations(profilers, session, false, false, null)
     } catch (e: StatusRuntimeException) {
       logger.info(e)
     }
+  }
 
   /** Attempts to start live allocation tracking. */
   private fun agentStatusChanged() {
@@ -337,7 +338,7 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
       enable: Boolean,
       endSession: Boolean,
       responseHandler: Consumer<TrackStatus?>?,
-    ) {
+    ): TransportEventListener? {
       val timeNs =
         profilers.client.transportClient.getCurrentTime(TimeRequest.newBuilder().setStreamId(session.streamId).build()).timestampNs
       val trackCommand =
@@ -385,7 +386,9 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
             callback = { event -> true.also { responseHandler.accept(event.memoryAllocTrackingStatus.status) } },
           )
         profilers.transportPoller.registerListener(statusListener)
+        return statusListener
       }
+      return null
     }
   }
 }
