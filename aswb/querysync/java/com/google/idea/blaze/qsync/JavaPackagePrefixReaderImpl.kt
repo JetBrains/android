@@ -19,6 +19,8 @@ import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.PrintOutput
 import com.google.idea.blaze.qsync.dispatchers.QuerySyncDispatchers
 import com.google.idea.blaze.qsync.java.PackageReader
+import com.google.idea.blaze.qsync.java.choosePackageCandidate
+import com.google.idea.blaze.qsync.project.FileExtensions
 import com.google.idea.blaze.qsync.query.PackageSet
 import com.intellij.openapi.progress.ProcessCanceledException
 import java.nio.file.Files
@@ -47,32 +49,26 @@ constructor(
       val filesByPath = sourceFiles.groupBy { it.parent }
       // A map from directory to the candidate chosen to represent that directory.
       // For each directory, we select the lexicographically first file that actually exists.
+      val fileExtensions = FileExtensions()
       val candidates: Map<Path, Path> = coroutineScope {
         filesByPath.entries
           .map { (dir, filesInDir) ->
             async {
               try {
                 // Find the lexicographically smallest file that exists in the directory.
-                sequence {
-                    val queue = java.util.PriorityQueue<Path>(Comparator.comparing { it.fileName.toString() })
-                    queue.addAll(filesInDir)
-                    while (queue.isNotEmpty()) {
-                      yield(queue.poll())
-                    }
-                  }
-                  .filter {
+                val chosenCandidate =
+                  choosePackageCandidate(filesInDir, fileExtensions) { path ->
                     try {
-                      fileExistenceCheck(it)
+                      fileExistenceCheck(path)
                     } catch (e: Exception) {
                       if (e is ProcessCanceledException || e is CancellationException || e is InterruptedException) {
                         throw e
                       }
-                      context.output(PrintOutput.log("Warning: File existence check failed for $it: ${e.message}"))
+                      context.output(PrintOutput.log("Warning: File existence check failed for $path: ${e.message}"))
                       false // Treat as non-existent on error
                     }
                   }
-                  .firstOrNull()
-                  ?.let { chosenCandidate -> dir to chosenCandidate }
+                chosenCandidate?.let { chosenCandidate -> dir to chosenCandidate }
               } catch (e: Exception) {
                 if (e is ProcessCanceledException || e is CancellationException || e is InterruptedException) {
                   throw e
