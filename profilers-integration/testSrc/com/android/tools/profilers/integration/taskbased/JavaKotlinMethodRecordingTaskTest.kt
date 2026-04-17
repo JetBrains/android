@@ -58,5 +58,9 @@ class JavaKotlinMethodRecordingTaskTest : ProfilersTaskTestBase() {
    * 5. Verify live view UI components.
    * 6. Verify if the profiler session is still viewable after stopping.
    */
-  @Test fun test() = testTask()
+  @Test
+  fun test() {
+    system.installation.addVmOption("-Dprofiler.method.trace.in.editor=false")
+    testTask()
+  }
 }

@@ -171,6 +171,22 @@ iml_test(
 )
 
 iml_test(
+    name = "JavaKotlinMethodRecordingInEditorTaskTest",
+    timeout = "long",
+    data = profilers_test_common_data,
+    jvm_flags = emulator_snapshot_jvm_flags("//prebuilts/studio/sdk:system_image_android-33_default"),
+    module = ":intellij.android.profilers.integration",
+    tags = ["studio-e2e-test"],
+    tags_linux = [],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.profilers.integration.taskbased.JavaKotlinMethodRecordingInEditorTaskTest",
+)
+
+iml_test(
     name = "LiveViewTaskTest",
     timeout = "long",
     data = profilers_test_common_data,
@@ -273,6 +289,24 @@ iml_test(
         "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
     ],
     test_class = "com.android.tools.profilers.integration.taskbased.StartupJavaKotlinMethodRecordingTaskTest",
+)
+
+iml_test(
+    name = "StartupJavaKotlinMethodRecordingInEditorTaskTest",
+    timeout = "long",
+    data = profilers_test_common_data,
+    jvm_flags = emulator_snapshot_jvm_flags("//prebuilts/studio/sdk:system_image_android-33_default"),
+    module = ":intellij.android.profilers.integration",
+    tags = ["studio-e2e-test"],
+    tags_linux = [
+        "block-network",
+    ],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.profilers.integration.taskbased.StartupJavaKotlinMethodRecordingInEditorTaskTest",
 )
 
 iml_test(

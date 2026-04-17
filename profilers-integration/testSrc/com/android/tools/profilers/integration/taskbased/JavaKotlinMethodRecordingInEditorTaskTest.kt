@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 package com.android.tools.profilers.integration.taskbased
 
 import com.android.tools.asdriver.tests.AndroidStudio
-import com.android.tools.profilers.integration.ProfilersStartupTaskTestBase
+import com.android.tools.profilers.integration.ProfilersTaskTestBase
 import org.junit.Test
 
-class StartupJavaKotlinMethodRecordingTaskTest : ProfilersStartupTaskTestBase() {
+class JavaKotlinMethodRecordingInEditorTaskTest : ProfilersTaskTestBase() {
 
   override fun selectTask(studio: AndroidStudio) {
     selectJavaKotlinMethodRecordingTask(studio)
@@ -27,21 +27,18 @@ class StartupJavaKotlinMethodRecordingTaskTest : ProfilersStartupTaskTestBase() 
   }
 
   override fun verifyTaskStarted(studio: AndroidStudio) {
-    verifyIdeaLog(
-      ".*Attempting\\sto\\sstart\\sthe\\s\\'Java\\/Kotlin Method Recording\\'\\stask\\sfrom\\sprocess\\sstart\\s\\(startup\\)\\.\$",
-      300,
-    )
-    waitForAppDeploymentStarted("com.example.minapp", 300)
     verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 120)
+    verifyIdeaLog(".*PROFILER\\:\\s+CPU\\s+capture\\s+start\\s+succeeded\$", 120)
   }
 
   override fun verifyTaskStopped(studio: AndroidStudio) {
     verifyIdeaLog(".*PROFILER\\:\\s+CPU\\s+capture\\s+stop\\s+succeeded\$", 300)
-    verifyIdeaLog(".*PROFILER\\:\\s+CPU\\s+capture\\s+parse\\s+succeeded\$", 300)
+    verifyIdeaLog(".*Perfetto\\s+file\\s+editor\\s+opened\\s+for\\s+file:.*", 600)
+    verifyIdeaLog(".*High\\s+level\\s+trace\\s+data\\s+loaded.*", 600)
   }
 
   override fun verifyUIComponents(studio: AndroidStudio) {
-    studio.waitForComponentByClass("CpuAnalysisSummaryTab", "FullTraceSummaryDetailsView")
+    studio.waitForComponentByClass("PerfettoView")
   }
 
   /**
@@ -49,22 +46,22 @@ class StartupJavaKotlinMethodRecordingTaskTest : ProfilersStartupTaskTestBase() 
    *
    * Test Steps:
    * 1. Import "minApp" in the testData directory of this module.
-   * 2. Select device -> process -> task (java/kotlin method recording) -> Set recording to Sample
-   * 3. Set recording state to process start
+   * 2. Deploy App and open profiler tool window, set to debuggable mode.
+   * 3. Select device -> process -> task (java/kotlin method recording) -> Set recording to Sample
    * 4. Start the task
    * 5. Stop the task.
    *
    * Test Verifications:
-   * 1. Verify if the profiler tool window is opened and Transport proxy is created.
-   * 2. Verify if the app is deployed.
+   * 1. Verify if the profiler tool window is opened.
+   * 2. Verify if Transport proxy is created for the device.
    * 3. Verify task start succeeded.
    * 4. Verify session stopped.
-   * 5. Verify if the capture is parsed successfully.
-   * 6. Verify UI components after capture is parsed.
+   * 5. Verify if the file is opened in the editor.
+   * 6. Verify UI component.
    */
   @Test
   fun test() {
-    system.installation.addVmOption("-Dprofiler.method.trace.in.editor=false")
-    testStartUpTask()
+    system.installation.addVmOption("-Dprofiler.method.trace.in.editor=true")
+    testTask()
   }
 }
