@@ -22,6 +22,7 @@ import com.android.tools.profiler.proto.Commands.StartLeakCanaryTaskData
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.Process.ExposureLevel
 import com.android.tools.profiler.proto.Transport
+import com.android.tools.profilers.Notification
 import com.android.tools.profilers.SupportLevel
 import com.android.tools.profilers.cpu.config.LeakCanaryConfiguration
 import com.android.tools.profilers.sessions.SessionArtifact
@@ -43,6 +44,7 @@ import fleet.util.logging.logger
 import java.util.Timer
 import java.util.TimerTask
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -76,6 +78,8 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
   private val LEAKCANARY_CHECK_TIMEOUT_MS = 14000L
   // Timeout for the JVMTI agent to attach. Cold attachment can take 3-5s on slower devices.
   private val AGENT_ATTACH_TIMEOUT_MS = 7000L
+  // Timeout for fetching the LeakCanary threshold from the device.
+  private val THRESHOLD_FETCH_TIMEOUT_MS = 7000L
 
   private var pendingArgs: LeakCanaryTaskArgs? = null
 
@@ -104,12 +108,12 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
   }
 
   /**
-   * Fetches the LeakCanary retained visible threshold from the device after the JVMTI agent is attached. Unlike
-   * `sendThresholdCommandAndListen()` (which sends `GET_LEAKCANARY_THRESHOLD` asynchronously to verify if the `studio-leakcanary` library
-   * is present *before* the task officially starts or appears in the UI), this method fetches the actual threshold to be used by the task
-   * and caches it so that the task can operate on it once it is started.
+   * Fetches the LeakCanary retained visible threshold from the device. This is a blocking call that waits up to 7 seconds for the app to
+   * respond with the threshold via the LEAKCANARY_THRESHOLD event.
+   *
+   * @return true if the threshold was successfully fetched, false if it timed out or failed.
    */
-  private fun fetchThreshold() {
+  private fun fetchThresholdAndWait(): Boolean {
     val fetchThresholdCommand =
       Commands.Command.newBuilder()
         .setStreamId(profilers.session.streamId)
@@ -118,123 +122,135 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
         .setType(Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD)
         .build()
 
-    profilers.ideServices.poolExecutor.execute {
-      val commandIdFuture = CompletableFuture<Int>()
-      val isCompleted = AtomicBoolean(false)
-      val timer = Timer()
+    val commandIdFuture = CompletableFuture<Int>()
+    val thresholdFetchedFuture = CompletableFuture<Boolean>()
 
-      val listener =
-        TransportEventListener(
-          eventKind = Common.Event.Kind.LEAKCANARY_THRESHOLD,
-          executor = profilers.ideServices.poolExecutor,
-          streamId = { profilers.session.streamId },
-          filter = { event ->
-            val targetCommandId = commandIdFuture.getNow(-1)
-            targetCommandId != -1 && event.commandId == targetCommandId
-          },
-          processId = { profilers.session.pid },
-          callback = { event ->
-            if (isCompleted.compareAndSet(false, true)) {
-              timer.cancel()
-              val threshold = event.leakcanaryThreshold.threshold
-              logger.info("Stored LeakCanary threshold $threshold in preferences.")
-              profilers.ideServices.mainExecutor.execute {
-                profilers.ideServices.temporaryProfilerPreferences.setInt("LEAKCANARY_THRESHOLD", threshold)
-              }
-            }
-            true // Unregister listener
-          },
-        )
-      profilers.transportPoller.registerListener(listener)
-
-      timer.schedule(
-        object : TimerTask() {
-          override fun run() {
-            if (isCompleted.compareAndSet(false, true)) {
-              logger.warn("Timeout waiting for LEAKCANARY_THRESHOLD event.")
-              profilers.transportPoller.unregisterListener(listener)
-            }
-          }
+    val listener =
+      TransportEventListener(
+        eventKind = Common.Event.Kind.LEAKCANARY_THRESHOLD,
+        executor = profilers.ideServices.poolExecutor,
+        streamId = { profilers.session.streamId },
+        processId = { profilers.session.pid },
+        filter = { event ->
+          val targetCommandId = commandIdFuture.getNow(-1)
+          targetCommandId != -1 && event.commandId == targetCommandId
         },
-        3000,
+        callback = { event ->
+          val threshold = event.leakcanaryThreshold.threshold
+          logger.info("Stored LeakCanary threshold $threshold in preferences.")
+          profilers.ideServices.mainExecutor.execute {
+            profilers.ideServices.temporaryProfilerPreferences.setInt("LEAKCANARY_THRESHOLD", threshold)
+          }
+          thresholdFetchedFuture.complete(true)
+          true // Unregister listener
+        },
       )
+    profilers.transportPoller.registerListener(listener)
 
-      try {
-        val response =
-          profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(fetchThresholdCommand).build())
-        logger.info(
-          "Sent GET_LEAKCANARY_THRESHOLD command to transport. streamId: ${fetchThresholdCommand.streamId}, pid: ${fetchThresholdCommand.pid}, sessionId: ${fetchThresholdCommand.sessionId}"
-        )
-        commandIdFuture.complete(response.commandId)
-      } catch (e: Exception) {
-        logger.warn(
-          e,
-          "Failed to send GET_LEAKCANARY_THRESHOLD command. streamId: ${fetchThresholdCommand.streamId}, pid: ${fetchThresholdCommand.pid}, sessionId: ${fetchThresholdCommand.sessionId}",
-        )
-        if (isCompleted.compareAndSet(false, true)) {
-          timer.cancel()
-          profilers.transportPoller.unregisterListener(listener)
-        }
-      }
+    try {
+      val response =
+        profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(fetchThresholdCommand).build())
+      logger.info(
+        "Sent GET_LEAKCANARY_THRESHOLD command to transport. streamId: ${fetchThresholdCommand.streamId}, pid: ${fetchThresholdCommand.pid}, sessionId: ${fetchThresholdCommand.sessionId}"
+      )
+      commandIdFuture.complete(response.commandId)
+
+      // Block the background thread until the listener catches the event or we hit the 7-second timeout.
+      return thresholdFetchedFuture.get(THRESHOLD_FETCH_TIMEOUT_MS, java.util.concurrent.TimeUnit.MILLISECONDS)
+    } catch (e: TimeoutException) {
+      logger.warn(
+        "Timed out waiting for LEAKCANARY_THRESHOLD response after $THRESHOLD_FETCH_TIMEOUT_MS ms. streamId: ${fetchThresholdCommand.streamId}, pid: ${fetchThresholdCommand.pid}, sessionId: ${fetchThresholdCommand.sessionId}"
+      )
+      return false
+    } catch (e: Exception) {
+      logger.warn(
+        e,
+        "Failed to send GET_LEAKCANARY_THRESHOLD command. streamId: ${fetchThresholdCommand.streamId}, pid: ${fetchThresholdCommand.pid}, sessionId: ${fetchThresholdCommand.sessionId}",
+      )
+      return false
+    } finally {
+      // Always clean up the listener to prevent memory leaks.
+      profilers.transportPoller.unregisterListener(listener)
     }
   }
 
   /**
    * Attempts to attach the JVMTI agent to the target process and then sequentially fetches the LeakCanary threshold. This operates on a
-   * background thread to prevent IDE freezes or NetworkOnMainThread exceptions. onComplete and fetchThreshold are both called
-   * simultaneously on different threads to avoid nullMonitor.
+   * background thread to prevent IDE freezes or NetworkOnMainThread exceptions. Its guaranteed that the agent is attached, and the
+   * threshold is fetched before we transition the UI to the active task state.
    */
   private fun attachAgentAndFetchThresholdAsync(streamId: Long, process: Common.Process, onComplete: () -> Unit) {
     profilers.ideServices.poolExecutor.execute {
       // Clear the temporary preference before attaching so that old values don't leak into the next session
       profilers.ideServices.temporaryProfilerPreferences.setInt("LEAKCANARY_THRESHOLD", -1)
+      val tracker = createPreFlightTracker()
+
       val isAttached = attachAgentAndWait(streamId, process)
-      profilers.ideServices.mainExecutor.execute { onComplete() }
       if (isAttached) {
-        // Fetch threshold and wait until it completes or times out before calling onComplete to avoid race conditions.
-        fetchThreshold()
+        val isThresholdFetched = fetchThresholdAndWait()
+        if (isThresholdFetched) {
+          profilers.ideServices.mainExecutor.execute { onComplete() }
+        } else {
+          handleStartupFailure(
+            tracker,
+            LeakCanaryStartErrorCode.LIBRARY_NOT_INSTALLED_TIMEOUT,
+            "Failed to detect LeakCanary library in the app.",
+          )
+        }
       } else {
-        logger.error("Agent failed to attach.")
+        handleStartupFailure(tracker, LeakCanaryStartErrorCode.AGENT_ATTACH_FAILED, "Profiler agent failed to attach to the process.")
       }
     }
   }
 
+  /** Helper method to abort the broken task UI, log telemetry, present an error balloon, and cleanly terminate the session. */
+  private fun handleStartupFailure(tracker: TaskTracker, errorCode: LeakCanaryStartErrorCode, errorMessage: String) {
+    logger.error(errorMessage)
+    tracker.trackStartTaskFailed(TaskStartFailedMetadata(leakCanaryStartStatus = errorCode))
+    profilers.ideServices.showNotification(Notification(Notification.Severity.ERROR, "LeakCanary Task Failed", errorMessage, null))
+    profilers.ideServices.mainExecutor.execute {
+      profilers.sessionsManager.endCurrentSession()
+      profilers.ideServices.closeTaskTab(ProfilerTaskType.LEAKCANARY)
+      pendingArgs = null
+    }
+  }
+
+  /** Helper method to finalize the task entrance by calling the super class and resetting pending arguments. */
+  private fun enterStage(args: TaskArgs): Boolean {
+    logEnterStage()
+    val result = super.enter(args)
+    pendingArgs = null
+    return result
+  }
+
   override fun enter(args: TaskArgs): Boolean {
     logger.info("Entering LeakCanary task.")
-    if (args is LeakCanaryTaskArgs) {
-      pendingArgs = args
+    if (args !is LeakCanaryTaskArgs) {
+      logger.error("TaskArgs must be of type LeakCanaryTaskArgs. Actual type: ${args.javaClass.name}")
+      return false
     }
+    pendingArgs = args
 
-    // If the session is dead (e.g. an imported or previously completed task), we do not need to attach
-    // the agent or fetch live thresholds. We can simply load the task directly.
-    if (!sessionsManager.isSessionAlive) {
-      logEnterStage()
-      val result = super.enter(args)
-      pendingArgs = null
-      return result
-    }
+    if (sessionsManager.isSessionAlive && args.isFromStartup) {
+      val streamId = profilers.session.streamId
+      val process = profilers.process
 
-    val streamId = profilers.session.streamId
-    val process = profilers.process
-
-    // If this is a live ongoing task, ensure we have a valid target process to attach the agent to.
-    if (args.isFromStartup && process != null && process != Common.Process.getDefaultInstance()) {
-      // Launch the attachment and threshold fetching on a background thread to prevent
-      // IDE freeze errors or NetworkOnMainThread exceptions.
-      attachAgentAndFetchThresholdAsync(streamId, process) {
-        logEnterStage()
-        super.enter(args)
+      // If this is a live ongoing task from startup, ensure we have a valid target process to attach the agent to.
+      // We must attach the agent and fetch the threshold before the task starts.
+      if (process != null && process != Common.Process.getDefaultInstance()) {
+        attachAgentAndFetchThresholdAsync(streamId, process) { enterStage(args) }
+        return true
+      } else {
+        logger.warn("Cannot start LeakCanary task: Valid process not found for startup task.")
+        profilers.ideServices.mainExecutor.execute { profilers.sessionsManager.endCurrentSession() }
         pendingArgs = null
+        return false
       }
-    } else {
-      logger.warn("PROFILER DEBUG: Cannot attach agent - valid process not found.")
-      logEnterStage()
-      val result = super.enter(args)
-      pendingArgs = null
-      return result
     }
 
-    return true
+    // For dead sessions (imported/completed tasks) or the "Start with 'Now'" flow,
+    // the agent is either unneeded or already attached via pre-flight checks.
+    return enterStage(args)
   }
 
   override fun startTask(args: TaskArgs) {
