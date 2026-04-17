@@ -9,6 +9,7 @@ import static com.android.tools.lint.checks.AnnotationDetectorKt.RESTRICT_TO_ANN
 
 import com.intellij.ide.util.PsiClassListCellRenderer;
 import com.intellij.openapi.application.AccessToken;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbModeBlockedFunctionality;
 import com.intellij.openapi.project.DumbService;
@@ -218,7 +219,9 @@ public class ChooseClassDialog extends DialogWrapper implements ListSelectionLis
 
     Collection<PsiClass> publicAndUnrestrictedClasses;
     try (AccessToken ignore = SlowOperations.knownIssue("b/450553368")) {
-      publicAndUnrestrictedClasses = findPublicAndUnrestrictedClasses(module, classes);
+      publicAndUnrestrictedClasses = ReadAction.compute(
+        () -> findPublicAndUnrestrictedClasses(module, classes)
+      );
     }
     if (publicAndUnrestrictedClasses.isEmpty()) {
       String emptyErrorTitle = "No " + title + " Found";
@@ -228,8 +231,9 @@ public class ChooseClassDialog extends DialogWrapper implements ListSelectionLis
     }
     Predicate<PsiClass> filter = getIsUserDefinedClassesFilter();
 
-    Map<Boolean, List<PsiClass>> partitionedMap = publicAndUnrestrictedClasses.stream()
-      .collect(Collectors.partitioningBy(filter));
+    Map<Boolean, List<PsiClass>> partitionedMap = ReadAction.compute(
+      () -> publicAndUnrestrictedClasses.stream().collect(Collectors.partitioningBy(filter))
+    );
 
     List<PsiClass> userDefinedClasses = partitionedMap.get(true);
     List<PsiClass> nonUserDefinedClasses = partitionedMap.get(false);
