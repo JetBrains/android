@@ -128,12 +128,15 @@ class QuerySyncProject(
   )
 
   @Throws(BuildException::class)
-  fun syncQueryCore(context: BlazeContext, lastQuery: PostQuerySyncData?): QueryCoreSyncResult {
-    SaveUtil.saveAllFiles()
+  fun syncQueryCore(context: BlazeContext, postQuerySyncData: PostQuerySyncData): QueryCoreSyncResult {
+    return computeQueryCoreSyncResult(context, postQuerySyncData)
+  }
+
+  fun computePostQuerySyncData(context: BlazeContext, lastQuery: PostQuerySyncData?): PostQuerySyncData {
     val postQuerySyncData =
       if (lastQuery == null) projectQuerier.fullQuery(projectDefinition, context)
       else projectQuerier.update(projectDefinition, lastQuery, context)
-    return computeQueryCoreSyncResult(context, postQuerySyncData)
+    return postQuerySyncData
   }
 
   fun computeQueryCoreSyncResult(context: BlazeContext, postQuerySyncData: PostQuerySyncData): QueryCoreSyncResult {

@@ -296,7 +296,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
   private fun fullSyncOperation(): QuerySyncOperation =
     operation(title = "Updating project structure", subTitle = "Re-importing project", operationType = OperationType.SYNC) { context ->
       val result = reloadProjectIfDefinitionHasChanged(context)
-      syncStatsScope(context) { context -> syncQueryData(context, postQuerySyncData = null) }
+      syncStatsScope(context) { context -> syncQueryData(context, lastQuery = null) }
       if (userPreferences.commitProjectStructureAfterQuery) {
         updateProjectStructureAndSnapshot(context)
       }
@@ -468,8 +468,10 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     }
   }
 
-  private fun syncQueryData(context: BlazeContext, postQuerySyncData: PostQuerySyncData?) {
+  private fun syncQueryData(context: BlazeContext, lastQuery: PostQuerySyncData?) {
+    SaveUtil.saveAllFiles()
     val queryInstant = Clock.System.now()
+    val postQuerySyncData = assertProjectLoaded().computePostQuerySyncData(context, lastQuery)
     val coreSyncResult = assertProjectLoaded().syncQueryCore(context, postQuerySyncData)
     updateCurrentSnapshot(context) { applySyncResult(coreSyncResult, coreSyncResult.projectStructureData) }
     lastQueryInstant = queryInstant
@@ -691,7 +693,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
           incompleteTargets = emptySet(),
         )
       }
-      syncStatsScope(context) { context -> syncQueryData(context, postQuerySyncData = null) }
+      syncStatsScope(context) { context -> syncQueryData(context, lastQuery = null) }
       autoEnableCodeAnalysis(context)
     }
 
