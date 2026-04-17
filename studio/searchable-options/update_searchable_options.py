@@ -128,35 +128,38 @@ def find_workspace():
 if __name__ == "__main__":
   parser = argparse.ArgumentParser()
   parser.add_argument(
-      "--workspace",
-      default="",
-      dest="workspace",
-      help="The workspace directory, if empty the tool will look for it assuming 'bazel run'")
+    "--workspace",
+    default="",
+    dest="workspace",
+    help="The workspace directory, if empty the tool will look for it assuming 'bazel run'")
   parser.add_argument(
-      "--out",
-      dest="out",
-      required=True,
-      help="The output directory")
+    "--out",
+    dest="out",
+    required=True,
+    help="The output directory")
   parser.add_argument(
-      "--ide",
-      dest="ide",
-      required=True,
-      help="The path (prefix) to the ide artifacts")
+    "--ide",
+    dest="ide",
+    required=True,
+    help="The path (prefix) to the ide artifacts")
   parser.add_argument(
-      "--ide-configuration",
-      dest="configurations",
-      nargs="*",
-      required=True,
-      help="The ide artifacts configurations")
+    "--ide-configuration",
+    dest="configurations",
+    nargs="*",
+    required=True,
+    help="The ide artifacts configurations")
   parser.add_argument(
-      "--plugins",
-      dest="plugins",
-      nargs="*",
-      default=[],
-      help="The plugins to export, if none chosen all plugins are exported")
+    "--plugins",
+    dest="plugins",
+    nargs="*",
+    default=[],
+    help="The plugins to export, if none chosen all plugins are exported")
 
   tmp_dir = tempfile.mkdtemp()
-  args = parser.parse_args()
-  workspace = args.workspace if args.workspace else find_workspace()
-  if args.plugins:
+  try:
+    args = parser.parse_args()
+    workspace = args.workspace if args.workspace else find_workspace()
+    if args.plugins:
       update_searchable_options(tmp_dir, workspace, args.out, args.ide, args.configurations, args.plugins)
+  finally:
+    shutil.rmtree(tmp_dir)
