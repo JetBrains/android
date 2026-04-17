@@ -212,6 +212,7 @@ private class LayoutOptimizer(private val rectangleSizes: List<Dimension>) {
       maxUsable += n.contentSize.maxUsableSize(splitType, allocatedSize)
     }
     if (maxUsable <= available) {
+      // Distribute available space proportional to usable size.
       val scale = available.toDouble() / maxUsable
       for (n in splitParticipants) {
         val size = if (n === splitParticipants.last()) available else n.contentSize.maxUsableSize(splitType, allocatedSize).scaled(scale)
@@ -219,6 +220,7 @@ private class LayoutOptimizer(private val rectangleSizes: List<Dimension>) {
         allocateSpace(n, splitType, size, transverse)
       }
     } else {
+      // Distribute available space proportional to content size but not exceeding the usable size.
       var count = splitParticipants.size
       var previousProgress = true
       while (count > 0) {
