@@ -20,8 +20,7 @@ import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleType
 import com.intellij.openapi.ui.ComboBox
-import com.intellij.ui.SimpleListCellRenderer
-import com.intellij.ui.components.JBLabel
+import com.intellij.ui.dsl.listCellRenderer.listCellRenderer
 import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.DefaultComboBoxModel
 
@@ -30,14 +29,9 @@ import javax.swing.DefaultComboBoxModel
  */
 class ModuleComboProvider : ComponentProvider<ComboBox<Module>>() {
   override fun createComponent(): ComboBox<Module> = ComboBox<Module>(DefaultComboBoxModel()).apply {
-    renderer = SimpleListCellRenderer.create { label: JBLabel, module: Module?, _: Int ->
-      if (module == null) {
-        label.text = message("android.wizard.module.config.new.base.missing")
-      }
-      else {
-        label.icon = ModuleType.get(module).icon
-        label.text = module.name
-      }
+    renderer = listCellRenderer(message("android.wizard.module.config.new.base.missing")) {
+      icon(ModuleType.get(value).icon)
+      text(value.name)
     }
   }
 

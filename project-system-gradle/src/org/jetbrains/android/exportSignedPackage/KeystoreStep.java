@@ -24,9 +24,10 @@ import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.CollectionComboBoxModel;
-import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.dsl.listCellRenderer.LcrJavaHelper;
+import com.intellij.ui.dsl.listCellRenderer.RendererPresentation;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
@@ -107,12 +108,13 @@ public class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSi
       tryLoadSavedPasswords();
     }
 
-    myModuleCombo.setRenderer(SimpleListCellRenderer.create((label, value, index) -> {
-      if (value == null) return;
-      Module module = value.getModule();
-      label.setText(module.getName());
-      label.setIcon(ModuleType.get(module).getIcon());
-    }));
+    myModuleCombo.setRenderer(LcrJavaHelper.create(
+      "",
+      value -> {
+        Module module = value.getModule();
+        return new RendererPresentation(ModuleType.get(module).getIcon(), module.getName());
+      }
+    ));
     myGradleWarning.setIcon(WARNING_INLINE);
     myGradlePanel.setVisible(false);
     myModuleCombo.addActionListener(e -> updateSelection((AndroidFacet)myModuleCombo.getSelectedItem()));
