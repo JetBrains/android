@@ -41,6 +41,7 @@ import com.intellij.platform.backend.documentation.AsyncDocumentation
 import com.intellij.platform.backend.documentation.DocumentationData
 import com.intellij.platform.backend.documentation.DocumentationResult.Documentation
 import com.intellij.platform.backend.documentation.DocumentationTarget
+import com.intellij.platform.backend.documentation.impl.computeDocHintBlocking
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiEnumConstant
 import com.intellij.psi.PsiField
@@ -49,16 +50,6 @@ import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.replaceService
 import com.intellij.util.application
-import java.io.FileInputStream
-import java.io.IOException
-import java.io.InputStream
-import java.net.URI
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
-import java.nio.file.Files
-import java.nio.file.Path
-import kotlin.reflect.KClass
-import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -77,6 +68,16 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
+import java.io.FileInputStream
+import java.io.IOException
+import java.io.InputStream
+import java.net.URI
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Path
+import kotlin.reflect.KClass
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val TEST_DATA_DIR =
   "tools/adt/idea/android/editing/documentation/testData/androidSdkDocumentationTargetProvider"
@@ -332,9 +333,8 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
   @Test
   fun checkDocumentationHint() {
     setUpCursor()
-    val doc = getDocsAtCursor().single()
 
-    val documentationHint = runReadAction { doc.computeDocumentationHint() }
+    val documentationHint = computeDocHintBlocking(fixture.editor, fixture.file)
     for (hintString in testConfig.hintStrings) {
       assertThat(documentationHint).contains(hintString)
     }

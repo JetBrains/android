@@ -18,6 +18,7 @@ package com.android.tools.idea.editing.documentation;
 import static com.android.tools.idea.testing.SnapshotComparisonTestHelpersKt.normalizeHtmlForTests;
 import static com.android.tools.idea.testing.SnapshotComparisonTestUtilsKt.assertIsEqualToSnapshot;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.platform.backend.documentation.impl.ImplKt.computeHtmlDocBlocking;
 
 import com.android.SdkConstants;
 import com.android.testutils.TestUtils;
@@ -25,12 +26,9 @@ import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.EdtAndroidProjectRule;
 import com.android.tools.idea.testing.SnapshotComparisonTest;
 import com.android.tools.lint.client.api.LintClient;
-import com.intellij.codeInsight.documentation.DocumentationManager;
-import com.intellij.lang.documentation.DocumentationProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiElement;
 import com.intellij.testFramework.RunsInEdt;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import org.jetbrains.annotations.NotNull;
@@ -93,13 +91,7 @@ public class AndroidJavaDocRendererTest implements SnapshotComparisonTest {
   private String generateDoc(String fileName, String targetName) {
     VirtualFile f = myFixture.copyFileToProject(fileName, targetName);
     myFixture.configureFromExistingVirtualFile(f);
-    PsiElement originalElement = myFixture.getFile().findElementAt(myFixture.getEditor().getCaretModel().getOffset());
-    assert originalElement != null;
-    PsiElement docTargetElement =
-      DocumentationManager.getInstance(myProject).findTargetElement(myFixture.getEditor(), myFixture.getFile(), originalElement);
-    assert docTargetElement != null;
-    DocumentationProvider provider = DocumentationManager.getProviderFromElement(docTargetElement);
-    return provider.generateDoc(docTargetElement, originalElement);
+    return computeHtmlDocBlocking(myFixture.getEditor(), myFixture.getFile());
   }
 
   @Test
