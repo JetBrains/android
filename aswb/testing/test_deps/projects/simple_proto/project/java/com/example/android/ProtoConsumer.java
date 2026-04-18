@@ -47,13 +47,49 @@ public class ProtoConsumer {
       LibMessageEdition2024DisableMultiFile.newBuilder()
         .setMessage("abc")
         .build();
-    LibMessageEdition2024EnableMultiFile messageEdition2024EnableMultiFile =
+    LibMessageEdition2024EnableMultiFile.Builder builder =
       LibMessageEdition2024EnableMultiFile.newBuilder()
         .setMessage("abc")
+        .setLibEnum(LibMessageEdition2024EnableMultiFile.LibEnum.VALUE_A)
+        .addRepeatedStrings("s1")
+        .addRepeatedStrings("s2")
+        .setChoiceA("choice_a_value");
+
+    LibMessageEdition2024EnableMultiFile.NestedMessage nested =
+      LibMessageEdition2024EnableMultiFile.NestedMessage.newBuilder()
+        .setNestedContent("nested_abc")
         .build();
-    System.out.println(message.getMessage());
-    System.out.println(message.getExternalMessage().getMessage());
-    System.out.println(messageEdition2024DisableMultiFile.getMessage());
+
+    builder.setNestedMessage(nested);
+    builder.addRepeatedNestedMessages(nested);
+    builder.addRepeatedNestedMessages(LibMessageEdition2024EnableMultiFile.NestedMessage.newBuilder().setNestedContent("nested_builder"));
+    builder.setRepeatedNestedMessages(0, nested);
+    builder.setRepeatedNestedMessages(1, LibMessageEdition2024EnableMultiFile.NestedMessage.newBuilder().setNestedContent("nested_builder_set"));
+    builder.removeRepeatedNestedMessages(0);
+
+    LibMessageEdition2024EnableMultiFile messageEdition2024EnableMultiFile = builder.build();
+
+    LibMessageEdition2024EnableMultiFile.getDefaultInstance();
     System.out.println(messageEdition2024EnableMultiFile.getMessage());
+    System.out.println(messageEdition2024EnableMultiFile.hasMessage());
+
+    System.out.println(messageEdition2024EnableMultiFile.getLibEnum());
+    System.out.println(messageEdition2024EnableMultiFile.getLibEnumValue());
+
+    System.out.println(messageEdition2024EnableMultiFile.getRepeatedStringsList());
+    System.out.println(messageEdition2024EnableMultiFile.getRepeatedStringsCount());
+    System.out.println(messageEdition2024EnableMultiFile.getRepeatedStrings(0));
+
+    System.out.println(messageEdition2024EnableMultiFile.getChoiceCase());
+    System.out.println(messageEdition2024EnableMultiFile.hasChoiceA());
+    System.out.println(messageEdition2024EnableMultiFile.getChoiceA());
+
+    System.out.println(messageEdition2024EnableMultiFile.getNestedMessage());
+    System.out.println(messageEdition2024EnableMultiFile.hasNestedMessage());
+
+    System.out.println(messageEdition2024EnableMultiFile.getRepeatedNestedMessagesList());
+    System.out.println(messageEdition2024EnableMultiFile.getRepeatedNestedMessagesCount());
+    System.out.println(messageEdition2024EnableMultiFile.getRepeatedNestedMessages(0));
+
   }
 }

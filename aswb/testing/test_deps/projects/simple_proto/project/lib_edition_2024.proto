@@ -13,4 +13,24 @@ message LibMessageEdition2024DisableMultiFile {
 
 message LibMessageEdition2024EnableMultiFile {
   string message = 1;
+
+  enum LibEnum {
+    DEFAULT = 0;
+    VALUE_A = 1;
+    VALUE_B = 2;
+  }
+  LibEnum lib_enum = 2;
+
+  repeated string repeated_strings = 3;
+
+  oneof choice {
+    string choice_a = 4;
+    int32 choice_b = 5;
+  }
+
+  message NestedMessage {
+    string nested_content = 1;
+  }
+  NestedMessage nested_message = 6;
+  repeated NestedMessage repeated_nested_messages = 7;
 }
