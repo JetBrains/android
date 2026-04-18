@@ -16,24 +16,23 @@
 package com.android.tools.idea.tracer
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.tracer.Tracing
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.vfs.VirtualFileManager
-import kotlin.io.path.Path
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
+import kotlin.io.path.absolutePathString
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class FlushTraceAction : DumbAwareAction("Flush Perfetto Trace") {
-
   override fun update(e: AnActionEvent) {
     val featureEnabled = StudioFlags.STUDIO_TRACE_LIBRARY_ENABLED.get()
     e.presentation.isVisible = featureEnabled
@@ -43,27 +42,25 @@ class FlushTraceAction : DumbAwareAction("Flush Perfetto Trace") {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun actionPerformed(e: AnActionEvent) {
-    val project = e.project
+    val project = e.project ?: return
     val log = thisLogger()
 
-    studioTracingScope.launch {
+    runWithModalProgressBlocking(project, "Flushing Trace") {
       val virtualFile =
         withContext(Dispatchers.IO) {
-          val pathString = Tracing.flush() ?: return@withContext null
-          log.info("Perfetto Traces are flushed to ${pathString}.")
-          VirtualFileManager.getInstance().refreshAndFindFileByNioPath(Path(pathString))
+          val path = AndroidxTracerService.getInstance().flush()
+          log.info("Perfetto Traces are flushed to ${path.absolutePathString()}.")
+          VirtualFileManager.getInstance().refreshAndFindFileByNioPath(path)
         }
 
-      withContext(Dispatchers.Main) {
+      withContext(Dispatchers.EDT) {
         if (virtualFile != null) {
           // Open the file in the Profiler.
           //
           // It is expected that we get a warning with an IllegalStateException stack trace
           // in the logs. It complains about an issue with the trace header when opening the file.
           // The Profiler uses a try-and-error approach to opening various files.
-          if (project != null) {
-            FileEditorManager.getInstance(project).openFile(virtualFile, true)
-          }
+          FileEditorManager.getInstance(project).openFile(virtualFile, true)
 
           // TODO(b/467364934): Decide on the best UX for opening/displaying the file.
           val notification =

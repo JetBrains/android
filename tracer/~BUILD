@@ -7,12 +7,13 @@ iml_module(
     iml_files = ["intellij.android.tracer.iml"],
     resources = ["resources"],
     visibility = ["//visibility:public"],
+    exports = ["//prebuilts/tools/common/m2:androidx-tracing-desktop"],
     # do not sort: must match IML order
     deps = [
+        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/adt/idea/android-common:intellij.android.common",
         "@intellij//:intellij-sdk",
-        "//tools/base/tracer:studio.android.sdktools.tracer",
-        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
+        "//prebuilts/tools/common/m2:androidx-tracing-desktop",
     ],
 )
