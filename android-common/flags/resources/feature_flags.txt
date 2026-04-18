@@ -237,7 +237,6 @@ studiobot.inline.code.completion.include.last.action=PREVIEW
 studiobot.knowledge.base.rag=COMPLETE:2025
 studiobot.layout.inspector.state.inspection.agent=PREVIEW
 studiobot.local.models.enabled=COMPLETE:2025
-studiobot.mcp.auth.enabled=COMPLETE:2025
 studiobot.mcp.host.enabled=COMPLETE:2025
 studiobot.mcp.registry=PREVIEW
 studiobot.mcp.settings.enabled=COMPLETE:2025
