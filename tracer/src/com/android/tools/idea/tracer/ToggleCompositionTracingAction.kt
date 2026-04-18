@@ -29,7 +29,7 @@ class ToggleCompositionTracingAction : ToggleAction("Enable Compose Composition 
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     PropertiesComponent.getInstance().setValue(COMPOSITION_TRACING_ENABLED_KEY, state, false)
-    StudioTracingController.initializeCompositionTracing()
+    AndroidxTracerService.getInstance().initializeCompositionTracing()
   }
 
   override fun update(e: AnActionEvent) {

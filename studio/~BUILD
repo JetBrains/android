@@ -100,6 +100,7 @@ studio_plugin(
         "//prebuilts/tools/common/m2:tracing-desktop-2.0.0-alpha06",
         "//prebuilts/tools/common/m2:tracing-wire-desktop-2.0.0-alpha06",
         "//prebuilts/tools/common/m2:wire-runtime-jvm-6.0.0",
+        "//prebuilts/tools/common/m2:androidx-tracing-desktop",
         "//tools/adt/idea/.idea/libraries:aapt-proto",
         "//tools/adt/idea/.idea/libraries:agp-version",
         "//tools/adt/idea/.idea/libraries:android-core-proto",
