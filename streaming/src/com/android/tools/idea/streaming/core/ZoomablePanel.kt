@@ -48,6 +48,9 @@ internal abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
   override val scale: Double
     get() = roundDownIfNecessary(computeScaleToFit(framing, computeMaxImageSize()))
 
+  override val naturalContentSize: Dimension
+    get() = computeActualSize(framing)
+
   internal val explicitlySetPreferredSize: Dimension?
     get() = if (isPreferredSizeSet) preferredSize else null
 

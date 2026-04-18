@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.core
 
 import com.intellij.openapi.actionSystem.DataKey
+import java.awt.Dimension
 
 internal enum class ZoomType {
   IN,
@@ -33,6 +34,9 @@ internal interface Zoomable {
   /** Scale factor of the host screen. Size of a logical pixel in physical pixels. */
   val screenScalingFactor: Double
 
+  /** The size of the content at 100% zoom in physical pixels. */
+  val naturalContentSize: Dimension
+
   /** Indicates whether [ZoomType.FIT_INNER] is supported or not. */
   val hasInnerPart: Boolean
     get() = false
@@ -44,4 +48,4 @@ internal interface Zoomable {
   fun canZoom(zoomType: ZoomType): Boolean
 }
 
-@JvmField internal val ZOOMABLE_KEY = DataKey.create<Zoomable>(Zoomable::javaClass.name)
+@JvmField internal val ZOOMABLE_KEY = DataKey.create<Zoomable>(Zoomable::class.java.name)

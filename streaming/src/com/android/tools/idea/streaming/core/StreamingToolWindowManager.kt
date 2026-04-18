@@ -127,7 +127,6 @@ import java.beans.PropertyChangeListener
 import java.nio.file.Path
 import java.util.function.Supplier
 import javax.swing.JComponent
-import javax.swing.SwingConstants
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -1210,8 +1209,15 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
       val content2 = findContentBySerialNumber(device2SerialNumber) ?: return
 
       if (content1.manager == content2.manager) {
-        val decorator = content1.manager?.component?.containingDecorator as? InternalDecoratorImpl ?: return
-        decorator.splitWithContent(content2, SwingConstants.BOTTOM, -1)
+        val contentManager = content1.manager ?: return
+        val decorator = contentManager.component.containingDecorator as? InternalDecoratorImpl ?: return
+        val panel1 = content1.component as AbstractDevicePanel<*>
+        val panel2 = content2.component as AbstractDevicePanel<*>
+        createContentIfNecessary(panel1)
+        createContentIfNecessary(panel2)
+        val pairLayout = computeOptimalSplitLayout(contentManager, panel1, panel2) ?: SimplePairLayout(PairLayout.BOTTOM, 0.5f)
+        decorator.splitWithContent(content2, pairLayout.side, -1)
+        (content1.component.containingDecorator?.parent as? Splitter)?.proportion = pairLayout.splitRatio
       }
 
       content1.select(ActivationLevel.ACTIVATE_TAB)
