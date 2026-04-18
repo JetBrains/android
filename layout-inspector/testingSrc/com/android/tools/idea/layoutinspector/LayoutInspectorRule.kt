@@ -35,6 +35,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeParametersCache
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewPropertiesCache
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.ui.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
@@ -219,6 +220,9 @@ class LayoutInspectorRule(
 
   lateinit var notificationModel: NotificationModel
     private set
+
+  val propertiesCache: ViewPropertiesCache?
+    get() = (inspectorClient as? AppInspectionInspectorClient)?.viewInspector?.propertiesCache
 
   val parametersCache: ComposeParametersCache?
     get() = (inspectorClient as? AppInspectionInspectorClient)?.composeInspector?.parametersCache

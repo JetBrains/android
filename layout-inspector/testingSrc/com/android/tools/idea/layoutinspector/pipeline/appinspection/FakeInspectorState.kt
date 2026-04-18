@@ -46,6 +46,8 @@ import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Paramet
 // scattered.
 class FakeInspectorState(private val viewInspector: FakeViewLayoutInspector, private val composeInspector: FakeComposeLayoutInspector) {
 
+  private var hasNewRecompositions = true
+
   private val viewStrings =
     listOf(
       // layout strings
@@ -482,8 +484,23 @@ class FakeInspectorState(private val viewInspector: FakeViewLayoutInspector, pri
     addViewsToSkip(9)
   }
 
-  // Composable tree that lives under ComposeView
-  private val composableRoot = createComposeRoot(withoutSourceInformation = false)
+  // Composable tree that lives under ComposeView under rootId 1
+  private var composableRoot = createComposeRoot(withoutSourceInformation = false)
+
+  // Composable tree that lives under rootId 101
+  private var secondComposableRoot = ComposableRoot {
+    viewId = 101
+    ComposableNode {
+      id = -8
+      anchorHash = 102
+      packageHash = 1
+      filename = 2
+      lineNumber = 21
+      name = 4
+      recomposeCount = 7
+      recomposeSkips = 14
+    }
+  }
 
   private val composableRootWithoutSourceInformation = createComposeRoot(withoutSourceInformation = true)
 
@@ -749,6 +766,10 @@ class FakeInspectorState(private val viewInspector: FakeViewLayoutInspector, pri
   /** Map of "composable ID" to number of times parameters were requested for it. */
   private val getParametersRequestCount = mutableMapOf<Long, Int>()
 
+  /** The number of times an empty compose response was given because no recompositions were recorded. */
+  var emptyComposeResponseCount = 0
+    private set
+
   /** Map of responses to expected [GetParameterDetailsCommand]s. */
   private val parameterDetailsCommands =
     mutableMapOf<GetParameterDetailsCommand, LayoutInspectorComposeProtocol.GetParameterDetailsResponse>()
@@ -956,6 +977,7 @@ class FakeInspectorState(private val viewInspector: FakeViewLayoutInspector, pri
     parameter.addElements(element)
     group.setParameter(parameterIndex, parameter.build())
     parameterGroups[groupIndex] = group.build()
+    incrementRecompositionCounts(composableId)
   }
 
   fun createFakeComposeTree(withSemantics: Boolean = true, withSourceInformation: Boolean = true, latch: CommandLatch? = null) {
@@ -964,7 +986,11 @@ class FakeInspectorState(private val viewInspector: FakeViewLayoutInspector, pri
       LayoutInspectorComposeProtocol.Response.newBuilder()
         .apply {
           getComposablesResponseBuilder.apply {
-            if (command.getComposablesCommand.rootViewId == layoutTrees[0].id) {
+            if (command.getComposablesCommand.allowEmptyIfUnchanged && !hasNewRecompositions) {
+              unchanged = true
+              emptyComposeResponseCount++
+            } else if (command.getComposablesCommand.rootViewId == layoutTrees[0].id) {
+              hasNewRecompositions = false
               addAllStrings(composeStrings)
               addRoots(
                 when {
@@ -973,11 +999,27 @@ class FakeInspectorState(private val viewInspector: FakeViewLayoutInspector, pri
                   else -> composableRoot
                 }
               )
+              addRoots(secondComposableRoot)
             }
           }
         }
         .build()
     }
+  }
+
+  fun incrementRecompositionCounts(vararg composableIds: Long) {
+    if (composableIds.isEmpty()) return
+    hasNewRecompositions = true
+    val builder = composableRoot.toBuilder()
+    builder.nodesBuilderList.forEach { node -> node.incrementRecompositionCounts(*composableIds) }
+    composableRoot = builder.build()
+  }
+
+  private fun ComposableNode.Builder.incrementRecompositionCounts(vararg composableIds: Long) {
+    if (id in composableIds) {
+      recomposeCount++
+    }
+    childrenBuilderList.forEach { node -> node.incrementRecompositionCounts(*composableIds) }
   }
 
   fun createFakeLargeComposeTree(latch: CommandLatch? = null) {

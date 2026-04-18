@@ -424,7 +424,12 @@ class ComposeLayoutInspectorClient(
   /** The value of [lastGeneration] when the last recomposition reset command was sent. */
   private var lastGenerationReset = 0
 
-  suspend fun getComposeables(rootViewId: Long, newGeneration: Int, forSnapshot: Boolean): GetComposablesResult {
+  suspend fun getComposeables(
+    rootViewId: Long,
+    newGeneration: Int,
+    forSnapshot: Boolean,
+    allowEmptyIfUnchanged: Boolean = false,
+  ): GetComposablesResult {
     lastGeneration = newGeneration
     launchMonitor.updateProgress(AttachErrorState.COMPOSE_REQUEST_SENT)
     logDiagnostics(ComposeLayoutInspectorClient::class.java, "Sending: GetComposablesCommand")
@@ -434,8 +439,9 @@ class ComposeLayoutInspectorClient(
           GetComposablesCommand.newBuilder()
             .apply {
               this.rootViewId = rootViewId
-              generation = lastGeneration
-              extractAllParameters = forSnapshot
+              this.generation = lastGeneration
+              this.extractAllParameters = forSnapshot
+              this.allowEmptyIfUnchanged = allowEmptyIfUnchanged
             }
             .build()
       }

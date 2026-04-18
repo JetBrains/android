@@ -20,9 +20,12 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
+import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.ConnectionFailedException
@@ -153,6 +156,7 @@ class ViewLayoutInspectorClient(
       field = value
       propertiesCache.allowFetching = value
       composeInspector?.parametersCache?.allowFetching = value
+      lastViewEvent.clear()
       lastData.clear()
       lastProperties.clear()
       lastComposeParameters.clear()
@@ -161,7 +165,8 @@ class ViewLayoutInspectorClient(
   private var generation = 0 // Update the generation each time we get a new LayoutEvent
   private val currRoots = mutableListOf<Long>()
 
-  private var lastData = ConcurrentHashMap<Long, Data>()
+  private val lastViewEvent = ConcurrentHashMap<Long, LayoutEvent>()
+  private val lastData = ConcurrentHashMap<Long, Data>()
   private var lastProperties = ConcurrentHashMap<Long, PropertiesEvent>()
   private var lastComposeParameters = ConcurrentHashMap<Long, GetAllParametersResponse>()
   private val recentLayouts = ConcurrentHashMap<Long, LayoutEvent>() // Map of root IDs to their layout
@@ -316,14 +321,43 @@ class ViewLayoutInspectorClient(
     launchMonitor.updateProgress(AttachErrorState.LAYOUT_EVENT_RECEIVED)
     generation++
     stats.frameReceived()
-    propertiesCache.clearFor(layoutEvent.rootView.node.id)
-    composeInspector?.parametersCache?.clearFor(layoutEvent.rootView.node.id)
+    val rootId = layoutEvent.rootView.node.id
+    propertiesCache.clearFor(rootId)
 
-    val composablesResult = composeInspector?.getComposeables(layoutEvent.rootView.node.id, generation, !isFetchingContinuously)
+    // When the layout event is unchanged we should allow the compose agent to skip extracting the composables if there have
+    // been no recompositions since last call to getComposables.
+    val allowEmptyIfUnchanged =
+      StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_UPDATE_OPTIMIZATION.get() && layoutEvent == lastViewEvent[rootId]
 
+    val composablesResult =
+      composeInspector?.getComposeables(layoutEvent.rootView.node.id, generation, !isFetchingContinuously, allowEmptyIfUnchanged)
+
+    if (allowEmptyIfUnchanged && (composablesResult == null || composablesResult.response.unchanged)) {
+      updateWithoutTreeChanges()
+    } else {
+      updateWithTreeChanges(layoutEvent, composablesResult)
+    }
+  }
+
+  /** The tree information is unchanged. Update the selected View properties if needed. */
+  private fun updateWithoutTreeChanges() {
+    // Force an update of the View properties if the current selection is a ViewNode (and not a ComposeViewNode).
+    // The parameters of a ComposeViewNode could not have changed because nothing recomposed, so there is no need to update them.
+    // Note that when there are tree changes, the properties panel knows to update itself on a model change.
+    val selection = model.selection
+    if (selection != null && selection !is ComposeViewNode) {
+      model.setSelection(selection, SelectionOrigin.INTERNAL)
+    }
+  }
+
+  /** The tree information has changed. Update the model. */
+  private fun updateWithTreeChanges(layoutEvent: LayoutEvent, composablesResult: GetComposablesResult?) {
+    val rootId = layoutEvent.rootView.node.id
+    lastViewEvent[rootId] = layoutEvent
+    composeInspector?.parametersCache?.clearFor(rootId)
     val data = Data(generation, currRoots, layoutEvent, composablesResult)
     if (!isFetchingContinuously) {
-      lastData[layoutEvent.rootView.node.id] = data
+      lastData[rootId] = data
     }
     fireTreeEvent(data)
   }

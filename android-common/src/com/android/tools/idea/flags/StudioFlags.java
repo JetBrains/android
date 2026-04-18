@@ -1255,6 +1255,11 @@ public final class StudioFlags {
     "Start collecting parameter changes for each recomposition and show them in the recomposition details."
   );
 
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_UPDATE_OPTIMIZATION = new DebugFlag(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector.enable.compose.opdate.optimization", "Skip updates when no recompositions",
+    "Skip model updates when the View layout event is unchanged and there were no recomposition since last GetComposablesCommand."
+  );
+
   public static final Flag<Integer> DYNAMIC_LAYOUT_INSPECTOR_MAX_STATE_READS = new IntFlag(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.max.state.reads",
     "Max number of state reads stored on the device",

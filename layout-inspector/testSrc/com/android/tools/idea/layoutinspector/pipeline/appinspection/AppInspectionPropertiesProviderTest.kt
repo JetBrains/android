@@ -24,11 +24,15 @@ import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.createProcess
+import com.android.tools.idea.layoutinspector.model.COMPOSE1
+import com.android.tools.idea.layoutinspector.model.COMPOSE2
 import com.android.tools.idea.layoutinspector.model.COMPOSE4
+import com.android.tools.idea.layoutinspector.model.COMPOSE8
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -52,6 +56,7 @@ import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLook
 import com.android.tools.idea.layoutinspector.setApplicationIdForTest
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.android.tools.property.panel.api.PropertiesTable
@@ -284,8 +289,7 @@ class AppInspectionPropertiesProviderTest {
     val provider = inspectorRule.inspectorClient.provider
 
     // Get properties for views from the two different layout trees so we can verify that the cache
-    // of each
-    // layout tree is maintained separately.
+    // of each layout tree is maintained separately.
     val nodeInTree1 = inspectorRule.inspectorModel[3]!!
     val nodeInTree2 = inspectorRule.inspectorModel[101]!!
 
@@ -313,7 +317,9 @@ class AppInspectionPropertiesProviderTest {
     // Trigger a fake layout update in *just* the first tree, which should reset just its cache and
     // not that for the second tree
     inspectorState.triggerLayoutCapture(rootId = 1)
-    modelUpdatedSignal.poll(TIMEOUT, TIMEOUT_UNIT)!!
+    val cache = inspectorRule.propertiesCache!!
+    waitForCondition(TIMEOUT, TIMEOUT_UNIT) { cache.getCachedDataFor(rootId = 1, nodeInTree1.drawId) == null }
+    assertThat(cache.getCachedDataFor(rootId = 101, nodeInTree2.drawId)).isNotNull()
 
     provider.requestProperties(nodeInTree1).get() // First fetch after layout event, not cached
     assertThat(inspectorState.getPropertiesRequestCountFor(nodeInTree1.drawId)).isEqualTo(2)
@@ -336,8 +342,7 @@ class AppInspectionPropertiesProviderTest {
     modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
 
     // Calling "get properties" at this point should work without talking to the device because
-    // everything should
-    // be cached now.
+    // everything should be cached now.
 
     val provider = inspectorRule.inspectorClient.provider
     val resultQueue = ArrayBlockingQueue<ProviderResult>(1)
@@ -538,6 +543,7 @@ class AppInspectionPropertiesProviderTest {
 
   @Test
   fun parametersAreCachedUntilNextLayoutEvent() {
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_UPDATE_OPTIMIZATION.overrideForTest(true, inspectorRule.disposable)
     inspectorClientSettings.inLiveMode = true // Enable live mode, so we only fetch properties on demand
 
     val modelUpdatedSignal = ArrayBlockingQueue<Unit>(2) // We should get no more than two updates before continuing
@@ -549,7 +555,7 @@ class AppInspectionPropertiesProviderTest {
 
     val provider = inspectorRule.inspectorClient.provider
 
-    val composableNode = inspectorRule.inspectorModel[-2]!!
+    val composableNode = inspectorRule.inspectorModel[COMPOSE1]!!
     assertThat(inspectorState.getParametersRequestCountFor(composableNode.drawId)).isEqualTo(0)
 
     provider.requestProperties(composableNode).get() // First fetch, not cached
@@ -561,20 +567,27 @@ class AppInspectionPropertiesProviderTest {
     provider.requestProperties(composableNode).get() // Still cached
     assertThat(inspectorState.getParametersRequestCountFor(composableNode.drawId)).isEqualTo(1)
 
+    // Trigger a fake layout update in *just* the first tree without recompositions
+    inspectorState.triggerLayoutCapture(rootId = 1)
+    waitForCondition(TIMEOUT, TIMEOUT_UNIT) { inspectorState.emptyComposeResponseCount == 1 }
+
+    provider.requestProperties(composableNode).get() // Still cached: no recompositions
+    assertThat(inspectorState.getParametersRequestCountFor(composableNode.drawId)).isEqualTo(1)
+
     // Trigger a fake layout update in *just* the first tree, which should reset just its cache and
     // not that for the second tree
+    inspectorState.incrementRecompositionCounts(COMPOSE1, COMPOSE2)
     inspectorState.triggerLayoutCapture(rootId = 1)
-    modelUpdatedSignal.poll(TIMEOUT, TIMEOUT_UNIT)!!
+    modelUpdatedSignal.poll(TIMEOUT, TIMEOUT_UNIT)!! // Event triggered by tree #1
 
-    provider.requestProperties(composableNode).get() // First fetch after layout event, not cached
+    provider.requestProperties(composableNode).get() // Should not be cached
     assertThat(inspectorState.getParametersRequestCountFor(composableNode.drawId)).isEqualTo(2)
 
     provider.requestProperties(composableNode).get() // Should be cached
     assertThat(inspectorState.getParametersRequestCountFor(composableNode.drawId)).isEqualTo(2)
 
-    // Trigger a fake layout update in *just* the second tree, which should not affect the cache of
-    // the
-    // first
+    // Trigger a fake layout update in *just* the second tree, which should not affect the cache of the first tree
+    inspectorState.incrementRecompositionCounts(COMPOSE8)
     inspectorState.triggerLayoutCapture(rootId = 101)
     modelUpdatedSignal.poll(TIMEOUT, TIMEOUT_UNIT)!!
 
@@ -593,8 +606,7 @@ class AppInspectionPropertiesProviderTest {
     modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
 
     // Calling "get properties" at this point should work without talking to the device because
-    // everything should
-    // be cached now.
+    // everything should be cached now.
 
     val provider = inspectorRule.inspectorClient.provider
     val resultQueue = ArrayBlockingQueue<ProviderResult>(1)
@@ -721,18 +733,28 @@ class AppInspectionPropertiesProviderTest {
     val p1 = propertiesModel.properties["parameter", "dataObject"] as ParameterGroupItem
     assertThat(p1.children).hasSize(3)
 
-    // Add another element to dataObject
+    // Add an element to dataObject
     inspectorState.addParameterElement(COMPOSE4, "dataObject")
-
     inspectorState.triggerLayoutCapture(rootId = 1)
 
+    // The recomposition will add count and skips to the internal properties, expect propertiesGenerated
     waitForCondition(TIMEOUT, TIMEOUT_UNIT) {
       val parameter = propertiesModel.properties["parameter", "dataObject"] as ParameterGroupItem
-      parameter.children.size == 4 && valuesChanged > 0
+      parameter.children.size == 4 && generatedCount == 4
+    }
+
+    // Add another element to dataObject
+    inspectorState.addParameterElement(COMPOSE4, "dataObject")
+    inspectorState.triggerLayoutCapture(rootId = 1)
+
+    // The recomposition will not add additional properties, expect propertyValuesChanged
+    waitForCondition(TIMEOUT, TIMEOUT_UNIT) {
+      val parameter = propertiesModel.properties["parameter", "dataObject"] as ParameterGroupItem
+      parameter.children.size == 5 && valuesChanged > 0
     }
 
     // Verify that we did not fire a properties generated notification after the original
-    assertThat(generatedCount).isEqualTo(3)
+    assertThat(generatedCount).isEqualTo(4)
     assertThat(valuesChanged).isEqualTo(1)
     assertThat(childElementChangeCount).isEqualTo(1)
   }

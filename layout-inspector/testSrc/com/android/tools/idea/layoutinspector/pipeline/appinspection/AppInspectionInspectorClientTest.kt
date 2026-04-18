@@ -43,6 +43,8 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
+import com.android.tools.idea.layoutinspector.model.COMPOSE1
+import com.android.tools.idea.layoutinspector.model.COMPOSE2
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -63,6 +65,7 @@ import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorVie
 import com.android.tools.idea.metrics.MetricsTrackerRule
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.testing.ui.flatten
 import com.android.tools.idea.util.ListenerCollection
 import com.google.common.truth.Truth.assertThat
@@ -78,6 +81,7 @@ import java.net.UnknownHostException
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 import javax.swing.JTable
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
@@ -923,6 +927,7 @@ class AppInspectionInspectorClientTest {
     commandLatch.enabled = true
 
     // Trigger a GetComposables command to be sent.
+    inspectorState.incrementRecompositionCounts(COMPOSE2)
     modelUpdatedLatch = ReportingCountDownLatch(1)
     inspectorState.triggerLayoutCapture(rootId = 1)
 
@@ -936,9 +941,48 @@ class AppInspectionInspectorClientTest {
     modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
 
     // The recomposition counts should be 0 even if the counts were read as non-zero.
-    node = inspectorRule.inspectorModel[-2] as ComposeViewNode
+    node = inspectorRule.inspectorModel[COMPOSE1] as ComposeViewNode
     assertThat(node.recompositions.count).isEqualTo(0)
     assertThat(node.recompositions.skips).isEqualTo(0)
+  }
+
+  @Test
+  fun noModelUpdatesIfDataUnchanged() {
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_UPDATE_OPTIMIZATION.overrideForTest(true, inspectorRule.disposable)
+    val commandLatch = CommandLatch(TIMEOUT, TIMEOUT_UNIT)
+    val inspectorState = FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
+    inspectorState.createFakeViewTree()
+    inspectorState.createFakeComposeTree(withSemantics = true, latch = commandLatch)
+
+    var modelUpdates = 0
+    inspectorRule.inspectorModel.addModificationListener { _, _, _ -> modelUpdates++ }
+
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    waitForCondition(10.seconds) { modelUpdates == 2 }
+
+    // Imitate a recomposition in compose
+    inspectorState.incrementRecompositionCounts(COMPOSE2)
+
+    // Trigger a Layout update and wait for the model update
+    inspectorState.triggerLayoutCapture(rootId = 1L)
+    waitForCondition(10.seconds) { modelUpdates == 3 }
+    val model = inspectorRule.inspectorModel
+    assertThat(model[COMPOSE2]?.recompositions?.count).isEqualTo(1)
+
+    // Trigger another update, this time we do not expect any model updates.
+    inspectorState.triggerLayoutCapture(rootId = 1L)
+    // No model update is expected: Wait a little to be sure this doesn't happen:
+    Thread.sleep(500)
+    assertThat(modelUpdates).isEqualTo(3)
+    assertThat(model[COMPOSE2]?.recompositions?.count).isEqualTo(1)
+
+    // Imitate a recomposition in compose
+    inspectorState.incrementRecompositionCounts(COMPOSE2)
+
+    // Trigger a Layout update and wait for the model update
+    inspectorState.triggerLayoutCapture(rootId = 1L)
+    waitForCondition(10.seconds) { modelUpdates == 4 }
+    assertThat(model[COMPOSE2]?.recompositions?.count).isEqualTo(2)
   }
 
   private fun verifyActivityRestartBanner() {
