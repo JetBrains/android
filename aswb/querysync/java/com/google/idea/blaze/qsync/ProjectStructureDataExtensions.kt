@@ -59,10 +59,12 @@ fun ProjectStructureData.Companion.fromGraph(context: Context<*>, graph: BuildGr
 
   val finalSourcesMap =
     (javaSourcesMap.keys + nonJavaSourcesMap.keys).associateWith { pkg ->
-      SourceSet(
-        rootPath = pkg,
-        javaSourceFiles = javaSourcesMap[pkg]?.map { pkg.relativize(it) }?.sorted() ?: emptyList(),
-        nonJavaSourceFiles = nonJavaSourcesMap[pkg]?.map { pkg.relativize(it) }?.sorted() ?: emptyList(),
+      listOf(
+        SourceSet(
+          rootPath = pkg,
+          javaSourceFiles = javaSourcesMap[pkg]?.map { pkg.relativize(it) }?.sorted() ?: emptyList(),
+          nonJavaSourceFiles = nonJavaSourcesMap[pkg]?.map { pkg.relativize(it) }?.sorted() ?: emptyList(),
+        )
       )
     }
 
@@ -77,17 +79,17 @@ fun ProjectStructureData.Companion.fromGraph(context: Context<*>, graph: BuildGr
 }
 
 private fun associateByProjectRoot(
-  finalSourcesMap: Map<Path, SourceSet>,
+  finalSourcesMap: Map<Path, List<SourceSet>>,
   projectIncludes: Set<Path>,
   context: Context<*>,
-): Map<Path, Map<Path, SourceSet>> {
+): Map<Path, Map<Path, List<SourceSet>>> {
   val sortedIncludes = projectIncludes.sortedByDescending { it.nameCount }
-  val result = mutableMapOf<Path, MutableMap<Path, SourceSet>>()
+  val result = mutableMapOf<Path, MutableMap<Path, List<SourceSet>>>()
 
-  for ((pkgPath, sourceSet) in finalSourcesMap) {
+  for ((pkgPath, sourceSetList) in finalSourcesMap) {
     val includeRoot = sortedIncludes.find { pkgPath.startsWith(it) }
     if (includeRoot != null) {
-      result.computeIfAbsent(includeRoot) { mutableMapOf() }[pkgPath] = sourceSet
+      result.computeIfAbsent(includeRoot) { mutableMapOf() }[pkgPath] = sourceSetList
     } else {
       context.output(PrintOutput.log("WARNING: Package $pkgPath is outside all project structure roots"))
     }

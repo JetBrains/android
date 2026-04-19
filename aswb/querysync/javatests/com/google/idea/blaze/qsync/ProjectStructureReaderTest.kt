@@ -97,7 +97,10 @@ class ProjectStructureReaderTest {
     return ProjectStructureData(
       roots =
         roots.map { (rootPath, packageMap) ->
-          ProjectStructureRoot(projectStructureRootPath = Path.of(rootPath), packageSourceSets = packageMap.mapKeys { Path.of(it.key) })
+          ProjectStructureRoot(
+            projectStructureRootPath = Path.of(rootPath),
+            packageSourceSets = packageMap.mapValues { listOf(it.value) }.mapKeys { Path.of(it.key) },
+          )
         },
       activeLanguages = languages,
     )

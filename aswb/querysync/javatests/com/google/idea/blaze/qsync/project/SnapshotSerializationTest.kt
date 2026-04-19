@@ -182,10 +182,12 @@ class SnapshotSerializationTest {
               packageSourceSets =
                 mapOf(
                   Path.of("project/path") to
-                    SourceSet(
-                      rootPath = Path.of("project/path"),
-                      javaSourceFiles = listOf(Path.of("A.java")),
-                      nonJavaSourceFiles = listOf(Path.of("B.txt")),
+                    listOf(
+                      SourceSet(
+                        rootPath = Path.of("project/path"),
+                        javaSourceFiles = listOf(Path.of("A.java")),
+                        nonJavaSourceFiles = listOf(Path.of("B.txt")),
+                      )
                     )
                 ),
             )

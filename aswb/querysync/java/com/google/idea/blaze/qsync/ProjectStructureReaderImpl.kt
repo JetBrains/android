@@ -119,10 +119,12 @@ internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtens
           packageMap.mapValues { (buildPackage, langMap) ->
             val javaSources = langMap[QuerySyncLanguage.JVM]?.sorted() ?: emptyList()
             val nonJavaSources = langMap.filterKeys { it != QuerySyncLanguage.JVM }.values.flatten().sorted()
-            SourceSet(
-              rootPath = buildPackage,
-              javaSourceFiles = javaSources.map { buildPackage.relativize(it) },
-              nonJavaSourceFiles = nonJavaSources.map { buildPackage.relativize(it) },
+            listOf(
+              SourceSet(
+                rootPath = buildPackage,
+                javaSourceFiles = javaSources.map { buildPackage.relativize(it) },
+                nonJavaSourceFiles = nonJavaSources.map { buildPackage.relativize(it) },
+              )
             )
           }
         ProjectStructureRoot(projectStructureRootPath = includeRoot, packageSourceSets = packageSourceSets)
@@ -130,8 +132,8 @@ internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtens
 
     val result = ProjectStructureData(roots = roots, activeLanguages = languages)
 
-    val numJavaFiles = roots.sumOf { it.packageSourceSets.values.sumOf { it.javaSourceFiles.size } }
-    val numNonJavaFiles = roots.sumOf { it.packageSourceSets.values.sumOf { it.nonJavaSourceFiles.size } }
+    val numJavaFiles = roots.sumOf { it.packageSourceSets.values.flatten().sumOf { it.javaSourceFiles.size } }
+    val numNonJavaFiles = roots.sumOf { it.packageSourceSets.values.flatten().sumOf { it.nonJavaSourceFiles.size } }
     val numPackages = roots.sumOf { it.packageSourceSets.size }
 
     context.output(

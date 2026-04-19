@@ -79,11 +79,13 @@ class GraphToProjectConverterTest {
     }
   }
 
-  private fun createSourceSet(rootPath: Path, javaFiles: List<Path>, nonJavaFiles: List<Path> = emptyList()): SourceSet {
-    return SourceSet(
-      rootPath = rootPath,
-      javaSourceFiles = javaFiles.map { rootPath.relativize(it) },
-      nonJavaSourceFiles = nonJavaFiles.map { rootPath.relativize(it) },
+  private fun createSourceSet(rootPath: Path, javaFiles: List<Path>, nonJavaFiles: List<Path> = emptyList()): List<SourceSet> {
+    return listOf(
+      SourceSet(
+        rootPath = rootPath,
+        javaSourceFiles = javaFiles.map { rootPath.relativize(it) },
+        nonJavaSourceFiles = nonJavaFiles.map { rootPath.relativize(it) },
+      )
     )
   }
 

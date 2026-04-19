@@ -39,7 +39,7 @@ data class SourceSet(
 }
 
 /** Data class to hold the source sets associated with a project structure root. */
-data class ProjectStructureRoot(val projectStructureRootPath: Path, val packageSourceSets: Map<Path, SourceSet>)
+data class ProjectStructureRoot(val projectStructureRootPath: Path, val packageSourceSets: Map<Path, List<SourceSet>>)
 
 /**
  * A data class to hold the information required to setup a basic project structure.

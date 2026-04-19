@@ -86,7 +86,7 @@ class GraphToProjectConverter(
     val packages = PackageSet(allPackages)
     val sourceFiles =
       roots
-        .flatMap { it.packageSourceSets.values }
+        .flatMap { it.packageSourceSets.values.flatten() }
         .flatMap { sourceSet -> sourceSet.javaSourceFiles.map { sourceSet.rootPath.resolve(it) } }
     val prefixes = runBlocking { javaPackagePrefixReader.readPrefixes(context, packages, sourceFiles) }
 
@@ -112,7 +112,9 @@ class GraphToProjectConverter(
         val rootPath = root.projectStructureRootPath
         val relDirs =
           root.packageSourceSets
-            .flatMap { (pkgPath, sourceSet) -> sourceSet.nonJavaSourceFiles.map { pkgPath.resolve(it) } }
+            .flatMap { (pkgPath, sourceSetList) ->
+              sourceSetList.flatMap { sourceSet -> sourceSet.nonJavaSourceFiles.map { pkgPath.resolve(it) } }
+            }
             .mapNotNull { it.parent }
             .distinct()
             .filter { projectDefinition.getIncludingContentRoot(it) != null }

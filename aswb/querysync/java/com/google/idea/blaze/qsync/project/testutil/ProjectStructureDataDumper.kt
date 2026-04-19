@@ -25,32 +25,36 @@ fun ProjectStructureData.dump(ignoredFiles: Set<Path> = emptySet()): String {
     for (root in roots.sortedBy { it.projectStructureRootPath }) {
       if (root.packageSourceSets.isEmpty()) continue
       appendLine("root: ${root.projectStructureRootPath}")
-      for ((pkg, ss) in root.packageSourceSets.toSortedMap()) {
-        val filteredJavaSourceFiles = ss.javaSourceFiles.filter { it !in ignoredFiles }
-        val filteredNonJavaSourceFiles = ss.nonJavaSourceFiles.filter { it !in ignoredFiles }
-
-        if (filteredJavaSourceFiles.isEmpty() && filteredNonJavaSourceFiles.isEmpty()) continue
+      for ((pkg, sourceSetList) in root.packageSourceSets.toSortedMap()) {
+        val nonEmptySourceSets =
+          sourceSetList.filter { ss -> ss.javaSourceFiles.any { it !in ignoredFiles } || ss.nonJavaSourceFiles.any { it !in ignoredFiles } }
+        if (nonEmptySourceSets.isEmpty()) continue
 
         appendLine("  package: $pkg")
-        appendLine("    sourceSet:")
-        if (filteredJavaSourceFiles.isNotEmpty()) {
-          appendLine("      javaSourceFiles:")
-          val seenFiles = mutableSetOf<Path>()
-          for (f in filteredJavaSourceFiles.sorted()) {
-            if (!seenFiles.add(f)) {
-              error("Duplicate file in dump: $f in package $pkg")
+        for (ss in nonEmptySourceSets) {
+          appendLine("    sourceSet:")
+          val filteredJavaSourceFiles = ss.javaSourceFiles.filter { it !in ignoredFiles }
+          val filteredNonJavaSourceFiles = ss.nonJavaSourceFiles.filter { it !in ignoredFiles }
+
+          if (filteredJavaSourceFiles.isNotEmpty()) {
+            appendLine("      javaSourceFiles:")
+            val seenFiles = mutableSetOf<Path>()
+            for (f in filteredJavaSourceFiles.sorted()) {
+              if (!seenFiles.add(f)) {
+                error("Duplicate file in dump: $f in package $pkg")
+              }
+              appendLine("        - $f")
             }
-            appendLine("        - $f")
           }
-        }
-        if (filteredNonJavaSourceFiles.isNotEmpty()) {
-          appendLine("      nonJavaSourceFiles:")
-          val seenFiles = mutableSetOf<Path>()
-          for (f in filteredNonJavaSourceFiles.sorted()) {
-            if (!seenFiles.add(f)) {
-              error("Duplicate file in dump: $f in package $pkg")
+          if (filteredNonJavaSourceFiles.isNotEmpty()) {
+            appendLine("      nonJavaSourceFiles:")
+            val seenFiles = mutableSetOf<Path>()
+            for (f in filteredNonJavaSourceFiles.sorted()) {
+              if (!seenFiles.add(f)) {
+                error("Duplicate file in dump: $f in package $pkg")
+              }
+              appendLine("        - $f")
             }
-            appendLine("        - $f")
           }
         }
       }
