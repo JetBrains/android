@@ -893,6 +893,7 @@ studio_plugin(
     ],
     modules = {
         "aiplugin.jar": [
+            "//tools/vendor/google/alt-lang/ios-lang:ios-lang",
             "//tools/vendor/google/ml/aiplugin/model/api:aiplugin.model.api",
             "//tools/vendor/google/ml/aiplugin/core/primitives:aiplugin.core.primitives",
             "//tools/vendor/google/ml/aiplugin/core/terminal:aiplugin.core.terminal",
@@ -1389,6 +1390,7 @@ iml_module(
         "//tools/vendor/google/ml/aiplugin/experimental:aiplugin.experimental",
         "//tools/adt/idea/studio:studio-sdk-all-plugins",
         "//tools/adt/idea/gradle-dsl-plugin:intellij.android.gradle.dsl.plugin",
+        "//tools/vendor/google/alt-lang/ios-lang",
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "//tools/vendor/google/optional-plugins",

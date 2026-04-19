@@ -36,6 +36,7 @@
     <orderEntry type="module" module-name="intellij.platform.projectModel" />
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util" />
+    <orderEntry type="module" module-name="ios-lang" />
     <orderEntry type="module" module-name="optional-plugins" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.lume" />
     <orderEntry type="module" module-name="intellij.android.smali" />
