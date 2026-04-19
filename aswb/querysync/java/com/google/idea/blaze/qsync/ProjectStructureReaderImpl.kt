@@ -116,10 +116,14 @@ internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtens
     val roots =
       sourcesMap.map { (includeRoot, packageMap) ->
         val packageSourceSets =
-          packageMap.mapValues { (_, langMap) ->
+          packageMap.mapValues { (buildPackage, langMap) ->
             val javaSources = langMap[QuerySyncLanguage.JVM]?.sorted() ?: emptyList()
             val nonJavaSources = langMap.filterKeys { it != QuerySyncLanguage.JVM }.values.flatten().sorted()
-            SourceSet(javaSourceFiles = javaSources, nonJavaSourceFiles = nonJavaSources)
+            SourceSet(
+              rootPath = buildPackage,
+              javaSourceFiles = javaSources.map { buildPackage.relativize(it) },
+              nonJavaSourceFiles = nonJavaSources.map { buildPackage.relativize(it) },
+            )
           }
         ProjectStructureRoot(projectStructureRootPath = includeRoot, packageSourceSets = packageSourceSets)
       }

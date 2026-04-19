@@ -91,6 +91,7 @@ class SnapshotDeserializer private constructor() {
             rootProto.packageSourceSetsList.associate { sourceSet ->
               Path.of(sourceSet.workspaceRelativePath) to
                 SourceSet(
+                  rootPath = Path.of(sourceSet.rootPath),
                   javaSourceFiles = sourceSet.javaSourceFilesList.map { Path.of(it) },
                   nonJavaSourceFiles = sourceSet.nonJavaSourceFilesList.map { Path.of(it) },
                 )

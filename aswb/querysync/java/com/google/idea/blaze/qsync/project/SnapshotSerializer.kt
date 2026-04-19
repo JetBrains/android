@@ -100,6 +100,7 @@ class SnapshotSerializer() {
               setWorkspaceRelativePath(path.toString())
               addAllJavaSourceFiles(sourceSet.javaSourceFiles.map { it.toString() })
               addAllNonJavaSourceFiles(sourceSet.nonJavaSourceFiles.map { it.toString() })
+              setRootPath(sourceSet.rootPath.toString())
             }
             .build()
         )
@@ -111,7 +112,7 @@ class SnapshotSerializer() {
   }
 
   companion object {
-    const val PROTO_VERSION: Int = 5
+    const val PROTO_VERSION: Int = 6
 
     private fun Operation.toProto(): VcsOperation =
       when (this) {

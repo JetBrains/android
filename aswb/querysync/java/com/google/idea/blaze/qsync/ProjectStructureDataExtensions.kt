@@ -60,8 +60,9 @@ fun ProjectStructureData.Companion.fromGraph(context: Context<*>, graph: BuildGr
   val finalSourcesMap =
     (javaSourcesMap.keys + nonJavaSourcesMap.keys).associateWith { pkg ->
       SourceSet(
-        javaSourceFiles = javaSourcesMap[pkg]?.sorted() ?: emptyList(),
-        nonJavaSourceFiles = nonJavaSourcesMap[pkg]?.sorted() ?: emptyList(),
+        rootPath = pkg,
+        javaSourceFiles = javaSourcesMap[pkg]?.map { pkg.relativize(it) }?.sorted() ?: emptyList(),
+        nonJavaSourceFiles = nonJavaSourcesMap[pkg]?.map { pkg.relativize(it) }?.sorted() ?: emptyList(),
       )
     }
 

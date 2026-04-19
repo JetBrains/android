@@ -67,4 +67,5 @@ message SourceSet {
   string workspace_relative_path = 1;
   repeated string java_source_files = 2;
   repeated string non_java_source_files = 3;
+  string root_path = 4;
 }

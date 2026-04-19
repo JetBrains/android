@@ -79,6 +79,14 @@ class GraphToProjectConverterTest {
     }
   }
 
+  private fun createSourceSet(rootPath: Path, javaFiles: List<Path>, nonJavaFiles: List<Path> = emptyList()): SourceSet {
+    return SourceSet(
+      rootPath = rootPath,
+      javaSourceFiles = javaFiles.map { rootPath.relativize(it) },
+      nonJavaSourceFiles = nonJavaFiles.map { rootPath.relativize(it) },
+    )
+  }
+
   @Test
   fun testMergeCompatibleSourceRoots() {
     var roots =
@@ -134,7 +142,7 @@ class GraphToProjectConverterTest {
       listOf(
         ProjectStructureRoot(
           Path.of("java/com/test"),
-          mapOf(Path.of("java/com/test") to SourceSet(javaSourceFiles = sourcePackages.keys.toList())),
+          mapOf(Path.of("java/com/test") to createSourceSet(Path.of("java/com/test"), sourcePackages.keys.toList())),
         )
       )
     val rootSources = converter.calculateJavaRootSources(context, roots)
@@ -157,7 +165,7 @@ class GraphToProjectConverterTest {
       listOf(
         ProjectStructureRoot(
           Path.of("java/com/test"),
-          mapOf(Path.of("java/com/test") to SourceSet(javaSourceFiles = sourcePackages.keys.toList())),
+          mapOf(Path.of("java/com/test") to createSourceSet(Path.of("java/com/test"), sourcePackages.keys.toList())),
         )
       )
     val rootSources = converter.calculateJavaRootSources(context, roots)
@@ -184,7 +192,7 @@ class GraphToProjectConverterTest {
       listOf(
         ProjectStructureRoot(
           Path.of("java/com/test"),
-          mapOf(Path.of("java/com/test") to SourceSet(javaSourceFiles = sourcePackages.keys.toList())),
+          mapOf(Path.of("java/com/test") to createSourceSet(Path.of("java/com/test"), sourcePackages.keys.toList())),
         )
       )
     val rootSources = converter.calculateJavaRootSources(context, roots)
@@ -207,11 +215,11 @@ class GraphToProjectConverterTest {
       listOf(
         ProjectStructureRoot(
           Path.of("java/com/app"),
-          mapOf(Path.of("java/com/app") to SourceSet(javaSourceFiles = listOf(Path.of("java/com/app/AppClass.java")))),
+          mapOf(Path.of("java/com/app") to createSourceSet(Path.of("java/com/app"), listOf(Path.of("java/com/app/AppClass.java")))),
         ),
         ProjectStructureRoot(
           Path.of("java/com/lib"),
-          mapOf(Path.of("java/com/lib") to SourceSet(javaSourceFiles = listOf(Path.of("java/com/lib/LibClass.java")))),
+          mapOf(Path.of("java/com/lib") to createSourceSet(Path.of("java/com/lib"), listOf(Path.of("java/com/lib/LibClass.java")))),
         ),
       )
     val rootSources = converter.calculateJavaRootSources(context, roots)
@@ -240,8 +248,9 @@ class GraphToProjectConverterTest {
         ProjectStructureRoot(
           Path.of("java/com/test"),
           mapOf(
-            Path.of("java/com/test") to SourceSet(javaSourceFiles = listOf(Path.of("java/com/test/package2/Class1.java"))),
-            Path.of("java/com/test/package1") to SourceSet(javaSourceFiles = listOf(Path.of("java/com/test/package1/Class2.java"))),
+            Path.of("java/com/test") to createSourceSet(Path.of("java/com/test"), listOf(Path.of("java/com/test/package2/Class1.java"))),
+            Path.of("java/com/test/package1") to
+              createSourceSet(Path.of("java/com/test/package1"), listOf(Path.of("java/com/test/package1/Class2.java"))),
           ),
         )
       )
@@ -271,8 +280,10 @@ class GraphToProjectConverterTest {
         ProjectStructureRoot(
           Path.of("java/com/test"),
           mapOf(
-            Path.of("java/com/test/package1") to SourceSet(javaSourceFiles = listOf(Path.of("java/com/test/package1/Class2.java"))),
-            Path.of("java/com/test/package2") to SourceSet(javaSourceFiles = listOf(Path.of("java/com/test/package2/Class1.java"))),
+            Path.of("java/com/test/package1") to
+              createSourceSet(Path.of("java/com/test/package1"), listOf(Path.of("java/com/test/package1/Class2.java"))),
+            Path.of("java/com/test/package2") to
+              createSourceSet(Path.of("java/com/test/package2"), listOf(Path.of("java/com/test/package2/Class1.java"))),
           ),
         )
       )
@@ -298,8 +309,9 @@ class GraphToProjectConverterTest {
         ProjectStructureRoot(
           Path.of("java/com/test"),
           mapOf(
-            Path.of("java/com/test") to SourceSet(javaSourceFiles = listOf(Path.of("java/com/test/Class1.java"))),
-            Path.of("java/com/test/package") to SourceSet(javaSourceFiles = listOf(Path.of("java/com/test/package/Class2.java"))),
+            Path.of("java/com/test") to createSourceSet(Path.of("java/com/test"), listOf(Path.of("java/com/test/Class1.java"))),
+            Path.of("java/com/test/package") to
+              createSourceSet(Path.of("java/com/test/package"), listOf(Path.of("java/com/test/package/Class2.java"))),
           ),
         )
       )
@@ -325,8 +337,9 @@ class GraphToProjectConverterTest {
         ProjectStructureRoot(
           Path.of("java/com/test"),
           mapOf(
-            Path.of("java/com/test") to SourceSet(javaSourceFiles = listOf(Path.of("java/com/test/Class1.java"))),
-            Path.of("java/com/test/package") to SourceSet(javaSourceFiles = listOf(Path.of("java/com/test/package/Class2.java"))),
+            Path.of("java/com/test") to createSourceSet(Path.of("java/com/test"), listOf(Path.of("java/com/test/Class1.java"))),
+            Path.of("java/com/test/package") to
+              createSourceSet(Path.of("java/com/test/package"), listOf(Path.of("java/com/test/package/Class2.java"))),
           ),
         )
       )
@@ -356,8 +369,10 @@ class GraphToProjectConverterTest {
         ProjectStructureRoot(
           Path.of("third_party"),
           mapOf(
-            Path.of("third_party/java") to SourceSet(javaSourceFiles = listOf(Path.of("third_party/java/com/test/Class1.java"))),
-            Path.of("third_party/javatests") to SourceSet(javaSourceFiles = listOf(Path.of("third_party/javatests/com/test/Class2.java"))),
+            Path.of("third_party/java") to
+              createSourceSet(Path.of("third_party/java"), listOf(Path.of("third_party/java/com/test/Class1.java"))),
+            Path.of("third_party/javatests") to
+              createSourceSet(Path.of("third_party/javatests"), listOf(Path.of("third_party/javatests/com/test/Class2.java"))),
           ),
         )
       )
@@ -386,9 +401,9 @@ class GraphToProjectConverterTest {
         ProjectStructureRoot(
           Path.of("java/com/test"),
           mapOf(
-            Path.of("java/com/test") to SourceSet(javaSourceFiles = listOf(Path.of("java/com/test/somepackage/Class2.java"))),
+            Path.of("java/com/test") to createSourceSet(Path.of("java/com/test"), listOf(Path.of("java/com/test/somepackage/Class2.java"))),
             Path.of("java/com/test/repackaged") to
-              SourceSet(javaSourceFiles = listOf(Path.of("java/com/test/repackaged/com/foo/Class1.java"))),
+              createSourceSet(Path.of("java/com/test/repackaged"), listOf(Path.of("java/com/test/repackaged/com/foo/Class1.java"))),
           ),
         )
       )
@@ -564,7 +579,9 @@ class GraphToProjectConverterTest {
         listOf(
           ProjectStructureRoot(
             Path.of("myproject"),
-            mapOf(Path.of("myproject") to SourceSet(nonJavaSourceFiles = listOf(Path.of("myproject/protos/test.proto")))),
+            mapOf(
+              Path.of("myproject") to createSourceSet(Path.of("myproject"), emptyList(), listOf(Path.of("myproject/protos/test.proto")))
+            ),
           )
         )
       )
@@ -588,7 +605,10 @@ class GraphToProjectConverterTest {
         listOf(
           ProjectStructureRoot(
             Path.of("myproject"),
-            mapOf(Path.of("myproject") to SourceSet(nonJavaSourceFiles = listOf(Path.of("myproject/excluded/protos/excluded.proto")))),
+            mapOf(
+              Path.of("myproject") to
+                createSourceSet(Path.of("myproject"), emptyList(), listOf(Path.of("myproject/excluded/protos/excluded.proto")))
+            ),
           )
         )
       )

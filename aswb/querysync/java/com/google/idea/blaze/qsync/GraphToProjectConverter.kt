@@ -82,9 +82,12 @@ class GraphToProjectConverter(
   @VisibleForTesting
   @Throws(BuildException::class)
   fun calculateJavaRootSources(context: Context<*>, roots: List<ProjectStructureRoot>): Map<Path, Map<Path, String>> {
-    val allPackageSourceSets = roots.flatMap { it.packageSourceSets.entries }.associate { it.key to it.value }
-    val packages = PackageSet(allPackageSourceSets.keys)
-    val sourceFiles = allPackageSourceSets.values.flatMap { it.javaSourceFiles }
+    val allPackages = roots.flatMap { it.packageSourceSets.keys }.toSet()
+    val packages = PackageSet(allPackages)
+    val sourceFiles =
+      roots
+        .flatMap { it.packageSourceSets.values }
+        .flatMap { sourceSet -> sourceSet.javaSourceFiles.map { sourceSet.rootPath.resolve(it) } }
     val prefixes = runBlocking { javaPackagePrefixReader.readPrefixes(context, packages, sourceFiles) }
 
     val split =
@@ -108,8 +111,8 @@ class GraphToProjectConverter(
       .associate { root ->
         val rootPath = root.projectStructureRootPath
         val relDirs =
-          root.packageSourceSets.values
-            .flatMap { it.nonJavaSourceFiles }
+          root.packageSourceSets
+            .flatMap { (pkgPath, sourceSet) -> sourceSet.nonJavaSourceFiles.map { pkgPath.resolve(it) } }
             .mapNotNull { it.parent }
             .distinct()
             .filter { projectDefinition.getIncludingContentRoot(it) != null }
