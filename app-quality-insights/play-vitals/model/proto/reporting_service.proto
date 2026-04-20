@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package google.play.developer.reporting.v1beta1;
 
+import "ratings.proto";
 import "releases.proto";
 
 option java_multiple_files = true;
@@ -17,6 +18,14 @@ service ReportingService {
   // Searches for Apps accessible by the user.
   rpc SearchAccessibleApps(SearchAccessibleAppsRequest)
       returns (SearchAccessibleAppsResponse) {}
+
+  // Describes the properties of the metric set.
+  rpc GetRatingsMetricSet(GetRatingsMetricSetRequest)
+      returns (RatingsMetricSet) {}
+
+  // Queries the metrics in the metric set.
+  rpc QueryRatingsMetricSet(QueryRatingsMetricSetRequest)
+      returns (QueryRatingsMetricSetResponse) {}
 }
 
 // Request message for
