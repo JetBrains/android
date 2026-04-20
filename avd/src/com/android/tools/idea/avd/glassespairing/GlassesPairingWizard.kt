@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avd.glassespairing
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.adblib.ConnectedDevice
@@ -121,6 +123,10 @@ import org.jetbrains.jewel.ui.component.ExternalLink
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IndeterminateHorizontalProgressBar
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.painter.rememberResourcePainterProvider
+
+private const val GLASSES_PAIRING_AUTH_IMAGE_PATH = "/screens/glasses_auth.png"
+private const val GLASSES_CORE_CONNECTING_IMAGE_PATH = "/screens/glasses_core.png"
 
 internal interface WizardController {
   suspend fun show(): Boolean
@@ -209,7 +215,7 @@ internal constructor(
       val coroutineScope = CoroutineScope(SupervisorJob())
       val wizard = GlassesPairingWizard(project, coroutineScope, devicesFlow, glassesHandle)
       val controller =
-        factory(project, "Glasses Pairing Assistant", parent, JBUI.size(400, 200), JBUI.size(600, 350)) {
+        factory(project, "Glasses Pairing Assistant", parent, JBUI.size(400, 200), JBUI.size(800, 500)) {
           with(wizard) { SelectDevicePage() }
         }
 
@@ -379,21 +385,49 @@ private fun PairingState(pairingState: PairingState, phone: DeviceRow) {
   Column(Modifier.padding(vertical = 20.dp, horizontal = 20.dp)) {
     when (pairingState) {
       is PairingState.AwaitingAuthorization -> {
-        LargeText(pairingState.heading)
+        Row(Modifier.fillMaxWidth()) {
+          Column(Modifier.weight(1f)) {
+            LargeText(pairingState.heading)
 
-        Row(Modifier.padding(40.dp)) {
-          CircularProgressIndicator()
-          Spacer(Modifier.size(5.dp))
-          Text(pairingState.detailText ?: "Waiting for user to accept Companion app permissions on ${phone.name}...")
+            Row(Modifier.padding(40.dp)) {
+              CircularProgressIndicator()
+              Spacer(Modifier.size(5.dp))
+              Text(pairingState.detailText ?: "Waiting for user to accept Companion app permissions on ${phone.name}...")
+            }
+          }
+
+          val painterProvider = rememberResourcePainterProvider(GLASSES_PAIRING_AUTH_IMAGE_PATH, GlassesPairingWizard::class.java)
+          val painter by painterProvider.getPainter()
+
+          Image(
+            painter = painter,
+            contentDescription = null,
+            modifier = Modifier.size(width = 244.dp, height = 400.dp),
+            contentScale = ContentScale.Fit,
+          )
         }
       }
       is PairingState.GlassesCoreConnecting -> {
-        LargeText(pairingState.heading)
+        Row(Modifier.fillMaxWidth()) {
+          Column(Modifier.weight(1f)) {
+            LargeText(pairingState.heading)
 
-        Row(Modifier.padding(40.dp)) {
-          CircularProgressIndicator()
-          Spacer(Modifier.size(5.dp))
-          Text(pairingState.detailText ?: "Waiting for user to accept XR Services permissions on ${phone.name}...")
+            Row(Modifier.padding(40.dp)) {
+              CircularProgressIndicator()
+              Spacer(Modifier.size(5.dp))
+              Text(pairingState.detailText ?: "Waiting for user to accept XR Services permissions on ${phone.name}...")
+            }
+          }
+
+          val painterProvider = rememberResourcePainterProvider(GLASSES_CORE_CONNECTING_IMAGE_PATH, GlassesPairingWizard::class.java)
+          val painter by painterProvider.getPainter()
+
+          Image(
+            painter = painter,
+            contentDescription = null,
+            modifier = Modifier.size(width = 244.dp, height = 400.dp),
+            contentScale = ContentScale.Fit,
+          )
         }
       }
       is PairingState.Complete -> {
