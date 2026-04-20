@@ -43,9 +43,7 @@ class ConfigurationListeners {
   }
 
   fun addListener(listener: ConfigurationListener) {
-    // TODO(b/475475082): Switch to addIfAbsent if being able to add duplicated doesn't
-    // serve any purpose
-    listeners.add(listener)
+    listeners.addIfAbsent(listener)
   }
 
   fun removeListener(listener: ConfigurationListener) {
