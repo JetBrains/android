@@ -241,7 +241,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
     WorkspaceLanguageSettings workspaceLanguageSettings = projectToLoad.workspaceLanguageSettings();
     QuerySyncLanguageSettings languageSettings = projectToLoad.languageSettings();
 
-    ImmutableSet<String> handledRules = getHandledRuleKinds();
+    ImmutableSet<String> handledRules = ProjectLoader.getHandledRuleKinds(project);
     Optional<BlazeVcsHandler> vcsHandler =
         Optional.ofNullable(BlazeVcsHandlerProvider.vcsHandlerForProject(project));
     AppInspectorBuilder appInspectorBuilder = createAppInspectorBuilder(buildSystem);
@@ -405,19 +405,6 @@ public class ProjectLoaderImpl implements ProjectLoader {
 
   protected AppInspectorBuilder createAppInspectorBuilder(BuildSystem buildSystem) {
     return new BazelAppInspectorBuilder(project, buildSystem);
-  }
-
-  /**
-   * Returns an {@link ImmutableSet} of rule kinds that query sync or plugin know how to resolve
-   * symbols for without building. The rules query sync always builds even if they are part of the
-   * project are in {@link com.google.idea.blaze.qsync.BlazeQueryParser#ALWAYS_BUILD_RULE_KINDS}
-   */
-  private ImmutableSet<String> getHandledRuleKinds() {
-    ImmutableSet.Builder<String> defaultRules = ImmutableSet.builder();
-    for (HandledRulesProvider ep : HandledRulesProvider.EP_NAME.getExtensionList()) {
-      defaultRules.addAll(ep.handledRuleKinds(project));
-    }
-    return defaultRules.build();
   }
 
   private static ProjectDefinition createProjectDefinition(
