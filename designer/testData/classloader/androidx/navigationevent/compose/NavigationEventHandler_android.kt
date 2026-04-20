@@ -20,10 +20,8 @@
  */
 package androidx.navigationevent.compose
 
-import androidx.navigationevent.NavigationEventDispatcher
-import androidx.navigationevent.NavigationEventDispatcherOwner
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Composer
 
-class FakeNavigationEventDispatcherOwner : NavigationEventDispatcherOwner {
-  override val navigationEventDispatcher: NavigationEventDispatcher
-    get() = NavigationEventDispatcher()
-}
+@Composable
+internal fun isInspectionMode(composer: Composer, changed: Int): Boolean = true

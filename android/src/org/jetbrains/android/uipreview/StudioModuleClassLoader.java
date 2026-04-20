@@ -9,6 +9,7 @@ import com.android.tools.idea.module.ModuleDisposableService;
 import com.android.tools.idea.rendering.BuildTargetReference;
 import com.android.tools.idea.rendering.StudioModuleRenderContext;
 import com.android.tools.idea.rendering.classloading.LocalNavigationEventTransform;
+import com.android.tools.idea.rendering.classloading.NavigationEventHandlerTransform;
 import com.android.tools.idea.rendering.classloading.StringReplaceTransform;
 import com.android.tools.rendering.RenderAsyncActionExecutor;
 import com.android.tools.rendering.RenderService;
@@ -128,6 +129,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
    *   <li>Repackages certain classes to avoid loading the Studio versions from the Studio class loader
    *   <li>Wraps ViewTreeLifecycleOwner.get to intercept its returning value and make sure it never returns null
    *   <li>Wraps LocalNavigationEventDispatcherOwner.current to intercept its returning value to use our local FakeNavigationEventDispatcherOwner
+   *   <li>Wraps NavigationEventHandler to intercept the returning value of the isInspectionMode function
    * </ul>
    * Note that it does not attempt to handle cases where class file constructs cannot
    * be represented in the target version. This is intended for uses such as for example
@@ -161,6 +163,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
     RequestExecutorTransform::new,
     ViewTreeLifecycleTransform::new,
     LocalNavigationEventTransform::new,
+    NavigationEventHandlerTransform::new,
     SdkIntReplacer::new,
     // Because of the use of RepackageTransform, we also need to ensure that certain internal constants are correctly renamed
     // so they point to the new repackaged classes.
