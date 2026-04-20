@@ -38,6 +38,7 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.util.ui.UIUtil
 import java.util.Base64
 import org.junit.After
 import org.junit.Before
@@ -112,7 +113,7 @@ class DetailsViewContentViewTest {
 
     view.setResults(testDevice, mockTestResults)
     view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
-    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+    UIUtil.dispatchAllInvocationEvents()
 
     assertThat(view.myDeviceTestResultLabel.text).isEqualTo("<html>device name</html>")
     assertThat(view.myTestResultLabel.text).isEqualTo("<html><font color='#6cad74'>Passed</font></html>")
@@ -127,7 +128,7 @@ class DetailsViewContentViewTest {
 
     view.setResults(testDevice, mockTestResults)
     view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
-    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+    UIUtil.dispatchAllInvocationEvents()
 
     assertThat(view.myDeviceTestResultLabel.text).isEqualTo("<html>device name</html>")
     assertThat(view.myTestResultLabel.text).isEqualTo("<html><font color='#b81708'>Failed</font></html>")
@@ -142,7 +143,7 @@ class DetailsViewContentViewTest {
 
     view.setResults(testDevice, mockTestResults)
     view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
-    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+    UIUtil.dispatchAllInvocationEvents()
 
     assertThat(view.myDeviceTestResultLabel.text).isEqualTo("<html>device name</html>")
     assertThat(view.myTestResultLabel.text).isEqualTo("<html><font color='#b81708'>Failed</font> ErrorStackTrace</html>")
@@ -157,7 +158,7 @@ class DetailsViewContentViewTest {
 
     view.setResults(testDevice, mockTestResults)
     view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
-    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+    UIUtil.dispatchAllInvocationEvents()
 
     assertThat(view.myDeviceTestResultLabel.text).isEqualTo("<html>&lt;device name&gt;</html>")
     assertThat(view.myTestResultLabel.text).isEqualTo("<html><font color='#b81708'>Failed</font> &lt;ErrorStackTrace&gt;</html>")
@@ -171,7 +172,7 @@ class DetailsViewContentViewTest {
 
     view.setResults(testDevice, mockTestResults)
     view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
-    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+    UIUtil.dispatchAllInvocationEvents()
 
     assertThat(view.myDeviceTestResultLabel.text).isEqualTo("<html>device name</html>")
     assertThat(view.myTestResultLabel.text).isEqualTo("Running on device name")
@@ -185,7 +186,7 @@ class DetailsViewContentViewTest {
 
     view.setResults(testDevice, mockTestResults)
     view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
-    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+    UIUtil.dispatchAllInvocationEvents()
 
     assertThat(view.myDeviceTestResultLabel.text).isEqualTo("<html>device name</html>")
     assertThat(view.myTestResultLabel.text).isEqualTo("No test status available")
@@ -200,7 +201,7 @@ class DetailsViewContentViewTest {
 
     view.setResults(testDevice, mockTestResults)
     view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
-    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+    UIUtil.dispatchAllInvocationEvents()
 
     view.myLogsView.waitAllRequests()
     assertThat(view.myLogsView.text).isEqualTo("test logcat message\n")
@@ -215,7 +216,7 @@ class DetailsViewContentViewTest {
 
     view.setResults(testDevice, mockTestResults)
     view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
-    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+    UIUtil.dispatchAllInvocationEvents()
 
     view.myLogsView.waitAllRequests()
     assertThat(view.myLogsView.text).isEqualTo("test logcat message\nerror stack trace")
@@ -229,7 +230,7 @@ class DetailsViewContentViewTest {
 
     view.setResults(testDevice, mockTestResults)
     view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
-    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+    UIUtil.dispatchAllInvocationEvents()
 
     view.myLogsView.waitAllRequests()
     assertThat(view.myLogsView.text).isEqualTo("error stack trace")
@@ -242,7 +243,7 @@ class DetailsViewContentViewTest {
 
     view.setResults(testDevice, mockTestResults)
     view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
-    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+    UIUtil.dispatchAllInvocationEvents()
 
     view.myLogsView.waitAllRequests()
     assertThat(view.myLogsView.text).isEqualTo("No logs available")
@@ -258,7 +259,7 @@ class DetailsViewContentViewTest {
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("")
     view.setResults(testDevice, mockTestResults)
     view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
-    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+    UIUtil.dispatchAllInvocationEvents()
     view.myLogsView.waitAllRequests()
     assertThat(view.myLogsView.text).isEqualTo("test logcat message\n")
 
@@ -266,7 +267,7 @@ class DetailsViewContentViewTest {
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("")
     view.setResults(testDevice, mockTestResults)
     view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
-    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+    UIUtil.dispatchAllInvocationEvents()
     view.myLogsView.waitAllRequests()
     assertThat(view.myLogsView.text).isEqualTo("test logcat message 2\n")
   }
@@ -288,10 +289,10 @@ class DetailsViewContentViewTest {
 
     view.setResults(testDevice, mockTestResults)
     view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
-    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+    UIUtil.dispatchAllInvocationEvents()
     view.setResults(testDevice, mockTestResults)
     view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
-    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+    UIUtil.dispatchAllInvocationEvents()
     view.myLogsView.waitAllRequests()
 
     assertThat(refreshCount).isEqualTo(1)
@@ -310,7 +311,7 @@ class DetailsViewContentViewTest {
     view.myBenchmarkView.waitAllRequests()
     assertThat(view.myBenchmarkView.text).isEqualTo("test benchmark message\n")
     assertThat(view.myBenchmarkTab.isHidden).isFalse()
-    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+    UIUtil.dispatchAllInvocationEvents()
     assertThat(view.tabs.selectedInfo).isEqualTo(view.myBenchmarkTab)
   }
 
@@ -322,7 +323,7 @@ class DetailsViewContentViewTest {
 
     view.setResults(testDevice, mockTestResults)
     view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
-    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+    UIUtil.dispatchAllInvocationEvents()
 
     view.myBenchmarkView.waitAllRequests()
     assertThat(view.myBenchmarkView.text).isEqualTo("")
@@ -358,7 +359,7 @@ class DetailsViewContentViewTest {
 
     view.setResults(testDevice, mockTestResults)
     view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
-    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+    UIUtil.dispatchAllInvocationEvents()
 
     assertThat(view.myScreenshotTab.isHidden).isFalse()
     assertThat(view.myScreenshotAttributesTab.isHidden).isFalse()
@@ -375,7 +376,7 @@ class DetailsViewContentViewTest {
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("")
     view.setResults(testDevice, mockTestResults)
     view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
-    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+    UIUtil.dispatchAllInvocationEvents()
 
     view.myLogsView.waitAllRequests()
 
@@ -401,7 +402,7 @@ class DetailsViewContentViewTest {
 
     view.setResults(testDevice, mockTestResults)
     view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
-    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+    UIUtil.dispatchAllInvocationEvents()
 
     assertThat(view.myJourneyScreenshotsTab.isHidden).isFalse()
   }
@@ -417,7 +418,7 @@ class DetailsViewContentViewTest {
 
     view.setResults(testDevice, mockTestResults)
     view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
-    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+    UIUtil.dispatchAllInvocationEvents()
 
     assertThat(view.tabs.selectedInfo).isEqualTo(view.logsTab)
   }
@@ -431,7 +432,7 @@ class DetailsViewContentViewTest {
 
     view.setResults(testDevice, mockTestResults)
     view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
-    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+    UIUtil.dispatchAllInvocationEvents()
     view.myLogsView.waitAllRequests()
 
     assertThat(view.myLogsView.editor?.caretModel?.logicalPosition?.line)
@@ -448,7 +449,7 @@ class DetailsViewContentViewTest {
     view.refreshLogsView()
     view.setResults(testDevice, mockTestResults)
     view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
-    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+    UIUtil.dispatchAllInvocationEvents()
 
     assertThat(view.tabs.selectedInfo).isEqualTo(view.myDeviceInfoTab)
   }
@@ -464,7 +465,7 @@ class DetailsViewContentViewTest {
     view.setResults(testDevice, mockTestResults)
     view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
 
-    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+    UIUtil.dispatchAllInvocationEvents()
     assertThat(view.tabs.selectedInfo).isEqualTo(view.myJourneyScreenshotsTab)
   }
 
@@ -477,7 +478,7 @@ class DetailsViewContentViewTest {
     view.setResults(testDevice, mockTestResults)
     view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
     view.myBenchmarkView.waitAllRequests()
-    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+    UIUtil.dispatchAllInvocationEvents()
 
     assertThat(view.tabs.selectedInfo).isEqualTo(view.myBenchmarkTab)
 
@@ -485,7 +486,7 @@ class DetailsViewContentViewTest {
     view.setResults(testDevice, mockTestResults)
     view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
     view.myBenchmarkView.waitAllRequests()
-    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+    UIUtil.dispatchAllInvocationEvents()
 
     assertThat(view.tabs.selectedInfo).isEqualTo(view.logsTab)
   }
@@ -497,10 +498,10 @@ class DetailsViewContentViewTest {
 
     view.setResults(testDevice, mockTestResults)
     view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
-    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+    UIUtil.dispatchAllInvocationEvents()
 
     view.tabs.select(view.myDeviceInfoTab, false)
-    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+    UIUtil.dispatchAllInvocationEvents()
     assertThat(view.tabs.selectedInfo).isEqualTo(view.myDeviceInfoTab)
 
     whenever(mockTestResults.getAdditionalTestArtifacts(testDevice))
@@ -508,7 +509,7 @@ class DetailsViewContentViewTest {
 
     view.setResults(testDevice, mockTestResults)
     view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
-    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+    UIUtil.dispatchAllInvocationEvents()
 
     assertThat(view.tabs.selectedInfo).isEqualTo(view.myScreenshotTab)
   }
@@ -550,7 +551,7 @@ class DetailsViewContentViewTest {
 
     view.setResults(testDevice, mockTestResults)
     view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
-    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+    UIUtil.dispatchAllInvocationEvents()
 
     assertThat(view.myLogcat).isEqualTo("test logcat message")
     assertThat(view.myErrorStackTrace).isEqualTo("error stack trace")
