@@ -26,7 +26,6 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.cpu.CpuUsageView
-import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FlexibleLegendPanel
 import com.android.tools.profilers.memory.LiveMemoryFootprintModel
 import com.google.common.truth.Truth.assertThat
@@ -50,7 +49,7 @@ class LiveStageViewTest {
   private val myTransportService =
     FakeTransportService(myTimer, true, AndroidVersion.VersionCodes.S, Common.Process.ExposureLevel.PROFILEABLE)
 
-  @get:Rule val myGrpcChannel = FakeGrpcChannel("LiveStageViewTest", myTransportService, FakeEventService())
+  @get:Rule val myGrpcChannel = FakeGrpcChannel("LiveStageViewTest", myTransportService)
 
   @get:Rule val myEdtRule = EdtRule()
 

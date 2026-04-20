@@ -959,13 +959,13 @@ public final class StudioProfilersTest {
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     assertThat(myProfilers.getProcess()).isEqualTo(process1);
-    assertThat(myGrpcServer.getProfiledProcessCount()).isEqualTo(1);
+    assertThat(myGrpcServer.getProfiledProcessCount()).isEqualTo(0);
 
     // Switch to another process.
     myProfilers.setProcess(device1, process2);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
-    assertThat(myGrpcServer.getProfiledProcessCount()).isEqualTo(1);
+    assertThat(myGrpcServer.getProfiledProcessCount()).isEqualTo(0);
     assertThat(myProfilers.getProcess()).isEqualTo(process2);
 
     // Connect a new device with a process.
@@ -978,7 +978,7 @@ public final class StudioProfilersTest {
     // Switch to the new device + process
     myProfilers.setProcess(device2, process3);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertThat(myGrpcServer.getProfiledProcessCount()).isEqualTo(1);
+    assertThat(myGrpcServer.getProfiledProcessCount()).isEqualTo(0);
     assertThat(myProfilers.getProcess()).isEqualTo(process3);
 
     // Update device2 state to disconnect
@@ -992,7 +992,7 @@ public final class StudioProfilersTest {
     // Switch back to the first device.
     myProfilers.setProcess(device1, process1);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertThat(myGrpcServer.getProfiledProcessCount()).isEqualTo(1);
+    assertThat(myGrpcServer.getProfiledProcessCount()).isEqualTo(0);
 
     // Update device1 state to disconnect
     Common.Device disconnectedDevice = device1.toBuilder()
@@ -1073,7 +1073,7 @@ public final class StudioProfilersTest {
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     assertThat(myProfilers.getProcess()).isEqualTo(process);
-    assertThat(myGrpcServer.getProfiledProcessCount()).isEqualTo(1);
+    assertThat(myGrpcServer.getProfiledProcessCount()).isEqualTo(0);
     assertThat(myProfilers.getProcess()).isEqualTo(process);
     assertThat(myTimer.isRunning()).isTrue();
 

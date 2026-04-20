@@ -32,7 +32,6 @@ import com.android.tools.profilers.SessionArtifactUtils.createAllocationSessionA
 import com.android.tools.profilers.SessionArtifactUtils.createLegacyAllocationsSessionArtifact
 import com.android.tools.profilers.SessionArtifactUtils.createSessionItem
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.AllocationStage
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
@@ -58,7 +57,7 @@ class JavaKotlinAllocationsTaskHandlerTest {
   private val ideProfilerServices = FakeIdeProfilerServices().apply { enableTaskBasedUx(true) }
   private val myTransportService = FakeTransportService(myTimer, false, ideProfilerServices.featureConfig.isTaskBasedUxEnabled)
 
-  @get:Rule var myGrpcChannel = FakeGrpcChannel("JavaKotlinAllocationsTaskHandlerTestChannel", myTransportService, FakeEventService())
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("JavaKotlinAllocationsTaskHandlerTestChannel", myTransportService)
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var myManager: SessionsManager

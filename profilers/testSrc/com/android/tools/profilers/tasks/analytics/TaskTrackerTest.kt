@@ -22,7 +22,6 @@ import com.android.tools.profilers.FakeFeatureTracker
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.event.FakeEventService
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -33,7 +32,7 @@ class TaskTrackerTest {
   private val myTimer = FakeTimer()
   private val myTransportService = FakeTransportService(myTimer)
 
-  @get:Rule var myGrpcChannel = FakeGrpcChannel("TaskTrackerTestChannel", myTransportService, FakeEventService())
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("TaskTrackerTestChannel", myTransportService)
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var myServices: FakeIdeProfilerServices

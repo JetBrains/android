@@ -24,7 +24,6 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.sessions.SessionAspect
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.sessions.SessionsManagerTest.SessionsAspectObserver
@@ -55,7 +54,7 @@ class TaskHomeTabModelTest {
 
   @get:Rule val projectRule = ProjectRule()
 
-  @get:Rule var myGrpcChannel = FakeGrpcChannel("TaskHomeTabModelTestChannel", myTransportService, FakeEventService())
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("TaskHomeTabModelTestChannel", myTransportService)
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var myManager: SessionsManager

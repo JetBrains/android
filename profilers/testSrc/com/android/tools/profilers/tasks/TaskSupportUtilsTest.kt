@@ -24,7 +24,6 @@ import com.android.tools.profilers.LiveViewSessionArtifact
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.SessionArtifactUtils
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.pastrecordings.PastRecordingsTabModel
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.LiveTaskHandler
@@ -38,7 +37,7 @@ class TaskSupportUtilsTest {
   private val myTimer = FakeTimer()
   private val myTransportService = FakeTransportService(myTimer, false)
 
-  @get:Rule var myGrpcChannel = FakeGrpcChannel("TaskSupportUtilsTestChannel", myTransportService, FakeEventService())
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("TaskSupportUtilsTestChannel", myTransportService)
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var myManager: SessionsManager

@@ -24,7 +24,6 @@ import com.android.tools.profilers.RecordingOption
 import com.android.tools.profilers.RecordingOptionsModel
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.CpuProfilerStage
-import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
@@ -37,7 +36,7 @@ class RecordingScreenModelTest {
   private val myTimer = FakeTimer()
   private val myTransportService = FakeTransportService(myTimer, false)
 
-  @get:Rule var myGrpcChannel = FakeGrpcChannel("RecordingListModelTestChannel", myTransportService, FakeEventService())
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("RecordingListModelTestChannel", myTransportService)
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var myManager: SessionsManager

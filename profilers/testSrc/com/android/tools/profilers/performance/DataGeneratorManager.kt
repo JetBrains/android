@@ -27,7 +27,6 @@ class DataGeneratorManager(connection: Connection, performantDb: Boolean) {
 
   init {
     if (!performantDb) {
-      myGenerators.add(EventsGenerator(connection))
       myGenerators.add(NetworkGenerator(connection))
     }
   }

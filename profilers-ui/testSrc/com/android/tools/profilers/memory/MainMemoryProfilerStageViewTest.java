@@ -56,7 +56,6 @@ import com.android.tools.profilers.StageWithToolbarView;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.SupportLevel;
-import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.FakeCaptureObject;
 import com.android.tools.profilers.memory.adapters.FakeInstanceObject;
@@ -101,7 +100,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
   @NotNull private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
   @Rule
   public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("MemoryProfilerStageViewTestChannel", myTransportService, new FakeEventService());
+    new FakeGrpcChannel("MemoryProfilerStageViewTestChannel", myTransportService);
   @Rule public final ApplicationRule myApplicationRule = new ApplicationRule();
   @Rule public final DisposableRule myDisposableRule = new DisposableRule();
 

@@ -39,7 +39,6 @@ import com.android.tools.profilers.cpu.CpuCaptureArtifactView
 import com.android.tools.profilers.cpu.CpuCaptureStage
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.ProfilingTechnology
-import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.HprofArtifactView
 import com.android.tools.profilers.memory.LegacyAllocationsArtifactView
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
@@ -65,7 +64,7 @@ class SessionsViewTest {
   private val myTransportService = FakeTransportService(myTimer, false)
   private val myIdeProfilerServices = FakeIdeProfilerServices()
 
-  @get:Rule var myGrpcChannel = FakeGrpcChannel("SessionsViewTestChannel", myTransportService, FakeEventService())
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("SessionsViewTestChannel", myTransportService)
   @get:Rule val myEdtRule = EdtRule()
 
   private lateinit var myProfilers: StudioProfilers

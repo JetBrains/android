@@ -62,11 +62,9 @@ public class FakeGrpcServer extends FakeGrpcChannel {
    */
   @NotNull
   public static FakeGrpcServer createFakeGrpcServer(String name, BindableService transportService, BindableService profilerService) {
-    EventService eventService = new EventService();
     FakeGrpcServer server =
-      new FakeGrpcServer(name, transportService, profilerService, eventService);
+      new FakeGrpcServer(name, transportService, profilerService);
     // Set the links between the services and the server.
-    eventService.myServer = server;
     TransportService.setTestChannelName(server.getName());
     return server;
   }
@@ -106,36 +104,6 @@ public class FakeGrpcServer extends FakeGrpcChannel {
       else {
         myProfiledProcesses.remove(sessionId);
       }
-    }
-  }
-
-  private static class EventService extends EventServiceGrpc.EventServiceImplBase {
-    private FakeGrpcServer myServer;
-
-    @Override
-    public void startMonitoringApp(EventStartRequest request, StreamObserver<EventStartResponse> response) {
-      myServer.addProfiledProcess(request.getSession());
-      response.onNext(EventStartResponse.getDefaultInstance());
-      response.onCompleted();
-    }
-
-    @Override
-    public void stopMonitoringApp(EventStopRequest request, StreamObserver<EventStopResponse> response) {
-      myServer.removeProfiledProcess(request.getSession());
-      response.onNext(EventStopResponse.getDefaultInstance());
-      response.onCompleted();
-    }
-
-    @Override
-    public void getActivityData(EventDataRequest request, StreamObserver<ActivityDataResponse> response) {
-      response.onNext(ActivityDataResponse.getDefaultInstance());
-      response.onCompleted();
-    }
-
-    @Override
-    public void getSystemData(EventDataRequest request, StreamObserver<SystemDataResponse> response) {
-      response.onNext(SystemDataResponse.getDefaultInstance());
-      response.onCompleted();
     }
   }
 

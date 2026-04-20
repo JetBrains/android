@@ -25,7 +25,6 @@ import com.android.testutils.TestUtils;
 import com.android.tools.datastore.DataStoreService.BackingNamespace;
 import com.android.tools.datastore.database.DeviceProcessTable;
 import com.android.tools.datastore.database.UnifiedEventsTable;
-import com.android.tools.datastore.service.EventService;
 import com.android.tools.datastore.service.ProfilerService;
 import com.android.tools.datastore.service.TransportService;
 import com.android.tools.profiler.proto.Common;
@@ -112,7 +111,6 @@ public class DataStoreServiceTest extends DataStorePollerTest {
     Set<Class> expectedServices = new HashSet<>();
     expectedServices.add(TransportService.class);
     expectedServices.add(ProfilerService.class);
-    expectedServices.add(EventService.class);
 
     List<ServicePassThrough> services = myDataStore.getRegisteredServices();
     for (ServicePassThrough service : services) {

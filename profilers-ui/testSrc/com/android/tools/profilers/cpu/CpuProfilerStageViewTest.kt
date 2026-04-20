@@ -36,7 +36,6 @@ import com.android.tools.profilers.SessionProfilersView
 import com.android.tools.profilers.StageWithToolbarView
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
-import com.android.tools.profilers.event.FakeEventService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
@@ -69,7 +68,7 @@ class CpuProfilerStageViewTest(private val isTestingProfileable: Boolean) {
       FakeTransportService(myTimer, true, AndroidVersion.VersionCodes.S, Common.Process.ExposureLevel.PROFILEABLE)
     } else FakeTransportService(myTimer)
 
-  @get:Rule val myGrpcChannel = FakeGrpcChannel("CpuCaptureViewTestChannel", myTransportService, FakeEventService())
+  @get:Rule val myGrpcChannel = FakeGrpcChannel("CpuCaptureViewTestChannel", myTransportService)
 
   @get:Rule val myEdtRule = EdtRule()
 

@@ -33,7 +33,6 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilers.buildSessionName
 import com.android.tools.profilers.Utils.debuggableProcess
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
-import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.AllocationSessionArtifact
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.memory.HprofSessionArtifact
@@ -54,7 +53,7 @@ class SessionsManagerTest {
   private val myTransportService = FakeTransportService(myTimer, false)
 
   @get:Rule val myThrown = ExpectedException.none()
-  @get:Rule var myGrpcChannel = FakeGrpcChannel("SessionsManagerTestChannel", myTransportService, FakeEventService())
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("SessionsManagerTestChannel", myTransportService)
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var myManager: SessionsManager

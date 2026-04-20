@@ -30,7 +30,6 @@ import org.jetbrains.annotations.NotNull;
 public class ProfilerClient {
   @NotNull private final ManagedChannel myChannel;
   @NotNull private final TransportServiceGrpc.TransportServiceBlockingStub myTransportClient;
-  @NotNull private final EventServiceGrpc.EventServiceBlockingStub myEventClient;
 
   public ProfilerClient(@NotNull String name) {
     // Optimization - In-process direct-executor channel which allows us to communicate between the profiler and transport-database without
@@ -42,7 +41,6 @@ public class ProfilerClient {
   public ProfilerClient(@NotNull ManagedChannel channel) {
     myChannel = channel;
     myTransportClient = TransportServiceGrpc.newBlockingStub(channel);
-    myEventClient = EventServiceGrpc.newBlockingStub(channel);
   }
 
   @NotNull
@@ -52,11 +50,6 @@ public class ProfilerClient {
 
   public CompletableFuture<Transport.ExecuteResponse> executeAsync(Commands.Command command, Executor executor) {
     return TransportClient.executeAsync(myTransportClient, command, executor);
-  }
-
-  @NotNull
-  public EventServiceGrpc.EventServiceBlockingStub getEventClient() {
-    return myEventClient;
   }
 
   /**

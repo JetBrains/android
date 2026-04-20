@@ -28,7 +28,6 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.analytics.FeatureTracker
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel
-import com.android.tools.profilers.event.FakeEventService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockProjectEx
 import com.intellij.openapi.project.Project
@@ -67,7 +66,7 @@ class CpuProfilingConfigurationsDialogTest(private val deviceLevel: Int) {
   private val myIdeServices = FakeIdeProfilerServices()
   private val myTransportService = FakeTransportService(myTimer)
 
-  @get:Rule val myGrpcChannel = FakeGrpcChannel("CpuProfilingConfigDialogTestChannel", myTransportService, FakeEventService())
+  @get:Rule val myGrpcChannel = FakeGrpcChannel("CpuProfilingConfigDialogTestChannel", myTransportService)
 
   @get:Rule val myEdtRule = EdtRule()
 

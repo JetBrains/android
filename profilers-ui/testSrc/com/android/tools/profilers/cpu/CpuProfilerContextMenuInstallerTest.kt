@@ -25,7 +25,6 @@ import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.event.FakeEventService
 import com.google.common.truth.Truth.assertThat
 import javax.swing.JPanel
 import org.junit.Before
@@ -39,7 +38,7 @@ class CpuProfilerContextMenuInstallerTest {
   private val transportService = FakeTransportService(timer)
   private val ideComponents = FakeIdeProfilerComponents()
 
-  @JvmField @Rule val myGrpcChannel = FakeGrpcChannel(javaClass.simpleName, transportService, FakeEventService())
+  @JvmField @Rule val myGrpcChannel = FakeGrpcChannel(javaClass.simpleName, transportService)
 
   private lateinit var stage: CpuProfilerStage
 

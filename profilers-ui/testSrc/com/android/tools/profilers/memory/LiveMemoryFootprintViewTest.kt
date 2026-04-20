@@ -38,7 +38,6 @@ import com.android.tools.profilers.StageWithToolbarView
 import com.android.tools.profilers.StreamingStage
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
-import com.android.tools.profilers.event.FakeEventService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
 import com.intellij.ui.components.JBPanel
@@ -63,7 +62,7 @@ open class LiveMemoryFootprintViewTest {
   private val myTransportService =
     FakeTransportService(myTimer, true, AndroidVersion.VersionCodes.S, Common.Process.ExposureLevel.PROFILEABLE)
 
-  @get:Rule val myGrpcChannel = FakeGrpcChannel("MainMemoryProfilerLiveViewTest", myTransportService, FakeEventService())
+  @get:Rule val myGrpcChannel = FakeGrpcChannel("MainMemoryProfilerLiveViewTest", myTransportService)
 
   @get:Rule val disposableRule = DisposableRule()
 

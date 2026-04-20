@@ -43,7 +43,6 @@ import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration;
-import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.android.tools.profilers.tasks.analytics.TaskTracker;
 import java.io.File;
@@ -68,7 +67,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
   private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
 
   @Rule
-  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("CpuProfilerStageTestChannel", myTransportService, new FakeEventService());
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("CpuProfilerStageTestChannel", myTransportService);
 
   private CpuProfilerStage myStage;
 

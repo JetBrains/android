@@ -20,11 +20,9 @@ import static com.android.tools.datastore.DataStoreDatabase.Characteristic.DURAB
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.datastore.database.DataStoreTable;
 import com.android.tools.datastore.database.UnifiedEventsTable;
-import com.android.tools.datastore.service.EventService;
 import com.android.tools.datastore.service.ProfilerService;
 import com.android.tools.datastore.service.TransportService;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.EventServiceGrpc;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
@@ -191,7 +189,6 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     myTransportService = new TransportService(this, unifiedTable, myFetchExecutor);
     registerService(myTransportService);
     registerService(new ProfilerService(this, myLogService));
-    registerService(new EventService(this, myFetchExecutor));
   }
 
   @VisibleForTesting
@@ -288,9 +285,6 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     return myServices;
   }
 
-  public EventServiceGrpc.EventServiceBlockingStub getEventClient(long streamId) {
-    return myConnectedClients.containsKey(streamId) ? myConnectedClients.get(streamId).getEventClient() : null;
-  }
   public ProfilerServiceGrpc.ProfilerServiceBlockingStub getProfilerClient(long streamId) {
     return myConnectedClients.containsKey(streamId) ? myConnectedClients.get(streamId).getProfilerClient() : null;
   }
@@ -333,11 +327,6 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
 
     @Nullable
     public ProfilerServiceGrpc.ProfilerServiceBlockingStub getProfilerClient() {
-      return null;
-    }
-
-    @Nullable
-    public EventServiceGrpc.EventServiceBlockingStub getEventClient() {
       return null;
     }
 
