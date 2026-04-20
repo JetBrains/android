@@ -43,6 +43,11 @@ class ConfigurationListenersTest {
     val shouldNotify2 = listeners.finishBulkEditing()
     assertThat(shouldNotify2).named("Should notify when final bulk edit finishes").isTrue()
     assertThat(listeners.isBulkEditing).named("Should no longer be bulk editing").isFalse()
+
+    // Finish one more time (unbalanced)
+    val shouldNotify3 = listeners.finishBulkEditing()
+    assertThat(shouldNotify3).named("Should not notify if already at 0").isFalse()
+    assertThat(listeners.isBulkEditing).named("Should still not be bulk editing").isFalse()
   }
 
   @Test

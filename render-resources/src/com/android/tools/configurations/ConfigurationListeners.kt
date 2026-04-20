@@ -38,8 +38,16 @@ class ConfigurationListeners {
   }
 
   fun finishBulkEditing(): Boolean {
-    // Atomically decrements and checks if we just exited the LAST nested bulk edit
-    return bulkEditingCount.decrementAndGet() == 0
+    // We use a CAS loop instead of decrementAndGet() to ensure the counter never drops below zero.
+    // This prevents the state from becoming invalid if finishBulkEditing() is called more times
+    // than startBulkEditing() (e.g. due to unbalanced lifecycle calls).
+    while (true) {
+      val current = bulkEditingCount.get()
+      if (current <= 0) return false
+      if (bulkEditingCount.compareAndSet(current, current - 1)) {
+        return current == 1
+      }
+    }
   }
 
   fun addListener(listener: ConfigurationListener) {
