@@ -300,6 +300,13 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
   private fun onTaskTabClose() {
     val sessionsManager = profilers.sessionsManager
 
+    if (profilers.isStopped) {
+      sessionsManager.removeDependencies(this)
+      currentTaskHandler?.exit()
+      currentTaskHandler = null
+      return
+    }
+
     // On close of the task tab, end the current session/task if its ongoing
     // Once the session end event is received, reset the selected session
     // to reflect that the closed task is no longer selected
