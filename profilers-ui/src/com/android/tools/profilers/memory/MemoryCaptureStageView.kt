@@ -20,6 +20,7 @@ import com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS
 import com.android.tools.adtui.model.formatter.TimeFormatter
 import com.android.tools.adtui.stdui.CloseButton
 import com.android.tools.profilers.StudioProfilersView
+import com.android.tools.profilers.memory.adapters.classifiers.ClassSet
 import com.android.tools.profilers.stacktrace.LoadingPanel
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBLabel
@@ -83,8 +84,12 @@ class MemoryCaptureStageView(profilersView: StudioProfilersView, stage: MemoryCa
       when (val cs = stage.captureSelection.selectedClassSet) {
         null -> instanceDetailsWrapper.isVisible = false
         else -> {
-          title.text = "Instance List - " + cs.name
-          instanceDetailsWrapper.isVisible = true
+          if (cs === ClassSet.EMPTY_SET) {
+            instanceDetailsWrapper.isVisible = false
+          } else {
+            title.text = "Instance List - " + cs.name
+            instanceDetailsWrapper.isVisible = true
+          }
         }
       }
 
