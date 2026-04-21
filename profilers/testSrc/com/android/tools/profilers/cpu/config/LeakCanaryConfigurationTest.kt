@@ -35,16 +35,12 @@ class LeakCanaryConfigurationTest {
   fun testIsVisible() {
     val config = LeakCanaryConfiguration("MyConfig")
 
-    // When source is STUDIO, threshold should be visible
+    // Sub-options should always remain visible to prevent layout shifts
     config.source = LeakCanaryMode.STUDIO
     assertThat(config.isVisible("threshold")).isTrue()
 
-    // When source is NATIVE, threshold should NOT be visible
     config.source = LeakCanaryMode.NATIVE
-    assertThat(config.isVisible("threshold")).isFalse()
-
-    // Other properties should be visible
-    assertThat(config.isVisible("other")).isTrue()
+    assertThat(config.isVisible("threshold")).isTrue()
   }
 
   @Test

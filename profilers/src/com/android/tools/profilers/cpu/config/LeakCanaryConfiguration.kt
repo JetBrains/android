@@ -36,13 +36,6 @@ class LeakCanaryConfiguration(name: String) : ProfilingConfiguration(name) {
         LeakCanaryMode.NATIVE -> StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE
       }
 
-  override fun isVisible(propertyName: String): Boolean {
-    return when (propertyName) {
-      "threshold" -> source == LeakCanaryMode.STUDIO
-      else -> true
-    }
-  }
-
   // Group "LC settings" creates the bold header
   @OptionsProperty(name = "Customization", group = "LC settings", order = 100) var source: LeakCanaryMode = LeakCanaryMode.STUDIO
 

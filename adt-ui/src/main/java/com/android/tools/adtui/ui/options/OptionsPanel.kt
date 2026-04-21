@@ -25,7 +25,6 @@ import com.android.tools.adtui.model.options.OptionsProvider
 import com.android.tools.adtui.model.options.PropertyInfo
 import com.android.tools.adtui.model.options.Slider
 import com.intellij.openapi.ui.VerticalFlowLayout
-import com.intellij.ui.ColorUtil
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
@@ -41,10 +40,8 @@ import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.util.Locale
 import javax.swing.AbstractButton
-import javax.swing.DefaultListCellRenderer
 import javax.swing.JComponent
 import javax.swing.JLabel
-import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.JRadioButton
 import javax.swing.JSeparator
@@ -426,7 +423,14 @@ private class EnumBinder(private val onUpdate: () -> Unit) : OptionsBinder {
         val childComponent =
           child.binder?.bind(child, readonly)
             ?: JLabel("Unknown return type (${child.accessor?.returnType?.name}) for property \"${child.name}\"")
-        childComponent.isEnabled = !readonly
+
+        // Calculate if the parent radio button for this child is currently selected
+        val isParentSelected = (constant == data.value)
+        val isChildEnabled = !readonly && isParentSelected
+
+        // Recursively disable the nested component (disables the JPanel, ComboBox, and Labels inside)
+        com.intellij.util.ui.UIUtil.setEnabled(childComponent, isChildEnabled, true)
+
         childComponent.border = JBUI.Borders.merge(childComponent.border, JBUI.Borders.emptyLeft(28), true)
         radioPanel.add(childComponent)
 
@@ -435,6 +439,7 @@ private class EnumBinder(private val onUpdate: () -> Unit) : OptionsBinder {
             JLabel(child.description).apply {
               border = JBUI.Borders.empty(0, 28, 10, 0)
               foreground = JBColor(0x4E4E4E, 0xB5B5B5)
+              isEnabled = isChildEnabled
             }
           radioPanel.add(descLabel)
         } else {
@@ -483,29 +488,6 @@ private class DropdownBinder(private val values: List<Int>) : OptionsBinder {
         com.intellij.openapi.ui.ComboBox(displayValues).apply {
           selectedItem = displayValues.find { it.value == data.value }
           isEnabled = !readonly
-          setRenderer(
-            object : DefaultListCellRenderer() {
-              override fun getListCellRendererComponent(
-                list: JList<*>?,
-                value: Any?,
-                index: Int,
-                isSelected: Boolean,
-                cellHasFocus: Boolean,
-              ): Component {
-                val component = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus) as JLabel
-                if (value is DisplayInt) {
-                  // index -1 indicates the selected item displayed in the combo box button
-                  if (index == -1) {
-                    val colorHex = ColorUtil.toHex(JBColor(0x4E4E4E, 0xB5B5B5))
-                    component.text = "<html>${value.value} <span style='color:#$colorHex'>${value.unit}</span></html>"
-                  } else {
-                    component.text = value.toString()
-                  }
-                }
-                return component
-              }
-            }
-          )
           addActionListener { data.value = (selectedItem as DisplayInt).value }
         }
 
@@ -513,13 +495,17 @@ private class DropdownBinder(private val values: List<Int>) : OptionsBinder {
       val wrapper =
         JPanel(FlowLayout(FlowLayout.LEFT, 0, 0)).apply {
           add(comboBox)
+          if (unit.isNotEmpty()) {
+            add(javax.swing.Box.createHorizontalStrut(5))
+            add(JLabel(unit))
+          }
           isOpaque = false
         }
       add(wrapper, TabularLayout.Constraint(0, 2))
 
       if (description.isNotEmpty()) {
         val descLabel =
-          JLabel("<html>$description</html>").apply {
+          JLabel(description).apply {
             foreground = JBColor(0x4E4E4E, 0xB5B5B5)
             font = font.deriveFont(font.size2D - 1f)
           }
