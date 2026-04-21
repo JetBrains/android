@@ -19,7 +19,8 @@ import java.nio.file.Path
 
 /** Data class to hold the source files within a single build package. */
 data class SourceSet(
-  val rootPath: Path = Path.of(""),
+  /** The path to the directory containing the sources, relative to the workspace root. */
+  val rootPath: Path,
   /** Java/Kotlin source files, relative to the rootPath. */
   val javaSourceFiles: List<Path> = emptyList(),
   /** Other source files (e.g. C++, Proto), relative to the rootPath. */
@@ -39,7 +40,15 @@ data class SourceSet(
 }
 
 /** Data class to hold the source sets associated with a project structure root. */
-data class ProjectStructureRoot(val projectStructureRootPath: Path, val packageSourceSets: Map<Path, List<SourceSet>>)
+data class ProjectStructureRoot(val projectStructureRootPath: Path, val packageSourceSets: Map<Path, List<SourceSet>>) {
+  init {
+    packageSourceSets.values.flatten().forEach { sourceSet ->
+      require(sourceSet.rootPath.startsWith(projectStructureRootPath)) {
+        "SourceSet rootPath (${sourceSet.rootPath}) must start with projectStructureRootPath ($projectStructureRootPath)"
+      }
+    }
+  }
+}
 
 /**
  * A data class to hold the information required to setup a basic project structure.
