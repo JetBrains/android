@@ -19,37 +19,34 @@ import com.google.idea.blaze.qsync.project.ProjectStructureData
 import java.nio.file.Path
 
 /** Utility to dump [ProjectStructureData] to a stable string representation for testing. */
-fun ProjectStructureData.dump(ignoredFiles: Set<Path> = emptySet()): String {
+fun ProjectStructureData.dump(): String {
   return buildString {
     appendLine("activeLanguages: ${activeLanguages.sorted().joinToString(", ")}")
     for (root in roots.sortedBy { it.projectStructureRootPath }) {
       if (root.packageSourceSets.isEmpty()) continue
       appendLine("root: ${root.projectStructureRootPath}")
       for ((pkg, sourceSetList) in root.packageSourceSets.toSortedMap()) {
-        val nonEmptySourceSets =
-          sourceSetList.filter { ss -> ss.javaSourceFiles.any { it !in ignoredFiles } || ss.nonJavaSourceFiles.any { it !in ignoredFiles } }
+        val nonEmptySourceSets = sourceSetList.filter { ss -> ss.javaSourceFiles.isNotEmpty() || ss.nonJavaSourceFiles.isNotEmpty() }
         if (nonEmptySourceSets.isEmpty()) continue
 
         appendLine("  package: $pkg")
         for (ss in nonEmptySourceSets) {
           appendLine("    sourceSet:")
-          val filteredJavaSourceFiles = ss.javaSourceFiles.filter { it !in ignoredFiles }
-          val filteredNonJavaSourceFiles = ss.nonJavaSourceFiles.filter { it !in ignoredFiles }
 
-          if (filteredJavaSourceFiles.isNotEmpty()) {
+          if (ss.javaSourceFiles.isNotEmpty()) {
             appendLine("      javaSourceFiles:")
             val seenFiles = mutableSetOf<Path>()
-            for (f in filteredJavaSourceFiles.sorted()) {
+            for (f in ss.javaSourceFiles.sorted()) {
               if (!seenFiles.add(f)) {
                 error("Duplicate file in dump: $f in package $pkg")
               }
               appendLine("        - $f")
             }
           }
-          if (filteredNonJavaSourceFiles.isNotEmpty()) {
+          if (ss.nonJavaSourceFiles.isNotEmpty()) {
             appendLine("      nonJavaSourceFiles:")
             val seenFiles = mutableSetOf<Path>()
-            for (f in filteredNonJavaSourceFiles.sorted()) {
+            for (f in ss.nonJavaSourceFiles.sorted()) {
               if (!seenFiles.add(f)) {
                 error("Duplicate file in dump: $f in package $pkg")
               }
