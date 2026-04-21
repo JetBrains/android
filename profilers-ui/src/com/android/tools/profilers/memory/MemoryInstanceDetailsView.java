@@ -116,7 +116,7 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
 
   @NotNull private final JBCheckBox myGCRootCheckBox = new JBCheckBox("Show nearest GC root only", false);
 
-  @NotNull private final JPanel myRefPanel = new JPanel(new BorderLayout());
+  @NotNull private JPanel myRefPanel = new JPanel(new BorderLayout());
 
   @NotNull private final JBLabel myTitle = new JBLabel();
 
@@ -292,7 +292,7 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
     // Populate references
     myReferenceColumnTree = buildReferenceColumnTree(capture, instance);
     if (myReferenceColumnTree != null) {
-      myRefPanel.removeAll();
+      myRefPanel = new JPanel(new BorderLayout());
       myRefPanel.add(myReferenceColumnTree, BorderLayout.CENTER);
       myRefPanel.add(myGCRootCheckBox, BorderLayout.NORTH);
       myTabsPanel.addTab(TITLE_TAB_REFERENCES, myRefPanel);
