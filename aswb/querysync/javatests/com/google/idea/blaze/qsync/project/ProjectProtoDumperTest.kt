@@ -44,77 +44,131 @@ internal data class SealedClassImpl(val name: String, val value: String) : Seale
 internal data class SealedListModel(val name: String, val interfaceItems: List<SealedInterface>, val classItems: List<SealedClass>) :
   FormattableModel
 
+internal data class CollectionTestModel(
+  val list: List<String>,
+  val linkedHashSet: Set<String>,
+  val hashSet: Set<String>,
+  val linkedHashMap: Map<String, String>,
+  val hashMap: Map<String, String>,
+) : FormattableModel
+
 @RunWith(JUnit4::class)
 class ProjectProtoDumperTest {
   @Test
   fun formatting() {
     compareFormattedStrings(
-      TestModel(
-          name = "root",
-          children =
-            listOf(
-              ChildModel(
-                stringSet = setOf("a", "b"),
-                map = mapOf("c" to SmallModel("d", true), "e" to SmallModel("f", false)),
-                list = listOf(ChildModel(stringSet = setOf("g", "h"), map = mapOf(), list = listOf())),
+      actual =
+        TestModel(
+            name = "root",
+            children =
+              listOf(
+                ChildModel(
+                  stringSet = setOf("a", "b"),
+                  map = mapOf("c" to SmallModel("d", true), "e" to SmallModel("f", false)),
+                  list = listOf(ChildModel(stringSet = setOf("g", "h"), map = mapOf(), list = listOf())),
+                ),
+                ChildModel(stringSet = setOf("i", "j"), map = mapOf(), list = listOf()),
               ),
-              ChildModel(stringSet = setOf("i", "j"), map = mapOf(), list = listOf()),
-            ),
-          smallList = listOf(SmallModel("aa", true), SmallModel("bb", false)),
-        )
-        .format(),
-      """
-      root:
-          children:
-              -
-                  stringSet:
-                      - a
-                      - b
-                  map:
-                      "c":
-                          d:
-                              b: true
-                      "e":
-                          f:
-                  list:
-                      -
-                          stringSet:
-                              - g
-                              - h
-              -
-                  stringSet:
-                      - i
-                      - j
-          smallList:
-              - aa:
-                  b: true
-              - bb:
-      """
-        .trimIndent(),
+            smallList = listOf(SmallModel("aa", true), SmallModel("bb", false)),
+          )
+          .format(),
+      expected =
+        """
+        root:
+            children:
+                -
+                    stringSet:
+                        - a
+                        - b
+                    map:
+                        "c":
+                            d:
+                                b: true
+                        "e":
+                            f:
+                    list:
+                        -
+                            stringSet:
+                                - g
+                                - h
+                -
+                    stringSet:
+                        - i
+                        - j
+            smallList:
+                - aa:
+                    b: true
+                - bb:
+        """
+          .trimIndent(),
     )
   }
 
   @Test
   fun sealedClasses() {
     compareFormattedStrings(
-      SealedListModel(
-          name = "sealed examples",
-          interfaceItems = listOf(SealedInterfaceImplA("a1", "valA"), SealedInterfaceImplB("b1", "valB")),
-          classItems = listOf(SealedClassImpl("c1", "valC")),
-        )
-        .format(),
-      """
-      sealed examples:
-          interfaceItems:
-              - a1:
-                  a: valA
-              - b1:
-                  b: valB
-          classItems:
-              - c1:
-                  value: valC
-      """
-        .trimIndent(),
+      actual =
+        SealedListModel(
+            name = "sealed examples",
+            interfaceItems = listOf(SealedInterfaceImplA("a1", "valA"), SealedInterfaceImplB("b1", "valB")),
+            classItems = listOf(SealedClassImpl("c1", "valC")),
+          )
+          .format(),
+      expected =
+        """
+        sealed examples:
+            interfaceItems:
+                - a1:
+                    a: valA
+                - b1:
+                    b: valB
+            classItems:
+                - c1:
+                    value: valC
+        """
+          .trimIndent(),
+    )
+  }
+
+  @Test
+  fun sequencedVsNonSequenced() {
+    compareFormattedStrings(
+      actual =
+        CollectionTestModel(
+            list = listOf("b", "a"),
+            linkedHashSet = linkedSetOf("b", "a"),
+            hashSet =
+              HashSet<String>().apply {
+                add("b")
+                add("a")
+              },
+            linkedHashMap = linkedMapOf("b" to "2", "a" to "1"),
+            hashMap =
+              HashMap<String, String>().apply {
+                put("b", "2")
+                put("a", "1")
+              },
+          )
+          .format(),
+      expected =
+        """
+        list:
+            - b
+            - a
+        linkedHashSet:
+            - b
+            - a
+        hashSet:
+            - a
+            - b
+        linkedHashMap:
+            "b": 2
+            "a": 1
+        hashMap:
+            "a": 1
+            "b": 2
+        """
+          .trimIndent(),
     )
   }
 }

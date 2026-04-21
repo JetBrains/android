@@ -22,6 +22,8 @@ import java.io.OutputStream
 import java.io.PrintStream
 import java.nio.file.Path
 import java.time.Instant
+import java.util.SequencedCollection
+import java.util.SequencedMap
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
@@ -282,7 +284,13 @@ private class PrinterImpl(private val to: PrintStream) : ValuePrinter, NestedVal
   override fun <T> list(value: Collection<T>, valueFormatter: ValueFormatter<T>) {
     outln("")
     nest {
-      for (entry in value) {
+      val sorted =
+        if (value !is SequencedCollection<T>) {
+          value.sortedBy { it?.toString().orEmpty() }
+        } else {
+          value
+        }
+      for (entry in sorted) {
         out("-")
         valueFormatter.formatTo(entry, this)
       }
@@ -292,7 +300,13 @@ private class PrinterImpl(private val to: PrintStream) : ValuePrinter, NestedVal
   override fun <T> map(value: Map<Any, T>, valueFormatter: ValueFormatter<T>) {
     outln("")
     nest {
-      for (entry in value.entries) {
+      val sortedEntries =
+        if (value !is SequencedMap<Any, T>) {
+          value.entries.sortedBy { it.key.toString() }
+        } else {
+          value.entries
+        }
+      for (entry in sortedEntries) {
         out("\"${entry.key}\":")
         inValue = true
         valueFormatter.formatTo(entry.value, this)

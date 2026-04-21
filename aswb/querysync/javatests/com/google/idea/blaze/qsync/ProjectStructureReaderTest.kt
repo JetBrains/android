@@ -108,7 +108,7 @@ class ProjectStructureReaderTest {
 
   // Helper to compare ProjectStructureData instances, ignoring list order.
   private fun assertStructureEquals(actual: ProjectStructureData, expected: ProjectStructureData) {
-    compareFormattedStrings(actual.dump(), expected.dump())
+    compareFormattedStrings(actual = actual.dump(), expected = expected.dump())
   }
 
   @Test

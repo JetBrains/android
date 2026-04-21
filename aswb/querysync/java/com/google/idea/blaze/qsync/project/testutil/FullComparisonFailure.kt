@@ -18,9 +18,15 @@ package com.google.idea.blaze.qsync.project.testutil
 import org.junit.ComparisonFailure
 
 /** A comparison failure assertion error that preserves full actual and expected data to allow copy/pasting. */
-class FullComparisonFailure(expected: String, actual: String) : ComparisonFailure("Values differ: ", expected.trimIndent(), actual.trim()) {
+class FullComparisonFailure
+internal constructor(expected: String, actual: String, private val customMessage: String?, trimIndent: Boolean) :
+  ComparisonFailure("Values differ: ", if (trimIndent) expected.trimIndent() else expected, actual.trim()) {
   override val message: String
     get() = buildString {
+      if (customMessage != null) {
+        appendLine(customMessage)
+        appendLine()
+      }
       appendLine("expected:<") // Note: These lines are a pattern recognised as a comparison failure.
       appendLine(expected.prependIndent("    "))
       appendLine("> but was:<")
@@ -29,8 +35,10 @@ class FullComparisonFailure(expected: String, actual: String) : ComparisonFailur
     }
 }
 
-fun compareFormattedStrings(actual: String, expected: String) {
-  if (actual.trim() != expected.trimIndent()) {
-    throw FullComparisonFailure(expected = expected, actual = actual)
+fun compareFormattedStrings(actual: String, expected: String, customMessage: String? = null, trimIndent: Boolean = true) {
+  val expectedNormalized = if (trimIndent) expected.trimIndent().trim() else expected.trim()
+  val actualNormalized = if (trimIndent) actual.trimIndent().trim() else actual.trim()
+  if (actualNormalized != expectedNormalized) {
+    throw FullComparisonFailure(expected = expected, actual = actual, customMessage = customMessage, trimIndent = trimIndent)
   }
 }
