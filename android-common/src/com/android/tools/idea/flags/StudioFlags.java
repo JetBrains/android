@@ -2876,6 +2876,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> SHOW_MARKETING_DIALOG =
     new BooleanFlag(GOOGLE_LOGIN, "show.marketing.dialog", "Show marketing dialog",
                     "Show marketing dialog after user logs in");
+  public static final Flag<Boolean> ENABLE_FSTS =
+    new BooleanFlag(GOOGLE_LOGIN, "enable.fsts", "Enable flexible scoped tokens",
+                    "Enable flexible scoped tokens and disable feature selection UI");
   // endregion Google Login
 
   // region Backup
