@@ -36,6 +36,7 @@ import com.android.sdklib.deviceprovisioner.makeAvdInfo
 import com.android.sdklib.deviceprovisioner.testContext
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdInfo.AvdStatus
+import com.android.sdklib.internal.avd.UserSettingsKey
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.tools.idea.avd.glassespairing.GlassesPairingLockService
@@ -306,11 +307,11 @@ class StudioLocalEmulatorProvisionerPluginTest {
     // The mock avdManager ignores refreshDevices disk updates, so we check disk files directly
     yieldUntil {
       val settings = Files.readAllLines(phoneAvdPath.resolve("user-settings.ini"))
-      !settings.any { it.startsWith("paired.glasses.avd.id") }
+      !settings.any { it.startsWith(UserSettingsKey.PAIRED_GLASSES_AVD_ID_PREFIX) }
     }
     yieldUntil {
       val settings = Files.readAllLines(glassesAvdPath.resolve("user-settings.ini"))
-      !settings.any { it.startsWith("paired.phone.avd") }
+      !settings.any { it.startsWith(UserSettingsKey.PAIRED_PHONE_AVD_ID_PREFIX) }
     }
   }
 
@@ -354,7 +355,7 @@ class StudioLocalEmulatorProvisionerPluginTest {
     // Check disk file to verify glasses was unpaired
     yieldUntil {
       val settings = Files.readAllLines(glassesAvdPath.resolve("user-settings.ini"))
-      !settings.any { it.startsWith("paired.phone.avd") }
+      !settings.any { it.startsWith(UserSettingsKey.PAIRED_PHONE_AVD_ID_PREFIX) }
     }
   }
 
@@ -459,7 +460,7 @@ class StudioLocalEmulatorProvisionerPluginTest {
 
     // Assert still paired
     val phoneSettings = Files.readAllLines(phoneAvdPath.resolve("user-settings.ini"))
-    assertThat(phoneSettings.any { it.startsWith("paired.glasses.avd.id") }).isTrue()
+    assertThat(phoneSettings.any { it.startsWith(UserSettingsKey.PAIRED_GLASSES_AVD_ID_PREFIX) }).isTrue()
     assertThat(glassesHandle.state.properties.pairedPhoneId).isEqualTo(phoneHandle.id)
   }
 
@@ -476,7 +477,7 @@ class StudioLocalEmulatorProvisionerPluginTest {
         avdRoot,
         2,
         tag = SystemImageTags.AI_GLASSES_TAG,
-        userSettings = mapOf("paired.phone.avd.id.1" to deviceId(phonePath).toString()),
+        userSettings = mapOf("${UserSettingsKey.PAIRED_PHONE_AVD_ID_PREFIX}1" to deviceId(phonePath).toString()),
       )
     avdManager.createAvd(phoneInfo)
     avdManager.createAvd(glassesInfo)
