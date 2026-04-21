@@ -538,7 +538,12 @@ studio_plugin(
 studio_plugin(
     name = "com.android.tools.ndk",
     directory = "android-ndk",
-    modules = {"android-ndk.jar": ["//tools/vendor/google/android-ndk:android-ndk"]},
+    modules = {
+        "android-ndk.jar": [
+            "//tools/vendor/google/android-ndk:android-ndk",
+            "//tools/vendor/google/android-ndk-api:android-ndk-api",
+        ],
+    },
     resources = {
         "resources/lldb": [
             "//prebuilts/tools:lldb-bundle",

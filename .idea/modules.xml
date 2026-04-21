@@ -535,6 +535,7 @@
       <module fileurl="file://$PROJECT_DIR$/../../base/usb-devices/usb-devices.iml" filepath="$PROJECT_DIR$/../../base/usb-devices/usb-devices.iml" />
       <module fileurl="file://$PROJECT_DIR$/whats-new-assistant/whats-new-assistant.iml" filepath="$PROJECT_DIR$/whats-new-assistant/whats-new-assistant.iml" />
       <module fileurl="file://$PROJECT_DIR$/whats-new-assistant/whats-new-assistant-test.iml" filepath="$PROJECT_DIR$/whats-new-assistant/whats-new-assistant-test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/android-ndk-api/android-ndk-api.iml" filepath="$PROJECT_DIR$/../../vendor/google/android-ndk-api/android-ndk-api.iml" />
       <module fileurl="file://$PROJECT_DIR$/emulator-snapshots/intellij.android.emulator-snapshots.iml" filepath="$PROJECT_DIR$/emulator-snapshots/intellij.android.emulator-snapshots.iml" />
     </modules>
   </component>
