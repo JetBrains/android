@@ -77,9 +77,9 @@ private fun createDeviceEnumProvider(module: Module): EnumValuesProvider = {
       DeviceGroup.NEXUS,
       DeviceGroup.NEXUS_XL -> devices.forEach(devicesEnumValueBuilder::addPhone)
       DeviceGroup.CANONICAL_DEVICE -> {
-        devices.firstOrNull { it.id == CanonicalDeviceType.SMALL_PHONE.id }?.let { devicesEnumValueBuilder::addPhone }
-        devices.firstOrNull { it.id == CanonicalDeviceType.MEDIUM_PHONE.id }?.let { devicesEnumValueBuilder::addPhone }
-        devices.firstOrNull { it.id == CanonicalDeviceType.MEDIUM_TABLET.id }?.let { devicesEnumValueBuilder::addTablet }
+        devices.firstOrNull { it.id == CanonicalDeviceType.SMALL_PHONE.id }?.let { devicesEnumValueBuilder.addPhone(it) }
+        devices.firstOrNull { it.id == CanonicalDeviceType.MEDIUM_PHONE.id }?.let { devicesEnumValueBuilder.addPhone(it) }
+        devices.firstOrNull { it.id == CanonicalDeviceType.MEDIUM_TABLET.id }?.let { devicesEnumValueBuilder.addTablet(it) }
       }
       DeviceGroup.NEXUS_TABLET -> devices.forEach(devicesEnumValueBuilder::addTablet)
       DeviceGroup.OTHER, // Group other with generic to guarantee all devices are available
