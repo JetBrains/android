@@ -69,7 +69,8 @@ fun mergeXml(context: RenderingContext, sourceXml: String, targetXml: String, ta
     XmlUtils.parseDocumentSilently(targetXml, true) ?: error("$targetXml failed to parse")
     XmlUtils.parseDocumentSilently(sourceXml, true) ?: error("$sourceXml failed to parse")
     val namespace = context.moduleTemplateData?.namespace ?: ""
-    val report = mergeManifest(namespace, context.moduleRoot!!, targetFile, targetXml, sourceXml) ?: return null
+    val isNewModule = context.moduleTemplateData?.isNewModule ?: false
+    val report = mergeManifest(namespace, isNewModule, context.moduleRoot!!, targetFile, targetXml, sourceXml) ?: return null
     if (report.result.isSuccess) {
       return report.getMergedDocument(MergingReport.MergedManifestKind.MERGED)
     }
@@ -223,26 +224,50 @@ private fun areXmlTagsEquivalent(element1: XmlTag, element2: XmlTag): Boolean {
 }
 
 /** Merges the given manifest fragment into the given manifest file */
-private fun mergeManifest(namespace: String, moduleRoot: File, targetManifest: File, targetXml: String, mergeText: String): MergingReport? {
+private fun mergeManifest(
+  namespace: String,
+  isNewModule: Boolean,
+  moduleRoot: File,
+  targetManifest: File,
+  targetXml: String,
+  mergeText: String,
+): MergingReport? {
   try {
     val isMasterManifest = FileUtil.filesEqual(moduleRoot, targetManifest.parentFile)
 
     val tempFile2 = File(targetManifest.parentFile, "nevercreated.xml")
     val logger = StdLogger(StdLogger.Level.INFO)
-    return ManifestMerger2.newMerger(targetManifest, logger, ManifestMerger2.MergeType.APPLICATION)
-      .withFeatures(
-        ManifestMerger2.Invoker.Feature.EXTRACT_FQCNS,
-        ManifestMerger2.Invoker.Feature.HANDLE_VALUE_CONFLICTS_AUTOMATICALLY,
-        ManifestMerger2.Invoker.Feature.NO_PLACEHOLDER_REPLACEMENT,
-      )
-      .setNamespace(namespace)
-      .addFlavorAndBuildTypeManifest(tempFile2)
+    val invoker =
+      ManifestMerger2.newMerger(targetManifest, logger, ManifestMerger2.MergeType.APPLICATION)
+        .withFeatures(
+          ManifestMerger2.Invoker.Feature.EXTRACT_FQCNS,
+          ManifestMerger2.Invoker.Feature.HANDLE_VALUE_CONFLICTS_AUTOMATICALLY,
+          ManifestMerger2.Invoker.Feature.NO_PLACEHOLDER_REPLACEMENT,
+        )
+        .setNamespace(namespace)
+
+    if (isNewModule) {
+      invoker.addFlavorAndBuildTypeManifest(tempFile2)
+    } else {
+      invoker.addLibraryManifest(tempFile2)
+    }
+
+    return invoker
       .asType(if (isMasterManifest) XmlDocument.Type.MAIN else XmlDocument.Type.OVERLAY)
       .withFileStreamProvider(
         object : ManifestMerger2.FileStreamProvider() {
           @Throws(FileNotFoundException::class)
           override fun getInputStream(file: File): InputStream {
-            val text = if (FileUtil.filesEqual(file, targetManifest)) targetXml else mergeText
+            val text =
+              if (FileUtil.filesEqual(file, targetManifest)) {
+                targetXml
+              } else {
+                if (!isNewModule && namespace.isNotEmpty() && mergeText.contains("<manifest") && !mergeText.contains("package=")) {
+                  mergeText.replaceFirst(Regex("<manifest([\\s>])"), "<manifest package=\"$namespace\"$1")
+                } else {
+                  mergeText
+                }
+              }
             return ByteArrayInputStream(text.toByteArray(Charsets.UTF_8))
           }
         }
