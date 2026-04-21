@@ -174,7 +174,7 @@ class SnapshotSerializationTest {
     val originalSyncData = createDefaultSyncData()
 
     val originalProjectStructureData =
-      ProjectStructureData(
+      ProjectStructureData.create(
         roots =
           listOf(
             ProjectStructureRoot(

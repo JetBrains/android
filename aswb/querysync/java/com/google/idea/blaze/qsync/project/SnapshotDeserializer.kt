@@ -103,7 +103,7 @@ class SnapshotDeserializer private constructor() {
 
     val activeLanguages = proto.activeLanguagesList.mapNotNull { it.toQuerySyncLanguage() }.toSet()
 
-    return ProjectStructureData(roots, activeLanguages)
+    return ProjectStructureData.create(roots, activeLanguages)
   }
 }
 

@@ -94,7 +94,7 @@ class ProjectStructureReaderTest {
     roots: Map<String, Map<String, SourceSet>> = emptyMap(),
     languages: Set<QuerySyncLanguage> = emptySet(),
   ): ProjectStructureData {
-    return ProjectStructureData(
+    return ProjectStructureData.create(
       roots =
         roots.map { (rootPath, packageMap) ->
           ProjectStructureRoot(

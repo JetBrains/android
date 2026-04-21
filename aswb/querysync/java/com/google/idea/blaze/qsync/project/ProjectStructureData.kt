@@ -47,8 +47,12 @@ data class ProjectStructureRoot(val projectStructureRootPath: Path, val packageS
  * This class encapsulates a subset of data from [BuildGraphData] that is needed by [GraphToProjectConverter] to setup a basic project. Its
  * contents can be instantiated from a directory traversal and without running `bazel query`.
  */
-data class ProjectStructureData(val roots: List<ProjectStructureRoot>, val activeLanguages: Set<QuerySyncLanguage>) {
+data class ProjectStructureData private constructor(val roots: List<ProjectStructureRoot>, val activeLanguages: Set<QuerySyncLanguage>) {
   companion object {
-    @JvmField val EMPTY = ProjectStructureData(roots = emptyList(), activeLanguages = emptySet())
+    fun create(roots: List<ProjectStructureRoot>, activeLanguages: Set<QuerySyncLanguage>): ProjectStructureData {
+      return ProjectStructureData(roots, activeLanguages.toHashSet())
+    }
+
+    @JvmField val EMPTY = create(roots = emptyList(), activeLanguages = emptySet())
   }
 }

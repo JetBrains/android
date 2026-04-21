@@ -10,9 +10,12 @@ import java.io.OutputStream
 import java.io.Serializable
 import java.nio.file.Path
 import java.time.Instant
+import org.jetbrains.annotations.VisibleForTesting
 
 class ProjectProto {
-  data class Project(
+  data class Project
+  @VisibleForTesting
+  constructor(
     val modules: List<Module>,
     val libraries: Map<Label, Library>,
     val artifactDirectories: ArtifactDirectories,
@@ -24,7 +27,7 @@ class ProjectProto {
       val libraries: MutableMap<Label, Library> = mutableMapOf(),
       var artifactDirectories: ArtifactDirectories = ArtifactDirectories.getDefaultInstance(),
       var ccWorkspace: CcWorkspace = CcWorkspace.getDefaultInstance(),
-      val activeLanguages: MutableSet<QuerySyncLanguage> = mutableSetOf(),
+      val activeLanguages: MutableSet<QuerySyncLanguage> = hashSetOf(),
     ) {
       fun build(): Project =
         Project(

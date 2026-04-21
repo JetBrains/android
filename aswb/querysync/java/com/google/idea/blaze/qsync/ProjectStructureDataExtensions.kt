@@ -62,7 +62,7 @@ fun ProjectStructureData.Companion.fromGraph(context: Context<*>, graph: BuildGr
       listOf(
         SourceSet(
           rootPath = pkg,
-          javaSourceFiles = javaSourcesMap[pkg]?.map { pkg.relativize(it) }?.sorted() ?: emptyList(),
+          javaSourceFiles = javaSourcesMap[pkg]?.map { pkg.relativize(it) }?.distinct()?.sorted() ?: emptyList(),
           nonJavaSourceFiles = nonJavaSourcesMap[pkg]?.map { pkg.relativize(it) }?.sorted() ?: emptyList(),
         )
       )
@@ -75,7 +75,7 @@ fun ProjectStructureData.Companion.fromGraph(context: Context<*>, graph: BuildGr
       ProjectStructureRoot(projectStructureRootPath = includeRoot, packageSourceSets = packageMap)
     }
 
-  return ProjectStructureData(roots = roots, activeLanguages = graph.getActiveLanguages())
+  return ProjectStructureData.create(roots = roots, activeLanguages = graph.getActiveLanguages())
 }
 
 private fun associateByProjectRoot(

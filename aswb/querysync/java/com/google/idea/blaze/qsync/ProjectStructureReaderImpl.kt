@@ -130,7 +130,7 @@ internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtens
         ProjectStructureRoot(projectStructureRootPath = includeRoot, packageSourceSets = packageSourceSets)
       }
 
-    val result = ProjectStructureData(roots = roots, activeLanguages = languages)
+    val result = ProjectStructureData.create(roots = roots, activeLanguages = languages)
 
     val numJavaFiles = roots.sumOf { it.packageSourceSets.values.flatten().sumOf { it.javaSourceFiles.size } }
     val numNonJavaFiles = roots.sumOf { it.packageSourceSets.values.flatten().sumOf { it.nonJavaSourceFiles.size } }
