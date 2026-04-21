@@ -3818,8 +3818,6 @@ android-studio/plugins/toml/lib/modules/intellij.toml.backend.jar
 android-studio/plugins/toml/lib/modules/intellij.toml.frontend.jar
 android-studio/plugins/toml/lib/modules/intellij.toml.json.jar
 android-studio/plugins/toml/lib/toml.jar
-android-studio/plugins/turboComplete/lib/modules/intellij.turboComplete.languages.kotlin.k1.jar
-android-studio/plugins/turboComplete/lib/turboComplete.jar
 android-studio/plugins/url-assistant/lib/url-assistant.jar
 android-studio/plugins/url-assistant/lib/url-assistant.so.jar
 android-studio/plugins/url-assistant/lib/urlassistant_proto.jar

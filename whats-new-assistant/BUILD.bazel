@@ -97,6 +97,7 @@ exports_files(
     [
         "intellij.android.whats-new-assistant.iml",
         "resources/META-INF/whats-new-assistant.xml",
+        "resources/whats-new-assistant-v2-prototype.xml",
         "resources/whats-new-assistant.xml",
     ],
     visibility = ["//visibility:public"],

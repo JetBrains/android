@@ -3828,8 +3828,6 @@ Android Studio Preview.app/Contents/plugins/toml/lib/modules/intellij.toml.backe
 Android Studio Preview.app/Contents/plugins/toml/lib/modules/intellij.toml.frontend.jar
 Android Studio Preview.app/Contents/plugins/toml/lib/modules/intellij.toml.json.jar
 Android Studio Preview.app/Contents/plugins/toml/lib/toml.jar
-Android Studio Preview.app/Contents/plugins/turboComplete/lib/modules/intellij.turboComplete.languages.kotlin.k1.jar
-Android Studio Preview.app/Contents/plugins/turboComplete/lib/turboComplete.jar
 Android Studio Preview.app/Contents/plugins/url-assistant/lib/url-assistant.jar
 Android Studio Preview.app/Contents/plugins/url-assistant/lib/url-assistant.so.jar
 Android Studio Preview.app/Contents/plugins/url-assistant/lib/urlassistant_proto.jar

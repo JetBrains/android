@@ -37,7 +37,6 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.plugins.visualstudiokeymap" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.properties" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.tasks" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.turboComplete" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.jetbrains.performancePlugin" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.jetbrains.sh" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-hg4idea" level="project" />
@@ -299,7 +298,6 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.toml.backend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.toml.frontend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.toml.json" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.turboComplete.languages.kotlin.k1" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.uiDesigner" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.vcs.git.coverage" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.vcs.git.frontend" level="project" />
