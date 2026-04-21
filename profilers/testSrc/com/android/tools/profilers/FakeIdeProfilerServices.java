@@ -117,7 +117,7 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
    */
   private boolean myTaskBasedUxEnabled = true;
 
-  private boolean myLeakCanaryStudioBotEnabled = false;
+  private boolean myLeakCanaryStudioBotEnabled = true;
 
   /**
    * Whether we should be load tracebox.

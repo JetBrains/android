@@ -140,6 +140,7 @@ phased.sync.enabled=INTERNAL
 playpolicyinsights.play.policy.insights=COMPLETE:2025
 preview.essentials.mode=PREVIEW
 profiler.home.tab.v2=PREVIEW
+profiler.leakcanary.studiobot=PREVIEW
 profiler.leakcanary=PREVIEW
 profiler.method.trace.in.editor=PREVIEW
 profiler.system.trace.in.editor=PREVIEW
