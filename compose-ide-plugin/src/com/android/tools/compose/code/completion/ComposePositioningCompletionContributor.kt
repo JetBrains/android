@@ -28,6 +28,7 @@ import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.codeInsight.lookup.LookupElementDecorator
 import com.intellij.codeInsight.lookup.LookupElementPresentation
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
@@ -362,7 +363,9 @@ class ComposePositioningCompletionWeigher : CompletionWeigher() {
   override fun weigh(lookupElement: LookupElement, location: CompletionLocation): Int? {
     val parameters = location.baseCompletionParameters
     val elementToComplete = parameters.position
-    if (!isComposeEnabled(elementToComplete) || parameters.originalFile !is KtFile) {
+
+    val isComposeEnabled = runReadAction { isComposeEnabled(elementToComplete) }
+    if (!isComposeEnabled || parameters.originalFile !is KtFile) {
       // Return null when this isn't a completion we care about to avoid any further comparisons or
       // object allocations.
       return null
