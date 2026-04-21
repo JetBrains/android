@@ -461,6 +461,7 @@ filegroup(
         "//tools/profiler/common:sherlock-plugin-protos",
         "//tools/vendor/google/alt-lang/soong/parser:libblueprint-lexer-parser",
         "//tools/vendor/google/asfg/g3plugins/ext:intellijext_java_grpc",
+        "//tools/vendor/google/cuttlefish-plugin:libhost-orch-config-proto",
         "//tools/vendor/google/directaccess-client:directaccess_client_proto",
         "//tools/vendor/google/firebase-provisioning:firebase_provisioning_proto",
         "//tools/vendor/google/firebase/crashlytics-client:firebase_kt_proto",
