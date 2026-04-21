@@ -2083,6 +2083,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           hw.cpu.ncore=4
           hw.dPad=no
           hw.device.name=xr_glasses_device
+          hw.dimmingLevels=0.0,0.25,0.5,0.75,1.0
           hw.gps=yes
           hw.gpu.enabled=yes
           hw.gpu.mode=auto

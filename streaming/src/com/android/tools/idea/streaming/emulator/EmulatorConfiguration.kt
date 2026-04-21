@@ -64,6 +64,7 @@ private constructor(
   val displayModes: List<DisplayMode> = emptyList(),
   val postures: List<PostureDescriptor> = emptyList(),
   val touchpadSize: Dimension? = null,
+  val dimmingLevels: DoubleArray = doubleArrayOf(),
 ) {
 
   val displayWidth: Int
@@ -120,7 +121,7 @@ private constructor(
       // TODO: Remove emulator version check after 2026-09-01.
       val environmentSizeSupported =
         ApplicationManager.getApplication()?.isUnitTestMode != false ||
-          AvdManagerConnection.getDefaultAvdManagerConnection().emulator?.version?.let { it >= Revision(36, 6, 3) } ?: false
+          AvdManagerConnection.getDefaultAvdManagerConnection().emulator?.version?.let { it >= Revision(36, 6, 3) } == true
       val environmentSize =
         if (environmentSizeSupported) {
           val w = parseInt(configIni["environment.width"], 0)
@@ -236,6 +237,15 @@ private constructor(
       val touchpadHeight = parseInt(configIni["hw.touchpad0.height"], 0)
       val touchpadSize = if (touchpadWidth > 0 && touchpadHeight > 0) Dimension(touchpadWidth, touchpadHeight) else null
 
+      val dimmingLevels =
+        try {
+          configIni["hw.dimmingLevels"]?.split(',')?.map(String::toDouble)?.toDoubleArray() ?: doubleArrayOf()
+        } catch (_: NumberFormatException) {
+          throw RuntimeException(
+            "Unrecognized value of the hw.dimmingLevels property, \"${configIni["hw.dimmingLevels"]}\", in $configIniFile"
+          )
+        }
+
       return EmulatorConfiguration(
         avdFolder = avdFolder,
         avdName = avdName,
@@ -254,6 +264,7 @@ private constructor(
         displayModes = displayModes,
         postures = postures,
         touchpadSize = touchpadSize,
+        dimmingLevels = dimmingLevels,
       )
     }
 

@@ -64,6 +64,7 @@ class EmulatorConfigurationTest {
     assertThat(config.displayModes).isEmpty()
     assertThat(config.postures).isEmpty()
     assertThat(config.touchpadSize).isNull()
+    assertThat(config.dimmingLevels).isEmpty()
   }
 
   @Test
@@ -91,6 +92,7 @@ class EmulatorConfigurationTest {
     assertThat(config.initialOrientationQuadrants).isEqualTo(0)
     assertThat(config.displayModes).isEmpty()
     assertThat(config.postures).isEmpty()
+    assertThat(config.dimmingLevels).isEmpty()
   }
 
   @Test
@@ -118,6 +120,7 @@ class EmulatorConfigurationTest {
     assertThat(config.initialOrientationQuadrants).isEqualTo(0)
     assertThat(config.displayModes).isEmpty()
     assertThat(config.postures).isEmpty()
+    assertThat(config.dimmingLevels).isEmpty()
   }
 
   @Test
@@ -145,6 +148,7 @@ class EmulatorConfigurationTest {
     assertThat(config.initialOrientationQuadrants).isEqualTo(0)
     assertThat(config.displayModes).isEmpty()
     assertThat(config.postures).isEmpty()
+    assertThat(config.dimmingLevels).isEmpty()
   }
 
   @Test
@@ -166,12 +170,14 @@ class EmulatorConfigurationTest {
     assertThat(config.displayHeight).isEqualTo(2368)
     assertThat(config.density).isEqualTo(320)
     assertThat(config.additionalDisplays).isEmpty()
+    assertThat(config.dimmingLevels).isEmpty()
     assertThat(config.skinFolder?.toString()).isNull()
     assertThat(config.hasAudioOutput).isTrue()
     assertThat(config.hasOrientationSensors).isTrue()
     assertThat(config.initialOrientationQuadrants).isEqualTo(1)
     assertThat(config.displayModes).isEmpty()
     assertThat(config.postures).isEmpty()
+    assertThat(config.dimmingLevels).isEmpty()
   }
 
   @Test
@@ -193,6 +199,7 @@ class EmulatorConfigurationTest {
     assertThat(config.displayHeight).isEqualTo(1200)
     assertThat(config.density).isEqualTo(320)
     assertThat(config.additionalDisplays).isEmpty()
+    assertThat(config.dimmingLevels).isEqualTo(doubleArrayOf(0.0, 0.25, 0.5, 0.75, 1.0))
     assertThat(config.skinFolder?.toString()).isNull()
     assertThat(config.hasAudioOutput).isTrue()
     assertThat(config.hasOrientationSensors).isTrue()
@@ -221,6 +228,7 @@ class EmulatorConfigurationTest {
     assertThat(config.density).isEqualTo(160)
     assertThat(config.environmentSize).isEqualTo(Dimension(1200, 900))
     assertThat(config.additionalDisplays).isEmpty()
+    assertThat(config.dimmingLevels).isEmpty()
     assertThat(config.skinFolder).isNull()
     assertThat(config.hasOrientationSensors).isTrue()
     assertThat(config.hasAudioOutput).isTrue()
@@ -261,6 +269,7 @@ class EmulatorConfigurationTest {
         PostureDescriptor(PostureValue.POSTURE_HALF_OPENED, PostureDescriptor.ValueType.HINGE_ANGLE, 30.0, 150.0),
         PostureDescriptor(PostureValue.POSTURE_OPENED, PostureDescriptor.ValueType.HINGE_ANGLE, 150.0, 180.0),
       )
+    assertThat(config.dimmingLevels).isEmpty()
   }
 
   @Test
@@ -293,6 +302,7 @@ class EmulatorConfigurationTest {
         PostureDescriptor(PostureValue.POSTURE_HALF_OPENED, PostureDescriptor.ValueType.ROLL_PERCENTAGE, 76.45, 94.35),
         PostureDescriptor(PostureValue.POSTURE_OPENED, PostureDescriptor.ValueType.ROLL_PERCENTAGE, 94.35, 100.0),
       )
+    assertThat(config.dimmingLevels).isEmpty()
   }
 
   @Test
@@ -331,5 +341,6 @@ class EmulatorConfigurationTest {
         PostureDescriptor(PostureValue.POSTURE_HALF_OPENED, PostureDescriptor.ValueType.HINGE_ANGLE, 30.0, 150.0),
         PostureDescriptor(PostureValue.POSTURE_OPENED, PostureDescriptor.ValueType.HINGE_ANGLE, 150.0, 180.0),
       )
+    assertThat(config.dimmingLevels).isEmpty()
   }
 }
