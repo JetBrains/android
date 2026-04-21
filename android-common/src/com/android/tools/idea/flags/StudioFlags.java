@@ -2702,6 +2702,11 @@ public final class StudioFlags {
                     "Enable v2 agent UI (sessions in editor tabs)",
                     "Disables the toolwindow-based v1 agent UI and replaces it with the v2 editor tabs-based agent UI. Requires restart.");
 
+  public static final Flag<Boolean> STUDIOBOT_PERSONALIZED_GREETING_DISABLED =
+    new BooleanFlag(STUDIOBOT, "personalized.greeting.disabled",
+                    "Disable personalized greeting",
+                    "When false, shows 'Hi userName' if the user name is available; otherwise shows 'Hello'.");
+
   public static final Flag<Boolean> GEMINI_DEBUGGER_TOOLS_ENABLED =
     new BooleanFlag(STUDIOBOT, "debugger.tools",
                     "Enable Debugger tools.",
