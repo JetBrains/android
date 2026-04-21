@@ -57,6 +57,8 @@ import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.dsl.listCellRenderer.LcrJavaHelper;
+import com.intellij.ui.dsl.listCellRenderer.RendererPresentation;
 import com.intellij.ui.speedSearch.ListWithFilter;
 import com.intellij.util.ui.AbstractLayoutManager;
 import com.intellij.util.ui.JBUI;
@@ -196,11 +198,9 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       myQualifierOptionsPanel.add(myEditors.get(name).getComponent(), name);
     }
 
-    myAvailableQualifiersList.setCellRenderer(SimpleListCellRenderer.create((label, value, index) -> {
-      if (value == null) return;
-      label.setText(value.getShortName());
-      label.setIcon(getResourceIcon(value));
-    }));
+    myAvailableQualifiersList.setCellRenderer(LcrJavaHelper.create(
+      "",
+      value -> new RendererPresentation(getResourceIcon(value), value.getShortName())));
 
     myChosenQualifiersList.setCellRenderer(SimpleListCellRenderer.create((label, value, index) -> {
       if (value == null) return;
