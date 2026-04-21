@@ -159,11 +159,38 @@ class EmulatorConfigurationTest {
     // Assert.
     assertThat(config).isNotNull()
     assertThat(config.avdFolder).isEqualTo(avdFolder)
-    assertThat(config.avdName).isEqualTo("XR Headset Device API 34")
+    assertThat(config.avdName).isEqualTo("XR Headset")
     assertThat(config.deviceType).isEqualTo(DeviceType.XR_HEADSET)
     assertThat(config.androidVersion).isEqualTo(androidVersion)
     assertThat(config.displayWidth).isEqualTo(2560)
     assertThat(config.displayHeight).isEqualTo(2368)
+    assertThat(config.density).isEqualTo(320)
+    assertThat(config.additionalDisplays).isEmpty()
+    assertThat(config.skinFolder?.toString()).isNull()
+    assertThat(config.hasAudioOutput).isTrue()
+    assertThat(config.hasOrientationSensors).isTrue()
+    assertThat(config.initialOrientationQuadrants).isEqualTo(1)
+    assertThat(config.displayModes).isEmpty()
+    assertThat(config.postures).isEmpty()
+  }
+
+  @Test
+  fun testXrGlasses() {
+    // Prepare.
+    val androidVersion = AndroidVersion(34, 0)
+    val avdFolder = FakeEmulator.createXrGlassesAvd(avdParentFolder, sdkFolder, androidVersion = androidVersion)
+
+    // Act.
+    val config = EmulatorConfiguration.readAvdDefinition(avdFolder)
+
+    // Assert.
+    assertThat(config).isNotNull()
+    assertThat(config.avdFolder).isEqualTo(avdFolder)
+    assertThat(config.avdName).isEqualTo("XR Glasses")
+    assertThat(config.deviceType).isEqualTo(DeviceType.XR_HEADSET)
+    assertThat(config.androidVersion).isEqualTo(androidVersion)
+    assertThat(config.displayWidth).isEqualTo(1920)
+    assertThat(config.displayHeight).isEqualTo(1200)
     assertThat(config.density).isEqualTo(320)
     assertThat(config.additionalDisplays).isEmpty()
     assertThat(config.skinFolder?.toString()).isNull()

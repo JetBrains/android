@@ -119,7 +119,7 @@ private constructor(
 
       // TODO: Remove emulator version check after 2026-09-01.
       val environmentSizeSupported =
-        ApplicationManager.getApplication().isUnitTestMode ||
+        ApplicationManager.getApplication()?.isUnitTestMode != false ||
           AvdManagerConnection.getDefaultAvdManagerConnection().emulator?.version?.let { it >= Revision(36, 6, 3) } ?: false
       val environmentSize =
         if (environmentSizeSupported) {
