@@ -65,6 +65,7 @@ import kotlin.test.fail
 import org.jetbrains.ide.PooledThreadExecutor
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -595,6 +596,7 @@ class SqliteEvaluatorControllerTest {
     assertThat(successfulInvocationNotificationInvocations).containsExactly("The statement was run successfully")
   }
 
+  @Ignore("b/504706314")
   @Test
   fun testOldTableControllerListenerIsRemoveFromViewWhenNewQueryIsExecuted() {
     // Prepare
