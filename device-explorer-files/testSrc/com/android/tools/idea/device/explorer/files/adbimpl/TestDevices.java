@@ -709,6 +709,8 @@ public enum TestDevices {
   }
 
   private static void addCommand(@NotNull TestShellCommands commands, @NotNull String command, @NotNull String result) {
+    commands.add(command, result);
+    // TODO: Remove this once we migrate away from AdbShellCommandsUtil
     commands.add(command + COMMAND_ERROR_CHECK_SUFFIX, result);
   }
 

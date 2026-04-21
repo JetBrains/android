@@ -21,6 +21,7 @@ import com.android.adblib.testingutils.FakeAdbServerProviderRule
 import com.android.ddmlib.DdmPreferences
 import com.android.ddmlib.ShellCommandUnresponsiveException
 import com.android.fakeadbserver.ShellProtocolType.SHELL
+import com.android.fakeadbserver.ShellProtocolType.SHELL_V2
 import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.device.explorer.files.adbimpl.AdbFileListingEntry.EntryKind
 import com.google.common.truth.Truth.assertThat
@@ -50,7 +51,12 @@ class AdbFileListingTest {
 
   @get:Rule var thrown = ExpectedException.none()
 
-  @JvmField @Rule val fakeAdbRule = FakeAdbServerProviderRule { installDeviceHandler(TestShellCommandHandler(SHELL, commands)) }
+  @JvmField
+  @Rule
+  val fakeAdbRule = FakeAdbServerProviderRule {
+    installDeviceHandler(TestShellCommandHandler(SHELL, commands))
+    installDeviceHandler(TestShellCommandHandler(SHELL_V2, commands))
+  }
 
   private val dispatcher = PooledThreadExecutor.INSTANCE.asCoroutineDispatcher()
   private val scope = CoroutineScope(dispatcher)

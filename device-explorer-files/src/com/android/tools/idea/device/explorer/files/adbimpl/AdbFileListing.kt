@@ -16,6 +16,8 @@
 package com.android.tools.idea.device.explorer.files.adbimpl
 
 import com.android.adblib.ConnectedDevice
+import com.android.adblib.ShellCommandOutputElement
+import com.android.adblib.shell
 import com.android.ddmlib.FileListingService
 import com.android.tools.idea.adb.AdbShellCommandException
 import com.android.tools.idea.adb.AdbShellCommandsUtil
@@ -26,7 +28,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 
 class AdbFileListing(
-  myDevice: ConnectedDevice,
+  private val myDevice: ConnectedDevice,
   private val myDeviceCapabilities: AdbDeviceCapabilities,
   private val dispatcher: CoroutineDispatcher,
 ) {
@@ -104,18 +106,25 @@ class AdbFileListing(
         // directory, we'll see the normal directory listing.  Otherwise, we'll see an
         // error of some sort.
         val command = getCommand(runAs, "ls -l -d ").withDirectoryEscapedPath(entry.fullPath).build()
-        val commandResult = myShellCommandsUtil.executeCommandNoErrorCheck(command)
+        val commandResult = myDevice.shell.executeAsLines(command)
 
         // Look for at least one line matching the expected output
         var lineCount = 0
-        for (line in commandResult.output) {
-          val m = FileListingService.LS_LD_PATTERN.matcher(line)
-          if (m.matches()) {
-            if (lineCount > 0) {
-              // It is odd to have more than one line matching "ls -l -d"
-              LOGGER.warn("Unexpected additional output line matching result of ld -l -d: $line")
+        commandResult.collect { line ->
+          when (line) {
+            is ShellCommandOutputElement.StdoutLine -> {
+              val m = FileListingService.LS_LD_PATTERN.matcher(line.contents)
+              if (m.matches()) {
+                if (lineCount > 0) {
+                  // It is odd to have more than one line matching "ls -l -d"
+                  LOGGER.warn("Unexpected additional output line matching result of ld -l -d: ${line.contents}")
+                }
+                lineCount++
+              }
             }
-            lineCount++
+            else -> {
+              // Ignore. These are expected and not used.
+            }
           }
         }
         lineCount > 0

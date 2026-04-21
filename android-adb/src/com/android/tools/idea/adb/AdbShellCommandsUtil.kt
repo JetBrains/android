@@ -36,10 +36,6 @@ abstract class AdbShellCommandsUtil {
     return executeCommandImpl(command, true)
   }
 
-  suspend fun executeCommandNoErrorCheck(command: String): AdbShellCommandResult {
-    return executeCommandImpl(command, false)
-  }
-
   private suspend fun executeCommandImpl(command: String, errorCheck: Boolean): AdbShellCommandResult {
     // Adding the " || echo xxx" command to the command allows us to detect non-zero status code
     // from the command by analysing the output and looking for the "xxx" marker.
