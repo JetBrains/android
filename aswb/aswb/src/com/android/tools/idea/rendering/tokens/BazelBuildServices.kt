@@ -46,6 +46,7 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
+import java.time.Duration
 import java.util.concurrent.CancellationException
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlinx.coroutines.CoroutineScope
@@ -138,7 +139,7 @@ internal class BazelBuildServices : BuildSystemFilePreviewServices.BuildServices
         val succeeded = qSyncManager.runOperationWithToolWindow(this, scope, QuerySyncManager.TaskOrigin.USER_ACTION, operation)
         buildResultSettableFuture.set(newBuildResult(succeeded, project))
 
-        EventLoggingService.getInstance().log(ComposablePreviewsEvent(project, stopwatch.elapsed()))
+        log(label, project, stopwatch.elapsed())
 
         succeeded
       } catch (e: CancellationException) {
@@ -173,11 +174,7 @@ internal class BazelBuildServices : BuildSystemFilePreviewServices.BuildServices
     context: BlazeContext,
   ) {
     try {
-      val finder = buildOutcomeCache.cacheOutput(project, label, output, context).classFileFinder
-
-      if (finder is BazelClassFileFinder) {
-        EventLoggingService.getInstance().log(ComposablePreviewsEvent(project, internalJarCount = finder.jarCountForLoggingOnly))
-      }
+      buildOutcomeCache.cacheOutput(project, label, output, context)
     } catch (exception: Exception) {
       val status =
         when (exception) {
@@ -220,6 +217,14 @@ internal class BazelBuildServices : BuildSystemFilePreviewServices.BuildServices
       if (succeeded) ProjectSystemBuildManager.BuildStatus.SUCCESS else ProjectSystemBuildManager.BuildStatus.FAILED,
       GlobalSearchScope.projectScope(project),
     )
+  }
+
+  private fun log(label: Label, project: Project, buildDuration: Duration) {
+    val outcome = checkNotNull(buildOutcomeCache.get(label)) { "The cache should have a mapping for $label" }
+    val finder = outcome.classFileFinder
+
+    EventLoggingService.getInstance()
+      .log(ComposablePreviewsEvent(project, buildDuration, if (finder is BazelClassFileFinder) finder.jarCountForLoggingOnly else null))
   }
 }
 
