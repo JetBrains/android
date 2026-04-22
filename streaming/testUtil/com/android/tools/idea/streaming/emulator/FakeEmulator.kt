@@ -875,15 +875,17 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
     val size = computeConstrainedSize(environmentImage.width, environmentImage.height, 0, request.width, request.height)
     val blendedImage = rotateByQuadrantsAndScale(environmentImage, 0, size.width, size.height)
     val scale = max(blendedImage.width, blendedImage.height).toDouble() / max(environmentImage.width, environmentImage.height)
-    val displayImageSize = config.displaySize.scaled(scale)
-    val displayImage = drawDisplayImage(displayImageSize, PRIMARY_DISPLAY_ID)
-    val x = (blendedImage.width - displayImageSize.width) / 2
-    val y = (blendedImage.height - displayImageSize.height) / 2
-    val croppedImage = getCroppedImage(blendedImage, Rectangle(x, y, displayImageSize.width, displayImageSize.height), TYPE_INT_ARGB)
-    val blendedDisplayImage = screenBlend(croppedImage, displayImage)
-    val g = blendedImage.createGraphics()
-    g.drawImage(blendedDisplayImage, x, y, null)
-    g.dispose()
+    if (config.displayWidth > 0 && config.displayHeight > 0) {
+      val displayImageSize = config.displaySize.scaled(scale)
+      val displayImage = drawDisplayImage(displayImageSize, PRIMARY_DISPLAY_ID)
+      val x = (blendedImage.width - displayImageSize.width) / 2
+      val y = (blendedImage.height - displayImageSize.height) / 2
+      val croppedImage = getCroppedImage(blendedImage, Rectangle(x, y, displayImageSize.width, displayImageSize.height), TYPE_INT_ARGB)
+      val blendedDisplayImage = screenBlend(croppedImage, displayImage)
+      val g = blendedImage.createGraphics()
+      g.drawImage(blendedDisplayImage, x, y, null)
+      g.dispose()
+    }
     return blendedImage
   }
 

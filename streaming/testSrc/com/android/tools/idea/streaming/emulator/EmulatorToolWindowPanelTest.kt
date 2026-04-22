@@ -564,6 +564,61 @@ class EmulatorToolWindowPanelTest {
   }
 
   @Test
+  fun testAiGlassesDisplaylessToolbarActions() {
+    val avdFolder = FakeEmulator.createAiGlassesDisplaylessAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(36, 0))
+    panel = createWindowPanel(avdFolder)
+
+    assertThat(panel.primaryDisplayView).isNull()
+
+    panel.createContent(true)
+    val emulatorView = panel.primaryDisplayView ?: fail()
+    assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_GLASS)
+
+    // Check appearance.
+    var frameNumber = emulatorView.frameNumber
+    assertThat(frameNumber).isEqualTo(0u)
+    panel.size = Dimension(430, 450)
+    fakeUi.layoutAndDispatchEvents()
+    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 430 height: 362")
+    assertAppearance("AiGlassesDisplaylessToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
+    emulator.clearGrpcCallLog()
+
+    var button = fakeUi.getComponent<ActionButton> { it.action.templateText == "Turn Microphone On/Off" }
+    assertThat(button.isSelected).isFalse()
+    fakeUi.mouseClickOn(button)
+    var call = emulator.getNextGrpcCall(2.seconds)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setMicrophoneState")
+    assertThat(shortDebugString(call.request)).isEqualTo("realAudioEnabled: true")
+    fakeUi.layoutAndDispatchEvents()
+    fakeUi.mouseClickOn(button)
+    call = emulator.getNextGrpcCall(2.seconds)
+    assertThat(shortDebugString(call.request)).isEqualTo("")
+    fakeUi.layoutAndDispatchEvents()
+    assertThat(button.isSelected).isFalse()
+
+    button = fakeUi.getComponent<ActionButton> { it.action.templateText == "Camera" }
+    fakeUi.mouseClickOn(button)
+    val streamInputCall = emulator.getNextGrpcCall(2.seconds)
+    assertThat(streamInputCall.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("key_event { key: \"Stem1\" }")
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("key_event { eventType: keyup key: \"Stem1\" }")
+
+    // Check that the buttons not applicable to displayless AI Glasses are hidden.
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Display" }).isNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Power" }).isNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Rotate Left" }).isNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Rotate Right" }).isNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Home" }).isNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Overview" }).isNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Hardware Input" }).isNull()
+
+    panel.destroyContent()
+    assertThat(panel.primaryDisplayView).isNull()
+    streamScreenshotCall.waitForCancellation(2.seconds)
+  }
+
+  @Test
   fun testXrMouseInput() {
     panel = createWindowPanelForXr()
 

@@ -19,4 +19,7 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 
 /** Simulates pressing the Display button on an AI Glasses virtual device. */
 internal class EmulatorGlassesDisplayButtonAction :
-  EmulatorPushButtonAction("Stem2", configFilter = { it.deviceType == DeviceType.AI_GLASSES })
+  EmulatorPushButtonAction(
+    "Stem2",
+    configFilter = { it.deviceType == DeviceType.AI_GLASSES && it.displayWidth > 0 && it.displayHeight > 0 },
+  )
