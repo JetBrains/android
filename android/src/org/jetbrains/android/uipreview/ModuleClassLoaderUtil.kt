@@ -273,7 +273,11 @@ internal class ModuleClassLoaderImpl(
       val log: (String, Throwable) -> Unit =
         if (System.currentTimeMillis() - disposalTimestampMillis!! > 1.seconds.inWholeMilliseconds) logger::warn else logger::debug
       log("Using already disposed ModuleClassLoaderImpl $this", Throwable(Disposer.getDisposalTrace(this)))
-      return null
+      if (!fqcn.startsWith("${INTERNAL_PACKAGE}kotlinx.coroutines")) {
+        // Allow for the loading of coroutine classes even it this class loader has been disposed,
+        // as that can otherwise cause a non-recoverable crash of the coroutine DefaultExecutor
+        return null
+      }
     }
     return loader.loadClass(fqcn).also {
       // Dispose happened concurrently to loading a class, clean up again to be safe
