@@ -2488,9 +2488,9 @@
 +++Android Studio Nightly.app/Contents/plugins/android/lib/studio_cli_service_kt_proto.jar
 +++Android Studio Nightly.app/Contents/plugins/android/lib/tensorflow-lite-metadata-0.1.0-rc2.jar
 +++Android Studio Nightly.app/Contents/plugins/android/lib/traceprocessor_protos.jar
-+++Android Studio Nightly.app/Contents/plugins/android/lib/tracing-desktop-2.0.0-alpha05.jar
++++Android Studio Nightly.app/Contents/plugins/android/lib/tracing-desktop-2.0.0-alpha06.jar
 +++Android Studio Nightly.app/Contents/plugins/android/lib/tracing-perfetto-handshake-1.0.0-beta02.jar
-+++Android Studio Nightly.app/Contents/plugins/android/lib/tracing-wire-desktop-2.0.0-alpha05.jar
++++Android Studio Nightly.app/Contents/plugins/android/lib/tracing-wire-desktop-2.0.0-alpha06.jar
 +++Android Studio Nightly.app/Contents/plugins/android/lib/transport_java_proto.jar
 +++Android Studio Nightly.app/Contents/plugins/android/lib/ui-animation-tooling-internal.jar
 +++Android Studio Nightly.app/Contents/plugins/android/lib/utp.jar
@@ -6357,9 +6357,9 @@
 ---Android Studio Preview.app/Contents/plugins/android/lib/studio_cli_service_kt_proto.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/tensorflow-lite-metadata-0.1.0-rc2.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/traceprocessor_protos.jar
----Android Studio Preview.app/Contents/plugins/android/lib/tracing-desktop-2.0.0-alpha05.jar
+---Android Studio Preview.app/Contents/plugins/android/lib/tracing-desktop-2.0.0-alpha06.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/tracing-perfetto-handshake-1.0.0-beta02.jar
----Android Studio Preview.app/Contents/plugins/android/lib/tracing-wire-desktop-2.0.0-alpha05.jar
+---Android Studio Preview.app/Contents/plugins/android/lib/tracing-wire-desktop-2.0.0-alpha06.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/transport_java_proto.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/ui-animation-tooling-internal.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/utp.jar
