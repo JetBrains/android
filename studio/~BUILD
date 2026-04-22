@@ -320,6 +320,7 @@ studio_plugin(
             "//tools/vendor/google/android-keys:android-keys",
             "//tools/vendor/google/focus-plugin:declarative-gradle.focus-plugin",
             "//tools/vendor/google/marketing:marketing",
+            "//tools/adt/idea/play-publishing:intellij.android.play-publishing",
         ],
         "artwork.jar": [
             "//tools/adt/idea/artwork:intellij.android.artwork",

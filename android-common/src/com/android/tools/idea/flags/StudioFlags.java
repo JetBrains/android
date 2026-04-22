@@ -3106,6 +3106,17 @@ public final class StudioFlags {
     );
   // endregion What's New
 
+  // region Play Publishing
+  private static final FlagGroup PLAY_PUBLISHING = new FlagGroup(FLAGS, "play.publishing", "Play Publishing");
+  public static final Flag<Boolean> SHOW_PUBLISH_IN_BUILD =
+    new BooleanFlag(
+      PLAY_PUBLISHING,
+      "show.publish.in.build",
+      "Show Publish Bundle action",
+      "Show Publish Bundle action in Build menu"
+    );
+  // endregion Play Publishing
+
   private StudioFlags() { }
 
   private static Boolean isUnitTestMode() {

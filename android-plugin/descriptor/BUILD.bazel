@@ -93,6 +93,7 @@ dev_dist_plugin(
         "intellij.android.newProjectWizard",
         "intellij.android.observable",
         "intellij.android.observable.ui",
+        "intellij.android.play-publishing",
         "intellij.android.preview-elements",
         "intellij.android.preview-fast-compile",
         "intellij.android.profilers",
