@@ -119,7 +119,7 @@ class DeviceExplorerFileManagerImpl @NonInjectable @VisibleForTesting constructo
 
     // This assertion prevents regressions for b/141649841.
     // We need to add this assertion because in tests the deletion of a file doesn't trigger some PSI events that call the assertion.
-    (TransactionGuard.getInstance() as TransactionGuardImpl).assertWriteActionAllowed()
+    (TransactionGuard.getInstance() as TransactionGuardImpl).assertWriteSafeEnvironment()
     virtualFile.delete(this)
   }
 
