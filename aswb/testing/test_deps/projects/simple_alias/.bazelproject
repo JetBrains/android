@@ -1,0 +1,4 @@
+directories:
+  simple_alias/project
+
+workspace_type: java
