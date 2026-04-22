@@ -57,6 +57,11 @@ class AndroidProjectGradlePropertiesTest {
         # https://developer.android.com/r/tools/gradle-multi-project-decoupled-projects
         # org.gradle.parallel=true
 
+        # When enabled, the Configuration Cache allows Gradle to skip the configuration
+        # phase entirely if nothing that affects the build configuration (such as build scripts)
+        # has changed. Additionally, Gradle applies performance optimizations to task execution.
+        org.gradle.configuration-cache=true
+
         # AndroidX package structure to make it clearer which packages are bundled with the
         # Android operating system, and which are packaged with your app's APK
         # https://developer.android.com/topic/libraries/support-library/androidx-rn
@@ -104,6 +109,11 @@ class AndroidProjectGradlePropertiesTest {
         # https://developer.android.com/r/tools/gradle-multi-project-decoupled-projects
         # org.gradle.parallel=true
 
+        # When enabled, the Configuration Cache allows Gradle to skip the configuration
+        # phase entirely if nothing that affects the build configuration (such as build scripts)
+        # has changed. Additionally, Gradle applies performance optimizations to task execution.
+        org.gradle.configuration-cache=true
+
         # Kotlin code style for this project: "official" or "obsolete":
         kotlin.code.style=official
         # Allow non-ASCII characters in project path on Windows
@@ -145,6 +155,11 @@ class AndroidProjectGradlePropertiesTest {
         # This option should only be used with decoupled projects. For more details, visit
         # https://developer.android.com/r/tools/gradle-multi-project-decoupled-projects
         # org.gradle.parallel=true
+
+        # When enabled, the Configuration Cache allows Gradle to skip the configuration
+        # phase entirely if nothing that affects the build configuration (such as build scripts)
+        # has changed. Additionally, Gradle applies performance optimizations to task execution.
+        org.gradle.configuration-cache=true
 
         # Kotlin code style for this project: "official" or "obsolete":
         kotlin.code.style=official

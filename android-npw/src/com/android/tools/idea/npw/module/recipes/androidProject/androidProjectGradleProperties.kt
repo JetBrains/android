@@ -82,6 +82,11 @@ org.gradle.jvmargs=-Xmx${maxHeapSize}m -Dfile.encoding=UTF-8
 # https://developer.android.com/r/tools/gradle-multi-project-decoupled-projects
 # org.gradle.parallel=true
 
+# When enabled, the Configuration Cache allows Gradle to skip the configuration
+# phase entirely if nothing that affects the build configuration (such as build scripts)
+# has changed. Additionally, Gradle applies performance optimizations to task execution.
+org.gradle.configuration-cache=true
+
 $androidXBlock
 $kotlinStyleBlock
 $overridePathCheckBlock
