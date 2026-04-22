@@ -45,7 +45,7 @@ class ProjectProto {
         libraries = libraries.toMutableMap(),
         artifactDirectories = artifactDirectories,
         ccWorkspace = ccWorkspace,
-        activeLanguages = activeLanguages.toMutableSet(),
+        activeLanguages = activeLanguages.toHashSet(),
       )
 
     companion object {
