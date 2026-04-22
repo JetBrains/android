@@ -73,6 +73,8 @@ class ExistingProjectModelData(
   override val dslLanguage: ObjectValueProperty<DslLanguage> = ObjectValueProperty(project.dslLanguageUsage())
   override val useVersionCatalog = BoolValueProperty(determineVersionCatalogUseForNewModule(project, isNewProject = false))
   override val viewBindingSupport = OptionalValueProperty<ViewBindingSupport>(project.isViewBindingSupported())
+  override val templateRendererStrategy: OptionalValueProperty<TemplateRendererStrategy> =
+    OptionalValueProperty.fromNullable(TemplateRendererStrategy.EP_NAME.extensions.firstOrNull { it.isProjectApplicable(project) })
   override val isNewProject = false
   override val language: OptionalValueProperty<Language> = OptionalValueProperty(getInitialSourceLanguage(project))
   override val agpVersionSelector =
@@ -173,24 +175,55 @@ class NewAndroidModuleModel(
 
   inner class ModuleTemplateRenderer : ModuleModel.ModuleTemplateRenderer() {
     override val recipe: Recipe
-      get() =
-        when (formFactor.get()) {
+      get() {
+        val customStrategy = projectModelData.templateRendererStrategy.valueOrNull
+        val hasCustomRenderer = customStrategy != null
+        val generateStandardFiles = customStrategy?.generateStandardAndroidModuleFiles ?: true
+        return when (formFactor.get()) {
           FormFactor.Mobile -> { data: TemplateData ->
-              generateAndroidModule(data = data as ModuleTemplateData, appTitle = applicationName.get())
+              generateAndroidModule(
+                data = data as ModuleTemplateData,
+                appTitle = applicationName.get(),
+                hasCustomRenderer = hasCustomRenderer,
+                generateStandardFiles = generateStandardFiles,
+              )
             }
           FormFactor.Wear -> { data: TemplateData ->
-              generateWearModule(data = data as ModuleTemplateData, appTitle = applicationName.get())
+              generateWearModule(
+                data = data as ModuleTemplateData,
+                appTitle = applicationName.get(),
+                hasCustomRenderer = hasCustomRenderer,
+                generateStandardFiles = generateStandardFiles,
+              )
             }
           FormFactor.Car -> { data: TemplateData ->
-              generateAutomotiveModule(data = data as ModuleTemplateData, appTitle = applicationName.get())
+              generateAutomotiveModule(
+                data = data as ModuleTemplateData,
+                appTitle = applicationName.get(),
+                hasCustomRenderer = hasCustomRenderer,
+                generateStandardFiles = generateStandardFiles,
+              )
             }
-          FormFactor.Tv -> { data: TemplateData -> generateTvModule(data = data as ModuleTemplateData, appTitle = applicationName.get()) }
+          FormFactor.Tv -> { data: TemplateData ->
+              generateTvModule(
+                data = data as ModuleTemplateData,
+                appTitle = applicationName.get(),
+                hasCustomRenderer = hasCustomRenderer,
+                generateStandardFiles = generateStandardFiles,
+              )
+            }
           FormFactor.XR,
           FormFactor.AiGlasses -> { data: TemplateData ->
-              generateXRModule(data = data as ModuleTemplateData, appTitle = applicationName.get())
+              generateXRModule(
+                data = data as ModuleTemplateData,
+                appTitle = applicationName.get(),
+                hasCustomRenderer = hasCustomRenderer,
+                generateStandardFiles = generateStandardFiles,
+              )
             }
           FormFactor.Generic -> { data: TemplateData -> generateGenericModule(data as ModuleTemplateData) }
         }
+      }
 
     @WorkerThread
     override fun init() {
@@ -214,6 +247,8 @@ class NewAndroidModuleModel(
   }
 
   private fun saveWizardState() {
+    val dsl = projectModelData.templateRendererStrategy.valueOrNull?.id ?: projectModelData.dslLanguage.get().toString()
+    properties.setValue(NewProjectModel.PROPERTIES_NPW_DSL_LANGUAGE_KEY, dsl)
     if (isLibrary) {
       properties.setValue(PROPERTIES_BYTECODE_LEVEL_KEY, bytecodeLevel.value.toString())
     }

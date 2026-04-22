@@ -16,7 +16,6 @@
 package com.android.tools.idea.templates.recipe
 
 import com.android.SdkConstants.ATTR_CONTEXT
-import com.android.SdkConstants.DOT_XML
 import com.android.SdkConstants.GRADLE_API_CONFIGURATION
 import com.android.SdkConstants.GRADLE_IMPLEMENTATION_CONFIGURATION
 import com.android.SdkConstants.TOOLS_URI
@@ -51,10 +50,8 @@ import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.templates.TemplateUtils.checkDirectoryIsWriteable
 import com.android.tools.idea.templates.TemplateUtils.checkedCreateDirectoryIfMissing
-import com.android.tools.idea.templates.TemplateUtils.hasExtension
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDisk
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDocument
-import com.android.tools.idea.templates.mergeXml as mergeXmlUtil
 import com.android.tools.idea.templates.resolveDependency
 import com.android.tools.idea.wizard.template.BaseFeature
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -127,20 +124,15 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
 
   /** Merges the given XML file into the given destination file (or copies it over if the destination file does not exist). */
   override fun mergeXml(source: String, to: File) {
-    val content = source.withoutSkipLines()
-    val targetFile = getTargetFile(to)
-    require(hasExtension(targetFile, DOT_XML)) { "Only XML files can be merged at this point: $targetFile" }
-
-    val targetText =
-      readTargetText(targetFile)
-        ?: run {
-          save(content, to)
-          return
-        }
-
-    val contents = mergeXmlUtil(context, content, targetText, targetFile)
-
-    writeTargetFile(this, contents, targetFile)
+    RecipeUtils.mergeXml(
+      context = context,
+      source = source,
+      to = to,
+      targetFile = getTargetFile(to),
+      readTargetText = { readTargetText(it) },
+      save = { content, file -> save(content, file) },
+      writeTargetFile = { contents, file -> writeTargetFile(this, contents, file) },
+    )
   }
 
   override fun open(file: File) {
@@ -884,7 +876,6 @@ private const val OTHER_CONFIGURATION = "__other__"
 // TODO(qumeric): make private
 const val CLASSPATH_CONFIGURATION_NAME = "classpath"
 
-@VisibleForTesting
 fun CharSequence.squishEmptyLines(): String {
   var isLastBlank = false
   return this.split("\n")

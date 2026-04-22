@@ -15,23 +15,16 @@
  */
 package com.android.tools.idea.npw.module.recipes
 
-import com.android.SdkConstants
-import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.tools.idea.npw.module.recipes.androidModule.buildGradle
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleColors
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleStrings
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleThemes
+import com.android.tools.idea.templates.recipe.IconsGenerationStyle
+import com.android.tools.idea.templates.recipe.RecipeUtils
 import com.android.tools.idea.wizard.template.CppStandardType
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
-
-enum class IconsGenerationStyle {
-  ALL,
-  MIPMAP_ONLY,
-  MIPMAP_SQUARE_ONLY,
-  NONE,
-}
 
 fun RecipeExecutor.generateCommonModule(
   data: ModuleTemplateData,
@@ -49,39 +42,63 @@ fun RecipeExecutor.generateCommonModule(
   noKtx: Boolean = false,
   appTitleResName: String = "app_name",
   hasCode: Boolean = true,
+  hasCustomRenderer: Boolean = false,
+  generateStandardFiles: Boolean = true,
 ) {
-  val (projectData, srcOut, resOut, manifestOut, instrumentedTestOut, localTestOut, _, moduleOut) = data
+  val (projectData, _, _, _, _, _, _, moduleOut) = data
   val (useAndroidX, agpVersion) = projectData
   val dslLanguage = projectData.dslLanguage
-  val language = projectData.language
   val isLibraryProject = data.isLibrary
-  val packageName = data.packageName
   val apis = data.apis
   val minApi = apis.minApi
 
-  createDirectory(srcOut)
+  if (generateStandardFiles) {
+    RecipeUtils.generateCommonModuleFiles(
+      executor = this,
+      data = data,
+      appTitle = appTitle,
+      manifestXml = manifestXml,
+      generateGenericLocalTests = generateGenericLocalTests,
+      generateGenericInstrumentedTests = generateGenericInstrumentedTests,
+      iconsGenerationStyle = iconsGenerationStyle,
+      themesXml = themesXml,
+      themesXmlNight = themesXmlNight,
+      colorsXml = colorsXml,
+      appTitleResName = appTitleResName,
+      addLocalTests = { pkg, out, lang -> addLocalTests(pkg, out, lang) },
+      addInstrumentedTests = { pkg, useAndroidX, isLib, out, lang -> addInstrumentedTests(pkg, useAndroidX, isLib, out, lang) },
+      copyIcons = { out, minApi -> copyIcons(out, minApi) },
+      copyMipmapFolder = { out -> copyMipmapFolder(out) },
+      copyMipmapFile = { out, file -> copyMipmapFile(out, file) },
+      gitignore = { gitignore() },
+      androidModuleStrings = { name, title -> androidModuleStrings(name, title) },
+    )
+  }
+
   addIncludeToSettings(data.name)
 
-  save(
-    buildGradle(
-      agpVersion,
-      dslLanguage,
-      isLibraryProject,
-      data.isDynamic,
-      applicationId = data.namespace,
-      apis.buildApi,
-      minApi,
-      apis.targetApi,
-      useAndroidX,
-      hasTests = generateGenericLocalTests,
-      addLintOptions = addLintOptions,
-      enableCpp = enableCpp,
-      cppStandard = cppStandard,
-      hasCode = hasCode,
-      kotlinSupport = projectData.kotlinSupport,
-    ),
-    moduleOut.resolve(dslLanguage.buildFileName),
-  )
+  if (!hasCustomRenderer) {
+    save(
+      buildGradle(
+        agpVersion,
+        dslLanguage,
+        isLibraryProject,
+        data.isDynamic,
+        applicationId = data.namespace,
+        apis.buildApi,
+        minApi,
+        apis.targetApi,
+        useAndroidX,
+        hasTests = generateGenericLocalTests,
+        addLintOptions = addLintOptions,
+        enableCpp = enableCpp,
+        cppStandard = cppStandard,
+        hasCode = hasCode,
+        kotlinSupport = projectData.kotlinSupport,
+      ),
+      moduleOut.resolve(dslLanguage.buildFileName),
+    )
+  }
   addCompileSdk(apis.buildApi, isDeclarative = dslLanguage.isDcl)
 
   // Note: com.android.* needs to be applied before kotlin
@@ -100,40 +117,11 @@ fun RecipeExecutor.generateCommonModule(
     }
   }
 
-  save(manifestXml, manifestOut.resolve(FN_ANDROID_MANIFEST_XML))
-  save(gitignore(), moduleOut.resolve(".gitignore"))
   if (generateGenericLocalTests) {
-    addLocalTests(packageName, localTestOut, language)
     addTestDependencies()
   }
   if (generateGenericInstrumentedTests) {
-    addInstrumentedTests(packageName, useAndroidX, isLibraryProject, instrumentedTestOut, language)
     addTestDependencies()
   }
   proguardRecipe(moduleOut, agpVersion, data.isLibrary)
-
-  if (!isLibraryProject) {
-    when (iconsGenerationStyle) {
-      IconsGenerationStyle.ALL -> copyIcons(resOut, minApi.apiLevel)
-      IconsGenerationStyle.MIPMAP_ONLY -> copyMipmapFolder(resOut)
-      IconsGenerationStyle.MIPMAP_SQUARE_ONLY -> copyMipmapFile(resOut, "ic_launcher.webp")
-      IconsGenerationStyle.NONE -> Unit
-    }
-    with(resOut.resolve(SdkConstants.FD_RES_VALUES)) {
-      save(androidModuleStrings(appTitleResName, appTitle!!), resolve("strings.xml"))
-      // Common themes.xml isn't needed for Compose because theme is created in Composable.
-      if (themesXml != null && !data.isCompose) {
-        save(themesXml, resolve("themes.xml"))
-      }
-      if (colorsXml != null) {
-        save(colorsXml, resolve("colors.xml"))
-      }
-    }
-    themesXmlNight?.let {
-      // Common themes.xml isn't needed for Compose because theme is created in Composable.
-      if (!data.isCompose) {
-        save(it, resOut.resolve(SdkConstants.FD_RES_VALUES_NIGHT).resolve("themes.xml"))
-      }
-    }
-  }
 }

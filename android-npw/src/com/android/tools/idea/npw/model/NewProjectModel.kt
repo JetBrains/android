@@ -125,6 +125,7 @@ interface ProjectModelData {
   val dslLanguage: ObjectValueProperty<DslLanguage>
   val useVersionCatalog: BoolProperty
   val viewBindingSupport: OptionalValueProperty<ViewBindingSupport>
+  val templateRendererStrategy: OptionalValueProperty<TemplateRendererStrategy>
   var project: Project
   val isNewProject: Boolean
   val language: OptionalProperty<Language>
@@ -145,7 +146,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val applicationName = StringValueProperty("My Application")
   override val packageName = StringValueProperty()
   override val projectLocation = StringValueProperty()
-  override val dslLanguage = ObjectValueProperty<DslLanguage>(DslLanguage.KTS)
+  override val dslLanguage = ObjectValueProperty<DslLanguage>(calculateInitialDslLanguage(properties))
   override val useVersionCatalog = BoolValueProperty(true)
   // We can assume this is true for a new project because View binding is supported from AGP 3.6+
   override val viewBindingSupport = OptionalValueProperty<ViewBindingSupport>(ViewBindingSupport.SUPPORTED_4_0_MORE)
@@ -161,11 +162,19 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val imageAttachments: ObjectValueProperty<List<VirtualFile>> = ObjectValueProperty(listOf())
   override val userSkillDirectories: ObjectValueProperty<List<File>> = ObjectValueProperty(listOf())
   val launchFirebaseWizard = BoolValueProperty(false)
+  override val templateRendererStrategy: OptionalValueProperty<TemplateRendererStrategy> =
+    OptionalValueProperty.fromNullable(calculateInitialCustomProjectSystem(properties).orElse(null))
   override val sourceProjectType = ObjectValueProperty<SourceProjectType>(SourceProjectType.IOS)
   override val importSourcePath = StringValueProperty("")
 
   private fun runRenderer(renderer: (Project) -> Unit) {
-    object : Task.Backgroundable(null, message("android.compile.messages.generating.r.java.content.name"), false) {
+    val customStrategy = templateRendererStrategy.valueOrNull
+    if (customStrategy != null) {
+      runCustomProjectRenderer(customStrategy, renderer)
+      return
+    }
+
+    object : Task.Backgroundable(null, "Generating project", false) {
         override fun run(indicator: ProgressIndicator) {
           val projectName = applicationName.get()
           val projectBaseDirectory = File(projectLocation.get())
@@ -236,6 +245,63 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       .queue()
   }
 
+  private fun runCustomProjectRenderer(strategy: TemplateRendererStrategy, renderer: (Project) -> Unit) {
+    object : Task.Backgroundable(null, "Generating project", false) {
+        override fun run(indicator: ProgressIndicator) {
+          val projectName = applicationName.get()
+          val projectBaseDirectory = File(projectLocation.get())
+
+          val newProject = strategy.createProject(projectName, projectBaseDirectory)
+          strategy.initializeProject(newProject)
+          this@NewProjectModel.project = newProject
+
+          val skillDirs = userSkillDirectories.get()
+          if (skillDirs.isNotEmpty()) {
+            val agentsDir = File(projectBaseDirectory, ".agents")
+            agentsDir.mkdirs()
+            skillDirs.forEach { skillDir ->
+              val targetDir = File(agentsDir, skillDir.name)
+              skillDir.copyRecursively(targetDir, overwrite = true)
+            }
+          }
+
+          newProject.service<AndroidNewProjectInitializationStartupActivity.StartupService>().setProjectInitializer {
+            logger.info("Rendering a new custom project.")
+            NonProjectFileWritingAccessProvider.disableChecksDuring { renderer(newProject) }
+            templateRendererStrategy.valueOrNull?.syncProject(newProject)
+
+            if (StudioFlags.GEMINI_NEW_PROJECT_AGENT.get() && !prompt.isEmpty.get()) {
+              ToolWindowManager.getInstance(newProject).invokeLater {
+                val sPath = importSourcePath.get()
+                if (sPath.isNotEmpty()) {
+                  GeminiPluginApi.getInstance()
+                    .launchImportProjectAgent(
+                      newProject,
+                      prompt.get(),
+                      imageAttachments.get(),
+                      displayText.get().takeIf { it.isNotBlank() },
+                      importProjectType = sourceProjectType.get().importProjectType,
+                    )
+                } else {
+                  GeminiPluginApi.getInstance().launchNewProjectAgent(newProject, prompt.get(), imageAttachments.get())
+                }
+              }
+            }
+          }
+
+          val openProjectTask = OpenProjectTask {
+            project = newProject
+            isNewProject = false
+            forceOpenInNewFrame = true
+          }
+          ApplicationManager.getApplication().invokeLater {
+            ProjectManagerEx.getInstanceEx().openProject(projectBaseDirectory.toPath(), openProjectTask)
+          }
+        }
+      }
+      .queue()
+  }
+
   override val projectTemplateDataBuilder = ProjectTemplateDataBuilder(true)
 
   init {
@@ -248,6 +314,8 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     val properties = properties
     properties.setValue(PROPERTIES_NPW_LANGUAGE_KEY, language.value.toString())
     properties.setValue(PROPERTIES_NPW_ASKED_LANGUAGE_KEY, true)
+    val dsl = templateRendererStrategy.valueOrNull?.id ?: dslLanguage.get().toString()
+    properties.setValue(PROPERTIES_NPW_DSL_LANGUAGE_KEY, dsl)
 
     val androidPackage = packageName.get().substringBeforeLast('.')
     if (AndroidUtils.isValidAndroidPackageName(androidPackage)) {
@@ -289,7 +357,11 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       Messages.showErrorDialog(msg, "Error Creating Project")
       return
     }
-    multiTemplateRenderer.requestRender(ProjectTemplateRenderer())
+    if (templateRendererStrategy.valueOrNull != null) {
+      multiTemplateRenderer.requestRender(TemplateStrategyRenderer())
+    } else {
+      multiTemplateRenderer.requestRender(ProjectTemplateRenderer())
+    }
     ProjectUtil.updateLastProjectLocation(Paths.get(projectLocation))
 
     saveWizardState()
@@ -363,10 +435,10 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       val context =
         RenderingContext(project, null, "New Project", projectTemplateData, showErrors = true, dryRun = dryRun, moduleRoot = null)
       val executor = if (dryRun) FindReferencesRecipeExecutor(context) else DefaultRecipeExecutor(context)
+
       val recipe: Recipe = { data: TemplateData ->
         androidProjectRecipe(data = data as ProjectTemplateData, appTitle = applicationName.get(), language = language.value)
       }
-
       recipe.render(context, executor, AndroidStudioEvent.TemplateRenderer.ANDROID_PROJECT)
     }
 
@@ -418,6 +490,60 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     override fun logUsage() {} // Rendering a new project is already logged above
   }
 
+  private inner class TemplateStrategyRenderer : MultiTemplateRenderer.TemplateRenderer {
+    private lateinit var projectTemplateData: ProjectTemplateData
+
+    @Suppress("InconsistentThreadingAnnotation")
+    override fun init() {
+      projectTemplateData =
+        projectTemplateDataBuilder
+          .apply {
+            topOut = File(project.basePath ?: "")
+            androidXSupport = true
+
+            setProjectDefaults(project)
+            language = this@NewProjectModel.language.value
+            agpVersion = agpVersionSelector.get().resolveVersion(AgpVersions::getAvailableVersions)
+            additionalMavenRepos = this@NewProjectModel.additionalMavenRepos.get()
+            dslLanguage = this@NewProjectModel.dslLanguage.get()
+          }
+          .build()
+    }
+
+    @Suppress("InconsistentThreadingAnnotation")
+    override fun doDryRun(): Boolean {
+      if (!::project.isInitialized) {
+        return false
+      }
+
+      performCreateProject(true)
+      return true
+    }
+
+    @Suppress("InconsistentThreadingAnnotation")
+    override fun render() {
+      performCreateProject(false)
+    }
+
+    private fun performCreateProject(dryRun: Boolean) {
+      val context =
+        RenderingContext(project, null, "New Project", projectTemplateData, showErrors = true, dryRun = dryRun, moduleRoot = null)
+      val executor =
+        if (dryRun) {
+          FindReferencesRecipeExecutor(context)
+        } else {
+          templateRendererStrategy.valueOrNull?.createRecipeExecutor(context) ?: DefaultRecipeExecutor(context)
+        }
+
+      val recipe: Recipe = { _ -> }
+      recipe.render(context, executor, AndroidStudioEvent.TemplateRenderer.ANDROID_PROJECT)
+    }
+
+    @UiThread override fun finish() {}
+
+    override fun logUsage() {}
+  }
+
   fun findNewModuleRecommendedBuildSdk(): AndroidVersion? {
     if (::project.isInitialized) {
       return project.findNewModuleRecommendedBuildSdk()
@@ -464,6 +590,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     @VisibleForTesting const val PROPERTIES_KOTLIN_SUPPORT_KEY = "SAVED_PROJECT_KOTLIN_SUPPORT"
     @VisibleForTesting const val PROPERTIES_NPW_LANGUAGE_KEY = "SAVED_ANDROID_NPW_LANGUAGE"
     @VisibleForTesting const val PROPERTIES_NPW_ASKED_LANGUAGE_KEY = "SAVED_ANDROID_NPW_ASKED_LANGUAGE"
+    const val PROPERTIES_NPW_DSL_LANGUAGE_KEY = "SAVED_ANDROID_NPW_DSL_LANGUAGE"
     private val GENERATE_APP_NAME_TIMEOUT = 10.seconds
 
     private const val EXAMPLE_DOMAIN = "example.com"
@@ -512,6 +639,39 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       // After version 3.5, we force the user to select the language if we didn't ask before or if
       // the selection was not Kotlin.
       return if (initialLanguage === Kotlin || askedBefore) Optional.of(initialLanguage) else Optional.empty()
+    }
+
+    /**
+     * Calculates the initial value for the DSL language.
+     *
+     * @return If the DSL language was previously saved, return that saved value, unless it was Groovy, in which case return KTS (spring
+     *   back). If a custom project system was saved, we also default to KTS for the underlying DSL language.
+     */
+    @JvmStatic
+    fun calculateInitialDslLanguage(props: PropertiesComponent): DslLanguage {
+      val languageValue = props.getValue(PROPERTIES_NPW_DSL_LANGUAGE_KEY) ?: return DslLanguage.KTS
+      val initialDslLanguage =
+        try {
+          DslLanguage.valueOf(languageValue)
+        } catch (_: Exception) {
+          // This value is likely the name of a custom project system.
+          // We revert to KTS as the default DSL language in this case.
+          return DslLanguage.KTS
+        }
+
+      // Groovy is not sticky; if it was selected last time, spring back to KTS.
+      return if (initialDslLanguage == DslLanguage.GROOVY) DslLanguage.KTS else initialDslLanguage
+    }
+
+    /**
+     * Calculates the initial value for the custom project system.
+     *
+     * @return If a custom project system name was previously saved in the DSL language property, return it.
+     */
+    @JvmStatic
+    fun calculateInitialCustomProjectSystem(props: PropertiesComponent): Optional<TemplateRendererStrategy> {
+      val languageValue = props.getValue(PROPERTIES_NPW_DSL_LANGUAGE_KEY) ?: return Optional.empty()
+      return Optional.ofNullable(TemplateRendererStrategy.EP_NAME.extensions.firstOrNull { it.id == languageValue })
     }
 
     @JvmStatic fun sanitizeApplicationName(s: String): String = DISALLOWED_IN_DOMAIN.matcher(s).replaceAll("")

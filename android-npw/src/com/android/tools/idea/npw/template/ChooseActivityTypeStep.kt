@@ -42,10 +42,12 @@ private constructor(
         if (isNewModule) {
           yield(NewTemplateRenderer(Template.NoActivity))
         }
+        val rendererStrategy = renderModel.templateRendererStrategy.valueOrNull
         yieldAll(
           TemplateResolver.getAllTemplates()
             .filter { wizardUiContext in it.uiContexts }
             .filter { formFactor.toTemplateFormFactor() == it.formFactor }
+            .filter { rendererStrategy == null || rendererStrategy.isTemplateApplicable(it) }
             .map(::NewTemplateRenderer)
         )
       }

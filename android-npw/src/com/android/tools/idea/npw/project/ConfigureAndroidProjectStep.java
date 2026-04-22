@@ -39,6 +39,7 @@ import com.android.tools.idea.gemini.GeminiPluginApi;
 import com.android.tools.idea.gradle.plugin.AgpVersions;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.npw.model.AgpVersionSelector;
+import com.android.tools.idea.npw.model.TemplateRendererStrategy;
 import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.model.NewProjectModuleModel;
 import com.android.tools.idea.npw.module.ConfigureModuleStepKt;
@@ -53,10 +54,10 @@ import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.core.OptionalProperty;
 import com.android.tools.idea.observable.expressions.Expression;
-import com.android.tools.idea.observable.expressions.value.TransformOptionalExpression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
+import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep;
 import com.android.tools.idea.sdk.wizard.LicenseAgreementModel;
@@ -106,6 +107,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -155,7 +157,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private HyperlinkLabel myDocumentationLink;
   private JPanel myFormFactorSdkControlsPanel;
   private JComboBox myMinSdkCombo;
-  private JComboBox<BuildConfigurationLanguageForNewProject> myBuildConfigurationLanguageCombo;
+  private JComboBox<Object> myBuildConfigurationLanguageCombo;
   private ContextHelpLabel myBuildConfigurationLanguageLabel;
   private JBCheckBox myLaunchFirebaseCheckbox;
   private JPanel myLaunchFirebasePanel;
@@ -223,13 +225,51 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
         myBuildConfigurationLanguageCombo.addItem(BuildConfigurationLanguageForNewProject.DCL);
       }
 
+      Object initialSelection;
+      if (myProjectModel.getTemplateRendererStrategy().getValueOrNull() != null) {
+        initialSelection = myProjectModel.getTemplateRendererStrategy().getValueOrNull();
+        myBuildConfigurationLanguageCombo.addItem(initialSelection);
+      } else {
+        initialSelection = switch (myProjectModel.getDslLanguage().get()) {
+          case KTS -> BuildConfigurationLanguageForNewProject.KTS;
+          case GROOVY -> BuildConfigurationLanguageForNewProject.Groovy;
+          case DCL -> BuildConfigurationLanguageForNewProject.DCL;
+        };
+      }
+      myBuildConfigurationLanguageCombo.setSelectedItem(initialSelection);
+
+      myBuildConfigurationLanguageCombo.setRenderer(new com.intellij.ui.SimpleListCellRenderer<>() {
+        @Override
+        public void customize(javax.swing.JList<? extends Object> list, Object value, int index, boolean selected, boolean hasFocus) {
+          if (value instanceof BuildConfigurationLanguageForNewProject) {
+            setText(((BuildConfigurationLanguageForNewProject)value).getDescription());
+          }
+          else if (value instanceof TemplateRendererStrategy) {
+            setText(((TemplateRendererStrategy)value).getDisplayName());
+          }
+        }
+      });
+
       myBindings.bind(myProjectModel.getDslLanguage(), new SelectedItemProperty<>(myBuildConfigurationLanguageCombo).transform(
-        selection -> selection.map(value -> switch (value) {
-          case BuildConfigurationLanguageForNewProject.KTS -> DslLanguage.KTS;
-          case BuildConfigurationLanguageForNewProject.Groovy -> DslLanguage.GROOVY;
-          case BuildConfigurationLanguageForNewProject.DCL -> DslLanguage.DCL;
-          default -> DslLanguage.KTS;
+        selection -> selection.map(value -> {
+          if (value instanceof BuildConfigurationLanguageForNewProject) {
+            return switch ((BuildConfigurationLanguageForNewProject) value) {
+              case KTS -> DslLanguage.KTS;
+              case Groovy -> DslLanguage.GROOVY;
+              case DCL -> DslLanguage.DCL;
+            };
+          }
+          return DslLanguage.KTS;
         }).orElse(DslLanguage.KTS)
+      ));
+
+      myBindings.bind(myProjectModel.getTemplateRendererStrategy(), new SelectedItemProperty<>(myBuildConfigurationLanguageCombo).transform(
+        selection -> {
+          if (selection.isPresent() && selection.get() instanceof TemplateRendererStrategy) {
+            return Optional.of((TemplateRendererStrategy) selection.get());
+          }
+          return Optional.<TemplateRendererStrategy>empty();
+        }
       ));
 
     if ((StudioFlags.NPW_SHOW_AGP_VERSION_COMBO_BOX.get() && !ApplicationManager.getApplication().isUnitTestMode()) ||
@@ -268,6 +308,8 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
         });
       });
       ConfigureModuleStepKt.registerKtsAgpVersionValidation(myValidatorPanel, myProjectModel);
+      myBindings.bind(new VisibleProperty(myAndroidGradlePluginCombo), myProjectModel.getTemplateRendererStrategy().transform(it -> it == null));
+      myBindings.bind(new VisibleProperty(myAndroidGradlePluginLabel), myProjectModel.getTemplateRendererStrategy().transform(it -> it == null));
     } else {
       myAndroidGradlePluginLabel.setVisible(false);
       myAndroidGradlePluginCombo.setVisible(false);
@@ -330,9 +372,14 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     }
     myWearCheck.setVisible(formFactor == FormFactor.Wear && !isWatchFace);
 
+    updateCustomSystems(newTemplate);
+
     boolean isFirebaseTemplate = newTemplate.getFlags().contains(TemplateFlag.FirebaseAi);
     myProjectModel.getLaunchFirebaseWizard().set(isFirebaseTemplate);
     myLaunchFirebasePanel.setVisible(isFirebaseTemplate);
+
+    myBuildConfigurationLanguageCombo.setVisible(true);
+    myBuildConfigurationLanguageLabel.setVisible(true);
 
     if (isWatchFace) {
       myProjectModel.getApplicationName().set("My Watch Face");
@@ -531,6 +578,41 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myLaunchFirebaseCheckbox = new JBCheckBox("Launch the Gemini API setup");
     myLaunchFirebasePanel = createCheckboxPanel(
       myLaunchFirebaseCheckbox, "<html>" + message("android.wizard.project.new.launch.gemini.setup") + "</html>");
+  }
+
+  private void updateCustomSystems(@NotNull Template template) {
+    Object currentSelection = myBuildConfigurationLanguageCombo.getSelectedItem();
+    if (currentSelection == null) {
+      currentSelection = myProjectModel.getTemplateRendererStrategy().getValueOrNull();
+    }
+
+    // Remove existing custom systems
+    for (int i = myBuildConfigurationLanguageCombo.getItemCount() - 1; i >= 0; i--) {
+      if (myBuildConfigurationLanguageCombo.getItemAt(i) instanceof TemplateRendererStrategy) {
+        myBuildConfigurationLanguageCombo.removeItemAt(i);
+      }
+    }
+
+    // Add applicable ones
+    for (TemplateRendererStrategy system : TemplateRendererStrategy.EP_NAME.getExtensions()) {
+      if (system.isTemplateApplicable(template)) {
+        myBuildConfigurationLanguageCombo.addItem(system);
+      }
+    }
+
+    // Restore selection
+    if (currentSelection instanceof TemplateRendererStrategy) {
+      String id = ((TemplateRendererStrategy)currentSelection).getId();
+      for (int i = 0; i < myBuildConfigurationLanguageCombo.getItemCount(); i++) {
+        Object item = myBuildConfigurationLanguageCombo.getItemAt(i);
+        if (item instanceof TemplateRendererStrategy && ((TemplateRendererStrategy)item).getId().equals(id)) {
+          myBuildConfigurationLanguageCombo.setSelectedItem(item);
+          return;
+        }
+      }
+      // Not applicable to this template, fall back to KTS
+      myBuildConfigurationLanguageCombo.setSelectedItem(BuildConfigurationLanguageForNewProject.KTS);
+    }
   }
 
   private static JPanel createCheckboxPanel(JBCheckBox checkbox, String description) {

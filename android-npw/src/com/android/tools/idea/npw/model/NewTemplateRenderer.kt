@@ -94,9 +94,7 @@ private fun Recipe.doRender(c: RenderingContext, e: RecipeExecutor): Boolean {
       .withUndoConfirmationPolicy(UndoConfirmationPolicy.REQUEST_CONFIRMATION)
       .run<IOException> {
         this(e, c.templateData)
-        if (e is DefaultRecipeExecutor) {
-          e.applyChanges()
-        }
+        e.applyChanges()
       }
   } catch (e: IOException) {
     if (c.showErrors) {

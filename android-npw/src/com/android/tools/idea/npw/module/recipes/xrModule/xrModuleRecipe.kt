@@ -31,6 +31,8 @@ fun RecipeExecutor.generateXRModule(
   appTitle: String,
   enableCpp: Boolean = false,
   cppStandard: CppStandardType = CppStandardType.`Toolchain Default`,
+  hasCustomRenderer: Boolean = false,
+  generateStandardFiles: Boolean = true,
 ) {
   val addBackupRules = data.projectTemplateData.isNewProject && data.apis.targetApi.apiLevel >= 31
   check(data.category != Category.Compose || data.isCompose) { "Template in Compose category must have isCompose set" }
@@ -50,6 +52,8 @@ fun RecipeExecutor.generateXRModule(
     colorsXml = null,
     enableCpp = enableCpp,
     cppStandard = cppStandard,
+    hasCustomRenderer = hasCustomRenderer,
+    generateStandardFiles = generateStandardFiles,
   )
 
   if (addBackupRules) {
