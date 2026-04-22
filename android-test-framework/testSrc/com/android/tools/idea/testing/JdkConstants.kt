@@ -79,6 +79,8 @@ object JdkConstants {
 
   val JDK_11_VERSION by lazy { JDK_11_PATH.jdkFeatureVersion }
 
+  val JDK_25_VERSION by lazy { JDK_25_PATH.jdkFeatureVersion }
+
   val JDK_21_VERSION by lazy { JDK_21_PATH.jdkFeatureVersion }
 
   private val String.jdkFeatureVersion: String

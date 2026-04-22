@@ -232,6 +232,16 @@ import com.intellij.util.messages.MessageBusConnection
 import com.intellij.workspaceModel.core.fileIndex.impl.WorkspaceFileIndexImpl
 import com.intellij.workspaceModel.ide.ProjectSynchronizerUtil
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_MODULE_ENTITY_TYPE_ID_NAME
+import java.io.File
+import java.io.IOException
+import java.nio.file.Paths
+import java.util.IdentityHashMap
+import java.util.Locale
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.launch
 import org.jetbrains.android.AndroidTestBase
@@ -256,16 +266,6 @@ import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.jetbrains.plugins.gradle.util.gradleIdentityPath
 import org.jetbrains.plugins.gradle.util.gradlePath
 import org.jetbrains.plugins.gradle.util.setBuildSrcModule
-import java.io.File
-import java.io.IOException
-import java.nio.file.Paths
-import java.util.IdentityHashMap
-import java.util.Locale
-import java.util.concurrent.CopyOnWriteArrayList
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Future
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
 
 data class AndroidProjectModels(
   val androidProject: IdeAndroidProjectImpl,
@@ -2567,7 +2567,7 @@ private fun <T> openPreparedProject(
         val defaultTestTimeoutMinutes = 15L
         val testTimeout =
           (System.getenv("TEST_TIMEOUT")?.toLongOrNull()?.let { TimeUnit.SECONDS.toMinutes(it) } ?: defaultTestTimeoutMinutes)
-        val timeoutMinutes = if (testTimeout > defaultTestTimeoutMinutes) 20L else 10L
+        val timeoutMinutes = if (testTimeout > defaultTestTimeoutMinutes) (0.66 * testTimeout).toLong() else defaultTestTimeoutMinutes
         waitForFuture(awaitGradleStartupActivity.asCompletableFuture(), TimeUnit.MINUTES.toMillis(timeoutMinutes))
         runInEdtAndWait {
           PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
