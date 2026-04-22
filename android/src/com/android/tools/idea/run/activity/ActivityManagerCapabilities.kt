@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.run.activity
 
-import com.android.adblib.DeviceSelector
 import com.android.adblib.activityManager
-import com.android.adblib.connectedDevicesTracker
-import com.android.adblib.device
 import com.android.adblib.isCapabilitiesSupported
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.adblib.AdbLibService
+import com.android.tools.idea.adblib.toConnectedDevice
 import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.intellij.openapi.project.Project
 import java.time.Duration
@@ -49,8 +46,7 @@ class ActivityManagerCapabilities(val project: Project) {
     val caps =
       kotlin
         .runCatching {
-          val deviceSelector = DeviceSelector.fromSerialNumber(device.serialNumber)
-          val connectedDevice = AdbLibService.getSession(project).connectedDevicesTracker.device(deviceSelector)
+          val connectedDevice = device.toConnectedDevice(project)
 
           val activityManager = connectedDevice?.activityManager ?: return@runCatching emptyList()
 
