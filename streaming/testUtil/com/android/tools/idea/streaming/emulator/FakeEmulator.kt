@@ -1410,7 +1410,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           skin.name=${skinName}
           skin.path=skins/${skinName}
           tag.display=Google Play
-          tag.id=google_apis_playstore
+          tag.id=google_apis_playstore,tablet
           """
           .trimIndent()
 
@@ -1986,8 +1986,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           hw.keyboard=yes
           hw.keyboard.lid=yes
           hw.lcd.density = 320
-          hw.lcd.width = 2368
-          hw.lcd.height = 2560
+          hw.lcd.height=2558
+          hw.lcd.width=2560
           hw.mainKeys = no
           hw.ramSize = 4096
           hw.screen=no-touch
@@ -2197,6 +2197,113 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           hw.lcd.density=160
           hw.lcd.width=450
           hw.lcd.height=450
+          hw.lcd.transparent=yes
+          environment.width=1200
+          environment.height=900
+          hw.mainKeys=no
+          hw.ramSize=3096
+          hw.sdCard=yes
+          hw.sensors.orientation=yes
+          hw.sensors.proximity=yes
+          hw.trackBall=no
+          image.sysdir.1=$systemImage
+          runtime.network.latency=none
+          runtime.network.speed=full
+          sdcard.size=512M
+          showDeviceFrame=yes
+          tag.displaynames=AI Glasses
+          tag.ids=ai-glasses
+          hw.touchpad0=true
+          hw.touchpad0.width=1543
+          hw.touchpad0.height=297
+          hw.screen=no-touch
+          """
+          .trimIndent()
+
+      val hardwareIni =
+        """
+          hw.cpu.arch=$abi
+          hw.cpu.model=qemu32
+          hw.cpu.ncore=4
+          hw.lcd.density=160
+          hw.lcd.width=450
+          hw.lcd.height=450
+          hw.initialOrientation=portrait
+          hw.ramSize=3072
+          hw.screen=multi-touch
+          hw.dPad=false
+          hw.rotaryInput=false
+          hw.gsmModem=true
+          hw.gps=false
+          hw.battery=true
+          hw.accelerometer=false
+          hw.gyroscope=true
+          hw.audioInput=true
+          hw.audioOutput=true
+          hw.sdCard=true
+          hw.sdCard.path=$avdFolder/sdcard.img
+          hw.touchpad0=true
+          hw.touchpad0.width=1543
+          hw.touchpad0.height=297
+          android.sdk.root=$sdkFolder
+          """
+          .trimIndent()
+
+      val sourceProperties =
+        """
+          Pkg.Desc=Android XR Glasses SDK System Image
+          Pkg.UserSrc=false
+          Pkg.Revision=2
+          SystemImage.Abi=$abi
+          SystemImage.GpuSupport=true
+          SystemImage.TagId=android-xr-glasses
+          SystemImage.TagDisplay=Android XR Glasses
+          """
+          .trimIndent()
+
+      createSystemImage(systemImageFolder, androidVersion, sourceProperties)
+      return createAvd(avdId, avdFolder, configIni, hardwareIni)
+    }
+
+    /** Creates a fake displayless AI Glasses AVD. */
+    @JvmStatic
+    fun createAiGlassesDisplaylessAvd(
+      parentFolder: Path,
+      sdkFolder: Path = getSdkFolder(parentFolder),
+      androidVersion: AndroidVersion = AndroidVersion(34, 0),
+    ): Path {
+      val api = androidVersion.androidApiLevel.majorVersion
+      val avdId = "AI_Glasses"
+      val abi = "x86_64"
+      val avdFolder = parentFolder.resolve("${avdId}.avd")
+      val avdName = avdId.replace('_', ' ')
+      val systemImage = "system-images/android-$api/android-xr-glasses/$abi/"
+      val systemImageFolder = sdkFolder.resolve(systemImage)
+
+      val configIni =
+        """
+          AvdId=${avdId}
+          PlayStore.enabled=false
+          abi.type=$abi
+          avd.ini.displayname=${avdName}
+          avd.ini.encoding=UTF-8
+          disk.dataPartition.size=6G
+          hw.accelerometer=yes
+          hw.arc=false
+          hw.audioInput=yes
+          hw.battery=yes
+          hw.camera.back=None
+          hw.camera.front=emulated
+          hw.cpu.arch=$abi
+          hw.cpu.ncore=4
+          hw.dPad=no
+          hw.device.name=ai_glasses_device
+          hw.gps=no
+          hw.gpu.enabled=yes
+          hw.gpu.mode=auto
+          hw.initialOrientation=landscape
+          hw.keyboard=yes
+          hw.keyboard.lid=yes
           hw.lcd.transparent=yes
           environment.width=1200
           environment.height=900

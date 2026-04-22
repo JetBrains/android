@@ -57,7 +57,6 @@ private constructor(
   val additionalDisplays: Map<Int, Dimension> = emptyMap(),
   val skinFolder: Path? = null,
   val hasOrientationSensors: Boolean = false,
-  val hasAudioOutput: Boolean = false,
   val hasTransparentDisplay: Boolean = false,
   val hasTouchScreen: Boolean = false,
   val initialOrientationQuadrants: Int = 0,
@@ -85,33 +84,10 @@ private constructor(
      */
     fun readAvdDefinition(avdFolder: Path): EmulatorConfiguration {
       val hardwareIniFile = avdFolder.resolve("hardware-qemu.ini")
-      val keysToExtract =
-        setOf(
-          "android.sdk.root",
-          "hw.audioOutput",
-          "hw.initialOrientation",
-          "hw.lcd.height",
-          "hw.lcd.width",
-          "hw.lcd.density",
-          "hw.sensor.hinge.resizable.config",
-        )
+      val keysToExtract = setOf("android.sdk.root", "hw.sensor.hinge.resizable.config")
       val hardwareIni = readKeyValueFile(hardwareIniFile, keysToExtract)
       val sdkPath = hardwareIni["android.sdk.root"] ?: System.getenv(ANDROID_HOME_ENV) ?: ""
       val androidSdkRoot = avdFolder.resolve(sdkPath)
-      val displayWidth = parseInt(hardwareIni["hw.lcd.width"], 0)
-      val displayHeight = parseInt(hardwareIni["hw.lcd.height"], 0)
-      if (displayWidth <= 0 || displayHeight <= 0) {
-        throw RuntimeException("Invalid display size: $displayWidth x $displayHeight")
-      }
-      val density = parseInt(hardwareIni["hw.lcd.density"], 0)
-
-      val hasAudioOutput = hardwareIni["hw.audioOutput"]?.toBoolean() ?: true
-
-      val initialOrientation =
-        when {
-          "landscape".equals(hardwareIni["hw.initialOrientation"], ignoreCase = true) -> 1
-          else -> 0
-        }
 
       val configIniFile = avdFolder.resolve("config.ini")
       val configIni = readKeyValueFile(configIniFile)
@@ -131,6 +107,13 @@ private constructor(
           null
         }
 
+      val displayWidth = parseInt(configIni["hw.lcd.width"], 0)
+      val displayHeight = parseInt(configIni["hw.lcd.height"], 0)
+      if ((displayWidth <= 0 || displayHeight <= 0) && !getConfigBoolean(configIni["hw.lcd.transparent"], false)) {
+        throw RuntimeException("Invalid display size: $displayWidth x $displayHeight")
+      }
+      val density = parseInt(configIni["hw.lcd.density"], 0)
+
       val skinPath = getSkinPath(configIni, androidSdkRoot)
       val tagIds = configIni[ConfigKey.TAG_IDS] ?: configIni[ConfigKey.TAG_ID]
       val deviceType =
@@ -147,6 +130,13 @@ private constructor(
             DeviceType.AI_GLASSES
           else -> DeviceType.HANDHELD
         }
+
+      val initialOrientation =
+        when {
+          deviceType == DeviceType.HANDHELD && "landscape".equals(configIni["hw.initialOrientation"], ignoreCase = true) -> 1
+          else -> 0
+        }
+
       val hasOrientationSensors = getConfigBoolean(configIni["hw.sensors.orientation"], true)
       val hasTransparentDisplay = getConfigBoolean(configIni["hw.lcd.transparent"], false)
       val hasTouchScreen = "no-touch" != configIni["hw.screen"]
@@ -257,7 +247,6 @@ private constructor(
         additionalDisplays = ImmutableMap.copyOf(additionalDisplays),
         skinFolder = skinPath,
         hasOrientationSensors = hasOrientationSensors,
-        hasAudioOutput = hasAudioOutput,
         hasTransparentDisplay = hasTransparentDisplay,
         hasTouchScreen = hasTouchScreen,
         initialOrientationQuadrants = initialOrientation,

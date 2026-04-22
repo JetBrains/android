@@ -588,13 +588,13 @@ class EmulatorToolWindowPanelTest {
       xrInputController.inputMode = inputMode
       fakeUi.mouse.moveTo(100, 100)
       val call = streamInputCall ?: getNextGrpcCallIgnoringStreamScreenshot().also { streamInputCall = it }
-      assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("$expectedEvent { x: 428 y: 258 }")
+      assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("$expectedEvent { x: 378 y: 296 }")
       fakeUi.mouse.press(100, 100)
-      assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("$expectedEvent { x: 428 y: 258 buttons: 1 }")
+      assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("$expectedEvent { x: 378 y: 296 buttons: 1 }")
       fakeUi.mouse.dragTo(500, 200)
-      assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("$expectedEvent { x: 2135 y: 684 buttons: 1 }")
+      assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("$expectedEvent { x: 2190 y: 749 buttons: 1 }")
       fakeUi.mouse.release()
-      assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("$expectedEvent { x: 2135 y: 684 }")
+      assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("$expectedEvent { x: 2190 y: 749 }")
     }
   }
 
@@ -708,14 +708,14 @@ class EmulatorToolWindowPanelTest {
     fakeUi.mouse.press(100, 100)
     fakeUi.mouse.dragTo(500, 100)
     val streamInputCall = getNextGrpcCallIgnoringStreamScreenshot()
-    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_rotation_event { y: -2.264211 }")
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_rotation_event { y: -2.2241366 }")
     fakeUi.mouse.dragTo(500, 500)
-    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_rotation_event { x: -2.264211 }")
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_rotation_event { x: -2.2241366 }")
     fakeUi.mouse.dragTo(500, 10) // Exit the EmulatorView component.
     fakeUi.mouse.dragTo(300, 35) // Enter the EmulatorView component in a different location.
     fakeUi.mouse.dragTo(100, 435)
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
-      .isEqualTo("xr_head_rotation_event { x: -2.264211 y: 1.1321055 }")
+      .isEqualTo("xr_head_rotation_event { x: -2.2241366 y: 1.1120683 }")
   }
 
   @Test
@@ -742,14 +742,14 @@ class EmulatorToolWindowPanelTest {
     fakeUi.mouse.press(100, 100)
     fakeUi.mouse.dragTo(500, 100)
     val streamInputCall = getNextGrpcCallIgnoringStreamScreenshot()
-    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_movement_event { delta_x: -2.882883 }")
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_movement_event { delta_x: -2.8318584 }")
     fakeUi.mouse.dragTo(500, 500)
-    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_movement_event { delta_y: 2.882883 }")
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_movement_event { delta_y: 2.8318584 }")
     fakeUi.mouse.dragTo(500, 10) // Exit the EmulatorView component.
     fakeUi.mouse.dragTo(300, 35) // Enter the EmulatorView component in a different location.
     fakeUi.mouse.dragTo(100, 435)
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
-      .isEqualTo("xr_head_movement_event { delta_x: 1.4414415 delta_y: 2.882883 }")
+      .isEqualTo("xr_head_movement_event { delta_x: 1.4159292 delta_y: 2.8318584 }")
     fakeUi.mouse.release()
 
     // Moving forward and backward by rotating the mouse wheel.
@@ -762,7 +762,7 @@ class EmulatorToolWindowPanelTest {
     xrInputController.inputMode = XrInputMode.LOCATION_IN_SPACE_Z
     fakeUi.mouse.press(100, 100)
     fakeUi.mouse.dragTo(500, 500)
-    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_movement_event { delta_z: -2.882883 }")
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_movement_event { delta_z: -2.8318584 }")
     fakeUi.mouse.release()
   }
 
