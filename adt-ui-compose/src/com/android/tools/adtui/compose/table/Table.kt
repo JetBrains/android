@@ -299,7 +299,16 @@ fun <T> Table(
   LaunchedEffect(sortedRows) {
     val index = sortedRows.indexOf(tableSelectionState.selection)
     if (index >= 0) {
-      lazyListState.scrollToItem(index)
+      // Scroll to the item only if it's necessary for it to be displayed.
+      val layoutInfo = lazyListState.layoutInfo
+      val itemInfo = layoutInfo.visibleItemsInfo.find { it.index == index }
+      val shouldScroll =
+        itemInfo == null ||
+          itemInfo.offset < layoutInfo.viewportStartOffset ||
+          itemInfo.offset + itemInfo.size > layoutInfo.viewportEndOffset
+      if (shouldScroll) {
+        lazyListState.scrollToItem(index)
+      }
     }
   }
 
