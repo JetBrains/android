@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package google.play.developer.reporting.v1beta1;
 
+import "engagement.proto";
 import "ratings.proto";
 import "releases.proto";
 
@@ -18,6 +19,14 @@ service ReportingService {
   // Searches for Apps accessible by the user.
   rpc SearchAccessibleApps(SearchAccessibleAppsRequest)
       returns (SearchAccessibleAppsResponse) {}
+
+  // Describes the properties of the engagement metric set.
+  rpc GetEngagementMetricSet(GetEngagementMetricSetRequest)
+      returns (EngagementMetricSet) {}
+
+  // Queries the metrics in the engagement metric set.
+  rpc QueryEngagementMetricSet(QueryEngagementMetricSetRequest)
+      returns (QueryEngagementMetricSetResponse) {}
 
   // Describes the properties of the metric set.
   rpc GetRatingsMetricSet(GetRatingsMetricSetRequest)
