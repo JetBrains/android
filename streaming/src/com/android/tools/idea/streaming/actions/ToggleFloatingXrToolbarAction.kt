@@ -63,7 +63,7 @@ internal class FloatingXrToolbarState {
 
   interface Listener : EventListener {
     companion object {
-      val TOPIC = Topic<Listener>.create("Floating XR Toolbar state change", Listener::class.java)
+      val TOPIC = Topic.create("Floating XR Toolbar state change", Listener::class.java)
     }
 
     fun floatingXrToolbarStateChanged(enabled: Boolean)
