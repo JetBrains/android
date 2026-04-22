@@ -242,7 +242,7 @@ internal class EmulatorView(
     get() = screenshotShape.activeDisplayRegion?.size ?: displaySize ?: emulatorConfig.displaySize
 
   override val hasInnerPart: Boolean
-    get() = emulatorConfig.environmentSize != null
+    get() = emulatorConfig.environmentSize != null && emulatorConfig.displayWidth > 0 && emulatorConfig.displayWidth > 0
 
   override var framing: Framing
     get() = super.framing
