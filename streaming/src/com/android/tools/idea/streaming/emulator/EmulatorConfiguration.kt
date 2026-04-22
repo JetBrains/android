@@ -73,7 +73,7 @@ private constructor(
     get() = displaySize.height
 
   val isValid: Boolean
-    get() = displaySize.width > 0 && displaySize.height > 0 && androidVersion.androidApiLevel.majorVersion > 0
+    get() = (displaySize.width > 0 && displaySize.height > 0 || environmentSize != null) && androidVersion.androidApiLevel.majorVersion > 0
 
   val api: Int
     get() = androidVersion.androidApiLevel.majorVersion
