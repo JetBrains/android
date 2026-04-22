@@ -87,7 +87,7 @@ sealed class BaseActionEnumValue(override val action: AnAction) : ActionEnumValu
       indented == otherActionValue.indented
   }
 
-  override fun select(property: PropertyItem, newEnumValue: NewEnumValueCallback): Boolean {
+  override fun select(property: PropertyItem, newEnumValue: NewEnumValueCallback, onSelected: () -> Unit): Boolean {
     ApplicationManager.getApplication().invokeLater {
       val propertyContext = DataContext {
         when {

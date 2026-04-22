@@ -20,6 +20,7 @@ import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.api.NewEnumValueCallback
 import com.android.tools.property.panel.api.PropertyItem
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
+import com.intellij.openapi.application.invokeLater
 
 /**
  * Base interface that makes use of [ClassPsiCallParameter] functionality.
@@ -48,17 +49,21 @@ internal interface BaseClassEnumValue : EnumValue {
   override val value: String
     get() = resolvedValue
 
-  override fun select(property: PropertyItem, newEnumValue: NewEnumValueCallback): Boolean {
+  override fun select(property: PropertyItem, newEnumValue: NewEnumValueCallback, onSelected: () -> Unit): Boolean {
     if (property is ClassPsiCallParameter) {
       val finalValue = valueToWrite
-      if (finalValue == null) {
-        property.deleteParameter()
-      } else {
-        property.importAndSetValue(fqFallbackValue, trackableValue)
+      invokeLater {
+        if (finalValue == null) {
+          property.deleteParameter()
+        } else {
+          property.importAndSetValue(fqFallbackValue, trackableValue)
+        }
+        onSelected()
       }
     } else {
       newEnumValue.newValue(fqFallbackValue)
       property.value = fqFallbackValue
+      onSelected()
     }
     return true
   }

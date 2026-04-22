@@ -156,7 +156,7 @@ class NavEnumSupportProviderTest : NavTestCase() {
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     val enumValue = ClassEnumValue("mytest.navtest.BlankFragment", "BlankFragment (mytest.navtest)", null, true)
-    enumValue.select(property) {}
+    enumValue.select(property, {})
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     testSelectName(fragment1, "mytest.navtest.BlankFragment", null)
@@ -168,7 +168,7 @@ class NavEnumSupportProviderTest : NavTestCase() {
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     val enumValue = ClassEnumValue(value, "display", moduleName, true)
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
-    enumValue.select(property) {}
+    enumValue.select(property, {})
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     assertEquals(value, component.getAttribute(ANDROID_URI, ATTR_NAME))

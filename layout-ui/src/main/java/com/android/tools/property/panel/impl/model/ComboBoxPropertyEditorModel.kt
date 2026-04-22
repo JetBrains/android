@@ -279,15 +279,14 @@ class ComboBoxPropertyEditorModel(property: PropertyItem, private val enumSuppor
   fun selectEnumValue(newTextValue: NewEnumValueCallback) {
     val newValue = selectedValue
     if (newValue != null) {
-
-      // Be aware that we may loose focus on the next line,
-      // if the EnumValue is an action that displays a dialog.
-      // This is why we set text=value just before calling select.
-      if (newValue.select(property, newTextValue)) {
+      // If new value has been succesfully selected, its callback fireValueChanged is called.
+      if (newValue.select(property, newTextValue) { fireValueChanged() }) {
+        // Be aware that we may loose focus on the next line,
+        // if the EnumValue is an action that displays a dialog.
+        // This is why we set text=value just before calling select.
         text = newValue.value ?: ""
         setPendingValue(newValue.value)
       }
-      fireValueChanged()
     }
   }
 

@@ -40,7 +40,7 @@ data class ClassEnumValue(override val value: String, override val display: Stri
 
   override fun withIndentation() = this
 
-  override fun select(property: PropertyItem, newEnumValue: NewEnumValueCallback): Boolean {
+  override fun select(property: PropertyItem, newEnumValue: NewEnumValueCallback, onSelected: () -> Unit): Boolean {
     if (property !is NlPropertyItem) {
       return false
     }
@@ -57,6 +57,7 @@ data class ClassEnumValue(override val value: String, override val display: Stri
             property.components.forEach { it.setAttribute(TOOLS_URI, ATTR_LAYOUT, layout) }
             property.components.forEach { it.setAttribute(AUTO_URI, ATTR_MODULE_NAME, moduleName) }
           }
+          onSelected()
         },
         property.project.disposed,
       )

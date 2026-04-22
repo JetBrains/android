@@ -21,18 +21,22 @@ import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.api.NewEnumValueCallback
 import com.android.tools.property.panel.api.PropertyItem
 import com.google.wireless.android.sdk.stats.EditorPickerEvent
+import com.intellij.openapi.application.invokeLater
 
 /** Base interface for psi pickers, to support tracking assigned values. */
 internal interface PsiEnumValue : EnumValue {
   val trackableValue: EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
 
-  override fun select(property: PropertyItem, newEnumValue: NewEnumValueCallback): Boolean =
+  override fun select(property: PropertyItem, newEnumValue: NewEnumValueCallback, onSelected: () -> Unit): Boolean =
     if (property is PsiCallParameterPropertyItem) {
       newEnumValue.newValue(value)
-      property.writeNewValue(value, false, trackableValue)
+      invokeLater {
+        property.writeNewValue(value, false, trackableValue)
+        onSelected()
+      }
       true
     } else {
-      super.select(property, newEnumValue)
+      super.select(property, newEnumValue, onSelected)
     }
 
   companion object {

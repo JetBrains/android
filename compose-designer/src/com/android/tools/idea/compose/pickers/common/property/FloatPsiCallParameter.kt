@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.pickers.common.property
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingValidation
 import com.android.tools.idea.compose.pickers.base.model.PsiCallPropertiesModel
@@ -54,6 +55,7 @@ internal class FloatPsiCallParameter(
   ) {
   override var value: String?
     get() = super.value?.removeSuffix("f")
+    @UiThread
     set(newValue) {
       super.value = newValue?.toFloatOrNull()?.let { "${it}f" } ?: newValue
     }

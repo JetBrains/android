@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.pickers.common.property
 
+import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.resources.colorToStringWithAlpha
 import com.android.ide.common.resources.parseColor
 import com.android.tools.adtui.actions.componentToRestoreFocusTo
@@ -27,6 +28,7 @@ import com.android.tools.idea.ui.resourcechooser.util.createAndShowColorPickerPo
 import com.android.tools.property.panel.api.ActionIconButton
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
 import java.awt.Color
@@ -80,7 +82,7 @@ internal class ColorPsiCallParameter(
               resourcePickerSources = listOf(),
               restoreFocusComponent = e.componentToRestoreFocusTo(),
               locationToShow = e.locationFromEvent(),
-              colorPickedCallback = { value = colorToStringWithAlpha(it) },
+              colorPickedCallback = { invokeLater { value = colorToStringWithAlpha(it) } },
               colorResourcePickedCallback = {
                 // Do nothing.
               },
@@ -109,6 +111,7 @@ internal class ColorPsiCallParameter(
         )
       )
     }
+    @UiThread
     set(newValue) {
       super.value = newValue
     }

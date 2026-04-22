@@ -181,10 +181,7 @@ constructor(property: PsiPropertyItem, private val enumSupport: EnumSupport, pri
 
   fun selectEnumValue(newEnumValue: NewEnumValueCallback) {
     val newValue = selectedValue
-    if (newValue != null) {
-      newValue.select(property, newEnumValue)
-      fireValueChanged()
-    }
+    newValue?.select(property, newEnumValue) { fireValueChanged() }
   }
 
   override fun getSize(): Int {

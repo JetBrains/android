@@ -181,9 +181,10 @@ internal enum class FontScale(scaleValue: Float, visibleName: String) : EnumValu
 
   override val display: String = visibleName
 
-  override fun select(property: PropertyItem, newEnumValue: NewEnumValueCallback): Boolean {
+  override fun select(property: PropertyItem, newEnumValue: NewEnumValueCallback, onSelected: () -> Unit): Boolean {
     newEnumValue.newValue("${this.value}f")
     property.value = "${this.value}f"
+    onSelected()
     return true
   }
 }

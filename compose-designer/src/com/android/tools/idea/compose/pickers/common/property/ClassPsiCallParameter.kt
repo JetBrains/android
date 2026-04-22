@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.pickers.common.property
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.compose.pickers.base.model.PsiCallPropertiesModel
 import com.android.tools.idea.compose.pickers.base.property.PsiCallParameterPropertyItem
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
@@ -76,6 +77,7 @@ internal class ClassPsiCallParameter(
    * @param fqValue The fully qualified string representation of the value to be set.
    * @param trackableValue A value for usage tracking.
    */
+  @UiThread
   fun importAndSetValue(fqValue: String, trackableValue: PreviewPickerValue) {
     writeNewValue(fqValue, true, trackableValue)
     argumentExpression?.let { expression ->

@@ -68,10 +68,13 @@ interface EnumValue {
    *
    * A return value of true means the value of the [EnumValue] was assigned. A return value of false means the property was updated with
    * other means e.g. from a dialog or an action.
+   *
+   * After the selection a callback [onSelected] has been called
    */
-  fun select(property: PropertyItem, newEnumValue: NewEnumValueCallback): Boolean {
+  fun select(property: PropertyItem, newEnumValue: NewEnumValueCallback, onSelected: () -> Unit = {}): Boolean {
     newEnumValue.newValue(value)
     property.value = value
+    onSelected()
     return true
   }
 
