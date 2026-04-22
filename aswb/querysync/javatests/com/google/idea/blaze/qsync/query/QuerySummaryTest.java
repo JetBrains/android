@@ -225,4 +225,16 @@ public class QuerySummaryTest {
             Label.of(TestData.ROOT_PACKAGE + "/symlinks:dangling_link"),
             Label.of(TestData.ROOT_PACKAGE + "/symlinks:chained_link"));
   }
+
+  @Test
+  public void testCreate_aliasRule() throws IOException {
+    QuerySummary qs =
+        QuerySummaryImpl.create(
+            QuerySpec.QueryStrategy.PLAIN, TestData.ALIAS_QUERY.getQueryOutputPath().toFile());
+    Label aliasLabel = Label.of(TestData.ROOT_PACKAGE + "/alias:alias");
+    assertThat(qs.getRulesMap().keySet()).contains(aliasLabel);
+    QueryData.Rule rule = qs.getRulesMap().get(aliasLabel);
+    assertThat(rule.ruleClass()).isEqualTo("alias");
+    assertThat(rule.deps()).containsExactly(Label.of(TestData.ROOT_PACKAGE + "/nodeps:nodeps"));
+  }
 }

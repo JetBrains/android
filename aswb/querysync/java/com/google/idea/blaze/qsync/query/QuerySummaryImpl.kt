@@ -312,6 +312,7 @@ data class QuerySummaryImpl(private val proto: Query.Summary) : QuerySummary {
         "exports",
         "library",
         "cc_library",
+        "actual",
       )
 
     // Compile time dependency attributes scoped to specific rule kind, for cases where sync does not

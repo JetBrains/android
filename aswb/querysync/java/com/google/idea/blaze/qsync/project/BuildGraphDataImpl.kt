@@ -262,6 +262,9 @@ data class BuildGraphDataImpl private constructor(@VisibleForTesting @JvmField v
   }
 
   private fun getDependencyTrackingIncludeExternalDependencies(target: ProjectTarget): Boolean {
+    if (target.kind() == "alias") {
+      return true
+    }
     return target.languages().asSequence().map { it.dependencyTrackingBehavior }.any { it.shouldIncludeExternalDependencies }
   }
 

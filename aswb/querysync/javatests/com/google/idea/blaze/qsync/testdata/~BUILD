@@ -190,6 +190,13 @@ genquery(
 )
 
 genquery(
+    name = "alias_query",
+    expression = "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/alias:*",
+    opts = ["--output=streamed_proto"],
+    scope = scopeForJavaPackage("//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/alias:lib"),
+)
+
+genquery(
     name = "symlinks_query",
     expression = "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/symlinks:*",
     opts = ["--output=streamed_proto"],
@@ -202,6 +209,7 @@ java_library_for_test_data(
     name = "testdata",
     srcs = ["TestData.java"],
     data = [
+        ":alias_query",
         ":android_aidl_source_query",
         ":android_lib_query",
         ":buildincludes_query",

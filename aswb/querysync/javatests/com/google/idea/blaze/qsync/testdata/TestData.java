@@ -27,6 +27,7 @@ import java.nio.file.Path;
 import java.util.Locale;
 
 public enum TestData {
+  ALIAS_QUERY("alias"),
   ANDROID_AIDL_SOURCE_QUERY("aidl"),
   ANDROID_LIB_QUERY("android"),
   DOES_DEPENDENCY_PATH_CONTAIN_RULES("deppathkinds"),

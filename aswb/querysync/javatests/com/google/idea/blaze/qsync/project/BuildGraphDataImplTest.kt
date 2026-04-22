@@ -679,6 +679,30 @@ class BuildGraphDataImplTest {
     expect.that(setOf("c").traverseDag()).containsExactly("c", "x", "z").inOrder()
   }
 
+  @Test
+  @Throws(Exception::class)
+  fun testAliasRule() {
+    val graph =
+      BlazeQueryParser(
+          emptyTargetCollection,
+          QuerySyncTestUtils.getQuerySummary(TestData.ALIAS_QUERY),
+          QuerySyncTestUtils.NOOP_CONTEXT,
+          setOf(TESTDATA_ROOT.resolve("alias").toString()),
+          defaultProtoRules,
+        )
+        .parseForTesting()
+
+    val aliasLabel = Label.of("//$TESTDATA_ROOT/alias:alias")
+    val depLabel = Label.of("//$TESTDATA_ROOT/nodeps:nodeps")
+
+    assertThat(graph.getProjectTarget(aliasLabel)!!.deps()).containsExactly(depLabel)
+
+    val libLabel = Label.of("//$TESTDATA_ROOT/alias:lib")
+    val requestedTargets =
+      graph.computeRequestedTargets(listOf(libLabel), replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false)
+    assertThat(requestedTargets.requiredTargets).containsExactly(depLabel)
+  }
+
   private fun getRequiredTargets(graph: BuildGraphData, forTargets: Collection<Label>): Set<Label> {
     return graph.computeRequestedTargets(forTargets, replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false).requiredTargets
   }

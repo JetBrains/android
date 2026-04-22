@@ -22,8 +22,8 @@ import com.android.annotations.TestOnly;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets.SetView;
 import com.google.common.collect.Sets;
+import com.google.common.collect.Sets.SetView;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.PrintOutput;
@@ -104,6 +104,7 @@ public class BlazeQueryParser {
       register(builder, RuleKinds.JAVA_RULE_KINDS, BlazeQueryParser::visitJavaRule);
       register(builder, RuleKinds.CC_RULE_KINDS, BlazeQueryParser::visitCcRule);
       register(builder, RuleKinds.PROTO_SOURCE_RULE_KINDS, BlazeQueryParser::visitProtoRule);
+      register(builder, ImmutableSet.of("alias"), BlazeQueryParser::visitAliasRule);
       myVisitorsByRuleClass = builder.buildOrThrow();
     }
 
@@ -154,7 +155,11 @@ public class BlazeQueryParser {
 
   @VisibleForTesting
   public BlazeQueryParser(
-    TargetPatternCollection targetPatterns, QuerySummary query, Context<?> context, Set<String> handledRuleKinds, BuildGraphData.ProtoRules protoRules) {
+      TargetPatternCollection targetPatterns,
+      QuerySummary query,
+      Context<?> context,
+      Set<String> handledRuleKinds,
+      BuildGraphData.ProtoRules protoRules) {
     this(targetPatterns, query, context, handledRuleKinds, ImmutableSet.of(), protoRules);
   }
 
@@ -169,7 +174,7 @@ public class BlazeQueryParser {
     this.context = context;
     this.query = query;
     this.alwaysBuildRuleKinds = Sets.difference(ALWAYS_BUILD_RULE_KINDS, handledRuleKinds);
-    this.supportedRuleKinds =  getAllKnownRuleClasses(notHandledRuleKinds);
+    this.supportedRuleKinds = getAllKnownRuleClasses(notHandledRuleKinds);
     this.protoRules = protoRules;
   }
 
@@ -286,6 +291,15 @@ public class BlazeQueryParser {
 
     Set<Label> thisDeps = Sets.newHashSet(rule.deps());
     targetBuilder.depsBuilder().addAll(thisDeps);
+  }
+
+  private static void visitAliasRule(
+      BlazeQueryParser parser,
+      Label label,
+      QueryData.Rule rule,
+      ProjectTarget.Builder targetBuilder) {
+    parser.graphBuilder.addSupportedTargetLabel(label);
+    targetBuilder.depsBuilder().addAll(rule.deps());
   }
 
   /** Returns a set of sources for a rule, expanding any in-project {@code filegroup} rules */
