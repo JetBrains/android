@@ -40,6 +40,7 @@ import com.android.tools.idea.gradle.model.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibraryImpl
 import com.android.tools.idea.gradle.model.IdeSourceProvider
+import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
@@ -67,6 +68,7 @@ import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.model.impl.IdeProjectPathImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
+import com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestSuiteImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestSuiteTargetImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestSuiteVariantTargetImpl
@@ -1115,6 +1117,7 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(variant: String, appl
           )
     )
   val assembleTaskName = "assemble".appendCapitalized(variant).appendCapitalized("androidTest")
+  val testTaskName = "connected".appendCapitalized(variant).appendCapitalized("androidTest")
   return IdeAndroidArtifactCoreImpl(
     name = IdeArtifactName.ANDROID_TEST,
     compileTaskName = "compile".appendCapitalized(variant).appendCapitalized("androidTestSources"),
@@ -1143,7 +1146,8 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(variant: String, appl
         buildPath.resolve("generated/res/resValues/androidTest/${variant}"),
       ),
     additionalRuntimeApks = listOf(),
-    testOptions = null,
+    testOptions =
+      IdeTestOptionsImpl(animationsDisabled = false, execution = IdeTestOptions.Execution.HOST, instrumentedTestTaskName = testTaskName),
     abiFilters = setOf(),
     buildInformation =
       IdeBuildTasksAndOutputInformationImpl(
