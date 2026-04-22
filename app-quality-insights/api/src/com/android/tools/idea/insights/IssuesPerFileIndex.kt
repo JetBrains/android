@@ -73,7 +73,7 @@ class IssuesPerFileIndex(private val project: Project) {
 
   fun updateIssueIndex(issues: LoadingState<Selection<AppInsightsIssue>>, providerName: String) {
     val newIndex = computeIssuesPerFilename(issues)
-    val oldIndex = issueFileMapPerProviderKey.put(providerName, newIndex)
+    val oldIndex = issueFileMapPerProviderKey.put(providerName, newIndex) ?: ImmutableSetMultimap.of()
     if (oldIndex != newIndex) {
       DaemonCodeAnalyzer.getInstance(project).restart()
     }
