@@ -203,8 +203,8 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     val loadedProject =
       loadedProject?.takeUnless {
         val currentProjectViewSet = BlazeImportSettingsManager.getInstance(ideProject).projectViewSet
-        it.projectDefinition != loader.loadProjectDefinition(currentProjectViewSet).definition
-        it.handledRuleKinds != ProjectLoader.getHandledRuleKinds(ideProject)
+        it.projectDefinition != loader.loadProjectDefinition(currentProjectViewSet).definition ||
+          it.handledRuleKinds != ProjectLoader.getHandledRuleKinds(ideProject)
       } ?: runCatching { loader.loadProject() }.getOrElse { throw BuildException("Failed to load project", it) }
     val existingSnapshotData =
       currentSnapshot.getOrNull()?.let { SerializedProjectStructureAndQueryData(it.queryData, it.projectStructureData) }
