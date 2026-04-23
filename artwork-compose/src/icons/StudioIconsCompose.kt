@@ -3659,49 +3659,49 @@ object StudioIconsCompose {
           "/studio/icons/profiler/tasks-v2/callstack-sample.svg",
           "/studio/icons/profiler/tasks-v2/callstack-sample.svg",
           StudioIconsCompose.javaClass,
-        ) // 26x26
+        ) // 28x28
       val FindMemoryLeaks: IntelliJIconKey =
         IntelliJIconKey(
           "/studio/icons/profiler/tasks-v2/find-memory-leaks.svg",
           "/studio/icons/profiler/tasks-v2/find-memory-leaks.svg",
           StudioIconsCompose.javaClass,
-        ) // 26x26
+        ) // 28x28
       val HeapDump: IntelliJIconKey =
         IntelliJIconKey(
           "/studio/icons/profiler/tasks-v2/heap-dump.svg",
           "/studio/icons/profiler/tasks-v2/heap-dump.svg",
           StudioIconsCompose.javaClass,
-        ) // 26x26
+        ) // 28x28
       val JavaKotlinAllocations: IntelliJIconKey =
         IntelliJIconKey(
           "/studio/icons/profiler/tasks-v2/java-kotlin-allocations.svg",
           "/studio/icons/profiler/tasks-v2/java-kotlin-allocations.svg",
           StudioIconsCompose.javaClass,
-        ) // 26x26
+        ) // 28x28
       val JavaKotlinMethodTrace: IntelliJIconKey =
         IntelliJIconKey(
           "/studio/icons/profiler/tasks-v2/java-kotlin-method-trace.svg",
           "/studio/icons/profiler/tasks-v2/java-kotlin-method-trace.svg",
           StudioIconsCompose.javaClass,
-        ) // 26x26
+        ) // 28x28
       val LiveView: IntelliJIconKey =
         IntelliJIconKey(
           "/studio/icons/profiler/tasks-v2/live-view.svg",
           "/studio/icons/profiler/tasks-v2/live-view.svg",
           StudioIconsCompose.javaClass,
-        ) // 26x26
+        ) // 28x28
       val NativeAllocations: IntelliJIconKey =
         IntelliJIconKey(
           "/studio/icons/profiler/tasks-v2/native-allocations.svg",
           "/studio/icons/profiler/tasks-v2/native-allocations.svg",
           StudioIconsCompose.javaClass,
-        ) // 26x26
+        ) // 28x28
       val SystemTrace: IntelliJIconKey =
         IntelliJIconKey(
           "/studio/icons/profiler/tasks-v2/system-trace.svg",
           "/studio/icons/profiler/tasks-v2/system-trace.svg",
           StudioIconsCompose.javaClass,
-        ) // 26x26
+        ) // 28x28
     }
 
     object Toolbar {

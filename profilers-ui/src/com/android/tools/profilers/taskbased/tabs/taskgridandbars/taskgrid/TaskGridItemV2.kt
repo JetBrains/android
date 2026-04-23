@@ -118,7 +118,7 @@ fun TaskIconAndDescriptionWrapperV2(task: ProfilerTaskType, isSelectedTask: Bool
 
       Column(modifier = Modifier.fillMaxWidth().padding(16.dp).testTag(task.description)) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.testTag("TaskGridItemV2")) {
-          Icon(TaskIconUtils.getTaskIconKey(task), contentDescription = task.description, modifier = Modifier.size(26.dp))
+          Icon(TaskIconUtils.getTaskIconKey(task), contentDescription = task.description, modifier = Modifier.size(28.dp))
           Spacer(modifier = Modifier.width(10.dp))
           Text(text = taskTitle, fontWeight = FontWeight.Bold)
         }
