@@ -336,7 +336,7 @@ data class BuildGraphDataImpl private constructor(@VisibleForTesting @JvmField v
    * @return Requested targets. The [RequestedTargets.targetsToBuild] will match the parameter given; the [RequestedTargets.requiredTargets]
    *   will be determined by the [.getDependencyTrackingIncludeExternalDependencies] of the targets given.
    */
-  override fun computeRequestedTargets(
+  override fun computeSufficientTargets(
     projectTargets: Collection<Label>,
     replaceNativeTargetsWithAndroidTransitionTriggeringTargets: Boolean,
   ): RequestedTargets {
@@ -387,7 +387,7 @@ data class BuildGraphDataImpl private constructor(@VisibleForTesting @JvmField v
   }
 
   override fun computeWholeProjectTargets(): RequestedTargets {
-    return computeRequestedTargets(
+    return computeSufficientTargets(
       allSupportedTargets.getTargets().filter { projectDefinitionTargetPatterns.inScope(it).status == INCLUDED }.toList(),
       replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false, // storage.allSupportedTargets includes them anyway.
     )

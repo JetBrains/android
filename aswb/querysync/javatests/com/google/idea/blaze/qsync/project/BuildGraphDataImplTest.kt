@@ -426,7 +426,7 @@ class BuildGraphDataImplTest {
 
   @Test
   @Throws(Exception::class)
-  fun computeRequestedTargets_srcFile() {
+  fun computeSufficientTargets_srcFile() {
     val graph =
       BlazeQueryParser(
           emptyTargetCollection,
@@ -437,7 +437,7 @@ class BuildGraphDataImplTest {
         )
         .parseForTesting()
     val targets =
-      graph.computeRequestedTargets(
+      graph.computeSufficientTargets(
         graph
           .getProjectTargets(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY.onlySourcePath.resolve(Path.of("TestClassExternalDep.java")))
           .getUnambiguousTargets(),
@@ -453,7 +453,7 @@ class BuildGraphDataImplTest {
   ) // TODO: b/423875334 - in the case of targets like (a.java), (a.java, b.java) it is safe to choose the later.it is not always possible
   // to prefer one option to another though. For example, (a, b), (b, c), (a, c) can have three different results.
   @Throws(Exception::class)
-  fun computeRequestedTargets_buildFile_multiTarget() {
+  fun computeSufficientTargets_buildFile_multiTarget() {
     val graph =
       BlazeQueryParser(
           emptyTargetCollection,
@@ -464,7 +464,7 @@ class BuildGraphDataImplTest {
         )
         .parseForTesting()
     val targets =
-      graph.computeRequestedTargets(
+      graph.computeSufficientTargets(
         graph.getProjectTargets(TestData.JAVA_LIBRARY_MULTI_TARGETS.onlySourcePath.resolve(Path.of("BUILD"))).getUnambiguousTargets(),
         replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false,
       )
@@ -479,7 +479,7 @@ class BuildGraphDataImplTest {
 
   @Test
   @Throws(Exception::class)
-  fun computeRequestedTargets_buildFile_nested() {
+  fun computeSufficientTargets_buildFile_nested() {
     val graph =
       BlazeQueryParser(
           emptyTargetCollection,
@@ -490,7 +490,7 @@ class BuildGraphDataImplTest {
         )
         .parseForTesting()
     val targets =
-      graph.computeRequestedTargets(
+      graph.computeSufficientTargets(
         graph.getProjectTargets(TestData.JAVA_LIBRARY_NESTED_PACKAGE.onlySourcePath.resolve(Path.of("BUILD"))).getUnambiguousTargets(),
         replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false,
       )
@@ -500,7 +500,7 @@ class BuildGraphDataImplTest {
 
   @Test
   @Throws(Exception::class)
-  fun computeRequestedTargets_directory() {
+  fun computeSufficientTargets_directory() {
     val graph =
       BlazeQueryParser(
           emptyTargetCollection,
@@ -511,7 +511,7 @@ class BuildGraphDataImplTest {
         )
         .parseForTesting()
     val targets =
-      graph.computeRequestedTargets(
+      graph.computeSufficientTargets(
         graph.getProjectTargets(TestData.JAVA_LIBRARY_NESTED_PACKAGE.onlySourcePath).getUnambiguousTargets(),
         replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false,
       )
@@ -526,7 +526,7 @@ class BuildGraphDataImplTest {
 
   @Test
   @Throws(Exception::class)
-  fun computeRequestedTargets_cc_srcFile() {
+  fun computeSufficientTargets_cc_srcFile() {
     val graph =
       BlazeQueryParser(
           emptyTargetCollection,
@@ -537,7 +537,7 @@ class BuildGraphDataImplTest {
         )
         .parseForTesting()
     val targets =
-      graph.computeRequestedTargets(
+      graph.computeSufficientTargets(
         graph.getProjectTargets(TestData.CC_EXTERNAL_DEP_QUERY.onlySourcePath.resolve("TestClass.cc")).getUnambiguousTargets(),
         replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false,
       )
@@ -699,12 +699,12 @@ class BuildGraphDataImplTest {
 
     val libLabel = Label.of("//$TESTDATA_ROOT/alias:lib")
     val requestedTargets =
-      graph.computeRequestedTargets(listOf(libLabel), replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false)
+      graph.computeSufficientTargets(listOf(libLabel), replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false)
     assertThat(requestedTargets.requiredTargets).containsExactly(depLabel)
   }
 
   private fun getRequiredTargets(graph: BuildGraphData, forTargets: Collection<Label>): Set<Label> {
-    return graph.computeRequestedTargets(forTargets, replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false).requiredTargets
+    return graph.computeSufficientTargets(forTargets, replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false).requiredTargets
   }
 
   companion object {

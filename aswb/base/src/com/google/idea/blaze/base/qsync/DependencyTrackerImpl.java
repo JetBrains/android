@@ -93,7 +93,7 @@ public class DependencyTrackerImpl implements DependencyTracker {
       case MULTIPLE_TARGETS ->
           snapshot
               .getGraph()
-              .computeRequestedTargets(
+              .computeSufficientTargets(
                   request.targets,
                   querySyncUserPreferences
                       .getExperimentalBuildNativeTargetsFromAndroidTransitionPoint());

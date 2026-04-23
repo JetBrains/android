@@ -111,13 +111,13 @@ interface BuildGraphData {
    */
   fun getProjectTargets(workspaceRelativePath: Path): TargetsToBuild
 
-  /** Calculates the [RequestedTargets] for a project target. */
-  fun computeRequestedTargets(
+  /** Calculates a sufficient set of targets to build for the given project targets. */
+  fun computeSufficientTargets(
     projectTargets: Collection<Label>,
     replaceNativeTargetsWithAndroidTransitionTriggeringTargets: Boolean,
   ): RequestedTargets
 
-  /** Calculates the [RequestedTargets] for the whole project. */
+  /** Calculates a sufficient set of targets to build for the whole project. */
   fun computeWholeProjectTargets(): RequestedTargets
 
   /** Output stats about the the project to the context (and thus normally to the console). */
