@@ -54,10 +54,10 @@ public class DependencyTrackerImpl implements DependencyTracker {
   private final QuerySyncUserPreferences querySyncUserPreferences;
 
   public DependencyTrackerImpl(
-    SnapshotHolder snapshotHolder,
-    DependencyBuilder builder,
-    ArtifactTracker<BlazeContext> artifactTracker,
-    QuerySyncUserPreferences querySyncUserPreferences) {
+      SnapshotHolder snapshotHolder,
+      DependencyBuilder builder,
+      ArtifactTracker<BlazeContext> artifactTracker,
+      QuerySyncUserPreferences querySyncUserPreferences) {
     this.snapshotHolder = snapshotHolder;
     this.builder = builder;
     this.artifactTracker = artifactTracker;
@@ -90,18 +90,25 @@ public class DependencyTrackerImpl implements DependencyTracker {
       QuerySyncProjectSnapshot snapshot, DependencyBuildRequest request) {
     return switch (request.requestType) {
       case SPECIAL_TARGETS -> new RequestedTargets(request.targets, ImmutableSet.of());
-      case MULTIPLE_TARGETS -> snapshot.getGraph()
-        .computeRequestedTargets(request.targets, querySyncUserPreferences.getExperimentalBuildNativeTargetsFromAndroidTransitionPoint());
+      case MULTIPLE_TARGETS ->
+          snapshot
+              .getGraph()
+              .computeRequestedTargets(
+                  request.targets,
+                  querySyncUserPreferences
+                      .getExperimentalBuildNativeTargetsFromAndroidTransitionPoint());
       case WHOLE_PROJECT -> snapshot.getGraph().computeWholeProjectTargets();
       case FILE_PREVIEWS -> new RequestedTargets(request.targets, ImmutableSet.of());
       case LIVE_EDIT_BUILD_APK -> new RequestedTargets(request.targets, ImmutableSet.of());
     };
   }
 
-  private void buildDependencies(BlazeContext context,
-                                 QuerySyncProjectSnapshot snapshot,
-                                 RequestedTargets requestedTargets,
-                                 DependencyBuildRequest request) throws IOException, BuildException {
+  private void buildDependencies(
+      BlazeContext context,
+      QuerySyncProjectSnapshot snapshot,
+      RequestedTargets requestedTargets,
+      DependencyBuildRequest request)
+      throws IOException, BuildException {
     BuildDepsStatsScope.fromContext(context)
         .ifPresent(stats -> stats.setBuildTargets(requestedTargets.targetsToBuild()));
     OutputInfo outputInfo =
@@ -175,8 +182,7 @@ public class DependencyTrackerImpl implements DependencyTracker {
 
   @Override
   public void updateDependenciesFromOutputInfo(
-      BlazeContext context, OutputInfo outputInfo, Set<Label> targets)
-      throws BuildException {
+      BlazeContext context, OutputInfo outputInfo, Set<Label> targets) throws BuildException {
     artifactTracker.update(targets, outputInfo, context);
   }
 }
