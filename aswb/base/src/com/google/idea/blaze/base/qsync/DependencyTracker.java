@@ -35,8 +35,7 @@ import java.util.stream.Collectors;
  * dependencies.
  */
 public interface DependencyTracker {
-  BoolExperiment gatherJdeps =
-    new BoolExperiment("qsync.gather.jdeps", true);
+  BoolExperiment gatherJdeps = new BoolExperiment("qsync.gather.jdeps", true);
 
   /**
    * Builds the external dependencies of the given target(s), putting the resultant libraries in the
@@ -58,9 +57,7 @@ public interface DependencyTracker {
        * Build thw whole project and mark all dependencies as built even if they produce no
        * artifacts.
        */
-      WHOLE_PROJECT,
-      FILE_PREVIEWS,
-      LIVE_EDIT_BUILD_APK
+      WHOLE_PROJECT
     };
 
     final RequestType requestType;
@@ -83,16 +80,23 @@ public interface DependencyTracker {
       return new DependencyBuildRequest(RequestType.WHOLE_PROJECT, ImmutableSet.of());
     }
 
-    public Collection<OutputGroup> getOutputGroups(Collection<QuerySyncLanguage> languages) {
-      return getOutputGroups(languages, requestType);
+    public enum OutputGroupRequestType {
+      COMPILE_ONLY_OUTPUT_GROUPS,
+      COMPILE_AND_RUNTIME_OUTPUT_GROUPS
     }
 
-    public static Collection<OutputGroup> getOutputGroups(Collection<QuerySyncLanguage> languages, RequestType type) {
-      var outputGroups = languages.stream()
-        .mapMulti(DependencyBuildRequest::languageToOutputGroups)
-        .collect(Collectors.toCollection(() -> EnumSet.noneOf(OutputGroup.class)));
+    public Collection<OutputGroup> getOutputGroups(Collection<QuerySyncLanguage> languages) {
+      return getOutputGroups(languages, OutputGroupRequestType.COMPILE_ONLY_OUTPUT_GROUPS);
+    }
 
-      if (type.equals(RequestType.FILE_PREVIEWS) || type.equals(RequestType.LIVE_EDIT_BUILD_APK)) {
+    public static Collection<OutputGroup> getOutputGroups(
+        Collection<QuerySyncLanguage> languages, OutputGroupRequestType type) {
+      var outputGroups =
+          languages.stream()
+              .mapMulti(DependencyBuildRequest::languageToOutputGroups)
+              .collect(Collectors.toCollection(() -> EnumSet.noneOf(OutputGroup.class)));
+
+      if (type.equals(OutputGroupRequestType.COMPILE_AND_RUNTIME_OUTPUT_GROUPS)) {
         outputGroups.add(OutputGroup.TRANSITIVE_RUNTIME_JARS);
         outputGroups.add(OutputGroup.EXTERNAL_TRANSITIVE_RUNTIME_JARS);
       }
@@ -100,7 +104,8 @@ public interface DependencyTracker {
       return outputGroups;
     }
 
-    private static void languageToOutputGroups(QuerySyncLanguage language, Consumer<OutputGroup> consumer) {
+    private static void languageToOutputGroups(
+        QuerySyncLanguage language, Consumer<OutputGroup> consumer) {
       switch (language) {
         case JVM -> {
           consumer.accept(OutputGroup.JARS);
@@ -126,6 +131,5 @@ public interface DependencyTracker {
    * targets.
    */
   void updateDependenciesFromOutputInfo(
-      BlazeContext context, OutputInfo outputInfo, Set<Label> targets)
-      throws BuildException;
+      BlazeContext context, OutputInfo outputInfo, Set<Label> targets) throws BuildException;
 }

@@ -44,7 +44,10 @@ class AndroidBinaryLiveEditDataExtractor(private val project: Project, private v
   override fun prepareInvocation(context: BlazeContext, buildInvoker: BuildSystem.BuildInvoker, commandBuilder: BlazeCommand.Builder) {
     val dependencyBuilder = QuerySyncManager.getInstance(project).assertProjectLoaded().dependencyBuilder
     val outputGroups =
-      DependencyBuildRequest.getOutputGroups(listOf(QuerySyncLanguage.JVM), DependencyBuildRequest.RequestType.LIVE_EDIT_BUILD_APK)
+      DependencyBuildRequest.getOutputGroups(
+        listOf(QuerySyncLanguage.JVM),
+        DependencyBuildRequest.OutputGroupRequestType.COMPILE_AND_RUNTIME_OUTPUT_GROUPS,
+      )
     val invocation =
       dependencyBuilder.prepareInvocation(
         context,
