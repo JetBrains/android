@@ -82,7 +82,6 @@ import java.util.Optional
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 import kotlin.concurrent.Volatile
-import kotlin.jvm.optionals.getOrDefault
 import kotlin.jvm.optionals.getOrNull
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -256,7 +255,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
         }
       } else {
         updateCurrentSnapshot(context) {
-          val coreSyncResult = assertProjectLoaded().computeQueryCoreSyncResult(context, result.existingPostQuerySyncData)
+          val coreSyncResult = assertProjectLoaded().syncQueryCore(context, result.existingPostQuerySyncData)
           applySyncResult(coreSyncResult, result.existingProjectStructureData)
         }
       }
@@ -486,7 +485,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     lastProjectStructureData: ProjectStructureData?,
   ) {
     val postQuerySyncData = runQueryAndComputePostQuerySyncData(context, lastQuery)
-    val coreSyncResult = assertProjectLoaded().computeQueryCoreSyncResult(context, postQuerySyncData)
+    val coreSyncResult = assertProjectLoaded().syncQueryCore(context, postQuerySyncData)
     val projectStructureDataToUse = readProjectStructureData(context, postQuerySyncData, lastProjectStructureData, coreSyncResult)
     updateCurrentSnapshot(context) { applySyncResult(coreSyncResult, projectStructureDataToUse) }
   }
@@ -531,17 +530,16 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
       return
     }
     val loadedProject = assertProjectLoaded()
-    val snapshot = currentSnapshot.getOrDefault(QuerySyncProjectSnapshot.EMPTY)
-    val result = loadedProject.createProjectStructure(context, snapshot.queryData, snapshot.graph, snapshot.projectStructureData)
+    val result = loadedProject.createProjectStructure(context, newSnapshot.queryData, newSnapshot.graph, newSnapshot.projectStructureData)
     val updatedSnapshot =
       onNewSnapshot(
         context,
         loadedProject,
         QuerySyncProjectSnapshot(
           artifactState = result.artifactState,
-          queryData = snapshot.queryData,
-          graph = snapshot.graph,
-          projectStructureData = snapshot.projectStructureData,
+          queryData = newSnapshot.queryData,
+          graph = newSnapshot.graph,
+          projectStructureData = newSnapshot.projectStructureData,
           project = result.projectStructure,
           incompleteTargets = emptySet(),
         ),

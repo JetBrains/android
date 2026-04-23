@@ -128,7 +128,8 @@ class QuerySyncProject(
 
   @Throws(BuildException::class)
   fun syncQueryCore(context: BlazeContext, postQuerySyncData: PostQuerySyncData): QueryCoreSyncResult {
-    return computeQueryCoreSyncResult(context, postQuerySyncData)
+    val graph = buildGraphData(postQuerySyncData, context)
+    return QueryCoreSyncResult(postQuerySyncData, graph)
   }
 
   fun runQueryAndComputePostQuerySyncData(context: BlazeContext, lastQuery: PostQuerySyncData?): PostQuerySyncData {
@@ -136,11 +137,6 @@ class QuerySyncProject(
       if (lastQuery == null) projectQuerier.fullQuery(projectDefinition, context)
       else projectQuerier.update(projectDefinition, lastQuery, context)
     return postQuerySyncData
-  }
-
-  fun computeQueryCoreSyncResult(context: BlazeContext, postQuerySyncData: PostQuerySyncData): QueryCoreSyncResult {
-    val graph = buildGraphData(postQuerySyncData, context)
-    return QueryCoreSyncResult(postQuerySyncData, graph)
   }
 
   fun computeProjectStructureData(
