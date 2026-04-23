@@ -64,7 +64,7 @@ class AdbFileOperationsTest(private val testDevice: TestDevices) {
       manufacturer = "Google",
       deviceModel = "Pixel 10",
       release = "8.0",
-      sdk = AndroidApiLevel(31),
+      sdk = AndroidApiLevel(testDevice.apiLevel),
       hostConnectionType = DeviceState.HostConnectionType.USB,
     )
 

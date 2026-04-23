@@ -69,22 +69,6 @@ class AdbFileListingTest {
     // (And the proper solution of resetting all shared state between tests appears infeasible.)
     originalTimeout = DdmPreferences.getTimeOut()
     DdmPreferences.setTimeOut(5_000)
-
-    deviceState =
-      fakeAdbRule.fakeAdb.connectDevice(
-        deviceId = "test_device_01",
-        manufacturer = "Google",
-        deviceModel = "Pixel 10",
-        release = "8.0",
-        sdk = AndroidApiLevel(31),
-        hostConnectionType = com.android.fakeadbserver.DeviceState.HostConnectionType.USB,
-      )
-
-    device = runBlocking {
-      withTimeout(Duration.ofSeconds(5).toMillis()) {
-        fakeAdbRule.adbSession.connectedDevicesTracker.connectedDevices.first { it.isNotEmpty() }.first()
-      }
-    }
   }
 
   @After
@@ -95,7 +79,7 @@ class AdbFileListingTest {
   @Test
   fun test_Nexus7Api23_GetRoot() = runBlocking {
     // Prepare
-    TestDevices.NEXUS_7_API23.addCommands(commands)
+    setupMockDevice(TestDevices.NEXUS_7_API23)
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
 
     // Act
@@ -111,7 +95,7 @@ class AdbFileListingTest {
   @Test
   fun test_Nexus7Api23_GetRootChildrenError(): Unit = runBlocking {
     // Prepare
-    TestDevices.NEXUS_7_API23.addCommands(commands)
+    setupMockDevice(TestDevices.NEXUS_7_API23)
     commands.addError("ls -al /" + TestDevices.COMMAND_ERROR_CHECK_SUFFIX, ShellCommandUnresponsiveException())
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
 
@@ -126,7 +110,7 @@ class AdbFileListingTest {
   @Test
   fun test_Nexus7Api23_GetRootChildren(): Unit = runBlocking {
     // Prepare
-    TestDevices.NEXUS_7_API23.addCommands(commands)
+    setupMockDevice(TestDevices.NEXUS_7_API23)
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
 
     // Act
@@ -188,7 +172,7 @@ class AdbFileListingTest {
   @Test
   fun test_Nexus7Api23_IsDirectoryLink(): Unit = runBlocking {
     // Prepare
-    TestDevices.NEXUS_7_API23.addCommands(commands)
+    setupMockDevice(TestDevices.NEXUS_7_API23)
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
 
     // Act
@@ -208,7 +192,7 @@ class AdbFileListingTest {
   @Test
   fun test_EmulatorApi25_GetRoot(): Unit = runBlocking {
     // Prepare
-    TestDevices.NEXUS_7_API23.addCommands(commands)
+    setupMockDevice(TestDevices.EMULATOR_API25)
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
 
     // Act
@@ -224,7 +208,7 @@ class AdbFileListingTest {
   @Test
   fun test_EmulatorApi25_GetRootChildrenError(): Unit = runBlocking {
     // Prepare
-    TestDevices.EMULATOR_API25.addCommands(commands)
+    setupMockDevice(TestDevices.EMULATOR_API25)
     commands.addError("su 0 sh -c 'ls -al /'" + TestDevices.COMMAND_ERROR_CHECK_SUFFIX, ShellCommandUnresponsiveException())
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
 
@@ -239,7 +223,7 @@ class AdbFileListingTest {
   @Test
   fun test_EmulatorApi25_GetRootChildren(): Unit = runBlocking {
     // Prepare
-    TestDevices.EMULATOR_API25.addCommands(commands)
+    setupMockDevice(TestDevices.EMULATOR_API25)
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
 
     // Act
@@ -301,6 +285,7 @@ class AdbFileListingTest {
 
   @Test
   fun whenLsEscapes(): Unit = runBlocking {
+    setupMockDevice(TestDevices.EMULATOR_API25)
     TestDevices.addWhenLsEscapesCommands(commands)
     val listing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
     val dir =
@@ -310,6 +295,7 @@ class AdbFileListingTest {
 
   @Test
   fun whenLsDoesNotEscape(): Unit = runBlocking {
+    setupMockDevice(TestDevices.EMULATOR_API25)
     TestDevices.addWhenLsDoesNotEscapeCommands(commands)
     val listing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
     val dir =
@@ -320,7 +306,7 @@ class AdbFileListingTest {
   @Test
   fun test_EmulatorApi25_IsDirectoryLink(): Unit = runBlocking {
     // Prepare
-    TestDevices.EMULATOR_API25.addCommands(commands)
+    setupMockDevice(TestDevices.EMULATOR_API25)
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
 
     // Act
@@ -335,6 +321,25 @@ class AdbFileListingTest {
     assertDirectoryLink(fileListing, rootEntries, "sdcard", true)
     assertDirectoryLink(fileListing, rootEntries, "system", false)
     assertDirectoryLink(fileListing, rootEntries, "vendor", true)
+  }
+
+  private fun setupMockDevice(testDevice: TestDevices) {
+    testDevice.addCommands(commands)
+    deviceState =
+      fakeAdbRule.fakeAdb.connectDevice(
+        deviceId = "test_device_01",
+        manufacturer = "Google",
+        deviceModel = "Pixel 10",
+        release = "8.0",
+        sdk = AndroidApiLevel(testDevice.apiLevel),
+        hostConnectionType = com.android.fakeadbserver.DeviceState.HostConnectionType.USB,
+      )
+
+    device = runBlocking {
+      withTimeout(Duration.ofSeconds(5).toMillis()) {
+        fakeAdbRule.adbSession.connectedDevicesTracker.connectedDevices.first { it.isNotEmpty() }.first()
+      }
+    }
   }
 
   companion object {

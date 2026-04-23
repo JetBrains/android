@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("SpellCheckingInspection")
 public enum TestDevices {
-  EMULATOR_API10 {
+  EMULATOR_API10(10) {
     /**
      * Add commands from a Nexus 5 emulator, runnign Android 2.3.7, API 10
      */
@@ -172,7 +172,7 @@ public enum TestDevices {
     }
   },
 
-  NEXUS_7_API23 {
+  NEXUS_7_API23(23) {
     /**
      * Add commands from a Nexus 7 device, running Android 6.0.1, API 23
      */
@@ -196,74 +196,74 @@ public enum TestDevices {
       addCommand(commands, "rm /data/local/tmp/device-explorer/.__temp_touch_test_file__.tmp", "");
 
       // Listing commands
-      addCommand(commands, "ls -al /", "drwxr-xr-x root     root         4096 2016-08-26 12:12 .\r\n" +
-                                       "drwxr-xr-x root     root         4096 2016-08-26 12:12 ..\r\n" +
-                                       "drwxr-xr-x root     root              2016-11-21 12:09 acct\r\n" +
-                                       "drwxrwx--- system   cache             2016-08-26 12:12 cache\r\n" +
-                                       "lrwxrwxrwx root     root              1969-12-31 16:00 charger -> /sbin/healthd\r\n" +
-                                       "dr-x------ root     root              2016-11-21 12:09 config\r\n" +
-                                       "lrwxrwxrwx root     root              2016-11-21 12:09 d -> /sys/kernel/debug\r\n" +
-                                       "drwxrwx--x system   system            2016-11-21 12:10 data\r\n" +
-                                       "-rw-r--r-- root     root          564 1969-12-31 16:00 default.prop\r\n" +
-                                       "drwxr-xr-x root     root              2016-11-21 14:04 dev\r\n" +
-                                       "lrwxrwxrwx root     root              2016-11-21 12:09 etc -> /system/etc\r\n" +
-                                       "-rw-r--r-- root     root        21429 1969-12-31 16:00 file_contexts\r\n" +
-                                       "drwxrwx--x system   system            2016-11-21 12:09 firmware\r\n" +
-                                       "-rw-r----- root     root         3447 1969-12-31 16:00 fstab.flo\r\n" +
-                                       "lstat '//init' failed: Permission denied\r\n" +
-                                       "-rwxr-x--- root     root          852 1969-12-31 16:00 init.environ.rc\r\n" +
-                                       "-rwxr-x--- root     root           79 1969-12-31 16:00 init.flo.diag.rc\r\n" +
-                                       "-rwxr-x--- root     root        15962 1969-12-31 16:00 init.flo.rc\r\n" +
-                                       "-rwxr-x--- root     root         8086 1969-12-31 16:00 init.flo.usb.rc\r\n" +
-                                       "-rwxr-x--- root     root        26830 1969-12-31 16:00 init.rc\r\n" +
-                                       "-rwxr-x--- root     root         1921 1969-12-31 16:00 init.trace.rc\r\n" +
-                                       "-rwxr-x--- root     root         9283 1969-12-31 16:00 init.usb.configfs.rc\r\n" +
-                                       "-rwxr-x--- root     root         5339 1969-12-31 16:00 init.usb.rc\r\n" +
-                                       "-rwxr-x--- root     root          342 1969-12-31 16:00 init.zygote32.rc\r\n" +
-                                       "drwxr-xr-x root     system            2016-11-21 12:09 mnt\r\n" +
-                                       "drwxr-xr-x root     root              1969-12-31 16:00 oem\r\n" +
-                                       "lstat '//persist' failed: Permission denied\r\n" +
-                                       "dr-xr-xr-x root     root              1969-12-31 16:00 proc\r\n" +
-                                       "-rw-r--r-- root     root         3405 1969-12-31 16:00 property_contexts\r\n" +
-                                       "drwxr-xr-x root     root              1969-12-31 16:00 res\r\n" +
-                                       "drwx------ root     root              2016-07-01 17:00 root\r\n" +
-                                       "drwxr-x--- root     root              1969-12-31 16:00 sbin\r\n" +
-                                       "lrwxrwxrwx root     root              2016-11-21 12:09 sdcard -> /storage/self/primary\r\n" +
-                                       "-rw-r--r-- root     root          596 1969-12-31 16:00 seapp_contexts\r\n" +
-                                       "-rw-r--r-- root     root           51 1969-12-31 16:00 selinux_version\r\n" +
-                                       "-rw-r--r-- root     root       149405 1969-12-31 16:00 sepolicy\r\n" +
-                                       "-rw-r--r-- root     root         9769 1969-12-31 16:00 service_contexts\r\n" +
-                                       "drwxr-xr-x root     root              2016-11-21 12:10 storage\r\n" +
-                                       "dr-xr-xr-x root     root              2016-11-21 12:09 sys\r\n" +
-                                       "drwxr-xr-x root     root              2016-08-26 12:02 system\r\n" +
-                                       "lrwxrwxrwx root     root              2016-11-21 12:09 tombstones -> /data/tombstones\r\n" +
-                                       "-rw-r--r-- root     root         2195 1969-12-31 16:00 ueventd.flo.rc\r\n" +
-                                       "-rw-r--r-- root     root         4587 1969-12-31 16:00 ueventd.rc\r\n" +
-                                       "lrwxrwxrwx root     root              2016-11-21 12:09 vendor -> /system/vendor\r\n");
+      addCommand(commands, "ls -al /", "drwxr-xr-x root     root         4096 2016-08-26 12:12 .\n" +
+                                       "drwxr-xr-x root     root         4096 2016-08-26 12:12 ..\n" +
+                                       "drwxr-xr-x root     root              2016-11-21 12:09 acct\n" +
+                                       "drwxrwx--- system   cache             2016-08-26 12:12 cache\n" +
+                                       "lrwxrwxrwx root     root              1969-12-31 16:00 charger -> /sbin/healthd\n" +
+                                       "dr-x------ root     root              2016-11-21 12:09 config\n" +
+                                       "lrwxrwxrwx root     root              2016-11-21 12:09 d -> /sys/kernel/debug\n" +
+                                       "drwxrwx--x system   system            2016-11-21 12:10 data\n" +
+                                       "-rw-r--r-- root     root          564 1969-12-31 16:00 default.prop\n" +
+                                       "drwxr-xr-x root     root              2016-11-21 14:04 dev\n" +
+                                       "lrwxrwxrwx root     root              2016-11-21 12:09 etc -> /system/etc\n" +
+                                       "-rw-r--r-- root     root        21429 1969-12-31 16:00 file_contexts\n" +
+                                       "drwxrwx--x system   system            2016-11-21 12:09 firmware\n" +
+                                       "-rw-r----- root     root         3447 1969-12-31 16:00 fstab.flo\n" +
+                                       "lstat '//init' failed: Permission denied\n" +
+                                       "-rwxr-x--- root     root          852 1969-12-31 16:00 init.environ.rc\n" +
+                                       "-rwxr-x--- root     root           79 1969-12-31 16:00 init.flo.diag.rc\n" +
+                                       "-rwxr-x--- root     root        15962 1969-12-31 16:00 init.flo.rc\n" +
+                                       "-rwxr-x--- root     root         8086 1969-12-31 16:00 init.flo.usb.rc\n" +
+                                       "-rwxr-x--- root     root        26830 1969-12-31 16:00 init.rc\n" +
+                                       "-rwxr-x--- root     root         1921 1969-12-31 16:00 init.trace.rc\n" +
+                                       "-rwxr-x--- root     root         9283 1969-12-31 16:00 init.usb.configfs.rc\n" +
+                                       "-rwxr-x--- root     root         5339 1969-12-31 16:00 init.usb.rc\n" +
+                                       "-rwxr-x--- root     root          342 1969-12-31 16:00 init.zygote32.rc\n" +
+                                       "drwxr-xr-x root     system            2016-11-21 12:09 mnt\n" +
+                                       "drwxr-xr-x root     root              1969-12-31 16:00 oem\n" +
+                                       "lstat '//persist' failed: Permission denied\n" +
+                                       "dr-xr-xr-x root     root              1969-12-31 16:00 proc\n" +
+                                       "-rw-r--r-- root     root         3405 1969-12-31 16:00 property_contexts\n" +
+                                       "drwxr-xr-x root     root              1969-12-31 16:00 res\n" +
+                                       "drwx------ root     root              2016-07-01 17:00 root\n" +
+                                       "drwxr-x--- root     root              1969-12-31 16:00 sbin\n" +
+                                       "lrwxrwxrwx root     root              2016-11-21 12:09 sdcard -> /storage/self/primary\n" +
+                                       "-rw-r--r-- root     root          596 1969-12-31 16:00 seapp_contexts\n" +
+                                       "-rw-r--r-- root     root           51 1969-12-31 16:00 selinux_version\n" +
+                                       "-rw-r--r-- root     root       149405 1969-12-31 16:00 sepolicy\n" +
+                                       "-rw-r--r-- root     root         9769 1969-12-31 16:00 service_contexts\n" +
+                                       "drwxr-xr-x root     root              2016-11-21 12:10 storage\n" +
+                                       "dr-xr-xr-x root     root              2016-11-21 12:09 sys\n" +
+                                       "drwxr-xr-x root     root              2016-08-26 12:02 system\n" +
+                                       "lrwxrwxrwx root     root              2016-11-21 12:09 tombstones -> /data/tombstones\n" +
+                                       "-rw-r--r-- root     root         2195 1969-12-31 16:00 ueventd.flo.rc\n" +
+                                       "-rw-r--r-- root     root         4587 1969-12-31 16:00 ueventd.rc\n" +
+                                       "lrwxrwxrwx root     root              2016-11-21 12:09 vendor -> /system/vendor\n");
 
-      commands.add("ls -l -d /charger/", "/charger/: Permission denied\r\n");
-      commands.add("ls -l -d /d/", "drwxr-xr-x root     root              1969-12-31 16:00\r\n");
-      commands.add("ls -l -d /etc/", "drwxr-xr-x root     root              2016-08-26 12:00\r\n");
-      commands.add("ls -l -d /sdcard/", "drwxrwx--x root     sdcard_rw          2014-02-10 17:16\r\n");
-      commands.add("ls -l -d /tombstones/", "/tombstones/: Permission denied\r\n");
-      commands.add("ls -l -d /vendor/", "drwxr-xr-x root     shell             2013-06-15 12:54\r\n");
+      commands.add("ls -l -d /charger/", "/charger/: Permission denied\n");
+      commands.add("ls -l -d /d/", "drwxr-xr-x root     root              1969-12-31 16:00\n");
+      commands.add("ls -l -d /etc/", "drwxr-xr-x root     root              2016-08-26 12:00\n");
+      commands.add("ls -l -d /sdcard/", "drwxrwx--x root     sdcard_rw          2014-02-10 17:16\n");
+      commands.add("ls -l -d /tombstones/", "/tombstones/: Permission denied\n");
+      commands.add("ls -l -d /vendor/", "drwxr-xr-x root     shell             2013-06-15 12:54\n");
 
-      addCommand(commands, "ls -al /system/", "drwxr-xr-x root     root         4096 2016-08-26 12:12 .\r\n" +
-                                              "drwxr-xr-x root     root         4096 2016-08-26 12:12 ..\r\n" +
-                                              "drwxr-xr-x root     root              2016-05-17 12:04 app\r\n" +
-                                              "drwxr-xr-x root     shell             2016-08-26 12:00 bin\r\n" +
-                                              "-rw-r--r-- root     root         3870 2016-08-26 12:02 build.prop\r\n" +
-                                              "drwxr-xr-x root     root              2016-08-26 12:00 etc\r\n" +
-                                              "drwxr-xr-x root     root              2016-05-27 13:49 fonts\r\n" +
-                                              "drwxr-xr-x root     root              2016-08-26 12:02 framework\r\n" +
-                                              "drwxr-xr-x root     root              2016-08-26 12:00 lib\r\n" +
-                                              "drwxr-xr-x root     root              1969-12-31 16:00 lost+found\r\n" +
-                                              "drwxr-xr-x root     root              2016-05-17 12:01 media\r\n" +
-                                              "drwxr-xr-x root     root              2016-05-17 12:04 priv-app\r\n" +
-                                              "-rw-r--r-- root     root       103290 2008-08-01 05:00 recovery-from-boot.p\r\n" +
-                                              "drwxr-xr-x root     root              2016-05-17 12:04 usr\r\n" +
-                                              "drwxr-xr-x root     shell             2013-06-15 12:54 vendor\r\n" +
-                                              "drwxr-xr-x root     shell             2016-08-24 15:40 xbin\r\n");
+      addCommand(commands, "ls -al /system/", "drwxr-xr-x root     root         4096 2016-08-26 12:12 .\n" +
+                                              "drwxr-xr-x root     root         4096 2016-08-26 12:12 ..\n" +
+                                              "drwxr-xr-x root     root              2016-05-17 12:04 app\n" +
+                                              "drwxr-xr-x root     shell             2016-08-26 12:00 bin\n" +
+                                              "-rw-r--r-- root     root         3870 2016-08-26 12:02 build.prop\n" +
+                                              "drwxr-xr-x root     root              2016-08-26 12:00 etc\n" +
+                                              "drwxr-xr-x root     root              2016-05-27 13:49 fonts\n" +
+                                              "drwxr-xr-x root     root              2016-08-26 12:02 framework\n" +
+                                              "drwxr-xr-x root     root              2016-08-26 12:00 lib\n" +
+                                              "drwxr-xr-x root     root              1969-12-31 16:00 lost+found\n" +
+                                              "drwxr-xr-x root     root              2016-05-17 12:01 media\n" +
+                                              "drwxr-xr-x root     root              2016-05-17 12:04 priv-app\n" +
+                                              "-rw-r--r-- root     root       103290 2008-08-01 05:00 recovery-from-boot.p\n" +
+                                              "drwxr-xr-x root     root              2016-05-17 12:04 usr\n" +
+                                              "drwxr-xr-x root     shell             2013-06-15 12:54 vendor\n" +
+                                              "drwxr-xr-x root     shell             2016-08-24 15:40 xbin\n");
 
       addFailedCommand(commands, "test -e /foo.txt");
 
@@ -549,7 +549,7 @@ public enum TestDevices {
                  "drwxr-xr-x root root 2021-08-02 09:20:53.000000000 -0700 4096 /");
     }
   },
-  EMULATOR_API25 {
+  EMULATOR_API25(25) {
     /** Add commands from a Pixel emulator, running Android 7.1, API 25 */
     public void addCommands(@NotNull TestShellCommands shellCommands) {
       shellCommands.setDescription("Emulator Pixel, Android 7.1, API 25");
@@ -652,6 +652,16 @@ public enum TestDevices {
                  "drwxr-xr-x root root 2021-08-02 09:20:53.000000000 -0700 4096 /");
     }
   };
+
+  private final int myApiLevel;
+
+  TestDevices(int apiLevel) {
+    myApiLevel = apiLevel;
+  }
+
+  public int getApiLevel() {
+    return myApiLevel;
+  }
 
   public abstract void addCommands(@NotNull TestShellCommands commands);
 
