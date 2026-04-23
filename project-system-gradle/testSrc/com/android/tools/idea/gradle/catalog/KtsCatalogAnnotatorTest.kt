@@ -30,7 +30,9 @@ import com.intellij.psi.PsiFile
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
 import com.intellij.testFramework.registerExtension
+import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.AndroidTestBase
 import org.junit.Before
 import org.junit.Rule
@@ -92,6 +94,7 @@ class KtsCatalogAnnotatorTest {
       )
     fixture.configureFromExistingVirtualFile(catalog.virtualFile)
     ApplicationManager.getApplication().registerExtension(EP_NAME, service, projectRule.fixture.testRootDisposable)
+    (fixture as CodeInsightTestFixtureImpl).canChangeDocumentDuringHighlighting(true)
   }
 
   @Test
@@ -107,9 +110,7 @@ class KtsCatalogAnnotatorTest {
           .trimIndent(),
       )
 
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
-
-    fixture.checkHighlighting()
+    fixture.configureFromFileAndCheckHighlighting(file)
   }
 
   @Test
@@ -125,9 +126,7 @@ class KtsCatalogAnnotatorTest {
           .trimIndent(),
       )
 
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
-
-    fixture.checkHighlighting()
+    fixture.configureFromFileAndCheckHighlighting(file)
   }
 
   @Test
@@ -143,9 +142,7 @@ class KtsCatalogAnnotatorTest {
           .trimIndent(),
       )
 
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
-
-    fixture.checkHighlighting()
+    fixture.configureFromFileAndCheckHighlighting(file)
   }
 
   @Test
@@ -165,9 +162,7 @@ class KtsCatalogAnnotatorTest {
           .trimIndent(),
       )
 
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
-
-    fixture.checkHighlighting()
+    fixture.configureFromFileAndCheckHighlighting(file)
   }
 
   @Test
@@ -181,9 +176,7 @@ class KtsCatalogAnnotatorTest {
           .trimIndent(),
       )
 
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
-
-    fixture.checkHighlighting()
+    fixture.configureFromFileAndCheckHighlighting(file)
   }
 
   @Test
@@ -197,9 +190,7 @@ class KtsCatalogAnnotatorTest {
           .trimIndent(),
       )
 
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
-
-    fixture.checkHighlighting()
+    fixture.configureFromFileAndCheckHighlighting(file)
   }
 
   // no highlighting if it's not a catalog reference
@@ -217,8 +208,11 @@ class KtsCatalogAnnotatorTest {
           .trimIndent(),
       )
 
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.configureFromFileAndCheckHighlighting(file)
+  }
 
-    fixture.checkHighlighting()
+  private fun CodeInsightTestFixture.configureFromFileAndCheckHighlighting(file: PsiFile) {
+    configureFromExistingVirtualFile(file.virtualFile)
+    runInEdtAndWait { checkHighlighting() }
   }
 }
