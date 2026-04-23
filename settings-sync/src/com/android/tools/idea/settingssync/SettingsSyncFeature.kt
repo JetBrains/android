@@ -26,8 +26,8 @@ import com.android.tools.idea.settingssync.onboarding.ChooseCategoriesStepPage
 import com.android.tools.idea.settingssync.onboarding.EnableOrSkipStepPage
 import com.android.tools.idea.settingssync.onboarding.PushOrPullStepPage
 import com.google.gct.login2.LoginCompletedCallback
-import com.google.gct.login2.LoginFeature
 import com.google.gct.login2.OAuthScope
+import com.google.gct.login2.ui.onboarding.LoginFeatureWithOnboarding
 import com.google.gct.wizard.WizardPage
 import com.google.wireless.android.sdk.stats.GoogleLoginPluginEvent
 import com.intellij.openapi.actionSystem.AnAction
@@ -39,7 +39,7 @@ import icons.StudioIllustrationsCompose
 import javax.swing.Icon
 import org.jetbrains.jewel.ui.icon.IconKey
 
-class SettingsSyncFeature : LoginFeature {
+class SettingsSyncFeature : LoginFeatureWithOnboarding {
   override val key: String = "Backup and Sync"
   override val title: String = "Backup and Sync"
 
@@ -65,8 +65,8 @@ class SettingsSyncFeature : LoginFeature {
 
   override val activeUserSwitchRequired: Boolean = false
 
-  override val onboardingWizardEntry: LoginFeature.OnboardingWizardEntry =
-    object : LoginFeature.OnboardingWizardEntry {
+  override val onboardingWizardEntry: LoginFeatureWithOnboarding.OnboardingWizardEntry =
+    object : LoginFeatureWithOnboarding.OnboardingWizardEntry {
       override val icon: Icon = StudioIllustrations.Common.GOOGLE_LOGO
       override val composeIconKey: IconKey = StudioIllustrationsCompose.Common.GoogleLogo
       override val title: String = "<b>Google Account Storage:</b> Enable Backup and Sync"

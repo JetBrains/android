@@ -20,14 +20,14 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
-import com.google.gct.login2.LoginFeature
 import com.google.gct.login2.OAuthScope
+import com.google.gct.login2.ui.onboarding.LoginFeatureWithOnboarding
 import icons.StudioIllustrations
 import icons.StudioIllustrationsCompose
 import javax.swing.Icon
 import org.jetbrains.jewel.ui.icon.IconKey
 
-class VitalsLoginFeature : LoginFeature {
+class VitalsLoginFeature : LoginFeatureWithOnboarding {
   override val key: String = "Android Vitals"
   override val title = "Android Vitals"
   override val infoUrl = "https://play.google.com/console/developers/app/vitals/"
@@ -39,9 +39,9 @@ class VitalsLoginFeature : LoginFeature {
       "Android Vitals integration in App Quality Insights."
   override val oAuthScopes = listOf(OAuthScope.PlayDeveloperReporting)
 
-  override val onboardingWizardEntry: LoginFeature.OnboardingWizardEntry
+  override val onboardingWizardEntry: LoginFeatureWithOnboarding.OnboardingWizardEntry
     get() =
-      object : LoginFeature.OnboardingWizardEntry {
+      object : LoginFeatureWithOnboarding.OnboardingWizardEntry {
         override val icon: Icon = StudioIllustrations.Common.PLAY_STORE
         override val composeIconKey: IconKey = StudioIllustrationsCompose.Common.PlayStore
         override val title: String = "<b>Google Play:</b> Enable viewing Android Vitals crash reports"

@@ -264,6 +264,7 @@ studio_plugin(
             "//tools/adt/idea/logcat:intellij.android.logcat",
             "//tools/adt/idea/logcat/gradle:intellij.android.logcat.gradle",
             "//tools/vendor/google/login:google-login",
+            "//tools/vendor/google/login/onboarding:login.onboarding",
             "//tools/adt/idea/mlkit:intellij.android.mlkit",
             "//tools/adt/idea/nav/safeargs:intellij.android.nav.safeargs",
             "//tools/adt/idea/nav/safeargs/common:intellij.android.nav.safeargs.common",
@@ -1365,8 +1366,6 @@ iml_module(
         "//tools/vendor/google/git4insights",
         "//tools/vendor/google/firebase",
         "//tools/studio/google/cloud/testing/directaccess",
-        "//tools/vendor/google/login:google-login",
-        "//tools/adt/idea/smali:intellij.android.smali",
         "//tools/studio/google/cloud/testing/test-recorder",
         "//tools/vendor/google/url-assistant",
         "//tools/vendor/google/targetsdkversion-upgrade-assistant",
@@ -1378,6 +1377,7 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "//tools/vendor/google/optional-plugins",
+        "//tools/adt/idea/smali:intellij.android.smali",
     ],
 )
 

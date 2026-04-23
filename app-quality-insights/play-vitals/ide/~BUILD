@@ -31,6 +31,7 @@ iml_module(
         "@intellij//:intellij.libraries.grpc.netty.shaded",
         "//tools/adt/idea/app-quality-insights/client:intellij.android.app-quality-insights.client",
         "@intellij//:intellij.java.execution",
+        "//tools/vendor/google/login/onboarding:login.onboarding",
     ],
 )
 
@@ -64,6 +65,7 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
         "//tools/adt/idea/app-quality-insights/client:intellij.android.app-quality-insights.client",
         "//tools/adt/idea/app-quality-insights/play-vitals/model:intellij.android.app-quality-insights.play-vitals.model",
+        "//tools/vendor/google/login/onboarding:login.onboarding",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

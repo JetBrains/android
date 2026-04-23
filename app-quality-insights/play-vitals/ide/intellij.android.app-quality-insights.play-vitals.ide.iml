@@ -36,5 +36,6 @@
     <orderEntry type="module" module-name="intellij.android.artwork-compose" />
     <orderEntry type="library" name="studio-plugin-intellij.libraries.grpc.netty.shaded" level="project" />
     <orderEntry type="module" module-name="intellij.android.app-quality-insights.client" />
+    <orderEntry type="module" module-name="login.onboarding" />
   </component>
 </module>

@@ -36,6 +36,7 @@
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
     <orderEntry type="module" module-name="google-login" />
+    <orderEntry type="module" module-name="login.onboarding" />
     <orderEntry type="library" name="studio-plugin-org.intellij.groovy" level="project" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />

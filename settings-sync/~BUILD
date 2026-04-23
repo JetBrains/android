@@ -10,7 +10,6 @@ iml_module(
     test_class = "com.android.tools.idea.settingssync.SettingsSyncTestSuite",
     # do not sort: must match IML order
     test_deps = [
-        "@intellij//:test-framework",
         "//tools/adt/idea/.idea/libraries:junit4",
         "//tools/adt/idea/.idea/libraries:truth",
         "//tools/base/testutils:studio.android.sdktools.testutils",
@@ -22,6 +21,7 @@ iml_module(
         "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose.tests",
         "//tools/adt/idea/android:intellij.android.core.tests",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
+        "@intellij//:test-framework",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
@@ -40,5 +40,6 @@ iml_module(
         "//tools/base/annotations:studio.android.sdktools.android-annotations",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/analytics-library/tracker:analytics-tracker",
+        "//tools/vendor/google/login/onboarding:login.onboarding",
     ],
 )

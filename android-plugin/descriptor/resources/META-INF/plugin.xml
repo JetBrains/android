@@ -161,6 +161,7 @@
   <xi:include href="/META-INF/android-execution-common.xml"/>
   <xi:include href="/META-INF/android-deploy.xml"/>
   <!--<xi:include href="/META-INF/google-login.xml"/>-->
+  <!--<xi:include href="/META-INF/login-onboarding.xml"/>-->
   <!--<xi:include href="/META-INF/samples-browser.xml"/>-->
   <xi:include href="/META-INF/native-symbolizer.xml"/>
   <xi:include href="/META-INF/native-symbolizer-gradle.xml"/>
