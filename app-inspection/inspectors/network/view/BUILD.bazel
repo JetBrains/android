@@ -15,7 +15,7 @@ jvm_library(
   resources = [":view_resources"],
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:java_compatibility",
+    "//libraries/java-compatibility",
     "//libraries/gson",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
@@ -65,6 +65,7 @@ jvm_library(
     ":view",
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
+    "//libraries/java-compatibility:java-compatibility_test_lib",
     "//libraries/gson:gson_test_lib",
     "@lib//:kotlinc-kotlin-jps-plugin-classpath-provided",
     "//libraries/kotlinx/coroutines/core:core_test_lib",
