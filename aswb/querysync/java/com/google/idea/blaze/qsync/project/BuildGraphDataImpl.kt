@@ -90,6 +90,8 @@ data class BuildGraphDataImpl private constructor(@VisibleForTesting @JvmField v
 
   override fun allLoadedTargets(): Collection<Label> = storage.targetMap.keys
 
+  override fun isAlwaysBuild(label: Label): Boolean = alwaysBuildTargets.contains(label)
+
   /** Returns a [Label] representing the given path in the workspace with the current build packages. The file does not need to exist. */
   @VisibleForTesting
   fun pathToLabel(file: Path): Label? {
@@ -261,13 +263,6 @@ data class BuildGraphDataImpl private constructor(@VisibleForTesting @JvmField v
     return storage.targetMap.values.asSequence().mapNotNull { it.customPackage().getOrNull() }.toSet()
   }
 
-  private fun getDependencyTrackingIncludeExternalDependencies(target: ProjectTarget): Boolean {
-    if (target.kind() == "alias") {
-      return true
-    }
-    return target.languages().asSequence().map { it.dependencyTrackingBehavior }.any { it.shouldIncludeExternalDependencies }
-  }
-
   /**
    * Returns the list of project targets related to the given workspace file.
    *
@@ -300,30 +295,6 @@ data class BuildGraphDataImpl private constructor(@VisibleForTesting @JvmField v
     }
   }
 
-  /**
-   * Traverses the dependency graph starting from `projectTargets` and returns the first level of dependencies which are either not in the
-   * project scope or must be built as they are not directly supported by the IDE.
-   */
-  private fun getTargetsRequiredFor(projectTargets: Collection<Label>): Set<Label> {
-    val externalDeps = mutableSetOf<Label>()
-    val seen = HashSet<Label>(projectTargets)
-    val queue = ArrayDeque(projectTargets)
-    while (!queue.isEmpty()) {
-      val target = queue.removeFirst()
-      val targetInfo = storage.targetMap[target]
-      if (targetInfo == null || alwaysBuildTargets.contains(target)) {
-        // External dependency.
-        externalDeps.add(target)
-        continue
-      }
-      val dependencyTracking = getDependencyTrackingIncludeExternalDependencies(targetInfo)
-      if (dependencyTracking) {
-        queue.addAll(targetInfo.deps().filter { seen.add(it) })
-      }
-    }
-    return externalDeps
-  }
-
   override val projectSupportedTargetCountForStatsOnly: Int
     get() = allSupportedTargets.targetCountForStatsOnly
 
@@ -333,17 +304,15 @@ data class BuildGraphDataImpl private constructor(@VisibleForTesting @JvmField v
   /**
    * Calculates the [RequestedTargets] for a project target.
    *
-   * @return Requested targets. The [RequestedTargets.targetsToBuild] will match the parameter given; the [RequestedTargets.requiredTargets]
-   *   will be determined by the [.getDependencyTrackingIncludeExternalDependencies] of the targets given.
+   * @return Requested targets. The [RequestedTargets.targetsToBuild] will match the parameter given.
    */
   override fun computeSufficientTargets(
     projectTargets: Collection<Label>,
     replaceNativeTargetsWithAndroidTransitionTriggeringTargets: Boolean,
-  ): RequestedTargets {
-    val filteredProjectTargets =
-      filterRedundantTargets(collectTargetsToBuildForSourcesIn(projectTargets, replaceNativeTargetsWithAndroidTransitionTriggeringTargets))
-    val requiredTargets = getTargetsRequiredFor(filteredProjectTargets)
-    return RequestedTargets(filteredProjectTargets, requiredTargets)
+  ): Set<Label> {
+    return filterRedundantTargets(
+      collectTargetsToBuildForSourcesIn(projectTargets, replaceNativeTargetsWithAndroidTransitionTriggeringTargets)
+    )
   }
 
   /** Collects project targets that contribute */
@@ -386,7 +355,7 @@ data class BuildGraphDataImpl private constructor(@VisibleForTesting @JvmField v
     }
   }
 
-  override fun computeWholeProjectTargets(): RequestedTargets {
+  override fun computeWholeProjectTargets(): Set<Label> {
     return computeSufficientTargets(
       allSupportedTargets.getTargets().filter { projectDefinitionTargetPatterns.inScope(it).status == INCLUDED }.toList(),
       replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false, // storage.allSupportedTargets includes them anyway.
@@ -422,16 +391,6 @@ data class BuildGraphDataImpl private constructor(@VisibleForTesting @JvmField v
    */
   fun filterRedundantTargets(projectTargets: Collection<Label>): Set<Label> {
     return filterRedundantTargets(graph = { storage.targetMap[it]?.deps().orEmpty() }, starting = projectTargets.toSet())
-  }
-
-  private fun Collection<Label>.transitiveClosure(): Sequence<ProjectTarget> {
-    return traverseDag(
-      valueEmitter = { storage.targetMap[it] },
-      edgeSelector = { _, targetInfo ->
-        val isKnownTargetWithTrackedDependencies = (targetInfo != null) && getDependencyTrackingIncludeExternalDependencies(targetInfo)
-        if (isKnownTargetWithTrackedDependencies) targetInfo.deps() else emptyList()
-      },
-    )
   }
 
   companion object {

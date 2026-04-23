@@ -115,10 +115,10 @@ interface BuildGraphData {
   fun computeSufficientTargets(
     projectTargets: Collection<Label>,
     replaceNativeTargetsWithAndroidTransitionTriggeringTargets: Boolean,
-  ): RequestedTargets
+  ): Set<Label>
 
   /** Calculates a sufficient set of targets to build for the whole project. */
-  fun computeWholeProjectTargets(): RequestedTargets
+  fun computeWholeProjectTargets(): Set<Label>
 
   /** Output stats about the the project to the context (and thus normally to the console). */
   fun outputStats(context: Context<*>)
@@ -134,6 +134,8 @@ interface BuildGraphData {
 
   /** Returns the language classes for which code analysis is currently enabled in this project. */
   fun getActiveLanguages(): Set<QuerySyncLanguage>
+
+  fun isAlwaysBuild(label: Label): Boolean
 
   companion object {
     @JvmField

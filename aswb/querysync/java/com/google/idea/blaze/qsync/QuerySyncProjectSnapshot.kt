@@ -23,6 +23,8 @@ import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.PostQuerySyncData
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.ProjectStructureData
+import com.google.idea.blaze.qsync.project.RequestedTargets
+import com.google.idea.blaze.qsync.project.requiredTargets
 import java.nio.file.Path
 
 /**
@@ -94,9 +96,12 @@ data class QuerySyncProjectSnapshot(
     val incompleteTargets: Set<Label> = incompleteTargets
     return projectTargets
       .map { target ->
-        graph
-          .computeSufficientTargets(listOf(target), replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false)
-          .requiredTargets
+        val requestedTargets =
+          RequestedTargets(
+            graph.computeSufficientTargets(listOf(target), replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false)
+          )
+        requestedTargets
+          .requiredTargets(getCodeAnalysisDependencyGraphProvider())
           .filter { !syncedTargets.contains(it) || incompleteTargets.contains(it) }
           .toSet()
       }

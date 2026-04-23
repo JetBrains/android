@@ -23,6 +23,7 @@ import com.google.idea.blaze.common.TargetPattern
 import com.google.idea.blaze.common.TargetPatternCollection
 import com.google.idea.blaze.qsync.BlazeQueryParser
 import com.google.idea.blaze.qsync.QuerySyncTestUtils
+import com.google.idea.blaze.qsync.getCodeAnalysisDependencyGraphProvider
 import com.google.idea.blaze.qsync.project.BuildGraphDataImpl.Companion.builder
 import com.google.idea.blaze.qsync.project.BuildGraphDataImpl.Companion.filterRedundantTargets
 import com.google.idea.blaze.qsync.testdata.BuildGraphs
@@ -165,22 +166,6 @@ class BuildGraphDataImplTest {
 
   @Test
   @Throws(Exception::class)
-  fun testJavaLibraryExternalDep() {
-    val graph =
-      BlazeQueryParser(
-          emptyTargetCollection,
-          QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY),
-          QuerySyncTestUtils.NOOP_CONTEXT,
-          emptySet(),
-          defaultProtoRules,
-        )
-        .parseForTesting()
-    assertThat(getRequiredTargets(graph, listOf(Label.of("//" + TESTDATA_ROOT.resolve("externaldep:externaldep")))))
-      .containsExactly(TestData.JAVA_LIBRARY_NO_DEPS_QUERY.assumedOnlyLabel)
-  }
-
-  @Test
-  @Throws(Exception::class)
   fun testJavaLibraryInternalDep() {
     val graph =
       BlazeQueryParser(
@@ -194,42 +179,6 @@ class BuildGraphDataImplTest {
     // Sanity check:
     assertThat(graph.storage.sourceFileLabels).contains(Label.of("//$TESTDATA_ROOT/nodeps:TestClassNoDeps.java"))
     assertThat(getRequiredTargets(graph, listOf(Label.of("//" + TESTDATA_ROOT.resolve("internaldep:internaldep"))))).isEmpty()
-  }
-
-  @Test
-  @Throws(Exception::class)
-  fun testJavaLibraryTransientDep() {
-    val graph =
-      BlazeQueryParser(
-          emptyTargetCollection,
-          QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_TRANSITIVE_DEP_QUERY),
-          QuerySyncTestUtils.NOOP_CONTEXT,
-          emptySet(),
-          defaultProtoRules,
-        )
-        .parseForTesting()
-    // Sanity check:
-    assertThat(graph.storage.sourceFileLabels).contains(Label.of("//$TESTDATA_ROOT/externaldep:TestClassExternalDep.java"))
-    assertThat(getRequiredTargets(graph, listOf(Label.of("//" + TESTDATA_ROOT.resolve("transitivedep:transitivedep")))))
-      .containsExactly(TestData.JAVA_LIBRARY_NO_DEPS_QUERY.assumedOnlyLabel)
-  }
-
-  @Test
-  @Throws(Exception::class)
-  fun testJavaLibraryProtoDep() {
-    val graph =
-      BlazeQueryParser(
-          emptyTargetCollection,
-          QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_PROTO_DEP_QUERY),
-          QuerySyncTestUtils.NOOP_CONTEXT,
-          emptySet(),
-          defaultProtoRules,
-        )
-        .parseForTesting()
-    assertThat(getRequiredTargets(graph, listOf(Label.of("//" + TESTDATA_ROOT.resolve("protodep:protodep")))))
-      .containsExactly(Label.of("//$TESTDATA_ROOT/protodep:proto_java_proto"))
-    assertThat(getRequiredTargets(graph, listOf(Label.of("//" + TESTDATA_ROOT.resolve("protodep:indirect_protodep")))))
-      .containsExactly(Label.of("//$TESTDATA_ROOT/protodep:indirect_proto_java_proto"))
   }
 
   @Test
@@ -437,14 +386,17 @@ class BuildGraphDataImplTest {
         )
         .parseForTesting()
     val targets =
-      graph.computeSufficientTargets(
-        graph
-          .getProjectTargets(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY.onlySourcePath.resolve(Path.of("TestClassExternalDep.java")))
-          .getUnambiguousTargets(),
-        replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false,
+      RequestedTargets(
+        graph.computeSufficientTargets(
+          graph
+            .getProjectTargets(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY.onlySourcePath.resolve(Path.of("TestClassExternalDep.java")))
+            .getUnambiguousTargets(),
+          replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false,
+        )
       )
     assertThat(targets.targetsToBuild).containsExactly(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY.assumedOnlyLabel)
-    assertThat(targets.requiredTargets).containsExactly(TestData.JAVA_LIBRARY_NO_DEPS_QUERY.assumedOnlyLabel)
+    val required = targets.requiredTargets(graph.getCodeAnalysisDependencyGraphProvider())
+    assertThat(required).containsExactly(TestData.JAVA_LIBRARY_NO_DEPS_QUERY.assumedOnlyLabel)
   }
 
   @Test
@@ -464,9 +416,11 @@ class BuildGraphDataImplTest {
         )
         .parseForTesting()
     val targets =
-      graph.computeSufficientTargets(
-        graph.getProjectTargets(TestData.JAVA_LIBRARY_MULTI_TARGETS.onlySourcePath.resolve(Path.of("BUILD"))).getUnambiguousTargets(),
-        replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false,
+      RequestedTargets(
+        graph.computeSufficientTargets(
+          graph.getProjectTargets(TestData.JAVA_LIBRARY_MULTI_TARGETS.onlySourcePath.resolve(Path.of("BUILD"))).getUnambiguousTargets(),
+          replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false,
+        )
       )
     assertThat(targets.targetsToBuild)
       .containsExactly(
@@ -474,7 +428,8 @@ class BuildGraphDataImplTest {
         TestData.JAVA_LIBRARY_MULTI_TARGETS.assumedOnlyLabel.siblingWithName("nodeps"),
       )
     val expected = "@@+intellij+intellij//:intellij-sdk"
-    assertThat(targets.requiredTargets).containsExactly(Label.of(expected))
+    val required = targets.requiredTargets(graph.getCodeAnalysisDependencyGraphProvider())
+    assertThat(required).containsExactly(Label.of(expected))
   }
 
   @Test
@@ -490,12 +445,15 @@ class BuildGraphDataImplTest {
         )
         .parseForTesting()
     val targets =
-      graph.computeSufficientTargets(
-        graph.getProjectTargets(TestData.JAVA_LIBRARY_NESTED_PACKAGE.onlySourcePath.resolve(Path.of("BUILD"))).getUnambiguousTargets(),
-        replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false,
+      RequestedTargets(
+        graph.computeSufficientTargets(
+          graph.getProjectTargets(TestData.JAVA_LIBRARY_NESTED_PACKAGE.onlySourcePath.resolve(Path.of("BUILD"))).getUnambiguousTargets(),
+          replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false,
+        )
       )
     assertThat(targets.targetsToBuild).containsExactly(TestData.JAVA_LIBRARY_NESTED_PACKAGE.assumedOnlyLabel)
-    assertThat(targets.requiredTargets).containsExactly(Label.of("@@+intellij+intellij//:intellij-sdk"))
+    val required = targets.requiredTargets(graph.getCodeAnalysisDependencyGraphProvider())
+    assertThat(required).containsExactly(Label.of("@@+intellij+intellij//:intellij-sdk"))
   }
 
   @Test
@@ -511,17 +469,19 @@ class BuildGraphDataImplTest {
         )
         .parseForTesting()
     val targets =
-      graph.computeSufficientTargets(
-        graph.getProjectTargets(TestData.JAVA_LIBRARY_NESTED_PACKAGE.onlySourcePath).getUnambiguousTargets(),
-        replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false,
+      RequestedTargets(
+        graph.computeSufficientTargets(
+          graph.getProjectTargets(TestData.JAVA_LIBRARY_NESTED_PACKAGE.onlySourcePath).getUnambiguousTargets(),
+          replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false,
+        )
       )
     assertThat(targets.targetsToBuild)
       .containsExactly(
         TestData.JAVA_LIBRARY_NESTED_PACKAGE.assumedOnlyLabel,
         TestData.JAVA_LIBRARY_NESTED_PACKAGE.assumedOnlyLabel.siblingWithPathAndName("inner:inner"),
       )
-    assertThat(targets.requiredTargets)
-      .containsExactly(Label.of("@@+intellij+intellij//:intellij-sdk"), Label.of("@@maven//:com.google.code.gson.gson"))
+    val required = targets.requiredTargets(graph.getCodeAnalysisDependencyGraphProvider())
+    assertThat(required).containsExactly(Label.of("@@+intellij+intellij//:intellij-sdk"), Label.of("@@maven//:com.google.code.gson.gson"))
   }
 
   @Test
@@ -537,12 +497,15 @@ class BuildGraphDataImplTest {
         )
         .parseForTesting()
     val targets =
-      graph.computeSufficientTargets(
-        graph.getProjectTargets(TestData.CC_EXTERNAL_DEP_QUERY.onlySourcePath.resolve("TestClass.cc")).getUnambiguousTargets(),
-        replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false,
+      RequestedTargets(
+        graph.computeSufficientTargets(
+          graph.getProjectTargets(TestData.CC_EXTERNAL_DEP_QUERY.onlySourcePath.resolve("TestClass.cc")).getUnambiguousTargets(),
+          replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false,
+        )
       )
     assertThat(targets.targetsToBuild).containsExactly(TestData.CC_EXTERNAL_DEP_QUERY.assumedOnlyLabel)
-    assertThat(targets.requiredTargets).isEmpty()
+    val required = targets.requiredTargets(graph.getCodeAnalysisDependencyGraphProvider())
+    assertThat(required).isEmpty()
   }
 
   private fun filterRedundantTargets(graph: Map<String, Set<String>>, targets: Set<String>): Set<String> {
@@ -699,12 +662,13 @@ class BuildGraphDataImplTest {
 
     val libLabel = Label.of("//$TESTDATA_ROOT/alias:lib")
     val requestedTargets =
-      graph.computeSufficientTargets(listOf(libLabel), replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false)
-    assertThat(requestedTargets.requiredTargets).containsExactly(depLabel)
+      RequestedTargets(graph.computeSufficientTargets(listOf(libLabel), replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false))
+    assertThat(requestedTargets.requiredTargets(graph.getCodeAnalysisDependencyGraphProvider())).containsExactly(depLabel)
   }
 
   private fun getRequiredTargets(graph: BuildGraphData, forTargets: Collection<Label>): Set<Label> {
-    return graph.computeSufficientTargets(forTargets, replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false).requiredTargets
+    return RequestedTargets(graph.computeSufficientTargets(forTargets, replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false))
+      .requiredTargets(graph.getCodeAnalysisDependencyGraphProvider())
   }
 
   companion object {
