@@ -103,6 +103,8 @@ import org.jetbrains.android.util.AndroidUtils
 private val logger: Logger
   get() = logger<NewProjectModel>()
 
+private const val MIGRATION_IMPORT_DIR_NAME = ".migration/import"
+
 /**
  * The source project type for migration/import.
  *
@@ -343,11 +345,13 @@ class NewProjectModel : WizardModel(), ProjectModelData {
 
         val sPath = importSourcePath.get()
         if (sPath.isNotEmpty()) {
-          val importSourceLink = File(projectRoot, "importSource")
+          val migrationImportDir = File(projectRoot, MIGRATION_IMPORT_DIR_NAME)
+          migrationImportDir.mkdirs()
+          val importSourceLink = File(migrationImportDir, "source")
           if (!importSourceLink.exists()) {
             Files.createSymbolicLink(importSourceLink.toPath(), Paths.get(sPath))
             // This is required so the new link is visible to the VFS
-            VfsUtil.markDirtyAndRefresh(false, true, true, project.baseDir)
+            VfsUtil.markDirtyAndRefresh(false, true, true, projectRoot)
           }
         }
       } catch (e: Exception) {
