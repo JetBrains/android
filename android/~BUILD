@@ -435,6 +435,7 @@ filegroup(
         "//tools/adt/idea/build-attribution:build-analysis-results-proto",
         "//tools/adt/idea/debuggers:libjava_sites",
         "//tools/adt/idea/logcat:logcat-proto",
+        "//tools/adt/idea/play-publishing:play_publishing_kt_proto",
         "//tools/adt/idea/profilers-android:traceprocessor-proto",
         "//tools/adt/idea/profilers-ui:traceprocessor-proto",
         "//tools/adt/idea/profilers:traceprocessor-proto",
