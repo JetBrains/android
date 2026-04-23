@@ -77,6 +77,9 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
       }
     }
 
+    MigrationArtifactsGroupNode migrationArtifactsGroupNode = MigrationArtifactsGroupNode.createIfAvailable(myProject, settings);
+    if (migrationArtifactsGroupNode != null) children.add(migrationArtifactsGroupNode);
+
     if (getProjectSystem(myProject).getBuildConfigurationSourceProvider() != null) {
       children.add(new AndroidBuildScriptsGroupNode(myProject, settings));
     }
