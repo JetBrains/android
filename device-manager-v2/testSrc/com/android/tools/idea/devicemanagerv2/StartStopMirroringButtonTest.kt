@@ -17,17 +17,15 @@ package com.android.tools.idea.devicemanagerv2
 
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.testutils.waitForCondition
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.streaming.MirroringHandle
 import com.android.tools.idea.streaming.MirroringManager
 import com.android.tools.idea.streaming.MirroringState
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.components.service
-import com.intellij.testFramework.ProjectRule
 import icons.StudioIcons
 import java.util.concurrent.TimeUnit
-import kotlin.coroutines.EmptyCoroutineContext
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancel
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
@@ -36,7 +34,7 @@ import org.mockito.kotlin.whenever
 /** Tests for StartStopMirroringButton. */
 class StartStopMirroringButtonTest {
 
-  @get:Rule val projectRule = ProjectRule()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private val project
     get() = projectRule.project
@@ -44,41 +42,35 @@ class StartStopMirroringButtonTest {
   private val mirroringManager
     get() = project.service<MirroringManager>()
 
-
   @Test
   fun testBasicFunctionality() {
-    val scope = CoroutineScope(EmptyCoroutineContext)
     val deviceHandle = mock<DeviceHandle>()
-    whenever(deviceHandle.scope).thenReturn(scope)
-    try {
-      val button = StartStopMirroringButton(deviceHandle, project)
-      assertThat(button.isVisible).isFalse()
+    whenever(deviceHandle.scope).thenReturn(projectRule.testRootDisposable.createCoroutineScope())
+    val button = StartStopMirroringButton(deviceHandle, project)
+    assertThat(button.isVisible).isFalse()
 
-      val activator = FakeMirroringHandle(MirroringState.INACTIVE)
-      mirroringManager.mirroringHandles.value = mapOf(deviceHandle to activator)
-      waitForCondition(1, TimeUnit.SECONDS) { button.baseIcon == StudioIcons.Avd.START_MIRROR }
-      assertThat(button.isVisible).isTrue()
-      assertThat(button.isEnabled).isTrue()
+    val activator = FakeMirroringHandle(MirroringState.INACTIVE)
+    mirroringManager.mirroringHandles.value = mapOf(deviceHandle to activator)
+    waitForCondition(1, TimeUnit.SECONDS) { button.baseIcon == StudioIcons.Avd.START_MIRROR }
+    assertThat(button.isVisible).isTrue()
+    assertThat(button.isEnabled).isTrue()
 
-      assertThat(activator.toggleCount).isEqualTo(0)
-      button.doClick()
-      assertThat(activator.toggleCount).isEqualTo(1)
+    assertThat(activator.toggleCount).isEqualTo(0)
+    button.doClick()
+    assertThat(activator.toggleCount).isEqualTo(1)
 
-      val deactivator = FakeMirroringHandle(MirroringState.ACTIVE)
-      mirroringManager.mirroringHandles.value = mapOf(deviceHandle to deactivator)
-      waitForCondition(1, TimeUnit.SECONDS) { button.baseIcon == StudioIcons.Avd.STOP_MIRROR }
-      assertThat(button.isVisible).isTrue()
-      assertThat(button.isEnabled).isTrue()
+    val deactivator = FakeMirroringHandle(MirroringState.ACTIVE)
+    mirroringManager.mirroringHandles.value = mapOf(deviceHandle to deactivator)
+    waitForCondition(1, TimeUnit.SECONDS) { button.baseIcon == StudioIcons.Avd.STOP_MIRROR }
+    assertThat(button.isVisible).isTrue()
+    assertThat(button.isEnabled).isTrue()
 
-      assertThat(deactivator.toggleCount).isEqualTo(0)
-      button.doClick()
-      assertThat(deactivator.toggleCount).isEqualTo(1)
+    assertThat(deactivator.toggleCount).isEqualTo(0)
+    button.doClick()
+    assertThat(deactivator.toggleCount).isEqualTo(1)
 
-      mirroringManager.mirroringHandles.value = mapOf()
-      waitForCondition(1, TimeUnit.SECONDS) { !button.isVisible }
-    } finally {
-      scope.cancel()
-    }
+    mirroringManager.mirroringHandles.value = mapOf()
+    waitForCondition(1, TimeUnit.SECONDS) { !button.isVisible }
   }
 
   private class FakeMirroringHandle(override val mirroringState: MirroringState) : MirroringHandle {
