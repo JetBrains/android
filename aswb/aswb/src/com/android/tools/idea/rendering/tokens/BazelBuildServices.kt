@@ -222,12 +222,11 @@ internal class BazelBuildServices : BuildSystemFilePreviewServices.BuildServices
     )
   }
 
-  private fun log(label: Label, project: Project, buildDuration: Duration) {
-    val outcome = checkNotNull(buildOutcomeCache.get(label)) { "The cache should have a mapping for $label" }
-    val finder = outcome.classFileFinder
+  private fun log(target: Label, project: Project, buildDuration: Duration) {
+    val outcome = checkNotNull(buildOutcomeCache.get(target)) { "The cache should have a mapping for $target" }
+    val finder = outcome.classFileFinder as? BazelClassFileFinder
 
-    EventLoggingService.getInstance()
-      .log(ComposablePreviewsEvent(project, buildDuration, if (finder is BazelClassFileFinder) finder.jarCountForLoggingOnly else null))
+    EventLoggingService.getInstance().log(ComposablePreviewsEvent(project, buildDuration, finder?.jarCountForLoggingOnly, target))
   }
 }
 
