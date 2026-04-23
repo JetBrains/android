@@ -2660,6 +2660,12 @@ public final class StudioFlags {
                     "Enable using Gradle project structure Agent tools by default",
                     "When enabled, a set of tools allowing the agent to query for the Gradle project structure will be included by default.");
 
+  public static final Flag<Boolean> STUDIOBOT_SMART_GRADLE_BUILD_TOOL =
+    new BooleanFlag(STUDIOBOT, "include.gradle.smart.build.tool",
+                    "Use Smart Gradle Build Tool in Agent",
+                    "When enabled, 'gradle_build' tool is replaced with a smarter version that can calculate required tasks from provided context.");
+
+
   public static final Flag<Boolean> STUDIOBOT_SUGGESTION_SMART_GROUPING_ENABLED =
     new BooleanFlag(STUDIOBOT, "suggestion.smart.grouping.enabled",
                     "Enable smart grouping of suggestions that are accepted or rejected together",
