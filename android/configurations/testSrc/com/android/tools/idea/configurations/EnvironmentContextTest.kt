@@ -20,18 +20,22 @@ import com.android.sdklib.IAndroidTarget
 import com.android.tools.configurations.ConfigurationListener
 import com.android.tools.configurations.ConfigurationSettings
 import com.android.tools.configurations.EnvironmentContext
+import com.android.tools.sdk.CompatibilityRenderTarget
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mockito
+import org.mockito.Mockito.`when`
 
 @RunWith(JUnit4::class)
 class EnvironmentContextTest {
 
-  private class StubContext : EnvironmentContext.Context {
-    override val settings: ConfigurationSettings = Mockito.mock(ConfigurationSettings::class.java)
+  private open class StubContext : EnvironmentContext.Context {
+    val mockDefaultTarget: IAndroidTarget = Mockito.mock(IAndroidTarget::class.java)
+    override val settings: ConfigurationSettings =
+      Mockito.mock(ConfigurationSettings::class.java).apply { `when`(this.target).thenReturn(mockDefaultTarget) }
     override val editedConfig: FolderConfiguration = FolderConfiguration()
     override val preferredTheme: String = "@style/DefaultTheme"
 
@@ -43,7 +47,7 @@ class EnvironmentContextTest {
     }
 
     override fun getTargetForRendering(target: IAndroidTarget?): IAndroidTarget? {
-      return null
+      return target
     }
   }
 
@@ -75,5 +79,55 @@ class EnvironmentContextTest {
 
     // Verifies ResourceUtils automatically prepends @style/
     assertEquals("@style/MyCustomTheme", env.theme)
+  }
+
+  @Test
+  fun testSetTargetAvoidsRedundantUpdates() {
+    val mockTarget = Mockito.mock(IAndroidTarget::class.java)
+    val wrapper = Mockito.mock(CompatibilityRenderTarget::class.java)
+    `when`(wrapper.realTarget).thenReturn(mockTarget)
+
+    val context =
+      object : StubContext() {
+        var nextTarget: IAndroidTarget? = null
+
+        override fun getTargetForRendering(target: IAndroidTarget?): IAndroidTarget? {
+          return nextTarget
+        }
+      }
+    val env = EnvironmentContext(context)
+
+    // Setup: env._target is now wrapper
+    context.nextTarget = wrapper
+    env.setTarget(mockTarget)
+
+    // Test: call setTarget with mockTarget again.
+    // In the buggy version, this returns CFG_TARGET because wrapper !== mockTarget.
+    val flags = env.setTarget(mockTarget)
+    assertEquals("Should not return CFG_TARGET for the same target", 0, flags)
+  }
+
+  @Test
+  fun testSetTargetNullWhenAlreadyNull() {
+    val context = StubContext()
+    val env = EnvironmentContext(context)
+
+    // env.target will return context.settings.target (mockDefaultTarget) because _target is null.
+    assertEquals(context.mockDefaultTarget, env.target)
+
+    val flags = env.setTarget(null)
+    assertEquals("Setting target to null when it is already null should be a no-op", 0, flags)
+  }
+
+  @Test
+  fun testSetTargetChangesWhenDifferent() {
+    val target1 = Mockito.mock(IAndroidTarget::class.java)
+    val target2 = Mockito.mock(IAndroidTarget::class.java)
+    val context = StubContext()
+    val env = EnvironmentContext(context)
+
+    env.setTarget(target1)
+    val flags = env.setTarget(target2)
+    assertEquals("Should return CFG_TARGET when target actually changes", ConfigurationListener.CFG_TARGET, flags)
   }
 }

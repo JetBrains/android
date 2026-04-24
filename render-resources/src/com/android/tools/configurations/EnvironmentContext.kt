@@ -138,15 +138,10 @@ class EnvironmentContext(private val context: Context) {
   /**
    * Sets the rendering target.
    *
-   * @return A bitmask containing[ConfigurationListener.CFG_TARGET] if changed, else 0.
+   * @return A bitmask containing [ConfigurationListener.CFG_TARGET] if changed, else 0.
    */
   fun setTarget(target: IAndroidTarget?): Int {
-    // TODO(b/475475082): This contains a legacy bug from Configuration.java.
-    // _target stores a wrapper (CompatibilityRenderTarget) while `target` is raw,
-    // so `!==` often evaluates to true incorrectly and spams CFG_TARGET listeners.
-    // Left as-is for now to maintain strict bug-for-bug compatibility during the Kotlin
-    // conversion, but this should be fixed to compare `this.realTarget !== target` in a follow-up CL.
-    if (_target !== target) {
+    if (_target !== target && realTarget !== target) {
       _target = context.getTargetForRendering(target)
       return ConfigurationListener.CFG_TARGET
     }
