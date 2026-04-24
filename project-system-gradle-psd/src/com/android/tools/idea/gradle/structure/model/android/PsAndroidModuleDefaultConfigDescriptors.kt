@@ -18,9 +18,9 @@ package com.android.tools.idea.gradle.structure.model.android
 import com.android.sdklib.AndroidTargetHash
 import com.android.tools.idea.gradle.model.IdeBaseConfig
 import com.android.tools.idea.gradle.model.IdeProductFlavor
-import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel
+import com.android.tools.idea.gradle.dsl.android.api.android.ProductFlavorModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
-import com.android.tools.idea.gradle.dsl.model.android.android
+import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.structure.model.helpers.booleanValues
 import com.android.tools.idea.gradle.structure.model.helpers.formatUnit
 import com.android.tools.idea.gradle.structure.model.helpers.matchHashStrings

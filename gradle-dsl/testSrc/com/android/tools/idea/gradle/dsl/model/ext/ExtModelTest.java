@@ -68,12 +68,12 @@ import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.FAKE;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.PROPERTIES_FILE;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
+import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelUtilsKt.android;
 
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
-import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
+import com.android.tools.idea.gradle.dsl.android.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.android.api.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;

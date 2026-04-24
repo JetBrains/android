@@ -1,0 +1,37 @@
+/*
+ * Copyright (C) 2025 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.gradle.dsl.android.model.android
+
+import com.android.tools.idea.gradle.dsl.android.api.android.AndroidModel
+import com.android.tools.idea.gradle.dsl.android.api.android.AndroidSoftwareTypesModel
+import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
+import com.android.tools.idea.gradle.dsl.android.parser.android.AndroidDslElement
+import com.android.tools.idea.gradle.dsl.android.parser.android.AndroidDslElement.ANDROID_APP
+import com.android.tools.idea.gradle.dsl.android.parser.android.AndroidDslElement.ANDROID_LIBRARY
+import com.android.tools.idea.gradle.dsl.parser.settings.DefaultsDslElement
+
+class AndroidSoftwareTypesModelImpl(private val defaultsDslElement: DefaultsDslElement) : GradleDslBlockModel(defaultsDslElement),
+                                                                                          AndroidSoftwareTypesModel {
+  override fun androidApp(): AndroidModel {
+    val androidElement: AndroidDslElement = defaultsDslElement.ensurePropertyElement(ANDROID_APP)
+    return AndroidModelImpl(androidElement)
+  }
+
+  override fun androidLibrary(): AndroidModel {
+    val androidElement: AndroidDslElement = defaultsDslElement.ensurePropertyElement(ANDROID_LIBRARY)
+    return AndroidModelImpl(androidElement)
+  }
+}

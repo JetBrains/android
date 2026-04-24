@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run
 
-import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel
+import com.android.tools.idea.gradle.dsl.android.api.android.SigningConfigModel
 import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel

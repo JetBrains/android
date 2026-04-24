@@ -16,10 +16,8 @@ jvm_library(
   deps = [
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
-    "@lib//:studio-platform-provided",
     "//platform/core-api:core",
     "//android/gradle-dsl",
-    "//android/gradle-dsl-plugin",
     "//libraries/guava",
   ]
 )

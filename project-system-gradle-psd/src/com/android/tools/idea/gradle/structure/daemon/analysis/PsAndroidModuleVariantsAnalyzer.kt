@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.daemon.analysis
 
-import com.android.tools.idea.gradle.dsl.model.android.android
+import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.PsPathRenderer
 import com.android.tools.idea.gradle.structure.model.PsGeneralIssue

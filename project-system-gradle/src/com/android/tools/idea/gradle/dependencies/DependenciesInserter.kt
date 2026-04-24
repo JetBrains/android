@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.dependencies
 
 import com.android.ide.common.gradle.Dependency
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
-import com.android.tools.idea.gradle.dsl.api.android.testOptions.testSuites.TestSuiteModel
+import com.android.tools.idea.gradle.dsl.android.api.android.testOptions.testSuites.TestSuiteModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel

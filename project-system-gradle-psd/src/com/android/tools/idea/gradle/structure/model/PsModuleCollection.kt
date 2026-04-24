@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.structure.model
 import com.android.SdkConstants
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.gradle.dsl.model.android.android
+import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsMutableCollectionBase
 import com.android.tools.idea.gradle.structure.model.empty.PsEmptyModule

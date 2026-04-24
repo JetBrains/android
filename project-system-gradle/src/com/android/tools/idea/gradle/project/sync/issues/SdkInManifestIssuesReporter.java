@@ -20,7 +20,7 @@ import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
 import static com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API;
 import static org.jetbrains.android.facet.AndroidRootUtil.getPrimaryManifestFile;
 
-import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
+import com.android.tools.idea.gradle.dsl.android.api.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileSyncMessageHyperlink;
