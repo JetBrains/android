@@ -1,4 +1,10 @@
-<idea-plugin>
+<idea-plugin package="com.android.tools.idea.gradle.dsl.android">
+  <!-- region Generated dependencies - run `Generate Product Layouts` to regenerate -->
+  <dependencies>
+    <!-- JetBrains patch: com.android.tools.gradle.dsl is not relevant for IJ -->
+    <plugin id="org.jetbrains.idea.gradle.dsl"/>
+  </dependencies>
+  <!-- endregion -->
 <!--  <depends>com.android.tools.gradle.dsl</depends>-->
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.gradle.dsl.gradleDeclarativeBuildModelProvider"
