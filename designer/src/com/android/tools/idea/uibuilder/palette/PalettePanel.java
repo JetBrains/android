@@ -70,10 +70,12 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.StartupUiUtil;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GraphicsEnvironment;
@@ -528,17 +530,23 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, UiDat
       }
 
       PreviewProvider.ImageAndDimension imageAndSize = myPreviewProvider.createPreview(component, item);
-      BufferedImage image = imageAndSize.getImage();
-      Dimension size = imageAndSize.getDimension();
-      setDragImage(image);
+      BufferedImage previewImage = imageAndSize.getImage();
+      Dimension previewSize = imageAndSize.getDimension();
+
+      setDragImage(previewImage);
       if (SystemInfo.isWindows) {
-        // Windows uses opposite conventions for computing offset
-        setDragImageOffset(new Point(image.getWidth() / 2, image.getHeight() / 2));
+        // Windows uses opposite conventions for computing offset.
+        setDragImageOffset(new Point(previewImage.getWidth() / 2, previewImage.getHeight() / 2));
+      }
+      else if (StartupUiUtil.isWayland()) {
+        // Wayland toolkit might expect the offset in unscaled coordinates.
+        float floatScale = JBUIScale.sysScale(component);
+        setDragImageOffset(new Point((int)(-previewImage.getWidth() / (2.0f * floatScale)), (int)(-previewImage.getHeight() / (2.0f * floatScale))));
       }
       else {
-        setDragImageOffset(new Point(-image.getWidth() / 2, -image.getHeight() / 2));
+        setDragImageOffset(new Point(-previewImage.getWidth() / 2, -previewImage.getHeight() / 2));
       }
-      DnDTransferComponent dndComponent = new DnDTransferComponent(item.getTagName(), item.getXml(), size.width, size.height);
+      DnDTransferComponent dndComponent = new DnDTransferComponent(item.getTagName(), item.getXml(), previewSize.width, previewSize.height);
       Transferable transferable = new ItemTransferable(new DnDTransferItem(dndComponent));
 
       if (myToolWindow != null) {

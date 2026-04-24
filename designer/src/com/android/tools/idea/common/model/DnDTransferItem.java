@@ -28,11 +28,12 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.InvalidDnDOperationException;
 import java.io.IOException;
+import java.io.Serializable;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DnDTransferItem {
+public class DnDTransferItem implements Serializable {
   private final boolean myFromPalette;
   private final long myModelId;
   private final ImmutableList<DnDTransferComponent> myComponents;
@@ -94,21 +95,30 @@ public class DnDTransferItem {
   public static DnDTransferItem getTransferItem(@NotNull Transferable transferable, boolean allowPlaceholder) {
     try {
       if (transferable.isDataFlavorSupported(ItemTransferable.DESIGNER_FLAVOR)) {
-        return (DnDTransferItem)transferable.getTransferData(ItemTransferable.DESIGNER_FLAVOR);
+        try {
+          return (DnDTransferItem)transferable.getTransferData(ItemTransferable.DESIGNER_FLAVOR);
+        } catch (Exception e) {
+          Logger.getInstance(DnDTransferItem.class).warn("Failed to get designer flavor", e);
+        }
       }
 
       if (transferable.isDataFlavorSupported(ResourceDataManagerKt.RESOURCE_URL_FLAVOR)) {
-        ResourceUrl url = (ResourceUrl)transferable.getTransferData(ResourceDataManagerKt.RESOURCE_URL_FLAVOR);
-        DnDTransferItem item = fromResourceUrl(url);
-        if (item != null) {
-          return item;
+        try {
+          ResourceUrl url = (ResourceUrl)transferable.getTransferData(ResourceDataManagerKt.RESOURCE_URL_FLAVOR);
+          DnDTransferItem item = fromResourceUrl(url);
+          if (item != null) {
+            return item;
+          }
+        } catch (Exception e) {
+          Logger.getInstance(DnDTransferItem.class).warn("Failed to get resource flavor", e);
         }
       }
 
       if (transferable.isDataFlavorSupported(DataFlavor.stringFlavor)) {
         String xml = (String)transferable.getTransferData(DataFlavor.stringFlavor);
         if (!StringUtil.isEmpty(xml)) {
-          return new DnDTransferItem(new DnDTransferComponent("", xml, 200, 100));
+          String tag = extractTag(xml);
+          return new DnDTransferItem(new DnDTransferComponent(tag != null ? tag : "", xml, 200, 100));
         }
       }
     }
@@ -123,6 +133,24 @@ public class DnDTransferItem {
       Logger.getInstance(DnDTransferItem.class).warn(ex);
     }
     return null;
+  }
+
+  @Nullable
+  private static String extractTag(@NotNull String xml) {
+    int start = xml.indexOf('<');
+    if (start == -1) return null;
+    int end = -1;
+    for (int i = start + 1; i < xml.length(); i++) {
+      char c = xml.charAt(i);
+      if (Character.isWhitespace(c) || c == '>' || c == '/') {
+        end = i;
+        break;
+      }
+    }
+    if (end == -1) return null;
+    String tag = xml.substring(start + 1, end).trim();
+    if (tag.isEmpty()) return null;
+    return tag;
   }
 
   @Nullable

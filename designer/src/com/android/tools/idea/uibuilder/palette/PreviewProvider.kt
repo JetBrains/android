@@ -41,6 +41,7 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.XmlElementFactory
 import com.intellij.psi.xml.XmlFile
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.scale.ScaleContext
 import com.intellij.util.IncorrectOperationException
 import com.intellij.util.ui.ImageUtil
@@ -54,6 +55,7 @@ import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.function.Supplier
 import javax.swing.JComponent
+import kotlin.math.ceil
 import kotlin.math.min
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -86,7 +88,7 @@ class PreviewProvider(
 
   @AndroidCoordinate
   fun createPreview(component: JComponent, item: Palette.Item): ImageAndDimension {
-    val size: Dimension
+    var size: Dimension
     var image: Image?
     val scaleContext = ScaleContext.create(component)
     val future = if (myDependencyManager.needsLibraryLoad(item)) null else renderDragImage(item)
@@ -110,8 +112,26 @@ class PreviewProvider(
     size = Dimension(width, height)
 
     // Workaround for https://youtrack.jetbrains.com/issue/JRE-224
-    val inUserScale = !SystemInfo.isWindows || !StartupUiUtil.isJreHiDPI(component)
-    val bufferedImage = ImageUtil.toBufferedImage(image, inUserScale)
+    val inUserScale = (!SystemInfo.isWindows && !StartupUiUtil.isWayland) || !StartupUiUtil.isJreHiDPI(component)
+    var bufferedImage = ImageUtil.toBufferedImage(image, inUserScale)
+
+    // On Wayland, the drag image must have a size that is a multiple of the scale factor to avoid crashes.
+    // b/503655093
+    if (StartupUiUtil.isWayland) {
+      val floatScale = JBUIScale.sysScale(component)
+      val newWidth = (ceil(bufferedImage.width / floatScale.toDouble()) * floatScale).toInt()
+      val newHeight = (ceil(bufferedImage.height / floatScale.toDouble()) * floatScale).toInt()
+      if (newWidth != bufferedImage.width || newHeight != bufferedImage.height) {
+        val type = if (bufferedImage.type != BufferedImage.TYPE_CUSTOM) bufferedImage.type else BufferedImage.TYPE_INT_ARGB
+        val scaled = BufferedImage(newWidth, newHeight, type)
+        val g = scaled.createGraphics()
+        g.drawImage(bufferedImage, 0, 0, newWidth, newHeight, null)
+        g.dispose()
+        bufferedImage = scaled
+        size = Dimension(newWidth, newHeight)
+      }
+    }
+
     return ImageAndDimension(bufferedImage, size, future, disposal)
   }
 

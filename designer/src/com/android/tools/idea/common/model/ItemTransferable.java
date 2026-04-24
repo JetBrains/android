@@ -21,8 +21,8 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import org.jetbrains.annotations.NotNull;
 
 public class ItemTransferable implements Transferable {
-  public static final DataFlavor DESIGNER_FLAVOR = new DataFlavor(DnDTransferComponent.class, "Designer Item");
-  public static final DataFlavor NAV_FLAVOR = new DataFlavor(DnDTransferComponent.class, "Nav Editor Item");
+  public static final DataFlavor DESIGNER_FLAVOR = new DataFlavor(DnDTransferItem.class, "Designer Item");
+  public static final DataFlavor NAV_FLAVOR = new DataFlavor(DnDTransferItem.class, "Nav Editor Item");
 
   private final DnDTransferItem myItem;
 
@@ -37,18 +37,23 @@ public class ItemTransferable implements Transferable {
 
   @Override
   public DataFlavor[] getTransferDataFlavors() {
-    return new DataFlavor[]{DESIGNER_FLAVOR};
+    return new DataFlavor[]{DESIGNER_FLAVOR, DataFlavor.stringFlavor};
   }
 
   @Override
   public boolean isDataFlavorSupported(DataFlavor dataFlavor) {
-    return DESIGNER_FLAVOR.equals(dataFlavor);
+    return DESIGNER_FLAVOR.equals(dataFlavor) || DataFlavor.stringFlavor.equals(dataFlavor);
   }
 
   @Override
   public Object getTransferData(DataFlavor dataFlavor) throws UnsupportedFlavorException {
     if (DESIGNER_FLAVOR.equals(dataFlavor)) {
       return myItem;
+    }
+    else if (DataFlavor.stringFlavor.equals(dataFlavor)) {
+      if (myItem.getComponents().size() == 1) {
+        return myItem.getComponents().get(0).getRepresentation();
+      }
     }
     throw new UnsupportedFlavorException(dataFlavor);
   }

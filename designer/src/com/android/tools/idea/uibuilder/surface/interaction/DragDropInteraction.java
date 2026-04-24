@@ -198,6 +198,13 @@ public class DragDropInteraction implements Interaction {
       //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
       moveTo(location.x, location.y, event.getInfo().getModifiersEx(), false);
 
+      if (getTransferItem() == null) {
+        DnDTransferItem item = DnDTransferItem.getTransferItem(dragEvent.getTransferable(), false /* no placeholders */);
+        if (item != null) {
+          setTransferItem(item);
+        }
+      }
+
       if (acceptsDrop()) {
         DragType dragType = dragEvent.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
         setType(dragType);
@@ -238,7 +245,7 @@ public class DragDropInteraction implements Interaction {
     NlDropEvent nlDropEvent = new NlDropEvent(dropEvent);
     Point location = dropEvent.getLocation();
 
-    InsertType insertType = finishDropInteraction(location.x, location.y, dropEvent.getDropAction(), dropEvent.getTransferable());
+    InsertType insertType = finishDropInteraction(location.x, location.y, dropEvent.getDropAction(), nlDropEvent.getTransferable());
     if (insertType != null) {
       //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
       moveTo(dropEvent.getLocation().x, dropEvent.getLocation().y, event.getInfo().getModifiersEx(), true);
@@ -510,10 +517,11 @@ public class DragDropInteraction implements Interaction {
   // TODO: make it private after StudioFlags.NELE_NEW_INTERACTION_INTERFACE is removed, and avoid to return InsertType.
   @Nullable
   public InsertType finishDropInteraction(int mouseX, int mouseY, int dropAction, @Nullable Transferable transferable) {
-    if (transferable == null) {
-      return null;
+    DnDTransferItem item = getTransferItem();
+    if (item == null && transferable != null) {
+      item = DnDTransferItem.getTransferItem(transferable, false /* no placeholders */);
     }
-    DnDTransferItem item = DnDTransferItem.getTransferItem(transferable, false /* no placeholders */);
+
     if (item == null) {
       return null;
     }

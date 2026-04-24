@@ -16,9 +16,10 @@
 package com.android.tools.idea.common.model;
 
 import com.android.sdklib.AndroidCoordinate;
+import java.io.Serializable;
 import org.jetbrains.annotations.NotNull;
 
-public class DnDTransferComponent {
+public class DnDTransferComponent implements Serializable {
   private final String myTag;
   private final String myRepresentation;
   @AndroidCoordinate private final int myWidth;
