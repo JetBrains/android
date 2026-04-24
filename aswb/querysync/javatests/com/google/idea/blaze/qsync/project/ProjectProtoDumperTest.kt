@@ -131,7 +131,7 @@ class ProjectProtoDumperTest {
   }
 
   @Test
-  fun sequencedVsNonSequenced() {
+  fun setsVsLists() {
     compareFormattedStrings(
       actual =
         CollectionTestModel(
@@ -156,14 +156,14 @@ class ProjectProtoDumperTest {
             - b
             - a
         linkedHashSet:
-            - b
             - a
+            - b
         hashSet:
             - a
             - b
         linkedHashMap:
-            "b": 2
             "a": 1
+            "b": 2
         hashMap:
             "a": 1
             "b": 2
