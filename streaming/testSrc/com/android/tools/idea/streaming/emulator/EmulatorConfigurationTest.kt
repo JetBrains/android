@@ -194,7 +194,7 @@ class EmulatorConfigurationTest {
     assertThat(config.displayHeight).isEqualTo(1200)
     assertThat(config.density).isEqualTo(320)
     assertThat(config.additionalDisplays).isEmpty()
-    assertThat(config.dimmingLevels).isEqualTo(doubleArrayOf(0.0, 0.25, 0.5, 0.75, 1.0))
+    assertThat(config.dimmingLevels).isEqualTo(floatArrayOf(0.0f, 0.25f, 0.5f, 0.75f, 1.0f))
     assertThat(config.skinFolder?.toString()).isNull()
     assertThat(config.hasOrientationSensors).isTrue()
     assertThat(config.initialOrientationQuadrants).isEqualTo(0)

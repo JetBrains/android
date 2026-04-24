@@ -63,7 +63,7 @@ private constructor(
   val displayModes: List<DisplayMode> = emptyList(),
   val postures: List<PostureDescriptor> = emptyList(),
   val touchpadSize: Dimension? = null,
-  val dimmingLevels: DoubleArray = doubleArrayOf(),
+  val dimmingLevels: FloatArray = floatArrayOf(),
 ) {
 
   val displayWidth: Int
@@ -229,7 +229,7 @@ private constructor(
 
       val dimmingLevels =
         try {
-          configIni["hw.dimmingLevels"]?.split(',')?.map(String::toDouble)?.toDoubleArray() ?: doubleArrayOf()
+          configIni["hw.dimmingLevels"]?.split(',')?.map(String::toFloat)?.toFloatArray() ?: floatArrayOf()
         } catch (_: NumberFormatException) {
           throw RuntimeException(
             "Unrecognized value of the hw.dimmingLevels property, \"${configIni["hw.dimmingLevels"]}\", in $configIniFile"

@@ -956,8 +956,11 @@ internal class EmulatorView(
     }
 
     private fun updateXrOptions(xrOptions: XrOptions) {
-      xrInputController?.environment = xrOptions.environment?.let { XrEnvironment.entries[it.number] }
-      xrInputController?.passthroughCoefficient = xrOptions.passthroughCoefficient
+      xrInputController?.apply {
+        environment = xrOptions.environment?.let { XrEnvironment.entries[it.number] }
+        passthroughCoefficient = xrOptions.passthroughCoefficient
+        dimmingCoefficient = xrOptions.dimmingValue
+      }
     }
 
     override fun onError(t: Throwable) {

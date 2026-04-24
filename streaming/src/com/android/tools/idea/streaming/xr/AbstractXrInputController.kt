@@ -20,6 +20,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
+import com.intellij.util.containers.DisposableWrapperList
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.event.KeyEvent
@@ -38,6 +39,8 @@ import java.awt.event.KeyEvent.VK_UP
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
 import java.awt.event.MouseWheelEvent
+import java.beans.PropertyChangeEvent
+import java.beans.PropertyChangeListener
 import kotlin.math.PI
 
 /** Distance of translational movement in meters in response to a discrete user action, e.g. pressing Ctrl+Plus. */
@@ -50,8 +53,10 @@ internal abstract class AbstractXrInputController : Disposable {
   var isXrInputAvailable: Boolean = true
     set(value) {
       if (field != value) {
+        val oldValue = field
         field = value
         ActivityTracker.getInstance().inc()
+        firePropertyChange(IS_XR_INPUT_AVAILABLE_PROPERTY, oldValue, value)
       }
     }
 
@@ -60,8 +65,10 @@ internal abstract class AbstractXrInputController : Disposable {
     set(value) {
       requireNotNull(value)
       if (field != value) {
+        val oldValue = field
         field = value
         ActivityTracker.getInstance().inc()
+        firePropertyChange(ENVIRONMENT_PROPERTY, oldValue, value)
       }
     }
 
@@ -70,13 +77,30 @@ internal abstract class AbstractXrInputController : Disposable {
     set(value) {
       require(value >= 0)
       if (field != value) {
+        val oldValue = field
         field = value
         ActivityTracker.getInstance().inc()
+        firePropertyChange(PASSTHROUGH_COEFFICIENT_PROPERTY, oldValue, value)
+      }
+    }
+
+  @Volatile
+  var dimmingCoefficient: Float = UNKNOWN_DIMMING_COEFFICIENT
+    set(value) {
+      require(value >= 0)
+      if (field != value) {
+        val oldValue = field
+        field = value
+        ActivityTracker.getInstance().inc()
+        firePropertyChange(DIMMING_COEFFICIENT_PROPERTY, oldValue, value)
       }
     }
 
   open val isPassthroughSupported: Boolean
     get() = true
+
+  open val dimmingLevels: FloatArray
+    get() = floatArrayOf()
 
   @Volatile
   var inputMode: XrInputMode = if (StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.get()) XrInputMode.HAND else XrInputMode.MOUSE
@@ -87,7 +111,9 @@ internal abstract class AbstractXrInputController : Disposable {
           pressedKeysMask = 0 // Reset keyboard navigation state.
           mouseDragReferencePoint = null
         }
+        val oldValue = field
         field = value
+        firePropertyChange(INPUT_MODE_PROPERTY, oldValue, value)
       }
     }
 
@@ -113,8 +139,14 @@ internal abstract class AbstractXrInputController : Disposable {
   private val controlKeys
     get() = emulatorSettings.cameraVelocityControls.keys
 
+  private val propertyListeners = DisposableWrapperList<PropertyChangeListener>()
+
+  fun addPropertyChangeListener(listener: PropertyChangeListener, disposable: Disposable) {
+    propertyListeners.add(listener, disposable)
+  }
+
   /** Controls passthrough mode on the device. */
-  abstract suspend fun setPassthrough(passthroughCoefficient: Float)
+  abstract suspend fun setPassthroughAndDimming(passthroughCoefficient: Float, dimmingCoefficient: Float = UNKNOWN_DIMMING_COEFFICIENT)
 
   /** Sends a command to move in the virtual space. The distances are in meters. */
   abstract fun sendTranslation(x: Float, y: Float, z: Float)
@@ -340,8 +372,22 @@ internal abstract class AbstractXrInputController : Disposable {
     }
   }
 
+  protected fun firePropertyChange(propertyName: String, oldValue: Any?, newValue: Any?) {
+    val event = PropertyChangeEvent(this, propertyName, oldValue, newValue)
+    for (listener in propertyListeners) {
+      listener.propertyChange(event)
+    }
+  }
+
   companion object {
-    internal const val UNKNOWN_PASSTHROUGH_COEFFICIENT = -1f
+    const val UNKNOWN_PASSTHROUGH_COEFFICIENT = -1f
+    const val UNKNOWN_DIMMING_COEFFICIENT = -1f
+
+    const val IS_XR_INPUT_AVAILABLE_PROPERTY = "isXrInputAvailable"
+    const val PASSTHROUGH_COEFFICIENT_PROPERTY = "passthroughCoefficient"
+    const val DIMMING_COEFFICIENT_PROPERTY = "dimmingCoefficient"
+    const val ENVIRONMENT_PROPERTY = "environment"
+    const val INPUT_MODE_PROPERTY = "inputMode"
 
     const val MOUSE_WHEEL_NAVIGATION_FACTOR = 0.25F
 

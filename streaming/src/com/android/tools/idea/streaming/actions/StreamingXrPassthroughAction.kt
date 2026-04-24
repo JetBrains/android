@@ -36,7 +36,7 @@ class StreamingXrPassthroughAction : ToggleAction(), DumbAware {
     getXrInputController(event)?.apply {
       createCoroutineScope().launch {
         try {
-          setPassthrough(if (state) 1f else 0f)
+          setPassthroughAndDimming(if (state) 1f else 0f)
         } catch (e: Exception) {
           thisLogger().warn("Unable to set passthrough", e)
         }

@@ -53,15 +53,19 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
   private val angularVelocity = AngularVelocity.newBuilder()
   private val velocity = Velocity.newBuilder()
 
+  override val dimmingLevels: FloatArray
+    get() = emulator.emulatorConfig.dimmingLevels
+
   init {
     Disposer.register(emulator, this)
   }
 
-  override suspend fun setPassthrough(passthroughCoefficient: Float) {
+  override suspend fun setPassthroughAndDimming(passthroughCoefficient: Float, dimmingCoefficient: Float) {
     suspendCancellableCoroutine { continuation ->
       val xrOptions =
         XrOptions.newBuilder()
           .setPassthroughCoefficient(passthroughCoefficient)
+          .setDimmingValue(if (dimmingCoefficient == UNKNOWN_DIMMING_COEFFICIENT) 1 - passthroughCoefficient else dimmingCoefficient)
           .setEnvironment(environment?.let { forNumber(it.ordinal) })
           .build()
       emulator.setXrOptions(
@@ -69,6 +73,7 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
         object : EmptyStreamObserver<Empty>() {
           override fun onNext(message: Empty) {
             this@EmulatorXrInputController.passthroughCoefficient = passthroughCoefficient
+            this@EmulatorXrInputController.dimmingCoefficient = dimmingCoefficient
             ActivityTracker.getInstance().inc()
             continuation.resume(Unit)
           }
