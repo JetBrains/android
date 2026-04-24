@@ -207,7 +207,7 @@ fun calculateRotationCorrection(
 
   // Correction can be different from 0 only for streamed devices (as opposed to emulators).
   if (orientationCorrectionFromRunningDevices != 0) {
-    return -orientationCorrectionFromRunningDevices
+    return (-orientationCorrectionFromRunningDevices).mod(4)
   }
 
   // The rotation of the display rendering coming from Running Devices.

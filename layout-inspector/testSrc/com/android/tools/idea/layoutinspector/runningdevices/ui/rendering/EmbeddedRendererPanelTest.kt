@@ -197,6 +197,17 @@ class EmbeddedRendererPanelTest {
       val renderImage = createRenderImage()
       paint(renderImage, renderer, displayQuadrant = it.displayQuadrant)
       assertSimilar(renderImage, testName.methodName + "${it.displayQuadrant}_${it.deviceRotation}")
+
+      if (it.deviceRotation == 180) {
+        // A physical device may have a nonzero displayOrientationQuadrantCorrection:
+        val quadrant = calculateRotationCorrection(displayProvider = { display }, { it.displayQuadrant }, { 2 })
+
+        val (_, renderer) = createRenderer(inspectorModel = verticalInspectorModel, displayOrientation = quadrant)
+
+        val renderImage = createRenderImage()
+        paint(renderImage, renderer, displayQuadrant = it.displayQuadrant)
+        assertSimilar(renderImage, testName.methodName + "${it.displayQuadrant}_${it.deviceRotation}")
+      }
     }
   }
 

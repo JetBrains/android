@@ -19,7 +19,6 @@ import com.intellij.openapi.Disposable
 import java.awt.Dimension
 import java.awt.Rectangle
 import java.awt.geom.AffineTransform
-import kotlin.math.abs
 import kotlin.math.max
 import kotlinx.coroutines.CoroutineScope
 
@@ -102,13 +101,17 @@ class EmbeddedRendererPanel(
       quadrantRotate(orientationQuadrant)
     }
 
-    // Create the new transformed shape of LI rendering. This will have same scale and orientation
-    // as the display from RD.
-    val deviceRectTrans = transform.createTransformedShape(layoutInspectorDisplayRectangle)
-
     // Calculate the distance between LI rendering and the display from RD.
-    val xDelta = abs(displayRectangle.x - deviceRectTrans.bounds.x)
-    val yDelta = abs(displayRectangle.y - deviceRectTrans.bounds.y)
+    var xDelta = displayRectangle.x
+    var yDelta = displayRectangle.y
+    when (orientationQuadrant) {
+      1 -> xDelta += displayRectangle.width
+      2 -> {
+        xDelta += displayRectangle.width
+        yDelta += displayRectangle.height
+      }
+      3 -> yDelta += displayRectangle.height
+    }
 
     transform.apply {
       // Remove rotation, otherwise translate is affected by it.

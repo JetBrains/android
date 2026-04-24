@@ -118,7 +118,7 @@ abstract class AbstractStudioRendererPanel(
 
     val g2d = g.create() as Graphics2D
     g2d.setRenderingHints(HQ_RENDERING_HINTS)
-    g2d.transform = g2d.transform.apply { concatenate(transform) }
+    g2d.transform(transform)
 
     doPaint(g2d, transform)
   }
@@ -128,7 +128,7 @@ abstract class AbstractStudioRendererPanel(
     val scale = renderModel.renderSettings.scaleFraction.toFloat()
     // Apply inverse transformation to canvas bounds, to make them match the scale of the draw
     // instruction bounds.
-    val canvasBounds = g2d.transform.createInverse().createTransformedShape(bounds).bounds2D
+    val canvasBounds = transform.createInverse().createTransformedShape(bounds).bounds2D
 
     renderModel.images.value.forEach { it.paint(g2d, canvasBounds = canvasBounds, scale = scale) }
 
