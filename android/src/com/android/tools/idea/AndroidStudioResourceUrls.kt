@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea
 
-import com.android.tools.idea.diagnostics.InstallationId
+import com.android.tools.analytics.InstallationId
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ex.ApplicationInfoEx
 import com.intellij.openapi.updateSettings.impl.ExternalUpdateManager
