@@ -34,7 +34,13 @@ class AddAndroidResPackages : ProjectProtoUpdateOperation {
   ) {
     artifactState
       .targets()
-      .mapNotNull { it.javaInfo().getOrNull()?.let { javaInfo -> it.label() to javaInfo.androidResourcesPackage() } }
+      .mapNotNull {
+        it
+          .javaInfo()
+          .getOrNull()
+          ?.takeIf { it.androidResourcesPackage().isNotEmpty() }
+          ?.let { javaInfo -> it.label() to javaInfo.androidResourcesPackage() }
+      }
       .forEach { (label, randroidResourceJavaPackage) ->
         update.module(label) { addAndroidResourceJavaPackage(randroidResourceJavaPackage) }
       }
