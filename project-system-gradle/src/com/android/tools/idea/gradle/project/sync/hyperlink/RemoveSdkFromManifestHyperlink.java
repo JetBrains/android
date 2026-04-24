@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
+import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelUtilsKt.android;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;

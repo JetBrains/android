@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.dependencies.ExactDependencyMatcher
 import com.android.tools.idea.gradle.dependencies.GroupNameDependencyMatcher
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.gradle.dsl.model.android.android
+import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl
 
 import com.android.tools.idea.testing.AndroidGradleProjectRule

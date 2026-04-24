@@ -16,11 +16,11 @@
 package com.android.tools.idea.gradle;
 
 import static com.android.tools.idea.gradle.LibraryFilePaths.NAME_PREFIX;
-import static com.android.tools.idea.gradle.dsl.api.dependencies.AndroidCommonConfigurationNames.ANDROID_TEST_IMPLEMENTATION;
+import static com.android.tools.idea.gradle.dsl.android.api.dependencies.AndroidCommonConfigurationNames.ANDROID_TEST_IMPLEMENTATION;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.IMPLEMENTATION;
-import static com.android.tools.idea.gradle.dsl.api.dependencies.AndroidCommonConfigurationNames.SCREENSHOT_TEST_IMPLEMENTATION;
+import static com.android.tools.idea.gradle.dsl.android.api.dependencies.AndroidCommonConfigurationNames.SCREENSHOT_TEST_IMPLEMENTATION;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_IMPLEMENTATION;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
+import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelUtilsKt.android;
 import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.getGradleProjectPath;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_REDONE;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_UNDONE;
@@ -40,8 +40,8 @@ import com.android.tools.idea.gradle.dsl.api.GradleFileModel;
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
-import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
-import com.android.tools.idea.gradle.dsl.api.android.CompileOptionsModel;
+import com.android.tools.idea.gradle.dsl.android.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.android.api.android.CompileOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
