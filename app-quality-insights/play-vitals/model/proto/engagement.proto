@@ -49,10 +49,6 @@ option java_package = "com.google.play.developer.reporting";
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
 //     The country or region of the user's device, represented as a 2-letter
 //     Unicode CLDR region code (e.g. US for the United States).
-//  * `trafficSource`
-//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-//     How the user got to your store listing (e.g., 'Google Play Search',
-//     'Google Play Explore', 'Ads and referrals').
 //  * `versionCode`
 //     ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
 //     The version of the app that was running on the user's device.
@@ -118,10 +114,6 @@ message QueryEngagementMetricSetRequest {
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
   //     The country or region of the user's device, represented as a 2-letter
   //     Unicode CLDR region code (e.g. US for the United States).
-  //  * `trafficSource`
-  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     How the user got to your store listing (e.g., 'Google Play Search',
-  //     'Google Play Explore', 'Ads and referrals').
   //  * `versionCode`
   //     ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
   //     The version of the app that was running on the user's device.
