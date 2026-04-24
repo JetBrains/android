@@ -613,4 +613,22 @@ class ProjectStructureReaderTest {
       )
     assertStructureEquals(structure, expected)
   }
+
+  @Test
+  fun buildFileAboveIncludeRoot() {
+    createFile("java/com/example/BUILD")
+    createFile("java/com/example/sub/Foo.java")
+
+    val projectDefinition = createProjectDefinition(setOf("java/com/example/sub"))
+    val capturingContext = CapturingContext()
+    val structure = reader.read(capturingContext, workspaceRoot, projectDefinition)
+
+    // Expected to be empty because the BUILD file is above the include root,
+    // and thus the source file belongs to a package outside the include root.
+    val expected = expectedStructure(roots = mapOf("java/com/example/sub" to emptyMap()), languages = setOf(QuerySyncLanguage.JVM))
+    assertStructureEquals(structure, expected)
+
+    val logs = capturingContext.outputs.joinToString("\n")
+    assertThat(logs).contains("WARNING: Package java/com/example is outside all project structure roots")
+  }
 }

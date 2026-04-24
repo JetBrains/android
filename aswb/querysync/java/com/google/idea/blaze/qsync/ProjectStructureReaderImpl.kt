@@ -53,6 +53,7 @@ internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtens
      */
     val sourcesMap: ConcurrentHashMap<Path, ConcurrentHashMap<Path, HashMap<QuerySyncLanguage?, MutableList<Path>>>> = ConcurrentHashMap()
     val languages: MutableSet<QuerySyncLanguage> = ConcurrentHashMap.newKeySet()
+    val warnedPackages: MutableSet<Path> = ConcurrentHashMap.newKeySet()
 
     val fileProcessor = FileProcessor(workspaceRoot, fileExtensions)
     val directoryProcessorImpl = DirectoryProcessorImpl(context, excludeAbsolute)
@@ -81,12 +82,19 @@ internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtens
         is FileProcessResult.SourceFile -> {
           val buildPackage = findBuildPackage(result.relativePath)
           if (buildPackage != null) {
-            val rootMap = sourcesMap.computeIfAbsent(includeRoot) { ConcurrentHashMap() }
-            val packageSources = rootMap.computeIfAbsent(buildPackage) { HashMap() }
-            val lang = result.language
-            synchronized(packageSources) {
-              val langSources = packageSources.computeIfAbsent(lang) { mutableListOf() }
-              langSources.add(result.relativePath)
+            if (buildPackage.startsWith(includeRoot)) {
+              val rootMap = sourcesMap.computeIfAbsent(includeRoot) { ConcurrentHashMap() }
+              val packageSources = rootMap.computeIfAbsent(buildPackage) { HashMap() }
+              val lang = result.language
+              synchronized(packageSources) {
+                val langSources = packageSources.computeIfAbsent(lang) { mutableListOf() }
+                langSources.add(result.relativePath)
+              }
+            } else {
+              val fitsAnyRoot = projectDefinition.projectIncludes.any { buildPackage.startsWith(it) }
+              if (!fitsAnyRoot && warnedPackages.add(buildPackage)) {
+                context.output(PrintOutput.log("WARNING: Package $buildPackage is outside all project structure roots"))
+              }
             }
           }
           result.language?.let { languages.add(it) }
