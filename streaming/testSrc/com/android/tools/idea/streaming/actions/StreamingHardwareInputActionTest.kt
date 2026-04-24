@@ -44,9 +44,9 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.testFramework.RuleChain
 import java.awt.Dimension
-import java.util.concurrent.TimeUnit
 import javax.swing.JLabel
 import javax.swing.JPanel
+import kotlin.time.Duration.Companion.seconds
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -165,6 +165,6 @@ class StreamingHardwareInputActionTest {
     val ui = FakeUi(button)
     ui.mouse.moveTo(0, 0)
 
-    return popupFactory.getNextPopup(2000, TimeUnit.MILLISECONDS)
+    return popupFactory.getNextPopup(2.seconds)
   }
 }
