@@ -235,8 +235,8 @@
         <keyboard-shortcut first-keystroke="control R" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="control R" keymap="Mac OS X 10.5+"/>
       </action>
-      <action id="android.streaming.xr.passthrough"
-              class="com.android.tools.idea.streaming.actions.StreamingXrPassthroughAction"
+      <action id="android.streaming.xr.passthrough.toggle"
+              class="com.android.tools.idea.streaming.actions.StreamingXrPassthroughToggleAction"
               icon="StudioIcons.Emulator.XR.PASSTHROUGH_ON"
               text="Toggle Passthrough" description="Turn passthrough on or off">
         <keyboard-shortcut first-keystroke="control P" keymap="$default"/>
@@ -368,7 +368,7 @@
       </group>
     </group>
     <group id="android.streaming.xr.passthrough.group" class="com.android.tools.idea.streaming.actions.StreamingXrOnlyGroup">
-      <reference ref="android.streaming.xr.passthrough"/>
+      <reference ref="android.streaming.xr.passthrough.toggle"/>
     </group>
 
     <group id="StreamingToolbarGlasses">

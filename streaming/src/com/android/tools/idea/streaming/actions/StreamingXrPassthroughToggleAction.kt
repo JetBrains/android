@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import com.intellij.openapi.project.DumbAware
 import kotlinx.coroutines.launch
 
 /** Toggles passthrough for a virtual XR headset. */
-class StreamingXrPassthroughAction : ToggleAction(), DumbAware {
+class StreamingXrPassthroughToggleAction : ToggleAction(), DumbAware {
 
   override fun isSelected(event: AnActionEvent): Boolean {
     val xrController = getXrInputController(event) ?: return false
@@ -48,8 +48,9 @@ class StreamingXrPassthroughAction : ToggleAction(), DumbAware {
 
   override fun update(event: AnActionEvent) {
     super.update(event)
+    val xrController = getXrInputController(event)
     val presentation = event.presentation
-    presentation.isVisible = getXrInputController(event)?.isPassthroughSupported == true
+    presentation.isVisible = xrController?.isPassthroughSupported == true && xrController.dimmingLevels.isEmpty()
     presentation.isEnabled = presentation.isVisible && isEnabled(event)
   }
 
