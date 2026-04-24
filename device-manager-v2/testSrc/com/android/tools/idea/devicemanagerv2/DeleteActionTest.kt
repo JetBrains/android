@@ -64,10 +64,10 @@ class DeleteActionTest {
           }
         )
 
-      DeleteAction(applicationScope = this@runTest).actionPerformed(actionEvent)
+      DeleteDeviceAction(applicationScope = this@runTest).actionPerformed(actionEvent)
       advanceUntilIdle()
 
-      assertThat(handle.deleteAction.invoked).isEqualTo(1)
+      assertThat(handle.deleteCount).isEqualTo(1)
       verifyBlocking(pairingManager) { pairingManager.removeAllPairedDevices("some pairing id") }
     }
   }
@@ -85,10 +85,10 @@ class DeleteActionTest {
           }
         )
 
-      DeleteAction(applicationScope = this@runTest).actionPerformed(actionEvent)
+      DeleteDeviceAction(applicationScope = this@runTest).actionPerformed(actionEvent)
       advanceUntilIdle()
 
-      assertThat(handle.deleteAction.invoked).isEqualTo(1)
+      assertThat(handle.deleteCount).isEqualTo(1)
       verifyNoInteractions(pairingManager)
     }
   }

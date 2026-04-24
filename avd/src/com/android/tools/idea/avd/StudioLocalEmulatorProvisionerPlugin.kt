@@ -24,7 +24,6 @@ import com.android.sdklib.deviceprovisioner.BootSnapshotAction
 import com.android.sdklib.deviceprovisioner.ColdBootAction
 import com.android.sdklib.deviceprovisioner.CreateDeviceAction
 import com.android.sdklib.deviceprovisioner.DeactivationAction
-import com.android.sdklib.deviceprovisioner.DeleteAction
 import com.android.sdklib.deviceprovisioner.DeviceAction
 import com.android.sdklib.deviceprovisioner.DeviceError
 import com.android.sdklib.deviceprovisioner.DeviceHandle
@@ -62,6 +61,7 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.RunningAvdTracker
 import com.android.tools.idea.avdmanager.checkAcceleration
 import com.android.tools.idea.avdmanager.logHypervisorMigrationEvent
+import com.android.tools.idea.deviceprovisioner.DeletableDeviceHandle
 import com.android.tools.idea.deviceprovisioner.DuplicatableDeviceHandle
 import com.android.tools.idea.deviceprovisioner.EditableDeviceHandle
 import com.android.tools.idea.deviceprovisioner.NotificationBannersExtension
@@ -196,7 +196,7 @@ class StudioLocalEmulatorDeviceHandle(
   private val deviceHandleFlow: StateFlow<List<StudioLocalEmulatorDeviceHandle>>,
   private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
   private val edtDispatcher: CoroutineContext = Dispatchers.EDT,
-) : DeviceHandle by baseDeviceHandle, EditableDeviceHandle, DuplicatableDeviceHandle, ShowableOnDiskDeviceHandle {
+) : DeviceHandle by baseDeviceHandle, EditableDeviceHandle, DuplicatableDeviceHandle, ShowableOnDiskDeviceHandle, DeletableDeviceHandle {
   fun addPairedGlasses(glassesId: DeviceId, mac: String) = baseDeviceHandle.addPairedGlasses(glassesId, mac)
 
   fun removePairedGlasses(glassesId: DeviceId) = baseDeviceHandle.removePairedGlasses(glassesId)
@@ -408,40 +408,37 @@ class StudioLocalEmulatorDeviceHandle(
       }
     }
 
-  override val deleteAction: DeleteAction =
-    object : DeleteAction {
-      override val presentation = defaultPresentation.fromContext().enabledIfStopped()
+  override fun isDeleteEnabled() = state.isStopped()
 
-      override suspend fun delete() {
-        withContext(ioDispatcher) {
-          val properties = state.properties
-          val hasCompanions = properties.pairedPhoneId != null || properties.pairedGlassesInfos.isNotEmpty()
-          if (avdManagerConnection.deleteAvd(avdInfo)) {
-            if (hasCompanions) {
-              GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.CASCADING_WIPE_INITIATED)
-            }
-            unpairFromCompanions()
-          } else {
-            withContext(edtDispatcher) {
-              if (
-                MessageDialogBuilder.okCancel(
-                    "Could Not Delete All AVD Files",
-                    "There may be additional files remaining in the AVD directory. To fully delete " +
-                      "the AVD, open the directory and manually delete the files.",
-                  )
-                  .yesText("Open Directory")
-                  .noText("OK")
-                  .icon(Messages.getInformationIcon())
-                  .ask(project)
-              ) {
-                show()
-              }
-            }
+  override suspend fun delete(project: Project?) {
+    withContext(ioDispatcher) {
+      val properties = state.properties
+      val hasCompanions = properties.pairedPhoneId != null || properties.pairedGlassesInfos.isNotEmpty()
+      if (avdManagerConnection.deleteAvd(avdInfo)) {
+        if (hasCompanions) {
+          GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.CASCADING_WIPE_INITIATED)
+        }
+        unpairFromCompanions()
+      } else {
+        withContext(edtDispatcher) {
+          if (
+            MessageDialogBuilder.okCancel(
+                "Could Not Delete All AVD Files",
+                "There may be additional files remaining in the AVD directory. To fully delete " +
+                  "the AVD, open the directory and manually delete the files.",
+              )
+              .yesText("Open Directory")
+              .noText("OK")
+              .icon(Messages.getInformationIcon())
+              .ask(project)
+          ) {
+            show()
           }
-          refreshDevices()
         }
       }
+      refreshDevices()
     }
+  }
 
   private suspend fun unpairFromCompanions(): Boolean {
     val properties = state.properties

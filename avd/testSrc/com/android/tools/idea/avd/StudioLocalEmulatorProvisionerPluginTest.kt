@@ -350,7 +350,7 @@ class StudioLocalEmulatorProvisionerPluginTest {
 
     yieldUntil { getPairedGlassesInfos(phoneHandle).isNotEmpty() }
 
-    phoneHandle.deleteAction.delete()
+    phoneHandle.delete()
 
     // Check disk file to verify glasses was unpaired
     yieldUntil {

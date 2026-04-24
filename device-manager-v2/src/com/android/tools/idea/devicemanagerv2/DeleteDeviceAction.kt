@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.devicemanagerv2
 
-import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.tools.adtui.actions.componentToRestoreFocusTo
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.deviceprovisioner.DeletableDeviceHandle
+import com.android.tools.idea.deviceprovisioner.deviceHandle
 import com.android.tools.idea.deviceprovisioner.launchCatchingDeviceActionException
 import com.android.tools.idea.wearpairing.WearPairingManager
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.PHYSICAL_DELETE_ACTION
@@ -31,20 +33,25 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.android.AndroidPluginDisposable
 
-class DeleteAction(private val applicationScope: CoroutineScope = AndroidCoroutineScope(AndroidPluginDisposable.getApplicationInstance())) :
-  DumbAwareAction("Delete", "Delete this device", StudioIcons.Common.DELETE) {
+class DeleteDeviceAction(
+  private val applicationScope: CoroutineScope = AndroidCoroutineScope(AndroidPluginDisposable.getApplicationInstance())
+) : DumbAwareAction("Delete", "Delete this device", StudioIcons.Common.DELETE) {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    e.updateFromDeviceActionOrDeactivateAction(DeviceHandle::deleteAction)
+    val handle = e.deviceHandle()
+    if (handle is DeletableDeviceHandle) {
+      e.presentation.isVisible = true
+      e.presentation.isEnabled = handle.isDeleteEnabled()
+    } else {
+      e.presentation.isEnabledAndVisible = false
+    }
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val deviceRowData = e.deviceRowData() ?: return
-    val deviceHandle = deviceRowData.handle ?: return
-    val deleteAction = deviceHandle.deleteAction ?: return
+    val deviceHandle = e.deviceHandle() as? DeletableDeviceHandle ?: return
 
-    val isRunning = deviceRowData.status == DeviceRowData.Status.ONLINE
+    val isRunning = deviceHandle.state is DeviceState.Connected
     val runningSuffix = " This will stop the device.".takeIf { isRunning } ?: ""
     if (
       MessageDialogBuilder.yesNo("Confirm Deletion", "Do you really want to delete ${deviceHandle.state.properties.title}?$runningSuffix")
@@ -59,10 +66,10 @@ class DeleteAction(private val applicationScope: CoroutineScope = AndroidCorouti
 
       deviceHandle.launchCatchingDeviceActionException(project = e.project) {
         if (isRunning) {
-          deactivationAction?.deactivate()
+          // TODO: We might as well forcefully terminate the process here to save time
+          deviceHandle.deactivationAction?.deactivate()
         }
-
-        deleteAction.delete()
+        deviceHandle.delete()
       }
 
       // Deleting a paired device unpairs it
