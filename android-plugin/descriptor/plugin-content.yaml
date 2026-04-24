@@ -87,6 +87,7 @@
   - name: intellij.android.layout-inspector.gradle
   - name: intellij.android.layout-ui
   - name: intellij.android.logcat
+  - name: intellij.android.logcat.gradle
   - name: intellij.android.mlkit
   - name: intellij.android.nav.safeargs
   - name: intellij.android.nav.safeargs.common
