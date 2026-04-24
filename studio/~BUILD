@@ -2132,3 +2132,10 @@ sh_binary(
     name = "update_searchable_options",
     srcs = ["//tools/adt/idea/studio:searchable-options/update_searchable_options.sh"],
 )
+
+# This target finds all the update_expected_studio_files target of all the
+# android_studio definitions in the workspace and run them sequentially.
+sh_binary(
+    name = "update_expected_studio_files",
+    srcs = ["//tools/adt/idea/studio:tests/update_expected_studio_files.sh"],
+)

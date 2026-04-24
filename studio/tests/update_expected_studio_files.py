@@ -53,6 +53,7 @@ def main(ide, configurations):
     try:
       with open(target_path, "w") as target_file:
         target_file.writelines([line + "\n" for line in base_lines[platform]])
+        print(f"Updated file: {target_path}", file=sys.stderr)
     except Exception as e:
       print(f"ERROR writing to {target_path}: {e}", file=sys.stderr)
       sys.exit(1)
@@ -86,7 +87,7 @@ def main(ide, configurations):
             target_file.write(f"+++{line}\n")
           for line in sorted(list(removed_lines)):
             target_file.write(f"---{line}\n")
-        print(f"Updated diff file: {target_path}", file=sys.stderr)
+        print(f"Updated file: {target_path}", file=sys.stderr)
       except Exception as e:
         print(f"ERROR writing to {target_path}: {e}", file=sys.stderr)
         sys.exit(1)

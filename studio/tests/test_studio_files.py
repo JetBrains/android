@@ -56,7 +56,9 @@ class TestStudioFiles(unittest.TestCase):
         undeclared_dir = os.getenv("TEST_UNDECLARED_OUTPUTS_DIR")
         with open("%s/expected_%s.txt" % (undeclared_dir, platform), "w") as new_ex:
           new_ex.writelines([line + "\n" for line in actual[platform]])
-        print(f"You can find the newly expected file in the undeclared output directory. Alternatively you can run the bazel target //{ide_path_prefix}:{ide_name}.update_expected_studio_files to update the expected studio files.")
+
+    if expected != actual:
+      print(f"You can run the bazel target //tools/adt/idea/studio:update_expected_studio_files to update expected studio files of all studio flavors or run target //{ide_path_prefix}:{ide_name}.update_expected_studio_files to just update for {ide_name}. Alternatively you can find the newly expected file in the undeclared output directory.")
 
     for platform in PLATFORMS:
       i = 0
