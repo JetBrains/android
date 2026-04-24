@@ -25,7 +25,7 @@ import org.jetbrains.annotations.ApiStatus
 /**
  * This is extension point to provide additional models for gradle DSL elements in build script
  * files. For example Studio implements this interface to provide `android`
- * [com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement] model.
+ * [com.android.tools.idea.gradle.dsl.android.parser.android.AndroidDslElement] model.
  *
  * Such approach allows to keep DSL models along with Gradle plugins and plug them in once in use
  *

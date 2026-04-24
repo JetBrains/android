@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
-import com.android.tools.idea.gradle.dsl.api.dependencies.AndroidCommonConfigurationNames.ANDROID_TEST_API
-import com.android.tools.idea.gradle.dsl.api.dependencies.AndroidCommonConfigurationNames.ANDROID_TEST_COMPILE
-import com.android.tools.idea.gradle.dsl.api.dependencies.AndroidCommonConfigurationNames.ANDROID_TEST_IMPLEMENTATION
+import com.android.tools.idea.gradle.dsl.android.api.dependencies.AndroidCommonConfigurationNames.ANDROID_TEST_API
+import com.android.tools.idea.gradle.dsl.android.api.dependencies.AndroidCommonConfigurationNames.ANDROID_TEST_COMPILE
+import com.android.tools.idea.gradle.dsl.android.api.dependencies.AndroidCommonConfigurationNames.ANDROID_TEST_IMPLEMENTATION
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.API
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.IMPLEMENTATION
