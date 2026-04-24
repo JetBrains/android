@@ -16,9 +16,11 @@
 package com.android.tools.idea.gradle.actions;
 
 import static com.intellij.notification.NotificationType.INFORMATION;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyBoolean;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.gradle.actions.GoToBundleLocationTask.OpenFolderNotificationListener;
@@ -27,9 +29,11 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResul
 import com.android.tools.idea.gradle.project.build.invoker.GradleMultiInvocationResult;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.project.AndroidNotification;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
+import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.HeavyPlatformTestCase;
@@ -87,18 +91,18 @@ public class GoToBundleLocationTaskForSignedBundleTest extends HeavyPlatformTest
   public void testExecuteWithCancelledBuild() {
     String message = "Build cancelled.";
     AssembleInvocationResult result = createBuildResult(new BuildCancelledException(message));
-    myTask.executeWhenBuildFinished(Futures.immediateFuture(result));
+    myTask.executeWhenBuildFinished(Futures.immediateFuture(result), true);
     verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION);
   }
 
   public void testExecuteWithFailedBuild() {
     String message = "Errors while building Bundle file. You can find the errors in the 'Build' view.";
-    myTask.executeWhenBuildFinished(Futures.immediateFuture(createBuildResult(new Throwable("Unknown error with gradle build"))));
+    myTask.executeWhenBuildFinished(Futures.immediateFuture(createBuildResult(new Throwable("Unknown error with gradle build"))), true);
     verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, NotificationType.ERROR);
   }
 
   public void testExecuteWithSuccessfulBuild() {
-    myTask.executeWhenBuildFinished(Futures.immediateFuture(createBuildResult(null /* build successful - no errors */)));
+    myTask.executeWhenBuildFinished(Futures.immediateFuture(createBuildResult(null /* build successful - no errors */)), true);
     String moduleName = getModule().getName();
     String message = getExpectedModuleNotificationMessage(moduleName, buildVariant1, buildVariant2);
     verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION,
@@ -107,10 +111,18 @@ public class GoToBundleLocationTaskForSignedBundleTest extends HeavyPlatformTest
 
   public void testExecuteWithSuccessfulBuildNoShowFilePathAction() {
     isShowFilePathActionSupported = false;
-    myTask.executeWhenBuildFinished(Futures.immediateFuture(createBuildResult(null /* build successful - no errors */)));
+    myTask.executeWhenBuildFinished(Futures.immediateFuture(createBuildResult(null /* build successful - no errors */)), true);
     String message = getExpectedModuleNotificationMessageNoShowFilePathAction(getModule().getName());
     verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION,
                                            new GoToBundleLocationTask.OpenEventLogHyperlink());
+  }
+
+  public void testShowNotification() {
+    myTask.executeWhenBuildFinished(Futures.immediateFuture(createBuildResult(null /* build successful - no errors */)), false);
+    verifyNoInteractions(myMockNotification);
+
+    myTask.executeWhenBuildFinished(Futures.immediateFuture(createBuildResult(null /* build successful - no errors */)), true);
+    verify(myMockNotification).showBalloon(anyString(), anyString(), any(NotificationType.class), any(NotificationListener.class));
   }
 
   @NotNull

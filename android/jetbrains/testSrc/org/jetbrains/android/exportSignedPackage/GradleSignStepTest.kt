@@ -23,19 +23,24 @@ import com.android.tools.idea.gservices.DevServicesDeprecationData
 import com.android.tools.idea.gservices.DevServicesDeprecationStatus
 import com.android.tools.idea.help.AndroidWebHelpProvider
 import com.android.tools.idea.testing.disposable
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.ui.TitledSeparator
+import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
+import java.awt.event.MouseEvent
 import java.io.File
 import java.nio.file.Files
 import java.security.cert.X509Certificate
 import java.util.concurrent.CompletableFuture
 import javax.swing.Icon
+import javax.swing.JCheckBox
 import kotlin.io.path.Path
 import kotlinx.coroutines.test.runTest
 import org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard.TargetType
@@ -263,5 +268,53 @@ class GradleSignStepTest {
     gradleSignStep.commitForNext()
     verify(myWizard).setApkPath(captor.capture())
     assertThat(Files.isSameFile(Path(captor.firstValue), Path(destinationPath))).isTrue()
+  }
+
+  @Test
+  fun testPublishingSectionVisibility() {
+    // By default (flag disabled), the Publishing section should not be visible.
+    val stepDisabled = GradleSignStep(myWizard)
+    val componentDisabled = stepDisabled.component
+    val separatorsDisabled = UIUtil.findComponentsOfType(componentDisabled, TitledSeparator::class.java)
+    assertThat(separatorsDisabled.map { it.text }).doesNotContain("Publishing")
+
+    // Enable the flag
+    // Assuming override method exists or similar mechanism.
+    // If this fails to compile, I will need to find the correct API.
+    StudioFlags.PLAY_PUBLISHING_WIZARD_INTEGRATION.override(true)
+    try {
+      val stepEnabled = GradleSignStep(myWizard)
+      val componentEnabled = stepEnabled.component
+      val separatorsEnabled = UIUtil.findComponentsOfType(componentEnabled, TitledSeparator::class.java)
+      assertThat(separatorsEnabled.map { it.text }).contains("Publishing")
+    } finally {
+      StudioFlags.PLAY_PUBLISHING_WIZARD_INTEGRATION.clearOverride()
+    }
+  }
+
+  @Test
+  fun testClickTextTogglesCheckbox() {
+    StudioFlags.PLAY_PUBLISHING_WIZARD_INTEGRATION.overrideForTest(true, projectRule.disposable)
+    val step = GradleSignStep(myWizard)
+    val component = step.component
+
+    val labels = UIUtil.findComponentsOfType(component, JBLabel::class.java)
+    val label = labels.find { it.text == "Continue to the Upload to Play Wizard" }
+    assertThat(label != null).isTrue()
+
+    val checkboxes = UIUtil.findComponentsOfType(component, JCheckBox::class.java)
+    val checkbox = checkboxes.firstOrNull()
+    assertThat(checkbox != null).isTrue()
+
+    val initialState = checkbox!!.isSelected
+
+    val mouseEvent = MouseEvent(label, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), 0, 0, 0, 1, false)
+    label!!.mouseListeners.forEach { it.mouseClicked(mouseEvent) }
+
+    assertThat(checkbox.isSelected).isEqualTo(!initialState)
+
+    label.mouseListeners.forEach { it.mouseClicked(mouseEvent) }
+
+    assertThat(checkbox.isSelected).isEqualTo(initialState)
   }
 }

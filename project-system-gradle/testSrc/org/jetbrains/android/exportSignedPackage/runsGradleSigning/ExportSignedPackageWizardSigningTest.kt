@@ -159,15 +159,7 @@ class ExportSignedPackageWizardSigningTest(
     val signingInfo = GradleSigningInfo(keyStorePath, storePassword, keyAlias, keyPassword)
     val apkPath = androidModel!!.rootDirPath.path
     val modules = listOf(facet.module.getMainModule())
-    ExportSignedPackageWizard.doBuildAndSignGradleProject(
-      project,
-      facet,
-      variants,
-      modules,
-      signingInfo,
-      apkPath,
-      targetType,
-      buildResultHandler,
-    )
+    val future = ExportSignedPackageWizard.doBuildAndSignGradleProject(project, facet, variants, modules, signingInfo, apkPath, targetType)
+    buildResultHandler.consume(future)
   }
 }

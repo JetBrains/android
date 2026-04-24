@@ -47,7 +47,7 @@ public class GenerateApkAction extends AndroidStudioGradleAction {
       GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
       GoToApkLocationTask task = new GoToApkLocationTask(project, appModules, ACTION_TEXT);
       Module[] modulesToBuild = appModules.toArray(Module.EMPTY_ARRAY);
-      task.executeWhenBuildFinished(gradleBuildInvoker.assemble(modulesToBuild));
+      task.executeWhenBuildFinished(gradleBuildInvoker.assemble(modulesToBuild), true);
     }
   }
 }

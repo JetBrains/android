@@ -1129,6 +1129,13 @@ public final class StudioFlags {
     "ADV enforcement has started",
     "Update the ADV message to indicate that registration is enforced.");
 
+  public static final Flag<Boolean> PLAY_PUBLISHING_WIZARD_INTEGRATION =
+    new BooleanFlag(
+      GRADLE_IDE,
+      "play.publishing.wizard.integration",
+      "Play Publishing Wizard Integration",
+      "Show checkbox to continue to Upload to Play Wizard"
+    );
   //endregion
 
   //region Gradle Phased Sync

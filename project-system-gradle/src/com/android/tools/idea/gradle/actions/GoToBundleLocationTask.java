@@ -80,7 +80,7 @@ public class GoToBundleLocationTask {
     myBuildVariants = buildVariants;
   }
 
-  public void executeWhenBuildFinished(@NotNull ListenableFuture<AssembleInvocationResult> resultFuture) {
+  public void executeWhenBuildFinished(@NotNull ListenableFuture<AssembleInvocationResult> resultFuture, boolean showNotification) {
     whenFinished(
       resultFuture,
       directExecutor(),
@@ -89,7 +89,9 @@ public class GoToBundleLocationTask {
           BuildsToPathsMapper.getInstance(myProject);
         Map<String, File> bundleBuildsToPath =
           buildsToPathsMapper.getBuildsToPaths(result, myBuildVariants, myModules, true);
-        showNotification(result, bundleBuildsToPath);
+        if (showNotification) {
+          showNotification(result, bundleBuildsToPath);
+        }
         return null;
       });
   }

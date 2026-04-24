@@ -57,12 +57,10 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.Consumer;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.security.PrivateKey;
@@ -71,6 +69,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.swing.JComponent;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -106,6 +106,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   @NotNull private TargetType myTargetType = APK;
   private List<String> myBuildVariants;
   private GradleSigningInfo myGradleSigningInfo;
+  private boolean myUploadToPlay;
 
   public ExportSignedPackageWizard(@NotNull Project project, @NotNull List<AndroidFacet> facets) {
     super(AndroidBundle.message("android.export.package.wizard.title"), project);
@@ -126,11 +127,39 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
       return;
     }
     trackWizardOkAction(myProject);
-    super.doOKAction();
 
     assert myFacet != null;
     assert AndroidModel.isRequired(myFacet);
-    buildAndSignGradleProject();
+
+    if (myUploadToPlay) {
+      new Task.Modal(myProject, getRootPane(), "Building and Signing...", true) {
+        @Override
+        public void run(@NotNull ProgressIndicator indicator) {
+          ListenableFuture<AssembleInvocationResult> future = performBuildAndSign();
+          if (future == null) {
+            return;
+          }
+          while (!future.isDone()) {
+            if (indicator.isCanceled()) {
+              future.cancel(true);
+              return;
+            }
+          }
+          if (!future.isCancelled()) {
+            invokeLaterIfNeeded(ExportSignedPackageWizard.super::doOKAction);
+          }
+        }
+      }.queue();
+    }
+    else {
+      super.doOKAction();
+      new Task.Backgroundable(myProject, "Generating Signed APKs", true) {
+        @Override
+        public void run(@NotNull ProgressIndicator indicator) {
+          performBuildAndSign();
+        }
+      }.queue();
+    }
   }
 
   @Override
@@ -145,24 +174,20 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     super.show();
   }
 
-  private void buildAndSignGradleProject() {
-    ProgressManager.getInstance().run(new Task.Backgroundable(myProject, "Generating Signed APKs", false, null) {
-      @Override
-      public void run(@NotNull ProgressIndicator indicator) {
-        List<Module> modules = ImmutableList.of(LinkedAndroidModuleGroupUtilsKt.getMainModule(myFacet.getModule()));
-        Consumer<ListenableFuture<AssembleInvocationResult>> buildHandler = prepareBuildResultHandler(modules);
-        if (buildHandler == null) {
-          // Nothing to do, there was an error detected while generating the result handler (and was already logged)
-          return;
-        }
-        doBuildAndSignGradleProject(myProject, myFacet, myBuildVariants, modules, myGradleSigningInfo, myApkPath, myTargetType,
-                                    buildHandler);
-        trackWizardGradleSigning(myProject, toSigningTargetType(myTargetType), modules.size(), myBuildVariants.size());
-      }
-    });
+  private ListenableFuture<AssembleInvocationResult> performBuildAndSign() {
+    List<Module> modules = ImmutableList.of(LinkedAndroidModuleGroupUtilsKt.getMainModule(myFacet.getModule()));
+    BiConsumer<ListenableFuture<AssembleInvocationResult>, Boolean> buildHandler = prepareBuildResultHandler(modules);
+    if (buildHandler == null) {
+      // Nothing to do, there was an error detected while generating the result handler (and was already logged)
+      return null;
+    }
+    ListenableFuture<AssembleInvocationResult> future = doBuildAndSignGradleProject(myProject, myFacet, myBuildVariants, modules, myGradleSigningInfo, myApkPath, myTargetType);
+    buildHandler.accept(future, !myUploadToPlay);
+    trackWizardGradleSigning(myProject, toSigningTargetType(myTargetType), modules.size(), myBuildVariants.size());
+    return future;
   }
 
-  private Consumer<ListenableFuture<AssembleInvocationResult>> prepareBuildResultHandler(@NotNull List<Module> modules) {
+  private BiConsumer<ListenableFuture<AssembleInvocationResult>, Boolean> prepareBuildResultHandler(@NotNull List<Module> modules) {
     if (myTargetType.equals(BUNDLE)) {
       return new GoToBundleLocationTask(myProject, modules, "Generate Signed Bundle", myBuildVariants)::executeWhenBuildFinished;
     }
@@ -285,6 +310,10 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     return myGradleSigningInfo;
   }
 
+  public void setUploadToPlay(boolean uploadToPlay) {
+    myUploadToPlay = uploadToPlay;
+  }
+
   private static Logger getLog() {
     return Logger.getInstance(ExportSignedPackageWizard.class);
   }
@@ -300,35 +329,34 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   }
 
   @VisibleForTesting
-  public static void doBuildAndSignGradleProject(Project project,
+  public static ListenableFuture<AssembleInvocationResult> doBuildAndSignGradleProject(Project project,
                                           AndroidFacet facet,
                                           List<String> variants,
                                           List<Module> modules,
                                           GradleSigningInfo signInfo,
                                           String apkPath,
-                                          TargetType targetType,
-                                          Consumer<ListenableFuture<AssembleInvocationResult>> buildResultHandler) {
+                                          TargetType targetType) {
     assert project != null;
     @NotNull Module facetModule = facet.getModule();
     GradleFacet gradleFacet = GradleFacet.getInstance(facetModule);
     if (gradleFacet == null) {
       getLog().error("Unable to get gradle project information for module: " + facetModule.getName());
       trackWizardGradleSigningFailed(project, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_NO_MODULE_FACET);
-      return;
+      return null;
     }
 
     GradleProjectPath gradleProjectPath = GradleProjectPathKt.getGradleProjectPath(facetModule);
     if (gradleProjectPath == null) {
       getLog().error("Unable to get gradle project information for module: " + facetModule.getName());
       trackWizardGradleSigningFailed(project, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_NO_MODULE_FACET);
-      return;
+      return null;
     }
 
     String rootProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(facetModule);
     if (StringUtil.isEmpty(rootProjectPath)) {
       getLog().error("Unable to get gradle root project path for module: " + facetModule.getName());
       trackWizardGradleSigningFailed(project, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_NO_MODULE_ROOT_PATH);
-      return;
+      return null;
     }
 
     // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
@@ -336,14 +364,14 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     if (androidModel == null) {
       getLog().error("Unable to obtain Android project model. Did the last Gradle sync complete successfully?");
       trackWizardGradleSigningFailed(project, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_NO_ANDROID_MODEL);
-      return;
+      return null;
     }
 
     // should have been set by previous steps
     if (variants == null) {
       getLog().error("Unable to find required information. Please check the previous steps are completed.");
       trackWizardGradleSigningFailed(project, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_NO_VARIANTS_SELECTED);
-      return;
+      return null;
     }
 
     List<String> signingProperties = prepareSigningProperties(signInfo, apkPath);
@@ -351,19 +379,20 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
     GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
     List<String> gradleTasks = getGradleTasks(gradleProjectPath.getPath(), androidModel, variants, targetType);
-    buildResultHandler.consume(
-      gradleBuildInvoker.executeAssembleTasks(
+    ListenableFuture<AssembleInvocationResult> future = gradleBuildInvoker.executeAssembleTasks(
         modules.toArray(Module.EMPTY_ARRAY),
         ImmutableList.of(
           GradleBuildInvoker.Request.builder(gradleBuildInvoker.getProject(), rootProjectFile, gradleTasks, null)
             .setCommandLineArguments(signingProperties)
             .setMode(getBuildModeFromTarget(targetType))
-            .build()))
-    );
+            .build()));
+
     getLog().info("Export " + StringUtil.toUpperCase(targetType.toString()) + " command: " +
                   Joiner.on(',').join(gradleTasks) +
                   ", destination: " +
                   createProperty(PROPERTY_APK_LOCATION, apkPath));
+
+    return future;
   }
 
   @NotNull

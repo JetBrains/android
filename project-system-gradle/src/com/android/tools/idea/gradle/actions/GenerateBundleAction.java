@@ -45,7 +45,7 @@ public class GenerateBundleAction extends AndroidStudioGradleAction {
       GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
       GoToBundleLocationTask task = new GoToBundleLocationTask(project, appModules, ACTION_TEXT);
       Module[] modulesToBuild = appModules.toArray(Module.EMPTY_ARRAY);
-      task.executeWhenBuildFinished(gradleBuildInvoker.bundle(modulesToBuild));
+      task.executeWhenBuildFinished(gradleBuildInvoker.bundle(modulesToBuild), true);
     }
     else {
       AndroidNotification.getInstance(project).showBalloon(ACTION_TEXT, "No modules supporting bundles found", ERROR);

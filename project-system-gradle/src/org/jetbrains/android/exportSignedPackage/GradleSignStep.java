@@ -45,14 +45,17 @@ import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.util.ui.components.BorderLayoutPanel;
 import com.intellij.util.ModalityUiUtil;
 import com.intellij.util.ui.EmptyIcon;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.security.cert.CertificateEncodingException;
@@ -69,6 +72,7 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.Icon;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -107,6 +111,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
   final JBLabel myAdiStatusDescription = new JBLabel();
   private final BrowserLink myLearnMoreLink = new BrowserLink("Learn more", "https://d.android.com/r/studio-ui/developer-verification/learn-more");
   private final JBLabel myWarningText = new JBLabel();
+  private JCheckBox myContinueToPlayCheckBox;
 
   private final AdiClient myAdiClient;
 
@@ -265,6 +270,10 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
     PropertiesComponent properties = PropertiesComponent.getInstance(myWizard.getProject());
     properties.setValue(getApkPathPropertyName(myAndroidModel.getModuleName(), myWizard.getTargetType()), apkFolder);
     properties.setList(PROPERTY_BUILD_VARIANTS, buildVariants);
+
+    if (myContinueToPlayCheckBox != null) {
+      myWizard.setUploadToPlay(myContinueToPlayCheckBox.isSelected());
+    }
   }
 
   @Override
@@ -294,7 +303,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
 
   private void setupUI() {
     myContentPanel = new JPanel();
-    myContentPanel.setLayout(new GridLayoutManager(8, 3, JBUI.emptyInsets(), -1, 7));
+    myContentPanel.setLayout(new GridLayoutManager(10, 3, JBUI.emptyInsets(), -1, 7));
     final JBLabel destinationFolderLabel = new JBLabel();
     destinationFolderLabel.setText("Destination Folder");
     destinationFolderLabel.setDisplayedMnemonic('D');
@@ -379,6 +388,44 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
                                                               GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_CAN_SHRINK,
                                                               GridConstraints.SIZEPOLICY_FIXED,
                                                               null, null, null));
+    }
+
+    if (StudioFlags.PLAY_PUBLISHING_WIZARD_INTEGRATION.get()) {
+      final TitledSeparator publishingSeparator = new TitledSeparator("Publishing");
+      myContentPanel.add(publishingSeparator, new GridConstraints(8, 0, 1, 3, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                        GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                        new Dimension(-1, 20), null, 0, false));
+
+      BorderLayoutPanel textPanel = new BorderLayoutPanel(0, 5);
+      textPanel.setBorder(JBUI.Borders.empty(2));
+      JBLabel checkboxLabel = new JBLabel("Continue to the Upload to Play Wizard");
+      checkboxLabel.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+          if (myContinueToPlayCheckBox != null) {
+            myContinueToPlayCheckBox.setSelected(!myContinueToPlayCheckBox.isSelected());
+            myWizard.setUploadToPlay(myContinueToPlayCheckBox.isSelected());
+          }
+        }
+      });
+      JBLabel descriptionLabel = new JBLabel("Upload the signed App Bundle or APK to a new or existing Play app listing.");
+      descriptionLabel.setForeground(DISABLED_TEXT_COLOR);
+
+      textPanel.addToTop(checkboxLabel);
+      textPanel.addToCenter(descriptionLabel);
+
+      BorderLayoutPanel publishingPanel = new BorderLayoutPanel();
+      myContinueToPlayCheckBox = new JCheckBox();
+      BorderLayoutPanel checkBoxPanel = new BorderLayoutPanel();
+      checkBoxPanel.addToTop(myContinueToPlayCheckBox);
+
+      publishingPanel.addToLeft(checkBoxPanel);
+      publishingPanel.addToCenter(textPanel);
+      publishingPanel.setBorder(JBUI.Borders.emptyBottom(4));
+
+      myContentPanel.add(publishingPanel, new GridConstraints(9, 0, 1, 3, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                          GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     }
   }
 

@@ -75,7 +75,7 @@ public class GoToApkLocationTask {
     myBuildVariants = buildVariants;
   }
 
-  public void executeWhenBuildFinished(@NotNull ListenableFuture<AssembleInvocationResult> resultFuture) {
+  public void executeWhenBuildFinished(@NotNull ListenableFuture<AssembleInvocationResult> resultFuture, boolean showNotification) {
     whenFinished(
       resultFuture,
       directExecutor(),
@@ -84,7 +84,9 @@ public class GoToApkLocationTask {
           BuildsToPathsMapper.getInstance(myProject);
         Map<String, File> apkBuildsToPaths =
           buildsToPathsMapper.getBuildsToPaths(result, myBuildVariants, myModules, false);
-        showNotification(result, apkBuildsToPaths);
+        if (showNotification) {
+          showNotification(result, apkBuildsToPaths);
+        }
         return null;
       });
   }
