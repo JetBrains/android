@@ -31,7 +31,6 @@ class KtsCatalogAnnotator : Annotator {
 
     if (element is KtDotQualifiedExpression && element.isEndOfDotExpression() && element.hasCatalogReference()) {
       // handle catalog reference
-      // JetBrains patch: can be dropped in favor of incoming Google commit fixing this
       if (!hasLiveCatalogReference(element)) {
         holder.newAnnotation(HighlightSeverity.ERROR, "Unresolved reference to version catalog").create()
       }
