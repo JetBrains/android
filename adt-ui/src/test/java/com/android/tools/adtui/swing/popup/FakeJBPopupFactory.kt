@@ -105,7 +105,7 @@ class FakeJBPopupFactory(val disposable: Disposable) : JBPopupFactory() {
    * Type safety is the responsibility of the caller.
    */
   @Suppress("UNCHECKED_CAST")
-  fun <T, U : FakeJBPopup<T>> getNextPopup(timeout: Duration): U {
+  fun <T : Any, U : FakeJBPopup<T>> getNextPopup(timeout: Duration): U {
     waitForCondition(timeout) { popups.isNotEmpty() }
     return popups.removeFirst() as U
   }
@@ -116,7 +116,7 @@ class FakeJBPopupFactory(val disposable: Disposable) : JBPopupFactory() {
    *
    * Type safety is the responsibility of the caller.
    */
-  fun <T, U : FakeJBPopup<T>> getNextPopup(timeout: Long, timeUnit: TimeUnit): U =
+  fun <T : Any, U : FakeJBPopup<T>> getNextPopup(timeout: Long, timeUnit: TimeUnit): U =
     getNextPopup(timeout.toDuration(timeUnit.toDurationUnit()))
 
   /** Returns a balloon that has been created using this factory. */
@@ -322,14 +322,11 @@ class FakeJBPopupFactory(val disposable: Disposable) : JBPopupFactory() {
     return null
   }
 
-  override fun <T : Any?> createPopupComponentAdapter(
-    builder: PopupChooserBuilder<T>,
-    tree: JTree,
-  ): PopupChooserBuilder.PopupComponentAdapter<T> {
+  override fun <T> createPopupComponentAdapter(builder: PopupChooserBuilder<T>, tree: JTree): PopupChooserBuilder.PopupComponentAdapter<T> {
     TODO("Not yet implemented")
   }
 
-  override fun <T : Any?> createPopupComponentAdapter(
+  override fun <T> createPopupComponentAdapter(
     builder: PopupChooserBuilder<T>,
     table: JTable,
   ): PopupChooserBuilder.PopupComponentAdapter<T> {
