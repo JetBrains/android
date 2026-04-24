@@ -23,11 +23,8 @@
     <plugin id="com.intellij.modules.json"/>
     <module name="intellij.platform.lvcs.impl"/>
     <module name="intellij.platform.vcs.impl"/>
-    <module name="intellij.platform.vcs.impl.shared"/>
-    <module name="intellij.platform.vcs.log"/>
     <module name="intellij.platform.vcs.log.impl"/>
     <module name="intellij.platform.vcs.dvcs.impl"/>
-    <module name="intellij.platform.vcs.dvcs"/>
     <module name="intellij.properties.backend.psi"/>
     <module name="intellij.spellchecker"/>
     <module name="intellij.spellchecker.xml"/>
@@ -36,12 +33,6 @@
     <module name="intellij.platform.jewel.markdown.core"/>
     <module name="intellij.platform.jewel.markdown.ideLafBridgeStyling"/>
     <module name="intellij.platform.jewel.ui"/>
-    <module name="intellij.platform.jewel.markdown.extensions.gfmTables"/>
-    <module name="intellij.platform.jewel.markdown.extensions.images"/>
-<!--    <module name="intellij.libraries.skiko"/>-->
-<!--    <module name="intellij.libraries.compose.foundation.desktop"/>-->
-<!--    <module name="intellij.libraries.compose.runtime.desktop"/>-->
-
   </dependencies>
 
   <!-- This is temporary mechanism to mark certain plugins as K2-compatible. See IntelliJ commit cf213fb139 for details. -->
