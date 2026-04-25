@@ -17,7 +17,6 @@ package com.android.studio.updater
 
 import com.android.prefs.AbstractAndroidLocations
 import com.android.testutils.TestUtils
-import com.google.common.collect.MoreCollectors
 import com.google.wireless.android.play.playlog.proto.ClientAnalytics
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.StudioPatchUpdaterEvent
@@ -31,6 +30,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
+import java.util.stream.Collectors
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
@@ -173,19 +173,22 @@ class StudioPatchUpdaterIntegrationTest {
   private fun readEvents(analyticsHome: Path): List<AndroidStudioEvent> {
     // Check the analytics were written.
     val spool = analyticsHome.resolve("metrics/spool")
-    val trackFile: Path = Files.list(spool).use { paths -> paths.collect(MoreCollectors.onlyElement<Path>()) }
+    val trackFiles = Files.list(spool).use { paths -> paths.collect(Collectors.toList()) }
     val events = ArrayList<AndroidStudioEvent>()
 
-    BufferedInputStream(Files.newInputStream(trackFile)).use { inputStream ->
-      // read all LogEvents from the trackFile.
-      while (true) {
-        val event = ClientAnalytics.LogEvent.parseDelimitedFrom(inputStream) ?: break
-        val studioEvent = AndroidStudioEvent.parseFrom(event.sourceExtension)
-        events.add(studioEvent)
-        println(studioEvent)
-        println("---")
+    for (trackFile in trackFiles) {
+      BufferedInputStream(Files.newInputStream(trackFile)).use { inputStream ->
+        // read all LogEvents from the trackFile.
+        while (true) {
+          val event = ClientAnalytics.LogEvent.parseDelimitedFrom(inputStream) ?: break
+          val studioEvent = AndroidStudioEvent.parseFrom(event.sourceExtension)
+          events.add(studioEvent)
+          println(studioEvent)
+          println("---")
+        }
       }
     }
+
     return events
   }
 

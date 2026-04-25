@@ -1347,6 +1347,7 @@ java_binary(
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-common",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk7",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core",
     ],
 )
 
