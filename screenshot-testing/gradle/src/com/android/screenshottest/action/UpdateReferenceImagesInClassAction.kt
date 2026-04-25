@@ -20,19 +20,21 @@ import com.android.screenshottest.producers.isMethodDeclarationPreviewTestAnnota
 import com.android.screenshottest.producers.isScreenshotTestSourceSet
 import com.android.screenshottest.util.UPDATE_ACTION_DESCRIPTION
 import com.android.screenshottest.util.UPDATE_ACTION_TEXT
+import com.android.tools.idea.AndroidPsiUtils.getPsiParentsOfType
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
-import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
+import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.asJava.toLightMethods
+import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
 
@@ -70,10 +72,19 @@ class UpdateReferenceImagesInClassAction :
         hasClassTests || hasTopLevelTests
       }
       is PsiClass -> isClassDeclarationWithPreviewTestAnnotatedMethods(psiElement)
-      is PsiFile -> psiElement.children.filterIsInstance<PsiClass>().any { isClassDeclarationWithPreviewTestAnnotatedMethods(it) }
-      else ->
-        PsiTreeUtil.getParentOfType(psiElement, PsiClass::class.java, false)?.let { isClassDeclarationWithPreviewTestAnnotatedMethods(it) }
-          ?: false
+      is PsiClassOwner -> psiElement.classes.any { isClassDeclarationWithPreviewTestAnnotatedMethods(it) }
+      else -> {
+        val psiClass =
+          getPsiParentsOfType(psiElement, PsiClass::class.java, false).firstOrNull()
+            ?: getPsiParentsOfType(psiElement, KtClassOrObject::class.java, false).firstOrNull()?.toLightClass()
+
+        if (psiClass != null && isClassDeclarationWithPreviewTestAnnotatedMethods(psiClass)) {
+          return true
+        }
+
+        val containingFile = psiElement.containingFile
+        return containingFile != null && containingFile != psiElement && hasScreenshotTests(containingFile)
+      }
     }
   }
 }
