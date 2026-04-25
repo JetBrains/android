@@ -112,7 +112,7 @@ class PreviewDetailsPanel(private val project: Project? = null) : JPanel(CardLay
       onActionTriggered = toolbarAnalytics::logAction,
     )
 
-  private val multiViewPanels = listOf(newImagePanel, diffImagePanel, refImagePanel)
+  private val multiViewPanels = listOf(refImagePanel, diffImagePanel, newImagePanel)
 
   // Panels for the individual tabbed views in single preview mode.
   private val newImagePanelSingle =
@@ -319,16 +319,16 @@ class PreviewDetailsPanel(private val project: Project? = null) : JPanel(CardLay
     singlePreviewPanel.repaint()
   }
 
-  /** Sets up the side-by-side view for New, Diff, and Reference images. This view has a common toolbar and synchronized scrolling. */
+  /** Sets up the side-by-side view for Reference, Diff, and New images. This view has a common toolbar and synchronized scrolling. */
   private fun setupAllImagesView(previewData: PreviewDetails): JComponent {
     val rightSplit =
       OnePixelSplitter(false, 0.5f).apply {
         firstComponent = diffImagePanel
-        secondComponent = refImagePanel
+        secondComponent = newImagePanel
       }
     val mainSplit =
       OnePixelSplitter(false, 0.33f).apply {
-        firstComponent = newImagePanel
+        firstComponent = refImagePanel
         secondComponent = rightSplit
       }
 
