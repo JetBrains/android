@@ -21,7 +21,6 @@ import com.android.tools.adtui.stdui.TimelineTable
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.adtui.swing.FakeMouse.Button.RIGHT
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.adtui.swing.popup.FakeListPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeCodeNavigationProvider
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeNetworkInspectorDataSource
@@ -266,7 +265,7 @@ class ConnectionsViewTest {
 
     fakeUi.clickRelativeTo(table, rect.x + rect.width / 2, rect.y + rect.height / 2, RIGHT)
 
-    val popupMenu = popupRule.fakePopupFactory.getNextPopup<ActionItem, FakeListPopup<ActionItem>>()
+    val popupMenu = popupRule.fakePopupFactory.getNextListPopup<ActionItem>()
     assertThat(popupMenu.actions.map { it::class }).containsExactly(CopyUrlAction::class, CopyAsCurlAction::class)
   }
 
@@ -281,7 +280,7 @@ class ConnectionsViewTest {
 
     fakeUi.clickRelativeTo(table, rect.x + rect.width / 2, rect.y + rect.height / 2, RIGHT)
 
-    val popupMenu = popupRule.fakePopupFactory.getNextPopup<ActionItem, FakeListPopup<ActionItem>>()
+    val popupMenu = popupRule.fakePopupFactory.getNextListPopup<ActionItem>()
     assertThat(popupMenu.actions.map { it::class }).containsExactly(CopyUrlAction::class)
   }
 }

@@ -193,7 +193,7 @@ class EmulatorUiSettingsActionTest {
 
   private fun waitForDialog(): JBPopup {
     waitForCondition(10.seconds) { popupRule.fakePopupFactory.popupCount > 0 }
-    return popupRule.fakePopupFactory.getPopup<Any>(0)
+    return popupRule.fakePopupFactory.getNextPopup()
   }
 
   private fun simulateDarkTheme(on: Boolean) {

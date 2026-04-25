@@ -255,7 +255,7 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
   }
 
   private fun findPopup(): JBPopup {
-    val popup = popupRule.fakePopupFactory.getPopup<Any>(0)
+    val popup = popupRule.fakePopupFactory.getNextPopup()
     FakeUi(popup.content, createFakeWindow = true, parentDisposable = testRootDisposable)
     return popup
   }

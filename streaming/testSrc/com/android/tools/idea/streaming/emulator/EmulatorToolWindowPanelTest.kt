@@ -36,7 +36,6 @@ import com.android.tools.adtui.swing.HeadlessRootPaneContainer
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.getDescendant
-import com.android.tools.adtui.swing.popup.FakeComponentPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.avdmanager.EmulatorLogListener
 import com.android.tools.idea.editors.liveedit.ui.LiveEditNotificationGroup
@@ -587,7 +586,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(xrInputController.dimmingCoefficient).isEqualTo(0f)
     val environmentVisibilityButton = fakeUi.getComponent<ActionButton> { it.action.templateText == "Environment Visibility" }
     fakeUi.mouseClickOn(environmentVisibilityButton)
-    val popup: FakeComponentPopup = popupFactory.getNextPopup(2.seconds)
+    val popup = popupFactory.getNextPopup(2.seconds)
     val ui = FakeUi(popup.component)
     val checkBox = ui.getComponent<JCheckBox>()
     val slider = ui.getComponent<JSlider>()

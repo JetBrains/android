@@ -67,7 +67,7 @@ import kotlin.time.toDurationUnit
  * This class is implemented ad hoc. All unused methods will throw a [NotImplementedError].
  *
  * This class keeps track of the popups that it creates. Popups can be created directly by this class or indirectly via builders. A test can
- * retrieve the popup it needs using the [getPopup], [getNextPopup], [getBalloon] or [getNextBalloon] method. Type safety is the
+ * retrieve the popup it needs using the [getPopup], [getNextListPopup], [getBalloon] or [getNextBalloon] method. Type safety is the
  * responsibility of the caller.
  *
  * Note to contributors: As methods are implemented, please move them towards the top of the file.
@@ -92,32 +92,53 @@ class FakeJBPopupFactory(val disposable: Disposable) : JBPopupFactory() {
   @Suppress("UNCHECKED_CAST") fun <T> getPopup(i: Int): FakeJBPopup<T> = popups[i] as FakeJBPopup<T>
 
   /**
-   * Returns the oldest popup that was created using this factory and removes it from the factory.
+   * Returns the oldest popup that was created using this factory and removes it from the factory. The popup is expected to be of type
+   * [FakeComponentPopup].
    *
    * Type safety is the responsibility of the caller.
    */
-  @Suppress("UNCHECKED_CAST") fun <T, U : FakeJBPopup<T>> getNextPopup(): U = popups.removeFirst() as U
+  @Suppress("UNCHECKED_CAST") fun getNextPopup(): FakeComponentPopup = popups.removeFirst() as FakeComponentPopup
+
+  /**
+   * Returns the oldest popup that was created using this factory and removes it from the factory. The popup is expected to be of type
+   * [FakeListPopup]. [T] is the type of the list elements.
+   *
+   * Type safety is the responsibility of the caller.
+   */
+  @Suppress("UNCHECKED_CAST") fun <T> getNextListPopup(): FakeListPopup<T> = popups.removeFirst() as FakeListPopup<T>
 
   /**
    * Returns the oldest popup that was created using this factory and removes it from the factory. If no popups have been created yet, waits
-   * for one to be created.
+   * for one to be created. The popup is expected to be of type [FakeComponentPopup].
    *
    * Type safety is the responsibility of the caller.
    */
   @Suppress("UNCHECKED_CAST")
-  fun <T : Any, U : FakeJBPopup<T>> getNextPopup(timeout: Duration): U {
+  fun getNextPopup(timeout: Duration): FakeComponentPopup {
     waitForCondition(timeout) { popups.isNotEmpty() }
-    return popups.removeFirst() as U
+    return popups.removeFirst() as FakeComponentPopup
   }
 
   /**
    * Returns the oldest popup that was created using this factory and removes it from the factory. If no popups have been created yet, waits
-   * for one to be created.
+   * for one to be created. The popup is expected to be of type [FakeListPopup]. [T] is the type of the list elements.
    *
    * Type safety is the responsibility of the caller.
    */
-  fun <T : Any, U : FakeJBPopup<T>> getNextPopup(timeout: Long, timeUnit: TimeUnit): U =
-    getNextPopup(timeout.toDuration(timeUnit.toDurationUnit()))
+  @Suppress("UNCHECKED_CAST")
+  fun <T : Any> getNextListPopup(timeout: Duration): FakeListPopup<T> {
+    waitForCondition(timeout) { popups.isNotEmpty() }
+    return popups.removeFirst() as FakeListPopup<T>
+  }
+
+  /**
+   * Returns the oldest popup that was created using this factory and removes it from the factory. If no popups have been created yet, waits
+   * for one to be created. The popup is expected to be of type [FakeListPopup]. [T] is the type of the list elements.
+   *
+   * Type safety is the responsibility of the caller.
+   */
+  fun <T : Any> getNextListPopup(timeout: Long, timeUnit: TimeUnit): FakeListPopup<T> =
+    getNextListPopup(timeout.toDuration(timeUnit.toDurationUnit()))
 
   /** Returns a balloon that has been created using this factory. */
   fun getBalloon(i: Int): FakeBalloon = balloons[i]
@@ -148,6 +169,7 @@ class FakeJBPopupFactory(val disposable: Disposable) : JBPopupFactory() {
   ): ListPopup {
     val component: Component? = PlatformCoreDataKeys.CONTEXT_COMPONENT.getData(dataContext)
     val presentationFactory = PresentationFactory()
+    @Suppress("UnstableApiUsage")
     val step =
       ActionPopupStep.createActionsStep(
         title,

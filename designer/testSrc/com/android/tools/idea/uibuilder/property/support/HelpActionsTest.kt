@@ -30,7 +30,6 @@ import com.android.SdkConstants.FQCN_TEXT_VIEW
 import com.android.SdkConstants.FRAME_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.testutils.waitForCondition
-import com.android.tools.adtui.swing.popup.FakeComponentPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property.NlPropertyDocumentationTarget
@@ -136,7 +135,7 @@ class HelpActionsTest {
     val event = createEvent(context, null, "", ActionUiKind.NONE, null)
     HelpActions.help.actionPerformed(event)
     waitForCondition(10, TimeUnit.SECONDS) { popupRule.fakePopupFactory.popupCount > 0 }
-    val popup = popupRule.fakePopupFactory.getNextPopup<Unit, FakeComponentPopup>()
+    val popup = popupRule.fakePopupFactory.getNextPopup()
     val doc = UIUtil.findComponentsOfType(popup.contentPanel, DocumentationEditorPane::class.java).singleOrNull() ?: error("No doc?")
     Disposer.dispose(popup)
 

@@ -38,7 +38,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
-import com.android.tools.adtui.swing.popup.FakeListPopup
+import com.android.tools.adtui.swing.popup.FakeJBPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.adblib.AdbLibApplicationService
 import com.android.tools.idea.avdmanager.RunningAvdTracker
@@ -470,7 +470,7 @@ class StreamingToolWindowManagerTest {
     waitForCondition(2.seconds) { toolWindow.tabActions.isNotEmpty() }
     val newTabAction = toolWindow.tabActions[0]
     executeAction(newTabAction, createTestEvent(toolWindow.component, project))
-    val popup: FakeListPopup<Any> = popupRule.fakePopupFactory.getNextPopup(2.seconds)
+    val popup = popupRule.fakePopupFactory.getNextListPopup<Any>(2.seconds)
 
     assertThat(popup.actions.toString())
       .isEqualTo(
@@ -525,7 +525,7 @@ class StreamingToolWindowManagerTest {
     waitForCondition(2.seconds) { toolWindow.tabActions.isNotEmpty() }
     val newTabAction = toolWindow.tabActions[0]
     executeAction(newTabAction, createTestEvent(toolWindow.component, project))
-    val popup: FakeListPopup<Any> = popupRule.fakePopupFactory.getNextPopup(2.seconds)
+    val popup = popupRule.fakePopupFactory.getNextListPopup<Any>(2.seconds)
 
     assertThat(popup.actions.toString())
       .isEqualTo(
@@ -605,7 +605,7 @@ class StreamingToolWindowManagerTest {
     assertThat(newTabAction.templatePresentation.icon).isEqualTo(AllIcons.General.Add)
 
     executeAction(newTabAction, createTestEvent(toolWindow.component, project))
-    var popup: FakeListPopup<Any> = popupRule.fakePopupFactory.getNextPopup(2.seconds)
+    var popup = popupRule.fakePopupFactory.getNextListPopup<Any>(2.seconds)
     assertThat(popup.actions.toString().htmlToPlainText())
       .isEqualTo("[Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
 
@@ -613,7 +613,7 @@ class StreamingToolWindowManagerTest {
     contentManager.removeContent(contentManager.contents[0], true)
 
     executeAction(newTabAction, toolWindow.component, project)
-    popup = popupRule.fakePopupFactory.getNextPopup(2.seconds)
+    popup = popupRule.fakePopupFactory.getNextListPopup(2.seconds)
     assertThat(popup.actions.toString().htmlToPlainText())
       .isEqualTo(
         "[Separator (Connected Devices), Pixel 4 API 30 (1) (null), Pixel 7 API 33 (2) (null), " +
@@ -629,7 +629,7 @@ class StreamingToolWindowManagerTest {
     assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 7 API 33")
 
     executeAction(newTabAction, toolWindow.component, project)
-    popup = popupRule.fakePopupFactory.getNextPopup(2.seconds)
+    popup = popupRule.fakePopupFactory.getNextListPopup(2.seconds)
     assertThat(popup.actions.toString().htmlToPlainText())
       .isEqualTo(
         "[Separator (Connected Devices), Pixel 4 API 30 (1) (null), " +
@@ -643,7 +643,7 @@ class StreamingToolWindowManagerTest {
     assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 4 API 30")
 
     executeAction(newTabAction, toolWindow.component, project)
-    popup = popupRule.fakePopupFactory.getNextPopup(2.seconds)
+    popup = popupRule.fakePopupFactory.getNextListPopup(2.seconds)
     assertThat(popup.actions.toString().htmlToPlainText())
       .isEqualTo("[Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
   }
@@ -1086,12 +1086,12 @@ class StreamingToolWindowManagerTest {
     return action!!
   }
 
-  private fun triggerAddDevicePopup(): FakeListPopup<Any> {
+  private fun triggerAddDevicePopup(): FakeJBPopup<Any> {
     waitForCondition(2.seconds) { toolWindow.tabActions.isNotEmpty() }
     val newTabAction = toolWindow.tabActions[0]
     val testEvent = createTestEvent(toolWindow.component, project)
     executeAction(newTabAction, testEvent)
-    return popupRule.fakePopupFactory.getNextPopup(2.seconds)
+    return popupRule.fakePopupFactory.getNextListPopup(2.seconds)
   }
 }
 
