@@ -441,7 +441,7 @@ android-studio/jbr/release
 android-studio/lib/annotations.jar
 android-studio/lib/app-backend.jar
 android-studio/lib/app.jar
-android-studio/lib/build-marker-AI-261.22158.277.__BUILD_NUMBER__
+android-studio/lib/build-marker-AI-261.23567.138.__BUILD_NUMBER__
 android-studio/lib/eclipse.lsp4j.debug.jar
 android-studio/lib/eclipse.lsp4j.jar
 android-studio/lib/eclipse.lsp4j.jsonrpc.debug.jar
@@ -3263,6 +3263,7 @@ android-studio/plugins/gradle-plugin/lib/modules/intellij.gradle.properties.jar
 android-studio/plugins/gradle-plugin/lib/modules/intellij.gradle.toml.jar
 android-studio/plugins/grazie/lib/ai.grazie.api.gateway.client.jvm.jar
 android-studio/plugins/grazie/lib/ai.grazie.client.ktor.jvm.jar
+android-studio/plugins/grazie/lib/ai.grazie.gec.util.jar
 android-studio/plugins/grazie/lib/ai.grazie.model.ner.jvm.jar
 android-studio/plugins/grazie/lib/ai.grazie.model.tree.jvm.jar
 android-studio/plugins/grazie/lib/ai.grazie.rule.engine.jar
@@ -3273,6 +3274,7 @@ android-studio/plugins/grazie/lib/com.hankcs-aho-corasick-double-array-trie.jar
 android-studio/plugins/grazie/lib/com.vdurmont-emoji-java.jar
 android-studio/plugins/grazie/lib/grazie.jar
 android-studio/plugins/grazie/lib/intellij.libraries.ai.grazie.spell.gec.engine.local.jar
+android-studio/plugins/grazie/lib/io.github.oshai.kotlin.logging.jvm.jar
 android-studio/plugins/grazie/lib/javax.measure-unit-api.jar
 android-studio/plugins/grazie/lib/modules/intellij.grazie.java.jar
 android-studio/plugins/grazie/lib/modules/intellij.grazie.properties.jar

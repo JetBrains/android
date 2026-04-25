@@ -3273,6 +3273,7 @@
 +++Android Studio Nightly.app/Contents/plugins/gradle-plugin/lib/modules/intellij.gradle.toml.jar
 +++Android Studio Nightly.app/Contents/plugins/grazie/lib/ai.grazie.api.gateway.client.jvm.jar
 +++Android Studio Nightly.app/Contents/plugins/grazie/lib/ai.grazie.client.ktor.jvm.jar
++++Android Studio Nightly.app/Contents/plugins/grazie/lib/ai.grazie.gec.util.jar
 +++Android Studio Nightly.app/Contents/plugins/grazie/lib/ai.grazie.model.ner.jvm.jar
 +++Android Studio Nightly.app/Contents/plugins/grazie/lib/ai.grazie.model.tree.jvm.jar
 +++Android Studio Nightly.app/Contents/plugins/grazie/lib/ai.grazie.rule.engine.jar
@@ -3283,6 +3284,7 @@
 +++Android Studio Nightly.app/Contents/plugins/grazie/lib/com.vdurmont-emoji-java.jar
 +++Android Studio Nightly.app/Contents/plugins/grazie/lib/grazie.jar
 +++Android Studio Nightly.app/Contents/plugins/grazie/lib/intellij.libraries.ai.grazie.spell.gec.engine.local.jar
++++Android Studio Nightly.app/Contents/plugins/grazie/lib/io.github.oshai.kotlin.logging.jvm.jar
 +++Android Studio Nightly.app/Contents/plugins/grazie/lib/javax.measure-unit-api.jar
 +++Android Studio Nightly.app/Contents/plugins/grazie/lib/modules/intellij.grazie.java.jar
 +++Android Studio Nightly.app/Contents/plugins/grazie/lib/modules/intellij.grazie.properties.jar
@@ -7131,6 +7133,7 @@
 ---Android Studio Preview.app/Contents/plugins/gradle-plugin/lib/modules/intellij.gradle.toml.jar
 ---Android Studio Preview.app/Contents/plugins/grazie/lib/ai.grazie.api.gateway.client.jvm.jar
 ---Android Studio Preview.app/Contents/plugins/grazie/lib/ai.grazie.client.ktor.jvm.jar
+---Android Studio Preview.app/Contents/plugins/grazie/lib/ai.grazie.gec.util.jar
 ---Android Studio Preview.app/Contents/plugins/grazie/lib/ai.grazie.model.ner.jvm.jar
 ---Android Studio Preview.app/Contents/plugins/grazie/lib/ai.grazie.model.tree.jvm.jar
 ---Android Studio Preview.app/Contents/plugins/grazie/lib/ai.grazie.rule.engine.jar
@@ -7141,6 +7144,7 @@
 ---Android Studio Preview.app/Contents/plugins/grazie/lib/com.vdurmont-emoji-java.jar
 ---Android Studio Preview.app/Contents/plugins/grazie/lib/grazie.jar
 ---Android Studio Preview.app/Contents/plugins/grazie/lib/intellij.libraries.ai.grazie.spell.gec.engine.local.jar
+---Android Studio Preview.app/Contents/plugins/grazie/lib/io.github.oshai.kotlin.logging.jvm.jar
 ---Android Studio Preview.app/Contents/plugins/grazie/lib/javax.measure-unit-api.jar
 ---Android Studio Preview.app/Contents/plugins/grazie/lib/modules/intellij.grazie.java.jar
 ---Android Studio Preview.app/Contents/plugins/grazie/lib/modules/intellij.grazie.properties.jar
