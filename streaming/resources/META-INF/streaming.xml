@@ -243,6 +243,14 @@
         <keyboard-shortcut first-keystroke="control P" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="control P" keymap="Mac OS X 10.5+"/>
       </action>
+      <action id="android.streaming.xr.passthrough"
+              class="com.android.tools.idea.streaming.actions.StreamingXrPassthroughAction"
+              icon="StudioIcons.Emulator.XR.PASSTHROUGH_ON"
+              text="Environment Visibility" description="Change passthrough and dimming level">
+        <keyboard-shortcut first-keystroke="control P" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="control P" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="control P" keymap="Mac OS X 10.5+"/>
+      </action>
       <action id="android.device.screenshot" class="com.android.tools.idea.streaming.actions.StreamingScreenshotAction"
               icon="StudioIcons.Emulator.Toolbar.SCREENSHOT" text="Take Screenshot" description="Obtain a screenshot from the device">
         <keyboard-shortcut first-keystroke="control shift S" keymap="$default"/>
@@ -369,6 +377,7 @@
     </group>
     <group id="android.streaming.xr.passthrough.group" class="com.android.tools.idea.streaming.actions.StreamingXrOnlyGroup">
       <reference ref="android.streaming.xr.passthrough.toggle"/>
+      <reference ref="android.streaming.xr.passthrough"/>
     </group>
 
     <group id="StreamingToolbarGlasses">

@@ -36,6 +36,8 @@ import com.android.tools.adtui.swing.HeadlessRootPaneContainer
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.getDescendant
+import com.android.tools.adtui.swing.popup.FakeComponentPopup
+import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.avdmanager.EmulatorLogListener
 import com.android.tools.idea.editors.liveedit.ui.LiveEditNotificationGroup
 import com.android.tools.idea.flags.StudioFlags
@@ -120,6 +122,8 @@ import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.MOUSE_MOVED
 import java.nio.file.Path
 import java.util.concurrent.TimeoutException
+import javax.swing.JCheckBox
+import javax.swing.JSlider
 import javax.swing.JViewport
 import kotlin.test.fail
 import kotlin.time.Duration
@@ -145,6 +149,7 @@ class EmulatorToolWindowPanelTest {
   private val projectRule = ProjectRule()
   private val emulatorRule = FakeEmulatorRule()
   private val goldenImageRule = GoldenImageRule("tools/adt/idea/streaming/testData/EmulatorToolWindowPanelTest/golden")
+  private val popupRule = JBPopupRule()
   @get:Rule
   val ruleChain =
     RuleChain(
@@ -155,6 +160,7 @@ class EmulatorToolWindowPanelTest {
       ClipboardSynchronizationDisablementRule(),
       PortableUiFontRule(),
       goldenImageRule,
+      popupRule,
       EdtRule(),
     )
 
@@ -173,6 +179,9 @@ class EmulatorToolWindowPanelTest {
 
   private val testRootDisposable
     get() = projectRule.disposable
+
+  private val popupFactory
+    get() = popupRule.fakePopupFactory
 
   @Before
   fun setUp() {
@@ -399,21 +408,20 @@ class EmulatorToolWindowPanelTest {
   }
 
   @Test
-  fun testXrToolbarActions() {
+  fun testXrHeadsetToolbarActionsLegacyToolbar() {
     StudioFlags.RUNNING_DEVICES_COLLAPSIBLE_FLOATING_TOOLBARS.overrideForTest(false, testRootDisposable)
-    doTestXrToolbarActions()
+    doTestXrHeadsetToolbarActions()
   }
 
   @Test
-  fun testXrToolbarActionsCollapsibleToolbar() {
-    StudioFlags.RUNNING_DEVICES_COLLAPSIBLE_FLOATING_TOOLBARS.overrideForTest(true, testRootDisposable)
-    doTestXrToolbarActions()
+  fun testXrHeadsetToolbarActions() {
+    doTestXrHeadsetToolbarActions()
   }
 
-  private fun doTestXrToolbarActions() {
+  private fun doTestXrHeadsetToolbarActions() {
     // Move XR buttons to the Running Devices toolbar to check its appearance.
     service<FloatingXrToolbarState>()::floatingXrToolbarEnabled.override(false, testRootDisposable)
-    panel = createWindowPanelForXr()
+    panel = createWindowPanelForXrHeadset()
 
     assertThat(panel.primaryDisplayView).isNull()
 
@@ -442,10 +450,11 @@ class EmulatorToolWindowPanelTest {
     // Check XR-specific actions.
     assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Reset View" }).isNotNull()
     assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Toggle Passthrough" }).isNotNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Environment Visibility" }).isNull()
 
     val xrInputController = EmulatorXrInputController.getInstance(project, emulatorView.emulator)
     waitForCondition(2.seconds) { xrInputController.passthroughCoefficient != UNKNOWN_PASSTHROUGH_COEFFICIENT }
-    assertAppearance("XrToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
+    assertAppearance("XrHeadsetToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
 
     assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.HAND)
     val modes =
@@ -494,10 +503,108 @@ class EmulatorToolWindowPanelTest {
     toggleAction.actionPerformed(createTestEvent(emulatorView, project, ActionPlaces.TOOLWINDOW_POPUP))
     val goldenImageName =
       when {
-        StudioFlags.RUNNING_DEVICES_COLLAPSIBLE_FLOATING_TOOLBARS.get() -> "XrToolbarActionsCollapsibleToolbar2"
-        else -> "XrToolbarActions2"
+        StudioFlags.RUNNING_DEVICES_COLLAPSIBLE_FLOATING_TOOLBARS.get() -> "XrHeadsetToolbarActions2"
+        else -> "XrHeadsetToolbarActionsLegacyToolbar2"
       }
     assertAppearance(goldenImageName, maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
+
+    panel.destroyContent()
+    assertThat(panel.primaryDisplayView).isNull()
+    streamScreenshotCall.waitForCancellation(2.seconds)
+  }
+
+  @Test
+  fun testXrGlassesToolbarActions() {
+    // Move XR buttons to the Running Devices toolbar to check its appearance.
+    service<FloatingXrToolbarState>()::floatingXrToolbarEnabled.override(false, testRootDisposable)
+    panel = createWindowPanelForXrGlasses()
+
+    assertThat(panel.primaryDisplayView).isNull()
+
+    panel.createContent(true)
+    val emulatorView = panel.primaryDisplayView ?: fail()
+    assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_HEADSET)
+
+    // Check appearance.
+    var frameNumber = emulatorView.frameNumber
+    assertThat(frameNumber).isEqualTo(0u)
+    panel.size = Dimension(600, 600)
+    fakeUi.layoutAndDispatchEvents()
+    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 600 height: 565")
+
+    // Check that the buttons not applicable to XR devices are hidden.
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Power" }).isNotNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Volume Up" }).isNotNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Volume Down" }).isNotNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Rotate Left" }).isNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Rotate Right" }).isNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Back" }).isNotNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Home" }).isNotNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Overview" }).isNotNull()
+
+    // Check XR-specific actions.
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Reset View" }).isNotNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Toggle Passthrough" }).isNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Environment Visibility" }).isNotNull()
+
+    val xrInputController = EmulatorXrInputController.getInstance(project, emulatorView.emulator)
+    waitForCondition(2.seconds) { xrInputController.passthroughCoefficient != UNKNOWN_PASSTHROUGH_COEFFICIENT }
+    assertAppearance("XrGlassesToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
+
+    assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.HAND)
+    val modes =
+      mapOf(
+        "View Direction" to XrInputMode.VIEW_DIRECTION,
+        "Move Right/Left and Up/Down" to XrInputMode.LOCATION_IN_SPACE_XY,
+        "Move Forward/Backward" to XrInputMode.LOCATION_IN_SPACE_Z,
+      )
+    for ((actionName, mode) in modes) {
+      fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == actionName })
+      assertThat(xrInputController.inputMode).isEqualTo(mode)
+    }
+
+    val actionIdsAndModes =
+      mapOf("android.streaming.xr.interaction.hand" to XrInputMode.HAND, "android.streaming.xr.interaction.eye" to XrInputMode.EYE)
+    for ((actionId, mode) in actionIdsAndModes) {
+      executeAction(actionId, emulatorView, project)
+      assertThat(xrInputController.inputMode).isEqualTo(mode)
+    }
+
+    val button = fakeUi.getComponent<ActionButton> { it.action.templateText == "Home" }
+    fakeUi.mousePressOn(button)
+    val streamInputCall = getNextGrpcCallIgnoringStreamScreenshot()
+    assertThat(streamInputCall.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
+    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { key: \"AllApps\" }")
+    fakeUi.mouseRelease()
+    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { eventType: keyup key: \"AllApps\" }")
+
+    fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == "Reset View" })
+    assertThat(streamInputCall.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
+    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("xr_command { }")
+
+    assertThat(xrInputController.passthroughCoefficient).isEqualTo(0f)
+    assertThat(xrInputController.dimmingCoefficient).isEqualTo(0f)
+    val environmentVisibilityButton = fakeUi.getComponent<ActionButton> { it.action.templateText == "Environment Visibility" }
+    fakeUi.mouseClickOn(environmentVisibilityButton)
+    val popup: FakeComponentPopup = popupFactory.getNextPopup(2.seconds)
+    val ui = FakeUi(popup.component)
+    val checkBox = ui.getComponent<JCheckBox>()
+    val slider = ui.getComponent<JSlider>()
+    assertThat(checkBox.isSelected).isFalse()
+    assertThat(slider.value).isEqualTo(0)
+    checkBox.isSelected = true
+    var call = getNextGrpcCallIgnoringStreamScreenshot()
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setXrOptions")
+    assertThat(shortDebugString(call.request)).isEqualTo("passthrough_coefficient: 1.0")
+    waitForCondition(2.seconds) { xrInputController.passthroughCoefficient != 0f }
+    assertThat(xrInputController.passthroughCoefficient).isEqualTo(1f)
+    slider.value = 75
+    call = getNextGrpcCallIgnoringStreamScreenshot()
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setXrOptions")
+    assertThat(shortDebugString(call.request)).isEqualTo("passthrough_coefficient: 1.0 dimming_value: 0.75")
+    waitForCondition(2.seconds) { xrInputController.dimmingCoefficient != 0f }
+    assertThat(xrInputController.dimmingCoefficient).isEqualTo(0.75f)
 
     panel.destroyContent()
     assertThat(panel.primaryDisplayView).isNull()
@@ -620,7 +727,7 @@ class EmulatorToolWindowPanelTest {
 
   @Test
   fun testXrMouseInput() {
-    panel = createWindowPanelForXr()
+    panel = createWindowPanelForXrHeadset()
 
     assertThat(panel.primaryDisplayView).isNull()
 
@@ -655,7 +762,7 @@ class EmulatorToolWindowPanelTest {
 
   @Test
   fun testXrKeyboardNavigation() {
-    panel = createWindowPanelForXr()
+    panel = createWindowPanelForXrHeadset()
 
     assertThat(panel.primaryDisplayView).isNull()
 
@@ -742,7 +849,7 @@ class EmulatorToolWindowPanelTest {
 
   @Test
   fun testXrMouseViewRotation() {
-    panel = createWindowPanelForXr()
+    panel = createWindowPanelForXrHeadset()
 
     assertThat(panel.primaryDisplayView).isNull()
 
@@ -775,7 +882,7 @@ class EmulatorToolWindowPanelTest {
 
   @Test
   fun testXrMouseMovementInSpace() {
-    panel = createWindowPanelForXr()
+    panel = createWindowPanelForXrHeadset()
 
     assertThat(panel.primaryDisplayView).isNull()
 
@@ -1384,8 +1491,13 @@ class EmulatorToolWindowPanelTest {
     return createWindowPanel(avdFolder)
   }
 
-  private fun createWindowPanelForXr(): EmulatorToolWindowPanel {
+  private fun createWindowPanelForXrHeadset(): EmulatorToolWindowPanel {
     val avdFolder = FakeEmulator.createXrHeadsetAvd(emulatorRule.avdRoot)
+    return createWindowPanel(avdFolder)
+  }
+
+  private fun createWindowPanelForXrGlasses(): EmulatorToolWindowPanel {
+    val avdFolder = FakeEmulator.createXrGlassesAvd(emulatorRule.avdRoot)
     return createWindowPanel(avdFolder)
   }
 
