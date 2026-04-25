@@ -25,8 +25,7 @@ import java.nio.file.Path
 class ProtoFileJavaSourceFinder(clsFile: PsiFile) : SourceFileInCompiledFileFinderBase(clsFile) {
 
   override fun filterSourcePaths(artifactInfo: JavaArtifactInfo): Sequence<Path> {
-    return artifactInfo
-      .protoSrcjars()
+    return artifactInfo.protoSrcjars
       .asSequence()
       .map { artifact ->
         val relative = ArtifactDirectories.DEFAULT.resolveChild(artifact.artifactPath()).relativePath

@@ -25,8 +25,7 @@ import java.nio.file.Path
 class ClassFileGenSrcJarJavaSourceFinder(clsFile: PsiFile) : SourceFileInCompiledFileFinderBase(clsFile) {
 
   override fun filterSourcePaths(artifactInfo: JavaArtifactInfo): Sequence<Path> {
-    return artifactInfo
-      .genSrcs()
+    return artifactInfo.genSrcs
       .asSequence()
       .map { artifact ->
         val relativePath = ArtifactDirectories.DEFAULT.resolveChild(artifact.artifactPath()).relativePath

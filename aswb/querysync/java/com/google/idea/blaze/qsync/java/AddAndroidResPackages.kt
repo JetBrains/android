@@ -18,10 +18,10 @@ package com.google.idea.blaze.qsync.java
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
+import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
-import kotlin.jvm.optionals.getOrNull
 
 /** Updates the project proto with the android resources packages extracted by the aspect in a dependencies build. */
 class AddAndroidResPackages : ProjectProtoUpdateOperation {
@@ -35,11 +35,11 @@ class AddAndroidResPackages : ProjectProtoUpdateOperation {
     artifactState
       .targets()
       .mapNotNull {
-        it
-          .javaInfo()
-          .getOrNull()
-          ?.takeIf { it.androidResourcesPackage().isNotEmpty() }
-          ?.let { javaInfo -> it.label() to javaInfo.androidResourcesPackage() }
+        if (it is TargetBuildInfo.Java && it.javaInfo.androidResourcesPackage.isNotEmpty()) {
+          it.label to it.javaInfo.androidResourcesPackage
+        } else {
+          null
+        }
       }
       .forEach { (label, randroidResourceJavaPackage) ->
         update.module(label) { addAndroidResourceJavaPackage(randroidResourceJavaPackage) }

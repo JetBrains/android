@@ -20,10 +20,10 @@ import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.PrintOutput
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
+import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
-import kotlin.jvm.optionals.getOrNull
 
 /**
  * Adds Kotlin compiler flags from toolchain targets to the project proto.
@@ -44,19 +44,19 @@ class AddProjectKotlinCompilerFlags : ProjectProtoUpdateOperation {
     context: Context<*>,
     externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,
   ) {
-    val toolchains = artifactState.targets().filter { it.javaInfo().getOrNull()?.isKotlinToolchain ?: false }
+    val toolchains = artifactState.targets().filterIsInstance<TargetBuildInfo.Java>().filter { it.javaInfo.isKotlinToolchain }
 
     if (toolchains.isEmpty()) return
 
     if (toolchains.size > 1) {
       context.output(
         PrintOutput.error(
-          "Multiple Kotlin toolchains found: ${toolchains.joinToString { it.label().toString() }}. Using flags from the first one."
+          "Multiple Kotlin toolchains found: ${toolchains.joinToString { it.label.toString() }}. Using flags from the first one."
         )
       )
     }
 
-    val javaInfo = toolchains.first().javaInfo().get()
-    update.module(Label.of("@aswb_workspace_module//")) { addKotlinCompilerFlags(javaInfo.kotlinCompilerFlags()) }
+    val javaInfo = toolchains.first().javaInfo
+    update.module(Label.of("@aswb_workspace_module//")) { addKotlinCompilerFlags(javaInfo.kotlinCompilerFlags) }
   }
 }

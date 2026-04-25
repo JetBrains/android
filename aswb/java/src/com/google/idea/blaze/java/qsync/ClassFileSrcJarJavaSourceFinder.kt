@@ -25,8 +25,7 @@ class ClassFileSrcJarJavaSourceFinder(clsFile: PsiFile) : SourceFileInCompiledFi
 
   override fun filterSourcePaths(artifactInfo: JavaArtifactInfo): Sequence<Path> {
     val pathResolver = querySyncManager.assertProjectLoaded().projectPathResolver
-    return artifactInfo
-      .srcJars()
+    return artifactInfo.srcJars
       .asSequence()
       .map { pathResolver.resolve(it) }
       .filter { path ->

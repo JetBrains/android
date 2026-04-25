@@ -32,7 +32,9 @@ import com.google.idea.blaze.qsync.java.SrcJarInnerPathFinder.JarPath;
 import com.google.idea.blaze.qsync.project.ProjectPath;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -54,8 +56,9 @@ public class ArtifactTrackerStateSerializationTest {
     ArtifactTrackerStateDeserializer deserializer =
         new ArtifactTrackerStateDeserializer(new JavaArtifactMetadata.Factory());
     deserializer.visit(proto);
-    return ArtifactTracker.State.create(ImmutableMap.copyOf(deserializer.getBuiltDepsMap()),
-                                        ImmutableMap.copyOf(deserializer.getCcToolchainMap()));
+    return ArtifactTracker.State.create(
+        ImmutableMap.copyOf(deserializer.getBuiltDepsMap()),
+        ImmutableMap.copyOf(deserializer.getCcToolchainMap()));
   }
 
   @Test
@@ -67,45 +70,44 @@ public class ArtifactTrackerStateSerializationTest {
   @Test
   public void test_java_info() {
     DependencyBuildContext buildContext =
-        DependencyBuildContext.create(
-            "abc-def",
-            Instant.ofEpochMilli(1000));
+        DependencyBuildContext.create("abc-def", Instant.ofEpochMilli(1000));
     ImmutableMap<Label, TargetBuildInfo> depsMap =
         ImmutableMap.of(
             Label.of("//my/package:target"),
             TargetBuildInfo.forJavaTarget(
-                JavaArtifactInfo.builder()
-                    .setLabel(Label.of("//my/package:target"))
-                    .setIsExternalDependency(false)
-                    .setJars(
-                        ImmutableList.of(
-                            BuildArtifact.create(
-                                "jardigest",
-                                Path.of("/build/out/classes.jar"),
-                                Label.of("//my/package:target"))))
-                    .setIdeAar(
-                            BuildArtifact.create(
-                                "aardigest",
-                                Path.of("/build/out/resources.aar"),
-                                Label.of("//my/package:target")))
-                    .setGenSrcs(
-                        ImmutableList.of(
-                            BuildArtifact.create(
-                                "gensrcdigest",
-                                Path.of("/build/out/Generated.java"),
-                                Label.of("//my/package:target"))))
-                  .setProtoSrcjars(
-                        ImmutableList.of(
-                            BuildArtifact.create(
-                                "gensrcdigest",
-                                Path.of("/build/out/libproto-src.jar"),
-                                Label.of("//my/package:target"))))
-                    .setSources(ImmutableSet.of(ProjectPath.workspaceRelativeForTests(Path.of("/workspace/path/Source.java"))))
-                    .setSrcJars(ImmutableSet.of(ProjectPath.workspaceRelativeForTests(Path.of("/workspace/path/sources.srcjar"))))
-                    .setAndroidResourcesPackage("com.my.package")
-                    .setKotlinCompilerFlags(ImmutableList.of())
-                    .setIsKotlinToolchain(false)
-                    .build(),
+                new JavaArtifactInfo(
+                    Label.of("//my/package:target"),
+                    false,
+                    false,
+                    Set.of(
+                        BuildArtifact.create(
+                            "jardigest",
+                            Path.of("/build/out/classes.jar"),
+                            Label.of("//my/package:target"))),
+                    Set.of(),
+                    BuildArtifact.create(
+                        "aardigest",
+                        Path.of("/build/out/resources.aar"),
+                        Label.of("//my/package:target")),
+                    Set.of(
+                        BuildArtifact.create(
+                            "gensrcdigest",
+                            Path.of("/build/out/Generated.java"),
+                            Label.of("//my/package:target"))),
+                    Set.of(),
+                    Set.of(
+                        BuildArtifact.create(
+                            "gensrcdigest",
+                            Path.of("/build/out/libproto-src.jar"),
+                            Label.of("//my/package:target"))),
+                    Set.of(
+                        ProjectPath.workspaceRelativeForTests(
+                            Path.of("/workspace/path/Source.java"))),
+                    Set.of(
+                        ProjectPath.workspaceRelativeForTests(
+                            Path.of("/workspace/path/sources.srcjar"))),
+                    "com.my.package",
+                    List.of()),
                 buildContext));
     assertThat(roundTrip(depsMap)).containsExactlyEntriesIn(depsMap);
   }
@@ -113,42 +115,34 @@ public class ArtifactTrackerStateSerializationTest {
   @Test
   public void test_cc_info() {
     DependencyBuildContext buildContext =
-        DependencyBuildContext.create(
-            "abc-def",
-            Instant.ofEpochMilli(1000));
+        DependencyBuildContext.create("abc-def", Instant.ofEpochMilli(1000));
     ImmutableMap<Label, TargetBuildInfo> depsMap =
         ImmutableMap.of(
             Label.of("//my/package:target"),
             TargetBuildInfo.forCcTarget(
-                CcCompilationInfo.builder()
-                    .target(Label.of("//my/package:target"))
-                    .copts(ImmutableList.of("-DDEF"))
-                    .defines(ImmutableList.of("-D", "-w"))
-                    .includeDirectories(
-                        ImmutableList.of(
-                          ProjectPath.projectRelative(Path.of("buildout/include")),
-                            ProjectPath.workspaceRelativeForTests(Path.of("src/include")),
-                          ProjectPath.absolute(Path.of("/usr/local/include"))))
-                    .quoteIncludeDirectories(
-                        ImmutableList.of(
-                          ProjectPath.projectRelative(Path.of("buildout/qinclude")),
-                            ProjectPath.workspaceRelativeForTests(Path.of("src/qinclude"))))
-                    .systemIncludeDirectories(
-                        ImmutableList.of(
-                          ProjectPath.projectRelative(Path.of("buildout/sysinclude")),
-                            ProjectPath.workspaceRelativeForTests(Path.of("src/sysinclude"))))
-                    .frameworkIncludeDirectories(
-                        ImmutableList.of(
-                          ProjectPath.projectRelative(Path.of("buildout/fwinclude")),
-                            ProjectPath.workspaceRelativeForTests(Path.of("src/fwinclude"))))
-                    .genHeaders(
-                        ImmutableList.of(
-                            BuildArtifact.create(
-                                "genhdrdigest",
-                                Path.of("/build/out/generated.h"),
-                                Label.of("//my/package:target"))))
-                    .toolchainId("my-toolchain")
-                    .build(),
+                new CcCompilationInfo(
+                    Label.of("//my/package:target"),
+                    ImmutableList.of("-DDEF"),
+                    ImmutableList.of("-D", "-w"),
+                    ImmutableList.of(
+                        ProjectPath.projectRelative(Path.of("buildout/include")),
+                        ProjectPath.workspaceRelativeForTests(Path.of("src/include")),
+                        ProjectPath.absolute(Path.of("/usr/local/include"))),
+                    ImmutableList.of(
+                        ProjectPath.projectRelative(Path.of("buildout/qinclude")),
+                        ProjectPath.workspaceRelativeForTests(Path.of("src/qinclude"))),
+                    ImmutableList.of(
+                        ProjectPath.projectRelative(Path.of("buildout/sysinclude")),
+                        ProjectPath.workspaceRelativeForTests(Path.of("src/sysinclude"))),
+                    ImmutableList.of(
+                        ProjectPath.projectRelative(Path.of("buildout/fwinclude")),
+                        ProjectPath.workspaceRelativeForTests(Path.of("src/fwinclude"))),
+                    Set.of(
+                        BuildArtifact.create(
+                            "genhdrdigest",
+                            Path.of("/build/out/generated.h"),
+                            Label.of("//my/package:target"))),
+                    "my-toolchain"),
                 buildContext));
     ImmutableMap<String, CcToolchain> toolchainMap =
         ImmutableMap.of(
@@ -162,10 +156,10 @@ public class ArtifactTrackerStateSerializationTest {
                 .targetGnuSystemName("gnu-linux-armv8")
                 .builtInIncludeDirectories(
                     ImmutableList.of(
-                      ProjectPath.projectRelative(Path.of("buildout/builtininclude")),
+                        ProjectPath.projectRelative(Path.of("buildout/builtininclude")),
                         ProjectPath.workspaceRelativeForTests(Path.of("src/builtininclude")),
-                        ProjectPath.externalRepositoryRelative("ndk", Path.of("src/ndk_builtininclude"))
-                      ))
+                        ProjectPath.externalRepositoryRelative(
+                            "ndk", Path.of("src/ndk_builtininclude"))))
                 .cOptions(ImmutableList.of("--copt1"))
                 .cppOptions(ImmutableList.of("--ccopt1"))
                 .build());
@@ -177,13 +171,21 @@ public class ArtifactTrackerStateSerializationTest {
   @Test
   public void test_metadata() {
     DependencyBuildContext buildContext =
-        DependencyBuildContext.create(
-            "abc-def",
-            Instant.ofEpochMilli(1000));
-    TargetBuildInfo.Builder targetInfo =
+        DependencyBuildContext.create("abc-def", Instant.ofEpochMilli(1000));
+    TargetBuildInfo targetInfo =
         TargetBuildInfo.forJavaTarget(
-            JavaArtifactInfo.empty(Label.of("//my/package:target")).toBuilder()
-                .setGenSrcs(
+            new JavaArtifactInfo(
+                Label.of("//my/package:target"),
+                false,
+                false,
+                Set.of(),
+                Set.of(),
+                BuildArtifact.create(
+                        "bcd",
+                        Path.of("//my/package/libtarget.aar"),
+                        Label.of("//my/package:target"))
+                    .withMetadata(new AarResPackage("com.aar.package")),
+                Set.of(
                     BuildArtifact.create(
                             "abc",
                             Path.of("//my/package/Generated.java"),
@@ -199,18 +201,16 @@ public class ArtifactTrackerStateSerializationTest {
                             new SrcJarPrefixedJavaPackageRoots(
                                 ImmutableSet.of(
                                     JarPath.create("root1", "com.my.package"),
-                                    JarPath.create("root2", "com.other.package")))))
-                .setIdeAar(
-                    BuildArtifact.create(
-                            "bcd",
-                            Path.of("//my/package/libtarget.aar"),
-                            Label.of("//my/package:target"))
-                        .withMetadata(new AarResPackage("com.aar.package")))
-                .build(),
-            buildContext)
-            .toBuilder();
+                                    JarPath.create("root2", "com.other.package"))))),
+                Set.of(),
+                Set.of(),
+                Set.of(),
+                Set.of(),
+                "",
+                List.of()),
+            buildContext);
     ImmutableMap<Label, TargetBuildInfo> depsMap =
-        ImmutableMap.of(Label.of("//my/package:target"), targetInfo.build());
+        ImmutableMap.of(Label.of("//my/package:target"), targetInfo);
 
     assertThat(roundTrip(depsMap)).containsExactlyEntriesIn(depsMap);
   }

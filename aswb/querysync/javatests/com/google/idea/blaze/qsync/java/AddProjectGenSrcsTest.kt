@@ -15,10 +15,10 @@
  */
 package com.google.idea.blaze.qsync.java
 
-import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.truth.Truth
 import com.google.idea.blaze.common.Context
+import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.NoopContext
 import com.google.idea.blaze.qsync.QuerySyncTestUtils
 import com.google.idea.blaze.qsync.TestDataSyncRunner
@@ -65,6 +65,24 @@ class AddProjectGenSrcsTest {
 
   private val javaSourcePackageExtractor = JavaSourcePackageExtractor(null)
 
+  private fun createJavaArtifactInfo(label: Label, genSrcs: Set<BuildArtifact> = emptySet()): JavaArtifactInfo {
+    return JavaArtifactInfo(
+      label = label,
+      isExternalDependency = false,
+      isKotlinToolchain = false,
+      jars = emptySet(),
+      outputJars = emptySet(),
+      ideAar = null,
+      genSrcs = genSrcs,
+      genAndroidRes = emptySet(),
+      protoSrcjars = emptySet(),
+      sources = emptySet(),
+      srcJars = emptySet(),
+      androidResourcesPackage = "",
+      kotlinCompilerFlags = emptyList(),
+    )
+  }
+
   @Before
   fun setUp() {
     intellij.registerApplicationService(ExperimentService::class.java, MockExperimentService())
@@ -79,13 +97,14 @@ class AddProjectGenSrcsTest {
     val artifactState =
       ArtifactTracker.State.forTargets(
         TargetBuildInfo.forJavaTarget(
-          JavaArtifactInfo.empty(testData.assumedOnlyLabel)
-            .toBuilder()
-            .setGenSrcs(
-              BuildArtifact.create("gensrcdigest", Path.of("output/path/com/org/Class.java"), testData.assumedOnlyLabel)
-                .withMetadata(JavaArtifactMetadata.JavaSourcePackage("com.org"))
-            )
-            .build(),
+          createJavaArtifactInfo(
+            label = testData.assumedOnlyLabel,
+            genSrcs =
+              setOf(
+                BuildArtifact.create("gensrcdigest", Path.of("output/path/com/org/Class.java"), testData.assumedOnlyLabel)
+                  .withMetadata(JavaArtifactMetadata.JavaSourcePackage("com.org"))
+              ),
+          ),
           DependencyBuildContext.create("", buildTimestamp),
         )
       )
@@ -144,34 +163,32 @@ class AddProjectGenSrcsTest {
 
     val genSrc1 =
       TargetBuildInfo.forJavaTarget(
-        JavaArtifactInfo.empty(testLabel.siblingWithName("genSrc1"))
-          .toBuilder()
-          .setGenSrcs(
-            ImmutableList.of(
+        createJavaArtifactInfo(
+          label = testLabel.siblingWithName("genSrc1"),
+          genSrcs =
+            setOf(
               BuildArtifact.create("gensrc1", Path.of("output/path/com/org/Class.java"), testLabel.siblingWithName("genSrc1"))
                 .withMetadata(JavaArtifactMetadata.JavaSourcePackage("com.org"))
-            )
-          )
-          .build(),
+            ),
+        ),
         DependencyBuildContext.create("abc-def", buildTimestamp.minusSeconds(60)),
       )
 
     val genSrc2Label = testData.assumedOnlyLabel.siblingWithName("genSrc2")
     val genSrc2 =
       TargetBuildInfo.forJavaTarget(
-        JavaArtifactInfo.empty(testLabel.siblingWithName("genSrc2"))
-          .toBuilder()
-          .setGenSrcs(
-            ImmutableList.of(
+        createJavaArtifactInfo(
+          label = testLabel.siblingWithName("genSrc2"),
+          genSrcs =
+            setOf(
               BuildArtifact.create("gensrc2", Path.of("output/otherpath/com/org/Class.java"), genSrc2Label)
                 .withMetadata(JavaArtifactMetadata.JavaSourcePackage("com.org"))
-            )
-          )
-          .build(),
+            ),
+        ),
         DependencyBuildContext.create("abc-def", buildTimestamp),
       )
 
-    val artifactState = ArtifactTracker.State.create(ImmutableMap.of(genSrc1.label(), genSrc1, genSrc2.label(), genSrc2), ImmutableMap.of())
+    val artifactState = ArtifactTracker.State.create(ImmutableMap.of(genSrc1.label, genSrc1, genSrc2.label, genSrc2), ImmutableMap.of())
 
     val addGenSrcs = AddProjectGenSrcs(original.queryData.projectDefinition(), javaSourcePackageExtractor)
 
@@ -227,34 +244,32 @@ class AddProjectGenSrcsTest {
 
     val genSrc1 =
       TargetBuildInfo.forJavaTarget(
-        JavaArtifactInfo.empty(testLabel.siblingWithName("genSrc1"))
-          .toBuilder()
-          .setGenSrcs(
-            ImmutableList.of(
+        createJavaArtifactInfo(
+          label = testLabel.siblingWithName("genSrc1"),
+          genSrcs =
+            setOf(
               BuildArtifact.create("samedigest", Path.of("output/path/com/org/Class.java"), testLabel.siblingWithName("genSrc1"))
                 .withMetadata(JavaArtifactMetadata.JavaSourcePackage("com.org"))
-            )
-          )
-          .build(),
+            ),
+        ),
         DependencyBuildContext.create("abc-def", Instant.now().minusSeconds(60)),
       )
 
     val genSrc2Label = testData.assumedOnlyLabel.siblingWithName("genSrc2")
     val genSrc2 =
       TargetBuildInfo.forJavaTarget(
-        JavaArtifactInfo.empty(testLabel.siblingWithName("genSrc2"))
-          .toBuilder()
-          .setGenSrcs(
-            ImmutableList.of(
+        createJavaArtifactInfo(
+          label = testLabel.siblingWithName("genSrc2"),
+          genSrcs =
+            setOf(
               BuildArtifact.create("samedigest", Path.of("output/otherpath/com/org/Class.java"), genSrc2Label)
                 .withMetadata(JavaArtifactMetadata.JavaSourcePackage("com.org"))
-            )
-          )
-          .build(),
+            ),
+        ),
         DependencyBuildContext.create("abc-def", Instant.now()),
       )
 
-    val artifactState = ArtifactTracker.State.create(ImmutableMap.of(genSrc1.label(), genSrc1, genSrc2.label(), genSrc2), ImmutableMap.of())
+    val artifactState = ArtifactTracker.State.create(ImmutableMap.of(genSrc1.label, genSrc1, genSrc2.label, genSrc2), ImmutableMap.of())
 
     val addGenSrcs = AddProjectGenSrcs(original.queryData.projectDefinition(), javaSourcePackageExtractor)
 
@@ -272,12 +287,10 @@ class AddProjectGenSrcsTest {
     val artifactState =
       ArtifactTracker.State.forTargets(
         TargetBuildInfo.forJavaTarget(
-          JavaArtifactInfo.empty(testData.assumedOnlyLabel)
-            .toBuilder()
-            .setGenSrcs(
-              ImmutableList.of(BuildArtifact.create("gensrcdigest", Path.of("output/path/com/org/Class.java"), testData.assumedOnlyLabel))
-            )
-            .build(),
+          createJavaArtifactInfo(
+            label = testData.assumedOnlyLabel,
+            genSrcs = setOf(BuildArtifact.create("gensrcdigest", Path.of("output/path/com/org/Class.java"), testData.assumedOnlyLabel)),
+          ),
           DependencyBuildContext.create("", buildTimestamp),
         )
       )

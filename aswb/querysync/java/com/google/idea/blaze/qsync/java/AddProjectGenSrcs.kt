@@ -34,7 +34,6 @@ import java.nio.file.Path
 import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit
-import kotlin.jvm.optionals.getOrNull
 
 /**
  * Adds generated java and kotlin source files to the project proto.
@@ -70,11 +69,11 @@ class AddProjectGenSrcs(
   }
 
   private fun getSourceFileArtifacts(target: TargetBuildInfo): List<BuildArtifact> {
-    val javaInfo = target.javaInfo().getOrNull() ?: return emptyList()
-    if (!projectDefinition.isIncluded(javaInfo.label())) {
+    val javaInfo = (target as? TargetBuildInfo.Java)?.javaInfo ?: return emptyList()
+    if (!projectDefinition.isIncluded(javaInfo.label)) {
       return emptyList()
     }
-    return javaInfo.genSrcs().filter { JAVA_SRC_EXTENSIONS.contains(it.getExtension()) || PROTO_EXTENSIONS.contains(it.getExtension()) }
+    return javaInfo.genSrcs.filter { JAVA_SRC_EXTENSIONS.contains(it.extension) || PROTO_EXTENSIONS.contains(it.extension) }
   }
 
   override fun getRequiredArtifacts(forTarget: TargetBuildInfo): Map<BuildArtifact, Collection<ArtifactMetadata.Extractor<*>>> {
@@ -106,7 +105,7 @@ class AddProjectGenSrcs(
             missingPackageArtifacts.add(genSrc)
           } else {
             val finalDest = Path.of(javaPackage.replace('.', '/')).resolve(genSrc.artifactPath().fileName)
-            srcsByJavaPath.getOrPut(finalDest) { mutableListOf() }.add(ArtifactWithOrigin(genSrc, target.buildContext()))
+            srcsByJavaPath.getOrPut(finalDest) { mutableListOf() }.add(ArtifactWithOrigin(genSrc, target.buildContext))
           }
         }
       }

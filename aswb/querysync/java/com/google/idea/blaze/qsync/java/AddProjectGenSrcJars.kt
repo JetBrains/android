@@ -40,11 +40,11 @@ class AddProjectGenSrcJars(
   private val testSourceMatcher: TestSourceGlobMatcher = TestSourceGlobMatcher.create(projectDefinition)
 
   private fun getProjectGenSrcJars(target: TargetBuildInfo): Collection<BuildArtifact> {
-    val javaInfo = target.javaInfo().getOrNull() ?: return emptyList()
-    if (!projectDefinition.isIncluded(javaInfo.label())) {
+    val javaInfo = (target as? TargetBuildInfo.Java)?.javaInfo ?: return emptyList()
+    if (!projectDefinition.isIncluded(javaInfo.label)) {
       return emptyList()
     }
-    return javaInfo.genSrcs().filter { ProjectProtoUpdateOperation.Companion.JAVA_ARCHIVE_EXTENSIONS.contains(it.getExtension()) }
+    return javaInfo.genSrcs.filter { ProjectProtoUpdateOperation.Companion.JAVA_ARCHIVE_EXTENSIONS.contains(it.extension) }
   }
 
   override fun getRequiredArtifacts(forTarget: TargetBuildInfo): Map<BuildArtifact, Collection<ArtifactMetadata.Extractor<*>>> {
@@ -61,10 +61,10 @@ class AddProjectGenSrcJars(
       for (target in artifactState.targets()) {
         val genSrcJars = getProjectGenSrcJars(target)
         if (genSrcJars.isEmpty()) continue
-        update.module(target.label()) {
+        update.module(target.label) {
           genSrcJars.forEach { genSrc ->
             // a zip of generated sources
-            val added = addIfNewer(genSrc.artifactPath().resolve("src"), genSrc, target.buildContext(), ArtifactTransform.UNZIP)
+            val added = addIfNewer(genSrc.artifactPath().resolve("src"), genSrc, target.buildContext, ArtifactTransform.UNZIP)
             if (added != null) {
               contentEntry(added) {
                 val packageRoots =

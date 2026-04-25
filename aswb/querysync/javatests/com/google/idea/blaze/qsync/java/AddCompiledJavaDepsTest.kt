@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.qsync.java
 
-import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import com.google.common.truth.Truth
 import com.google.idea.blaze.common.Label
@@ -41,6 +40,24 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class AddCompiledJavaDepsTest {
   val buildTimestamp = Instant.now()
+
+  private fun createJavaArtifactInfo(label: Label, jars: Set<BuildArtifact> = emptySet()): JavaArtifactInfo {
+    return JavaArtifactInfo(
+      label = label,
+      isExternalDependency = false,
+      isKotlinToolchain = false,
+      jars = jars,
+      outputJars = emptySet(),
+      ideAar = null,
+      genSrcs = emptySet(),
+      genAndroidRes = emptySet(),
+      protoSrcjars = emptySet(),
+      sources = emptySet(),
+      srcJars = emptySet(),
+      androidResourcesPackage = "",
+      kotlinCompilerFlags = emptyList(),
+    )
+  }
 
   @Test
   @Throws(Exception::class)
@@ -68,18 +85,17 @@ class AddCompiledJavaDepsTest {
     val artifactState =
       ArtifactTracker.State.forJavaArtifacts(
         DependencyBuildContext.create("", buildTimestamp),
-        JavaArtifactInfo.empty(of("//java/com/google/common/collect:collect"))
-          .toBuilder()
-          .setJars(
-            ImmutableList.of(
+        createJavaArtifactInfo(
+          label = of("//java/com/google/common/collect:collect"),
+          jars =
+            setOf(
               BuildArtifact.create(
                 "jardigest",
                 Path.of("build-out/java/com/google/common/collect/libcollect.jar"),
                 of("//java/com/google/common/collect:collect"),
               )
-            )
-          )
-          .build(),
+            ),
+        ),
       )
     val expectedLibraries =
       arrayOf(
@@ -116,18 +132,17 @@ class AddCompiledJavaDepsTest {
     val artifactState =
       ArtifactTracker.State.forJavaArtifacts(
         DependencyBuildContext.create("", buildTimestamp),
-        JavaArtifactInfo.empty(of("//java/com/google/common/collect:collect"))
-          .toBuilder()
-          .setJars(
-            ImmutableList.of(
+        createJavaArtifactInfo(
+          label = of("//java/com/google/common/collect:collect"),
+          jars =
+            setOf(
               BuildArtifact.create(
                 "empty_jar_digest",
                 Path.of("build-out/java/com/google/common/collect/libcollect.jar"),
                 of("//java/com/google/common/collect:collect"),
               )
-            )
-          )
-          .build(),
+            ),
+        ),
       )
     val expectedLibraries = arrayOf<ProjectProto.Library>()
     val original = ProjectProtos.forTestProject(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY)

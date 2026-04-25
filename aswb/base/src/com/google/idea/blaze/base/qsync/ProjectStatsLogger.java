@@ -28,9 +28,10 @@ import javax.annotation.Nullable;
 /** Updates project info according to the newly generated build graph. */
 public class ProjectStatsLogger {
 
-  public static void logSyncStats(Context<?> context,
-                                  @Nullable QuerySyncProject querySyncProject,
-                                  @Nullable QuerySyncProjectSnapshot instance) {
+  public static void logSyncStats(
+      Context<?> context,
+      @Nullable QuerySyncProject querySyncProject,
+      @Nullable QuerySyncProjectSnapshot instance) {
     if (querySyncProject == null || instance == null) {
       return;
     }
@@ -39,18 +40,22 @@ public class ProjectStatsLogger {
             scope -> {
               scope
                   .getProjectInfoStatsBuilder()
-                  .setLanguagesActive(ImmutableSet.copyOf(instance.getQueryData().projectDefinition().getLanguageClasses()))
-                  .setProjectTargetCount(instance.getGraph().getProjectSupportedTargetCountForStatsOnly())
-                  .setExternalDependencyCount(instance.getGraph().getExternalDependencyCountForStatsOnly());
+                  .setLanguagesActive(
+                      ImmutableSet.copyOf(
+                          instance.getQueryData().projectDefinition().getLanguageClasses()))
+                  .setProjectTargetCount(
+                      instance.getGraph().getProjectSupportedTargetCountForStatsOnly())
+                  .setExternalDependencyCount(
+                      instance.getGraph().getExternalDependencyCountForStatsOnly());
               scope
                   .getDependenciesInfoStatsBuilder()
                   .setTargetMapSize(instance.getGraph().getTargetMapSizeForStatsOnly())
                   .setLibraryCount(instance.getProject().getLibraries().size())
                   .setJarCount(
                       instance.getArtifactState().targets().stream()
-                          .map(TargetBuildInfo::javaInfo)
-                          .flatMap(Optional::stream)
-                          .map(JavaArtifactInfo::jars)
+                          .filter(t -> t instanceof TargetBuildInfo.Java)
+                          .map(t -> ((TargetBuildInfo.Java) t).getJavaInfo())
+                          .map(JavaArtifactInfo::getJars)
                           .mapToInt(Collection::size)
                           .sum());
             });

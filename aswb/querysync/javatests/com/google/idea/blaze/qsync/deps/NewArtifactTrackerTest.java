@@ -72,11 +72,13 @@ public class NewArtifactTrackerTest extends BlazeTestCase {
   @Rule public final MockitoRule mockito = MockitoJUnit.rule();
   @Rule public TemporaryFolder cacheDir = new TemporaryFolder();
 
-  @Mock(strictness = Strictness.STRICT_STUBS) BuildArtifactCache cache;
+  @Mock(strictness = Strictness.STRICT_STUBS)
+  BuildArtifactCache cache;
+
   @Captor ArgumentCaptor<Collection<OutputArtifact>> cachedArtifactsCaptor;
 
   private Map<Label, ImmutableSetMultimap<BuildArtifact, ArtifactMetadata.Extractor<?>>>
-    artifactMetadataMap = Maps.newHashMap();
+      artifactMetadataMap = Maps.newHashMap();
 
   private NewArtifactTracker<NoopContext> artifactTracker;
 
@@ -85,13 +87,13 @@ public class NewArtifactTrackerTest extends BlazeTestCase {
     super.initTest(applicationServices, projectServices);
     applicationServices.register(ExperimentService.class, new MockExperimentService());
     artifactTracker =
-      new NewArtifactTracker<>(
-        cacheDir.getRoot().toPath().resolve("w"),
-        cacheDir.getRoot().toPath().resolve("p"),
-        cache,
-        t -> artifactMetadataMap.getOrDefault(t.label(), ImmutableSetMultimap.of()).asMap(),
-        new JavaArtifactMetadata.Factory(),
-        MoreExecutors.directExecutor());
+        new NewArtifactTracker<>(
+            cacheDir.getRoot().toPath().resolve("w"),
+            cacheDir.getRoot().toPath().resolve("p"),
+            cache,
+            t -> artifactMetadataMap.getOrDefault(t.getLabel(), ImmutableSetMultimap.of()).asMap(),
+            new JavaArtifactMetadata.Factory(),
+            MoreExecutors.directExecutor());
   }
 
   @After
@@ -102,274 +104,292 @@ public class NewArtifactTrackerTest extends BlazeTestCase {
   @Test
   public void library_jars() throws BuildException {
     when(cache.addAll(cachedArtifactsCaptor.capture(), any()))
-      .thenReturn(Futures.immediateFuture(null));
+        .thenReturn(Futures.immediateFuture(null));
     artifactTracker.update(
-      ImmutableSet.of(Label.of("//test:test"), Label.of("//test:anothertest")),
-      OutputInfo.builder()
-        .setOutputGroups(
-          ImmutableListMultimap.<OutputGroup, OutputArtifact>builder()
-            .putAll(
-              OutputGroup.JARS,
-              TestOutputArtifact.builder()
-                .setArtifactPath(Path.of("out/test.jar"))
-                .setDigest("jar_digest")
-                .build(),
-              TestOutputArtifact.builder()
-                .setArtifactPath(Path.of("out/anothertest.jar"))
-                .setDigest("anotherjar_digest")
-                .build())
-            .build())
-        .setArtifactInfo(
-          JavaArtifacts.newBuilder()
-            .setTarget("//test:test")
-            .addJars(fileArtifact("out/test.jar"))
+        ImmutableSet.of(Label.of("//test:test"), Label.of("//test:anothertest")),
+        OutputInfo.builder()
+            .setOutputGroups(
+                ImmutableListMultimap.<OutputGroup, OutputArtifact>builder()
+                    .putAll(
+                        OutputGroup.JARS,
+                        TestOutputArtifact.builder()
+                            .setArtifactPath(Path.of("out/test.jar"))
+                            .setDigest("jar_digest")
+                            .build(),
+                        TestOutputArtifact.builder()
+                            .setArtifactPath(Path.of("out/anothertest.jar"))
+                            .setDigest("anotherjar_digest")
+                            .build())
+                    .build())
+            .setArtifactInfo(
+                JavaArtifacts.newBuilder()
+                    .setTarget("//test:test")
+                    .addJars(fileArtifact("out/test.jar"))
+                    .build(),
+                JavaArtifacts.newBuilder()
+                    .setTarget("//test:anothertest")
+                    .addJars(fileArtifact("out/anothertest.jar"))
+                    .build())
             .build(),
-          JavaArtifacts.newBuilder()
-            .setTarget("//test:anothertest")
-            .addJars(fileArtifact("out/anothertest.jar"))
-            .build())
-        .build(),
-      new NoopContext());
+        new NoopContext());
     assertThat(cachedArtifactsCaptor.getValue().stream().map(OutputArtifact::getDigest))
-      .containsExactly("jar_digest", "anotherjar_digest");
+        .containsExactly("jar_digest", "anotherjar_digest");
     assertThat(artifactTracker.getStateSnapshot().depsMap().keySet())
-      .containsExactly(Label.of("//test:test"), Label.of("//test:anothertest"));
+        .containsExactly(Label.of("//test:test"), Label.of("//test:anothertest"));
     ImmutableCollection<TargetBuildInfo> builtDeps = artifactTracker.getBuiltDepsForTesting();
     assertThat(builtDeps).hasSize(2);
     ImmutableMap<Label, JavaArtifactInfo> depsMap =
-      builtDeps.stream()
-        .map(TargetBuildInfo::javaInfo)
-        .flatMap(Optional::stream)
-        .collect(ImmutableMap.toImmutableMap(JavaArtifactInfo::label, Functions.identity()));
+        builtDeps.stream()
+            .map(
+                t ->
+                    switch (t) {
+                      case TargetBuildInfo.Java j -> j.getJavaInfo();
+                      default -> null;
+                    })
+            .filter(java.util.Objects::nonNull)
+            .collect(ImmutableMap.toImmutableMap(JavaArtifactInfo::getLabel, Functions.identity()));
     assertThat(depsMap.keySet())
-      .containsExactly(Label.of("//test:test"), Label.of("//test:anothertest"));
-    assertThat(depsMap.get(Label.of("//test:test")).jars())
-      .containsExactly(
-        BuildArtifact.create("jar_digest", Path.of("out/test.jar"), Label.of("//test:test")));
-    assertThat(depsMap.get(Label.of("//test:anothertest")).jars())
-      .containsExactly(
-        BuildArtifact.create(
-          "anotherjar_digest",
-          Path.of("out/anothertest.jar"),
-          Label.of("//test:anothertest")));
+        .containsExactly(Label.of("//test:test"), Label.of("//test:anothertest"));
+    assertThat(depsMap.get(Label.of("//test:test")).getJars())
+        .containsExactly(
+            BuildArtifact.create("jar_digest", Path.of("out/test.jar"), Label.of("//test:test")));
+    assertThat(depsMap.get(Label.of("//test:anothertest")).getJars())
+        .containsExactly(
+            BuildArtifact.create(
+                "anotherjar_digest",
+                Path.of("out/anothertest.jar"),
+                Label.of("//test:anothertest")));
   }
 
   @Test
   public void partial_build_failure_missing_artifacts() throws BuildException {
     when(cache.addAll(cachedArtifactsCaptor.capture(), any()))
-      .thenReturn(Futures.immediateFuture(null));
+        .thenReturn(Futures.immediateFuture(null));
     artifactTracker.update(
-      ImmutableSet.of(Label.of("//test:test"), Label.of("//test:anothertest")),
-      OutputInfo.builder()
-        .setOutputGroups(
-          ImmutableListMultimap.<OutputGroup, OutputArtifact>builder()
-            .putAll(
-              OutputGroup.JARS,
-              TestOutputArtifact.builder()
-                .setArtifactPath(Path.of("out/test.jar"))
-                .setDigest("jar_digest")
-                .build())
-            .build())
-        .setArtifactInfo(
-          JavaArtifacts.newBuilder()
-            .setTarget("//test:test")
-            .addJars(fileArtifact("out/test.jar"))
+        ImmutableSet.of(Label.of("//test:test"), Label.of("//test:anothertest")),
+        OutputInfo.builder()
+            .setOutputGroups(
+                ImmutableListMultimap.<OutputGroup, OutputArtifact>builder()
+                    .putAll(
+                        OutputGroup.JARS,
+                        TestOutputArtifact.builder()
+                            .setArtifactPath(Path.of("out/test.jar"))
+                            .setDigest("jar_digest")
+                            .build())
+                    .build())
+            .setArtifactInfo(
+                JavaArtifacts.newBuilder()
+                    .setTarget("//test:test")
+                    .addJars(fileArtifact("out/test.jar"))
+                    .build(),
+                JavaArtifacts.newBuilder()
+                    .setTarget("//test:anothertest")
+                    .addJars(fileArtifact("out/anothertest.jar"))
+                    .build())
+            .setTargetsWithErrors(Label.of("//test:anothertest"))
             .build(),
-          JavaArtifacts.newBuilder()
-            .setTarget("//test:anothertest")
-            .addJars(fileArtifact("out/anothertest.jar"))
-            .build())
-        .setTargetsWithErrors(Label.of("//test:anothertest"))
-        .build(),
-      new NoopContext());
+        new NoopContext());
     assertThat(cachedArtifactsCaptor.getValue().stream().map(OutputArtifact::getDigest))
-      .containsExactly("jar_digest");
+        .containsExactly("jar_digest");
     assertThat(artifactTracker.getStateSnapshot().depsMap().keySet())
-      .containsExactly(Label.of("//test:test"), Label.of("//test:anothertest"));
+        .containsExactly(Label.of("//test:test"), Label.of("//test:anothertest"));
     ImmutableCollection<TargetBuildInfo> builtDeps = artifactTracker.getBuiltDepsForTesting();
     assertThat(builtDeps).hasSize(2);
     ImmutableMap<Label, JavaArtifactInfo> depsMap =
-      builtDeps.stream()
-        .map(TargetBuildInfo::javaInfo)
-        .flatMap(Optional::stream)
-        .collect(ImmutableMap.toImmutableMap(JavaArtifactInfo::label, Functions.identity()));
+        builtDeps.stream()
+            .map(
+                t ->
+                    switch (t) {
+                      case TargetBuildInfo.Java j -> j.getJavaInfo();
+                      default -> null;
+                    })
+            .filter(java.util.Objects::nonNull)
+            .collect(ImmutableMap.toImmutableMap(JavaArtifactInfo::getLabel, Functions.identity()));
     assertThat(depsMap.keySet())
-      .containsExactly(Label.of("//test:test"), Label.of("//test:anothertest"));
-    assertThat(depsMap.get(Label.of("//test:test")).jars())
-      .containsExactly(
-        BuildArtifact.create("jar_digest", Path.of("out/test.jar"), Label.of("//test:test")));
-    assertThat(depsMap.get(Label.of("//test:anothertest")).jars()).isEmpty();
+        .containsExactly(Label.of("//test:test"), Label.of("//test:anothertest"));
+    assertThat(depsMap.get(Label.of("//test:test")).getJars())
+        .containsExactly(
+            BuildArtifact.create("jar_digest", Path.of("out/test.jar"), Label.of("//test:test")));
+    assertThat(depsMap.get(Label.of("//test:anothertest")).getJars()).isEmpty();
   }
 
   @Test
   public void partial_dependency_build_failure_missing_artifacts() throws BuildException {
     when(cache.addAll(cachedArtifactsCaptor.capture(), any()))
-      .thenReturn(Futures.immediateFuture(null));
+        .thenReturn(Futures.immediateFuture(null));
     artifactTracker.update(
-      ImmutableSet.of(
-        Label.of("//test:test"), Label.of("//test:testdep"), Label.of("//test:anothertest")),
-      OutputInfo.builder()
-        .setOutputGroups(
-          ImmutableListMultimap.<OutputGroup, OutputArtifact>builder()
-            .putAll(
-              OutputGroup.JARS,
-              TestOutputArtifact.builder()
-                .setArtifactPath(Path.of("out/anothertest.jar"))
-                .setDigest("jar_digest")
-                .build())
-            .build())
-        .setArtifactInfo(
-          JavaArtifacts.newBuilder()
-            .setTarget("//test:test")
-            .addJars(fileArtifact("out/test.jar"))
+        ImmutableSet.of(
+            Label.of("//test:test"), Label.of("//test:testdep"), Label.of("//test:anothertest")),
+        OutputInfo.builder()
+            .setOutputGroups(
+                ImmutableListMultimap.<OutputGroup, OutputArtifact>builder()
+                    .putAll(
+                        OutputGroup.JARS,
+                        TestOutputArtifact.builder()
+                            .setArtifactPath(Path.of("out/anothertest.jar"))
+                            .setDigest("jar_digest")
+                            .build())
+                    .build())
+            .setArtifactInfo(
+                JavaArtifacts.newBuilder()
+                    .setTarget("//test:test")
+                    .addJars(fileArtifact("out/test.jar"))
+                    .build(),
+                JavaArtifacts.newBuilder()
+                    .setTarget("//test:testdep")
+                    .addJars(fileArtifact("out/testdep.jar"))
+                    .build(),
+                JavaArtifacts.newBuilder()
+                    .setTarget("//test:anothertest")
+                    .addJars(fileArtifact("out/anothertest.jar"))
+                    .build())
+            .setTargetsWithErrors(Label.of("//test:testdep"))
             .build(),
-          JavaArtifacts.newBuilder()
-            .setTarget("//test:testdep")
-            .addJars(fileArtifact("out/testdep.jar"))
-            .build(),
-          JavaArtifacts.newBuilder()
-            .setTarget("//test:anothertest")
-            .addJars(fileArtifact("out/anothertest.jar"))
-            .build())
-        .setTargetsWithErrors(Label.of("//test:testdep"))
-        .build(),
-      new NoopContext());
+        new NoopContext());
     assertThat(cachedArtifactsCaptor.getValue().stream().map(OutputArtifact::getDigest))
-      .containsExactly("jar_digest");
+        .containsExactly("jar_digest");
     assertThat(artifactTracker.getStateSnapshot().depsMap().keySet())
-      .containsExactly(
-        Label.of("//test:test"), Label.of("//test:testdep"), Label.of("//test:anothertest"));
+        .containsExactly(
+            Label.of("//test:test"), Label.of("//test:testdep"), Label.of("//test:anothertest"));
     ImmutableCollection<TargetBuildInfo> builtDeps = artifactTracker.getBuiltDepsForTesting();
     assertThat(builtDeps).hasSize(3);
     ImmutableMap<Label, JavaArtifactInfo> depsMap =
-      builtDeps.stream()
-        .map(TargetBuildInfo::javaInfo)
-        .flatMap(Optional::stream)
-        .collect(ImmutableMap.toImmutableMap(JavaArtifactInfo::label, Functions.identity()));
+        builtDeps.stream()
+            .map(
+                t ->
+                    switch (t) {
+                      case TargetBuildInfo.Java j -> j.getJavaInfo();
+                      default -> null;
+                    })
+            .filter(java.util.Objects::nonNull)
+            .collect(ImmutableMap.toImmutableMap(JavaArtifactInfo::getLabel, Functions.identity()));
     assertThat(depsMap.keySet())
-      .containsExactly(
-        Label.of("//test:test"), Label.of("//test:testdep"), Label.of("//test:anothertest"));
-    assertThat(depsMap.get(Label.of("//test:anothertest")).jars())
-      .containsExactly(
-        BuildArtifact.create(
-          "jar_digest", Path.of("out/anothertest.jar"), Label.of("//test:anothertest")));
-    assertThat(depsMap.get(Label.of("//test:test")).jars()).isEmpty();
+        .containsExactly(
+            Label.of("//test:test"), Label.of("//test:testdep"), Label.of("//test:anothertest"));
+    assertThat(depsMap.get(Label.of("//test:anothertest")).getJars())
+        .containsExactly(
+            BuildArtifact.create(
+                "jar_digest", Path.of("out/anothertest.jar"), Label.of("//test:anothertest")));
+    assertThat(depsMap.get(Label.of("//test:test")).getJars()).isEmpty();
   }
 
   @Test
   public void missing_jar_throws() throws BuildException {
     when(cache.addAll(cachedArtifactsCaptor.capture(), any()))
-      .thenReturn(Futures.immediateFuture(null));
+        .thenReturn(Futures.immediateFuture(null));
     // if we're missing a digest for a target that did *not* fail to build, we should throw as that
     // implies a bug elsewhere (potentially in the aspect).
     assertThrows(
-      IllegalStateException.class,
-      () ->
-        artifactTracker.update(
-          ImmutableSet.of(Label.of("//test:test"), Label.of("//test:anothertest")),
-          OutputInfo.builder()
-            .setOutputGroups(
-              ImmutableListMultimap.<OutputGroup, OutputArtifact>builder()
-                .putAll(
-                  OutputGroup.JARS,
-                  TestOutputArtifact.builder()
-                    .setArtifactPath(Path.of("out/test.jar"))
-                    .setDigest("jar_digest")
-                    .build())
-                .build())
-            .setArtifactInfo(
-              JavaArtifacts.newBuilder()
-                .setTarget("//test:test")
-                .addJars(fileArtifact("out/test.jar"))
-                .build(),
-              JavaArtifacts.newBuilder()
-                .setTarget("//test:anothertest")
-                .addJars(fileArtifact("out/anothertest.jar"))
-                .build())
-            .build(),
-          new NoopContext()));
+        IllegalStateException.class,
+        () ->
+            artifactTracker.update(
+                ImmutableSet.of(Label.of("//test:test"), Label.of("//test:anothertest")),
+                OutputInfo.builder()
+                    .setOutputGroups(
+                        ImmutableListMultimap.<OutputGroup, OutputArtifact>builder()
+                            .putAll(
+                                OutputGroup.JARS,
+                                TestOutputArtifact.builder()
+                                    .setArtifactPath(Path.of("out/test.jar"))
+                                    .setDigest("jar_digest")
+                                    .build())
+                            .build())
+                    .setArtifactInfo(
+                        JavaArtifacts.newBuilder()
+                            .setTarget("//test:test")
+                            .addJars(fileArtifact("out/test.jar"))
+                            .build(),
+                        JavaArtifacts.newBuilder()
+                            .setTarget("//test:anothertest")
+                            .addJars(fileArtifact("out/anothertest.jar"))
+                            .build())
+                    .build(),
+                new NoopContext()));
   }
 
   @Test
   public void duplicate_artifact_mappings() throws BuildException {
     when(cache.addAll(cachedArtifactsCaptor.capture(), any()))
-      .thenReturn(Futures.immediateFuture(null));
+        .thenReturn(Futures.immediateFuture(null));
     // Add the same artifact as a jar and srcjar:
     artifactTracker.update(
-      ImmutableSet.of(Label.of("//test:test")),
-      OutputInfo.builder()
-        .setOutputGroups(
-          ImmutableListMultimap.<OutputGroup, OutputArtifact>builder()
-            .putAll(
-              OutputGroup.JARS,
-              TestOutputArtifact.builder()
-                .setArtifactPath(Path.of("out/test.jar"))
-                .setDigest("jar_digest")
-                .build())
-            .putAll(
-              OutputGroup.GENSRCS,
-              TestOutputArtifact.builder()
-                .setArtifactPath(Path.of("out/test.jar"))
-                .setDigest("jar_digest")
-                .build())
-            .build())
-        .setArtifactInfo(
-          JavaArtifacts.newBuilder()
-            .setTarget("//test:test")
-            .addJars(fileArtifact("out/test.jar"))
-            .addGenSrcs(fileArtifact("out/test.jar"))
-            .build())
-        .build(),
-      new NoopContext());
+        ImmutableSet.of(Label.of("//test:test")),
+        OutputInfo.builder()
+            .setOutputGroups(
+                ImmutableListMultimap.<OutputGroup, OutputArtifact>builder()
+                    .putAll(
+                        OutputGroup.JARS,
+                        TestOutputArtifact.builder()
+                            .setArtifactPath(Path.of("out/test.jar"))
+                            .setDigest("jar_digest")
+                            .build())
+                    .putAll(
+                        OutputGroup.GENSRCS,
+                        TestOutputArtifact.builder()
+                            .setArtifactPath(Path.of("out/test.jar"))
+                            .setDigest("jar_digest")
+                            .build())
+                    .build())
+            .setArtifactInfo(
+                JavaArtifacts.newBuilder()
+                    .setTarget("//test:test")
+                    .addJars(fileArtifact("out/test.jar"))
+                    .addGenSrcs(fileArtifact("out/test.jar"))
+                    .build())
+            .build(),
+        new NoopContext());
   }
 
   @Test
   public void artifact_directory() throws BuildException {
     when(cache.addAll(cachedArtifactsCaptor.capture(), any()))
-      .thenReturn(Futures.immediateFuture(null));
+        .thenReturn(Futures.immediateFuture(null));
     artifactTracker.update(
-      ImmutableSet.of(Label.of("//test:test")),
-      OutputInfo.builder()
-        .setOutputGroups(
-          ImmutableListMultimap.<OutputGroup, OutputArtifact>builder()
-            .putAll(
-              OutputGroup.JARS,
-              TestOutputArtifact.builder()
-                .setArtifactPath(Path.of("out/test.jar"))
-                .setDigest("jar_digest")
-                .build())
-            .putAll(
-              OutputGroup.GENSRCS,
-              TestOutputArtifact.builder()
-                .setArtifactPath(Path.of("out/src/Class1.java"))
-                .setDigest("class1_digest")
-                .build(),
-              TestOutputArtifact.builder()
-                .setArtifactPath(Path.of("out/src/Class2.java"))
-                .setDigest("class2_digest")
-                .build())
-            .build())
-        .setArtifactInfo(
-          JavaArtifacts.newBuilder()
-            .setTarget("//test:test")
-            .addJars(fileArtifact("out/test.jar"))
-            .addGenSrcs(directoryArtifact("out/src"))
-            .build())
-        .build(),
-      new NoopContext());
+        ImmutableSet.of(Label.of("//test:test")),
+        OutputInfo.builder()
+            .setOutputGroups(
+                ImmutableListMultimap.<OutputGroup, OutputArtifact>builder()
+                    .putAll(
+                        OutputGroup.JARS,
+                        TestOutputArtifact.builder()
+                            .setArtifactPath(Path.of("out/test.jar"))
+                            .setDigest("jar_digest")
+                            .build())
+                    .putAll(
+                        OutputGroup.GENSRCS,
+                        TestOutputArtifact.builder()
+                            .setArtifactPath(Path.of("out/src/Class1.java"))
+                            .setDigest("class1_digest")
+                            .build(),
+                        TestOutputArtifact.builder()
+                            .setArtifactPath(Path.of("out/src/Class2.java"))
+                            .setDigest("class2_digest")
+                            .build())
+                    .build())
+            .setArtifactInfo(
+                JavaArtifacts.newBuilder()
+                    .setTarget("//test:test")
+                    .addJars(fileArtifact("out/test.jar"))
+                    .addGenSrcs(directoryArtifact("out/src"))
+                    .build())
+            .build(),
+        new NoopContext());
     assertThat(cachedArtifactsCaptor.getValue().stream().map(OutputArtifact::getDigest))
-      .containsExactly("jar_digest", "class1_digest", "class2_digest");
+        .containsExactly("jar_digest", "class1_digest", "class2_digest");
 
-    assertThat(getOnlyElement(artifactTracker.getBuiltDepsForTesting()).javaInfo().get().genSrcs())
-      .containsExactly(
-        BuildArtifact.create(
-          "class1_digest", Path.of("out/src/Class1.java"), Label.of("//test:test")),
-        BuildArtifact.create(
-          "class2_digest", Path.of("out/src/Class2.java"), Label.of("//test:test")));
+    assertThat(
+            ((TargetBuildInfo.Java) getOnlyElement(artifactTracker.getBuiltDepsForTesting()))
+                .getJavaInfo()
+                .getGenSrcs())
+        .containsExactly(
+            BuildArtifact.create(
+                "class1_digest", Path.of("out/src/Class1.java"), Label.of("//test:test")),
+            BuildArtifact.create(
+                "class2_digest", Path.of("out/src/Class2.java"), Label.of("//test:test")));
   }
 
   static class TestArtifactMetadata<T extends ArtifactMetadata>
-    implements ArtifactMetadata.Extractor<T> {
+      implements ArtifactMetadata.Extractor<T> {
 
     private final T metadata;
 
@@ -384,7 +404,7 @@ public class NewArtifactTrackerTest extends BlazeTestCase {
 
     @Override
     public Class<T> metadataClass() {
-      return (Class<T>)metadata.getClass();
+      return (Class<T>) metadata.getClass();
     }
   }
 
@@ -407,49 +427,51 @@ public class NewArtifactTrackerTest extends BlazeTestCase {
   @Test
   public void extract_artifact_metadata() throws BuildException {
     when(cache.addAll(cachedArtifactsCaptor.capture(), any()))
-      .thenReturn(Futures.immediateFuture(null));
+        .thenReturn(Futures.immediateFuture(null));
     when(cache.get("jar_digest"))
-      .thenReturn(
-        Optional.of(Futures.immediateFuture(new CachedArtifact(Path.of("/cache/jar_digest")))));
+        .thenReturn(
+            Optional.of(Futures.immediateFuture(new CachedArtifact(Path.of("/cache/jar_digest")))));
     BuildArtifact jarArtifact =
-      BuildArtifact.create("jar_digest", Path.of("out/test.jar"), Label.of("//test:test"));
+        BuildArtifact.create("jar_digest", Path.of("out/test.jar"), Label.of("//test:test"));
     artifactMetadataMap.put(
-      Label.of("//test:test"),
-      ImmutableSetMultimap.<BuildArtifact, ArtifactMetadata.Extractor<?>>builder()
-        .putAll(
-          jarArtifact,
-          new TestArtifactMetadata<>(new Metadata1("md1")),
-          new TestArtifactMetadata<>(new Metadata2("md2")))
-        .build());
-    artifactTracker.update(
-      ImmutableSet.of(Label.of("//test:test")),
-      OutputInfo.builder()
-        .setOutputGroups(
-          ImmutableListMultimap.<OutputGroup, OutputArtifact>builder()
+        Label.of("//test:test"),
+        ImmutableSetMultimap.<BuildArtifact, ArtifactMetadata.Extractor<?>>builder()
             .putAll(
-              OutputGroup.JARS,
-              TestOutputArtifact.builder()
-                .setArtifactPath(Path.of("out/test.jar"))
-                .setDigest("jar_digest")
-                .build())
-            .build())
-        .setArtifactInfo(
-          JavaArtifacts.newBuilder()
-            .setTarget("//test:test")
-            .addJars(fileArtifact("out/test.jar"))
-            .build())
-        .build(),
-      new NoopContext());
+                jarArtifact,
+                new TestArtifactMetadata<>(new Metadata1("md1")),
+                new TestArtifactMetadata<>(new Metadata2("md2")))
+            .build());
+    artifactTracker.update(
+        ImmutableSet.of(Label.of("//test:test")),
+        OutputInfo.builder()
+            .setOutputGroups(
+                ImmutableListMultimap.<OutputGroup, OutputArtifact>builder()
+                    .putAll(
+                        OutputGroup.JARS,
+                        TestOutputArtifact.builder()
+                            .setArtifactPath(Path.of("out/test.jar"))
+                            .setDigest("jar_digest")
+                            .build())
+                    .build())
+            .setArtifactInfo(
+                JavaArtifacts.newBuilder()
+                    .setTarget("//test:test")
+                    .addJars(fileArtifact("out/test.jar"))
+                    .build())
+            .build(),
+        new NoopContext());
 
     ImmutableCollection<TargetBuildInfo> builtDeps = artifactTracker.getBuiltDepsForTesting();
     assertThat(
-      getOnlyElement(getOnlyElement(builtDeps).javaInfo().orElseThrow().jars())
-        .getMetadata(Metadata1.class))
-      .hasValue(new Metadata1("md1"));
+            getOnlyElement(
+                    ((TargetBuildInfo.Java) getOnlyElement(builtDeps)).getJavaInfo().getJars())
+                .getMetadata(Metadata1.class))
+        .hasValue(new Metadata1("md1"));
     assertThat(
-      getOnlyElement(getOnlyElement(builtDeps).javaInfo().orElseThrow().jars())
-        .getMetadata(Metadata2.class))
-      .hasValue(new Metadata2("md2"));
+            getOnlyElement(
+                    ((TargetBuildInfo.Java) getOnlyElement(builtDeps)).getJavaInfo().getJars())
+                .getMetadata(Metadata2.class))
+        .hasValue(new Metadata2("md2"));
   }
 
   /**
@@ -459,51 +481,44 @@ public class NewArtifactTrackerTest extends BlazeTestCase {
   public void disjoint_compile_jars() throws BuildException {
     when(cache.addAll(any(), any())).thenReturn(Futures.immediateFuture(null));
     artifactTracker.update(
-      ImmutableSet.of(Label.of("//test:test_proto")),
-      OutputInfo.builder()
-        .setOutputGroups(
-          ImmutableListMultimap.<OutputGroup, OutputArtifact>builder()
-            .putAll(
-              OutputGroup.JARS,
-              TestOutputArtifact.builder()
-                .setArtifactPath(Path.of("out/test_proto.jar"))
-                .setDigest("jar_digest")
-                .build(),
-              TestOutputArtifact.builder()
-                .setArtifactPath(Path.of("out/test_mutable_proto.jar"))
-                .setDigest("jar2_digest")
-                .build())
-            .build())
-        .setArtifactInfo(
-          JavaArtifacts.newBuilder()
-            .setTarget("//test:test_proto")
-            .addJars(fileArtifact("out/test_proto.jar"))
+        ImmutableSet.of(Label.of("//test:test_proto")),
+        OutputInfo.builder()
+            .setOutputGroups(
+                ImmutableListMultimap.<OutputGroup, OutputArtifact>builder()
+                    .putAll(
+                        OutputGroup.JARS,
+                        TestOutputArtifact.builder()
+                            .setArtifactPath(Path.of("out/test_proto.jar"))
+                            .setDigest("jar_digest")
+                            .build(),
+                        TestOutputArtifact.builder()
+                            .setArtifactPath(Path.of("out/test_mutable_proto.jar"))
+                            .setDigest("jar2_digest")
+                            .build())
+                    .build())
+            .setArtifactInfo(
+                JavaArtifacts.newBuilder()
+                    .setTarget("//test:test_proto")
+                    .addJars(fileArtifact("out/test_proto.jar"))
+                    .build(),
+                JavaArtifacts.newBuilder()
+                    .setTarget("//test:test_proto")
+                    .addJars(fileArtifact("out/test_proto.jar"))
+                    .addJars(fileArtifact("out/test_mutable_proto.jar"))
+                    .build())
             .build(),
-          JavaArtifacts.newBuilder()
-            .setTarget("//test:test_proto")
-            .addJars(fileArtifact("out/test_proto.jar"))
-            .addJars(fileArtifact("out/test_mutable_proto.jar"))
-            .build())
-        .build(),
-      new NoopContext());
+        new NoopContext());
     assertThat(artifactTracker.getStateSnapshot().depsMap().keySet())
-      .containsExactly(Label.of("//test:test_proto"));
+        .containsExactly(Label.of("//test:test_proto"));
     ImmutableCollection<TargetBuildInfo> builtDeps = artifactTracker.getBuiltDepsForTesting();
-    assertThat(builtDeps).hasSize(1);
-    ImmutableMap<Label, JavaArtifactInfo> depsMap =
-      builtDeps.stream()
-        .map(TargetBuildInfo::javaInfo)
-        .flatMap(Optional::stream)
-        .collect(ImmutableMap.toImmutableMap(JavaArtifactInfo::label, Functions.identity()));
-    assertThat(depsMap.keySet()).containsExactly(Label.of("//test:test_proto"));
-    assertThat(depsMap.get(Label.of("//test:test_proto")).jars())
-      .containsExactly(
-        BuildArtifact.create(
-          "jar_digest", Path.of("out/test_proto.jar"), Label.of("//test:test_proto")),
-        BuildArtifact.create(
-          "jar2_digest",
-          Path.of("out/test_mutable_proto.jar"),
-          Label.of("//test:test_proto")));
+    assertThat(((TargetBuildInfo.Java) getOnlyElement(builtDeps)).getJavaInfo().getJars())
+        .containsExactly(
+            BuildArtifact.create(
+                "jar_digest", Path.of("out/test_proto.jar"), Label.of("//test:test_proto")),
+            BuildArtifact.create(
+                "jar2_digest",
+                Path.of("out/test_mutable_proto.jar"),
+                Label.of("//test:test_proto")));
   }
 
   /**
@@ -515,47 +530,44 @@ public class NewArtifactTrackerTest extends BlazeTestCase {
   public void conflicting_targets_ignored() throws BuildException {
     when(cache.addAll(any(), any())).thenReturn(Futures.immediateFuture(null));
     artifactTracker.update(
-      ImmutableSet.of(Label.of("//test:test_proto")),
-      OutputInfo.builder()
-        .setOutputGroups(
-          ImmutableListMultimap.<OutputGroup, OutputArtifact>builder()
-            .putAll(
-              OutputGroup.JARS,
-              TestOutputArtifact.builder()
-                .setArtifactPath(Path.of("out/test_proto.jar"))
-                .setDigest("jar_digest")
-                .build(),
-              TestOutputArtifact.builder()
-                .setArtifactPath(Path.of("out/test_mutable_proto.jar"))
-                .setDigest("jar2_digest")
-                .build())
-            .build())
-        .setArtifactInfo(
-          JavaArtifacts.newBuilder()
-            .setTarget("//test:test_proto")
-            .addJars(fileArtifact("out/test_proto.jar"))
-            .addSrcs("test/test.proto")
+        ImmutableSet.of(Label.of("//test:test_proto")),
+        OutputInfo.builder()
+            .setOutputGroups(
+                ImmutableListMultimap.<OutputGroup, OutputArtifact>builder()
+                    .putAll(
+                        OutputGroup.JARS,
+                        TestOutputArtifact.builder()
+                            .setArtifactPath(Path.of("out/test_proto.jar"))
+                            .setDigest("jar_digest")
+                            .build(),
+                        TestOutputArtifact.builder()
+                            .setArtifactPath(Path.of("out/test_mutable_proto.jar"))
+                            .setDigest("jar2_digest")
+                            .build())
+                    .build())
+            .setArtifactInfo(
+                JavaArtifacts.newBuilder()
+                    .setTarget("//test:test_proto")
+                    .addJars(fileArtifact("out/test_proto.jar"))
+                    .addSrcs("test/test.proto")
+                    .build(),
+                JavaArtifacts.newBuilder()
+                    .setTarget("//test:test_proto")
+                    .addJars(fileArtifact("out/test_proto.jar"))
+                    .addJars(fileArtifact("out/test_mutable_proto.jar"))
+                    .build())
             .build(),
-          JavaArtifacts.newBuilder()
-            .setTarget("//test:test_proto")
-            .addJars(fileArtifact("out/test_proto.jar"))
-            .addJars(fileArtifact("out/test_mutable_proto.jar"))
-            .build())
-        .build(),
-      new NoopContext());
-    assertThat(artifactTracker.getStateSnapshot().depsMap().keySet()).containsExactly(Label.of("//test:test_proto"));
+        new NoopContext());
+    assertThat(artifactTracker.getStateSnapshot().depsMap().keySet())
+        .containsExactly(Label.of("//test:test_proto"));
     ImmutableCollection<TargetBuildInfo> builtDeps = artifactTracker.getBuiltDepsForTesting();
-    assertThat(
-      getOnlyElement(builtDeps).javaInfo().orElseThrow().jars()
-    ).containsExactly(
-      BuildArtifact.create(
-        "jar_digest",
-        Path.of("out/test_proto.jar"),
-        Label.of("//test:test_proto")),
-      BuildArtifact.create(
-        "jar2_digest",
-        Path.of("out/test_mutable_proto.jar"),
-        Label.of("//test:test_proto"))
-    );
+    assertThat(((TargetBuildInfo.Java) getOnlyElement(builtDeps)).getJavaInfo().getJars())
+        .containsExactly(
+            BuildArtifact.create(
+                "jar_digest", Path.of("out/test_proto.jar"), Label.of("//test:test_proto")),
+            BuildArtifact.create(
+                "jar2_digest",
+                Path.of("out/test_mutable_proto.jar"),
+                Label.of("//test:test_proto")));
   }
 }

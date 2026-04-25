@@ -28,7 +28,7 @@ class ClassFileIterateOverAllKtSourceFinder(private val ktClsFile: KtClsFile) : 
   override fun filterSourcePaths(artifactInfo: JavaArtifactInfo): Sequence<Path> {
     val project = querySyncManager.getLoadedProject().orElse(null) ?: return emptySequence()
     val pathResolver = project.projectPathResolver
-    return artifactInfo.sources().asSequence().map { pathResolver.resolve(it) }
+    return artifactInfo.sources.asSequence().map { pathResolver.resolve(it) }
   }
 
   override fun getSourceFileNamesFromClasses(): Set<String> {

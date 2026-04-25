@@ -17,9 +17,9 @@ package com.google.idea.blaze.qsync.deps;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
-import com.google.common.collect.ImmutableList;
 import com.google.auto.value.AutoValue;
 import com.google.auto.value.extension.memoized.Memoized;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
@@ -27,7 +27,6 @@ import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * An index of project artifacts in the artifact store. Allows the lookup of which target built any
@@ -40,8 +39,7 @@ public abstract class ArtifactIndex {
 
   public abstract ImmutableMap<Label, TargetBuildInfo> builtDepsMap();
 
-  public static ArtifactIndex create(
-      ArtifactTracker.State artifactState) {
+  public static ArtifactIndex create(ArtifactTracker.State artifactState) {
     return new AutoValue_ArtifactIndex(artifactState.depsMap());
   }
 
@@ -55,20 +53,29 @@ public abstract class ArtifactIndex {
     ImmutableMultimap.Builder<Path, Label> map = ImmutableMultimap.builder();
     for (Map.Entry<Label, TargetBuildInfo> labelTargetBuildInfoEntry : builtDepsMap().entrySet()) {
       final var label = labelTargetBuildInfoEntry.getKey();
-      labelTargetBuildInfoEntry.getValue().javaInfo().map(JavaArtifactInfo::jars).orElse(ImmutableSet.of()).stream().map(
-        BuildArtifact::artifactPath).forEach(path -> map.put(path, label));
+      (labelTargetBuildInfoEntry.getValue() instanceof TargetBuildInfo.Java javaTarget
+              ? javaTarget.getJavaInfo().getJars()
+              : ImmutableSet.<BuildArtifact>of())
+          .stream().map(BuildArtifact::artifactPath).forEach(path -> map.put(path, label));
     }
     return map.build();
   }
 
   public ImmutableList<JavaArtifactInfo> getInfoForJarArtifact(Path projectRelativePath) {
-    final var javaDepsPrefixPath = com.google.idea.blaze.qsync.deps.ArtifactDirectories.JAVADEPS.relativePath();
+    final var javaDepsPrefixPath =
+        com.google.idea.blaze.qsync.deps.ArtifactDirectories.JAVADEPS.relativePath();
     if (!projectRelativePath.startsWith(javaDepsPrefixPath)) {
       return ImmutableList.of();
     }
-    Path artifactPath = projectRelativePath.subpath(javaDepsPrefixPath.getNameCount(), projectRelativePath.getNameCount());
+    Path artifactPath =
+        projectRelativePath.subpath(
+            javaDepsPrefixPath.getNameCount(), projectRelativePath.getNameCount());
     final var labels = jarOwnerMap().get(artifactPath);
-    return labels.stream().flatMap(it -> Optional.ofNullable(builtDepsMap().get(it)).flatMap(
-      TargetBuildInfo::javaInfo).stream()).collect(toImmutableList());
+    return labels.stream()
+        .map(it -> builtDepsMap().get(it))
+        .filter(java.util.Objects::nonNull)
+        .filter(t -> t instanceof TargetBuildInfo.Java)
+        .map(t -> ((TargetBuildInfo.Java) t).getJavaInfo())
+        .collect(toImmutableList());
   }
 }

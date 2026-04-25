@@ -22,6 +22,7 @@ import com.google.idea.blaze.qsync.deps.ArtifactTracker.State
 import com.google.idea.blaze.qsync.deps.CcCompilationInfo
 import com.google.idea.blaze.qsync.deps.CcToolchain
 import com.google.idea.blaze.qsync.deps.DependencyBuildContext
+import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.ProjectProto.CcCompilationContext
@@ -32,7 +33,6 @@ import com.google.idea.blaze.qsync.project.ProjectProto.CcLanguage
 import com.google.idea.blaze.qsync.project.QuerySyncProjectDirectory
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
-import com.intellij.util.containers.orNull
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicInteger
 import org.jetbrains.annotations.VisibleForTesting
@@ -51,8 +51,9 @@ class ConfigureCcCompilation : ProjectProtoUpdateOperation {
       visitor.visitToolchainMap(artifactState.ccToolchainMap())
 
       for (target in artifactState.targets()) {
-        val ccInfo = target.ccInfo().orNull() ?: continue
-        visitor.visitTarget(ccInfo, target.buildContext())
+        if (target !is TargetBuildInfo.Cc) continue
+        val ccInfo = target.ccInfo
+        visitor.visitTarget(ccInfo, target.buildContext)
       }
     }
   }
@@ -88,28 +89,26 @@ class ConfigureCcCompilation : ProjectProtoUpdateOperation {
 
     fun visitTarget(ccInfo: CcCompilationInfo, buildContext: DependencyBuildContext) {
       val toolchain =
-        artifactState.ccToolchainMap()[ccInfo.toolchainId()]
+        artifactState.ccToolchainMap()[ccInfo.toolchainId]
           ?: let {
-            context.output(
-              PrintOutput.error("Cannot find toolchain with id: '${ccInfo.toolchainId()}' referred to from ${ccInfo.target()}")
-            )
+            context.output(PrintOutput.error("Cannot find toolchain with id: '${ccInfo.toolchainId}' referred to from ${ccInfo.target}"))
             return@visitTarget
           }
 
       val targetFlags = buildList {
-        addAll(ccInfo.copts().map { makeStringFlag(it, "") })
-        addAll(ccInfo.defines().map { makeStringFlag("-D", it) })
-        addAll(ccInfo.includeDirectories().map { makePathFlag("-I", it) })
-        addAll(ccInfo.quoteIncludeDirectories().map { p -> makePathFlag("-iquote", p) })
-        addAll(ccInfo.systemIncludeDirectories().map { p -> makePathFlag("-isystem", p) })
-        addAll(ccInfo.frameworkIncludeDirectories().map { p -> makePathFlag("-F", p) })
+        addAll(ccInfo.copts.map { makeStringFlag(it, "") })
+        addAll(ccInfo.defines.map { makeStringFlag("-D", it) })
+        addAll(ccInfo.includeDirectories.map { makePathFlag("-I", it) })
+        addAll(ccInfo.quoteIncludeDirectories.map { p -> makePathFlag("-iquote", p) })
+        addAll(ccInfo.systemIncludeDirectories.map { p -> makePathFlag("-isystem", p) })
+        addAll(ccInfo.frameworkIncludeDirectories.map { p -> makePathFlag("-F", p) })
       }
 
-      workspaceUpdater.target(ccInfo.target()) {
+      workspaceUpdater.target(ccInfo.target) {
         val targetContext =
           CcCompilationContext(
-            id = ccInfo.target().toString() + "%" + toolchain.targetGnuSystemName(),
-            humanReadableName = ccInfo.target().toString() + " - " + toolchain.targetGnuSystemName(),
+            id = ccInfo.target.toString() + "%" + toolchain.targetGnuSystemName(),
+            humanReadableName = ccInfo.target.toString() + " - " + toolchain.targetGnuSystemName(),
             languageToCompilerSettings =
               toolchainLanguageFlags[toolchain.id()]
                 ?.entries
@@ -125,7 +124,7 @@ class ConfigureCcCompilation : ProjectProtoUpdateOperation {
         addContext(targetContext)
 
         update.artifactDirectory(ArtifactDirectories.GEN_CC_HEADERS) {
-          for (artifact in ccInfo.genHeaders()) {
+          for (artifact in ccInfo.genHeaders) {
             addIfNewer(artifact.artifactPath(), artifact, buildContext)
           }
         }
@@ -178,10 +177,10 @@ class ConfigureCcCompilation : ProjectProtoUpdateOperation {
 
 private fun CcCompilationInfo.collectArtifactRepositoryNames(): Set<String> {
   return buildSet {
-    collectExternalRepositoryNameFrom(frameworkIncludeDirectories())
-    collectExternalRepositoryNameFrom(includeDirectories())
-    collectExternalRepositoryNameFrom(quoteIncludeDirectories())
-    collectExternalRepositoryNameFrom(systemIncludeDirectories())
+    collectExternalRepositoryNameFrom(frameworkIncludeDirectories)
+    collectExternalRepositoryNameFrom(includeDirectories)
+    collectExternalRepositoryNameFrom(quoteIncludeDirectories)
+    collectExternalRepositoryNameFrom(systemIncludeDirectories)
   }
 }
 

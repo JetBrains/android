@@ -52,7 +52,8 @@ public interface ArtifactTracker<ContextT extends Context<?>> {
     }
 
     /**
-     * DO NOT USE: Label is not the right key of a synced target. A target may have and be synced in multiple configurations.
+     * DO NOT USE: Label is not the right key of a synced target. A target may have and be synced in
+     * multiple configurations.
      */
     @Deprecated
     public Set<Label> deprecatedSyncedTargetKeys() {
@@ -67,27 +68,30 @@ public interface ArtifactTracker<ContextT extends Context<?>> {
     public static State create(
         Map<Label, ? extends TargetBuildInfo> map,
         Map<String, ? extends CcToolchain> ccToolchainMap) {
-      return new AutoValue_ArtifactTracker_State(ImmutableMap.copyOf(map), ImmutableMap.copyOf(ccToolchainMap));
+      return new AutoValue_ArtifactTracker_State(
+          ImmutableMap.copyOf(map), ImmutableMap.copyOf(ccToolchainMap));
     }
 
     @VisibleForTesting
-    public static State forJavaArtifacts(DependencyBuildContext buildContext, ImmutableCollection<JavaArtifactInfo> infos) {
+    public static State forJavaArtifacts(
+        DependencyBuildContext buildContext, ImmutableCollection<JavaArtifactInfo> infos) {
       return create(
           infos.stream()
               .collect(
                   toImmutableMap(
-                      JavaArtifactInfo::label,
+                      JavaArtifactInfo::getLabel,
                       j -> TargetBuildInfo.forJavaTarget(j, buildContext))),
           ImmutableMap.of());
     }
 
     @VisibleForTesting
-    public static State forJavaArtifacts(DependencyBuildContext buildContext, JavaArtifactInfo... infos) {
+    public static State forJavaArtifacts(
+        DependencyBuildContext buildContext, JavaArtifactInfo... infos) {
       return create(
           Stream.of(infos)
               .collect(
                   toImmutableMap(
-                      JavaArtifactInfo::label,
+                      JavaArtifactInfo::getLabel,
                       j -> TargetBuildInfo.forJavaTarget(j, buildContext))),
           ImmutableMap.of());
     }
@@ -95,20 +99,40 @@ public interface ArtifactTracker<ContextT extends Context<?>> {
     @VisibleForTesting
     public static State forTargets(TargetBuildInfo... targets) {
       return create(
-          Stream.of(targets).collect(toImmutableMap(TargetBuildInfo::label, Function.identity())),
+          Stream.of(targets)
+              .collect(toImmutableMap(TargetBuildInfo::getLabel, Function.identity())),
           ImmutableMap.of());
+    }
+
+    private static JavaArtifactInfo createEmpty(Label label) {
+      return new JavaArtifactInfo(
+          label,
+          false,
+          false,
+          Set.of(),
+          Set.of(),
+          null,
+          Set.of(),
+          Set.of(),
+          Set.of(),
+          Set.of(),
+          Set.of(),
+          "",
+          java.util.List.of());
     }
 
     @VisibleForTesting
     public static State forJavaLabels(Label... labels) {
       return forJavaArtifacts(
-        DependencyBuildContext.NONE, Stream.of(labels).map(JavaArtifactInfo::empty).collect(ImmutableSet.toImmutableSet()));
+          DependencyBuildContext.NONE,
+          Stream.of(labels).map(State::createEmpty).collect(ImmutableSet.toImmutableSet()));
     }
 
     @VisibleForTesting
     public static State forJavaLabels(Collection<Label> labels) {
       return forJavaArtifacts(
-        DependencyBuildContext.NONE, labels.stream().map(JavaArtifactInfo::empty).collect(ImmutableSet.toImmutableSet()));
+          DependencyBuildContext.NONE,
+          labels.stream().map(State::createEmpty).collect(ImmutableSet.toImmutableSet()));
     }
   }
 

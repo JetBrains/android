@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.qsync.java
 
-import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import com.google.common.truth.Truth
 import com.google.idea.blaze.common.Label
@@ -68,6 +67,24 @@ class AddDependencyGenSrcsJarsTest {
 
   private val innerRootsMetadata = SrcJarPackageRootsExtractor(null)
 
+  private fun createJavaArtifactInfo(label: Label, genSrcs: Set<BuildArtifact> = emptySet()): JavaArtifactInfo {
+    return JavaArtifactInfo(
+      label = label,
+      isExternalDependency = false,
+      isKotlinToolchain = false,
+      jars = emptySet(),
+      outputJars = emptySet(),
+      ideAar = null,
+      genSrcs = genSrcs,
+      genAndroidRes = emptySet(),
+      protoSrcjars = emptySet(),
+      sources = emptySet(),
+      srcJars = emptySet(),
+      androidResourcesPackage = "",
+      kotlinCompilerFlags = emptyList(),
+    )
+  }
+
   @Before
   fun setUp() {
     intellij.registerApplicationService(ExperimentService::class.java, MockExperimentService())
@@ -107,14 +124,11 @@ class AddDependencyGenSrcsJarsTest {
     val artifactState =
       ArtifactTracker.State.forJavaArtifacts(
         DependencyBuildContext.NONE,
-        JavaArtifactInfo.empty(testProject.getAssumedOnlyLabel())
-          .toBuilder()
-          .setGenSrcs(
-            ImmutableList.of(
-              BuildArtifact.create("srcjardigest", Path.of("output/path/to/in_project.srcjar"), testProject.getAssumedOnlyLabel())
-            )
-          )
-          .build(),
+        createJavaArtifactInfo(
+          label = testProject.getAssumedOnlyLabel(),
+          genSrcs =
+            setOf(BuildArtifact.create("srcjardigest", Path.of("output/path/to/in_project.srcjar"), testProject.getAssumedOnlyLabel())),
+        ),
       )
 
     val update = ProjectProtoUpdate(original.project)
@@ -153,19 +167,18 @@ class AddDependencyGenSrcsJarsTest {
     val artifactState =
       ArtifactTracker.State.forTargets(
         TargetBuildInfo.forJavaTarget(
-          JavaArtifactInfo.empty(of("//java/com/google/common/collect:collect"))
-            .toBuilder()
-            .setGenSrcs(
-              ImmutableList.of(
+          createJavaArtifactInfo(
+            label = of("//java/com/google/common/collect:collect"),
+            genSrcs =
+              setOf(
                 BuildArtifact.create(
                     "srcjardigest",
                     Path.of("output/path/to/external.srcjar"),
                     of("//java/com/google/common/collect:collect"),
                   )
                   .withMetadata(SrcJarJavaPackageRoots(ImmutableSet.of(Path.of("root"), Path.of("root2"))))
-              )
-            )
-            .build(),
+              ),
+          ),
           DependencyBuildContext.NONE,
         )
       )
@@ -198,18 +211,17 @@ class AddDependencyGenSrcsJarsTest {
     val artifactState =
       ArtifactTracker.State.forTargets(
         TargetBuildInfo.forJavaTarget(
-          JavaArtifactInfo.empty(of("//java/com/google/common/collect:collect"))
-            .toBuilder()
-            .setGenSrcs(
-              ImmutableList.of(
+          createJavaArtifactInfo(
+            label = of("//java/com/google/common/collect:collect"),
+            genSrcs =
+              setOf(
                 BuildArtifact.create(
                   "srcjardigest",
                   Path.of("output/path/to/external.srcjar"),
                   of("//java/com/google/common/collect:collect"),
                 )
-              )
-            )
-            .build(),
+              ),
+          ),
           DependencyBuildContext.NONE,
         )
       )

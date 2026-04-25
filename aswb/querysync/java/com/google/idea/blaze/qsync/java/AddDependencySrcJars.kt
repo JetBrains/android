@@ -18,13 +18,13 @@ package com.google.idea.blaze.qsync.java
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
+import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 import com.google.idea.blaze.qsync.java.AddDependencyGenSrcsJars.Companion.ENABLED_NAVIGATION_POLICY
 import com.google.idea.blaze.qsync.java.SrcJarInnerPathFinder.AllowPackagePrefixes
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
-import kotlin.jvm.optionals.getOrNull
 
 /**
  * Adds checked-in `.srcjar` files from external dependencies to the project proto. This allows those sources to be shown in the IDE instead
@@ -46,13 +46,13 @@ class AddDependencySrcJars(
       return
     }
     for (target in artifactState.targets()) {
-      val javaInfo = target.javaInfo().getOrNull() ?: continue
-      if (projectDefinition.isIncluded(javaInfo.label())) {
+      val javaInfo = (target as? TargetBuildInfo.Java)?.javaInfo ?: continue
+      if (projectDefinition.isIncluded(javaInfo.label)) {
         continue
       }
-      update.library(target.label()) {
+      update.library(target.label) {
         addSourceJars(
-          javaInfo.srcJars().flatMap { srcJar ->
+          javaInfo.srcJars.flatMap { srcJar ->
             // these are workspace relative srcjar paths.
             srcJarInnerPathFinder
               .findInnerJarPaths(pathResolver.resolve(srcJar).toFile(), AllowPackagePrefixes.EMPTY_PACKAGE_PREFIXES_ONLY, srcJar.toString())

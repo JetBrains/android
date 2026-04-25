@@ -20,6 +20,7 @@ import com.android.tools.idea.run.classes.BuildOutcome
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
 import com.google.idea.blaze.base.qsync.QuerySyncManager
 import com.google.idea.blaze.common.Label
+import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 import com.google.idea.blaze.qsync.project.TargetsToBuild
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -88,8 +89,8 @@ class BazelApplicationLiveEditServices(
         ?: labels.first()
 
     val targetBuildInfo = snapshot.artifactIndex.builtDepsMap()[label] ?: return CompilerConfiguration.create()
-    val javaInfo = targetBuildInfo.javaInfo().getOrNull() ?: return CompilerConfiguration.create()
-    val flags = javaInfo.kotlinCompilerFlags()
+    val javaInfo = (targetBuildInfo as? TargetBuildInfo.Java)?.javaInfo ?: return CompilerConfiguration.create()
+    val flags = javaInfo.kotlinCompilerFlags
 
     return CompilerConfiguration.create().apply {
       put(CommonConfigurationKeys.MODULE_NAME, label.toString())

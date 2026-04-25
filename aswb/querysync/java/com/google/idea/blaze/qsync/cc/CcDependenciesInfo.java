@@ -21,6 +21,7 @@ import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.CcCompilationInfo;
 import com.google.idea.blaze.qsync.deps.CcToolchain;
+import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Map;
 
@@ -38,8 +39,8 @@ public abstract class CcDependenciesInfo {
   public static CcDependenciesInfo create(ArtifactTracker.State artifactState) {
     return create(
         artifactState.targets().stream()
-            .filter(e -> e.ccInfo().isPresent())
-            .map(e -> new SimpleEntry<>(e.label(), e.ccInfo().get()))
+            .filter(e -> e instanceof TargetBuildInfo.Cc)
+            .map(e -> new SimpleEntry<>(e.getLabel(), ((TargetBuildInfo.Cc) e).getCcInfo()))
             .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue)),
         artifactState.ccToolchainMap());
   }
@@ -49,5 +50,4 @@ public abstract class CcDependenciesInfo {
       ImmutableMap<String, CcToolchain> toolchainInfoMap) {
     return new AutoValue_CcDependenciesInfo(targetInfoMap, toolchainInfoMap);
   }
-
 }

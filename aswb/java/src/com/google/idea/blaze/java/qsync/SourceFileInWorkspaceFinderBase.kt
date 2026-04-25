@@ -48,8 +48,7 @@ abstract class SourceFileInWorkspaceFinderBase : SourceFileFinderBase {
     val sourceFileNames = getSourceFileNamesFromClasses()
     val root = workspaceRoot ?: return emptySequence()
 
-    return artifactInfo
-      .sources()
+    return artifactInfo.sources
       .asSequence()
       .map { pathResolver.resolve(it) }
       .filter { it.fileName.toString() in sourceFileNames }

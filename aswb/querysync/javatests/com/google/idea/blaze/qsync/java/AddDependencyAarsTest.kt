@@ -65,6 +65,24 @@ class AddDependencyAarsTest {
 
   private val aarPackageMetadata = AarPackageNameExtractor(null)
 
+  private fun createJavaArtifactInfo(label: Label, ideAar: BuildArtifact? = null): JavaArtifactInfo {
+    return JavaArtifactInfo(
+      label = label,
+      isExternalDependency = false,
+      isKotlinToolchain = false,
+      jars = emptySet(),
+      outputJars = emptySet(),
+      ideAar = ideAar,
+      genSrcs = emptySet(),
+      genAndroidRes = emptySet(),
+      protoSrcjars = emptySet(),
+      sources = emptySet(),
+      srcJars = emptySet(),
+      androidResourcesPackage = "",
+      kotlinCompilerFlags = emptyList(),
+    )
+  }
+
   @Test
   @Throws(Exception::class)
   fun no_deps_built() {
@@ -95,13 +113,12 @@ class AddDependencyAarsTest {
       update,
       ArtifactTracker.State.forTargets(
         TargetBuildInfo.forJavaTarget(
-          JavaArtifactInfo.empty(Label.of("//path/to:dep"))
-            .toBuilder()
-            .setIdeAar(
+          createJavaArtifactInfo(
+            label = Label.of("//path/to:dep"),
+            ideAar =
               BuildArtifact.create("aardigest", Path.of("path/to/dep.aar"), Label.of("//path/to:dep"))
-                .withMetadata(AarResPackage("com.google.idea.blaze.qsync.testdata.android"))
-            )
-            .build(),
+                .withMetadata(AarResPackage("com.google.idea.blaze.qsync.testdata.android")),
+          ),
           DependencyBuildContext.create("", buildTimestamp),
         )
       ),
@@ -160,10 +177,10 @@ class AddDependencyAarsTest {
       ArtifactTracker.State.forJavaArtifacts(
         DependencyBuildContext.create("", buildTimestamp),
         ImmutableList.of(
-          JavaArtifactInfo.empty(Label.of("//path/to:dep"))
-            .toBuilder()
-            .setIdeAar(BuildArtifact.create("aardigest", Path.of("path/to/dep.aar"), Label.of("//path/to:dep")))
-            .build()
+          createJavaArtifactInfo(
+            label = Label.of("//path/to:dep"),
+            ideAar = BuildArtifact.create("aardigest", Path.of("path/to/dep.aar"), Label.of("//path/to:dep")),
+          )
         ),
       ),
       NoopContext(),

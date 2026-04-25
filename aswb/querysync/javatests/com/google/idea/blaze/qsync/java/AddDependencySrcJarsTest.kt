@@ -60,6 +60,24 @@ class AddDependencySrcJarsTest {
   private val syncer = TestDataSyncRunner(NoopContext(), QuerySyncTestUtils.PATH_INFERRING_PREFIX_READER)
   private lateinit var original: QuerySyncProjectSnapshot
 
+  private fun createJavaArtifactInfo(label: Label, srcJars: Set<ProjectPath> = emptySet()): JavaArtifactInfo {
+    return JavaArtifactInfo(
+      label = label,
+      isExternalDependency = false,
+      isKotlinToolchain = false,
+      jars = emptySet(),
+      outputJars = emptySet(),
+      ideAar = null,
+      genSrcs = emptySet(),
+      genAndroidRes = emptySet(),
+      protoSrcjars = emptySet(),
+      sources = emptySet(),
+      srcJars = srcJars,
+      androidResourcesPackage = "",
+      kotlinCompilerFlags = emptyList(),
+    )
+  }
+
   @Before
   @Throws(IOException::class)
   fun setUp() {
@@ -119,10 +137,10 @@ class AddDependencySrcJarsTest {
     val artifactState =
       ArtifactTracker.State.forJavaArtifacts(
         DependencyBuildContext.NONE,
-        JavaArtifactInfo.empty(of("//java/com/google/common/collect:collect"))
-          .toBuilder()
-          .setSrcJars(setOf<ProjectPath>(ProjectPath.workspaceRelativeForTests(Path.of("source/path/external.srcjar"))))
-          .build(),
+        createJavaArtifactInfo(
+          label = of("//java/com/google/common/collect:collect"),
+          srcJars = setOf(ProjectPath.workspaceRelativeForTests(Path.of("source/path/external.srcjar"))),
+        ),
       )
 
     val update = ProjectProtoUpdate(original.project)

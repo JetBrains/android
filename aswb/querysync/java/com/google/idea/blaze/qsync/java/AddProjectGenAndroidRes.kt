@@ -25,7 +25,6 @@ import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import java.nio.file.Path
-import kotlin.jvm.optionals.getOrNull
 
 /** Adds generated Android resource files to the project proto. */
 class AddProjectGenAndroidRes : ProjectProtoUpdateOperation {
@@ -33,7 +32,8 @@ class AddProjectGenAndroidRes : ProjectProtoUpdateOperation {
   override fun getRequiredArtifacts(
     forTarget: TargetBuildInfo
   ): Map<com.google.idea.blaze.qsync.artifacts.BuildArtifact, Collection<ArtifactMetadata.Extractor<*>>> {
-    return forTarget.javaInfo().getOrNull()?.genAndroidRes()?.associateWith { emptyList<ArtifactMetadata.Extractor<*>>() } ?: emptyMap()
+    val javaInfo = (forTarget as? TargetBuildInfo.Java)?.javaInfo ?: return emptyMap()
+    return javaInfo.genAndroidRes.associateWith { emptyList<ArtifactMetadata.Extractor<*>>() }
   }
 
   @Throws(BuildException::class)
@@ -44,22 +44,20 @@ class AddProjectGenAndroidRes : ProjectProtoUpdateOperation {
     externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,
   ) {
     for (target in artifactState.targets()) {
-      val javaInfo = target.javaInfo().getOrNull() ?: continue
-      val genRes = javaInfo.genAndroidRes()
+      val javaInfo = (target as? TargetBuildInfo.Java)?.javaInfo ?: continue
+      val genRes = javaInfo.genAndroidRes
       if (genRes.isEmpty()) continue
 
       val resRoots = mutableSetOf<Path>()
       update.artifactDirectory(ArtifactDirectories.ANDROID_GEN_RES) {
         for (artifact in genRes) {
-          addIfNewer(artifact.artifactPath(), artifact, target.buildContext())
+          addIfNewer(artifact.artifactPath(), artifact, target.buildContext)
         }
         resRoots.addAll(AndroidResUtils.computeAndroidResourceDirectories(genRes.map { it.artifactPath() }))
       }
 
       if (resRoots.isNotEmpty()) {
-        update.module(target.label()) {
-          addAndroidResourceDirectories(resRoots.map { ArtifactDirectories.ANDROID_GEN_RES.resolveChild(it) })
-        }
+        update.module(target.label) { addAndroidResourceDirectories(resRoots.map { ArtifactDirectories.ANDROID_GEN_RES.resolveChild(it) }) }
       }
     }
   }

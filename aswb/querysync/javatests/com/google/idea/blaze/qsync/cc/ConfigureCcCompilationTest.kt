@@ -79,7 +79,7 @@ class ConfigureCcCompilationTest {
     return ArtifactTracker.State.create(
       proto.targetsList
         .map { CcCompilationInfo.create(it, digestMap, externalRepositoryFinder) }
-        .associate { it.target() to TargetBuildInfo.forCcTarget(it, DependencyBuildContext.NONE) },
+        .associate { it.target to TargetBuildInfo.forCcTarget(it, DependencyBuildContext.NONE) },
       proto.toolchainsList.map { CcToolchain.create(it, externalRepositoryFinder) }.associateBy { it.id() },
     )
   }

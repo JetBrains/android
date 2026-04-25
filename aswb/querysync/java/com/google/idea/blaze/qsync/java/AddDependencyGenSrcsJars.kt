@@ -45,18 +45,18 @@ class AddDependencyGenSrcsJars(
   }
 
   private fun getDependencyGenSrcJars(target: TargetBuildInfo): Collection<BuildArtifact> {
-    val javaInfo = target.javaInfo().getOrNull() ?: return emptyList()
+    val javaInfo = (target as? TargetBuildInfo.Java)?.javaInfo ?: return emptyList()
 
-    return if (projectDefinition.isIncluded(javaInfo.label())) emptyList()
-    else javaInfo.genSrcs().filter { ProjectProtoUpdateOperation.Companion.JAVA_ARCHIVE_EXTENSIONS.contains(it.getExtension()) }
+    return if (projectDefinition.isIncluded(javaInfo.label)) emptyList()
+    else javaInfo.genSrcs.filter { ProjectProtoUpdateOperation.Companion.JAVA_ARCHIVE_EXTENSIONS.contains(it.extension) }
   }
 
   private fun getProtoSrcJars(target: TargetBuildInfo): Collection<BuildArtifact> {
-    val javaInfo = target.javaInfo().getOrNull() ?: return emptyList()
+    val javaInfo = (target as? TargetBuildInfo.Java)?.javaInfo ?: return emptyList()
 
     // We will return proto src jar for all targets not only external project targets
     // since we may need to provide navigation for in project target in some cases
-    return javaInfo.protoSrcjars().filter { ProjectProtoUpdateOperation.Companion.JAVA_ARCHIVE_EXTENSIONS.contains(it.getExtension()) }
+    return javaInfo.protoSrcjars.filter { ProjectProtoUpdateOperation.Companion.JAVA_ARCHIVE_EXTENSIONS.contains(it.extension) }
   }
 
   override fun getRequiredArtifacts(forTarget: TargetBuildInfo): Map<BuildArtifact, Collection<ArtifactMetadata.Extractor<*>>> {
@@ -73,17 +73,17 @@ class AddDependencyGenSrcsJars(
     update.artifactDirectory(ArtifactDirectories.DEFAULT) {
       for (target in artifactState.targets()) {
         for (protoSrcJar in getProtoSrcJars(target)) {
-          addIfNewer(protoSrcJar.artifactPath(), protoSrcJar, target.buildContext())
+          addIfNewer(protoSrcJar.artifactPath(), protoSrcJar, target.buildContext)
         }
         val projectPaths =
           getDependencyGenSrcJars(target).flatMap { genSrc ->
-            val projectPath = addIfNewer(genSrc.artifactPath(), genSrc, target.buildContext()) ?: return@flatMap emptyList()
+            val projectPath = addIfNewer(genSrc.artifactPath(), genSrc, target.buildContext) ?: return@flatMap emptyList()
 
             val innerJavaRoots = genSrc.getMetadata(SrcJarJavaPackageRoots::class.java).getOrNull()?.roots() ?: setOf(Path.of(""))
             innerJavaRoots.map { projectPath.withInnerJarPath(it) }
           }
         if (!ENABLED_NAVIGATION_POLICY.value) {
-          update.library(target.label()) { addSourceJars(projectPaths) }
+          update.library(target.label) { addSourceJars(projectPaths) }
         }
       }
     }
