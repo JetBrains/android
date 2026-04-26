@@ -78,16 +78,14 @@ private class XrPassthroughPopup(val xrController: AbstractXrInputController) {
               }
           }
           row("Dimming:") {
-            val levels = dimmingLevels.map { (it * 100).roundToInt() }
             val smallFont = JBFont.label().lessOn(4f)
-            val majorTickSpacing = (levels.last() - levels.first()) / (levels.size - 1)
             dimmingSlider =
-              slider(levels.first(), levels.last(), 0, majorTickSpacing)
+              slider(0, dimmingLevels.size - 1, 0, 1)
                 .accessibleName("Dimming")
-                .labelTable(levels.associateWith { JBLabel("$it%").apply { font = smallFont } })
+                .labelTable(dimmingLevels.indices.associateWith { JBLabel("${dimmingLevels[it].toPercent()}%").apply { font = smallFont } })
                 .applyToComponent {
                   snapToTicks = true
-                  value = xrController.dimmingPercent
+                  value = xrController.dimmingLevelIndex
                   // JSlider is rendered with some internal margins that make it appear misaligned compared to other widgets.
                   // Adding the left empty border makes the UI DSL layout mechanics shift the slider to the left making it
                   // appear aligned with the checkbox.
@@ -128,7 +126,7 @@ private class XrPassthroughPopup(val xrController: AbstractXrInputController) {
           passthroughCheckBox.applyToComponent { isSelected = xrController.passthroughEnabled }
         }
         AbstractXrInputController.DIMMING_COEFFICIENT_PROPERTY -> {
-          dimmingSlider.applyToComponent { value = xrController.dimmingPercent }
+          dimmingSlider.applyToComponent { value = xrController.dimmingLevelIndex }
         }
       }
     }
@@ -146,31 +144,34 @@ private class XrPassthroughPopup(val xrController: AbstractXrInputController) {
     coroutineScope.launch {
       xrController.setPassthroughAndDimming(
         passthroughCoefficient = if (passthroughCheckBox.isSelected) 1f else 0f,
-        dimmingCoefficient = dimmingLevels.findClosestElement(dimmingSlider.value / 100f),
+        dimmingCoefficient = dimmingLevels[dimmingSlider.value],
       )
     }
   }
 }
 
-private fun FloatArray.findClosestElement(value: Float): Float {
+/** Returns the index of the element closest to the given value. */
+private fun FloatArray.indexOfClosest(value: Float): Int {
   require(isNotEmpty())
   var closestDistance = Float.MAX_VALUE
-  var closestElement = Float.NaN
-  for (element in this) {
+  var closestIndex = -1
+  for ((index, element) in this.withIndex()) {
     val distance = abs(value - element)
     if (distance < closestDistance) {
       closestDistance = distance
-      closestElement = element
+      closestIndex = index
     }
     if (distance == 0f) {
       break
     }
   }
-  return closestElement
+  return closestIndex
 }
 
 private val AbstractXrInputController.passthroughEnabled: Boolean
   get() = passthroughCoefficient >= 0.5f
 
-private val AbstractXrInputController.dimmingPercent: Int
-  get() = (dimmingCoefficient * 100).roundToInt()
+private val AbstractXrInputController.dimmingLevelIndex: Int
+  get() = dimmingLevels.indexOfClosest(dimmingCoefficient)
+
+private fun Float.toPercent(): Int = (this * 100).roundToInt()
