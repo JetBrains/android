@@ -1,3 +1,4 @@
+// This file should not be edited manually! See go/template-diff-tests
 package template.test.`in`.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme

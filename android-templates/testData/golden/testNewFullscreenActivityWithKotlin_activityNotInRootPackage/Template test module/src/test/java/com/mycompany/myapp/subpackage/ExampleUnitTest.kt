@@ -1,3 +1,4 @@
+// This file should not be edited manually! See go/template-diff-tests
 package com.mycompany.myapp.subpackage
 
 import org.junit.Test

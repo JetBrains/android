@@ -1,3 +1,4 @@
+// This file should not be edited manually! See go/template-diff-tests
 package template.test.`in`.shared
 
 import androidx.car.app.CarContext
