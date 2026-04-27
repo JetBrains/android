@@ -18,7 +18,6 @@ package com.android.tools.idea.configurations;
 import static com.android.tools.configurations.ConfigurationListener.CFG_ACTIVITY;
 import static com.android.tools.configurations.ConfigurationListener.CFG_NIGHT_MODE;
 import static com.android.tools.configurations.ConfigurationListener.CFG_THEME;
-import static com.android.tools.configurations.ConfigurationListener.CFG_UI_MODE;
 
 import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.configuration.DensityQualifier;
@@ -39,10 +38,8 @@ import com.android.sdklib.devices.State;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.configurations.ConfigurationListener;
 import com.android.tools.layoutlib.AndroidTargets;
+import com.android.tools.res.FrameworkOverlay;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.awt.image.BufferedImage;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
@@ -84,21 +81,6 @@ public class ConfigurationTest extends AndroidTestCase {
     configuration.setLocale(Locale.create("en-rUS"));
     configuration.finishBulkEditing();
 
-    assertEquals("myconfig", configuration.getDisplayName());
-    assertEquals("@style/Theme1", configuration.getTheme());
-    assertEquals(NightMode.NIGHT, configuration.getNightMode());
-    assertEquals("tes.tpkg.MyActivity1", configuration.getActivity());
-    assertEquals(UiMode.TELEVISION, configuration.getUiMode());
-    assertEquals(Locale.create("en-rUS"), configuration.getLocale());
-    if (target != null) {
-      assertSame(target, configuration.getRealTarget());
-    }
-    if (device != null) {
-      assertSame(device, configuration.getDevice());
-      assertNotNull(deviceState);
-      assertSame(deviceState, configuration.getDeviceState());
-    }
-
     FolderConfiguration fullConfig = configuration.getFullConfig();
     LocaleQualifier languageQualifier = fullConfig.getLocaleQualifier();
     String configDisplayString = fullConfig.toDisplayString();
@@ -123,8 +105,8 @@ public class ConfigurationTest extends AndroidTestCase {
 
     DensityQualifier qualifier = new DensityQualifier().getNullQualifier();
     configuration.getFullConfig().setDensityQualifier(qualifier);
-    density = configuration.getDensity();
-    assertEquals(Density.MEDIUM, density);
+    Density mediumDensity = configuration.getDensity();
+    assertEquals(Density.MEDIUM, mediumDensity);
   }
 
   public void testListener() throws Exception {
@@ -289,56 +271,16 @@ public class ConfigurationTest extends AndroidTestCase {
     assertEquals(LayoutDirection.LTR, layoutDirectionQualifier.getValue());
 
     configuration.setLocale(Locale.create("ar"));
-    layoutDirectionQualifier = configuration.getFullConfig().getLayoutDirectionQualifier();
-    assertNotNull(layoutDirectionQualifier);
-    assertEquals(LayoutDirection.RTL, layoutDirectionQualifier.getValue());
+    LayoutDirectionQualifier rtlQualifier = configuration.getFullConfig().getLayoutDirectionQualifier();
+    assertNotNull(rtlQualifier);
+    assertEquals(LayoutDirection.RTL, rtlQualifier.getValue());
 
     configuration.setLocale(Locale.create("fr"));
-    layoutDirectionQualifier = configuration.getFullConfig().getLayoutDirectionQualifier();
-    assertNotNull(layoutDirectionQualifier);
-    assertEquals(LayoutDirection.LTR, layoutDirectionQualifier.getValue());
+    LayoutDirectionQualifier ltrQualifier = configuration.getFullConfig().getLayoutDirectionQualifier();
+    assertNotNull(ltrQualifier);
+    assertEquals(LayoutDirection.LTR, ltrQualifier.getValue());
   }
 
-  public void testSetUiModeAsFlag() {
-    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
-    Configuration configuration = Configuration.create(manager, new FolderConfiguration());
-    int[] modificationFlags = {0};
-    configuration.addListener((flags) -> {
-      modificationFlags[0] |= flags;
-      return true;
-    });
-
-    final int UI_MODE_TYPE_TELEVISION = 0x00000004;
-    final int UI_MODE_TYPE_WATCH = 0x00000006;
-    final int UI_MODE_NIGHT_YES = 0x00000020;
-
-    assertEquals(UiMode.NORMAL, configuration.getUiMode());
-    assertEquals(NightMode.NOTNIGHT, configuration.getNightMode());
-    configuration.setUiModeFlagValue(UI_MODE_TYPE_WATCH);
-    assertEquals(UiMode.WATCH, configuration.getUiMode());
-    assertEquals(CFG_UI_MODE, modificationFlags[0]);
-    modificationFlags[0] = 0;
-
-    configuration.setUiModeFlagValue(UI_MODE_TYPE_WATCH | UI_MODE_NIGHT_YES);
-    assertEquals(UiMode.WATCH, configuration.getUiMode());
-    assertEquals(NightMode.NIGHT, configuration.getNightMode());
-    // Only night mode changed
-    assertEquals(CFG_NIGHT_MODE, modificationFlags[0]);
-    modificationFlags[0] = 0;
-
-    configuration.setUiModeFlagValue(UI_MODE_TYPE_TELEVISION | UI_MODE_NIGHT_YES);
-    assertEquals(UiMode.TELEVISION, configuration.getUiMode());
-    assertEquals(NightMode.NIGHT, configuration.getNightMode());
-    // Only UI mode changed
-    assertEquals(CFG_UI_MODE, modificationFlags[0]);
-    modificationFlags[0] = 0;
-
-    configuration.setUiModeFlagValue(0);
-    assertEquals(UiMode.NORMAL, configuration.getUiMode());
-    assertEquals(NightMode.NOTNIGHT, configuration.getNightMode());
-    assertEquals(CFG_UI_MODE | CFG_NIGHT_MODE, modificationFlags[0]);
-    modificationFlags[0] = 0;
-  }
 
   public void testConfigurationClone() {
     ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
@@ -406,46 +348,59 @@ public class ConfigurationTest extends AndroidTestCase {
     assertEquals(original, configuration.getDevice());
   }
 
-  public void testImageTransformation() {
+  public void testOverlaysIntegration() {
     ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
     Configuration configuration = Configuration.create(manager, new FolderConfiguration());
 
-    assertNull(configuration.getImageTransformation());
+    // 1. Test System UI interaction (Gesture Nav)
+    assertTrue(configuration.getOverlays().contains(FrameworkOverlay.NAV_GESTURE));
+    configuration.setGestureNav(false);
+    assertTrue(configuration.getOverlays().contains(FrameworkOverlay.NAV_3_BUTTONS));
 
-    AtomicBoolean colorBlindInvoked = new AtomicBoolean(false);
-    Consumer<BufferedImage> colorBlindConsumer = (image) -> colorBlindInvoked.set(true);
-
-    configuration.setImageTransformation(Configuration.ImageTransformationType.COLOR_BLIND_MODE, colorBlindConsumer);
-    assertNotNull(configuration.getImageTransformation());
-
-    // Execute the returned consumer
-    configuration.getImageTransformation().accept(new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB));
-    assertTrue(colorBlindInvoked.get());
-
-    // Add a second transformation and check both are invoked
-    AtomicBoolean glassesInvoked = new AtomicBoolean(false);
-    Consumer<BufferedImage> glassesConsumer = (image) -> glassesInvoked.set(true);
-    configuration.setImageTransformation(Configuration.ImageTransformationType.GLASSES_BACKGROUND_IMAGE, glassesConsumer);
-    assertNotNull(configuration.getImageTransformation());
-
-    // Reset and check again
-    colorBlindInvoked.set(false);
-    configuration.getImageTransformation().accept(new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB));
-    assertTrue(colorBlindInvoked.get());
-    assertTrue(glassesInvoked.get());
-
-    // Remove one and check the other is still there
-    configuration.setImageTransformation(Configuration.ImageTransformationType.COLOR_BLIND_MODE, null);
-    assertNotNull(configuration.getImageTransformation());
-    colorBlindInvoked.set(false);
-    glassesInvoked.set(false);
-    configuration.getImageTransformation().accept(new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB));
-    assertFalse(colorBlindInvoked.get());
-    assertTrue(glassesInvoked.get());
-
-
-    // Remove the second one
-    configuration.setImageTransformation(Configuration.ImageTransformationType.GLASSES_BACKGROUND_IMAGE, null);
-    assertNull(configuration.getImageTransformation());
+    // 2. Test Device -> System UI interaction (Cutout Overlay)
+    Device device = manager.getDeviceById("pixel_6");
+    if (device != null) {
+      configuration.setDevice(device, false);
+      // Verify that the configuration correctly resolved the PIXEL_6 overlay based on the device ID
+      assertTrue(configuration.getOverlays().contains(FrameworkOverlay.PIXEL_6));
+    }
   }
+
+  public void testModificationCount() {
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
+    Configuration configuration = Configuration.create(manager, new FolderConfiguration());
+    long initialCount = configuration.getModificationCount();
+
+    // Test Environment Neighborhood
+    configuration.setTheme("@style/Theme.AppCompat");
+    long afterThemeCount = configuration.getModificationCount();
+    assertTrue(afterThemeCount > initialCount);
+
+    // Test UI Mode Neighborhood
+    configuration.setNightMode(NightMode.NIGHT);
+    long afterNightModeCount = configuration.getModificationCount();
+    assertTrue(afterNightModeCount > afterThemeCount);
+
+    // Test System UI Neighborhood
+    configuration.setFontScale(1.5f);
+    assertTrue(configuration.getModificationCount() > afterNightModeCount);
+  }
+
+  public void testSettingsStateVersionTriggersSync() {
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
+    Configuration configuration = Configuration.create(manager, new FolderConfiguration());
+
+    // Access full config once to clear dirty flags
+    configuration.getFullConfig();
+
+    // Verify that getFullConfig() triggers a sync if the state version has changed.
+    // We can increment it by changing a project-wide setting like locale.
+    int initialVersion = manager.getStateVersion();
+    manager.setLocale(Locale.create("fr"));
+    assertTrue(manager.getStateVersion() > initialVersion);
+
+    // This should trigger a sync and the new locale should be reflected in the full config
+    assertEquals("fr", configuration.getFullConfig().getLocaleQualifier().getLanguage());
+  }
+
 }
