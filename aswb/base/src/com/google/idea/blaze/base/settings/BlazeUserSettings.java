@@ -158,11 +158,6 @@ public class BlazeUserSettings implements PersistentStateComponent<BlazeUserSett
     this.blazeBinaryPath = StringUtil.defaultIfEmpty(blazeBinaryPath, DEFAULT_BLAZE_PATH).trim();
   }
 
-  /** Resets the blaze binary path to its default value. */
-  public void clearBlazeBinaryPath() {
-    blazeBinaryPath = DEFAULT_BLAZE_PATH;
-  }
-
   public boolean isDefaultBlazePath() {
     return DEFAULT_BLAZE_PATH.equals(getBlazeBinaryPath())
         || OLD_DEFAULT_BLAZE_PATH.equals(getBlazeBinaryPath());
