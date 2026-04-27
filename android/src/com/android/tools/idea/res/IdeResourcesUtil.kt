@@ -106,8 +106,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.JdkOrderEntry
-import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.util.text.StringUtil
@@ -585,13 +583,14 @@ val PsiElement.resourceNamespace: ResourceNamespace?
     ) {
       AndroidFacet.getInstance(this)?.let { StudioResourceRepositoryManager.getInstance(it) }?.namespace
     } else {
-      val orderEntries = projectFileIndex.getOrderEntriesForFile(vFile ?: return null)
-      when {
-        orderEntries.any { it is JdkOrderEntry } -> ResourceNamespace.ANDROID
-        // TODO(b/110082720): Handle sources for namespaced libraries and return the correct
-        // namespace here.
-        orderEntries.any { it is LibraryOrderEntry } -> ResourceNamespace.RES_AUTO
-        else -> null
+      vFile?.let { file ->
+        when {
+          projectFileIndex.findContainingSdks(file).isNotEmpty() -> ResourceNamespace.ANDROID
+          // TODO(b/110082720): Handle sources for namespaced libraries and return the correct
+          // namespace here.
+          projectFileIndex.isInLibrary(file) -> ResourceNamespace.RES_AUTO
+          else -> null
+        }
       }
     }
   }

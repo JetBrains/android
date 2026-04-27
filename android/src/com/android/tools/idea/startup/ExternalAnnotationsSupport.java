@@ -38,11 +38,10 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.AnnotationOrderRootType;
-import com.intellij.openapi.roots.JdkOrderEntry;
-import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.io.FileUtil;
@@ -59,7 +58,7 @@ import com.intellij.psi.util.PsiUtilCore;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
+import java.util.Objects;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.annotations.NotNull;
@@ -96,16 +95,13 @@ public class ExternalAnnotationsSupport {
     if (virtualFile == null) {
       return; // no sdk to attach
     }
-    final List<OrderEntry> entries = ProjectRootManager.getInstance(project).getFileIndex().getOrderEntriesForFile(virtualFile);
-    Sdk sdk = null;
-    for (OrderEntry orderEntry : entries) {
-      if (orderEntry instanceof JdkOrderEntry) {
-        sdk = ((JdkOrderEntry)orderEntry).getJdk();
-        if (sdk != null) {
-          break;
-        }
-      }
-    }
+    Sdk sdk = ProjectRootManager.getInstance(project).getFileIndex().findContainingSdks(virtualFile)
+      .stream()
+      .map(sdkEntity -> ProjectJdkTable.getInstance().findJdk(sdkEntity.getName(), sdkEntity.getType()))
+      .filter(Objects::nonNull)
+      .findFirst()
+      .orElse(null);
+
     if (sdk == null) {
       return; // no sdk to attach
     }

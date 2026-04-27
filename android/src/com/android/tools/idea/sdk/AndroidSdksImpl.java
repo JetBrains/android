@@ -63,7 +63,6 @@ import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.platform.workspace.jps.entities.SdkEntity;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.serviceContainer.NonInjectable;
@@ -501,15 +500,12 @@ public class AndroidSdksImpl implements AndroidSdks {
   @Override
   public boolean isInAndroidSdk(@NotNull Project project, @NotNull VirtualFile file) {
     ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(project).getFileIndex();
-    ProjectJdkTable jdkTable = ProjectJdkTable.getInstance();
-
-    for (SdkEntity sdk : projectFileIndex.findContainingSdks(file)) {
-      var sdkType = jdkTable.getSdkTypeByName(sdk.getType());
-      if (sdkType instanceof AndroidSdkType) {
-        return true;
-      }
-    }
-    return false;
+    return projectFileIndex.findContainingSdks(file)
+      .stream()
+      .anyMatch(sdkEntity -> {
+        Sdk sdk = ProjectJdkTable.getInstance().findJdk(sdkEntity.getName(), sdkEntity.getType());
+        return sdk != null && sdk.getSdkType() instanceof AndroidSdkType;
+      });
   }
 
   @Nullable
