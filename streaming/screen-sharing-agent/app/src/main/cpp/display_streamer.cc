@@ -226,6 +226,13 @@ void DisplayStreamer::Run() {
     Log::D("Display %d: stop_reason=%d, frame_number_=%u frame_before_timeout=%u frame_timeout_=%lld ms",
            display_id_, stop_reason, frame_number_, frame_before_timeout, frame_timeout_.count());
     if (virtual_display_.IsNull() && display_token_.IsNull()) {
+      {
+        unique_lock lock(mutex_);
+        if (codec_stop_pending_) {
+          codec_stop_pending_ = false;
+          continue;  // Start another loop to refresh display information.
+        }
+      }
       string display_name = StringPrintf("studio.screen.sharing:%d", display_id_);
       if (Agent::feature_level() >= 34) {
         virtual_display_ = DisplayManager::CreateVirtualDisplay(
