@@ -83,9 +83,15 @@ private fun diffDirectories(goldenDir: Path, projectDir: Path, printPrefix: Stri
     // it's just for human readability, so diffing all lines and only reading bytes if text fails is
     // simpler.
     try {
-      val goldenLines = Files.readAllLines(goldenFile).map { replaceLatestAgpVersion(it, printPrefix).replaceAgpBuiltInKotlinVersion() }
-      val projectLines = Files.readAllLines(projectFile).map { replaceLatestAgpVersion(it, printPrefix) }
-      Truth.assertThat(projectLines).isEqualTo(goldenLines)
+      val goldenLines =
+        Files.readAllLines(goldenFile)
+          .map { replaceLatestAgpVersion(it, printPrefix).replaceAgpBuiltInKotlinVersion() }
+          .filter { !it.contains("go/template-diff-tests") }
+      val projectLines =
+        Files.readAllLines(projectFile).map { replaceLatestAgpVersion(it, printPrefix) }.filter { !it.contains("go/template-diff-tests") }
+      Truth.assertWithMessage("File contents differ. See go/template-diff-tests for instructions on how to update golden files.")
+        .that(projectLines)
+        .isEqualTo(goldenLines)
     } catch (error: MalformedInputException) {
       val goldenBytes = Files.readAllBytes(goldenFile)
       val projectBytes = Files.readAllBytes(projectFile)
