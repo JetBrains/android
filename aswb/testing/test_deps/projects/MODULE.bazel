@@ -12,6 +12,7 @@ maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
     artifacts = [
         "com.google.guava:guava:32.1.2-jre",
+        "org.mockito:mockito-core:5.20.0",
     ],
     repositories = [
         # "file://m2", # <-- Replaced by the test framework.
