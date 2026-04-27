@@ -21,7 +21,6 @@ import com.android.tools.idea.logcat.service.LogcatService
 import com.android.tools.idea.transport.TransportProxy
 import com.android.tools.leakcanarylib.LeakCanaryParser
 import com.android.tools.profiler.proto.Commands
-import com.android.tools.profiler.proto.Commands.EndSession
 import com.android.tools.profiler.proto.Commands.StartLeakCanaryTaskData.LeakCanaryMode
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.LeakCanaryDeviceError.ErrorType
@@ -57,7 +56,6 @@ class LeakCanaryLogcatCommandHandler(
   private val scope = CoroutineScope(Dispatchers.IO + scopeJob)
   private var logCollectionJob: Job? = null
   private var pid = 0
-  private var sessionId = 0L
   private val bytesRetainedText = "bytes retained by leaking objects"
   private val logger: Logger = Logger.getInstance(LeakCanaryLogcatCommandHandler::class.java)
   private var currentMode: LeakCanaryMode? = null
@@ -92,10 +90,7 @@ class LeakCanaryLogcatCommandHandler(
     capturedLogsForCompleteTrace = StringBuilder()
   }
 
-  /**
-   * Starts listening and detecting LeakCanary logs from Logcat. Sends the SET_STUDIO_LEAKCANARY_MODE command to the agent containing the
-   * current mode so that the device-side integration library can configure itself accordingly (ON_DEVICE vs ON_HOST).
-   */
+  /** Starts the trace session, resetting internal state and sending the initial task started event. */
   private fun startTrace(command: Commands.Command) {
     logger.info(
       "Handling START_LEAKCANARY_TASK command. streamId: ${command.streamId}, pid: ${command.pid}, sessionId: ${command.sessionId}"
@@ -104,48 +99,19 @@ class LeakCanaryLogcatCommandHandler(
     logger.info("LeakCanary task started in $currentMode mode.")
     startTimeNs = getCurrentTimestampInNs()
     pid = command.pid
-    sessionId = command.sessionId
 
-    var isTaskStarted = true
-
-    // Always notify the device of the mode.
-    // In ON_HOST mode, it sets up our custom listener. In ON_DEVICE mode, it restores LeakCanary's defaults.
-    val setModeData = Commands.StudioLeakCanaryModeData.newBuilder().setMode(currentMode).build()
-    val setModeCommand =
-      Commands.Command.newBuilder()
-        .setStreamId(command.streamId)
-        .setPid(pid)
-        .setSessionId(command.sessionId)
-        .setType(Commands.Command.CommandType.SET_STUDIO_LEAKCANARY_MODE)
-        .setSetStudioLeakcanaryMode(setModeData)
-        .build()
-    try {
-      transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(setModeCommand).build())
-      logger.info(
-        "Sent SET_STUDIO_LEAKCANARY_MODE command to transport. streamId: ${command.streamId}, pid: $pid, sessionId: ${command.sessionId}"
-      )
-    } catch (e: Exception) {
-      isTaskStarted = false
-      logger.warn(
-        "Failed to execute set StudioLeakCanary mode command. streamId: ${command.streamId}, pid: $pid, sessionId: ${command.sessionId}",
-        e,
-      )
-    }
-
+    // In ON_DEVICE mode, the device generates logs that need to be parsed, so we actively read the logcat stream.
     if (currentMode == LeakCanaryMode.ON_DEVICE) {
       resetTrackingState()
       readLeakLog()
     }
 
-    if (isTaskStarted) {
-      sendLeakCanaryAnalysisInfoEvent(timestampNs = startTimeNs, isStarted = true)
-    }
+    // Send an event into the transport pipeline to mark the start of the task. This is used by the IDE to reconstruct the session history
+    // artifact.
+    sendLeakCanaryAnalysisInfoEvent(timestampNs = startTimeNs, isStarted = true)
   }
 
-  /**
-   * Stops listening and detecting LeakCanary logs from Logcat, sends a Logcat info event, sends stop object count tracking command to the
-   * agent, And a session ended event effectively terminating the task.
-   */
+  /** Stops listening and detecting LeakCanary logs from Logcat, sends a Logcat info event, and resets the tracking state. */
   private fun stopTrace(command: Commands.Command) {
     logger.info(
       "Handling STOP_LEAKCANARY_TASK command. streamId: ${command.streamId}, pid: ${command.pid}, sessionId: ${command.sessionId}"
@@ -153,45 +119,12 @@ class LeakCanaryLogcatCommandHandler(
     logger.info("Stopping LeakCanary trace and resetting state.")
     val endTime = getCurrentTimestampInNs()
 
-    // Only stop object count tracking if we were in ON_HOST mode
-    if (currentMode == LeakCanaryMode.ON_HOST) {
-      val stopObjectCountCommand =
-        Commands.Command.newBuilder()
-          .setStreamId(command.streamId)
-          .setPid(pid)
-          .setSessionId(command.sessionId)
-          .setType(Commands.Command.CommandType.STOP_LEAKCANARY_OBJECT_COUNT_TRACKING)
-          .build()
-      try {
-        transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(stopObjectCountCommand).build())
-        logger.info(
-          "Sent STOP_LEAKCANARY_OBJECT_COUNT_TRACKING command to transport. streamId: ${command.streamId}, pid: $pid, sessionId: ${command.sessionId}"
-        )
-      } catch (e: Exception) {
-        logger.warn(
-          "Failed to execute stop object count tracking command. streamId: ${command.streamId}, pid: $pid, sessionId: ${command.sessionId}",
-          e,
-        )
-      }
-    } else {
-      resetTrackingState()
-    }
+    // Clear all partial trace buffers and internal variables to prepare for the next potential session.
+    resetTrackingState()
 
+    // Send an event into the transport pipeline to mark the end of the task. This is used by the IDE to reconstruct the session history
+    // artifact.
     sendLeakCanaryAnalysisInfoEvent(timestampNs = endTime, isStarted = false, stopStatus = SUCCESS)
-    val endSessionCommand =
-      Commands.Command.newBuilder()
-        .setStreamId(command.streamId)
-        .setPid(pid)
-        .setSessionId(command.sessionId)
-        .setType(Commands.Command.CommandType.END_SESSION)
-        .setEndSession(EndSession.newBuilder().setSessionId(command.sessionId))
-        .build()
-    try {
-      transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(endSessionCommand).build())
-      logger.info("Sent END_SESSION command to transport. streamId: ${command.streamId}, pid: $pid, sessionId: ${command.sessionId}")
-    } catch (e: Exception) {
-      logger.warn("Failed to execute end session command. streamId: ${command.streamId}, pid: $pid, sessionId: ${command.sessionId}", e)
-    }
   }
 
   private fun getCurrentTimestampInNs(): Long {
@@ -204,8 +137,11 @@ class LeakCanaryLogcatCommandHandler(
   }
 
   /**
-   * Sends a LeakCanary logcat info event to the event queue, indicating the start or stop of tracking for a session. This helps ensure that
-   * a LeakCanary task was started/stopped regardless of leaks will be detected or not.
+   * Sends an event to the event queue indicating the start or stop of tracking for a session. This helps ensure that a LeakCanary task was
+   * started/stopped regardless of whether leaks will be detected or not.
+   *
+   * This event is sent irrespective of whether the LeakCanary task is running in ON_HOST or ON_DEVICE mode. The IDE needs these timestamps
+   * to accurately reconstruct the historical session artifacts in the "Past Recordings" UI, regardless of where the analysis occurred.
    *
    * @param timestampNs The timestamp (in nanoseconds) associated with the event.
    * @param isStarted A boolean flag indicating whether this is a start event (true) or a stop event (false).

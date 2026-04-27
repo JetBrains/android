@@ -29,7 +29,9 @@ import com.android.tools.leakcanarylib.data.LeakType
 import com.android.tools.leakcanarylib.data.LeakingStatus
 import com.android.tools.leakcanarylib.data.Node
 import com.android.tools.profiler.proto.Commands
+import com.android.tools.profiler.proto.Commands.Command.CommandType.STOP_LEAKCANARY_OBJECT_COUNT_TRACKING
 import com.android.tools.profiler.proto.Commands.StartLeakCanaryTaskData
+import com.android.tools.profiler.proto.Commands.StartLeakCanaryTaskData.LeakCanaryMode.ON_HOST
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.LeakCanaryDeviceError.ErrorType.LEAKCANARY_ERROR_APP_CONTEXT_NULL
 import com.android.tools.profiler.proto.Common.LeakCanaryDeviceError.ErrorType.LEAKCANARY_ERROR_BROADCAST_DELIVERY_FAILED
@@ -203,7 +205,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
     setObjectRetainedCount(0)
     setAnalysisProgress(0)
     registerLeakCanaryListeners()
-    toggleLeakCanaryTracking(profilers.session, enable = true, endSession = false)
+    toggleLeakCanaryTracking(profilers.session, enable = true)
   }
 
   fun requestStopRecording() {
@@ -230,9 +232,39 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
 
     _isStopping.value = false
     setIsRecording(false)
-    toggleLeakCanaryTracking(profilers.session, enable = false, endSession = true)
+    toggleLeakCanaryTracking(profilers.session, enable = false)
     deregisterLeakCanaryListeners()
+    sendEndSessionCommand()
     profilers.updater.unregister(this)
+  }
+
+  /**
+   * Sends the END_SESSION command to the on-device transport daemon (perfd). perfd handles this command to formally close the active
+   * historical recording session and update the session database state.
+   */
+  private fun sendEndSessionCommand() {
+    val endSessionCommand =
+      Commands.Command.newBuilder()
+        .setStreamId(profilers.session.streamId)
+        .setPid(profilers.session.pid)
+        .setSessionId(profilers.session.sessionId)
+        .setType(Commands.Command.CommandType.END_SESSION)
+        .setEndSession(Commands.EndSession.newBuilder().setSessionId(profilers.session.sessionId))
+        .build()
+
+    profilers.ideServices.poolExecutor.execute {
+      try {
+        profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(endSessionCommand).build())
+        logger.info(
+          "Sent END_SESSION command to transport. streamId: ${endSessionCommand.streamId}, pid: ${endSessionCommand.pid}, sessionId: ${endSessionCommand.sessionId}"
+        )
+      } catch (e: Exception) {
+        logger.warn(
+          "Failed to execute END_SESSION command. streamId: ${endSessionCommand.streamId}, pid: ${endSessionCommand.pid}, sessionId: ${endSessionCommand.sessionId}",
+          e,
+        )
+      }
+    }
   }
 
   /**
@@ -245,14 +277,28 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
     logger.info("User requested force heap dump.")
     myTaskTracker.trackLeakCanaryUiAction(LeakCanaryUiAction.FORCE_DUMP_CLICKED)
     if (leakcanaryMode == StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE) {
-      val forceDumpCommand =
-        Commands.Command.newBuilder()
-          .setStreamId(sessionData.streamId)
-          .setPid(sessionData.pid)
-          .setSessionId(sessionData.sessionId)
-          .setType(Commands.Command.CommandType.FORCE_DUMP_LEAKCANARY_ON_DEVICE)
-          .build()
       profilers.ideServices.poolExecutor.execute {
+        if (
+          !LeakCanaryTaskHandler.ensureAgentAttachedAndListening(
+            profilers,
+            sessionData.streamId,
+            profilers.process,
+            sessionData.sessionId,
+            StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE,
+          )
+        ) {
+          logger.warn("PROFILER: Agent attachment failed. Skipping FORCE_DUMP_LEAKCANARY_ON_DEVICE command.")
+          return@execute
+        }
+
+        val forceDumpCommand =
+          Commands.Command.newBuilder()
+            .setStreamId(sessionData.streamId)
+            .setPid(sessionData.pid)
+            .setSessionId(sessionData.sessionId)
+            .setType(Commands.Command.CommandType.FORCE_DUMP_LEAKCANARY_ON_DEVICE)
+            .build()
+
         try {
           profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(forceDumpCommand).build())
           logger.info(
@@ -400,6 +446,11 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
         .build()
 
     profilers.ideServices.poolExecutor.execute {
+      if (!LeakCanaryTaskHandler.attachAgentAndWait(profilers, profilers.session.streamId, profilers.process)) {
+        logger.warn("PROFILER: Agent attachment failed. Cannot fetch threshold.")
+        return@execute
+      }
+
       val commandIdFuture = CompletableFuture<Int>()
       val listener =
         TransportEventListener(
@@ -532,35 +583,102 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
    *
    * @param session: The profiler session.
    * @param enable: true to start tracking, false to stop tracking.
-   * @param endSession: true to end the session when stopping tracking.
    */
-  private fun toggleLeakCanaryTracking(session: Common.Session, enable: Boolean, endSession: Boolean) {
+  private fun toggleLeakCanaryTracking(session: Common.Session, enable: Boolean) {
     logger.info("Sending ${if (enable) "START" else "STOP"} LeakCanary tracking command to device.")
-    val startLeakCanaryTaskData = StartLeakCanaryTaskData.newBuilder().setMode(leakcanaryMode).build()
 
-    val cmd =
-      Commands.Command.newBuilder().apply {
-        streamId = session.streamId
-        pid = session.pid
-        sessionId = session.sessionId
-        if (enable) {
-          type = Commands.Command.CommandType.START_LEAKCANARY_TASK
-          setStartLeakcanaryTask(startLeakCanaryTaskData)
-        } else {
-          type = Commands.Command.CommandType.STOP_LEAKCANARY_TASK
-        }
-      }
     profilers.ideServices.poolExecutor.execute {
-      try {
-        profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(cmd).build())
-        logger.info(
-          "Sent ${if (enable) "START_LEAKCANARY_TASK" else "STOP_LEAKCANARY_TASK"} command to transport. streamId: ${cmd.streamId}, pid: ${cmd.pid}, sessionId: ${cmd.sessionId}"
-        )
-      } catch (e: Exception) {
-        logger.warn(
-          "Failed to execute ${if (enable) "START_LEAKCANARY_TASK" else "STOP_LEAKCANARY_TASK"} command. streamId: ${cmd.streamId}, pid: ${cmd.pid}, sessionId: ${cmd.sessionId}",
-          e,
-        )
+      if (enable) {
+        // First, configure the LeakCanary mode on the device (ON_HOST vs ON_DEVICE) so the helper library
+        // knows whether to run Shark locally or rely on Android Studio.
+        if (
+          !LeakCanaryTaskHandler.ensureAgentAttachedAndListening(
+            profilers,
+            session.streamId,
+            profilers.process,
+            session.sessionId,
+            leakcanaryMode,
+          )
+        ) {
+          logger.warn("PROFILER: Agent attachment or mode setup failed. Skipping START_LEAKCANARY_TASK command.")
+          return@execute
+        }
+
+        // Then, initiate the LeakCanary task which triggers the logcat handler to start parsing
+        // logs and sends the analysis status event to the transport layer for the past recordings UI.
+        val startLeakCanaryTaskData = StartLeakCanaryTaskData.newBuilder().setMode(leakcanaryMode).build()
+        val startTaskCommand =
+          Commands.Command.newBuilder()
+            .setStreamId(session.streamId)
+            .setPid(session.pid)
+            .setSessionId(session.sessionId)
+            .setType(Commands.Command.CommandType.START_LEAKCANARY_TASK)
+            .setStartLeakcanaryTask(startLeakCanaryTaskData)
+            .build()
+
+        try {
+          profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(startTaskCommand).build())
+          logger.info(
+            "Sent START_LEAKCANARY_TASK command to transport. streamId: ${startTaskCommand.streamId}, pid: ${startTaskCommand.pid}, sessionId: ${startTaskCommand.sessionId}"
+          )
+        } catch (e: Exception) {
+          logger.warn(
+            "Failed to execute START_LEAKCANARY_TASK command. streamId: ${startTaskCommand.streamId}, pid: ${startTaskCommand.pid}, sessionId: ${startTaskCommand.sessionId}",
+            e,
+          )
+        }
+      } else {
+        // If we are tracking objects on the host, explicitly tell the device-side library to stop
+        // watching for retained objects and unregister its internal listener.
+        if (leakcanaryMode == ON_HOST) {
+          if (LeakCanaryTaskHandler.attachAgentAndWait(profilers, session.streamId, profilers.process)) {
+            val stopObjectCountCommand =
+              Commands.Command.newBuilder()
+                .setStreamId(session.streamId)
+                .setPid(session.pid)
+                .setSessionId(session.sessionId)
+                .setType(STOP_LEAKCANARY_OBJECT_COUNT_TRACKING)
+                .build()
+
+            try {
+              profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(stopObjectCountCommand).build())
+              logger.info(
+                "Sent STOP_LEAKCANARY_OBJECT_COUNT_TRACKING command to transport. streamId: ${stopObjectCountCommand.streamId}, pid: ${stopObjectCountCommand.pid}, sessionId: ${stopObjectCountCommand.sessionId}"
+              )
+            } catch (e: Exception) {
+              logger.warn(
+                "Failed to execute STOP_LEAKCANARY_OBJECT_COUNT_TRACKING command. streamId: ${stopObjectCountCommand.streamId}, pid: ${stopObjectCountCommand.pid}, sessionId: ${stopObjectCountCommand.sessionId}",
+                e,
+              )
+            }
+          } else {
+            logger.warn("PROFILER: Agent attachment failed. Skipping STOP_LEAKCANARY_OBJECT_COUNT_TRACKING command.")
+          }
+        }
+
+        // Finally, stop the specific LeakCanary task. This tells the logcat handler to stop parsing
+        // logs and send the final analysis status event to the transport layer for the past recordings UI.
+        // NOTE: This only stops LeakCanary-specific operations. The underlying recording session
+        // is terminated later by a separate END_SESSION command (managed by perfd).
+        val stopTaskCommand =
+          Commands.Command.newBuilder()
+            .setStreamId(session.streamId)
+            .setPid(session.pid)
+            .setSessionId(session.sessionId)
+            .setType(Commands.Command.CommandType.STOP_LEAKCANARY_TASK)
+            .build()
+
+        try {
+          profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(stopTaskCommand).build())
+          logger.info(
+            "Sent STOP_LEAKCANARY_TASK command to transport. streamId: ${stopTaskCommand.streamId}, pid: ${stopTaskCommand.pid}, sessionId: ${stopTaskCommand.sessionId}"
+          )
+        } catch (e: Exception) {
+          logger.warn(
+            "Failed to execute STOP_LEAKCANARY_TASK command. streamId: ${stopTaskCommand.streamId}, pid: ${stopTaskCommand.pid}, sessionId: ${stopTaskCommand.sessionId}",
+            e,
+          )
+        }
       }
     }
   }

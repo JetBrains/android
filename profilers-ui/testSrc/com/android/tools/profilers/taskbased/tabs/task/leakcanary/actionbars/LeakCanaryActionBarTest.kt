@@ -101,10 +101,7 @@ class LeakCanaryActionBarTest : WithFakeTimer {
       Commands.Command.CommandType.START_LEAKCANARY_TASK,
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTimestamp),
     )
-    transportService.setCommandHandler(
-      Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
-      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTimestamp),
-    )
+
     transportService.setCommandHandler(
       Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD,
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTimestamp),

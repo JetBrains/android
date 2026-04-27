@@ -269,6 +269,19 @@ class LeakCanaryHeapDumper(private val profilers: StudioProfilers) {
   /** Sends a command to perfa to indicate that the host-side heap dump download and analysis is complete. */
   private fun sendHeapDumpCompleteCommand(heapDumpTime: Long) {
     logger.info("Sending heap dump complete signal with timestamp: $heapDumpTime (ns).")
+
+    if (
+      !LeakCanaryTaskHandler.ensureAgentAttachedAndListening(
+        profilers,
+        profilers.session.streamId,
+        profilers.process,
+        profilers.session.sessionId,
+        Commands.StartLeakCanaryTaskData.LeakCanaryMode.ON_HOST,
+      )
+    ) {
+      throw IllegalStateException("PROFILER: Agent attachment failed. Skipping SIGNAL_HEAP_DUMP_COMPLETE command.")
+    }
+
     val data = Commands.SignalHeapDumpCompleteData.newBuilder().setHeapDumpTimestamp(heapDumpTime).build()
     val command =
       Commands.Command.newBuilder()

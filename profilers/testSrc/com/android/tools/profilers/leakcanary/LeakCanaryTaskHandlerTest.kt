@@ -36,6 +36,7 @@ import com.android.tools.profilers.tasks.args.singleartifact.leakcanary.LeakCana
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
 import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
+import java.util.concurrent.Executors
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
@@ -49,6 +50,24 @@ class LeakCanaryTaskHandlerTest : WithFakeTimer {
 
   override val timer = FakeTimer()
   private val transportService = FakeTransportService(timer)
+
+  /**
+   * Executes a blocking block of code (like stage.startListening() or leakCanaryTaskHandler.startTask()) on a background thread while
+   * continuously polling the FakeTimer and transportPoller on the main thread. This prevents deadlocks when the background task awaits a
+   * transport event.
+   */
+  private fun runWithPolling(block: () -> Unit) {
+    val executor = Executors.newSingleThreadExecutor()
+    val future = executor.submit { block() }
+    while (!future.isDone) {
+      timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+      profilers.transportPoller.poll()
+      Thread.sleep(10)
+    }
+    future.get()
+    executor.shutdown()
+  }
+
   @Rule @JvmField val grpcChannel = FakeGrpcChannel("LeakCanaryTaskHandlerTestChannel", transportService)
   private lateinit var profilers: StudioProfilers
   private lateinit var ideProfilerServices: FakeIdeProfilerServices
@@ -58,6 +77,12 @@ class LeakCanaryTaskHandlerTest : WithFakeTimer {
   fun setup() {
     ideProfilerServices = FakeIdeProfilerServices()
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideProfilerServices, timer)
+
+    // Spy on profilers to mock the current process, required by the
+    // LeakCanaryTaskHandler to attach the JVMTI agent during startup.
+    profilers = org.mockito.Mockito.spy(profilers)
+    org.mockito.Mockito.`when`(profilers.process).thenReturn(FakeTransportService.FAKE_PROCESS)
+
     val mockSession =
       Common.Session.newBuilder()
         .setStartTimestamp(System.currentTimeMillis())
@@ -66,14 +91,32 @@ class LeakCanaryTaskHandlerTest : WithFakeTimer {
         .setStreamId(FakeTransportService.FAKE_DEVICE_ID)
         .setEndTimestamp(System.currentTimeMillis() + 10000000)
         .build()
+
+    org.mockito.Mockito.`when`(profilers.session).thenReturn(mockSession)
+
     val mockSessionMetadata = Common.SessionMetaData.newBuilder().setType(Common.SessionMetaData.SessionType.FULL).build()
+
+    // Spy on the sessions manager to return our spied profilers and mock session.
+    // This ensures the task handler uses the correct mocked environment.
+    val sessionsManager = org.mockito.Mockito.spy(profilers.sessionsManager)
+    org.mockito.Mockito.`when`(sessionsManager.studioProfilers).thenReturn(profilers)
+    org.mockito.Mockito.`when`(sessionsManager.selectedSession).thenReturn(mockSession)
+    org.mockito.Mockito.`when`(profilers.sessionsManager).thenReturn(sessionsManager)
+
     val sessionItem = SessionItem(profilers, mockSession, mockSessionMetadata)
-    leakCanaryTaskHandler = LeakCanaryTaskHandler(profilers.sessionsManager)
+    leakCanaryTaskHandler = LeakCanaryTaskHandler(sessionsManager)
     profilers.addTaskHandler(ProfilerTaskType.LEAKCANARY, leakCanaryTaskHandler)
     profilers.sessionsManager.currentTaskType = ProfilerTaskType.LEAKCANARY
     profilers.sessionsManager.mySessionItems[mockSession.sessionId] = sessionItem
     profilers.sessionsManager.mySessionMetaDatas[mockSession.sessionId] = mockSessionMetadata
     profilers.sessionsManager.setSession(mockSession)
+
+    // Register default command handlers for the JVMTI agent attachment sequence
+    // and device mode setup to prevent tests from failing during task startup.
+    val handler = FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0)
+    transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, handler)
+    transportService.setCommandHandler(Commands.Command.CommandType.SET_STUDIO_LEAKCANARY_MODE, handler)
+    transportService.setCommandHandler(Commands.Command.CommandType.FORCE_DUMP_LEAKCANARY_ON_DEVICE, handler)
   }
 
   @Test
@@ -99,10 +142,6 @@ class LeakCanaryTaskHandlerTest : WithFakeTimer {
       ),
     )
     transportService.setCommandHandler(
-      Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
-      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
-    )
-    transportService.setCommandHandler(
       Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD,
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
     )
@@ -112,7 +151,7 @@ class LeakCanaryTaskHandlerTest : WithFakeTimer {
     )
     leakCanaryTaskHandler.setupStage()
     val stage = leakCanaryTaskHandler.stage as LeakCanaryModel
-    leakCanaryTaskHandler.startTask(LeakCanaryTaskArgs(false, null))
+    runWithPolling { leakCanaryTaskHandler.startTask(LeakCanaryTaskArgs(false, null)) }
     // Wait for listener to receive events
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     // Verify leak events
@@ -144,10 +183,6 @@ class LeakCanaryTaskHandlerTest : WithFakeTimer {
       ),
     )
     transportService.setCommandHandler(
-      Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
-      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
-    )
-    transportService.setCommandHandler(
       Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD,
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
     )
@@ -157,7 +192,7 @@ class LeakCanaryTaskHandlerTest : WithFakeTimer {
     )
     leakCanaryTaskHandler.setupStage()
     val stage = leakCanaryTaskHandler.stage as LeakCanaryModel
-    leakCanaryTaskHandler.startTask(LeakCanaryTaskArgs(false, null))
+    runWithPolling { leakCanaryTaskHandler.startTask(LeakCanaryTaskArgs(false, null)) }
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     leakCanaryTaskHandler.stopTask()
     // After stage exit we get all events
@@ -310,10 +345,6 @@ class LeakCanaryTaskHandlerTest : WithFakeTimer {
       FakeLeakCanaryCommandHandler(timer, profilers, listOf("ActivityLeak.txt"), startTime),
     )
     transportService.setCommandHandler(
-      Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
-      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
-    )
-    transportService.setCommandHandler(
       Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD,
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
     )
@@ -324,7 +355,7 @@ class LeakCanaryTaskHandlerTest : WithFakeTimer {
     leakCanaryTaskHandler.setupStage()
     val stage = leakCanaryTaskHandler.stage as LeakCanaryModel
 
-    stage.startListening() // Start LeakCanary, send logcat message, and wait
+    runWithPolling { stage.startListening() } // Start LeakCanary, send logcat message, and wait
     timer.tick(FakeTimer.ONE_SECOND_IN_NS) // Wait for listener to receive events
     assertThat(stage.leaks.value).isNotEmpty() // Check if at least one leak is detected
     assertThat(stage.leaks.value.size).isEqualTo(1) // Check whether 1 leak detected as per log file
@@ -350,10 +381,6 @@ class LeakCanaryTaskHandlerTest : WithFakeTimer {
       FakeLeakCanaryCommandHandler(timer, profilers, listOf("FragmentLeak.txt"), startTime),
     )
     transportService.setCommandHandler(
-      Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
-      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
-    )
-    transportService.setCommandHandler(
       Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD,
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
     )
@@ -364,7 +391,7 @@ class LeakCanaryTaskHandlerTest : WithFakeTimer {
     leakCanaryTaskHandler.setupStage()
     val stage = leakCanaryTaskHandler.stage as LeakCanaryModel
 
-    stage.startListening() // Start LeakCanary, send logcat message, and wait
+    runWithPolling { stage.startListening() } // Start LeakCanary, send logcat message, and wait
     timer.tick(FakeTimer.ONE_SECOND_IN_NS) // Wait for listener to receive events
     assertThat(stage.leaks.value).isNotEmpty() // Check if at least one leak is detected
     assertThat(stage.leaks.value.size).isEqualTo(5) // Check whether 5 leaks detected as per log file
@@ -394,10 +421,6 @@ class LeakCanaryTaskHandlerTest : WithFakeTimer {
       FakeLeakCanaryCommandHandler(timer, profilers, listOf("FragmentViewLeak.txt"), startTime),
     )
     transportService.setCommandHandler(
-      Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
-      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
-    )
-    transportService.setCommandHandler(
       Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD,
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
     )
@@ -408,7 +431,7 @@ class LeakCanaryTaskHandlerTest : WithFakeTimer {
     leakCanaryTaskHandler.setupStage()
     val stage = leakCanaryTaskHandler.stage as LeakCanaryModel
 
-    stage.startListening() // Start LeakCanary, send logcat message, and wait
+    runWithPolling { stage.startListening() } // Start LeakCanary, send logcat message, and wait
     timer.tick(FakeTimer.ONE_SECOND_IN_NS) // Wait for listener to receive events
     assertThat(stage.leaks.value).isNotEmpty() // Check if at least one leak is detected
     assertThat(stage.leaks.value.size).isEqualTo(5) // Check whether 5 leaks detected as per log file
@@ -438,10 +461,6 @@ class LeakCanaryTaskHandlerTest : WithFakeTimer {
       FakeLeakCanaryCommandHandler(timer, profilers, listOf("ViewModelLeak.txt"), startTime),
     )
     transportService.setCommandHandler(
-      Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
-      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
-    )
-    transportService.setCommandHandler(
       Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD,
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
     )
@@ -452,7 +471,7 @@ class LeakCanaryTaskHandlerTest : WithFakeTimer {
     leakCanaryTaskHandler.setupStage()
     val stage = leakCanaryTaskHandler.stage as LeakCanaryModel
 
-    stage.startListening() // Start LeakCanary, send logcat message, and wait
+    runWithPolling { stage.startListening() } // Start LeakCanary, send logcat message, and wait
     timer.tick(FakeTimer.ONE_SECOND_IN_NS) // Wait for listener to receive events
     assertThat(stage.leaks.value).isNotEmpty() // Check if at least one leak is detected
     assertThat(stage.leaks.value.size).isEqualTo(5) // Check whether 5 leaks detected as per log file
@@ -482,10 +501,6 @@ class LeakCanaryTaskHandlerTest : WithFakeTimer {
       FakeLeakCanaryCommandHandler(timer, profilers, listOf("ServiceLeak.txt"), startTime),
     )
     transportService.setCommandHandler(
-      Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
-      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
-    )
-    transportService.setCommandHandler(
       Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD,
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
     )
@@ -496,7 +511,7 @@ class LeakCanaryTaskHandlerTest : WithFakeTimer {
     leakCanaryTaskHandler.setupStage()
     val stage = leakCanaryTaskHandler.stage as LeakCanaryModel
 
-    stage.startListening() // Start LeakCanary, send logcat message, and wait
+    runWithPolling { stage.startListening() } // Start LeakCanary, send logcat message, and wait
     timer.tick(FakeTimer.ONE_SECOND_IN_NS) // Wait for listener to receive events
     assertThat(stage.leaks.value).isNotEmpty() // Check if at least one leak is detected
     assertThat(stage.leaks.value.size).isEqualTo(5) // Check whether 5 leaks detected as per log file
