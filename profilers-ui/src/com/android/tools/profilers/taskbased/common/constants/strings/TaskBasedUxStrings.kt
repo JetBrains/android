@@ -139,6 +139,7 @@ object TaskBasedUxStrings {
   const val LEAKCANARY_ANALYSIS = "Analyzing results:"
   const val LEAKCANARY_WAITING_HEAP_DUMP = "Waiting to dump heap until"
   const val LEAKCANARY_RETAINED_OBJECT = "retained object"
+  const val LEAKCANARY_CAPTURING_DUMP = "Retained objects detected. Capturing heap dump for leak analysis..."
   const val LEAKCANARY_FORCE_DUMP = "Force dump"
   const val LEAKCANARY_BANNER_MESSAGE = "On-device customizations are being bypassed. Switch to App Customization to enable them."
   const val LEAKCANARY_EDIT_CONFIGURATION = "Edit configuration"

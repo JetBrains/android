@@ -37,6 +37,7 @@ import com.android.tools.profilers.leakcanary.LeakCanaryModel
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.ACTION_BAR_RECORDING
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.ACTION_BAR_STOP_RECORDING
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_ANALYSIS
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_CAPTURING_DUMP
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_FORCE_DUMP
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_RETAINED_OBJECT
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_WAITING_HEAP_DUMP
@@ -66,6 +67,15 @@ class LeakCanaryActionBarTest : WithFakeTimer {
     ideProfilerServices = FakeIdeProfilerServices()
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideProfilerServices, timer)
     leakCanaryModel = LeakCanaryModel(profilers)
+  }
+
+  @Test
+  fun `capturing dump message is shown when stopping with retained objects`() {
+    leakCanaryModel.setIsRecording(true)
+    leakCanaryModel.setIsStopping(true)
+    leakCanaryModel.setObjectRetainedCount(2)
+    composeTestRule.setContent { LeakCanaryActionBar(leakCanaryModel = leakCanaryModel) }
+    composeTestRule.onNodeWithText(LEAKCANARY_CAPTURING_DUMP).assertIsDisplayed()
   }
 
   @Test

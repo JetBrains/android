@@ -38,6 +38,7 @@ import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedU
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.ACTION_BAR_RECORDING
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.ACTION_BAR_STOP_RECORDING
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_ANALYSIS
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_CAPTURING_DUMP
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_FORCE_DUMP
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_RETAINED_OBJECT
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_WAITING_HEAP_DUMP
@@ -98,6 +99,7 @@ fun HeapDumpAndAnalysisStatus(leakCanaryModel: LeakCanaryModel) {
   val objectRetainedCount by leakCanaryModel.objectRetainedCount.collectAsState()
   val analysisProgress by leakCanaryModel.analysisProgress.collectAsState()
   val requiredRetainedObjectCount by leakCanaryModel.retainedObjectThreshold.collectAsState()
+  val isStopping by leakCanaryModel.isStopping.collectAsState()
 
   if (analysisProgress > 0 || objectRetainedCount >= requiredRetainedObjectCount) {
     Text(LEAKCANARY_ANALYSIS)
@@ -105,6 +107,9 @@ fun HeapDumpAndAnalysisStatus(leakCanaryModel: LeakCanaryModel) {
       analysisProgress / 100f,
       modifier = Modifier.width(140.dp).height(4.dp).padding(horizontal = 10.dp).testTag("AnalysisProgressBar"),
     )
+  } else if (isStopping && objectRetainedCount > 0) {
+    // Show intermediate status while capturing the heap dump before analysis starts.
+    Text(LEAKCANARY_CAPTURING_DUMP, modifier = Modifier.padding(end = 10.dp))
   } else {
     val text =
       AnnotatedString.Builder()

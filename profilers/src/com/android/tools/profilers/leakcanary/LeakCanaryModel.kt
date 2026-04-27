@@ -274,6 +274,10 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
     _isRecording.value = isRecording
   }
 
+  fun setIsStopping(isStopping: Boolean) {
+    _isStopping.value = isStopping
+  }
+
   fun setObjectRetainedCount(objectRetainedCount: Int) {
     logger.info("Setting retained object count: $objectRetainedCount")
     _objectRetainedCount.value = objectRetainedCount
@@ -753,8 +757,8 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
     }
 
     /**
-     * Extracts the class name of the "Anchor" node. This is the last node in the trace that is marked as NO (not leaking)
-     * before the chain of UNKNOWN or YES nodes begins. This node usually holds the reference that causes the leak.
+     * Extracts the class name of the "Anchor" node. This is the last node in the trace that is marked as NO (not leaking) before the chain
+     * of UNKNOWN or YES nodes begins. This node usually holds the reference that causes the leak.
      *
      * @param leak The Leak object.
      * @return The fully qualified class name of the anchor object, or an empty string if not found.
