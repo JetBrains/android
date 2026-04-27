@@ -1,3 +1,4 @@
+// This file should not be edited manually! See go/template-diff-tests
 package template.test.in.ui.transform;
 
 import androidx.lifecycle.LiveData;
