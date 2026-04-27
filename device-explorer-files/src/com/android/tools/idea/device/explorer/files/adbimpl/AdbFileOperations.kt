@@ -44,11 +44,7 @@ class AdbFileOperations(
       // Check remote file does not exists, so that we can give a relevant error message.
       // The check + create below is not an atomic operation, but this service does not
       // aim to guarantee strong atomicity for file system operations.
-      val command =
-        when {
-          deviceCapabilities.supportsTestCommand() -> getCommand(runAs, "test -e ").withEscapedPath(remotePath).build()
-          else -> getCommand(runAs, "ls -d -a ").withEscapedPath(remotePath).build()
-        }
+      val command = getCommand(runAs, "test -e ").withEscapedPath(remotePath).build()
       val commandResult = shellCommandsUtil.executeCommand(command)
       if (!commandResult.isError) {
         throw AdbShellCommandException.create("File $remotePath already exists on device")

@@ -41,31 +41,6 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val deviceNa
 
   private val shellCommandsUtil = AdbShellCommandsUtil.create(device)
 
-  suspend fun supportsTestCommand() = supportsTestCommand.await()
-
-  private val supportsTestCommand =
-    coroutineScope.async(start = CoroutineStart.LAZY) {
-      assertNotDispatchThread()
-      ScopedRemoteFile(AdbPathUtil.resolve(PROBE_FILES_TEMP_PATH, ".__temp_test_test__file__.tmp")).use { tempFile ->
-        // Create the remote file used for testing capability
-        tempFile.create()
-
-        // Try the "test" command on it (it should succeed if the command is supported)
-        val command = AdbShellCommandBuilder().withText("test -e ").withEscapedPath(tempFile.remotePath).build()
-        val commandResult = shellCommandsUtil.executeCommand(command)
-        try {
-          commandResult.throwIfError()
-          true
-        } catch (e: AdbShellCommandException) {
-          logger.debug(
-            """Device "$deviceName" does not seem to support the "test" command: ${
-            commandResult.outputSummary()}"""
-          )
-          false
-        }
-      }
-    }
-
   suspend fun supportsRmForceFlag() = supportsRmForceFlag.await()
 
   private val supportsRmForceFlag =

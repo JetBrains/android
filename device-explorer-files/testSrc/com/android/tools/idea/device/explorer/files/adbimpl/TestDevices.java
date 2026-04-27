@@ -29,11 +29,6 @@ public enum TestDevices {
       // "su" capability detection
       addCommand(commands, "su 0 sh -c 'id'", "uid=0(root) gid=0(root)\n");
 
-      // "test" capability detection
-      addCommand(commands, "echo >/data/local/tmp/device-explorer/.__temp_test_test__file__.tmp", "");
-      addFailedCommand(commands, "test -e /data/local/tmp/device-explorer/.__temp_test_test__file__.tmp", "test: not found\n");
-      addCommand(commands, "rm /data/local/tmp/device-explorer/.__temp_test_test__file__.tmp", "");
-
       // "touch" capability detection
       addFailedCommand(commands, "touch /data/local/tmp/device-explorer/.__temp_touch_test_file__.tmp", "touch: not found\n");
 
@@ -41,18 +36,18 @@ public enum TestDevices {
       addCommand(commands, "echo >/data/local/tmp/device-explorer/.__temp_rm_test_file__.tmp", "");
       addCommand(commands, "rm -f /data/local/tmp/device-explorer/.__temp_rm_test_file__.tmp", "");
 
-      addFailedCommand(commands, "su 0 sh -c 'ls -d -a /foo.txt'", "/foo.txt: No such file or directory\n");
+      addFailedCommand(commands, "su 0 sh -c 'test -e /foo.txt'", "");
 
       addFailedCommand(commands, "su 0 sh -c 'echo -n >/foo.txt'", "cannot create /foo.txt: read-only file system\n");
 
-      addCommand(commands, "su 0 sh -c 'ls -d -a /default.prop'", "/default.prop\n");
+      addCommand(commands, "su 0 sh -c 'test -e /default.prop'", "");
 
-      addFailedCommand(commands, "su 0 sh -c 'ls -d -a /sdcard/foo.txt'", "/sdcard/foo.txt: No such file or directory\n");
+      addFailedCommand(commands, "su 0 sh -c 'test -e /sdcard/foo.txt'", "");
       addCommand(commands, "su 0 sh -c 'echo -n >/sdcard/foo.txt'", "");
 
       addFailedCommand(commands,
-                       "su 0 sh -c 'ls -d -a /data/data/com.example.rpaquay.myapplication/NewTextFile.txt'",
-                       "/data/data/com.example.rpaquay.myapplication/NewTextFile.txt: No such file or directory\n");
+                       "su 0 sh -c 'test -e /data/data/com.example.rpaquay.myapplication/NewTextFile.txt'",
+                       "");
       addCommand(commands, "su 0 sh -c 'echo -n >/data/data/com.example.rpaquay.myapplication/NewTextFile.txt'", "");
       addCommand(commands, "su 0 sh -c 'mkdir /data/data/com.example.rpaquay.myapplication/foo-dir'", "");
       addCommand(commands, "su 0 sh -c 'rm -f /data/data/com.example.rpaquay.myapplication/NewTextFile.txt'", "");
@@ -152,7 +147,7 @@ public enum TestDevices {
                  "package:com.android.providers.contacts\n" +
                  "package:com.android.captiveportallogin\n" +
                  "package:com.android.widgetpreview\n");
-      addFailedCommand(commands, "su 0 sh -c 'ls -d -a /system/foo.txt'", "/system/foo.txt: No such file or directory\n");
+      addFailedCommand(commands, "su 0 sh -c 'test -e /system/foo.txt'", "");
       addFailedCommand(commands, "su 0 sh -c 'echo -n >/system/foo.txt'", "cannot create /system/foo.txt: read-only file system\n");
 
       addCommand(commands, "su 0 sh -c 'mkdir /sdcard/foo-dir'", "");
@@ -181,11 +176,6 @@ public enum TestDevices {
 
       // "su" capability detection
       addFailedCommand(commands, "su 0 sh -c 'id'", "/system/bin/sh: su: not found\n");
-
-      // "test" capability detection
-      addCommand(commands, "echo >/data/local/tmp/device-explorer/.__temp_test_test__file__.tmp", "");
-      addCommand(commands, "test -e /data/local/tmp/device-explorer/.__temp_test_test__file__.tmp", "");
-      addCommand(commands, "rm /data/local/tmp/device-explorer/.__temp_test_test__file__.tmp", "");
 
       // "rm -f" capability detection
       addCommand(commands, "echo >/data/local/tmp/device-explorer/.__temp_rm_test_file__.tmp", "");
