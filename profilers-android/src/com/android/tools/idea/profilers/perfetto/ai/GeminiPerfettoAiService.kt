@@ -29,8 +29,8 @@ import com.intellij.openapi.project.Project
  * in Android Studio.
  */
 // PerfettoAiService lives in the sherlock.common module, which the monorepo does not carry, so
-// this class cannot implement it here and generateQuery cannot be an override. This is permanent,
-// not a pending merge step.
+// this class cannot implement it here and neither generateQuery nor analyzeTrace can be an
+// override. This is permanent, not a pending merge step.
 // class GeminiPerfettoAiService(private val project: Project) : PerfettoAiService {
 class GeminiPerfettoAiService(private val project: Project) {
   fun generateQuery(prompt: String, traceFilePath: String) {
@@ -43,6 +43,18 @@ class GeminiPerfettoAiService(private val project: Project) {
         .trimIndent()
 
     sendPromptWithSkill("Generate Perfetto SQL Query: $prompt. The trace file is available at: $traceFilePath", systemInstruction)
+  }
+
+  fun analyzeTrace(prompt: String, traceFilePath: String) {
+    val systemInstruction =
+      """
+      You are a specialist in analyzing Perfetto traces.
+      You help users understand trace events, find performance bottlenecks, and explain anomalies.
+      Use the 'perfetto-trace-analysis' skill for this request.
+      """
+        .trimIndent()
+
+    sendPromptWithSkill("Analyze Perfetto Trace: $prompt. The trace file is available at: $traceFilePath", systemInstruction)
   }
 
   /**
