@@ -20,7 +20,6 @@ import com.android.sdklib.deviceprovisioner.DeviceActionException
 import com.android.sdklib.deviceprovisioner.DeviceError
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState
-import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.EmptyIcon
 import com.android.testutils.delayUntilCondition
 import com.android.tools.analytics.UsageTrackerRule
@@ -35,7 +34,6 @@ import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.RuleChain
 import icons.StudioIcons
-import javax.swing.SwingUtilities
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
@@ -69,9 +67,7 @@ class StartStopButtonTest {
     assertThat(handle.state).isInstanceOf(DeviceState.Disconnected::class.java)
     handle.activationAction.presentation.update { it.copy(enabled = true) }
     handle.deactivationAction.presentation.update { it.copy(enabled = false) }
-    handle.pairGlassesAction.presentation.update { it.copy(enabled = false) }
-    val button =
-      StartStopButton(handle, handle.activationAction, handle.deactivationAction, null, handle.pairGlassesAction, coroutineContext)
+    val button = StartStopButton(handle, handle.activationAction, handle.deactivationAction, null, coroutineContext)
 
     advanceUntilIdle()
     assertThat(button.isEnabled).isTrue()
@@ -121,10 +117,8 @@ class StartStopButtonTest {
     handle.activationAction.presentation.update { it.copy(enabled = true) }
     handle.activationAction.exception = DeviceActionException("Activation error")
     handle.deactivationAction.presentation.update { it.copy(enabled = false) }
-    handle.pairGlassesAction.presentation.update { it.copy(enabled = false) }
 
-    val button =
-      StartStopButton(handle, handle.activationAction, handle.deactivationAction, null, handle.pairGlassesAction, coroutineContext)
+    val button = StartStopButton(handle, handle.activationAction, handle.deactivationAction, null, coroutineContext)
 
     advanceUntilIdle()
 
@@ -142,56 +136,14 @@ class StartStopButtonTest {
   }
 
   @Test
-  fun pairableDevice() = runTest {
-    val handle =
-      FakeDeviceHandle(
-        this.createChildScope(),
-        initialProperties =
-          DeviceProperties.buildForTest {
-            isVirtual = true
-            deviceType = DeviceType.AI_GLASSES
-            icon = EmptyIcon.DEFAULT
-          },
-      )
-    assertThat(handle.state).isInstanceOf(DeviceState.Disconnected::class.java)
-    handle.activationAction.presentation.update { it.copy(enabled = true) }
-    handle.deactivationAction.presentation.update { it.copy(enabled = false) }
-    handle.pairGlassesAction.presentation.update { it.copy(enabled = true) }
-
-    val button =
-      StartStopButton(handle, handle.activationAction, handle.deactivationAction, null, handle.pairGlassesAction, coroutineContext)
-
-    advanceUntilIdle()
-    SwingUtilities.invokeAndWait {}
-
-    assertThat(button.isEnabled).isTrue()
-    assertThat(button.baseIcon).isEqualTo(StudioIcons.Common.LINK)
-
-    withContext(Dispatchers.EDT) { button.doClick() }
-    advanceUntilIdle()
-
-    assertThat(handle.pairGlassesAction.invoked).isEqualTo(1)
-    handle.scope.cancel()
-  }
-
-  @Test
   fun repairableDevice() = runTest {
     val scope = createChildScope()
     val handle = FakeDeviceHandle(scope)
 
-    handle.pairGlassesAction.presentation.update { it.copy(enabled = false) }
     handle.activationAction.presentation.update { it.copy(enabled = false) }
     handle.deactivationAction.presentation.update { it.copy(enabled = false) }
 
-    val button =
-      StartStopButton(
-        handle,
-        handle.activationAction,
-        handle.deactivationAction,
-        handle.repairDeviceAction,
-        handle.pairGlassesAction,
-        coroutineContext,
-      )
+    val button = StartStopButton(handle, handle.activationAction, handle.deactivationAction, handle.repairDeviceAction, coroutineContext)
 
     class TestError : DeviceError {
       override val severity = DeviceError.Severity.ERROR

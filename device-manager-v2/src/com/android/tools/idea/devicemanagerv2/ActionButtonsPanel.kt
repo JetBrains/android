@@ -50,7 +50,7 @@ internal class DeviceHandleButtonsPanel(val project: Project?, handle: DeviceHan
     val wifiPairAction = handle.wifiPairDeviceAction
     when {
       activationAction != null && deactivationAction != null -> {
-        setUp(StartStopButton(handle, activationAction, deactivationAction, handle.repairDeviceAction, null), overflowButton)
+        setUp(StartStopButton(handle, activationAction, deactivationAction, handle.repairDeviceAction), overflowButton)
       }
       wifiPairAction != null && project != null -> {
         setUp(WifiPairButton(handle, wifiPairAction), overflowButton)
