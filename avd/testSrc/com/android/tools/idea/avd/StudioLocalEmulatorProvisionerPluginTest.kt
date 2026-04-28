@@ -177,7 +177,7 @@ class StudioLocalEmulatorProvisionerPluginTest {
   }
 
   @Test
-  fun testPairGlassesActionDisabledWhenWizardOpen() = runTest {
+  fun testPairGlassesDisabledWhenWizardOpen() = runTest {
     val handleScope = this.createChildScope()
     val handle =
       StudioLocalEmulatorDeviceHandle(
@@ -195,8 +195,8 @@ class StudioLocalEmulatorProvisionerPluginTest {
         edtDispatcher = UnconfinedTestDispatcher(testScheduler),
       )
 
-    // Wait for the action to become enabled (it might take a moment for the flow to emit)
-    handle.pairGlassesAction.presentation.first { it.enabled }
+    // Wait for it to become enabled
+    yieldUntil { handle.isPairGlassesEnabled() }
 
     val completion = CompletableDeferred<Boolean>()
     val job = launch {
@@ -209,14 +209,12 @@ class StudioLocalEmulatorProvisionerPluginTest {
 
     val lockService = ApplicationManager.getApplication().getService(GlassesPairingLockService::class.java)
     yieldUntil { lockService.isWizardOpen.value }
-    yieldUntil { !handle.pairGlassesAction.presentation.value.enabled }
-
-    assertThat(handle.pairGlassesAction.presentation.value.detail).isEqualTo("Pairing already in progress")
+    yieldUntil { !handle.isPairGlassesEnabled() }
 
     completion.complete(false)
     job.join()
 
-    yieldUntil { handle.pairGlassesAction.presentation.value.enabled }
+    yieldUntil { handle.isPairGlassesEnabled() }
 
     handleScope.cancel()
   }
@@ -538,7 +536,7 @@ class StudioLocalEmulatorProvisionerPluginTest {
     glassesHandle.wizardProvider = { _, _, _, _ -> GlassesPairingResult(phoneHandle, "00:11:22:33:44:55") }
     val expectedMac = "00:11:22:33:44:55"
 
-    glassesHandle.pairGlassesAction.pairGlasses(null)
+    glassesHandle.pairGlasses(null, projectRule.project)
 
     // Verify MAC was saved
     yieldUntil {
@@ -593,11 +591,11 @@ class StudioLocalEmulatorProvisionerPluginTest {
     assertThat((glassesHandle.state.properties as LocalEmulatorProperties).pairedPhoneId).isEqualTo(phoneHandle.id)
 
     // Verify the unpair action is strictly enabled on glasses and disabled/absent on phone handles
-    assertThat(glassesHandle.unpairGlassesAction.presentation.value.enabled).isTrue()
-    assertThat(phoneHandle.unpairGlassesAction.presentation.value.enabled).isFalse()
+    assertThat(glassesHandle.isUnpairGlassesEnabled()).isTrue()
+    assertThat(phoneHandle.isUnpairGlassesEnabled()).isFalse()
 
     // Invoke unpair
-    glassesHandle.unpairGlassesAction.unpairGlasses()
+    glassesHandle.unpairGlasses(null)
 
     // Verify the persistent files are updated to clear the pairing records on disk
     yieldUntil {
