@@ -22,6 +22,7 @@ import com.android.ddmlib.FileListingService
 import com.android.fakeadbserver.DeviceFileState
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.ShellProtocolType.SHELL
+import com.android.fakeadbserver.ShellProtocolType.SHELL_V2
 import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
@@ -71,7 +72,12 @@ class AdbDeviceFileSystemTest {
 
   @JvmField @Rule val thrown = ExpectedException.none()
 
-  @JvmField @Rule val deviceProvisionerRule = DeviceProvisionerRule { installDeviceHandler(TestShellCommandHandler(SHELL, shellCommands)) }
+  @JvmField
+  @Rule
+  val deviceProvisionerRule = DeviceProvisionerRule {
+    installDeviceHandler(TestShellCommandHandler(SHELL, shellCommands))
+    installDeviceHandler(TestShellCommandHandler(SHELL_V2, shellCommands))
+  }
 
   val dispatcher = PooledThreadExecutor.INSTANCE.asCoroutineDispatcher()
 

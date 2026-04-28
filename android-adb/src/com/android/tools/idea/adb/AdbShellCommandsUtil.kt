@@ -32,14 +32,11 @@ import kotlinx.coroutines.flow.single
 abstract class AdbShellCommandsUtil {
   private val logger = thisLogger()
 
+  /** Executes an ADB shell command, providing error-detection support for legacy devices that do not support the Shell v2 protocol. */
   suspend fun executeCommand(command: String): AdbShellCommandResult {
-    return executeCommandImpl(command, true)
-  }
-
-  private suspend fun executeCommandImpl(command: String, errorCheck: Boolean): AdbShellCommandResult {
     // Adding the " || echo xxx" command to the command allows us to detect non-zero status code
-    // from the command by analysing the output and looking for the "xxx" marker.
-    val fullCommand = if (errorCheck) command + COMMAND_ERROR_CHECK_SUFFIX else command
+    // from the command by analyzing the output and looking for the "xxx" marker.
+    val fullCommand = command + COMMAND_ERROR_CHECK_SUFFIX
     val commandOutput: MutableList<String> = ArrayList()
     val stopwatch = Stopwatch.createStarted()
     val receiver = TextShellCollector()
@@ -49,10 +46,7 @@ abstract class AdbShellCommandsUtil {
     // Look for error marker in the last 2 output lines
     var isError = false
     if (
-      errorCheck &&
-        commandOutput.size >= 2 &&
-        commandOutput[commandOutput.size - 2] == ERROR_LINE_MARKER &&
-        commandOutput[commandOutput.size - 1] == ""
+      commandOutput.size >= 2 && commandOutput[commandOutput.size - 2] == ERROR_LINE_MARKER && commandOutput[commandOutput.size - 1] == ""
     ) {
       isError = true
       commandOutput.removeLast()
@@ -81,6 +75,11 @@ abstract class AdbShellCommandsUtil {
     private const val ERROR_LINE_MARKER = "ERR-ERR-ERR-ERR"
     private const val COMMAND_ERROR_CHECK_SUFFIX = " || echo $ERROR_LINE_MARKER"
 
+    // TODO: android-merge; drop this overload once Rider's Android flows hand over a ConnectedDevice.
+    @Deprecated(
+      "Upstream removed this overload along with the ddmlib compatibility layer. It is kept because " +
+        "rider/plugins/android still calls it with an IDevice, and those call sites are not upstream."
+    )
     @JvmStatic
     fun create(device: IDevice) =
       object : AdbShellCommandsUtil() {
