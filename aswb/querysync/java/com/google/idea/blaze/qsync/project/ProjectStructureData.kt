@@ -25,6 +25,8 @@ data class SourceSet(
   val javaSourceFiles: List<Path> = emptyList(),
   /** Other source files (e.g. C++, Proto), relative to the rootPath. */
   val nonJavaSourceFiles: List<Path> = emptyList(),
+  /** The Java package of the sources, if applicable. */
+  val javaPackage: String,
 ) {
   init {
     fun validatePath(name: String, path: Path) {

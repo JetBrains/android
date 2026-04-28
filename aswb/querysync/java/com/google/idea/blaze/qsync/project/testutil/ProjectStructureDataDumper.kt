@@ -30,9 +30,9 @@ fun ProjectStructureData.dump(): String {
         if (nonEmptySourceSets.isEmpty()) continue
 
         appendLine("  package: $pkg")
-        for (ss in nonEmptySourceSets) {
+        for (ss in nonEmptySourceSets.sortedBy { it.javaPackage }) {
           appendLine("    sourceSet:")
-
+          appendLine("      javaPackage: '${ss.javaPackage}'")
           if (ss.javaSourceFiles.isNotEmpty()) {
             appendLine("      javaSourceFiles:")
             val seenFiles = mutableSetOf<Path>()

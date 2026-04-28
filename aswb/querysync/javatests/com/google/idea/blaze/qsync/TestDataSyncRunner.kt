@@ -19,6 +19,8 @@ import com.google.common.collect.ImmutableSet
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
+import com.google.idea.blaze.qsync.java.PackageReader.ParallelReader.SingleThreadedForTests
+import com.google.idea.blaze.qsync.java.PackageStatementParser
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.PostQuerySyncData
 import com.google.idea.blaze.qsync.project.ProjectDefinition
@@ -28,12 +30,13 @@ import com.google.idea.blaze.qsync.project.ProjectStructureData
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.testdata.TestData
 import java.io.IOException
+import java.nio.file.Path
 import java.util.Optional
 
 /**
  * Builds a [QuerySyncProjectSnapshot] for a test project by running the logic from the various sync stages on the testdata query output.
  */
-class TestDataSyncRunner(private val context: Context<*>, private val javaPackagePrefixReader: JavaPackagePrefixReader) {
+class TestDataSyncRunner(private val context: Context<*>) {
   @Throws(IOException::class, BuildException::class)
   fun sync(testProject: TestData): QuerySyncProjectSnapshot {
     val projectDefinition =
@@ -64,11 +67,18 @@ class TestDataSyncRunner(private val context: Context<*>, private val javaPackag
           BuildGraphData.ProtoRules.forTests(),
         )
         .parse()
-    val converter =
-      GraphToProjectConverter(javaPackagePrefixReader = javaPackagePrefixReader, context = context, projectDefinition = projectDefinition)
+    val converter = GraphToProjectConverter(context = context, projectDefinition = projectDefinition)
     val update = ProjectProtoUpdate(existingProject = ProjectProto.Project.getDefaultInstance())
     converter.configureProject(
-      ProjectStructureData.fromGraph(context, buildGraphData, projectDefinition.projectIncludes),
+      ProjectStructureData.fromGraph(
+        context,
+        buildGraphData,
+        projectDefinition.projectIncludes,
+        Path.of(""),
+        PackageStatementParser(),
+        SingleThreadedForTests(),
+        fileExists = { true },
+      ),
       ProjectPath.ExternalRepositoryFinder.createEmptyForTests(),
       update,
     )
@@ -85,7 +95,16 @@ class TestDataSyncRunner(private val context: Context<*>, private val javaPackag
             BuildGraphData.ProtoRules.forTests(),
           )
           .parse(),
-      projectStructureData = ProjectStructureData.fromGraph(context, buildGraphData, projectDefinition.projectIncludes),
+      projectStructureData =
+        ProjectStructureData.fromGraph(
+          context,
+          buildGraphData,
+          projectDefinition.projectIncludes,
+          Path.of(""),
+          PackageStatementParser(),
+          SingleThreadedForTests(),
+          fileExists = { true },
+        ),
       artifactState = ArtifactTracker.State.EMPTY,
       project = project,
       incompleteTargets = emptySet(),

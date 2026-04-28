@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.NoopContext
-import com.google.idea.blaze.qsync.QuerySyncTestUtils
 import com.google.idea.blaze.qsync.TestDataSyncRunner
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories
@@ -61,7 +60,7 @@ class AddDependencyAarsTest {
     intellij.registerApplicationService(ExperimentService::class.java, MockExperimentService())
   }
 
-  private val syncer = TestDataSyncRunner(NoopContext(), QuerySyncTestUtils.PATH_INFERRING_PREFIX_READER)
+  private val syncer = TestDataSyncRunner(NoopContext())
 
   private val aarPackageMetadata = AarPackageNameExtractor(null)
 

@@ -20,7 +20,6 @@ import com.google.common.truth.Truth
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.Label.Companion.of
 import com.google.idea.blaze.common.NoopContext
-import com.google.idea.blaze.qsync.QuerySyncTestUtils
 import com.google.idea.blaze.qsync.TestDataSyncRunner
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
@@ -54,7 +53,7 @@ class AddProjectGenSrcJarsTest {
     @JvmField @ClassRule val intellij = IntellijRule()
   }
 
-  private val syncer = TestDataSyncRunner(NoopContext(), QuerySyncTestUtils.PATH_INFERRING_PREFIX_READER)
+  private val syncer = TestDataSyncRunner(NoopContext())
 
   private val innerPathsMetadata = SrcJarPrefixedPackageRootsExtractor(null)
 

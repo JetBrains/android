@@ -66,6 +66,7 @@ import com.google.idea.blaze.qsync.java.JavaArtifactMetadata;
 import com.google.idea.blaze.qsync.java.PackageReader;
 import com.google.idea.blaze.qsync.java.PackageStatementParser;
 import com.google.idea.blaze.qsync.java.ParallelPackageReader;
+import com.google.idea.blaze.qsync.java.WorkspaceResolvingPackageReader;
 import com.google.idea.blaze.qsync.project.BuildGraphData;
 import com.google.idea.blaze.qsync.project.FileExtensions;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
@@ -132,6 +133,8 @@ public class ProjectLoaderImpl implements ProjectLoader {
       ImmutableSet<String> handledRuleKinds,
       BuildGraphData.ProtoRules protoRules,
       ProjectStructureReader projectStructureReader,
+      PackageReader packageReader,
+      PackageReader.ParallelReader parallelPackageReader,
       boolean readProjectStructureFromDirectory) {}
 
   public ProjectLoaderImpl(Project project) {
@@ -186,6 +189,8 @@ public class ProjectLoaderImpl implements ProjectLoader {
             result.handledRuleKinds(),
             result.protoRules(),
             result.projectStructureReader(),
+            result.packageReader(),
+            result.parallelPackageReader(),
             result.readProjectStructureFromDirectory());
 
     return querySyncProject;
@@ -308,13 +313,11 @@ public class ProjectLoaderImpl implements ProjectLoader {
             enableExperimentalQuery.getValue(),
             snapshotHolder::getCurrent);
     ProjectStructureReader projectStructureReader =
-        ProjectStructureReader.Companion.create(new FileExtensions());
+        ProjectStructureReader.Companion.create(new FileExtensions(), createPackageReader());
     boolean readProjectStructureFromDirectory =
         querySyncUserPreferences.getLoadProjectStructureFromDirectoryTraversal();
 
-    ProjectBuilder snapshotBuilder =
-        new ProjectBuilder(
-            createPackageReader(), createParallelPackageReader(), workspaceRoot.path());
+    ProjectBuilder snapshotBuilder = new ProjectBuilder(workspaceRoot.path());
     QueryRunner queryRunner = createQueryRunner(buildSystem);
     ProjectQuerier projectQuerier =
         createProjectQuerier(
@@ -348,6 +351,8 @@ public class ProjectLoaderImpl implements ProjectLoader {
         handledRules,
         buildSystem.getProtoRules(),
         projectStructureReader,
+        new WorkspaceResolvingPackageReader(workspaceRoot.path(), createPackageReader()),
+        createParallelPackageReader(),
         readProjectStructureFromDirectory);
   }
 

@@ -102,6 +102,7 @@ class SnapshotSerializer() {
                 addAllJavaSourceFiles(sourceSet.javaSourceFiles.map { it.toString() })
                 addAllNonJavaSourceFiles(sourceSet.nonJavaSourceFiles.map { it.toString() })
                 setRootPath(sourceSet.rootPath.toString())
+                setJavaPackage(sourceSet.javaPackage)
               }
               .build()
           )
@@ -114,7 +115,7 @@ class SnapshotSerializer() {
   }
 
   companion object {
-    const val PROTO_VERSION: Int = 7
+    const val PROTO_VERSION: Int = 8
 
     private fun Operation.toProto(): VcsOperation =
       when (this) {

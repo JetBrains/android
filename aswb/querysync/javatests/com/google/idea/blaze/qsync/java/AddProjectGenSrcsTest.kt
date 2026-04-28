@@ -20,7 +20,6 @@ import com.google.common.truth.Truth
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.NoopContext
-import com.google.idea.blaze.qsync.QuerySyncTestUtils
 import com.google.idea.blaze.qsync.TestDataSyncRunner
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories
@@ -61,7 +60,7 @@ class AddProjectGenSrcsTest {
 
   @Mock lateinit var context: Context<*>
 
-  private val syncer = TestDataSyncRunner(NoopContext(), QuerySyncTestUtils.PATH_INFERRING_PREFIX_READER)
+  private val syncer = TestDataSyncRunner(NoopContext())
 
   private val javaSourcePackageExtractor = JavaSourcePackageExtractor(null)
 

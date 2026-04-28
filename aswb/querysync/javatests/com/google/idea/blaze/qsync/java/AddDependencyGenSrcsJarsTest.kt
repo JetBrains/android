@@ -22,7 +22,6 @@ import com.google.idea.blaze.common.Label.Companion.of
 import com.google.idea.blaze.common.NoopContext
 import com.google.idea.blaze.common.artifact.BuildArtifactCache
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot
-import com.google.idea.blaze.qsync.QuerySyncTestUtils
 import com.google.idea.blaze.qsync.TestDataSyncRunner
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
@@ -61,7 +60,7 @@ class AddDependencyGenSrcsJarsTest {
 
   @Mock var cache: BuildArtifactCache? = null
 
-  private val syncer = TestDataSyncRunner(NoopContext(), QuerySyncTestUtils.PATH_INFERRING_PREFIX_READER)
+  private val syncer = TestDataSyncRunner(NoopContext())
 
   private lateinit var original: QuerySyncProjectSnapshot
 

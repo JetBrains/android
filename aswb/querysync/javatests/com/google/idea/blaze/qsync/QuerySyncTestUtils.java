@@ -19,7 +19,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.LoggingContext;
@@ -47,9 +46,6 @@ public class QuerySyncTestUtils {
 
   public static final Context<?> LOGGING_CONTEXT = new LoggingContext();
 
-  public static final JavaPackagePrefixReader EMPTY_PREFIX_READER =
-      (c, p, s, d) -> ImmutableMap.of();
-
   public static final PackageReader.ParallelReader SIMPLE_PARALLEL_PACKAGE_READER =
       new PackageReader.ParallelReader.SingleThreadedForTests();
 
@@ -58,13 +54,6 @@ public class QuerySyncTestUtils {
 
   public static final PackageReader PATH_INFERRING_PACKAGE_READER =
       QuerySyncTestUtils::inferJavaPackageFromPath;
-
-  public static final JavaPackagePrefixReader PATH_INFERRING_PREFIX_READER =
-      new JavaPackagePrefixReaderImpl(
-          Path.of("/"),
-          PATH_INFERRING_PACKAGE_READER,
-          SIMPLE_PARALLEL_PACKAGE_READER,
-          (p) -> true);
 
   public static final Optional<VcsState> CLEAN_VCS_STATE =
       Optional.of(new VcsState("workspaceId", "1", ImmutableSet.of(), Optional.empty()));

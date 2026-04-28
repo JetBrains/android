@@ -237,7 +237,7 @@ data class BuildGraphDataImpl private constructor(@VisibleForTesting @JvmField v
 
   /** Returns a list of all the java source files of the project, relative to the workspace root. */
   override fun getJavaSourceFiles(): List<Path> {
-    return getSourceFilesByRuleKindAndType(RuleKinds::isJava, SourceType.REGULAR_JVM).values.flatten()
+    return getSourceFilesByRuleKindAndType(RuleKinds::isJava, SourceType.REGULAR_JVM).values.flatten().distinct()
   }
 
   override fun getSourceFilesByRuleKindAndType(

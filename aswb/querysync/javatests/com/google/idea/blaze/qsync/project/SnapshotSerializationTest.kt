@@ -187,6 +187,7 @@ class SnapshotSerializationTest {
                         rootPath = Path.of("project/path"),
                         javaSourceFiles = listOf(Path.of("A.java")),
                         nonJavaSourceFiles = listOf(Path.of("B.txt")),
+                        javaPackage = "com.example",
                       )
                     )
                 ),

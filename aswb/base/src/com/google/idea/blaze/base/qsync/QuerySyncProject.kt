@@ -40,6 +40,7 @@ import com.google.idea.blaze.qsync.ProjectBuilder
 import com.google.idea.blaze.qsync.ProjectStructureReader
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.fromGraph
+import com.google.idea.blaze.qsync.java.PackageReader
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.PostQuerySyncData
 import com.google.idea.blaze.qsync.project.ProjectDefinition
@@ -108,6 +109,8 @@ class QuerySyncProject(
   val handledRuleKinds: Set<String>,
   val protoRules: BuildGraphData.ProtoRules,
   private val projectStructureReader: ProjectStructureReader,
+  val packageReader: PackageReader,
+  val parallelPackageReader: PackageReader.ParallelReader,
   private val readProjectStructureFromDirectory: Boolean,
 ) : ReadonlyQuerySyncProject {
   override val projectData: QuerySyncProjectData
@@ -120,11 +123,7 @@ class QuerySyncProject(
       return projectData
     }
 
-  @JvmRecord
-  data class QueryCoreSyncResult(
-    val postQuerySyncData: PostQuerySyncData,
-    val graph: BuildGraphData
-  )
+  @JvmRecord data class QueryCoreSyncResult(val postQuerySyncData: PostQuerySyncData, val graph: BuildGraphData)
 
   @Throws(BuildException::class)
   fun syncQueryCore(context: BlazeContext, postQuerySyncData: PostQuerySyncData): QueryCoreSyncResult {
@@ -140,7 +139,7 @@ class QuerySyncProject(
 
   fun computeQueryCoreSyncResult(context: BlazeContext, postQuerySyncData: PostQuerySyncData): QueryCoreSyncResult {
     val graph = buildGraphData(postQuerySyncData, context)
-   return QueryCoreSyncResult(postQuerySyncData, graph)
+    return QueryCoreSyncResult(postQuerySyncData, graph)
   }
 
   fun computeProjectStructureData(
@@ -151,7 +150,15 @@ class QuerySyncProject(
     val projectStructureData =
       (if (readProjectStructureFromDirectory) {
         readProjectStructureFromDirectory(context, projectDefinition)
-      } else null) ?: ProjectStructureData.fromGraph(context, graph, projectDefinition.projectIncludes)
+      } else null)
+        ?: ProjectStructureData.fromGraph(
+          context,
+          graph,
+          projectDefinition.projectIncludes,
+          workspaceRoot.path(),
+          packageReader,
+          parallelPackageReader,
+        )
     return projectStructureData
   }
 

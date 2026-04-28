@@ -17,6 +17,8 @@ package com.google.idea.blaze.qsync
 
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.PrintOutput
+import com.google.idea.blaze.qsync.java.PackageReader
+import com.google.idea.blaze.qsync.java.choosePackageCandidate
 import com.google.idea.blaze.qsync.project.FileExtensions
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectStructureData
@@ -33,7 +35,8 @@ import kotlin.time.measureTime
 import kotlinx.coroutines.runBlocking
 
 /** Default implementation of [ProjectStructureReader] that traverses the filesystem to identify project packages and source files. */
-internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtensions) : ProjectStructureReader {
+internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtensions, private val packageReader: PackageReader) :
+  ProjectStructureReader {
 
   override fun read(context: Context<*>, workspaceRoot: Path, projectDefinition: ProjectDefinition): ProjectStructureData {
     val includeAbsolute =
@@ -44,14 +47,17 @@ internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtens
       return ProjectStructureData.EMPTY
     }
 
+    data class PackageKey(val buildPackage: Path, val javaPackage: String)
+
     /**
      * Map storing discovered source files grouped by:
      * 1. Project structure root path (relative to workspace) (ConcurrentHashMap)
-     * 2. Build package path (relative to workspace) (ConcurrentHashMap)
+     * 2. PackageKey (build package and java package) (ConcurrentHashMap)
      * 3. Language (JVM, CC, etc.) (guarded by: leaf map instance monitor) -> List of source file paths (relative to workspace) (guarded by:
      *    leaf map instance monitor)
      */
-    val sourcesMap: ConcurrentHashMap<Path, ConcurrentHashMap<Path, HashMap<QuerySyncLanguage?, MutableList<Path>>>> = ConcurrentHashMap()
+    val sourcesMap: ConcurrentHashMap<Path, ConcurrentHashMap<PackageKey, HashMap<QuerySyncLanguage?, MutableList<Path>>>> =
+      ConcurrentHashMap()
     val languages: MutableSet<QuerySyncLanguage> = ConcurrentHashMap.newKeySet()
     val warnedPackages: MutableSet<Path> = ConcurrentHashMap.newKeySet()
 
@@ -77,17 +83,22 @@ internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtens
         .orElse(null)
     }
 
-    fun aggregateResult(includeRoot: Path, result: FileProcessResult) {
+    fun aggregateResult(includeRoot: Path, result: FileProcessResult, forcedPackage: String? = null) {
       when (result) {
         is FileProcessResult.SourceFile -> {
           val buildPackage = findBuildPackage(result.relativePath)
           if (buildPackage != null) {
             if (buildPackage.startsWith(includeRoot)) {
+              val javaPackage = if (result.language == QuerySyncLanguage.JVM) forcedPackage ?: "" else ""
+              val packageKey = PackageKey(buildPackage, javaPackage)
               val rootMap = sourcesMap.computeIfAbsent(includeRoot) { ConcurrentHashMap() }
-              val packageSources = rootMap.computeIfAbsent(buildPackage) { HashMap() }
+              val packageSources = rootMap.computeIfAbsent(packageKey) { HashMap() }
               val lang = result.language
               synchronized(packageSources) {
                 val langSources = packageSources.computeIfAbsent(lang) { mutableListOf() }
+                if (langSources.contains(result.relativePath)) {
+                  error("Duplicate file found: ${result.relativePath}")
+                }
                 langSources.add(result.relativePath)
               }
             } else {
@@ -100,8 +111,7 @@ internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtens
           result.language?.let { languages.add(it) }
         }
         is FileProcessResult.Package -> {
-          val rootMap = sourcesMap.computeIfAbsent(includeRoot) { ConcurrentHashMap() }
-          rootMap.computeIfAbsent(result.packagePath) { HashMap() }
+          // Do nothing to match query mode behavior (don't create empty source sets for packages)
         }
         is FileProcessResult.Ignored -> {}
       }
@@ -111,9 +121,13 @@ internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtens
       val contents = directoryProcessorImpl.processDirectory(rootDir, currentDir)
       if (contents != null) {
         val includeRoot = workspaceRoot.relativize(rootDir)
+        val candidateFile =
+          choosePackageCandidate(contents.files, fileExtensions) { Files.exists(workspaceRoot.resolve(currentDir).resolve(it)) }
+        val javaPackage = candidateFile?.let { packageReader.readPackage(context, workspaceRoot.resolve(currentDir).resolve(it)) } ?: ""
+
         for (file in contents.files) {
           val result = fileProcessor.processRegularFile(file, currentDir)
-          aggregateResult(includeRoot, result)
+          aggregateResult(includeRoot, result, javaPackage)
         }
       }
       contents
@@ -124,17 +138,20 @@ internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtens
     val roots =
       sourcesMap.map { (includeRoot, packageMap) ->
         val packageSourceSets =
-          packageMap.mapValues { (buildPackage, langMap) ->
-            val javaSources = langMap[QuerySyncLanguage.JVM]?.sorted() ?: emptyList()
-            val nonJavaSources = langMap.filterKeys { it != QuerySyncLanguage.JVM }.values.flatten().sorted()
-            listOf(
-              SourceSet(
-                rootPath = buildPackage,
-                javaSourceFiles = javaSources.map { buildPackage.relativize(it) },
-                nonJavaSourceFiles = nonJavaSources.map { buildPackage.relativize(it) },
-              )
-            )
-          }
+          packageMap.entries
+            .groupBy { it.key.buildPackage }
+            .mapValues { (buildPackage, entries) ->
+              entries.map { (packageKey, langMap) ->
+                val javaSources = langMap[QuerySyncLanguage.JVM]?.sorted() ?: emptyList()
+                val nonJavaSources = langMap.filterKeys { it != QuerySyncLanguage.JVM }.values.flatten().sorted()
+                SourceSet(
+                  rootPath = buildPackage,
+                  javaSourceFiles = javaSources.map { buildPackage.relativize(it) },
+                  nonJavaSourceFiles = nonJavaSources.map { buildPackage.relativize(it) },
+                  javaPackage = packageKey.javaPackage,
+                )
+              }
+            }
         ProjectStructureRoot(projectStructureRootPath = includeRoot, packageSourceSets = packageSourceSets)
       }
 

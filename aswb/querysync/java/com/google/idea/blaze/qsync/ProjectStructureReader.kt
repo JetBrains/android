@@ -16,6 +16,7 @@
 package com.google.idea.blaze.qsync
 
 import com.google.idea.blaze.common.Context
+import com.google.idea.blaze.qsync.java.PackageReader
 import com.google.idea.blaze.qsync.project.FileExtensions
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectStructureData
@@ -38,6 +39,7 @@ interface ProjectStructureReader {
   fun read(context: Context<*>, workspaceRoot: Path, projectDefinition: ProjectDefinition): ProjectStructureData
 
   companion object {
-    fun create(fileExtensions: FileExtensions): ProjectStructureReader = ProjectStructureReaderImpl(fileExtensions)
+    fun create(fileExtensions: FileExtensions, packageReader: PackageReader): ProjectStructureReader =
+      ProjectStructureReaderImpl(fileExtensions, packageReader)
   }
 }

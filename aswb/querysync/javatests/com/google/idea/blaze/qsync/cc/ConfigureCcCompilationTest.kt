@@ -20,8 +20,6 @@ import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.Label.Companion.fromWorkspacePackageAndName
 import com.google.idea.blaze.common.NoopContext
-import com.google.idea.blaze.qsync.JavaPackagePrefixReaderImpl
-import com.google.idea.blaze.qsync.QuerySyncTestUtils
 import com.google.idea.blaze.qsync.TestDataSyncRunner
 import com.google.idea.blaze.qsync.artifacts.AspectProtos
 import com.google.idea.blaze.qsync.artifacts.DigestMap
@@ -30,7 +28,6 @@ import com.google.idea.blaze.qsync.deps.CcCompilationInfo
 import com.google.idea.blaze.qsync.deps.CcToolchain
 import com.google.idea.blaze.qsync.deps.DependencyBuildContext
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo
-import com.google.idea.blaze.qsync.java.PackageStatementParser
 import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.ProjectPath
@@ -63,16 +60,7 @@ class ConfigureCcCompilationTest {
 
   private val context: Context<*> = NoopContext()
   private val externalRepositoryFinder = createEmptyForTests()
-  private val syncRunner =
-    TestDataSyncRunner(
-      context,
-      JavaPackagePrefixReaderImpl(
-        workspaceRoot = Path.of("/"),
-        packageReader = PackageStatementParser(),
-        parallelPackageReader = QuerySyncTestUtils.SIMPLE_PARALLEL_PACKAGE_READER,
-        fileExistenceCheck = { true },
-      ),
-    )
+  private val syncRunner = TestDataSyncRunner(context)
 
   private fun toArtifactState(proto: CcCompilationInfoOuterClass.CcCompilationInfo): ArtifactTracker.State {
     val digestMap = DigestMap.ofFunction { Integer.toHexString(it.hashCode()) }

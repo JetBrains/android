@@ -20,7 +20,6 @@ import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.Label.Companion.of
 import com.google.idea.blaze.common.NoopContext
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot
-import com.google.idea.blaze.qsync.QuerySyncTestUtils
 import com.google.idea.blaze.qsync.TestDataSyncRunner
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.deps.DependencyBuildContext
@@ -57,7 +56,7 @@ class AddDependencySrcJarsTest {
 
   private lateinit var workspaceRoot: Path
   private var pathResolver: ProjectPath.Resolver? = null
-  private val syncer = TestDataSyncRunner(NoopContext(), QuerySyncTestUtils.PATH_INFERRING_PREFIX_READER)
+  private val syncer = TestDataSyncRunner(NoopContext())
   private lateinit var original: QuerySyncProjectSnapshot
 
   private fun createJavaArtifactInfo(label: Label, srcJars: Set<ProjectPath> = emptySet()): JavaArtifactInfo {

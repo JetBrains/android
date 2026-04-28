@@ -23,7 +23,6 @@ import java.nio.file.Path
 /** Test utility for building [GraphToProjectConverter] instances */
 object GraphToProjectConvertersForTests {
   fun create(
-    javaPackagePrefixReader: JavaPackagePrefixReader = QuerySyncTestUtils.EMPTY_PREFIX_READER,
     projectIncludes: Set<Path> = emptySet(),
     projectExcludes: Set<Path> = emptySet(),
     languageClasses: Set<QuerySyncLanguage> = emptySet(),
@@ -32,7 +31,6 @@ object GraphToProjectConvertersForTests {
     isAndroidWorkspace: Boolean = true,
   ): GraphToProjectConverter {
     return GraphToProjectConverter(
-      javaPackagePrefixReader = javaPackagePrefixReader,
       context = NOOP_CONTEXT,
       projectDefinition =
         ProjectDefinition(

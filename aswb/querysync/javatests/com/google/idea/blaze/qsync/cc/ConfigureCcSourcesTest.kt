@@ -20,10 +20,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.NoopContext
-import com.google.idea.blaze.qsync.JavaPackagePrefixReaderImpl
-import com.google.idea.blaze.qsync.QuerySyncTestUtils
 import com.google.idea.blaze.qsync.TestDataSyncRunner
-import com.google.idea.blaze.qsync.java.PackageStatementParser
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectPath.Companion.workspaceRelativeForTests
@@ -52,16 +49,7 @@ class ConfigureCcSourcesTest {
   }
 
   private val context: Context<*> = NoopContext()
-  private val syncRunner =
-    TestDataSyncRunner(
-      context,
-      JavaPackagePrefixReaderImpl(
-        workspaceRoot = Path.of("/"),
-        packageReader = PackageStatementParser(),
-        parallelPackageReader = QuerySyncTestUtils.SIMPLE_PARALLEL_PACKAGE_READER,
-        fileExistenceCheck = { true },
-      ),
-    )
+  private val syncRunner = TestDataSyncRunner(context)
 
   @Test
   fun empty() {

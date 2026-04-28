@@ -31,19 +31,13 @@ import com.google.idea.blaze.qsync.project.ProjectStructureData
 import com.google.idea.blaze.qsync.project.ProjectStructureRoot
 import com.google.idea.blaze.qsync.project.TestSourceGlobMatcher
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
-import com.google.idea.blaze.qsync.query.PackageSet
 import java.nio.file.Path
 import java.util.Collections
 import java.util.Comparator.comparingInt
 import java.util.TreeSet
-import kotlinx.coroutines.runBlocking
 
 /** Converts a {@link BuildGraphDataImpl} instance into a project proto. */
-class GraphToProjectConverter(
-  private val javaPackagePrefixReader: JavaPackagePrefixReader,
-  private val context: Context<*>,
-  val projectDefinition: ProjectDefinition,
-) {
+class GraphToProjectConverter(private val context: Context<*>, val projectDefinition: ProjectDefinition) {
 
   /**
    * Calculates the source roots for all files in the project. While the vast majority of projects will fall into the standard java/javatest
@@ -64,39 +58,37 @@ class GraphToProjectConverter(
    * <p>The algorithm implemented here makes one assumption over the code. All source files within the same blaze package that are children
    * of other source files, are correctly structured. This is evidently not true for the general case, but even the most complex projects in
    * our repository follow this rule. And this is a rule, easy to workaround by a user if it doesn't hold on their project.
-   * <pre>
-   * The algorithm works as follows:
-   *   1.- The top-most source files (most one per directory) is chosen per blaze package.
-   *   2.- Read the actual package of each java file, and use that as the directories prefix.
-   *   3.- Split all the packages by content root.
-   *   4.- Merge compatible packages. This is a heuristic step, where each source root
-   *       is bubbled up as far as possible, merging compatible siblings. For a better description
-   *       see the comment on that function.
-   * </pre>
+   *
+   * <p>The algorithm implemented here merges compatible source roots within each content root. This is a heuristic step where each source
+   * root is bubbled up as far as possible, merging compatible siblings. For a detailed description of the merging logic, see the KDoc on
+   * [mergeSourceRoots].
    *
    * @param context the operation context.
    * @param roots the project structure roots to calculate source roots for.
-   * @return the content roots in the following form : Content Root -> Source Root -> package prefix. A content root contains multiple
-   *   source roots, each one with a package prefix.
+   * @return the content roots in the following form : Content Root (workspace-relative) -> Source Root (relative to Content Root) ->
+   *   package prefix. A content root contains multiple source roots, each one with a package prefix.
    */
   @VisibleForTesting
   @Throws(BuildException::class)
   fun calculateJavaRootSources(context: Context<*>, roots: List<ProjectStructureRoot>): Map<Path, Map<Path, String>> {
-    val allPackages = roots.flatMap { it.packageSourceSets.keys }.toSet()
-    val packages = PackageSet(allPackages)
-    val sourceFiles =
-      roots
-        .flatMap { it.packageSourceSets.values.flatten() }
-        .flatMap { sourceSet -> sourceSet.javaSourceFiles.map { sourceSet.rootPath.resolve(it) } }
-    val prefixes = runBlocking { javaPackagePrefixReader.readPrefixes(context, packages, sourceFiles) }
-
-    val split =
-      roots.associate { root ->
-        val rootPath = root.projectStructureRootPath
-        rootPath to prefixes.filter { it.key.startsWith(rootPath) }.mapKeys { rootPath.relativize(it.key) }
-      }
-
-    return mergeCompatibleSourceRoots(split)
+    return roots.associate { root ->
+      val rootPath = root.projectStructureRootPath
+      rootPath to
+        mergeSourceRoots(
+          root.packageSourceSets.values
+            .flatten()
+            .flatMap { sourceSet ->
+              sourceSet.javaSourceFiles.map { file ->
+                val workspaceFile = sourceSet.rootPath.resolve(file)
+                val dir = workspaceFile.parent ?: error("Source file $workspaceFile has no parent directory")
+                // We can trust that source sets are correctly nested under rootPath (projectStructureRootPath)
+                // as enforced by ProjectStructureRoot's init check.
+                rootPath.relativize(dir) to sourceSet.javaPackage
+              }
+            }
+            .associate { it }
+        )
+    }
   }
 
   /**
@@ -147,39 +139,13 @@ class GraphToProjectConverter(
     }
 
     /**
-     * Merges source roots that are compatible. Consider the following example, where source roots are written like "directory" ["prefix"]:
-     * <pre>
-     *   1.- Two sibling roots:
-     *     "a/b/c/d" ["com.google.d"]
-     *     "a/b/c/e" ["com.google.e"]
-     *   Can be merged to:
-     *     "a/b/c" ["com.google"]
-     *
-     *   2.- Nested roots:
-     *     "a/b/c/d" ["com.google.d"]
-     *     "a/b/c/d/e" ["com.google.d.e"]
-     *   Can be merged to:
-     *     "a/b/c" ["com.google"]
-     * </pre>
-     *
-     * This function works by trying to move a source root up as far as possible (until it reaches the content root). When it finds a source
-     * root above, there can be two scenarios: a) the parent source root is compatible (like example 2 above), in which case they are
-     * merged. b) the parent root is not compatible, in which case it needs to stop there and cannot be moved further up. This is true even
-     * if the parent source root is later moved up.
-     */
-    @VisibleForTesting
-    @JvmStatic
-    fun mergeCompatibleSourceRoots(srcRoots: Map<Path, Map<Path, String>>): Map<Path, Map<Path, String>> {
-      return srcRoots.mapValues { mergeSourceRoots(it.value) }
-    }
-
-    /**
-     * Given directory to package mappings known to be true from the source code builds finds the root mappings that are sufficient for the
-     * IDE to derive the provided mappings, i.e. having
+     * Given root-relative path to package mappings known to be true from the source code builds finds the root mappings that are sufficient
+     * for the IDE to derive the provided mappings, i.e. having
      * <pre>
      *   java/src/com/google/app => com.google.app
      *   java/src/com/google/lib => com.google.lib
      *   java/src/com/google/sample/else => com.example.else
+     *   java/src/com/google/sample/else/deep => com.example.else.deep
      * </pre>
      * <p>produces:
      * <pre>
@@ -187,15 +153,16 @@ class GraphToProjectConverter(
      *   java/src/com/google/sample => com.example
      * </pre>
      */
-    private fun mergeSourceRoots(expectedDirectoryToPackageMap: Map<Path, String>): ImmutableMap<Path, String> {
-      val dirWants = addPossibleParentMatches(expectedDirectoryToPackageMap)
-      val dirAllResult = chooseFinalMappings(expectedDirectoryToPackageMap, dirWants)
-      return selectEssentialMappings(dirAllResult)
+    @VisibleForTesting
+    fun mergeSourceRoots(rootRelativePathToJavaPackage: Map<Path, String>): ImmutableMap<Path, String> {
+      val rootRelativePathToWants = addPossibleParentMatches(rootRelativePathToJavaPackage)
+      val rootRelativePathToJavaPackageResult = chooseFinalMappings(rootRelativePathToJavaPackage, rootRelativePathToWants)
+      return selectEssentialMappings(rootRelativePathToJavaPackageResult)
     }
 
     /**
-     * Given an unambiguous directory to package mapping that includes intermediate directories selects those root mappings that are
-     * required to establish top level mappings and drops any that can be derived from them.
+     * Given an unambiguous root-relative path to package mapping that includes intermediate directories selects those root mappings that
+     * are required to establish top level mappings and drops any that can be derived from them.
      *
      * <p>i.e.
      * <pre>
@@ -211,11 +178,11 @@ class GraphToProjectConverter(
      *   src/com/google/else => smth.else
      * </pre>
      */
-    private fun selectEssentialMappings(dirAllResult: ImmutableMap<Path, String>): ImmutableMap<Path, String> {
+    private fun selectEssentialMappings(rootRelativePathToJavaPackage: ImmutableMap<Path, String>): ImmutableMap<Path, String> {
       val result: ImmutableMap.Builder<Path, String> = ImmutableMap.builder()
-      for (entry in dirAllResult.entries) {
+      for (entry in rootRelativePathToJavaPackage.entries) {
         val parentPath = relativeParentOf(entry.key)
-        val existingParentPkg = dirAllResult.get(parentPath)
+        val existingParentPkg = rootRelativePathToJavaPackage.get(parentPath)
         if (existingParentPkg == null || !appendPackage(existingParentPkg, entry.key.getFileName().toString()).equals(entry.value)) {
           result.put(entry.key, entry.value)
         }
@@ -224,8 +191,8 @@ class GraphToProjectConverter(
     }
 
     /**
-     * Given expanded directory to package mappings and the originally expected directory to package map builds an unambiguous map from
-     * directories to packages.
+     * Given expanded root-relative path to package mappings and the originally expected root-relative path to package map builds an
+     * unambiguous map from directories to packages.
      *
      * <p>If the expanded map contains conflicting entries (result of local package mapping and parent expansion) they are ignored and the
      * local package mapping is used, if present.
@@ -242,51 +209,51 @@ class GraphToProjectConverter(
      * source folder created for `src/com/google/else => smth.else`.
      */
     private fun chooseFinalMappings(
-      expectedDirectoryToPackageMap: Map<Path, String>,
-      dirWants: Map<Path, Set<String>>,
+      rootRelativePathToJavaPackage: Map<Path, String>,
+      rootRelativePathToWants: Map<Path, Set<String>>,
     ): ImmutableMap<Path, String> {
-      val dirAllResult: ImmutableMap.Builder<Path, String> = ImmutableMap.builder()
-      for (directory in TreeSet(dirWants.keys)) {
-        val wants = dirWants.get(directory)
+      val result: ImmutableMap.Builder<Path, String> = ImmutableMap.builder()
+      for (directory in TreeSet(rootRelativePathToWants.keys)) {
+        val wants = rootRelativePathToWants.get(directory)
         val pkg =
           if (wants != null && wants.size == 1) {
             wants.iterator().next()
           } else {
-            expectedDirectoryToPackageMap.get(directory)
+            rootRelativePathToJavaPackage.get(directory)
           }
         if (pkg != null) {
-          dirAllResult.put(directory, pkg)
+          result.put(directory, pkg)
         }
       }
-      return dirAllResult.buildOrThrow()
+      return result.buildOrThrow()
     }
 
     /**
-     * Given a set of directory to package mappings expand them to all mappings that can be derived from parent directories.
+     * Given a set of root-relative path to package mappings expand them to all mappings that can be derived from parent directories.
      *
      * <p>i.e. in the presence of `src/com/google/smth => com.google.smth` add mappings like `src => ""`, `src/com => com`, `src/com/google
      * => com.google`, but stop if there is a mismatch between directory names and package names, i.e. when `java/src/smth =>
      * com.google.smth` is present expand it only to `java/src => com.google` as it would still correctly map sub-directories and when
      * multiple similar sub-directories are present this is a preferred configuration.
      */
-    private fun addPossibleParentMatches(sourceRoots: Map<Path, String>): Map<Path, Set<String>> {
-      val directories: Set<Path> = TreeSet(sourceRoots.keys)
-      val dirWants: MutableMap<Path, MutableSet<String>> = mutableMapOf()
+    private fun addPossibleParentMatches(rootRelativePathToJavaPackage: Map<Path, String>): Map<Path, Set<String>> {
+      val directories: Set<Path> = TreeSet(rootRelativePathToJavaPackage.keys)
+      val rootRelativePathToWants: MutableMap<Path, MutableSet<String>> = mutableMapOf()
       for (directory in directories) {
-        val prefix = sourceRoots.get(directory)
+        val prefix = rootRelativePathToJavaPackage.get(directory)
         var dir: Path? = directory
         var pref = prefix
         while (dir != null && pref != null && dir.getFileName().toString().equals(lastSubpackageOf(pref))) {
-          val wants = dirWants.computeIfAbsent(dir) { hashSetOf() }
+          val wants = rootRelativePathToWants.computeIfAbsent(dir) { hashSetOf() }
           wants.add(pref)
           dir = relativeParentOf(dir)
           pref = parentPackageOf(pref)
         }
         if (dir != null && pref != null) {
-          dirWants.computeIfAbsent(dir) { hashSetOf() }.add(pref)
+          rootRelativePathToWants.computeIfAbsent(dir) { hashSetOf() }.add(pref)
         }
       }
-      return dirWants
+      return rootRelativePathToWants
     }
 
     private fun appendPackage(parentPackage: String, subpackage: String): String {

@@ -68,23 +68,18 @@ class GraphToProjectConverterTest {
 
   val emptyRepositoryFinder: ProjectPath.ExternalRepositoryFinder = createEmptyForTests()
 
-  private fun toPrefixReader(basicReader: (Path) -> String): JavaPackagePrefixReader {
-    val packageReader = PackageReader { context, file -> basicReader(file) }
-    return JavaPackagePrefixReaderImpl(
-      workspaceRoot = Path.of("/"),
-      packageReader = packageReader,
-      parallelPackageReader = QuerySyncTestUtils.SIMPLE_PARALLEL_PACKAGE_READER,
-    ) {
-      true
-    }
-  }
-
-  private fun createSourceSet(rootPath: Path, javaFiles: List<Path>, nonJavaFiles: List<Path> = emptyList()): List<SourceSet> {
+  private fun createSourceSet(
+    rootPath: Path,
+    javaFiles: List<Path>,
+    nonJavaFiles: List<Path> = emptyList(),
+    javaPackage: String = "",
+  ): List<SourceSet> {
     return listOf(
       SourceSet(
         rootPath = rootPath,
         javaSourceFiles = javaFiles.map { rootPath.relativize(it) },
         nonJavaSourceFiles = nonJavaFiles.map { rootPath.relativize(it) },
+        javaPackage = javaPackage,
       )
     )
   }
@@ -111,7 +106,7 @@ class GraphToProjectConverterTest {
             Path.of("incompatible/a/b/c/d") to "com.a.b.c.d",
           ),
       )
-    roots = GraphToProjectConverter.mergeCompatibleSourceRoots(roots)
+    roots = roots.mapValues { GraphToProjectConverter.Companion.mergeSourceRoots(it.value) }
 
     Truth.assertThat(roots)
       .isEqualTo(
@@ -135,7 +130,6 @@ class GraphToProjectConverterTest {
 
     val converter =
       GraphToProjectConvertersForTests.create(
-        javaPackagePrefixReader = toPrefixReader { key -> sourcePackages[key] ?: "" },
         projectIncludes = setOf(Path.of("java/com/test")),
         languageClasses = setOf(QuerySyncLanguage.JVM),
       )
@@ -144,7 +138,9 @@ class GraphToProjectConverterTest {
       listOf(
         ProjectStructureRoot(
           Path.of("java/com/test"),
-          mapOf(Path.of("java/com/test") to createSourceSet(Path.of("java/com/test"), sourcePackages.keys.toList())),
+          mapOf(
+            Path.of("java/com/test") to createSourceSet(Path.of("java/com/test"), sourcePackages.keys.toList(), javaPackage = "com.test")
+          ),
         )
       )
     val rootSources = converter.calculateJavaRootSources(context, roots)
@@ -153,12 +149,35 @@ class GraphToProjectConverterTest {
   }
 
   @Test
+  fun testCalculateRootSources_emptyPackage() {
+    val converter =
+      GraphToProjectConvertersForTests.create(projectIncludes = setOf(Path.of("src")), languageClasses = setOf(QuerySyncLanguage.JVM))
+
+    val roots =
+      listOf(
+        ProjectStructureRoot(
+          Path.of("src"),
+          mapOf(
+            Path.of("src/java") to
+              listOf(SourceSet(rootPath = Path.of("src/java"), javaSourceFiles = listOf(Path.of("kt1.kt")), javaPackage = "")),
+            Path.of("src/java/org/smth") to
+              listOf(
+                SourceSet(rootPath = Path.of("src/java/org/smth"), javaSourceFiles = listOf(Path.of("smth.kt")), javaPackage = "org.smth")
+              ),
+          ),
+        )
+      )
+    val rootSources = converter.calculateJavaRootSources(context, roots)
+    Truth.assertThat(rootSources.keys).containsExactly(Path.of("src"))
+    Truth.assertThat(rootSources.get(Path.of("src"))).containsExactly(Path.of("java"), "")
+  }
+
+  @Test
   fun testCalculateRootSources_singleSource_belowImportRoot() {
     val sourcePackages = mapOf(Path.of("java/com/test/subpackage/Class1.java") to "com.test.subpackage")
 
     val converter =
       GraphToProjectConvertersForTests.create(
-        javaPackagePrefixReader = toPrefixReader { key -> sourcePackages[key] ?: "" },
         projectIncludes = setOf(Path.of("java/com/test")),
         languageClasses = setOf(QuerySyncLanguage.JVM),
       )
@@ -167,7 +186,10 @@ class GraphToProjectConverterTest {
       listOf(
         ProjectStructureRoot(
           Path.of("java/com/test"),
-          mapOf(Path.of("java/com/test") to createSourceSet(Path.of("java/com/test"), sourcePackages.keys.toList())),
+          mapOf(
+            Path.of("java/com/test") to
+              createSourceSet(Path.of("java/com/test"), sourcePackages.keys.toList(), javaPackage = "com.test.subpackage")
+          ),
         )
       )
     val rootSources = converter.calculateJavaRootSources(context, roots)
@@ -185,7 +207,6 @@ class GraphToProjectConverterTest {
 
     val converter =
       GraphToProjectConvertersForTests.create(
-        javaPackagePrefixReader = toPrefixReader { key -> sourcePackages[key] ?: "" },
         projectIncludes = setOf(Path.of("java/com/test")),
         languageClasses = setOf(QuerySyncLanguage.JVM),
       )
@@ -194,7 +215,23 @@ class GraphToProjectConverterTest {
       listOf(
         ProjectStructureRoot(
           Path.of("java/com/test"),
-          mapOf(Path.of("java/com/test") to createSourceSet(Path.of("java/com/test"), sourcePackages.keys.toList())),
+          mapOf(
+            Path.of("java/com/test") to
+              listOf(
+                SourceSet(
+                  rootPath = Path.of("java/com/test"),
+                  javaSourceFiles = listOf(Path.of("package1/Class1.java")),
+                  nonJavaSourceFiles = emptyList(),
+                  javaPackage = "com.test.package1",
+                ),
+                SourceSet(
+                  rootPath = Path.of("java/com/test"),
+                  javaSourceFiles = listOf(Path.of("package2/Class2.java")),
+                  nonJavaSourceFiles = emptyList(),
+                  javaPackage = "com.test.package2",
+                ),
+              )
+          ),
         )
       )
     val rootSources = converter.calculateJavaRootSources(context, roots)
@@ -208,7 +245,6 @@ class GraphToProjectConverterTest {
 
     val converter =
       GraphToProjectConvertersForTests.create(
-        javaPackagePrefixReader = toPrefixReader { key -> sourcePackages[key] ?: "" },
         projectIncludes = setOf(Path.of("java/com/app"), Path.of("java/com/lib")),
         languageClasses = setOf(QuerySyncLanguage.JVM),
       )
@@ -217,11 +253,17 @@ class GraphToProjectConverterTest {
       listOf(
         ProjectStructureRoot(
           Path.of("java/com/app"),
-          mapOf(Path.of("java/com/app") to createSourceSet(Path.of("java/com/app"), listOf(Path.of("java/com/app/AppClass.java")))),
+          mapOf(
+            Path.of("java/com/app") to
+              createSourceSet(Path.of("java/com/app"), listOf(Path.of("java/com/app/AppClass.java")), javaPackage = "com.app")
+          ),
         ),
         ProjectStructureRoot(
           Path.of("java/com/lib"),
-          mapOf(Path.of("java/com/lib") to createSourceSet(Path.of("java/com/lib"), listOf(Path.of("java/com/lib/LibClass.java")))),
+          mapOf(
+            Path.of("java/com/lib") to
+              createSourceSet(Path.of("java/com/lib"), listOf(Path.of("java/com/lib/LibClass.java")), javaPackage = "com.lib")
+          ),
         ),
       )
     val rootSources = converter.calculateJavaRootSources(context, roots)
@@ -240,7 +282,6 @@ class GraphToProjectConverterTest {
 
     val converter =
       GraphToProjectConvertersForTests.create(
-        javaPackagePrefixReader = toPrefixReader { key -> sourcePackages[key] ?: "" },
         projectIncludes = setOf(Path.of("java/com/test")),
         languageClasses = setOf(QuerySyncLanguage.JVM),
       )
@@ -250,9 +291,18 @@ class GraphToProjectConverterTest {
         ProjectStructureRoot(
           Path.of("java/com/test"),
           mapOf(
-            Path.of("java/com/test") to createSourceSet(Path.of("java/com/test"), listOf(Path.of("java/com/test/package2/Class1.java"))),
+            Path.of("java/com/test") to
+              createSourceSet(
+                Path.of("java/com/test"),
+                listOf(Path.of("java/com/test/package2/Class1.java")),
+                javaPackage = "com.test.package2",
+              ),
             Path.of("java/com/test/package1") to
-              createSourceSet(Path.of("java/com/test/package1"), listOf(Path.of("java/com/test/package1/Class2.java"))),
+              createSourceSet(
+                Path.of("java/com/test/package1"),
+                listOf(Path.of("java/com/test/package1/Class2.java")),
+                javaPackage = "com.test.oddpackage",
+              ),
           ),
         )
       )
@@ -272,7 +322,6 @@ class GraphToProjectConverterTest {
 
     val converter =
       GraphToProjectConvertersForTests.create(
-        javaPackagePrefixReader = toPrefixReader { key -> sourcePackages[key] ?: "" },
         projectIncludes = setOf(Path.of("java/com/test")),
         languageClasses = setOf(QuerySyncLanguage.JVM),
       )
@@ -283,9 +332,17 @@ class GraphToProjectConverterTest {
           Path.of("java/com/test"),
           mapOf(
             Path.of("java/com/test/package1") to
-              createSourceSet(Path.of("java/com/test/package1"), listOf(Path.of("java/com/test/package1/Class2.java"))),
+              createSourceSet(
+                Path.of("java/com/test/package1"),
+                listOf(Path.of("java/com/test/package1/Class2.java")),
+                javaPackage = "com.test.package1",
+              ),
             Path.of("java/com/test/package2") to
-              createSourceSet(Path.of("java/com/test/package2"), listOf(Path.of("java/com/test/package2/Class1.java"))),
+              createSourceSet(
+                Path.of("java/com/test/package2"),
+                listOf(Path.of("java/com/test/package2/Class1.java")),
+                javaPackage = "com.test.package2",
+              ),
           ),
         )
       )
@@ -301,7 +358,6 @@ class GraphToProjectConverterTest {
 
     val converter =
       GraphToProjectConvertersForTests.create(
-        javaPackagePrefixReader = toPrefixReader { key -> sourcePackages[key] ?: "" },
         projectIncludes = setOf(Path.of("java/com/test")),
         languageClasses = setOf(QuerySyncLanguage.JVM),
       )
@@ -311,9 +367,14 @@ class GraphToProjectConverterTest {
         ProjectStructureRoot(
           Path.of("java/com/test"),
           mapOf(
-            Path.of("java/com/test") to createSourceSet(Path.of("java/com/test"), listOf(Path.of("java/com/test/Class1.java"))),
+            Path.of("java/com/test") to
+              createSourceSet(Path.of("java/com/test"), listOf(Path.of("java/com/test/Class1.java")), javaPackage = "com.test"),
             Path.of("java/com/test/package") to
-              createSourceSet(Path.of("java/com/test/package"), listOf(Path.of("java/com/test/package/Class2.java"))),
+              createSourceSet(
+                Path.of("java/com/test/package"),
+                listOf(Path.of("java/com/test/package/Class2.java")),
+                javaPackage = "com.test.package",
+              ),
           ),
         )
       )
@@ -329,7 +390,6 @@ class GraphToProjectConverterTest {
 
     val converter =
       GraphToProjectConvertersForTests.create(
-        javaPackagePrefixReader = toPrefixReader { key -> sourcePackages[key] ?: "" },
         projectIncludes = setOf(Path.of("java/com/test")),
         languageClasses = setOf(QuerySyncLanguage.JVM),
       )
@@ -339,9 +399,14 @@ class GraphToProjectConverterTest {
         ProjectStructureRoot(
           Path.of("java/com/test"),
           mapOf(
-            Path.of("java/com/test") to createSourceSet(Path.of("java/com/test"), listOf(Path.of("java/com/test/Class1.java"))),
+            Path.of("java/com/test") to
+              createSourceSet(Path.of("java/com/test"), listOf(Path.of("java/com/test/Class1.java")), javaPackage = "com.test.odd"),
             Path.of("java/com/test/package") to
-              createSourceSet(Path.of("java/com/test/package"), listOf(Path.of("java/com/test/package/Class2.java"))),
+              createSourceSet(
+                Path.of("java/com/test/package"),
+                listOf(Path.of("java/com/test/package/Class2.java")),
+                javaPackage = "com.test.package",
+              ),
           ),
         )
       )
@@ -361,7 +426,6 @@ class GraphToProjectConverterTest {
 
     val converter =
       GraphToProjectConvertersForTests.create(
-        javaPackagePrefixReader = toPrefixReader { key -> sourcePackages[key] ?: "" },
         projectIncludes = setOf(Path.of("third_party")),
         languageClasses = setOf(QuerySyncLanguage.JVM),
       )
@@ -372,9 +436,17 @@ class GraphToProjectConverterTest {
           Path.of("third_party"),
           mapOf(
             Path.of("third_party/java") to
-              createSourceSet(Path.of("third_party/java"), listOf(Path.of("third_party/java/com/test/Class1.java"))),
+              createSourceSet(
+                Path.of("third_party/java"),
+                listOf(Path.of("third_party/java/com/test/Class1.java")),
+                javaPackage = "com.test",
+              ),
             Path.of("third_party/javatests") to
-              createSourceSet(Path.of("third_party/javatests"), listOf(Path.of("third_party/javatests/com/test/Class2.java"))),
+              createSourceSet(
+                Path.of("third_party/javatests"),
+                listOf(Path.of("third_party/javatests/com/test/Class2.java")),
+                javaPackage = "com.test",
+              ),
           ),
         )
       )
@@ -393,7 +465,6 @@ class GraphToProjectConverterTest {
 
     val converter =
       GraphToProjectConvertersForTests.create(
-        javaPackagePrefixReader = toPrefixReader { key -> sourcePackages[key] ?: "" },
         projectIncludes = setOf(Path.of("java/com/test")),
         languageClasses = setOf(QuerySyncLanguage.JVM),
       )
@@ -403,9 +474,18 @@ class GraphToProjectConverterTest {
         ProjectStructureRoot(
           Path.of("java/com/test"),
           mapOf(
-            Path.of("java/com/test") to createSourceSet(Path.of("java/com/test"), listOf(Path.of("java/com/test/somepackage/Class2.java"))),
+            Path.of("java/com/test") to
+              createSourceSet(
+                Path.of("java/com/test"),
+                listOf(Path.of("java/com/test/somepackage/Class2.java")),
+                javaPackage = "com.test.somepackage",
+              ),
             Path.of("java/com/test/repackaged") to
-              createSourceSet(Path.of("java/com/test/repackaged"), listOf(Path.of("java/com/test/repackaged/com/foo/Class1.java"))),
+              createSourceSet(
+                Path.of("java/com/test/repackaged"),
+                listOf(Path.of("java/com/test/repackaged/com/foo/Class1.java")),
+                javaPackage = "com.foo",
+              ),
           ),
         )
       )
@@ -517,7 +597,6 @@ class GraphToProjectConverterTest {
         .parse()
     val converter =
       GraphToProjectConvertersForTests.create(
-        javaPackagePrefixReader = QuerySyncTestUtils.PATH_INFERRING_PREFIX_READER,
         projectIncludes = setOf(workspaceImportDirectory),
         languageClasses = setOf(QuerySyncLanguage.JVM),
       )
@@ -546,7 +625,6 @@ class GraphToProjectConverterTest {
 
     val converter =
       GraphToProjectConvertersForTests.create(
-        javaPackagePrefixReader = toPrefixReader { key -> sourcePackages[key] ?: "" },
         projectIncludes = setOf(TestData.ROOT.resolve("nodeps")),
         languageClasses = setOf(QuerySyncLanguage.JVM),
         testSources = setOf("tools/adt/idea/aswb/querysync/javatests/*"),
@@ -570,11 +648,7 @@ class GraphToProjectConverterTest {
     val sourcePackages = mapOf(Path.of("myproject/java/com/test/Class1.java") to "com.test")
 
     val converter =
-      GraphToProjectConvertersForTests.create(
-        javaPackagePrefixReader = toPrefixReader { key -> sourcePackages[key] ?: "" },
-        projectIncludes = setOf(Path.of("myproject")),
-        languageClasses = setOf(QuerySyncLanguage.JVM),
-      )
+      GraphToProjectConvertersForTests.create(projectIncludes = setOf(Path.of("myproject")), languageClasses = setOf(QuerySyncLanguage.JVM))
 
     val additionalProtoSourceFolders =
       converter.nonJavaSourceFolders(
@@ -582,7 +656,8 @@ class GraphToProjectConverterTest {
           ProjectStructureRoot(
             Path.of("myproject"),
             mapOf(
-              Path.of("myproject") to createSourceSet(Path.of("myproject"), emptyList(), listOf(Path.of("myproject/protos/test.proto")))
+              Path.of("myproject") to
+                createSourceSet(Path.of("myproject"), emptyList(), listOf(Path.of("myproject/protos/test.proto")), javaPackage = "")
             ),
           )
         )
@@ -596,7 +671,6 @@ class GraphToProjectConverterTest {
 
     val converter =
       GraphToProjectConvertersForTests.create(
-        javaPackagePrefixReader = toPrefixReader { key -> sourcePackages[key] ?: "" },
         projectIncludes = setOf(Path.of("myproject")),
         projectExcludes = setOf(Path.of("myproject/excluded")),
         languageClasses = setOf(QuerySyncLanguage.JVM),
@@ -609,7 +683,12 @@ class GraphToProjectConverterTest {
             Path.of("myproject"),
             mapOf(
               Path.of("myproject") to
-                createSourceSet(Path.of("myproject"), emptyList(), listOf(Path.of("myproject/excluded/protos/excluded.proto")))
+                createSourceSet(
+                  Path.of("myproject"),
+                  emptyList(),
+                  listOf(Path.of("myproject/excluded/protos/excluded.proto")),
+                  javaPackage = "",
+                )
             ),
           )
         )
@@ -709,7 +788,6 @@ class GraphToProjectConverterTest {
     val workspaceImportDirectory = TestData.ROOT.resolve("android")
     val converter =
       GraphToProjectConvertersForTests.create(
-        javaPackagePrefixReader = QuerySyncTestUtils.PATH_INFERRING_PREFIX_READER,
         projectIncludes = setOf(workspaceImportDirectory),
         languageClasses = setOf(QuerySyncLanguage.JVM),
       )
@@ -765,6 +843,34 @@ class GraphToProjectConverterTest {
 
     Truth.assertThat(project).isEqualTo(expectedProject)
   }
+
+  @Test
+  fun testInitializeProjectStructureData_packagesRead() {
+    val buildGraphData =
+      BlazeQueryParser(
+          TargetPatternCollection.create(emptyList()),
+          QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_NO_DEPS_QUERY),
+          QuerySyncTestUtils.NOOP_CONTEXT,
+          emptySet(),
+          BuildGraphData.ProtoRules.forTests(),
+        )
+        .parse()
+    val projectStructureData =
+      ProjectStructureData.fromGraph(
+        QuerySyncTestUtils.NOOP_CONTEXT,
+        buildGraphData,
+        setOf(TestData.ROOT),
+        Path.of(""),
+        object : PackageReader {
+          override fun readPackage(context: Context<*>?, path: Path?): String? = "com.example.custom"
+        },
+        PackageReader.ParallelReader.SingleThreadedForTests(),
+        fileExists = { true },
+      )
+
+    val sourceSets = projectStructureData.roots.flatMap { it.packageSourceSets.values.flatten() }
+    Truth.assertThat(sourceSets.map { it.javaPackage }).contains("com.example.custom")
+  }
 }
 
 private fun GraphToProjectConverter.configureProject(
@@ -773,7 +879,26 @@ private fun GraphToProjectConverter.configureProject(
 ): ProjectProto.Project {
   val update = ProjectProtoUpdate(ProjectProto.Project.getDefaultInstance())
   configureProject(
-    ProjectStructureData.fromGraph(QuerySyncTestUtils.NOOP_CONTEXT, graph, projectDefinition.projectIncludes),
+    ProjectStructureData.fromGraph(
+      QuerySyncTestUtils.NOOP_CONTEXT,
+      graph,
+      projectDefinition.projectIncludes,
+      Path.of(""),
+      object : PackageReader {
+        override fun readPackage(context: Context<*>?, path: Path?): String {
+          val pathStr = path?.toString() ?: return ""
+          return if (pathStr.endsWith("TestAndroidClass.java")) {
+            "com.google.idea.blaze.qsync.testdata.android"
+          } else if (pathStr.endsWith("TestClassNoDeps.java")) {
+            "com.google.idea.blaze.qsync.testdata.nodeps"
+          } else {
+            ""
+          }
+        }
+      },
+      PackageReader.ParallelReader.SingleThreadedForTests(),
+      fileExists = { true },
+    ),
     externalRepositoryFinder,
     update,
   )

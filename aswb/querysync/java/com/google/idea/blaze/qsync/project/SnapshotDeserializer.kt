@@ -88,16 +88,18 @@ class SnapshotDeserializer private constructor() {
         ProjectStructureRoot(
           projectStructureRootPath = Path.of(rootProto.projectStructureRootPath),
           packageSourceSets =
-            rootProto.packageSourceSetsList.associate { sourceSet ->
-              Path.of(sourceSet.workspaceRelativePath) to
-                listOf(
+            rootProto.packageSourceSetsList
+              .groupBy { Path.of(it.workspaceRelativePath) }
+              .mapValues { (_, protoSourceSets) ->
+                protoSourceSets.map { sourceSet ->
                   SourceSet(
                     rootPath = Path.of(sourceSet.rootPath),
                     javaSourceFiles = sourceSet.javaSourceFilesList.map { Path.of(it) },
                     nonJavaSourceFiles = sourceSet.nonJavaSourceFilesList.map { Path.of(it) },
+                    javaPackage = sourceSet.javaPackage,
                   )
-                )
-            },
+                }
+              },
         )
       }
 
