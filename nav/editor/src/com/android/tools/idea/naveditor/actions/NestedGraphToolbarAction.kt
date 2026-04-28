@@ -27,7 +27,11 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import icons.StudioIcons
 
 class NestedGraphToolbarAction : ToolbarAction("Group into nested graph", StudioIcons.NavEditor.Toolbar.NESTED_GRAPH) {
-  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+  override fun getActionUpdateThread(): ActionUpdateThread {
+    // isEnabled() is called from update(), and surface.currentNavigation may end up needing access to the EDT
+    // See b/500292065
+    return ActionUpdateThread.EDT
+  }
 
   override fun isEnabled(surface: NavDesignSurface) =
     surface.selectionModel.selection.any { it.isDestination && it != surface.currentNavigation }
