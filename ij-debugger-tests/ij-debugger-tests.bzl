@@ -1,100 +1,85 @@
 """This module implements IntelliJ Debugger Test rules."""
 
-load("//tools/adt/idea/jps-build:idea.bzl", "jps_test")
+load("@rules_java//java:defs.bzl", "java_test")
+load("@tools_idea//build:tests-options.bzl", "ADD_OPENS_FLAGS", "JAVA_TEST_FLAGS", "TEST_FRAMEWORK_DEPS")
+load("@tools_idea//plugins/kotlin:kotlin_test_dependencies.bzl", "all_test_dep_targets")
+
+def include_tests_filter(tests):
+    patterns = "|".join([test.replace("$", "\\$").replace(".", "\\.") for test in tests])
+    return "include-methodname=" + patterns
 
 def debugger_test(
         name,
-        test_include_filter,
-        test_exclude_filter = [],
-        expected_to_fail_art = None,
-        expected_to_fail_jvm = None,
-        art_tags = [],
-        jvm_tags = [],
-        module = "kotlin.jvm-debugger.test",
-        shard_count = None):
-    """Define a debugger test that runs on a ART and JVM.
+        test_dep,
+        expected_results = None,
+        filter = None,
+        run_on_art = False,
+        **kwargs):
+    """Define a debugger test that a JVM.
 
     Args:
         name: The base name of the tests
-        module: Module containing tests
-        test_include_filter: Patterns of tests to include
-        test_exclude_filter: Patterns of tests to exclude
-        expected_to_fail_art: A file with a list of tests that are expected to fail on ART
-        expected_to_fail_jvm: A file with a list of tests that are expected to fail on JVM
-        art_tags: Tags for the ART test
-        jvm_tags: Tags for the JVM test
-        shard_count: Number of shards to run
+        test_dep: The jar dep that contains the tests
+        expected_results: An option text file containing expected results
+        filter: An option filter
+        run_on_art: Specifies whether to run on ART or JVM
+        **kwargs: Additional arguments for java_test
     """
-    expected_to_fail_dep_art = []
-    module_dep = [":%s_lib" % module]
+    jvm_flags = JAVA_TEST_FLAGS + ADD_OPENS_FLAGS
 
-    if expected_to_fail_art:
-        expected_to_fail_dep_art = [":%s" % expected_to_fail_art]
-    jps_test(
-        name = "%s-art" % name,
-        size = "large",
-        shard_count = shard_count,
-        test_include_filter = test_include_filter,
-        test_exclude_filter = test_exclude_filter,
-        expected_failures_file = expected_to_fail_art,
-        data = [
+    runtime_deps = [
+        test_dep,
+        "//tools/adt/idea/ij-debugger-tests/lib",
+        "@tools_idea//:main_test_lib",
+    ] + [it.replace("@community/", "@tools_idea/").replace("@lib/", "@tools_idea_lib/") for it in TEST_FRAMEWORK_DEPS]
+
+    test_jar = test_dep.removeprefix("@tools_idea/").replace(":", "/") + ".jar"
+    data = [
+        "@debugger_test_deps_debugger_agent//file:debugger-agent.jar",
+        "@tools_idea//plugins/kotlin/jvm-debugger/test:testData",
+        "@tools_idea//plugins/kotlin/idea/tests:testData",
+        "@tools_idea//java:mockJDK",
+    ] + all_test_dep_targets
+
+    env = {
+        "JB_TEST_SANDBOX": "true",
+        "JB_TEST_JAR": test_jar,
+        "JB_TEST_EXCECUTION_RESULT_INTERCEPTOR": "com.google.android.tools.debugger.test.lib.ExpectedFailuresInterceptor",
+    }
+
+    if expected_results:
+        env = env | {"EXPECTED_RESULTS_FILE": "$(location " + expected_results + ")"}
+        data = data + [expected_results]
+
+    if filter:
+        env = env | {"JB_TEST_JUNIT5_FILTERS": filter}
+
+    if run_on_art:
+        env = env | {
+            "INTELLIJ_DEBUGGER_TESTS_VM_ATTACHER": "com.google.android.tools.debugger.test.lib.ArtAttacher",
+            "INTELLIJ_DEBUGGER_TESTS_DEX_CACHE": "./dex_cache",
+            "INTELLIJ_DEBUGGER_TESTS_TIMEOUT_MILLIS": "15000",
+            "INTELLIJ_DEBUGGER_TESTS_STUDIO_ROOT": ".",
+        }
+        data = data + [
             "//prebuilts/r8:r8-jar",
             "//prebuilts/tools/linux-x86_64/art",
             "//prebuilts/tools/linux-x86_64/art:art_deps",
-        ],
-        download_cache = "prebuilts/tools/jps-build-caches/kotlin.jvm-debugger.test_tests",
-        env = {
-            "INTELLIJ_DEBUGGER_TESTS_VM_ATTACHER": "com.google.android.tools.debugger.test.ArtAttacher",
-            "INTELLIJ_DEBUGGER_TESTS_DEX_CACHE": "$PWD/dex_cache",
-            "INTELLIJ_DEBUGGER_TESTS_STUDIO_ROOT": "$PWD",
-            "INTELLIJ_DEBUGGER_TESTS_TIMEOUT_MILLIS": "60000",
-        },
-        module = module,
-        tags = art_tags,
-        test_suite = "com.android.tools.test.ModuleTestSuite",
-        runtime_deps = [
-            ":attacher",
-            "//prebuilts/r8",
-            "//tools/adt/idea/android-kotlin:android-dexer",
-            "//tools/adt/idea/debuggers:android-field-visibility-provider",
-        ],
-        deps = [
-            ":test_repo.zip",
-            "//prebuilts/tools/jps-build-caches:kotlin.jvm-debugger.test_lib",
-            "//prebuilts/tools/jps-build-caches:kotlin.jvm-debugger.test_tests",
-            "//tools/idea:idea_source",
-        ] + expected_to_fail_dep_art + module_dep,
-    )
+        ]
 
-    expected_to_fail_dep_jvm = []
-    if expected_to_fail_jvm:
-        expected_to_fail_dep_jvm = [":%s" % expected_to_fail_jvm]
-    jps_test(
-        name = "%s-jvm" % name,
-        size = "large",
-        shard_count = shard_count,
-        test_include_filter = test_include_filter,
-        test_exclude_filter = test_exclude_filter,
-        expected_failures_file = expected_to_fail_jvm,
-        download_cache = "prebuilts/tools/jps-build-caches/kotlin.jvm-debugger.test_tests",
-        env = {
-            "INTELLIJ_DEBUGGER_TESTS_VM_ATTACHER": "jvm",
-        },
-        module = module,
-        tags = jvm_tags,
-        test_suite = "com.android.tools.test.ModuleTestSuite",
-        deps = [
-            ":test_repo.zip",
-            "//prebuilts/tools/jps-build-caches:kotlin.jvm-debugger.test_lib",
-            "//prebuilts/tools/jps-build-caches:kotlin.jvm-debugger.test_tests",
-            "//tools/idea:idea_source",
-        ] + expected_to_fail_dep_jvm + module_dep,
-    )
-
-    native.test_suite(
+    java_test(
         name = name,
-        tests = [
-            "%s-art" % name,
-            "%s-jvm" % name,
-        ],
+        data = data,
+        env = env,
+        jvm_flags = jvm_flags,
+        main_class = "com.intellij.tests.JUnit5BazelRunner",
+        runtime_deps = runtime_deps,
+        target_compatible_with = select({
+            "@platforms//os:windows": ["@platforms//:incompatible"],
+            "@platforms//os:macos": ["@platforms//:incompatible"],
+            "//conditions:default": ["@platforms//:incompatible"],
+        }),
+        timeout = "long",
+        use_testrunner = False,
+        **kwargs
     )

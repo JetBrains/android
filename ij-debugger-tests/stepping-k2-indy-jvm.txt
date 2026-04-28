@@ -1,3 +1,0 @@
-K2IndyLambdaKotlinSteppingTestGenerated$Custom.testSmartStepIntoAsyncLambda
-K2IndyLambdaKotlinSteppingTestGenerated$Custom.testKt14057
-K2IndyLambdaKotlinSteppingTestGenerated$Filters.testDoNotSkipClassloader

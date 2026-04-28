@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package com.google.android.tools.debugger.test
+package com.google.android.tools.debugger.test.lib
 
 import com.android.tools.idea.debug.AndroidFieldVisibilityProvider
 import com.android.tools.idea.debug.AndroidJdiHelperClassLoader
+import com.android.tools.idea.debug.DexFinder
 import com.intellij.core.CoreApplicationEnvironment
 import com.intellij.debugger.engine.FieldVisibilityProvider
 import com.intellij.debugger.engine.RemoteStateState
@@ -39,6 +40,7 @@ import com.intellij.ui.classFilter.ClassFilter
 import com.intellij.util.io.Compressor
 import com.intellij.util.io.delete
 import java.lang.ProcessBuilder.Redirect.PIPE
+import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.net.URL
 import java.net.URLClassLoader
@@ -50,6 +52,7 @@ import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
 import kotlin.io.path.listDirectoryEntries
+import kotlin.io.path.notExists
 import kotlin.io.path.pathString
 import org.jetbrains.kotlin.android.debugger.AndroidDexerImpl
 import org.jetbrains.kotlin.idea.debugger.evaluate.classLoading.AndroidDexer
@@ -128,10 +131,12 @@ internal class ArtAttacher : VmAttacher {
     println("Running on ART VM with DEX Cache")
     val timeout = getTestTimeoutMillis()
     if (timeout != null) {
-      testCase.setTimeout(timeout.toInt())
+      testCase.setTimeout(timeout)
     }
     val mainClass = javaParameters.mainClass
     val dexFiles = buildDexFiles(javaParameters.classPath.pathList)
+    testCase.project.putUserData(DexFinder.DEX_FILES_KEY, dexFiles)
+
     if (DEX_CACHE == null) {
       @Suppress("UnstableApiUsage") testCase.testRootDisposable.whenDisposed { dexFiles.forEach { it.delete() } }
     }
@@ -160,9 +165,10 @@ internal class ArtAttacher : VmAttacher {
   private fun buildDexFiles(deps: List<String>): List<Path> {
     return deps.mapNotNull {
       val path = Path.of(it)
-      when (path.isDirectory()) {
-        true -> buildDexFromDir(path)
-        false -> buildDexFromJar(path)
+      when {
+        path.notExists() -> null
+        path.isDirectory() -> buildDexFromDir(path)
+        else -> buildDexFromJar(path)
       }
     }
   }
@@ -192,7 +198,11 @@ internal class ArtAttacher : VmAttacher {
           }
           else -> cached
         }
-      D8_COMPILER.invoke(null, arrayOf("--output", path.pathString, "--min-api", "30", jar.pathString))
+      try {
+        D8_COMPILER.invoke(null, arrayOf("--output", path.pathString, "--min-api", "30", jar.pathString))
+      } catch (e: InvocationTargetException) {
+        throw e.cause ?: e
+      }
       path
     }
   }
@@ -254,6 +264,6 @@ private fun loadD8Compiler(): Method {
 
 @Suppress("SameParameterValue")
 private inline fun <reified T : Any> ComponentManager.registerExtension(ep: ExtensionPointName<T>, extension: T, disposable: Disposable) {
-  CoreApplicationEnvironment.registerExtensionPoint(extensionArea, ep, T::class.java)
+  @Suppress("UnstableApiUsage") CoreApplicationEnvironment.registerExtensionPoint(extensionArea, ep, T::class.java)
   extensionArea.getExtensionPoint(ep).registerExtension(extension, disposable)
 }

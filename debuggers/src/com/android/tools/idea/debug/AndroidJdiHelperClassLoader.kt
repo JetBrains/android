@@ -43,8 +43,10 @@ private class AndroidHelperClassCache {
     val ANDROID_HELPER_CLASS_CACHE_KEY = Key.create<AndroidHelperClassCache>("ANDROID_HELPER_CLASS_CACHE_KEY")
   }
 
-  val classToJDIType = mutableMapOf<Class<*>, ClassType>()
+  val classToJDIType = mutableMapOf<ClassWithDeps, ClassType>()
 }
+
+private data class ClassWithDeps(val cls: Class<*>, val deps: List<String>)
 
 /*
  * Implements the `JdiHelperClassLoader` extension point to
@@ -58,14 +60,15 @@ class AndroidJdiHelperClassLoader : JdiHelperClassLoader {
   override fun getHelperClass(cls: Class<*>, context: EvaluationContextImpl, vararg additionalClassesToLoad: String): ClassType? {
     val vmProxy = context.virtualMachineProxy
     val cache = vmProxy.getOrCreateUserData(AndroidHelperClassCache.ANDROID_HELPER_CLASS_CACHE_KEY) { AndroidHelperClassCache() }
-    cache?.classToJDIType[cls]?.let {
-      return it
+    val key = ClassWithDeps(cls, additionalClassesToLoad.asList())
+    val cached = cache.classToJDIType[key]
+    if (cached != null) {
+      return cached
     }
-
     val inMemoryClassLoader = findOrLoadInMemoryClassLoaderSafe(context) ?: return null
     val loadedClass = loadClasses(cls, context, inMemoryClassLoader, *additionalClassesToLoad)
     if (loadedClass != null) {
-      cache?.classToJDIType[cls] = loadedClass
+      cache.classToJDIType[key] = loadedClass
     }
     return loadedClass
   }
@@ -94,7 +97,8 @@ private fun getBytes(cls: Class<*>, vararg additionalClassesToLoad: String): Col
   val classesBytes =
     listOf(cls.name, *additionalClassesToLoad).map { name ->
       val resource = fullyQualifiedClassNameToBinaryName(name)
-      cls.getResourceAsStream(resource)?.use { it.readBytes() } ?: return null
+      val bytes = cls.getResourceAsStream(resource)?.use { it.readBytes() }
+      bytes ?: return null
     }
   return classesBytes
 }
