@@ -29,12 +29,15 @@ import com.android.tools.idea.projectsystem.ScopeType
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
+import java.util.EnumSet
 
 class ApkModuleSystem(override val module: Module) : AndroidModuleSystem {
   private val delegate = DefaultModuleSystem(module)
 
   override val moduleClassFileFinder: ClassFileFinder
     get() = delegate.moduleClassFileFinder
+
+  override fun createModuleClassFileFinder(scopes: EnumSet<ScopeType>) = moduleClassFileFinder
 
   override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> = delegate.getModuleTemplates(targetDirectory)
 

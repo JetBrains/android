@@ -73,6 +73,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -134,6 +135,11 @@ public final class BazelModuleSystem
 
   @Override
   public ClassFileFinder getModuleClassFileFinder() {
+    return fqcn -> null;
+  }
+
+  @Override
+  public ClassFileFinder createModuleClassFileFinder(EnumSet<ScopeType> scopes) {
     return fqcn -> null;
   }
 

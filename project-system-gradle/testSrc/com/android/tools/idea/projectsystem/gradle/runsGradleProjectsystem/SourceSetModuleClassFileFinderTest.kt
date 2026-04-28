@@ -18,8 +18,8 @@ package com.android.tools.idea.projectsystem.gradle.runsGradleProjectsystem
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.projectsystem.SourceSetModuleClassFileFinder
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystemBuildManager
-import com.android.tools.idea.projectsystem.gradle.SourceSetModuleClassFileFinder
 import com.android.tools.idea.projectsystem.gradle.getAndroidTestModule
 import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.testing.AndroidProjectRule

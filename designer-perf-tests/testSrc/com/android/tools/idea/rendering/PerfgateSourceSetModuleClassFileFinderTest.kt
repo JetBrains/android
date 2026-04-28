@@ -34,7 +34,7 @@ import com.android.ide.common.util.PathString
 import com.android.tools.idea.gradle.model.impl.toImpl
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
-import com.android.tools.idea.projectsystem.gradle.SourceSetModuleClassFileFinder
+import com.android.tools.idea.projectsystem.SourceSetModuleClassFileFinder
 import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule

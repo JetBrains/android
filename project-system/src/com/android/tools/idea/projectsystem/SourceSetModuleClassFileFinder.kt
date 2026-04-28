@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.projectsystem.gradle
+package com.android.tools.idea.projectsystem
 
 import com.android.SdkConstants
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.build.GradleBuildState
-import com.android.tools.idea.projectsystem.ClassContent
-import com.android.tools.idea.projectsystem.ClassFileFinder
-import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
-import com.android.tools.idea.projectsystem.ScopeType
-import com.android.tools.idea.projectsystem.getPathFromFqcn
-import com.android.tools.idea.rendering.classloading.loaders.JarManager
+import com.android.tools.idea.projectsystem.SourceSetModuleClassFileFinder.CompileRootsScope
 import com.android.tools.idea.util.findAndroidModule
 import com.android.tools.idea.util.isAndroidModule
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.ParameterizedCachedValue
@@ -45,26 +41,11 @@ import kotlin.io.path.extension
 import kotlin.io.path.isRegularFile
 
 /**
- * Scope to be used while create the [CompileRoots].
- *
- * [traverseTestDependencies] will be true in those cases where the compiler roots should include the test dependencies as part of the
- * outpu.
- */
-private enum class CompileRootsScope(val traverseTestDependencies: Boolean) {
-  /** Include only main sourceset */
-  MAIN(false),
-  /** Include main and `androidTest` sourceset */
-  MAIN_AND_ANDROID_TEST(true),
-  /** Include main and `screenshotTest` sourceset */
-  MAIN_AND_SCREENSHOT_TEST(true),
-}
-
-/**
  * [CompileRoots] of a module, including dependencies. [directories] is the list of paths to directories containing class outputs. [jars]
  * constains a list of the jar outputs in the [CompileRoots] (typically R.jar files).
  */
-private data class CompileRoots(val allRoots: List<Path>, val jarManager: JarManager?) {
-  private val RESOURCE_CLASS_NAME = Pattern.compile(".+\\.R(\\$[^.]+)?$")
+private data class CompileRoots(val allRoots: List<Path>, val finder: SourceSetModuleClassFileFinder?, val project: Project?) {
+  private val RESOURCE_CLASS_NAME = Pattern.compile(".+\\.R(\\\$[^.]+)?$")
 
   /** Returns true if [className] is an R class name. */
   private fun isResourceClassName(className: String): Boolean = RESOURCE_CLASS_NAME.matcher(className).matches()
@@ -90,9 +71,8 @@ private data class CompileRoots(val allRoots: List<Path>, val jarManager: JarMan
   private fun findClassInJarRoots(fqcn: String): ClassContent? {
     val entryPath = getPathFromFqcn(fqcn)
 
-    return jars.firstNotNullOfOrNull {
-      val bytes = jarManager?.loadFileFromJar(it, entryPath) ?: return@firstNotNullOfOrNull null
-      ClassContent.fromJarEntryContent(it.toFile(), bytes)
+    return jars.firstNotNullOfOrNull { jar ->
+      project?.let { finder?.loadClassFileFromJar(it, jar, entryPath) }?.let { ClassContent.fromJarEntryContent(jar.toFile(), it) }
     }
   }
 
@@ -110,7 +90,7 @@ private data class CompileRoots(val allRoots: List<Path>, val jarManager: JarMan
       .orElse(null)
 
   companion object {
-    val EMPTY = CompileRoots(listOf(), null)
+    fun createEmpty(finder: SourceSetModuleClassFileFinder) = CompileRoots(listOf(), finder, null)
   }
 }
 
@@ -126,15 +106,22 @@ private fun getAllCompileOutputScopes(scope: CompileRootsScope): EnumSet<ScopeTy
  * Calculates the output roots for the module, including all the dependencies for the given [scope]. The resulting [CompileRoots] will
  * contain the paths to the given sourcesets.
  */
-private fun Module.getNonCachedCompileOutputsIncludingDependencies(scope: CompileRootsScope): CompileRoots =
-  CompileRoots(
-      (this.getAllDependencies(scope.traverseTestDependencies))
-        .flatMap { GradleClassFinderUtil.getModuleCompileOutputs(it, getAllCompileOutputScopes(scope)).toList() }
-        .map { it.toPath() }
-        .toList(),
-      JarManager.getInstance(project),
-    )
-    .also { Logger.getInstance(SourceSetModuleClassFileFinder::class.java).debug("CompileRoots recalculated $it") }
+private fun Module.getNonCachedCompileOutputsIncludingDependencies(scope: CompileRootsScope): CompileRoots {
+  val scopes = getAllCompileOutputScopes(scope)
+  val finder = this.getModuleSystem().createModuleClassFileFinder(scopes) as? SourceSetModuleClassFileFinder
+  val allRoots =
+    finder
+      ?.let {
+        this.getAllDependencies(scope.traverseTestDependencies).flatMap {
+          finder.getModuleCompileOutputs(it, getAllCompileOutputScopes(scope))
+        }
+      }
+      .orEmpty()
+
+  return CompileRoots(allRoots, finder, project).also {
+    Logger.getInstance(SourceSetModuleClassFileFinder::class.java).debug("CompileRoots recalculated $it")
+  }
+}
 
 /** Returns a set containing the current [Module] and all its direct and transitive dependencies. */
 fun Module.getAllDependencies(includeAndroidTests: Boolean): Set<Module> {
@@ -158,11 +145,10 @@ private val PRODUCTION_ROOTS_KEY: Key<ParameterizedCachedValue<CompileRoots, Mod
 /** [ParameterizedCachedValueProvider] to calculate the output roots for a non test module. */
 private val PRODUCTION_ROOTS_PROVIDER =
   ParameterizedCachedValueProvider<CompileRoots, Module> { module ->
-    CachedValueProvider.Result.create(
-      module.getNonCachedCompileOutputsIncludingDependencies(CompileRootsScope.MAIN),
-      ProjectSyncModificationTracker.getInstance(module.project),
-      GradleBuildState.getInstance(module.project).modificationTracker,
-    )
+    val roots = module.getNonCachedCompileOutputsIncludingDependencies(CompileRootsScope.MAIN)
+    val trackers = mutableListOf<ModificationTracker>(ProjectSyncModificationTracker.getInstance(module.project))
+    roots.finder?.let { trackers.add(it.getModificationTracker(module)) }
+    CachedValueProvider.Result.create(roots, *trackers.toTypedArray())
   }
 
 /** Key used to cache the [CompileRoots] for a `androidTest` module. */
@@ -170,11 +156,10 @@ private val ANDROID_TEST_ROOTS_KEY: Key<ParameterizedCachedValue<CompileRoots, M
 /** [ParameterizedCachedValueProvider] to calculate the output roots for a test module. */
 private val ANDROID_TEST_ROOTS_PROVIDER =
   ParameterizedCachedValueProvider<CompileRoots, Module> { module ->
-    CachedValueProvider.Result.create(
-      module.getNonCachedCompileOutputsIncludingDependencies(CompileRootsScope.MAIN_AND_ANDROID_TEST),
-      ProjectSyncModificationTracker.getInstance(module.project),
-      GradleBuildState.getInstance(module.project).modificationTracker,
-    )
+    val roots = module.getNonCachedCompileOutputsIncludingDependencies(CompileRootsScope.MAIN_AND_ANDROID_TEST)
+    val trackers = mutableListOf<ModificationTracker>(ProjectSyncModificationTracker.getInstance(module.project))
+    roots.finder?.let { trackers.add(it.getModificationTracker(module)) }
+    CachedValueProvider.Result.create(roots, *trackers.toTypedArray())
   }
 
 /** Key used to cache the [CompileRoots] for a `screenshotTest` module. */
@@ -182,17 +167,16 @@ private val SCREENSHOT_TEST_ROOTS_KEY: Key<ParameterizedCachedValue<CompileRoots
 /** [ParameterizedCachedValueProvider] to calculate the output roots for a `screenshotTest` module. */
 private val SCREENSHOT_TEST_ROOTS_PROVIDER =
   ParameterizedCachedValueProvider<CompileRoots, Module> { module ->
-    CachedValueProvider.Result.create(
-      module.getNonCachedCompileOutputsIncludingDependencies(CompileRootsScope.MAIN_AND_SCREENSHOT_TEST),
-      ProjectSyncModificationTracker.getInstance(module.project),
-      GradleBuildState.getInstance(module.project).modificationTracker,
-    )
+    val roots = module.getNonCachedCompileOutputsIncludingDependencies(CompileRootsScope.MAIN_AND_SCREENSHOT_TEST)
+    val trackers = mutableListOf<ModificationTracker>(ProjectSyncModificationTracker.getInstance(module.project))
+    roots.finder?.let { trackers.add(it.getModificationTracker(module)) }
+    CachedValueProvider.Result.create(roots, *trackers.toTypedArray())
   }
 
 /** Returns the list of [Path]s to external JAR files referenced by the class loader. */
-private fun Module.getCompileOutputs(scope: CompileRootsScope): CompileRoots {
+private fun Module.getCompileOutputs(scope: CompileRootsScope, finder: SourceSetModuleClassFileFinder): CompileRoots {
   if (this.isDisposed) {
-    return CompileRoots.EMPTY
+    return CompileRoots.createEmpty(finder)
   }
 
   return when (scope) {
@@ -210,33 +194,54 @@ private fun Module.getCompileOutputs(scope: CompileRootsScope): CompileRoots {
   }
 }
 
-/** A [ClassFileFinder] that finds classes into the compile roots of a Gradle project. */
-class SourceSetModuleClassFileFinder private constructor(private val module: Module, private val scope: CompileRootsScope) :
+/** A [ClassFileFinder] that finds classes into the compile roots of a project module. */
+abstract class SourceSetModuleClassFileFinder protected constructor(protected val module: Module, protected val scope: CompileRootsScope) :
   ClassFileFinder {
 
-  init {
-    if (module.isLinkedAndroidModule() && module.isHolderModule()) {
-      LOG.error("Using SourceSetModuleClassFileFinder with a holder module is basically never right.")
-    }
+  /**
+   * Scope to be used while create the [CompileRoots].
+   *
+   * [traverseTestDependencies] will be true in those cases where the compiler roots should include the test dependencies as part of the
+   * outpu.
+   */
+  enum class CompileRootsScope(val traverseTestDependencies: Boolean) {
+    /** Include only main sourceset */
+    MAIN(false),
+    /** Include main and `androidTest` sourceset */
+    MAIN_AND_ANDROID_TEST(true),
+    /** Include main and `screenshotTest` sourceset */
+    MAIN_AND_SCREENSHOT_TEST(true),
   }
+
+  init {
+    validateModule(module)
+  }
+
+  abstract fun getModuleCompileOutputs(module: Module, scopes: EnumSet<ScopeType>): List<Path>
+
+  abstract fun getModificationTracker(module: Module): ModificationTracker
+
+  abstract fun validateModule(module: Module)
+
+  abstract fun loadClassFileFromJar(project: Project, jarPath: Path, entryPath: String): ByteArray?
 
   override fun findClassFile(fqcn: String): ClassContent? {
     return if (module.isAndroidModule()) {
-      module.getCompileOutputs(scope).findClass(fqcn)
+      module.getCompileOutputs(scope, this).findClass(fqcn)
     } else {
-      module.findAndroidModule()?.getCompileOutputs(scope)?.findClass(fqcn)
+      module.findAndroidModule()?.getCompileOutputs(scope, this)?.findClass(fqcn)
     }
   }
 
   companion object {
-    /** Create a [SourceSetModuleClassFileFinder] that includes dependencies of the given [module] excluding any tests. */
-    fun createWithoutTests(module: Module) = SourceSetModuleClassFileFinder(module, CompileRootsScope.MAIN)
+    fun createWithoutTests(module: Module): ClassFileFinder =
+      module.getModuleSystem().createModuleClassFileFinder(EnumSet.of(ScopeType.MAIN))
 
-    /** Create a [SourceSetModuleClassFileFinder] that includes dependencies of the given [module] including `androidTest` tests. */
-    fun createIncludingAndroidTest(module: Module) = SourceSetModuleClassFileFinder(module, CompileRootsScope.MAIN_AND_ANDROID_TEST)
+    fun createIncludingAndroidTest(module: Module): ClassFileFinder =
+      module.getModuleSystem().createModuleClassFileFinder(EnumSet.of(ScopeType.MAIN, ScopeType.ANDROID_TEST))
 
-    /** Create a [SourceSetModuleClassFileFinder] that includes dependencies of the given [module] including `screenshotTest` tests. */
-    fun createIncludingScreenshotTest(module: Module) = SourceSetModuleClassFileFinder(module, CompileRootsScope.MAIN_AND_SCREENSHOT_TEST)
+    fun createIncludingScreenshotTest(module: Module): ClassFileFinder =
+      module.getModuleSystem().createModuleClassFileFinder(EnumSet.of(ScopeType.MAIN, ScopeType.SCREENSHOT_TEST))
 
     private val LOG = Logger.getInstance(SourceSetModuleClassFileFinder::class.java)
   }

@@ -48,6 +48,7 @@ import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.PsiPackage
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.ui.AppUIUtil
+import java.util.EnumSet
 import java.util.concurrent.CountDownLatch
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -106,7 +107,7 @@ constructor(
       }
     ApplicationManager.getApplication()
       .extensionArea
-      .getExtensionPoint(ApplicationProjectContextProvider.Companion.EP_NAME)
+      .getExtensionPoint(ApplicationProjectContextProvider.EP_NAME)
       .registerExtension(provider, project)
   }
 
@@ -171,6 +172,8 @@ constructor(
         object : ClassFileFinder {
           override fun findClassFile(fqcn: String): ClassContent? = null
         }
+
+      override fun createModuleClassFileFinder(scopes: EnumSet<ScopeType>): ClassFileFinder = moduleClassFileFinder
 
       override fun analyzeDependencyCompatibility(
         dependencies: List<TestRegisteredDependencyId>

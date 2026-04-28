@@ -32,6 +32,7 @@ import com.google.wireless.android.sdk.stats.TestLibraries
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
+import java.util.EnumSet
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -74,6 +75,10 @@ interface AndroidModuleSystem : SampleDataDirectoryProvider, ModuleHierarchyProv
   /** [ClassFileFinder] that uses this module as scope for the search. */
   @Deprecated("ClassFileFinder needs to be requested in a context of a specific file. Talk to @xof or @solodkyy about alternatives.")
   val moduleClassFileFinder: ClassFileFinder
+
+  /** [ClassFileFinder] that uses a specific scope for the search. */
+  @Deprecated("ClassFileFinder needs to be requested in a context of a specific file. Talk to @xof or @solodkyy about alternatives.")
+  fun createModuleClassFileFinder(scopes: EnumSet<ScopeType>): ClassFileFinder
 
   /**
    * Requests information about the folder layout for the module. This can be used to determine where files of various types should be

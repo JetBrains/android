@@ -86,6 +86,8 @@ class DefaultModuleSystem(override val module: Module) :
 
   override val moduleClassFileFinder: ClassFileFinder = ProductionModuleClassFileFinder(module)
 
+  override fun createModuleClassFileFinder(scopes: java.util.EnumSet<ScopeType>): ClassFileFinder = ProductionModuleClassFileFinder(module)
+
   override fun hasResolvedDependency(id: WellKnownMavenArtifactId, scope: DependencyScopeType): Boolean = false
 
   override fun getResourceModuleDependencies() =

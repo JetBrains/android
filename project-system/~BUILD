@@ -22,6 +22,7 @@ iml_module(
         "//tools/base/ddmlib-studio:studio.android.sdktools.ddmlib-studio",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/render-resources:intellij.android.render-resources",
+        "//tools/base/flags:studio.android.sdktools.flags",
     ],
 )
 

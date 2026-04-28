@@ -27,11 +27,11 @@ import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
+import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
-import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.projectsystem.gradle.isAndroidTestModule
 import com.android.tools.idea.projectsystem.gradle.isHolderModule
 import com.android.tools.idea.projectsystem.gradle.isMainModule
@@ -61,6 +61,7 @@ import com.intellij.serviceContainer.AlreadyDisposedException
 import java.io.File
 import java.lang.ref.WeakReference
 import java.nio.file.Path
+import java.util.EnumSet
 import java.util.WeakHashMap
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.jvm.jvmName
@@ -116,11 +117,13 @@ class GradleBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Grad
           val module = buildTargetReference.moduleIfNotDisposed ?: return null
           val gradleModuleSystem = module.getModuleSystem() as GradleModuleSystem
           return when {
-            module.isMainModule() -> gradleModuleSystem.moduleClassFileFinder
-            module.isAndroidTestModule() -> gradleModuleSystem.androidTestsClassFileFinder
-            module.isScreenshotTestModule() -> gradleModuleSystem.screenshotTestsClassFileFinder
+            module.isMainModule() -> gradleModuleSystem.createModuleClassFileFinder(EnumSet.of(ScopeType.MAIN))
+            module.isAndroidTestModule() ->
+              gradleModuleSystem.createModuleClassFileFinder(EnumSet.of(ScopeType.MAIN, ScopeType.ANDROID_TEST))
+            module.isScreenshotTestModule() ->
+              gradleModuleSystem.createModuleClassFileFinder(EnumSet.of(ScopeType.MAIN, ScopeType.SCREENSHOT_TEST))
             module.isHolderModule() ->
-              module.getMainModule().getModuleSystem().moduleClassFileFinder.also {
+              gradleModuleSystem.createModuleClassFileFinder(EnumSet.of(ScopeType.MAIN)).also {
                 thisLogger()
                   .error(
                     "ClassFileFinder for $module holder module requested. This is ambiguous. Falling back to the main module.",
