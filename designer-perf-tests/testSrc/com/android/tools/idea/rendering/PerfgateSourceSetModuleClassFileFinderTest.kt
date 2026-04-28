@@ -34,7 +34,7 @@ import com.android.ide.common.util.PathString
 import com.android.tools.idea.gradle.model.impl.toImpl
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
-import com.android.tools.idea.projectsystem.gradle.GradleClassFileFinder
+import com.android.tools.idea.projectsystem.gradle.SourceSetModuleClassFileFinder
 import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -150,7 +150,7 @@ private class ContentGenerator(
   }
 }
 
-class PerfgateGradleClassFileFinderTest {
+class PerfgateSourceSetModuleClassFileFinderTest {
   companion object {
     val benchmark =
       Benchmark.Builder("DesignTools GradleClassFinder Manager Benchmark")
@@ -190,8 +190,8 @@ class PerfgateGradleClassFileFinderTest {
 
     repeat(NUMBER_OF_SAMPLES) {
       val stopWatch = Stopwatch.createStarted()
-      val gradleClassFinder = GradleClassFileFinder.createWithoutTests(projectRule.module.getMainModule())
-      classesToQuery.forEach { assertNotNull(gradleClassFinder.findClassFile(it)) }
+      val classFinder = SourceSetModuleClassFileFinder.createWithoutTests(projectRule.module.getMainModule())
+      classesToQuery.forEach { assertNotNull(classFinder.findClassFile(it)) }
       samples.add(Metric.MetricSample(System.currentTimeMillis(), stopWatch.elapsed().toMillis()))
     }
     Metric("gradle_class_finder_cached_roots_time").apply {
@@ -218,8 +218,8 @@ class PerfgateGradleClassFileFinderTest {
       projectRule.project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
       runInEdtAndWait { UIUtil.dispatchAllInvocationEvents() }
       val stopWatch = Stopwatch.createStarted()
-      val gradleClassFinder = GradleClassFileFinder.createWithoutTests(projectRule.module.getMainModule())
-      classesToQuery.forEach { assertNotNull(gradleClassFinder.findClassFile(it)) }
+      val classFinder = SourceSetModuleClassFileFinder.createWithoutTests(projectRule.module.getMainModule())
+      classesToQuery.forEach { assertNotNull(classFinder.findClassFile(it)) }
       samples.add(Metric.MetricSample(System.currentTimeMillis(), stopWatch.elapsed().toMillis()))
     }
     Metric("gradle_class_finder_invalidated_roots_time").apply {

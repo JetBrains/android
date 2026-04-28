@@ -139,9 +139,11 @@ class GradleModuleSystem(
         null -> Type.TYPE_NON_ANDROID
       }
 
-  override val moduleClassFileFinder by lazy { GradleClassFileFinder.createWithoutTests(module) }
-  internal val androidTestsClassFileFinder: ClassFileFinder by lazy { GradleClassFileFinder.createIncludingAndroidTest(module) }
-  internal val screenshotTestsClassFileFinder: ClassFileFinder by lazy { GradleClassFileFinder.createIncludingScreenshotTest(module) }
+  override val moduleClassFileFinder by lazy { SourceSetModuleClassFileFinder.createWithoutTests(module) }
+  internal val androidTestsClassFileFinder: ClassFileFinder by lazy { SourceSetModuleClassFileFinder.createIncludingAndroidTest(module) }
+  internal val screenshotTestsClassFileFinder: ClassFileFinder by lazy {
+    SourceSetModuleClassFileFinder.createIncludingScreenshotTest(module)
+  }
 
   private val dependencyCompatibility = GradleDependencyCompatibilityAnalyzer(this, projectBuildModelHandler)
 

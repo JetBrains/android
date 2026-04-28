@@ -134,7 +134,7 @@ private fun Module.getNonCachedCompileOutputsIncludingDependencies(scope: Compil
         .toList(),
       JarManager.getInstance(project),
     )
-    .also { Logger.getInstance(GradleClassFileFinder::class.java).debug("CompileRoots recalculated $it") }
+    .also { Logger.getInstance(SourceSetModuleClassFileFinder::class.java).debug("CompileRoots recalculated $it") }
 
 /** Returns a set containing the current [Module] and all its direct and transitive dependencies. */
 fun Module.getAllDependencies(includeAndroidTests: Boolean): Set<Module> {
@@ -211,11 +211,12 @@ private fun Module.getCompileOutputs(scope: CompileRootsScope): CompileRoots {
 }
 
 /** A [ClassFileFinder] that finds classes into the compile roots of a Gradle project. */
-class GradleClassFileFinder private constructor(private val module: Module, private val scope: CompileRootsScope) : ClassFileFinder {
+class SourceSetModuleClassFileFinder private constructor(private val module: Module, private val scope: CompileRootsScope) :
+  ClassFileFinder {
 
   init {
     if (module.isLinkedAndroidModule() && module.isHolderModule()) {
-      LOG.error("Using GradleClassFileFinder with a holder module is basically never right.")
+      LOG.error("Using SourceSetModuleClassFileFinder with a holder module is basically never right.")
     }
   }
 
@@ -228,15 +229,15 @@ class GradleClassFileFinder private constructor(private val module: Module, priv
   }
 
   companion object {
-    /** Create a [GradleClassFileFinder] that includes dependencies of the given [module] excluding any tests. */
-    fun createWithoutTests(module: Module) = GradleClassFileFinder(module, CompileRootsScope.MAIN)
+    /** Create a [SourceSetModuleClassFileFinder] that includes dependencies of the given [module] excluding any tests. */
+    fun createWithoutTests(module: Module) = SourceSetModuleClassFileFinder(module, CompileRootsScope.MAIN)
 
-    /** Create a [GradleClassFileFinder] that includes dependencies of the given [module] including `androidTest` tests. */
-    fun createIncludingAndroidTest(module: Module) = GradleClassFileFinder(module, CompileRootsScope.MAIN_AND_ANDROID_TEST)
+    /** Create a [SourceSetModuleClassFileFinder] that includes dependencies of the given [module] including `androidTest` tests. */
+    fun createIncludingAndroidTest(module: Module) = SourceSetModuleClassFileFinder(module, CompileRootsScope.MAIN_AND_ANDROID_TEST)
 
-    /** Create a [GradleClassFileFinder] that includes dependencies of the given [module] including `screenshotTest` tests. */
-    fun createIncludingScreenshotTest(module: Module) = GradleClassFileFinder(module, CompileRootsScope.MAIN_AND_SCREENSHOT_TEST)
+    /** Create a [SourceSetModuleClassFileFinder] that includes dependencies of the given [module] including `screenshotTest` tests. */
+    fun createIncludingScreenshotTest(module: Module) = SourceSetModuleClassFileFinder(module, CompileRootsScope.MAIN_AND_SCREENSHOT_TEST)
 
-    private val LOG = Logger.getInstance(GradleClassFileFinder::class.java)
+    private val LOG = Logger.getInstance(SourceSetModuleClassFileFinder::class.java)
   }
 }
