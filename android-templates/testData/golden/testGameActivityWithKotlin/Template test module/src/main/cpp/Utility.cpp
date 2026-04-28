@@ -1,3 +1,4 @@
+// This file should not be edited manually! See go/template-diff-tests
 #include "Utility.h"
 #include "AndroidOut.h"
 

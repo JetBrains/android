@@ -1,3 +1,4 @@
+// This file should not be edited manually! See go/template-diff-tests
 #include <jni.h>
 
 #include <game-activity/native_app_glue/android_native_app_glue.h>

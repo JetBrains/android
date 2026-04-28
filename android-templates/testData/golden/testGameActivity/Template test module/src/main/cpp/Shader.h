@@ -1,3 +1,4 @@
+// This file should not be edited manually! See go/template-diff-tests
 #ifndef ANDROIDGLINVESTIGATIONS_SHADER_H
 #define ANDROIDGLINVESTIGATIONS_SHADER_H
 

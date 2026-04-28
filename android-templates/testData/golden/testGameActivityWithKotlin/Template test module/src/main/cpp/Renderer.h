@@ -1,3 +1,4 @@
+// This file should not be edited manually! See go/template-diff-tests
 #ifndef ANDROIDGLINVESTIGATIONS_RENDERER_H
 #define ANDROIDGLINVESTIGATIONS_RENDERER_H
 

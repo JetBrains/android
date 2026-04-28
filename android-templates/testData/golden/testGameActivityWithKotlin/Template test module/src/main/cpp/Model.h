@@ -1,3 +1,4 @@
+// This file should not be edited manually! See go/template-diff-tests
 #ifndef ANDROIDGLINVESTIGATIONS_MODEL_H
 #define ANDROIDGLINVESTIGATIONS_MODEL_H
 
