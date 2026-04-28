@@ -49,12 +49,17 @@ class LeakCanaryHeapDumper(private val profilers: StudioProfilers) {
   lateinit var onHostAnalysisFinished: (Analysis, Long, Long, Long) -> Unit
   lateinit var onAnalysisProgress: (Int) -> Unit
   lateinit var onFatalError: (LeakCanaryProcessingErrorCode, String) -> Unit
+  lateinit var onResetRetainedObjectCount: () -> Unit
 
-  /** This function orchestrates the entire host-side analysis workflow. */
-  fun triggerAndAnalyze() {
+  /**
+   * This function orchestrates the entire host-side analysis workflow.
+   *
+   * @return true if the heap dump process was successfully started, false if it was ignored because a dump is already running.
+   */
+  fun triggerAndAnalyze(): Boolean {
     if (!isHeapDumpInProgress.compareAndSet(false, true)) {
       logger.info("Host analysis is already in progress. Ignoring trigger.")
-      return
+      return false
     }
 
     try {
@@ -66,6 +71,11 @@ class LeakCanaryHeapDumper(private val profilers: StudioProfilers) {
       val downloadDurationMs = System.currentTimeMillis() - downloadStartTime
       val hprofFileSizeBytes = hprofFile.length()
       analyzeAndHandleResult(hprofFile, hprofFileSizeBytes, downloadDurationMs)
+
+      // Temporarily set to 0 to prevent the UI from flickering back to the old, pre-dump count
+      // during the 2-3 seconds it takes the device to process the completion command and broadcast its true count.
+      onResetRetainedObjectCount()
+
       sendHeapDumpCompleteCommand(heapDumpEndTime)
       logger.info("Host analysis process completed.")
     } catch (e: OutOfMemoryError) {
@@ -85,6 +95,7 @@ class LeakCanaryHeapDumper(private val profilers: StudioProfilers) {
     } finally {
       isHeapDumpInProgress.set(false)
     }
+    return true
   }
 
   /** Sends a HEAP_DUMP command and returns its ID. */

@@ -63,14 +63,18 @@ fun LeakCanaryActionBar(leakCanaryModel: LeakCanaryModel) {
   val objectRetainedCount by leakCanaryModel.objectRetainedCount.collectAsState()
   val retainedObjectThreshold by leakCanaryModel.retainedObjectThreshold.collectAsState()
   val isStopping by leakCanaryModel.isStopping.collectAsState()
-  val isForceDumpEnabled = objectRetainedCount != 0 && objectRetainedCount < retainedObjectThreshold && !isStopping
+  val isForceDumpExecuting by leakCanaryModel.isForceDumpExecuting.collectAsState()
+  val isForceDumpEnabled = objectRetainedCount > 0 && objectRetainedCount < retainedObjectThreshold && !isStopping && !isForceDumpExecuting
+
   if (isRecording) {
     Row(modifier = Modifier.fillMaxWidth().padding(TASK_ACTION_BAR_CONTENT_PADDING_DP), verticalAlignment = Alignment.CenterVertically) {
       RecordingTimer(leakCanaryModel)
       Spacer(modifier = Modifier.weight(1f))
       HeapDumpAndAnalysisStatus(leakCanaryModel)
       Spacer(modifier = Modifier.width(8.dp))
-      DefaultButton(onClick = { leakCanaryModel.forceHeapDump() }, enabled = isForceDumpEnabled) { Text(LEAKCANARY_FORCE_DUMP) }
+      DefaultButton(onClick = { leakCanaryModel.forceHeapDump(isUserInitiated = true) }, enabled = isForceDumpEnabled) {
+        Text(LEAKCANARY_FORCE_DUMP)
+      }
       Spacer(modifier = Modifier.width(8.dp))
       DefaultButton(onClick = { leakCanaryModel.requestStopRecording() }, enabled = !isStopping) { Text(ACTION_BAR_STOP_RECORDING) }
     }

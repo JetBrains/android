@@ -91,6 +91,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
           }
           onAnalysisProgress = { progress -> setAnalysisProgress(progress) }
           onFatalError = { error, message -> handleLeakCanaryFatalError(error, message) }
+          onResetRetainedObjectCount = { profilers.ideServices.mainExecutor.execute { setObjectRetainedCount(0) } }
         }
   }
 
@@ -112,6 +113,8 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
   val isLeakCanaryPresent = _isLeakCanaryPresent.asStateFlow()
   private val _isStopping = MutableStateFlow(false)
   val isStopping = _isStopping.asStateFlow()
+  private val _isForceDumpExecuting = MutableStateFlow(false)
+  val isForceDumpExecuting = _isForceDumpExecuting.asStateFlow()
 
   @VisibleForTesting var leakcanaryMode = StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE
 
@@ -199,6 +202,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
   fun startListening() {
     logger.info("Starting LeakCanary tracking.")
     updateModeFromSettings()
+    _isForceDumpExecuting.value = false
     profilers.updater.register(this)
     setIsRecording(true)
     checkPresenceAndFetchThreshold()
@@ -273,13 +277,19 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
    * In ON_DEVICE mode, it sends a command to the device to trigger LeakCanary's internal heap dumper. In ON_HOST mode, it triggers the
    * Studio-side heap dumper (LeakCanaryHeapDumper).
    */
-  fun forceHeapDump() {
-    logger.info("User requested force heap dump.")
-    myTaskTracker.trackLeakCanaryUiAction(LeakCanaryUiAction.FORCE_DUMP_CLICKED)
+  fun forceHeapDump(isUserInitiated: Boolean = false) {
+    if (isUserInitiated) {
+      logger.info("User requested force heap dump.")
+      myTaskTracker.trackLeakCanaryUiAction(LeakCanaryUiAction.FORCE_DUMP_CLICKED)
+    } else {
+      logger.info("Automatically triggered heap dump.")
+    }
+    _isForceDumpExecuting.value = true // Disable the Force Dump button
     if (leakcanaryMode == StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE) {
       profilers.ideServices.poolExecutor.execute {
         if (!LeakCanaryTaskHandler.attachAgentAndWait(profilers, sessionData.streamId, profilers.process)) {
           logger.warn("PROFILER: Agent attachment failed. Skipping FORCE_DUMP_LEAKCANARY_ON_DEVICE command.")
+          _isForceDumpExecuting.value = false // Re-enable the Force Dump button if agent attachment fails
           return@execute
         }
 
@@ -301,10 +311,17 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
             "Failed to execute FORCE_DUMP_LEAKCANARY_ON_DEVICE command. streamId: ${forceDumpCommand.streamId}, pid: ${forceDumpCommand.pid}, sessionId: ${forceDumpCommand.sessionId}",
             e,
           )
+          _isForceDumpExecuting.value = false // Re-enable the Force Dump button if transport fails immediately
         }
       }
     } else {
-      profilers.ideServices.poolExecutor.execute { heapDumper.triggerAndAnalyze() }
+      profilers.ideServices.poolExecutor.execute {
+        if (!heapDumper.triggerAndAnalyze()) {
+          // The click was ignored because a dump was already running.
+          // Re-enable the UI button so it accurately reflects the system state.
+          _isForceDumpExecuting.value = false
+        }
+      }
     }
   }
 
@@ -541,6 +558,8 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
     downloadDurationMs: Long? = null,
     heapDumpAnalysisTimeMs: Long? = null,
   ) {
+    _isForceDumpExecuting.value = false // Safely re-enable the Force Dump button
+
     if (analysis == null) {
       myTaskTracker.trackProcessingTaskFailed(
         TaskProcessingFailedMetadata(leakCanaryProcessingStatus = LeakCanaryProcessingErrorCode.PARSING_FAILURE)
@@ -784,6 +803,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
 
   fun handleLeakCanaryFatalError(error: LeakCanaryProcessingErrorCode, message: String) {
     logger.error("LeakCanary Fatal Error ($error): $message")
+    _isForceDumpExecuting.value = false // Re-enable the Force Dump button on fatal error
     myTaskTracker.trackProcessingTaskFailed(TaskProcessingFailedMetadata(leakCanaryProcessingStatus = error))
 
     // Show IDE balloon notification
