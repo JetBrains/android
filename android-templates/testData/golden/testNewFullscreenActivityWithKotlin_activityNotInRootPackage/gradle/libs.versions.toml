@@ -1,3 +1,4 @@
+# This file should not be edited manually! See go/template-diff-tests
 [versions]
 agp = "9.3.0-dev"
 coreKtx = "1.10.1"
