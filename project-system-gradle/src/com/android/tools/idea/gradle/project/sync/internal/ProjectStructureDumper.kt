@@ -459,7 +459,6 @@ private fun ProjectDumper.dump(compilerArguments: CommonCompilerArguments) {
     compilerArguments.commonSources?.forEach { prop("- commonSources") { it } }
     compilerArguments.disablePhases?.forEach { prop("- disablePhases") { it } }
     prop("dumpPerf") { compilerArguments.dumpPerf }
-    prop("intellijPluginRoot") { compilerArguments.intellijPluginRoot }
     prop("kotlinHome") { compilerArguments.kotlinHome }
     prop("languageVersion") { compilerArguments.languageVersion?.replaceKotlinMajorMinorVersion() }
     prop("listPhases") { compilerArguments.listPhases.takeIf { it }?.toString() }

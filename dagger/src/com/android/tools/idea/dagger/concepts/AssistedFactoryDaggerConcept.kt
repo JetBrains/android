@@ -36,9 +36,9 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiType
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
+import com.intellij.psi.util.parentOfType
 import com.intellij.util.containers.sequenceOfNotNull
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.kotlin.analysis.utils.printer.parentOfType
 import org.jetbrains.kotlin.idea.core.script.v1.readString
 import org.jetbrains.kotlin.idea.core.script.v1.writeString
 import org.jetbrains.kotlin.name.ClassId
