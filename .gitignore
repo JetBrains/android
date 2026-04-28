@@ -14,4 +14,5 @@ tools-base
 **/testData/KotlinDsl/.gradle
 .idea/google-java-format.xml
 .idea/inspectionProfiles
+**/AGENTS.local.md
 /tools-base
