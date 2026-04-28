@@ -165,11 +165,15 @@ class BlazeAndroidDeployInfoTest {
 }
 
 private class TestOutputArtifact(val artifact: String) : OutputArtifact {
-  override fun getArtifactPathPrefixLength(): Int = 3
+  override val artifactPath: Path
+    get() = Path.of("bazel-out/k8/bin").resolve(artifact)
 
-  override fun getArtifactPath(): Path = Path.of("bazel-out/k8/bin").resolve(artifact)
+  override val artifactPathPrefixLength: Int
+    get() = 3
 
-  override fun getLength(): Long = 123
+  override val digest: String
+    get() = "HASH OF: $artifact"
 
-  override fun getDigest(): String = "HASH OF: $artifact"
+  override val length: Long
+    get() = 123
 }

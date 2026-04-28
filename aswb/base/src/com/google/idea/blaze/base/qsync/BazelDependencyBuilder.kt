@@ -402,7 +402,7 @@ class BuildDependenciesBazelInvocationInfo(
     val startTime = System.currentTimeMillis()
     val totalFilesToFetch = artifactInfoFiles.size + compileJdepsFiles.size + ccArtifactInfoFiles.size
     val totalBytesToFetch =
-      artifactInfoFiles.sumOf { it.getLength() } + compileJdepsFiles.sumOf { it.getLength() } + ccArtifactInfoFiles.sumOf { it.getLength() }
+      artifactInfoFiles.sumOf { it.length } + compileJdepsFiles.sumOf { it.length } + ccArtifactInfoFiles.sumOf { it.length }
 
     val shouldLog = totalFilesToFetch > FILE_NUMBER_LOG_THRESHOLD || totalBytesToFetch > FETCH_SIZE_LOG_THRESHOLD
     if (shouldLog) {
@@ -462,12 +462,12 @@ class BuildDependenciesBazelInvocationInfo(
     context.output(PrintOutput.output("Fetched ${artifactInfoFiles.size} info files in ${sw.elapsed().toMillis()}ms"))
     val artifactFutures =
       artifactInfoFiles.mapNotNull { outputArtifact ->
-        val result = buildArtifactCache.get(outputArtifact.getDigest()).getOrNull()
+        val result = buildArtifactCache.get(outputArtifact.digest).getOrNull()
         if (result == null) {
-          context.output(PrintOutput.error("Failed to get artifact future for: ${outputArtifact.getDigest()}"))
+          context.output(PrintOutput.error("Failed to get artifact future for: ${outputArtifact.digest}"))
           context.setHasError()
         }
-        result?.transform(directExecutor()) { cachedArtifact -> outputArtifact.getArtifactPath() to cachedArtifact }
+        result?.transform(directExecutor()) { cachedArtifact -> outputArtifact.artifactPath to cachedArtifact }
       }
 
     val futures =

@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.base.io;
 
-import com.google.idea.blaze.common.artifact.OutputArtifactWithoutDigest;
 import com.intellij.openapi.application.ApplicationManager;
 import java.io.File;
 import java.io.IOException;

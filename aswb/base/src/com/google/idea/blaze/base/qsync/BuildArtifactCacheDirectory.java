@@ -45,7 +45,6 @@ import com.google.idea.blaze.common.artifact.ArtifactFetcher.ArtifactDestination
 import com.google.idea.blaze.common.artifact.BuildArtifactCache;
 import com.google.idea.blaze.common.artifact.CachedArtifact;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
-import com.google.idea.blaze.common.artifact.OutputArtifactWithoutDigest;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.project.QuerySyncProjectDirectory;
 import com.intellij.openapi.project.Project;
@@ -125,11 +124,13 @@ public class BuildArtifactCacheDirectory implements BuildArtifactCache {
 
   public BuildArtifactCacheDirectory(Project project) throws BuildException {
     this(
-      Blaze.getBuildSystemProvider(project).getProjectDirectoryConfigurator(project).configureDirectory(QuerySyncProjectDirectory.BUILD_CACHE),
-      project.getService(ArtifactFetcher.class),
-      MoreExecutors.listeningDecorator(
-        AppExecutorUtil.createBoundedApplicationPoolExecutor("BuildArtifactCache", 128)),
-      project.getService(CleanRequest.class));
+        Blaze.getBuildSystemProvider(project)
+            .getProjectDirectoryConfigurator(project)
+            .configureDirectory(QuerySyncProjectDirectory.BUILD_CACHE),
+        project.getService(ArtifactFetcher.class),
+        MoreExecutors.listeningDecorator(
+            AppExecutorUtil.createBoundedApplicationPoolExecutor("BuildArtifactCache", 128)),
+        project.getService(CleanRequest.class));
   }
 
   public BuildArtifactCacheDirectory(
@@ -277,31 +278,37 @@ public class BuildArtifactCacheDirectory implements BuildArtifactCache {
    */
   @Override
   public ListenableFuture<?> addAll(
-    Collection<? extends OutputArtifact> artifacts, Context<?> context) {
+      Collection<? extends OutputArtifact> artifacts, Context<?> context) {
     // acquire the read lock to ensure that no clean is ongoing:
     long stamp = lock.readLock();
     try {
       synchronized (activeFetches) {
         Instant accessTime = Instant.now();
         // filter out any duplicate artifacts, and those for which there is already a fetch pending:
-        final var allDistinctArtifacts = artifacts.stream()
-          .filter(distinctBy(OutputArtifact::getDigest))
-          .collect(toImmutableList());
+        final var allDistinctArtifacts =
+            artifacts.stream()
+                .filter(distinctBy(OutputArtifact::getDigest))
+                .collect(toImmutableList());
         ImmutableList<OutputArtifact> allDistinctNotBeingFetchedArtifacts =
-          allDistinctArtifacts.stream()
-            .filter(a -> !activeFetches.containsKey(a.getDigest()))
-            .collect(toImmutableList());
+            allDistinctArtifacts.stream()
+                .filter(a -> !activeFetches.containsKey(a.getDigest()))
+                .collect(toImmutableList());
         // group them based on whether the artifact is already cached
         ImmutableListMultimap<Boolean, OutputArtifact> artifactsByPresence =
-          Multimaps.index(allDistinctNotBeingFetchedArtifacts, this::contains);
+            Multimaps.index(allDistinctNotBeingFetchedArtifacts, this::contains);
 
         // Fetch absent artifacts
         ImmutableList<OutputArtifact> missingArtifactsToFetch = artifactsByPresence.get(false);
-        long totalSize = missingArtifactsToFetch.stream().collect(Collectors.summarizingLong(OutputArtifactWithoutDigest::getLength)).getSum();
-        context.output(PrintOutput.output("Fetching %d new artifacts (%,.2f MB) out of %d requested...",
-                                          missingArtifactsToFetch.size(),
-                                          (totalSize / (1000f*1000)),
-                                          allDistinctArtifacts.size()));
+        long totalSize =
+            missingArtifactsToFetch.stream()
+                .collect(Collectors.summarizingLong(OutputArtifact::getLength))
+                .getSum();
+        context.output(
+            PrintOutput.output(
+                "Fetching %d new artifacts (%,.2f MB) out of %d requested...",
+                missingArtifactsToFetch.size(),
+                (totalSize / (1000f * 1000)),
+                allDistinctArtifacts.size()));
 
         ListenableFuture<?> fetch = startFetch(missingArtifactsToFetch, accessTime, context);
         context.addCancellationHandler(() -> fetch.cancel(false));
@@ -310,10 +317,12 @@ public class BuildArtifactCacheDirectory implements BuildArtifactCache {
         // the future will be used to wait until the fetch is complete.
         // They are unmarked by the future listener above.
         markAsActive(missingArtifactsToFetch, fetch);
-        fetch.addListener(() -> {
-          context.output(PrintOutput.output("Downloading done."));
-          unmarkAsActive(missingArtifactsToFetch);
-        }, directExecutor());
+        fetch.addListener(
+            () -> {
+              context.output(PrintOutput.output("Downloading done."));
+              unmarkAsActive(missingArtifactsToFetch);
+            },
+            directExecutor());
 
         // Update metadata for present artifacts
         ListenableFuture<?> metadataUpdate =
@@ -430,7 +439,8 @@ public class BuildArtifactCacheDirectory implements BuildArtifactCache {
     // Ensure that no artifacts are added or read from the cache while we're cleaning:
     long stamp = lock.tryWriteLock();
     if (stamp == 0) {
-      logger.warning("Failed to clean the build cache at " + cacheDir + " Failed to obtain the write lock");
+      logger.warning(
+          "Failed to clean the build cache at " + cacheDir + " Failed to obtain the write lock");
       return; // Just exit. WE will clean the cache next time.
     }
     try {
@@ -470,21 +480,25 @@ public class BuildArtifactCacheDirectory implements BuildArtifactCache {
       if (remainingSize <= maxTargetSize) {
         // size target reached
         logger.info(
-          String.format(
-            Locale.ROOT,
-            "Reached target cache size: %d<=%d; deleted %d entries",
-            remainingSize, maxTargetSize, deleted));
+            String.format(
+                Locale.ROOT,
+                "Reached target cache size: %d<=%d; deleted %d entries",
+                remainingSize,
+                maxTargetSize,
+                deleted));
         return;
       }
       if (queue.peek().lastAccessTime().toInstant().isAfter(minAgeToDelete)) {
         // the oldest artifact is newer than the minimum age, so we stop deleting artifacts even
         // though the cache is bigger than the max size.
         logger.info(
-          String.format(
-            Locale.ROOT,
-            "Not deleting entries accessed since %s; remaining cache size=%d; deleted %d"
-            + " entries",
-            minAgeToDelete, remainingSize, deleted));
+            String.format(
+                Locale.ROOT,
+                "Not deleting entries accessed since %s; remaining cache size=%d; deleted %d"
+                    + " entries",
+                minAgeToDelete,
+                remainingSize,
+                deleted));
         return;
       }
 
@@ -500,7 +514,8 @@ public class BuildArtifactCacheDirectory implements BuildArtifactCache {
     long stamp = lock.tryWriteLock();
     if (stamp == 0) {
       // TODO: b/373957467 - Report this error to the user properly.
-      throw new BuildException("Failed to purge the build artifact cache. Cannot obtain the write lock.");
+      throw new BuildException(
+          "Failed to purge the build artifact cache. Cannot obtain the write lock.");
     }
     try {
       MoreFiles.deleteDirectoryContents(cacheDir);

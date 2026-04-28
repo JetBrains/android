@@ -189,7 +189,7 @@ private fun Sequence<NamedFileSet>.toDistinctOutputArtifacts(): Sequence<OutputA
   val emitted = HashSet<String>()
   return flatMap { fileSet ->
     val artifacts = parseFiles(fileSet.fileSet, fileSet.startTimeMillis)
-    artifacts.mapNotNull { artifact -> if (emitted.add(artifact.getArtifactPath().toString())) artifact else null }
+    artifacts.mapNotNull { artifact -> if (emitted.add(artifact.artifactPath.toString())) artifact else null }
   }
 }
 

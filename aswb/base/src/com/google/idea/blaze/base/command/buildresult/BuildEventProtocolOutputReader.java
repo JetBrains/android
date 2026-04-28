@@ -24,10 +24,10 @@ import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStream
 import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider.BuildEventStreamException;
 import com.google.idea.blaze.base.command.buildresult.bepparser.OutputArtifactParser;
 import com.google.idea.blaze.base.model.primitives.Kind;
-import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResult;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResult.TestStatus;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResults;
+import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,6 +39,7 @@ import javax.annotation.Nullable;
 public final class BuildEventProtocolOutputReader {
 
   private BuildEventProtocolOutputReader() {}
+
   /**
    * Returns all test results from {@link BuildEventStreamProvider}.
    *
@@ -74,10 +75,7 @@ public final class BuildEventProtocolOutputReader {
           label = event.getId().getTestResult().getLabel();
           results.add(
               parseTestResult(
-                  label,
-                  labelToKind.get(label),
-                  event.getTestResult(),
-                  startTimeMillis));
+                  label, labelToKind.get(label), event.getTestResult(), startTimeMillis));
           continue;
         case ACTION_COMPLETED:
           label = event.getId().getActionCompleted().getLabel();
@@ -85,11 +83,8 @@ public final class BuildEventProtocolOutputReader {
           // add a NO_STATUS test result.
           if (results.build().isEmpty()) {
             results.add(
-              parseTestResult(
-                label,
-                labelToKind.get(label),
-                event.getTestResult(),
-                startTimeMillis));
+                parseTestResult(
+                    label, labelToKind.get(label), event.getTestResult(), startTimeMillis));
           }
           continue;
         default: // continue
@@ -113,9 +108,7 @@ public final class BuildEventProtocolOutputReader {
       long startTimeMillis) {
     ImmutableSet<OutputArtifact> files =
         testResult.getTestActionOutputList().stream()
-            .map(
-                file ->
-                    parseTestFile(file, path -> path.endsWith(".xml"), startTimeMillis))
+            .map(file -> parseTestFile(file, path -> path.endsWith(".xml"), startTimeMillis))
             .filter(Objects::nonNull)
             .collect(toImmutableSet());
     return BlazeTestResult.create(
@@ -132,10 +125,8 @@ public final class BuildEventProtocolOutputReader {
 
   @Nullable
   private static OutputArtifact parseTestFile(
-      BuildEventStreamProtos.File file,
-      Predicate<String> fileFilter,
-      long startTimeMillis) {
+      BuildEventStreamProtos.File file, Predicate<String> fileFilter, long startTimeMillis) {
     OutputArtifact output = OutputArtifactParser.parseArtifact(file, startTimeMillis);
-    return output == null || !fileFilter.test(output.getBazelOutRelativePath()) ? null : output;
+    return output == null || !fileFilter.test(output.getArtifactPath().toString()) ? null : output;
   }
 }

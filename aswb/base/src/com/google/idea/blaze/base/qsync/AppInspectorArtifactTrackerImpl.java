@@ -35,9 +35,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
-/**
- * A local cache of built app inspector artifacts.
- */
+/** A local cache of built app inspector artifacts. */
 public class AppInspectorArtifactTrackerImpl implements AppInspectorArtifactTracker {
   private final BuildArtifactCache artifactCache;
   private final Path inspectorsDir;
@@ -45,10 +43,12 @@ public class AppInspectorArtifactTrackerImpl implements AppInspectorArtifactTrac
   /**
    * An in-memory storage holding the details of all previously requested application inspectors.
    *
-   * <p>Being in-memory means that the inspectors directory is cleared on each ASwB restart. This is expected. Application inspectors are
-   * for now re-built on each request and one additional copying does not really matter.
+   * <p>Being in-memory means that the inspectors directory is cleared on each ASwB restart. This is
+   * expected. Application inspectors are for now re-built on each request and one additional
+   * copying does not really matter.
    */
-  private final Map<Label, Map<Path, ProjectProto.ProjectArtifact>> knownInspectors = new HashMap<>();
+  private final Map<Label, Map<Path, ProjectProto.ProjectArtifact>> knownInspectors =
+      new HashMap<>();
 
   public AppInspectorArtifactTrackerImpl(BuildArtifactCache artifactCache, Path inspectorsDir) {
     this.artifactCache = artifactCache;
@@ -57,12 +57,11 @@ public class AppInspectorArtifactTrackerImpl implements AppInspectorArtifactTrac
 
   @Override
   public synchronized ImmutableSet<Path> update(
-    Label appInspectorTarget,
-    AppInspectorInfo appInspectorInfo,
-    Context<?> context
-  ) throws BuildException {
+      Label appInspectorTarget, AppInspectorInfo appInspectorInfo, Context<?> context)
+      throws BuildException {
     final var artifactsCachedFuture = artifactCache.addAll(appInspectorInfo.getJars(), context);
-    final var appInspectorArtifactLayout = buildAppInspectorArtifactLayout(appInspectorTarget, appInspectorInfo);
+    final var appInspectorArtifactLayout =
+        buildAppInspectorArtifactLayout(appInspectorTarget, appInspectorInfo);
     knownInspectors.put(appInspectorTarget, appInspectorArtifactLayout);
 
     final var artifactDirectoryContents = buildArtifactDirectoryContents(knownInspectors);
@@ -72,46 +71,46 @@ public class AppInspectorArtifactTrackerImpl implements AppInspectorArtifactTrac
     return resolveArtifactLayoutPaths(appInspectorTarget, appInspectorArtifactLayout.keySet());
   }
 
-  private static void waitForArtifacts(ListenableFuture<?> artifactsCachedFuture) throws BuildException {
+  private static void waitForArtifacts(ListenableFuture<?> artifactsCachedFuture)
+      throws BuildException {
     try {
       artifactsCachedFuture.get();
-    }
-    catch (InterruptedException e) {
+    } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new BuildException(e);
-    }
-    catch (ExecutionException e) {
+    } catch (ExecutionException e) {
       throw new BuildException(e);
     }
   }
 
   private ImmutableSet<Path> resolveArtifactLayoutPaths(
-    Label appInspectorTarget,
-    Set<Path> appInspectorArtifactPaths
-  ) {
+      Label appInspectorTarget, Set<Path> appInspectorArtifactPaths) {
     return appInspectorArtifactPaths.stream()
-      .map(path -> inspectorsDir.resolve(appInspectorTarget.toFilePath()).resolve(path))
-      .collect(toImmutableSet());
+        .map(path -> inspectorsDir.resolve(appInspectorTarget.toFilePath()).resolve(path))
+        .collect(toImmutableSet());
   }
 
-  private void updateArtifactDirectory(Context<?> context, ProjectProto.ArtifactDirectoryContents artifactDirectoryContents) throws BuildException {
+  private void updateArtifactDirectory(
+      Context<?> context, ProjectProto.ArtifactDirectoryContents artifactDirectoryContents)
+      throws BuildException {
     try {
       new ArtifactDirectoryUpdate(
-        inspectorsDir.getFileName().toString(),
-        artifactCache, inspectorsDir, artifactDirectoryContents)
-        .update(context);
-    }
-    catch (IOException e) {
+              inspectorsDir.getFileName().toString(),
+              artifactCache,
+              inspectorsDir,
+              artifactDirectoryContents)
+          .update(context);
+    } catch (IOException e) {
       throw new BuildException(e);
     }
   }
 
   /**
-   * Builds {@link ProjectProto.ArtifactDirectoryContents} from a map from application inspector label -> artifact path -> project artifact.
+   * Builds {@link ProjectProto.ArtifactDirectoryContents} from a map from application inspector
+   * label -> artifact path -> project artifact.
    */
   private static ProjectProto.ArtifactDirectoryContents buildArtifactDirectoryContents(
-    Map<Label, Map<Path, ProjectProto.ProjectArtifact>> knownInspectors
-  ) {
+      Map<Label, Map<Path, ProjectProto.ProjectArtifact>> knownInspectors) {
     final var contents = new HashMap<String, ProjectProto.ProjectArtifact>();
     for (final var entry : knownInspectors.entrySet()) {
       final var inspectorLabel = entry.getKey();
@@ -126,20 +125,17 @@ public class AppInspectorArtifactTrackerImpl implements AppInspectorArtifactTrac
   }
 
   private static ImmutableMap<Path, ProjectProto.ProjectArtifact> buildAppInspectorArtifactLayout(
-    Label appInspectorTarget,
-    AppInspectorInfo appInspectorInfo
-  ) {
+      Label appInspectorTarget, AppInspectorInfo appInspectorInfo) {
     final var resultBuilder = ImmutableMap.<Path, ProjectProto.ProjectArtifact>builder();
     final var buildTimetamp = Instant.now();
     for (OutputArtifact jar : appInspectorInfo.getJars()) {
       resultBuilder.put(
-        jar.getArtifactPath(),
-        new ProjectProto.ProjectArtifact(
-          appInspectorTarget,
-          new ProjectProto.BuildArtifact(jar.getDigest()),
-          buildTimetamp,
-          ProjectProto.ProjectArtifact.ArtifactTransform.COPY
-        ));
+          jar.getArtifactPath(),
+          new ProjectProto.ProjectArtifact(
+              appInspectorTarget,
+              new ProjectProto.BuildArtifact(jar.getDigest()),
+              buildTimetamp,
+              ProjectProto.ProjectArtifact.ArtifactTransform.COPY));
     }
     return resultBuilder.build();
   }

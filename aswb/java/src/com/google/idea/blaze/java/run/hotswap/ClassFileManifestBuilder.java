@@ -23,13 +23,13 @@ import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
-import com.google.idea.blaze.base.command.buildresult.LocalFileArtifact;
 import com.google.idea.blaze.base.command.buildresult.bepparser.ParsedBepOutput;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.BlazeVersionData;
 import com.google.idea.blaze.base.run.BlazeBeforeRunCommandHelper;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.ExecutorType;
+import com.google.idea.blaze.base.run.RuntimeArtifactCache;
 import com.google.idea.blaze.base.run.RuntimeArtifactKind;
 import com.google.idea.blaze.base.run.confighandler.BlazeCommandRunConfigurationRunner;
 import com.google.idea.blaze.base.scope.BlazeContext;
@@ -45,6 +45,7 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Objects;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -127,15 +128,16 @@ public class ClassFileManifestBuilder {
       }
 
       ImmutableList<File> jars =
-          LocalFileArtifact.getLocalFiles(
+          RuntimeArtifactCache.getInstance(project)
+              .fetchArtifacts(
                   Label.of(Objects.requireNonNull(configuration.getSingleTargetPattern())),
                   BlazeBuildOutputs.fromParsedBepOutput(parsedBepOutput)
                       .getOutputGroupArtifacts(JavaClasspathAspectStrategy.OUTPUT_GROUP),
                   BlazeContext.create(),
-                  project,
                   RuntimeArtifactKind.JAR)
               .stream()
-              .filter(f -> f.getName().endsWith(".jar"))
+              .filter(p -> p.getFileName().toString().endsWith(".jar"))
+              .map(Path::toFile)
               .collect(toImmutableList());
 
       ClassFileManifest oldManifest = getManifest(env);

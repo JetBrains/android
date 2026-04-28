@@ -21,12 +21,10 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.idea.blaze.base.command.buildresult.GetArtifactsException;
-import com.google.idea.blaze.base.qsync.cache.ArtifactFetchers;
-import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.Kind;
-import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.base.prefetch.FetchExecutor;
+import com.google.idea.blaze.base.qsync.cache.ArtifactFetchers;
 import com.google.idea.blaze.base.run.smrunner.BlazeXmlSchema.ErrorOrFailureOrSkipped;
 import com.google.idea.blaze.base.run.smrunner.BlazeXmlSchema.TestCase;
 import com.google.idea.blaze.base.run.smrunner.BlazeXmlSchema.TestSuite;
@@ -34,13 +32,14 @@ import com.google.idea.blaze.base.run.smrunner.TestComparisonFailureParser.Blaze
 import com.google.idea.blaze.base.run.targetfinder.FuturesUtil;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResult;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResult.TestStatus;
-import com.google.idea.blaze.base.run.testlogs.BlazeTestResultsProvider;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResults;
+import com.google.idea.blaze.base.run.testlogs.BlazeTestResultsProvider;
+import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
+import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
-import com.google.idea.blaze.common.artifact.OutputArtifactWithoutDigest;
 import com.google.idea.common.experiments.BoolExperiment;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.execution.testframework.TestConsoleProperties;
@@ -224,9 +223,9 @@ public class BlazeXmlToTestEventsConverter extends OutputToGeneralTestEventsConv
     }
     GeneralTestEventsProcessor processor = getProcessor();
     TestSuiteStarted suiteStarted = new TestSuiteStarted(label.toString());
-    processor.onSuiteStarted(new TestSuiteStartedEvent(suiteStarted, /*locationUrl=*/ null));
+    processor.onSuiteStarted(new TestSuiteStartedEvent(suiteStarted, /* locationUrl= */ null));
     String targetName = label.getName();
-    processor.onTestStarted(new TestStartedEvent(targetName, /*locationUrl=*/ null));
+    processor.onTestStarted(new TestStartedEvent(targetName, /* locationUrl= */ null));
     processor.onTestFailure(
         getTestFailedEvent(
             targetName,
@@ -235,7 +234,7 @@ public class BlazeXmlToTestEventsConverter extends OutputToGeneralTestEventsConv
             /* content= */ null,
             BlazeComparisonFailureData.NONE,
             /* duration= */ 0));
-    processor.onTestFinished(new TestFinishedEvent(targetName, /*duration=*/ 0L));
+    processor.onTestFinished(new TestFinishedEvent(targetName, /* duration= */ 0L));
     processor.onSuiteFinished(new TestSuiteFinishedEvent(label.toString()));
   }
 

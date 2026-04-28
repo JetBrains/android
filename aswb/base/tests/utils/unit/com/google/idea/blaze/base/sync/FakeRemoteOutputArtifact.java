@@ -76,6 +76,6 @@ public class FakeRemoteOutputArtifact implements RemoteOutputArtifact {
       return true;
     }
     return obj instanceof FakeRemoteOutputArtifact
-           && getBazelOutRelativePath().equals(((FakeRemoteOutputArtifact) obj).getBazelOutRelativePath());
+        && getArtifactPath().equals(((FakeRemoteOutputArtifact) obj).getArtifactPath());
   }
 }

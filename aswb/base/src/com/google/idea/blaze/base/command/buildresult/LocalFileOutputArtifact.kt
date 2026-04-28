@@ -13,15 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.idea.blaze.common.artifact;
+package com.google.idea.blaze.base.command.buildresult
 
-/** A variant of {@link OutputArtifactWithoutDigest} that includes the digest of its content. */
-public interface OutputArtifact extends OutputArtifactWithoutDigest {
-  /**
-   * The digest of the artifact file.
-   *
-   * <p>The digest of the artifact file; using the build tool's configured digest algorithm. It
-   * represents the content of the file and can be used to detect whether the content has changed.
-   */
-  String getDigest();
+import com.google.idea.blaze.base.io.FileOperationProvider
+import com.google.idea.blaze.common.artifact.OutputArtifact
+import java.io.File
+import java.nio.file.Path
+
+/** An implementation of [OutputArtifact] for local artifacts. */
+data class LocalFileOutputArtifact(
+  val file: File,
+  override val artifactPath: Path,
+  override val artifactPathPrefixLength: Int,
+  override val digest: String,
+) : OutputArtifact {
+  override val length: Long
+    get() = FileOperationProvider.getInstance().getFileSize(this.file)
 }
