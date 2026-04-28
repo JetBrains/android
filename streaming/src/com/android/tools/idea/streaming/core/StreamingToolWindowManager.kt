@@ -59,11 +59,13 @@ import com.android.tools.idea.streaming.emulator.EmulatorNotificationDispatcher
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
 import com.android.tools.idea.streaming.emulator.displayNameWithApi
+import com.android.utils.FlightRecorder
 import com.android.utils.TraceUtils.simpleId
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.intellij.icons.AllIcons
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionButtonComponent
 import com.intellij.openapi.actionSystem.ActionManager
@@ -77,6 +79,7 @@ import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -229,6 +232,9 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
   private val contentManagerListener =
     object : ContentManagerListener {
       override fun selectionChanged(event: ContentManagerEvent) {
+        FlightRecorder.log {
+          "ContentManagerListener.selectionChanged ${event.content.deviceId} contentManager: ${event.content.manager.simpleId} TEMPORARY_REMOVED_KEY: ${Content.TEMPORARY_REMOVED_KEY.get(event.content, false)}"
+        }
         if (event.operation != ContentOperation.remove || !Content.TEMPORARY_REMOVED_KEY.get(event.content, false)) {
           viewSelectionChanged()
         }
@@ -236,12 +242,16 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
 
       override fun contentAdded(event: ContentManagerEvent) {
         val content = event.content
+        FlightRecorder.log {
+          "ContentManagerListener.contentAdded ${content.deviceId} contentManager: ${content.manager.simpleId} TEMPORARY_REMOVED_KEY: ${Content.TEMPORARY_REMOVED_KEY.get(content, false)}"
+        }
         if (Content.TEMPORARY_REMOVED_KEY.get(content, false)) {
           return
         }
         content.addPropertyChangeListener { evt ->
           if (evt.propertyName == PROP_CONTENT_MANAGER) {
             val contentManager = evt.newValue as? ContentManager
+            FlightRecorder.log { "Content.PropertyChangeListener ${content.deviceId} contentManager: ${contentManager.simpleId}" }
             contentManager?.let { adoptContentManager(it) }
           }
         }
@@ -249,6 +259,9 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
 
       override fun contentRemoveQuery(event: ContentManagerEvent) {
         val content = event.content
+        FlightRecorder.log {
+          "ContentManagerListener.contentRemoveQuery ${content.deviceId} contentManager: ${content.manager.simpleId} TEMPORARY_REMOVED_KEY: ${Content.TEMPORARY_REMOVED_KEY.get(content, false)}"
+        }
         if (Content.TEMPORARY_REMOVED_KEY.get(content, false)) {
           return
         }
@@ -329,6 +342,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
     }
 
   init {
+    FlightRecorder.initialize(10000)
     Disposer.register(toolWindow.disposable, this)
     EmulatorNotificationDispatcher.getInstance() // Make sure that EmulatorNotificationDispatcher is initialized.
     RunningEmulatorCatalog.getInstance().addListener(this, EMULATOR_DISCOVERY_INTERVAL_MILLIS * 10)
@@ -805,7 +819,51 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
         }
       }
     }
+    // Diagnostics and workaround for b/505398395.
+    for (content in toolWindow.contentManager.contentsRecursively) {
+      if (predicate(content)) {
+        val contentManager = content.manager
+        val message =
+          when {
+            contentManager in contentManagers ->
+              "b/505398395 Content manager ${contentManager.simpleId} is registered but ${content.deviceId} was missed contentManagers.size: ${contentManagers.size}"
+            else ->
+              "b/505398395 Found unregistered content manager ${contentManager.simpleId} owning ${content.deviceId} contentManagers.size: ${contentManagers.size}"
+          }
+        dumpTrace(message)
+        if (ApplicationManager.getApplication().isInternal) {
+          RUNNING_DEVICES_NOTIFICATION_GROUP.createNotification(
+              "Internal error detected. Attach idea.log to b/505398395. Describe your actions preceding this error.",
+              NotificationType.ERROR,
+            )
+            .notify(project)
+        }
+        repairContentManagesBookkeeping()
+        return content
+      }
+    }
     return null
+  }
+
+  private fun dumpTrace(message: String) {
+    val trace = FlightRecorder.getAndClear()
+    if (trace.isEmpty()) {
+      logger.info("$message - no content managers registered")
+      return
+    }
+
+    val log = buildString {
+      appendLine(message)
+      appendLine("--- Content manager registration trace: ---")
+      trace.forEach { appendLine(it) }
+    }
+    logger.info(log)
+  }
+
+  private fun repairContentManagesBookkeeping() {
+    for (content in toolWindow.contentManager.contentsRecursively) {
+      content.manager?.let { adoptContentManager(it) }
+    }
   }
 
   private fun updateLiveIndicator() {
