@@ -18,6 +18,7 @@ package com.android.tools.idea.startup;
 import com.android.tools.analytics.AnalyticsPublisher;
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.analytics.AnalyticsStateManager;
 import com.android.tools.idea.IdeInfo;
 import com.android.utils.ILogger;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -130,6 +131,7 @@ public final class AndroidStudioAnalyticsImpl {
         AnalyticsSettings.setOptedIn(ijOptedIn);
         AnalyticsSettings.saveSettings();
       }
+      AnalyticsStateManager.setDataSharing(AnalyticsSettings.getOptedIn());
       UsageTracker.initialize(scheduler);
     } catch (Exception e) {
       logger.warning("Unable to initialize analytics tracker: " + e.getMessage());
