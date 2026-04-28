@@ -1,3 +1,4 @@
+<!-- This file should not be edited manually! See go/template-diff-tests -->
 <resources>
     <dimen name="item_transform_image_length">160dp</dimen>
 </resources>

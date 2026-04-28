@@ -1,3 +1,4 @@
+<!-- This file should not be edited manually! See go/template-diff-tests -->
 <resources>
     <dimen name="activity_horizontal_margin">200dp</dimen>
 </resources>

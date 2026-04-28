@@ -32,3 +32,4 @@ across the layout configurations
             app:menu="@menu/navigation_drawer" />
     </androidx.drawerlayout.widget.DrawerLayout>
 </FrameLayout>
+<!-- This file should not be edited manually! See go/template-diff-tests -->

@@ -1,3 +1,4 @@
+<!-- This file should not be edited manually! See go/template-diff-tests -->
 <resources>
     <declare-styleable name="AppWidgetAttrs">
         <attr name="appWidgetPadding" format="dimension" />

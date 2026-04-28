@@ -1,3 +1,4 @@
+<!-- This file should not be edited manually! See go/template-diff-tests -->
 <resources>
 
     <style name="Widget.App.AppWidget.Container" parent="android:Widget">

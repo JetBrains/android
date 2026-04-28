@@ -19,3 +19,4 @@
         tools:context="template.test.in.ItemDetailHostActivity"
         tools:listitem="@layout/item_list_content" />
 </androidx.constraintlayout.widget.ConstraintLayout>
+<!-- This file should not be edited manually! See go/template-diff-tests -->

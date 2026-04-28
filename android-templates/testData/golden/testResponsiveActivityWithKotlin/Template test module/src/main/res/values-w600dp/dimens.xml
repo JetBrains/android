@@ -1,3 +1,4 @@
+<!-- This file should not be edited manually! See go/template-diff-tests -->
 <resources>
     <dimen name="fragment_horizontal_margin">48dp</dimen>
     <dimen name="fab_margin">48dp</dimen>

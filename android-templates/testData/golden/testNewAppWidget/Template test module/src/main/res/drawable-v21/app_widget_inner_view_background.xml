@@ -8,3 +8,4 @@ appWidgetInnerRadius attribute value
     <corners android:radius="?attr/appWidgetInnerRadius" />
     <solid android:color="?android:attr/colorAccent" />
 </shape>
+<!-- This file should not be edited manually! See go/template-diff-tests -->

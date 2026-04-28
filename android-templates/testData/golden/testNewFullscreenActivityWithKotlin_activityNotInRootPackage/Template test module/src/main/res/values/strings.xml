@@ -1,3 +1,4 @@
+<!-- This file should not be edited manually! See go/template-diff-tests -->
 <resources>
     <string name="app_name">Template Test App Title</string>
     <string name="dummy_button">Dummy Button</string>

@@ -1,3 +1,4 @@
+<!-- This file should not be edited manually! See go/template-diff-tests -->
 <resources>
     <dimen name="text_margin">16dp</dimen>
 </resources>

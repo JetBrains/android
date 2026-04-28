@@ -11,3 +11,4 @@
    <exclude domain="sharedpref" path="device.xml"/>
 -->
 </full-backup-content>
+<!-- This file should not be edited manually! See go/template-diff-tests -->

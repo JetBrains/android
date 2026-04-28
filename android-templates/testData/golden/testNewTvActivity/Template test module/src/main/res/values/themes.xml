@@ -1,3 +1,4 @@
+<!-- This file should not be edited manually! See go/template-diff-tests -->
 <resources>
 
     <style name="Theme.App" parent="@style/Theme.Leanback" />

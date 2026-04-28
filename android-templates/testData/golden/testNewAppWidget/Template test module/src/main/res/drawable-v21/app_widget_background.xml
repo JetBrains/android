@@ -8,3 +8,4 @@ appWidgetRadius attribute value
     <corners android:radius="?attr/appWidgetRadius" />
     <solid android:color="?android:attr/colorBackground" />
 </shape>
+<!-- This file should not be edited manually! See go/template-diff-tests -->

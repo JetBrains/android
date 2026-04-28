@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- This file should not be edited manually! See go/template-diff-tests -->
 <resources>
     <!--
     Having themes.xml for night-v31 because of the priority order of the resource qualifiers.
