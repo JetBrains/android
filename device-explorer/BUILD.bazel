@@ -42,6 +42,7 @@ jvm_library(
 
 jvm_library(
   name = "device-explorer_test_lib",
+  testonly = True,
   module_name = "intellij.android.device-explorer",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
@@ -89,6 +90,7 @@ jvm_library(
 
 jvm_library(
   name = "device-explorer-integration-tests_test_lib",
+  testonly = True,
   module_name = "intellij.android.device-explorer.integration.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["integration/**/*.kt", "integration/**/*.java", "integration/**/*.form"], allow_empty = True),
@@ -134,6 +136,7 @@ jvm_library(
 
 jvm_library(
   name = "device-explorer-tests_test_lib",
+  testonly = True,
   module_name = "intellij.android.device-explorer.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),

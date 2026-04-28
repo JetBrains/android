@@ -188,6 +188,7 @@ jvm_library(
 
 jvm_library(
   name = "projectSystem-gradle_test_lib",
+  testonly = True,
   module_name = "intellij.android.projectSystem.gradle",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
@@ -394,6 +395,7 @@ jvm_library(
 
 jvm_library(
   name = "projectSystem-gradle-tests_test_lib",
+  testonly = True,
   module_name = "intellij.android.projectSystem.gradle.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),

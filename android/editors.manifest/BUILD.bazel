@@ -10,6 +10,7 @@ jvm_library(
 
 jvm_library(
   name = "editors.manifest_test_lib",
+  testonly = True,
   module_name = "intellij.android.core.editors.manifest",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),

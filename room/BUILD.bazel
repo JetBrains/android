@@ -48,6 +48,7 @@ jvm_library(
 
 jvm_library(
   name = "room_test_lib",
+  testonly = True,
   module_name = "intellij.android.room",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
@@ -105,6 +106,7 @@ jvm_library(
 
 jvm_library(
   name = "room-tests_test_lib",
+  testonly = True,
   module_name = "intellij.android.room.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),

@@ -52,6 +52,7 @@ jvm_library(
 
 jvm_library(
   name = "customview_test_lib",
+  testonly = True,
   module_name = "intellij.android.designer.customview",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
@@ -116,6 +117,7 @@ jvm_library(
 
 jvm_library(
   name = "android-designer-customview-tests_test_lib",
+  testonly = True,
   module_name = "intellij.android.designer.customview.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),

@@ -30,6 +30,7 @@ jvm_library(
 
 jvm_library(
   name = "swingp_test_lib",
+  testonly = True,
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   javac_opts = ":custom-javac-options",

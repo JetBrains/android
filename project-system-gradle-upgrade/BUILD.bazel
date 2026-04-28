@@ -72,6 +72,7 @@ jvm_library(
 
 jvm_library(
   name = "projectSystem-gradle-upgrade_test_lib",
+  testonly = True,
   module_name = "intellij.android.projectSystem.gradle.upgrade",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
@@ -156,6 +157,7 @@ jvm_library(
 
 jvm_library(
   name = "projectSystem-gradle-upgrade-tests_test_lib",
+  testonly = True,
   module_name = "intellij.android.projectSystem.gradle.upgrade.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),

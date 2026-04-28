@@ -102,6 +102,7 @@ jvm_library(
 
 jvm_library(
   name = "designer_test_lib",
+  testonly = True,
   visibility = ["//visibility:public"],
   srcs = glob(["testFramework/**/*.kt", "testFramework/**/*.java", "testFramework/**/*.form"], allow_empty = True),
   associates = [":designer"],
@@ -310,6 +311,7 @@ jvm_library(
 
 jvm_library(
   name = "designer-integration_test_lib",
+  testonly = True,
   module_name = "intellij.android.designer.integration",
   visibility = ["//visibility:public"],
   srcs = glob(["integrationTestSrc/**/*.kt", "integrationTestSrc/**/*.java", "integrationTestSrc/**/*.form"], allow_empty = True),
@@ -368,6 +370,7 @@ jvm_library(
 
 jvm_library(
   name = "designer-tests_test_lib",
+  testonly = True,
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   resources = [":designer-tests_test_resources"],

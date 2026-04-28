@@ -12,6 +12,7 @@ jvm_library(
 
 jvm_library(
   name = "memory-usage_test_lib",
+  testonly = True,
   visibility = ["//visibility:public"],
   srcs = glob(["src/test/java/**/*.kt", "src/test/java/**/*.java", "src/test/java/**/*.form"], allow_empty = True),
   kotlinc_opts = "@community//:k8",

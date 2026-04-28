@@ -29,6 +29,7 @@ jvm_library(
 
 jvm_library(
   name = "ide_test_lib",
+  testonly = True,
   module_name = "intellij.android.app-inspection.inspector.ide",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),

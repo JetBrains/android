@@ -50,6 +50,7 @@ jvm_library(
 
 jvm_library(
   name = "device-explorer-files_test_lib",
+  testonly = True,
   module_name = "intellij.android.device-explorer-files",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
@@ -106,6 +107,7 @@ jvm_library(
 
 jvm_library(
   name = "device-explorer-files-tests_test_lib",
+  testonly = True,
   module_name = "intellij.android.device-explorer-files.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),

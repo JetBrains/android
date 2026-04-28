@@ -41,6 +41,7 @@ jvm_library(
 
 jvm_library(
   name = "render-resources_test_lib",
+  testonly = True,
   module_name = "intellij.android.render-resources",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
@@ -95,6 +96,7 @@ jvm_library(
 
 jvm_library(
   name = "render-resources-tests_test_lib",
+  testonly = True,
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   associates = [

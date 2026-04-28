@@ -62,6 +62,7 @@ jvm_library(
 
 jvm_library(
   name = "apkanalyzer_test_lib",
+  testonly = True,
   module_name = "intellij.android.apkanalyzer",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
@@ -136,6 +137,7 @@ jvm_library(
 
 jvm_library(
   name = "apkanalyzer-tests_test_lib",
+  testonly = True,
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/java/**/*.kt", "testSrc/java/**/*.java", "testSrc/java/**/*.form"], allow_empty = True),
   resources = [":apkanalyzer-tests_test_resources"],

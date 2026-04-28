@@ -73,6 +73,7 @@ jvm_library(
 
 jvm_library(
   name = "streaming_test_lib",
+  testonly = True,
   module_name = "intellij.android.streaming",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
@@ -139,6 +140,7 @@ jvm_library(
 
 jvm_library(
   name = "streaming-integration_test_lib",
+  testonly = True,
   visibility = ["//visibility:public"],
   srcs = glob(["integration/**/*.kt", "integration/**/*.java", "integration/**/*.form"], allow_empty = True, exclude = [
     "integration/event-logger/**/*",
@@ -243,6 +245,7 @@ jvm_library(
 
 jvm_library(
   name = "streaming-testUtil_test_lib",
+  testonly = True,
   visibility = ["//visibility:public"],
   srcs = glob(["testUtil/**/*.kt", "testUtil/**/*.java", "testUtil/**/*.form"], allow_empty = True),
   associates = [
@@ -367,6 +370,7 @@ jvm_library(
 
 jvm_library(
   name = "streaming-tests_test_lib",
+  testonly = True,
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True, exclude = ["testSrc/testApp/**/*"]),
   associates = [

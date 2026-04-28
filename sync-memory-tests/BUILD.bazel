@@ -15,6 +15,7 @@ jvm_library(
 
 jvm_library(
   name = "sync-memory-tests_test_lib",
+  testonly = True,
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   associates = [":sync-memory-tests"],

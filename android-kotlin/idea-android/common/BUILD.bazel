@@ -70,6 +70,7 @@ jvm_library(
 
 jvm_library(
   name = "common_test_lib",
+  testonly = True,
   module_name = "intellij.android.kotlin.idea.common",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
