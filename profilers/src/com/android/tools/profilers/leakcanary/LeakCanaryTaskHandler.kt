@@ -647,56 +647,5 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
         profilers.transportPoller.unregisterListener(listener)
       }
     }
-
-    /** Sends the SET_STUDIO_LEAKCANARY_MODE command. */
-    private fun sendSetModeCommand(
-      profilers: StudioProfilers,
-      streamId: Long,
-      pid: Int,
-      sessionId: Long,
-      mode: Commands.StartLeakCanaryTaskData.LeakCanaryMode,
-    ): Boolean {
-      val setModeData = Commands.StudioLeakCanaryModeData.newBuilder().setMode(mode).build()
-      val setModeCommand =
-        Commands.Command.newBuilder()
-          .setStreamId(streamId)
-          .setPid(pid)
-          .setSessionId(sessionId)
-          .setType(Commands.Command.CommandType.SET_STUDIO_LEAKCANARY_MODE)
-          .setSetStudioLeakcanaryMode(setModeData)
-          .build()
-
-      return try {
-        profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(setModeCommand).build())
-        logger.info(
-          "Sent SET_STUDIO_LEAKCANARY_MODE command to transport. streamId: ${setModeCommand.streamId}, pid: ${setModeCommand.pid}, sessionId: ${setModeCommand.sessionId}"
-        )
-        true
-      } catch (e: Exception) {
-        logger.warn(e) {
-          "Failed to execute SET_STUDIO_LEAKCANARY_MODE command. streamId: ${setModeCommand.streamId}, pid: ${setModeCommand.pid}, sessionId: ${setModeCommand.sessionId}"
-        }
-        false
-      }
-    }
-
-    /** The master "health check" wrapper. Ensures the agent is attached, and if so, configures the tracking mode. */
-    fun ensureAgentAttachedAndListening(
-      profilers: StudioProfilers,
-      streamId: Long,
-      process: Common.Process?,
-      sessionId: Long,
-      mode: Commands.StartLeakCanaryTaskData.LeakCanaryMode,
-    ): Boolean {
-      if (process == null) {
-        logger.warn("PROFILER: Valid process not found. Cannot attach agent or send LeakCanary command.")
-        return false
-      }
-      if (!attachAgentAndWait(profilers, streamId, process)) {
-        logger.warn("PROFILER: Agent attachment failed. Cannot send LeakCanary command for ${process.pid}")
-        return false
-      }
-      return sendSetModeCommand(profilers, streamId, process.pid, sessionId, mode)
-    }
   }
 }

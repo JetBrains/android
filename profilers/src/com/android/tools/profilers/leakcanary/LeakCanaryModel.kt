@@ -278,15 +278,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
     myTaskTracker.trackLeakCanaryUiAction(LeakCanaryUiAction.FORCE_DUMP_CLICKED)
     if (leakcanaryMode == StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE) {
       profilers.ideServices.poolExecutor.execute {
-        if (
-          !LeakCanaryTaskHandler.ensureAgentAttachedAndListening(
-            profilers,
-            sessionData.streamId,
-            profilers.process,
-            sessionData.sessionId,
-            StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE,
-          )
-        ) {
+        if (!LeakCanaryTaskHandler.attachAgentAndWait(profilers, sessionData.streamId, profilers.process)) {
           logger.warn("PROFILER: Agent attachment failed. Skipping FORCE_DUMP_LEAKCANARY_ON_DEVICE command.")
           return@execute
         }
@@ -591,16 +583,32 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
       if (enable) {
         // First, configure the LeakCanary mode on the device (ON_HOST vs ON_DEVICE) so the helper library
         // knows whether to run Shark locally or rely on Android Studio.
-        if (
-          !LeakCanaryTaskHandler.ensureAgentAttachedAndListening(
-            profilers,
-            session.streamId,
-            profilers.process,
-            session.sessionId,
-            leakcanaryMode,
+        if (!LeakCanaryTaskHandler.attachAgentAndWait(profilers, session.streamId, profilers.process)) {
+          logger.warn("PROFILER: Agent attachment failed. Skipping START_LEAKCANARY_TASK command.")
+          return@execute
+        }
+
+        val setModeData = Commands.StudioLeakCanaryModeData.newBuilder().setMode(leakcanaryMode).build()
+        val setModeCommand =
+          Commands.Command.newBuilder()
+            .setStreamId(session.streamId)
+            .setPid(session.pid)
+            .setSessionId(session.sessionId)
+            .setType(Commands.Command.CommandType.SET_STUDIO_LEAKCANARY_MODE)
+            .setSetStudioLeakcanaryMode(setModeData)
+            .build()
+
+        try {
+          profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(setModeCommand).build())
+          logger.info(
+            "Sent SET_STUDIO_LEAKCANARY_MODE command to transport. streamId: ${setModeCommand.streamId}, pid: ${setModeCommand.pid}, sessionId: ${setModeCommand.sessionId}"
           )
-        ) {
-          logger.warn("PROFILER: Agent attachment or mode setup failed. Skipping START_LEAKCANARY_TASK command.")
+        } catch (e: Exception) {
+          logger.warn(
+            "Failed to execute SET_STUDIO_LEAKCANARY_MODE command. streamId: ${setModeCommand.streamId}, pid: ${setModeCommand.pid}, sessionId: ${setModeCommand.sessionId}",
+            e,
+          )
+          logger.warn("PROFILER: Mode setup failed. Skipping START_LEAKCANARY_TASK command.")
           return@execute
         }
 

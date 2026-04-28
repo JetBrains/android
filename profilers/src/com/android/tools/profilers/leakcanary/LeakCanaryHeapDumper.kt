@@ -270,15 +270,7 @@ class LeakCanaryHeapDumper(private val profilers: StudioProfilers) {
   private fun sendHeapDumpCompleteCommand(heapDumpTime: Long) {
     logger.info("Sending heap dump complete signal with timestamp: $heapDumpTime (ns).")
 
-    if (
-      !LeakCanaryTaskHandler.ensureAgentAttachedAndListening(
-        profilers,
-        profilers.session.streamId,
-        profilers.process,
-        profilers.session.sessionId,
-        Commands.StartLeakCanaryTaskData.LeakCanaryMode.ON_HOST,
-      )
-    ) {
+    if (!LeakCanaryTaskHandler.attachAgentAndWait(profilers, profilers.session.streamId, profilers.process)) {
       throw IllegalStateException("PROFILER: Agent attachment failed. Skipping SIGNAL_HEAP_DUMP_COMPLETE command.")
     }
 
