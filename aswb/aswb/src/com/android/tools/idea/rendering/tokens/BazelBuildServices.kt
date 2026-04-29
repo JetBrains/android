@@ -44,6 +44,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 import java.time.Duration
 import java.util.concurrent.CancellationException
@@ -138,7 +139,7 @@ internal class BazelBuildServices : BuildSystemFilePreviewServices.BuildServices
         val succeeded = qSyncManager.runOperationWithToolWindow(this, scope, QuerySyncManager.TaskOrigin.USER_ACTION, operation)
         buildResultSettableFuture.set(newBuildResult(succeeded, project))
 
-        log(label, project, stopwatch.elapsed())
+        log(label, project, stopwatch.elapsed(), targets)
 
         succeeded
       } catch (e: CancellationException) {
@@ -222,11 +223,20 @@ internal class BazelBuildServices : BuildSystemFilePreviewServices.BuildServices
     )
   }
 
-  private fun log(target: Label, project: Project, buildDuration: Duration) {
+  private fun log(target: Label, project: Project, buildDuration: Duration, references: Iterable<BazelBuildTargetReference>) {
     val outcome = checkNotNull(buildOutcomeCache.get(target)) { "The cache should have a mapping for $target" }
     val finder = outcome.classFileFinder as? BazelClassFileFinder
 
-    EventLoggingService.getInstance().log(ComposablePreviewsEvent(project, buildDuration, finder?.jarCountForLoggingOnly, target))
+    EventLoggingService.getInstance()
+      .log(
+        ComposablePreviewsEvent(
+          project,
+          buildDuration,
+          finder?.jarCountForLoggingOnly,
+          target,
+          references.map(BazelBuildTargetReference::file).map(VirtualFile::toNioPath),
+        )
+      )
   }
 }
 

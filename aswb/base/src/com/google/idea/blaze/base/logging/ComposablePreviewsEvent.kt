@@ -18,7 +18,13 @@ package com.google.idea.blaze.base.logging
 
 import com.google.idea.blaze.common.Label
 import com.intellij.openapi.project.Project
+import java.nio.file.Path
 import java.time.Duration
 
-class ComposablePreviewsEvent(val project: Project, val buildDuration: Duration, val internalJarCount: Int?, val target: Label) :
-  LoggedEvent
+class ComposablePreviewsEvent(
+  val project: Project,
+  val buildDuration: Duration,
+  val internalJarCount: Int?,
+  val target: Label,
+  val sourceFiles: Iterable<Path>,
+) : LoggedEvent
