@@ -34,27 +34,17 @@ import com.intellij.openapi.project.Project
 // class GeminiPerfettoAiService(private val project: Project) : PerfettoAiService {
 class GeminiPerfettoAiService(private val project: Project) {
   fun generateQuery(prompt: String, traceFilePath: String) {
-    val systemInstruction =
-      """
-      You are a specialist in generating Perfetto SQL queries.
-      You translate natural language requests into efficient SQLite queries using the Perfetto Standard Library.
-      Use the 'perfetto-sql' skill for this request.
-      """
-        .trimIndent()
-
-    sendPromptWithSkill("Generate Perfetto SQL Query: $prompt. The trace file is available at: $traceFilePath", systemInstruction)
+    sendPromptWithSkill(
+      "Generate Perfetto SQL Query: $prompt. The trace file is available at: $traceFilePath",
+      GeminiPerfettoAiConstants.PERFETTO_SQL_SYSTEM_INSTRUCTION,
+    )
   }
 
   fun analyzeTrace(prompt: String, traceFilePath: String) {
-    val systemInstruction =
-      """
-      You are a specialist in analyzing Perfetto traces.
-      You help users understand trace events, find performance bottlenecks, and explain anomalies.
-      Use the 'perfetto-trace-analysis' skill for this request.
-      """
-        .trimIndent()
-
-    sendPromptWithSkill("Analyze Perfetto Trace: $prompt. The trace file is available at: $traceFilePath", systemInstruction)
+    sendPromptWithSkill(
+      "Analyze Perfetto Trace: $prompt. The trace file is available at: $traceFilePath",
+      GeminiPerfettoAiConstants.PERFETTO_TRACE_ANALYSIS_SYSTEM_INSTRUCTION,
+    )
   }
 
   /**
