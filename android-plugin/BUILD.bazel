@@ -81,6 +81,7 @@ jvm_library(
         "//android/logcat/gradle",
         "//android/tracer",
         "//android/play-publishing",
+        "//android/cli-server/server",
     ],
 )
 
@@ -167,6 +168,7 @@ jvm_library(
         "//android/logcat/gradle:gradle_test_lib",
         "//android/tracer:tracer_test_lib",
         "//android/play-publishing:play-publishing_test_lib",
+        "//android/cli-server/server:server_test_lib",
     ],
     deps = [
         # do not sort,

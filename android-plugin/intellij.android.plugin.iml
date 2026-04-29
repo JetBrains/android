@@ -84,6 +84,7 @@
     <orderEntry type="module" module-name="intellij.android.logcat.gradle" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.tracer" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.play-publishing" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.cli-server.server" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.analysis" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.codeStyle" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />

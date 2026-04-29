@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package android.tools.service;
+
+option java_multiple_files = true;
+option java_package = "com.android.cliserver";
+option java_outer_classname = "StudioCliServiceProto";
+
+service StudioCliService {
+  // Executes a single command in the service.
+  rpc ExecuteCommand(CommandRequest) returns (CommandResponse);
+  rpc CheckStatus(CheckStatusRequest) returns (CheckStatusResponse);
+}
+
+message CheckStatusRequest {}
+
+message CheckStatusResponse {
+  string version = 1;
+  int64 pid = 2;
+  repeated ProjectStatus project_status = 3;
+}
+
+message ProjectStatus {
+  string path = 1;
+  string name = 2;
+
+  enum Status {
+    UNKNOWN = 0;
+    NOT_READY = 1;
+    READY = 2;
+  }
+  Status status = 3;
+}
+
+// Unified request message containing shared headers and the specific command to run.
+message CommandRequest {
+  string client_version = 1;
+  string project = 2;
+
+  int32 type = 3;
+  bytes payload = 4;
+}
+
+// Unified response message containing the result of the executed command.
+message CommandResponse {
+  string project = 1;
+  oneof result {
+    bytes payload = 2;
+    GenericError error = 3;
+  }
+}
+
+message GenericError {
+  string message = 1;
+}

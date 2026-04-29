@@ -112,6 +112,8 @@
   <xi:include href="/META-INF/apkanalyzer-apk.xml" />
 <!--  <xi:include href="/META-INF/app-insights-api.xml"/>-->
 <!--  <xi:include href="/META-INF/app-insights.xml"/>-->
+<!--  TODO: android-merge; cli-server.xml registers a postStartupActivity that starts a netty gRPC server on every project open. Our PluginDescriptorTest then fails with "Thread leaked: Thread[#160,grpc-default-boss-ELG-1-1,5,main]", because nothing stops the server between tests-->
+<!--  <xi:include href="/META-INF/cli-server.xml"/>-->
   <xi:include href="/META-INF/databinding.xml"/>
   <xi:include href="/META-INF/databinding-gradle.xml"/>
   <xi:include href="/META-INF/mlkit.xml"/>

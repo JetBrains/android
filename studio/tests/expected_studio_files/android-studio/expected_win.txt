@@ -1758,6 +1758,7 @@ android-studio/plugins/android/lib/smali-util-3.0.9.jar
 android-studio/plugins/android/lib/sqlite-jdbc-3.51.1.0.jar
 android-studio/plugins/android/lib/studio-grpc.jar
 android-studio/plugins/android/lib/studio-proto.jar
+android-studio/plugins/android/lib/studio_cli_service_kt_proto.jar
 android-studio/plugins/android/lib/tensorflow-lite-metadata-0.1.0-rc2.jar
 android-studio/plugins/android/lib/traceprocessor_protos.jar
 android-studio/plugins/android/lib/tracing-desktop-2.0.0-alpha05.jar
