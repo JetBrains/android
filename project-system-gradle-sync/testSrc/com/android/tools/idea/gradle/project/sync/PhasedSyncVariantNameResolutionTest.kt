@@ -1047,6 +1047,72 @@ class PhasedSyncVariantNameResolutionTest {
     assertThat(newException).hasMessageThat().contains("Variant conflict: Unable to find variant \"faq\" to Sync for project: :app.")
   }
 
+  @Test
+  fun testTopologicalOrderWithMixedPriorityEntryPoints() {
+    // This test enforces the sorting logic (found when a a bug was introduced) where a P2 project (LibA) gets processed before a P1 project
+    // (App) could cause a shared dep (LibB) to be incorrectly assigned to a lower batch.
+    // Dependencies tree:
+    // App (P1) -> LibB
+    // LibA (P2) -> LibB
+    // LibB should be in Batch 3 (App[1] -> LibA[2] -> LibB[3]).
+
+    val setup =
+      listOf(
+        // LibA with no incoming deps but is P2.
+        ProjectSetup(
+          moduleId = ":libA",
+          projectType = IdeAndroidProjectType.PROJECT_TYPE_LIBRARY,
+          dependencies = listOf(":libB"),
+          defaultVariant = "debug",
+          variants = listOf("debug"),
+          buildTypes = emptyList(),
+        ),
+        // App project is P1.
+        ProjectSetup(
+          moduleId = ":app",
+          projectType = IdeAndroidProjectType.PROJECT_TYPE_APP,
+          dependencies = listOf(":libB"), // APP -> libB.
+          defaultVariant = "debug",
+          variants = listOf("debug"),
+          buildTypes = emptyList(),
+        ),
+        ProjectSetup(
+          moduleId = ":libB",
+          projectType = IdeAndroidProjectType.PROJECT_TYPE_LIBRARY,
+          dependencies = emptyList(),
+          defaultVariant = "debug",
+          variants = listOf("debug"),
+          buildTypes = emptyList(),
+        ),
+      )
+
+    val projects = setup.map { createMocksForProject(it) }
+    val projectsWithNodes =
+      projects.map { params ->
+        params.basicGradleProject to
+          ProjectNode(
+            path = params.basicGradleProject.path,
+            moduleId = params.basicGradleProject.path,
+            projectType =
+              if (params.basicGradleProject.path == ":app") IdeAndroidProjectType.PROJECT_TYPE_APP
+              else IdeAndroidProjectType.PROJECT_TYPE_LIBRARY,
+            outgoingDependencies = setup.first { it.moduleId == params.basicGradleProject.path }.dependencies,
+          )
+      }
+
+    val batches = sortProjectsByPriority(projectsWithNodes, { it.second }, syncOptions)
+
+    // Find the batch number for each project.
+    val batchByProject = mutableMapOf<String, Int>()
+    batches.forEach { (batch, list) -> list.forEach { batchByProject[it.first.path] = batch } }
+
+    val libABatch = batchByProject[":libA"]!!
+    val libBBatch = batchByProject[":libB"]!!
+
+    // Since LibB depends on LibA, it MUST be in a strictly higher batch.
+    assertThat(libBBatch).isGreaterThan(libABatch)
+  }
+
   private fun setSwitchVariantRequest(moduleId: String, variantName: String) {
     whenever(switchVariantRequest.moduleId).thenReturn(":" + moduleId)
     whenever(switchVariantRequest.variantName).thenReturn(variantName)
@@ -1104,7 +1170,6 @@ class PhasedSyncVariantNameResolutionTest {
                 ?: projectSetup.defaultVariant,
             shouldSkipRuntimeClassPathForLibraries = false,
             legacyAndroidGradlePluginProperties = projectParamsMock.legacyAndroidGradlePluginPropertiesImpl,
-            rootBuildDir = File(""),
           )
         projectParamsMock.basicGradleProject to androidProjectData
       }

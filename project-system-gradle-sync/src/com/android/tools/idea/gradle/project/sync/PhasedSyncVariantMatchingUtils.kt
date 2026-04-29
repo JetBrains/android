@@ -67,7 +67,6 @@ class AndroidProjectData(
   var selectedVariantName: String,
   val shouldSkipRuntimeClassPathForLibraries: Boolean,
   val legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
-  val rootBuildDir: File, // Path for root project, to be used for composite builds
 ) {
   var isSeen = false
 }
@@ -213,19 +212,23 @@ fun <T> sortProjectsByPriority(projects: List<T>, nodeMapper: (T) -> ProjectNode
   val headProjectsToBatch = mutableMapOf<String, Int>() // This will get fed Apps, and Libraries with no incoming dependencies.
   val queue = ArrayDeque<String>()
 
-  // 2.1 Seed initial entry points (Priorities 0 and 1)
+  // 2.1 Seed initial entry points (Priorities 0 and 1) and handle libraries without consumers.
   projectsWithNodes.forEach { (_, projectNode) ->
     val priority = getPriorityValue(projectNode, syncOptions, projectNode.projectType)
-    if (priority == 0) {
-      headProjectsToBatch[projectNode.path] = 0
-      queue.addFirst(projectNode.path)
-    } else if (priority == 1 && !headProjectsToBatch.containsKey(projectNode.path)) {
-      headProjectsToBatch[projectNode.path] = 1
-      queue.addLast(projectNode.path)
+    when {
+      priority == 0 -> {
+        headProjectsToBatch[projectNode.path] = 0
+        queue.addFirst(projectNode.path)
+      }
+      priority == 1 && !headProjectsToBatch.containsKey(projectNode.path) -> {
+        headProjectsToBatch[projectNode.path] = 1
+        queue.addLast(projectNode.path)
+      }
     }
   }
 
-  // 2.2  Handle libraries that do not have consumers.
+  // 2.2  Handle libraries that do not have consumers. This way we are sure these are always added last to the deque so they get processed
+  // after Apps.
   projectsWithNodes.forEach { (_, node) ->
     if (!inWeight.containsKey(node.path) && !headProjectsToBatch.containsKey(node.path)) {
       headProjectsToBatch[node.path] = 2
@@ -241,16 +244,17 @@ fun <T> sortProjectsByPriority(projects: List<T>, nodeMapper: (T) -> ProjectNode
     val node = nodeMap[consumerPath] ?: continue
 
     node.outgoingDependencies.forEach { producerPath ->
+      val producerNode = nodeMap[producerPath] ?: return@forEach
       // Skip edges to the switch target (already pinned) or to Apps (this is usually either dynamic features of TEST_ONLY) projects
-      if (nodeMap[producerPath]?.moduleId == switchId) return@forEach
-      if (nodeMap[producerPath]?.projectType == IdeAndroidProjectType.PROJECT_TYPE_APP) return@forEach
+      if (producerNode.moduleId == switchId) return@forEach
+      if (producerNode.projectType == IdeAndroidProjectType.PROJECT_TYPE_APP) return@forEach
 
       // Each time we go through a consumer project, we decrease the amount of incoming deps (handled) for this project.
       // Once all it's consumers have been handled (weight = 0), then we can handle this project (i.e. add it to the queue for processing)
-      inWeight[producerPath]?.let { inWeight[producerPath] = it - 1 }
+      inWeight[producerPath] = inWeight.getValue(producerPath) - 1
 
       val currentBatch = headProjectsToBatch[producerPath] ?: -1
-      if (consumerBatch + 1 > currentBatch && inWeight[producerPath]!! <= 0) {
+      if (inWeight.getValue(producerPath) <= 0 && consumerBatch + 1 > currentBatch) {
         headProjectsToBatch[producerPath] = consumerBatch + 1
         queue.addLast(producerPath)
       }
@@ -276,66 +280,9 @@ fun getSelectedVariantName(
   priority: Int,
 ): IdeBasicVariantNameImpl {
 
-  val currentProjectId = ProjectBuildInfo(gradleProject.path, androidProjectContext.rootBuildDir.path)
+  val currentProjectId = ProjectBuildInfo(gradleProject.path, gradleProject.projectIdentifier.buildIdentifier.rootDir)
   val variantRequirement = variantResolutionContext.projectVariantRequirements[currentProjectId]
-  var effectivePriority = variantRequirement?.priority ?: priority
-
-  val testProjectExpectedVariantOrNull =
-    if (androidProjectContext.basicAndroidProject.projectType == ProjectType.TEST) {
-      val targetAppPath =
-        androidProjectContext.androidProject.variants.firstOrNull { it.testedTargetVariant != null }?.testedTargetVariant?.targetProjectPath
-      val targetAppId = targetAppPath?.let { ProjectBuildInfo(it, androidProjectContext.rootBuildDir.path) }
-      val targetAppVariant = targetAppId?.let { variantResolutionContext.projectToSelectedVariants[it] }
-      effectivePriority = targetAppVariant?.priority ?: priority
-      targetAppVariant
-    } else null
-
-  val variantToSync =
-    when {
-      // 1st case: we don't expect a specific variant (and this is not a TEST project that we are resolving): take the variant that we
-      // initially got from the project itself.
-      variantRequirement == null && androidProjectContext.basicAndroidProject.projectType != ProjectType.TEST -> {
-        androidProjectContext.basicAndroidProject.variants.firstOrNull { it.name == androidProjectContext.selectedVariantName }
-          ?: throw IllegalStateException(
-            "Variant Conflict: Unable to find variant \"${androidProjectContext.selectedVariantName}\" to Sync for project: ${gradleProject.path}."
-          )
-      }
-      // 2nd case: Project type is TEST, and in this case we should either propagate the app variant or pick the default variant.
-      androidProjectContext.basicAndroidProject.projectType == ProjectType.TEST -> {
-        testProjectExpectedVariantOrNull?.let { expectedVariant ->
-          androidProjectContext.basicAndroidProject.variants.firstOrNull { it.name == expectedVariant.variant.name }
-        }
-          ?: androidProjectContext.basicAndroidProject.variants.firstOrNull { it.name == androidProjectContext.selectedVariantName }
-          ?: throw IllegalStateException(
-            "Variant Conflict: Unable to find variant " +
-              "\"${variantRequirement?.variant?.name}\" to Sync for project: ${gradleProject.path}."
-          )
-      }
-      // 3rd case: Dynamic feature <-> APP case: we do expect a strict direct match with APP project.
-      // For the case where Application project have any requested dependencies, we treat this as the special cases of incoming dependency
-      // from dynamic features or test projects, and expect a direct variant match in this case.
-      androidProjectContext.basicAndroidProject.projectType == ProjectType.DYNAMIC_FEATURE ||
-        androidProjectContext.basicAndroidProject.projectType == ProjectType.APPLICATION -> {
-        androidProjectContext.basicAndroidProject.variants.firstOrNull { it.name == variantRequirement?.variant?.name }
-          ?: throw IllegalStateException(
-            "Variant conflict: Unable to find variant \"${variantRequirement?.variant?.name}\" to " +
-              "Sync for project: ${gradleProject.path}."
-          )
-      }
-      // 4th case: we are expecting a specific variant to resolve based on this project's dependencies. This could be either a test project,
-      // or not.
-      else -> {
-        if (variantRequirement == null)
-          throw IllegalStateException("Variant Conflict: Unable to find a variant to Sync for project: ${gradleProject.path}.")
-
-        val variantObject = androidProjectContext.basicAndroidProject.variants.firstOrNull { it.name == variantRequirement.variant.name }
-        if (variantObject != null && verifyAllVariantAttributesMatch(variantRequirement, variantObject, androidProjectContext.androidDsl)) {
-          variantObject
-        } else {
-          resolveVariantAttributes(gradleProject, androidProjectContext, variantRequirement)
-        }
-      }
-    }
+  val (variantToSync, effectivePriority) = resolveVariantByCase(gradleProject, androidProjectContext, variantResolutionContext, priority)
 
   setUpExpectedVariantForDependantProjects(
     gradleProject,
@@ -350,6 +297,98 @@ fun getSelectedVariantName(
   variantResolutionContext.projectToSelectedVariants[currentProjectId] = VariantAndPriority(variantToSync, effectivePriority)
 
   return IdeBasicVariantNameImpl(variantToSync.name)
+}
+
+private fun resolveVariantByCase(
+  gradleProject: BasicGradleProject,
+  androidProjectContext: AndroidProjectData,
+  variantResolutionContext: VariantResolutionContext,
+  priority: Int,
+): VariantAndPriority {
+  val currentProjectId = ProjectBuildInfo(gradleProject.path, gradleProject.projectIdentifier.buildIdentifier.rootDir)
+  val variantRequirement = variantResolutionContext.projectVariantRequirements[currentProjectId]
+
+  return when (androidProjectContext.basicAndroidProject.projectType) {
+    ProjectType.TEST -> resolveTestProjectVariant(gradleProject, androidProjectContext, variantResolutionContext, priority)
+    ProjectType.DYNAMIC_FEATURE,
+    ProjectType.APPLICATION -> resolveStrictMatchVariant(gradleProject, androidProjectContext, variantRequirement, priority)
+    else -> {
+      // We do not require anything for this project (from other consumers), so we just resolve the variant based on the initial
+      // AndroidProjectData variant.
+      if (variantRequirement == null) {
+        resolveIndependentVariant(gradleProject, androidProjectContext, priority)
+      } else {
+        // We do require a variant from other consumers (this is the case of libraries).
+        resolveLibraryVariant(gradleProject, androidProjectContext, variantRequirement)
+      }
+    }
+  }
+}
+
+private fun resolveIndependentVariant(
+  gradleProject: BasicGradleProject,
+  androidProjectContext: AndroidProjectData,
+  priority: Int,
+): VariantAndPriority {
+  val variant =
+    androidProjectContext.basicAndroidProject.variants.firstOrNull { it.name == androidProjectContext.selectedVariantName }
+      ?: throw IllegalStateException(
+        "Variant Conflict: Unable to find variant " +
+          "\"${androidProjectContext.selectedVariantName}\" to Sync for project: ${gradleProject.path}."
+      )
+  return VariantAndPriority(variant, priority)
+}
+
+private fun resolveTestProjectVariant(
+  gradleProject: BasicGradleProject,
+  androidProjectContext: AndroidProjectData,
+  variantResolutionContext: VariantResolutionContext,
+  priority: Int,
+): VariantAndPriority {
+  val targetAppPath =
+    androidProjectContext.androidProject.variants.firstOrNull { it.testedTargetVariant != null }?.testedTargetVariant?.targetProjectPath
+  val targetAppId = targetAppPath?.let { ProjectBuildInfo(it, gradleProject.projectIdentifier.buildIdentifier.rootDir) }
+  val targetAppVariant = targetAppId?.let { variantResolutionContext.projectToSelectedVariants[it] }
+
+  val effectivePriority = targetAppVariant?.priority ?: priority
+  val variantName = targetAppVariant?.variant?.name ?: androidProjectContext.selectedVariantName
+
+  val variant =
+    androidProjectContext.basicAndroidProject.variants.firstOrNull { it.name == variantName }
+      ?: throw IllegalStateException(
+        "Variant Conflict: Unable to find variant \"$variantName\" to Sync for project: ${gradleProject.path}."
+      )
+  return VariantAndPriority(variant, effectivePriority)
+}
+
+private fun resolveStrictMatchVariant(
+  gradleProject: BasicGradleProject,
+  androidProjectContext: AndroidProjectData,
+  variantRequirement: VariantRequirement?,
+  priority: Int,
+): VariantAndPriority {
+  val expectedName = variantRequirement?.variant?.name ?: androidProjectContext.selectedVariantName
+  val variant =
+    androidProjectContext.basicAndroidProject.variants.firstOrNull { it.name == expectedName }
+      ?: throw IllegalStateException(
+        "Variant conflict: Unable to find variant \"$expectedName\" to Sync for project: ${gradleProject.path}."
+      )
+  return VariantAndPriority(variant, variantRequirement?.priority ?: priority)
+}
+
+private fun resolveLibraryVariant(
+  gradleProject: BasicGradleProject,
+  androidProjectContext: AndroidProjectData,
+  variantRequirement: VariantRequirement,
+): VariantAndPriority {
+  val variantObject = androidProjectContext.basicAndroidProject.variants.firstOrNull { it.name == variantRequirement.variant.name }
+  val variant =
+    if (variantObject != null && verifyAllVariantAttributesMatch(variantRequirement, variantObject, androidProjectContext.androidDsl)) {
+      variantObject
+    } else {
+      resolveVariantAttributes(gradleProject, androidProjectContext, variantRequirement)
+    }
+  return VariantAndPriority(variant, variantRequirement.priority)
 }
 
 /** Reconciles variant attributes (BuildType and ProductFlavors) to find a best-fit variant. */
@@ -504,7 +543,7 @@ private fun setUpExpectedVariantForDependantProjects(
   variantResolutionContext: VariantResolutionContext,
   currentProjectPriority: Int,
 ) {
-  val currentProjectBuildInfo = ProjectBuildInfo(gradleProject.path, androidProjectContext.rootBuildDir.path)
+  val currentProjectBuildInfo = ProjectBuildInfo(gradleProject.path, gradleProject.projectIdentifier.buildIdentifier.rootDir)
 
   // Calculate the requirement to propagate once for all outgoing dependencies.
   val currentRequirement =
@@ -518,7 +557,7 @@ private fun setUpExpectedVariantForDependantProjects(
 
   // Now we set the expectations for projects dependencies.
   androidProjectContext.declaredDependencies.allOutgoingProjectDependencies.forEach { dependencyPath ->
-    val dependencyId = ProjectBuildInfo(dependencyPath, androidProjectContext.rootBuildDir.path)
+    val dependencyId = ProjectBuildInfo(dependencyPath, gradleProject.projectIdentifier.buildIdentifier.rootDir)
     // Higher priority consumer overrides existing variant expectation.
     val existingVariantRequirement = variantResolutionContext.projectVariantRequirements[dependencyId]
     if (existingVariantRequirement == null || currentProjectPriority < existingVariantRequirement.priority) {
@@ -571,7 +610,7 @@ data class ProductFlavorsAndFallbacks(
   val priority: Int,
 )
 
-data class ProjectBuildInfo(val gradleProjectPath: String, val rootBuildPath: String)
+data class ProjectBuildInfo(val gradleProjectPath: String, val rootBuildPath: File)
 
 data class MissingDimensionStrategies(
   var requestedFlavors: List<String>,
