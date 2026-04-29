@@ -154,12 +154,12 @@
         <action id="android.emulator.environment.outdoor.nature.bright"
                 class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentAction$OutdoorNatureBrightImage"
                 text="Outdoor Nature Bright" description="Select outdoor nature bright environment"/>
-        <action id="android.emulator.environment.custom"
-                class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentAction$Custom"
-                text="Custom Environment..." description="Select a custom environment"/>
         <action id="android.emulator.environment.empty"
                 class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentAction$Empty"
                 text="No Environment" description="Select no environment"/>
+        <action id="android.emulator.environment.custom"
+                class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentAction$Custom"
+                text="Custom Environment..." description="Select a custom environment"/>
       </group>
       <action id="android.device.home.button" class="com.android.tools.idea.streaming.actions.StreamingHomeButtonAction"
               icon="StudioIcons.Emulator.Toolbar.HOME" text="Home" description="Press the Home button of the device">
