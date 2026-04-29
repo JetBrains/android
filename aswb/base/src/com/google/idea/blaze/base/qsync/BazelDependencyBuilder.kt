@@ -395,9 +395,9 @@ class BuildDependenciesBazelInvocationInfo(
   override fun createOutputInfo(blazeBuildOutputs: BlazeBuildOutputs, buildTime: Instant, context: BlazeContext): OutputInfo {
     val allArtifacts = GroupedOutputArtifacts.create(blazeBuildOutputs, requestedOutputGroups)
 
-    val artifactInfoFiles = allArtifacts[OutputGroup.ARTIFACT_INFO_FILE]
-    val compileJdepsFiles = allArtifacts[OutputGroup.JDEPS]
-    val ccArtifactInfoFiles = allArtifacts[OutputGroup.CC_INFO_FILE]
+    val artifactInfoFiles = allArtifacts[OutputGroup.ARTIFACT_INFO_FILE].orEmpty()
+    val compileJdepsFiles = allArtifacts[OutputGroup.JDEPS].orEmpty()
+    val ccArtifactInfoFiles = allArtifacts[OutputGroup.CC_INFO_FILE].orEmpty()
 
     val startTime = System.currentTimeMillis()
     val totalFilesToFetch = artifactInfoFiles.size + compileJdepsFiles.size + ccArtifactInfoFiles.size

@@ -16,8 +16,6 @@
 package com.google.idea.blaze.qsync.deps
 
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.collect.ImmutableListMultimap
-import com.google.common.collect.Multimap
 import com.google.devtools.build.lib.view.proto.Deps
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.artifact.OutputArtifact
@@ -56,7 +54,7 @@ interface OutputInfo {
   fun getCompileDeps(target: Label): CompileJavaDeps
 
   @VisibleForTesting
-  data class Data(
+  private data class Data(
     override val javaArtifactInfo: Map<Label, JavaArtifacts>,
     override val compileJdeps: Map<Label, Deps.Dependencies>,
     override val ccTargets: Map<Label, CcTargetInfo>,
@@ -137,7 +135,7 @@ interface OutputInfo {
 
     @JvmStatic
     fun create(
-      allArtifacts: Multimap<OutputGroup, OutputArtifact>,
+      allArtifacts: Map<OutputGroup, List<OutputArtifact>>,
       javaArtifacts: Map<Path, JavaArtifacts>,
       compileJdeps: Map<Path, Deps.Dependencies>,
       ccInfo: List<CcCompilationInfo>,
@@ -172,7 +170,7 @@ interface OutputInfo {
           },
         ccTargets = ccInfo.flatMap { it.targetsList }.associateBy { Label.of(it.label) },
         ccToolchains = ccInfo.flatMap { it.toolchainsList }.associateBy { it.id },
-        artifacts = allArtifacts.asMap().mapValues { it.value.toList() },
+        artifacts = allArtifacts,
         infoFileToLabel = javaArtifacts.mapValues { Label.of(it.value.target) },
         exitCode = exitCode,
         buildContext = buildContext,
@@ -193,11 +191,11 @@ object DepsUnavailable : CompileJavaDeps
 
 @TestOnly
 class TestOutputInfoBuilder() {
-  private var outputGroups = ImmutableListMultimap.Builder<OutputGroup, OutputArtifact>().build()
+  private var outputGroups: Map<OutputGroup, List<OutputArtifact>> = emptyMap()
   private var javaArtifacts = mapOf<Path, JavaArtifacts>()
   private var targetsWithErrors = setOf<Label>()
 
-  fun setOutputGroups(outputGroups: ImmutableListMultimap<OutputGroup, OutputArtifact>): TestOutputInfoBuilder {
+  fun setOutputGroups(outputGroups: Map<OutputGroup, List<OutputArtifact>>): TestOutputInfoBuilder {
     this.outputGroups = outputGroups
     return this
   }

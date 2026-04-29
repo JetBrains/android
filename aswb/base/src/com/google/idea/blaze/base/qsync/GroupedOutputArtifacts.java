@@ -18,6 +18,7 @@ package com.google.idea.blaze.base.qsync;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableMap;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.google.idea.blaze.qsync.deps.OutputGroup;
@@ -36,13 +37,16 @@ public class GroupedOutputArtifacts {
     return new ImmutableListMultimap.Builder<>();
   }
 
-  public static ImmutableListMultimap<OutputGroup, OutputArtifact> create(
+  public static ImmutableMap<OutputGroup, ImmutableList<OutputArtifact>> create(
       BlazeBuildOutputs buildOutputs, Set<OutputGroup> outputGroups) {
-    ImmutableListMultimap.Builder<OutputGroup, OutputArtifact> builder = builder();
+    ImmutableMap.Builder<OutputGroup, ImmutableList<OutputArtifact>> builder =
+        ImmutableMap.builder();
     for (OutputGroup group : outputGroups) {
       ImmutableList<OutputArtifact> artifacts =
-        buildOutputs.getOutputGroupArtifacts(group.getOutputGroupName());
-      builder.putAll(group, artifacts);
+          buildOutputs.getOutputGroupArtifacts(group.getOutputGroupName());
+      if (!artifacts.isEmpty()) {
+        builder.put(group, artifacts);
+      }
     }
     return builder.build();
   }
