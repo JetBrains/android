@@ -32,6 +32,7 @@ iml_module(
         "JetNewsProjectCheck": {
             "test_filter": "com.android.tools.idea.benchmarks.tests.JetNewsBenchmarkTest",
             "timeout": "long",
+            "tags": ["manual"],
         },
         "MlModelBindingProjectCheck": {
             "test_filter": "com.android.tools.idea.benchmarks.tests.MlModelBindingBenchmarkTest",

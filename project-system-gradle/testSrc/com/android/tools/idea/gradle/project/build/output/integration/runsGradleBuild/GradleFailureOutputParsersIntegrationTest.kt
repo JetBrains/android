@@ -56,16 +56,18 @@ tasks.register("runFailingTasks") {
         .containsExactly(
           "root",
           "root > [Task :app:failingTask1]",
-          "root > [Task :app:failingTask1] > ERROR:'java.lang.Exception: Failing failingTask1'",
+          "root > :app:failingTask1' (registered in build file 'app/build.gradle'). > ERROR:'java.lang.Exception: Failing failingTask1'",
           "root > 'failed'",
         )
-      bowStateDump["root > [Task :app:failingTask1] > ERROR:'java.lang.Exception: Failing failingTask1'"].let { output ->
-        assertThat(output)
-          .startsWith(
-            """
+      bowStateDump[
+          "root > :app:failingTask1' (registered in build file 'app/build.gradle'). > ERROR:'java.lang.Exception: Failing failingTask1'"]
+        .let { output ->
+          assertThat(output)
+            .startsWith(
+              """
           Build file '$projectRoot/app/build.gradle' line: 43
   
-          Execution failed for task ':app:failingTask1'.
+          Execution failed for task ':app:failingTask1' (registered in build file 'app/build.gradle').
           > java.lang.Exception: Failing failingTask1
   
           * Try:
@@ -74,10 +76,10 @@ tasks.register("runFailingTasks") {
           > Run with --scan to get full insights from a Build Scan (powered by Develocity).
           > Get more help at https://help.gradle.org.
         """
-              .trimIndent()
-          )
-        assertThat(output).doesNotContain("BUILD FAILED in ")
-      }
+                .trimIndent()
+            )
+          assertThat(output).doesNotContain("BUILD FAILED in ")
+        }
       bowStateDump["root > [Task :app:failingTask1]"].let { output -> assertThat(output).doesNotContain("BUILD FAILED") }
     }
   }
@@ -104,18 +106,20 @@ tasks.register("runFailingTasks") {
         .containsExactly(
           "root",
           "root > [Task :app:failingTask1]",
-          "root > [Task :app:failingTask1] > ERROR:'java.lang.Exception: Failing failingTask1'",
+          "root > :app:failingTask1' (registered in build file 'app/build.gradle'). > ERROR:'java.lang.Exception: Failing failingTask1'",
           "root > [Task :app:failingTask2]",
-          "root > [Task :app:failingTask2] > ERROR:'java.lang.Exception: Failing failingTask2'",
+          "root > :app:failingTask2' (registered in build file 'app/build.gradle'). > ERROR:'java.lang.Exception: Failing failingTask2'",
           "root > 'failed'",
         )
-      bowStateDump["root > [Task :app:failingTask1] > ERROR:'java.lang.Exception: Failing failingTask1'"].let { output ->
-        assertThat(output)
-          .isEqualTo(
-            """
+      bowStateDump[
+          "root > :app:failingTask1' (registered in build file 'app/build.gradle'). > ERROR:'java.lang.Exception: Failing failingTask1'"]
+        .let { output ->
+          assertThat(output)
+            .isEqualTo(
+              """
           Build file '$projectRoot/app/build.gradle' line: 43
   
-          Execution failed for task ':app:failingTask1'.
+          Execution failed for task ':app:failingTask1' (registered in build file 'app/build.gradle').
           > java.lang.Exception: Failing failingTask1
   
           * Try:
@@ -124,16 +128,18 @@ tasks.register("runFailingTasks") {
           > Run with --scan to get full insights from a Build Scan (powered by Develocity).
           > Get more help at https://help.gradle.org.
         """
-              .trimIndent()
-          )
-      }
-      bowStateDump["root > [Task :app:failingTask2] > ERROR:'java.lang.Exception: Failing failingTask2'"].let { output ->
-        assertThat(output)
-          .isEqualTo(
-            """
+                .trimIndent()
+            )
+        }
+      bowStateDump[
+          "root > :app:failingTask2' (registered in build file 'app/build.gradle'). > ERROR:'java.lang.Exception: Failing failingTask2'"]
+        .let { output ->
+          assertThat(output)
+            .isEqualTo(
+              """
           Build file '$projectRoot/app/build.gradle' line: 51
   
-          Execution failed for task ':app:failingTask2'.
+          Execution failed for task ':app:failingTask2' (registered in build file 'app/build.gradle').
           > java.lang.Exception: Failing failingTask2
   
           * Try:
@@ -142,9 +148,9 @@ tasks.register("runFailingTasks") {
           > Run with --scan to get full insights from a Build Scan (powered by Develocity).
           > Get more help at https://help.gradle.org.
         """
-              .trimIndent()
-          )
-      }
+                .trimIndent()
+            )
+        }
       bowStateDump["root > [Task :app:failingTask1]"].let { output -> assertThat(output).doesNotContain("BUILD FAILED") }
       bowStateDump["root > [Task :app:failingTask2]"].let { output -> assertThat(output).doesNotContain("BUILD FAILED") }
     }
@@ -171,7 +177,7 @@ tasks.register("runFailingTasks") {
         .containsExactly(
           "root",
           "root > [Task :app:failingTask1]",
-          "root > [Task :app:failingTask1] > ERROR:'java.lang.Exception: Failing failingTask1'",
+          "root > :app:failingTask1' (registered in build file 'app/build.gradle'). > ERROR:'java.lang.Exception: Failing failingTask1'",
           "root > 'failed'",
         )
     }
@@ -199,9 +205,9 @@ tasks.register("runFailingTasks") {
         .containsExactly(
           "root",
           "root > [Task :app:failingTask1]",
-          "root > [Task :app:failingTask1] > ERROR:'java.lang.Exception: Failing failingTask1'",
+          "root > :app:failingTask1' (registered in build file 'app/build.gradle'). > ERROR:'java.lang.Exception: Failing failingTask1'",
           "root > [Task :app:failingTask2]",
-          "root > [Task :app:failingTask2] > ERROR:'java.lang.Exception: Failing failingTask2'",
+          "root > :app:failingTask2' (registered in build file 'app/build.gradle'). > ERROR:'java.lang.Exception: Failing failingTask2'",
           "root > 'failed'",
         )
     }
@@ -230,20 +236,22 @@ tasks.register("runFailingTasks") {
         .containsExactly(
           "root",
           "root > [Task :app:failingTask1]",
-          "root > [Task :app:failingTask1] > ERROR:'java.lang.Exception: Failing failingTask1'",
+          "root > :app:failingTask1' (registered in build file 'app/build.gradle'). > ERROR:'java.lang.Exception: Failing failingTask1'",
           "root > [Task :app:failingTask2]",
-          "root > [Task :app:failingTask2] > ERROR:'java.lang.Exception: Failing failingTask2'",
+          "root > :app:failingTask2' (registered in build file 'app/build.gradle'). > ERROR:'java.lang.Exception: Failing failingTask2'",
           "root > [Task :app:failingTask3]",
-          "root > [Task :app:failingTask3] > ERROR:'java.lang.Exception: Failing failingTask3'",
+          "root > :app:failingTask3' (registered in build file 'app/build.gradle'). > ERROR:'java.lang.Exception: Failing failingTask3'",
           "root > 'failed'",
         )
-      bowStateDump["root > [Task :app:failingTask1] > ERROR:'java.lang.Exception: Failing failingTask1'"].let { output ->
-        assertThat(output)
-          .isEqualTo(
-            """
+      bowStateDump[
+          "root > :app:failingTask1' (registered in build file 'app/build.gradle'). > ERROR:'java.lang.Exception: Failing failingTask1'"]
+        .let { output ->
+          assertThat(output)
+            .isEqualTo(
+              """
           Build file '$projectRoot/app/build.gradle' line: 43
   
-          Execution failed for task ':app:failingTask1'.
+          Execution failed for task ':app:failingTask1' (registered in build file 'app/build.gradle').
           > java.lang.Exception: Failing failingTask1
   
           * Try:
@@ -252,16 +260,18 @@ tasks.register("runFailingTasks") {
           > Run with --scan to get full insights from a Build Scan (powered by Develocity).
           > Get more help at https://help.gradle.org.
         """
-              .trimIndent()
-          )
-      }
-      bowStateDump["root > [Task :app:failingTask2] > ERROR:'java.lang.Exception: Failing failingTask2'"].let { output ->
-        assertThat(output)
-          .isEqualTo(
-            """
+                .trimIndent()
+            )
+        }
+      bowStateDump[
+          "root > :app:failingTask2' (registered in build file 'app/build.gradle'). > ERROR:'java.lang.Exception: Failing failingTask2'"]
+        .let { output ->
+          assertThat(output)
+            .isEqualTo(
+              """
           Build file '$projectRoot/app/build.gradle' line: 51
   
-          Execution failed for task ':app:failingTask2'.
+          Execution failed for task ':app:failingTask2' (registered in build file 'app/build.gradle').
           > java.lang.Exception: Failing failingTask2
   
           * Try:
@@ -270,16 +280,18 @@ tasks.register("runFailingTasks") {
           > Run with --scan to get full insights from a Build Scan (powered by Develocity).
           > Get more help at https://help.gradle.org.
         """
-              .trimIndent()
-          )
-      }
-      bowStateDump["root > [Task :app:failingTask3] > ERROR:'java.lang.Exception: Failing failingTask3'"].let { output ->
-        assertThat(output)
-          .isEqualTo(
-            """
+                .trimIndent()
+            )
+        }
+      bowStateDump[
+          "root > :app:failingTask3' (registered in build file 'app/build.gradle'). > ERROR:'java.lang.Exception: Failing failingTask3'"]
+        .let { output ->
+          assertThat(output)
+            .isEqualTo(
+              """
           Build file '$projectRoot/app/build.gradle' line: 59
   
-          Execution failed for task ':app:failingTask3'.
+          Execution failed for task ':app:failingTask3' (registered in build file 'app/build.gradle').
           > java.lang.Exception: Failing failingTask3
   
           * Try:
@@ -288,9 +300,9 @@ tasks.register("runFailingTasks") {
           > Run with --scan to get full insights from a Build Scan (powered by Develocity).
           > Get more help at https://help.gradle.org.
         """
-              .trimIndent()
-          )
-      }
+                .trimIndent()
+            )
+        }
       bowStateDump["root > [Task :app:failingTask1]"].let { output -> assertThat(output).doesNotContain("BUILD FAILED") }
       bowStateDump["root > [Task :app:failingTask2]"].let { output -> assertThat(output).doesNotContain("BUILD FAILED") }
       bowStateDump["root > [Task :app:failingTask3]"].let { output -> assertThat(output).doesNotContain("BUILD FAILED") }

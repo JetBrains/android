@@ -55,7 +55,7 @@ class ResourceCompilationXmlErrorTest : BuildOutputIntegrationTestBase() {
       val buildEvents = project.buildCollectingEvents(expectSuccess = false)
 
       val errorTreePath =
-        "root > [Task :app:mergeDebugResources] > ERROR:'Resource compilation failed (Failed to compile resource file: $projectRoot/app/src/main/res/layout/activity_my.xml: . Cause: javax.xml.stream.XMLStreamException: ParseError at [row,col]:[9,33]'"
+        "root > :app:mergeDebugResources' (registered by plugin 'com.android.internal.application'). > ERROR:'Resource compilation failed (Failed to compile resource file: $projectRoot/app/src/main/res/layout/activity_my.xml: . Cause: javax.xml.stream.XMLStreamException: ParseError at [row,col]:[9,33]'"
 
       // b/439843451: The build output may contain unrelated warning (e.g. about deprecated Java versions)
       // we should look into this.
@@ -73,7 +73,7 @@ root > 'failed'
           assertThat(event.description)
             .startsWith(
               """
-Execution failed for task ':app:mergeDebugResources'.
+Execution failed for task ':app:mergeDebugResources' (registered by plugin 'com.android.internal.application').
 > A failure occurred while executing com.android.build.gradle.internal.res.ResourceCompilerRunnable
    > Resource compilation failed (Failed to compile resource file: $projectRoot/app/src/main/res/layout/activity_my.xml: . Cause: javax.xml.stream.XMLStreamException: ParseError at [row,col]:[9,33]
      Message: http://www.w3.org/TR/1999/REC-xml-names-19990114#AttributePrefixUnbound?RelativeLayout&android:layout_width&android). Check logs for more details.

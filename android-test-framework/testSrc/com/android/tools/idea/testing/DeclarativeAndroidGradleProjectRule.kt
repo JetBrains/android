@@ -55,7 +55,7 @@ class DeclarativeAndroidGradleProjectRule(val projectRule: AndroidGradleProjectR
 
   private fun setupGradleSnapshotToWrapper(project: Project) {
     val distribution = TestUtils.resolveWorkspacePath("tools/external/gradle")
-    val gradle = distribution.resolve("gradle-9.5.0-milestone-7-bin.zip")
+    val gradle = distribution.resolve("gradle-9.5.0-bin.zip")
     val wrapper = GradleWrapper.find(project)!!
     wrapper.updateDistribution(gradle.toFile())
   }
