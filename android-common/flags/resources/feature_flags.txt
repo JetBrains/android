@@ -42,6 +42,7 @@ design.tools.assetstudio.dynamic.material.symbols=PREVIEW
 device.manager.ai.glasses.device.support.enabled=PREVIEW
 device.manager.ai.glasses.displayless.device.support.enabled=INTERNAL
 device.manager.ai.glasses.phone.emulator.pairing.wizard.enabled=PREVIEW
+device.manager.desktop.preview.avd.enabled=PREVIEW
 device.manager.emulator.aehd.to.whpx.conversion=PREVIEW
 device.manager.xr.device.support.enabled=COMPLETE:2025
 device.manager.xr.glasses.device.support.enabled=PREVIEW

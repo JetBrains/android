@@ -1884,6 +1884,11 @@ public final class StudioFlags {
     "Enables the pairing assistant for glasses and phone emulators."
   );
 
+  public static final Flag<Boolean> DESKTOP_PREVIEW_AVD_ENABLED = new BooleanFlag(
+    DEVICE_MANAGER, "desktop.preview.avd.enabled", "Enable Desktop (Preview) device profile",
+    "Enables using the 'Desktop (Preview)' device profile in AVD creation");
+
+
   public static final Flag<Boolean> EMULATOR_AEHD_TO_WHPX_CONVERSION = new BooleanFlag(
     DEVICE_MANAGER,
     "emulator.aehd.to.whpx.conversion",
