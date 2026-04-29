@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.lint.model
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.lint.LintTestProject
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -81,8 +80,6 @@ class LintModelSnapshotComparisonTest : SnapshotComparisonTest {
   @Test
   fun testLintModels() {
     val projectName = testProjectName ?: error("unit test parameter not initialized")
-    // TODO(b/491752957, b/467047467): Skip this test with phased Sync until b/491752957 is solved.
-    if (projectName.template.name == "PSD_SAMPLE_GROOVY" && StudioFlags.PHASED_SYNC_ENABLED.get() == true) return
     val preparedProject = projectRule.prepareTestProject(projectName.template)
     preparedProject.open { project ->
       val dump =

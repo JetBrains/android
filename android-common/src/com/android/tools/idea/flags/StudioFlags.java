@@ -1095,6 +1095,14 @@ public final class StudioFlags {
       "Play Publishing Wizard Integration",
       "Show checkbox to continue to Upload to Play Wizard"
     );
+
+  public static final Flag<Boolean> DEPENDENCY_AWARE_VARIANT_RESOLUTION_ENABLED = new BooleanFlag(
+    GRADLE_IDE,
+    "variant.early.resolution.enabled",
+    "Enables variant resolution using DeclaredDependencies",
+    "Enables consumer-driven variant resolution to determine the selected variant at early stage of Gradle Sync."
+  );
+
   //endregion
 
   //region Gradle Phased Sync
@@ -1130,8 +1138,7 @@ public final class StudioFlags {
     "dependency.resolution.enabled",
     "Enables dependency resolution phase in phased sync",
     "Enables dependency resolution phase in phased sync"
-  );
-  //endregion
+  );  //endregion
 
   //region Apk Project System
   private static final FlagGroup APK_IDE = new FlagGroup(FLAGS, "apk.ide", "APK Project System");
