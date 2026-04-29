@@ -392,6 +392,14 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_METHOD_TRACE_IN_EDITOR = new BooleanFlag(
     PROFILER, "method.trace.in.editor", "Open Method Trace in Editor",
     "Opens Java/Kotlin Method Trace files in a new editor tab");
+
+  public static final Flag<Boolean> PROFILER_PERFETTO_QUERY_GENERATION = new BooleanFlag(
+    PROFILER, "perfetto.query.generation", "Generate Perfetto SQL queries",
+    "Uses AI to generate Perfetto SQL queries");
+
+  public static final Flag<Boolean> PROFILER_PERFETTO_AI_TRACE_ANALYSIS = new BooleanFlag(
+    PROFILER, "perfetto.ai.trace.analysis", "Analyze Perfetto traces",
+    "Uses AI to analyze Perfetto traces");
   //endregion
 
   //region Design Tools
