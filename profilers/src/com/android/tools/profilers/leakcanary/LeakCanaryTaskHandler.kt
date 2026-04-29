@@ -587,7 +587,13 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
       val agentAttachedFuture = CompletableFuture<Boolean>()
 
       // Fetch the current device timestamp before attaching the listener to avoid picking up stale historical ATTACHED events.
-      val currentTimestampNs = profilers.client.transportClient.getCurrentTime(Transport.TimeRequest.getDefaultInstance()).timestampNs
+      val currentTimestampNs =
+        try {
+          profilers.client.transportClient.getCurrentTime(Transport.TimeRequest.getDefaultInstance()).timestampNs
+        } catch (e: Exception) {
+          logger.warn(e, "PROFILER: Failed to get current timestamp. Device may have disconnected.")
+          0L
+        }
 
       // Listen for the specific AGENT event that confirms the JVMTI agent has finished loading.
       val listener =
