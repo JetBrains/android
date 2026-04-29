@@ -18,6 +18,7 @@
 
 #include <android/keycodes.h>
 #include <poll.h>
+#include <regex>
 #include <sys/socket.h>
 
 #include "accessors/device_state_manager.h"
@@ -31,7 +32,9 @@
 #include "flags.h"
 #include "jvm.h"
 #include "log.h"
+#include "shell_command_executor.h"
 #include "socket_reader.h"
+#include "string_util.h"
 
 namespace screensharing {
 
@@ -65,6 +68,23 @@ int Utf8CharacterCount(const string& str) {
     }
   }
   return count;
+}
+
+bool UnicodeCompositionSupported() {
+  static int state = -1;
+  if (state < 0) {
+    state = 0;
+    string output = RTrim(ExecuteShellCommand("dumpsys package com.google.android.inputmethod.latin"));
+    basic_regex version_regex(R"(versionCode=(\d+)\s)");
+    auto iter = sregex_iterator(output.begin(), output.end(), version_regex);
+    if (iter != sregex_iterator()) {
+      int version = ParseInt(iter->str(1), -1);
+     if (version >= 175733006) {
+        state = 1;
+      }
+    }
+  }
+  return state != 0;
 }
 
 Point AdjustedDisplayCoordinates(int32_t x, int32_t y, const DisplayInfo& display_info) {
@@ -590,22 +610,77 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
 
 void Controller::ProcessKeyboardEvent(Jni jni, const KeyEventMessage& message) {
   nanoseconds event_time = UptimeNanos();
-  if ((Agent::flags() & USE_UINPUT || input_event_injection_disabled_) && Agent::feature_level() >= 29) {
+  InjectKeyEvent(message.action(), message.keycode(), message.meta_state());
+}
+
+void Controller::ProcessTextInput(const TextInputMessage& message) {
+  if (UseUInputForKeyEvents()) {
     InitializeVirtualKeyboard();
-    int32_t action = message.action();
-    virtual_keyboard_->WriteKeyEvent(
-        message.keycode(), action == KeyEventMessage::ACTION_DOWN_AND_UP ? AKEY_EVENT_ACTION_DOWN : action, event_time);
+  }
+  const u16string& text = message.text();
+  for (uint16_t c: text) {
+    JObjectArray event_array = key_character_map_->GetEvents(&c, 1);
+    if (event_array.IsNull()) {
+      if (UnicodeCompositionSupported()) {
+        InjectUnicodeCharacter(c);
+        continue;
+      }
+      Log::W(jni_.GetAndClearException(), "Unable to map character '\\u%04X' to key events", c);
+      continue;
+    }
+    auto len = event_array.GetLength();
+    for (int i = 0; i < len; i++) {
+      JObject key_event = event_array.GetElement(i);
+      if (UseUInputForKeyEvents()) {
+        virtual_keyboard_->WriteKeyEvent(KeyEvent::GetKeyCode(key_event), KeyEvent::GetAction(key_event), UptimeNanos());
+      } else {
+        if (Log::IsEnabled(Log::Level::DEBUG)) {
+          Log::D("key_event: %s", key_event.ToString().c_str());
+        }
+        InjectInputEvent(key_event);
+      }
+    }
+  }
+}
+
+void Controller::InjectUnicodeCharacter(uint16_t c) {
+  Log::D("InjectUnicodeCharacter('\\u%04X')", c);
+  // Activate unicode composition.
+  InjectKeyEvent(AKEY_EVENT_ACTION_DOWN, AKEYCODE_CTRL_LEFT, AMETA_CTRL_ON);
+  InjectKeyEvent(AKEY_EVENT_ACTION_DOWN, AKEYCODE_SHIFT_LEFT, AMETA_CTRL_ON | AMETA_SHIFT_ON);
+  InjectKeyEvent(KeyEventMessage::ACTION_DOWN_AND_UP, AKEYCODE_U, AMETA_CTRL_ON | AMETA_SHIFT_ON);
+  InjectKeyEvent(AKEY_EVENT_ACTION_UP, AKEYCODE_SHIFT_LEFT, AMETA_CTRL_ON);
+  InjectKeyEvent(AKEY_EVENT_ACTION_UP, AKEYCODE_CTRL_LEFT, 0);
+  // Enter hexadecimal code of the character.
+  bool significant = false;
+  for (int i = 12; i >= 0; i -= 4) {
+    int d = (c >> i) & 0xF;
+    if (d == 0 && !significant) {
+      continue;
+    }
+    significant = true;
+    int keycode = d < 10 ? AKEYCODE_0 + d : AKEYCODE_A + d - 10;
+    InjectKeyEvent(KeyEventMessage::ACTION_DOWN_AND_UP, keycode, 0);
+  }
+  // Finish unicode composition.
+  InjectKeyEvent(KeyEventMessage::ACTION_DOWN_AND_UP, AKEYCODE_ENTER, 0);
+}
+
+void Controller::InjectKeyEvent(int32_t action, int32_t keycode, int32_t meta_state) {
+  if (UseUInputForKeyEvents()) {
+    InitializeVirtualKeyboard();
+    nanoseconds event_time = UptimeNanos();
+    virtual_keyboard_->WriteKeyEvent(keycode, action == KeyEventMessage::ACTION_DOWN_AND_UP ? AKEY_EVENT_ACTION_DOWN : action, event_time);
     if (action == KeyEventMessage::ACTION_DOWN_AND_UP) {
-      virtual_keyboard_->WriteKeyEvent(message.keycode(), AKEY_EVENT_ACTION_UP, event_time);
+      virtual_keyboard_->WriteKeyEvent(keycode, AKEY_EVENT_ACTION_UP, event_time);
     }
   } else {
-    KeyEvent event(jni);
-    event.event_time_millis = duration_cast<milliseconds>(event_time).count();
+    KeyEvent event(jni_);
+    event.event_time_millis = duration_cast<milliseconds>(UptimeNanos()).count();
     event.down_time_millis = event.event_time_millis;
-    int32_t action = message.action();
     event.action = action == KeyEventMessage::ACTION_DOWN_AND_UP ? AKEY_EVENT_ACTION_DOWN : action;
-    event.code = message.keycode();
-    event.meta_state = message.meta_state();
+    event.code = keycode;
+    event.meta_state = meta_state;
     event.source = KeyCharacterMap::VIRTUAL_KEYBOARD;
     InjectKeyEvent(event);
     if (action == KeyEventMessage::ACTION_DOWN_AND_UP) {
@@ -615,32 +690,16 @@ void Controller::ProcessKeyboardEvent(Jni jni, const KeyEventMessage& message) {
   }
 }
 
-void Controller::ProcessTextInput(const TextInputMessage& message) {
-  nanoseconds event_time;
-  if ((Agent::flags() & USE_UINPUT || input_event_injection_disabled_) && Agent::feature_level() >= 29) {
-    event_time = UptimeNanos();
-    InitializeVirtualKeyboard();
+void Controller::InjectKeyEvent(const KeyEvent& event) {
+  JObject key_event = event.ToJava();
+  if (Log::IsEnabled(Log::Level::DEBUG)) {
+    Log::D("key_event: %s", key_event.ToString().c_str());
   }
-  const u16string& text = message.text();
-  for (uint16_t c: text) {
-    JObjectArray event_array = key_character_map_->GetEvents(&c, 1);
-    if (event_array.IsNull()) {
-      Log::W(jni_.GetAndClearException(), "Unable to map character '\\u%04X' to key events", c);
-      continue;
-    }
-    auto len = event_array.GetLength();
-    for (int i = 0; i < len; i++) {
-      JObject key_event = event_array.GetElement(i);
-      if ((Agent::flags() & USE_UINPUT || input_event_injection_disabled_) && Agent::feature_level() >= 29) {
-        virtual_keyboard_->WriteKeyEvent(KeyEvent::GetKeyCode(key_event), KeyEvent::GetAction(key_event), event_time);
-      } else {
-        if (Log::IsEnabled(Log::Level::DEBUG)) {
-          Log::D("key_event: %s", key_event.ToString().c_str());
-        }
-        InjectInputEvent(key_event);
-      }
-    }
-  }
+  InjectInputEvent(key_event);
+}
+
+bool Controller::UseUInputForKeyEvents() const {
+  return (Agent::flags() & USE_UINPUT || input_event_injection_disabled_) && Agent::feature_level() >= 29;
 }
 
 void Controller::InjectMotionEvent(const MotionEvent& event) {
@@ -668,19 +727,11 @@ void Controller::InjectCancelMotionEvent() {
   InjectInputEvent(event.ToJava());
 }
 
-void Controller::InjectKeyEvent(const KeyEvent& event) {
-  JObject key_event = event.ToJava();
-  if (Log::IsEnabled(Log::Level::DEBUG)) {
-    Log::D("key_event: %s", key_event.ToString().c_str());
-  }
-  InjectInputEvent(key_event);
-}
-
 void Controller::InjectInputEvent(const JObject& input_event) {
   if (input_event_injection_disabled_) {
     return;
   }
-  if (!InputManager::InjectInputEvent(jni_, input_event, InputEventInjectionSync::NONE)) {
+  if (!InputManager::InjectInputEvent(jni_, input_event, InputEventInjectionSync::WAIT_FOR_FINISHED)) {
     JThrowable exception = jni_.GetAndClearException();
     if (exception.IsNotNull()) {
       Log::E("Unable to inject an input event - %s", JString::ValueOf(exception).c_str());
