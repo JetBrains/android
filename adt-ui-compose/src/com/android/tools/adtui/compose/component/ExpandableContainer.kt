@@ -15,11 +15,13 @@
  */
 package com.android.tools.adtui.compose.component
 
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationSpec
-import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.focusGroup
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -83,8 +85,19 @@ fun ExpandableContainer(
 
   val maxCollapsedHeightPx = with(density) { maxCollapsedHeight.roundToPx() }
   var targetHeightPx by remember { mutableIntStateOf(0) }
-  val animatedHeight by
-    animateIntAsState(targetValue = targetHeightPx, animationSpec = heightAnimationSpec, label = "ExpandableContainer_height")
+
+  val heightAnimatable = remember { Animatable(0, Int.VectorConverter) }
+  var isInitialized by remember { mutableStateOf(false) }
+
+  LaunchedEffect(targetHeightPx) {
+    if (targetHeightPx == 0) return@LaunchedEffect
+    if (!isInitialized) {
+      heightAnimatable.snapTo(targetHeightPx)
+      isInitialized = true
+    } else {
+      heightAnimatable.animateTo(targetHeightPx, heightAnimationSpec)
+    }
+  }
 
   Layout(
     modifier =
@@ -102,6 +115,6 @@ fun ExpandableContainer(
     val height = placeable.height.fastCoerceIn(constraints.minHeight, constraints.maxHeight)
     targetHeightPx = if (expanded) height else min(height, maxCollapsedHeightPx)
 
-    layout(placeable.width, if (animateHeightChange) animatedHeight else targetHeightPx) { placeable.place(0, 0) }
+    layout(placeable.width, if (animateHeightChange) heightAnimatable.value else targetHeightPx) { placeable.place(0, 0) }
   }
 }
