@@ -230,7 +230,7 @@ public abstract class BaseAction extends AnAction {
                                 "the selected device is not authorized");
     }
 
-    if (devices.stream().anyMatch(d -> !d.arePropertiesSet())) {
+    if (devices.stream().anyMatch(d -> !d.getSystemProperty(IDevice.PROP_BUILD_API_LEVEL).isDone())) {
       return new DisableMessage(DisableMessage.DisableMode.DISABLED, "device not ready",
                                 "the selected device is not ready yet");
     }

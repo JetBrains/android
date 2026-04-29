@@ -24,6 +24,8 @@ import com.android.tools.idea.run.util.SwapInfo
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.SettableFuture
 import com.intellij.execution.DefaultExecutionTarget
 import com.intellij.execution.DefaultExecutionTargetProvider
 import com.intellij.execution.ExecutionManager
@@ -301,7 +303,11 @@ class CodeSwapActionTest {
     val mockDevice = mock<IDevice>()
     whenever(mockDevice.isOnline).thenReturn(true)
     whenever(mockDevice.version).thenReturn(AndroidVersion(apiLevel))
-    whenever(mockDevice.arePropertiesSet()).thenReturn(propertiesSet)
+    if (propertiesSet) {
+      whenever(mockDevice.getSystemProperty(any())).thenReturn(Futures.immediateFuture("fake prop value"))
+    } else {
+      whenever(mockDevice.getSystemProperty(any())).thenReturn(SettableFuture.create())
+    }
     return mockDevice
   }
 }
