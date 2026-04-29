@@ -80,6 +80,8 @@ class ShowFileInResourceManagerAction : DumbAwareAction("Show In Resource Manage
     if (file == null || project == null) {
       return false
     }
+    // Check that the resource manager is already available
+    if (ToolWindowManager.getInstance(project).getToolWindow(RESOURCE_EXPLORER_TOOL_WINDOW_ID)?.isAvailable != true) return false
     val dir = getPsiDir(file, project) ?: return false
     return isResourceDirectory(dir) || isResourceSubdirectory(dir) && isSupportedResource(dir.virtualFile)
   }
