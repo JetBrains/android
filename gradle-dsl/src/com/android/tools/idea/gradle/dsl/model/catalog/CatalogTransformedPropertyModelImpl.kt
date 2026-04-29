@@ -49,9 +49,9 @@ class CatalogTransformedPropertyModelImpl(realModel: GradlePropertyModelImpl, va
     val strValue: String = resolveModel().getValue(STRING_TYPE) ?: return null
     val result: Any =
       when (realType) {
-        INTEGER -> strValue.toInt()
-        BIG_DECIMAL -> strValue.toBigDecimal()
-        BOOLEAN -> strValue.toBoolean()
+        INTEGER -> strValue.toIntOrNull()
+        BIG_DECIMAL -> strValue.toBigDecimalOrNull()
+        BOOLEAN -> strValue.toBooleanStrictOrNull()
         STRING -> strValue
         else -> null
       } ?: return null
