@@ -5,10 +5,10 @@ package google.play.developer.reporting.v1beta1;
 import "metrics.proto";
 
 option java_multiple_files = true;
-option java_outer_classname = "EngagementMetricsProto";
+option java_outer_classname = "ActivationsMetricsProto";
 option java_package = "com.google.play.developer.reporting";
 
-// Singleton resource representing the set of Engagement metrics.
+// Singleton resource representing the set of Activations metrics.
 //
 // **Supported aggregation periods:**
 //
@@ -53,8 +53,8 @@ option java_package = "com.google.play.developer.reporting";
 //     ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
 //     The version of the app that was running on the user's device.
 //
-// (== resource_for v1beta1.platform.engagement ==)
-message EngagementMetricSet {
+// (== resource_for v1beta1.platform.activations ==)
+message ActivationsMetricSet {
   // The resource name.
   string name = 1;
 
@@ -62,17 +62,17 @@ message EngagementMetricSet {
   FreshnessInfo freshness_info = 2;
 }
 
-// Request message for retrieving the engagement metric set.
-message GetEngagementMetricSetRequest {
+// Request message for retrieving the activations metric set.
+message GetActivationsMetricSetRequest {
   // The resource name.
-  // Format: apps/{app}/engagementMetricSet
+  // Format: apps/{app}/activationsMetricSet
   string name = 1;
 }
 
-// Request message for querying the engagement metric set.
-message QueryEngagementMetricSetRequest {
+// Request message for querying the activations metric set.
+message QueryActivationsMetricSetRequest {
   // The resource name.
-  // Format: apps/{app}/engagementMetricSet
+  // Format: apps/{app}/activationsMetricSet
   string name = 1;
 
   // Specification of the timeline aggregation parameters.
@@ -147,8 +147,8 @@ message QueryEngagementMetricSetRequest {
   string page_token = 6;
 }
 
-// Response message for querying the engagement metric set.
-message QueryEngagementMetricSetResponse {
+// Response message for querying the activations metric set.
+message QueryActivationsMetricSetResponse {
   // The returned rows of metrics.
   repeated MetricsRow rows = 1;
 
