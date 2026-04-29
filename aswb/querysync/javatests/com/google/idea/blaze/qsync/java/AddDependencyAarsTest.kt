@@ -115,7 +115,7 @@ class AddDependencyAarsTest {
           createJavaArtifactInfo(
             label = Label.of("//path/to:dep"),
             ideAar =
-              BuildArtifact.create("aardigest", Path.of("path/to/dep.aar"), Label.of("//path/to:dep"))
+              BuildArtifact("aardigest", Path.of("path/to/dep.aar"), Label.of("//path/to:dep"))
                 .withMetadata(AarResPackage("com.google.idea.blaze.qsync.testdata.android")),
           ),
           DependencyBuildContext.create("", buildTimestamp),
@@ -178,7 +178,7 @@ class AddDependencyAarsTest {
         ImmutableList.of(
           createJavaArtifactInfo(
             label = Label.of("//path/to:dep"),
-            ideAar = BuildArtifact.create("aardigest", Path.of("path/to/dep.aar"), Label.of("//path/to:dep")),
+            ideAar = BuildArtifact("aardigest", Path.of("path/to/dep.aar"), Label.of("//path/to:dep")),
           )
         ),
       ),

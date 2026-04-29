@@ -125,8 +125,7 @@ class AddDependencyGenSrcsJarsTest {
         DependencyBuildContext.NONE,
         createJavaArtifactInfo(
           label = testProject.getAssumedOnlyLabel(),
-          genSrcs =
-            setOf(BuildArtifact.create("srcjardigest", Path.of("output/path/to/in_project.srcjar"), testProject.getAssumedOnlyLabel())),
+          genSrcs = setOf(BuildArtifact("srcjardigest", Path.of("output/path/to/in_project.srcjar"), testProject.getAssumedOnlyLabel())),
         ),
       )
 
@@ -170,11 +169,7 @@ class AddDependencyGenSrcsJarsTest {
             label = of("//java/com/google/common/collect:collect"),
             genSrcs =
               setOf(
-                BuildArtifact.create(
-                    "srcjardigest",
-                    Path.of("output/path/to/external.srcjar"),
-                    of("//java/com/google/common/collect:collect"),
-                  )
+                BuildArtifact("srcjardigest", Path.of("output/path/to/external.srcjar"), of("//java/com/google/common/collect:collect"))
                   .withMetadata(SrcJarJavaPackageRoots(ImmutableSet.of(Path.of("root"), Path.of("root2"))))
               ),
           ),
@@ -214,11 +209,7 @@ class AddDependencyGenSrcsJarsTest {
             label = of("//java/com/google/common/collect:collect"),
             genSrcs =
               setOf(
-                BuildArtifact.create(
-                  "srcjardigest",
-                  Path.of("output/path/to/external.srcjar"),
-                  of("//java/com/google/common/collect:collect"),
-                )
+                BuildArtifact("srcjardigest", Path.of("output/path/to/external.srcjar"), of("//java/com/google/common/collect:collect"))
               ),
           ),
           DependencyBuildContext.NONE,

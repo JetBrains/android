@@ -230,8 +230,8 @@ class ProjectProtoUpdate(existingProject: ProjectProto.Project) {
           }
           contents[relativePath] =
             ProjectProto.ProjectArtifact(
-              target = artifact.target(),
-              buildArtifact = ProjectProto.BuildArtifact(artifact.digest()),
+              target = artifact.target,
+              buildArtifact = ProjectProto.BuildArtifact(artifact.digest),
               fromBuild = buildContext.startTime(),
               transform = transform,
             )

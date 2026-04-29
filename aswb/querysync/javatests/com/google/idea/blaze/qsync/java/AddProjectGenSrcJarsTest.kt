@@ -91,13 +91,7 @@ class AddProjectGenSrcJarsTest {
         createJavaArtifactInfo(
           label = of("//java/com/google/common/collect:collect"),
           genSrcs =
-            setOf(
-              BuildArtifact.create(
-                "srcjardigest",
-                Path.of("output/path/to/external.srcjar"),
-                of("//java/com/google/common/collect:collect"),
-              )
-            ),
+            setOf(BuildArtifact("srcjardigest", Path.of("output/path/to/external.srcjar"), of("//java/com/google/common/collect:collect"))),
         ),
       )
 
@@ -124,7 +118,7 @@ class AddProjectGenSrcJarsTest {
             label = testData.getAssumedOnlyLabel(),
             genSrcs =
               setOf(
-                BuildArtifact.create("srcjardigest", Path.of("output/path/to/project.srcjar"), testData.getAssumedOnlyLabel())
+                BuildArtifact("srcjardigest", Path.of("output/path/to/project.srcjar"), testData.getAssumedOnlyLabel())
                   .withMetadata(SrcJarPrefixedJavaPackageRoots(ImmutableSet.of(JarPath.create("root", ""))))
               ),
           ),
@@ -173,7 +167,7 @@ class AddProjectGenSrcJarsTest {
             label = testData.getAssumedOnlyLabel(),
             genSrcs =
               setOf(
-                BuildArtifact.create("srcjardigest", Path.of("output/path/to/project.srcjar"), testData.getAssumedOnlyLabel())
+                BuildArtifact("srcjardigest", Path.of("output/path/to/project.srcjar"), testData.getAssumedOnlyLabel())
                   .withMetadata(SrcJarPrefixedJavaPackageRoots(ImmutableSet.of(JarPath.create("root", "com.example"))))
               ),
           ),
@@ -220,7 +214,7 @@ class AddProjectGenSrcJarsTest {
         TargetBuildInfo.forJavaTarget(
           createJavaArtifactInfo(
             label = testData.getAssumedOnlyLabel(),
-            genSrcs = setOf(BuildArtifact.create("srcjardigest", Path.of("output/path/to/project.srcjar"), testData.getAssumedOnlyLabel())),
+            genSrcs = setOf(BuildArtifact("srcjardigest", Path.of("output/path/to/project.srcjar"), testData.getAssumedOnlyLabel())),
           ),
           DependencyBuildContext.NONE,
         )

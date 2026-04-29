@@ -125,7 +125,7 @@ class ConfigureCcCompilation : ProjectProtoUpdateOperation {
 
         update.artifactDirectory(ArtifactDirectories.GEN_CC_HEADERS) {
           for (artifact in ccInfo.genHeaders) {
-            addIfNewer(artifact.artifactPath(), artifact, buildContext)
+            addIfNewer(artifact.artifactPath, artifact, buildContext)
           }
         }
       }

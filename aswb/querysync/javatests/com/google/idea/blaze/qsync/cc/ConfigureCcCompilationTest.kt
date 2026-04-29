@@ -23,6 +23,7 @@ import com.google.idea.blaze.common.NoopContext
 import com.google.idea.blaze.qsync.TestDataSyncRunner
 import com.google.idea.blaze.qsync.artifacts.AspectProtos
 import com.google.idea.blaze.qsync.artifacts.DigestMap
+import com.google.idea.blaze.qsync.artifacts.ofFunction
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.deps.CcCompilationInfo
 import com.google.idea.blaze.qsync.deps.CcToolchain

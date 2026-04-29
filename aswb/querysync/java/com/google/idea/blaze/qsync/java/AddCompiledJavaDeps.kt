@@ -42,7 +42,7 @@ class AddCompiledJavaDeps(private val emptyJarDigests: Set<String>) : ProjectPro
           .targets()
           .filterIsInstance<TargetBuildInfo.Java>()
           .flatMap { it.javaInfo.outputJars }
-          .associate { it.digest() to it.target() }
+          .associate { it.digest to it.target }
       var emptySkipped = 0
       for (target in artifactState.targets()) {
         val javaInfo = (target as? TargetBuildInfo.Java)?.javaInfo ?: continue
@@ -50,30 +50,30 @@ class AddCompiledJavaDeps(private val emptyJarDigests: Set<String>) : ProjectPro
         val jarsToAdd =
           javaInfo.jars
             .filter { jar ->
-              val emptyJar = emptyJarDigests.contains(jar.digest())
+              val emptyJar = emptyJarDigests.contains(jar.digest)
               if (emptyJar) {
                 emptySkipped++
               }
               !emptyJar
             }
             .filter { jar ->
-              val targetLabelByDigest = outputJarToTarget[jar.digest()]
+              val targetLabelByDigest = outputJarToTarget[jar.digest]
               // Unknown or directly produced target.
               targetLabelByDigest == null || target.label == targetLabelByDigest
             }
             .filter { jar ->
-              val duplicateJar = seen.contains(jar.digest())
+              val duplicateJar = seen.contains(jar.digest)
               if (duplicateJar) {
-                skipped.add(jar.artifactPath().toString())
+                skipped.add(jar.artifactPath.toString())
               }
               !duplicateJar
             }
             .toList()
         val jars =
           jarsToAdd.map { jar ->
-            seen.add(jar.digest())
-            addIfNewer(jar.artifactPath(), jar, target.buildContext)
-            ArtifactDirectories.JAVADEPS.resolveChild(jar.artifactPath())
+            seen.add(jar.digest)
+            addIfNewer(jar.artifactPath, jar, target.buildContext)
+            ArtifactDirectories.JAVADEPS.resolveChild(jar.artifactPath)
           }
         if (jars.isNotEmpty()) {
           libNameToJars.getOrPut(target.label) { hashSetOf() } += jars

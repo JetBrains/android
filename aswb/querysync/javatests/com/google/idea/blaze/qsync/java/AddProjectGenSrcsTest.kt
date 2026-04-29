@@ -100,7 +100,7 @@ class AddProjectGenSrcsTest {
             label = testData.assumedOnlyLabel,
             genSrcs =
               setOf(
-                BuildArtifact.create("gensrcdigest", Path.of("output/path/com/org/Class.java"), testData.assumedOnlyLabel)
+                BuildArtifact("gensrcdigest", Path.of("output/path/com/org/Class.java"), testData.assumedOnlyLabel)
                   .withMetadata(JavaArtifactMetadata.JavaSourcePackage("com.org"))
               ),
           ),
@@ -166,7 +166,7 @@ class AddProjectGenSrcsTest {
           label = testLabel.siblingWithName("genSrc1"),
           genSrcs =
             setOf(
-              BuildArtifact.create("gensrc1", Path.of("output/path/com/org/Class.java"), testLabel.siblingWithName("genSrc1"))
+              BuildArtifact("gensrc1", Path.of("output/path/com/org/Class.java"), testLabel.siblingWithName("genSrc1"))
                 .withMetadata(JavaArtifactMetadata.JavaSourcePackage("com.org"))
             ),
         ),
@@ -180,7 +180,7 @@ class AddProjectGenSrcsTest {
           label = testLabel.siblingWithName("genSrc2"),
           genSrcs =
             setOf(
-              BuildArtifact.create("gensrc2", Path.of("output/otherpath/com/org/Class.java"), genSrc2Label)
+              BuildArtifact("gensrc2", Path.of("output/otherpath/com/org/Class.java"), genSrc2Label)
                 .withMetadata(JavaArtifactMetadata.JavaSourcePackage("com.org"))
             ),
         ),
@@ -247,7 +247,7 @@ class AddProjectGenSrcsTest {
           label = testLabel.siblingWithName("genSrc1"),
           genSrcs =
             setOf(
-              BuildArtifact.create("samedigest", Path.of("output/path/com/org/Class.java"), testLabel.siblingWithName("genSrc1"))
+              BuildArtifact("samedigest", Path.of("output/path/com/org/Class.java"), testLabel.siblingWithName("genSrc1"))
                 .withMetadata(JavaArtifactMetadata.JavaSourcePackage("com.org"))
             ),
         ),
@@ -261,7 +261,7 @@ class AddProjectGenSrcsTest {
           label = testLabel.siblingWithName("genSrc2"),
           genSrcs =
             setOf(
-              BuildArtifact.create("samedigest", Path.of("output/otherpath/com/org/Class.java"), genSrc2Label)
+              BuildArtifact("samedigest", Path.of("output/otherpath/com/org/Class.java"), genSrc2Label)
                 .withMetadata(JavaArtifactMetadata.JavaSourcePackage("com.org"))
             ),
         ),
@@ -288,7 +288,7 @@ class AddProjectGenSrcsTest {
         TargetBuildInfo.forJavaTarget(
           createJavaArtifactInfo(
             label = testData.assumedOnlyLabel,
-            genSrcs = setOf(BuildArtifact.create("gensrcdigest", Path.of("output/path/com/org/Class.java"), testData.assumedOnlyLabel)),
+            genSrcs = setOf(BuildArtifact("gensrcdigest", Path.of("output/path/com/org/Class.java"), testData.assumedOnlyLabel)),
           ),
           DependencyBuildContext.create("", buildTimestamp),
         )

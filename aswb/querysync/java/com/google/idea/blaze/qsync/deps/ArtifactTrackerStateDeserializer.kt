@@ -16,7 +16,6 @@
 package com.google.idea.blaze.qsync.deps
 
 import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableMap
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact
@@ -129,7 +128,7 @@ class ArtifactTrackerStateDeserializer(private val metadataFactory: ArtifactMeta
   }
 
   private fun toArtifact(a: ArtifactTrackerProto.Artifact, owner: Label): BuildArtifact {
-    return BuildArtifact.create(a.getDigest(), Path.of(a.getArtifactPath()), owner, ImmutableMap.copyOf(toArtifactMap(a.metadataList)))
+    return BuildArtifact(a.getDigest(), Path.of(a.getArtifactPath()), owner, toArtifactMap(a.metadataList))
   }
 
   private fun toArtifactList(protos: List<ArtifactTrackerProto.Artifact>, owner: Label): List<BuildArtifact> {

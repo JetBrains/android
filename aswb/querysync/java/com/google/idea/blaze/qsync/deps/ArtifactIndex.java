@@ -56,7 +56,7 @@ public abstract class ArtifactIndex {
       (labelTargetBuildInfoEntry.getValue() instanceof TargetBuildInfo.Java javaTarget
               ? javaTarget.getJavaInfo().getJars()
               : ImmutableSet.<BuildArtifact>of())
-          .stream().map(BuildArtifact::artifactPath).forEach(path -> map.put(path, label));
+          .stream().map(BuildArtifact::getArtifactPath).forEach(path -> map.put(path, label));
     }
     return map.build();
   }

@@ -28,7 +28,7 @@ class ClassFileGenSrcJarJavaSourceFinder(clsFile: PsiFile) : SourceFileInCompile
     return artifactInfo.genSrcs
       .asSequence()
       .map { artifact ->
-        val relativePath = ArtifactDirectories.DEFAULT.resolveChild(artifact.artifactPath()).relativePath
+        val relativePath = ArtifactDirectories.DEFAULT.resolveChild(artifact.artifactPath).relativePath
         projectPath.resolve(relativePath)
       }
       .filter { path ->

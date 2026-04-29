@@ -62,7 +62,7 @@ class AddProjectGenSrcs(
       // Note: we do a reverse comparison for start time to ensure the newest build "wins".
       var compare = other.origin.startTime().compareTo(origin.startTime())
       if (compare == 0) {
-        compare = artifact.target().toString().compareTo(other.artifact.target().toString())
+        compare = artifact.target.toString().compareTo(other.artifact.target.toString())
       }
       return compare
     }
@@ -96,15 +96,11 @@ class AddProjectGenSrcs(
         val genSrcs = getSourceFileArtifacts(target)
         if (genSrcs.isEmpty()) continue
         for (genSrc in genSrcs) {
-          val javaPackage =
-            genSrc
-              .getMetadata(JavaArtifactMetadata.JavaSourcePackage::class.java)
-              .map(JavaArtifactMetadata.JavaSourcePackage::name)
-              .orElse(null)
+          val javaPackage = genSrc.getMetadata(JavaArtifactMetadata.JavaSourcePackage::class.java)?.name
           if (javaPackage == null) {
             missingPackageArtifacts.add(genSrc)
           } else {
-            val finalDest = Path.of(javaPackage.replace('.', '/')).resolve(genSrc.artifactPath().fileName)
+            val finalDest = Path.of(javaPackage.replace('.', '/')).resolve(genSrc.artifactPath.fileName)
             srcsByJavaPath.getOrPut(finalDest) { mutableListOf() }.add(ArtifactWithOrigin(genSrc, target.buildContext))
           }
         }
@@ -120,7 +116,7 @@ class AddProjectGenSrcs(
               separator = "\n",
               truncated = "and ${missingPackageArtifacts.size - showSourcesLimit} more",
             ) {
-              it.artifactPath().toString()
+              it.artifactPath.toString()
             },
           )
         )
@@ -132,15 +128,15 @@ class AddProjectGenSrcs(
           val candidates: MutableCollection<ArtifactWithOrigin> = entry.value
           // before warning, check that the conflicting sources do actually differ. If they're the
           // same artifact underneath, there's no actual conflict.
-          val uniqueDigests = candidates.map { it.artifact.digest() }.distinct().count()
+          val uniqueDigests = candidates.map { it.artifact.digest }.distinct().count()
           if (uniqueDigests > 1) {
             context.output(
               PrintOutput.error(
                 ("WARNING: your project contains conflicting generated java sources for:\n" + "  %s\n" + "From:\n" + "  %s"),
                 finalDest,
                 candidates.joinToString(separator = "\n  ") {
-                  val target = it.artifact.target()
-                  val artifactPath = it.artifact.artifactPath()
+                  val target = it.artifact.target
+                  val artifactPath = it.artifact.artifactPath
                   val ago = formatDuration(Duration.between(it.origin.startTime(), Instant.now()))
                   "$artifactPath ($target built $ago ago)"
                 },
@@ -154,7 +150,7 @@ class AddProjectGenSrcs(
         }
 
       val (testSrcs, srcs) =
-        destinationToChosenArtifact.partition { (_, chosen) -> testSourceMatcher.matches(chosen.artifact.target().getBuildPackagePath()) }
+        destinationToChosenArtifact.partition { (_, chosen) -> testSourceMatcher.matches(chosen.artifact.target.getBuildPackagePath()) }
 
       if (srcs.isNotEmpty()) {
         update.artifactDirectory(ArtifactDirectories.JAVA_GEN_SRC) {

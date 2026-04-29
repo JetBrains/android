@@ -89,7 +89,7 @@ class AddCompiledJavaDepsTest {
           label = of("//java/com/google/common/collect:collect"),
           jars =
             setOf(
-              BuildArtifact.create(
+              BuildArtifact(
                 "jardigest",
                 Path.of("build-out/java/com/google/common/collect/libcollect.jar"),
                 of("//java/com/google/common/collect:collect"),
@@ -136,7 +136,7 @@ class AddCompiledJavaDepsTest {
           label = of("//java/com/google/common/collect:collect"),
           jars =
             setOf(
-              BuildArtifact.create(
+              BuildArtifact(
                 "empty_jar_digest",
                 Path.of("build-out/java/com/google/common/collect/libcollect.jar"),
                 of("//java/com/google/common/collect:collect"),

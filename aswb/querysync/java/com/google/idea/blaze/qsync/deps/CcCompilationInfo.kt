@@ -15,11 +15,11 @@
  */
 package com.google.idea.blaze.qsync.deps
 
-import com.google.common.collect.ImmutableSetMultimap
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact
 import com.google.idea.blaze.qsync.artifacts.DigestMap
+import com.google.idea.blaze.qsync.artifacts.withMetadata
 import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcTargetInfo
 import com.google.idea.blaze.qsync.project.ProjectPath
 
@@ -39,11 +39,11 @@ data class CcCompilationInfo(
   val toolchainId: String,
 ) {
 
-  fun withMetadata(metadata: ImmutableSetMultimap<BuildArtifact, ArtifactMetadata>): CcCompilationInfo {
-    if (metadata.isEmpty) {
+  fun withMetadata(metadata: Map<BuildArtifact, List<ArtifactMetadata>>): CcCompilationInfo {
+    if (metadata.isEmpty()) {
       return this
     }
-    return copy(genHeaders = BuildArtifact.addMetadata(genHeaders, metadata).toSet())
+    return copy(genHeaders = genHeaders.withMetadata(metadata).toSet())
   }
 
   companion object {

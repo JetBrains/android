@@ -92,9 +92,9 @@ class ArtifactTrackerStateSerializer {
 
   private fun toProto(artifact: BuildArtifact): ArtifactTrackerProto.Artifact {
     return ArtifactTrackerProto.Artifact.newBuilder()
-      .setDigest(artifact.digest())
-      .setArtifactPath(artifact.artifactPath().toString())
-      .addAllMetadata(artifact.metadata().values.map { it.toProto() })
+      .setDigest(artifact.digest)
+      .setArtifactPath(artifact.artifactPath.toString())
+      .addAllMetadata(artifact.metadata.values.map { it.toProto() })
       .build()
   }
 

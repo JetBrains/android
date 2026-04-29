@@ -80,23 +80,23 @@ public class ArtifactTrackerStateSerializationTest {
                     false,
                     false,
                     Set.of(
-                        BuildArtifact.create(
+                        new BuildArtifact(
                             "jardigest",
                             Path.of("/build/out/classes.jar"),
                             Label.of("//my/package:target"))),
                     Set.of(),
-                    BuildArtifact.create(
+                    new BuildArtifact(
                         "aardigest",
                         Path.of("/build/out/resources.aar"),
                         Label.of("//my/package:target")),
                     Set.of(
-                        BuildArtifact.create(
+                        new BuildArtifact(
                             "gensrcdigest",
                             Path.of("/build/out/Generated.java"),
                             Label.of("//my/package:target"))),
                     Set.of(),
                     Set.of(
-                        BuildArtifact.create(
+                        new BuildArtifact(
                             "gensrcdigest",
                             Path.of("/build/out/libproto-src.jar"),
                             Label.of("//my/package:target"))),
@@ -138,7 +138,7 @@ public class ArtifactTrackerStateSerializationTest {
                         ProjectPath.projectRelative(Path.of("buildout/fwinclude")),
                         ProjectPath.workspaceRelativeForTests(Path.of("src/fwinclude"))),
                     Set.of(
-                        BuildArtifact.create(
+                        new BuildArtifact(
                             "genhdrdigest",
                             Path.of("/build/out/generated.h"),
                             Label.of("//my/package:target"))),
@@ -180,18 +180,18 @@ public class ArtifactTrackerStateSerializationTest {
                 false,
                 Set.of(),
                 Set.of(),
-                BuildArtifact.create(
+                new BuildArtifact(
                         "bcd",
                         Path.of("//my/package/libtarget.aar"),
                         Label.of("//my/package:target"))
                     .withMetadata(new AarResPackage("com.aar.package")),
                 Set.of(
-                    BuildArtifact.create(
+                    new BuildArtifact(
                             "abc",
                             Path.of("//my/package/Generated.java"),
                             Label.of("//my/package:target"))
                         .withMetadata(new JavaSourcePackage("com.my.package")),
-                    BuildArtifact.create(
+                    new BuildArtifact(
                             "abc",
                             Path.of("//my/package/libtarget.srcjar"),
                             Label.of("//my/package:target"))

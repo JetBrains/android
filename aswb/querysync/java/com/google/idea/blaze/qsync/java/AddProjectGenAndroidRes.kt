@@ -51,9 +51,9 @@ class AddProjectGenAndroidRes : ProjectProtoUpdateOperation {
       val resRoots = mutableSetOf<Path>()
       update.artifactDirectory(ArtifactDirectories.ANDROID_GEN_RES) {
         for (artifact in genRes) {
-          addIfNewer(artifact.artifactPath(), artifact, target.buildContext)
+          addIfNewer(artifact.artifactPath, artifact, target.buildContext)
         }
-        resRoots.addAll(AndroidResUtils.computeAndroidResourceDirectories(genRes.map { it.artifactPath() }))
+        resRoots.addAll(AndroidResUtils.computeAndroidResourceDirectories(genRes.map { it.artifactPath }))
       }
 
       if (resRoots.isNotEmpty()) {

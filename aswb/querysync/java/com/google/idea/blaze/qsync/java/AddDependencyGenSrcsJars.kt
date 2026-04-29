@@ -30,7 +30,6 @@ import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import com.google.idea.common.experiments.BoolExperiment
 import java.nio.file.Path
 import kotlin.jvm.JvmField
-import kotlin.jvm.optionals.getOrNull
 
 /**
  * Adds generated `.srcjar` files from external dependencies to the `.dependencies` library. This means that when navigating to these
@@ -73,13 +72,13 @@ class AddDependencyGenSrcsJars(
     update.artifactDirectory(ArtifactDirectories.DEFAULT) {
       for (target in artifactState.targets()) {
         for (protoSrcJar in getProtoSrcJars(target)) {
-          addIfNewer(protoSrcJar.artifactPath(), protoSrcJar, target.buildContext)
+          addIfNewer(protoSrcJar.artifactPath, protoSrcJar, target.buildContext)
         }
         val projectPaths =
           getDependencyGenSrcJars(target).flatMap { genSrc ->
-            val projectPath = addIfNewer(genSrc.artifactPath(), genSrc, target.buildContext) ?: return@flatMap emptyList()
+            val projectPath = addIfNewer(genSrc.artifactPath, genSrc, target.buildContext) ?: return@flatMap emptyList()
 
-            val innerJavaRoots = genSrc.getMetadata(SrcJarJavaPackageRoots::class.java).getOrNull()?.roots() ?: setOf(Path.of(""))
+            val innerJavaRoots = genSrc.getMetadata(SrcJarJavaPackageRoots::class.java)?.roots() ?: setOf(Path.of(""))
             innerJavaRoots.map { projectPath.withInnerJarPath(it) }
           }
         if (!ENABLED_NAVIGATION_POLICY.value) {

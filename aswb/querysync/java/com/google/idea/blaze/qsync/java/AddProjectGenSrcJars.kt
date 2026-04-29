@@ -30,7 +30,6 @@ import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact.Artifact
 import com.google.idea.blaze.qsync.project.TestSourceGlobMatcher
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
-import kotlin.jvm.optionals.getOrNull
 
 /** Adds in-project generated `.srcjar` files to the project proto. This allows these sources to be resolved and viewed. */
 class AddProjectGenSrcJars(
@@ -64,17 +63,16 @@ class AddProjectGenSrcJars(
         update.module(target.label) {
           genSrcJars.forEach { genSrc ->
             // a zip of generated sources
-            val added = addIfNewer(genSrc.artifactPath().resolve("src"), genSrc, target.buildContext, ArtifactTransform.UNZIP)
+            val added = addIfNewer(genSrc.artifactPath.resolve("src"), genSrc, target.buildContext, ArtifactTransform.UNZIP)
             if (added != null) {
               contentEntry(added) {
                 val packageRoots =
-                  genSrc.getMetadata(SrcJarPrefixedJavaPackageRoots::class.java).getOrNull()?.paths()
-                    ?: ImmutableSet.of(JarPath.create("", ""))
+                  genSrc.getMetadata(SrcJarPrefixedJavaPackageRoots::class.java)?.paths ?: ImmutableSet.of(JarPath.create("", ""))
                 for (innerPath in packageRoots) {
                   addSourceRoot(
                     root = added.resolveChild(innerPath.path),
                     javaPackage = innerPath.packagePrefix,
-                    isTest = testSourceMatcher.matches(genSrc.target().getBuildPackagePath()),
+                    isTest = testSourceMatcher.matches(genSrc.target.getBuildPackagePath()),
                     isGenerated = true,
                   )
                 }

@@ -28,7 +28,7 @@ class ProtoFileJavaSourceFinder(clsFile: PsiFile) : SourceFileInCompiledFileFind
     return artifactInfo.protoSrcjars
       .asSequence()
       .map { artifact ->
-        val relative = ArtifactDirectories.DEFAULT.resolveChild(artifact.artifactPath()).relativePath
+        val relative = ArtifactDirectories.DEFAULT.resolveChild(artifact.artifactPath).relativePath
         projectPath.resolve(relative)
       }
       .filter { path ->

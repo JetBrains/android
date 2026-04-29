@@ -40,7 +40,7 @@ class ArtifactDirectoryBuilderTest {
       val added =
         addIfNewer(
           Path.of("path/to/artifact"),
-          BuildArtifact.create("digest", Path.of("build-out/path/to/artifact"), Label.of("//path/to:target")),
+          BuildArtifact("digest", Path.of("build-out/path/to/artifact"), Label.of("//path/to:target")),
           DependencyBuildContext.create("build-id", buildTimestamp1),
         )
 
@@ -74,14 +74,14 @@ class ArtifactDirectoryBuilderTest {
     update.artifactDirectory(ProjectPath.projectRelative(Path.of("artifactDir"))) {
       addIfNewer(
         Path.of("path/to/artifact"),
-        BuildArtifact.create("digest1", Path.of("build-out/path/to/artifact"), Label.of("//path/to:target")),
+        BuildArtifact("digest1", Path.of("build-out/path/to/artifact"), Label.of("//path/to:target")),
         DependencyBuildContext.create("build-id", buildTimestamp1),
       )
 
       val added =
         addIfNewer(
           Path.of("path/to/artifact"),
-          BuildArtifact.create("digest2", Path.of("build-out/path/to/newartifact"), Label.of("//path/to:target")),
+          BuildArtifact("digest2", Path.of("build-out/path/to/newartifact"), Label.of("//path/to:target")),
           DependencyBuildContext.create("build-id", buildTimestamp2),
         )
 
@@ -115,14 +115,14 @@ class ArtifactDirectoryBuilderTest {
     update.artifactDirectory(ProjectPath.projectRelative(Path.of("artifactDir"))) {
       addIfNewer(
         Path.of("path/to/artifact"),
-        BuildArtifact.create("digest1", Path.of("build-out/path/to/artifact"), Label.of("//path/to:target")),
+        BuildArtifact("digest1", Path.of("build-out/path/to/artifact"), Label.of("//path/to:target")),
         DependencyBuildContext.create("build-id", buildTimestamp2),
       )
 
       val added =
         addIfNewer(
           Path.of("path/to/artifact"),
-          BuildArtifact.create("digest2", Path.of("build-out/path/to/newartifact"), Label.of("//path/to:target")),
+          BuildArtifact("digest2", Path.of("build-out/path/to/newartifact"), Label.of("//path/to:target")),
           DependencyBuildContext.create("build-id", buildTimestamp1),
         )
 
@@ -184,7 +184,7 @@ class ArtifactDirectoryBuilderTest {
     update.artifactDirectory(ProjectPath.projectRelative(Path.of("artifactDir"))) {
       addIfNewer(
         Path.of("path/to/artifact"),
-        BuildArtifact.create("digest1", Path.of("build-out/path/to/artifact"), Label.of("//path/to:target")),
+        BuildArtifact("digest1", Path.of("build-out/path/to/artifact"), Label.of("//path/to:target")),
         DependencyBuildContext.create("build-id", buildTimestamp1),
       )
     }

@@ -42,7 +42,6 @@ import com.google.idea.common.experiments.MockExperimentService
 import java.nio.file.Path
 import java.time.Duration
 import java.util.Optional
-import kotlin.jvm.optionals.getOrNull
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
@@ -128,9 +127,9 @@ class NewArtifactTrackerTest : BlazeTestCase() {
 
     assertThat(depsMap.keys).containsExactly(Label.of("//test:test"), Label.of("//test:anothertest"))
     assertThat(depsMap.get(Label.of("//test:test"))!!.jars)
-      .containsExactly(BuildArtifact.create("jar_digest", Path.of("out/test.jar"), Label.of("//test:test")))
+      .containsExactly(BuildArtifact("jar_digest", Path.of("out/test.jar"), Label.of("//test:test")))
     assertThat(depsMap.get(Label.of("//test:anothertest"))!!.jars)
-      .containsExactly(BuildArtifact.create("anotherjar_digest", Path.of("out/anothertest.jar"), Label.of("//test:anothertest")))
+      .containsExactly(BuildArtifact("anotherjar_digest", Path.of("out/anothertest.jar"), Label.of("//test:anothertest")))
   }
 
   @Test
@@ -163,7 +162,7 @@ class NewArtifactTrackerTest : BlazeTestCase() {
     val depsMap = builtDeps.mapNotNull { (it as? TargetBuildInfo.Java)?.javaInfo }.associateBy { it.label }
     assertThat(depsMap.keys).containsExactly(Label.of("//test:test"), Label.of("//test:anothertest"))
     assertThat(depsMap.get(Label.of("//test:test"))!!.jars)
-      .containsExactly(BuildArtifact.create("jar_digest", Path.of("out/test.jar"), Label.of("//test:test")))
+      .containsExactly(BuildArtifact("jar_digest", Path.of("out/test.jar"), Label.of("//test:test")))
     assertThat(depsMap.get(Label.of("//test:anothertest"))!!.jars).isEmpty()
   }
 
@@ -202,7 +201,7 @@ class NewArtifactTrackerTest : BlazeTestCase() {
     val depsMap = builtDeps.mapNotNull { (it as? TargetBuildInfo.Java)?.javaInfo }.associateBy { it.label }
     assertThat(depsMap.keys).containsExactly(Label.of("//test:test"), Label.of("//test:testdep"), Label.of("//test:anothertest"))
     assertThat(depsMap.get(Label.of("//test:anothertest"))!!.jars)
-      .containsExactly(BuildArtifact.create("jar_digest", Path.of("out/anothertest.jar"), Label.of("//test:anothertest")))
+      .containsExactly(BuildArtifact("jar_digest", Path.of("out/anothertest.jar"), Label.of("//test:anothertest")))
     assertThat(depsMap.get(Label.of("//test:test"))!!.jars).isEmpty()
   }
 
@@ -292,8 +291,8 @@ class NewArtifactTrackerTest : BlazeTestCase() {
 
     assertThat((artifactTracker.builtDepsForTesting.single() as TargetBuildInfo.Java).javaInfo.genSrcs)
       .containsExactly(
-        BuildArtifact.create("class1_digest", Path.of("out/src/Class1.java"), Label.of("//test:test")),
-        BuildArtifact.create("class2_digest", Path.of("out/src/Class2.java"), Label.of("//test:test")),
+        BuildArtifact("class1_digest", Path.of("out/src/Class1.java"), Label.of("//test:test")),
+        BuildArtifact("class2_digest", Path.of("out/src/Class2.java"), Label.of("//test:test")),
       )
   }
 
@@ -325,7 +324,7 @@ class NewArtifactTrackerTest : BlazeTestCase() {
   @Throws(BuildException::class)
   fun extract_artifact_metadata() {
     cache.artifacts.add(TestOutputArtifact.builder().setArtifactPath(Path.of("out/test.jar")).setDigest("jar_digest").build())
-    val jarArtifact = BuildArtifact.create("jar_digest", Path.of("out/test.jar"), Label.of("//test:test"))
+    val jarArtifact = BuildArtifact("jar_digest", Path.of("out/test.jar"), Label.of("//test:test"))
     artifactMetadataMap[Label.of("//test:test")] =
       mapOf(jarArtifact to listOf(TestArtifactMetadata(Metadata1("md1")), TestArtifactMetadata(Metadata2("md2"))))
 
@@ -346,9 +345,9 @@ class NewArtifactTrackerTest : BlazeTestCase() {
     )
 
     val builtDeps = artifactTracker.builtDepsForTesting
-    assertThat((builtDeps.single() as TargetBuildInfo.Java).javaInfo.jars.single().getMetadata(Metadata1::class.java).getOrNull())
+    assertThat((builtDeps.single() as TargetBuildInfo.Java).javaInfo.jars.single().getMetadata(Metadata1::class.java))
       .isEqualTo(Metadata1("md1"))
-    assertThat((builtDeps.single() as TargetBuildInfo.Java).javaInfo.jars.single().getMetadata(Metadata2::class.java).getOrNull())
+    assertThat((builtDeps.single() as TargetBuildInfo.Java).javaInfo.jars.single().getMetadata(Metadata2::class.java))
       .isEqualTo(Metadata2("md2"))
   }
 
@@ -386,8 +385,8 @@ class NewArtifactTrackerTest : BlazeTestCase() {
     val builtDeps = artifactTracker.builtDepsForTesting
     assertThat((builtDeps.single() as TargetBuildInfo.Java).javaInfo.jars)
       .containsExactly(
-        BuildArtifact.create("jar_digest", Path.of("out/test_proto.jar"), Label.of("//test:test_proto")),
-        BuildArtifact.create("jar2_digest", Path.of("out/test_mutable_proto.jar"), Label.of("//test:test_proto")),
+        BuildArtifact("jar_digest", Path.of("out/test_proto.jar"), Label.of("//test:test_proto")),
+        BuildArtifact("jar2_digest", Path.of("out/test_mutable_proto.jar"), Label.of("//test:test_proto")),
       )
   }
 
@@ -430,8 +429,8 @@ class NewArtifactTrackerTest : BlazeTestCase() {
     val builtDeps = artifactTracker.builtDepsForTesting
     assertThat((builtDeps.single() as TargetBuildInfo.Java).javaInfo.jars)
       .containsExactly(
-        BuildArtifact.create("jar_digest", Path.of("out/test_proto.jar"), Label.of("//test:test_proto")),
-        BuildArtifact.create("jar2_digest", Path.of("out/test_mutable_proto.jar"), Label.of("//test:test_proto")),
+        BuildArtifact("jar_digest", Path.of("out/test_proto.jar"), Label.of("//test:test_proto")),
+        BuildArtifact("jar2_digest", Path.of("out/test_mutable_proto.jar"), Label.of("//test:test_proto")),
       )
   }
 }

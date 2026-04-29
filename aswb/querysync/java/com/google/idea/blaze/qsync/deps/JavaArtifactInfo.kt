@@ -15,12 +15,13 @@
  */
 package com.google.idea.blaze.qsync.deps
 
-import com.google.common.collect.ImmutableSetMultimap
 import com.google.idea.blaze.common.Interners
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact
 import com.google.idea.blaze.qsync.artifacts.DigestMap
+import com.google.idea.blaze.qsync.artifacts.createBuildArtifact
+import com.google.idea.blaze.qsync.artifacts.withMetadata
 import com.google.idea.blaze.qsync.java.JavaTargetInfo
 import com.google.idea.blaze.qsync.project.ProjectPath
 
@@ -41,17 +42,17 @@ data class JavaArtifactInfo(
   val kotlinCompilerFlags: List<String>,
 ) {
 
-  fun withMetadata(metadata: ImmutableSetMultimap<BuildArtifact, ArtifactMetadata>): JavaArtifactInfo {
-    if (metadata.isEmpty) {
+  fun withMetadata(metadata: Map<BuildArtifact, List<ArtifactMetadata>>): JavaArtifactInfo {
+    if (metadata.isEmpty()) {
       return this
     }
     return copy(
-      genSrcs = BuildArtifact.addMetadata(genSrcs, metadata).toSet(),
-      genAndroidRes = BuildArtifact.addMetadata(genAndroidRes, metadata).toSet(),
-      protoSrcjars = BuildArtifact.addMetadata(protoSrcjars, metadata).toSet(),
-      ideAar = ideAar?.withMetadata(metadata.get(ideAar)),
-      jars = BuildArtifact.addMetadata(jars, metadata).toSet(),
-      outputJars = BuildArtifact.addMetadata(outputJars, metadata).toSet(),
+      genSrcs = genSrcs.withMetadata(metadata).toSet(),
+      genAndroidRes = genAndroidRes.withMetadata(metadata).toSet(),
+      protoSrcjars = protoSrcjars.withMetadata(metadata).toSet(),
+      ideAar = ideAar?.withMetadata(metadata[ideAar].orEmpty()),
+      jars = jars.withMetadata(metadata).toSet(),
+      outputJars = outputJars.withMetadata(metadata).toSet(),
     )
   }
 
@@ -65,7 +66,7 @@ data class JavaArtifactInfo(
       val target = Label.of(proto.target)
       val ideAar =
         if (proto.hasIdeAar()) {
-          digestMap.createBuildArtifact(Interners.pathOf(proto.ideAar.file), target).orElse(null)
+          digestMap.createBuildArtifact(Interners.pathOf(proto.ideAar.file), target)
         } else {
           null
         }
