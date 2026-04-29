@@ -178,7 +178,7 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
       profilers.ideServices.temporaryProfilerPreferences.setInt("LEAKCANARY_THRESHOLD", -1)
       val tracker = createPreFlightTracker()
 
-      val isAttached = attachAgentAndWait(profilers, streamId, profilers.process)
+      val isAttached = attachAgentAndWait(profilers, streamId, process)
       if (isAttached) {
         val isThresholdFetched = fetchThresholdAndWait()
         if (isThresholdFetched) {
@@ -454,7 +454,7 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
 
     // Offload the blocking attachment and network calls to a background thread
     profilers.ideServices.poolExecutor.execute {
-      if (!attachAgentAndWait(profilers, streamId, profilers.process)) {
+      if (!attachAgentAndWait(profilers, streamId, process)) {
         logger.warn("PROFILER: Agent attachment failed or timed out for $processId")
         updateStateToTimeout(processId)
         tracker.trackStartTaskFailed(TaskStartFailedMetadata(leakCanaryStartStatus = LeakCanaryStartErrorCode.AGENT_ATTACH_FAILED))
@@ -586,6 +586,9 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
       // A future that acts as a synchronization lock. It will block the thread until the agent attaches.
       val agentAttachedFuture = CompletableFuture<Boolean>()
 
+      // Fetch the current device timestamp before attaching the listener to avoid picking up stale historical ATTACHED events.
+      val currentTimestampNs = profilers.client.transportClient.getCurrentTime(Transport.TimeRequest.getDefaultInstance()).timestampNs
+
       // Listen for the specific AGENT event that confirms the JVMTI agent has finished loading.
       val listener =
         TransportEventListener(
@@ -593,6 +596,7 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
           executor = profilers.ideServices.poolExecutor,
           streamId = { streamId },
           processId = { process.pid },
+          startTime = { currentTimestampNs },
           callback = { event ->
             if (event.agentData.status == Common.AgentData.Status.ATTACHED) {
               logger.info("Agent attached for ${process.pid}")
