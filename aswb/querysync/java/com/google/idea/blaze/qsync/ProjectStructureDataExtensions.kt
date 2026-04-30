@@ -26,6 +26,7 @@ import com.google.idea.blaze.qsync.project.ProjectStructureData
 import com.google.idea.blaze.qsync.project.ProjectStructureRoot
 import com.google.idea.blaze.qsync.project.ProjectTarget.SourceType
 import com.google.idea.blaze.qsync.project.SourceSet
+import com.google.idea.blaze.qsync.project.getJavaSourceFiles
 import java.nio.file.Files
 import java.nio.file.Path
 

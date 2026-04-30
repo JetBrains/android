@@ -18,9 +18,11 @@ package com.google.idea.blaze.qsync.project
 import com.google.common.annotations.VisibleForTesting
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.Label
+import com.google.idea.blaze.common.RuleKinds
 import com.google.idea.blaze.common.TargetPatternCollection
 import com.google.idea.blaze.qsync.query.PackageSet
 import java.nio.file.Path
+import kotlin.jvm.optionals.getOrNull
 
 interface BuildGraphData {
   /** The language classes supported by the query sync. */
@@ -63,7 +65,7 @@ interface BuildGraphData {
    *
    * Note, this is not the full list of of all targets in the project view.
    */
-  fun allLoadedTargets(): Collection<Label>
+  fun allLoadedTargets(): Collection<ProjectTarget>
 
   /** Returns the project target info for the given label, if it is supported and built (code analysis enabled). */
   fun getProjectTarget(label: Label): ProjectTarget?
@@ -87,19 +89,11 @@ interface BuildGraphData {
 
   fun getSourceFileOwners(label: Label): Set<Label>
 
-  /** Returns a list of all the java source files of the project, relative to the workspace root. */
-  fun getJavaSourceFiles(): List<Path>
-
   /** Returns targets matching the given predicate that have any source files of the given types. */
   fun getSourceFilesByRuleKindAndType(
     ruleKindPredicate: (String) -> Boolean,
     vararg sourceTypes: ProjectTarget.SourceType,
   ): Map<Label, List<Path>>
-
-  fun getAndroidResourceFiles(): List<Path>
-
-  /** Returns a list of custom_package fields that used by current project. */
-  fun getAllCustomPackages(): Set<String>
 
   /**
    * Returns the list of project targets related to the given workspace file.
@@ -148,4 +142,16 @@ interface BuildGraphData {
           protoRules = ProtoRules(emptySet(), emptySet()),
         )
   }
+}
+
+fun BuildGraphData.getJavaSourceFiles(): List<Path> {
+  return getSourceFilesByRuleKindAndType(RuleKinds::isJava, ProjectTarget.SourceType.REGULAR_JVM).values.flatten()
+}
+
+fun BuildGraphData.getAndroidResourceFiles(): List<Path> {
+  return getSourceFilesByRuleKindAndType(RuleKinds::isAndroid, ProjectTarget.SourceType.ANDROID_RESOURCES).values.flatten()
+}
+
+fun BuildGraphData.getAllCustomPackages(): Set<String> {
+  return allLoadedTargets().asSequence().mapNotNull { it.customPackage().getOrNull() }.toSet()
 }

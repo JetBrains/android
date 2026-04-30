@@ -23,6 +23,7 @@ import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.PostQuerySyncData
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.ProjectStructureData
+import com.google.idea.blaze.qsync.project.ProjectTarget
 import com.google.idea.blaze.qsync.project.RequestedTargets
 import com.google.idea.blaze.qsync.project.requiredTargets
 import java.nio.file.Path
@@ -77,7 +78,7 @@ data class QuerySyncProjectSnapshot(
     return graph.getSourceFileOwners(path)
   }
 
-  val allLoadedTargets: Collection<Label>
+  val allLoadedTargets: Collection<ProjectTarget>
     /** Returns mapping of targets to [BuildTarget] */
     get() = graph.allLoadedTargets()
 

@@ -88,7 +88,7 @@ data class BuildGraphDataImpl private constructor(@VisibleForTesting @JvmField v
 
   override fun getProjectTarget(label: Label): ProjectTarget? = storage.targetMap[label]
 
-  override fun allLoadedTargets(): Collection<Label> = storage.targetMap.keys
+  override fun allLoadedTargets(): Collection<ProjectTarget> = storage.targetMap.values
 
   override fun isAlwaysBuild(label: Label): Boolean = alwaysBuildTargets.contains(label)
 
@@ -235,11 +235,6 @@ data class BuildGraphDataImpl private constructor(@VisibleForTesting @JvmField v
     return sourceOwners[label]?.toSet().orEmpty()
   }
 
-  /** Returns a list of all the java source files of the project, relative to the workspace root. */
-  override fun getJavaSourceFiles(): List<Path> {
-    return getSourceFilesByRuleKindAndType(RuleKinds::isJava, SourceType.REGULAR_JVM).values.flatten().distinct()
-  }
-
   override fun getSourceFilesByRuleKindAndType(
     ruleKindPredicate: (String) -> Boolean,
     vararg sourceTypes: SourceType,
@@ -255,13 +250,7 @@ data class BuildGraphDataImpl private constructor(@VisibleForTesting @JvmField v
       .toMap()
   }
 
-  override fun getAndroidResourceFiles(): List<Path> =
-    getSourceFilesByRuleKindAndType(RuleKinds::isAndroid, SourceType.ANDROID_RESOURCES).values.flatten()
-
   /** Returns a list of custom_package fields that used by current project. */
-  override fun getAllCustomPackages(): Set<String> {
-    return storage.targetMap.values.asSequence().mapNotNull { it.customPackage().getOrNull() }.toSet()
-  }
 
   /**
    * Returns the list of project targets related to the given workspace file.

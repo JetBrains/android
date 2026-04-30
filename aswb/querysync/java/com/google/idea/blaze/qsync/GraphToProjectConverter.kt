@@ -30,6 +30,8 @@ import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectStructureData
 import com.google.idea.blaze.qsync.project.ProjectStructureRoot
 import com.google.idea.blaze.qsync.project.TestSourceGlobMatcher
+import com.google.idea.blaze.qsync.project.getAllCustomPackages
+import com.google.idea.blaze.qsync.project.getAndroidResourceFiles
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import java.nio.file.Path
 import java.util.Collections
