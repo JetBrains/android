@@ -671,10 +671,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile, composePreviewViewProvider:
       composeWorkBench.bottomPanel = null
     }
     composeWorkBench.bottomPanel =
-      when {
-        status().hasErrors || project.needsBuild -> null
-        mode.value is PreviewMode.AnimationInspection -> currentAnimationPreview?.component
-        mode.value is PreviewMode.Interactive -> interactivePreviewNavigationController.getBottomPanelComponent()
+      when (mode.value) {
+        // We want to hide Animation Inspection bottom panel in case of errors or if the project needs to be built.
+        is PreviewMode.AnimationInspection -> currentAnimationPreview?.component?.takeUnless { status().hasErrors || project.needsBuild }
+        // We want always allow Interactive Mode to show the navigation panel.
+        is PreviewMode.Interactive -> interactivePreviewNavigationController.getBottomPanelComponent()
         else -> null
       }
   }
@@ -890,6 +891,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile, composePreviewViewProvider:
   }
 
   @TestOnly fun hasBuildListenerSetupFinished() = previewBuildListenersManager.buildListenerSetupFinished
+
+  @TestOnly fun getBottomPanelForTestOnly() = composeWorkBench.bottomPanel
+
+  @TestOnly fun getInteractiveNavigationControllerForTestOnly() = interactivePreviewNavigationController
 
   override fun onActivate() {
     lifecycleManager.activate()

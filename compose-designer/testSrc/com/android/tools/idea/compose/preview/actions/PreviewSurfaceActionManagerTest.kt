@@ -142,14 +142,12 @@ class PreviewSurfaceActionManagerTest {
     assertThat(sceneViewContextActions[3]).isInstanceOf(EnableInteractiveAction::class.java)
     assertThat(sceneViewContextActions[4]).isInstanceOf(DeployToDeviceAction::class.java)
 
-    // The back navigation action is wrapped into the EnableUnderConditionWrapper and then into
-    // the visibleOnlyInInteractive wrapper.
-    val backNavigationAction = ((actions[6] as AnActionWrapper).delegate as AnActionWrapper).delegate
+    // The back navigation action is wrapped into the visibleOnlyInInteractive wrapper.
+    val backNavigationAction = (actions[6] as AnActionWrapper).delegate
     assertThat(backNavigationAction).isInstanceOf(BackNavigationAction::class.java)
 
-    // The predictive back navigation action is wrapped into the EnableUnderConditionWrapper and then into  the visibleOnlyInInteractive
-    // wrapper.
-    val predictiveBackNavigationControlsAction = ((actions[7] as AnActionWrapper).delegate as AnActionWrapper).delegate
+    // The predictive back navigation action is wrapped into  the visibleOnlyInInteractive wrapper.
+    val predictiveBackNavigationControlsAction = (actions[7] as AnActionWrapper).delegate
     assertThat(predictiveBackNavigationControlsAction).isInstanceOf(PredictiveBackNavigationControlsAction::class.java)
 
     // AI actions - Multiple actions should be in dropdown

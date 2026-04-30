@@ -760,6 +760,67 @@ class ComposePreviewRepresentationTest {
   }
 
   @Test
+  fun testInteractivePreviewNavigationPanelShow() {
+    val testFile = runWriteActionAndWait {
+      fixture.addFileToProjectAndInvalidate(
+        "SinglePreview.kt",
+        // language=kotlin
+        """
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.runtime.Composable
+
+        @Composable
+        @Preview
+        fun SinglePreview() {
+        }
+        """
+          .trimIndent(),
+      )
+    }
+    testCanExpandPredictiveBackNavigationPanel(testFile)
+  }
+
+  @Test
+  fun testInteractivePreviewNavigationPanelShowWithRenderError() {
+    val testFileWithRenderErrorPreview = runWriteActionAndWait {
+      fixture.addFileToProjectAndInvalidate(
+        "SinglePreview.kt",
+        // language=kotlin
+        """
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.runtime.Composable
+
+        @Composable
+        @Preview
+        fun SinglePreview() {
+          error("render error")
+        }
+        """
+          .trimIndent(),
+      )
+    }
+    testCanExpandPredictiveBackNavigationPanel(testFileWithRenderErrorPreview)
+  }
+
+  private fun testCanExpandPredictiveBackNavigationPanel(testFile: PsiFile) {
+    runComposePreviewRepresentationTest(testFile) {
+      val representation = createPreviewAndCompile(expectedModelCount = 1)
+      val previewElements = mainSurface.models.mapNotNull { it.dataProvider?.previewElement() }
+      assertThat(mainSurface.models.size).isEqualTo(1)
+      val singleElement = previewElements.single()
+
+      setModeAndWaitForRefresh(PreviewMode.Interactive(singleElement))
+
+      // By default the bottom panel is hidden
+      assertThat(representation.getBottomPanelForTestOnly()).isNull()
+      val controller = representation.getInteractiveNavigationControllerForTestOnly()
+      withContext(Dispatchers.EDT) { controller.showNavigationControls(singleElement) }
+      val bottomPanel = representation.getBottomPanelForTestOnly()
+      assertThat(bottomPanel).isNotNull()
+    }
+  }
+
+  @Test
   fun testResizePanelIsCreatedInFocusMode_flagTrue() = runComposePreviewRepresentationTest {
     StudioFlags.COMPOSE_PREVIEW_RESIZING.overrideForTest(true, projectRule.fixture.testRootDisposable)
     createPreviewAndCompile()

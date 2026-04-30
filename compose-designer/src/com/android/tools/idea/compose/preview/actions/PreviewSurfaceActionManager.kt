@@ -101,5 +101,4 @@ internal class PreviewSurfaceActionManager(
           )
         }
         .orEmpty()
-        .disabledIfRefreshingOrHasErrorsOrProjectNeedsBuild()
 }
