@@ -91,7 +91,7 @@ internal sealed class EmulatorEnvironmentAction : AbstractEmulatorAction(configF
       return withContext(Dispatchers.EDT) {
         val descriptor =
           FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor()
-            .withFileFilter { it.extension in listOf("png", "jpg", "jpeg", "gif", "webp") }
+            .withExtensionFilter("Image files", "png", "jpg", "jpeg", "gif", "webp")
             .withTitle("Select an Image File")
             .withDescription("Select an image file to be used for environment")
         val virtualFile = chooseFile(descriptor, project, null)
