@@ -78,7 +78,7 @@ data class QuerySyncProjectSnapshot(
     return graph.getSourceFileOwners(path)
   }
 
-  val allLoadedTargets: Collection<ProjectTarget>
+  val allLoadedTargets: Sequence<ProjectTarget>
     /** Returns mapping of targets to [BuildTarget] */
     get() = graph.allLoadedTargets()
 

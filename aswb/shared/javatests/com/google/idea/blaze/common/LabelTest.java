@@ -151,6 +151,20 @@ public class LabelTest {
 
   @Test
   public void relativeLabelNotAllowed() {
-    assertThrows(IllegalArgumentException.class, () -> Label.Companion.parseLabel("relative/path:target_name", false));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> Label.Companion.parseLabel("relative/path:target_name", false));
+  }
+
+  @Test
+  public void isPackageLabel() {
+    assertThat(Label.of("//some/path:__pkg__").isPackageLabel()).isTrue();
+    assertThat(Label.of("//some/path:not_pkg").isPackageLabel()).isFalse();
+  }
+
+  @Test
+  public void getPackageLabel() {
+    assertThat(Label.of("//some/path:rule").getPackageLabel())
+        .isEqualTo(Label.of("//some/path:__pkg__"));
   }
 }

@@ -155,7 +155,7 @@ class BuildGraphDataImplTest {
         )
         .parseForTesting()
     assertThat(graph.allSupportedTargets.getTargets().toList()).containsExactly(Label.of("//$TESTDATA_ROOT/nodeps:nodeps"))
-    assertThat(graph.storage.sourceFileLabels)
+    assertThat(graph.getAllSourceFileLabels())
       .containsExactly(Label.of("//$TESTDATA_ROOT/nodeps:TestClassNoDeps.java"), Label.of("//$TESTDATA_ROOT/nodeps:BUILD"))
     assertThat(graph.getJavaSourceFiles()).containsExactly(TESTDATA_ROOT.resolve("nodeps/TestClassNoDeps.java"))
     assertThat(graph.getSourceFileOwners(TESTDATA_ROOT.resolve("nodeps/TestClassNoDeps.java")))
@@ -177,7 +177,7 @@ class BuildGraphDataImplTest {
         )
         .parseForTesting()
     // Sanity check:
-    assertThat(graph.storage.sourceFileLabels).contains(Label.of("//$TESTDATA_ROOT/nodeps:TestClassNoDeps.java"))
+    assertThat(graph.getAllSourceFileLabels()).contains(Label.of("//$TESTDATA_ROOT/nodeps:TestClassNoDeps.java"))
     assertThat(getRequiredTargets(graph, listOf(Label.of("//" + TESTDATA_ROOT.resolve("internaldep:internaldep"))))).isEmpty()
   }
 
@@ -234,7 +234,7 @@ class BuildGraphDataImplTest {
           defaultProtoRules,
         )
         .parseForTesting()
-    assertThat(graph.storage.sourceFileLabels)
+    assertThat(graph.getAllSourceFileLabels())
       .containsExactly(
         Label.of("//$TESTDATA_ROOT/android:TestAndroidClass.java"),
         Label.of("//$TESTDATA_ROOT/android:BUILD"),
@@ -259,7 +259,7 @@ class BuildGraphDataImplTest {
           defaultProtoRules,
         )
         .parseForTesting()
-    assertThat(graph.storage.sourceFileLabels)
+    assertThat(graph.getAllSourceFileLabels())
       .containsExactly(
         Label.of("//$TESTDATA_ROOT/aidl:TestAndroidAidlClass.java"),
         Label.of("//$TESTDATA_ROOT/aidl:TestAidlService.aidl"),
@@ -282,7 +282,7 @@ class BuildGraphDataImplTest {
           defaultProtoRules,
         )
         .parseForTesting()
-    assertThat(graph.storage.sourceFileLabels)
+    assertThat(graph.getAllSourceFileLabels())
       .containsExactly(
         Label.of("//$TESTDATA_ROOT/aidl:TestAndroidAidlClass.java"),
         Label.of("//$TESTDATA_ROOT/aidl:TestAidlService.aidl"),
@@ -329,7 +329,7 @@ class BuildGraphDataImplTest {
           defaultProtoRules,
         )
         .parseForTesting()
-    assertThat(graph.storage.sourceFileLabels)
+    assertThat(graph.getAllSourceFileLabels())
       .containsExactly(
         Label.of("//$TESTDATA_ROOT/cc:TestClass.cc"),
         Label.of("//$TESTDATA_ROOT/cc:TestClass.h"),
@@ -676,4 +676,8 @@ class BuildGraphDataImplTest {
 
     private val TESTDATA_ROOT: Path = TEST_ROOT.resolve("testdata")
   }
+}
+
+private fun BuildGraphDataImpl.getAllSourceFileLabels(): Set<Label> {
+  return storage.buildPackages.values.flatMap { pkg -> pkg.sourceFileNames.map { name -> pkg.packageLabel.siblingWithName(name) } }.toSet()
 }

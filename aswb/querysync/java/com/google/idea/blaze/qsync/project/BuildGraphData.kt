@@ -65,7 +65,7 @@ interface BuildGraphData {
    *
    * Note, this is not the full list of of all targets in the project view.
    */
-  fun allLoadedTargets(): Collection<ProjectTarget>
+  fun allLoadedTargets(): Sequence<ProjectTarget>
 
   /** Returns the project target info for the given label, if it is supported and built (code analysis enabled). */
   fun getProjectTarget(label: Label): ProjectTarget?
@@ -153,5 +153,5 @@ fun BuildGraphData.getAndroidResourceFiles(): List<Path> {
 }
 
 fun BuildGraphData.getAllCustomPackages(): Set<String> {
-  return allLoadedTargets().asSequence().mapNotNull { it.customPackage().getOrNull() }.toSet()
+  return allLoadedTargets().mapNotNull { it.customPackage().getOrNull() }.toSet()
 }

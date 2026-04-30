@@ -47,6 +47,6 @@ class DefaultBazelComposeToolingProjectLabelProvider : BazelComposeToolingProjec
   }
 
   private fun composeDeps(graph: BuildGraphData): Sequence<Label> {
-    return graph.allLoadedTargets().asSequence().flatMap { it.deps() }.filter { isComposeUiLabel(it) }
+    return graph.allLoadedTargets().flatMap { it.deps() }.filter { isComposeUiLabel(it) }
   }
 }

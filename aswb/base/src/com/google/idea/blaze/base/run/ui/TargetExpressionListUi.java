@@ -17,6 +17,7 @@ package com.google.idea.blaze.base.run.ui;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.util.stream.Collectors.toList;
+import static kotlin.streams.jdk8.StreamsKt.asStream;
 
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.model.BlazeProjectData;
@@ -233,7 +234,7 @@ public class TargetExpressionListUi extends JPanel {
           .getCurrentSnapshot()
           .map(
               querySyncProjectSnapshot ->
-                  querySyncProjectSnapshot.getAllLoadedTargets().stream()
+                  asStream(querySyncProjectSnapshot.getAllLoadedTargets())
                       .map(target -> target.label().toString())
                       .collect(toImmutableList()))
           .orElse(ImmutableList.of());
