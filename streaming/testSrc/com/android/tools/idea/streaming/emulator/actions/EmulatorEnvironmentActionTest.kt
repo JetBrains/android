@@ -24,11 +24,14 @@ import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.FakeEmulator
 import com.android.tools.idea.streaming.emulator.FakeEmulatorRule
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
+import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.testing.file.registerFakeFileChooserFactory
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DataSnapshotProvider
+import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
@@ -36,6 +39,7 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
+import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
@@ -52,6 +56,7 @@ class EmulatorEnvironmentActionTest {
   private val projectRule = ProjectRule()
   private val emulatorRule = FakeEmulatorRule()
   @get:Rule val rule = RuleChain(projectRule, emulatorRule, EdtRule())
+  @get:Rule val tempDirRule = TemporaryDirectoryRule()
 
   val testRootDisposable
     get() = projectRule.disposable
@@ -111,5 +116,69 @@ class EmulatorEnvironmentActionTest {
     val call = emulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setEnvironment")
     assertThat(shortDebugString(call.request)).isEqualTo("environment { key: \"scene.mode\" value: \"imagefile:${imageFile.path}\" }")
+  }
+
+  @Test
+  fun testRecentCustomEnvironment() {
+    val filePath = "/tmp/recent_image.png"
+    val action = EmulatorEnvironmentAction.RecentCustom(Path.of(filePath))
+    executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
+
+    val call = emulator.getNextGrpcCall(2.seconds)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setEnvironment")
+    assertThat(shortDebugString(call.request)).isEqualTo("environment { key: \"scene.mode\" value: \"imagefile:$filePath\" }")
+  }
+
+  @Test
+  fun testActionGroupIncludesRecentFiles() {
+    val dir = Files.createDirectories(tempDirRule.newPath())
+    val file1 = dir.resolve("file1.png")
+    Files.createFile(file1)
+    val file2 = dir.resolve("file2.png")
+    Files.createFile(file2)
+    // Setup recent files
+    val properties = PropertiesComponent.getInstance()
+    properties.setValue("EmulatorEnvironmentAction.recentFiles", "${file1.toAbsolutePath()}\n${file2.toAbsolutePath()}")
+
+    val group = ActionManager.getInstance().getAction("android.emulator.environments") as EmulatorEnvironmentActionGroup
+    val children = group.getChildren(null)
+
+    // Expect original children + Separator + 2 recent files
+    assertThat(children.size).isEqualTo(8)
+    assertThat(children[5]).isInstanceOf(Separator::class.java)
+    assertThat((children[6] as EmulatorEnvironmentAction.RecentCustom).filePath).isEqualTo(file1.toAbsolutePath())
+    assertThat((children[7] as EmulatorEnvironmentAction.RecentCustom).filePath).isEqualTo(file2.toAbsolutePath())
+  }
+
+  @Test
+  fun testActionGroupDoesNotIncludeTitleWhenEmpty() {
+    // Clear recent files
+    val properties = PropertiesComponent.getInstance()
+    properties.setValue("EmulatorEnvironmentAction.recentFiles", null)
+
+    val group = ActionManager.getInstance().getAction("android.emulator.environments") as EmulatorEnvironmentActionGroup
+    val children = group.getChildren(null)
+
+    // Expect only original children (5)
+    assertThat(children.size).isEqualTo(5)
+  }
+
+  @Test
+  fun testActionGroupFiltersNonExistentFiles() {
+    val dir = Files.createDirectories(tempDirRule.newPath())
+    val file1 = dir.resolve("file1.png")
+    Files.createFile(file1)
+    val file2Path = "/tmp/non_existent_file.png"
+    // Setup recent files
+    val properties = PropertiesComponent.getInstance()
+    properties.setValue("EmulatorEnvironmentAction.recentFiles", "${file1.toAbsolutePath()}\n$file2Path")
+
+    val group = ActionManager.getInstance().getAction("android.emulator.environments") as EmulatorEnvironmentActionGroup
+    val children = group.getChildren(null)
+
+    // Expect original children + Separator + 1 recent file (file1)
+    assertThat(children.size).isEqualTo(7)
+    assertThat(children[5]).isInstanceOf(Separator::class.java)
+    assertThat((children[6] as EmulatorEnvironmentAction.RecentCustom).filePath).isEqualTo(file1.toAbsolutePath())
   }
 }

@@ -21,6 +21,10 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.EnvironmentsUpdater
 import com.android.tools.idea.concurrency.createCoroutineScope
+import com.android.tools.idea.protobuf.Empty
+import com.android.tools.idea.streaming.emulator.EmulatorController
+import com.android.tools.idea.streaming.emulator.SuspendingStreamObserver
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
@@ -40,7 +44,18 @@ internal sealed class EmulatorEnvironmentAction : AbstractEmulatorAction(configF
   override fun actionPerformed(event: AnActionEvent) {
     val emulator = getEmulatorController(event) ?: return
     val project = event.project
-    emulator.createCoroutineScope().launch { prepareEnvironment(project)?.let { emulator.setEnvironment(it) } }
+    emulator.createCoroutineScope().launch { prepareEnvironment(project)?.let { setEnvironment(emulator, it) } }
+  }
+
+  private suspend fun setEnvironment(emulator: EmulatorController, environment: Environment) {
+    val observer = SuspendingStreamObserver<Empty>()
+    try {
+      emulator.setEnvironment(environment, observer)
+      observer.getResult()
+      onEnvironmentSet(environment)
+    } catch (_: Exception) {
+      // Error is already logged.
+    }
   }
 
   override fun update(event: AnActionEvent) {
@@ -54,9 +69,11 @@ internal sealed class EmulatorEnvironmentAction : AbstractEmulatorAction(configF
 
   protected abstract suspend fun prepareEnvironment(project: Project?): Environment?
 
+  protected open fun onEnvironmentSet(environment: Environment) {}
+
   protected fun Path.toSystemIndependentString(): String = toSystemIndependentName(this.toString())
 
-  class Empty : EmulatorEnvironmentAction() {
+  class None : EmulatorEnvironmentAction() {
     override suspend fun prepareEnvironment(project: Project?): Environment = Environment.newBuilder().build()
   }
 
@@ -67,6 +84,9 @@ internal sealed class EmulatorEnvironmentAction : AbstractEmulatorAction(configF
   class OutdoorNatureBrightImage : BuiltInImage("outdoor-nature-bright.jpg")
 
   open class Custom : EmulatorEnvironmentAction() {
+
+    private var filePath: String? = null
+
     override suspend fun prepareEnvironment(project: Project?): Environment? {
       return withContext(Dispatchers.EDT) {
         val descriptor =
@@ -75,8 +95,31 @@ internal sealed class EmulatorEnvironmentAction : AbstractEmulatorAction(configF
             .withTitle("Select an Image File")
             .withDescription("Select an image file to be used for environment")
         val virtualFile = chooseFile(descriptor, project, null)
-        virtualFile?.let { Environment.newBuilder().putEnvironment("scene.mode", "imagefile:${toSystemIndependentName(it.path)}").build() }
+        virtualFile?.let {
+          filePath = toSystemIndependentName(it.path)
+          Environment.newBuilder().putEnvironment("scene.mode", "imagefile:$filePath").build()
+        }
       }
+    }
+
+    override fun onEnvironmentSet(environment: Environment) {
+      filePath?.let { addRecentFile(it) }
+    }
+  }
+
+  class RecentCustom(val filePath: Path) : EmulatorEnvironmentAction() {
+
+    init {
+      templatePresentation.text = "    ${filePath.fileName}"
+      templatePresentation.description = filePath.toString()
+    }
+
+    override suspend fun prepareEnvironment(project: Project?): Environment? {
+      return Environment.newBuilder().putEnvironment("scene.mode", "imagefile:${toSystemIndependentName(filePath.toString())}").build()
+    }
+
+    override fun onEnvironmentSet(environment: Environment) {
+      addRecentFile(filePath.toString())
     }
   }
 
@@ -92,5 +135,24 @@ internal sealed class EmulatorEnvironmentAction : AbstractEmulatorAction(configF
     val emulatorSupported =
       ApplicationManager.getApplication().isUnitTestMode ||
         AvdManagerConnection.getDefaultAvdManagerConnection().emulator?.version?.let { it >= Revision(36, 6, 4) } ?: false
+
+    private const val RECENT_FILES_KEY = "EmulatorEnvironmentAction.recentFiles"
+
+    fun getRecentFiles(): List<String> {
+      val properties = PropertiesComponent.getInstance()
+      val value = properties.getValue(RECENT_FILES_KEY) ?: return emptyList()
+      return value.split('\n').filter { it.isNotEmpty() }
+    }
+
+    fun addRecentFile(path: String) {
+      val properties = PropertiesComponent.getInstance()
+      val current = getRecentFiles().toMutableList()
+      current.remove(path)
+      current.add(0, path)
+      while (current.size > 5) {
+        current.removeLast()
+      }
+      properties.setValue(RECENT_FILES_KEY, current.joinToString("\n"))
+    }
   }
 }

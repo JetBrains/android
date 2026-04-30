@@ -28,7 +28,7 @@ suspend fun EmulatorController.getScreenshot(imageFormat: ImageFormat): Image {
   return observer.getResult()
 }
 
-private class SuspendingStreamObserver<T> : EmptyStreamObserver<T>() {
+class SuspendingStreamObserver<T> : EmptyStreamObserver<T>() {
 
   private val deferredResult = CompletableDeferred<T>()
 

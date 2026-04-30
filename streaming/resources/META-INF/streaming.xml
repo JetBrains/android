@@ -155,7 +155,7 @@
                 class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentAction$OutdoorNatureBrightImage"
                 text="Outdoor Nature Bright" description="Select outdoor nature bright environment"/>
         <action id="android.emulator.environment.empty"
-                class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentAction$Empty"
+                class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentAction$None"
                 text="No Environment" description="Select no environment"/>
         <action id="android.emulator.environment.custom"
                 class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentAction$Custom"

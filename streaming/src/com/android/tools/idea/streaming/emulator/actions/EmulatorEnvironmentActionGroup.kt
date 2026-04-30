@@ -17,17 +17,35 @@ package com.android.tools.idea.streaming.emulator.actions
 
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.project.DumbAware
+import java.nio.file.Files
+import java.nio.file.Path
 
-/** Displays a popup menu of available postures of a foldable or a rollable device. */
+/** Displays a popup menu of available environments for AI Glasses. */
 internal class EmulatorEnvironmentActionGroup : DefaultActionGroup(), DumbAware {
 
   override fun update(event: AnActionEvent) {
     val presentation = event.presentation
     presentation.isVisible = EmulatorEnvironmentAction.emulatorSupported && getEmulatorConfig(event)?.deviceType == DeviceType.AI_GLASSES
     presentation.isEnabled = presentation.isVisible && isEmulatorConnected(event)
+  }
+
+  override fun getChildren(event: AnActionEvent?): Array<AnAction> {
+    val children = super.getChildren(event)
+    val recentFiles = EmulatorEnvironmentAction.getRecentFiles().map { Path.of(it) }.filter { Files.isRegularFile(it) }
+    if (recentFiles.isEmpty()) {
+      return children
+    }
+    val result = children.toMutableList()
+    result.add(Separator("Recent Environments"))
+    for (file in recentFiles) {
+      result.add(EmulatorEnvironmentAction.RecentCustom(file))
+    }
+    return result.toTypedArray()
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
