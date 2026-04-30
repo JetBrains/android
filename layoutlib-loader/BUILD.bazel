@@ -24,6 +24,7 @@ jvm_library(
 
 jvm_library(
   name = "layoutlib-loader_test_lib",
+  testonly = True,
   module_name = "intellij.android.layoutlib-loader",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),

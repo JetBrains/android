@@ -92,6 +92,7 @@ jvm_library(
 
 jvm_library(
   name = "newProjectWizard_test_lib",
+  testonly = True,
   module_name = "intellij.android.newProjectWizard",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
@@ -203,6 +204,7 @@ jvm_library(
 
 jvm_library(
   name = "newProjectWizard-tests_test_lib",
+  testonly = True,
   module_name = "intellij.android.newProjectWizard.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),

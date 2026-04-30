@@ -118,6 +118,7 @@ jvm_library(
 
 jvm_library(
   name = "compose-designer_test_lib",
+  testonly = True,
   module_name = "intellij.android.compose-designer",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
@@ -233,6 +234,7 @@ jvm_library(
 
 jvm_library(
   name = "compose-designer-integration_test_lib",
+  testonly = True,
   module_name = "intellij.android.compose-designer.integration",
   visibility = ["//visibility:public"],
   srcs = glob(["integrationTestSrc/**/*.kt", "integrationTestSrc/**/*.java", "integrationTestSrc/**/*.form"], allow_empty = True),
@@ -278,6 +280,7 @@ jvm_library(
 
 jvm_library(
   name = "compose-designer-testFramework_test_lib",
+  testonly = True,
   visibility = ["//visibility:public"],
   srcs = glob(["testFramework/**/*.kt", "testFramework/**/*.java", "testFramework/**/*.form"], allow_empty = True),
   associates = [
@@ -400,6 +403,7 @@ jvm_library(
 
 jvm_library(
   name = "compose-designer-tests_test_lib",
+  testonly = True,
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   resources = [

@@ -21,6 +21,7 @@ jvm_library(
 
 jvm_library(
   name = "gradle-declarative-lang-flags_test_lib",
+  testonly = True,
   module_name = "intellij.android.gradle.declarative.lang.flags",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),

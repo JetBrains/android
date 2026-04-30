@@ -24,6 +24,7 @@ jvm_library(
 
 jvm_library(
   name = "design-plugin_test_lib",
+  testonly = True,
   module_name = "intellij.android.design-plugin",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),

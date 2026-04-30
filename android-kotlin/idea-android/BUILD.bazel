@@ -53,6 +53,7 @@ jvm_library(
 
 jvm_library(
   name = "android-kotlin-idea_test_lib",
+  testonly = True,
   module_name = "intellij.android.kotlin.idea",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
@@ -108,6 +109,7 @@ jvm_library(
 
 jvm_library(
   name = "android-kotlin-tests_test_lib",
+  testonly = True,
   module_name = "intellij.android.kotlin.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["tests/**/*.kt", "tests/**/*.java", "tests/**/*.form"], allow_empty = True),

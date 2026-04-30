@@ -35,6 +35,7 @@ jvm_library(
 
 jvm_library(
   name = "k2_test_lib",
+  testonly = True,
   module_name = "intellij.android.nav.safeargs.k2",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),

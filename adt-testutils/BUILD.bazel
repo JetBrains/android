@@ -15,6 +15,7 @@ jvm_library(
 
 jvm_library(
   name = "adt-testutils_test_lib",
+  testonly = True,
   module_name = "intellij.android.adt.testutils",
   visibility = ["//visibility:public"],
   srcs = glob(["src/main/java/**/*.kt", "src/main/java/**/*.java", "src/main/java/**/*.form"], allow_empty = True),

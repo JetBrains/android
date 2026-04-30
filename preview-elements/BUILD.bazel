@@ -20,6 +20,7 @@ jvm_library(
 
 jvm_library(
   name = "preview-elements_test_lib",
+  testonly = True,
   module_name = "intellij.android.preview-elements",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
@@ -53,6 +54,7 @@ jvm_library(
 
 jvm_library(
   name = "preview-elements-tests_test_lib",
+  testonly = True,
   module_name = "intellij.android.preview-elements.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),

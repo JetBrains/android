@@ -22,6 +22,7 @@ jvm_library(
 
 jvm_library(
   name = "safeargs_test_lib",
+  testonly = True,
   module_name = "intellij.android.nav.safeargs",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),

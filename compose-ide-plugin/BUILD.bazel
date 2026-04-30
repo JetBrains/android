@@ -124,6 +124,7 @@ jvm_library(
 
 jvm_library(
   name = "compose-ide-plugin_test_lib",
+  testonly = True,
   module_name = "intellij.android.compose-ide-plugin",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
@@ -255,6 +256,7 @@ jvm_library(
 
 jvm_library(
   name = "compose-ide-plugin-tests_test_lib",
+  testonly = True,
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   kotlinc_opts = ":custom_compose-ide-plugin-tests",

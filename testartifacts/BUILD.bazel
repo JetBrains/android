@@ -57,6 +57,7 @@ jvm_library(
 
 jvm_library(
   name = "testartifacts_test_lib",
+  testonly = True,
   module_name = "intellij.android.testartifacts",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
@@ -120,6 +121,7 @@ jvm_library(
 
 jvm_library(
   name = "testartifacts-tests_test_lib",
+  testonly = True,
   module_name = "intellij.android.testartifacts.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),

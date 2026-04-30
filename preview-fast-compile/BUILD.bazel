@@ -15,6 +15,7 @@ jvm_library(
 
 jvm_library(
   name = "preview-fast-compile_test_lib",
+  testonly = True,
   module_name = "intellij.android.preview-fast-compile",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),

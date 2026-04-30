@@ -10,6 +10,7 @@ jvm_library(
 
 jvm_library(
   name = "completion_test_lib",
+  testonly = True,
   module_name = "intellij.android.core.completion",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),

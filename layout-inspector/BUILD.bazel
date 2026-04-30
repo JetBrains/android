@@ -98,6 +98,7 @@ jvm_library(
 
 jvm_library(
   name = "layout-inspector_test_lib",
+  testonly = True,
   visibility = ["//visibility:public"],
   srcs = glob(["testingSrc/**/*.kt", "testingSrc/**/*.java", "testingSrc/**/*.form"], allow_empty = True),
   kotlinc_opts = ":custom_layout-inspector",
@@ -300,6 +301,7 @@ jvm_library(
 
 jvm_library(
   name = "layout-inspector-integration_test_lib",
+  testonly = True,
   visibility = ["//visibility:public"],
   srcs = glob(["integration/testSrc/**/*.kt", "integration/testSrc/**/*.java", "integration/testSrc/**/*.form"], allow_empty = True),
   resources = [":layout-inspector-integration_test_resources"],
@@ -362,6 +364,7 @@ jvm_library(
 
 jvm_library(
   name = "layout-inspector-tests_test_lib",
+  testonly = True,
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   resources = [":layout-inspector-tests_test_resources"],

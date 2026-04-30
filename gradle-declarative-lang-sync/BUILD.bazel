@@ -26,6 +26,7 @@ jvm_library(
 
 jvm_library(
   name = "gradle-declarative-lang-sync_test_lib",
+  testonly = True,
   module_name = "intellij.android.gradle.declarative.lang.sync",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),

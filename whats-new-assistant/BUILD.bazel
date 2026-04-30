@@ -43,6 +43,7 @@ jvm_library(
 
 jvm_library(
   name = "whats-new-assistant_test_lib",
+  testonly = True,
   module_name = "intellij.android.whats-new-assistant",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
@@ -97,6 +98,7 @@ jvm_library(
 
 jvm_library(
   name = "whats-new-assistant-test_test_lib",
+  testonly = True,
   module_name = "intellij.android.whats-new-assistant-test",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),

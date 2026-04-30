@@ -64,6 +64,7 @@ jvm_library(
 
 jvm_library(
   name = "navigator_test_lib",
+  testonly = True,
   module_name = "intellij.android.navigator",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
@@ -138,6 +139,7 @@ jvm_library(
 
 jvm_library(
   name = "navigator-testutils_test_lib",
+  testonly = True,
   module_name = "intellij.android.navigator.testutils",
   visibility = ["//visibility:public"],
   srcs = glob(["testUtils/**/*.kt", "testUtils/**/*.java", "testUtils/**/*.form"], allow_empty = True),

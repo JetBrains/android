@@ -25,6 +25,7 @@ jvm_library(
 
 jvm_library(
   name = "android-material_test_lib",
+  testonly = True,
   module_name = "intellij.android.android-material",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
@@ -72,6 +73,7 @@ jvm_library(
 
 jvm_library(
   name = "android-material-tests_test_lib",
+  testonly = True,
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   resources = [":android-material-tests_test_resources"],

@@ -29,6 +29,7 @@ jvm_library(
 
 jvm_library(
   name = "native-symbolizer_test_lib",
+  testonly = True,
   module_name = "intellij.android.native-symbolizer",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
@@ -78,6 +79,7 @@ jvm_library(
 
 jvm_library(
   name = "native-symbolizer-tests_test_lib",
+  testonly = True,
   module_name = "intellij.android.native-symbolizer.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),

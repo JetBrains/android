@@ -64,6 +64,7 @@ jvm_library(
 
 jvm_library(
   name = "adb_test_lib",
+  testonly = True,
   module_name = "intellij.android.adb",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
@@ -126,6 +127,7 @@ jvm_library(
 
 jvm_library(
   name = "adb-testUtil_test_lib",
+  testonly = True,
   module_name = "intellij.android.adb.testUtil",
   visibility = ["//visibility:public"],
   srcs = glob(["testUtil/**/*.kt", "testUtil/**/*.java", "testUtil/**/*.form"], allow_empty = True),
@@ -191,6 +193,7 @@ jvm_library(
 
 jvm_library(
   name = "adb-tests_test_lib",
+  testonly = True,
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   kotlinc_opts = ":custom_adb-tests",

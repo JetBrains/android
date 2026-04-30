@@ -32,6 +32,7 @@ jvm_library(
 
 jvm_library(
   name = "android-kotlin-output-parser_test_lib",
+  testonly = True,
   module_name = "intellij.android.kotlin.output.parser",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),

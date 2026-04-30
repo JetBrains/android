@@ -51,6 +51,7 @@ jvm_library(
 
 jvm_library(
   name = "backup_test_lib",
+  testonly = True,
   module_name = "intellij.android.backup",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
@@ -116,6 +117,7 @@ jvm_library(
 
 jvm_library(
   name = "backup-api_test_lib",
+  testonly = True,
   module_name = "intellij.android.backup.api",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
@@ -148,6 +150,7 @@ jvm_library(
 
 jvm_library(
   name = "backup-tests_test_lib",
+  testonly = True,
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   associates = [

@@ -21,6 +21,7 @@ jvm_library(
 
 jvm_library(
   name = "avdmanager-tests_test_lib",
+  testonly = True,
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   associates = [
