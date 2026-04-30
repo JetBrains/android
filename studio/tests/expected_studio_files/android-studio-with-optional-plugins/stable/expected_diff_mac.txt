@@ -2381,6 +2381,7 @@
 +++Android Studio.app/Contents/plugins/android/lib/build-analysis-results-proto.jar
 +++Android Studio.app/Contents/plugins/android/lib/build-common.jar
 +++Android Studio.app/Contents/plugins/android/lib/chime_kt_proto.jar
++++Android Studio.app/Contents/plugins/android/lib/cli_commands_proto.jar
 +++Android Studio.app/Contents/plugins/android/lib/compilerCommon.antlr.shaded_jar.jar
 +++Android Studio.app/Contents/plugins/android/lib/compilerCommon.antlr_runtime.shaded_jar.jar
 +++Android Studio.app/Contents/plugins/android/lib/core-3.5.0.jar
@@ -6249,6 +6250,7 @@
 ---Android Studio Preview.app/Contents/plugins/android/lib/build-analysis-results-proto.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/build-common.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/chime_kt_proto.jar
+---Android Studio Preview.app/Contents/plugins/android/lib/cli_commands_proto.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/compilerCommon.antlr.shaded_jar.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/compilerCommon.antlr_runtime.shaded_jar.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/core-3.5.0.jar

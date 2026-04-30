@@ -433,6 +433,7 @@ filegroup(
         "//tools/adt/idea/as-driver:directaccess_client_proto",
         "//tools/adt/idea/as-driver:librunfiles",
         "//tools/adt/idea/build-attribution:build-analysis-results-proto",
+        "//tools/adt/idea/cli-server/command-handler:cli_commands_proto",
         "//tools/adt/idea/cli-server/server:studio_cli_service_kt_proto",
         "//tools/adt/idea/debuggers:libjava_sites",
         "//tools/adt/idea/logcat:logcat-proto",

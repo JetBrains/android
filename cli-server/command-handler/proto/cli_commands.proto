@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+package android.studio.cli.handlers;
+
+option java_multiple_files = true;
+option java_package = "com.android.tools.idea.cli.studio";
+option java_outer_classname = "CliCommandsProto";
+
+enum CommandType {
+  UNKNOWN = 0;
+  OPEN_FILE = 1;
+  FIND_DECLARATION = 2;
+  FIND_USAGES = 3;
+  RENDER_COMPOSE_PREVIEW = 4;
+  ANALYZE_FILE = 5;
+}
+
+
+// Represents a specific point in a source file.
+message Location {
+  string file_path = 1;
+  int32 line = 2;
+  int32 column = 3;
+  string snippet = 4;
+}
+
+message OpenFileRequest {
+    string filePath = 1;
+}
+
+message OpenFileResponse {}
+
+message FindDeclarationRequest {
+  Location location = 1;
+}
+
+message FindDeclarationResponse {
+  Location location = 1;
+}
+
+message FindUsagesRequest {
+  string symbol = 1;
+  string context_file = 2;
+}
+
+message FindUsagesResponse {
+  repeated Location usages = 1;
+  string project_path = 2;
+}
+
+message RenderComposePreviewRequest {
+  string composable_fqn = 1;
+}
+
+message RenderComposePreviewResponse {
+  bytes image_data = 1;
+  string error_message = 2;
+}
+
+message AnalyzeFileRequest {
+  string file_path = 1;
+}
+
+
+message Diagnostic {
+  Location location = 1;
+  string message = 2;
+  Severity severity = 3;
+
+  enum Severity {
+    UNKNOWN = 0;
+    INFO = 1;
+    WARNING = 2;
+    ERROR = 3;
+  }
+}
+
+message AnalyzeFileResponse {
+  repeated Diagnostic diagnostics = 1;
+}
+

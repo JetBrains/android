@@ -137,6 +137,7 @@ studio_plugin(
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:background-inspector-proto",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:workmanager-inspector-proto",
         "//tools/adt/idea/app-quality-insights/play-vitals/model:play_vitals_kt_proto",
+        "//tools/adt/idea/cli-server/command-handler:cli_commands_proto",
         "//tools/adt/idea/cli-server/server:studio_cli_service_kt_proto",
         "//tools/adt/idea/compose-designer:ui-animation-tooling-internal",
         "//tools/adt/idea/logcat:logcat-proto",
@@ -325,6 +326,7 @@ studio_plugin(
             "//tools/vendor/google/marketing:marketing",
             "//tools/adt/idea/play-publishing:intellij.android.play-publishing",
             "//tools/adt/idea/cli-server/server:cli-server.server",
+            "//tools/adt/idea/cli-server/command-handler:cli-server.command-handler",
         ],
         "artwork.jar": [
             "//tools/adt/idea/artwork:intellij.android.artwork",
