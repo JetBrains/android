@@ -26,10 +26,12 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Color
+import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -37,7 +39,6 @@ import java.awt.RenderingHints
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.image.BufferedImage
-import javax.swing.ImageIcon
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.SwingConstants
@@ -96,33 +97,62 @@ class ImageWithToolbarPanel(
             }
           }
 
-          super.paintComponent(g) // This will draw the icon (the actual image)
+          super.paintComponent(g)
 
-          if (icon == null) return
+          val image = originalImage ?: return
 
           val g2d = g.create() as Graphics2D
           try {
-            val iconX = (width - icon.iconWidth) / 2
-            val iconY = (height - icon.iconHeight) / 2
+            val graphicsScale = JBUIScale.sysScale(g2d).toDouble()
+            val w = (image.width * currentScale).toInt()
+            val h = (image.height * currentScale).toInt()
+            val scaleX = graphicsScale * currentScale
+            val scaleY = graphicsScale * currentScale
+
+            val physicalWidth = (image.width * scaleX).toInt()
+            val physicalHeight = (image.height * scaleY).toInt()
+
+            val iconX = (width - w) / 2
+            val iconY = (height - h) / 2
+
+            if (physicalWidth > 0 && physicalHeight > 0) {
+              if (cachedScaledImage == null || Math.abs(cachedScale - currentScale) > 1e-9 || cachedGraphicsScale != graphicsScale) {
+                val imageType = if (image.type == BufferedImage.TYPE_CUSTOM) BufferedImage.TYPE_INT_ARGB else image.type
+                val scaledImg = BufferedImage(physicalWidth, physicalHeight, imageType)
+                val sg = scaledImg.createGraphics()
+                try {
+                  sg.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC)
+                  sg.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY)
+                  sg.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+                  sg.drawImage(image, 0, 0, physicalWidth, physicalHeight, null)
+                } finally {
+                  sg.dispose()
+                }
+                cachedScaledImage = scaledImg
+                cachedScale = currentScale
+                cachedGraphicsScale = graphicsScale
+              }
+
+              g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC)
+              g2d.drawImage(cachedScaledImage, iconX, iconY, w, h, null)
+            }
 
             // Only draw the border for the "Diff" image panel.
             if (title == ScreenshotViewType.DIFF) {
-              // Draw a subtle, theme-aware border around the actual image to clearly delineate its boundaries.
               g2d.color = JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground()
-              g2d.drawRect(iconX, iconY, icon.iconWidth - 1, icon.iconHeight - 1)
+              g2d.drawRect(iconX, iconY, w - 1, h - 1)
             }
 
             if (gridVisible) {
-              // The grid is drawn relative to the image's top-left corner.
               g2d.translate(iconX, iconY)
               g2d.color = Color(128, 128, 128, 128)
               val gridSize = (20 * currentScale).toInt().coerceAtLeast(1)
 
-              for (x in 0..icon.iconWidth step gridSize) {
-                g2d.drawLine(x, 0, x, icon.iconHeight)
+              for (x in 0..w step gridSize) {
+                g2d.drawLine(x, 0, x, h)
               }
-              for (y in 0..icon.iconHeight step gridSize) {
-                g2d.drawLine(0, y, icon.iconWidth, y)
+              for (y in 0..h step gridSize) {
+                g2d.drawLine(0, y, w, y)
               }
             }
           } finally {
@@ -150,6 +180,9 @@ class ImageWithToolbarPanel(
   @VisibleForTesting val toolbar: ActionToolbar
   private var originalImage: BufferedImage? = null
   @VisibleForTesting var currentScale = 1.0
+  @VisibleForTesting var cachedScaledImage: BufferedImage? = null
+  private var cachedScale: Double = 0.0
+  private var cachedGraphicsScale: Double = 0.0
   @VisibleForTesting var isAutoFitting = false
 
   // Expose actions for testing
@@ -359,6 +392,7 @@ class ImageWithToolbarPanel(
   @UiThread
   fun setImage(image: BufferedImage?) {
     originalImage = image
+    cachedScaledImage = null
     if (image == null) {
       imageLabel.icon = null
       scrollPane.setViewportView(placeholderLabel)
@@ -383,16 +417,8 @@ class ImageWithToolbarPanel(
     val newHeight = (image.height * currentScale).toInt()
 
     if (newWidth > 0 && newHeight > 0) {
-      val imageType = if (image.type == BufferedImage.TYPE_CUSTOM) BufferedImage.TYPE_INT_ARGB else image.type
-      val scaledImage = BufferedImage(newWidth, newHeight, imageType)
-      val g2d = scaledImage.createGraphics()
-      try {
-        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR)
-        g2d.drawImage(image, 0, 0, newWidth, newHeight, null)
-      } finally {
-        g2d.dispose()
-      }
-      imageLabel.icon = ImageIcon(scaledImage)
+      imageLabel.preferredSize = Dimension(newWidth, newHeight)
+      imageLabel.icon = null
     }
     // After updating the image and scale, we should update the toolbar
     // to reflect the new enabled/disabled state of the zoom buttons.

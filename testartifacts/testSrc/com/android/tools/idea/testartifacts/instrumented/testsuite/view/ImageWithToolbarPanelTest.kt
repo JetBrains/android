@@ -305,4 +305,55 @@ class ImageWithToolbarPanelTest {
     panel.zoomInAction.actionPerformed(event)
     assertEquals("Callback should be triggered by zoomInAction", 1, callCount)
   }
+
+  @Test
+  fun testImageCaching() {
+    if (GraphicsEnvironment.isHeadless()) {
+      println("Skipping testImageCaching due to Headless environment")
+      return
+    }
+
+    val panel = ImageWithToolbarPanel(ScreenshotViewType.NEW, showToolbar = true, showTitle = true)
+    val frame = JFrame()
+    val image = BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB)
+
+    try {
+      frame.add(panel)
+      frame.addNotify()
+
+      panel.setImage(image)
+
+      val scrollPane = panel.scrollPane
+      val viewport = scrollPane.viewport
+      val imageContainer = viewport.view as javax.swing.JPanel
+      val imageLabel = imageContainer.components.find { it is JBLabel } as JBLabel
+
+      assertEquals(null, panel.cachedScaledImage)
+
+      val tempImage = BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB)
+      val g = tempImage.createGraphics()
+      try {
+        imageLabel.paint(g)
+
+        assertNotNull(panel.cachedScaledImage)
+        val firstCachedImage = panel.cachedScaledImage
+
+        imageLabel.paint(g)
+        assertEquals(firstCachedImage, panel.cachedScaledImage)
+
+        panel.zoomIn()
+        assertEquals(firstCachedImage, panel.cachedScaledImage)
+
+        imageLabel.paint(g)
+        assertNotEquals(firstCachedImage, panel.cachedScaledImage)
+        assertNotNull(panel.cachedScaledImage)
+      } finally {
+        g.dispose()
+      }
+    } catch (e: java.awt.HeadlessException) {
+      println("Skipping testImageCaching due to HeadlessException")
+    } finally {
+      frame.dispose()
+    }
+  }
 }
