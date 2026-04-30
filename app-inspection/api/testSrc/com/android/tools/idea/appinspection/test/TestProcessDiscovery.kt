@@ -23,7 +23,14 @@ import java.util.concurrent.Executor
 
 class TestProcessDiscovery : ProcessDiscovery {
   private val listeners = mutableMapOf<ProcessListener, Executor>()
-  override val devices = mutableListOf<DeviceDescriptor>()
+  private val _devices = mutableListOf<DeviceDescriptor>()
+
+  // Synchronize access to _devices to avoid an exception from `toSet()` from a race condition where
+  // 1. Thread A gets the size of the list as 1 (inside the implementation of `toSet()`)
+  // 2. Thread B removed the last element of the list
+  // 3. Thread A continues the implementation of `toSet()` and accesses the 1st element that is no longer in the list.
+  override val devices: List<DeviceDescriptor>
+    get() = synchronized(_devices) { _devices.toList() }
 
   override fun addProcessListener(executor: Executor, listener: ProcessListener) {
     listeners[listener] = executor
@@ -33,9 +40,9 @@ class TestProcessDiscovery : ProcessDiscovery {
     listeners.remove(listener)
   }
 
-  fun addDevice(device: DeviceDescriptor) = devices.add(device)
+  fun addDevice(device: DeviceDescriptor) = synchronized(_devices) { _devices.add(device) }
 
-  fun removeDevice(device: DeviceDescriptor) = devices.remove(device)
+  fun removeDevice(device: DeviceDescriptor) = synchronized(_devices) { _devices.remove(device) }
 
   fun fireConnected(process: ProcessDescriptor) = fire { listener -> listener.onProcessConnected(process) }
 
