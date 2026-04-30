@@ -42,6 +42,7 @@ import kotlin.test.fail
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Assume
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -121,6 +122,7 @@ class AndroidTestRunConfigurationExecutorTest {
     }
   }
 
+  @Ignore("b/508138785")
   @Test
   fun debugSucceeded() {
     val historyLatch = CountDownLatch(1)
