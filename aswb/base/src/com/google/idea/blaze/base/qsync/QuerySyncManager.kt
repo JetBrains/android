@@ -35,6 +35,7 @@ import com.google.idea.blaze.base.qsync.ProjectStatsLogger.logSyncStats
 import com.google.idea.blaze.base.qsync.artifacts.ProjectArtifactStore
 import com.google.idea.blaze.base.qsync.rendering.BazelComposeToolingProjectLabelProvider
 import com.google.idea.blaze.base.scope.BlazeContext
+import com.google.idea.blaze.base.scope.output.StatusOutput
 import com.google.idea.blaze.base.scope.scopes.ProgressIndicatorScope
 import com.google.idea.blaze.base.scope.scopes.ToolWindowScopeRunner.runTaskWithToolWindow
 import com.google.idea.blaze.base.settings.BazelImportSettingsManager
@@ -251,8 +252,13 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     operation(title = "Loading project", subTitle = "Initializing project structure", operationType = OperationType.SYNC) { context ->
       val result = reloadProjectIfDefinitionHasChanged(context) as? ReloadProjectResult.SnapshotRetained
       if (result == null || userPreferences.refreshQueryDataOnStartup) {
+        val lastProjectStructureData = scanDirectoryAndConfigureModule(context)
         syncStatsScope(context) { context ->
-          runQueryAndReadProjectStructureAndApply(context, lastQuery = result?.existingPostQuerySyncData, lastProjectStructureData = null)
+          runQueryAndReadProjectStructureAndApply(
+            context,
+            lastQuery = result?.existingPostQuerySyncData,
+            lastProjectStructureData = lastProjectStructureData,
+          )
         }
         if (userPreferences.commitProjectStructureAfterQuery) {
           updateProjectStructureAndSnapshot(context)
@@ -268,6 +274,15 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
         autoEnableComposeBasicDependenciesIfNeeded(context)
       }
     }
+
+  private fun scanDirectoryAndConfigureModule(context: BlazeContext): ProjectStructureData? =
+    userPreferences
+      .takeIf { it.loadProjectStructureFromDirectoryTraversal && it.commitProjectStructureAfterQuery }
+      ?.let {
+        val loadedProject = assertProjectLoaded()
+        context.output(StatusOutput("Scanning directory structure..."))
+        loadedProject.readProjectStructureFromDirectory(context)?.also { updateProjectStructureAndSnapshot(context, it) }
+      }
 
   private fun autoEnableComposeBasicDependenciesIfNeeded(context: BlazeContext) {
     val snapshot = currentSnapshot.getOrNull()
@@ -519,10 +534,17 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
 
   @Throws(BuildException::class)
   fun updateProjectStructureAndSnapshot(context: BlazeContext) {
+    updateProjectStructureAndSnapshot(context, null)
+  }
+
+  @Throws(BuildException::class)
+  fun updateProjectStructureAndSnapshot(context: BlazeContext, projectStructureData: ProjectStructureData?) {
     val newSnapshot: QuerySyncProjectSnapshot = currentSnapshot.orElse(QuerySyncProjectSnapshot.EMPTY)
     val newArtifactState = loadedProject?.artifactTracker?.stateSnapshot ?: ArtifactTracker.State.EMPTY
+    val projectStructureDataToUse = projectStructureData ?: newSnapshot.projectStructureData
     if (
-      lastProjectUpdateFromSnapshot.queryData == newSnapshot.queryData &&
+      projectStructureData == null &&
+        lastProjectUpdateFromSnapshot.queryData == newSnapshot.queryData &&
         lastProjectUpdateFromSnapshot.staleGraph == newSnapshot.staleGraph &&
         lastProjectUpdateFromSnapshot.projectStructureData == newSnapshot.projectStructureData &&
         lastProjectUpdateFromArtifactState == newArtifactState
@@ -540,7 +562,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
           artifactState = result.artifactState,
           queryData = newSnapshot.queryData,
           staleGraph = newSnapshot.staleGraph,
-          projectStructureData = newSnapshot.projectStructureData,
+          projectStructureData = projectStructureDataToUse,
           project = result.projectStructure,
           incompleteTargets = emptySet(),
           projectDefinition = newSnapshot.projectDefinition,

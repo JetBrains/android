@@ -156,7 +156,7 @@ class QuerySyncProject(
       )
   }
 
-  private fun readProjectStructureFromDirectory(context: Context<*>): ProjectStructureData? =
+  fun readProjectStructureFromDirectory(context: Context<*>): ProjectStructureData? =
     projectStructureReader.read(context, workspaceRoot.path(), projectDefinition)
 
   /**
