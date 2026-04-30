@@ -25,8 +25,6 @@ import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.run.producers.BinaryContextProvider;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.java.run.RunUtil;
-import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
-import com.google.idea.blaze.qsync.project.BuildGraphData;
 import com.google.idea.blaze.qsync.project.ProjectTarget;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.Location;
@@ -102,25 +100,18 @@ public class JavaBinaryContextProvider implements BinaryContextProvider {
     if (querySyncProject == null) {
       return null;
     }
-    BuildGraphData buildGraphData =
-      QuerySyncManager.getInstance(project)
-            .getCurrentSnapshot()
-            .map(QuerySyncProjectSnapshot::getGraph)
-            .orElse(null);
-    if (buildGraphData == null) {
+    final var projectSnapshot =
+        QuerySyncManager.getInstance(project).getCurrentSnapshot().orElse(null);
+    if (projectSnapshot == null) {
       return null;
     }
 
     WorkspacePath path = querySyncProject.getWorkspaceRoot().workspacePathFor(mainClassFile);
-    Set<Label> targetOwners = buildGraphData.getSourceFileOwners(Path.of(path.relativePath()));
-
-    if (targetOwners == null) {
-      return null;
-    }
+    Set<Label> targetOwners = projectSnapshot.getSourceFileOwners(Path.of(path.relativePath()));
 
     ImmutableSet<ProjectTarget> binaryTargets =
         targetOwners.stream()
-            .map(buildGraphData::getProjectTarget)
+            .map(projectSnapshot.getGraph()::getProjectTarget)
             .filter(Objects::nonNull)
             .filter(t -> t.kind().equals("java_binary"))
             .collect(toImmutableSet());

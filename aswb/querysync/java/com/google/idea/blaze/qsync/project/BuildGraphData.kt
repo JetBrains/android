@@ -80,12 +80,10 @@ interface BuildGraphData {
    * If project target A depends on external target B, and external target B depends on project target C, target A is *not* included in
    * `getReverseDeps` for a source file in target C.
    */
-  fun getReverseDepsForSource(sourcePath: Path): Collection<ProjectTarget>
+  fun getReverseDepsForSource(sourceLabel: Label): Collection<ProjectTarget>
 
   // TODO: b/397649793 - Remove this method when fixed.
   fun dependsOnAnyOf_DO_NOT_USE_BROKEN(projectTarget: Label, deps: Set<Label>): Boolean
-
-  fun getSourceFileOwners(path: Path): Set<Label>
 
   fun getSourceFileOwners(label: Label): Set<Label>
 

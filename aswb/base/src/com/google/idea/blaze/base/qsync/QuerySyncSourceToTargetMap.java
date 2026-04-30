@@ -47,8 +47,8 @@ public class QuerySyncSourceToTargetMap {
     }
 
     Set<Label> buildTargets = new HashSet<>();
-    Set<com.google.idea.blaze.common.Label> targetOwners = snapshot.getTargetOwners(rel);
-    if (targetOwners != null) {
+    Set<com.google.idea.blaze.common.Label> targetOwners = snapshot.getSourceFileOwners(rel);
+    if (!targetOwners.isEmpty()) {
       targetOwners.stream().map(Label::create).forEach(buildTargets::add);
     } else {
       logger.warn(String.format("No target owners found for file %s", rel));

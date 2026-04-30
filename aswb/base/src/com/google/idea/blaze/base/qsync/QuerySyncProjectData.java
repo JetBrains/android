@@ -15,6 +15,8 @@
  */
 package com.google.idea.blaze.base.qsync;
 
+import static com.google.idea.blaze.qsync.project.ProjectStructureDataKt.pathToLabel;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.bazel.BazelVersion;
@@ -29,6 +31,7 @@ import com.google.idea.blaze.qsync.project.ProjectTarget;
 import com.intellij.openapi.diagnostic.Logger;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -49,7 +52,7 @@ public class QuerySyncProjectData implements BlazeProjectData {
   private final WorkspaceLanguageSettings staticLanguageSettings;
 
   @VisibleForTesting
-  public  QuerySyncProjectData(
+  public QuerySyncProjectData(
       WorkspacePathResolver workspacePathResolver,
       WorkspaceLanguageSettings workspaceLanguageSettings) {
     this(Optional.empty(), workspacePathResolver, workspaceLanguageSettings);
@@ -89,9 +92,13 @@ public class QuerySyncProjectData implements BlazeProjectData {
    * target C, target A is *not* included in {@code getReverseDeps} for a source file in target C.
    */
   public Collection<ProjectTarget> getReverseDeps(Path sourcePath) {
+    final var sourceLabel =
+        blazeProject.flatMap(
+            it -> Optional.ofNullable(pathToLabel(it.getProjectStructureData(), sourcePath)));
+    if (sourceLabel.isEmpty()) return Collections.emptyList();
     return blazeProject
         .map(QuerySyncProjectSnapshot::getGraph)
-        .map(graph -> graph.getReverseDepsForSource(sourcePath))
+        .map(graph -> graph.getReverseDepsForSource(sourceLabel.get()))
         .orElse(ImmutableList.of());
   }
 

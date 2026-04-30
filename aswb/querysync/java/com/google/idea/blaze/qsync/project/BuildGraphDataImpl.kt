@@ -148,8 +148,8 @@ data class BuildGraphDataImpl private constructor(@VisibleForTesting @JvmField v
    * If project target A depends on external target B, and external target B depends on project target C, target A is *not* included in
    * `getReverseDeps` for a source file in target C.
    */
-  override fun getReverseDepsForSource(sourcePath: Path): Collection<ProjectTarget> {
-    val targetOwners = getSourceFileOwners(sourcePath).takeUnless { it.isEmpty() } ?: return emptyList()
+  override fun getReverseDepsForSource(sourceLabel: Label): Collection<ProjectTarget> {
+    val targetOwners = getSourceFileOwners(sourceLabel).takeUnless { it.isEmpty() } ?: return emptyList()
 
     return Traverser.forGraph<Label> { this.getRdeps(it).map { it.label } }
       .breadthFirst(targetOwners)
@@ -246,7 +246,7 @@ data class BuildGraphDataImpl private constructor(@VisibleForTesting @JvmField v
     }
   }
 
-  override fun getSourceFileOwners(path: Path): Set<Label> {
+  private fun getSourceFileOwners(path: Path): Set<Label> {
     return sourceFileToLabel(path)?.let { getSourceFileOwners(it) }.orEmpty()
   }
 

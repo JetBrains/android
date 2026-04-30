@@ -79,7 +79,7 @@ class BazelApplicationLiveEditServices(
 
     val workspaceRoot = WorkspaceRoot.fromProject(project)
     val path = workspaceRoot.relativize(ktFile.virtualFile.toNioPath())
-    val labels = snapshot.getTargetOwners(path)
+    val labels = snapshot.getSourceFileOwners(path)
     if (labels.isEmpty()) return CompilerConfiguration.create()
 
     // Choose the target that would normally be selected for previews.

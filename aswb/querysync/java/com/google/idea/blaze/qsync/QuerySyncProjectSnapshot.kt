@@ -25,6 +25,7 @@ import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.ProjectStructureData
 import com.google.idea.blaze.qsync.project.ProjectTarget
 import com.google.idea.blaze.qsync.project.RequestedTargets
+import com.google.idea.blaze.qsync.project.pathToLabel
 import com.google.idea.blaze.qsync.project.requiredTargets
 import java.nio.file.Path
 
@@ -74,8 +75,8 @@ data class QuerySyncProjectSnapshot(
    *
    * @param path a workspace relative path.
    */
-  fun getTargetOwners(path: Path): Set<Label> {
-    return graph.getSourceFileOwners(path)
+  fun getSourceFileOwners(path: Path): Set<Label> {
+    return graph.getSourceFileOwners(projectStructureData.pathToLabel(path) ?: return emptySet())
   }
 
   val allLoadedTargets: Sequence<ProjectTarget>
@@ -113,6 +114,6 @@ data class QuerySyncProjectSnapshot(
   /** Recursively get all the transitive deps outside the project */
   fun getPendingTargets(workspaceRelativePath: Path): Set<Label> {
     Preconditions.checkState(!workspaceRelativePath.isAbsolute, workspaceRelativePath)
-    return getPendingExternalDeps(getTargetOwners(workspaceRelativePath))
+    return getPendingExternalDeps(getSourceFileOwners(workspaceRelativePath))
   }
 }

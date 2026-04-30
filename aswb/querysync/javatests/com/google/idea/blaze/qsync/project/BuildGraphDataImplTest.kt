@@ -158,7 +158,7 @@ class BuildGraphDataImplTest {
     assertThat(graph.getAllSourceFileLabels())
       .containsExactly(Label.of("//$TESTDATA_ROOT/nodeps:TestClassNoDeps.java"), Label.of("//$TESTDATA_ROOT/nodeps:BUILD"))
     assertThat(graph.getJavaSourceFiles()).containsExactly(TESTDATA_ROOT.resolve("nodeps/TestClassNoDeps.java"))
-    assertThat(graph.getSourceFileOwners(TESTDATA_ROOT.resolve("nodeps/TestClassNoDeps.java")))
+    assertThat(graph.getSourceFileOwners(Label.of("//$TESTDATA_ROOT/nodeps:TestClassNoDeps.java")))
       .containsExactly(Label.of("//$TESTDATA_ROOT/nodeps:nodeps"))
     assertThat(getRequiredTargets(graph, listOf(Label.of("//$TESTDATA_ROOT/nodeps:nodeps")))).isEmpty()
     assertThat(graph.getProjectTarget(Label.of("//$TESTDATA_ROOT/nodeps:nodeps"))!!.languages()).containsExactly(QuerySyncLanguage.JVM)
@@ -197,7 +197,7 @@ class BuildGraphDataImplTest {
       .containsExactly(Label.of("//$TESTDATA_ROOT/multitarget:nodeps"), Label.of("//$TESTDATA_ROOT/multitarget:externaldep"))
     // Sanity check:
     assertThat(graph.getJavaSourceFiles()).contains(TESTDATA_ROOT.resolve("multitarget/TestClassSingleTarget.java"))
-    assertThat(graph.getSourceFileOwners(TESTDATA_ROOT.resolve("multitarget/TestClassMultiTarget.java")))
+    assertThat(graph.getSourceFileOwners(Label.of("//$TESTDATA_ROOT/multitarget:TestClassMultiTarget.java")))
       .containsExactly(Label.of("//$TESTDATA_ROOT/multitarget:nodeps"), Label.of("//$TESTDATA_ROOT/multitarget:externaldep"))
     assertThat(getRequiredTargets(graph, listOf(Label.of("//" + TESTDATA_ROOT.resolve("multitarget:externaldep")))))
       .contains(Label.of("@@+intellij+intellij//:intellij-sdk"))
@@ -242,7 +242,7 @@ class BuildGraphDataImplTest {
         Label.of("//$TESTDATA_ROOT/android:res/values/strings.xml"),
       )
     assertThat(graph.getJavaSourceFiles()).containsExactly(TESTDATA_ROOT.resolve("android/TestAndroidClass.java"))
-    assertThat(graph.getSourceFileOwners(TESTDATA_ROOT.resolve("android/TestAndroidClass.java")))
+    assertThat(graph.getSourceFileOwners(Label.of("//$TESTDATA_ROOT/android:TestAndroidClass.java")))
       .containsExactly(Label.of("//$TESTDATA_ROOT/android:android"))
     assertThat(getRequiredTargets(graph, listOf(Label.of("//" + TESTDATA_ROOT.resolve("android:android"))))).isEmpty()
   }
@@ -311,8 +311,10 @@ class BuildGraphDataImplTest {
     val sourceFile: Path = TESTDATA_ROOT.resolve("filegroup/TestFileGroupSource.java")
     val subgroupSourceFile: Path = TESTDATA_ROOT.resolve("filegroup/TestSubFileGroupSource.java")
     assertThat(graph.getJavaSourceFiles()).containsExactly(sourceFile, subgroupSourceFile)
-    assertThat(graph.getSourceFileOwners(sourceFile)).containsExactly(Label.of("//$TESTDATA_ROOT/filegroup:filegroup"))
-    assertThat(graph.getSourceFileOwners(subgroupSourceFile)).containsExactly(Label.of("//$TESTDATA_ROOT/filegroup:filegroup"))
+    assertThat(graph.getSourceFileOwners(graph.sourceFileToLabel(sourceFile)!!))
+      .containsExactly(Label.of("//$TESTDATA_ROOT/filegroup:filegroup"))
+    assertThat(graph.getSourceFileOwners(graph.sourceFileToLabel(subgroupSourceFile)!!))
+      .containsExactly(Label.of("//$TESTDATA_ROOT/filegroup:filegroup"))
     assertThat(getRequiredTargets(graph, listOf(Label.of("//$TESTDATA_ROOT/filegroup:filegroup"))))
       .containsExactly(Label.of("@@+intellij+intellij//:intellij-sdk"))
   }
@@ -336,7 +338,7 @@ class BuildGraphDataImplTest {
         Label.of("//$TESTDATA_ROOT/cc:BUILD"),
       )
     assertThat(graph.getJavaSourceFiles()).isEmpty()
-    assertThat(graph.getSourceFileOwners(TESTDATA_ROOT.resolve("cc/TestClass.cc"))).containsExactly(Label.of("//$TESTDATA_ROOT/cc:cc"))
+    assertThat(graph.getSourceFileOwners(Label.of("//$TESTDATA_ROOT/cc:TestClass.cc"))).containsExactly(Label.of("//$TESTDATA_ROOT/cc:cc"))
     assertThat(getRequiredTargets(graph, listOf(Label.of("//$TESTDATA_ROOT/cc:cc")))).isEmpty()
     assertThat(graph.getProjectTarget(Label.of("//$TESTDATA_ROOT/cc:cc"))!!.languages()).containsExactly(QuerySyncLanguage.CC)
   }
@@ -617,9 +619,7 @@ class BuildGraphDataImplTest {
           defaultProtoRules,
         )
         .parseForTesting()
-    assertThat(
-        graph.getReverseDepsForSource(TestData.JAVA_LIBRARY_NO_DEPS_QUERY.onlySourcePath.resolve("TestClassNoDeps.java")).map { it.label() }
-      )
+    assertThat(graph.getReverseDepsForSource(Label.of("//$TESTDATA_ROOT/nodeps:TestClassNoDeps.java")).map { it.label() })
       .containsExactlyElementsIn(TestData.JAVA_LIBRARY_NO_DEPS_QUERY.assumedLabels)
   }
 
