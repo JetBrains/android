@@ -504,7 +504,7 @@ iml_test(
     jvm_flags = emulator_snapshot_jvm_flags(INTEGRATION_TEST_SYSTEM_IMAGE),
     module = ":intellij.android.core.integration",
     tags = [
-        "noci:studio-win",  # Disabling due to b/491123352#comment4 and other instances of quota getting exhausted
+        "noci:studio-linux",  # b/508360724
         "studio-e2e-test",
     ],
     tags_linux = ["block-network"],
