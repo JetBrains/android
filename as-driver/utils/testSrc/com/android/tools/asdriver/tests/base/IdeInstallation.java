@@ -301,6 +301,7 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
     Path gradleUserHome = tmpDir.resolve(".gradle");
     env.put("GRADLE_USER_HOME", gradleUserHome.toAbsolutePath().toString());
     addVmOption("-Dgradle.user.home=" + gradleUserHome.toAbsolutePath().toString());
+    env.put("ANDROID_USER_HOME", tmpDir.resolve(".android").toString());
     addVmOption("-Dgradle.jvm=$javaHome");
     return run(display, env, new String[]{ projectPath.toString() });
   }
@@ -310,7 +311,9 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
     env.put(vmOptionEnvName(), vmOptionsPath.toString());
     env.put("HOME", fileSystem.getHome().toString());
     // This is only needed for Android Studio, but does no harm to others
-    env.put("ANDROID_USER_HOME", fileSystem.getAndroidHome().toString());
+    if (!env.containsKey("ANDROID_USER_HOME")) {
+      env.put("ANDROID_USER_HOME", fileSystem.getAndroidHome().toString());
+    }
 
     Path workDir = getWorkDir();
 
@@ -673,11 +676,25 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
   }
 
   public void copySystemDir(Path projectArtifactsPath) throws IOException {
-    FileUtils.copyDirectory(TestUtils.getBinPath(projectArtifactsPath.resolve("system").toString()).toFile(), getSystemDir().toFile());
+    Path sourceSystem = TestUtils.getBinPath(projectArtifactsPath.resolve("system").toString());
+    if (Files.exists(sourceSystem)) {
+      FileUtils.copyDirectory(sourceSystem.toFile(), getSystemDir().toFile());
+    }
   }
 
   public void copyConfigDir(Path projectArtifactsPath) throws IOException {
-    FileUtils.copyDirectory(TestUtils.getBinPath(projectArtifactsPath.resolve("config").toString()).toFile(), getConfigDir().toFile());
+    Path sourceConfig = TestUtils.getBinPath(projectArtifactsPath.resolve("config").toString());
+    if (Files.exists(sourceConfig)) {
+      FileUtils.copyDirectory(sourceConfig.toFile(), getConfigDir().toFile());
+    }
+  }
+
+  public void copyAndroidHome(Path projectArtifactsPath) throws IOException {
+    Path sourceAndroidHome = TestUtils.getBinPath(projectArtifactsPath.resolve(".android").toString());
+    Path targetAndroidHome = tmpDir.resolve(".android");
+    if (Files.exists(sourceAndroidHome)) {
+      FileUtils.copyDirectory(sourceAndroidHome.toFile(), targetAndroidHome.toFile());
+    }
   }
 
   public void copyGradleDir(Path projectArtifactsPath) throws IOException {
@@ -708,6 +725,7 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
     copySystemDir(projectArtifactsPath);
     copyConfigDir(projectArtifactsPath);
     copyGradleDir(projectArtifactsPath);
+    copyAndroidHome(projectArtifactsPath);
   }
 
   public boolean isRestoredFromPrebuiltCache() {

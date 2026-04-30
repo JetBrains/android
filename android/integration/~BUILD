@@ -1,6 +1,7 @@
 load("@rules_java//java:defs.bzl", "java_library")
 load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION", "INTEGRATION_TEST_SYSTEM_IMAGE", "KOTLIN_ARTIFACTS_FOR_TESTS")
 load("//tools/adt/idea/emulator-snapshots:emulator_test_env.bzl", "emulator_snapshot_data", "emulator_snapshot_jvm_flags", "emulator_test_jvm_flags")
+load("//tools/adt/idea/gradle-prebuild:gradle_prebuild.bzl", "gradle_build_project")
 load("//tools/adt/idea/studio:studio.bzl", "studio_project_model")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test", "studio_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
@@ -585,7 +586,6 @@ iml_test(
     jvm_flags = emulator_snapshot_jvm_flags(INTEGRATION_TEST_SYSTEM_IMAGE),
     module = ":intellij.android.core.integration",
     tags = [
-        "noci:studio-linux",  # b/508360724
         "studio-e2e-test",
     ],
     tags_linux = ["block-network"],
@@ -1259,7 +1259,9 @@ filegroup(
 java_library(
     name = "project_model_generator_lib",
     testonly = True,
-    srcs = ["testSrc/com/android/tools/idea/ProjectIndexAndGradleSyncGenerator.java"],
+    srcs = [
+        "testSrc/com/android/tools/idea/ProjectIndexAndGradleSyncGenerator.java",
+    ],
     visibility = ["//visibility:public"],
     deps = [
         "//tools/adt/idea/as-driver:as-driver.utils_testlib",
@@ -1271,12 +1273,12 @@ studio_project_model(
     name = "minapp_project_model",
     srcs = [
         ":buildproject_deps",
-        ":minapp",
+        ":minapp_built_project",
         INTEGRATION_TEST_GRADLE_VERSION,
     ],
     manifest_path = "tools/adt/idea/android/integration/buildproject_deps.manifest",
     out_dir_name = "minapp_project_model",
-    project_path = "tools/adt/idea/android/integration/testData/minapp",
+    project_path = "tools/adt/idea/android/integration/minapp_built_project/minapp",
     visibility = ["//visibility:public"],
 )
 
@@ -1357,10 +1359,43 @@ studio_project_model(
     name = "kmpapp_project_model",
     srcs = [
         ":buildkmpproject_deps",
-        ":kmpapp",
+        ":kmpapp_built_project",
         INTEGRATION_TEST_GRADLE_VERSION,
     ],
     manifest_path = "tools/adt/idea/android/integration/buildkmpproject_deps.manifest",
     out_dir_name = "kmpapp_project_model",
+    project_path = "tools/adt/idea/android/integration/kmpapp_built_project/kmpapp",
+    visibility = ["//visibility:public"],
+)
+
+gradle_build_project(
+    name = "minapp_built_project",
+    srcs = [
+        ":buildproject_deps",
+        ":minapp",
+        "//prebuilts/studio/sdk:build-tools/33.0.1",
+        "//prebuilts/studio/sdk:platforms/android-33",
+    ],
+    gradle_dist = INTEGRATION_TEST_GRADLE_VERSION,
+    manifest_path = "tools/adt/idea/android/integration/buildproject_deps.manifest",
+    out_dir_name = "minapp_built_project",
+    project_name = "minapp",
+    project_path = "tools/adt/idea/android/integration/testData/minapp",
+    visibility = ["//visibility:public"],
+)
+
+gradle_build_project(
+    name = "kmpapp_built_project",
+    srcs = [
+        ":buildkmpproject_deps",
+        ":kmpapp",
+        "//prebuilts/studio/sdk:build-tools/33.0.1",
+        "//prebuilts/studio/sdk:platforms/android-33",
+    ],
+    gradle_dist = INTEGRATION_TEST_GRADLE_VERSION,
+    manifest_path = "tools/adt/idea/android/integration/buildkmpproject_deps.manifest",
+    out_dir_name = "kmpapp_built_project",
+    project_name = "kmpapp",
     project_path = "tools/adt/idea/android/integration/testData/kmpapp",
+    visibility = ["//visibility:public"],
 )

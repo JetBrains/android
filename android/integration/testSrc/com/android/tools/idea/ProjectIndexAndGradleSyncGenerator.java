@@ -36,11 +36,18 @@ public class ProjectIndexAndGradleSyncGenerator {
     AndroidSystem system = AndroidSystem.standardWithTmpDir();
     System.out.println(args[1]);
     Path outputDir = Path.of(args[0]);
-    String projectPath = args[1];
+    Path projectPath = Path.of(args[1]);
     String manifestPath = args[2];
-    String projectName = Paths.get(projectPath).getFileName().toString();
-    AndroidProject project = new AndroidProject(projectPath);
+    String projectName = projectPath.getFileName().toString();
+    AndroidProject project = new AndroidProject(String.valueOf(projectPath));
     system.installRepo(new MavenRepo(manifestPath));
+    
+    Path projectArtifactsPath = projectPath.getParent();
+    if (projectArtifactsPath != null && Files.exists(projectPath.resolve(".gradle"))) {
+      System.out.println("Restoring cached state from: " + projectArtifactsPath);
+      system.getInstallation().restoreCachedIdeState(projectArtifactsPath);
+    }
+    
     try (AndroidStudio studio = system.runStudio(project)) {
       studio.waitForSync();
       studio.waitForIndex();
@@ -50,16 +57,21 @@ public class ProjectIndexAndGradleSyncGenerator {
     Path projectDir = system.getInstallation().getTmpDir().resolve(projectName);
     Path configDir = system.getInstallation().getConfigDir();
     Path gradleDir = system.getInstallation().getTmpDir().resolve(".gradle");
+    Path androidDir = system.getInstallation().getTmpDir().resolve(".android");
     Files.createDirectories(outputDir);
     Path outputSystemDir = outputDir.resolve("system");
     Path outputProjectDir = outputDir.resolve(projectName);
     Path outputConfigDir = outputDir.resolve("config");
     Path outputGradleDir = outputDir.resolve(".gradle");
+    Path outputAndroidDir = outputDir.resolve(".android");
     FileUtils.copyDirectory(systemDir.toFile(), outputSystemDir.toFile());
     FileUtils.copyDirectory(projectDir.toFile(), outputProjectDir.toFile());
     FileUtils.copyDirectory(configDir.toFile(), outputConfigDir.toFile());
     if (Files.exists(gradleDir)) {
       FileUtils.copyDirectory(gradleDir.toFile(), outputGradleDir.toFile());
+    }
+    if (Files.exists(androidDir)) {
+      FileUtils.copyDirectory(androidDir.toFile(), outputAndroidDir.toFile());
     }
   }
 }
