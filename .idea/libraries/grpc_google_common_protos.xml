@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="grpc-google-common-protos">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/com/google/api/grpc/grpc-google-common-protos/2.51.0/grpc-google-common-protos-2.51.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

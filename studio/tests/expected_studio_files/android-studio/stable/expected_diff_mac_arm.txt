@@ -3192,8 +3192,9 @@
 +++Android Studio.app/Contents/plugins/firebase/lib/firebase.jar
 +++Android Studio.app/Contents/plugins/firebase/lib/firebase.so.jar
 +++Android Studio.app/Contents/plugins/firebase/lib/firebase_kt_proto.jar
-+++Android Studio.app/Contents/plugins/firebase/lib/firebase_provisioning_proto.jar
++++Android Studio.app/Contents/plugins/firebase/lib/firebase_provisioning_kt_proto.jar
 +++Android Studio.app/Contents/plugins/firebase/lib/google-api-services-cloudresourcemanager-v3-rev20230416-2.0.0.jar
++++Android Studio.app/Contents/plugins/firebase/lib/grpc-google-common-protos-2.51.0.jar
 +++Android Studio.app/Contents/plugins/firebase/lib/protobuf-java-util-3.22.3.jar
 +++Android Studio.app/Contents/plugins/gemini/lib/aicode_grpc.jar
 +++Android Studio.app/Contents/plugins/gemini/lib/aida_grpc.jar
@@ -7092,8 +7093,9 @@
 ---Android Studio Preview.app/Contents/plugins/firebase/lib/firebase.jar
 ---Android Studio Preview.app/Contents/plugins/firebase/lib/firebase.so.jar
 ---Android Studio Preview.app/Contents/plugins/firebase/lib/firebase_kt_proto.jar
----Android Studio Preview.app/Contents/plugins/firebase/lib/firebase_provisioning_proto.jar
+---Android Studio Preview.app/Contents/plugins/firebase/lib/firebase_provisioning_kt_proto.jar
 ---Android Studio Preview.app/Contents/plugins/firebase/lib/google-api-services-cloudresourcemanager-v3-rev20230416-2.0.0.jar
+---Android Studio Preview.app/Contents/plugins/firebase/lib/grpc-google-common-protos-2.51.0.jar
 ---Android Studio Preview.app/Contents/plugins/firebase/lib/protobuf-java-util-3.22.3.jar
 ---Android Studio Preview.app/Contents/plugins/gemini/lib/aicode_grpc.jar
 ---Android Studio Preview.app/Contents/plugins/gemini/lib/aida_grpc.jar

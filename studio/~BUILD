@@ -674,6 +674,7 @@ studio_plugin(
         "//tools/vendor/google/firebase/crashlytics-client:firebase_kt_proto",
         "//tools/vendor/google/firebase-provisioning:firebase_provisioning_proto",
         "//tools/adt/idea/.idea/libraries:cloudresourcemanager",
+        "//tools/adt/idea/.idea/libraries:grpc-google-common-protos",
         "//prebuilts/tools/common/m2:protobuf-java-util-3.22.3",
     ],
     license_files = [

@@ -358,3 +358,10 @@ jvm_import(
     jars = ["//prebuilts/tools/common/m2:okhttp.mockwebserver_files"],
     visibility = ["//visibility:public"],
 )
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "grpc-google-common-protos",
+    jars = ["//prebuilts/tools/common/m2:grpc-google-common-protos_files"],
+    visibility = ["//visibility:public"],
+)
