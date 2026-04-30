@@ -179,16 +179,20 @@ class SnapshotSerializationTest {
           listOf(
             ProjectStructureRoot(
               projectStructureRootPath = Path.of("project"),
-              packageSourceSets =
+              buildPackages =
                 mapOf(
                   Path.of("project/path") to
-                    listOf(
-                      SourceSet(
-                        rootPath = Path.of("project/path"),
-                        javaSourceFiles = listOf(Path.of("A.java")),
-                        nonJavaSourceFiles = listOf(Path.of("B.txt")),
-                        javaPackage = "com.example",
-                      )
+                    BuildPackage(
+                      path = Path.of("project/path"),
+                      sourceSets =
+                        listOf(
+                          SourceSet(
+                            rootPath = Path.of("project/path"),
+                            javaSourceFiles = listOf(Path.of("A.java")),
+                            nonJavaSourceFiles = listOf(Path.of("B.txt")),
+                            javaPackage = "com.example",
+                          )
+                        ),
                     )
                 ),
             )

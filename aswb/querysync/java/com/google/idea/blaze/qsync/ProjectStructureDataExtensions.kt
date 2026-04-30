@@ -21,6 +21,7 @@ import com.google.idea.blaze.common.RuleKinds
 import com.google.idea.blaze.qsync.java.PackageReader
 import com.google.idea.blaze.qsync.java.choosePackageCandidate
 import com.google.idea.blaze.qsync.project.BuildGraphData
+import com.google.idea.blaze.qsync.project.BuildPackage
 import com.google.idea.blaze.qsync.project.FileExtensions
 import com.google.idea.blaze.qsync.project.ProjectStructureData
 import com.google.idea.blaze.qsync.project.ProjectStructureRoot
@@ -76,12 +77,11 @@ fun ProjectStructureData.Companion.fromGraph(
     }
   }
 
-  val javaSourcesMap = mutableMapOf<PackageKey, MutableList<Path>>()
+  val javaSourcesMap = mutableMapOf<Path, MutableMap<String, MutableList<Path>>>()
   for (file in javaSourceFiles) {
     val buildPackage = findBuildPackage(file) ?: continue
     val javaPackage = fileToPackageMap[file] ?: ""
-    val key = PackageKey(buildPackage, javaPackage)
-    javaSourcesMap.computeIfAbsent(key) { mutableListOf() }.add(file)
+    javaSourcesMap.computeIfAbsent(buildPackage) { mutableMapOf() }.computeIfAbsent(javaPackage) { mutableListOf() }.add(file)
   }
 
   val nonJavaSourcesMap = mutableMapOf<Path, MutableList<Path>>()
@@ -89,46 +89,53 @@ fun ProjectStructureData.Companion.fromGraph(
     findBuildPackage(file)?.let { pkgPath -> nonJavaSourcesMap.computeIfAbsent(pkgPath) { mutableListOf() }.add(file) }
   }
 
-  val allPackageKeys = javaSourcesMap.keys + nonJavaSourcesMap.keys.map { PackageKey(it, "") }
-  val finalSourcesMap =
-    allPackageKeys.associateWith { key ->
-      val pkg = key.buildPackage
-      SourceSet(
-        rootPath = pkg,
-        javaSourceFiles = javaSourcesMap[key]?.map { pkg.relativize(it) }?.distinct()?.sorted() ?: emptyList(),
-        nonJavaSourceFiles =
-          if (key.javaPackage.isEmpty()) nonJavaSourcesMap[pkg]?.map { pkg.relativize(it) }?.sorted() ?: emptyList() else emptyList(),
-        javaPackage = key.javaPackage,
+  val allBuildPackages = (javaSourcesMap.keys + nonJavaSourcesMap.keys).distinct()
+  val finalBuildPackages =
+    allBuildPackages.associateWith { buildPackage ->
+      val javaPackages = javaSourcesMap[buildPackage]?.keys ?: emptySet()
+      val allPackages = if (nonJavaSourcesMap.containsKey(buildPackage)) javaPackages + "" else javaPackages
+
+      BuildPackage(
+        path = buildPackage,
+        sourceSets =
+          allPackages.map { javaPackage ->
+            val javaSources = javaSourcesMap[buildPackage]?.get(javaPackage) ?: emptyList()
+            val nonJavaSources = if (javaPackage.isEmpty()) nonJavaSourcesMap[buildPackage] ?: emptyList() else emptyList()
+            SourceSet(
+              rootPath = buildPackage,
+              javaSourceFiles = javaSources.map { buildPackage.relativize(it) }.distinct().sorted(),
+              nonJavaSourceFiles = nonJavaSources.map { buildPackage.relativize(it) }.distinct().sorted(),
+              javaPackage = javaPackage,
+            )
+          },
       )
     }
 
-  val sourcesByRoot = associateByProjectRoot(finalSourcesMap, projectIncludes, context)
+  val sourcesByRoot = associateByProjectRoot(finalBuildPackages, projectIncludes, context)
 
   val roots =
-    sourcesByRoot.map { (includeRoot, packageMap) ->
-      ProjectStructureRoot(projectStructureRootPath = includeRoot, packageSourceSets = packageMap.mapValues { it.value.toList() })
+    sourcesByRoot.map { (includeRoot, buildPackages) ->
+      ProjectStructureRoot(projectStructureRootPath = includeRoot, buildPackages = buildPackages)
     }
 
   return ProjectStructureData.create(roots = roots, activeLanguages = graph.getActiveLanguages())
 }
 
-private data class PackageKey(val buildPackage: Path, val javaPackage: String)
-
 private fun associateByProjectRoot(
-  finalSourcesMap: Map<PackageKey, SourceSet>,
+  finalBuildPackages: Map<Path, BuildPackage>,
   projectIncludes: Set<Path>,
   context: Context<*>,
-): Map<Path, Map<Path, List<SourceSet>>> {
+): Map<Path, Map<Path, BuildPackage>> {
   val sortedIncludes = projectIncludes.sortedByDescending { it.nameCount }
-  val result = mutableMapOf<Path, MutableMap<Path, MutableList<SourceSet>>>()
+  val result = mutableMapOf<Path, MutableMap<Path, BuildPackage>>()
 
-  for ((key, sourceSet) in finalSourcesMap) {
-    val includeRoot = sortedIncludes.find { key.buildPackage.startsWith(it) }
+  for ((pkgPath, buildPkg) in finalBuildPackages) {
+    val includeRoot = sortedIncludes.find { pkgPath.startsWith(it) }
     if (includeRoot != null) {
       val rootMap = result.computeIfAbsent(includeRoot) { mutableMapOf() }
-      rootMap.computeIfAbsent(key.buildPackage) { mutableListOf() }.add(sourceSet)
+      rootMap[pkgPath] = buildPkg
     } else {
-      context.output(PrintOutput.log("WARNING: Package ${key.buildPackage} is outside all project structure roots"))
+      context.output(PrintOutput.log("WARNING: Package $pkgPath is outside all project structure roots"))
     }
   }
   return result

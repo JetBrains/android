@@ -77,8 +77,8 @@ class GraphToProjectConverter(private val context: Context<*>, val projectDefini
       val rootPath = root.projectStructureRootPath
       rootPath to
         mergeSourceRoots(
-          root.packageSourceSets.values
-            .flatten()
+          root.buildPackages.values
+            .flatMap { it.sourceSets }
             .flatMap { sourceSet ->
               sourceSet.javaSourceFiles.map { file ->
                 val workspaceFile = sourceSet.rootPath.resolve(file)
@@ -105,9 +105,9 @@ class GraphToProjectConverter(private val context: Context<*>, val projectDefini
       .associate { root ->
         val rootPath = root.projectStructureRootPath
         val relDirs =
-          root.packageSourceSets
-            .flatMap { (pkgPath, sourceSetList) ->
-              sourceSetList.flatMap { sourceSet -> sourceSet.nonJavaSourceFiles.map { pkgPath.resolve(it) } }
+          root.buildPackages.values
+            .flatMap { buildPkg ->
+              buildPkg.sourceSets.flatMap { sourceSet -> sourceSet.nonJavaSourceFiles.map { buildPkg.path.resolve(it) } }
             }
             .mapNotNull { it.parent }
             .distinct()

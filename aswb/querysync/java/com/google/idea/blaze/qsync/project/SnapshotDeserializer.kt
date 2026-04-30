@@ -87,19 +87,23 @@ class SnapshotDeserializer private constructor() {
       proto.rootsList.map { rootProto ->
         ProjectStructureRoot(
           projectStructureRootPath = Path.of(rootProto.projectStructureRootPath),
-          packageSourceSets =
-            rootProto.packageSourceSetsList
-              .groupBy { Path.of(it.workspaceRelativePath) }
-              .mapValues { (_, protoSourceSets) ->
-                protoSourceSets.map { sourceSet ->
-                  SourceSet(
-                    rootPath = Path.of(sourceSet.rootPath),
-                    javaSourceFiles = sourceSet.javaSourceFilesList.map { Path.of(it) },
-                    nonJavaSourceFiles = sourceSet.nonJavaSourceFilesList.map { Path.of(it) },
-                    javaPackage = sourceSet.javaPackage,
-                  )
-                }
-              },
+          buildPackages =
+            rootProto.buildPackagesList.associate { buildPkgProto ->
+              val pkgPath = Path.of(buildPkgProto.buildPackagePath)
+              pkgPath to
+                BuildPackage(
+                  path = pkgPath,
+                  sourceSets =
+                    buildPkgProto.sourceSetsList.map { sourceSet ->
+                      SourceSet(
+                        rootPath = Path.of(sourceSet.rootPath),
+                        javaSourceFiles = sourceSet.javaSourceFilesList.map { Path.of(it) },
+                        nonJavaSourceFiles = sourceSet.nonJavaSourceFilesList.map { Path.of(it) },
+                        javaPackage = sourceSet.javaPackage,
+                      )
+                    },
+                )
+            },
         )
       }
 

@@ -60,11 +60,15 @@ message ProjectStructureData {
 
 message ProjectStructureRoot {
   string project_structure_root_path = 1;
-  repeated SourceSet package_source_sets = 2;
+  repeated BuildPackage build_packages = 3;
+}
+
+message BuildPackage {
+  string build_package_path = 1;
+  repeated SourceSet source_sets = 2;
 }
 
 message SourceSet {
-  string workspace_relative_path = 1;
   repeated string java_source_files = 2;
   repeated string non_java_source_files = 3;
   string root_path = 4;

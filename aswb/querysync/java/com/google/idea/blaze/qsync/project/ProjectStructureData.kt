@@ -41,14 +41,19 @@ data class SourceSet(
   }
 }
 
-/** Data class to hold the source sets associated with a project structure root. */
-data class ProjectStructureRoot(val projectStructureRootPath: Path, val packageSourceSets: Map<Path, List<SourceSet>>) {
+/** Data class to hold the source sets within a single build package. */
+data class BuildPackage(val path: Path, val sourceSets: List<SourceSet>)
+
+/** Data class to hold the build packages associated with a project structure root. */
+data class ProjectStructureRoot(val projectStructureRootPath: Path, val buildPackages: Map<Path, BuildPackage>) {
   init {
-    packageSourceSets.values.flatten().forEach { sourceSet ->
-      require(sourceSet.rootPath.startsWith(projectStructureRootPath)) {
-        "SourceSet rootPath (${sourceSet.rootPath}) must start with projectStructureRootPath ($projectStructureRootPath)"
+    buildPackages.values
+      .flatMap { it.sourceSets }
+      .forEach { sourceSet ->
+        require(sourceSet.rootPath.startsWith(projectStructureRootPath)) {
+          "SourceSet rootPath (${sourceSet.rootPath}) must start with projectStructureRootPath ($projectStructureRootPath)"
+        }
       }
-    }
   }
 }
 

@@ -93,12 +93,12 @@ class SnapshotSerializer() {
     projectStructureData.roots.forEach { root ->
       val rootProto = SnapshotProto.ProjectStructureRoot.newBuilder().setProjectStructureRootPath(root.projectStructureRootPath.toString())
 
-      for ((path, sourceSetList) in root.packageSourceSets) {
-        for (sourceSet in sourceSetList) {
-          rootProto.addPackageSourceSets(
+      for ((pkgPath, buildPkg) in root.buildPackages) {
+        val buildPkgProto = SnapshotProto.BuildPackage.newBuilder().setBuildPackagePath(pkgPath.toString())
+        for (sourceSet in buildPkg.sourceSets) {
+          buildPkgProto.addSourceSets(
             SnapshotProto.SourceSet.newBuilder()
               .apply {
-                setWorkspaceRelativePath(path.toString())
                 addAllJavaSourceFiles(sourceSet.javaSourceFiles.map { it.toString() })
                 addAllNonJavaSourceFiles(sourceSet.nonJavaSourceFiles.map { it.toString() })
                 setRootPath(sourceSet.rootPath.toString())
@@ -107,6 +107,7 @@ class SnapshotSerializer() {
               .build()
           )
         }
+        rootProto.addBuildPackages(buildPkgProto.build())
       }
       structureProto.addRoots(rootProto.build())
     }
@@ -115,7 +116,7 @@ class SnapshotSerializer() {
   }
 
   companion object {
-    const val PROTO_VERSION: Int = 8
+    const val PROTO_VERSION: Int = 9
 
     private fun Operation.toProto(): VcsOperation =
       when (this) {

@@ -19,6 +19,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.idea.blaze.common.NoopContext
 import com.google.idea.blaze.common.Output
 import com.google.idea.blaze.common.PrintOutput
+import com.google.idea.blaze.qsync.project.BuildPackage
 import com.google.idea.blaze.qsync.project.FileExtensions
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectStructureData
@@ -100,7 +101,10 @@ class ProjectStructureReaderTest {
         roots.map { (rootPath, packageMap) ->
           ProjectStructureRoot(
             projectStructureRootPath = Path.of(rootPath),
-            packageSourceSets = packageMap.mapValues { listOf(it.value) }.mapKeys { Path.of(it.key) },
+            buildPackages =
+              packageMap
+                .mapValues { (pkgPath, sourceSet) -> BuildPackage(path = Path.of(pkgPath), sourceSets = listOf(sourceSet)) }
+                .mapKeys { Path.of(it.key) },
           )
         },
       activeLanguages = languages,
@@ -114,7 +118,13 @@ class ProjectStructureReaderTest {
     return ProjectStructureData.create(
       roots =
         roots.map { (rootPath, packageMap) ->
-          ProjectStructureRoot(projectStructureRootPath = Path.of(rootPath), packageSourceSets = packageMap.mapKeys { Path.of(it.key) })
+          ProjectStructureRoot(
+            projectStructureRootPath = Path.of(rootPath),
+            buildPackages =
+              packageMap
+                .mapValues { (pkgPath, sourceSets) -> BuildPackage(path = Path.of(pkgPath), sourceSets = sourceSets) }
+                .mapKeys { Path.of(it.key) },
+          )
         },
       activeLanguages = languages,
     )
