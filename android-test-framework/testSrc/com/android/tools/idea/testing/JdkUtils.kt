@@ -37,6 +37,7 @@ object JdkUtils {
   fun getEmbeddedJdkPathWithVersion(version: JavaSdkVersion): File {
     val embeddedJdkPath =
       when (version) {
+        JavaSdkVersion.JDK_25 -> JdkConstants.JDK_25_PATH
         JavaSdkVersion.JDK_21 -> JdkConstants.JDK_21_PATH
         JavaSdkVersion.JDK_17 -> JdkConstants.JDK_17_PATH
         JavaSdkVersion.JDK_11 -> JdkConstants.JDK_11_PATH

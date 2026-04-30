@@ -32,6 +32,14 @@ object JdkConstants {
   const val JDK_INVALID_PATH = "jdk-invalid-path"
   val JDK_EMBEDDED_VERSION by lazy { JDK_EMBEDDED_PATH.jdkFeatureVersion }
 
+  val JDK_25_PATH by lazy {
+    if (IdeInfo.getInstance().isAndroidStudio) {
+      EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jbr25").toString()
+    } else {
+      TestUtils.getJava25Jdk().toString()
+    }
+  }
+
   val JDK_21_PATH by lazy {
     if (IdeInfo.getInstance().isAndroidStudio) {
       EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jbr-next").toString()
