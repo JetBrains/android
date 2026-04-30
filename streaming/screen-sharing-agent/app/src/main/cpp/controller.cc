@@ -32,6 +32,7 @@
 #include "flags.h"
 #include "jvm.h"
 #include "log.h"
+#include "settings.h"
 #include "shell_command_executor.h"
 #include "socket_reader.h"
 #include "string_util.h"
@@ -74,13 +75,15 @@ bool UnicodeCompositionSupported() {
   static int state = -1;
   if (state < 0) {
     state = 0;
-    string output = RTrim(ExecuteShellCommand("dumpsys package com.google.android.inputmethod.latin"));
-    basic_regex version_regex(R"(versionCode=(\d+)\s)");
-    auto iter = sregex_iterator(output.begin(), output.end(), version_regex);
-    if (iter != sregex_iterator()) {
-      int version = ParseInt(iter->str(1), -1);
-     if (version >= 175733006) {
-        state = 1;
+    if (Settings::Get(Settings::Table::SECURE, "default_input_method").rfind("com.google.android.inputmethod.latin", 0) == 0) {
+      string output = RTrim(ExecuteShellCommand("dumpsys package com.google.android.inputmethod.latin"));
+      basic_regex version_regex(R"(versionCode=(\d+)\s)");
+      auto iter = sregex_iterator(output.begin(), output.end(), version_regex);
+      if (iter != sregex_iterator()) {
+        int version = ParseInt(iter->str(1), -1);
+        if (version >= 175733006) {
+          state = 1;
+        }
       }
     }
   }
