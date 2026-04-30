@@ -256,4 +256,31 @@ public class ProxySettingsDialogTest extends LightPlatformTestCase {
     assertThat(ProxySettingsDialog.generateDialogText(/* with proxy */ true)).contains("is configured to use an HTTP proxy");
     assertThat(ProxySettingsDialog.generateDialogText(/* without proxy */ false)).contains("is configured to not use an HTTP proxy");
   }
+
+  /**
+   * Verifies that parsing and setting text with mnemonic suffixes (e.g., Japanese "プロキシ認証(&A)")
+   * does not throw an {@link IllegalArgumentException}.
+   */
+  public void testJapaneseLocaleMnemonicSuffixDoesNotThrow() {
+    javax.swing.JCheckBox checkBox = new javax.swing.JCheckBox();
+    javax.swing.JLabel label = new javax.swing.JLabel();
+    String cjkText = "プロキシ認証(&A)";
+
+    ProxySettingsDialog.loadButtonText(checkBox, cjkText);
+    assertThat(checkBox.getText()).isEqualTo("プロキシ認証(A)");
+    assertThat(checkBox.getDisplayedMnemonicIndex()).isEqualTo(7);
+
+    ProxySettingsDialog.loadLabelText(label, cjkText);
+    assertThat(label.getText()).isEqualTo("プロキシ認証(A)");
+    assertThat(label.getDisplayedMnemonicIndex()).isEqualTo(7);
+
+    String englishText = "Proxy a&uthentication";
+    ProxySettingsDialog.loadButtonText(checkBox, englishText);
+    assertThat(checkBox.getText()).isEqualTo("Proxy authentication");
+    assertThat(checkBox.getDisplayedMnemonicIndex()).isEqualTo(7);
+
+    ProxySettingsDialog.loadLabelText(label, englishText);
+    assertThat(label.getText()).isEqualTo("Proxy authentication");
+    assertThat(label.getDisplayedMnemonicIndex()).isEqualTo(7);
+  }
 }

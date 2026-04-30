@@ -394,18 +394,20 @@ public class ProxySettingsDialog extends DialogWrapper {
     label13.setLabelFor(myHttpsProxyLoginTextField);
   }
 
-  private void loadLabelText(JLabel component, String text) {
+  @VisibleForTesting
+  static void loadLabelText(JLabel component, String text) {
     TextWithMnemonic textWithMnemonic = TextWithMnemonic.parse(text);
-    component.setText(textWithMnemonic.getText());
+    component.setText(textWithMnemonic.getText(true));
     if (textWithMnemonic.hasMnemonic()) {
       component.setDisplayedMnemonic(textWithMnemonic.getMnemonicCode());
       component.setDisplayedMnemonicIndex(textWithMnemonic.getMnemonicIndex());
     }
   }
 
-  private void loadButtonText(AbstractButton component, String text) {
+  @VisibleForTesting
+  static void loadButtonText(AbstractButton component, String text) {
     TextWithMnemonic textWithMnemonic = TextWithMnemonic.parse(text);
-    component.setText(textWithMnemonic.getText());
+    component.setText(textWithMnemonic.getText(true));
     if (textWithMnemonic.hasMnemonic()) {
       component.setMnemonic(textWithMnemonic.getMnemonicCode());
       component.setDisplayedMnemonicIndex(textWithMnemonic.getMnemonicIndex());
