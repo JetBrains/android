@@ -244,11 +244,12 @@ internal class EmulatorView(
   override val hasInnerPart: Boolean
     get() = emulatorConfig.environmentSize != null && emulatorConfig.displayWidth > 0 && emulatorConfig.displayWidth > 0
 
-  override var framing: Framing
-    get() = super.framing
+  override var framing: Framing = if (hasInnerPart) Framing.INNER else Framing.OUTER
     set(value) {
-      super.framing = value
-      EventQueue.invokeLater { requestScreenshotFeed() }
+      if (field != value) {
+        field = value
+        EventQueue.invokeLater { requestScreenshotFeed() }
+      }
     }
 
   private var deviceScaleFactor: Double = 1.0

@@ -627,7 +627,7 @@ class EmulatorToolWindowPanelTest {
     panel.size = Dimension(430, 450)
     fakeUi.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
-    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 430 height: 362")
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 1146 height: 724")
     assertAppearance("AiGlassesToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
     emulator.clearGrpcCallLog()
 
