@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTestDef
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.findAppModule
-import com.android.tools.idea.testing.findModule
 import com.android.tools.idea.testing.findModuleByFullName
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.TruthJUnit
@@ -44,37 +43,27 @@ data class GradleModuleHierarchyProviderTest(
       listOf(
         GradleModuleHierarchyProviderTest(name = "testCompositeStructure", TestProject.COMPOSITE_BUILD) { project ->
           val isPhasedSyncEnabled = StudioFlags.PHASED_SYNC_ENABLED.get()
-
-          val expected =
-            mutableListOf(
-              project.findModuleByFullName("project.app"),
-              project.findModuleByFullName("project.lib"),
-              project.findModuleByFullName(if (isPhasedSyncEnabled) "includedLib1" else "TestCompositeLib1"),
-              project.findModuleByFullName(if (isPhasedSyncEnabled) "TestCompositeLib2" else "composite2"),
-              project.findModuleByFullName("TestCompositeLib3"),
-              project.findModuleByFullName(if (isPhasedSyncEnabled) "TestCompositeLib4" else "composite4"),
-            )
-
           val projectGradleVersion =
             GradleSettings.getInstance(project).linkedProjectsSettings.single().let {
               GradleInstallationManager.guessGradleVersion(it) ?: GradleVersion.current()
             }
-          val additionalTopLevel =
-            if (GradleVersionUtil.isGradleOlderThan(projectGradleVersion, "8.0")) {
-              // With Gradle 7.x (and below), the names of the included builds had to be unique (even for nested ones), and the identity
-              // path is just the build name. In Gradle 8.0+ names don't need to be unique so Gradle identity path includes full parent
-              // chain.
-              // This means that resulting hierarchy is different.
-              listOf(
-                project.findModuleByFullName(if (isPhasedSyncEnabled) "TestCompositeLibNested_1" else "compositeNest"),
-                project.findModuleByFullName(if (isPhasedSyncEnabled) "TestCompositeLibNested_3" else "com.test.compositeNest3.compositeNest"),
-              )
-            } else {
-              emptyList()
-            }
-
+          val parentNameNeeded = GradleVersionUtil.isGradleAtLeast(projectGradleVersion, "8.0")
+          val expectedModuleNames =
+            listOf("project.app", "project.lib", "TestCompositeLib3") +
+              if (isPhasedSyncEnabled) {
+                listOf(
+                  "includedLib1",
+                  "TestCompositeLib2",
+                  "TestCompositeLib4",
+                  if (parentNameNeeded) "includedLib1.TestCompositeLibNested_1" else "TestCompositeLibNested_1",
+                  if (parentNameNeeded) "TestCompositeLib3.TestCompositeLibNested_3" else "TestCompositeLibNested_3",
+                )
+              } else {
+                listOf("TestCompositeLib1", "composite2", "composite4", "compositeNest", "com.test.compositeNest3.compositeNest")
+              }
+          val expectedModules = expectedModuleNames.map { project.findModuleByFullName(it) }
           val provider = GradleModuleHierarchyProvider(project)
-          assertThat(provider.forProject.submodules).containsExactlyElementsIn(expected + additionalTopLevel)
+          assertThat(provider.forProject.submodules).containsExactlyElementsIn(expectedModules)
         },
         GradleModuleHierarchyProviderTest(name = "testUsualStructure", TestProject.SIMPLE_APPLICATION) { project ->
           val provider = GradleModuleHierarchyProvider(project)
