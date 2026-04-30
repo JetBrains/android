@@ -12,7 +12,17 @@ bool_flag(
 )
 
 config_setting(
-    name = "use_snapshots",
+    name = "snapshots_enabled_linux",
+    constraint_values = ["@platforms//os:linux"],
+    flag_values = {
+        ":enable_snapshots": "True",
+    },
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "snapshots_enabled_macos",
+    constraint_values = ["@platforms//os:macos"],
     flag_values = {
         ":enable_snapshots": "True",
     },
