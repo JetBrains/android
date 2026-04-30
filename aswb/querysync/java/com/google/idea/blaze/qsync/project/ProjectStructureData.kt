@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.qsync.project
 
+import com.google.idea.blaze.common.Label
 import java.nio.file.Path
 
 /** Data class to hold the source files within a single build package. */
@@ -71,4 +72,30 @@ data class ProjectStructureData private constructor(val roots: List<ProjectStruc
 
     @JvmField val EMPTY = create(roots = emptyList(), activeLanguages = emptySet())
   }
+}
+
+/** Finds the [ProjectStructureRoot] containing the given path. */
+fun ProjectStructureData.getProjectStructureRoot(path: Path): ProjectStructureRoot? {
+  return roots.filter { path.startsWith(it.projectStructureRootPath) }.maxByOrNull { it.projectStructureRootPath.nameCount }
+}
+
+/** Finds the [BuildPackage] containing the given path. */
+fun ProjectStructureData.getBuildPackage(path: Path): BuildPackage? {
+  val root = getProjectStructureRoot(path) ?: return null
+  var current = path
+  while (current != null) {
+    val buildPkg = root.buildPackages[current]
+    if (buildPkg != null) {
+      return buildPkg
+    }
+    if (current == root.projectStructureRootPath) break
+    current = current.parent
+  }
+  return null
+}
+
+/** Returns a [Label] representing the given path in the workspace with the current build packages. The file does not need to exist. */
+fun ProjectStructureData.pathToLabel(file: Path): Label? {
+  val buildPkg = getBuildPackage(file) ?: return null
+  return Label.of("//${buildPkg.path}:" + buildPkg.path.relativize(file).toString())
 }
