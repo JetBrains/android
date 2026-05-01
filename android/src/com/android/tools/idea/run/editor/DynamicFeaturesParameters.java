@@ -17,7 +17,6 @@ package com.android.tools.idea.run.editor;
 
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.util.DynamicAppUtils;
 import com.android.tools.idea.model.AndroidModel;
 import com.google.common.annotations.VisibleForTesting;
@@ -295,20 +294,18 @@ public class DynamicFeaturesParameters {
   }
 
   public void addBaseModule(@NotNull Module module) {
-    if (StudioFlags.UAB_ENABLE_NEW_INSTANT_APP_RUN_CONFIGURATIONS.get()) {
-      AndroidModel model = AndroidModel.get(module);
-      if (model == null) {
-        return;
-      }
-      Module baseFeature = DynamicAppUtils.getBaseFeature(module);
-      if (baseFeature == null && model.isBaseSplit()) {
-        baseFeature = module;
-      }
-      else {
-        return;
-      }
-      myTableModel.addRow(new DynamicFeatureRow(baseFeature, true, false, FeatureType.BASE_FEATURE));
+    AndroidModel model = AndroidModel.get(module);
+    if (model == null) {
+      return;
     }
+    Module baseFeature = DynamicAppUtils.getBaseFeature(module);
+    if (baseFeature == null && model.isBaseSplit()) {
+      baseFeature = module;
+    }
+    else {
+      return;
+    }
+    myTableModel.addRow(new DynamicFeatureRow(baseFeature, true, false, FeatureType.BASE_FEATURE));
   }
 
   /**

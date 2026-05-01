@@ -190,10 +190,6 @@ public final class StudioFlags {
     "Sets custom location for sdk install directory",
     "");
 
-  public static final Flag<Boolean> NPW_SHOW_FRAGMENT_GALLERY = new BooleanFlag(
-    NPW, "show.fragment.gallery", "Show fragment gallery",
-    "Show fragment gallery which contains fragment based templates");
-
   public static final Flag<Boolean> NPW_SHOW_DCL = new BooleanFlag(
     NPW, "show.dcl", "Show DCL in Combobox",
     "Show Declarative as an option in the build script Combobox");
@@ -505,12 +501,6 @@ public final class StudioFlags {
     "baselineprofile.guttericon.enabled",
     "Enables generating baseline profiles from gutter icon",
     "When opening a UI test with applied BaselineProfileRule, an option to generate baseline profiles is shown in the gutter popup.");
-
-  public static final Flag<Boolean> DELTA_INSTALL = new BooleanFlag(
-    RUNDEBUG,
-    "deltainstall",
-    "Delta install",
-    "Upon installing, if application is already on device, only send parts of the apks which have changed (the delta).");
 
   public static final Flag<Integer> DELTA_INSTALL_CUSTOM_MAX_PATCH_SIZE = new IntFlag(
     RUNDEBUG,
@@ -1414,20 +1404,6 @@ public final class StudioFlags {
   //region NDK
   private static final FlagGroup NDK = new FlagGroup(FLAGS, "ndk", "Native code features");
 
-  public static final Flag<Boolean> APK_DEBUG_BUILD_ID_CHECK = new BooleanFlag(
-    NDK, "apkdebugbuildidcheck", "Enable build ID check in APK debugging",
-    "If enabled, the build ID of user-provided symbol files are compared against the binaries inside the APK.");
-
-  public static final Flag<Boolean> APK_DEBUG_RELOAD = new BooleanFlag(
-    NDK, "apkdebugreload", "Enable APK reloading feature",
-    "If enabled, the user will be provided with an option to reload the APK inside an APK debugging project");
-
-  private static final FlagGroup NDK_SIDE_BY_SIDE = new FlagGroup(FLAGS, "ndk.sxs", "NDK Side by Side");
-  public static final Flag<Boolean> NDK_SIDE_BY_SIDE_ENABLED = new BooleanFlag(
-    NDK_SIDE_BY_SIDE, "ndk.sxs.enabled", "Enable side by side NDK support",
-    "If enabled, C/C++ projects will have NDK side by side support"
-    );
-
   public static final Flag<Boolean> ENABLE_SHOW_FILES_UNKNOWN_TO_CMAKE = new BooleanFlag(
     NDK, "ndk.projectview.showfilessunknowntocmake", "Enable option to show files unknown to CMake",
     "If enabled, for projects using CMake, Android project view menu would show an option to `Show Files Unknown To CMake`."
@@ -1475,12 +1451,6 @@ public final class StudioFlags {
 
   //region Testing
   private static final FlagGroup TESTING = new FlagGroup(FLAGS, "testing", "Testing support");
-
-  public static final Flag<Boolean> PRINT_INSTRUMENTATION_STATUS = new BooleanFlag(
-    TESTING, "print.instrumentation.status", "Print instrumentation status information when testing",
-    "If enabled, instrumentation output keys (from calling Instrumentation#sendStatus) that begin with 'android.studio.display.' "
-    + "will have their values printed after a test has finished running."
-  );
 
   public static final Flag<Boolean> ENABLE_ADDITIONAL_TESTING_GRADLE_OPTIONS = new BooleanFlag(
     TESTING, "additional.testing.gradle.options", "Show additional Gradle Options in Gradle RunConfiguration editor",

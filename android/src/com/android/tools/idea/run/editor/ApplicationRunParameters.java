@@ -522,8 +522,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     myCustomArtifactLabeledComponent.setEnabled(true);
     myLaunchOptionCombo.setEnabled(true);
     myDynamicFeaturesParameters.setActiveModule(currentModule,
-                                                (model != null && model.isInstantAppCompatible()
-                                                 && StudioFlags.UAB_ENABLE_NEW_INSTANT_APP_RUN_CONFIGURATIONS.get())
+                                                (model != null && model.isInstantAppCompatible())
                                                 ? DynamicFeaturesParameters.AvailableDeployTypes.INSTANT_AND_INSTALLED
                                                 : DynamicFeaturesParameters.AvailableDeployTypes.INSTALLED_ONLY);
   }

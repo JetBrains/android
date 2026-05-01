@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.editor
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
@@ -35,8 +34,6 @@ class InstantAppRunConfigurationsDialogTest {
 
   @Before
   fun setUp() {
-    StudioFlags.UAB_ENABLE_NEW_INSTANT_APP_RUN_CONFIGURATIONS.override(true)
-
     val configurationFactory = AndroidRunConfigurationType.getInstance().factory
     myRunConfiguration = AndroidRunConfiguration(projectRule.project, configurationFactory)
     parameters.setActiveModule(projectRule.module, DynamicFeaturesParameters.AvailableDeployTypes.INSTANT_AND_INSTALLED)

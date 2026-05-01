@@ -18,7 +18,6 @@ package com.android.tools.idea.testartifacts.instrumented;
 
 import com.android.ddmlib.testrunner.ITestRunListener;
 import com.android.ddmlib.testrunner.TestIdentifier;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.configuration.execution.ExecutionUtils;
 import com.intellij.execution.testframework.sm.ServiceMessageBuilder;
 import com.intellij.execution.ui.ConsoleView;
@@ -126,13 +125,10 @@ public class AndroidTestListener implements ITestRunListener {
 
   @Override
   public void testEnded(TestIdentifier test, Map<String, String> testMetrics) {
-    if (StudioFlags.PRINT_INSTRUMENTATION_STATUS.get()) {
-
-      for (Map.Entry<String, String> entry : testMetrics.entrySet()) {
-        String key = entry.getKey();
-        if (key.startsWith(DISPLAY_PREFIX)) {
-          ExecutionUtils.println(myConsole, key.substring(DISPLAY_PREFIX.length()) + ": " + entry.getValue());
-        }
+    for (Map.Entry<String, String> entry : testMetrics.entrySet()) {
+      String key = entry.getKey();
+      if (key.startsWith(DISPLAY_PREFIX)) {
+        ExecutionUtils.println(myConsole, key.substring(DISPLAY_PREFIX.length()) + ": " + entry.getValue());
       }
     }
 

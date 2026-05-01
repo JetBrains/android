@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
-import static com.android.SdkConstants.FD_NDK;
 import static com.android.SdkConstants.FD_NDK_SIDE_BY_SIDE;
 import static com.android.repository.api.RepoManager.DEFAULT_EXPIRATION_PERIOD_MS;
 import static com.android.tools.idea.Projects.getBaseDirPath;
@@ -27,7 +26,6 @@ import com.android.repository.api.LocalPackage;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.issues.processor.FixNdkVersionProcessor;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -96,19 +94,11 @@ public class InstallNdkHyperlink extends SyncIssueNotificationHyperlink {
         Revision ndkRevision = null;
         // When NDK side-by-side is enabled, download side-by-side packages
         // go/ndk-sxs
-        if (StudioFlags.NDK_SIDE_BY_SIDE_ENABLED.get()) {
-          Collection<RemotePackage> ndkPackages =
-            packages.getRemotePackagesForPrefix(searchPrefix);
-          for (RemotePackage ndkPackage : ndkPackages) {
-            if (ndkRevision == null || ndkRevision.compareTo(ndkPackage.getVersion()) < 0) {
-              ndkRevision = ndkPackage.getVersion();
-              ndkPath = ndkPackage.getPath();
-            }
-          }
-        } else {
-          Map<String, RemotePackage> remotePackages = packages.getRemotePackages();
-          RemotePackage ndkPackage = remotePackages.get(FD_NDK);
-          if (ndkPackage != null) {
+        Collection<RemotePackage> ndkPackages =
+          packages.getRemotePackagesForPrefix(searchPrefix);
+        for (RemotePackage ndkPackage : ndkPackages) {
+          if (ndkRevision == null || ndkRevision.compareTo(ndkPackage.getVersion()) < 0) {
+            ndkRevision = ndkPackage.getVersion();
             ndkPath = ndkPackage.getPath();
           }
         }

@@ -18,7 +18,6 @@ package com.android.tools.idea.npw.template
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.tools.adtui.device.FormFactor
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.npw.actions.NewAndroidComponentAction
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
@@ -131,7 +130,7 @@ class TemplateManager private constructor() {
       addCategoryGroup(category, "Android Activity", "android.wizard.activity.add")
     }
 
-    if (StudioFlags.NPW_SHOW_FRAGMENT_GALLERY.get() && category == Category.Fragment) {
+    if (category == Category.Fragment) {
       addCategoryGroup(category, "Android Fragment", "android.wizard.fragment.add")
     }
 

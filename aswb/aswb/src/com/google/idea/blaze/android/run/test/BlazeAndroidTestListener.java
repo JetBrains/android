@@ -146,16 +146,13 @@ public class BlazeAndroidTestListener implements ITestRunListener {
 
   @Override
   public void testEnded(TestIdentifier test, Map<String, String> testMetrics) {
-    if (StudioFlags.PRINT_INSTRUMENTATION_STATUS.get()) {
-
-      for (Map.Entry<String, String> entry : testMetrics.entrySet()) {
+    for (Map.Entry<String, String> entry : testMetrics.entrySet()) {
         String key = entry.getKey();
         if (key.startsWith(DISPLAY_PREFIX)) {
           ExecutionUtils.println(
               consoleView, key.substring(DISPLAY_PREFIX.length()) + ": " + entry.getValue());
         }
       }
-    }
 
     ServiceMessageBuilder builder =
         new ServiceMessageBuilder("testFinished")

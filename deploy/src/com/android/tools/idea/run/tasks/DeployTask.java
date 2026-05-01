@@ -150,9 +150,6 @@ public class DeployTask extends AbstractDeployTask {
 
     LOG.info("Installing application: " + apkInfo.getApplicationId());
     InstallMode installMode = InstallMode.DELTA;
-    if (!StudioFlags.DELTA_INSTALL.get()) {
-        installMode = InstallMode.FULL;
-    }
 
     options.setCancelChecker(canceller);
 
