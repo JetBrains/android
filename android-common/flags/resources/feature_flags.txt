@@ -93,7 +93,6 @@ layout.inspector.dynamic.layout.inspector.chrome.devtools.menu=COMPLETE:2026
 layout.inspector.dynamic.layout.inspector.enable.running.devices=COMPLETE:2023
 layout.inspector.dynamic.layout.inspector.enable.state.reads=PREVIEW
 layout.inspector.dynamic.layout.inspector.horizontal.scrollable.component.tree=COMPLETE:2025
-layout.inspector.dynamic.layout.inspector.ignore.framework.recompositions=COMPLETE:2022
 layout.inspector.dynamic.layout.inspector.recomposition.counts.default=COMPLETE:2024
 layout.inspector.dynamic.layout.inspector.recomposition.parent.counts=COMPLETE:2025
 layout.inspector.dynamic.layout.inspector.standalone.v2=COMPLETE:2026

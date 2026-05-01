@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.FLAG_HAS_MERGED_SEMANTICS
 import com.android.tools.idea.layoutinspector.model.FLAG_HAS_UNMERGED_SEMANTICS
@@ -95,8 +94,7 @@ class ComposeViewNodeCreator(result: GetComposablesResult) {
     val renderBounds = bounds.render.takeIf { it != Quad.getDefaultInstance() }?.toPolygon() ?: layoutBounds
     val actualFlags = if (packageHash != -1) flags else flags and ComposableNode.Flags.SYSTEM_CREATED_VALUE.inv()
     val isSystemNode = (flags and ComposableNode.Flags.SYSTEM_CREATED_VALUE) != 0
-    val ignoreRecompositions =
-      pendingRecompositionCountReset || (isSystemNode && StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IGNORE_RECOMPOSITIONS_IN_FRAMEWORK.get())
+    val ignoreRecompositions = pendingRecompositionCountReset || isSystemNode
     val node =
       ComposeViewNode(
         id,
