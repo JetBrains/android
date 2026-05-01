@@ -24,14 +24,12 @@ import com.android.tools.componenttree.api.ContextPopupHandler
 import com.android.tools.componenttree.api.DnDMerger
 import com.android.tools.componenttree.api.DoubleClickHandler
 import com.android.tools.componenttree.api.TableVisibility
-import com.android.tools.idea.flags.StudioFlags
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.dnd.DnDSupport
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.UiDataProvider
-import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.DisabledTraversalPolicy
 import com.intellij.ui.JBColor
@@ -102,7 +100,6 @@ class TreeTableImpl(
   private val doubleClick: DoubleClickHandler,
   private val installKeyboardActions: (JComponent) -> Unit,
   treeSelectionMode: Int,
-  autoScroll: Boolean,
   installTreeSearch: Boolean,
   private val expandAllOnRootChange: Boolean,
   treeHeaderRenderer: TableCellRenderer?,
@@ -152,11 +149,6 @@ class TreeTableImpl(
       addMouseMotionListener(it)
     }
 
-    if (autoScroll && !StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_HORIZONTAL_SCROLLABLE_COMPONENT_TREE.get()) {
-      treeTableSelectionModel.addAutoScrollListener {
-        invokeLater { selectionModel.selectedIndices.singleOrNull()?.let { scrollRectToVisible(getCellRect(it, 0, true)) } }
-      }
-    }
     if (installTreeSearch) {
       TreeSpeedSearch.installOn(tree, false) { model.toSearchString(it.lastPathComponent) }
     }

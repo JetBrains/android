@@ -20,7 +20,6 @@ import com.android.tools.componenttree.treetable.ColumnTreeUI
 import com.android.tools.componenttree.treetable.TreeTableImpl
 import com.android.tools.componenttree.treetable.TreeTableModelImpl
 import com.android.tools.componenttree.treetable.UpperRightCorner
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.treeStructure.Tree
@@ -164,7 +163,6 @@ class ComponentTreeBuilder {
         doubleClick,
         installKeyboardActions,
         selectionMode,
-        autoScroll,
         installTreeSearch,
         expandAllOnRootChange,
         headerRenderer,
@@ -184,45 +182,32 @@ class ComponentTreeBuilder {
     verticalScrollPane.setCorner(ScrollPaneConstants.UPPER_RIGHT_CORNER, UpperRightCorner())
     verticalScrollPane.border = JBUI.Borders.empty()
 
-    if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_HORIZONTAL_SCROLLABLE_COMPONENT_TREE.get()) {
-      val header = table.getTableHeader()
-      header.setReorderingAllowed(false)
-      val viewport = JViewport()
-      viewport.setView(header)
-      verticalScrollPane.columnHeader = viewport
+    val header = table.getTableHeader()
+    header.setReorderingAllowed(false)
+    val viewport = JViewport()
+    viewport.setView(header)
+    verticalScrollPane.columnHeader = viewport
 
-      val horizontalScrollPane = ColumnTreeScrollPanel(tree, table)
-      horizontalScrollPane.border = verticalScrollPane.border
+    val horizontalScrollPane = ColumnTreeScrollPanel(tree, table)
+    horizontalScrollPane.border = verticalScrollPane.border
 
-      table.treeUI = ColumnTreeUI(table, horizontalScrollPane, verticalScrollPane, autoScroll, showSupportLines, isCallStackNode)
+    table.treeUI = ColumnTreeUI(table, horizontalScrollPane, verticalScrollPane, autoScroll, showSupportLines, isCallStackNode)
 
-      val outerPanel = JPanel(BorderLayout())
-      // Add a vertical scroll pane wrapping the TreeTable content to the center, and add a JPanel
-      // wrapping the horizontal scroll bar to the south.
-      outerPanel.add(verticalScrollPane, BorderLayout.CENTER)
-      outerPanel.add(horizontalScrollPane, BorderLayout.SOUTH)
-      return ComponentTreeBuildResult(
-        outerPanel,
-        verticalScrollPane,
-        horizontalScrollPane,
-        table,
-        tree,
-        model,
-        table.treeTableSelectionModel,
-        table,
-      )
-    } else {
-      return ComponentTreeBuildResult(
-        verticalScrollPane,
-        verticalScrollPane,
-        null,
-        table,
-        tree,
-        model,
-        table.treeTableSelectionModel,
-        table,
-      )
-    }
+    val outerPanel = JPanel(BorderLayout())
+    // Add a vertical scroll pane wrapping the TreeTable content to the center, and add a JPanel
+    // wrapping the horizontal scroll bar to the south.
+    outerPanel.add(verticalScrollPane, BorderLayout.CENTER)
+    outerPanel.add(horizontalScrollPane, BorderLayout.SOUTH)
+    return ComponentTreeBuildResult(
+      outerPanel,
+      verticalScrollPane,
+      horizontalScrollPane,
+      table,
+      tree,
+      model,
+      table.treeTableSelectionModel,
+      table,
+    )
   }
 }
 
