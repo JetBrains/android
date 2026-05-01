@@ -1,6 +1,7 @@
 """Custom build macros for IntelliJ plugin handling.
 """
 
+load("//tools/adt/idea/studio:studio.bzl", "PluginInfo")
 load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 load(
     ":intellij_plugin.bzl",
@@ -265,3 +266,46 @@ def combine_visibilities(*args):
     if res == []:
         return None
     return res
+
+def _zip_studio_plugin_impl(ctx):
+    plugin_info = ctx.attr.plugin[PluginInfo]
+    plugin_files = plugin_info.plugin_files.linux
+
+    zip_file = ctx.outputs.zip
+
+    zipper_lines = []
+    inputs = []
+    for dest_path, file in plugin_files.items():
+        if file:
+            inputs.append(file)
+            strip_prefix = ctx.attr.strip_prefix
+            zip_dest = dest_path[len(strip_prefix):] if dest_path.startswith(strip_prefix) else dest_path
+            zipper_lines.append("{}={}\n".format(zip_dest, file.path))
+
+    list_file = ctx.actions.declare_file(ctx.label.name + ".zipper.lst")
+    ctx.actions.write(list_file, "".join(zipper_lines))
+
+    ctx.actions.run(
+        inputs = inputs + [list_file],
+        outputs = [zip_file],
+        executable = ctx.executable._zipper,
+        arguments = ["c", zip_file.path, "@" + list_file.path],
+        mnemonic = "ZipStudioPlugin",
+        progress_message = "Zipping studio_plugin %s" % plugin_info.plugin_id,
+    )
+
+    return [DefaultInfo(files = depset([zip_file]))]
+
+zip_studio_plugin = rule(
+    implementation = _zip_studio_plugin_impl,
+    attrs = {
+        "plugin": attr.label(providers = [PluginInfo], mandatory = True),
+        "strip_prefix": attr.string(default = "plugins/"),
+        "_zipper": attr.label(
+            default = Label("@bazel_tools//tools/zip:zipper"),
+            cfg = "exec",
+            executable = True,
+        ),
+    },
+    outputs = {"zip": "%{name}.zip"},
+)

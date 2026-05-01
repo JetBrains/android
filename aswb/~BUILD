@@ -8,6 +8,7 @@ load(
     "create_plugin_packages_group",
 )
 load("//tools/adt/idea/aswb/build_defs:aswb_module.bzl", "aswb_module", "aswb_plugin_module")
+load("//tools/adt/idea/aswb/build_defs:build_defs.bzl", "zip_studio_plugin")
 load("//tools/adt/idea/studio:studio.bzl", "studio_plugin")
 
 licenses(["notice"])
@@ -34,6 +35,12 @@ test_suite(
         "//tools/adt/idea/aswb/java:unit_tests",
     ],
     visibility = DEFAULT_TEST_VISIBILITY,
+)
+
+zip_studio_plugin(
+    name = "aswb_bazel",
+    plugin = ":com.google.idea.bazel.aswb",
+    visibility = ["//visibility:public"],
 )
 
 aswb_module(
