@@ -213,7 +213,7 @@ maven_repository(
 )
 
 iml_test(
-    name = "LayoutInspectorViewIntegrationTest",
+    name = "StandaloneLayoutInspectorIntegrationTest",
     timeout = "long",
     data = layout_inspector_view_data,
     jvm_flags = emulator_snapshot_jvm_flags(INTEGRATION_TEST_SYSTEM_IMAGE),
@@ -223,7 +223,7 @@ iml_test(
         "block-network",
         "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
     ],
-    test_class = "com.android.tools.idea.layoutinspector.LayoutInspectorViewIntegrationTest",
+    test_class = "com.android.tools.idea.layoutinspector.StandaloneLayoutInspectorIntegrationTest",
 )
 
 iml_test(

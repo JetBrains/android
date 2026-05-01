@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.settings
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.runningdevices.withAutoConnect
 import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.android.tools.idea.testing.disposable
@@ -63,9 +62,6 @@ class LayoutInspectorConfigurableProviderTest {
     assertThat(component1.components).hasLength(2)
     assertThat((component1.components[0] as JCheckBox).text).isEqualTo("Enable auto connect (requires a restart of $ideName)")
 
-    val previous = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get()
-    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.override(true)
-
     val configurable2 = LayoutInspectorConfigurableProvider().createConfigurable() as SearchableConfigurable
     val component2 = configurable2.createComponent()!!
     val enableEmbeddedLiPanel = component2.components[1] as JPanel
@@ -73,8 +69,6 @@ class LayoutInspectorConfigurableProviderTest {
     assertThat(component2.components).hasLength(2)
     assertThat((component2.components[0] as JCheckBox).text).isEqualTo("Enable auto connect (requires a restart of $ideName)")
     assertThat((enableEmbeddedLiPanel.components[0] as JCheckBox).text).isEqualTo("Enable embedded Layout Inspector")
-
-    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.override(previous)
   }
 
   @Test
@@ -142,9 +136,6 @@ class LayoutInspectorConfigurableProviderTest {
   fun testConfigurableSettingEmbeddedLayoutInspectorInteraction() = withEmbeddedLayoutInspector {
     val projectManager = mock<ProjectManager>()
     projectRule.project.replaceService(ProjectManager::class.java, projectManager, projectRule.disposable)
-
-    val previous = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get()
-    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.override(true)
 
     var restartStudio = true
     var restartDialogShown = false
@@ -239,7 +230,5 @@ class LayoutInspectorConfigurableProviderTest {
 
     assertThat(registerLayoutInspectorToolWindowInvokeCount).isEqualTo(2)
     assertThat(unregisterLayoutInspectorToolWindowInvokeCount).isEqualTo(1)
-
-    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.override(previous)
   }
 }

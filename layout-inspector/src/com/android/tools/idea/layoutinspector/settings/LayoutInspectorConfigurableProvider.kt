@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.settings
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.registerLayoutInspectorToolWindow
 import com.android.tools.idea.layoutinspector.unregisterLayoutInspectorToolWindow
@@ -91,10 +90,8 @@ class LayoutInspectorConfigurable(
     embeddedLayoutInspectorSettingPanel.add(enableEmbeddedLayoutInspectorCheckBox)
     embeddedLayoutInspectorSettingPanel.add(Box.createRigidArea(Dimension(20, 0)))
 
-    if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get()) {
-      component.add(embeddedLayoutInspectorSettingPanel)
-      embeddedLayoutInspectorSettingPanel.alignmentX = Component.LEFT_ALIGNMENT
-    }
+    component.add(embeddedLayoutInspectorSettingPanel)
+    embeddedLayoutInspectorSettingPanel.alignmentX = Component.LEFT_ALIGNMENT
   }
 
   override fun createComponent() = component

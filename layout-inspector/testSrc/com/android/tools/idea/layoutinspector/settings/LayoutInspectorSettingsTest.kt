@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.settings
 
 import com.android.flags.Flag
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
@@ -25,30 +24,9 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 
-private val EMBEDDED_LAYOUT_INSPECTOR_FLAG = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED
-
 class LayoutInspectorSettingsTest {
 
   @get:Rule val applicationRule = ApplicationRule()
-
-  @Test
-  fun testEmbeddedLayoutInspectorEnabledFlag() = withEmbeddedLayoutInspector {
-    assertThat(enableEmbeddedLayoutInspector).isTrue()
-
-    enableEmbeddedLayoutInspector = false
-    assertThat(enableEmbeddedLayoutInspector).isFalse()
-
-    runWithFlagState(EMBEDDED_LAYOUT_INSPECTOR_FLAG, false) {
-      assertThat(enableEmbeddedLayoutInspector).isFalse()
-      enableEmbeddedLayoutInspector = true
-      assertThat(enableEmbeddedLayoutInspector).isFalse()
-    }
-
-    runWithFlagState(EMBEDDED_LAYOUT_INSPECTOR_FLAG, true) {
-      enableEmbeddedLayoutInspector = true
-      assertThat(enableEmbeddedLayoutInspector).isTrue()
-    }
-  }
 
   @Test
   fun testEmbeddedLayoutInspectorSettingObserver() = withEmbeddedLayoutInspector {

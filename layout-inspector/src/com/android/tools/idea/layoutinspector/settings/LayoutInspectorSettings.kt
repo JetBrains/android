@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.settings
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.common.ephemeralFlow
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
@@ -34,9 +33,6 @@ class LayoutInspectorSettings : PersistentStateComponent<LayoutInspectorSettings
     }
   }
 
-  private val embeddedLayoutInspectorSetting =
-    FlagControlledSetting(true) { StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get() }
-
   // Property needs to have public setters and getters in order to be persisted.
   var autoConnectEnabled = true
 
@@ -49,28 +45,13 @@ class LayoutInspectorSettings : PersistentStateComponent<LayoutInspectorSettings
   val embeddedLayoutInspectorChanges = _embeddedLayoutInspectorChanges.asSharedFlow()
 
   // Property needs to have public setters and getters in order to be persisted.
-  var embeddedLayoutInspectorEnabled: Boolean = embeddedLayoutInspectorSetting.get()
-    get() = embeddedLayoutInspectorSetting.get()
+  var embeddedLayoutInspectorEnabled: Boolean = true
     set(value) {
       field = value
-      embeddedLayoutInspectorSetting.set(value)
       _embeddedLayoutInspectorChanges.tryEmit(value)
     }
 
   override fun getState() = this
 
   override fun loadState(state: LayoutInspectorSettings) = XmlSerializerUtil.copyBean(state, this)
-}
-
-/**
- * A setting that is also controlled by the state of a flag. The setting is enabled only if it is both enabled in settings and in the flag.
- */
-class FlagControlledSetting(val defaultValue: Boolean, val getFlagValue: () -> Boolean) {
-  private var isEnabled = defaultValue
-
-  fun set(value: Boolean) {
-    isEnabled = value
-  }
-
-  fun get() = getFlagValue() && isEnabled
 }

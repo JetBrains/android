@@ -18,12 +18,14 @@ package com.android.tools.idea.layoutinspector
 import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
 import java.util.concurrent.TimeUnit
 import org.jetbrains.kotlin.utils.join
 import org.junit.Rule
 import org.junit.Test
 
-class LayoutInspectorViewIntegrationTest {
+class StandaloneLayoutInspectorIntegrationTest {
 
   @get:Rule val system = AndroidSystem.standard()
 
@@ -44,6 +46,7 @@ class LayoutInspectorViewIntegrationTest {
 
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(MavenRepo("tools/adt/idea/layout-inspector/view_project_deps.manifest"))
+    enableStandaloneLayoutInspector()
     system.runAdb { adb ->
       system.runEmulator { emulator ->
         emulator.waitForBoot()
@@ -67,5 +70,22 @@ class LayoutInspectorViewIntegrationTest {
         }
       }
     }
+  }
+
+  private fun enableStandaloneLayoutInspector() {
+    val optionsDir = system.installation.configDir.resolve("options")
+    Files.createDirectories(optionsDir)
+    Files.writeString(
+      optionsDir.resolve("layoutInspectorSettings.xml"),
+      """
+      <application>
+        <component name="LayoutInspectorSettings">
+          <option name="embeddedLayoutInspectorEnabled" value="false" />
+        </component>
+      </application>
+      """
+        .trimIndent(),
+      StandardCharsets.UTF_8,
+    )
   }
 }
