@@ -343,10 +343,9 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
           layoutInspector?.currentClient?.isConnected ?: false &&
           layoutInspector?.currentClient !is FileEditorInspectorClient &&
           layoutInspector.hasCapability(Capability.HAS_LINE_NUMBER_INFORMATION)
-      val showChildCounts = show && StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_RECOMPOSITION_PARENT_COUNTS.get()
       interactions.setHeaderVisibility(show)
       interactions.setColumnVisibility(1, show)
-      interactions.setColumnVisibility(2, showChildCounts)
+      interactions.setColumnVisibility(2, show)
       interactions.setColumnVisibility(3, show)
       if (!show) {
         // When recompositions are hidden we want to stop showing recomposition details as well.

@@ -1171,11 +1171,6 @@ public final class StudioFlags {
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.extra.logging", "Add extra logging for problem detection",
     "When this flag is enabled, LayoutInspector will add extra logging for detection of various problems.");
 
-  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_RECOMPOSITION_PARENT_COUNTS = new BooleanFlag(
-    LAYOUT_INSPECTOR, "dynamic.layout.inspector.recomposition.parent.counts", "Enable or disable recomposition parent counts",
-    "When this flag is enabled, the max recomposition count among the children of a node is displayed in a separate column."
-  );
-
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_XR_INSPECTION = new BooleanFlag(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.xr.inspection", "Enable or disable support for XR inspection",
     "When this flag is enabled, xr inspection is enabled."

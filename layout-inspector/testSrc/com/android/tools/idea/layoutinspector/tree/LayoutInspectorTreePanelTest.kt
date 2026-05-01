@@ -916,44 +916,6 @@ class LayoutInspectorTreePanelTest {
   @RunsInEdt
   @Test
   fun testRecompositionColumnVisibility() {
-    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_RECOMPOSITION_PARENT_COUNTS.overrideForTest(false, projectRule.testRootDisposable)
-    val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
-    val inspector = inspectorRule.inspector
-    inspector.treeSettings.showRecompositions = true
-    tree.setToolContext(inspector)
-    UIUtil.dispatchAllInvocationEvents()
-    val columnModel = (tree.focusComponent as JTable).columnModel
-    assertThat(columnModel.getColumn(1).maxWidth).isGreaterThan(0)
-    assertThat(columnModel.getColumn(2).maxWidth).isEqualTo(0)
-    assertThat(columnModel.getColumn(3).maxWidth).isGreaterThan(0)
-
-    inspector.treeSettings.showRecompositions = false
-    tree.updateRecompositionColumnVisibility()
-    UIUtil.dispatchAllInvocationEvents()
-    assertThat(columnModel.getColumn(1).maxWidth).isEqualTo(0)
-    assertThat(columnModel.getColumn(2).maxWidth).isEqualTo(0)
-    assertThat(columnModel.getColumn(3).maxWidth).isEqualTo(0)
-
-    inspector.treeSettings.showRecompositions = true
-    tree.updateRecompositionColumnVisibility()
-    UIUtil.dispatchAllInvocationEvents()
-    assertThat(columnModel.getColumn(1).maxWidth).isGreaterThan(0)
-    assertThat(columnModel.getColumn(2).maxWidth).isEqualTo(0)
-    assertThat(columnModel.getColumn(3).maxWidth).isGreaterThan(0)
-
-    // The recomposition columns should be hidden when disconnected:
-    inspectorRule.launcher.disconnectActiveClient(10, TimeUnit.SECONDS)
-    tree.updateRecompositionColumnVisibility()
-    UIUtil.dispatchAllInvocationEvents()
-    assertThat(columnModel.getColumn(1).maxWidth).isEqualTo(0)
-    assertThat(columnModel.getColumn(2).maxWidth).isEqualTo(0)
-    assertThat(columnModel.getColumn(3).maxWidth).isEqualTo(0)
-  }
-
-  @RunsInEdt
-  @Test
-  fun testRecompositionColumnVisibilityWithChildCounts() {
-    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_RECOMPOSITION_PARENT_COUNTS.overrideForTest(true, projectRule.testRootDisposable)
     val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val inspector = inspectorRule.inspector
     inspector.treeSettings.showRecompositions = true
