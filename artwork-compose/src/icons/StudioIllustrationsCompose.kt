@@ -63,6 +63,24 @@ object StudioIllustrationsCompose {
         "/studio/illustrations/common/newsletter.svg",
         StudioIllustrationsCompose.javaClass,
       ) // 72x72
+    val Launch: IntelliJIconKey =
+      IntelliJIconKey(
+        "/studio/illustrations/common/launch.svg",
+        "/studio/illustrations/common/launch.svg",
+        StudioIllustrationsCompose.javaClass,
+      ) // 72x72
+    val PackageAab: IntelliJIconKey =
+      IntelliJIconKey(
+        "/studio/illustrations/common/package-aab.svg",
+        "/studio/illustrations/common/package-aab.svg",
+        StudioIllustrationsCompose.javaClass,
+      ) // 72x72
+    val PackageApk: IntelliJIconKey =
+      IntelliJIconKey(
+        "/studio/illustrations/common/package-apk.svg",
+        "/studio/illustrations/common/package-apk.svg",
+        StudioIllustrationsCompose.javaClass,
+      ) // 72x72
     val PlayConsoleIcon: IntelliJIconKey =
       IntelliJIconKey(
         "/studio/illustrations/common/play-console-icon.svg",
