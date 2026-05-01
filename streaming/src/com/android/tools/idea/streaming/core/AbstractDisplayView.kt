@@ -107,7 +107,7 @@ internal abstract class AbstractDisplayView(project: Project, override val displ
 
   /** ID of the device shown in the view. */
   abstract val deviceId: StreamingDeviceId
-  override var displayRectangle: Rectangle? = null
+  override var projectionRectangle: Rectangle? = null
     protected set
 
   /** The difference between [displayOrientationQuadrants] and the orientation according to the internal Android data structures. */
@@ -280,7 +280,7 @@ internal abstract class AbstractDisplayView(project: Project, override val displ
   }
 
   internal fun toDeviceDisplayCoordinates(p: Point): Point? {
-    val displayRectangle = displayRectangle ?: return null
+    val displayRectangle = projectionRectangle ?: return null
     val imageSize = displayRectangle.size.rotatedByQuadrants(displayOrientationQuadrants)
     // Mouse pointer coordinates compensated for the device display rotation.
     val normalized = Point()

@@ -118,6 +118,7 @@ import java.awt.event.KeyEvent.VK_SHIFT
 import java.awt.event.KeyEvent.VK_SPACE
 import java.awt.event.KeyEvent.VK_TAB
 import java.awt.event.KeyEvent.VK_UP
+import java.awt.geom.Rectangle2D
 import java.nio.file.Path
 import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.TimeUnit.MILLISECONDS
@@ -1144,12 +1145,14 @@ class EmulatorViewTest {
     var call = getStreamScreenshotCallAndWaitForFrame()
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 1066 height: 900")
     assertAppearance("AiGlasses1")
+    assertThat(view.displayRectangle).isEqualTo(Rectangle2D.Double(0.125, 100.0, 399.75, 400.0))
 
     executeAction("android.streaming.zoom.fit", view, project)
     fakeUi.layoutAndDispatchEvents()
     call = getStreamScreenshotCallAndWaitForFrame()
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 400 height: 600")
     assertAppearance("AiGlasses2")
+    assertThat(view.displayRectangle).isEqualTo(Rectangle2D.Double(125.0, 225.0, 150.0, 150.0))
 
     executeAction("android.streaming.zoom.in", view, project)
     fakeUi.layoutAndDispatchEvents()

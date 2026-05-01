@@ -19,7 +19,9 @@ import com.intellij.openapi.Disposable
 import java.awt.Dimension
 import java.awt.Rectangle
 import java.awt.geom.AffineTransform
+import java.awt.geom.Rectangle2D
 import kotlin.math.max
+import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
 
 /**
@@ -37,7 +39,7 @@ class EmbeddedRendererPanel(
   disposable: Disposable,
   scope: CoroutineScope,
   renderModel: EmbeddedRendererModel,
-  private val displayRectangleProvider: () -> Rectangle?,
+  private val displayRectangleProvider: () -> Rectangle2D?,
   private val screenScaleProvider: () -> Double,
   private val orientationQuadrantProvider: () -> Int,
   private val deviceDisplayDimensionProvider: () -> Dimension,
@@ -140,11 +142,11 @@ private fun calculateScaleDifference(displayRectangle: Rectangle, layoutInspecto
   return displayMaxSide.toDouble() / layoutInspectorDisplayMaxSide.toDouble()
 }
 
-private fun Rectangle.scale(physicalToLogicalScale: Double): Rectangle {
+private fun Rectangle2D.scale(scaleFactor: Double): Rectangle {
   return Rectangle(
-    (x * physicalToLogicalScale).toInt(),
-    (y * physicalToLogicalScale).toInt(),
-    (width * physicalToLogicalScale).toInt(),
-    (height * physicalToLogicalScale).toInt(),
+    (x * scaleFactor).roundToInt(),
+    (y * scaleFactor).roundToInt(),
+    (width * scaleFactor).roundToInt(),
+    (height * scaleFactor).roundToInt(),
   )
 }

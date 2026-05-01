@@ -169,6 +169,7 @@ import java.awt.event.MouseEvent.BUTTON1
 import java.awt.event.MouseWheelEvent
 import java.awt.geom.AffineTransform
 import java.awt.geom.Area
+import java.awt.geom.Rectangle2D
 import java.awt.geom.RoundRectangle2D
 import java.awt.image.BufferedImage
 import java.awt.image.DataBuffer
@@ -306,8 +307,24 @@ internal class EmulatorView(
   private val streamingSessionTracker = EmulatorStreamingSessionTracker()
 
   /** The size of the device including frame in device pixels. */
-  val displaySizeWithFrame: Dimension
+  val sizeWithFrame: Dimension
     get() = computeActualSize(framing, screenshotShape.orientation)
+
+  override val displayRectangle: Rectangle2D?
+    get() {
+      val projectionRect = projectionRectangle ?: return null
+      val environmentSize = emulatorConfig.environmentSize ?: return projectionRect
+      return when {
+        emulatorConfig.displayWidth <= 0 || emulatorConfig.displayHeight <= 0 -> null
+        else -> {
+          val w = emulatorConfig.displayWidth.toDouble() / environmentSize.width * projectionRect.width
+          val h = emulatorConfig.displayHeight.toDouble() / environmentSize.height * projectionRect.height
+          val x = projectionRect.x + (projectionRect.width - w) / 2
+          val y = projectionRect.y + (projectionRect.height - h) / 2
+          Rectangle2D.Double(x, y, w, h)
+        }
+      }
+    }
 
   var microphoneInput: Boolean? = null
     set(value) {
@@ -631,7 +648,7 @@ internal class EmulatorView(
     assert(screenshotShape.width != 0)
     assert(screenshotShape.height != 0)
     val displayRect = computeDisplayRectangle(skin)
-    displayRectangle = displayRect
+    projectionRectangle = displayRect
 
     val g = createAdjustedGraphicsContext(graphics)
 
@@ -908,7 +925,7 @@ internal class EmulatorView(
       return null
     }
     val skin = lastScreenshot?.skinLayout ?: return null
-    val displayRect = displayRectangle ?: return null
+    val displayRect = projectionRectangle ?: return null
     val x = point.x.scaled(screenScalingFactor)
     val y = point.y.scaled(screenScalingFactor)
     if (displayRect.contains(point)) {
@@ -1279,7 +1296,7 @@ internal class EmulatorView(
     }
 
     private fun sendMouseEvent(x: Int, y: Int, buttons: Int, drag: Boolean = false) {
-      val displayRectangle = displayRectangle ?: return
+      val displayRectangle = projectionRectangle ?: return
       // Mouse pointer coordinates compensated for the device display rotation.
       val normalizedX: Int
       val normalizedY: Int
@@ -1380,7 +1397,7 @@ internal class EmulatorView(
       deviceType != DeviceType.AI_GLASSES && isInsideDisplay(event)
 
     private fun isInsideDisplay(event: MouseEvent): Boolean =
-      displayRectangle?.contains(event.x * screenScalingFactor, event.y * screenScalingFactor) ?: false
+      projectionRectangle?.contains(event.x * screenScalingFactor, event.y * screenScalingFactor) ?: false
 
     private fun buttonsToAndroid(buttons: Int): Int {
       return (if (buttons and BUTTON1_DOWN_MASK != 0) ANDROID_BUTTON_PRIMARY else 0) or

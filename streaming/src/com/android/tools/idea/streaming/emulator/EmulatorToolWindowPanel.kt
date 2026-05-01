@@ -410,7 +410,7 @@ internal class EmulatorToolWindowPanel(disposableParent: Disposable, private val
       return displays
         .map {
           if (it.display == PRIMARY_DISPLAY_ID) {
-            DisplayDescriptor(PRIMARY_DISPLAY_ID, emulatorView.displaySizeWithFrame)
+            DisplayDescriptor(PRIMARY_DISPLAY_ID, emulatorView.sizeWithFrame)
           } else {
             it.toDisplayDescriptor()
           }

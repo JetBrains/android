@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.core
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.intellij.openapi.Disposable
 import java.awt.Rectangle
+import java.awt.geom.Rectangle2D
 import javax.swing.JComponent
 
 /** View of a display of a physical or a virtual device. */
@@ -34,8 +35,12 @@ interface DisplayView : Disposable {
   /** The Swing component of the view. */
   val component: JComponent
 
+  /** Area of the window occupied by the device image in physical pixels. For AI Glasses it is the view of the environment. */
+  val projectionRectangle: Rectangle?
+
   /** Area of the window occupied by the device display image in physical pixels. */
-  val displayRectangle: Rectangle?
+  val displayRectangle: Rectangle2D?
+    get() = projectionRectangle
 
   /** Orientation of the device display in quadrants counterclockwise. */
   val displayOrientationQuadrants: Int

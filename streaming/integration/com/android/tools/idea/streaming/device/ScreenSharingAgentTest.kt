@@ -196,7 +196,7 @@ class ScreenSharingAgentTest {
   fun touchEvents_basic() {
     // Wait for at least one frame to be sure that the device's display rectangle is set.
     waitFrames(1)
-    assertThat(deviceView.displayRectangle).isNotNull()
+    assertThat(deviceView.projectionRectangle).isNotNull()
 
     // Before beginning the actual test, we will touch this point until we register a response from the app.
     val firstTouch = Point(90, 90)
@@ -229,7 +229,7 @@ class ScreenSharingAgentTest {
   fun touchEvents_drag() {
     // Wait for at least one frame to be sure that the device's display rectangle is set.
     waitFrames(1)
-    assertThat(deviceView.displayRectangle).isNotNull()
+    assertThat(deviceView.projectionRectangle).isNotNull()
 
     // Before beginning the actual test, we will touch this point until we register a response from the app.
     val firstTouch = Point(90, 90)
@@ -274,7 +274,7 @@ class ScreenSharingAgentTest {
   fun scrollEvents_vertical() {
     // Wait for at least one frame to be sure that the device's display rectangle is set.
     waitFrames(1)
-    assertThat(deviceView.displayRectangle).isNotNull()
+    assertThat(deviceView.projectionRectangle).isNotNull()
 
     // Before beginning the actual test, we will scroll at this point until we register a response from the app.
     val firstScroll = Point(90, 90)
@@ -311,7 +311,7 @@ class ScreenSharingAgentTest {
   fun scrollEvents_horizontal() {
     // Wait for at least one frame to be sure that the device's display rectangle is set.
     waitFrames(1)
-    assertThat(deviceView.displayRectangle).isNotNull()
+    assertThat(deviceView.projectionRectangle).isNotNull()
 
     // Before beginning the actual test, we will touch this point until we register a response from the app.
     val firstScroll = Point(90, 90)

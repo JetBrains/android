@@ -474,7 +474,7 @@ internal class DeviceView(
       val w = rotatedDisplaySize.width.scaled(scaleFactor).coerceAtMost(physicalWidth)
       val h = rotatedDisplaySize.height.scaled(scaleFactor).coerceAtMost(physicalHeight)
       val displayRect = Rectangle((physicalWidth - w) / 2, (physicalHeight - h) / 2, w, h)
-      displayRectangle = displayRect
+      projectionRectangle = displayRect
 
       val image = displayFrame.image
       val g = createAdjustedGraphicsContext(graphics)
@@ -627,7 +627,7 @@ internal class DeviceView(
   }
 
   private fun isInsideDisplay(event: MouseEvent) =
-    displayRectangle?.contains(event.x * screenScalingFactor, event.y * screenScalingFactor) ?: false
+    projectionRectangle?.contains(event.x * screenScalingFactor, event.y * screenScalingFactor) ?: false
 
   /**
    * Adds a [listener] to receive callbacks when the state of the agent's connection changes. The added listener immediately receives a call

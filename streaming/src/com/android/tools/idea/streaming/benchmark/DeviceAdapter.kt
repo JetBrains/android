@@ -423,7 +423,7 @@ internal class DeviceAdapter(
   }
 
   private fun Point.toDisplayViewCoordinates(): Point? {
-    val displayRectangle = target.view.displayRectangle ?: return null
+    val displayRectangle = target.view.projectionRectangle ?: return null
     val imageSize = displayRectangle.size.rotatedByQuadrants(target.view.displayOrientationQuadrants)
     val p2 = scaledUnbiased(deviceDisplaySize, imageSize)
     val inverseScreenScale = 1.0 / target.view.screenScalingFactor
