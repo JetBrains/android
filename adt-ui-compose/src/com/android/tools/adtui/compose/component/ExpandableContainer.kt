@@ -27,11 +27,11 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -76,36 +76,36 @@ fun ExpandableContainer(
   var isOverflowing by remember { mutableStateOf(false) }
 
   val density = LocalDensity.current
-  val actualHeightDp = with(density) { actualHeightPx.toDp() }
-  val newIsOverflowing = actualHeightDp >= maxCollapsedHeight
-  if (isOverflowing != newIsOverflowing) {
-    onExpandableChange(newIsOverflowing)
-    isOverflowing = newIsOverflowing
+  val maxCollapsedHeightPx = with(density) { maxCollapsedHeight.roundToPx() }
+
+  LaunchedEffect(actualHeightPx, maxCollapsedHeightPx) {
+    val newIsOverflowing = actualHeightPx > maxCollapsedHeightPx
+    if (isOverflowing != newIsOverflowing) {
+      isOverflowing = newIsOverflowing
+      onExpandableChange(newIsOverflowing)
+    }
   }
 
-  val maxCollapsedHeightPx = with(density) { maxCollapsedHeight.roundToPx() }
   var targetHeightPx by remember { mutableIntStateOf(0) }
 
   val heightAnimatable = remember { Animatable(0, Int.VectorConverter) }
   var isInitialized by remember { mutableStateOf(false) }
 
-  LaunchedEffect(targetHeightPx) {
-    if (targetHeightPx == 0) return@LaunchedEffect
-    if (!isInitialized) {
-      heightAnimatable.snapTo(targetHeightPx)
-      isInitialized = true
-    } else {
-      heightAnimatable.animateTo(targetHeightPx, heightAnimationSpec)
-    }
+  LaunchedEffect(isInitialized) {
+    snapshotFlow { targetHeightPx }
+      .collect { targetHeightPx ->
+        if (targetHeightPx == 0) return@collect
+        if (!isInitialized) {
+          heightAnimatable.snapTo(targetHeightPx)
+          isInitialized = true
+        } else {
+          heightAnimatable.animateTo(targetHeightPx, heightAnimationSpec)
+        }
+      }
   }
 
   Layout(
-    modifier =
-      modifier
-        .clipToBounds()
-        .focusGroup()
-        .thenIf(isOverflowing && !expanded) { focusProperties { canFocus = false } }
-        .onSizeChanged { size -> actualHeightPx = size.height },
+    modifier = modifier.clipToBounds().focusGroup().thenIf(isOverflowing && !expanded) { focusProperties { canFocus = false } },
     content = content,
   ) { measurables, constraints ->
     val placeable =
@@ -113,8 +113,12 @@ fun ExpandableContainer(
         ?: error("ExpandableContainer must have a single child, but it had ${measurables.size}")
 
     val height = placeable.height.fastCoerceIn(constraints.minHeight, constraints.maxHeight)
-    targetHeightPx = if (expanded) height else min(height, maxCollapsedHeightPx)
+    val targetHeight = if (expanded) height else min(height, maxCollapsedHeightPx)
 
-    layout(placeable.width, if (animateHeightChange) heightAnimatable.value else targetHeightPx) { placeable.place(0, 0) }
+    actualHeightPx = height
+    targetHeightPx = targetHeight
+
+    val layoutHeight = if (animateHeightChange && isInitialized) heightAnimatable.value else targetHeight
+    layout(placeable.width, layoutHeight) { placeable.place(0, 0) }
   }
 }
