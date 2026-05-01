@@ -53,7 +53,7 @@ option java_package = "com.google.play.developer.reporting";
 //     ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
 //     The version of the app that was running on the user's device.
 //
-// (== resource_for v1beta1.platform.activations ==)
+// (== resource_for v1beta1.activations ==)
 message ActivationsMetricSet {
   // The resource name.
   string name = 1;
@@ -107,9 +107,6 @@ message QueryActivationsMetricSetRequest {
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
   //     The user's device language, represented as a BCP-47 language tag (e.g.
   //     en-US for English as used in the United States).
-  //  * `osVersion`
-  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     The Android OS version of the user's device, e.g., 12.
   //  * `regionCode`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
   //     The country or region of the user's device, represented as a 2-letter
