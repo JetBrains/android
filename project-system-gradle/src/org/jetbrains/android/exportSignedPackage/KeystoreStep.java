@@ -159,7 +159,7 @@ public class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSi
 
   private void setupUI() {
     myContentPanel = new JPanel();
-    myContentPanel.setLayout(new GridLayoutManager(9, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myContentPanel.setLayout(new GridLayoutManager(10, 2, new Insets(0, 0, 0, 0), -1, -1));
     final JLabel label1 = new JLabel();
     label1.setText("Module");
     label1.setDisplayedMnemonic('M');
@@ -259,6 +259,9 @@ public class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSi
     myGradlePanel.add(myGradleWarning, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                            GridConstraints.SIZEPOLICY_FIXED, null, null, null, 2, false));
+    final Spacer spacer2 = new Spacer();
+    myContentPanel.add(spacer2, new GridConstraints(9, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                                    GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
     label1.setLabelFor(myModuleCombo);
     myKeyStorePathLabel.setLabelFor(myKeyStorePathField);
     myKeyStorePasswordLabel.setLabelFor(myKeyStorePasswordField);
