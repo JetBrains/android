@@ -211,9 +211,6 @@ public final class StudioFlags {
     "List all versions of AGP in the new project wizard combo box. " +
     "When disabled the combo box will only the two newest stable major-minor series of AGP versions.");
 
-  public static final Flag<Boolean> NPW_NEW_NATIVE_MODULE = new BooleanFlag(
-    NPW, "new.native.module", "New Android Native Module",
-    "Show template to create a new Android Native module in the new module wizard.");
 
   public static final Flag<Boolean> NPW_NEW_MACRO_BENCHMARK_MODULE = new BooleanFlag(
     NPW, "new.macro.benchmark.module", "New Macro Benchmark Module",
@@ -515,17 +512,6 @@ public final class StudioFlags {
     "Install apks with adblib instead of ddmlib",
     "Studio can communicate with adb server via two backend, ddmlib and adblib. This option decides which backend to use.");
 
-  public static final Flag<Boolean> APPLY_CHANGES_OPTIMISTIC_SWAP = new BooleanFlag(
-    RUNDEBUG,
-    "applychanges.optimisticswap",
-    "Use the 'Apply Changes 2.0' deployment pipeline",
-    "Supports Install-without-Install, Speculative Diff and Structural Redefinition");
-
-  public static final Flag<Boolean> APPLY_CHANGES_OPTIMISTIC_RESOURCE_SWAP = new BooleanFlag(
-    RUNDEBUG,
-    "applychanges.optimisticresourceswap",
-    "Use the 'Apply Changes 2.0' deployment pipeline for full Apply Changes",
-    "Requires applychanges.optimisticswap to be true.");
 
   public static final Flag<Boolean> INSTALL_USE_PM_TERMINATE = new BooleanFlag(
     RUNDEBUG,
@@ -596,23 +582,6 @@ public final class StudioFlags {
     " compiler filter in ART to avoid bytecode verification when possible. This would speed up development cycles. Note that all release" +
     " build are still verified by ART regardless of this flag. This flag turns on this feature for all run configurations.");
 
-  public static final Flag<Boolean> APPLY_CHANGES_STRUCTURAL_DEFINITION = new BooleanFlag(
-    RUNDEBUG,
-    "applychanges.structuralredefinition",
-    "Use ART's new structural redefinition extension for Apply Changes.",
-    "Requires applychanges.optimisticswap to be true.");
-
-  public static final Flag<Boolean> APPLY_CHANGES_VARIABLE_REINITIALIZATION = new BooleanFlag(
-    RUNDEBUG,
-    "applychanges.variablereinitialization",
-    "Use ART's new variable reinitializaiton extension for Apply Changes.",
-    "Requires applychanges.structuralredefinition to be true.");
-
-  public static final Flag<Boolean> APPLY_CHANGES_KEEP_CONNECTION_ALIVE = new BooleanFlag(
-    RUNDEBUG,
-    "applychanges.connection.keepalive",
-    "Keep connection to device alive.",
-    "Eliminate the cost of opening a connection and spawning a process when using Apply Changes.");
 
   public static final Flag<Boolean> ADB_CONNECTION_STATUS_WIDGET_ENABLED = new BooleanFlag(
     RUNDEBUG,
@@ -1384,9 +1353,6 @@ public final class StudioFlags {
     REFACTORINGS, "migrateto.resourcenamespaces.enabled", "Enable the Migrate to Resource Namespaces refactoring",
     "If enabled, show the action in the refactoring menu");
 
-  public static final Flag<Boolean> MIGRATE_TO_NON_TRANSITIVE_R_CLASSES_REFACTORING_ENABLED = new BooleanFlag(
-    REFACTORINGS, "migrateto.nontransitiverclasses.enabled", "Enable the Migrate to non-transitive R classes refactoring",
-    "If enabled, show the action in the refactoring menu");
 
   public static final Flag<Boolean> INFER_ANNOTATIONS_REFACTORING_ENABLED = new BooleanFlag(
     REFACTORINGS, "infer.annotations.enabled", "Enable the Infer Annotations refactoring",
@@ -1404,10 +1370,6 @@ public final class StudioFlags {
   //region NDK
   private static final FlagGroup NDK = new FlagGroup(FLAGS, "ndk", "Native code features");
 
-  public static final Flag<Boolean> ENABLE_SHOW_FILES_UNKNOWN_TO_CMAKE = new BooleanFlag(
-    NDK, "ndk.projectview.showfilessunknowntocmake", "Enable option to show files unknown to CMake",
-    "If enabled, for projects using CMake, Android project view menu would show an option to `Show Files Unknown To CMake`."
-  );
 
   // b/202709703: Disable jb_formatters (which is used to pull Natvis) temporarily, because
   // the latest changes in cidr-debugger cause the jb_formatters to conflict with the
@@ -1734,10 +1696,6 @@ public final class StudioFlags {
 
   // region App Inspection
   private static final FlagGroup APP_INSPECTION = new FlagGroup(FLAGS, "appinspection", "App Inspection");
-  public static final Flag<Boolean> ENABLE_APP_INSPECTION_TOOL_WINDOW = new BooleanFlag(
-    APP_INSPECTION, "enable.tool.window", "Enable App Inspection Tool Window",
-    "Enables the top-level App Inspection tool window, which will contain tabs to various feature inspectors"
-  );
 
   public static final Flag<Boolean> APP_INSPECTION_USE_DEV_JAR = new BooleanFlag(
     APP_INSPECTION, "use.dev.jar", "Use a precompiled, prebuilt inspector jar",

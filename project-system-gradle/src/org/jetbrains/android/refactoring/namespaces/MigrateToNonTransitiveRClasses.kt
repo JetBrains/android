@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
@@ -80,8 +79,6 @@ private fun findFacetsToMigrate(project: Project): List<AndroidFacet> {
  */
 class MigrateToNonTransitiveRClassesAction : AndroidGradleBaseRefactoringAction() {
   override fun getHandler(dataContext: DataContext) = MigrateToNonTransitiveRClassesHandler()
-
-  override fun isHidden() = StudioFlags.MIGRATE_TO_NON_TRANSITIVE_R_CLASSES_REFACTORING_ENABLED.get().not()
 
   override fun isAvailableInEditorOnly() = false
 

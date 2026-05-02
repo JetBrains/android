@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.refactoring.namespaces
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.project.Project
 import com.intellij.usages.Usage
 import com.intellij.usages.UsageGroup
@@ -31,11 +30,7 @@ import org.jetbrains.android.util.AndroidBundle
 class ResourcePackageGroupingRuleProvider : UsageGroupingRuleProvider {
 
   override fun getActiveRules(project: Project): Array<UsageGroupingRule> {
-    return if (StudioFlags.MIGRATE_TO_NON_TRANSITIVE_R_CLASSES_REFACTORING_ENABLED.get()) {
-      arrayOf(ResourcePackageGroupingRule(), PropertiesFileGroupingRule())
-    } else {
-      UsageGroupingRule.EMPTY_ARRAY
-    }
+    return arrayOf(ResourcePackageGroupingRule(), PropertiesFileGroupingRule())
   }
 }
 

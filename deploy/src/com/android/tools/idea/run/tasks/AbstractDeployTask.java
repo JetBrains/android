@@ -138,9 +138,6 @@ public abstract class AbstractDeployTask {
     AdbHelper.setAbbExecAllowed(StudioFlags.DDMLIB_ABB_EXEC_INSTALL_ENABLE.get());
 
     AdbInstaller.Mode adbInstallerMode = AdbInstaller.Mode.DAEMON;
-    if (!StudioFlags.APPLY_CHANGES_KEEP_CONNECTION_ALIVE.get()) {
-      adbInstallerMode = AdbInstaller.Mode.ONE_SHOT;
-    }
     Installer installer = new AdbInstaller(
       LocalInstallerPathManager.getLocalInstaller(), adb, metrics.getDeployMetrics(), logger, adbInstallerMode
     );
@@ -153,12 +150,12 @@ public abstract class AbstractDeployTask {
       optimisticInstallSupport =
         OPTIMISTIC_INSTALL_SUPPORT.getOrDefault(StudioFlags.OPTIMISTIC_INSTALL_SUPPORT_LEVEL.get(), EnumSet.noneOf(ChangeType.class));
     }
-    DeployerOption option = new DeployerOption.Builder().setUseOptimisticSwap(StudioFlags.APPLY_CHANGES_OPTIMISTIC_SWAP.get())
-      .setUseOptimisticResourceSwap(StudioFlags.APPLY_CHANGES_OPTIMISTIC_RESOURCE_SWAP.get())
+    DeployerOption option = new DeployerOption.Builder().setUseOptimisticSwap(true)
+      .setUseOptimisticResourceSwap(true)
       .setOptimisticInstallSupport(optimisticInstallSupport)
       .setAllowAssumeVerified(myAllowAssumeVerified)
-      .setUseStructuralRedefinition(StudioFlags.APPLY_CHANGES_STRUCTURAL_DEFINITION.get())
-      .setUseVariableReinitialization(StudioFlags.APPLY_CHANGES_VARIABLE_REINITIALIZATION.get())
+      .setUseStructuralRedefinition(true)
+      .setUseVariableReinitialization(true)
       .setFastRestartOnSwapFail(getFastRerunOnSwapFailure()).enableCoroutineDebugger(StudioFlags.COROUTINE_DEBUGGER_ENABLE.get())
       .setMaxDeltaInstallPatchSize(StudioFlags.DELTA_INSTALL_CUSTOM_MAX_PATCH_SIZE.get())
       .build();
