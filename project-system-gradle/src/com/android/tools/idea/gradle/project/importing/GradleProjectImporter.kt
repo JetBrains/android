@@ -55,6 +55,10 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.ExceptionUtil
+import org.jetbrains.plugins.gradle.util.USE_GRADLE_LOCAL_JAVA_HOME
+import java.io.File
+import java.io.IOException
+import java.nio.file.Path
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
@@ -62,10 +66,6 @@ import org.jetbrains.plugins.gradle.service.project.open.setupGradleSettings
 import org.jetbrains.plugins.gradle.settings.GradleDefaultProjectSettings
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
-import org.jetbrains.plugins.gradle.util.USE_GRADLE_LOCAL_JAVA_HOME
-import java.io.File
-import java.io.IOException
-import java.nio.file.Path
 
 /** Imports an Android-Gradle project without showing the "Import Project" Wizard UI. */
 class GradleProjectImporter
@@ -108,7 +108,7 @@ internal constructor(private val mySdkSync: SdkSync, private val myTopLevelModul
       if (ApplicationManager.getApplication().isUnitTestMode) {
         ExceptionUtil.rethrowUnchecked(e)
       }
-      Messages.showErrorDialog(e.message, "Project Import")
+      ApplicationManager.getApplication().invokeLater { Messages.showErrorDialog(e.message, "Project Import") }
       logger.error(e)
       return null
     }
@@ -121,7 +121,7 @@ internal constructor(private val mySdkSync: SdkSync, private val myTopLevelModul
       mySdkSync.syncIdeAndProjectAndroidSdks(localProperties)
     } catch (e: Exception) {
       logger.info("Failed to sync SDKs", e)
-      Messages.showErrorDialog(e.message, "Project Import")
+      ApplicationManager.getApplication().invokeLater { Messages.showErrorDialog(e.message, "Project Import") }
       throw e
     }
   }
