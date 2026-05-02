@@ -88,6 +88,11 @@ studio_plugin(
         ],
         "aswb_core_plugin_xml.jar": ["//tools/adt/idea/aswb:aswb_plugin_xml"],
     },
+    resources = {
+        "aspect": [
+            "//tools/adt/idea/aswb/aspect:aspect_files_only",
+        ],
+    },
     visibility = ["//visibility:public"],
     deps = [
         "//tools/adt/idea/studio:com.android.tools.design",
