@@ -937,6 +937,10 @@ class StreamingToolWindowManagerTest {
     assertThat(content1.isSelected).isTrue()
     assertThat(content2.isSelected).isTrue()
     assertThat(content1.manager == content2.manager).isFalse()
+
+    val contentForEmulator2 = contentManager.contentsRecursively.find { it.displayName == emulator2.avdName }!!
+    contentForEmulator2.manager?.removeContent(contentForEmulator2, true)
+    waitForCondition(5.seconds) { !emulator2.isRunning }
   }
 
   @Test

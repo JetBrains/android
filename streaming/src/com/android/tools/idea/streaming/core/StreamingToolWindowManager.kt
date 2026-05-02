@@ -241,25 +241,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
         }
       }
 
-      override fun contentAdded(event: ContentManagerEvent) {
-        val content = event.content
-        FlightRecorder.log {
-          "$currentTime ContentManagerListener.contentAdded ${content.deviceId} contentManager: ${content.manager.simpleId} ${content.temporarilyRemoved} contentManagers.size: ${contentManagers.size}"
-        }
-        if (Content.TEMPORARY_REMOVED_KEY.get(content, false)) {
-          return
-        }
-        content.addPropertyChangeListener { evt ->
-          if (evt.propertyName == PROP_CONTENT_MANAGER) {
-            val contentManager = evt.newValue as? ContentManager
-            FlightRecorder.log {
-              "$currentTime Content.PropertyChangeListener ${content.tracingId} contentManager: ${contentManager.simpleId} contentManagers.size: ${contentManagers.size}"
-            }
-            contentManager?.let { adoptContentManager(it) }
-          }
-        }
-      }
-
       override fun contentRemoveQuery(event: ContentManagerEvent) {
         val content = event.content
         FlightRecorder.log {
@@ -605,6 +586,15 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
         deviceId = panel.id
         setPreferredFocusedComponent(panel::preferredFocusableComponent)
       }
+    content.addPropertyChangeListener { evt ->
+      if (evt.propertyName == PROP_CONTENT_MANAGER) {
+        val contentManager = evt.newValue as? ContentManager
+        FlightRecorder.log {
+          "$currentTime Content.PropertyChangeListener ${content.tracingId} contentManager: ${contentManager.simpleId} contentManagers.size: ${contentManagers.size}"
+        }
+        contentManager?.let { adoptContentManager(it) }
+      }
+    }
 
     panel.zoomToolbarVisible = zoomToolbarIsVisible
 
@@ -628,11 +618,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
           "$currentTime StreamingToolWindowManager.addPanel ${content.tracingId} splitting ${contentManager.simpleId} at ${layout.side} contentManagers.size: ${contentManagers.size}"
         }
         @Suppress("UnstableApiUsage") (decorator as InternalDecoratorImpl).splitWithContent(content, layout.side, -1)
-        val newContentManager = content.manager
-        if (newContentManager != null && newContentManager !in contentManagers) {
-          dumpTraceAndShowNotification("b/505398395 Content manager ${newContentManager.simpleId} is not adopted after splitting")
-          adoptContentManager(newContentManager)
-        }
         contentAdded = true
         (content.component.containingDecorator?.parent as? Splitter)?.proportion = layout.splitRatio
         createContentIfNecessary(panel)
