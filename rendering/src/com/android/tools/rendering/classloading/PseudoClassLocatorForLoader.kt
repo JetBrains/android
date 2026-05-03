@@ -17,6 +17,7 @@ package com.android.tools.rendering.classloading
 
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.intellij.openapi.diagnostic.Logger
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * [PseudoClassLocator] that uses the [Sequence] of [DelegatingClassLoader.Loader]s to find the `.class` file. If a class is not found
@@ -29,20 +30,26 @@ class PseudoClassLocatorForLoader(
 
   constructor(loader: DelegatingClassLoader.Loader, classLoader: ClassLoader) : this(sequenceOf(loader), classLoader)
 
+  private val cache = ConcurrentHashMap<String, PseudoClass>()
+
   override fun locatePseudoClass(classFqn: String): PseudoClass {
     if (classFqn == PseudoClass.objectPseudoClass().name) return PseudoClass.objectPseudoClass() // Avoid hitting this for this common case
-    val bytes = loaders.map { it.loadClass(classFqn) }.firstNotNullOfOrNull { it }
-    if (bytes != null) return PseudoClass.fromByteArray(bytes, this)
 
-    if (fallbackClassloader != null) {
-      try {
-        return PseudoClass.fromClass(fallbackClassloader.loadClass(classFqn), this)
-      } catch (ex: ClassNotFoundException) {
-        Logger.getInstance(PseudoClassLocatorForLoader::class.java).warn("Failed to load $classFqn", ex)
+    return cache.computeIfAbsent(classFqn) { key ->
+      val bytes = loaders.map { it.loadClass(key) }.firstNotNullOfOrNull { it }
+      if (bytes != null) {
+        PseudoClass.fromByteArray(bytes, this)
+      } else if (fallbackClassloader != null) {
+        try {
+          PseudoClass.fromClass(fallbackClassloader.loadClass(key), this)
+        } catch (ex: ClassNotFoundException) {
+          Logger.getInstance(PseudoClassLocatorForLoader::class.java).warn("Failed to load $key", ex)
+          PseudoClass.objectPseudoClass()
+        }
+      } else {
+        Logger.getInstance(PseudoClassLocatorForLoader::class.java).warn("No classloader is provided to load $key")
+        PseudoClass.objectPseudoClass()
       }
-    } else {
-      Logger.getInstance(PseudoClassLocatorForLoader::class.java).warn("No classloader is provided to load $classFqn")
     }
-    return PseudoClass.objectPseudoClass()
   }
 }
