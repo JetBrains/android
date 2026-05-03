@@ -116,7 +116,7 @@ constructor(
             push(100)
             invokeStatic(threadLocalRandomType, threadLocalRandomNextIntMethod)
             push(checkPercentage)
-            ifICmp(GT, skipCheck)
+            ifICmp(GeneratorAdapter.GT, skipCheck)
             push(maxAllocationsPerRenderAction)
             invokeStatic(allocationCheckerType, allocationCheckMethod)
             visitLabel(skipCheck)

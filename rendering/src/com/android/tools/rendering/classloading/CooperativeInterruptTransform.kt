@@ -75,17 +75,26 @@ constructor(
     val delegate = super.visitMethod(access, name, descriptor, signature, exceptions)
     return if (shouldInstrument(className, name ?: "")) {
       object : GeneratorAdapter(Opcodes.ASM9, delegate, access, name, descriptor) {
+        private val visitedLabels = mutableSetOf<Label>()
+
+        override fun visitLabel(label: Label) {
+          visitedLabels.add(label)
+          super.visitLabel(label)
+        }
+
         override fun visitJumpInsn(opcode: Int, label: Label?) {
-          val skipCheck = Label()
-          // Min random value
-          push(1)
-          // Max random value
-          push(100)
-          invokeStatic(threadLocalRandomType, threadLocalRandomNextIntMethod)
-          push(checkPercentage)
-          ifICmp(GT, skipCheck)
-          invokeStatic(loopBreakerType, loopCheckMethod)
-          visitLabel(skipCheck)
+          if (label != null && visitedLabels.contains(label)) {
+            val skipCheck = Label()
+            // Min random value
+            push(1)
+            // Max random value
+            push(100)
+            invokeStatic(threadLocalRandomType, threadLocalRandomNextIntMethod)
+            push(checkPercentage)
+            ifICmp(GeneratorAdapter.GT, skipCheck)
+            invokeStatic(loopBreakerType, loopCheckMethod)
+            visitLabel(skipCheck)
+          }
 
           super.visitJumpInsn(opcode, label)
         }
