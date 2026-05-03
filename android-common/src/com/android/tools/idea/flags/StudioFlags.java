@@ -2113,6 +2113,14 @@ public final class StudioFlags {
 
   // region STUDIO_BOT
   private static final FlagGroup STUDIOBOT = new FlagGroup(FLAGS, "studiobot", "Gemini");
+
+  // a debug flag for the timeline to show *all* steps. This is NOT to be enabled in feature_flags.txt
+  // This is to be manually enabled only.
+  public static final Flag<Boolean> STUDIOBOT_TIMELINE_DEBUG_MODE =
+    new BooleanFlag(STUDIOBOT, "timeline.debug.mode",
+                    "Enable showing all steps in the agent timeline",
+                    "When enabled, steps like the system prompt and the context steps will be shown");
+
   public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_CES_TELEMETRY_ENABLED =
     new BooleanFlag(STUDIOBOT, "inline.code.completion.ces.telemetry.enabled",
                     "Enable sending inline code completion metrics to the AIDA CES service",
