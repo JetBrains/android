@@ -273,7 +273,7 @@ class QuerySyncProject(
 
   fun createProjectStructure(
     context: BlazeContext,
-    queryData: PostQuerySyncData,
+    projectDefinition: ProjectDefinition,
     graph: BuildGraphData,
     projectStructureData: ProjectStructureData,
   ): CreateProjectStructureResult {
@@ -281,7 +281,7 @@ class QuerySyncProject(
     val newProjectStructure =
       projectBuilder.createBlazeProjectStructure(
         context,
-        queryData,
+        projectDefinition,
         graph,
         projectStructureData,
         artifactTrackerState,

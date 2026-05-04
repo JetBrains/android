@@ -20,7 +20,7 @@ import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.cc.ConfigureCcSources
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.project.BuildGraphData
-import com.google.idea.blaze.qsync.project.PostQuerySyncData
+import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.ProjectStructureData
@@ -36,19 +36,21 @@ import java.nio.file.Path
  */
 class ProjectBuilder(private val workspaceRoot: Path) {
   /**
-   * Creates a [QuerySyncProjectSnapshot], which includes an expected IDE project structure, from the `postQuerySyncData` and a function
-   * `applyBuiltDependenciesTransform` that applies transformations required to account for any currently synced(i.e. built) dependencies.
+   * Creates a [ProjectProto.Project] for the IDE.
+   *
+   * This function orchestrates the conversion of build graph data and project structure data into a [ProjectProto.Project]. It also applies
+   * various updates and configurations, including CC source configuration and other project proto updates.
    */
   @Throws(BuildException::class)
   fun createBlazeProjectStructure(
     context: Context<*>,
-    postQuerySyncData: PostQuerySyncData,
+    projectDefinition: ProjectDefinition,
     graph: BuildGraphData,
     projectStructureData: ProjectStructureData,
     artifactTrackerState: ArtifactTracker.State,
     projectProtoUpdates: Collection<ProjectProtoUpdateOperation>,
   ): ProjectProto.Project {
-    val graphToProjectConverter = GraphToProjectConverter(context = context, projectDefinition = postQuerySyncData.projectDefinition())
+    val graphToProjectConverter = GraphToProjectConverter(context = context, projectDefinition = projectDefinition)
     val externalRepositoryFinder = ProjectPath.ExternalRepositoryFinder.createAndPrepare(workspaceRoot)
 
     val update = ProjectProtoUpdate(ProjectProto.Project.getDefaultInstance())
