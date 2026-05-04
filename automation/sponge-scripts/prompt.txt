@@ -1,0 +1,11 @@
+Debug and fix the failure in the Android Studio test target: `${target_name}`.
+
+Context: This test started failing after updating to the latest IntelliJ version in the codebase.
+
+${test_cases_section}The failure stacktraces and environment context can be found in the logs below. Please read the contents of these local files to analyze the root cause of the failure:
+
+${logs_section}
+Task:
+1. Analyze the stacktrace from the logs.
+2. Identify why the IntelliJ update caused this specific test to break.
+3. Provide the exact code changes or configuration updates required to fix it.
