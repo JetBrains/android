@@ -415,6 +415,13 @@ open class DetailsViewContentView(
             myScreenshotResultView.refImagePath = refImage ?: ""
             myScreenshotResultView.diffImagePath = diffImage ?: ""
             myScreenshotResultView.testFailed = (myAndroidTestCaseResult == AndroidTestCaseResult.FAILED)
+            val errorTrace = (myErrorStackTrace as? String) ?: ""
+            myScreenshotResultView.isSizeMismatch = errorTrace.contains("Size Mismatch")
+            myScreenshotResultView.sizeMismatchMessage =
+              errorTrace
+                .lineSequence()
+                .firstOrNull { it.contains("Size Mismatch") }
+                ?.let { line -> line.substring(line.indexOf("Size Mismatch")).trim() }
             myScreenshotResultView.updateView()
             myScreenshotAttributesView.updateData(
               refImage,

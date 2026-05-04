@@ -52,6 +52,7 @@ class UpdateScreenshotTestResultsListener(
         ScreenshotTestUtils.resolvePath(dialog.project, className, testCase.additionalTestArtifacts["PreviewScreenshot.diffImagePath"])
 
       ApplicationManager.getApplication().invokeLater {
+        val errorTrace = (testCase.errorStackTrace as? String) ?: ""
         val previewDetails =
           PreviewDetails(
             testId = testId,
@@ -63,6 +64,12 @@ class UpdateScreenshotTestResultsListener(
             srcImagePath = srcPath,
             diffImagePath = diffPath,
             diffPercent = testCase.additionalTestArtifacts["PreviewScreenshot.diffPercent"],
+            isSizeMismatch = errorTrace.contains("Size Mismatch"),
+            sizeMismatchMessage =
+              errorTrace
+                .lineSequence()
+                .firstOrNull { it.contains("Size Mismatch") }
+                ?.let { line -> line.substring(line.indexOf("Size Mismatch")).trim() },
           )
         dialog.updateDialogWithTestResult(previewDetails, true)
       }

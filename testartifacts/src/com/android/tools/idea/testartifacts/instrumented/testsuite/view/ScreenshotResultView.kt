@@ -135,6 +135,8 @@ class ScreenshotResultView(private val project: Project? = null) : Disposable {
   var refImagePath: String = ""
   var diffImagePath: String = ""
   var testFailed: Boolean = false
+  var isSizeMismatch: Boolean = false
+  var sizeMismatchMessage: String? = null
 
   // Expose common actions for testing
   @VisibleForTesting
@@ -352,7 +354,9 @@ class ScreenshotResultView(private val project: Project? = null) : Disposable {
   fun updateView() {
     imageLoadFutures.forEach { it.cancel(true) }
     imageLoadFutures.clear()
-    val diffPlaceholder = if (testFailed) "No Diff Image" else "No Difference"
+    val diffPlaceholder =
+      sizeMismatchMessage?.let { msg -> "<html><div style='text-align: center;'>" + msg.split(". ").joinToString("<br>") + "</div></html>" }
+        ?: if (isSizeMismatch) "Size Mismatch" else if (testFailed) "No Diff Image" else "No Difference"
 
     // Load images for the "All" tab
     loadImageAsync(newImagePath, newImagePanel, "No Preview Image")

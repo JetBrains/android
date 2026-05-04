@@ -206,6 +206,31 @@ class PreviewDetailsPanelTest {
   }
 
   @Test
+  fun testPlaceholdersForSizeMismatch() = runInEdtAndWait {
+    val panel = PreviewDetailsPanel(projectRule.project)
+    val details =
+      PreviewDetails(
+        testId = "test1",
+        className = "Class",
+        methodName = "method",
+        previewName = "preview",
+        testResult = AndroidTestCaseResult.FAILED,
+        srcImagePath = null,
+        diffImagePath = null,
+        destImagePath = null,
+        isSizeMismatch = true,
+      )
+    val toolbar = ComposePanel()
+
+    panel.displayPreviews(listOf(details), ScreenshotViewType.ALL, toolbar)
+
+    val diffPanel = findImagePanel(panel, ScreenshotViewType.DIFF)
+    assertNotNull("Diff Image Panel should exist", diffPanel)
+
+    assertEquals("Size Mismatch", getPlaceholderText(diffPanel!!))
+  }
+
+  @Test
   fun testToolbarActionsCreated() = runInEdtAndWait {
     val panel = PreviewDetailsPanel(projectRule.project)
     val details =

@@ -18,6 +18,7 @@ package com.android.screenshottest.ui
 // User-facing text for various image loading states.
 internal const val NO_NEW_IMAGE_TEXT = "No New Image"
 internal const val NO_DIFF_IMAGE_TEXT = "No Diff Image"
+internal const val SIZE_MISMATCH_TEXT = "Size Mismatch"
 internal const val NO_REF_IMAGE_TEXT = "No Reference Image"
 internal const val NO_DIFFERENCE_TEXT = "No Difference"
 internal const val WAITING_FOR_IMAGE_TEXT = "Waiting for image..."
