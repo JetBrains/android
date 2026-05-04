@@ -55,7 +55,14 @@ class SnapshotDeserializer private constructor() {
         deserializer.projectStructureData = deserializer.visitProjectStructureData(proto.projectStructureData)
       }
       deserializer.visitQuerySummay(proto.querySummary)
-      return SerializedProjectStructureAndQueryData(deserializer.syncDataBuilder.build(), deserializer.projectStructureData)
+      return SerializedProjectStructureAndQueryData(
+        deserializer.syncDataBuilder.build(),
+        deserializer.projectStructureData
+          ?: let {
+            context.output(PrintOutput.output("Incomplete sync data; performing full sync"))
+            return@readFrom null
+          },
+      )
     }
   }
 

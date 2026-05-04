@@ -67,7 +67,7 @@ class SnapshotSerializationTest {
         .setQuerySummary(QuerySummaryTestUtil.createProtoForPackages("//project/path:path"))
         .setBazelVersion(Optional.of("1.2.3"))
         .build()
-    val serialized = SnapshotSerializer().visit(original).toProto().toByteArray()
+    val serialized = SnapshotSerializer().visit(original).visit(createDefaultProjectStructureData()).toProto().toByteArray()
     val deserializedSyncData: PostQuerySyncData? =
       SnapshotDeserializer.readFrom(ByteArrayInputStream(serialized), QuerySyncTestUtils.NOOP_CONTEXT)?.queryData
     Truth8.assertThat(deserializedSyncData?.vcsState()).isEqualTo(original.vcsState())
@@ -84,7 +84,7 @@ class SnapshotSerializationTest {
         .setQuerySummary(QuerySummaryTestUtil.createProtoForPackages("//project/path:path"))
         .setBazelVersion(Optional.of("1.2.3"))
         .build()
-    val serialized = SnapshotSerializer().visit(original).toProto().toByteArray()
+    val serialized = SnapshotSerializer().visit(original).visit(createDefaultProjectStructureData()).toProto().toByteArray()
     val deserializedSyncData: PostQuerySyncData? =
       SnapshotDeserializer.readFrom(ByteArrayInputStream(serialized), QuerySyncTestUtils.NOOP_CONTEXT)?.queryData
     Truth8.assertThat(deserializedSyncData?.vcsState()).isEqualTo(original.vcsState())
@@ -111,7 +111,7 @@ class SnapshotSerializationTest {
         .setVcsState(Optional.empty())
         .setQuerySummary(QuerySummaryTestUtil.createProtoForPackages("//project/path:path"))
         .build()
-    val serialized = SnapshotSerializer().visit(original).toProto().toByteArray()
+    val serialized = SnapshotSerializer().visit(original).visit(createDefaultProjectStructureData()).toProto().toByteArray()
     val deserializedSyncData: PostQuerySyncData? =
       SnapshotDeserializer.readFrom(ByteArrayInputStream(serialized), QuerySyncTestUtils.NOOP_CONTEXT)?.queryData
     Truth8.assertThat(deserializedSyncData?.vcsState()).isEqualTo(original.vcsState())
@@ -162,7 +162,7 @@ class SnapshotSerializationTest {
         .setVcsState(Optional.empty())
         .setQuerySummary(QuerySummaryTestUtil.createProtoForPackages("//project/path:path"))
         .build()
-    val serialized = SnapshotSerializer().visit(original).toProto().toByteArray()
+    val serialized = SnapshotSerializer().visit(original).visit(createDefaultProjectStructureData()).toProto().toByteArray()
     val deserializedSyncData: PostQuerySyncData? =
       SnapshotDeserializer.readFrom(ByteArrayInputStream(serialized), QuerySyncTestUtils.NOOP_CONTEXT)?.queryData
     Truth.assertThat(deserializedSyncData?.projectDefinition()).isEqualTo(projectDefinition)
@@ -173,32 +173,7 @@ class SnapshotSerializationTest {
   fun testSerialization_projectStructureData() {
     val originalSyncData = createDefaultSyncData()
 
-    val originalProjectStructureData =
-      ProjectStructureData.create(
-        roots =
-          listOf(
-            ProjectStructureRoot(
-              projectStructureRootPath = Path.of("project"),
-              buildPackages =
-                mapOf(
-                  Path.of("project/path") to
-                    BuildPackage(
-                      path = Path.of("project/path"),
-                      sourceSets =
-                        listOf(
-                          SourceSet(
-                            rootPath = Path.of("project/path"),
-                            javaSourceFiles = listOf(Path.of("A.java")),
-                            nonJavaSourceFiles = listOf(Path.of("B.txt")),
-                            javaPackage = "com.example",
-                          )
-                        ),
-                    )
-                ),
-            )
-          ),
-        activeLanguages = setOf(QuerySyncLanguage.JVM),
-      )
+    val originalProjectStructureData = createDefaultProjectStructureData()
 
     val serializer = SnapshotSerializer()
     serializer.visit(originalSyncData)
@@ -213,6 +188,33 @@ class SnapshotSerializationTest {
     Truth.assertThat(deserializedSnapshot.projectStructureData?.activeLanguages).isEqualTo(originalProjectStructureData.activeLanguages)
   }
 
+  private fun createDefaultProjectStructureData(): ProjectStructureData =
+    ProjectStructureData.create(
+      roots =
+        listOf(
+          ProjectStructureRoot(
+            projectStructureRootPath = Path.of("project"),
+            buildPackages =
+              mapOf(
+                Path.of("project/path") to
+                  BuildPackage(
+                    path = Path.of("project/path"),
+                    sourceSets =
+                      listOf(
+                        SourceSet(
+                          rootPath = Path.of("project/path"),
+                          javaSourceFiles = listOf(Path.of("A.java")),
+                          nonJavaSourceFiles = listOf(Path.of("B.txt")),
+                          javaPackage = "com.example",
+                        )
+                      ),
+                  )
+              ),
+          )
+        ),
+      activeLanguages = setOf(QuerySyncLanguage.JVM),
+    )
+
   @Test
   @Throws(IOException::class)
   fun testSerialization_withoutProjectStructureData() {
@@ -224,9 +226,7 @@ class SnapshotSerializationTest {
 
     val deserializedSnapshot = SnapshotDeserializer.readFrom(ByteArrayInputStream(serialized), QuerySyncTestUtils.NOOP_CONTEXT)
 
-    Truth.assertThat(deserializedSnapshot).isNotNull()
-    Truth.assertThat(deserializedSnapshot!!.queryData).isEqualTo(originalSyncData)
-    Truth.assertThat(deserializedSnapshot.projectStructureData).isNull()
+    Truth.assertThat(deserializedSnapshot).isNull()
   }
 
   @Test
@@ -241,9 +241,7 @@ class SnapshotSerializationTest {
 
     val deserializedSnapshot = SnapshotDeserializer.readFrom(ByteArrayInputStream(serialized), QuerySyncTestUtils.NOOP_CONTEXT)
 
-    Truth.assertThat(deserializedSnapshot).isNotNull()
-    Truth.assertThat(deserializedSnapshot!!.queryData).isEqualTo(originalSyncData)
-    Truth.assertThat(deserializedSnapshot.projectStructureData).isNull()
+    Truth.assertThat(deserializedSnapshot).isNull()
   }
 
   private fun createDefaultSyncData(): PostQuerySyncData {
