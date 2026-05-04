@@ -15,6 +15,7 @@ iml_module(
     iml_files = ["cli-server.command-handler.iml"],
     resources = ["resources"],
     visibility = ["//visibility:public"],
+    exports = ["//tools/adt/idea/cli-server/command-handler:cli_commands_proto"],
     # do not sort: must match IML order
     deps = [
         "//tools/adt/idea/cli-server/server:cli-server.server",
