@@ -287,12 +287,6 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
     _isForceDumpExecuting.value = true // Disable the Force Dump button
     if (leakcanaryMode == StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE) {
       profilers.ideServices.poolExecutor.execute {
-        if (!LeakCanaryTaskHandler.attachAgentAndWait(profilers, sessionData.streamId, profilers.process)) {
-          logger.warn("PROFILER: Agent attachment failed. Skipping FORCE_DUMP_LEAKCANARY_ON_DEVICE command.")
-          _isForceDumpExecuting.value = false // Re-enable the Force Dump button if agent attachment fails
-          return@execute
-        }
-
         val forceDumpCommand =
           Commands.Command.newBuilder()
             .setStreamId(sessionData.streamId)
@@ -455,11 +449,6 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
         .build()
 
     profilers.ideServices.poolExecutor.execute {
-      if (!LeakCanaryTaskHandler.attachAgentAndWait(profilers, profilers.session.streamId, profilers.process)) {
-        logger.warn("PROFILER: Agent attachment failed. Cannot fetch threshold.")
-        return@execute
-      }
-
       val commandIdFuture = CompletableFuture<Int>()
       val listener =
         TransportEventListener(
@@ -602,11 +591,6 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
       if (enable) {
         // First, configure the LeakCanary mode on the device (ON_HOST vs ON_DEVICE) so the helper library
         // knows whether to run Shark locally or rely on Android Studio.
-        if (!LeakCanaryTaskHandler.attachAgentAndWait(profilers, session.streamId, profilers.process)) {
-          logger.warn("PROFILER: Agent attachment failed. Skipping START_LEAKCANARY_TASK command.")
-          return@execute
-        }
-
         val setModeData = Commands.StudioLeakCanaryModeData.newBuilder().setMode(leakcanaryMode).build()
         val setModeCommand =
           Commands.Command.newBuilder()
@@ -658,28 +642,24 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
         // If we are tracking objects on the host, explicitly tell the device-side library to stop
         // watching for retained objects and unregister its internal listener.
         if (leakcanaryMode == ON_HOST) {
-          if (LeakCanaryTaskHandler.attachAgentAndWait(profilers, session.streamId, profilers.process)) {
-            val stopObjectCountCommand =
-              Commands.Command.newBuilder()
-                .setStreamId(session.streamId)
-                .setPid(session.pid)
-                .setSessionId(session.sessionId)
-                .setType(STOP_LEAKCANARY_OBJECT_COUNT_TRACKING)
-                .build()
+          val stopObjectCountCommand =
+            Commands.Command.newBuilder()
+              .setStreamId(session.streamId)
+              .setPid(session.pid)
+              .setSessionId(session.sessionId)
+              .setType(STOP_LEAKCANARY_OBJECT_COUNT_TRACKING)
+              .build()
 
-            try {
-              profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(stopObjectCountCommand).build())
-              logger.info(
-                "Sent STOP_LEAKCANARY_OBJECT_COUNT_TRACKING command to transport. streamId: ${stopObjectCountCommand.streamId}, pid: ${stopObjectCountCommand.pid}, sessionId: ${stopObjectCountCommand.sessionId}"
-              )
-            } catch (e: Exception) {
-              logger.warn(
-                "Failed to execute STOP_LEAKCANARY_OBJECT_COUNT_TRACKING command. streamId: ${stopObjectCountCommand.streamId}, pid: ${stopObjectCountCommand.pid}, sessionId: ${stopObjectCountCommand.sessionId}",
-                e,
-              )
-            }
-          } else {
-            logger.warn("PROFILER: Agent attachment failed. Skipping STOP_LEAKCANARY_OBJECT_COUNT_TRACKING command.")
+          try {
+            profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(stopObjectCountCommand).build())
+            logger.info(
+              "Sent STOP_LEAKCANARY_OBJECT_COUNT_TRACKING command to transport. streamId: ${stopObjectCountCommand.streamId}, pid: ${stopObjectCountCommand.pid}, sessionId: ${stopObjectCountCommand.sessionId}"
+            )
+          } catch (e: Exception) {
+            logger.warn(
+              "Failed to execute STOP_LEAKCANARY_OBJECT_COUNT_TRACKING command. streamId: ${stopObjectCountCommand.streamId}, pid: ${stopObjectCountCommand.pid}, sessionId: ${stopObjectCountCommand.sessionId}",
+              e,
+            )
           }
         }
 

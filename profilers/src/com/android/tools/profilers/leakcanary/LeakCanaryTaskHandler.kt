@@ -586,15 +586,6 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
       // A future that acts as a synchronization lock. It will block the thread until the agent attaches.
       val agentAttachedFuture = CompletableFuture<Boolean>()
 
-      // Fetch the current device timestamp before attaching the listener to avoid picking up stale historical ATTACHED events.
-      val currentTimestampNs =
-        try {
-          profilers.client.transportClient.getCurrentTime(Transport.TimeRequest.getDefaultInstance()).timestampNs
-        } catch (e: Exception) {
-          logger.warn(e, "PROFILER: Failed to get current timestamp. Device may have disconnected.")
-          0L
-        }
-
       // Listen for the specific AGENT event that confirms the JVMTI agent has finished loading.
       val listener =
         TransportEventListener(
@@ -602,10 +593,9 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
           executor = profilers.ideServices.poolExecutor,
           streamId = { streamId },
           processId = { process.pid },
-          startTime = { currentTimestampNs },
           callback = { event ->
             if (event.agentData.status == Common.AgentData.Status.ATTACHED) {
-              logger.info("Agent attached for ${process.pid}")
+              logger.info("Agent attached for ${process.pid}. Event Timestamp: ${event.timestamp}")
               agentAttachedFuture.complete(true)
               true // Match found, unregister listener.
             } else {
@@ -642,15 +632,14 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
         logger.info(
           "Sent ATTACH_AGENT command to transport. streamId: ${attachCommand.streamId}, pid: ${attachCommand.pid}, sessionId: ${attachCommand.sessionId}, agentLib: ${attachCommand.attachAgent.agentLibFileName}, agentConfig: ${attachCommand.attachAgent.agentConfigPath}, packageName: ${attachCommand.attachAgent.packageName}"
         )
-        return try {
-          // Block the background thread until the listener catches the ATTACHED event or we hit the 7-second timeout.
-          agentAttachedFuture.get(AGENT_ATTACH_TIMEOUT_MS, java.util.concurrent.TimeUnit.MILLISECONDS)
-        } catch (e: Exception) {
-          logger.warn("Agent failed to attach for ${process.pid}: ${e.message}")
-          false
-        }
+
+        // Block the background thread until the listener catches the ATTACHED event or we hit the 7-second timeout.
+        return agentAttachedFuture.get(AGENT_ATTACH_TIMEOUT_MS, java.util.concurrent.TimeUnit.MILLISECONDS)
+      } catch (e: TimeoutException) {
+        logger.warn("Agent attachment timed out after ${AGENT_ATTACH_TIMEOUT_MS}ms for ${process.pid}.")
+        return false
       } catch (e: Exception) {
-        logger.warn("Agent failed to attach for ${process.pid}: ${e.message}")
+        logger.warn(e, "Failed to send ATTACH_AGENT command or wait for ${process.pid}: ${e.message}")
         return false
       } finally {
         // Always clean up the listener to prevent memory leaks, regardless of success, failure, or thread crash.
