@@ -95,9 +95,9 @@ jvm_library(
     "//android/intellij.android.device.tests:device-tests_test_lib",
     "//android/android-test-framework:testFramework_test_lib",
     "//android/adt-ui-compose:adt-ui-compose-tests_test_lib",
+    "//libraries/kotlin/reflect",
     "//libraries/kotlinx/coroutines/test",
     "//libraries/kotlinx/datetime",
-    "//libraries/kotlin/reflect",
   ],
   plugins = ["@lib//:compose-plugin"]
 )
