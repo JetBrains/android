@@ -42,9 +42,9 @@ class CustomBlockInAndroidModelTest : com.android.tools.idea.gradle.dsl.model.Gr
   override fun setUp() {
     super.setUp()
     // clean android model map
-    ApplicationManager.getApplication().getService(_root_ide_package_.com.android.tools.idea.gradle.dsl.model.GradleBlockModelMap::class.java).resetCache()
+    ApplicationManager.getApplication().getService(com.android.tools.idea.gradle.dsl.model.GradleBlockModelMap::class.java).resetCache()
 
-    _root_ide_package_.com.android.tools.idea.gradle.dsl.model.BlockModelProvider.Companion.EP.point.registerExtension(MyBuildTypeModelProviderExtension(), testRootDisposable)
+    com.android.tools.idea.gradle.dsl.model.BlockModelProvider.Companion.EP.point.registerExtension(MyBuildTypeModelProviderExtension(), testRootDisposable)
   }
 
   @Test
