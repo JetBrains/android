@@ -413,6 +413,8 @@
                     interface="com.google.idea.blaze.base.qsync.AnnotationProcessorOverride"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.base.qsync.rendering.bazelComposeToolingProjectLabelProvider"
                     interface="com.google.idea.blaze.base.qsync.rendering.BazelComposeToolingProjectLabelProvider" />
+    <extensionPoint qualifiedName="com.google.idea.blaze.BundledAspectsProvider"
+                    interface="com.google.idea.blaze.base.qsync.BundledAspectsProvider" />
   </extensionPoints>
 
   <extensionPoints>
@@ -525,6 +527,7 @@
     <ExperimentLoader implementation="com.google.idea.common.experiments.SystemPropertyExperimentLoader" order="first" id="SystemPropertyExperimentLoader"/>
     <ExperimentLoader implementation="com.google.idea.common.experiments.UserOverridesExperimentLoader" order="after SystemPropertyExperimentLoader" id="UserOverridesExperimentLoader"/>
     <BlazeGuard implementation="com.google.idea.blaze.base.execution.TrustedProjectGuard"/>
+    <BundledAspectsProvider implementation="com.google.idea.blaze.base.qsync.BazelBundledAspectsProvider" />
   </extensions>
 
   <extensions defaultExtensionNs="com.google.idea.blaze.qsync">
