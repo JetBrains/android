@@ -22,7 +22,6 @@ import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Trace;
-import com.android.tools.profilers.StudioProfilers;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -43,12 +42,16 @@ public class CpuCaptureMinimapModel {
   @NotNull
   private final CpuUsage myCpuUsage;
 
-  public CpuCaptureMinimapModel(@NotNull StudioProfilers profilers,
-                                @NotNull CpuCapture cpuCapture,
-                                @NotNull Range selectionRange) {
+  private final boolean myIsEditorEnabled;
+
+  public CpuCaptureMinimapModel(@NotNull CpuCapture cpuCapture,
+                                @NotNull Range selectionRange,
+                                @NotNull DataSeries<Long> cpuUsageSeries,
+                                boolean isEditorEnabled) {
     myCaptureRange = cpuCapture.getRange();
+    myIsEditorEnabled = isEditorEnabled;
     Range initialCaptureViewRange = cpuCapture.getTimeline().getViewRange();
-    myCpuUsage = new CpuUsage(profilers, myCaptureRange, myCaptureRange, cpuCapture);
+    myCpuUsage = new CpuUsage(myCaptureRange, myCaptureRange, cpuUsageSeries);
 
     // Copy capture range as view range
     myRangeSelectionModel = new RangeSelectionModel(selectionRange, new Range(myCaptureRange));
@@ -88,5 +91,9 @@ public class CpuCaptureMinimapModel {
   @NotNull
   public Range getCaptureRange() {
     return myCaptureRange;
+  }
+
+  public boolean isEditorEnabled() {
+    return myIsEditorEnabled;
   }
 }

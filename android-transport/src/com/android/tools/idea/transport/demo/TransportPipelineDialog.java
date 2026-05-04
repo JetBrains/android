@@ -25,6 +25,7 @@ import com.android.tools.idea.transport.TransportFileManager;
 import com.android.tools.idea.transport.TransportService;
 import com.android.tools.idea.transport.poller.TransportEventListener;
 import com.android.tools.idea.transport.poller.TransportEventPoller;
+import com.android.tools.idea.transport.poller.TransportPoller;
 import com.android.tools.pipeline.example.proto.Echo;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Commands.Command;
@@ -82,7 +83,7 @@ public class TransportPipelineDialog extends DialogWrapper {
   @NotNull private final Map<Long, Common.Stream> myStreamIdMap;
   @NotNull private final Map<Long, Common.Process> myProcessIdMap;
 
-  @NotNull private final TransportEventPoller myTransportEventPoller;
+  @NotNull private final TransportPoller myTransportEventPoller;
   private TransportEventListener mySelectedEventListener;
   private TransportEventListener myAgentStatusListener;
 

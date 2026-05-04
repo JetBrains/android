@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.DataSeries
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Transport
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.analytics.FeatureTracker
 import com.android.tools.profilers.memory.MemoryProfiler.Companion.getAllocationInfosForSession
@@ -29,7 +30,10 @@ import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject
 import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject
 import com.android.tools.profilers.memory.adapters.LiveAllocationCaptureObject
 import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCaptureObject
+import com.intellij.openapi.application.ApplicationManager
+import java.io.File
 import java.util.concurrent.TimeUnit
+import java.util.function.Supplier
 
 /**
  * This module implements capture data series for different kinds of underlying data.
@@ -43,7 +47,15 @@ object CaptureDataSeries {
       { getAllocationInfosForSession(client, session, it) },
       { it.startTime },
       { it.endTime },
-      { LegacyAllocationCaptureObject(client, session, it, tracker) },
+      {
+        LegacyAllocationCaptureObject(
+          client,
+          session,
+          it,
+          tracker,
+          Supplier { getTraceFile(client, session.streamId, it.startTime.toString(), retry = true) },
+        )
+      },
       { durUs, _, entry -> CaptureDurationData(durUs, false, false, entry, LegacyAllocationCaptureObject::class.java) },
     )
 
@@ -63,7 +75,11 @@ object CaptureDataSeries {
       { getHeapDumpsForSession(client, session, it) },
       { it.startTime },
       { it.endTime },
-      { HeapDumpCaptureObject(client, session, it, null, tracker, stage.studioProfilers.ideServices) },
+      {
+        HeapDumpCaptureObject(client, session, it, null, tracker, stage.studioProfilers.ideServices) {
+          getTraceFile(client, session.streamId, it.startTime.toString(), retry = false)
+        }
+      },
       { durUs, _, entry -> CaptureDurationData(durUs, false, false, entry, HeapDumpCaptureObject::class.java) },
     )
 
@@ -73,7 +89,17 @@ object CaptureDataSeries {
       { getNativeHeapSamplesForSession(client, session, it) },
       { it.fromTimestamp },
       { it.toTimestamp },
-      { NativeAllocationSampleCaptureObject(client, session, it, stage) },
+      {
+        NativeAllocationSampleCaptureObject(
+          client,
+          session,
+          it,
+          stage.context.ideProfilerServices,
+          stage.studioProfilers.sessionsManager.selectedSessionMetaData.processAbi,
+        ) {
+          getTraceFile(client, session.streamId, it.fromTimestamp.toString(), retry = true)
+        }
+      },
       { durUs, _, entry -> CaptureDurationData(durUs, false, false, entry, NativeAllocationSampleCaptureObject::class.java) },
     )
 
@@ -92,6 +118,32 @@ object CaptureDataSeries {
         SeriesData(startNs.nanosToMicros(), makeDurationData(durUs, it, CaptureEntry(it!!) { makeCapture(it) }))
       }
     }
+
+  /**
+   * Retrieves the trace file from the transport daemon.
+   *
+   * @param retry If true, blocks and polls for up to 10 seconds waiting for the file to become available. WARNING: If retry is true, this
+   *   is a blocking call and must NOT be called on the UI thread.
+   */
+  private fun getTraceFile(client: ProfilerClient, streamId: Long, id: String, retry: Boolean): File {
+    ApplicationManager.getApplication()?.assertIsNonDispatchThread()
+    var response = Transport.FileResponse.getDefaultInstance()
+    // TODO(b/519154304): Investigate if we can wait for the file to be fully cached before emitting the capture event, rather than polling
+    // here.
+    var retryCount = 100 // ~10 seconds
+    while (response.filePath.isEmpty()) {
+      response = client.transportClient.getFile(Transport.BytesRequest.newBuilder().setStreamId(streamId).setId(id).build())
+      if (response.filePath.isNotEmpty()) break
+      if (!retry || retryCount-- == 0) break
+      try {
+        Thread.sleep(100L)
+      } catch (_: InterruptedException) {
+        Thread.currentThread().interrupt()
+        break
+      }
+    }
+    return File(response.filePath)
+  }
 }
 
 private fun Long.nanosToMicros() = TimeUnit.NANOSECONDS.toMicros(this)

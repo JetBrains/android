@@ -18,9 +18,7 @@ package com.android.tools.profilers
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.SessionData.SessionStarted
 import com.android.tools.profiler.proto.LeakCanary
-import com.android.tools.profilers.cpu.CpuCaptureParserUtil
 import com.android.tools.profilers.cpu.ProfilerInEditorUtils
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.memory.MemoryProfiler
 import com.android.tools.profilers.sessions.SessionsManager
 import com.intellij.openapi.diagnostic.Logger
@@ -30,7 +28,6 @@ import java.io.IOException
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.SQLException
-import kotlin.jvm.JvmStatic
 
 /**
  * This utility class extracts and exposes common functions needed to import a file and convert it to a session + artifact in the Profiler.
@@ -68,12 +65,7 @@ object ImportedSessionUtils {
   ) {
     withFileImportedOnce(sessionsManager, file) { startTimestampsEpochMs, startTime, endTime ->
       val config = sessionsManager.studioProfilers.ideServices.featureConfig
-      val taskType =
-        if (sessionType == SessionStarted.SessionType.CPU_CAPTURE) {
-          CpuCaptureParserUtil.getFileTraceType(file, TraceType.UNSPECIFIED)?.toTaskType()
-        } else {
-          null
-        }
+      val taskType = ProfilerCaptureFileUtils.getFileTaskType(file)
       val openInEditor = taskType != null && ProfilerInEditorUtils.isEditorEnabled(config, taskType)
 
       val fileToImport =

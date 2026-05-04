@@ -23,6 +23,7 @@ import com.android.tools.profilers.ExportableArtifact
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.memory.MemoryProfiler.Companion.getAllocationInfosForSession
 import com.android.tools.profilers.sessions.SessionArtifact
+import com.android.tools.profilers.sessions.SessionsManager
 import java.io.OutputStream
 import java.util.concurrent.TimeUnit
 
@@ -75,6 +76,16 @@ class AllocationSessionArtifact(
       val rangeUs = Range(session.startTimestamp.nanosToMicros().toDouble(), session.endTimestamp.nanosToMicros().toDouble())
       return getAllocationInfosForSession(profilers.client, session, rangeUs).mapNotNull { info ->
         if (info.legacy) {
+          val isTaskBasedUxEnabled = profilers.ideServices.featureConfig.isTaskBasedUxEnabled
+          val isUnifiedEditorEnabled = profilers.ideServices.featureConfig.isJavaKotlinAllocationsLegacyTraceInEditorEnabled
+          if (
+            isTaskBasedUxEnabled &&
+              isUnifiedEditorEnabled &&
+              sessionMetadata.type == Common.SessionMetaData.SessionType.FULL &&
+              !SessionsManager.isSessionImported(session)
+          ) {
+            return@mapNotNull null
+          }
           LegacyAllocationsSessionArtifact(profilers, session, sessionMetadata, info)
         } else {
           AllocationSessionArtifact(

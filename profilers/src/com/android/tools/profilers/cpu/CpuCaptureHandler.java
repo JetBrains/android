@@ -18,7 +18,6 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.profilers.IdeProfilerServices;
-import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.tasks.analytics.TaskTracker;
 import com.google.common.annotations.VisibleForTesting;
@@ -47,27 +46,27 @@ public class CpuCaptureHandler implements Updatable, StatusPanelModel {
     CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_CAUSE_UNKNOWN;
 
   @VisibleForTesting
-  public CpuCaptureHandler(@NotNull StudioProfilers profilers,
+  public CpuCaptureHandler(@NotNull IdeProfilerServices ideProfilerServices,
                            @NotNull File captureFile,
                            long traceId,
                            @NotNull ProfilingConfiguration configuration,
                            @Nullable String captureProcessNameHint,
                            int captureProcessIdHint) {
-    this(profilers, captureFile, traceId, configuration, new CpuCaptureMetadata(configuration), captureProcessNameHint,
+    this(ideProfilerServices, captureFile, traceId, configuration, new CpuCaptureMetadata(configuration), captureProcessNameHint,
          captureProcessIdHint);
   }
 
-  public CpuCaptureHandler(@NotNull StudioProfilers profilers,
+  public CpuCaptureHandler(@NotNull IdeProfilerServices ideProfilerServices,
                            @NotNull File captureFile,
                            long traceId,
                            @NotNull ProfilingConfiguration configuration,
                            @NotNull CpuCaptureMetadata captureMetadata,
                            @Nullable String captureProcessNameHint,
                            int captureProcessIdHint) {
-    myCaptureParser = new CpuCaptureParser(profilers);
+    myCaptureParser = new CpuCaptureParser(ideProfilerServices);
     myCaptureFile = captureFile;
     myTraceId = traceId;
-    myServices = profilers.getIdeServices();
+    myServices = ideProfilerServices;
     myConfiguration = configuration;
     myCaptureProcessIdHint = captureProcessIdHint;
     myCaptureProcessNameHint = captureProcessNameHint;

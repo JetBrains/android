@@ -23,11 +23,11 @@ import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.sessions.SessionArtifact;
+import com.android.tools.profilers.sessions.SessionsManager;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
@@ -77,12 +77,25 @@ public final class HprofSessionArtifact extends MemorySessionArtifact<HeapDumpIn
   public static List<SessionArtifact<?>> getSessionArtifacts(@NotNull StudioProfilers profilers,
                                                              @NotNull Common.Session session,
                                                              @NotNull Common.SessionMetaData sessionMetaData) {
+    if (shouldSkipArtifact(profilers, session, sessionMetaData)) {
+      return java.util.Collections.emptyList();
+    }
     Range queryRangeUs = new Range(TimeUnit.NANOSECONDS.toMicros(session.getStartTimestamp()),
                                    session.getEndTimestamp() == Long.MAX_VALUE
                                    ? Long.MAX_VALUE
                                    : TimeUnit.NANOSECONDS.toMicros(session.getEndTimestamp()));
     List<HeapDumpInfo> infos = MemoryProfiler.getHeapDumpsForSession(profilers.getClient(), session, queryRangeUs);
     return ContainerUtil.map(infos, info -> new HprofSessionArtifact(profilers, session, sessionMetaData, info));
+  }
+
+  private static boolean shouldSkipArtifact(@NotNull StudioProfilers profilers,
+                                            @NotNull Common.Session session,
+                                            @NotNull Common.SessionMetaData sessionMetaData) {
+    boolean isTaskBasedUxEnabled = profilers.getIdeServices().getFeatureConfig().isTaskBasedUxEnabled();
+    boolean isUnifiedEditorEnabled = profilers.getIdeServices().getFeatureConfig().isHeapDumpTraceInEditorEnabled();
+    return isTaskBasedUxEnabled && isUnifiedEditorEnabled &&
+           sessionMetaData.getType() == Common.SessionMetaData.SessionType.FULL &&
+           !SessionsManager.isSessionImported(session);
   }
 
   @Override

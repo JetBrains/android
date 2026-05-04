@@ -15,32 +15,9 @@
  */
 package com.android.tools.profilers;
 
-import static com.android.tools.profilers.ProfilerFonts.H1_FONT;
-import static com.android.tools.profilers.ProfilerLayout.PROFILING_INSTRUCTIONS_ICON_PADDING;
-
-import com.android.tools.adtui.instructions.HyperlinkInstruction;
-import com.android.tools.adtui.instructions.IconInstruction;
-import com.android.tools.adtui.instructions.InstructionsPanel;
-import com.android.tools.adtui.instructions.NewRowInstruction;
-import com.android.tools.adtui.instructions.RenderInstruction;
-import com.android.tools.adtui.instructions.TextInstruction;
-import com.intellij.icons.AllIcons;
-import com.intellij.ui.JBColor;
-import com.intellij.util.ui.UIUtilities;
-import icons.StudioIllustrations;
 import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.util.ArrayList;
-import java.util.List;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -49,48 +26,12 @@ import org.jetbrains.annotations.NotNull;
 public class NullMonitorStageView extends StageView<NullMonitorStage> {
   private static final String ANDROID_PROFILER_TITLE = "Android Profiler";
 
-  private JLabel myTitle;
-  @NotNull private final JPanel myInstructionsWrappingPanel;
 
   public NullMonitorStageView(@NotNull StudioProfilersView profilersView, @NotNull NullMonitorStage stage) {
     super(profilersView, stage);
 
-    JPanel topPanel = new JPanel();
-    BoxLayout layout = new BoxLayout(topPanel, BoxLayout.Y_AXIS);
-    topPanel.setLayout(layout);
-
-    topPanel.add(Box.createVerticalGlue());
-    topPanel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
-
-    JLabel picLabel = new JLabel(StudioIllustrations.Common.DISCONNECT_PROFILER);
-    picLabel.setHorizontalAlignment(SwingConstants.CENTER);
-    picLabel.setVerticalAlignment(SwingConstants.CENTER);
-    picLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-    topPanel.add(picLabel);
-
-    myTitle = new JLabel();
-    myTitle.setHorizontalAlignment(SwingConstants.CENTER);
-    myTitle.setVerticalAlignment(SwingConstants.TOP);
-    myTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
-    myTitle.setFont(H1_FONT);
-    myTitle.setForeground(new JBColor(0x000000, 0xFFFFFF));
-    topPanel.add(myTitle);
-    topPanel.add(Box.createRigidArea(new Dimension(1, 15)));
-
-    myInstructionsWrappingPanel = new JPanel();
-    myInstructionsWrappingPanel.setOpaque(false);
-    topPanel.add(myInstructionsWrappingPanel);
-    topPanel.add(Box.createVerticalGlue());
-
-    getComponent().add(topPanel, BorderLayout.CENTER);
-    initializeStageView();
-  }
-
-  private void initializeStageView() {
-    myTitle.setText(ANDROID_PROFILER_TITLE);
-    myInstructionsWrappingPanel.add(new InstructionsPanel.Builder(getMessageInstructions())
-                                      .setPaddings(0, 0)
-                                      .setColors(ProfilerColors.MESSAGE_COLOR, ProfilerColors.DEFAULT_BACKGROUND).build());
+    ProfilerEmptyStateView messageView = new ProfilerEmptyStateView(ANDROID_PROFILER_TITLE, stage.getUnsupportedReason());
+    getComponent().add(messageView, BorderLayout.CENTER);
   }
 
   @Override
@@ -101,25 +42,5 @@ public class NullMonitorStageView extends StageView<NullMonitorStage> {
   @Override
   public boolean needsProcessSelection() {
     return true;
-  }
-
-  private RenderInstruction[] getMessageInstructions() {
-    Font font = myTitle.getFont().deriveFont(12.0f);
-    List<RenderInstruction> instructions = new ArrayList<>();
-    FontMetrics metrics = UIUtilities.getFontMetrics(myInstructionsWrappingPanel, font);
-    // Display device unsupported reason if available instead of the generic message.
-    if (getStage().getUnsupportedReason() != null) {
-      instructions.add(new TextInstruction(metrics, getStage().getUnsupportedReason()));
-    } else {
-      instructions.add(new TextInstruction(metrics, "Click "));
-      instructions.add(new IconInstruction(AllIcons.General.Add, PROFILING_INSTRUCTIONS_ICON_PADDING, null));
-      instructions.add(new TextInstruction(metrics, " to attach a process or load a capture."));
-    }
-    instructions.add(new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN));
-    instructions.add(new HyperlinkInstruction(font, "Learn More", "https://developer.android.com/r/studio-ui/about-profilers.html"));
-
-    RenderInstruction[] instructionsArray = new RenderInstruction[instructions.size()];
-    instructions.toArray(instructionsArray);
-    return instructionsArray;
   }
 }

@@ -82,7 +82,8 @@ class FlameChartDetailsViewTest {
 
   @Test
   fun flameChartHasCpuTraceEventTooltipView() {
-    val parser = CpuCaptureParser(profilersView.studioProfilers)
+    val ideServices = profilersView.studioProfilers.ideServices
+    val parser = CpuCaptureParser(ideServices)
 
     val traceFile = resolveWorkspacePath(CpuProfilerUITestUtils.ATRACE_PID1_PATH).toFile()
     val atraceCapture =

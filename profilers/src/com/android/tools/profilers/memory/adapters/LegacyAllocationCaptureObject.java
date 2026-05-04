@@ -20,7 +20,6 @@ import static com.android.tools.profilers.memory.MemoryProfiler.saveLegacyAlloca
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
-import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.LegacyAllocationConverter;
@@ -36,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,13 +54,16 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
   private final FeatureTracker myFeatureTracker;
   private volatile boolean myIsDoneLoading = false;
   private volatile boolean myIsLoadingError = false;
+
   // Allocation records do not have heap information, but we create a fake HeapSet container anyway so that we have a consistent MemoryObject model.
   private final HeapSet myFakeHeapSet;
+  @NotNull private final Supplier<File> myFileSupplier;
 
   public LegacyAllocationCaptureObject(@NotNull ProfilerClient client,
                                        @NotNull Common.Session session,
                                        @NotNull Memory.AllocationsInfo info,
-                                       @NotNull FeatureTracker featureTracker) {
+                                       @NotNull FeatureTracker featureTracker,
+                                       @NotNull Supplier<File> fileSupplier) {
     myClient = client;
     myClassDb = new ClassDb();
     mySession = session;
@@ -70,6 +73,7 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
     myEndTimeNs = info.getEndTime();
     myFakeHeapSet = new HeapSet(this, DEFAULT_HEAP_NAME, DEFAULT_HEAP_ID);
     myFeatureTracker = featureTracker;
+    myFileSupplier = fileSupplier;
   }
 
   @NotNull
@@ -125,31 +129,11 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
       return false;
     }
 
-    Transport.FileResponse response;
-    while (true) {
-      response = myClient.getTransportClient().getFile(Transport.BytesRequest.newBuilder()
-                                                          .setStreamId(mySession.getStreamId())
-                                                          .setId(Long.toString(myInfo.getStartTime()))
-                                                          .build());
-      // The transport service now returns a file path instead of the raw bytes.
-      if (!response.getFilePath().isEmpty()) {
-        break;
-      }
-      else {
-        try {
-          Thread.sleep(50L);
-        }
-        catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-          myIsLoadingError = true;
-          return false;
-        }
-      }
-    }
+    File trace = myFileSupplier.get();
 
     byte[] allocationBytes;
     try {
-      allocationBytes = Files.readAllBytes(new File(response.getFilePath()).toPath());
+      allocationBytes = Files.readAllBytes(trace.toPath());
     }
     catch (IOException e) {
       myIsLoadingError = true;

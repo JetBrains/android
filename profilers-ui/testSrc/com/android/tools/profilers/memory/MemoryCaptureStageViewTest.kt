@@ -95,6 +95,7 @@ class MemoryCaptureStageViewTest {
   private fun createStageWithCaptureLoaded(capture: CaptureObject) =
     MemoryCaptureStage(
         profilers,
+        MainMemoryProfilerStage.createDefaultContext(profilers),
         mockLoader,
         CaptureDurationData(1, false, false, CaptureEntry(Any(), Supplier { capture })),
         MoreExecutors.directExecutor(),

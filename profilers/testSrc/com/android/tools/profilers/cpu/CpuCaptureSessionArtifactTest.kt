@@ -104,14 +104,23 @@ class CpuCaptureSessionArtifactTest {
 
   @Test
   fun testSimpleperfCpuCaptureSessionName() {
-    val simpleperfTraceInfo =
-      Trace.TraceInfo.newBuilder()
-        .setConfiguration(Trace.TraceConfiguration.newBuilder().setSimpleperfOptions(Trace.SimpleperfOptions.getDefaultInstance()))
-        .build()
-    addTraceInfo(simpleperfTraceInfo)
-    sessionsManager.update()
-    assertThat(sessionItem.getChildArtifacts()).hasSize(1)
-    assertThat(sessionItem.getChildArtifacts()[0].name).isEqualTo(ProfilingTechnology.SIMPLEPERF.getName())
+    val isCallstackSampleEditorEnabled =
+      (sessionsManager.studioProfilers.ideServices as FakeIdeProfilerServices).featureConfig.isCallstackSampleTraceInEditorEnabled
+    (sessionsManager.studioProfilers.ideServices as FakeIdeProfilerServices).setCallstackSampleTraceInEditorEnabled(false)
+    try {
+      val simpleperfTraceInfo =
+        Trace.TraceInfo.newBuilder()
+          .setConfiguration(Trace.TraceConfiguration.newBuilder().setSimpleperfOptions(Trace.SimpleperfOptions.getDefaultInstance()))
+          .build()
+      addTraceInfo(simpleperfTraceInfo)
+      sessionsManager.update()
+      assertThat(sessionItem.getChildArtifacts()).hasSize(1)
+      assertThat(sessionItem.getChildArtifacts()[0].name).isEqualTo(ProfilingTechnology.SIMPLEPERF.getName())
+    } finally {
+      (sessionsManager.studioProfilers.ideServices as FakeIdeProfilerServices).setCallstackSampleTraceInEditorEnabled(
+        isCallstackSampleEditorEnabled
+      )
+    }
   }
 
   @Test

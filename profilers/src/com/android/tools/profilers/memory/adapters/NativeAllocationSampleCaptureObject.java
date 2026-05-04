@@ -18,10 +18,8 @@ package com.android.tools.profilers.memory.adapters;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Trace;
-import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ProfilerClient;
-import com.android.tools.profilers.memory.BaseMemoryProfilerStage;
 import com.android.tools.profilers.memory.ClassGrouping;
 import com.android.tools.profilers.memory.MemoryProfiler;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
@@ -36,6 +34,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,23 +53,30 @@ public final class NativeAllocationSampleCaptureObject implements CaptureObject 
   private final long myEndTimeNs;
   private final List<HeapSet> myHeapSets;
   private final NativeMemoryHeapSet myDefaultHeapSet;
-  private final BaseMemoryProfilerStage myStage;
+  private final IdeProfilerServices myIdeProfilerServices;
+  private final String myProcessAbi;
 
   boolean myIsLoadingError = false;
   boolean myIsDoneLoading = false;
   private final Trace.TraceInfo myInfo;
 
+  @NotNull private final Supplier<File> myFileSupplier;
+
   public NativeAllocationSampleCaptureObject(@NotNull ProfilerClient client,
                                              @NotNull Common.Session session,
                                              @NotNull Trace.TraceInfo info,
-                                             @NotNull BaseMemoryProfilerStage stage) {
+                                             @NotNull IdeProfilerServices ideProfilerServices,
+                                             @NotNull String processAbi,
+                                             @NotNull Supplier<File> fileSupplier) {
     myClassDb = new ClassDb();
     myClient = client;
     mySession = session;
     myInfo = info;
     myStartTimeNs = info.getFromTimestamp();
     myEndTimeNs = info.getToTimestamp();
-    myStage = stage;
+    myIdeProfilerServices = ideProfilerServices;
+    myProcessAbi = processAbi;
+    myFileSupplier = fileSupplier;
 
     myDefaultHeapSet = new NativeMemoryHeapSet(this);
     myHeapSets = new ArrayList<>();
@@ -124,44 +130,14 @@ public final class NativeAllocationSampleCaptureObject implements CaptureObject 
 
   @Override
   public boolean load(@Nullable Range queryRange, @Nullable Executor queryJoiner) {
-    Transport.FileResponse response = Transport.FileResponse.getDefaultInstance();
-    int retryCount = 100; // ~10 seconds.
-    while (response.getFilePath().isEmpty()) {
-      response = myClient.getTransportClient().getFile(Transport.BytesRequest.newBuilder()
-                                                          .setStreamId(mySession.getStreamId())
-                                                          .setId(Long.toString(myStartTimeNs))
-                                                          .build());
-      if (!response.getFilePath().isEmpty()) {
-        break;
-      }
-
-      if (retryCount-- == 0) {
-        myIsLoadingError = true;
-        return false;
-      }
-
-      try {
-        Thread.sleep(100L);
-      }
-      catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        myIsLoadingError = true;
-        return false;
-      }
-    }
-
-    if (response.getFilePath().isEmpty()) {
+    File trace = myFileSupplier.get();
+    TraceProcessorService service = myIdeProfilerServices.getTraceProcessorService();
+    long traceId = myStartTimeNs;
+    if (!service.loadTrace(traceId, trace.getAbsoluteFile(), myIdeProfilerServices)) {
       myIsLoadingError = true;
       return false;
     }
-
-    File trace = new File(response.getFilePath());
-    String abi = myStage.getStudioProfilers().getSessionsManager().getSelectedSessionMetaData().getProcessAbi();
-    TraceProcessorService service = myStage.getStudioProfilers().getIdeServices().getTraceProcessorService();
-    IdeProfilerServices profilerServices = myStage.getStudioProfilers().getIdeServices();
-    long traceId = myStartTimeNs;
-    service.loadTrace(traceId, trace.getAbsoluteFile(), profilerServices);
-    service.loadMemoryData(traceId, abi, myDefaultHeapSet, profilerServices);
+    service.loadMemoryData(traceId, myProcessAbi, myDefaultHeapSet, myIdeProfilerServices);
     myIsDoneLoading = true;
     return true;
   }

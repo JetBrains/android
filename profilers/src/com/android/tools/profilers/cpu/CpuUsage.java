@@ -52,8 +52,11 @@ public class CpuUsage extends LineChartModel {
    * {@link SystemTraceCpuCapture} cpu usage data is only queried from the datastore.
    */
   public CpuUsage(@NotNull StudioProfilers profilers, @NotNull Range viewRange, @NotNull Range dataRange, @Nullable CpuCapture cpuCapture) {
+    this(viewRange, dataRange, buildDataSeries(profilers.getClient().getTransportClient(), profilers.getSession(), cpuCapture));
+  }
+
+  public CpuUsage(@NotNull Range viewRange, @NotNull Range dataRange, @NotNull DataSeries<Long> series) {
     myCpuRange = new Range(0, 100);
-    DataSeries<Long> series = buildDataSeries(profilers.getClient().getTransportClient(), profilers.getSession(), cpuCapture);
     myCpuSeries = new RangedContinuousSeries(getCpuSeriesLabel(), viewRange, myCpuRange, series, dataRange);
     add(myCpuSeries);
   }

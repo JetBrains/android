@@ -21,7 +21,6 @@ import com.android.tools.idea.io.grpc.StatusRuntimeException
 import com.android.tools.idea.transport.poller.TransportEventListener
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Common.Event
 import com.android.tools.profiler.proto.Memory
 import com.android.tools.profiler.proto.Memory.AllocationsInfo
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo
@@ -63,20 +62,22 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
     get() = profilers.ideServices.featureTracker
 
   init {
-    this.profilers.addDependency(myAspectObserver).onChange(ProfilerAspect.AGENT, ::agentStatusChanged)
-    sessionsManager.registerImportHandler("hprof", Consumer(::importHprof))
-    sessionsManager.registerImportHandler("prof", Consumer(::importHprof))
-    sessionsManager.registerImportHandler("alloc", Consumer(::importLegacyAllocations))
-    sessionsManager.registerImportHandler("heapprofd", Consumer(::importHeapprofd))
-    sessionsManager.registerImportHandler("asdb") { file -> ImportedSessionUtils.importAsdbTask(profilers, file) }
-    this.profilers.registerSessionChangeListener(Common.SessionMetaData.SessionType.MEMORY_CAPTURE) {
-      val stage = MainMemoryProfilerStage(this.profilers)
-      this.profilers.stage = stage
-      stage.setPendingCaptureStartTimeGuarded(this.profilers.session.startTimestamp)
-      this.profilers.timeline.apply {
-        reset(this@MemoryProfiler.profilers.session.startTimestamp, this@MemoryProfiler.profilers.session.endTimestamp)
-        viewRange.set(dataRange)
-        setIsPaused(true)
+    if (!this.profilers.isOffline) {
+      this.profilers.addDependency(myAspectObserver).onChange(ProfilerAspect.AGENT, ::agentStatusChanged)
+      sessionsManager.registerImportHandler("hprof", Consumer(::importHprof))
+      sessionsManager.registerImportHandler("prof", Consumer(::importHprof))
+      sessionsManager.registerImportHandler("alloc", Consumer(::importLegacyAllocations))
+      sessionsManager.registerImportHandler("heapprofd", Consumer(::importHeapprofd))
+      sessionsManager.registerImportHandler("asdb") { file -> ImportedSessionUtils.importAsdbTask(profilers, file) }
+      this.profilers.registerSessionChangeListener(Common.SessionMetaData.SessionType.MEMORY_CAPTURE) {
+        val stage = MainMemoryProfilerStage(this.profilers)
+        this.profilers.stage = stage
+        stage.setPendingCaptureStartTimeGuarded(this.profilers.session.startTimestamp)
+        this.profilers.timeline.apply {
+          reset(this@MemoryProfiler.profilers.session.startTimestamp, this@MemoryProfiler.profilers.session.endTimestamp)
+          viewRange.set(dataRange)
+          setIsPaused(true)
+        }
       }
     }
   }
@@ -137,7 +138,7 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
   }
 
   private fun importHprof(file: File) {
-    fun makeInfo(start: Long, end: Long) = HeapDumpInfo.newBuilder().setStartTime(start).setEndTime(end)
+    fun makeInfo(start: Long, end: Long) = HeapDumpInfo.newBuilder().setStartTime(start).setEndTime(end).build()
     importFileWithArtifactEvent(sessionsManager, file, Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE) { start, end ->
       makeEndedEvent(start, start, Common.Event.Kind.MEMORY_HEAP_DUMP) {
         setMemoryHeapdump(Memory.MemoryHeapDumpData.newBuilder().setInfo(makeInfo(start, end)))

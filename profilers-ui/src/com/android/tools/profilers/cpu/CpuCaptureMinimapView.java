@@ -72,12 +72,17 @@ public class CpuCaptureMinimapView {
     myInnerPanel.add(createLineChart(model.getCpuUsage()), new TabularLayout.Constraint(0, 0));
     myInnerPanel.add(chartLabel, new TabularLayout.Constraint(0, 0));
     if (model.getCpuUsage().getCpuSeries().getSeries().isEmpty()) {
-      JLabel cpuDataNotAvailableLabel = new JLabel();
-      cpuDataNotAvailableLabel.setText("No CPU usage data available for this imported trace");
-      cpuDataNotAvailableLabel.setFont(H3_FONT);
-      cpuDataNotAvailableLabel.setVerticalAlignment(SwingConstants.CENTER);
-      cpuDataNotAvailableLabel.setHorizontalAlignment(SwingConstants.CENTER);
-      myInnerPanel.add(cpuDataNotAvailableLabel, new TabularLayout.Constraint(0, 0));
+      if (model.isEditorEnabled()) {
+        // TODO(b512689839): Populate and display CPU Usage data to editor is needed, only valid for CallStack Sample task.
+        chartLabel.setText("");
+      } else {
+        JLabel cpuDataNotAvailableLabel = new JLabel();
+        cpuDataNotAvailableLabel.setText("CPU usage data unavailable");
+        cpuDataNotAvailableLabel.setFont(H3_FONT);
+        cpuDataNotAvailableLabel.setVerticalAlignment(SwingConstants.CENTER);
+        cpuDataNotAvailableLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        myInnerPanel.add(cpuDataNotAvailableLabel, new TabularLayout.Constraint(0, 0));
+      }
     }
 
     myPanel = new JPanel(new TabularLayout("*", "60px"));

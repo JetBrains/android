@@ -17,6 +17,7 @@ package com.android.tools.profilers.tasks.analytics
 
 import com.android.tools.profiler.proto.Common.Process.ExposureLevel
 import com.android.tools.profiler.proto.Common.Session
+import com.android.tools.profilers.ProfilerContext
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration
@@ -27,6 +28,7 @@ import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.tasks.ProfilerTaskType
+import com.android.tools.profilers.tasks.analytics.TaskTracker.Companion.createTaskTracker
 
 /**
  * A class responsible for tracking the lifecycle events of a profiler task.
@@ -131,6 +133,22 @@ open class TaskTracker private constructor(private val profilers: StudioProfiler
     fun createTaskTracker(profilers: StudioProfilers): TaskTracker {
       val taskMetadata = buildTaskMetadata(profilers)
       return TaskTracker(profilers, taskMetadata)
+    }
+
+    /**
+     * Creates a [TaskTracker] utilizing deferred offline metadata from the [context] if loaded.
+     *
+     * @param profilers The [StudioProfilers] instance used to retrieve state and services.
+     * @param context The [com.android.tools.profilers.ProfilerContext] to inspect for offline metadata.
+     */
+    @JvmStatic
+    fun createTaskTracker(profilers: StudioProfilers, context: ProfilerContext): TaskTracker {
+      val proto = context.taskMetadata
+      if (proto != null) {
+        val taskMetadata = TaskMetadataConverter.fromProto(proto)
+        return TaskTracker(profilers, taskMetadata)
+      }
+      return createTaskTracker(profilers)
     }
 
     /**

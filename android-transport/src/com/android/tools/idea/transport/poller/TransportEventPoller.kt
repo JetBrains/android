@@ -31,16 +31,24 @@ import kotlin.math.max
  * Encapsulates most of the polling functionality that Transport Pipeline subscribers would need to implement to listen for updates and
  * Events coming in from the pipeline
  */
+interface TransportPoller {
+  fun registerListener(listener: TransportEventListener)
+
+  fun unregisterListener(listener: TransportEventListener)
+
+  fun poll()
+}
+
 class TransportEventPoller(
   private val transportClient: TransportServiceGrpc.TransportServiceBlockingStub,
   private val sortOrder: Comparator<Common.Event> = Comparator.comparing(Common.Event::getTimestamp),
-) {
+) : TransportPoller {
   private val writeLock = Object()
   private val eventListeners: MutableList<TransportEventListener> = CopyOnWriteArrayList() // Used to preserve insertion order
   private val listenersToLastTimestamp = ConcurrentHashMap<TransportEventListener, Long>()
 
   /** Adds a listener to the list to poll for and be notified of changes. Listeners are polled in insertion order. */
-  fun registerListener(listener: TransportEventListener) {
+  override fun registerListener(listener: TransportEventListener) {
     synchronized(writeLock) {
       eventListeners.add(listener)
       listenersToLastTimestamp[listener] = Long.MIN_VALUE
@@ -48,14 +56,14 @@ class TransportEventPoller(
   }
 
   /** Removes a listener from the list, or do nothing if it is not in the list */
-  fun unregisterListener(listener: TransportEventListener) {
+  override fun unregisterListener(listener: TransportEventListener) {
     synchronized(writeLock) {
       eventListeners.remove(listener)
       listenersToLastTimestamp.remove(listener)
     }
   }
 
-  fun poll() {
+  override fun poll() {
     // Copy the list so we can remove listeners within the loop in-place.
     val listeners = mutableListOf<TransportEventListener>().apply { addAll(eventListeners) }
     // Poll for each listener
@@ -107,8 +115,18 @@ class TransportEventPoller(
   }
 
   companion object {
+    @JvmStatic
+    val NO_OP: TransportPoller =
+      object : TransportPoller {
+        override fun registerListener(listener: TransportEventListener) {}
+
+        override fun unregisterListener(listener: TransportEventListener) {}
+
+        override fun poll() {}
+      }
+
     private val myExecutorService: ScheduledExecutorService = Executors.newScheduledThreadPool(1)
-    private val myScheduledFutures = mutableMapOf<TransportEventPoller, ScheduledFuture<*>>()
+    private val myScheduledFutures = mutableMapOf<TransportPoller, ScheduledFuture<*>>()
 
     @JvmOverloads
     @JvmStatic
@@ -117,14 +135,14 @@ class TransportEventPoller(
       pollPeriodNs: Long,
       sortOrder: java.util.Comparator<Common.Event> = Comparator.comparing(Common.Event::getTimestamp),
       executorServiceForTest: ScheduledExecutorService? = null,
-    ): TransportEventPoller {
+    ): TransportPoller {
       val poller = TransportEventPoller(transportClient, sortOrder)
       startPoller(poller, pollPeriodNs, executorServiceForTest)
       return poller
     }
 
     @JvmStatic
-    fun startPoller(poller: TransportEventPoller, pollPeriodNs: Long, executorServiceForTest: ScheduledExecutorService? = null) {
+    fun startPoller(poller: TransportPoller, pollPeriodNs: Long, executorServiceForTest: ScheduledExecutorService? = null) {
       val scheduledFuture =
         (executorServiceForTest ?: myExecutorService).scheduleWithFixedDelay(
           {
@@ -142,12 +160,12 @@ class TransportEventPoller(
     }
 
     @JvmStatic
-    fun stopPoller(poller: TransportEventPoller) {
+    fun stopPoller(poller: TransportPoller) {
       myScheduledFutures.remove(poller)?.cancel(false)
     }
 
     @JvmStatic
-    fun isPollerRunning(poller: TransportEventPoller): Boolean {
+    fun isPollerRunning(poller: TransportPoller): Boolean {
       return myScheduledFutures.containsKey(poller)
     }
   }
