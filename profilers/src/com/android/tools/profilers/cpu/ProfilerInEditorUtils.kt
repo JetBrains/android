@@ -25,6 +25,10 @@ object ProfilerInEditorUtils {
     return when (taskType) {
       ProfilerTaskType.SYSTEM_TRACE -> featureConfig.isSystemTraceInEditorEnabled
       ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> featureConfig.isMethodTraceInEditorEnabled
+      ProfilerTaskType.CALLSTACK_SAMPLE -> featureConfig.isCallstackSampleTraceInEditorEnabled
+      ProfilerTaskType.HEAP_DUMP -> featureConfig.isHeapDumpTraceInEditorEnabled
+      ProfilerTaskType.NATIVE_ALLOCATIONS -> featureConfig.isNativeAllocationsTraceInEditorEnabled
+      ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS -> featureConfig.isJavaKotlinAllocationsLegacyTraceInEditorEnabled
       else -> false
     }
   }

@@ -36,6 +36,9 @@ public abstract class MemoryProfilerTestBase {
   @Before
   public void setupBase() {
     myIdeProfilerServices = new FakeIdeProfilerServices();
+    myIdeProfilerServices.setHeapDumpTraceInEditorEnabled(false);
+    myIdeProfilerServices.setNativeAllocationsTraceInEditorEnabled(false);
+    myIdeProfilerServices.setJavaKotlinAllocationsLegacyTraceInEditorEnabled(false);
     // The Task-Based UX flag will be disabled for the call to setPreferredProcess and the call to instantiate the MainMemoryProfilerStage,
     // then re-enabled. This is because the result of each call is dependent on the flag's value, and some of the tests dependent on this
     // setup rely on the results produced with the flag turned off.

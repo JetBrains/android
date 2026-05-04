@@ -18,6 +18,7 @@ package com.android.tools.idea.profilers.capture.unified
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.profilers.capture.CpuCaptureFileType
 import com.android.tools.idea.profilers.capture.PerfettoCaptureFileType
+import com.android.tools.profilers.ProfilerFormat
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorPolicy
@@ -31,7 +32,10 @@ class UnifiedProfilerEditorProvider : FileEditorProvider, DumbAware {
 
   override fun accept(project: Project, file: VirtualFile): Boolean {
     // Fail fast if extension is not supported
-    val isProfilerCaptureFile = (file.fileType is CpuCaptureFileType || PerfettoCaptureFileType.EXTENSIONS.contains(file.extension))
+    val isProfilerCaptureFile =
+      (file.fileType is CpuCaptureFileType ||
+        PerfettoCaptureFileType.EXTENSIONS.contains(file.extension) ||
+        ProfilerFormat.isMemoryFormat(ProfilerFormat.find(file.extension, getLazyTraceType(file))))
 
     if (!isProfilerCaptureFile) return false
 
@@ -62,12 +66,12 @@ class UnifiedProfilerEditorProvider : FileEditorProvider, DumbAware {
     /** Determines whether the given [file] can be parsed and rendered specifically by the Perfetto editor. */
     @JvmStatic
     fun isSupportedByPerfettoEditor(file: VirtualFile): Boolean {
-      val formats = mutableListOf<SupportedFormat>()
+      val formats = mutableListOf<ProfilerFormat>()
       if (StudioFlags.PROFILER_SYSTEM_TRACE_IN_EDITOR.get()) {
-        formats.add(PerfettoTraceFormat)
+        formats.add(ProfilerFormat.PerfettoTrace)
       }
       if (StudioFlags.PROFILER_METHOD_TRACE_IN_EDITOR.get()) {
-        formats.add(ArtTraceFormat)
+        formats.add(ProfilerFormat.ArtTrace)
       }
 
       if (formats.isEmpty()) {
@@ -77,7 +81,7 @@ class UnifiedProfilerEditorProvider : FileEditorProvider, DumbAware {
       val lazyTraceType = getLazyTraceType(file)
 
       try {
-        return formats.any { it.isSupported(file, lazyTraceType) }
+        return formats.any { it.matches(file.extension, lazyTraceType) }
       } catch (e: Exception) {
         // Fallback to false if file cannot be read (e.g. FileNotFoundException)
         log.warn("Error checking file support: ${file.path}", e)
@@ -92,7 +96,37 @@ class UnifiedProfilerEditorProvider : FileEditorProvider, DumbAware {
      */
     @JvmStatic
     fun canViewInUnifiedEditor(file: VirtualFile): Boolean {
-      return isSupportedByPerfettoEditor(file)
+      if (isSupportedByPerfettoEditor(file)) {
+        return true
+      }
+
+      val formats = mutableListOf<ProfilerFormat>()
+      if (StudioFlags.PROFILER_CALLSTACK_SAMPLE_TRACE_IN_EDITOR.get()) {
+        formats.add(ProfilerFormat.SimplePerfTrace)
+      }
+      if (StudioFlags.PROFILER_HEAP_DUMP_TRACE_IN_EDITOR.get()) {
+        formats.add(ProfilerFormat.Hprof)
+      }
+      if (StudioFlags.PROFILER_NATIVE_ALLOCATIONS_TRACE_IN_EDITOR.get()) {
+        formats.add(ProfilerFormat.NativeAllocations)
+      }
+      if (StudioFlags.PROFILER_JAVA_KOTLIN_ALLOCATIONS_LEGACY_TRACE_IN_EDITOR.get()) {
+        formats.add(ProfilerFormat.JavaKotlinLegacyAllocations)
+      }
+
+      if (formats.isEmpty()) {
+        return false
+      }
+
+      val lazyTraceType = getLazyTraceType(file)
+
+      return try {
+        formats.any { it.matches(file.extension, lazyTraceType) }
+      } catch (e: Exception) {
+        // Fallback to false if file cannot be read (e.g. FileNotFoundException)
+        log.warn("Error checking file support: ${file.path}", e)
+        false
+      }
     }
   }
 }

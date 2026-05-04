@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.profilers.capture.unified
 
-import com.android.tools.idea.profilers.capture.PerfettoCaptureFileType
 import com.android.tools.profilers.cpu.CpuCaptureParserUtil
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.intellij.openapi.util.Key
@@ -40,33 +39,4 @@ fun getLazyTraceType(file: VirtualFile): Lazy<TraceType?> = lazy {
 
   file.putUserData(TRACE_TYPE_KEY, traceType)
   traceType
-}
-
-interface SupportedFormat {
-  fun isSupported(file: VirtualFile, traceTypeProvider: Lazy<TraceType?>): Boolean
-}
-
-object PerfettoTraceFormat : SupportedFormat {
-  override fun isSupported(file: VirtualFile, traceTypeProvider: Lazy<TraceType?>): Boolean {
-    if (PerfettoCaptureFileType.EXTENSIONS.contains(file.extension)) {
-      return true
-    }
-    val extension = file.extension?.lowercase()
-    if (extension != "trace") {
-      return false
-    }
-    val detectedType = traceTypeProvider.value
-    return detectedType == TraceType.PERFETTO || detectedType == TraceType.ATRACE
-  }
-}
-
-object ArtTraceFormat : SupportedFormat {
-  override fun isSupported(file: VirtualFile, traceTypeProvider: Lazy<TraceType?>): Boolean {
-    val extension = file.extension?.lowercase()
-    if (extension != "trace") {
-      return false
-    }
-    val detectedType = traceTypeProvider.value
-    return detectedType == TraceType.ART
-  }
 }

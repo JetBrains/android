@@ -39,6 +39,7 @@ import com.android.tools.profiler.proto.Trace.TraceInitiationType;
 import com.android.tools.profilers.InterimStage;
 import com.android.tools.profilers.LogUtils;
 import com.android.tools.profilers.ProfilerAspect;
+import com.android.tools.profilers.ProfilerCaptureFileUtils;
 import com.android.tools.profilers.RecordingOption;
 import com.android.tools.profilers.RecordingOptionsModel;
 import com.android.tools.profilers.StreamingStage;
@@ -57,6 +58,7 @@ import com.android.tools.profilers.transporteventutils.TransportListenerTracker;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.Pair;
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
@@ -468,26 +470,45 @@ CpuProfilerStage extends StreamingStage implements InterimStage {
           myRecordingOptionsModel.setLoading(true);
           Trace.TraceInfo traceInfo = myCompletedTraceIdToInfoMap.get(traceId).getTraceInfo();
           ProfilingConfiguration config = ProfilingConfiguration.fromProto(traceInfo.getConfiguration(), isTraceboxEnabled);
-          return CpuCaptureStage.create(getStudioProfilers(), config, getCpuCaptureMetadata(config, traceInfo), traceId);
-        },
-        stage -> {
-          myRecordingOptionsModel.setLoading(false);
-          Trace.TraceInfo traceInfo = myCompletedTraceIdToInfoMap.get(traceId).getTraceInfo();
-          ProfilingConfiguration config = ProfilingConfiguration.fromProto(traceInfo.getConfiguration(), isTraceboxEnabled);
-          ProfilerTaskType taskType = config.getTraceType().toTaskType();
+          ProfilingConfiguration.TraceType traceType = config.getTraceType();
+          boolean isSystemTrace = traceType == ProfilingConfiguration.TraceType.ATRACE || traceType == ProfilingConfiguration.TraceType.PERFETTO;
+          boolean isArtTrace = traceType == ProfilingConfiguration.TraceType.ART;
+          boolean isSimpleperfTrace = traceType == ProfilingConfiguration.TraceType.SIMPLEPERF;
 
+          ProfilerTaskType taskType = traceType.toTaskType();
           boolean openInEditor = ProfilerInEditorUtils.isEditorEnabled(getStudioProfilers().getIdeServices().getFeatureConfig(), taskType);
 
-          if (stage != null && openInEditor) {
-            File captureFile = stage.getCaptureHandler().getCaptureFile();
-            getStudioProfilers().getIdeServices().getMainExecutor().execute(() -> {
-              if(captureFile.exists()) {
-                getStudioProfilers().getIdeServices().openTraceFile(captureFile);
-                getStudioProfilers().getIdeServices().closeTaskTab(taskType);
-              }
-            });
-          } else if (stage != null) {
+          if (openInEditor) {
+            File captureFile = ProfilerCaptureFileUtils.getAndRenameCapture(getStudioProfilers(), getStudioProfilers().getSession(), traceId);
+            if (captureFile != null) {
+              getStudioProfilers().getIdeServices().getMainExecutor().execute(() -> {
+                if (captureFile.exists()) {
+                  getStudioProfilers().getIdeServices().openTraceFile(captureFile);
+                  if (isSystemTrace) {
+                    getStudioProfilers().getIdeServices().closeTaskTab(ProfilerTaskType.SYSTEM_TRACE);
+                  } else if (isArtTrace) {
+                    getStudioProfilers().getIdeServices().closeTaskTab(ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING);
+                  } else if (isSimpleperfTrace) {
+                    getStudioProfilers().getIdeServices().closeTaskTab(ProfilerTaskType.CALLSTACK_SAMPLE);
+                  }
+                }
+              });
+              return Pair.create((CpuCaptureStage) null, true);
+            }
+          }
+
+          CpuCaptureStage stage = CpuCaptureStage.create(getStudioProfilers(), config, getCpuCaptureMetadata(config, traceInfo), traceId);
+          return Pair.create(stage, false);
+        },
+        result -> {
+          myRecordingOptionsModel.setLoading(false);
+          CpuCaptureStage stage = result.first;
+          boolean wasStandaloneOpened = result.second;
+
+          if (stage != null) {
             getStudioProfilers().getIdeServices().getMainExecutor().execute(() -> getStudioProfilers().setStage(stage));
+          } else if (wasStandaloneOpened) {
+            setCaptureState(CaptureState.IDLE);
           } else {
             // Trace ID is not found or the capture stage cannot retrieve the trace.
             setCaptureState(CaptureState.IDLE);

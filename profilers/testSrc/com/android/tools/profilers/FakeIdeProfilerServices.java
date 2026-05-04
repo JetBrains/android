@@ -19,7 +19,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.codenavigation.CodeNavigator;
 import com.android.tools.idea.codenavigation.FakeNavSource;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
-import com.android.tools.idea.transport.EventStreamServer;
 import com.android.tools.leakcanarylib.data.Leak;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profilers.analytics.FeatureTracker;
@@ -29,10 +28,11 @@ import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfigurationLegacy;
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
 import com.android.tools.profilers.cpu.config.ArtSampledConfigurationLegacy;
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.config.AtraceConfiguration;
 import com.android.tools.profilers.cpu.config.PerfettoNativeAllocationsConfiguration;
 import com.android.tools.profilers.cpu.config.PerfettoSystemTraceConfiguration;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration;
 import com.android.tools.profilers.cpu.config.UnspecifiedConfiguration;
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService;
@@ -56,7 +56,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 
 public class FakeIdeProfilerServices implements IdeProfilerServices {
 
@@ -133,6 +132,38 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
 
   private boolean myMethodTraceInEditorEnabled = false;
 
+  private boolean myCallstackSampleTraceInEditorEnabled = false;
+
+  private boolean myHeapDumpTraceInEditorEnabled = false;
+
+  private boolean myNativeAllocationsTraceInEditorEnabled = false;
+
+  private boolean myJavaKotlinAllocationsLegacyTraceInEditorEnabled = false;
+
+  public void setSystemTraceInEditorEnabled(boolean enabled) {
+    mySystemTraceInEditorEnabled = enabled;
+  }
+
+  public void setMethodTraceInEditorEnabled(boolean enabled) {
+    myMethodTraceInEditorEnabled = enabled;
+  }
+
+  public void setCallstackSampleTraceInEditorEnabled(boolean enabled) {
+    myCallstackSampleTraceInEditorEnabled = enabled;
+  }
+
+  public void setHeapDumpTraceInEditorEnabled(boolean enabled) {
+    myHeapDumpTraceInEditorEnabled = enabled;
+  }
+
+  public void setNativeAllocationsTraceInEditorEnabled(boolean enabled) {
+    myNativeAllocationsTraceInEditorEnabled = enabled;
+  }
+
+  public void setJavaKotlinAllocationsLegacyTraceInEditorEnabled(boolean enabled) {
+    myJavaKotlinAllocationsLegacyTraceInEditorEnabled = enabled;
+  }
+
   private boolean myProfilerHomeTabV2Enabled = true;
 
   private String myLastLeakRawTrace;
@@ -170,6 +201,15 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   @NotNull private final Set<String> myProjectClasses = new HashSet<>();
 
   private File myOpenedFile;
+  private ProfilerTaskType myClosedTaskTab;
+
+  public File getOpenedFile() {
+    return myOpenedFile;
+  }
+
+  public ProfilerTaskType getClosedTaskTab() {
+    return myClosedTaskTab;
+  }
 
   public FakeIdeProfilerServices() {
     myPersistentPreferences = new FakeProfilerPreferences();
@@ -293,6 +333,26 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isProfilerHomeTabV2Enabled() {
         return myProfilerHomeTabV2Enabled;
+      }
+
+      @Override
+      public boolean isCallstackSampleTraceInEditorEnabled() {
+        return myCallstackSampleTraceInEditorEnabled;
+      }
+
+      @Override
+      public boolean isHeapDumpTraceInEditorEnabled() {
+        return myHeapDumpTraceInEditorEnabled;
+      }
+
+      @Override
+      public boolean isNativeAllocationsTraceInEditorEnabled() {
+        return myNativeAllocationsTraceInEditorEnabled;
+      }
+
+      @Override
+      public boolean isJavaKotlinAllocationsLegacyTraceInEditorEnabled() {
+        return myJavaKotlinAllocationsLegacyTraceInEditorEnabled;
       }
     };
   }
@@ -456,6 +516,10 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
     return myTraceProcessorService;
   }
 
+  public void setTraceProcessorService(TraceProcessorService traceProcessorService) {
+    myTraceProcessorService = traceProcessorService;
+  }
+
   private boolean myDebuggerAttached = false;
 
   public void setDebuggerAttached(boolean debuggerAttached) {
@@ -515,6 +579,7 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
 
   @Override
   public void closeTaskTab(@NotNull ProfilerTaskType taskType) {
+    myClosedTaskTab = taskType;
   }
 
   @Override

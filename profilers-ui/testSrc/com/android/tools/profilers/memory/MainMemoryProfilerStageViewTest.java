@@ -763,7 +763,8 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
                                                                       heapDumpInfo,
                                                                       null,
                                                                       myIdeProfilerServices.getFeatureTracker(),
-                                                                      myStage.getStudioProfilers().getIdeServices());
+                                                                      myStage.getStudioProfilers().getIdeServices(),
+                                                                      () -> new File("dummy"));
     myStage.selectCaptureDuration(
       new CaptureDurationData<>(1, false, false, new CaptureEntry<>(new Object(), () -> heapDumpCapture)), joiner);
     // Manually refresh the UI, since the test loader bypasses the real async-load notification pipeline.

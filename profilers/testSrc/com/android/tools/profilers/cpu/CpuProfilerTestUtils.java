@@ -86,7 +86,7 @@ public class CpuProfilerTestUtils {
   }
 
   public static CompletableFuture<CpuCapture> getCaptureFuture(StudioProfilers profilers, File traceFile, TraceType profilerType) {
-    CpuCaptureParser parser = new CpuCaptureParser(profilers);
+    CpuCaptureParser parser = new CpuCaptureParser(profilers.getIdeServices());
     return parser.parse(traceFile, FAKE_TRACE_ID, profilerType, 0, "", TaskTracker.createNullTaskTracker(profilers));
   }
 
@@ -95,7 +95,7 @@ public class CpuProfilerTestUtils {
                                                                TraceType profilerType,
                                                                int processIdHint,
                                                                String processNameHint) {
-    CpuCaptureParser parser = new CpuCaptureParser(profilers);
+    CpuCaptureParser parser = new CpuCaptureParser(profilers.getIdeServices());
     return parser.parse(traceFile, FAKE_TRACE_ID, profilerType, processIdHint, processNameHint, TaskTracker.createNullTaskTracker(profilers));
   }
 

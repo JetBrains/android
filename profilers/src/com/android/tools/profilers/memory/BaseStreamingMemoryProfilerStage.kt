@@ -57,7 +57,7 @@ private typealias DataSeriesConstructor<T> = (ProfilerClient, Common.Session, Fe
 abstract class BaseStreamingMemoryProfilerStage(
   profilers: StudioProfilers,
   captureObjectLoader: CaptureObjectLoader = CaptureObjectLoader(),
-) : BaseMemoryProfilerStage(profilers, captureObjectLoader) {
+) : BaseMemoryProfilerStage(profilers, MainMemoryProfilerStage.createDefaultContext(profilers), captureObjectLoader) {
   protected val logger
     get() = Logger.getInstance(this.javaClass)
 

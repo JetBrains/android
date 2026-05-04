@@ -66,8 +66,10 @@ public class CpuProfiler implements StudioProfiler {
   public CpuProfiler(@NotNull StudioProfilers profilers) {
     this.profilers = profilers;
 
-    registerImportedSessionListener();
-    registerTraceImportHandler();
+    if (!profilers.isOffline()) {
+      registerImportedSessionListener();
+      registerTraceImportHandler();
+    }
   }
 
   private void onImportSessionSelected() {

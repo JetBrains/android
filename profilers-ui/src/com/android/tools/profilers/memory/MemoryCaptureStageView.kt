@@ -79,6 +79,8 @@ class MemoryCaptureStageView(profilersView: StudioProfilersView, stage: MemoryCa
   private val layout = CardLayout()
   private val mainPanel = JPanel(layout).apply { add(chartCaptureSplitter, CARD_CAPTURE) }
 
+  private var isLoading = true
+
   init {
     fun updateInstanceDetailsSplitter() =
       when (val cs = stage.captureSelection.selectedClassSet) {
@@ -105,12 +107,14 @@ class MemoryCaptureStageView(profilersView: StudioProfilersView, stage: MemoryCa
     mainPanel.addHierarchyListener {
       if (!mainPanel.isDisplayable || !mainPanel.isShowing) {
         hideLoadingPanel()
+      } else if (isLoading) {
+        showLoadingPanel()
       }
     }
   }
 
   // If Task-Based UX is enabled, no toolbar is added to the memory capture stage view.
-  override fun isToolbarVisible() = !stage.studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled
+  override fun isToolbarVisible() = !stage.context.ideProfilerServices.featureConfig.isTaskBasedUxEnabled
 
   override fun getToolbar() =
     JPanel(BorderLayout()).apply {
@@ -137,6 +141,7 @@ class MemoryCaptureStageView(profilersView: StudioProfilersView, stage: MemoryCa
     }
 
   private fun showCaptureUi() {
+    isLoading = false
     hideLoadingPanel()
     layout.show(mainPanel, CARD_CAPTURE)
   }

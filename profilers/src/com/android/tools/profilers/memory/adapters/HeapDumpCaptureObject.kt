@@ -23,7 +23,6 @@ import com.android.tools.perflib.heap.ext.NativeRegistryPostProcessor
 import com.android.tools.perflib.heap.io.InMemoryBuffer
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo
-import com.android.tools.profiler.proto.Transport
 import com.android.tools.profilers.IdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.analytics.FeatureTracker
@@ -71,6 +70,7 @@ open class HeapDumpCaptureObject(
   private val proguardMap: ProguardMap?,
   private val featureTracker: FeatureTracker,
   private val ideProfilerServices: IdeProfilerServices,
+  private val fileSupplier: (() -> File?)? = null,
 ) : CaptureObject {
   private val logger = Logger.getInstance(HeapDumpCaptureObject::class.java)
 
@@ -132,26 +132,33 @@ open class HeapDumpCaptureObject(
 
   override fun getSession() = _session
 
-  override fun load(queryRange: Range?, queryJoiner: Executor?) =
-    doGetBytesRequest().let { response ->
-      val file = if (response.filePath.isEmpty()) null else File(response.filePath)
+  override fun load(queryRange: Range?, queryJoiner: Executor?): Boolean {
+    val file = fileSupplier?.invoke()
+    if (file == null || !file.exists() || file.length() == 0L) {
+      logger.warn("Heap dump file is missing or empty. Path: ${file?.absolutePath}")
+      isLoadingError = true
+      return false
+    }
 
-      if (file == null || !file.exists() || file.length() == 0L) {
-        // If any check fails, enter the error state and return false.
-        logger.warn("Heap dump file is missing or empty. Path: ${response.filePath}")
-        false.also { isLoadingError = true }
-      } else {
-        true.also {
-          ideProfilerServices.featureTracker.trackLoading(
-            Loading.Type.HPROF,
-            sizeKb = (file.length() / 1024).toInt(),
-            measure = { instanceIndex.size.toLong() },
-          ) {
-            load(InMemoryBuffer(file))
-          }
-        }
+    val buffer =
+      try {
+        InMemoryBuffer(file)
+      } catch (e: Exception) {
+        logger.warn("Heap dump file failed to parse into buffer.", e)
+        isLoadingError = true
+        return false
+      }
+
+    return true.also {
+      ideProfilerServices.featureTracker.trackLoading(
+        Loading.Type.HPROF,
+        sizeKb = (file.length() / 1024).toInt(),
+        measure = { instanceIndex.size.toLong() },
+      ) {
+        load(buffer)
       }
     }
+  }
 
   @VisibleForTesting
   fun load(buffer: InMemoryBuffer) {
@@ -306,8 +313,12 @@ open class HeapDumpCaptureObject(
   }
 
   override fun canSafelyLoad(): Boolean {
-    val response = doGetBytesRequest()
-    return if (response.filePath.isEmpty()) false else MainMemoryProfilerStage.canSafelyLoadHprof(File(response.filePath).length())
+    val file = fileSupplier?.invoke()
+    return if (file != null) {
+      MainMemoryProfilerStage.canSafelyLoadHprof(file.length())
+    } else {
+      false
+    }
   }
 
   override fun isGroupingSupported(grouping: ClassGrouping?): Boolean {
@@ -317,11 +328,6 @@ open class HeapDumpCaptureObject(
       else -> false
     }
   }
-
-  private fun doGetBytesRequest() =
-    client.transportClient.getFile(
-      Transport.BytesRequest.newBuilder().setStreamId(_session.streamId).setId(heapDumpInfo.startTime.toString()).build()
-    )
 
   private fun ClassObj.makeEntry(name: String = this.className) =
     if (superClassObj != null) classDb.registerClass(id, superClassObj!!.id, name, totalRetainedSize)

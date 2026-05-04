@@ -24,7 +24,6 @@ import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profilers.IdeProfilerServices;
-import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.art.ArtTraceParser;
 import com.android.tools.profilers.cpu.compose.ComposeTracingConstants;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
@@ -112,8 +111,8 @@ public class CpuCaptureParser {
 
   private static final Logger LOGGER = Logger.getInstance(CpuCaptureParser.class);
 
-  public CpuCaptureParser(@NotNull StudioProfilers profilers) {
-    myServices = profilers.getIdeServices();
+  public CpuCaptureParser(@NotNull IdeProfilerServices ideProfilerServices) {
+    myServices = ideProfilerServices;
     myCaptures = new HashMap<>();
   }
 

@@ -291,7 +291,7 @@ class CpuCaptureParserTest {
 
   @Test
   fun parsingAValidTraceShouldProduceCpuCapture() {
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
     val trace = CpuProfilerTestUtils.getTraceFile("valid_trace.trace")
     val futureCapture = parser.parseForTestWithArt(trace, idHint = ProfilersTestData.SESSION_DATA.pid)
 
@@ -312,7 +312,7 @@ class CpuCaptureParserTest {
     val fakeServices = myProfilers.ideServices as FakeIdeProfilerServices
     // Decide not to parse long trace files
     fakeServices.setShouldProceedYesNoDialog(false)
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
 
     val futureCapture = parser.parseForTest(largeTraceFile, idHint = ProfilersTestData.SESSION_DATA.pid)
     assertThat(futureCapture).isNotNull()
@@ -341,7 +341,7 @@ class CpuCaptureParserTest {
     val fakeServices = myProfilers.ideServices as FakeIdeProfilerServices
     // Decide to parse long trace files
     fakeServices.setShouldProceedYesNoDialog(true)
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
     val futureCapture = parser.parseForTest(largeTraceFile)
     assertThat(futureCapture).isNotNull()
     assertThat(futureCapture.isCompletedExceptionally).isTrue()
@@ -350,7 +350,7 @@ class CpuCaptureParserTest {
   @Test
   fun corruptedTraceFileCompletesExceptionally() {
     val services = myProfilers.ideServices as FakeIdeProfilerServices
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
     val corruptedTrace = CpuProfilerTestUtils.getTraceFile("corrupted_trace.trace") // Malformed trace file.
 
     // Parsing will fail because the trace is corrupted. However, the future capture should still be created properly (not null).
@@ -370,7 +370,7 @@ class CpuCaptureParserTest {
 
   @Test
   fun invalidTraceFilePathCompletesExceptionally() {
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
     val corruptedTrace = CpuProfilerTestUtils.getTraceFile("") // Trace directory.
 
     // Parsing will fail because the trace file is a directory. However, the future capture should still be created properly (not null).
@@ -390,7 +390,7 @@ class CpuCaptureParserTest {
 
   @Test
   fun parsingShouldHappenOnlyOnce() {
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
 
     val traceFile = CpuProfilerTestUtils.getTraceFile("valid_trace.trace")
     val firstParsedCapture = parser.parseForTestWithArt(traceFile, idHint = ProfilersTestData.SESSION_DATA.pid)
@@ -402,7 +402,7 @@ class CpuCaptureParserTest {
 
   @Test
   fun parsingAValidSimpleperfTraceShouldProduceCpuCapture() {
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
 
     // Create and parse a simpleperf trace
     val traceFile = CpuProfilerTestUtils.getTraceFile("simpleperf.trace")
@@ -417,7 +417,7 @@ class CpuCaptureParserTest {
 
   @Test
   fun parsingAValidTraceWithWrongtraceTypeShouldThrowException() {
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
 
     // Try to parse a simpleperf trace passing ART as profiler type
     val traceFile = CpuProfilerTestUtils.getTraceFile("simpleperf.trace")
@@ -433,7 +433,7 @@ class CpuCaptureParserTest {
 
   @Test
   fun traceTypeInferredFromMissingType_SimplePerf() {
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
 
     val traceFile = CpuProfilerTestUtils.getTraceFile("simpleperf.trace")
     val futureCapture = parser.parseForTest(traceFile, idHint = ProfilersTestData.SESSION_DATA.pid)
@@ -449,7 +449,7 @@ class CpuCaptureParserTest {
 
   @Test
   fun traceTypeInferredFromMissingType_Atrace() {
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
 
     val traceFile = CpuProfilerTestUtils.getTraceFile("atrace.ctrace")
     val futureCapture = parser.parseForTest(traceFile, idHint = ProfilersTestData.SESSION_DATA.pid)
@@ -465,7 +465,7 @@ class CpuCaptureParserTest {
 
   @Test
   fun traceTypeInferredFromMissingType_Perfetto() {
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
 
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
     val futureCapture = parser.parseForTest(traceFile, idHint = ProfilersTestData.SESSION_DATA.pid)
@@ -481,7 +481,7 @@ class CpuCaptureParserTest {
 
   @Test
   fun parsingArtFilesShouldProduceCpuCapture() {
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
     val futureCapture = parser.parseForTest(CpuProfilerTestUtils.getTraceFile("valid_trace.trace"), 234)
 
     val capture = futureCapture.get()
@@ -494,7 +494,7 @@ class CpuCaptureParserTest {
 
   @Test
   fun parsingSimpleperfFilesShouldProduceCpuCapture() {
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
     val futureCapture = parser.parseForTest(CpuProfilerTestUtils.getTraceFile("simpleperf.trace"), 123)
 
     val capture = futureCapture.get()
@@ -509,7 +509,7 @@ class CpuCaptureParserTest {
   fun parsingAtrace_userCancelDialog() {
     val services = myProfilers.ideServices as FakeIdeProfilerServices
     services.setListBoxOptionsIndex(-1) // Parse the capture, assume the user canceled the dialog.
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
     val traceFile = CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace")
 
     val futureCapture = parser.parseForTest(traceFile)
@@ -529,7 +529,7 @@ class CpuCaptureParserTest {
   fun parsingAtrace_userSelectFirst() {
     val services = myProfilers.ideServices as FakeIdeProfilerServices
     services.setListBoxOptionsIndex(0)
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
     val traceFile = CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace")
 
     val futureCapture = parser.parseForTest(traceFile)
@@ -543,7 +543,7 @@ class CpuCaptureParserTest {
   fun parsingPerfetto_userCancelDialog() {
     val services = myProfilers.ideServices as FakeIdeProfilerServices
     services.setListBoxOptionsIndex(-1) // Assume the user canceled the dialog.
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
 
     val futureCapture = parser.parseForTest(traceFile)
@@ -564,7 +564,7 @@ class CpuCaptureParserTest {
     val services = myProfilers.ideServices as FakeIdeProfilerServices
     services.setListBoxOptionsMatcher { option -> option.contains("system_server") }
 
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
 
     // Now set a process select callback to return a process
@@ -578,7 +578,7 @@ class CpuCaptureParserTest {
   @Test
   fun parsingPerfettoWithProcessNameHintAutoSelectsProcess() {
     val services = myProfilers.ideServices as FakeIdeProfilerServices
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
 
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
     // Try to parse the file, assume the user canceled the dialog. If the dialog is shown.
@@ -593,7 +593,7 @@ class CpuCaptureParserTest {
   @Test
   fun parsingWithAPackageNameWillBringThatProcessToTop() {
     val services = myProfilers.ideServices as FakeIdeProfilerServices
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
     val traceFile = CpuProfilerTestUtils.getTraceFile("atrace.ctrace")
 
     services.setListBoxOptionsIndex(0)
@@ -608,7 +608,7 @@ class CpuCaptureParserTest {
 
   @Test
   fun parsingInvalidTraceProducesCompletedExceptionally() {
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
     val futureCapture = parser.parseForTest(CpuProfilerTestUtils.getTraceFile("corrupted_trace.trace"))
     assertThat(futureCapture.isCompletedExceptionally).isTrue()
 
@@ -622,7 +622,7 @@ class CpuCaptureParserTest {
 
   @Test
   fun parsingDirectoriesCompletesExceptionally() {
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
 
     val dir = resolveWorkspacePath("").toFile()
     assertThat(dir.exists()).isTrue()
@@ -633,7 +633,7 @@ class CpuCaptureParserTest {
 
   @Test
   fun parsingNonExistentFilesCompletesExceptionally() {
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
 
     val nonExistentFile = File(temporaryFolder.root, "non-existent-file")
     assertThat(nonExistentFile.exists()).isFalse()
@@ -650,7 +650,7 @@ class CpuCaptureParserTest {
     val fakeServices = myProfilers.ideServices as FakeIdeProfilerServices
     // Decide not to parse long trace files
     fakeServices.setShouldProceedYesNoDialog(false)
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
     val future = parser.parseForTest(someFile)
     assertThat(future.isCompletedExceptionally).isTrue()
   }
@@ -663,7 +663,7 @@ class CpuCaptureParserTest {
     val fakeServices = myProfilers.ideServices as FakeIdeProfilerServices
     // Decide to parse long trace files
     fakeServices.setShouldProceedYesNoDialog(true)
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
     assertThat(parser.parseForTest(someFile)).isNotNull()
   }
 
@@ -671,7 +671,7 @@ class CpuCaptureParserTest {
   fun validateImportMetricsReportedForImport() {
     val services = myProfilers.ideServices as FakeIdeProfilerServices
     val fakeFeatureTracker = services.featureTracker as FakeFeatureTracker
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
     services.enableTaskBasedUx(false)
     CpuCaptureParser.clearPreviouslyLoadedCaptures()
 
@@ -684,7 +684,7 @@ class CpuCaptureParserTest {
   fun validateMetricsReportedForComposeTracingImport() {
     val services = myProfilers.ideServices as FakeIdeProfilerServices
     val fakeFeatureTracker = services.featureTracker as FakeFeatureTracker
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
     services.enableTaskBasedUx(false)
     CpuCaptureParser.clearPreviouslyLoadedCaptures()
 
@@ -706,7 +706,7 @@ class CpuCaptureParserTest {
   fun validateMetricsReportedForNonComposeTracingImport() {
     val services = myProfilers.ideServices as FakeIdeProfilerServices
     val fakeFeatureTracker = services.featureTracker as FakeFeatureTracker
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
     services.enableTaskBasedUx(false)
     CpuCaptureParser.clearPreviouslyLoadedCaptures()
 
@@ -727,7 +727,7 @@ class CpuCaptureParserTest {
   fun validateMetricsReportedForComposeTracingCapture() {
     val services = myProfilers.ideServices as FakeIdeProfilerServices
     val fakeFeatureTracker = services.featureTracker as FakeFeatureTracker
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
     CpuCaptureParser.clearPreviouslyLoadedCaptures()
 
     parser
@@ -746,7 +746,7 @@ class CpuCaptureParserTest {
   fun validateMetricsReportedOnceForCapture() {
     val services = myProfilers.ideServices as FakeIdeProfilerServices
     val fakeFeatureTracker = services.featureTracker as FakeFeatureTracker
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
     CpuCaptureParser.clearPreviouslyLoadedCaptures()
     assertThat(fakeFeatureTracker.lastCpuCaptureMetadata).isNull()
 
@@ -763,7 +763,7 @@ class CpuCaptureParserTest {
   @Test
   fun inputValidationExceptionIsPropagatedForExpectedTraceType() {
     val services = myProfilers.ideServices as FakeIdeProfilerServices
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
     CpuCaptureParser.clearPreviouslyLoadedCaptures()
 
     val traceFile = CpuProfilerTestUtils.getTraceFile("atrace.ctrace")
@@ -791,7 +791,7 @@ class CpuCaptureParserTest {
     val fakeTraceProcessorService = services.traceProcessorService as FakeTraceProcessorService
     fakeTraceProcessorService.forceFailLoadTrace = true
 
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
     CpuCaptureParser.clearPreviouslyLoadedCaptures()
 
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
@@ -818,7 +818,7 @@ class CpuCaptureParserTest {
     val fakeTraceProcessorService = services.traceProcessorService as FakeTraceProcessorService
     fakeTraceProcessorService.forceFailLoadTrace = true
 
-    val parser = CpuCaptureParser(myProfilers)
+    val parser = CpuCaptureParser(myProfilers.ideServices)
     CpuCaptureParser.clearPreviouslyLoadedCaptures()
 
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")

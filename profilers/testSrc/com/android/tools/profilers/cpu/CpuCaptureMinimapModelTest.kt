@@ -51,7 +51,15 @@ class CpuCaptureMinimapModelTest {
     whenever(mockCapture.type).thenReturn(TraceType.ATRACE)
     whenever(mockCapture.timeline).thenReturn(DefaultTimeline())
 
-    val minimapModel = CpuCaptureMinimapModel(profilers, mockCapture, Range())
+    val minimapModel =
+      CpuCaptureMinimapModel(
+        mockCapture,
+        Range(),
+        object : com.android.tools.adtui.model.DataSeries<Long> {
+          override fun getDataForRange(range: Range) = emptyList<com.android.tools.adtui.model.SeriesData<Long>>()
+        },
+        false,
+      )
     minimapModel.rangeSelectionModel.set(0.0, 15.0)
     // Selection range should be confined to the capture range.
     assertThat(minimapModel.rangeSelectionModel.selectionRange.isSameAs(Range(1.0, 10.0))).isTrue()
@@ -66,7 +74,15 @@ class CpuCaptureMinimapModelTest {
     whenever(mockCapture.type).thenReturn(TraceType.PERFETTO)
     whenever(mockCapture.timeline).thenReturn(timeline)
 
-    val minimapModel = CpuCaptureMinimapModel(profilers, mockCapture, Range())
+    val minimapModel =
+      CpuCaptureMinimapModel(
+        mockCapture,
+        Range(),
+        object : com.android.tools.adtui.model.DataSeries<Long> {
+          override fun getDataForRange(range: Range) = emptyList<com.android.tools.adtui.model.SeriesData<Long>>()
+        },
+        false,
+      )
     assertThat(minimapModel.rangeSelectionModel.selectionRange.min).isEqualTo(timeline.viewRange.min)
     assertThat(minimapModel.rangeSelectionModel.selectionRange.max).isEqualTo(timeline.viewRange.max)
   }

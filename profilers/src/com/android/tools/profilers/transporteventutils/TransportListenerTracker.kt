@@ -17,7 +17,7 @@ package com.android.tools.profilers.transporteventutils
 
 import com.android.tools.adtui.model.updater.Updatable
 import com.android.tools.idea.transport.poller.TransportEventListener
-import com.android.tools.idea.transport.poller.TransportEventPoller
+import com.android.tools.idea.transport.poller.TransportPoller
 import com.android.tools.profilers.StudioProfilers
 import java.util.concurrent.TimeUnit
 
@@ -75,7 +75,7 @@ class TransportListenerTracker(private val profilers: StudioProfilers) {
   }
 
   /** Registers a one-off timer with the global updater to unregister the listener after [TIMEOUT_SECONDS] seconds. */
-  private fun registerDelayedUnregister(poller: TransportEventPoller, listener: TransportEventListener) {
+  private fun registerDelayedUnregister(poller: TransportPoller, listener: TransportEventListener) {
     profilers.updater.register(
       object : Updatable {
         var elapsedNs = 0L

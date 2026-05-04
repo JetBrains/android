@@ -386,6 +386,22 @@ public final class StudioFlags {
     PROFILER, "method.trace.in.editor", "Open Method Trace in Editor",
     "Opens Java/Kotlin Method Trace files in a new editor tab");
 
+  public static final Flag<Boolean> PROFILER_CALLSTACK_SAMPLE_TRACE_IN_EDITOR = new BooleanFlag(
+    PROFILER, "callstack.sample.trace.in.editor", "Open Callstack Sample in Editor",
+    "Opens Callstack Sample Trace files in a new editor tab");
+
+  public static final Flag<Boolean> PROFILER_HEAP_DUMP_TRACE_IN_EDITOR = new BooleanFlag(
+    PROFILER, "heap.dump.trace.in.editor", "Open Heap Dump in Editor",
+    "Opens Heap Dump files in a new editor tab");
+
+  public static final Flag<Boolean> PROFILER_NATIVE_ALLOCATIONS_TRACE_IN_EDITOR = new BooleanFlag(
+    PROFILER, "native.allocations.trace.in.editor", "Open Native Allocations in Editor",
+    "Opens Native Allocations files in a new editor tab");
+
+  public static final Flag<Boolean> PROFILER_JAVA_KOTLIN_ALLOCATIONS_LEGACY_TRACE_IN_EDITOR = new BooleanFlag(
+    PROFILER, "java.kotlin.allocations.legacy.trace.in.editor", "Open Java/Kotlin Allocations (Legacy) in Editor",
+    "Opens Java/Kotlin Allocations (Legacy) files in a new editor tab");
+
   public static final Flag<Boolean> PROFILER_PERFETTO_QUERY_GENERATION = new BooleanFlag(
     PROFILER, "perfetto.query.generation", "Generate Perfetto SQL queries",
     "Uses AI to generate Perfetto SQL queries");

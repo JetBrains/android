@@ -297,7 +297,7 @@ public class HeapDumpInstanceObjectTest {
     public FakeHeapDumpCaptureObject(@NotNull ProfilerClient client,
                                      IdeProfilerServices ideProfilerServices) {
       super(client, Common.Session.getDefaultInstance(), HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(1).build(), null,
-            new FakeFeatureTracker(), ideProfilerServices);
+            new FakeFeatureTracker(), ideProfilerServices, null);
     }
 
     public void addInstance(@NotNull Instance instance, @NotNull HeapDumpInstanceObject instanceObject) {

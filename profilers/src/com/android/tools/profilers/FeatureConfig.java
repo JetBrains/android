@@ -31,6 +31,10 @@ public interface FeatureConfig {
   boolean isLeakCanaryStudioBotEnabled();
   boolean isSystemTraceInEditorEnabled();
   boolean isMethodTraceInEditorEnabled();
+  boolean isCallstackSampleTraceInEditorEnabled();
+  boolean isHeapDumpTraceInEditorEnabled();
+  boolean isNativeAllocationsTraceInEditorEnabled();
+  boolean isJavaKotlinAllocationsLegacyTraceInEditorEnabled();
   boolean isProfilerHomeTabV2Enabled();
 
   PowerProfilerDisplayMode getSystemTracePowerProfilerDisplayMode();

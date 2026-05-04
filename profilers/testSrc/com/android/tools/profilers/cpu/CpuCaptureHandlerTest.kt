@@ -47,7 +47,14 @@ class CpuCaptureHandlerTest {
   @Test
   fun updateUpdatesRange() {
     val model =
-      CpuCaptureHandler(myProfilers, CpuProfilerTestUtils.getTraceFile("simpleperf.trace"), 123, ProfilersTestData.DEFAULT_CONFIG, null, 0)
+      CpuCaptureHandler(
+        myProfilers.ideServices,
+        CpuProfilerTestUtils.getTraceFile("simpleperf.trace"),
+        123,
+        ProfilersTestData.DEFAULT_CONFIG,
+        null,
+        0,
+      )
     assertThat(model.range.isEmpty).isTrue()
     model.update(1234L)
     assertThat(model.range.isEmpty).isTrue()
@@ -66,7 +73,7 @@ class CpuCaptureHandlerTest {
     val config = PerfettoSystemTraceConfiguration("Test", false)
     val services = FakeIdeProfilerServices()
     val fakeFeatureTracker = services.featureTracker as FakeFeatureTracker
-    val model = CpuCaptureHandler(myProfilers, CpuProfilerTestUtils.getTraceFile("corrupted_trace.trace"), 123, config, null, 0)
+    val model = CpuCaptureHandler(myProfilers.ideServices, CpuProfilerTestUtils.getTraceFile("corrupted_trace.trace"), 123, config, null, 0)
     model.parse(
       {
         assertThat(it).isNull()
@@ -83,7 +90,8 @@ class CpuCaptureHandlerTest {
     val config = SimpleperfConfiguration("Test")
     val services = FakeIdeProfilerServices()
     val fakeFeatureTracker = services.featureTracker as FakeFeatureTracker
-    val model = CpuCaptureHandler(myProfilers, CpuProfilerTestUtils.getTraceFile("simpleperf_callchain.trace"), 123, config, null, 1)
+    val model =
+      CpuCaptureHandler(myProfilers.ideServices, CpuProfilerTestUtils.getTraceFile("simpleperf_callchain.trace"), 123, config, null, 1)
     model.parse(
       {
         assertThat(it).isNotNull()

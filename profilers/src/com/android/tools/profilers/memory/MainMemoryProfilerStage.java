@@ -18,9 +18,11 @@ package com.android.tools.profilers.memory;
 import static com.android.tools.profilers.StudioProfilers.DAEMON_DEVICE_DIR_PATH;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.DurationDataModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.updater.Updater;
 import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import com.android.tools.idea.transport.TransportFileManager;
 import com.android.tools.idea.transport.poller.TransportEventListener;
@@ -35,10 +37,13 @@ import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.InterimStage;
 import com.android.tools.profilers.LogUtils;
+import com.android.tools.profilers.ProfilerContext;
+import com.android.tools.profilers.ProfilerCaptureFileUtils;
 import com.android.tools.profilers.RecordingOption;
 import com.android.tools.profilers.RecordingOptionsModel;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.SupportLevel;
+import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject;
 import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject;
@@ -46,10 +51,12 @@ import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCapture
 import com.android.tools.profilers.perfetto.config.PerfettoTraceConfigBuilders;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.taskbased.task.interim.RecordingScreenModel;
+import com.android.tools.profilers.tasks.ProfilerTaskType;
 import com.android.tools.profilers.tasks.analytics.TaskStartFailedMetadata;
 import com.android.tools.profilers.tasks.analytics.TaskStopFailedMetadata;
 import com.android.tools.profilers.transporteventutils.TransportListenerTracker;
 import com.google.common.annotations.VisibleForTesting;
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -137,6 +144,45 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
   public MainMemoryProfilerStage(@NotNull StudioProfilers profilers, @NotNull CaptureObjectLoader loader) {
     this(profilers, loader, () -> {
     });
+  }
+
+  public static ProfilerContext createDefaultContext(@NotNull StudioProfilers profilers) {
+    return new ProfilerContext() {
+      @Override
+      @NotNull
+      public IdeProfilerServices getIdeProfilerServices() {
+        return profilers.getIdeServices();
+      }
+
+      @Override
+      @NotNull
+      public Updater getUpdater() {
+        return profilers.getUpdater();
+      }
+
+      @Override
+      public boolean isJvmtiEnabled() {
+        return profilers.getSessionsManager().getSelectedSessionMetaData().getJvmtiEnabled();
+      }
+
+      @Override
+      @NotNull
+      public DataSeries<Long> getDataSeries(@Nullable CpuCapture capture) {
+        return new DataSeries<Long>() {
+          @Override
+          @NotNull
+          public java.util.List<SeriesData<Long>> getDataForRange(@NotNull Range timeCurrentRangeUs) {
+            return java.util.Collections.emptyList();
+          }
+        };
+      }
+
+      @Override
+      public void onParseFailure(@NotNull String message) { }
+
+      @Override
+      public void reportParsedTrace(@NotNull CpuCapture capture) { }
+    };
   }
 
   /**
@@ -649,7 +695,68 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
              (HeapDumpCaptureObject.class.isAssignableFrom(durationData.getCaptureObjectType()) ||
               NativeAllocationSampleCaptureObject.class.isAssignableFrom(durationData.getCaptureObjectType()) ||
               LegacyAllocationCaptureObject.class.isAssignableFrom(durationData.getCaptureObjectType()))) {
-      profilers.setStage(new MemoryCaptureStage(profilers, getLoader(), durationData, joiner));
+      boolean isTaskBasedUxEnabled = profilers.getIdeServices().getFeatureConfig().isTaskBasedUxEnabled();
+      boolean isUnifiedEditorEnabled = false;
+      if (HeapDumpCaptureObject.class.isAssignableFrom(durationData.getCaptureObjectType())) {
+        isUnifiedEditorEnabled = profilers.getIdeServices().getFeatureConfig().isHeapDumpTraceInEditorEnabled();
+      }
+      else if (NativeAllocationSampleCaptureObject.class.isAssignableFrom(durationData.getCaptureObjectType())) {
+        isUnifiedEditorEnabled = profilers.getIdeServices().getFeatureConfig().isNativeAllocationsTraceInEditorEnabled();
+      }
+      else if (LegacyAllocationCaptureObject.class.isAssignableFrom(durationData.getCaptureObjectType())) {
+        isUnifiedEditorEnabled = profilers.getIdeServices().getFeatureConfig().isJavaKotlinAllocationsLegacyTraceInEditorEnabled();
+      }
+
+      if (isTaskBasedUxEnabled && isUnifiedEditorEnabled) {
+        profilers.getIdeServices().getPoolExecutor().execute(() -> {
+          CaptureObject capture = durationData.getCaptureEntry().getCaptureObject();
+          String extension = "alloc";
+          if (capture instanceof HeapDumpCaptureObject) {
+            extension = "hprof";
+          }
+          else if (capture instanceof NativeAllocationSampleCaptureObject) {
+            extension = "heapprofd";
+          }
+          else if (capture instanceof LegacyAllocationCaptureObject) {
+            extension = "alloc";
+          }
+          String traceFileName = "capture_" + capture.getStartTimeNs() + "." + extension;
+          File file = ProfilerCaptureFileUtils.getCaptureFile(traceFileName);
+          if (!file.exists()) {
+            Transport.BytesRequest request = Transport.BytesRequest.newBuilder()
+              .setStreamId(profilers.getSession().getStreamId())
+              .setId(String.valueOf(capture.getStartTimeNs()))
+              .build();
+            Transport.FileResponse response = profilers.getClient().getTransportClient().getFile(request);
+            if (!response.getFilePath().isEmpty()) {
+              File originalFile = new File(response.getFilePath());
+              file = ProfilerCaptureFileUtils.renameToTargetFile(originalFile, traceFileName);
+              if (file == null) {
+                file = originalFile;
+              }
+            }
+          }
+          ProfilerCaptureFileUtils.writeMetadataToFile(profilers, profilers.getSession(), file);
+          final File traceFile = file;
+          profilers.getIdeServices().getMainExecutor().execute(() -> {
+            if (traceFile.exists()) {
+              profilers.getIdeServices().openTraceFile(traceFile);
+              if (capture instanceof HeapDumpCaptureObject) {
+                profilers.getIdeServices().closeTaskTab(ProfilerTaskType.HEAP_DUMP);
+              }
+              else if (capture instanceof NativeAllocationSampleCaptureObject) {
+                profilers.getIdeServices().closeTaskTab(ProfilerTaskType.NATIVE_ALLOCATIONS);
+              }
+              else if (capture instanceof LegacyAllocationCaptureObject) {
+                profilers.getIdeServices().closeTaskTab(ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS);
+              }
+            }
+          });
+        });
+      }
+      else {
+        profilers.setStage(new MemoryCaptureStage(profilers, getContext(), getLoader(), durationData, joiner));
+      }
     }
     else {
       doSelectCaptureDuration(durationData, joiner);
