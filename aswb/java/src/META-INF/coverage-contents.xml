@@ -16,11 +16,11 @@
 <idea-plugin>
 
   <extensions defaultExtensionNs="com.intellij">
-    <coverageEngine implementation="com.google.idea.blaze.java.run.coverage.BlazeCoverageEngine"/>
-    <coverageRunner implementation="com.google.idea.blaze.java.run.coverage.BlazeCoverageRunner"/>
-    <programRunner implementation="com.google.idea.blaze.java.run.coverage.BlazeCoverageProgramRunner"/>
-    <projectService serviceImplementation="com.google.idea.blaze.java.run.coverage.BlazeCoverageAnnotator"/>
-    <projectViewNodeDecorator implementation="com.google.idea.blaze.java.run.coverage.BlazeCoverageProjectViewClassDecorator"/>
+    <coverageEngine implementation="com.google.idea.bazel.java.run.coverage.BlazeCoverageEngine"/>
+    <coverageRunner implementation="com.google.idea.bazel.java.run.coverage.BlazeCoverageRunner"/>
+    <programRunner implementation="com.google.idea.bazel.java.run.coverage.BlazeCoverageProgramRunner"/>
+    <projectService serviceImplementation="com.google.idea.bazel.java.run.coverage.BlazeCoverageAnnotator"/>
+    <projectViewNodeDecorator implementation="com.google.idea.bazel.java.run.coverage.BlazeCoverageProjectViewClassDecorator"/>
   </extensions>
 
 </idea-plugin>

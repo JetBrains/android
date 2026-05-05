@@ -19,25 +19,25 @@
   <depends>com.intellij.modules.cidr.debugger</depends>
 
   <extensionPoints>
-    <extensionPoint interface="com.google.idea.blaze.cpp.CppSupportChecker"
-        qualifiedName="com.google.idea.blaze.cpp.CppSupportChecker" />
+    <extensionPoint interface="com.google.idea.bazel.cpp.CppSupportChecker"
+        qualifiedName="com.google.idea.bazel.cpp.CppSupportChecker" />
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.google.idea.blaze">
-    <TargetKindProvider implementation="com.google.idea.blaze.cpp.CppBlazeRules"/>
+    <TargetKindProvider implementation="com.google.idea.bazel.cpp.CppBlazeRules"/>
   </extensions>
 
   <extensions defaultExtensionNs="cidr.lang">
-    <includeHelper implementation="com.google.idea.blaze.cpp.BlazeIncludeHelper"/>
-    <ownModuleDetector implementation="com.google.idea.blaze.cpp.BlazeOwnModuleDetector"/>
+    <includeHelper implementation="com.google.idea.bazel.cpp.BlazeIncludeHelper"/>
+    <ownModuleDetector implementation="com.google.idea.bazel.cpp.BlazeOwnModuleDetector"/>
   </extensions>
   <extensions defaultExtensionNs="com.intellij">
-    <applicationService serviceInterface="com.google.idea.blaze.cpp.CompilerVersionChecker"
-                        serviceImplementation="com.google.idea.blaze.cpp.CompilerVersionCheckerImpl"/>
-    <applicationService serviceInterface="com.google.idea.blaze.cpp.CompilerWrapperProvider"
-                        serviceImplementation="com.google.idea.blaze.cpp.CompilerWrapperProviderImpl"/>
+    <applicationService serviceInterface="com.google.idea.bazel.cpp.CompilerVersionChecker"
+                        serviceImplementation="com.google.idea.bazel.cpp.CompilerVersionCheckerImpl"/>
+    <applicationService serviceInterface="com.google.idea.bazel.cpp.CompilerWrapperProvider"
+                        serviceImplementation="com.google.idea.bazel.cpp.CompilerWrapperProviderImpl"/>
   </extensions>
   <extensions defaultExtensionNs="com.google.idea.blaze.qsync">
-    <QuerySyncListenerProvider implementation="com.google.idea.blaze.cpp.qsync.CcProjectModelUpdater$Provider" />
+    <QuerySyncListenerProvider implementation="com.google.idea.bazel.cpp.qsync.CcProjectModelUpdater$Provider" />
   </extensions>
 </idea-plugin>

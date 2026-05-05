@@ -15,14 +15,14 @@
  */
 package com.google.idea.blaze.android.run.test.smrunner;
 
+import com.google.idea.bazel.java.AndroidBlazeRules;
+import com.google.idea.bazel.java.run.producers.BlazeJUnitTestFilterFlags;
+import com.google.idea.bazel.java.run.producers.BlazeJUnitTestFilterFlags.JUnitVersion;
 import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.model.primitives.Kind;
-import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.base.run.smrunner.BlazeTestEventsHandler;
 import com.google.idea.blaze.base.run.smrunner.SmRunnerUtils;
-import com.google.idea.blaze.java.AndroidBlazeRules;
-import com.google.idea.blaze.java.run.producers.BlazeJUnitTestFilterFlags;
-import com.google.idea.blaze.java.run.producers.BlazeJUnitTestFilterFlags.JUnitVersion;
+import com.google.idea.blaze.common.Label;
 import com.intellij.execution.Location;
 import com.intellij.execution.testframework.sm.runner.SMTestLocator;
 import com.intellij.openapi.project.Project;
@@ -44,8 +44,7 @@ public class BlazeAndroidTestEventsHandler implements BlazeTestEventsHandler {
   @Override
   public boolean handlesKind(@Nullable Kind kind) {
     return kind != null
-        && kind.isOneOf(
-            AndroidBlazeRules.RuleTypes.ANDROID_INSTRUMENTATION_TEST.getKind());
+        && kind.isOneOf(AndroidBlazeRules.RuleTypes.ANDROID_INSTRUMENTATION_TEST.getKind());
   }
 
   @Override

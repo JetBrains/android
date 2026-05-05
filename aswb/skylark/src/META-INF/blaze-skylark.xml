@@ -15,11 +15,11 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-    <xdebugger.breakpointType implementation="com.google.idea.blaze.skylark.debugger.impl.SkylarkLineBreakpointType"/>
-    <programRunner implementation="com.google.idea.blaze.skylark.debugger.run.SkylarkDebugRunner" id="SkylarkDebugRunner"/>
-    <completion.contributor language="BUILD" implementationClass="com.google.idea.blaze.skylark.debugger.impl.DebuggerCompletionContributor"/>
+    <xdebugger.breakpointType implementation="com.google.idea.bazel.skylark.debugger.impl.SkylarkLineBreakpointType"/>
+    <programRunner implementation="com.google.idea.bazel.skylark.debugger.run.SkylarkDebugRunner" id="SkylarkDebugRunner"/>
+    <completion.contributor language="BUILD" implementationClass="com.google.idea.bazel.skylark.debugger.impl.DebuggerCompletionContributor"/>
   </extensions>
   <extensions defaultExtensionNs="com.google.idea.blaze">
-    <BuildFlagsProvider implementation="com.google.idea.blaze.skylark.debugger.run.SkylarkDebugBuildFlagsProvider"/>
+    <BuildFlagsProvider implementation="com.google.idea.bazel.skylark.debugger.run.SkylarkDebugBuildFlagsProvider"/>
   </extensions>
 </idea-plugin>

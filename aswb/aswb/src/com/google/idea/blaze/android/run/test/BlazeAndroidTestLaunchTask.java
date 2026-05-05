@@ -15,10 +15,11 @@
  */
 package com.google.idea.blaze.android.run.test;
 
-import com.google.idea.blaze.android.run.runner.BlazeLaunchContext;
-import com.google.idea.blaze.android.run.runner.BlazeLaunchTask;
 import com.android.tools.idea.run.configuration.execution.ExecutionUtils;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.idea.bazel.java.AndroidBlazeRules.RuleTypes;
+import com.google.idea.blaze.android.run.runner.BlazeLaunchContext;
+import com.google.idea.blaze.android.run.runner.BlazeLaunchTask;
 import com.google.idea.blaze.base.async.executor.BlazeExecutor;
 import com.google.idea.blaze.base.bazel.BuildSystem;
 import com.google.idea.blaze.base.command.BlazeCommand;
@@ -34,7 +35,6 @@ import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.util.SaveUtil;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.exception.BuildException;
-import com.google.idea.blaze.java.AndroidBlazeRules.RuleTypes;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
@@ -115,7 +115,8 @@ public class BlazeAndroidTestLaunchTask implements BlazeLaunchTask {
 
                       // TODO: b/473068803 - Review and fix for the query sync mode.
                       TargetInfo targetInfo = null;
-                          // query sync: projectData.getTargetMap().get(TargetKey.forPlainTarget(target));
+                      // query sync:
+                      // projectData.getTargetMap().get(TargetKey.forPlainTarget(target));
                       if (targetInfo == null
                           || targetInfo.getKind()
                               != RuleTypes.ANDROID_INSTRUMENTATION_TEST.getKind()) {
@@ -128,9 +129,9 @@ public class BlazeAndroidTestLaunchTask implements BlazeLaunchTask {
                         return null;
                       }
                       // query sync: Fix in the query ysnc mode.
-                      //AndroidInstrumentationInfo testInstrumentationInfo =
+                      // AndroidInstrumentationInfo testInstrumentationInfo =
                       //    targetInfo.getAndroidInstrumentationInfo();
-                      //if (testInstrumentationInfo == null) {
+                      // if (testInstrumentationInfo == null) {
                       //  IssueOutput.error(
                       //          "Required target data missing for \""
                       //              + target
@@ -138,17 +139,18 @@ public class BlazeAndroidTestLaunchTask implements BlazeLaunchTask {
                       //              + " sync the project and try again.")
                       //      .submit(context);
                       //  return null;
-                      //}
+                      // }
 
                       BlazeCommand.Builder commandBuilder =
-                        BlazeCommand.builder(BlazeCommandName.TEST)
-                          .addTargetStrings(target.toString());
+                          BlazeCommand.builder(BlazeCommandName.TEST)
+                              .addTargetStrings(target.toString());
                       // Build flags must match BlazeBeforeRunTask.
                       commandBuilder.addBlazeFlags(buildFlags);
 
                       // Run the test on the selected local device/emulator if no target device is
                       // specified.
-                      Label targetDevice = null; // query sync: testInstrumentationInfo.getTargetDevice();
+                      Label targetDevice =
+                          null; // query sync: testInstrumentationInfo.getTargetDevice();
                       if (targetDevice == null) {
                         commandBuilder
                             .addBlazeFlags(TEST_LOCAL_DEVICE, BlazeFlags.TEST_OUTPUT_STREAMED)

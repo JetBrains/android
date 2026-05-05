@@ -90,7 +90,7 @@ intellij_unit_test_suite(
         "--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
     ],
     tags = ["noci:studio-win"],
-    test_package_root = "com.google.idea.blaze.java",
+    test_package_root = "com.google.idea.bazel.java",
     visibility = DEFAULT_TEST_VISIBILITY,
     deps = [
         ":java_lib",
@@ -148,7 +148,7 @@ intellij_integration_test_suite(
     tags = [
         "noci:studio-win",
     ],
-    test_package_root = "com.google.idea.blaze.java",
+    test_package_root = "com.google.idea.bazel.java",
     visibility = DEFAULT_TEST_VISIBILITY,
     deps = [
         ":java_lib",

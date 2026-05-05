@@ -15,12 +15,12 @@
  */
 package com.google.idea.blaze.android.qsync
 
+import com.google.idea.bazel.java.projectview.JavaLanguageLevelSection
 import com.google.idea.blaze.android.projectview.AndroidMinSdkSection
 import com.google.idea.blaze.android.projectview.AndroidSdkPlatformSection
 import com.google.idea.blaze.base.projectview.ProjectViewSet
 import com.google.idea.blaze.base.qsync.QuerySyncLanguageSettings
 import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings
-import com.google.idea.blaze.java.projectview.JavaLanguageLevelSection
 import com.intellij.pom.java.LanguageLevel
 
 class QuerySyncLanguageSettingsProvider : QuerySyncLanguageSettings.Provider {

@@ -15,15 +15,15 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.google.idea.blaze">
-    <TargetKindProvider implementation="com.google.idea.blaze.kotlin.KotlinBlazeRules"/>
+    <TargetKindProvider implementation="com.google.idea.bazel.kotlin.KotlinBlazeRules"/>
   </extensions>
 
   <extensionPoints>
-    <extensionPoint qualifiedName="com.google.idea.blaze.kotlinxCoroutinesLibFinder" interface="com.google.idea.blaze.kotlin.run.debug.KotlinxCoroutinesLibFinder"/>
+    <extensionPoint qualifiedName="com.google.idea.bazel.kotlinxCoroutinesLibFinder" interface="com.google.idea.bazel.kotlin.run.debug.KotlinxCoroutinesLibFinder"/>
   </extensionPoints>
 
   <extensionPoints>
-    <extensionPoint qualifiedName="com.google.idea.blaze.kotlinxCoroutinesDebuggingLibProvider" interface="com.google.idea.blaze.kotlin.run.debug.KotlinxCoroutinesDebuggingLibProvider"/>
+    <extensionPoint qualifiedName="com.google.idea.bazel.kotlinxCoroutinesDebuggingLibProvider" interface="com.google.idea.bazel.kotlin.run.debug.KotlinxCoroutinesDebuggingLibProvider"/>
   </extensionPoints>
 
 </idea-plugin>

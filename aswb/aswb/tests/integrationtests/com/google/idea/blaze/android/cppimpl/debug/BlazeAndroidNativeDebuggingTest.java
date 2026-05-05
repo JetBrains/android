@@ -18,13 +18,13 @@ package com.google.idea.blaze.android.cppimpl.debug;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
+import com.google.idea.bazel.java.AndroidBlazeRules;
 import com.google.idea.blaze.android.run.binary.BlazeAndroidBinaryRunConfigurationState;
 import com.google.idea.blaze.base.BlazeIntegrationTestCase;
 import com.google.idea.blaze.base.dependencies.TargetInfo;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfigurationType;
-import com.google.idea.blaze.java.AndroidBlazeRules;
 import com.intellij.execution.ExecutionException;
 import com.jetbrains.cidr.execution.debugger.CidrDebuggerLanguageSupportManager;
 import org.junit.Test;
@@ -47,8 +47,8 @@ public class BlazeAndroidNativeDebuggingTest extends BlazeIntegrationTestCase {
     // BlazeAndroidRunConfigurationHandler.
     runProfile.setTargetInfo(
         new TargetInfo(
-                Label.create("//test:test"),
-                AndroidBlazeRules.RuleTypes.ANDROID_BINARY.getKind().getKindString()));
+            Label.create("//test:test"),
+            AndroidBlazeRules.RuleTypes.ANDROID_BINARY.getKind().getKindString()));
 
     // Enable native debugging.
     BlazeAndroidBinaryRunConfigurationState state =

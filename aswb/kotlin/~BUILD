@@ -75,7 +75,7 @@ intellij_integration_test_suite(
     name = "integration_tests",
     srcs = glob(["tests/integrationtests/**/*.java"]),
     tags = ["noci:studio-win"],
-    test_package_root = "com.google.idea.blaze.kotlin",
+    test_package_root = "com.google.idea.bazel.kotlin",
     deps = [
         ":kotlin_lib",
         "//tools/adt/idea/aswb/base",

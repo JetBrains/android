@@ -15,15 +15,15 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-    <applicationService serviceInterface="org.jetbrains.kotlin.psi.KotlinDeclarationNavigationPolicy" serviceImplementation="com.google.idea.blaze.java.qsync.QuerySyncKtNavigationPolicy" overrides="true"/>
-    <postStartupActivity implementation="com.google.idea.blaze.java.plugin.JUnitPluginDependencyWarning"/>
+    <applicationService serviceInterface="org.jetbrains.kotlin.psi.KotlinDeclarationNavigationPolicy" serviceImplementation="com.google.idea.bazel.java.qsync.QuerySyncKtNavigationPolicy" overrides="true"/>
+    <postStartupActivity implementation="com.google.idea.bazel.java.plugin.JUnitPluginDependencyWarning"/>
   </extensions>
   <extensions defaultExtensionNs="com.intellij.psi">
-    <clsCustomNavigationPolicy implementation="com.google.idea.blaze.java.qsync.QuerySyncNavigationPolicy" />
-    <clsCustomNavigationPolicy implementation="com.google.idea.blaze.java.qsync.ProtoSrcJarQuerySyncNavigationPolicy" />
+    <clsCustomNavigationPolicy implementation="com.google.idea.bazel.java.qsync.QuerySyncNavigationPolicy" />
+    <clsCustomNavigationPolicy implementation="com.google.idea.bazel.java.qsync.ProtoSrcJarQuerySyncNavigationPolicy" />
   </extensions>
   <extensions defaultExtensionNs="com.google.idea.blaze">
-    <TargetKindProvider implementation="com.google.idea.blaze.java.JavaBlazeRules"/>
-    <TargetKindProvider implementation="com.google.idea.blaze.java.AndroidBlazeRules"/>
+    <TargetKindProvider implementation="com.google.idea.bazel.java.JavaBlazeRules"/>
+    <TargetKindProvider implementation="com.google.idea.bazel.java.AndroidBlazeRules"/>
   </extensions>
 </idea-plugin>

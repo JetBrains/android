@@ -20,6 +20,7 @@ import static org.mockito.Mockito.mock;
 
 import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.google.common.collect.Maps;
+import com.google.idea.bazel.java.AndroidBlazeRules;
 import com.google.idea.blaze.android.projectsystem.BazelModuleSystem.BlazeRegisteredDependencyId;
 import com.google.idea.blaze.android.projectsystem.BazelModuleSystem.BlazeRegisteredDependencyQueryId;
 import com.google.idea.blaze.android.projectsystem.BazelModuleSystem.BlazeUnknownRegisteredDependencyId;
@@ -37,7 +38,6 @@ import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
-import com.google.idea.blaze.java.AndroidBlazeRules;
 import com.google.idea.common.experiments.ExperimentService;
 import com.google.idea.common.experiments.MockExperimentService;
 import com.intellij.mock.MockModule;

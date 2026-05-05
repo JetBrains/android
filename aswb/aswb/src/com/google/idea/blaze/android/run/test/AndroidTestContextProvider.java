@@ -15,11 +15,11 @@
  */
 package com.google.idea.blaze.android.run.test;
 
+import com.google.idea.bazel.java.run.producers.JUnitConfigurationUtil;
+import com.google.idea.bazel.java.run.producers.ProducerUtils;
 import com.google.idea.blaze.base.lang.buildfile.psi.util.PsiUtils;
 import com.google.idea.blaze.base.run.producers.RunConfigurationContext;
 import com.google.idea.blaze.base.run.producers.TestContextProvider;
-import com.google.idea.blaze.java.run.producers.JUnitConfigurationUtil;
-import com.google.idea.blaze.java.run.producers.ProducerUtils;
 import com.intellij.execution.Location;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.junit.JUnitUtil;

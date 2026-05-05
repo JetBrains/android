@@ -103,7 +103,7 @@
     <DesugaringLibraryConfigFilesLocator implementation="com.google.idea.blaze.android.projectsystem.BazelDesugaringLibraryConfigFilesLocator"/>
   </extensions>
 
-  <extensions defaultExtensionNs="com.google.idea.blaze.cpp">
+  <extensions defaultExtensionNs="com.google.idea.bazel.cpp">
     <CppSupportChecker implementation="com.google.idea.blaze.android.cppimpl.NdkCppSupportChecker" />
   </extensions>
 

@@ -15,12 +15,11 @@
  */
 package com.google.idea.blaze.android.run.binary;
 
+import com.google.idea.bazel.java.AndroidBlazeRules;
 import com.google.idea.blaze.android.run.BlazeAndroidRunConfigurationHandler;
 import com.google.idea.blaze.base.model.primitives.Kind;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
-import com.google.idea.blaze.base.run.confighandler.BlazeCommandRunConfigurationHandler;
 import com.google.idea.blaze.base.run.confighandler.BlazeCommandRunConfigurationHandlerProvider;
-import com.google.idea.blaze.java.AndroidBlazeRules;
 import javax.annotation.Nullable;
 
 /** Handler provider for android_binary targets. */
@@ -43,7 +42,8 @@ public class BlazeAndroidBinaryRunConfigurationHandlerProvider
   }
 
   @Override
-  public BlazeAndroidRunConfigurationHandler createHandler(BlazeCommandRunConfiguration configuration) {
+  public BlazeAndroidRunConfigurationHandler createHandler(
+      BlazeCommandRunConfiguration configuration) {
     return new BlazeAndroidBinaryRunConfigurationHandler(configuration);
   }
 

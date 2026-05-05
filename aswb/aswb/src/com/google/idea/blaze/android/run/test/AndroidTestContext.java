@@ -18,11 +18,11 @@ package com.google.idea.blaze.android.run.test;
 
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.google.common.base.Strings;
+import com.google.idea.bazel.java.AndroidBlazeRules.RuleTypes;
 import com.google.idea.blaze.base.dependencies.TargetInfo;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.TestTargetHeuristic;
 import com.google.idea.blaze.base.run.producers.RunConfigurationContext;
-import com.google.idea.blaze.java.AndroidBlazeRules.RuleTypes;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;

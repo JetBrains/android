@@ -15,23 +15,23 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.google.idea.blaze">
-    <QuerySyncPlugin implementation="com.google.idea.blaze.kotlin.qsync.BlazeKotlinQuerySyncPlugin"/>
-    <JavaLikeLanguage implementation="com.google.idea.blaze.kotlin.KotlinJavaLikeLanguage"/>
-    <TestContextProvider implementation="com.google.idea.blaze.kotlin.run.producers.KotlinTestContextProvider"/>
-    <BinaryContextProvider implementation="com.google.idea.blaze.kotlin.run.producers.KotlinBinaryContextProvider"/>
-    <blazeJavaDebuggingSetupHandler implementation="com.google.idea.blaze.kotlin.run.debug.BlazeKotlinDebuggingSetupHandler"/>
+    <QuerySyncPlugin implementation="com.google.idea.bazel.kotlin.qsync.BlazeKotlinQuerySyncPlugin"/>
+    <JavaLikeLanguage implementation="com.google.idea.bazel.kotlin.KotlinJavaLikeLanguage"/>
+    <TestContextProvider implementation="com.google.idea.bazel.kotlin.run.producers.KotlinTestContextProvider"/>
+    <BinaryContextProvider implementation="com.google.idea.bazel.kotlin.run.producers.KotlinBinaryContextProvider"/>
+    <blazeJavaDebuggingSetupHandler implementation="com.google.idea.bazel.kotlin.run.debug.BlazeKotlinDebuggingSetupHandler"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <programRunner implementation="com.google.idea.blaze.kotlin.run.debug.KotlinDebuggerRunner" id="BazelKotlinDebug" order="before BlazeJavaDebug"/>
+    <programRunner implementation="com.google.idea.bazel.kotlin.run.debug.KotlinDebuggerRunner" id="BazelKotlinDebug" order="before BlazeJavaDebug"/>
     <notificationGroup id="KotlinDebuggerNotification" displayType="BALLOON"/>
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
-    <projectConfigurator implementation="com.google.idea.blaze.kotlin.sync.BlazeKotlinProjectConfigurator"/>
+    <projectConfigurator implementation="com.google.idea.bazel.kotlin.sync.BlazeKotlinProjectConfigurator"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.google.idea.blaze">
-    <kotlinxCoroutinesLibFinder implementation="com.google.idea.blaze.kotlin.run.debug.BazelKotlinxCoroutinesLibFinder"/>
+    <kotlinxCoroutinesLibFinder implementation="com.google.idea.bazel.kotlin.run.debug.BazelKotlinxCoroutinesLibFinder"/>
   </extensions>
 
 </idea-plugin>

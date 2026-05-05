@@ -17,8 +17,8 @@ package com.google.idea.blaze.android.run;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.idea.blaze.java.AndroidBlazeRules.RuleTypes.ANDROID_BINARY;
-import static com.google.idea.blaze.java.AndroidBlazeRules.RuleTypes.ANDROID_INSTRUMENTATION_TEST;
+import static com.google.idea.bazel.java.AndroidBlazeRules.RuleTypes.ANDROID_BINARY;
+import static com.google.idea.bazel.java.AndroidBlazeRules.RuleTypes.ANDROID_INSTRUMENTATION_TEST;
 
 import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerInfoProvider;
@@ -70,43 +70,39 @@ public class DebuggerInfoProviderTest extends BlazeAndroidIntegrationTestCase {
   @Test
   public void getDebuggerFromProvider_nonNativeDebugging_returnsAndroidJavaDebugger() {
     assertThat(
-      debuggerInfoProvider.getSelectedAndroidDebugger(createAndroidBinaryRunConfiguration(false)))
+            debuggerInfoProvider.getSelectedAndroidDebugger(
+                createAndroidBinaryRunConfiguration(false)))
         .isInstanceOf(AndroidJavaDebugger.class);
   }
 
   @Test
   public void getDebuggerFromProvider_withNativeDebugging_returnsBlazeAndroidNativeDebugger() {
     assertThat(
-      debuggerInfoProvider.getSelectedAndroidDebugger(createAndroidBinaryRunConfiguration(true)))
-      .isInstanceOf(AndroidJavaDebugger.class);
+            debuggerInfoProvider.getSelectedAndroidDebugger(
+                createAndroidBinaryRunConfiguration(true)))
+        .isInstanceOf(AndroidJavaDebugger.class);
   }
 
   @Test
   @SuppressWarnings({"rawtypes"}) // Raw type from upstream.
   public void getAndroidDebuggers_withAndroidBinaryRunConfiguration_returnsJavaAndNative() {
     ImmutableList<Class> classList =
-        debuggerInfoProvider.getAndroidDebuggers(createAndroidBinaryRunConfiguration(true))
-            .stream()
+        debuggerInfoProvider.getAndroidDebuggers(createAndroidBinaryRunConfiguration(true)).stream()
             .map(Object::getClass)
             .collect(toImmutableList());
     assertThat(classList)
-        .containsExactly(
-            AndroidJavaDebugger.class,
-            BlazeNativeAndroidDebugger.class);
+        .containsExactly(AndroidJavaDebugger.class, BlazeNativeAndroidDebugger.class);
   }
 
   @Test
   @SuppressWarnings({"rawtypes"}) // Raw type from upstream.
   public void getAndroidDebuggers_withAndroidTestRunConfiguration_returnsJavaAndNative() {
     ImmutableList<Class> classList =
-        debuggerInfoProvider.getAndroidDebuggers(createAndroidTestRunConfiguration(true))
-            .stream()
+        debuggerInfoProvider.getAndroidDebuggers(createAndroidTestRunConfiguration(true)).stream()
             .map(Object::getClass)
             .collect(toImmutableList());
     assertThat(classList)
-        .containsExactly(
-            AndroidJavaDebugger.class,
-            BlazeNativeAndroidDebugger.class);
+        .containsExactly(AndroidJavaDebugger.class, BlazeNativeAndroidDebugger.class);
   }
 
   private BlazeCommandRunConfiguration createAndroidBinaryRunConfiguration(
@@ -121,7 +117,7 @@ public class DebuggerInfoProviderTest extends BlazeAndroidIntegrationTestCase {
         (BlazeCommandRunConfiguration) runnerAndConfigurationSettings.getConfiguration();
     TargetInfo target =
         new TargetInfo(
-                Label.create("//java/com/foo/app:app"), ANDROID_BINARY.getKind().getKindString());
+            Label.create("//java/com/foo/app:app"), ANDROID_BINARY.getKind().getKindString());
     runConfig.setTargetInfo(target);
     BlazeAndroidBinaryRunConfigurationState androidBinaryConfig =
         (BlazeAndroidBinaryRunConfigurationState) runConfig.getHandler().getState();
@@ -143,8 +139,8 @@ public class DebuggerInfoProviderTest extends BlazeAndroidIntegrationTestCase {
         (BlazeCommandRunConfiguration) runnerAndConfigurationSettings.getConfiguration();
     TargetInfo target =
         new TargetInfo(
-                Label.create("//javatests/com/foo/app:test"),
-                ANDROID_INSTRUMENTATION_TEST.getKind().getKindString());
+            Label.create("//javatests/com/foo/app:test"),
+            ANDROID_INSTRUMENTATION_TEST.getKind().getKindString());
     runConfig.setTargetInfo(target);
     BlazeAndroidTestRunConfigurationState androidTestConfig =
         (BlazeAndroidTestRunConfigurationState) runConfig.getHandler().getState();

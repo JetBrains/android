@@ -18,11 +18,11 @@ load(
 aswb_library(
     name = "cpp_lib",
     srcs = glob([
-        "src/com/google/idea/blaze/cpp/*.java",
-        "src/com/google/idea/blaze/cpp/includes/*.java",
-        "src/com/google/idea/blaze/cpp/qsync/*.java",
-        "src/com/google/idea/blaze/cpp/syncstatus/*.java",
-        "src/com/google/idea/blaze/cpp/navigation/*.java",
+        "src/com/google/idea/bazel/cpp/*.java",
+        "src/com/google/idea/bazel/cpp/includes/*.java",
+        "src/com/google/idea/bazel/cpp/qsync/*.java",
+        "src/com/google/idea/bazel/cpp/syncstatus/*.java",
+        "src/com/google/idea/bazel/cpp/navigation/*.java",
     ]),
     visibility = PLUGIN_PACKAGES_VISIBILITY,
     deps = [
@@ -54,7 +54,7 @@ intellij_plugin_library(
 java_library(
     name = "clion_sysprop_rule",
     testonly = 1,
-    srcs = ["tests/utils/com/google/idea/blaze/cpp/ClionUnitTestSystemPropertiesRule.java"],
+    srcs = ["tests/utils/com/google/idea/bazel/cpp/ClionUnitTestSystemPropertiesRule.java"],
     visibility = PLUGIN_PACKAGES_VISIBILITY,
     deps = [
         "//tools/adt/idea/aswb/third_party/java/junit",
@@ -68,7 +68,7 @@ intellij_unit_test_suite(
     srcs = glob(["tests/unittests/**/*.java"]),
     class_rules = [],
     tags = ["noci:studio-win"],
-    test_package_root = "com.google.idea.blaze.cpp",
+    test_package_root = "com.google.idea.bazel.cpp",
     visibility = DEFAULT_TEST_VISIBILITY,
     # Needed to work around one-version issue
     runtime_deps = ["//tools/vendor/google/aswb/plugin_api:test_libs"],
@@ -89,7 +89,7 @@ java_library(
     name = "integration_test_utils",
     testonly = 1,
     srcs = [
-        "tests/integrationtests/com/google/idea/blaze/cpp/BlazeCppIntegrationTestCase.java",
+        "tests/integrationtests/com/google/idea/bazel/cpp/BlazeCppIntegrationTestCase.java",
     ],
     visibility = PLUGIN_PACKAGES_VISIBILITY,
     deps = [
@@ -109,12 +109,12 @@ intellij_integration_test_suite(
     srcs = glob(
         ["tests/integrationtests/**/*.java"],
         exclude = [
-            "tests/integrationtests/com/google/idea/blaze/cpp/BlazeCppIntegrationTestCase.java",
-            "tests/integrationtests/com/google/idea/blaze/cpp/BlazeCppResolvingTestCase.java",
+            "tests/integrationtests/com/google/idea/bazel/cpp/BlazeCppIntegrationTestCase.java",
+            "tests/integrationtests/com/google/idea/bazel/cpp/BlazeCppResolvingTestCase.java",
         ],
     ),
     tags = ["noci:studio-win"],
-    test_package_root = "com.google.idea.blaze.cpp",
+    test_package_root = "com.google.idea.bazel.cpp",
     visibility = DEFAULT_TEST_VISIBILITY,
     deps = [
         ":cpp_lib",
