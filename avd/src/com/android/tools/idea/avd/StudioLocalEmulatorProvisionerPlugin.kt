@@ -17,6 +17,7 @@ package com.android.tools.idea.avd
 
 import com.android.adblib.ConnectedDevice
 import com.android.adblib.tools.aiglasses.AiGlassesPairing
+import com.android.adblib.tools.aiglasses.ShellCommandException
 import com.android.sdklib.deviceprovisioner.ActivationAction
 import com.android.sdklib.deviceprovisioner.AvdDeviceError
 import com.android.sdklib.deviceprovisioner.AvdScanner
@@ -25,6 +26,7 @@ import com.android.sdklib.deviceprovisioner.ColdBootAction
 import com.android.sdklib.deviceprovisioner.CreateDeviceAction
 import com.android.sdklib.deviceprovisioner.DeactivationAction
 import com.android.sdklib.deviceprovisioner.DeviceAction
+import com.android.sdklib.deviceprovisioner.DeviceActionException
 import com.android.sdklib.deviceprovisioner.DeviceError
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceId
@@ -555,25 +557,87 @@ class StudioLocalEmulatorDeviceHandle(
     object : UnpairGlassesAction {
       override suspend fun unpairGlasses() {
         GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.UNPAIR_ACTION_CLICKED)
-        val success =
-          withContext(ioDispatcher) {
-            val ok = unpairFromCompanions()
-            if (ok) {
-              updatePairedPhone(null)
-              clearPairedGlasses()
+
+        val properties = state.properties
+        val phoneId = properties.pairedPhoneId
+        val glassesHandle = this@StudioLocalEmulatorDeviceHandle
+
+        val phoneHandle = phoneId?.let { id -> deviceHandleFlow.value.find { it.id == id } }
+
+        // 1. If Phone is Online, send UNPAIR broadcast
+        if (phoneHandle != null) {
+          val phoneDevice = phoneHandle.state.connectedDevice
+          if (phoneDevice != null) {
+            try {
+              val adbSession = phoneDevice.session
+              val pairing = AiGlassesPairing(adbSession)
+              withContext(ioDispatcher) { with(pairing) { phoneDevice.sendUnpairCommand() } }
+            } catch (e: CancellationException) {
+              throw e
+            } catch (e: ShellCommandException) {
+              logger.warn("Failed to send unpair command to companion phone ${phoneHandle.state.properties.title}", e)
+            } catch (e: IOException) {
+              logger.warn("Network I/O failure sending unpair command to companion phone ${phoneHandle.state.properties.title}", e)
             }
-            ok
           }
-        if (success) {
-          GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.UNPAIR_SUCCESSFUL)
-        } else {
-          GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.UNPAIR_FAILED)
-          withContext(edtDispatcher) { Messages.showErrorDialog(project, "Failed to clear pairing configuration.", "Unpair Error") }
         }
+
+        // 2. If Glasses (Self) is running or transitioning, deactivate it and wait for it to fully stop
+        if (!state.isStopped()) {
+          val stopped =
+            try {
+              deactivationAction.deactivate()
+              withTimeoutOrNull(30_000L) { stateFlow.first { it.isStopped() } } != null
+            } catch (e: CancellationException) {
+              throw e
+            } catch (e: DeviceActionException) {
+              logger.warn("Failed to deactivate glasses AVD ${properties.title}", e)
+              false
+            }
+          if (!stopped) {
+            GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.UNPAIR_FAILED)
+            withContext(edtDispatcher) {
+              Messages.showErrorDialog(project, "Failed to stop ${properties.title} emulator process.", "Unpair Error")
+            }
+            return
+          }
+        }
+
+        // 3. Wipe Glasses (Self) userdata directly via avdManagerConnection
+        val wipeSuccess =
+          withContext(ioDispatcher) {
+            try {
+              avdManagerConnection.wipeUserData(avdInfo)
+            } catch (e: CancellationException) {
+              throw e
+            } catch (e: DeviceActionException) {
+              logger.warn("Action error wiping glasses AVD userdata ${properties.title}", e)
+              false
+            } catch (e: IOException) {
+              logger.warn("I/O failure wiping glasses AVD userdata ${properties.title}", e)
+              false
+            }
+          }
+        if (!wipeSuccess) {
+          GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.UNPAIR_FAILED)
+          withContext(edtDispatcher) { Messages.showErrorDialog(project, "Failed to wipe data on ${properties.title}.", "Unpair Error") }
+          return
+        }
+
+        // 4. Clear persistent settings on host symmetrically
+        withContext(ioDispatcher) {
+          unpairFromCompanions()
+
+          baseDeviceHandle.updatePairedPhone(null)
+        }
+
+        GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.UNPAIR_SUCCESSFUL)
       }
 
       override val presentation: StateFlow<DeviceAction.Presentation> =
-        defaultPresentation.fromContext().enabledIf { it.properties.pairedPhoneId != null || it.properties.pairedGlassesInfos.isNotEmpty() }
+        defaultPresentation.fromContext().enabledIf {
+          it.properties.deviceType == DeviceType.AI_GLASSES && it.properties.pairedPhoneId != null && !it.isTransitioning
+        }
     }
 
   private fun DeviceAction.Presentation.enabledIf(condition: (DeviceState) -> Boolean) =

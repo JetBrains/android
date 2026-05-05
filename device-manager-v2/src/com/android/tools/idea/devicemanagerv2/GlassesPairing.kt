@@ -53,14 +53,20 @@ class UnpairGlassesAction() : DumbAwareAction("Unpair Glasses") {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    // TODO(b/458470193): Implement unpairing
-    e.presentation.isEnabledAndVisible = false
+    if (
+      StudioFlags.AI_GLASSES_PAIRING_RECONCILIATION_ENABLED.get() &&
+        e.deviceHandle()?.state?.properties?.deviceType == DeviceType.AI_GLASSES
+    ) {
+      e.updateFromDeviceAction(DeviceHandle::unpairGlassesAction)
+    } else {
+      e.presentation.isEnabledAndVisible = false
+    }
   }
 
   override fun actionPerformed(e: AnActionEvent) {
     val deviceHandle = e.deviceHandle()
-    val pairGlassesAction = deviceHandle?.unpairGlassesAction ?: return
+    val unpairGlassesAction = deviceHandle?.unpairGlassesAction ?: return
 
-    deviceHandle.launchCatchingDeviceActionException(project = e.project) { pairGlassesAction.unpairGlasses() }
+    deviceHandle.launchCatchingDeviceActionException(project = e.project) { unpairGlassesAction.unpairGlasses() }
   }
 }
