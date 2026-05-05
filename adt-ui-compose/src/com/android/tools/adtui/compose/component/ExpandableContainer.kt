@@ -28,10 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.layout.Measurable
 import androidx.compose.ui.layout.MeasurePolicy
-import androidx.compose.ui.layout.MeasureResult
-import androidx.compose.ui.layout.MeasureScope
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
@@ -83,23 +80,17 @@ fun ExpandableContainer(
         .heightIn(max = maxHeight),
     content = content,
     measurePolicy =
-      object : MeasurePolicy {
-        var canOverflow: Boolean? = null
+      MeasurePolicy { measurables, constraints ->
+        val placeable =
+          measurables.singleOrNull()?.measure(constraints.copy(maxHeight = Constraints.Infinity))
+            ?: error("ExpandableContainer must have a single child, but it had ${measurables.size}")
 
-        override fun MeasureScope.measure(measurables: List<Measurable>, constraints: Constraints): MeasureResult {
-          val placeable =
-            measurables.singleOrNull()?.measure(constraints.copy(maxHeight = Constraints.Infinity))
-              ?: error("ExpandableContainer must have a single child, but it had ${measurables.size}")
+        val placeableHeight = placeable.height
+        val height = placeableHeight.fastCoerceIn(constraints.minHeight, constraints.maxHeight)
 
-          val placeableHeight = placeable.height
-          val height = placeableHeight.fastCoerceIn(constraints.minHeight, constraints.maxHeight)
+        onExpandableChange(placeableHeight >= maxCollapsedHeight.toPx())
 
-          if (canOverflow == null) {
-            canOverflow = (placeableHeight >= maxCollapsedHeight.toPx()).also { onExpandableChange(it) }
-          }
-
-          return layout(placeable.width, height) { placeable.place(0, 0) }
-        }
+        layout(placeable.width, height) { placeable.place(0, 0) }
       },
   )
 }
