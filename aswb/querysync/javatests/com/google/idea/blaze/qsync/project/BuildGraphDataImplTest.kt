@@ -154,7 +154,7 @@ class BuildGraphDataImplTest {
           defaultProtoRules,
         )
         .parseForTesting()
-    assertThat(graph.allSupportedTargets.getTargets().toList()).containsExactly(Label.of("//$TESTDATA_ROOT/nodeps:nodeps"))
+    assertThat(graph.allLoadedBuildPackages.flatMap { it.allSupportedTargets }).containsExactly(Label.of("//$TESTDATA_ROOT/nodeps:nodeps"))
     assertThat(graph.getAllSourceFileLabels())
       .containsExactly(Label.of("//$TESTDATA_ROOT/nodeps:TestClassNoDeps.java"), Label.of("//$TESTDATA_ROOT/nodeps:BUILD"))
     assertThat(graph.getJavaSourceFiles()).containsExactly(TESTDATA_ROOT.resolve("nodeps/TestClassNoDeps.java"))
@@ -193,7 +193,7 @@ class BuildGraphDataImplTest {
           defaultProtoRules,
         )
         .parseForTesting()
-    assertThat(graph.allSupportedTargets.getTargets().toList())
+    assertThat(graph.allLoadedBuildPackages.flatMap { it.allSupportedTargets })
       .containsExactly(Label.of("//$TESTDATA_ROOT/multitarget:nodeps"), Label.of("//$TESTDATA_ROOT/multitarget:externaldep"))
     // Sanity check:
     assertThat(graph.getJavaSourceFiles()).contains(TESTDATA_ROOT.resolve("multitarget/TestClassSingleTarget.java"))
@@ -681,8 +681,4 @@ class BuildGraphDataImplTest {
 
     private val TESTDATA_ROOT: Path = TEST_ROOT.resolve("testdata")
   }
-}
-
-private fun BuildGraphDataImpl.getAllSourceFileLabels(): Set<Label> {
-  return storage.buildPackages.values.flatMap { pkg -> pkg.sourceFileNames.map { name -> pkg.packageLabel.siblingWithName(name) } }.toSet()
 }

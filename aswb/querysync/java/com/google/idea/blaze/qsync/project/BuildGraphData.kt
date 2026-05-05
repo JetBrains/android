@@ -50,7 +50,13 @@ interface BuildGraphData {
    */
   fun getProtoModes(label: Label): Set<ProtoMode>
 
-  interface BuildPackage
+  interface BuildPackage {
+    val packageLabel: Label
+    val sourceFileNames: Set<String>
+    val allSupportedTargetNames: Set<String>
+  }
+
+  val allLoadedBuildPackages: Collection<BuildPackage>
 
   /** A set of all the BUILD files */
   fun getBuildPackage(packageLabel: Label): BuildPackage?
@@ -157,3 +163,13 @@ fun BuildGraphData.getAllCustomPackages(): Set<String> {
 fun BuildGraphData.getBuildPackage(path: Path): BuildGraphData.BuildPackage? {
   return this.getBuildPackage(Label.fromWorkspacePackageAndName("", path, Label.PACKAGE_TARGET_NAME))
 }
+
+fun BuildGraphData.getAllSourceFileLabels(): Set<Label> {
+  return allLoadedBuildPackages.flatMap { it.sourceFileLabels }.toSet()
+}
+
+val BuildGraphData.BuildPackage.sourceFileLabels: Set<Label>
+  get() = sourceFileNames.map { packageLabel.siblingWithName(it) }.toSet()
+
+val BuildGraphData.BuildPackage.allSupportedTargets: Set<Label>
+  get() = allSupportedTargetNames.map { packageLabel.siblingWithName(it) }.toSet()

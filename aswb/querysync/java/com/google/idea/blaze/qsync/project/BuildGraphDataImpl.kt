@@ -87,8 +87,11 @@ data class BuildGraphDataImpl private constructor(@VisibleForTesting @JvmField v
     }
   }
 
+  override val allLoadedBuildPackages: Collection<BuildGraphData.BuildPackage>
+    get() = storage.buildPackages.values
+
   override fun getBuildPackage(packageLabel: Label): BuildGraphData.BuildPackage? {
-    return storage.buildPackages[packageLabel.getPackageLabel()]?.let { object : BuildGraphData.BuildPackage {} }
+    return storage.buildPackages[packageLabel.getPackageLabel()]
   }
 
   override fun getProjectTarget(label: Label): ProjectTarget? = storage.buildPackages[label.getPackageLabel()]?.targetMap?.get(label.name)
@@ -176,11 +179,11 @@ data class BuildGraphDataImpl private constructor(@VisibleForTesting @JvmField v
   }
 
   data class BuildPackageStorage(
-    val packageLabel: Label,
-    val sourceFileNames: Set<String> = emptySet(),
+    override val packageLabel: Label,
+    override val sourceFileNames: Set<String> = emptySet(),
     val targetMap: Map<String, ProjectTarget> = emptyMap(),
-    val allSupportedTargetNames: Set<String> = emptySet(),
-  )
+    override val allSupportedTargetNames: Set<String> = emptySet(),
+  ) : BuildGraphData.BuildPackage
 
   /** Build graph data in one place. */
   data class Storage(
@@ -326,7 +329,7 @@ data class BuildGraphDataImpl private constructor(@VisibleForTesting @JvmField v
       val seenSources = mutableSetOf<Label>()
       projectTargets.forEach { targetLabel ->
         val target =
-          storage.buildPackages[targetLabel.getPackageLabel()]?.targetMap?.get(targetLabel.name)
+          getProjectTarget(targetLabel)
             ?: let {
               add(targetLabel)
               // Unknown target requested so let's just return it.
