@@ -46,14 +46,15 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.model.V2NdkModel
 import com.android.tools.idea.gradle.project.sync.AndroidExtraModelProvider
+import com.android.tools.idea.gradle.project.sync.AndroidProjectSyncMarker
 import com.android.tools.idea.gradle.project.sync.AndroidSyncException
 import com.android.tools.idea.gradle.project.sync.AndroidSyncExceptionType
-import com.android.tools.idea.gradle.project.sync.ModelProviderCachedData
 import com.android.tools.idea.gradle.project.sync.IdeAndroidModels
 import com.android.tools.idea.gradle.project.sync.IdeAndroidNativeVariantsModels
 import com.android.tools.idea.gradle.project.sync.IdeAndroidSyncError
 import com.android.tools.idea.gradle.project.sync.IdeAndroidSyncIssuesAndExceptions
 import com.android.tools.idea.gradle.project.sync.IdeSyncExecutionReport
+import com.android.tools.idea.gradle.project.sync.ModelProviderCachedData
 import com.android.tools.idea.gradle.project.sync.PhasedSyncDependencyModelProvider
 import com.android.tools.idea.gradle.project.sync.PhasedSyncProjectModelProvider
 import com.android.tools.idea.gradle.project.sync.SdkSync
@@ -122,6 +123,8 @@ import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.ExceptionUtil
 import com.intellij.util.PathUtil
 import com.intellij.util.SystemProperties
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
+import kotlinx.coroutines.Job
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaProject
@@ -330,7 +333,13 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
   }
 
   override fun getToolingExtensionsClasses(): Set<Class<*>> {
-    return setOf(KaptModelBuilderService::class.java, Unit::class.java)
+    return setOf(
+      KaptModelBuilderService::class.java,
+      Unit::class.java,
+      AndroidProjectSyncMarker::class.java,
+      Object2ObjectOpenHashMap::class.java,
+      Job::class.java
+    )
   }
 
   /**
