@@ -18,16 +18,14 @@ package com.google.idea.blaze.qsync;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
-import com.google.idea.blaze.common.Label;
+import com.google.common.collect.Lists;
 import com.google.idea.blaze.common.vcs.VcsState;
 import com.google.idea.blaze.qsync.project.PostQuerySyncData;
-import com.google.idea.blaze.qsync.query.QueryData;
 import com.google.idea.blaze.qsync.query.QuerySpec;
 import com.google.idea.blaze.qsync.query.QuerySummary;
 import com.google.idea.blaze.qsync.query.QuerySummaryImpl;
 import java.nio.file.Path;
-import java.util.Map;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -97,30 +95,24 @@ class PartialProjectRefresh implements RefreshOperation {
    */
   @VisibleForTesting
   QuerySummary applyDelta(QuerySummary partialQuery) {
-    // copy all unaffected rules / source files to result:
-    Map<Label, QueryData.SourceFile> newSourceFiles = Maps.newHashMap();
-    for (var sfEntry : previousState.querySummary().getSourceFilesMap().entrySet()) {
-      Path buildPackage = sfEntry.getKey().getBuildPackagePath();
-      if (!(deletedPackages.contains(buildPackage)
-          || partialQuery.getPackages().contains(buildPackage))) {
-        newSourceFiles.put(sfEntry.getKey(), sfEntry.getValue());
+    List<QuerySummary.BuildPackage> mergedPackages = Lists.newArrayList();
+
+    // 1. Keep previous build packages if unaffected/not deleted:
+    for (QuerySummary.BuildPackage pkg : previousState.querySummary().getBuildPackages()) {
+      Path buildPackagePath = pkg.getPackageLabel().getBuildPackagePath();
+      if (!(deletedPackages.contains(buildPackagePath)
+          || partialQuery.getPackages().contains(buildPackagePath))) {
+        mergedPackages.add(pkg);
       }
     }
-    Map<Label, QueryData.Rule> newRules = Maps.newHashMap();
-    for (var ruleEntry : previousState.querySummary().getRulesMap().entrySet()) {
-      Path buildPackage = ruleEntry.getKey().getBuildPackagePath();
-      if (!(deletedPackages.contains(buildPackage)
-          || partialQuery.getPackages().contains(buildPackage))) {
-        newRules.put(ruleEntry.getKey(), ruleEntry.getValue());
-      }
-    }
-    // now add all rules / source files from the delta
-    newSourceFiles.putAll(partialQuery.getSourceFilesMap());
-    newRules.putAll(partialQuery.getRulesMap());
+
+    // 2. Add all new/modified build packages from the delta query:
+    mergedPackages.addAll(partialQuery.getBuildPackages());
+
+    // 3. Build the merged summary package-by-package, preserving queryStrategy:
     return QuerySummaryImpl.newBuilder()
-        .putAllSourceFiles(newSourceFiles)
-        .putAllRules(newRules.values())
-        .putAllPackagesWithErrors(partialQuery.getPackagesWithErrors())
+        .putAllPackages(mergedPackages)
+        .setQueryStrategy(previousState.querySummary().getQueryStrategy())
         .build();
   }
 }

@@ -10,12 +10,9 @@ option java_package = "com.google.idea.blaze.qsync.query";
  * Contains a summary of a {@code query} command output as needed by querysync.
  */
 message Summary {
-  reserved 1; // old source_files to be discarded.
-  reserved 2; // old rules to be discarded.
+  reserved 1, 2, 4, 6, 8, 9; // Reserved flat fields to prevent tag reuse.
   int32 version = 3;
-  repeated string packages_with_errors = 4;
   StringStorage string_storage = 5;
-  reserved 6; // old stored_rules to be discarded.
 
   enum QueryStrategy {
     QUERY_STRATEGY_UNKNOWN = 0;
@@ -25,8 +22,7 @@ message Summary {
   }
   QueryStrategy query_strategy = 7;
 
-  repeated StoredRule stored_rules = 8;
-  repeated StoredSourceFile source_files = 9;
+  repeated StoredBuildPackage build_packages = 10;
 }
 
 /**
@@ -67,4 +63,14 @@ message StoredRule {
   repeated int32 tags = 14;
   int32 main_class = 15;
   StoredLabel test_rule = 16;
+}
+
+message StoredBuildPackage {
+  int32 workspace = 1;
+  int32 build_package = 2; // workspace-relative package path StringStorage index
+
+  repeated StoredRule stored_rules = 3;
+  repeated StoredSourceFile source_files = 4;
+
+  bool has_error = 5;
 }

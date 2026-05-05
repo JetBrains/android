@@ -53,6 +53,71 @@ data class QuerySummaryImpl(private val proto: Query.Summary) : QuerySummary {
   /** An opaque proto buffer to be serialized with the project state and re-create the [ ] using [QuerySummaryImpl.create]. */
   override fun protoForSerializationOnly(): Query.Summary = proto
 
+  private class BuildPackageImpl(
+    override val packageLabel: Label,
+    sourceFiles: Collection<QueryData.SourceFile>,
+    rules: Collection<QueryData.Rule>,
+    override val hasError: Boolean,
+  ) : QuerySummary.BuildPackage {
+    override val sourceFilesMap: Map<Label, QueryData.SourceFile> = sourceFiles.associateBy { it.label }
+    override val rulesMap: Map<Label, QueryData.Rule> = rules.associateBy { it.label }
+    override val subincludes: Set<Label> = sourceFiles.flatMap { it.subincliudes }.toSet()
+  }
+
+  override val buildPackages: Collection<QuerySummary.BuildPackage>
+  private val buildPackagesMap: Map<Label, QuerySummary.BuildPackage>
+  override val packagesWithErrors: Set<Path>
+  override val packages: PackageSet
+  override val allBuildIncludedFiles: Set<Label>
+  override val reverseSubincludeMap: Map<Path, Collection<Path>>
+  override val packagesWithErrorsCount: Int
+  override val rulesCount: Int
+
+  init {
+    val lookup = StringLookup(proto.stringStorage.indexedStringsList)
+    buildPackages =
+      proto.buildPackagesList.map { pkg ->
+        val packageLabel =
+          Label.fromWorkspacePackageAndName(
+            lookup.lookupString(pkg.workspace),
+            Path.of(lookup.lookupString(pkg.buildPackage)),
+            Label.PACKAGE_TARGET_NAME,
+          )
+        BuildPackageImpl(
+          packageLabel = packageLabel,
+          sourceFiles = pkg.sourceFilesList.map { lookup.storedSourceFileToSourceFile(it) },
+          rules = pkg.storedRulesList.map { lookup.storedRuleToRule(it) },
+          hasError = pkg.hasError,
+        )
+      }
+
+    buildPackagesMap = buildPackages.associateBy { it.packageLabel }
+
+    packagesWithErrors = buildPackages.asSequence().filter { it.hasError }.map { it.packageLabel.getBuildPackagePath() }.toSet()
+
+    packages = PackageSet(buildPackages.map { it.packageLabel.getBuildPackagePath() }.toSet())
+
+    allBuildIncludedFiles = buildPackages.flatMap { it.subincludes }.toSet()
+
+    reverseSubincludeMap =
+      buildPackages
+        .asSequence()
+        .flatMap { pkg ->
+          pkg.subincludes.asSequence().map { subinclude ->
+            subinclude.toFilePath() to pkg.packageLabel.siblingWithName("BUILD").toFilePath()
+          }
+        }
+        .groupBy({ it.first }, { it.second })
+        .mapValues { it.value.toSet() }
+
+    packagesWithErrorsCount = buildPackages.count { it.hasError }
+    rulesCount = buildPackages.sumOf { it.rulesMap.size }
+  }
+
+  override fun getBuildPackage(packageLabel: Label): QuerySummary.BuildPackage? {
+    return buildPackagesMap[packageLabel.getPackageLabel()]
+  }
+
   private class StringIndexer {
     private val strings: MutableMap<String, Int> = hashMapOf()
     private val list: MutableList<String> = mutableListOf()
@@ -181,109 +246,84 @@ data class QuerySummaryImpl(private val proto: Query.Summary) : QuerySummary {
       }
     }
 
-  /**
-   * Returns the map of source files included in the query output.
-   *
-   * This is a map of source target label to the [QueryData.SourceFile] proto representing it.
-   */
-  override val sourceFilesMap: Map<Label, QueryData.SourceFile> by lazy {
-    val lookup = StringLookup(proto.stringStorage.indexedStringsList)
-    proto.sourceFilesList.map { lookup.storedSourceFileToSourceFile(it) }.associateBy { it.label }
-  }
-
-  /**
-   * Returns the map of rules included in the query output.
-   *
-   * This is a map of rule label to the [QueryData.Rule] proto representing it.
-   */
-  override val rulesMap: Map<Label, QueryData.Rule> by lazy {
-    val lookup = StringLookup(proto.stringStorage.indexedStringsList)
-    proto.storedRulesList.map { lookup.storedRuleToRule(it) }.associateBy { it.label }
-  }
-
-  override val packagesWithErrors: Set<Path> by lazy {
-    proto.packagesWithErrorsList
-      .map { Label.of(it) }
-      .map { it.getBuildPackagePath() } // The packages are BUILD file labels.
-      .toSet()
-  }
-
-  /**
-   * Returns the set of build packages in the query output.
-   *
-   * The packages are workspace relative paths that contain a BUILD file.
-   */
-  override val packages: PackageSet by lazy {
-    PackageSet(sourceFilesMap.keys.map { it.getBuildPackagePath() }.toSet() + packagesWithErrors)
-  }
-
-  /**
-   * Returns a map of .bzl file labels to BUILD file labels that include them.
-   *
-   * This is used to determine, for example, which build files include a given .bzl file.
-   */
-  override val reverseSubincludeMap by lazy {
-    sourceFilesMap.entries
-      .asSequence()
-      .flatMap { entry -> entry.value.subincliudes.asSequence().map { subinclude -> subinclude to entry.key } }
-      .groupBy({ it.first.toFilePath() }, { it.second.toFilePath() })
-      .mapValues { it.value.toSet() }
-  }
-
-  /** Returns the set of labels of all files includes from BUILD files. */
-  override val allBuildIncludedFiles: Set<Label> by lazy { sourceFilesMap.values.flatMap { it.subincliudes }.toSet() }
-
-  override val packagesWithErrorsCount: Int
-    get() = proto.packagesWithErrorsCount
-
-  override val rulesCount: Int
-    get() = proto.storedRulesCount
-
-  /**
-   * Builder for [QuerySummaryImpl]. This should be used when constructing a summary from a map of source files and rules. To construct one
-   * from a serialized proto, you should use [ ][QuerySummaryImpl.create] instead.
-   */
   class Builder internal constructor() {
     private var indexer: StringIndexer = StringIndexer()
     private val builder: Query.Summary.Builder = Query.Summary.newBuilder().setVersion(PROTO_VERSION)
 
+    private class PackageBuilder(
+      val packageLabel: Label,
+      var hasError: Boolean = false,
+      val rules: MutableList<QueryData.Rule> = mutableListOf(),
+      val sourceFiles: MutableList<QueryData.SourceFile> = mutableListOf(),
+    )
+
+    private val packageBuilders: MutableMap<Label, PackageBuilder> = hashMapOf()
+
     fun putAllSourceFiles(sourceFileMap: Map<Label, QueryData.SourceFile>): Builder {
-      builder.addAllSourceFiles(sourceFileMap.values.map { indexer.sourceFileToStoredSourceFile(it) })
+      sourceFileMap.values.forEach { putSourceFiles(it) }
       return this
     }
 
     fun putSourceFiles(sourceFile: QueryData.SourceFile): Builder {
-      builder.addSourceFiles(indexer.sourceFileToStoredSourceFile(sourceFile))
+      val pkgLabel = sourceFile.label.getPackageLabel()
+      packageBuilders.getOrPut(pkgLabel) { PackageBuilder(pkgLabel) }.sourceFiles.add(sourceFile)
       return this
     }
 
     fun putAllRules(rules: Collection<QueryData.Rule>): Builder {
-      builder.addAllStoredRules(rules.map { indexer.ruleToStoredRule(it) })
+      rules.forEach { putRules(it) }
       return this
     }
 
     fun putRules(rule: QueryData.Rule): Builder {
-      builder.addStoredRules(indexer.ruleToStoredRule(rule))
+      val pkgLabel = rule.label.getPackageLabel()
+      packageBuilders.getOrPut(pkgLabel) { PackageBuilder(pkgLabel) }.rules.add(rule)
       return this
     }
 
     fun putAllPackagesWithErrors(packagesWithErrors: Set<Path>): Builder {
-      packagesWithErrors // TODO: b/334110669 - Consider multi workspace-builds.
-        .asSequence()
-        .map { fromWorkspacePackageAndName(Label.ROOT_WORKSPACE, it, "BUILD") }
-        .map { it.toString() }
-        .map { intern(it) }
-        .forEach { builder.addPackagesWithErrors(it) }
+      packagesWithErrors.forEach { putPackagesWithErrors(it) }
       return this
     }
 
     fun putPackagesWithErrors(packageWithErrors: Path): Builder {
-      builder.addPackagesWithErrors(intern(fromWorkspacePackageAndName(Label.ROOT_WORKSPACE, packageWithErrors, "BUILD").toString()))
+      val pkgLabel = Label.fromWorkspacePackageAndName(Label.ROOT_WORKSPACE, packageWithErrors, Label.PACKAGE_TARGET_NAME)
+      packageBuilders.getOrPut(pkgLabel) { PackageBuilder(pkgLabel) }.hasError = true
+      return this
+    }
+
+    fun putAllPackages(packages: Collection<QuerySummary.BuildPackage>): Builder {
+      for (pkg in packages) {
+        val pkgBuilder = packageBuilders.getOrPut(pkg.packageLabel) { PackageBuilder(pkg.packageLabel) }
+        if (pkg.hasError) {
+          pkgBuilder.hasError = true
+        }
+        pkgBuilder.rules.addAll(pkg.rulesMap.values)
+        pkgBuilder.sourceFiles.addAll(pkg.sourceFilesMap.values)
+      }
+      return this
+    }
+
+    fun setQueryStrategy(queryStrategy: QuerySpec.QueryStrategy): Builder {
+      builder.setQueryStrategy(convertQueryStrategy(queryStrategy))
       return this
     }
 
     fun build(): QuerySummary {
-      builder.setStringStorage(Query.StringStorage.newBuilder().addAllIndexedStrings(indexer.list()))
+      for (pkg in packageBuilders.values) {
+        val pkgBuilder =
+          Query.StoredBuildPackage.newBuilder()
+            .setWorkspace(indexer.index(pkg.packageLabel.workspace))
+            .setBuildPackage(indexer.index(pkg.packageLabel.buildPackage))
+            .setHasError(pkg.hasError)
+
+        pkg.rules.forEach { pkgBuilder.addStoredRules(indexer.ruleToStoredRule(it)) }
+        pkg.sourceFiles.forEach { pkgBuilder.addSourceFiles(indexer.sourceFileToStoredSourceFile(it)) }
+
+        builder.addBuildPackages(pkgBuilder.build())
+      }
+
+      builder.setStringStorage(Query.StringStorage.newBuilder().addAllIndexedStrings(indexer.list()).build())
       return create(builder.build())
     }
   }
@@ -296,7 +336,7 @@ data class QuerySummaryImpl(private val proto: Query.Summary) : QuerySummary {
      * Whenever changing the logic in this class such that the Query.Summary proto contents will be different for the same input, this
      * version should be incremented.
      */
-    @VisibleForTesting const val PROTO_VERSION: Int = 12
+    @VisibleForTesting const val PROTO_VERSION: Int = 13
 
     // Compile-time dependency attributes, as they appear in streamed_proto output
     private val DEPENDENCY_ATTRIBUTES: Set<String> =
@@ -429,16 +469,37 @@ data class QuerySummaryImpl(private val proto: Query.Summary) : QuerySummary {
           else -> {}
         }
       }
-      return create(
+      val packageRules = ruleMap.entries.groupBy { it.key.getPackageLabel() }
+      val packageSources = sourceFileMap.entries.groupBy { it.key.getPackageLabel() }
+      val allPackages = packageRules.keys + packageSources.keys + packagesWithErrors.map { Label.of(it).getPackageLabel() }
+
+      val packageBuilders: MutableMap<Label, Query.StoredBuildPackage.Builder> = hashMapOf()
+
+      fun getOrCreatePackageBuilder(packageLabel: Label): Query.StoredBuildPackage.Builder {
+        return packageBuilders.getOrPut(packageLabel) {
+          Query.StoredBuildPackage.newBuilder()
+            .setWorkspace(indexer.index(packageLabel.workspace))
+            .setBuildPackage(indexer.index(packageLabel.buildPackage))
+        }
+      }
+
+      for (packageLabel in allPackages) {
+        val pkgBuilder = getOrCreatePackageBuilder(packageLabel)
+        if (packagesWithErrors.contains(packageLabel.siblingWithName("BUILD").toString())) {
+          pkgBuilder.setHasError(true)
+        }
+        packageRules[packageLabel]?.forEach { pkgBuilder.addStoredRules(it.value) }
+        packageSources[packageLabel]?.forEach { pkgBuilder.addSourceFiles(it.value) }
+      }
+
+      val summaryBuilder =
         Query.Summary.newBuilder()
           .setQueryStrategy(convertQueryStrategy(queryStrategy))
           .setVersion(PROTO_VERSION)
-          .addAllSourceFiles(sourceFileMap.values)
-          .addAllStoredRules(ruleMap.values)
+          .addAllBuildPackages(packageBuilders.values.map { it.build() })
           .setStringStorage(Query.StringStorage.newBuilder().addAllIndexedStrings(indexer.list()))
-          .addAllPackagesWithErrors(packagesWithErrors)
-          .build()
-      )
+
+      return create(summaryBuilder.build())
     }
 
     private fun convertQueryStrategy(queryStrategy: QuerySpec.QueryStrategy): Query.Summary.QueryStrategy {

@@ -17,6 +17,7 @@ package com.google.idea.blaze.qsync.query
 
 import com.google.idea.blaze.common.Label
 import java.nio.file.Path
+import org.jetbrains.annotations.TestOnly
 
 /**
  * Summaries the output from a `query` invocation into just the data needed by the rest of querysync.
@@ -25,19 +26,24 @@ import java.nio.file.Path
  * updates to the project.
  */
 interface QuerySummary {
-  /**
-   * Returns the map of source files included in the query output.
-   *
-   * This is a map of source target label to the [QueryData.SourceFile] proto representing it.
-   */
-  val sourceFilesMap: Map<Label, QueryData.SourceFile>
+  interface BuildPackage {
+    val packageLabel: Label
+    val sourceFilesMap: Map<Label, QueryData.SourceFile>
+    val rulesMap: Map<Label, QueryData.Rule>
+    val hasError: Boolean
 
-  /**
-   * Returns the map of rules included in the query output.
-   *
-   * This is a map of rule label to the [QueryData.Rule] proto representing it.
-   */
-  val rulesMap: Map<Label, QueryData.Rule>
+    /**
+     * The set of all `.bzl` files loaded by this build package.
+     *
+     * Note: This list is transitively expanded by Bazel query itself (meaning it contains all nested subincludes recursively loaded by any
+     * of the direct `.bzl` files).
+     */
+    val subincludes: Set<Label>
+  }
+
+  val buildPackages: Collection<BuildPackage>
+
+  fun getBuildPackage(packageLabel: Label): BuildPackage?
 
   /**
    * Returns the set of build packages in the query output.
@@ -49,11 +55,16 @@ interface QuerySummary {
   /**
    * Returns a map of .bzl file labels to BUILD file labels that include them.
    *
-   * This is used to determine, for example, which build files include a given .bzl file.
+   * Note: This map contains transitive/nested includes (meaning if BUILD loads a.bzl, and a.bzl loads b.bzl, both a.bzl and b.bzl are
+   * mapped back to the BUILD file path recursively).
    */
   val reverseSubincludeMap: Map<Path, Collection<Path>>
 
-  /** Returns the set of labels of all files includes from BUILD files. */
+  /**
+   * Returns the set of labels of all files included from BUILD files.
+   *
+   * Note: This set is transitively expanded and includes all nested/transitive `.bzl` files recursively.
+   */
   val allBuildIncludedFiles: Set<Label>
   /** Returns the list of packages that the query sync was unable to fetch or fetched with errors. */
   val packagesWithErrors: Set<Path>
@@ -76,8 +87,10 @@ interface QuerySummary {
     val EMPTY: QuerySummary =
       object : QuerySummary {
         override val isCompatibleWithCurrentPluginVersion: Boolean = true
-        override val sourceFilesMap: Map<Label, QueryData.SourceFile> = emptyMap()
-        override val rulesMap: Map<Label, QueryData.Rule> = emptyMap()
+        override val buildPackages: Collection<BuildPackage> = emptyList()
+
+        override fun getBuildPackage(packageLabel: Label): BuildPackage? = null
+
         override val packages: PackageSet = PackageSet.EMPTY
         override val reverseSubincludeMap: Map<Path, Collection<Path>> = emptyMap()
         override val allBuildIncludedFiles: Set<Label> = emptySet()
@@ -90,3 +103,19 @@ interface QuerySummary {
       }
   }
 }
+
+fun QuerySummary.getRule(label: Label): QueryData.Rule? {
+  return getBuildPackage(label)?.rulesMap?.get(label)
+}
+
+fun QuerySummary.getSourceFile(label: Label): QueryData.SourceFile? {
+  return getBuildPackage(label)?.sourceFilesMap?.get(label)
+}
+
+@get:TestOnly
+val QuerySummary.sourceFilesMapForTests: Map<Label, QueryData.SourceFile>
+  get() = buildPackages.asSequence().flatMap { it.sourceFilesMap.values }.associateBy { it.label }
+
+@get:TestOnly
+val QuerySummary.rulesMapForTests: Map<Label, QueryData.Rule>
+  get() = buildPackages.asSequence().flatMap { it.rulesMap.values }.associateBy { it.label }

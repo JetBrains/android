@@ -43,14 +43,14 @@ public class QuerySummaryTest {
             QuerySpec.QueryStrategy.PLAIN,
             TestData.JAVA_LIBRARY_NO_DEPS_QUERY.getQueryOutputPath().toFile());
     Label nodeps = Label.of(TestData.ROOT_PACKAGE + "/nodeps:nodeps");
-    assertThat(qs.getRulesMap().keySet()).containsExactly(nodeps);
-    QueryData.Rule rule = qs.getRulesMap().get(nodeps);
+    assertThat(QuerySummaryKt.getRulesMapForTests(qs).keySet()).containsExactly(nodeps);
+    QueryData.Rule rule = QuerySummaryKt.getRulesMapForTests(qs).get(nodeps);
     assertThat(rule.ruleClass()).isEqualTo("java_library");
     assertThat(rule.sources()).hasSize(1);
     assertThat(targetName(rule.sources().get(0))).isEqualTo("TestClassNoDeps.java");
     assertThat(rule.deps()).hasSize(0);
     assertThat(rule.idlSources()).hasSize(0);
-    assertThat(qs.getSourceFilesMap().keySet())
+    assertThat(QuerySummaryKt.getSourceFilesMapForTests(qs).keySet())
         .containsExactly(
             Label.of(TestData.ROOT_PACKAGE + "/nodeps:TestClassNoDeps.java"),
             Label.of(TestData.ROOT_PACKAGE + "/nodeps:BUILD"));
@@ -62,15 +62,16 @@ public class QuerySummaryTest {
         QuerySummaryImpl.create(
             QuerySpec.QueryStrategy.PLAIN, TestData.CC_LIBRARY_QUERY.getQueryOutputPath().toFile());
     Label cc = Label.of(TestData.ROOT_PACKAGE + "/cc:cc");
-    assertThat(qs.getRulesMap().keySet()).containsExactly(cc);
-    QueryData.Rule rule = Preconditions.checkNotNull(qs.getRulesMap().get(cc));
+    assertThat(QuerySummaryKt.getRulesMapForTests(qs).keySet()).containsExactly(cc);
+    QueryData.Rule rule =
+        Preconditions.checkNotNull(QuerySummaryKt.getRulesMapForTests(qs).get(cc));
     assertThat(rule.ruleClass()).isEqualTo("cc_library");
     assertThat(rule.sources()).hasSize(1);
     assertThat(targetName(rule.sources().get(0))).isEqualTo("TestClass.cc");
     assertThat(rule.hdrs()).hasSize(1);
     assertThat(targetName(rule.hdrs().get(0))).isEqualTo("TestClass.h");
     assertThat(rule.deps()).hasSize(0);
-    assertThat(qs.getSourceFilesMap().keySet())
+    assertThat(QuerySummaryKt.getSourceFilesMapForTests(qs).keySet())
         .containsExactly(
             Label.of(TestData.ROOT_PACKAGE + "/cc:TestClass.cc"),
             Label.of(TestData.ROOT_PACKAGE + "/cc:TestClass.h"),
@@ -85,8 +86,8 @@ public class QuerySummaryTest {
             QuerySpec.QueryStrategy.PLAIN,
             TestData.ANDROID_LIB_QUERY.getQueryOutputPath().toFile());
     Label android = Label.of(TestData.ROOT_PACKAGE + "/android:android");
-    assertThat(qs.getRulesMap().keySet()).contains(android);
-    QueryData.Rule rule = qs.getRulesMap().get(android);
+    assertThat(QuerySummaryKt.getRulesMapForTests(qs).keySet()).contains(android);
+    QueryData.Rule rule = QuerySummaryKt.getRulesMapForTests(qs).get(android);
     assertThat(rule.manifest()).isEqualTo(android.siblingWithName("AndroidManifest.xml"));
   }
 
@@ -125,8 +126,8 @@ public class QuerySummaryTest {
             QuerySpec.QueryStrategy.PLAIN,
             TestData.BUILDINCLUDES_QUERY.getQueryOutputPath().toFile());
     Label buildLabel = Label.of(TestData.ROOT_PACKAGE + "/buildincludes:BUILD");
-    assertThat(qs.getSourceFilesMap()).containsKey(buildLabel);
-    QueryData.SourceFile buildSrc = qs.getSourceFilesMap().get(buildLabel);
+    assertThat(QuerySummaryKt.getSourceFilesMapForTests(qs)).containsKey(buildLabel);
+    QueryData.SourceFile buildSrc = QuerySummaryKt.getSourceFilesMapForTests(qs).get(buildLabel);
     assertThat(buildSrc.subincliudes())
         .containsExactly(
             Label.of("//tools/adt/idea/aswb/build_defs:test_data_build_defs.bzl"),
@@ -155,8 +156,8 @@ public class QuerySummaryTest {
             QuerySpec.QueryStrategy.PLAIN,
             TestData.BUILDINCLUDES_QUERY.getQueryOutputPath().toFile());
     Label buildLabel = Label.of(TestData.ROOT_PACKAGE + "/buildincludes:BUILD");
-    assertThat(qs.getSourceFilesMap()).containsKey(buildLabel);
-    QueryData.SourceFile buildSrc = qs.getSourceFilesMap().get(buildLabel);
+    assertThat(QuerySummaryKt.getSourceFilesMapForTests(qs)).containsKey(buildLabel);
+    QueryData.SourceFile buildSrc = QuerySummaryKt.getSourceFilesMapForTests(qs).get(buildLabel);
     assertThat(buildSrc.subincliudes())
         .containsExactly(
             Label.of("//tools/adt/idea/aswb/build_defs:test_data_build_defs.bzl"),
@@ -174,8 +175,8 @@ public class QuerySummaryTest {
     QuerySummary qs =
         QuerySummaryImpl.create(
             QuerySpec.QueryStrategy.PLAIN, TestData.EMPTY_QUERY.getQueryOutputPath().toFile());
-    assertThat(qs.getRulesMap()).isEmpty();
-    assertThat(qs.getSourceFilesMap().keySet())
+    assertThat(QuerySummaryKt.getRulesMapForTests(qs)).isEmpty();
+    assertThat(QuerySummaryKt.getSourceFilesMapForTests(qs).keySet())
         .containsExactly(Label.of(TestData.ROOT_PACKAGE + "/empty:BUILD"));
     assertThat(qs.getPackages().size()).isEqualTo(1);
     assertThat(qs.getPackages().asPathSet()).containsExactly(TestData.ROOT.resolve("empty"));
@@ -208,8 +209,8 @@ public class QuerySummaryTest {
         QuerySummaryImpl.create(
             QuerySpec.QueryStrategy.PLAIN, TestData.SYMLINKS_QUERY.getQueryOutputPath().toFile());
     Label testLabel = Label.of(TestData.ROOT_PACKAGE + "/symlinks:test");
-    assertThat(qs.getRulesMap().keySet()).containsExactly(testLabel);
-    QueryData.Rule rule = qs.getRulesMap().get(testLabel);
+    assertThat(QuerySummaryKt.getRulesMapForTests(qs).keySet()).containsExactly(testLabel);
+    QueryData.Rule rule = QuerySummaryKt.getRulesMapForTests(qs).get(testLabel);
     assertThat(rule.ruleClass()).isEqualTo("java_library");
     assertThat(rule.sources()).hasSize(4);
     assertThat(rule.sources().stream().map(this::targetName).collect(toImmutableList()))
@@ -217,7 +218,7 @@ public class QuerySummaryTest {
     assertThat(rule.deps()).hasSize(1);
     assertThat(rule.deps())
         .containsExactly(Label.of(TestData.ROOT_PACKAGE + "/symlinks/testdir:testlib"));
-    assertThat(qs.getSourceFilesMap().keySet())
+    assertThat(QuerySummaryKt.getSourceFilesMapForTests(qs).keySet())
         .containsExactly(
             Label.of(TestData.ROOT_PACKAGE + "/symlinks:BUILD"),
             Label.of(TestData.ROOT_PACKAGE + "/symlinks:filelink"),
@@ -232,8 +233,8 @@ public class QuerySummaryTest {
         QuerySummaryImpl.create(
             QuerySpec.QueryStrategy.PLAIN, TestData.ALIAS_QUERY.getQueryOutputPath().toFile());
     Label aliasLabel = Label.of(TestData.ROOT_PACKAGE + "/alias:alias");
-    assertThat(qs.getRulesMap().keySet()).contains(aliasLabel);
-    QueryData.Rule rule = qs.getRulesMap().get(aliasLabel);
+    assertThat(QuerySummaryKt.getRulesMapForTests(qs).keySet()).contains(aliasLabel);
+    QueryData.Rule rule = QuerySummaryKt.getRulesMapForTests(qs).get(aliasLabel);
     assertThat(rule.ruleClass()).isEqualTo("alias");
     assertThat(rule.deps()).containsExactly(Label.of(TestData.ROOT_PACKAGE + "/nodeps:nodeps"));
   }

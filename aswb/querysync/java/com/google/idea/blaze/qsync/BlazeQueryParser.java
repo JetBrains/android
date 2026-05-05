@@ -36,6 +36,7 @@ import com.google.idea.blaze.qsync.project.ProjectTarget.SourceType;
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
 import com.google.idea.blaze.qsync.query.QueryData;
 import com.google.idea.blaze.qsync.query.QuerySummary;
+import com.google.idea.blaze.qsync.query.QuerySummaryKt;
 import com.google.idea.common.experiments.BoolExperiment;
 import java.util.HashSet;
 import java.util.List;
@@ -192,44 +193,48 @@ public class BlazeQueryParser {
 
     long now = System.nanoTime();
     final var visitors = new RuleVisitors();
-    for (var sourceFileEntry : query.getSourceFilesMap().entrySet()) {
-      if (sourceFileEntry.getKey().getWorkspace().isEmpty()) {
-        graphBuilder.addSourceFileLabel(sourceFileEntry.getKey());
-      } else {
-        context.output(
-            new PrintOutput(
-                "Skipping unsupported non-root workspace source: " + sourceFileEntry.getValue()));
+    for (var pkg : query.getBuildPackages()) {
+      for (var sourceFileEntry : pkg.getSourceFilesMap().entrySet()) {
+        if (sourceFileEntry.getKey().getWorkspace().isEmpty()) {
+          graphBuilder.addSourceFileLabel(sourceFileEntry.getKey());
+        } else {
+          context.output(
+              new PrintOutput(
+                  "Skipping unsupported non-root workspace source: " + sourceFileEntry.getValue()));
+        }
       }
     }
-    for (var ruleEntry : query.getRulesMap().entrySet()) {
-      ProjectTarget.Builder targetBuilder = ProjectTarget.builder();
+    for (var pkg : query.getBuildPackages()) {
+      for (var ruleEntry : pkg.getRulesMap().entrySet()) {
+        ProjectTarget.Builder targetBuilder = ProjectTarget.builder();
 
-      QueryData.Rule rule = ruleEntry.getValue();
-      targetBuilder.label(ruleEntry.getKey()).kind(rule.ruleClass());
-      if (!rule.testApp().isEmpty()) {
-        targetBuilder.testApp(Label.of(rule.testApp()));
-      }
-      if (rule.library() != null) {
-        targetBuilder.library(rule.library());
-      }
-      if (!rule.instruments().isEmpty()) {
-        targetBuilder.instruments(Label.of(rule.instruments()));
-      }
-      if (!rule.customPackage().isEmpty()) {
-        targetBuilder.customPackage(rule.customPackage());
-      }
-      if (!rule.mainClass().isEmpty()) {
-        targetBuilder.mainClass(rule.mainClass());
-      }
-      if (rule.testRule() != null) {
-        targetBuilder.testRule(rule.testRule());
-      }
+        QueryData.Rule rule = ruleEntry.getValue();
+        targetBuilder.label(ruleEntry.getKey()).kind(rule.ruleClass());
+        if (!rule.testApp().isEmpty()) {
+          targetBuilder.testApp(Label.of(rule.testApp()));
+        }
+        if (rule.library() != null) {
+          targetBuilder.library(rule.library());
+        }
+        if (!rule.instruments().isEmpty()) {
+          targetBuilder.instruments(Label.of(rule.instruments()));
+        }
+        if (!rule.customPackage().isEmpty()) {
+          targetBuilder.customPackage(rule.customPackage());
+        }
+        if (!rule.mainClass().isEmpty()) {
+          targetBuilder.mainClass(rule.mainClass());
+        }
+        if (rule.testRule() != null) {
+          targetBuilder.testRule(rule.testRule());
+        }
 
-      visitors.visit(this, ruleEntry.getKey(), rule, targetBuilder);
-      targetBuilder.tags(rule.tags());
-      ProjectTarget target = targetBuilder.build();
+        visitors.visit(this, ruleEntry.getKey(), rule, targetBuilder);
+        targetBuilder.tags(rule.tags());
+        ProjectTarget target = targetBuilder.build();
 
-      graphBuilder.addTarget(ruleEntry.getKey(), target);
+        graphBuilder.addTarget(ruleEntry.getKey(), target);
+      }
     }
     int nTargets = query.getRulesCount();
 
@@ -317,7 +322,7 @@ public class BlazeQueryParser {
     Set<Label> visited = Sets.newHashSet();
     ImmutableSet.Builder<Label> result = ImmutableSet.builder();
 
-    for (Label source : requireNonNull(query.getRulesMap().get(label)).sources()) {
+    for (Label source : requireNonNull(QuerySummaryKt.getRule(query, label)).sources()) {
       if (visited.add(source)) {
         result.addAll(expandSourceLabel(source));
       }
@@ -327,7 +332,7 @@ public class BlazeQueryParser {
   }
 
   private boolean shouldExpandSourceLabel(Label label) {
-    QueryData.Rule rule = query.getRulesMap().get(label);
+    QueryData.Rule rule = QuerySummaryKt.getRule(query, label);
     if (rule == null) {
       return false;
     }
