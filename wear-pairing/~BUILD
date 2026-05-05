@@ -26,7 +26,6 @@ iml_module(
         "//tools/adt/idea/wizard:intellij.android.wizard",
         "@intellij//:org.jetbrains.kotlin",
         "//tools/base/flags:studio.android.sdktools.flags",
-        "//tools/base/adblib-ddmlibcompatibility:studio.android.sdktools.adblib.ddmlibcompatibility",
     ],
 )
 
