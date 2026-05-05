@@ -146,7 +146,7 @@ public class SherlockInstallation extends IdeInstallation<Sherlock> {
    */
   private static String getSherlockDirectory() {
     if (SystemInfo.isMac) {
-      return "sherlock-darwin/Sherlock.app/Contents";
+      return "sherlock-darwin/Android Performance Analyzer.app/Contents";
     } else if (SystemInfo.isWindows) {
       return "sherlock-windows";
     } else {
