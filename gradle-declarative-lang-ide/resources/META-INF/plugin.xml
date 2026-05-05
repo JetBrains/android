@@ -43,12 +43,6 @@
   </content>
 
   <idea-version since-build="261"/>
-  <!-- This is temporary mechanism to mark certain plugins as K2-compatible. See IntelliJ commit cf213fb139 for details. -->
-  <extensions defaultExtensionNs="org.jetbrains.kotlin">
-    <!--suppress PluginXmlValidity -->
-    <supportsKotlinPluginMode supportsK2="true" supportsK1="true"/>
-  </extensions>
-
   <extensions defaultExtensionNs="com.intellij">
     <lang.syntaxHighlighter language="Declarative" implementationClass="com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeHighlighter"/>
     <lang.quoteHandler language="Declarative" implementationClass="com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeQuoteHandler"/>

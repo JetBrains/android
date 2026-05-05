@@ -41,11 +41,6 @@
     <a href="https://androidstudio.googleblog.com/2025/09/android-studio-otter-202521-canary-1.html">Android Studio Otter Canary 1</a>.]]>
   </change-notes>
 
-  <!-- This is temporary mechanism to mark certain plugins as K2-compatible. See IntelliJ commit cf213fb139 for details. -->
-  <extensions defaultExtensionNs="org.jetbrains.kotlin">
-    <supportsKotlinPluginMode supportsK2="true" supportsK1="true"/>
-  </extensions>
-
   <xi:include href="/META-INF/designer.xml"/>
   <xi:include href="/META-INF/designer-gradle.xml"/>
   <xi:include href="/META-INF/naveditor.xml"/>
