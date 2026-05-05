@@ -16,11 +16,13 @@
 package com.android.screenshottest.run
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.isScreenshotTestFile
 import com.intellij.execution.lineMarker.ExecutorAction
 import com.intellij.execution.lineMarker.RunLineMarkerContributor
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.base.util.isUnderKotlinSourceRootTypes
 import org.jetbrains.kotlin.psi.KtClass
@@ -39,6 +41,10 @@ class ScreenshotTestRunLineMarkerContributor : RunLineMarkerContributor() {
   override fun getSlowInfo(element: PsiElement): Info? {
     if (!StudioFlags.ENABLE_SCREENSHOT_TESTING.get() || !isScreenshotTestFile(element.project, element.containingFile.virtualFile))
       return null
+
+    val module = ModuleUtilCore.findModuleForPsiElement(element) ?: return null
+    // TODO: Enable screenshot tests for release variants as well.
+    if (!module.getModuleSystem().isDebuggable) return null
 
     val declaration = element.getStrictParentOfType<KtNamedDeclaration>()?.takeIf { it.nameIdentifier == element } ?: return null
     val isClass = isValidKtTestClassIdentifier(declaration)

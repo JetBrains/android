@@ -19,6 +19,7 @@ import com.android.screenshottest.producers.isScreenshotTestSourceSet
 import com.android.screenshottest.util.UPDATE_ACTION_DESCRIPTION
 import com.android.screenshottest.util.UPDATE_ACTION_TEXT
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -44,6 +45,7 @@ class UpdateReferenceImagesInDirectoryAction :
       return
     }
     val facet = AndroidUtils.getAndroidModule(context)?.let { AndroidFacet.getInstance(it) } ?: return
-    e.presentation.isEnabledAndVisible = isScreenshotTestSourceSet(location, facet)
+    // TODO: Enable screenshot tests for release variants as well.
+    e.presentation.isEnabledAndVisible = isScreenshotTestSourceSet(location, facet) && facet.module.getModuleSystem().isDebuggable
   }
 }

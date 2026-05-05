@@ -28,6 +28,7 @@ import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.impl.RunManagerImpl
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
@@ -40,6 +41,8 @@ import javax.swing.Icon
 abstract class UpdateReferenceImagesBaseAction(text: String, description: String, icon: Icon? = null) : AnAction(text, description, icon) {
 
   private val LOG = Logger.getInstance(this.javaClass)
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun actionPerformed(e: AnActionEvent) {
     LOG.debug("UpdateReferenceImagesBaseAction triggered for event: $e")

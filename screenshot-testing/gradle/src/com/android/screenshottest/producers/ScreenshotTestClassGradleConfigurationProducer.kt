@@ -17,6 +17,7 @@ package com.android.screenshottest.producers
 
 import com.android.tools.idea.AndroidPsiUtils.getPsiParentsOfType
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testartifacts.testsuite.GradleRunConfigurationExtension.BooleanOptions.SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.util.Ref
@@ -57,6 +58,8 @@ class ScreenshotTestClassGradleConfigurationProducer : TestClassGradleConfigurat
     val myModule = AndroidUtils.getAndroidModule(context) ?: return false
     val facet = AndroidFacet.getInstance(myModule) ?: return false
     if (!isScreenshotTestSourceSet(location, facet)) return false
+    // TODO: Enable screenshot tests for release variants as well.
+    if (!myModule.getModuleSystem().isDebuggable) return false
 
     val expectedTasks: List<String>
 
@@ -135,6 +138,8 @@ class ScreenshotTestClassGradleConfigurationProducer : TestClassGradleConfigurat
     if (!isScreenshotTestSourceSet(location, facet)) {
       return false
     }
+    // TODO: Enable screenshot tests for release variants as well.
+    if (!myModule.getModuleSystem().isDebuggable) return false
 
     val project = context.project ?: return false
 
