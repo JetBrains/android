@@ -387,12 +387,12 @@ class BuildGraphDataImplTest {
           defaultProtoRules,
         )
         .parseForTesting()
+    val sourceFile = TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY.onlySourcePath.resolve(Path.of("TestClassExternalDep.java"))
+    val sourceFileLabel = graph.sourceFileToLabel(sourceFile)!!
     val targets =
       RequestedTargets(
         graph.computeSufficientTargets(
-          graph
-            .getProjectTargets(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY.onlySourcePath.resolve(Path.of("TestClassExternalDep.java")))
-            .getUnambiguousTargets(),
+          graph.getProjectTargetsForSourceFile(sourceFileLabel).getUnambiguousTargets(),
           replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false,
         )
       )
@@ -417,10 +417,11 @@ class BuildGraphDataImplTest {
           defaultProtoRules,
         )
         .parseForTesting()
+    val packageLabel = Label.fromWorkspacePackageAndName("", TestData.JAVA_LIBRARY_MULTI_TARGETS.onlySourcePath, Label.PACKAGE_TARGET_NAME)
     val targets =
       RequestedTargets(
         graph.computeSufficientTargets(
-          graph.getProjectTargets(TestData.JAVA_LIBRARY_MULTI_TARGETS.onlySourcePath.resolve(Path.of("BUILD"))).getUnambiguousTargets(),
+          graph.getProjectTargetsForBuildPackage(packageLabel).getUnambiguousTargets(),
           replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false,
         )
       )
@@ -446,10 +447,11 @@ class BuildGraphDataImplTest {
           defaultProtoRules,
         )
         .parseForTesting()
+    val packageLabel = Label.fromWorkspacePackageAndName("", TestData.JAVA_LIBRARY_NESTED_PACKAGE.onlySourcePath, Label.PACKAGE_TARGET_NAME)
     val targets =
       RequestedTargets(
         graph.computeSufficientTargets(
-          graph.getProjectTargets(TestData.JAVA_LIBRARY_NESTED_PACKAGE.onlySourcePath.resolve(Path.of("BUILD"))).getUnambiguousTargets(),
+          graph.getProjectTargetsForBuildPackage(packageLabel).getUnambiguousTargets(),
           replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false,
         )
       )
@@ -470,10 +472,11 @@ class BuildGraphDataImplTest {
           defaultProtoRules,
         )
         .parseForTesting()
+    val packageLabel = Label.fromWorkspacePackageAndName("", TestData.JAVA_LIBRARY_NESTED_PACKAGE.onlySourcePath, Label.PACKAGE_TARGET_NAME)
     val targets =
       RequestedTargets(
         graph.computeSufficientTargets(
-          graph.getProjectTargets(TestData.JAVA_LIBRARY_NESTED_PACKAGE.onlySourcePath).getUnambiguousTargets(),
+          graph.getProjectTargetsForBuildPackageWithSubpackages(packageLabel).getUnambiguousTargets(),
           replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false,
         )
       )
@@ -498,10 +501,12 @@ class BuildGraphDataImplTest {
           defaultProtoRules,
         )
         .parseForTesting()
+    val sourceFile = TestData.CC_EXTERNAL_DEP_QUERY.onlySourcePath.resolve("TestClass.cc")
+    val sourceFileLabel = graph.sourceFileToLabel(sourceFile)!!
     val targets =
       RequestedTargets(
         graph.computeSufficientTargets(
-          graph.getProjectTargets(TestData.CC_EXTERNAL_DEP_QUERY.onlySourcePath.resolve("TestClass.cc")).getUnambiguousTargets(),
+          graph.getProjectTargetsForSourceFile(sourceFileLabel).getUnambiguousTargets(),
           replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false,
         )
       )

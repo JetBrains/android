@@ -94,15 +94,14 @@ interface BuildGraphData {
     vararg sourceTypes: ProjectTarget.SourceType,
   ): Map<Label, List<Path>>
 
-  /**
-   * Returns the list of project targets related to the given workspace file.
-   *
-   * @param workspaceRelativePath Workspace relative file path to find targets for. This may be a source file, directory or BUILD file.
-   * @return Corresponding project targets. For a source file, this is the targets that build that file. For a BUILD file, it's the set or
-   *   targets defined in that file. For a directory, it's the set of all targets defined in all build packages within the directory
-   *   (recursively).
-   */
-  fun getProjectTargets(workspaceRelativePath: Path): TargetsToBuild
+  /** Returns the project targets defined in the given build package. */
+  fun getProjectTargetsForBuildPackage(packageLabel: Label): TargetsToBuild
+
+  /** Returns all project targets defined in the given build package and any of its subpackages (recursively). */
+  fun getProjectTargetsForBuildPackageWithSubpackages(packageLabel: Label): TargetsToBuild
+
+  /** Returns the project targets that own/build the given source file. */
+  fun getProjectTargetsForSourceFile(sourceFileLabel: Label): TargetsToBuild
 
   /** Calculates a sufficient set of targets to build for the given project targets. */
   fun computeSufficientTargets(

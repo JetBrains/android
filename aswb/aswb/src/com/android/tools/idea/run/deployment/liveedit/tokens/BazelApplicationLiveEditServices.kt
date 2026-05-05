@@ -22,6 +22,7 @@ import com.google.idea.blaze.base.qsync.QuerySyncManager
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 import com.google.idea.blaze.qsync.project.TargetsToBuild
+import com.google.idea.blaze.qsync.project.pathToLabel
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
@@ -79,12 +80,13 @@ class BazelApplicationLiveEditServices(
 
     val workspaceRoot = WorkspaceRoot.fromProject(project)
     val path = workspaceRoot.relativize(ktFile.virtualFile.toNioPath())
-    val labels = snapshot.getSourceFileOwners(path)
+    val sourceFileLabel = snapshot.projectStructureData.pathToLabel(path) ?: return CompilerConfiguration.create()
+    val labels = snapshot.graph.getSourceFileOwners(sourceFileLabel)
     if (labels.isEmpty()) return CompilerConfiguration.create()
 
     // Choose the target that would normally be selected for previews.
     val label =
-      listOf(snapshot.graph.getProjectTargets(path))
+      listOf(snapshot.graph.getProjectTargetsForSourceFile(sourceFileLabel))
         .toPreferredLabel(isPreferredTarget = { buildOutcomeProvider.lastBuildOutcome()?.builtJavaTargetPredicate(it) ?: false })
         ?: labels.first()
 

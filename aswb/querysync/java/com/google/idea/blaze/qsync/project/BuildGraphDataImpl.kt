@@ -274,36 +274,26 @@ data class BuildGraphDataImpl private constructor(@VisibleForTesting @JvmField v
   }
 
   /** Returns a list of custom_package fields that used by current project. */
+  override fun getProjectTargetsForBuildPackage(packageLabel: Label): TargetsToBuild {
+    val packagePath = packageLabel.getBuildPackagePath()
+    return targetGroup(allSupportedTargets.getDirectTargets(packagePath).toList())
+  }
 
-  /**
-   * Returns the list of project targets related to the given workspace file.
-   *
-   * @param context Context
-   * @param workspaceRelativePath Workspace relative file path to find targets for. This may be a source file, directory or BUILD file.
-   * @return Corresponding project targets. For a source file, this is the targets that build that file. For a BUILD file, it's the set or
-   *   targets defined in that file. For a directory, it's the set of all targets defined in all build packages within the directory
-   *   (recursively).
-   */
-  override fun getProjectTargets(workspaceRelativePath: Path): TargetsToBuild {
-    // TODO: relativize here.
-    // TODO: support Bazel.
-    if (workspaceRelativePath.endsWith("BUILD")) {
-      val packagePath = workspaceRelativePath.parent
-      return targetGroup(allSupportedTargets.getDirectTargets(packagePath).toList())
-    } else {
-      val targets = allSupportedTargets.getSubpackages(workspaceRelativePath).toList()
-      if (targets.isNotEmpty()) {
-        // this will only be non-empty for directories
-        return targetGroup(targets)
-      }
+  override fun getProjectTargetsForBuildPackageWithSubpackages(packageLabel: Label): TargetsToBuild {
+    val packagePath = packageLabel.getBuildPackagePath()
+    return targetGroup(allSupportedTargets.getSubpackages(packagePath).toList())
+  }
+
+  override fun getProjectTargetsForSourceFile(sourceFileLabel: Label): TargetsToBuild {
+    val pkgStorage = storage.buildPackages[sourceFileLabel.getPackageLabel()]
+    val exists = pkgStorage?.sourceFileNames?.contains(sourceFileLabel.name) ?: false
+    if (!exists) {
+      return forUnknownSourceFile(sourceFileLabel.toFilePath())
     }
-    // Now a build file or a directory containing packages.
-    val fileLabel = sourceFileToLabel(workspaceRelativePath)
-    val targetOwner = fileLabel?.let { getSourceFileOwners(it) }.orEmpty()
+    val targetOwner = getSourceFileOwners(sourceFileLabel)
     return when {
-      fileLabel == null -> forUnknownSourceFile(workspaceRelativePath)
       targetOwner.isEmpty() -> TargetsToBuild.None
-      else -> TargetsToBuild.forSourceFile(targetOwner, workspaceRelativePath)
+      else -> TargetsToBuild.forSourceFile(targetOwner, sourceFileLabel.toFilePath())
     }
   }
 
