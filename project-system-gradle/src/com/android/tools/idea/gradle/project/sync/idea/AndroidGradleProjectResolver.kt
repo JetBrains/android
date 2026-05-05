@@ -131,9 +131,9 @@ import java.util.IdentityHashMap
 import java.util.function.Function
 import java.util.zip.ZipException
 import kotlin.io.path.Path
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.future.asCompletableFuture
+import kotlinx.coroutines.Job
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaProject
