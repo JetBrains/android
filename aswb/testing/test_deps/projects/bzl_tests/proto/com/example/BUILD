@@ -44,7 +44,6 @@ bzl_library(
     srcs = ["check_utils.bzl"],
     deps = [
         "//bzl_tests:check_utils_bzl",
-        "@rules_testing//lib/private:struct_subject_bzl",
     ],
 )
 
