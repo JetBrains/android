@@ -49,12 +49,13 @@ message FindUsagesResponse {
 }
 
 message RenderComposePreviewRequest {
-  string composable_fqn = 1;
+  string file_path = 1;
+  string composable = 2;
 }
 
 message RenderComposePreviewResponse {
   bytes image_data = 1;
-  string error_message = 2;
+  string semantics = 2;
 }
 
 message AnalyzeFileRequest {
