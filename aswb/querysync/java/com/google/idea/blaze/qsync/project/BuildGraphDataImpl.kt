@@ -27,7 +27,6 @@ import com.google.idea.blaze.common.TargetTree
 import com.google.idea.blaze.qsync.project.ProjectTarget.SourceType
 import com.google.idea.blaze.qsync.project.TargetsToBuild.Companion.forUnknownSourceFile
 import com.google.idea.blaze.qsync.project.TargetsToBuild.Companion.targetGroup
-import com.google.idea.blaze.qsync.query.PackageSet
 import com.intellij.openapi.diagnostic.thisLogger
 import java.nio.file.Path
 import java.util.Collections
@@ -45,7 +44,7 @@ data class BuildGraphDataImpl private constructor(@VisibleForTesting @JvmField v
   private val alwaysBuildTargets: Set<Label> = computeAlwaysBuildTargets(storage)
   private val sourceOwners: Map<Label, List<Label>> = computeSourceOwners(storage)
   private val nodes: Map<Label, GraphNode> = computeNodes(storage)
-  private val packages: PackageSet = computePackages(storage)
+
   @VisibleForTesting
   val allSupportedTargets: TargetTree =
     TargetTree.create(
@@ -88,7 +87,9 @@ data class BuildGraphDataImpl private constructor(@VisibleForTesting @JvmField v
     }
   }
 
-  override fun packages(): PackageSet = packages
+  override fun getBuildPackage(packageLabel: Label): BuildGraphData.BuildPackage? {
+    return storage.buildPackages[packageLabel.getPackageLabel()]?.let { object : BuildGraphData.BuildPackage {} }
+  }
 
   override fun getProjectTarget(label: Label): ProjectTarget? = storage.buildPackages[label.getPackageLabel()]?.targetMap?.get(label.name)
 
@@ -104,7 +105,7 @@ data class BuildGraphDataImpl private constructor(@VisibleForTesting @JvmField v
       path = path?.parent
       val probe = path ?: Path.of("")
       val probeNameCount = path?.nameCount ?: 0
-      if (packages.contains(probe)) {
+      if (getBuildPackage(probe) != null) {
         return Label.of("//$probe:" + file.subpath(probeNameCount, file.nameCount).toString())
       }
     } while (path != null)
@@ -246,10 +247,6 @@ data class BuildGraphDataImpl private constructor(@VisibleForTesting @JvmField v
     }
   }
 
-  private fun getSourceFileOwners(path: Path): Set<Label> {
-    return sourceFileToLabel(path)?.let { getSourceFileOwners(it) }.orEmpty()
-  }
-
   override fun getSourceFileOwners(label: Label): Set<Label> {
     return sourceOwners[label]?.toSet().orEmpty()
   }
@@ -380,7 +377,7 @@ data class BuildGraphDataImpl private constructor(@VisibleForTesting @JvmField v
   override fun outputStats(context: Context<*>) {
     context.output(PrintOutput.log("%-10d Source files", storage.buildPackages.values.sumOf { it.sourceFileNames.size }))
     context.output(PrintOutput.log("%-10d Java sources", getJavaSourceFiles().size))
-    context.output(PrintOutput.log("%-10d Packages", packages.size()))
+    context.output(PrintOutput.log("%-10d Packages", storage.buildPackages.size))
     context.output(PrintOutput.log("%-10d External dependencies", externalDependencyCountForStatsOnly))
   }
 
@@ -577,17 +574,6 @@ data class BuildGraphDataImpl private constructor(@VisibleForTesting @JvmField v
         }
       }
       return null
-    }
-
-    private fun computePackages(storage: Storage): PackageSet {
-      val packages = PackageSet.Builder()
-      for ((packageLabel, packageStorage) in storage.buildPackages) {
-        if (packageStorage.sourceFileNames.contains("BUILD") || packageStorage.sourceFileNames.contains("BUILD.bazel")) {
-          // TODO: b/334110669 - support Bazel workspaces.
-          packages.add(packageLabel.getBuildPackagePath())
-        }
-      }
-      return packages.build()
     }
 
     private fun computeExternalDependencyCount(storage: Storage): Int {

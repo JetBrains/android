@@ -27,6 +27,7 @@ import com.google.idea.blaze.qsync.project.ProjectStructureData
 import com.google.idea.blaze.qsync.project.ProjectStructureRoot
 import com.google.idea.blaze.qsync.project.ProjectTarget.SourceType
 import com.google.idea.blaze.qsync.project.SourceSet
+import com.google.idea.blaze.qsync.project.getBuildPackage
 import com.google.idea.blaze.qsync.project.getJavaSourceFiles
 import java.nio.file.Files
 import java.nio.file.Path
@@ -46,7 +47,6 @@ fun ProjectStructureData.Companion.fromGraph(
   val nonJavaSourceFiles =
     graph.getSourceFilesByRuleKindAndType({ t: String -> !RuleKinds.isJava(t) }, *SourceType.all()).values.flatten().distinct()
 
-  val packages = graph.packages()
   val directoryToContainingPackageMap = mutableMapOf<Path, Path?>()
 
   fun findBuildPackage(filePath: Path): Path? {
@@ -54,7 +54,7 @@ fun ProjectStructureData.Companion.fromGraph(
     return directoryToContainingPackageMap.getOrPut(parent) {
       var current: Path? = parent
       while (current != null) {
-        if (packages.contains(current)) {
+        if (graph.getBuildPackage(current) != null) {
           return@getOrPut current
         }
         current = current.parent

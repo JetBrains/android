@@ -20,7 +20,6 @@ import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.RuleKinds
 import com.google.idea.blaze.common.TargetPatternCollection
-import com.google.idea.blaze.qsync.query.PackageSet
 import java.nio.file.Path
 import kotlin.jvm.optionals.getOrNull
 
@@ -51,8 +50,10 @@ interface BuildGraphData {
    */
   fun getProtoModes(label: Label): Set<ProtoMode>
 
+  interface BuildPackage
+
   /** A set of all the BUILD files */
-  fun packages(): PackageSet
+  fun getBuildPackage(packageLabel: Label): BuildPackage?
 
   /**
    * If the given path represents a currently known source file returns a [Label] representing the given path in the workspace with the
@@ -152,4 +153,8 @@ fun BuildGraphData.getAndroidResourceFiles(): List<Path> {
 
 fun BuildGraphData.getAllCustomPackages(): Set<String> {
   return allLoadedTargets().mapNotNull { it.customPackage().getOrNull() }.toSet()
+}
+
+fun BuildGraphData.getBuildPackage(path: Path): BuildGraphData.BuildPackage? {
+  return this.getBuildPackage(Label.fromWorkspacePackageAndName("", path, Label.PACKAGE_TARGET_NAME))
 }

@@ -488,7 +488,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     postQuerySyncData: PostQuerySyncData,
     projectStructureData: ProjectStructureData?,
   ) {
-    val coreSyncResult = assertProjectLoaded().syncQueryCore(context, postQuerySyncData)
+    val coreSyncResult = assertProjectLoaded().computeQueryCoreSyncResult(context, postQuerySyncData)
     val projectStructureDataToUse =
       projectStructureData
         ?: assertProjectLoaded().computeProjectStructureData(context, postQuerySyncData.projectDefinition(), coreSyncResult.graph)

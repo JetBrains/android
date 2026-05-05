@@ -121,7 +121,10 @@ data class Label(val workspace: String, val buildPackage: String, val name: Stri
 
   fun isPackageLabel(): Boolean = name == PACKAGE_TARGET_NAME
 
-  fun getPackageLabel(): Label = Label(workspace, buildPackage, PACKAGE_TARGET_NAME)
+  fun getPackageLabel(): Label {
+    @Suppress("StringReferentialEquality")
+    return if (name === PACKAGE_TARGET_NAME) this else Label(workspace, buildPackage, PACKAGE_TARGET_NAME)
+  }
 
   fun siblingWithName(name: String): Label = fromWorkspacePackageAndName(workspace, getBuildPackagePath(), name)
 
