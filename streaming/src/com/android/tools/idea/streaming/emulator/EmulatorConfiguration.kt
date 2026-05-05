@@ -33,6 +33,7 @@ import com.android.sdklib.SystemImageTags.WEAR_TAG
 import com.android.sdklib.SystemImageTags.XR_HEADSET_TAG
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.internal.avd.ConfigKey
+import com.android.sdklib.internal.avd.HardwareProperties
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.streaming.core.FOLDING_STATE_ICONS
 import com.android.utils.asSeparatedListContains
@@ -43,6 +44,7 @@ import com.intellij.openapi.util.text.StringUtil.parseInt
 import java.awt.Dimension
 import java.nio.file.Path
 import javax.swing.Icon
+import kotlinx.io.IOException
 
 /** Represents configuration of a running Emulator. */
 class EmulatorConfiguration
@@ -228,12 +230,22 @@ private constructor(
       val touchpadSize = if (touchpadWidth > 0 && touchpadHeight > 0) Dimension(touchpadWidth, touchpadHeight) else null
 
       val dimmingLevels =
-        try {
-          configIni["hw.dimmingLevels"]?.split(',')?.map(String::toFloat)?.toFloatArray() ?: floatArrayOf()
-        } catch (_: NumberFormatException) {
-          throw RuntimeException(
-            "Unrecognized value of the hw.dimmingLevels property, \"${configIni["hw.dimmingLevels"]}\", in $configIniFile"
-          )
+        when (val dimmingLevelsValue = configIni[HardwareProperties.HW_DIMMING_LEVELS]) {
+          null -> floatArrayOf()
+          else -> {
+            // Check if XrDimming is enabled on the system image before returning the dimming levels
+            val advancedFeaturesFile = androidSdkRoot.resolve(systemImage).resolve("advancedFeatures.ini")
+            try {
+              val xrDimming = readKeyValueFile(advancedFeaturesFile, setOf("XrDimming"))["XrDimming"]
+              if (xrDimming == "on") {
+                dimmingLevelsValue.split(',').map(String::toFloat).toFloatArray()
+              } else floatArrayOf()
+            } catch (_: IOException) {
+              floatArrayOf()
+            } catch (_: NumberFormatException) {
+              throw RuntimeException("Unrecognized value of the hw.dimmingLevels property, \"$dimmingLevelsValue\", in $configIniFile")
+            }
+          }
         }
 
       return EmulatorConfiguration(

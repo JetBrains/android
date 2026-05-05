@@ -2153,7 +2153,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           """
           .trimIndent()
 
-      createSystemImage(systemImageFolder, androidVersion, sourceProperties)
+      val advancedFeatures = "XrDimming = on\n"
+
+      createSystemImage(systemImageFolder, androidVersion, sourceProperties, advancedFeatures)
       return createAvd(avdId, avdFolder, configIni, hardwareIni)
     }
 
@@ -2588,7 +2590,12 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
       return createAvd(avdId, avdFolder, configIni, hardwareIni)
     }
 
-    private fun createSystemImage(systemImageFolder: Path, androidVersion: AndroidVersion, sourceProperties: String) {
+    private fun createSystemImage(
+      systemImageFolder: Path,
+      androidVersion: AndroidVersion,
+      sourceProperties: String,
+      advancedFeatures: String? = null,
+    ) {
       if (Files.exists(systemImageFolder.resolve(SystemImageManager.SYS_IMG_NAME))) {
         return
       }
@@ -2613,6 +2620,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           .trimIndent()
       Files.writeString(systemImageFolder.resolve("package.xml"), packageContents)
       Files.writeString(systemImageFolder.resolve("source.properties"), sourceProperties + '\n' + androidVersion.sourceProperties)
+      if (advancedFeatures != null) {
+        Files.writeString(systemImageFolder.resolve("advancedFeatures.ini"), advancedFeatures)
+      }
       Files.createFile(systemImageFolder.resolve(SystemImageManager.SYS_IMG_NAME))
     }
 
