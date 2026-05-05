@@ -40,6 +40,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.android.tools.idea.testing.IsolatedTempDirectoryRule;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.PlatformTestUtil;
@@ -61,9 +62,11 @@ import org.junit.runners.JUnit4;
 @RunsInEdt
 public class SmaliFileNotificationProviderTest {
   private final ProjectRule projectRule = new ProjectRule();
+  // Android Studio Merge: added this rule to prevent test pollution
+  private final IsolatedTempDirectoryRule tempDirCache = new IsolatedTempDirectoryRule();
 
   @Rule
-  public RuleChain rule = new RuleChain(projectRule, new EdtRule());
+  public RuleChain rule = new RuleChain(projectRule, new EdtRule(), tempDirCache);
 
   private final FileEditor fileEditor = mock(FileEditor.class);
   private final SmaliFileNotificationProvider notificationProvider = new SmaliFileNotificationProvider();
