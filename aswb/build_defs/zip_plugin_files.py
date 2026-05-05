@@ -21,7 +21,7 @@ import os
 import stat
 import zipfile
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(fromfile_prefix_chars="@")
 
 parser.add_argument("--output", help="The output filename.", required=True)
 parser.add_argument(
