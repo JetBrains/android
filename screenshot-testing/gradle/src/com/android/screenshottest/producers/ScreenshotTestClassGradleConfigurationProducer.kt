@@ -21,11 +21,14 @@ import com.android.tools.idea.testartifacts.testsuite.GradleRunConfigurationExte
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiElement
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
+import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.asJava.toLightMethods
 import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
+import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer
@@ -57,36 +60,40 @@ class ScreenshotTestClassGradleConfigurationProducer : TestClassGradleConfigurat
 
     val expectedTasks: List<String>
 
-    // Case 1: Context is a Kotlin file (e.g., right-click in Project view).
-    if (location.psiElement is KtFile) {
-      val ktFile = location.psiElement as KtFile
-      val qualifiedNames = mutableSetOf<String>()
+    val psiClass =
+      getPsiParentsOfType(location.psiElement, PsiClass::class.java, false).firstOrNull()
+        ?: getPsiParentsOfType(location.psiElement, KtClassOrObject::class.java, false).firstOrNull()?.toLightClass()
+    if (psiClass != null && isClassDeclarationWithPreviewTestAnnotatedMethods(psiClass, visitedAnnotation)) {
+      expectedTasks = taskNamesWithFilter(context, listOfNotNull(psiClass.qualifiedName))
+    } else {
+      val containingFile = location.psiElement as? PsiClassOwner ?: location.psiElement.containingFile as? PsiClassOwner
+      if (containingFile != null) {
+        val qualifiedNames = mutableSetOf<String>()
 
-      ktFile.classes.forEach { psiClass ->
-        if (isClassDeclarationWithPreviewTestAnnotatedMethods(psiClass, visitedAnnotation)) {
-          psiClass.qualifiedName?.let { qualifiedNames.add(it) }
+        containingFile.classes.forEach { classElement ->
+          if (isClassDeclarationWithPreviewTestAnnotatedMethods(classElement, visitedAnnotation)) {
+            classElement.qualifiedName?.let { qualifiedNames.add(it) }
+          }
         }
-      }
-      val hasTopLevelTests =
-        ktFile.declarations.any { declaration ->
-          (declaration as? KtNamedFunction)?.toLightMethods()?.any { method ->
-            isMethodDeclarationPreviewTestAnnotated(method, visitedAnnotation)
-          } == true
+        if (containingFile is KtFile) {
+          val hasTopLevelTests =
+            containingFile.declarations.any { declaration ->
+              (declaration as? KtNamedFunction)?.toLightMethods()?.any { method ->
+                isMethodDeclarationPreviewTestAnnotated(method, visitedAnnotation)
+              } == true
+            }
+          if (hasTopLevelTests) {
+            qualifiedNames.add(containingFile.javaFileFacadeFqName.asString())
+          }
         }
-      if (hasTopLevelTests) {
-        qualifiedNames.add(ktFile.javaFileFacadeFqName.asString())
-      }
 
-      if (qualifiedNames.isEmpty()) {
+        if (qualifiedNames.isEmpty()) {
+          return false
+        }
+        expectedTasks = taskNamesWithFilter(context, qualifiedNames.toList())
+      } else {
         return false
       }
-      expectedTasks = taskNamesWithFilter(context, qualifiedNames.toList())
-    }
-    // Case 2: Context is inside the editor or on a class.
-    else {
-      val psiClass = getPsiParentsOfType(location.psiElement, PsiClass::class.java, false).firstOrNull() ?: return false
-      if (!isClassDeclarationWithPreviewTestAnnotatedMethods(psiClass, visitedAnnotation)) return false
-      expectedTasks = taskNamesWithFilter(context, listOfNotNull(psiClass.qualifiedName))
     }
 
     return configuration.settings.taskNames == expectedTasks
@@ -131,27 +138,42 @@ class ScreenshotTestClassGradleConfigurationProducer : TestClassGradleConfigurat
 
     val project = context.project ?: return false
 
-    // Case 1: Context is a Kotlin file (e.g., right-click in Project view).
-    if (location.psiElement is KtFile) {
-      val ktFile = location.psiElement as KtFile
+    // Try to resolve the context to an enclosing class (e.g., when right-clicking inside a class in the editor)
+    val psiClass =
+      getPsiParentsOfType(location.psiElement, PsiClass::class.java, false).firstOrNull()
+        ?: getPsiParentsOfType(location.psiElement, KtClassOrObject::class.java, false).firstOrNull()?.toLightClass()
+    if (psiClass != null && isClassDeclarationWithPreviewTestAnnotatedMethods(psiClass, visitedAnnotation)) {
+      sourceElementRef.set(psiClass)
+      configuration.settings.externalProjectPath = project.basePath
+      configuration.name = suggestConfigurationName(context, psiClass, emptyList())
+      configuration.settings.taskNames = taskNamesWithFilter(context, listOfNotNull(psiClass.qualifiedName))
+      return true
+    }
+
+    // Fallback to file level if no enclosing class is found (e.g., right-clicking outside any class in the editor, or on a file in the
+    // Project view)
+    val containingFile = location.psiElement as? PsiClassOwner ?: location.psiElement.containingFile as? PsiClassOwner
+    if (containingFile != null) {
       val qualifiedNames = mutableSetOf<String>()
 
       // Collect all classes in the file that have screenshot tests.
-      ktFile.classes.forEach { psiClass ->
-        if (isClassDeclarationWithPreviewTestAnnotatedMethods(psiClass, visitedAnnotation)) {
-          psiClass.qualifiedName?.let { qualifiedNames.add(it) }
+      containingFile.classes.forEach { classElement ->
+        if (isClassDeclarationWithPreviewTestAnnotatedMethods(classElement, visitedAnnotation)) {
+          classElement.qualifiedName?.let { qualifiedNames.add(it) }
         }
       }
 
       // Also check for top-level functions.
-      val hasTopLevelTests =
-        ktFile.declarations.any { declaration ->
-          (declaration as? KtNamedFunction)?.toLightMethods()?.any { method ->
-            isMethodDeclarationPreviewTestAnnotated(method, visitedAnnotation)
-          } == true
+      if (containingFile is KtFile) {
+        val hasTopLevelTests =
+          containingFile.declarations.any { declaration ->
+            (declaration as? KtNamedFunction)?.toLightMethods()?.any { method ->
+              isMethodDeclarationPreviewTestAnnotated(method, visitedAnnotation)
+            } == true
+          }
+        if (hasTopLevelTests) {
+          qualifiedNames.add(containingFile.javaFileFacadeFqName.asString())
         }
-      if (hasTopLevelTests) {
-        qualifiedNames.add(ktFile.javaFileFacadeFqName.asString())
       }
 
       if (qualifiedNames.isEmpty()) {
@@ -159,25 +181,13 @@ class ScreenshotTestClassGradleConfigurationProducer : TestClassGradleConfigurat
       }
 
       // A representative PsiElement is required by the base producer.
-      // We'll use the first class in the file, or the file itself if no classes exist.
-      val representativeElement = ktFile.classes.firstOrNull() ?: ktFile
+      val representativeElement = containingFile.classes.firstOrNull() ?: containingFile
       sourceElementRef.set(representativeElement)
 
       configuration.settings.externalProjectPath = project.basePath
-      configuration.name = "Screenshot Tests in ${ktFile.name}"
+      configuration.name = "Screenshot Tests in ${containingFile.name}"
       configuration.settings.taskNames = taskNamesWithFilter(context, qualifiedNames.toList())
       return true
-    }
-    // Case 2: Context is inside the editor or on a class.
-    else {
-      val psiClass = getPsiParentsOfType(location.psiElement, PsiClass::class.java, false).firstOrNull()
-      if (psiClass != null && isClassDeclarationWithPreviewTestAnnotatedMethods(psiClass, visitedAnnotation)) {
-        sourceElementRef.set(psiClass)
-        configuration.settings.externalProjectPath = project.basePath
-        configuration.name = suggestConfigurationName(context, psiClass, emptyList())
-        configuration.settings.taskNames = taskNamesWithFilter(context, listOfNotNull(psiClass.qualifiedName))
-        return true
-      }
     }
 
     return false

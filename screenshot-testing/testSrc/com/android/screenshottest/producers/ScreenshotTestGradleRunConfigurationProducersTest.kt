@@ -111,6 +111,32 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
   }
 
   @Test
+  fun testConfigurationFromEditor_fallbackToFile() {
+    val project = projectRule.project
+    val psiFile = TestConfigurationTestingUtil.getPsiElement(project, MIXED_TESTS_FILE, false)
+    val elementInFile = psiFile.findElementAt(0)
+    requireNotNull(elementInFile) { "Element at offset 0 should not be null" }
+
+    val context = TestConfigurationTestingUtil.createContext(project, elementInFile)
+    val runConfiguration = context.configuration?.configuration as? GradleRunConfiguration
+
+    requireNotNull(runConfiguration) { "Run configuration should not be null for element in file" }
+
+    assertEquals("Screenshot Tests in MyFileWithMixedTests.kt", runConfiguration.name)
+    assertEquals(true, runConfiguration.getUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey))
+    assertEquals(true, runConfiguration.isRunAsTest)
+
+    val taskNames = runConfiguration.settings.taskNames
+    assertThat(taskNames).contains(":app:validateDebugScreenshotTest")
+    assertThat(taskNames).hasSize(5)
+
+    val testFilters = taskNames.drop(1).chunked(2).filter { it.size == 2 && it[0] == "--tests" }.map { it[1] }
+    val expectedFilters = listOf("\"com.example.application.MyClassInMixedFile\"", "\"com.example.application.MyFileWithMixedTestsKt\"")
+    assertThat(testFilters).hasSize(expectedFilters.size)
+    assertThat(testFilters).containsAllIn(expectedFilters)
+  }
+
+  @Test
   fun testConfigurationFromClassNoPreviewTest() {
     val project = projectRule.project
     val runConfiguration = createAndroidGradleTestConfigurationFromClass(project, "com.example.application.NoPreviewTest")

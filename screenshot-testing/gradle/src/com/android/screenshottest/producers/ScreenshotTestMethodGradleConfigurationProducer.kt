@@ -26,6 +26,8 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
+import org.jetbrains.kotlin.asJava.toLightMethods
+import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
 import org.jetbrains.plugins.gradle.util.TasksToRun
@@ -48,7 +50,10 @@ class ScreenshotTestMethodGradleConfigurationProducer : TestMethodGradleConfigur
     }
 
     val location = context.location ?: return false
-    val psiMethod = getPsiParentsOfType(location.psiElement, PsiMethod::class.java, false).firstOrNull() ?: return false
+    val psiMethod =
+      getPsiParentsOfType(location.psiElement, PsiMethod::class.java, false).firstOrNull()
+        ?: getPsiParentsOfType(location.psiElement, KtFunction::class.java, false).firstOrNull()?.toLightMethods()?.firstOrNull()
+        ?: return false
 
     val androidModule = AndroidUtils.getAndroidModule(context) ?: return false
     val androidFacet = AndroidFacet.getInstance(androidModule) ?: return false
@@ -96,12 +101,17 @@ class ScreenshotTestMethodGradleConfigurationProducer : TestMethodGradleConfigur
     }
 
     val project = context.project ?: return false
-    getPsiParentsOfType(location.psiElement, PsiMethod::class.java, false).forEach { elementMethod ->
-      if (!isMethodDeclarationPreviewTestAnnotated(elementMethod, visitedAnnotations)) return false
-      sourceElementRef.set(elementMethod)
+
+    val psiMethod =
+      getPsiParentsOfType(location.psiElement, PsiMethod::class.java, false).firstOrNull()
+        ?: getPsiParentsOfType(location.psiElement, KtFunction::class.java, false).firstOrNull()?.toLightMethods()?.firstOrNull()
+
+    if (psiMethod != null) {
+      if (!isMethodDeclarationPreviewTestAnnotated(psiMethod, visitedAnnotations)) return false
+      sourceElementRef.set(psiMethod)
       configuration.settings.externalProjectPath = project.basePath
-      configuration.name = suggestConfigurationName(context, elementMethod, emptyList())
-      configuration.settings.taskNames = taskNamesWithFilter(context, elementMethod)
+      configuration.name = suggestConfigurationName(context, psiMethod, emptyList())
+      configuration.settings.taskNames = taskNamesWithFilter(context, psiMethod)
       configuration.isDebugServerProcess = false
       configuration.isDebugAllEnabled = false
 
