@@ -917,6 +917,7 @@ studio_plugin(
             "//tools/vendor/google/ml/aiplugin/android-plugin/descriptor:aiplugin.android-plugin.descriptor",
             "//tools/vendor/google/ml/aiplugin/backends/aicode:aiplugin.backends.aicode",
             "//tools/vendor/google/ml/aiplugin/backends/local:aiplugin.backends.local",
+            "//tools/vendor/google/ml/aiplugin/backends/runtime/llamacpp:aiplugin.backends.runtime.llamacpp",
             "//tools/vendor/google/ml/aiplugin/backends/third-party:aiplugin.backends.third-party",
             "//tools/vendor/google/ml/aiplugin/editor/prediction-services:aiplugin.editor.prediction-services",
             "//tools/vendor/google/ml/aiplugin/editor/prediction:aiplugin.editor.prediction",
