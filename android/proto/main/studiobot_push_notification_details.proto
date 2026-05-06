@@ -100,6 +100,7 @@ message StudioPushNotification {
       AI_STUDIO = 3;
       LOCAL_MODEL = 4;
       REMOTE_MODEL = 5;
+      PAID_TIER = 6;
     }
 
     message DateCondition {
