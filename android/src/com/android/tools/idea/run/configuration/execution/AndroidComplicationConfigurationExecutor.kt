@@ -193,7 +193,9 @@ private fun getStopComplicationCallback(complicationComponentName: String, conso
 
     val unsetReceiver = CommandResultReceiverV1()
     device.executeShellCommand(UNSET_WATCH_FACE, console, unsetReceiver, indicator = null)
-    if (removeReceiver.resultCode != CommandResultReceiverV1.SUCCESS_CODE || unsetReceiver.resultCode != CommandResultReceiverV1.SUCCESS_CODE) {
+    if (
+      removeReceiver.resultCode != CommandResultReceiverV1.SUCCESS_CODE || unsetReceiver.resultCode != CommandResultReceiverV1.SUCCESS_CODE
+    ) {
       console.printlnError("Warning: Complication was not stopped.")
     }
     if (isDebug) {
