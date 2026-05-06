@@ -76,6 +76,8 @@ jvm_library(
         "//platform/util:util_test_lib",
         "//platform/core-api:core",
         "//platform/core-api:core_test_lib",
+        "//platform/testFramework",
+        "//platform/testFramework:testFramework_test_lib",
         "//platform/util/base",
         "//platform/util/base:base_test_lib",
     ],
