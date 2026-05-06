@@ -245,7 +245,7 @@
       </action>
       <action id="android.streaming.xr.passthrough"
               class="com.android.tools.idea.streaming.actions.StreamingXrPassthroughAction"
-              icon="StudioIcons.Emulator.XR.PASSTHROUGH_ON"
+              icon="icons.StudioIcons.Emulator.XR.ENVIRONMENT"
               text="Environment Visibility" description="Change passthrough and dimming level">
         <keyboard-shortcut first-keystroke="control P" keymap="$default"/>
         <keyboard-shortcut first-keystroke="control P" keymap="Mac OS X"/>
