@@ -31,6 +31,7 @@ import com.google.idea.blaze.common.vcs.WorkspaceFileChange.Operation;
 import com.google.idea.blaze.qsync.query.PackageSet;
 import com.google.idea.blaze.qsync.query.QuerySummary;
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -60,7 +61,8 @@ public abstract class AffectedPackagesCalculator {
   public AffectedPackages getAffectedPackages() {
     List<WorkspaceFileChange> projectChanges = Lists.newArrayList();
     List<WorkspaceFileChange> nonProjectChanges = Lists.newArrayList();
-    AffectedPackages.Builder result = AffectedPackages.builder();
+    Set<Path> modifiedPackages = new HashSet<>();
+    Set<Path> deletedPackagesSet = new HashSet<>();
     for (WorkspaceFileChange change : changedFiles()) {
       if (isIncludedInProject(change.workspaceRelativePath)) {
         projectChanges.add(change);
@@ -109,7 +111,7 @@ public abstract class AffectedPackagesCalculator {
         switch (c.operation) {
           case ADD:
             // Adding a new BUILD files also affects the parent package (if any).
-            result.addAffectedPackage(buildPackage);
+            modifiedPackages.add(buildPackage);
             if (!lastQuery().getPackages().contains(buildPackage)) {
               addedPackages.add(buildPackage);
             }
@@ -117,12 +119,12 @@ public abstract class AffectedPackagesCalculator {
             break;
           case DELETE:
             // Deleting a build package only affects the parent (if any).
-            result.addDeletedPackage(buildPackage);
+            deletedPackagesSet.add(buildPackage);
             deletedPackages.add(buildPackage);
             addedOrDeletePackages.add(buildPackage);
             break;
           case MODIFY:
-            result.addAffectedPackage(buildPackage);
+            modifiedPackages.add(buildPackage);
             break;
         }
       }
@@ -169,7 +171,7 @@ public abstract class AffectedPackagesCalculator {
                           + " sync",
                       buildFile));
         }
-        result.addAffectedPackage(buildPackage);
+        modifiedPackages.add(buildPackage);
       }
     }
 
@@ -192,7 +194,7 @@ public abstract class AffectedPackagesCalculator {
     addedOrDeletePackages.build().stream()
         .map(effectivePackages::getParentPackage)
         .flatMap(Optional::stream)
-        .forEach(result::addAffectedPackage);
+        .forEach(modifiedPackages::add);
 
     // Process adds/deletes to non-BUILD files. We don't need to worry about modifications, since
     // they shouldn't effect the build graph structure, and the IDE will pick them up as usual.
@@ -201,14 +203,14 @@ public abstract class AffectedPackagesCalculator {
         .map(c -> c.workspaceRelativePath)
         .map(effectivePackages::findIncludingPackage)
         .flatMap(Optional::stream)
-        .forEach(result::addAffectedPackage);
+        .forEach(modifiedPackages::add);
 
     // Packages that had errors when we ran the last query may not strictly be affected, but we
     // should re-query them anyway to ensure the errors are visible and handled correctly (unless
     // they have been deleted).
     lastQuery().getPackagesWithErrors().stream()
         .filter(effectivePackages::contains)
-        .forEach(result::addAffectedPackage);
+        .forEach(modifiedPackages::add);
 
     // warn about adds/modifications to files outside of any build package
     ImmutableList<Path> unownedSources =
@@ -227,7 +229,8 @@ public abstract class AffectedPackagesCalculator {
                   unownedSources.size(), Joiner.on("\n  ").join(unownedSources)));
     }
 
-    return result.build();
+    return new AffectedPackages(
+        ImmutableSet.copyOf(modifiedPackages), ImmutableSet.copyOf(deletedPackagesSet));
   }
 
   private boolean isIncludedInProject(Path file) {

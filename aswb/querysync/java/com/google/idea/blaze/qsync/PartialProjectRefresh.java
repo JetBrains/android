@@ -27,6 +27,7 @@ import com.google.idea.blaze.qsync.query.QuerySummaryImpl;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Implements a query strategy based on querying a minimal set of packages derived from the VCS
@@ -49,13 +50,13 @@ class PartialProjectRefresh implements RefreshOperation {
       PostQuerySyncData previousState,
       Optional<VcsState> currentVcsState,
       Optional<String> bazelVersion,
-      ImmutableSet<Path> modifiedPackages,
-      ImmutableSet<Path> deletedPackages) {
+      Set<Path> modifiedPackages,
+      Set<Path> deletedPackages) {
     this.workspaceRoot = workspaceRoot;
     this.previousState = previousState;
     this.currentVcsState = currentVcsState;
-    this.modifiedPackages = modifiedPackages;
-    this.deletedPackages = deletedPackages;
+    this.modifiedPackages = ImmutableSet.copyOf(modifiedPackages);
+    this.deletedPackages = ImmutableSet.copyOf(deletedPackages);
     this.bazelVersion = bazelVersion;
   }
 
