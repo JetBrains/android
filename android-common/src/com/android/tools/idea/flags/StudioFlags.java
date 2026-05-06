@@ -2993,6 +2993,12 @@ public final class StudioFlags {
       "enable",
       "Enable Settings Sync feature",
       "Enable Settings Sync feature");
+  public static final Flag<Boolean> ENABLE_SETTINGS_SYNC_ONBOARDING_WIZARD =
+    new BooleanFlag(
+      SETTINGS_SYNC,
+      "onboarding.wizard.enable",
+      "Enable Backup & Sync onboarding wizard",
+      "Enable the new Android Studio-specific setup wizard for Backup and Sync, bypassing the default IntelliJ Settings Sync dialog.");
   // endregion Settings sync
 
   // region PROJECT_TOOL_WINDOW

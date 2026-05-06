@@ -18,6 +18,7 @@ package com.android.tools.idea.settingssync
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.ide.AppLifecycleListener
 import com.intellij.ide.plugins.PluginManagerCore
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.options.Configurable
@@ -28,14 +29,31 @@ private val IJ_SETTINGS_SYNC_PLUGIN_ID = PluginId.getId("com.intellij.settingsSy
 internal fun checkIfFeaturePluginEnabled(): Boolean = PluginManagerCore.getPlugin(IJ_SETTINGS_SYNC_PLUGIN_ID)?.isEnabled == true
 
 /**
- * This is to hide the IJ feature configurable behind the feature flag.
+ * Initializes Studio-specific Settings Sync behaviors upon application startup.
  *
- * If users explicitly enable the feature plugin from the JetBrains Marketplace, this configurable will still be visible.
+ * If the Settings Sync feature is disabled, it unregisters related settings and actions. Otherwise, it wraps the default actions with
+ * [StudioSettingsSyncAction] to present the custom onboarding flow.
  */
-class DisableIJSettingSyncConfigurableProvider : AppLifecycleListener {
+class StudioSettingsSyncInitializer : AppLifecycleListener {
   override fun appFrameCreated(commandLineArgs: List<String?>) {
     if (!StudioFlags.SETTINGS_SYNC_ENABLED.get() && !checkIfFeaturePluginEnabled()) {
       disableConfigurable()
+
+      ActionManager.getInstance().unregisterAction("SettingsSyncOpenSettingsAction")
+      ActionManager.getInstance().unregisterAction("SettingsSyncStatusAction")
+    } else if (StudioFlags.SETTINGS_SYNC_ENABLED.get()) {
+      // Replaces upstream IntelliJ Settings Sync actions to show our custom onboarding dialog.
+      val actionManager = ActionManager.getInstance()
+
+      val originalOpenAction = actionManager.getAction("SettingsSyncOpenSettingsAction")
+      if (originalOpenAction != null) {
+        actionManager.replaceAction("SettingsSyncOpenSettingsAction", StudioSettingsSyncAction(originalOpenAction))
+      }
+
+      val originalStatusAction = actionManager.getAction("SettingsSyncStatusAction")
+      if (originalStatusAction != null) {
+        actionManager.replaceAction("SettingsSyncStatusAction", StudioSettingsSyncAction(originalStatusAction))
+      }
     }
   }
 
