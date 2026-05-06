@@ -575,6 +575,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.4.31",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.5.21",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib_2.3.20",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core-jvm_1.4.1",
         "@maven//:org.mockito.mockito-core_5.12.0",
         "@maven//:org.robolectric.robolectric_4.8.2",
         "@maven//:xmlpull.xmlpull_1.1.3.1",

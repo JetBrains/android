@@ -853,6 +853,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.6.21",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.6.21",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.9.22",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core-jvm_1.4.1",
         "@maven//:org.jetbrains.kotlin.kotlin-klib-commonizer-embeddable_" + KGP_VERSION_FOR_TESTS,
         "@maven//:org.jetbrains.kotlin.kotlin-native-prebuilt_" + KGP_VERSION_FOR_TESTS,
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.4.32",
