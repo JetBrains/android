@@ -939,6 +939,7 @@ studio_plugin(
         "resources": [
             "//tools/vendor/google/ml/aiplugin/android/journeys:journeys-art-resources-bundle",
             "//prebuilts/tools/common/kb:kb_zip",
+            "//prebuilts/tools/common/llamacpp:llamacpp_binaries",
         ],
     },
     visibility = ["//visibility:public"],
