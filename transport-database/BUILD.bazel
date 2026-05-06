@@ -123,6 +123,8 @@ jvm_library(
         "//android/android-common:common_test_lib",
         "//android/intellij.android.testutils:testutils",
         "//android/intellij.android.testutils:testutils_test_lib",
+        "//android/adt-testutils",
+        "//android/adt-testutils:adt-testutils_test_lib",
         "//libraries/hamcrest",
         "//libraries/hamcrest:hamcrest_test_lib",
         "//platform/util",
