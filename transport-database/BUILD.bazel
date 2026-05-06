@@ -51,6 +51,8 @@ jvm_library(
     "//libraries/hamcrest",
     "//platform/util",
     "//platform/core-api:core",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
   ]
 )
 ### auto-generated section `build intellij.android.transportDatabase` end
