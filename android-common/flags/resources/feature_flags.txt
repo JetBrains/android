@@ -96,6 +96,7 @@ gradle.ide.parallel.sync.property.migration.notification=COMPLETE:2026
 gradle.ide.play.publishing.wizard.integration=PREVIEW
 gradle.ide.recommend.patch.releases=COMPLETE:2025
 gradle.ide.restore.invalid.gradle.jdk.configuration=COMPLETE:2025
+gradle.ide.variant.early.resolution.enabled=INTERNAL
 journeys.with.gemini.enable.agent.support=PREVIEW
 journeys.with.gemini.enable.journeys.with.gemini.execution=PREVIEW
 journeys.with.gemini.enable.new.wizard=COMPLETE:2025
