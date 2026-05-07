@@ -167,14 +167,6 @@ class GoldenFileValidator(template: Template, goldenDirName: String, private val
           "'static field FLAG_HANDLES_MEDIA_BUTTONS: Int' is deprecated. Deprecated in Java.",
           "'static field FLAG_HANDLES_TRANSPORT_CONTROLS: Int' is deprecated. Deprecated in Java.",
         ),
-      // TODO: b/390510067
-      "testNewTvActivityWithKotlin" to
-        setOf(
-          "'class SimpleTarget<Z : Any!> : BaseTarget<Z!>' is deprecated. Deprecated in Java.",
-          "'val defaultDisplay: Display!' is deprecated. Deprecated in Java.",
-          "'fun getMetrics(p0: DisplayMetrics!): Unit' is deprecated. Deprecated in Java.",
-          "'fun getSerializableExtra(p0: String!): Serializable?' is deprecated. Deprecated in Java.",
-        ),
       // TODO: b/446181730
       "testJourneysWithTestSuite" to setOf("The option setting 'android.experimental.testSuiteSupport=true' is experimental."),
     )
