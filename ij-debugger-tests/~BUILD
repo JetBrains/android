@@ -215,7 +215,7 @@
 #    deps = [
 #        ":kotlin.jvm-debugger.test_lib_import",
 #        "//tools/adt/idea/android-kotlin:android-dexer",
-#        "//tools/adt/idea/debuggers:android-field-visibility-provider",
+#        "//tools/adt/idea/debuggers:intellij.android.debuggers",
 #        "@intellij//:org.jetbrains.kotlin",
 #        "@maven//:junit.junit",
 #    ],

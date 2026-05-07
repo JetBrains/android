@@ -17,10 +17,12 @@
 package com.google.android.tools.debugger.test
 
 import com.android.tools.idea.debug.AndroidFieldVisibilityProvider
+import com.android.tools.idea.debug.AndroidJdiHelperClassLoader
 import com.intellij.core.CoreApplicationEnvironment
 import com.intellij.debugger.engine.FieldVisibilityProvider
 import com.intellij.debugger.engine.RemoteStateState
 import com.intellij.debugger.impl.DebuggerSession
+import com.intellij.debugger.impl.JdiHelperClassLoader
 import com.intellij.debugger.impl.RemoteConnectionBuilder
 import com.intellij.debugger.settings.DebuggerSettings
 import com.intellij.execution.configurations.JavaParameters
@@ -79,6 +81,8 @@ private val D8_COMPILER by lazy(NONE) { loadD8Compiler() }
 private val FIELD_VISIBILITY_PROVIDER_EP =
   ExtensionPointName.create<FieldVisibilityProvider>("com.intellij.debugger.fieldVisibilityProvider")
 
+private val JDI_HELPER_CLASS_LOADER_EP = ExtensionPointName.create<JdiHelperClassLoader>("com.intellij.debugger.jdiHelperClassLoader")
+
 /** Attaches to an ART VM */
 @Suppress("unused")
 internal class ArtAttacher : VmAttacher {
@@ -113,6 +117,7 @@ internal class ArtAttacher : VmAttacher {
     // Register extensions
     project.registerExtension(AndroidDexer.extensionPointName, AndroidDexerImpl(project), disposable)
     application.registerExtension(FIELD_VISIBILITY_PROVIDER_EP, AndroidFieldVisibilityProvider(), disposable)
+    application.registerExtension(JDI_HELPER_CLASS_LOADER_EP, AndroidJdiHelperClassLoader(), disposable)
 
     val remoteConnection = getRemoteConnection(testCase, javaParameters)
     val remoteState = RemoteStateState(project, remoteConnection)
