@@ -189,8 +189,8 @@ public class ResourceFileGeneratorTest {
    */
   private static boolean hasJdk8364373Fix() {
     try {
-      final var clazz = Class.forName("sun.awt.geom.AreaOp");
-      final var _ = clazz.getDeclaredField("MAX_LINK_COUNT");
+      final Class<?> clazz = Class.forName("sun.awt.geom.AreaOp");
+      clazz.getDeclaredField("MAX_LINK_COUNT");
       return true;
     } catch (ClassNotFoundException | NoSuchFieldException e) {
       return false;
