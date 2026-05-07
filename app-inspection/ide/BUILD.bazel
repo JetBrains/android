@@ -1,24 +1,13 @@
 ### auto-generated section `build intellij.android.app-inspection.ide` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
-
-resourcegroup(
-  name = "ide_resources",
-  srcs = glob(["resources/**/*"]),
-  strip_prefix = "resources"
-)
-
-resourcegroup(
-  name = "ide_test_resources",
-  srcs = glob(["testData/**/*"]),
-  strip_prefix = "testData"
-)
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 jvm_library(
   name = "ide",
   module_name = "intellij.android.app-inspection.ide",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = [":ide_resources"],
+  resources = glob(["resources/**/*"]),
+  resource_strip_prefix = "resources",
   deps = [
     "@lib//:studio-platform-provided",
     "//libraries/guava",
@@ -65,7 +54,8 @@ jvm_library(
   module_name = "intellij.android.app-inspection.ide",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
-  resources = [":ide_test_resources"],
+  resources = glob(["testData/**/*"]),
+  resource_strip_prefix = "testData",
   runtime_deps = [
     ":ide",
     "@lib//:studio-platform-provided",
@@ -114,12 +104,6 @@ exports_files([
 ### auto-generated section `iml intellij.android.app-inspection.ide` end
 
 ### auto-generated section `build intellij.android.app-inspection.ide.tests` start
-resourcegroup(
-  name = "android-app-inspection-ide-tests_test_resources",
-  srcs = glob(["testResources/**/*"]),
-  strip_prefix = "testResources"
-)
-
 jvm_library(
   name = "android-app-inspection-ide-tests",
   module_name = "intellij.android.app-inspection.ide.tests",
@@ -134,7 +118,8 @@ jvm_library(
   module_name = "intellij.android.app-inspection.ide.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
-  resources = [":android-app-inspection-ide-tests_test_resources"],
+  resources = glob(["testResources/**/*"]),
+  resource_strip_prefix = "testResources",
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",

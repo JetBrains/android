@@ -1,18 +1,13 @@
 ### auto-generated section `build intellij.android.adb.ui` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
-
-resourcegroup(
-  name = "adb-ui_resources",
-  srcs = glob(["resources/**/*"]),
-  strip_prefix = "resources"
-)
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 jvm_library(
   name = "adb-ui",
   module_name = "intellij.android.adb.ui",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = [":adb-ui_resources"],
+  resources = glob(["resources/**/*"]),
+  resource_strip_prefix = "resources",
   deps = [
     "@lib//:studio-platform-provided",
     "//libraries/guava",

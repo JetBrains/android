@@ -1,18 +1,13 @@
 ### auto-generated section `build intellij.android.whats-new-assistant` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
-
-resourcegroup(
-  name = "whats-new-assistant_resources",
-  srcs = glob(["resources/**/*"]),
-  strip_prefix = "resources"
-)
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 jvm_library(
   name = "whats-new-assistant",
   module_name = "intellij.android.whats-new-assistant",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = [":whats-new-assistant_resources"],
+  resources = glob(["resources/**/*"]),
+  resource_strip_prefix = "resources",
   deps = [
     "@lib//:studio-platform-provided",
     "//libraries/guava",

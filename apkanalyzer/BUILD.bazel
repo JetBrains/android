@@ -1,18 +1,13 @@
 ### auto-generated section `build intellij.android.apkanalyzer` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
-
-resourcegroup(
-  name = "apkanalyzer_resources",
-  srcs = glob(["resources/**/*"]),
-  strip_prefix = "resources"
-)
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 jvm_library(
   name = "apkanalyzer",
   module_name = "intellij.android.apkanalyzer",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = [":apkanalyzer_resources"],
+  resources = glob(["resources/**/*"]),
+  resource_strip_prefix = "resources",
   deps = [
     "@lib//:studio-platform-provided",
     "//libraries/guava",
@@ -122,12 +117,6 @@ exports_files([
 ### auto-generated section `iml intellij.android.apkanalyzer` end
 
 ### auto-generated section `build intellij.android.apkanalyzer.tests` start
-resourcegroup(
-  name = "apkanalyzer-tests_test_resources",
-  srcs = glob(["testSrc/resources/**/*"]),
-  strip_prefix = "testSrc/resources"
-)
-
 jvm_library(
   name = "apkanalyzer-tests",
   module_name = "intellij.android.apkanalyzer.tests",
@@ -140,7 +129,8 @@ jvm_library(
   testonly = True,
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/java/**/*.kt", "testSrc/java/**/*.java", "testSrc/java/**/*.form"], allow_empty = True),
-  resources = [":apkanalyzer-tests_test_resources"],
+  resources = glob(["testSrc/resources/**/*"]),
+  resource_strip_prefix = "testSrc/resources",
   associates = [
     "//android/apkanalyzer",
     "//android/apkanalyzer:apkanalyzer_test_lib",

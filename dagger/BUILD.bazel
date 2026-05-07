@@ -1,6 +1,6 @@
 ### auto-generated section `build intellij.android.dagger` start
 load("//build:compiler-options.bzl", "create_kotlinc_options")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 create_kotlinc_options(
   name = "custom_dagger",
@@ -10,18 +10,13 @@ create_kotlinc_options(
   ]
 )
 
-resourcegroup(
-  name = "dagger_resources",
-  srcs = glob(["resources/**/*"]),
-  strip_prefix = "resources"
-)
-
 jvm_library(
   name = "dagger",
   module_name = "intellij.android.dagger",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = [":dagger_resources"],
+  resources = glob(["resources/**/*"]),
+  resource_strip_prefix = "resources",
   kotlinc_opts = ":custom_dagger",
   deps = [
     "@lib//:studio-platform-provided",

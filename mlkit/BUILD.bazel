@@ -1,18 +1,13 @@
 ### auto-generated section `build intellij.android.mlkit` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
-
-resourcegroup(
-  name = "mlkit_resources",
-  srcs = glob(["resources/**/*"]),
-  strip_prefix = "resources"
-)
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 jvm_library(
   name = "mlkit",
   module_name = "intellij.android.mlkit",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = [":mlkit_resources"],
+  resources = glob(["resources/**/*"]),
+  resource_strip_prefix = "resources",
   deps = [
     "@lib//:studio-platform-provided",
     "//libraries/guava",
@@ -137,12 +132,6 @@ exports_files([
 ### auto-generated section `iml intellij.android.mlkit` end
 
 ### auto-generated section `build intellij.android.mlkit.tests` start
-resourcegroup(
-  name = "mlkit-tests_test_resources",
-  srcs = glob(["testData/**/*"]),
-  strip_prefix = "testData"
-)
-
 jvm_library(
   name = "mlkit-tests",
   module_name = "intellij.android.mlkit.tests",
@@ -157,7 +146,8 @@ jvm_library(
   module_name = "intellij.android.mlkit.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
-  resources = [":mlkit-tests_test_resources"],
+  resources = glob(["testData/**/*"]),
+  resource_strip_prefix = "testData",
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",

@@ -1,18 +1,13 @@
 ### auto-generated section `build intellij.android.designer` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
-
-resourcegroup(
-  name = "designer_resources",
-  srcs = glob(["resources/**/*"]),
-  strip_prefix = "resources"
-)
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 jvm_library(
   name = "designer",
   module_name = "intellij.android.designer",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = [":designer_resources"],
+  resources = glob(["resources/**/*"]),
+  resource_strip_prefix = "resources",
   deps = [
     "@lib//:studio-platform-provided",
     "//libraries/commons/lang3",
@@ -350,12 +345,6 @@ create_kotlinc_options(
   opt_in = ["org.jetbrains.kotlin.K1Deprecation"]
 )
 
-resourcegroup(
-  name = "designer-tests_test_resources",
-  srcs = glob(["testResources/**/*"]),
-  strip_prefix = "testResources"
-)
-
 jvm_library(
   name = "designer-tests",
   module_name = "intellij.android.designer.tests",
@@ -373,7 +362,8 @@ jvm_library(
   testonly = True,
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
-  resources = [":designer-tests_test_resources"],
+  resources = glob(["testResources/**/*"]),
+  resource_strip_prefix = "testResources",
   kotlinc_opts = ":custom_designer-tests",
   associates = [
     "//android/designer",

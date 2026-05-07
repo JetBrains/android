@@ -1,5 +1,5 @@
 ### auto-generated section `build intellij.android.adt.ui` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "kt_javac_options", "resourcegroup")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "kt_javac_options")
 
 kt_javac_options(
   name = "custom-javac-options",
@@ -14,24 +14,13 @@ kt_javac_options(
   no_proc = True
 )
 
-resourcegroup(
-  name = "adt-ui_resources",
-  srcs = glob(["resources/**/*"]),
-  strip_prefix = "resources"
-)
-
-resourcegroup(
-  name = "adt-ui_test_resources",
-  srcs = glob(["src/test/resources/**/*"]),
-  strip_prefix = "src/test/resources"
-)
-
 jvm_library(
   name = "adt-ui",
   module_name = "intellij.android.adt.ui",
   visibility = ["//visibility:public"],
   srcs = glob(["src/main/java/**/*.kt", "src/main/java/**/*.java", "src/main/java/**/*.form"], allow_empty = True),
-  resources = [":adt-ui_resources"],
+  resources = glob(["resources/**/*"]),
+  resource_strip_prefix = "resources",
   javac_opts = ":custom-javac-options",
   deps = [
     "@lib//:studio-platform-provided",
@@ -77,7 +66,8 @@ jvm_library(
   testonly = True,
   visibility = ["//visibility:public"],
   srcs = glob(["src/test/java/**/*.kt", "src/test/java/**/*.java", "src/test/java/**/*.form"], allow_empty = True),
-  resources = [":adt-ui_test_resources"],
+  resources = glob(["src/test/resources/**/*"]),
+  resource_strip_prefix = "src/test/resources",
   javac_opts = ":custom-javac-options",
   associates = [":adt-ui"],
   deps = [

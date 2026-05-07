@@ -1,6 +1,6 @@
 ### auto-generated section `build intellij.android.core` start
 load("//build:compiler-options.bzl", "create_kotlinc_options")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library", "kt_javac_options", "resourcegroup")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library", "kt_javac_options")
 
 create_kotlinc_options(
   name = "custom_core",
@@ -23,12 +23,6 @@ kt_javac_options(
   no_proc = True
 )
 
-resourcegroup(
-  name = "core_resources",
-  srcs = glob(["resources/**/*"]),
-  strip_prefix = "resources"
-)
-
 jvm_provided_library(
   name = "plugins_maven_artifactResolver-m31_provided",
   lib = "//plugins/maven/artifact-resolver-m31:artifactResolver-m31"
@@ -39,7 +33,8 @@ jvm_library(
   module_name = "intellij.android.core",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = [":core_resources"],
+  resources = glob(["resources/**/*"]),
+  resource_strip_prefix = "resources",
   javac_opts = ":custom-javac-options",
   kotlinc_opts = ":custom_core",
   deps = [
@@ -670,12 +665,6 @@ create_kotlinc_options(
   opt_in = ["org.jetbrains.kotlin.K1Deprecation"]
 )
 
-resourcegroup(
-  name = "core-tests_test_resources",
-  srcs = glob(["testResources/**/*"]),
-  strip_prefix = "testResources"
-)
-
 jvm_library(
   name = "core-tests",
   module_name = "intellij.android.core.tests",
@@ -699,7 +688,8 @@ jvm_library(
   testonly = True,
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
-  resources = [":core-tests_test_resources"],
+  resources = glob(["testResources/**/*"]),
+  resource_strip_prefix = "testResources",
   kotlinc_opts = ":custom_core-tests",
   associates = [
     "//android/android:core",

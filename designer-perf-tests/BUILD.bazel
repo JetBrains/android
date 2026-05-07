@@ -1,11 +1,5 @@
 ### auto-generated section `build intellij.android.designer-perf-tests` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
-
-resourcegroup(
-  name = "designer-perf-tests_test_resources",
-  srcs = glob(["testData/**/*"]),
-  strip_prefix = "testData"
-)
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 jvm_library(
   name = "designer-perf-tests",
@@ -20,7 +14,8 @@ jvm_library(
   module_name = "intellij.android.designer-perf-tests",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
-  resources = [":designer-perf-tests_test_resources"],
+  resources = glob(["testData/**/*"]),
+  resource_strip_prefix = "testData",
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",

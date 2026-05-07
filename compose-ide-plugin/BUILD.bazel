@@ -1,6 +1,6 @@
 ### auto-generated section `build intellij.android.compose-ide-plugin` start
 load("//build:compiler-options.bzl", "create_kotlinc_options")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 create_kotlinc_options(
   name = "custom_compose-ide-plugin",
@@ -12,18 +12,13 @@ create_kotlinc_options(
   x_context_parameters = True
 )
 
-resourcegroup(
-  name = "compose-ide-plugin_resources",
-  srcs = glob(["resources/**/*"]),
-  strip_prefix = "resources"
-)
-
 jvm_library(
   name = "compose-ide-plugin",
   module_name = "intellij.android.compose-ide-plugin",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = [":compose-ide-plugin_resources"],
+  resources = glob(["resources/**/*"]),
+  resource_strip_prefix = "resources",
   kotlinc_opts = ":custom_compose-ide-plugin",
   deps = [
     "@lib//:studio-platform-provided",

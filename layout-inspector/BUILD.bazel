@@ -1,16 +1,10 @@
 ### auto-generated section `build intellij.android.layout-inspector` start
 load("//build:compiler-options.bzl", "create_kotlinc_options")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 create_kotlinc_options(
   name = "custom_layout-inspector",
   opt_in = ["org.jetbrains.kotlin.K1Deprecation"]
-)
-
-resourcegroup(
-  name = "layout-inspector_resources",
-  srcs = glob(["resources/**/*"]),
-  strip_prefix = "resources"
 )
 
 jvm_library(
@@ -18,7 +12,8 @@ jvm_library(
   module_name = "intellij.android.layout-inspector",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = [":layout-inspector_resources"],
+  resources = glob(["resources/**/*"]),
+  resource_strip_prefix = "resources",
   kotlinc_opts = ":custom_layout-inspector",
   deps = [
     "@lib//:studio-platform-provided",
@@ -285,12 +280,6 @@ jps_test(
 ### auto-generated section `test intellij.android.layout-inspector` end
 
 ### auto-generated section `build intellij.android.layout-inspector.integration` start
-resourcegroup(
-  name = "layout-inspector-integration_test_resources",
-  srcs = glob(["integration/testData/**/*"]),
-  strip_prefix = "integration/testData"
-)
-
 jvm_library(
   name = "layout-inspector-integration",
   module_name = "intellij.android.layout-inspector.integration",
@@ -304,7 +293,8 @@ jvm_library(
   testonly = True,
   visibility = ["//visibility:public"],
   srcs = glob(["integration/testSrc/**/*.kt", "integration/testSrc/**/*.java", "integration/testSrc/**/*.form"], allow_empty = True),
-  resources = [":layout-inspector-integration_test_resources"],
+  resources = glob(["integration/testData/**/*"]),
+  resource_strip_prefix = "integration/testData",
   associates = [
     "//android/layout-inspector",
     "//android/layout-inspector:layout-inspector_test_lib",
@@ -345,12 +335,6 @@ jps_test(
 ### auto-generated section `test intellij.android.layout-inspector.integration` end
 
 ### auto-generated section `build intellij.android.layout-inspector.tests` start
-resourcegroup(
-  name = "layout-inspector-tests_test_resources",
-  srcs = glob(["testResources/**/*"]),
-  strip_prefix = "testResources"
-)
-
 jvm_library(
   name = "layout-inspector-tests",
   module_name = "intellij.android.layout-inspector.tests",
@@ -367,7 +351,8 @@ jvm_library(
   testonly = True,
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
-  resources = [":layout-inspector-tests_test_resources"],
+  resources = glob(["testResources/**/*"]),
+  resource_strip_prefix = "testResources",
   associates = [
     "//android/layout-inspector",
     "//android/layout-inspector:layout-inspector_test_lib",

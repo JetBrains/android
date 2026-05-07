@@ -1,18 +1,13 @@
 ### auto-generated section `build intellij.android.native-symbolizer` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
-
-resourcegroup(
-  name = "native-symbolizer_resources",
-  srcs = glob(["resources/**/*"]),
-  strip_prefix = "resources"
-)
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 jvm_library(
   name = "native-symbolizer",
   module_name = "intellij.android.native-symbolizer",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = [":native-symbolizer_resources"],
+  resources = glob(["resources/**/*"]),
+  resource_strip_prefix = "resources",
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:kotlin-stdlib",
@@ -56,12 +51,6 @@ exports_files([
 ### auto-generated section `iml intellij.android.native-symbolizer` end
 
 ### auto-generated section `build intellij.android.native-symbolizer.tests` start
-resourcegroup(
-  name = "native-symbolizer-tests_test_resources",
-  srcs = glob(["testData/**/*"]),
-  strip_prefix = "testData"
-)
-
 jvm_library(
   name = "native-symbolizer-tests",
   module_name = "intellij.android.native-symbolizer.tests",
@@ -83,7 +72,8 @@ jvm_library(
   module_name = "intellij.android.native-symbolizer.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
-  resources = [":native-symbolizer-tests_test_resources"],
+  resources = glob(["testData/**/*"]),
+  resource_strip_prefix = "testData",
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",

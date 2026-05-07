@@ -1,24 +1,13 @@
 ### auto-generated section `build intellij.android.databinding` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
-
-resourcegroup(
-  name = "databinding_resources",
-  srcs = glob(["resources/**/*"]),
-  strip_prefix = "resources"
-)
-
-resourcegroup(
-  name = "databinding_test_resources",
-  srcs = glob(["testData/**/*"]),
-  strip_prefix = "testData"
-)
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 jvm_library(
   name = "databinding",
   module_name = "intellij.android.databinding",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = [":databinding_resources"],
+  resources = glob(["resources/**/*"]),
+  resource_strip_prefix = "resources",
   deps = [
     "@lib//:studio-platform-provided",
     "//libraries/guava",
@@ -73,7 +62,8 @@ jvm_library(
   module_name = "intellij.android.databinding",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
-  resources = [":databinding_test_resources"],
+  resources = glob(["testData/**/*"]),
+  resource_strip_prefix = "testData",
   runtime_deps = [
     ":databinding",
     "@lib//:studio-platform-provided",
@@ -131,12 +121,6 @@ exports_files([
 ### auto-generated section `iml intellij.android.databinding` end
 
 ### auto-generated section `build intellij.android.databinding.tests` start
-resourcegroup(
-  name = "databinding-tests_test_resources",
-  srcs = glob(["testResources/**/*"]),
-  strip_prefix = "testResources"
-)
-
 jvm_library(
   name = "databinding-tests",
   module_name = "intellij.android.databinding.tests",
@@ -151,7 +135,8 @@ jvm_library(
   module_name = "intellij.android.databinding.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
-  resources = [":databinding-tests_test_resources"],
+  resources = glob(["testResources/**/*"]),
+  resource_strip_prefix = "testResources",
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
