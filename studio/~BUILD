@@ -958,6 +958,7 @@ studio_plugin(
         "@intellij//:intellij.java.impl",
         "@intellij//:intellij.java.impl.refactorings",
         "@intellij//:intellij.java.indexing",
+        "@intellij//:intellij.libraries.coil",
         "@intellij//:intellij.libraries.compose.foundation.desktop",
         "@intellij//:intellij.libraries.compose.runtime.desktop",
         "@intellij//:intellij.libraries.grpc",
