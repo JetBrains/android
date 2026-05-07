@@ -189,7 +189,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     operation(title = "Loading project", subTitle = "Re-loading project", operationType = OperationType.SYNC) { context ->
       val result = reloadProjectIfDefinitionHasChanged(context) as? ReloadProjectResult.SnapshotRetained
       syncStatsScope(context) { context ->
-        syncQueryDataAndApply(context, lastQuery = result?.existingPostQuerySyncData, lastProjectStructureData = null)
+        runQueryAndReadProjectStructureAndApply(context, lastQuery = result?.existingPostQuerySyncData, lastProjectStructureData = null)
       }
     }
 
@@ -249,7 +249,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
       val result = reloadProjectIfDefinitionHasChanged(context) as? ReloadProjectResult.SnapshotRetained
       if (result == null || userPreferences.refreshQueryDataOnStartup) {
         syncStatsScope(context) { context ->
-          syncQueryDataAndApply(context, lastQuery = result?.existingPostQuerySyncData, lastProjectStructureData = null)
+          runQueryAndReadProjectStructureAndApply(context, lastQuery = result?.existingPostQuerySyncData, lastProjectStructureData = null)
         }
         if (userPreferences.commitProjectStructureAfterQuery) {
           updateProjectStructureAndSnapshot(context)
@@ -304,7 +304,9 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
   private fun fullSyncOperation(): QuerySyncOperation =
     operation(title = "Updating project structure", subTitle = "Re-importing project", operationType = OperationType.SYNC) { context ->
       val result = reloadProjectIfDefinitionHasChanged(context)
-      syncStatsScope(context) { context -> syncQueryDataAndApply(context, lastQuery = null, lastProjectStructureData = null) }
+      syncStatsScope(context) { context ->
+        runQueryAndReadProjectStructureAndApply(context, lastQuery = null, lastProjectStructureData = null)
+      }
       if (userPreferences.commitProjectStructureAfterQuery) {
         updateProjectStructureAndSnapshot(context)
       }
@@ -322,7 +324,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     operation(title = "Updating project structure", subTitle = "Refreshing project", operationType = OperationType.SYNC) { context ->
       val result = reloadProjectIfDefinitionHasChanged(context) as? ReloadProjectResult.SnapshotRetained
       syncStatsScope(context) { context ->
-        syncQueryDataAndApply(context, lastQuery = result?.existingPostQuerySyncData, lastProjectStructureData = null)
+        runQueryAndReadProjectStructureAndApply(context, lastQuery = result?.existingPostQuerySyncData, lastProjectStructureData = null)
       }
       if (userPreferences.commitProjectStructureAfterQuery) {
         updateProjectStructureAndSnapshot(context)
@@ -350,7 +352,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
       assertProjectLoaded()
       if (fileListener.hasModifiedBuildFiles() || getTargetsToBuildByPaths(workspaceRelativePaths).any { it.requiresQueryDataRefresh() }) {
         val result = reloadProjectIfDefinitionHasChanged(context) as? ReloadProjectResult.SnapshotRetained
-        syncQueryDataAndApply(context, lastQuery = result?.existingPostQuerySyncData, lastProjectStructureData = null)
+        runQueryAndReadProjectStructureAndApply(context, lastQuery = result?.existingPostQuerySyncData, lastProjectStructureData = null)
       }
     }
 
@@ -478,22 +480,25 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     }
   }
 
-  private fun syncQueryDataAndApply(context: BlazeContext, lastQuery: PostQuerySyncData?, lastProjectStructureData: ProjectStructureData?) {
-    val postQuerySyncData = runQueryAndComputePostQuerySyncData(context, lastQuery)
-    syncQueryCoreAndApply(context, postQuerySyncData, lastProjectStructureData)
-  }
-
-  private fun syncQueryCoreAndApply(
+  private fun runQueryAndReadProjectStructureAndApply(
     context: BlazeContext,
-    postQuerySyncData: PostQuerySyncData,
-    projectStructureData: ProjectStructureData?,
+    lastQuery: PostQuerySyncData?,
+    lastProjectStructureData: ProjectStructureData?,
   ) {
+    val postQuerySyncData = runQueryAndComputePostQuerySyncData(context, lastQuery)
     val coreSyncResult = assertProjectLoaded().computeQueryCoreSyncResult(context, postQuerySyncData)
-    val projectStructureDataToUse =
-      projectStructureData
-        ?: assertProjectLoaded().computeProjectStructureData(context, postQuerySyncData.projectDefinition(), coreSyncResult.graph)
+    val projectStructureDataToUse = readProjectStructureData(context, postQuerySyncData, lastProjectStructureData, coreSyncResult)
     updateCurrentSnapshot(context) { applySyncResult(coreSyncResult, projectStructureDataToUse) }
   }
+
+  private fun readProjectStructureData(
+    context: BlazeContext,
+    postQuerySyncData: PostQuerySyncData,
+    lastProjectStructureData: ProjectStructureData?,
+    coreSyncResult: QuerySyncProject.QueryCoreSyncResult,
+  ): ProjectStructureData =
+    assertProjectLoaded()
+      .computeProjectStructureData(context, postQuerySyncData.projectDefinition(), lastProjectStructureData, coreSyncResult.graph)
 
   private fun runQueryAndComputePostQuerySyncData(context: BlazeContext, lastQuery: PostQuerySyncData?): PostQuerySyncData {
     SaveUtil.saveAllFiles()
@@ -717,7 +722,9 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
           incompleteTargets = emptySet(),
         )
       }
-      syncStatsScope(context) { context -> syncQueryDataAndApply(context, lastQuery = null, lastProjectStructureData = null) }
+      syncStatsScope(context) { context ->
+        runQueryAndReadProjectStructureAndApply(context, lastQuery = null, lastProjectStructureData = null)
+      }
       autoEnableCodeAnalysis(context)
     }
 
