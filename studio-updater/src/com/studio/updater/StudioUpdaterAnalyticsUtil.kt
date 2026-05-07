@@ -19,6 +19,7 @@
 package com.studio.updater
 
 import com.android.tools.analytics.AnalyticsSettings
+import com.android.tools.analytics.AnalyticsStateManager
 import com.android.tools.analytics.UsageTracker
 import com.android.utils.StdLogger
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -30,6 +31,7 @@ import java.util.concurrent.TimeUnit
 
 fun logProcessStart() {
   AnalyticsSettings.initialize(StdLogger(StdLogger.Level.VERBOSE))
+  AnalyticsStateManager.dataSharing = AnalyticsSettings.optedIn
   UsageTracker.initialize(ScheduledThreadPoolExecutor(0))
   UsageTracker.setMaxJournalTime(10, TimeUnit.MINUTES)
   UsageTracker.maxJournalSize = 1000
