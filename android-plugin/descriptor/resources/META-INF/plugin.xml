@@ -178,5 +178,6 @@
 <!--  <xi:include href="/META-INF/android-declarative-focus.xml" />-->
 <!--  <xi:include href="/META-INF/marketing.xml" />-->
   <xi:include href="/META-INF/tracer.xml" />
+  <xi:include href="/META-INF/app-publishing.xml" />
   <xi:include href="/META-INF/play-publishing.xml" />
 </idea-plugin>

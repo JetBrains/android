@@ -32,6 +32,7 @@ dev_dist_plugin(
         "intellij.android.app-inspection.inspectors.network.ide",
         "intellij.android.app-inspection.inspectors.network.model",
         "intellij.android.app-inspection.inspectors.network.view",
+        "intellij.android.app-publishing",
         "intellij.android.artwork",
         "intellij.android.artwork-compose",
         "intellij.android.assistant",

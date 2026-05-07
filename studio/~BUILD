@@ -324,6 +324,7 @@ studio_plugin(
             "//tools/vendor/google/android-keys:android-keys",
             "//tools/vendor/google/focus-plugin:declarative-gradle.focus-plugin",
             "//tools/vendor/google/marketing:marketing",
+            "//tools/adt/idea/app-publishing:intellij.android.app-publishing",
             "//tools/adt/idea/play-publishing:intellij.android.play-publishing",
             "//tools/adt/idea/cli-server/server:cli-server.server",
             "//tools/adt/idea/cli-server/command-handler:cli-server.command-handler",
