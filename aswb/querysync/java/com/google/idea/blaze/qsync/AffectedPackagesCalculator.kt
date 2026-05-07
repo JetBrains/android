@@ -29,24 +29,20 @@ import java.nio.file.Path
 class AffectedPackagesCalculator
 private constructor(
   private val context: Context<*>,
-  private val projectIncludes: Set<Path>,
-  private val projectExcludes: Set<Path>,
+  private val projectScope: (Path) -> Boolean,
   private val lastQuery: QuerySummary,
   private val changedFiles: Set<WorkspaceFileChange>,
 ) {
 
   class Builder {
     private var context: Context<*>? = null
-    private var projectIncludes: Set<Path> = emptySet()
-    private var projectExcludes: Set<Path> = emptySet()
+    private var projectScope: ((Path) -> Boolean)? = null
     private var lastQuery: QuerySummary? = null
     private var changedFiles: Set<WorkspaceFileChange> = emptySet()
 
     fun context(value: Context<*>): Builder = apply { this.context = value }
 
-    fun projectIncludes(value: Set<Path>): Builder = apply { this.projectIncludes = value }
-
-    fun projectExcludes(value: Set<Path>): Builder = apply { this.projectExcludes = value }
+    fun projectScope(value: (Path) -> Boolean): Builder = apply { this.projectScope = value }
 
     fun lastQuery(value: QuerySummary): Builder = apply { this.lastQuery = value }
 
@@ -55,8 +51,7 @@ private constructor(
     fun build(): AffectedPackagesCalculator {
       return AffectedPackagesCalculator(
         context = context ?: error("context is required"),
-        projectIncludes = projectIncludes,
-        projectExcludes = projectExcludes,
+        projectScope = projectScope ?: { false },
         lastQuery = lastQuery ?: error("lastQuery is required"),
         changedFiles = changedFiles,
       )
@@ -221,16 +216,6 @@ private constructor(
   }
 
   private fun isIncludedInProject(file: Path): Boolean {
-    for (includePath in projectIncludes) {
-      if (file.startsWith(includePath) || includePath.toString().isEmpty()) {
-        for (excludePath in projectExcludes) {
-          if (file.startsWith(excludePath)) {
-            return false
-          }
-        }
-        return true
-      }
-    }
-    return false
+    return projectScope(file)
   }
 }
