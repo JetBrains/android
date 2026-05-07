@@ -13,19 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.play.publishing.action
+package com.android.tools.idea.publishing.play.wizard
 
-import com.android.tools.idea.flags.StudioFlags
-import com.intellij.openapi.actionSystem.ActionUpdateThread
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.project.DumbAware
-
-class PublishBundleAction : DefaultActionGroup(), DumbAware {
-  override fun getActionUpdateThread() = ActionUpdateThread.BGT
-
-  override fun update(e: AnActionEvent) {
-    e.presentation.text = "Publish"
-    e.presentation.isEnabledAndVisible = StudioFlags.SHOW_PUBLISH_IN_BUILD.get()
-  }
-}
+data class PlayPublishingWizardState(var artifactPath: String? = null, var isRegistered: Boolean? = null)
