@@ -13,6 +13,7 @@ enum CommandType {
   FIND_USAGES = 3;
   RENDER_COMPOSE_PREVIEW = 4;
   ANALYZE_FILE = 5;
+  VERSION_LOOKUP = 6;
 }
 
 
@@ -79,4 +80,39 @@ message Diagnostic {
 message AnalyzeFileResponse {
   repeated Diagnostic diagnostics = 1;
 }
+
+message VersionLookupRequest {
+  repeated string artifacts = 1;
+}
+
+enum VersionLookupType {
+  UNKNOWN_VERSION_LOOKUP_TYPE = 0;
+  ANDROID = 1;
+  STUDIO = 2;
+  GRADLE = 3;
+  MAVEN_ARTIFACT = 4;
+  GRADLE_PLUGIN = 5;
+  SDK = 6;
+  EMULATOR = 7;
+  PLATFORM_TOOLS = 8;
+  CMDLINE_TOOLS = 9;
+  BUILD_TOOLS = 10;
+  NDK = 11;
+  ADB = 12;
+  AGP = 13;
+  KOTLIN = 14;
+  COMPOSE = 15;
+}
+
+message VersionLookupResult {
+  string artifact = 1;
+  string stable_version = 2;
+  string preview_version = 3;
+  VersionLookupType type = 4;
+}
+
+message VersionLookupResponse {
+  repeated VersionLookupResult results = 1;
+}
+
 
