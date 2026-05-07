@@ -195,6 +195,12 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
       return if (contentManager.contentCount == 0) null else PROJECT_PROFILER_MAP[project]
     }
 
+    /** Returns true if the profiler tool window has been initialized for the given [Project]. */
+    @JvmStatic
+    fun isProfilerToolWindowInitialized(project: Project): Boolean {
+      return PROJECT_PROFILER_MAP.containsKey(project)
+    }
+
     fun removeContent(toolWindow: ToolWindow) {
       if (toolWindow.contentManager.contentCount > 0) {
         toolWindow.contentManager.removeAllContents(true)
