@@ -61,6 +61,25 @@ public class AffectedPackagesTest {
   }
 
   @Test
+  public void testModifyBuildFile_root() {
+    QuerySummary query = QuerySummaryImpl.create(createProtoForPackages("//:rule"));
+
+    AffectedPackages affected =
+        AffectedPackagesCalculator.builder()
+            .context(NOOP_CONTEXT)
+            .lastQuery(query)
+            .projectIncludes(ImmutableSet.of(Path.of("")))
+            .changedFiles(
+                ImmutableSet.of(new WorkspaceFileChange(Operation.MODIFY, Path.of("BUILD"))))
+            .build()
+            .getAffectedPackages();
+
+    expect.that(affected.isEmpty()).isFalse();
+    expect.that(affected.getModifiedPackages()).containsExactly(Path.of(""));
+    expect.that(affected.getDeletedPackages()).isEmpty();
+  }
+
+  @Test
   public void testAddBuildFile_siblingPackage() {
     QuerySummary query =
         QuerySummaryImpl.create(createProtoForPackages("//my/build/package1:rule"));
