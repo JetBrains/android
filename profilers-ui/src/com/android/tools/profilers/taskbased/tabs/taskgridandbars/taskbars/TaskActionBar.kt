@@ -170,7 +170,7 @@ fun TaskActionBar(taskHomeTabModel: TaskHomeTabModel) {
       BoxWithConstraints(modifier = Modifier.align(Alignment.CenterVertically)) {
         // Set the minimum width to that of the notification icon, if smaller than that, nothing should be rendered.
         if (maxWidth > NOTIFICATION_ICON_SIZE_DP) {
-          if (!canStartTask) {
+          if (isPrevTaskStartDone && !canStartTask) {
             val startTaskError =
               getStartTaskError(selectedTaskType, selectedDevice, selectedProcess, profilingProcessStartingPoint, profilers)
 

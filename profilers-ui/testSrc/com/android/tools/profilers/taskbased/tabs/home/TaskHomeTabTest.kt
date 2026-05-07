@@ -42,6 +42,8 @@ import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel
 import com.android.tools.profilers.tasks.ProfilerTaskType
@@ -150,6 +152,10 @@ class TaskHomeTabTest {
 
     // Make sure at this point, the start profiler task button is now enabled as device, process, and task selections were all valid.
     composeTestRule.onNodeWithTag("EnterTaskButton").assertIsEnabled()
+
+    val invalidProcessError =
+      TaskBasedUxStrings.getStartTaskErrorMessage(StartTaskSelectionError.StartTaskSelectionErrorCode.INVALID_PROCESS)
+    composeTestRule.onNodeWithText(invalidProcessError).assertDoesNotExist()
   }
 
   @Test

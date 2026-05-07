@@ -37,6 +37,9 @@ object TaskSelectionVerificationUtils {
   private fun isDeviceSelectionOnline(device: ProcessListModel.ProfilerDeviceSelection) =
     device.device != Common.Device.getDefaultInstance()
 
+  private fun isPreferredProcessNameAvailable(selectedProcess: Common.Process, preferredProcessName: String?) =
+    selectedProcess == Common.Process.getDefaultInstance() && !preferredProcessName.isNullOrEmpty()
+
   private fun isTaskSupportedByProcess(
     selectedTaskType: ProfilerTaskType,
     taskHandlers: Map<ProfilerTaskType, ProfilerTaskHandler>,
@@ -71,7 +74,9 @@ object TaskSelectionVerificationUtils {
     selectedProcess: Common.Process,
     profilers: StudioProfilers,
   ): Boolean {
-    val isProcessPreferred = isSelectedProcessPreferred(selectedProcess, profilers)
+    val isProcessPreferred =
+      isSelectedProcessPreferred(selectedProcess, profilers) ||
+        isPreferredProcessNameAvailable(selectedProcess, profilers.preferredProcessName)
     val isTaskSupported =
       if (selectedTaskType == ProfilerTaskType.LEAKCANARY) {
         true
