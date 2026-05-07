@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.sketchImporter;
 
+import static com.intellij.openapi.diagnostic.Logger.shouldRethrow;
 import static org.junit.Assert.assertEquals;
 
 import com.android.tools.idea.testing.AndroidProjectRule;
@@ -102,8 +103,9 @@ public class ResourceFileGeneratorTest {
     ResourceFileGenerator resourceFileGenerator = new ResourceFileGenerator(projectRule.getProject());
     LightVirtualFile file = resourceFileGenerator.generateDrawableFile(drawableAsset);
 
-    assertEquals(
+    assertEqualsForJdk8364373(
       "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\" android:height=\"401.0dp\" android:width=\"401.0dp\" android:viewportHeight=\"401.0\" android:viewportWidth=\"401.0\"><path android:pathData=\"M207.7,79.62 L207.7,79.62 L207.7,79.62 C207.7,79.62 207.7,79.62 207.7,79.62 L207.7,79.62 zM243.65,129.16 C246.07,129.16 248.11,129.78 249.66,131.08 C258.55,138.53 248.19,165.5 226.54,191.31 C212.21,208.38 196.53,220.67 184.98,224.87 C182.12,225.91 179.52,226.46 177.25,226.46 C174.83,226.46 172.79,225.84 171.24,224.54 C162.36,217.08 172.71,190.12 194.37,164.31 C208.69,147.23 224.38,134.94 235.93,130.74 C238.78,129.7 241.39,129.16 243.65,129.16 zM228.4,51.71 L228.4,51.71 C228.4,51.71 215.18,69.54 207.7,79.62 L207.7,79.62 L130.47,66 C130.47,66 127.98,80.1 124.35,100.73 L124.35,100.73 L99.53,94.8 L99.53,94.8 C99.53,94.8 113.55,127.14 117.91,137.22 L117.91,137.22 C120.24,123.99 122.45,111.47 124.35,100.73 L124.35,100.73 L147.63,106.29 L147.63,106.29 L119.19,140.17 C119.19,140.17 118.72,139.07 117.91,137.22 L117.91,137.22 C108.03,193.27 95.91,261.98 95.91,261.98 L291.89,296.53 L326.45,100.56 L238.31,85.02 L238.31,85.02 L228.4,51.71 z\" android:strokeColor=\"#FF979797\" android:strokeWidth=\"1\" android:fillColor=\"#FFD8D8D8\"/></vector>",
+      "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\" android:height=\"401.0dp\" android:width=\"401.0dp\" android:viewportHeight=\"401.0\" android:viewportWidth=\"401.0\"><path android:pathData=\"M207.7,79.62 L207.7,79.62 L207.7,79.62 C207.7,79.62 207.7,79.62 207.7,79.62 L207.7,79.62 zM243.65,129.16 C246.07,129.16 248.11,129.78 249.66,131.08 C258.55,138.53 248.19,165.5 226.54,191.31 C212.21,208.38 196.53,220.67 184.98,224.87 C182.12,225.91 179.52,226.46 177.25,226.46 C174.83,226.46 172.79,225.84 171.24,224.54 C162.36,217.08 172.71,190.12 194.37,164.31 C208.69,147.23 224.38,134.94 235.93,130.74 C238.78,129.7 241.39,129.16 243.65,129.16 zM228.4,51.71 L228.4,51.71 C228.4,51.71 215.18,69.54 207.7,79.62 L207.7,79.62 L130.47,66 C130.47,66 127.98,80.1 124.35,100.73 L124.35,100.73 L99.53,94.8 L99.53,94.8 C99.53,94.8 113.55,127.14 117.91,137.22 L117.91,137.22 C120.24,123.99 122.45,111.47 124.35,100.73 L124.35,100.73 L147.63,106.29 L119.19,140.17 C119.19,140.17 118.72,139.07 117.91,137.22 L117.91,137.22 C108.03,193.27 95.91,261.98 95.91,261.98 L291.89,296.53 L326.45,100.56 L238.31,85.02 L228.4,51.71 z\" android:strokeColor=\"#FF979797\" android:strokeWidth=\"1\" android:fillColor=\"#FFD8D8D8\"/></vector>",
       file.getContent());
   }
 
@@ -130,8 +132,9 @@ public class ResourceFileGeneratorTest {
     ResourceFileGenerator resourceFileGenerator = new ResourceFileGenerator(projectRule.getProject());
     LightVirtualFile file = resourceFileGenerator.generateDrawableFile(drawableAsset);
 
-    assertEquals(
+    assertEqualsForJdk8364373(
       "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\" android:height=\"401.0dp\" android:width=\"401.0dp\" android:viewportHeight=\"401.0\" android:viewportWidth=\"401.0\"><path android:pathData=\"M247,180 L137.43,281.43 L82.64,246.18 C82.64,246.18 247,180 247,180 zM75,123 C75,123 75,289.82 75,289.82 L314,289.82 L222.76,123 z\" android:strokeColor=\"#FF979797\" android:strokeWidth=\"1\" android:fillColor=\"#FFD8D8D8\"/></vector>",
+      "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\" android:height=\"401.0dp\" android:width=\"401.0dp\" android:viewportHeight=\"401.0\" android:viewportWidth=\"401.0\"><path android:pathData=\"M247,180 L137.43,281.43 L82.64,246.18 C82.64,246.18 246.97,180.01 247,180 zM75,123 C75,123 75,289.82 75,289.82 L314,289.82 L222.76,123 z\" android:strokeColor=\"#FF979797\" android:strokeWidth=\"1\" android:fillColor=\"#FFD8D8D8\"/></vector>",
       file.getContent());
   }
 
@@ -161,6 +164,40 @@ public class ResourceFileGeneratorTest {
     assertEquals(
       "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\" android:height=\"908.0dp\" android:width=\"908.0dp\" android:viewportHeight=\"908.0\" android:viewportWidth=\"908.0\" xmlns:aapt=\"http://schemas.android.com/aapt\"><path android:pathData=\"M64,638 L432,638 L432,847 L64,847 C64,847 64,638 64,638 \" android:fillColor=\"#7FFF0000\"/><path android:pathData=\"M538,297 L872,297 L872,513 L538,513 C538,513 538,297 538,297 \" android:fillColor=\"#64FF0000\"/><path android:pathData=\"M257,371 L695,371 L695,581 L257,581 C257,581 257,371 257,371 \" android:fillColor=\"#6BFF0000\"/><path android:pathData=\"M476,513 L776,513 L776,847 L476,847 C476,847 476,513 476,513 \"><aapt:attr name = \"android:fillColor\"><gradient android:endX=\"626.0\" android:endY=\"847.0\" android:startX=\"626.0\" android:startY=\"513.0\" android:type=\"linear\"><item android:color=\"#70FF0000\" android:offset=\"0.0\"/><item android:color=\"#4EFF0000\" android:offset=\"1.0\"/></gradient></aapt:attr></path><path android:pathData=\"M110,130 L386,130 L386,297 L110,297 C110,297 110,130 110,130 \" android:fillColor=\"#80FF0000\"/><path android:pathData=\"M413,47 L695,47 L695,363 L413,363 C413,363 413,47 413,47 \" android:fillColor=\"#90FF0000\"/><path android:pathData=\"M22,279 L318,279 L318,447 L22,447 C22,447 22,279 22,279 \" android:fillColor=\"#7FFF0000\"/></vector>",
       file.getContent());
+  }
+
+  private static void assertEqualsForJdk8364373(
+    CharSequence expectedBefore8364373JdkFix,
+    CharSequence expectedAfter8364373JdkFix,
+    CharSequence actual
+    ) {
+    if (hasJdk8364373Fix()) {
+      assertEquals(expectedAfter8364373JdkFix, actual);
+    } else {
+      assertEquals(expectedBefore8364373JdkFix, actual);
+    }
+  }
+
+  /**
+   * Determines if the JDK fix for issue JDK-8364373, which involves transformations
+   * related to `AffineTransform`, has been applied.
+   * <p>
+   * This method checks the presence of a specific field ("MAX_LINK_COUNT") in the
+   * `sun.awt.geom.AreaOp` class, which was added as a part of the fix.
+   *
+   * @return {@code true} if the fix is applied, {@code false} otherwise
+   */
+  private static boolean hasJdk8364373Fix() {
+    try {
+      final var clazz = Class.forName("sun.awt.geom.AreaOp");
+      final var _ = clazz.getDeclaredField("MAX_LINK_COUNT");
+      return true;
+    } catch (ClassNotFoundException | NoSuchFieldException e) {
+      return false;
+    } catch (Exception e) {
+      if (shouldRethrow(e)) throw e;
+      return false;
+    }
   }
 
   private static String getTestFilePath(String file) {
