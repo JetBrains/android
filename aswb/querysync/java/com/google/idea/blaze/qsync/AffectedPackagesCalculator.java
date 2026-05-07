@@ -71,7 +71,6 @@ public abstract class AffectedPackagesCalculator {
     if (!nonProjectChanges.isEmpty()) {
       // TODO should we have some better user messaging here, with the option to perform a full
       //  re-sync?
-      result.setIncomplete(true);
       context()
           .output(
               PrintOutput.output(
@@ -105,7 +104,6 @@ public abstract class AffectedPackagesCalculator {
                         "Modified BUILD file %s not in a known package; your project may be out of"
                             + " sync",
                         c.workspaceRelativePath));
-            result.setIncomplete(true);
           }
         }
         switch (c.operation) {
@@ -134,10 +132,11 @@ public abstract class AffectedPackagesCalculator {
     ImmutableList<Path> affectedBySubinclude =
         changedFiles().stream()
             .map(c -> c.workspaceRelativePath)
-            .flatMap(path -> {
-              final var paths = lastQuery().getReverseSubincludeMap().get(path);
-              return (paths == null) ? Stream.<Path>empty() : paths.stream();
-            })
+            .flatMap(
+                path -> {
+                  final var paths = lastQuery().getReverseSubincludeMap().get(path);
+                  return (paths == null) ? Stream.<Path>empty() : paths.stream();
+                })
             .filter(Objects::nonNull)
             .filter(path -> path.endsWith("BUILD"))
             .collect(toImmutableList());
@@ -151,7 +150,6 @@ public abstract class AffectedPackagesCalculator {
                   "%d BUILD files outside of your project view are affected by changes to their"
                       + " includes; your project may be out of sync",
                   nonProjectBuildAffectedCount));
-      result.setIncomplete(true);
     }
     affectedBySubinclude =
         affectedBySubinclude.stream().filter(this::isIncludedInProject).collect(toImmutableList());
@@ -170,7 +168,6 @@ public abstract class AffectedPackagesCalculator {
                       "Affected BUILD file %s not in a known package; your project may be out of"
                           + " sync",
                       buildFile));
-          result.setIncomplete(true);
         }
         result.addAffectedPackage(buildPackage);
       }
@@ -221,9 +218,6 @@ public abstract class AffectedPackagesCalculator {
             .filter(path -> effectivePackages.findIncludingPackage(path).isEmpty())
             .collect(toImmutableList());
     if (!unownedSources.isEmpty()) {
-      // We don't mark the result as incomplete here, as this does not result in the IDE state
-      // being out of sync with the build files: merely that the build files themselves may
-      // have a problem.
       context()
           .output(
               PrintOutput.output(
@@ -231,7 +225,6 @@ public abstract class AffectedPackagesCalculator {
                       + "Files:\n"
                       + "  %s",
                   unownedSources.size(), Joiner.on("\n  ").join(unownedSources)));
-      result.setUnownedSources(unownedSources);
     }
 
     return result.build();

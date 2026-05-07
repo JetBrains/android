@@ -18,7 +18,6 @@ package com.google.idea.blaze.qsync;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableSet;
 import java.nio.file.Path;
-import java.util.Collection;
 
 /**
  * Encapsulates build packages that are affected by changes to files in the project view, and logic
@@ -35,22 +34,8 @@ abstract class AffectedPackages {
   /** Paths of packages that have been deleted. */
   public abstract ImmutableSet<Path> getDeletedPackages();
 
-  /**
-   * Changes outside of the project view that are not reflected in {@link #getModifiedPackages()} or
-   * {@link #getDeletedPackages()}.
-   */
-  public abstract boolean isIncomplete();
-
-  /**
-   * Modified sources that are outside of any build package. This can be benign (e.g. a README file)
-   * or may indicate a problem with the build rules.
-   */
-  public abstract ImmutableSet<Path> getUnownedSources();
-
   static Builder builder() {
-    return new AutoValue_AffectedPackages.Builder()
-        .setIncomplete(false)
-        .setUnownedSources(ImmutableSet.of());
+    return new AutoValue_AffectedPackages.Builder();
   }
 
   public boolean isEmpty() {
@@ -71,10 +56,6 @@ abstract class AffectedPackages {
     public void addDeletedPackage(Path packagePath) {
       deletedPackagesBuilder().add(packagePath);
     }
-
-    public abstract Builder setUnownedSources(Collection<Path> unownedSources);
-
-    public abstract Builder setIncomplete(boolean value);
 
     public abstract AffectedPackages build();
   }
