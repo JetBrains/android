@@ -118,6 +118,8 @@ import com.intellij.openapi.externalSystem.util.Order
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.DependencyScope
 import com.intellij.openapi.util.Pair
+import com.intellij.platform.eel.provider.LocalEelDescriptor
+import com.intellij.platform.eel.provider.getEelDescriptor
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.ExceptionUtil
@@ -698,6 +700,9 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
 
   override fun getModelProviders(): List<ProjectImportModelProvider> {
     val project = checkNotNull(project) { "Project is null!" }
+    if (project.isRemoteExecution()) {
+      return emptyList()
+    }
     val syncOptions = resolverCtx.getSyncOptions(project)
 
     return listOf<ProjectImportModelProvider>(AndroidExtraModelProvider(syncOptions)) +
@@ -828,6 +833,8 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       HttpProxySettingsCleanUp.cleanUp(project)
     }
   }
+
+  private fun Project.isRemoteExecution(): Boolean = getEelDescriptor() != LocalEelDescriptor
 
   override fun enhanceRemoteProcessing(parameters: SimpleJavaParameters) {
     val classPath = parameters.classPath

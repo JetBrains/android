@@ -26,6 +26,7 @@ jvm_library(
   kotlinc_opts = ":custom_projectSystem-gradle",
   deps = [
     "@lib//:studio-platform-provided",
+    "//platform/eel-provider",
     "//libraries/guava",
     "//libraries/stream",
     "//libraries/classgraph",
@@ -197,6 +198,7 @@ jvm_library(
     ":projectSystem-gradle",
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
+    "//platform/eel-provider:eel-provider_test_lib",
     "//libraries/guava:guava_test_lib",
     "//libraries/stream:stream_test_lib",
     "//libraries/classgraph:classgraph_test_lib",
