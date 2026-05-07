@@ -103,7 +103,7 @@ private constructor(
     if (buildFileChanges.isNotEmpty()) {
       context.output(PrintOutput.log("Edited %d BUILD files", buildFileChanges.size))
       for (c in buildFileChanges) {
-        val buildPackage = c.workspaceRelativePath.parent ?: Path.of("")
+        val buildPackage = c.workspaceRelativePath.parent
         if (c.operation != WorkspaceFileChange.Operation.ADD) {
           // modifying/deleting an existing package
           if (!lastQuery.packages.contains(buildPackage)) {
@@ -158,7 +158,7 @@ private constructor(
     if (projectBuildAffected.isNotEmpty()) {
       context.output(PrintOutput.log("%d BUILD files affected by changes to .bzl files they load", projectBuildAffected.size))
       for (buildFile in projectBuildAffected) {
-        val buildPackage = buildFile.parent ?: Path.of("")
+        val buildPackage = buildFile.parent
         if (!lastQuery.packages.contains(buildPackage)) {
           context.output(PrintOutput.log("Affected BUILD file %s not in a known package; your project may be out of sync", buildFile))
         }
