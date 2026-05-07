@@ -504,6 +504,22 @@ class CompileSdkModelTest : AndroidGradleFileModelTestCase() {
     assertThat(content).doesNotContain("compileSdk {")
   }
 
+  @Test
+  fun testSetBetaVersion() {
+    isIrrelevantForDeclarative("Not supported in Declarative")
+
+    val buildModel = initTest(TestFile.EMPTY_ANDROID_BLOCK)
+
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    val compileSdkVersion = android.compileSdkVersion()
+    assertThat(compileSdkVersion).isNotNull()
+    compileSdkVersion.setValue("37.1-beta2")
+    applyChanges(buildModel)
+    verifyFileContents(myBuildFile, TestFile.CREATE_WITH_BETA_VERSION_EXPECTED)
+  }
+
   private fun initTest(testFileName: TestFileName): GradleBuildModel {
     writeToBuildFile(testFileName)
     val buildModel = gradleBuildModel
@@ -531,6 +547,7 @@ class CompileSdkModelTest : AndroidGradleFileModelTestCase() {
     CREATE_WITH_PREVIEW_VERSION_EXPECTED("createWithPreviewVersionExpected"),
     CREATE_WITH_ADDON_VERSION_EXPECTED("createWithAddonVersionExpected"),
     CREATE_WITH_ZERO_MINOR_VERSION_EXPECTED("createWithZeroNumberVersionExpected"),
+    CREATE_WITH_BETA_VERSION_EXPECTED("createWithBetaVersionExpected"),
     WRITE_RELEASE_BLOCK_AFTER_ELEMENT_EXPECTED("releaseBlockAfterElementExpected"),
     WRITE_RELEASE_BLOCK_AFTER_ELEMENT_OLD_AGP_EXPECTED("releaseBlockAfterElementOldAgpExpected");
 

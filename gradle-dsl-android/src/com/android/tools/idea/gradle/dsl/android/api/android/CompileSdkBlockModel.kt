@@ -30,6 +30,8 @@ interface CompileSdkBlockModel : GradleBlockModel {
 
   fun setPreviewVersion(reference: ReferenceTo)
 
+  fun setBetaVersion(version: Int, minorApiLevel: Int, betaVersion: Int)
+
   fun setAddon(vendorName: String, addonName: String, apiLevel: Int)
 }
 
@@ -50,6 +52,12 @@ interface CompileSdkReleaseModel : CompileSdkVersionModel {
 }
 
 interface CompileSdkPreviewModel : CompileSdkVersionModel
+
+interface CompileSdkBetaModel : CompileSdkVersionModel {
+  fun getMinorApiLevel(): ResolvedPropertyModel
+
+  fun getBetaVersion(): ResolvedPropertyModel
+}
 
 interface CompileSdkAddonModel : CompileSdkVersionModel {
   fun getVendorName(): ResolvedPropertyModel

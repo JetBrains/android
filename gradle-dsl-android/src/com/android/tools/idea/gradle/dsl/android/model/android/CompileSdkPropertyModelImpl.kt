@@ -48,6 +48,7 @@ class CompileSdkPropertyModelImpl(
 
     private val ADDON_PATTERN = "([^:]+):([^:]+):(\\d+)".toRegex()
     private val API_PATTERN = "android-(\\d+)(?:\\.(?<minor>\\d+))?(-ext(?<ext>\\d+))?".toRegex()
+    private val BETA_PATTERN = "(?:android-)?(\\d+)\\.(\\d+)-beta(\\d+)".toRegex()
 
     @JvmStatic
     fun getOrCreateCompileSdkPropertyModel(
@@ -162,6 +163,16 @@ class CompileSdkPropertyModelImpl(
         is Int -> compileSdkBlock.setReleaseVersion(value, null, null)
         else -> {
           val stringValue = value.toString()
+
+          val betaMatchResult = BETA_PATTERN.matchEntire(stringValue)
+          if (betaMatchResult != null) {
+            val apiLevel = betaMatchResult.groupValues[1].toInt()
+            val minorApiLevel = betaMatchResult.groupValues[2].toInt()
+            val betaVersion = betaMatchResult.groupValues[3].toInt()
+            compileSdkBlock.setBetaVersion(apiLevel, minorApiLevel, betaVersion)
+            return
+          }
+
           val apiMatchResult = API_PATTERN.matchEntire(stringValue)
           if (apiMatchResult != null) {
             val releaseVersion = apiMatchResult.groupValues[1].toInt()

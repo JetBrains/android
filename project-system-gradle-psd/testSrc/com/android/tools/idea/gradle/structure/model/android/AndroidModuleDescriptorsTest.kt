@@ -462,4 +462,89 @@ class AndroidModuleDescriptorsTest {
     appModule.applyChanges()
     verifyValues(appModule)
   }
+
+  @Test
+  fun testSetCompileSdkPropertiesBetaSdkVersionGroovy() {
+    val latestAgpCompileSdk = AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.compileSdk
+    val preparedProject =
+      projectRule.prepareTestProject(
+        AndroidCoreTestProject.PSD_SAMPLE_GROOVY.withAdditionalPatch { root ->
+          root
+            .resolve("app/build.gradle")
+            .replaceInContent(
+              "compileSdkVersion $latestAgpCompileSdk",
+              "compileSdk {\n version = " + "release(${latestAgpCompileSdk}) {\n  minorApiLevel = 0\n" + "sdkExtension 0\n}\n}",
+            )
+        }
+      )
+    preparedProject.open(updateOptions = OpenPreparedProjectOptions::withoutKtsRelatedIndexing) { resolvedProject ->
+      val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+      val appModule = project.findModuleByName("app") as PsAndroidModule
+      assertThat(appModule, notNullValue())
+
+      appModule.compileSdkVersion = "android-37.1-beta2".asParsed()
+
+      fun verifyValues(appModule: PsAndroidModule) {
+        val compileSdkVersion = AndroidModuleDescriptors.compileSdkVersion.bind(appModule).getValue()
+
+        assertThat(compileSdkVersion.parsedValue.asTestValue(), equalTo("android-37.1-beta2"))
+        val config = appModule.parsedModel?.android()?.compileSdkVersion()?.toCompileSdkConfig()
+        assertThat(config?.getVersion()?.toHash(), equalTo<Any>("android-37.1-beta2"))
+      }
+
+      verifyValues(appModule)
+      appModule.applyChanges()
+      verifyValues(appModule)
+
+      val buildFileText =
+        com.intellij.openapi.fileEditor.FileDocumentManager.getInstance().getDocument(appModule.parsedModel!!.virtualFile)!!.text
+      assertTrue("Should use beta DSL block:\n$buildFileText", buildFileText.contains("version = beta(37)"))
+      assertTrue(
+        "Should have correct betaVersion:\n$buildFileText",
+        buildFileText.contains("betaVersion 2") || buildFileText.contains("betaVersion = 2"),
+      )
+    }
+  }
+
+  @Test
+  fun testSetCompileSdkPropertiesBetaSdkVersionKts() {
+    val latestAgpCompileSdk = AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.compileSdk
+    val preparedProject =
+      projectRule.prepareTestProject(
+        AndroidCoreTestProject.PSD_SAMPLE_KOTLIN.withAdditionalPatch { root ->
+          root
+            .resolve("app/build.gradle.kts")
+            .replaceInContent(
+              "compileSdkVersion($latestAgpCompileSdk)",
+              "compileSdk {\n version = " + "release(${latestAgpCompileSdk}) {\n  minorApiLevel = 0\n" + "sdkExtension = 0\n}\n}",
+            )
+        }
+      )
+    preparedProject.open(updateOptions = OpenPreparedProjectOptions::withoutKtsRelatedIndexing) { resolvedProject ->
+      val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+      val appModule = project.findModuleByName("app") as PsAndroidModule
+      assertThat(appModule, notNullValue())
+
+      appModule.compileSdkVersion = "android-37.1-beta2".asParsed()
+
+      fun verifyValues(appModule: PsAndroidModule) {
+        val compileSdkVersion = AndroidModuleDescriptors.compileSdkVersion.bind(appModule).getValue()
+
+        assertThat(compileSdkVersion.parsedValue.asTestValue(), equalTo("android-37.1-beta2"))
+        val config = appModule.parsedModel?.android()?.compileSdkVersion()?.toCompileSdkConfig()
+        assertThat(config?.getVersion()?.toHash(), equalTo<Any>("android-37.1-beta2"))
+      }
+
+      verifyValues(appModule)
+      appModule.applyChanges()
+      verifyValues(appModule)
+
+      val buildFileText =
+        com.intellij.openapi.fileEditor.FileDocumentManager.getInstance().getDocument(appModule.parsedModel!!.virtualFile)!!.text
+      assertTrue("Should use beta DSL block:\n$buildFileText", buildFileText.contains("version = beta(37)"))
+      assertTrue("Should have correct betaVersion:\n$buildFileText", buildFileText.contains("betaVersion = 2"))
+    }
+  }
 }

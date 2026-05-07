@@ -39,6 +39,7 @@ class CompileSdkBlockModelImpl(dslElement: GradlePropertiesDslElement) : GradleD
     const val RELEASE_NAME = "release"
     const val PREVIEW_NAME = "preview"
     const val ADDON_NAME = "addon"
+    const val BETA_NAME = "beta"
   }
 
   override fun getVersion(): CompileSdkVersionModel? {
@@ -67,6 +68,7 @@ class CompileSdkBlockModelImpl(dslElement: GradlePropertiesDslElement) : GradleD
           }
         }
         ADDON_NAME -> CompileSdkAddonModelImpl(version)
+        BETA_NAME -> CompileSdkBetaModelImpl(version)
         else -> null
       }
     }
@@ -111,6 +113,27 @@ class CompileSdkBlockModelImpl(dslElement: GradlePropertiesDslElement) : GradleD
     newElement.elementType = PropertyType.REGULAR
     newElement.externalSyntax = ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
     return newElement
+  }
+
+  override fun setBetaVersion(version: Int, minorApiLevel: Int, betaVersion: Int) {
+    val methodCall = createBetaDslElement()
+    val versionLiteral = GradleDslLiteral(methodCall.argumentsElement, GradleNameElement.empty())
+    versionLiteral.setValue(version)
+    methodCall.addNewArgument(versionLiteral)
+
+    val closure = GradleDslClosure(methodCall, null, GradleNameElement.create(BETA_NAME))
+    methodCall.setNewClosureElement(closure)
+
+    closure.setNewElement(createAssignment(closure, minorApiLevel, "minorApiLevel"))
+    closure.setNewElement(createAssignment(closure, betaVersion, "betaVersion"))
+  }
+
+  private fun createBetaDslElement(): GradleDslMethodCall {
+    myDslElement.removeProperty(VERSION)
+    val name = GradleNameElement.create(VERSION)
+    val methodCall = GradleDslMethodCall(myDslElement, name, BETA_NAME)
+    myDslElement.setNewElement(methodCall)
+    return methodCall
   }
 
   override fun setPreviewVersion(version: String) = setPreviewVersionInternal(version)
