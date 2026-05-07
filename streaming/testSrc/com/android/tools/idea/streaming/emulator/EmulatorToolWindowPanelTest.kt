@@ -592,7 +592,16 @@ class EmulatorToolWindowPanelTest {
     val slider = ui.getComponent<JSlider>()
     assertThat(checkBox.isSelected).isFalse()
     assertThat(slider.value).isEqualTo(0)
+    assertThat(slider.isEnabled).isFalse()
+
+    // Updates to the dimming coefficient are ignored while the slider is disabled.
+    xrInputController.dimmingCoefficient = 0.75f
+    ui.layoutAndDispatchEvents()
+    assertThat(slider.value).isEqualTo(0)
+
+    // The dimming slider becomes enabled when passthrough is enabled.
     checkBox.isSelected = true
+    assertThat(slider.isEnabled).isTrue()
     var call = getNextGrpcCallIgnoringStreamScreenshot()
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setXrOptions")
     assertThat(shortDebugString(call.request)).isEqualTo("passthrough_coefficient: 1.0")
@@ -611,14 +620,17 @@ class EmulatorToolWindowPanelTest {
     xrInputController.passthroughCoefficient = 0f
     ui.layoutAndDispatchEvents()
     assertThat(checkBox.isSelected).isFalse()
-    assertThat(emulator.grpcCallLog.any { it.methodName == "android.emulation.control.EmulatorController/setXrOptions" && it != call }).isFalse()
+    assertThat(slider.isEnabled).isFalse()
+    assertThat(emulator.grpcCallLog.any { it.methodName == "android.emulation.control.EmulatorController/setXrOptions" && it != call })
+      .isFalse()
 
     // Programmatic update of the dimming coefficient triggers property change listeners to update the slider,
     // but it must NOT trigger a feedback loop of setXrOptions calls to the emulator.
     xrInputController.dimmingCoefficient = 0f
     ui.layoutAndDispatchEvents()
-    assertThat(slider.value).isEqualTo(0)
-    assertThat(emulator.grpcCallLog.any { it.methodName == "android.emulation.control.EmulatorController/setXrOptions" && it != call }).isFalse()
+    assertThat(slider.value).isEqualTo(3) // Retains its old value because the slider is disabled
+    assertThat(emulator.grpcCallLog.any { it.methodName == "android.emulation.control.EmulatorController/setXrOptions" && it != call })
+      .isFalse()
 
     panel.destroyContent()
     assertThat(panel.primaryDisplayView).isNull()

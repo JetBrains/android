@@ -79,6 +79,7 @@ private class XrPassthroughPopup(val xrController: AbstractXrInputController) {
           row("Passthrough:") {
             passthroughCheckBox =
               checkBox("").accessibleName("Passthrough").selected(xrController.passthroughEnabled).onChanged {
+                dimmingSlider!!.component.isEnabled = it.isSelected
                 if (!isUpdatingUi) {
                   setPassthroughAndDimming(it, dimmingSlider!!.component)
                 }
@@ -90,6 +91,7 @@ private class XrPassthroughPopup(val xrController: AbstractXrInputController) {
               slider(0, dimmingLevels.size - 1, 0, 1)
                 .accessibleName("Dimming")
                 .labelTable(dimmingLevels.indices.associateWith { JBLabel("${dimmingLevels[it].toPercent()}%").apply { font = smallFont } })
+                .enabled(xrController.passthroughEnabled)
                 .applyToComponent {
                   snapToTicks = true
                   value = xrController.dimmingLevelIndex
@@ -135,7 +137,13 @@ private class XrPassthroughPopup(val xrController: AbstractXrInputController) {
             passthroughCheckBox.applyToComponent { isSelected = xrController.passthroughEnabled }
           }
           AbstractXrInputController.DIMMING_COEFFICIENT_PROPERTY -> {
-            dimmingSlider.applyToComponent { value = xrController.dimmingLevelIndex }
+            dimmingSlider.applyToComponent {
+              // Only update the slider if we're in passthrough mode; otherwise, it's meaningless.
+              // When we re-enter passthrough mode, we'll restore the dimming level that was previously used there.
+              if (isEnabled) {
+                value = xrController.dimmingLevelIndex
+              }
+            }
           }
         }
       } finally {
