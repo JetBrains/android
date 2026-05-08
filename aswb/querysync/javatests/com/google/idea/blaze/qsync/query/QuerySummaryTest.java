@@ -137,16 +137,16 @@ public class QuerySummaryTest {
         .containsExactly(
             Path.of("tools/adt/idea/aswb/build_defs/test_data_build_defs.bzl"),
             ImmutableSet.of(
-                TestData.ROOT.resolve("buildincludes/sub/includes/BUILD"),
-                TestData.ROOT.resolve("buildincludes/sub/BUILD"),
-                TestData.ROOT.resolve("buildincludes/BUILD")),
+                TestData.ROOT.resolve("buildincludes/sub/includes"),
+                TestData.ROOT.resolve("buildincludes/sub"),
+                TestData.ROOT.resolve("buildincludes")),
             TestData.ROOT.resolve("buildincludes/sub/includes/includes.bzl"),
             ImmutableSet.of(
-                TestData.ROOT.resolve("buildincludes/sub/includes/BUILD"),
-                TestData.ROOT.resolve("buildincludes/sub/BUILD"),
-                TestData.ROOT.resolve("buildincludes/BUILD")),
+                TestData.ROOT.resolve("buildincludes/sub/includes"),
+                TestData.ROOT.resolve("buildincludes/sub"),
+                TestData.ROOT.resolve("buildincludes")),
             TestData.ROOT.resolve("buildincludes/sub/includes/includes2.bzl"),
-            ImmutableSet.of(TestData.ROOT.resolve("buildincludes/BUILD")));
+            ImmutableSet.of(TestData.ROOT.resolve("buildincludes")));
   }
 
   @Test

@@ -60,6 +60,8 @@ private constructor(
 
   companion object {
     @JvmStatic fun builder(): Builder = Builder()
+
+    private val BUILD_FILE_NAMES = setOf("BUILD", "BUILD.bazel")
   }
 
   fun getAffectedPackages(): AffectedPackages {
@@ -87,7 +89,7 @@ private constructor(
     }
 
     // Find BUILD files that have been directly affected by edits.
-    val buildFileChanges = projectChanges.filter { it.workspaceRelativePath.fileName.toString() == "BUILD" }
+    val buildFileChanges = projectChanges.filter { it.workspaceRelativePath.fileName.toString() in BUILD_FILE_NAMES }
     val addedPackages = PackageSet.Builder()
     val deletedPackages = PackageSet.Builder()
     val addedOrDeletedPackages = mutableSetOf<Path>()
@@ -130,16 +132,15 @@ private constructor(
       }
     }
 
-    // Find BUILD files that have been affected by edits to a subinclude (.bzl file)
-    val affectedBySubinclude =
+    // Find build packages that have been affected by edits to a subinclude (.bzl file)
+    val affectedPackagesBySubinclude =
       changedFiles
         .asSequence()
         .map { it.workspaceRelativePath }
         .flatMap { path -> lastQuery.reverseSubincludeMap[path].orEmpty().asSequence() }
-        .filter { it.endsWith("BUILD") }
         .toList()
 
-    val nonProjectBuildAffectedCount = affectedBySubinclude.count { !isIncludedInProject(it) }
+    val nonProjectBuildAffectedCount = affectedPackagesBySubinclude.count { !isIncludedInProject(it) }
     if (nonProjectBuildAffectedCount > 0) {
       context.output(
         PrintOutput.log(
@@ -149,19 +150,20 @@ private constructor(
       )
     }
 
-    val projectBuildAffected = affectedBySubinclude.filter { isIncludedInProject(it) }
+    val projectBuildAffected = affectedPackagesBySubinclude.filter { isIncludedInProject(it) }
     if (projectBuildAffected.isNotEmpty()) {
       context.output(PrintOutput.log("%d BUILD files affected by changes to .bzl files they load", projectBuildAffected.size))
-      for (buildFile in projectBuildAffected) {
-        val buildPackage = buildFile.parent ?: Path.of("")
+      for (buildPackage in projectBuildAffected) {
         if (!lastQuery.packages.contains(buildPackage)) {
-          context.output(PrintOutput.log("Affected BUILD file %s not in a known package; your project may be out of sync", buildFile))
+          context.output(
+            PrintOutput.log("Affected BUILD file under package %s not in a known package; your project may be out of sync", buildPackage)
+          )
         }
         modifiedPackagesResult.add(buildPackage)
       }
     }
 
-    val nonBuildEdits = projectChanges.filter { it.workspaceRelativePath.fileName.toString() != "BUILD" }
+    val nonBuildEdits = projectChanges.filter { it.workspaceRelativePath.fileName.toString() !in BUILD_FILE_NAMES }
 
     // Calculate the set of effective packages, taking into account added/deleted BUILD files.
     // When processing added/deleted source files, we need to know what package they're in now,

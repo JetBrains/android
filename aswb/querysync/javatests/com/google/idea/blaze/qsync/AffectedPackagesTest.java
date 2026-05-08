@@ -61,6 +61,29 @@ public class AffectedPackagesTest {
   }
 
   @Test
+  public void testModifyBuildFile_bazel() {
+    QuerySummary query =
+        QuerySummaryImpl.create(
+            createProtoForPackages("//my/build/package1:rule", "//my/build/package2:rule"));
+
+    AffectedPackages affected =
+        AffectedPackagesCalculator.builder()
+            .context(NOOP_CONTEXT)
+            .lastQuery(query)
+            .projectScope(path -> path.startsWith(Path.of("my/build")))
+            .changedFiles(
+                ImmutableSet.of(
+                    new WorkspaceFileChange(
+                        Operation.MODIFY, Path.of("my/build/package1/BUILD.bazel"))))
+            .build()
+            .getAffectedPackages();
+
+    expect.that(affected.isEmpty()).isFalse();
+    expect.that(affected.getModifiedPackages()).containsExactly(Path.of("my/build/package1"));
+    expect.that(affected.getDeletedPackages()).isEmpty();
+  }
+
+  @Test
   public void testModifyBuildFile_root() {
     QuerySummary query = QuerySummaryImpl.create(createProtoForPackages("//:rule"));
 
@@ -92,6 +115,27 @@ public class AffectedPackagesTest {
             .changedFiles(
                 ImmutableSet.of(
                     new WorkspaceFileChange(Operation.ADD, Path.of("my/build/package2/BUILD"))))
+            .build()
+            .getAffectedPackages();
+    expect.that(affected.isEmpty()).isFalse();
+    expect.that(affected.getModifiedPackages()).containsExactly(Path.of("my/build/package2"));
+    expect.that(affected.getDeletedPackages()).isEmpty();
+  }
+
+  @Test
+  public void testAddBuildFile_siblingPackage_bazel() {
+    QuerySummary query =
+        QuerySummaryImpl.create(createProtoForPackages("//my/build/package1:rule"));
+
+    AffectedPackages affected =
+        AffectedPackagesCalculator.builder()
+            .context(NOOP_CONTEXT)
+            .lastQuery(query)
+            .projectScope(path -> path.startsWith(Path.of("my/build")))
+            .changedFiles(
+                ImmutableSet.of(
+                    new WorkspaceFileChange(
+                        Operation.ADD, Path.of("my/build/package2/BUILD.bazel"))))
             .build()
             .getAffectedPackages();
     expect.that(affected.isEmpty()).isFalse();
@@ -168,6 +212,29 @@ public class AffectedPackagesTest {
             .changedFiles(
                 ImmutableSet.of(
                     new WorkspaceFileChange(Operation.DELETE, Path.of("my/build/package2/BUILD"))))
+            .build()
+            .getAffectedPackages();
+
+    expect.that(affected.isEmpty()).isFalse();
+    expect.that(affected.getModifiedPackages()).isEmpty();
+    expect.that(affected.getDeletedPackages()).containsExactly(Path.of("my/build/package2"));
+  }
+
+  @Test
+  public void testDeleteBuildFile_siblingPackage_bazel() {
+    QuerySummary query =
+        QuerySummaryImpl.create(
+            createProtoForPackages("//my/build/package1:rule1", "//my/build/package2:rule2"));
+
+    AffectedPackages affected =
+        AffectedPackagesCalculator.builder()
+            .context(NOOP_CONTEXT)
+            .lastQuery(query)
+            .projectScope(path -> path.startsWith(Path.of("my/build")))
+            .changedFiles(
+                ImmutableSet.of(
+                    new WorkspaceFileChange(
+                        Operation.DELETE, Path.of("my/build/package2/BUILD.bazel"))))
             .build()
             .getAffectedPackages();
 

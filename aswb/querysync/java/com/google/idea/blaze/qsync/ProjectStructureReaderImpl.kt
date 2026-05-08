@@ -73,7 +73,10 @@ internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtens
         .computeIfAbsent(parent) { dir ->
           var current: Path? = dir
           while (current != null) {
-            if (Files.exists(workspaceRoot.resolve(current).resolve("BUILD"))) {
+            if (
+              Files.exists(workspaceRoot.resolve(current).resolve("BUILD")) ||
+                Files.exists(workspaceRoot.resolve(current).resolve("BUILD.bazel"))
+            ) {
               return@computeIfAbsent Optional.of(current)
             }
             if (current == Path.of("")) break

@@ -166,6 +166,36 @@ class ProjectStructureReaderTest {
   }
 
   @Test
+  fun singlePackage_buildBazel() {
+    createFile("java/com/example/BUILD.bazel")
+    createFile("java/com/example/MyClass.java")
+    createFile("java/com/example/MyClass.kt")
+    createFile("java/com/example/data.txt")
+
+    val projectDefinition = createProjectDefinition(setOf("java"))
+    val structure = reader.read(context, workspaceRoot, projectDefinition)
+
+    val expected =
+      expectedStructure(
+        roots =
+          mapOf(
+            "java" to
+              mapOf(
+                "java/com/example" to
+                  SourceSet(
+                    rootPath = Path.of("java/com/example"),
+                    javaSourceFiles = listOf(Path.of("MyClass.java"), Path.of("MyClass.kt")),
+                    nonJavaSourceFiles = emptyList(),
+                    javaPackage = "",
+                  )
+              )
+          ),
+        languages = setOf(QuerySyncLanguage.JVM),
+      )
+    assertStructureEquals(structure, expected)
+  }
+
+  @Test
   fun multipleSourceSetsPerPackage() {
     createFile("java/com/example/BUILD")
     createFile("java/com/example/File1.java")

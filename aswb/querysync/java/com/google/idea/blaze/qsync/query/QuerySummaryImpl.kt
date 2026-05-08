@@ -103,9 +103,7 @@ data class QuerySummaryImpl(private val proto: Query.Summary) : QuerySummary {
       buildPackages
         .asSequence()
         .flatMap { pkg ->
-          pkg.subincludes.asSequence().map { subinclude ->
-            subinclude.toFilePath() to pkg.packageLabel.siblingWithName("BUILD").toFilePath()
-          }
+          pkg.subincludes.asSequence().map { subinclude -> subinclude.toFilePath() to pkg.packageLabel.getBuildPackagePath() }
         }
         .groupBy({ it.first }, { it.second })
         .mapValues { it.value.toSet() }
@@ -485,7 +483,10 @@ data class QuerySummaryImpl(private val proto: Query.Summary) : QuerySummary {
 
       for (packageLabel in allPackages) {
         val pkgBuilder = getOrCreatePackageBuilder(packageLabel)
-        if (packagesWithErrors.contains(packageLabel.siblingWithName("BUILD").toString())) {
+        if (
+          packagesWithErrors.contains(packageLabel.siblingWithName("BUILD").toString()) ||
+            packagesWithErrors.contains(packageLabel.siblingWithName("BUILD.bazel").toString())
+        ) {
           pkgBuilder.setHasError(true)
         }
         packageRules[packageLabel]?.forEach { pkgBuilder.addStoredRules(it.value) }
