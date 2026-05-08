@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.flow
 import org.jetbrains.kotlin.backend.common.pop
 import org.jetbrains.kotlin.backend.common.push
 import org.jetbrains.kotlin.utils.ifEmpty
+import org.jetbrains.uast.UAnnotated
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UMethod
@@ -194,6 +195,9 @@ class AnnotationsGraph<S, T>(private val nodeInfoFactory: NodeInfoFactory<S>, pr
 suspend fun UElement.getUAnnotations(): List<UAnnotation> {
   val annotations = readAction {
     (this@getUAnnotations as? UMethod)?.uAnnotations
+      // UClass and UMethod both implement UAnnotated. This allows us to get annotations directly
+      // from UAST for classes (e.g. annotation classes) without resolving to PSI which might fail.
+      ?: (this@getUAnnotations as? UAnnotated)?.uAnnotations
       ?: (this@getUAnnotations.tryResolve() as? PsiModifierListOwner)?.annotations?.mapNotNull {
         ProgressManager.checkCanceled()
         it.toUElementOfType() as? UAnnotation

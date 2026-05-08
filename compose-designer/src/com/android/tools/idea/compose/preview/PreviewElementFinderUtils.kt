@@ -184,15 +184,17 @@ private suspend fun getPreviewNodes(
 /**
  * Returns the fully qualified name (FQN) of the PreviewWrapperProvider class associated with the given [composableMethod], if any.
  *
- * The PreviewWrapperProvider is determined by looking for an annotation that is marked as a PreviewWrapper (see [isPreviewWrapper]). If
- * such an annotation is found, the value of its `wrapper` attribute is extracted. This attribute is expected to be a class literal,
- * representing the wrapper provider class that should be used to wrap the composable when generating the preview.
+ * The PreviewWrapperProvider is determined by looking for an annotation that is marked as a PreviewWrapper (see [isPreviewWrapper]) in the
+ * annotation graph of the method. If such an annotation is found, the value of its `wrapper` attribute is extracted. This attribute is
+ * expected to be a class literal, representing the wrapper provider class that should be used to wrap the composable when generating the
+ * preview.
  *
  * @param composableMethod The [UMethod] representing the composable function being inspected.
  * @return The fully qualified name of the PreviewWrapperProvider class, or `null` if no wrapper is specified.
  */
 private suspend fun getPreviewWrapperProviderFqn(composableMethod: UMethod): String? {
-  val previewWrapperAnnotation = composableMethod.uAnnotations.find { readAction { it.isPreviewWrapper() } }
+  val previewWrapperAnnotation =
+    composableMethod.findAllAnnotationsInGraph { readAction { it.isPreviewWrapper() } }.firstOrNull()?.element as? UAnnotation
   return readAction { (previewWrapperAnnotation?.findAttributeValue("wrapper") as? UClassLiteralExpression)?.type?.canonicalText }
 }
 

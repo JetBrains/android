@@ -621,6 +621,50 @@ class AnnotationFileComposePreviewElementFinderTest {
   }
 
   @Test
+  fun testPreviewWrapperInMultiPreview() = runBlocking {
+    fixture.addFileToProjectAndInvalidate(
+      "androidx/compose/ui/tooling/preview/PreviewWrapper.kt",
+      // language=kotlin
+      """
+      package androidx.compose.ui.tooling.preview
+
+      annotation class PreviewWrapper(val wrapper: kotlin.reflect.KClass<*>)
+      """
+        .trimIndent(),
+    )
+
+    val composeTest =
+      fixture.addFileToProjectAndInvalidate(
+        "src/Test.kt",
+        // language=kotlin
+        """
+        package test
+
+        import $PREVIEW_TOOLING_PACKAGE.Preview
+        import $COMPOSABLE_ANNOTATION_FQN
+        import androidx.compose.ui.tooling.preview.PreviewWrapper
+
+        class CustomWrapperProvider
+
+        @Preview
+        @PreviewWrapper(wrapper = CustomWrapperProvider::class)
+        annotation class MyMultiPreview
+
+        @Composable
+        @MyMultiPreview
+        fun PreviewWithIndirectWrapper() {
+        }
+      """
+          .trimIndent(),
+      )
+
+    val elements = AnnotationFilePreviewElementFinder.findPreviewElements(project, composeTest.virtualFile).toList()
+    assertEquals(1, elements.size)
+    assertEquals("test.TestKt.PreviewWithIndirectWrapper", elements[0].methodFqn)
+    assertEquals("test.CustomWrapperProvider", elements[0].previewWrapperProviderFqn)
+  }
+
+  @Test
   fun testWrapperProviderWithoutPreview() = runBlocking {
     fixture.addFileToProjectAndInvalidate(
       "androidx/compose/ui/tooling/preview/PreviewWrapper.kt",
