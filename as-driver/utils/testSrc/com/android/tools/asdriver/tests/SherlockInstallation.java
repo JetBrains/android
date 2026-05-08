@@ -99,21 +99,21 @@ public class SherlockInstallation extends IdeInstallation<Sherlock> {
     String dir = getSherlockDirectory();
     String sherlockExecutable;
     if (SystemInfo.isMac) {
-      sherlockExecutable = dir + "/MacOS/sherlock";
+      sherlockExecutable = dir + "/MacOS/apa";
     }
     else if (SystemInfo.isWindows) {
-      sherlockExecutable = dir + "/bin/sherlock64.exe";
+      sherlockExecutable = dir + "/bin/apa64.exe";
     }
     else {
       assert SystemInfo.isLinux;
-      sherlockExecutable = dir + "/bin/sherlock.sh";
+      sherlockExecutable = dir + "/bin/apa.sh";
     }
     return workDir.resolve(sherlockExecutable).toString();
   }
 
   @Override
   protected String vmOptionEnvName() {
-    return "SHERLOCK_VM_OPTIONS";
+    return "APA_VM_OPTIONS";
   }
 
   @Override
@@ -146,12 +146,12 @@ public class SherlockInstallation extends IdeInstallation<Sherlock> {
    */
   private static String getSherlockDirectory() {
     if (SystemInfo.isMac) {
-      return "sherlock-darwin/Android Performance Analyzer.app/Contents";
+      return "apa-darwin/Android Performance Analyzer.app/Contents";
     } else if (SystemInfo.isWindows) {
-      return "sherlock-windows";
+      return "apa-windows";
     } else {
       assert SystemInfo.isLinux;
-      return "sherlock-linux";
+      return "apa-linux";
     }
   }
 

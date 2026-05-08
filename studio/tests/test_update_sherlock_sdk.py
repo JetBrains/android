@@ -75,28 +75,28 @@ class UpdateSherlockSdkTest(unittest.TestCase):
     linux_artifacts = {"Sherlock-2.1/" + k: v for k, v in common_lib_files.items()}
     linux_artifacts.update({"Sherlock-2.1/" + k: v for k, v in common_plugin_files.items()})
     linux_artifacts["Sherlock-2.1/product-info.json"] = product_info
-    test_utils.create(str(self.download_dir / "sherlock-platform.tar.gz"), linux_artifacts)
+    test_utils.create(str(self.download_dir / "apa-platform.tar.gz"), linux_artifacts)
 
     # Mac ARM
     mac_arm_artifacts = {"Android Performance Analyzer.app/Contents/" + k: v for k, v in common_lib_files.items()}
     mac_arm_artifacts.update({"Android Performance Analyzer.app/Contents/" + k: v for k, v in common_plugin_files.items()})
     mac_arm_artifacts["Android Performance Analyzer.app/Contents/Resources/product-info.json"] = product_info
-    test_utils.create(str(self.download_dir / "sherlock-platform.mac.aarch64.zip"), mac_arm_artifacts)
+    test_utils.create(str(self.download_dir / "apa-platform.mac.aarch64.zip"), mac_arm_artifacts)
 
     # Mac x86_64
     mac_x64_artifacts = {"Android Performance Analyzer.app/Contents/" + k: v for k, v in common_lib_files.items()}
     mac_x64_artifacts.update({"Android Performance Analyzer.app/Contents/" + k: v for k, v in common_plugin_files.items()})
     mac_x64_artifacts["Android Performance Analyzer.app/Contents/Resources/product-info.json"] = product_info
-    test_utils.create(str(self.download_dir / "sherlock-platform.mac.x64.zip"), mac_x64_artifacts)
+    test_utils.create(str(self.download_dir / "apa-platform.mac.x64.zip"), mac_x64_artifacts)
 
     # Windows
     win_artifacts = common_lib_files.copy()
     win_artifacts.update(common_plugin_files)
     win_artifacts["product-info.json"] = product_info
-    test_utils.create(str(self.download_dir / "sherlock-platform.win.zip"), win_artifacts)
+    test_utils.create(str(self.download_dir / "apa-platform.win.zip"), win_artifacts)
 
     # Sources
-    test_utils.create(str(self.download_dir / "sherlock-platform-sources.zip"), {})
+    test_utils.create(str(self.download_dir / "apa-platform-sources.zip"), {})
 
     env = os.environ.copy()
     pythonpath = self.deploy_dir / "tools/adt/idea/studio"

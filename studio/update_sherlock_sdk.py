@@ -23,11 +23,11 @@ MAC_ARM = "darwin_aarch64"
 MAC_X64 = "darwin"
 
 # Artifact Filenames
-SOURCES_ZIP = "sherlock-platform-sources.zip"
-MAC_ARM_ZIP = "sherlock-platform.mac.aarch64.zip"
-MAC_X64_ZIP = "sherlock-platform.mac.x64.zip"
-LINUX_TAR = "sherlock-platform.tar.gz"
-WIN_ZIP = "sherlock-platform.win.zip"
+SOURCES_ZIP = "apa-platform-sources.zip"
+MAC_ARM_ZIP = "apa-platform.mac.aarch64.zip"
+MAC_X64_ZIP = "apa-platform.mac.x64.zip"
+LINUX_TAR = "apa-platform.tar.gz"
+WIN_ZIP = "apa-platform.win.zip"
 MANIFEST_TEMPLATE = "manifest_{}.xml"
 
 EXPECTED_ARTIFACTS: Set[str] = {SOURCES_ZIP, MAC_ARM_ZIP, MAC_X64_ZIP, LINUX_TAR, WIN_ZIP}
