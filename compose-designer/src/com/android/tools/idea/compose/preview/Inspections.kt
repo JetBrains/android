@@ -58,6 +58,7 @@ import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.parentOfType
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.toList
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.resolution.singleFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.resolution.symbol
@@ -76,7 +77,10 @@ import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtVisitorVoid
 import org.jetbrains.uast.UAnnotation
+import org.jetbrains.uast.UClass
+import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.toUElement
+import org.jetbrains.uast.toUElementOfType
 
 val composePreviewGroupDisplayName = message("inspection.group.name")
 
@@ -196,19 +200,82 @@ class PreviewWrapperUsageInspection : AbstractKotlinInspection(), PreviewAnnotat
           super.visitAnnotationEntry(annotationEntry)
 
           if (annotationEntry.fqNameMatches(COMPOSE_PREVIEW_WRAPPER_ANNOTATION_FQN)) {
-            val function = annotationEntry.parentOfType<KtNamedFunction>() ?: return
-            val annotations = function.annotationEntries
-            val hasComposable = annotations.any { it.fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME) }
-            val hasPreview = annotations.any { isPreviewOrMultiPreview(it) }
+            val function = annotationEntry.parentOfType<KtNamedFunction>()
+            if (function != null) {
+              val annotations = function.annotationEntries
+              val hasComposable = annotations.any { it.fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME) }
+              val hasPreview = annotations.any { isPreviewOrMultiPreview(it) }
 
-            if (!hasComposable || !hasPreview) {
-              holder.registerProblem(
-                annotationEntry.psiOrParent as PsiElement,
-                message("inspection.preview.wrapper.misuse.description"),
-                ProblemHighlightType.ERROR,
-                AddMissingAnnotationsQuickFix(function, !hasComposable, !hasPreview),
-              )
+              if (!hasComposable || !hasPreview) {
+                holder.registerProblem(
+                  annotationEntry.psiOrParent as PsiElement,
+                  message("inspection.preview.wrapper.misuse.description"),
+                  ProblemHighlightType.ERROR,
+                  AddMissingAnnotationsQuickFix(function, !hasComposable, !hasPreview),
+                )
+              }
+              return
             }
+
+            val klass = annotationEntry.parentOfType<KtClass>()
+            if (klass != null && klass.isAnnotation()) {
+              val wrapperAnnotations = klass.annotationEntries.filter { it.fqNameMatches(COMPOSE_PREVIEW_WRAPPER_ANNOTATION_FQN) }
+              if (wrapperAnnotations.size > 1) {
+                val index = wrapperAnnotations.indexOf(annotationEntry)
+                if (index > 0) {
+                  holder.registerProblem(
+                    annotationEntry.psiOrParent as PsiElement,
+                    message("inspection.preview.wrapper.class.duplicate.description"),
+                    ProblemHighlightType.ERROR,
+                  )
+                }
+              }
+            }
+          }
+        }
+
+        // We override visitNamedFunction to catch cases where a function has multiple PreviewWrapper
+        // annotations indirectly via Multi-Previews. visitAnnotationEntry only triggers for direct usages.
+        override fun visitNamedFunction(function: KtNamedFunction) {
+          super.visitNamedFunction(function)
+
+          // Only check composable functions
+          if (!function.annotationEntries.any { it.fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME) }) return
+
+          val uMethod = function.toUElementOfType<UMethod>() ?: return
+
+          val wrapperAnnotations = runBlockingCancellable {
+            uMethod.findAllAnnotationsInGraph { readAction { it.isPreviewWrapper() } }.toList()
+          }
+
+          if (wrapperAnnotations.size > 1) {
+            holder.registerProblem(
+              function.nameIdentifier ?: function,
+              message("inspection.preview.wrapper.function.graph.duplicate.description", wrapperAnnotations.size),
+              ProblemHighlightType.ERROR,
+            )
+          }
+        }
+
+        // We override visitClass to catch cases where an annotation class has multiple PreviewWrapper
+        // annotations indirectly via Multi-Previews. visitAnnotationEntry only triggers for direct usages.
+        override fun visitClass(klass: KtClass) {
+          super.visitClass(klass)
+
+          if (!klass.isAnnotation()) return
+
+          val uClass = klass.toUElementOfType<UClass>() ?: return
+
+          val wrapperAnnotations = runBlockingCancellable {
+            uClass.findAllAnnotationsInGraph { readAction { it.isPreviewWrapper() } }.toList()
+          }
+
+          if (wrapperAnnotations.size > 1) {
+            holder.registerProblem(
+              klass.nameIdentifier ?: klass,
+              message("inspection.preview.wrapper.class.graph.duplicate.description", wrapperAnnotations.size),
+              ProblemHighlightType.ERROR,
+            )
           }
         }
       }
