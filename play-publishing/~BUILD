@@ -15,6 +15,7 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
         "@intellij//:test-framework",
         "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/adt/idea/.idea/libraries:truth",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
         "//tools/base/testutils:studio.android.sdktools.testutils",
     ],
@@ -33,6 +34,12 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:protobuf-kotlin",
         "//tools/adt/idea/play-publishing:play_publishing_kt_proto",
         "//tools/adt/idea/app-publishing:intellij.android.app-publishing",
+        "//tools/adt/idea/.idea/libraries:aapt-proto",
+        "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common",
+        "//tools/base/common:studio.android.sdktools.common",
+        "//tools/adt/idea/apkanalyzer:intellij.android.apkanalyzer",
+        "//tools/adt/idea/.idea/libraries:libbinary-resources",
     ],
 )
 

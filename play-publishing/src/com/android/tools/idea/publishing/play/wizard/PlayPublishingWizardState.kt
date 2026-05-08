@@ -15,4 +15,9 @@
  */
 package com.android.tools.idea.publishing.play.wizard
 
-data class PlayPublishingWizardState(var artifactPath: String? = null, var isRegistered: Boolean? = null)
+data class PlayPublishingWizardState(
+  var artifactPath: String? = null,
+  var isRegistered: Boolean? = null,
+  var appName: String? = null,
+  var packageName: String? = null,
+)

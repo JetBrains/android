@@ -56,7 +56,7 @@ fun WizardPageScope.LoggedOutPage() {
   //     fstLoginFeature.logInBlocking(parentComponent = component)
   //   }
   //   if (fstLoginFeature.isLoggedIn()) {
-  //     close()
+  //     pushPage { ChooseArtifactPage() }
   //   }
   // }
 

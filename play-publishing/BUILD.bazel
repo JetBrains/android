@@ -1,0 +1,144 @@
+load("@community//build:tests-options.bzl", "jps_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("//build:compiler-options.bzl", "create_kotlinc_options")
+
+### auto-generated section `build intellij.android.play-publishing` start
+create_kotlinc_options(
+    name = "custom_play-publishing",
+    x_context_parameters = True,
+    x_sam_conversions = "class",
+)
+
+jvm_library(
+    name = "play-publishing",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    kotlinc_opts = ":custom_play-publishing",
+    module_name = "intellij.android.play-publishing",
+    resource_strip_prefix = "resources",
+    resources = glob(
+        ["resources/**/*"],
+    ),
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:kotlin-stdlib",
+        "@lib//:studio-platform-provided",
+        "//libraries/gson",
+        "//libraries/guava",
+        "//libraries/jetbrains/annotations",
+        "//platform/analysis-api:analysis",
+        "//platform/core-api:core",
+        "//platform/editor-ui-api:editor-ui",
+        "//platform/platform-api:ide",
+        "//platform/ide-core",
+        "//platform/projectModel-api:projectModel",
+        "//platform/util",
+        "//android/android-common:common",
+        "//android/adt-ui-compose",
+        "//android/artwork-compose",
+        "//libraries/protobuf",
+        "//libraries/protobuf-kotlin",
+        "//libraries/grpc",
+        "//libraries/grpc-netty-shaded",
+        "//android/app-publishing",
+        "@lib//:aapt-proto",
+        "//android/apkanalyzer",
+    ],
+)
+
+jvm_library(
+    name = "play-publishing_test_lib",
+    testonly = True,
+    srcs = glob(
+        [
+            "testSrc/**/*.kt",
+            "testSrc/**/*.java",
+            "testSrc/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    associates = [":play-publishing"],
+    kotlinc_opts = ":custom_play-publishing",
+    visibility = ["//visibility:public"],
+    runtime_deps = ["//platform/ide-core:ide-core_test_lib"],
+    deps = [
+        # do not sort,
+        "@lib//:kotlin-stdlib",
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "//libraries/guava",
+        "//libraries/guava:guava_test_lib",
+        "//libraries/jetbrains/annotations",
+        "//libraries/jetbrains/annotations:annotations_test_lib",
+        "//platform/analysis-api:analysis",
+        "//platform/analysis-api:analysis_test_lib",
+        "//platform/core-api:core",
+        "//platform/core-api:core_test_lib",
+        "//platform/core-ui",
+        "//platform/core-ui:core-ui_test_lib",
+        "//platform/editor-ui-api:editor-ui",
+        "//platform/editor-ui-api:editor-ui_test_lib",
+        "//platform/platform-api:ide",
+        "//platform/platform-api:ide_test_lib",
+        "//platform/ide-core",
+        "//platform/projectModel-api:projectModel",
+        "//platform/projectModel-api:projectModel_test_lib",
+        "//platform/testFramework",
+        "//platform/testFramework:testFramework_test_lib",
+        "//platform/util",
+        "//platform/util:util_test_lib",
+        "//android/android-common:common",
+        "//android/android-common:common_test_lib",
+        "//android/adt-ui-compose",
+        "//android/adt-ui-compose:adt-ui-compose_test_lib",
+        "//android/artwork-compose",
+        "//android/artwork-compose:artwork-compose_test_lib",
+        "//libraries/protobuf",
+        "//libraries/protobuf:protobuf_test_lib",
+        "//libraries/protobuf-kotlin",
+        "//libraries/protobuf-kotlin:protobuf-kotlin_test_lib",
+        "//libraries/grpc",
+        "//libraries/grpc:grpc_test_lib",
+        "//libraries/grpc-netty-shaded",
+        "//libraries/grpc-netty-shaded:grpc-netty-shaded_test_lib",
+        "//android/app-publishing",
+        "//android/app-publishing:app-publishing_test_lib",
+        "@lib//:aapt-proto",
+        "//android/apkanalyzer",
+        "//android/apkanalyzer:apkanalyzer_test_lib",
+        "//android/adt-ui-compose:adt-ui-compose-tests",
+        "//android/adt-ui-compose:adt-ui-compose-tests_test_lib",
+        "//android/adt-testutils",
+        "//android/adt-testutils:adt-testutils_test_lib",
+        "//libraries/junit4",
+        "//libraries/junit4:junit4_test_lib",
+        "@lib//:truth",
+        "//android/android-test-framework:testFramework",
+        "//android/android-test-framework:testFramework_test_lib",
+    ],
+)
+### auto-generated section `build intellij.android.play-publishing` end
+
+### auto-generated section `iml intellij.android.play-publishing` start
+exports_files(
+    [
+        "intellij.android.play-publishing.iml",
+        "resources/META-INF/play-publishing.xml",
+    ],
+    visibility = ["//visibility:public"],
+)
+### auto-generated section `iml intellij.android.play-publishing` end
+
+### auto-generated section `test intellij.android.play-publishing` start
+jps_test(
+    name = "play-publishing_test",
+    runtime_deps = [":play-publishing_test_lib"],
+)
+### auto-generated section `test intellij.android.play-publishing` end

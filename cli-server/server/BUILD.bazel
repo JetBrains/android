@@ -1,0 +1,111 @@
+load("@community//build:tests-options.bzl", "jps_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
+
+### auto-generated section `build intellij.android.cli-server.server` start
+jvm_library(
+    name = "server",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.cli-server.server",
+    resource_strip_prefix = "resources",
+    resources = glob(
+        ["resources/**/*"],
+    ),
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:kotlin-stdlib",
+        "@lib//:studio-platform-provided",
+        "//libraries/grpc",
+        "//libraries/protobuf",
+        "//libraries/protobuf-kotlin",
+        "//libraries/grpc-netty-shaded",
+        "//libraries/guava",
+        "//libraries/jetbrains/annotations",
+        "//libraries/kotlinx/coroutines/core",
+        "//platform/core-api:core",
+        "//platform/platform-api:ide",
+        "//platform/ide-core",
+        "//platform/projectModel-api:projectModel",
+        "//platform/util",
+        "//android/android-common:common",
+    ],
+)
+
+jvm_library(
+    name = "server_test_lib",
+    testonly = True,
+    srcs = glob(
+        [
+            "testSrc/**/*.kt",
+            "testSrc/**/*.java",
+            "testSrc/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    associates = [":server"],
+    visibility = ["//visibility:public"],
+    runtime_deps = ["//platform/ide-core:ide-core_test_lib"],
+    deps = [
+        # do not sort,
+        "@lib//:kotlin-stdlib",
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "//libraries/grpc",
+        "//libraries/grpc:grpc_test_lib",
+        "//libraries/protobuf",
+        "//libraries/protobuf:protobuf_test_lib",
+        "//libraries/protobuf-kotlin",
+        "//libraries/protobuf-kotlin:protobuf-kotlin_test_lib",
+        "//libraries/grpc-netty-shaded",
+        "//libraries/grpc-netty-shaded:grpc-netty-shaded_test_lib",
+        "//libraries/guava",
+        "//libraries/guava:guava_test_lib",
+        "//libraries/jetbrains/annotations",
+        "//libraries/jetbrains/annotations:annotations_test_lib",
+        "//libraries/kotlinx/coroutines/core",
+        "//libraries/kotlinx/coroutines/core:core_test_lib",
+        "//platform/core-api:core",
+        "//platform/core-api:core_test_lib",
+        "//platform/platform-api:ide",
+        "//platform/platform-api:ide_test_lib",
+        "//platform/ide-core",
+        "//platform/projectModel-api:projectModel",
+        "//platform/projectModel-api:projectModel_test_lib",
+        "//platform/util",
+        "//platform/util:util_test_lib",
+        "//android/android-common:common",
+        "//android/android-common:common_test_lib",
+        "//platform/testFramework",
+        "//platform/testFramework:testFramework_test_lib",
+        "//libraries/junit4",
+        "//libraries/junit4:junit4_test_lib",
+        "@lib//:truth",
+        "//libraries/mockito",
+        "//libraries/mockito:mockito_test_lib",
+    ],
+)
+### auto-generated section `build intellij.android.cli-server.server` end
+
+### auto-generated section `iml intellij.android.cli-server.server` start
+exports_files(
+    [
+        "intellij.android.cli-server.server.iml",
+        "resources/META-INF/cli-server.xml",
+    ],
+    visibility = ["//visibility:public"],
+)
+### auto-generated section `iml intellij.android.cli-server.server` end
+
+### auto-generated section `test intellij.android.cli-server.server` start
+jps_test(
+    name = "server_test",
+    runtime_deps = [":server_test_lib"],
+)
+### auto-generated section `test intellij.android.cli-server.server` end
