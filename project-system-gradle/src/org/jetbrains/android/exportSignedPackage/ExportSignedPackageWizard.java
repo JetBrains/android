@@ -32,6 +32,9 @@ import static org.jetbrains.android.exportSignedPackage.SigningWizardUsageTracke
 
 import com.android.tools.idea.gradle.actions.GoToApkLocationTask;
 import com.android.tools.idea.gradle.actions.GoToBundleLocationTask;
+import com.android.tools.idea.gradle.actions.BuildsToPathsMapper;
+import com.android.tools.idea.publishing.AppPublishingService;
+import com.android.tools.idea.publishing.AppPublishingContext;
 import com.android.tools.idea.gradle.model.IdeVariantBuildInformation;
 import com.android.tools.idea.gradle.model.IdeVariantCore;
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult;
@@ -53,11 +56,13 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.wireless.android.sdk.stats.SigningWizardEvent;
 import com.intellij.ide.wizard.AbstractWizard;
 import com.intellij.ide.wizard.CommitStepException;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.progress.util.ProgressIndicatorUtils;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.text.StringUtil;
@@ -107,6 +112,8 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   private List<String> myBuildVariants;
   private GradleSigningInfo myGradleSigningInfo;
   private boolean myUploadToPlay;
+  @Nullable private Boolean myRegistrationState;
+
 
   public ExportSignedPackageWizard(@NotNull Project project, @NotNull List<AndroidFacet> facets) {
     super(AndroidBundle.message("android.export.package.wizard.title"), project);
@@ -139,14 +146,32 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
           if (future == null) {
             return;
           }
-          while (!future.isDone()) {
-            if (indicator.isCanceled()) {
-              future.cancel(true);
-              return;
-            }
+          try {
+            ProgressIndicatorUtils.awaitWithCheckCanceled(future, indicator);
+          } catch (Exception e) {
+            future.cancel(true);
+            throw e;
           }
           if (!future.isCancelled()) {
-            invokeLaterIfNeeded(ExportSignedPackageWizard.super::doOKAction);
+            String artifactPath;
+            try {
+              AssembleInvocationResult result = future.get();
+              if (result.isBuildSuccessful()) {
+                artifactPath = getArtifactPath(result);
+              } else {
+                ApplicationManager.getApplication().invokeLater(() -> Messages.showErrorDialog(getRootPane(), "Build failed"));
+                return;
+              }
+            } catch (Exception e) {
+              getLog().error("Error during build and sign", e);
+              return;
+            }
+
+            AppPublishingContext context = new AppPublishingContext(artifactPath, myRegistrationState);
+            invokeLaterIfNeeded(() -> {
+              ExportSignedPackageWizard.super.doOKAction();
+              AppPublishingService.getInstance(myProject).publishApp("Google Play", context);
+            });
           }
         }
       }.queue();
@@ -312,6 +337,10 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
   public void setUploadToPlay(boolean uploadToPlay) {
     myUploadToPlay = uploadToPlay;
+  }
+
+  public void setRegistrationState(@Nullable Boolean registrationState) {
+    myRegistrationState = registrationState;
   }
 
   private static Logger getLog() {
@@ -512,6 +541,18 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     }
     // Variant name could not be found capitalized as expected.
     return null;
+  }
+
+  @NotNull
+  private String getArtifactPath(AssembleInvocationResult result) {
+    String artifactPath = myApkPath;
+    List<Module> modules = ImmutableList.of(LinkedAndroidModuleGroupUtilsKt.getMainModule(myFacet.getModule()));
+    Map<String, File> buildsToPaths = BuildsToPathsMapper.getInstance(myProject)
+      .getBuildsToPaths(result, myBuildVariants, modules, myTargetType == TargetType.BUNDLE);
+    if (!buildsToPaths.isEmpty()) {
+      artifactPath = buildsToPaths.values().iterator().next().getAbsolutePath();
+    }
+    return artifactPath;
   }
 
   private static String getTaskName(IdeVariantCore v, TargetType targetType) {

@@ -16,6 +16,7 @@
 package com.android.tools.idea.publishing
 
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 
 @Service(Service.Level.PROJECT)
@@ -33,5 +34,9 @@ class AppPublishingService(private val project: Project) {
       throw IllegalStateException("Publisher with ID $publisherId is not available.")
     }
     publisher.publishApp(project, context)
+  }
+
+  companion object {
+    @JvmStatic fun getInstance(project: Project): AppPublishingService = project.service()
   }
 }

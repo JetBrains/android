@@ -120,6 +120,7 @@ iml_module(
         "//tools/adt/idea/gradle-dsl-flags:intellij.android.gradle.dsl.flags",
         "//tools/adt/idea/testartifacts:intellij.android.testartifacts",
         "//tools/adt/idea/gradle-declarative-lang-flags:intellij.android.gradle.declarative.lang.flags",
+        "//tools/adt/idea/app-publishing:intellij.android.app-publishing",
         "@intellij//:intellij.spellchecker",
         "@intellij//:intellij.properties.backend.psi",
         "//tools/adt/idea/.idea/libraries:google-api-client",

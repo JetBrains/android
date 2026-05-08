@@ -100,6 +100,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
   private final Set<String> disabledItems = new HashSet<>();
 
   private GradleAndroidModel myAndroidModel;
+  private RegistrationState myRegistrationState = RegistrationState.UNKNOWN;
 
   private final JBLabel mySelectedKeyLabel = new JBLabel("Selected Key");
   private final JBLabel mySelectedKey = new JBLabel();
@@ -262,6 +263,10 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
       throw new CommitStepException(AndroidBundle.message("android.apk.sign.gradle.missing.variants"));
     }
 
+    if (myContinueToPlayCheckBox != null && myContinueToPlayCheckBox.isSelected() && selectedVariantIndices.length != 1) {
+      throw new CommitStepException(AndroidBundle.message("android.apk.sign.gradle.publishing.multiple.variants"));
+    }
+
     List<String> buildVariants = myBuildVariantsList.getSelectedValuesList().stream().map(item -> item.name).toList();
 
     myWizard.setApkPath(apkFolder);
@@ -273,6 +278,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
 
     if (myContinueToPlayCheckBox != null) {
       myWizard.setUploadToPlay(myContinueToPlayCheckBox.isSelected());
+      myWizard.setRegistrationState(registrationStateToBoolean());
     }
   }
 
@@ -456,6 +462,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
 
   private void updateAdiStatus() {
     String appId = null;
+    myRegistrationState = RegistrationState.UNKNOWN;
     List<VariantItem> selectedValues = myBuildVariantsList.getSelectedValuesList();
     if (selectedValues.size() == 1) {
       VariantItem selectedVariant = selectedValues.getFirst();
@@ -486,6 +493,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
         myCurrentAdiCheck.thenAccept(result -> ModalityUiUtil.invokeLaterIfNeeded(ModalityState.any(), () -> {
           var state = result.getFirst().get(currentAppId);
             if (myCurrentAdiCheck != null && !myCurrentAdiCheck.isCancelled() && currentAppId.equals(getAppId(selectedVariant.name))) {
+              myRegistrationState = state;
               if (state == RegistrationState.UNKNOWN) {
                 myAdiStatusIcon.setIcon(AllIcons.General.Note);
                 myAdiStatus.setText(AndroidBundle.message("android.apk.sign.gradle.adi.check.failed"));
@@ -558,6 +566,12 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
       return variant.getApplicationId();
     }
     return null;
+  }
+
+  private @Nullable Boolean registrationStateToBoolean() {
+    return
+      myRegistrationState == RegistrationState.REGISTERED ? Boolean.TRUE :
+      myRegistrationState == RegistrationState.NOT_REGISTERED ? Boolean.FALSE : null;
   }
 
   private class DisabledItemListCellRenderer extends DefaultListCellRenderer {

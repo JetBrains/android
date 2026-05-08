@@ -27,6 +27,7 @@ import com.android.tools.idea.testing.flags.overrideForTest
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.ide.wizard.CommitStepException
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
@@ -42,6 +43,7 @@ import java.util.concurrent.CompletableFuture
 import javax.swing.Icon
 import javax.swing.JCheckBox
 import kotlin.io.path.Path
+import kotlin.test.fail
 import kotlinx.coroutines.test.runTest
 import org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard.TargetType
 import org.junit.Before
@@ -316,5 +318,96 @@ class GradleSignStepTest {
     label.mouseListeners.forEach { it.mouseClicked(mouseEvent) }
 
     assertThat(checkbox.isSelected).isEqualTo(initialState)
+  }
+
+  @Test
+  fun testMultipleVariantsWithPlayUploadThrowsException() {
+    StudioFlags.PLAY_PUBLISHING_WIZARD_INTEGRATION.overrideForTest(true, projectRule.disposable)
+
+    val client: AdiClient = mock()
+    whenever(client.checkPackageRegistrationStatusAsync(org.mockito.kotlin.any(), org.mockito.kotlin.anyOrNull()))
+      .thenReturn(CompletableFuture.completedFuture(emptyMap<String, RegistrationState>() to null))
+    val gradleSignStep = GradleSignStep(myWizard, client)
+
+    val properties = PropertiesComponent.getInstance(project)
+    val destinationPath = "${homePath}${File.separator}APK"
+    properties.setValue(gradleSignStep.getApkPathPropertyName(name, ExportSignedPackageWizard.BUNDLE), destinationPath)
+    properties.setList(GradleSignStep.PROPERTY_BUILD_VARIANTS, listOf("debug", "release"))
+
+    val testAndroidModel: GradleAndroidModelImpl = mock()
+    whenever(testAndroidModel.moduleName).thenReturn(name)
+    whenever(testAndroidModel.filteredVariantNames).thenReturn(listOf("debug", "release"))
+
+    val debugVariant: IdeBasicVariant = mock()
+    whenever(debugVariant.applicationId).thenReturn("com.example.app.debug")
+    whenever(testAndroidModel.findBasicVariantByName("debug")).thenReturn(debugVariant)
+
+    val releaseVariant: IdeBasicVariant = mock()
+    whenever(releaseVariant.applicationId).thenReturn("com.example.app.release")
+    whenever(testAndroidModel.findBasicVariantByName("release")).thenReturn(releaseVariant)
+
+    val apkDir = File(destinationPath)
+    if (!apkDir.exists()) {
+      assertThat(apkDir.mkdirs()).isTrue()
+    }
+
+    gradleSignStep._init(testAndroidModel)
+
+    // Select both variants in the list
+    gradleSignStep.myBuildVariantsList.setSelectedIndices(intArrayOf(0, 1))
+
+    val checkboxes = UIUtil.findComponentsOfType(gradleSignStep.component, JCheckBox::class.java)
+    val checkbox = checkboxes.firstOrNull()
+    assertThat(checkbox != null).isTrue()
+    checkbox!!.isSelected = true
+
+    try {
+      gradleSignStep.commitForNext()
+      fail("Expected CommitStepException")
+    } catch (e: CommitStepException) {
+      assertThat(e.message)
+        .isEqualTo(org.jetbrains.android.util.AndroidBundle.message("android.apk.sign.gradle.publishing.multiple.variants"))
+    }
+  }
+
+  @Test
+  fun testSingleVariantWithPlayUploadSucceeds() {
+    StudioFlags.PLAY_PUBLISHING_WIZARD_INTEGRATION.overrideForTest(true, projectRule.disposable)
+
+    val client: AdiClient = mock()
+    whenever(client.checkPackageRegistrationStatusAsync(org.mockito.kotlin.any(), org.mockito.kotlin.anyOrNull()))
+      .thenReturn(CompletableFuture.completedFuture(emptyMap<String, RegistrationState>() to null))
+    val gradleSignStep = GradleSignStep(myWizard, client)
+
+    val properties = PropertiesComponent.getInstance(project)
+    val destinationPath = "${homePath}${File.separator}APK"
+    properties.setValue(gradleSignStep.getApkPathPropertyName(name, ExportSignedPackageWizard.BUNDLE), destinationPath)
+    properties.setList(GradleSignStep.PROPERTY_BUILD_VARIANTS, listOf("release"))
+
+    val testAndroidModel: GradleAndroidModelImpl = mock()
+    whenever(testAndroidModel.moduleName).thenReturn(name)
+    whenever(testAndroidModel.filteredVariantNames).thenReturn(listOf("release"))
+
+    val releaseVariant: IdeBasicVariant = mock()
+    whenever(releaseVariant.applicationId).thenReturn("com.example.app.release")
+    whenever(testAndroidModel.findBasicVariantByName("release")).thenReturn(releaseVariant)
+
+    val apkDir = File(destinationPath)
+    if (!apkDir.exists()) {
+      assertThat(apkDir.mkdirs()).isTrue()
+    }
+
+    gradleSignStep._init(testAndroidModel)
+
+    // Select only one variant
+    gradleSignStep.myBuildVariantsList.setSelectedIndices(intArrayOf(0))
+
+    val checkboxes = UIUtil.findComponentsOfType(gradleSignStep.component, JCheckBox::class.java)
+    val checkbox = checkboxes.firstOrNull()
+    assertThat(checkbox != null).isTrue()
+    checkbox!!.isSelected = true
+
+    gradleSignStep.commitForNext()
+    verify(myWizard).setUploadToPlay(true)
   }
 }
