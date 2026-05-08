@@ -517,12 +517,12 @@ constructor(
     refreshButton.addActionListener {
       coroutineScope.launch {
         // Disable the refresh button while download is in progress
-        UIUtil.invokeLaterIfNeeded { refreshButton.isEnabled = false }
+        withContext(Dispatchers.Main) { refreshButton.isEnabled = false }
         try {
           ensureFontsAndMetadataAreDownloaded(true)
         } finally {
           // Re-enable the button when refresh finishes or fails
-          UIUtil.invokeLaterIfNeeded { refreshButton.isEnabled = true }
+          withContext(Dispatchers.Main) { refreshButton.isEnabled = true }
         }
       }
     }
