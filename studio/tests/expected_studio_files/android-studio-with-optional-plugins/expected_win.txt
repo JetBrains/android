@@ -2696,6 +2696,7 @@ android-studio/plugins/markdown/lib/markdown.jar
 android-studio/plugins/markdown/lib/modules/intellij.markdown.backend.jar
 android-studio/plugins/markdown/lib/modules/intellij.markdown.fenceInjection.jar
 android-studio/plugins/markdown/lib/modules/intellij.markdown.frontend.jar
+android-studio/plugins/optional-plugins/lib/plugins.jar
 android-studio/plugins/performanceTesting/lib/assertj-swing.jar
 android-studio/plugins/performanceTesting/lib/assertj.jar
 android-studio/plugins/performanceTesting/lib/github.oshi.core.jar

@@ -3411,6 +3411,15 @@ Android Studio Preview.app/Contents/plugins/junit/lib/junit6-rt.jar
 Android Studio Preview.app/Contents/plugins/keymap-eclipse/lib/keymap-eclipse.jar
 Android Studio Preview.app/Contents/plugins/keymap-netbeans/lib/keymap-netbeans.jar
 Android Studio Preview.app/Contents/plugins/keymap-visualStudio/lib/keymap-visualStudio.jar
+Android Studio Preview.app/Contents/plugins/lume/lib/kaml-jvm-0.61.0.jar
+Android Studio Preview.app/Contents/plugins/lume/lib/liblume-android-plugin.jar
+Android Studio Preview.app/Contents/plugins/lume/lib/liblume-ide-api-impl.jar
+Android Studio Preview.app/Contents/plugins/lume/lib/liblume-kotlin-plugin.jar
+Android Studio Preview.app/Contents/plugins/lume/lib/lume-ide-api.jar
+Android Studio Preview.app/Contents/plugins/lume/lib/project-system-lume.jar
+Android Studio Preview.app/Contents/plugins/lume/lib/snakeyaml-engine-kmp-jvm-3.0.1.jar
+Android Studio Preview.app/Contents/plugins/lume/lib/urlencoder-lib-jvm-1.5.0.jar
+Android Studio Preview.app/Contents/plugins/lume/lib/workspace-model-dump.jar
 Android Studio Preview.app/Contents/plugins/markdown/lib/markdown.jar
 Android Studio Preview.app/Contents/plugins/markdown/lib/modules/intellij.markdown.backend.jar
 Android Studio Preview.app/Contents/plugins/markdown/lib/modules/intellij.markdown.fenceInjection.jar

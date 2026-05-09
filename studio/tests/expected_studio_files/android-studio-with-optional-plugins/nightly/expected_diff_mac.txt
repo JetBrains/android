@@ -3422,6 +3422,7 @@
 +++Android Studio Nightly.app/Contents/plugins/markdown/lib/modules/intellij.markdown.backend.jar
 +++Android Studio Nightly.app/Contents/plugins/markdown/lib/modules/intellij.markdown.fenceInjection.jar
 +++Android Studio Nightly.app/Contents/plugins/markdown/lib/modules/intellij.markdown.frontend.jar
++++Android Studio Nightly.app/Contents/plugins/optional-plugins/lib/plugins.jar
 +++Android Studio Nightly.app/Contents/plugins/performanceTesting/lib/assertj-swing.jar
 +++Android Studio Nightly.app/Contents/plugins/performanceTesting/lib/assertj.jar
 +++Android Studio Nightly.app/Contents/plugins/performanceTesting/lib/github.oshi.core.jar
@@ -7317,6 +7318,7 @@
 ---Android Studio Preview.app/Contents/plugins/markdown/lib/modules/intellij.markdown.backend.jar
 ---Android Studio Preview.app/Contents/plugins/markdown/lib/modules/intellij.markdown.fenceInjection.jar
 ---Android Studio Preview.app/Contents/plugins/markdown/lib/modules/intellij.markdown.frontend.jar
+---Android Studio Preview.app/Contents/plugins/optional-plugins/lib/plugins.jar
 ---Android Studio Preview.app/Contents/plugins/performanceTesting/lib/assertj-swing.jar
 ---Android Studio Preview.app/Contents/plugins/performanceTesting/lib/assertj.jar
 ---Android Studio Preview.app/Contents/plugins/performanceTesting/lib/github.oshi.core.jar

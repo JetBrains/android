@@ -134,6 +134,7 @@ public class StartUpTest {
                                     "Java Stream Debugger",
                                     "Jetpack Compose",
                                     "Kotlin",
+                                    "Lightbuild",
                                     "Machine Learning Code Completion",
                                     "Markdown",
                                     "Mercurial",
