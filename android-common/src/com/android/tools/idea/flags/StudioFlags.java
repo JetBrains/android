@@ -2126,6 +2126,11 @@ public final class StudioFlags {
                     "Enable showing all steps in the agent timeline",
                     "When enabled, steps like the system prompt and the context steps will be shown");
 
+  public static final Flag<Boolean> STUDIOBOT_SHOW_MAPPED_CALLS =
+    new BooleanFlag(STUDIOBOT, "timeline.show.mapped.calls",
+                    "Show original shell command for mapped tool calls",
+                    "When enabled, tool calls that were originally shell commands but were mapped to better tools will show the original command in the timeline.");
+
   public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_CES_TELEMETRY_ENABLED =
     new BooleanFlag(STUDIOBOT, "inline.code.completion.ces.telemetry.enabled",
                     "Enable sending inline code completion metrics to the AIDA CES service",
