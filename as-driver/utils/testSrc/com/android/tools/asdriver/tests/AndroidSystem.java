@@ -37,6 +37,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -92,7 +93,7 @@ public class AndroidSystem implements AutoCloseable, TestRule {
             install.verify();
           }
         } finally {
-          if (project != null) project.stopGradleDaemon();
+          stopGradleDaemons();
           AndroidSystem.this.close();
         }
       }
@@ -385,6 +386,47 @@ public class AndroidSystem implements AutoCloseable, TestRule {
       TestLogger.log("*** Files being written while shutting down system: ***");
       printContents(fileSystem.getRoot().toFile());
       throw e;
+    }
+  }
+
+  /**
+   * Finds all Gradle executables in the test directory and stops the associated daemons.
+   */
+  public void stopGradleDaemons() {
+    Path searchRoot = useTmpDir ? IdeInstallation.getTmpDir() : fileSystem.getRoot();
+    if (!Files.exists(searchRoot)) return;
+
+    String executableName = SystemInfo.isWindows ? "gradlew.bat" : "gradlew";
+
+    try (var stream = Files.walk(searchRoot, 5)) {
+      List<Path> executables = stream
+        .filter(path -> path.getFileName().toString().equals(executableName))
+        .filter(Files::isRegularFile)
+        .toList();
+
+      for (Path executable : executables) {
+        try {
+          TestLogger.log("Stopping Gradle daemon using: " + executable);
+          ProcessBuilder pb = new ProcessBuilder(executable.toAbsolutePath().toString(), "--stop");
+          pb.directory(executable.getParent().toFile());
+          pb.environment().put("JAVA_HOME", TestUtils.getJava21Jdk().toAbsolutePath().toString());
+          Process process = pb.start();
+          if (!process.waitFor(1, TimeUnit.MINUTES)) {
+            process.destroyForcibly();
+            TestLogger.log("Gradle stop process for " + executable + " timed out and was killed.");
+          }
+          else {
+            int exitCode = process.exitValue();
+            TestLogger.log("Gradle stop process for " + executable + " exited with code: " + exitCode);
+          }
+        }
+        catch (IOException | InterruptedException e) {
+          TestLogger.log("Failed to stop Gradle daemon for " + executable + ": " + e.getMessage());
+        }
+      }
+    }
+    catch (IOException e) {
+      TestLogger.log("Failed to walk file system to stop Gradle daemons in " + searchRoot + ": " + e.getMessage());
     }
   }
 
