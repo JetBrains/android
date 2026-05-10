@@ -3068,6 +3068,14 @@ public final class StudioFlags {
       "Show Publish Bundle action",
       "Show Publish Bundle action in Build menu"
     );
+  public static final Flag<String> PLAY_PUBLISHING_ENDPOINT =
+    new StringFlag(
+      PLAY_PUBLISHING,
+      "play.publishing.endpoint",
+      "Set Play Publishing server address",
+      "Set Play Publishing server address",
+      "staging-androidpublisher.sandbox.googleapis.com"
+    );
   // endregion Play Publishing
 
   private StudioFlags() { }

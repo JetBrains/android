@@ -1,0 +1,108 @@
+/*
+ * Copyright (C) 2026 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.publishing.play.client
+
+// Play console supported languages - https://support.google.com/googleplay/android-developer/table/4419860
+val playStoreLanguageNames =
+  mapOf(
+    "af" to "Afrikaans",
+    "am" to "Amharic",
+    "ar" to "Arabic",
+    "az-AZ" to "Azerbaijani (Azerbaijan)",
+    "be" to "Belarusian",
+    "bn-BD" to "Bengali (Bangladesh)",
+    "bg" to "Bulgarian",
+    "ca" to "Catalan",
+    "cs-CZ" to "Czech",
+    "da-DK" to "Danish",
+    "de-DE" to "German (Germany)",
+    "el-GR" to "Greek",
+    "en-AU" to "English (Australia)",
+    "en-GB" to "British English",
+    "en-CA" to "English (Canada)",
+    "en-IN" to "English (India)",
+    "en-SG" to "English (Singapore)",
+    "en-US" to "English (United States)",
+    "en-ZA" to "English (South Africa)",
+    "es-419" to "Spanish (Latin America)",
+    "es-ES" to "Spanish (Spain)",
+    "es-US" to "Spanish (United States)",
+    "et" to "Estonian",
+    "eu-ES" to "Basque",
+    "fa" to "Persian",
+    "fa-AE" to "Persian (UAE)",
+    "fa-AF" to "Persian (Afghanistan)",
+    "fa-IR" to "Persian (Iran)",
+    "fi-FI" to "Finnish",
+    "fil" to "Filipino",
+    "fr-CA" to "French (Canada)",
+    "fr-FR" to "French (France)",
+    "gl-ES" to "Galician",
+    "gu" to "Gujarati",
+    "hi-IN" to "Hindi",
+    "hr" to "Croatian",
+    "hu-HU" to "Hungarian",
+    "hy-AM" to "Armenian",
+    "id" to "Indonesian",
+    "is-IS" to "Icelandic",
+    "it-IT" to "Italian (Italy)",
+    "iw-IL" to "Hebrew",
+    "ja-JP" to "Japanese (Japan)",
+    "ka-GE" to "Georgian",
+    "kk" to "Kazakh",
+    "km-KH" to "Khmer",
+    "ko-KR" to "Korean (Korea)",
+    "kn-IN" to "Kannada",
+    "ky-KG" to "Kyrgyz",
+    "lo-LA" to "Lao",
+    "lt" to "Lithuanian",
+    "lv" to "Latvian",
+    "mk-MK" to "Macedonian",
+    "ml-IN" to "Malayalam",
+    "mn-MN" to "Mongolian",
+    "mr-IN" to "Marathi",
+    "ms" to "Malay",
+    "ms-MY" to "Malay (Malaysia)",
+    "my-MM" to "Burmese",
+    "ne-NP" to "Nepali",
+    "nl-NL" to "Dutch",
+    "no-NO" to "Norwegian",
+    "pa" to "Punjabi",
+    "pl-PL" to "Polish",
+    "pt-BR" to "Brazilian Portuguese",
+    "pt-PT" to "Portuguese (Portugal)",
+    "rm" to "Romansh",
+    "ro" to "Romanian",
+    "ru-RU" to "Russian",
+    "si-LK" to "Sinhalese",
+    "sk" to "Slovak",
+    "sl" to "Slovenian",
+    "sq" to "Albanian",
+    "sr" to "Serbian",
+    "sv-SE" to "Swedish",
+    "sw" to "Swahili",
+    "ta-IN" to "Tamil",
+    "te-IN" to "Telugu",
+    "th" to "Thai",
+    "tr-TR" to "Turkish",
+    "uk" to "Ukrainian",
+    "ur" to "Urdu",
+    "vi" to "Vietnamese",
+    "zh-CN" to "Chinese (Simplified)",
+    "zh-HK" to "Chinese (Traditional, Hong Kong)",
+    "zh-TW" to "Chinese (Traditional, Taiwan)",
+    "zu" to "Zulu",
+  )
