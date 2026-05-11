@@ -11,6 +11,7 @@ import com.android.tools.idea.rendering.BuildTargetReference;
 import com.android.tools.idea.rendering.StudioModuleRenderContext;
 import com.android.tools.idea.rendering.classloading.LocalNavigationEventTransform;
 import com.android.tools.idea.rendering.classloading.NavigationEventHandlerTransform;
+import com.android.tools.idea.rendering.classloading.PublicSerializableTransform;
 import com.android.tools.rendering.classloading.StringReplaceTransform;
 import com.android.tools.rendering.RenderAsyncActionExecutor;
 import com.android.tools.rendering.RenderService;
@@ -132,6 +133,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
    *   <li>Wraps ViewTreeLifecycleOwner.get to intercept its returning value and make sure it never returns null
    *   <li>Wraps LocalNavigationEventDispatcherOwner.current to intercept its returning value to use our local FakeNavigationEventDispatcherOwner
    *   <li>Wraps NavigationEventHandler to intercept the returning value of the isInspectionMode function
+   *   <li>Transforms classes annotated with @Serializable to make them and their fields public
    * </ul>
    * Note that it does not attempt to handle cases where class file constructs cannot
    * be represented in the target version. This is intended for uses such as for example
@@ -158,6 +160,8 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
       ImmutableList.of(visitor -> StudioFlags.RENDER_SANDBOX.get() ? RenderSandbox.getClassTransform(visitor) : visitor),
       classData -> StudioFlags.RENDER_SANDBOX.get() && RenderSandbox.getClassTransform().shouldRewrite(classData)
     )
+  ).plus(
+    (StudioFlags.COMPOSE_INTERACTIVE_PREVIEW_PREDICTIVE_BACK.get()) ? ImmutableList.of(PublicSerializableTransform::new) : ImmutableList.of()
   );
 
   static final ClassTransform NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS = UtilKt.toClassTransform(
@@ -182,6 +186,8 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
       ImmutableList.of(visitor -> StudioFlags.RENDER_SANDBOX.get() ? RenderSandbox.getClassTransform(visitor) : visitor),
       classData -> StudioFlags.RENDER_SANDBOX.get() && RenderSandbox.getClassTransform().shouldRewrite(classData)
     )
+  ).plus(
+    (StudioFlags.COMPOSE_INTERACTIVE_PREVIEW_PREDICTIVE_BACK.get()) ? ImmutableList.of(PublicSerializableTransform::new) : ImmutableList.of()
   );
 
   private static final ExecutorService ourDisposeService =
