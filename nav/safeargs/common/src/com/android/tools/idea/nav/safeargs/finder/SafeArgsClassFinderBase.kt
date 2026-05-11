@@ -34,17 +34,15 @@ abstract class SafeArgsClassFinderBase(private val project: Project) : PsiElemen
 
   private fun findAll(project: Project): List<AndroidLightClassBase> {
     val provider = {
+      val safeArgsEnabledFacetsProjectService = SafeArgsEnabledFacetsProjectService.getInstance(project)
       val result =
-        SafeArgsEnabledFacetsProjectService.getInstance(project)
-          .modulesUsingSafeArgs
-          .asSequence()
-          .flatMap { facet -> findAll(facet).asSequence() }
-          .toList()
+        safeArgsEnabledFacetsProjectService.modulesUsingSafeArgs.asSequence().flatMap { facet -> findAll(facet).asSequence() }.toList()
 
       CachedValueProvider.Result.create(
         result,
         ProjectNavigationResourceModificationTracker.getInstance(project),
         project.safeArgsModeTracker,
+        safeArgsEnabledFacetsProjectService,
       )
     }
 
