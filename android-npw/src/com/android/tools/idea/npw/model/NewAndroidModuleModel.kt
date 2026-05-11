@@ -310,7 +310,6 @@ private fun FormFactor.toModuleRenderingLoggingEvent() =
     FormFactor.Car -> RenderLoggingEvent.AUTOMOTIVE_MODULE
     FormFactor.Wear -> RenderLoggingEvent.ANDROID_WEAR_MODULE
     FormFactor.Generic -> RenderLoggingEvent.ANDROID_MODULE // TODO(b/145975555)
-    FormFactor.AiGlasses -> TODO() // TODO android merge
   }
 
 internal fun Project.hasKtsUsage(): Boolean {
