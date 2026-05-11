@@ -16,7 +16,11 @@
 package com.android.tools.idea.publishing.play.client
 
 import com.android.tools.idea.publishing.play.client.type.AppConfig
+import com.android.tools.idea.publishing.play.client.type.AppEdit
+import com.android.tools.idea.publishing.play.client.type.Artifact
+import com.android.tools.idea.publishing.play.client.type.Bundle
 import com.android.tools.idea.publishing.play.client.type.Developer
+import com.android.tools.idea.publishing.play.client.type.Track
 
 /** A fake implementation of [PlayPublishingClient] that is easy to extend for new methods. */
 class FakePlayPublishingClient : PlayPublishingClient {
@@ -27,6 +31,27 @@ class FakePlayPublishingClient : PlayPublishingClient {
 
   override suspend fun createAppRecord(developerId: Long, appConfig: AppConfig): AppConfig =
     config.createAppRecordCall(developerId, appConfig)
+
+  override suspend fun insertEdit(packageName: String): AppEdit = AppEdit("", "")
+
+  override suspend fun listEditTracks(packageName: String, editId: String): List<Track> {
+    return emptyList()
+  }
+
+  override suspend fun uploadArtifact(packageName: String, editId: String, artifactPath: String, isBundle: Boolean): Artifact {
+    return Bundle(0, "", "")
+  }
+
+  override suspend fun createRelease(
+    packageName: String,
+    editId: String,
+    releaseName: String,
+    releaseNotes: Map<String, String>,
+    versionCode: Int,
+    trackId: String,
+  ) = Unit
+
+  override suspend fun commitEdit(packageName: String, editId: String) = Unit
 
   data class Config(
     val listDeveloperCall: suspend () -> List<Developer> = { emptyList() },

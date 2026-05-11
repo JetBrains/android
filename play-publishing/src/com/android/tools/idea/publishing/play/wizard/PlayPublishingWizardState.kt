@@ -28,5 +28,6 @@ data class PlayPublishingWizardState(
   var releaseNotes: String? = null,
   var defaultLanguage: String? = null,
   var isAppCreated: Boolean = false,
+  var isBundle: Boolean = false,
   val client: PlayPublishingClient = HttpPlayPublishingClient(),
 )

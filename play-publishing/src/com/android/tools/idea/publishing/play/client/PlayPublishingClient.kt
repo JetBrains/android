@@ -16,10 +16,30 @@
 package com.android.tools.idea.publishing.play.client
 
 import com.android.tools.idea.publishing.play.client.type.AppConfig
+import com.android.tools.idea.publishing.play.client.type.AppEdit
+import com.android.tools.idea.publishing.play.client.type.Artifact
 import com.android.tools.idea.publishing.play.client.type.Developer
+import com.android.tools.idea.publishing.play.client.type.Track
 
 interface PlayPublishingClient {
   suspend fun listDevelopers(): List<Developer>
 
   suspend fun createAppRecord(developerId: Long, appConfig: AppConfig): AppConfig
+
+  suspend fun insertEdit(packageName: String): AppEdit
+
+  suspend fun listEditTracks(packageName: String, editId: String): List<Track>
+
+  suspend fun uploadArtifact(packageName: String, editId: String, artifactPath: String, isBundle: Boolean): Artifact
+
+  suspend fun createRelease(
+    packageName: String,
+    editId: String,
+    releaseName: String,
+    releaseNotes: Map<String, String>,
+    versionCode: Int,
+    trackId: String,
+  )
+
+  suspend fun commitEdit(packageName: String, editId: String)
 }

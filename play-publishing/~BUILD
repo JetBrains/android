@@ -40,6 +40,7 @@ iml_module(
         "//tools/base/common:studio.android.sdktools.common",
         "//tools/adt/idea/apkanalyzer:intellij.android.apkanalyzer",
         "//tools/adt/idea/.idea/libraries:libbinary-resources",
+        "//tools/adt/idea/artwork:intellij.android.artwork",
     ],
 )
 

@@ -52,7 +52,6 @@ import com.android.tools.idea.publishing.play.client.type.AppType
 import com.android.tools.idea.publishing.play.client.type.parseGoogleApiError
 import com.android.tools.idea.publishing.play.wizard.PlayPublishingWizardState
 import com.google.api.client.http.HttpResponseException
-import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import icons.StudioIllustrationsCompose
@@ -223,7 +222,7 @@ fun WizardPageScope.CreateAppRecordPage() {
                   state.isAppCreated = true
                   state.releaseName = DEFAULT_RELEASE_NAME
                   state.releaseNotes = DEFAULT_RELEASE_NOTES
-                  invokeLater { close() }
+                  pushPage { CreateReleasePage() }
                 } catch (e: HttpResponseException) {
                   val error = e.parseGoogleApiError()
                   val message = error?.message ?: e.message ?: "Unknown error"

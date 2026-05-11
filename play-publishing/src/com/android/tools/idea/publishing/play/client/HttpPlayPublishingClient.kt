@@ -16,9 +16,20 @@
 package com.android.tools.idea.publishing.play.client
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.publishing.play.client.type.Apk
 import com.android.tools.idea.publishing.play.client.type.AppConfig
+import com.android.tools.idea.publishing.play.client.type.AppEdit
+import com.android.tools.idea.publishing.play.client.type.Artifact
+import com.android.tools.idea.publishing.play.client.type.Bundle
 import com.android.tools.idea.publishing.play.client.type.Developer
 import com.android.tools.idea.publishing.play.client.type.ListDevelopersResponse
+import com.android.tools.idea.publishing.play.client.type.ListTrackResponse
+import com.android.tools.idea.publishing.play.client.type.LocalizedText
+import com.android.tools.idea.publishing.play.client.type.Release
+import com.android.tools.idea.publishing.play.client.type.Status
+import com.android.tools.idea.publishing.play.client.type.Track
+import com.google.api.client.http.EmptyContent
+import com.google.api.client.http.FileContent
 import com.google.api.client.http.GenericUrl
 import com.google.api.client.http.HttpRequestFactory
 import com.google.api.client.http.HttpResponse
@@ -30,7 +41,9 @@ import com.google.api.client.json.gson.GsonFactory
 // TODO: android-merge; com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
 // import com.google.gct.login2.GoogleLoginService
 // import com.google.gct.login2.fstLoginFeature
+import java.io.File
 import kotlin.jvm.java
+import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -44,6 +57,9 @@ class HttpPlayPublishingClient(
 
   private val url: String
     get() = "https://$endPoint/$BASE_PATH"
+
+  private val uploadUrl: String
+    get() = "https://$endPoint/upload/$BASE_PATH"
 
   private val requestFactory: HttpRequestFactory
     get() =
@@ -69,10 +85,81 @@ class HttpPlayPublishingClient(
       val content = JsonHttpContent(GsonFactory.getDefaultInstance(), appConfig)
       val request =
         requestFactory.buildPostRequest(createAppRecordUrl, content).apply {
-          readTimeout = ONE_MINUTE_IN_MILLIS
-          connectTimeout = ONE_MINUTE_IN_MILLIS
+          val timeout = 1.minutes.inWholeMilliseconds.toInt()
+          connectTimeout = timeout
+          readTimeout = timeout
         }
       request.execute().parseAs<AppConfig>()
+    }
+
+  override suspend fun insertEdit(packageName: String): AppEdit =
+    withContext(Dispatchers.IO) {
+      val insertUrl = GenericUrl("$url/applications/$packageName/edits")
+      val request = requestFactory.buildPostRequest(insertUrl, EmptyContent())
+      request.execute().parseAs<AppEdit>()
+    }
+
+  override suspend fun listEditTracks(packageName: String, editId: String): List<Track> =
+    withContext(Dispatchers.IO) {
+      val listEditTrackUrl = GenericUrl("$url/applications/$packageName/edits/$editId/tracks")
+      val request = requestFactory.buildGetRequest(listEditTrackUrl)
+      request.execute().parseAs<ListTrackResponse>().tracks
+    }
+
+  override suspend fun uploadArtifact(packageName: String, editId: String, artifactPath: String, isBundle: Boolean): Artifact =
+    withContext(Dispatchers.IO) {
+      val finalPath =
+        if (isBundle) {
+          "bundles"
+        } else {
+          "apks"
+        }
+      val uploadArtifactUrl = GenericUrl("$uploadUrl/applications/$packageName/edits/$editId/$finalPath")
+      val file = File(artifactPath)
+      val content = FileContent("application/octet-stream", file)
+      val request =
+        requestFactory.buildPostRequest(uploadArtifactUrl, content).apply {
+          // Uploading apps may take longer
+          val timeout = 10.minutes.inWholeMilliseconds.toInt()
+          connectTimeout = timeout
+          readTimeout = timeout
+        }
+      val response = request.execute()
+      if (isBundle) {
+        response.parseAs<Bundle>()
+      } else {
+        response.parseAs<Apk>()
+      }
+    }
+
+  override suspend fun createRelease(
+    packageName: String,
+    editId: String,
+    releaseName: String,
+    releaseNotes: Map<String, String>,
+    versionCode: Int,
+    trackId: String,
+  ) =
+    withContext(Dispatchers.IO) {
+      val updateTrackUrl = GenericUrl("$url/applications/$packageName/edits/$editId/tracks/$trackId")
+      val release =
+        Release(
+          name = releaseName,
+          versionCodes = listOf(versionCode.toString()),
+          releaseNotes = releaseNotes.map { LocalizedText(it.key, it.value) },
+          status = Status.COMPLETED,
+        )
+      val track = Track(track = trackId, releases = listOf(release))
+      val content = JsonHttpContent(GsonFactory.getDefaultInstance(), track)
+      val request = requestFactory.buildPutRequest(updateTrackUrl, content)
+      request.execute().ignore()
+    }
+
+  override suspend fun commitEdit(packageName: String, editId: String) =
+    withContext(Dispatchers.IO) {
+      val commitUrl = GenericUrl("$url/applications/$packageName/edits/$editId:commit")
+      val request = requestFactory.buildPostRequest(commitUrl, EmptyContent())
+      request.execute().ignore()
     }
 
   private inline fun <reified T> HttpResponse.parseAs() = parseAs(T::class.java)

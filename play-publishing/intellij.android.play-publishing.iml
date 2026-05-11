@@ -56,6 +56,7 @@
     <orderEntry type="module" module-name="intellij.libraries.grpc" />
     <orderEntry type="module" module-name="intellij.libraries.grpc.netty.shaded" />
     <orderEntry type="module" module-name="intellij.android.app-publishing" />
+    <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="library" name="aapt-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.apkanalyzer" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.compose.tests" scope="TEST" />
