@@ -16,7 +16,6 @@
 package trebuchet.util
 
 import com.google.common.truth.Truth.assertThat
-import org.junit.Ignore
 import org.junit.Test
 import trebuchet.io.BufferProducer
 import trebuchet.io.DataSlice
@@ -24,11 +23,9 @@ import trebuchet.io.GenericByteBuffer
 import trebuchet.io.StreamingReader
 
 class StringSearchTest {
-  /**
-   * Read the source buffer in slices until there is no more data left.
-   */
-  private class MockBufferProducer(_source: String, private val sliceSize: Int) : BufferProducer {
-    private val source = _source.toByteArray()
+  /** Read the source buffer in slices until there is no more data left. */
+  private class MockBufferProducer(source: String, private val sliceSize: Int) : BufferProducer {
+    private val source = source.toByteArray()
     private var tail = 0
 
     override fun next(): DataSlice? {
@@ -41,14 +38,15 @@ class StringSearchTest {
 
   private val sliceSize = 2
 
-  private fun String.asGenericByteBuffer(): GenericByteBuffer = this.let {
-    object : GenericByteBuffer {
-      override val length: Int
-        get() = it.length
+  private fun String.asGenericByteBuffer(): GenericByteBuffer =
+    this.let {
+      object : GenericByteBuffer {
+        override val length: Int
+          get() = it.length
 
-      override fun get(index: Int): Byte = it[index].code.toByte()
+        override fun get(index: Int): Byte = it[index].code.toByte()
+      }
     }
-  }
 
   @Test
   fun `find text at start of streaming reader`() {
@@ -80,7 +78,6 @@ class StringSearchTest {
     assertThat(found).isEqualTo(6)
   }
 
-  @Ignore("b/303115227") // Failing (java.lang.OutOfMemoryError)
   @Test
   fun `doesn't find missing text in middle of streaming reader`() {
     val search = StringSearch("balloon")
@@ -110,7 +107,6 @@ class StringSearchTest {
     assertThat(search.findInLoadedRegion(reader)).isEqualTo(0)
   }
 
-  @Ignore("b/303115227") // Failing (java.lang.IndexOutOfBoundsException)
   @Test
   fun `find in loaded region text at end of streaming reader`() {
     val search = StringSearch("world")
@@ -139,7 +135,6 @@ class StringSearchTest {
     assertThat(search.findInLoadedRegion(reader)).isEqualTo(6)
   }
 
-  @Ignore("b/303115227") // Failing (java.lang.IndexOutOfBoundsException)
   @Test
   fun `find in loaded region text in middle of streaming reader`() {
     val search = StringSearch("world")
@@ -171,7 +166,6 @@ class StringSearchTest {
     assertThat(search.findInLoadedRegion(reader)).isEqualTo(6)
   }
 
-  @Ignore("b/303115227") // Failing(java.lang.IndexOutOfBoundsException)
   @Test
   fun `doesn't find missing text in loaded region of streaming reader`() {
     val search = StringSearch("balloon")
@@ -221,21 +215,18 @@ class StringSearchTest {
     assertThat(found).isEqualTo(6)
   }
 
-  @Ignore("b/303115227") // Failing (wrong value)
   @Test
   fun `doesn't find missing text in generic byte array`() {
     val found = StringSearch("balloon").find("hello world, my old friend".asGenericByteBuffer())
     assertThat(found).isEqualTo(-1)
   }
 
-  @Ignore("b/303115227") // Failing (wrong value)
   @Test
   fun `doesn't find text when starting after it in generic byte buffer`() {
     val found = StringSearch("hello").find("hello world, my old friend".asGenericByteBuffer(), startIndex = 7)
     assertThat(found).isEqualTo(-1)
   }
 
-  @Ignore("b/303115227") // Failing (java.lang.StringIndexOutOfBoundsException)
   @Test
   fun `ignores endIndex when longer than generic byte buffer`() {
     val found = StringSearch("balloon").find("hello world, my old friend".asGenericByteBuffer(), endIndex = Int.MAX_VALUE)
@@ -260,24 +251,75 @@ class StringSearchTest {
     assertThat(found).isEqualTo(6)
   }
 
-  @Ignore("b/303115227") // Failing (wrong value)
   @Test
   fun `doesn't find missing text in byte array`() {
     val found = StringSearch("balloon").find("hello world, my old friend".toByteArray())
     assertThat(found).isEqualTo(-1)
   }
 
-  @Ignore("b/303115227") // Failing (wrong value)
   @Test
   fun `doesn't find text when starting after it in byte array`() {
     val found = StringSearch("hello").find("hello world, my old friend".toByteArray(), startIndex = 7)
     assertThat(found).isEqualTo(-1)
   }
 
-  @Ignore("b/303115227") // Failing (java.lang.StringIndexOutOfBoundsException)
   @Test
   fun `ignores endIndex when longer than byte array`() {
     val found = StringSearch("balloon").find("hello world, my old friend".toByteArray(), endIndex = Int.MAX_VALUE)
+    assertThat(found).isEqualTo(-1)
+  }
+
+  @Test
+  fun `find single character text exactly at internal window boundary`() {
+    val search = StringSearch("e")
+
+    val producer = MockBufferProducer("hello world", sliceSize)
+    val reader = StreamingReader(producer)
+
+    assertThat(reader.loadIndex("he".length - 1)).isTrue()
+    assertThat(search.findInLoadedRegion(reader)).isEqualTo(1)
+  }
+
+  @Test
+  fun `find single character text exactly at the end of loaded region`() {
+    val search = StringSearch("d")
+
+    val producer = MockBufferProducer("hello world", sliceSize)
+    val reader = StreamingReader(producer)
+
+    assertThat(reader.loadIndex("hello world".length - 1)).isTrue()
+    assertThat(search.findInLoadedRegion(reader)).isEqualTo(10)
+  }
+
+  @Test
+  fun `find with StreamingReader overload does not return false positive outside bounds`() {
+    val search = StringSearch("o")
+    val producer = MockBufferProducer("hello world", 20)
+    val reader = StreamingReader(producer)
+
+    val found = search.find(reader, 0, 4)
+    assertThat(found).isEqualTo(-1)
+  }
+
+  @Test
+  fun `find with GenericByteBuffer overload does not return false positive outside bounds`() {
+    val search = StringSearch("world")
+    val producer = MockBufferProducer("hello world", 20)
+    val reader = StreamingReader(producer)
+
+    val genericBuffer = reader as GenericByteBuffer
+    val found = search.find(genericBuffer, 0, 4)
+    assertThat(found).isEqualTo(-1)
+  }
+
+  @Test
+  fun `findInLoadedRegion does not return false positive at exclusive bound`() {
+    val search = StringSearch("d")
+    val producer = MockBufferProducer("hello world", 20)
+    val reader = StreamingReader(producer)
+    reader.loadIndex(10)
+
+    val found = search.findInLoadedRegion(reader, 10)
     assertThat(found).isEqualTo(-1)
   }
 }

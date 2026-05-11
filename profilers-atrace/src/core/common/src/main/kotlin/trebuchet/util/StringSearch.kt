@@ -34,7 +34,7 @@ class StringSearch(val lookFor: String) {
         }
 
         fun longestCommonSuffix(word: CharSequence, pos: Int): Int {
-            var i: Int = 0
+            var i = 0
             while (word[pos - i] == word[word.length - 1 - i] && i < pos) {
                 i++
             }
@@ -44,7 +44,7 @@ class StringSearch(val lookFor: String) {
 
     init {
         val last = lookFor.length - 1
-        for (i in 0..last - 1) {
+        for (i in 0..<last) {
             skipLut[lookFor[i].code and 0xFF] = (last - i).toByte()
         }
 
@@ -65,14 +65,14 @@ class StringSearch(val lookFor: String) {
 
     val length get() = lookFor.length
 
-    fun find(reader: StreamingReader, startIndex: Int = 0, inEndIndex: Int = Int.MAX_VALUE): Int {
+    fun find(reader: StreamingReader, startIndex: Int = 0, endIndex: Int = Int.MAX_VALUE): Int {
         var index = startIndex + lookFor.length - 1
-        var endIndex = inEndIndex
-        while (index <= endIndex) {
+        var lastIndex = if (endIndex == Int.MAX_VALUE) endIndex else endIndex - 1
+        while (index <= lastIndex) {
             if (index > reader.endIndex) {
                 if (!reader.loadIndex(index)) return -1
                 if (reader.reachedEof) {
-                    endIndex = reader.endIndex
+                  lastIndex = reader.endIndex
                 }
             }
             // Search the overlapping region slowly
@@ -90,14 +90,14 @@ class StringSearch(val lookFor: String) {
                 if (index > reader.endIndex) {
                     if (!reader.loadIndex(index)) return -1
                     if (reader.reachedEof) {
-                        endIndex = reader.endIndex
+                      lastIndex = reader.endIndex
                     }
                 }
             }
             // Now search the non-overlapping quickly
             val window = reader.windowFor(index)
             index = findInWindow(window, index, endIndex)
-            if (index <= window.globalEndIndex) {
+            if (index <= window.globalEndIndex && index <= lastIndex) {
                 // Found a match
                 return index
             }
@@ -105,9 +105,11 @@ class StringSearch(val lookFor: String) {
         return -1
     }
 
-    fun findInLoadedRegion(reader: StreamingReader, endIndex: Int = reader.endIndex): Int {
+    fun findInLoadedRegion(reader: StreamingReader, endIndex: Int = Int.MAX_VALUE): Int {
         var index = reader.startIndex + lookFor.length - 1
-        while (index <= endIndex) {
+        val lastIndex = (endIndex - 1).coerceAtMost(reader.endIndex)
+
+        while (index <= lastIndex) {
             // Search the overlapping region slowly
             while (reader.windowFor(index) !== reader.windowFor(index - lookFor.length + 1)) {
                 var lookForIndex = lookFor.length - 1
@@ -119,11 +121,17 @@ class StringSearch(val lookFor: String) {
                     return index + 1
                 }
                 index += maxOf(skipLut[reader[index].toInt() and 0xFF], suffixSkip[lookForIndex])
+
+                if (index > lastIndex) {
+                  // Reached beyond the loaded region
+                  // No match exists
+                  return -1
+                }
             }
             // Now search the non-overlapping quickly
             val window = reader.windowFor(index)
-            index = findInWindow(window, index, endIndex)
-            if (index < window.globalEndIndex && index < endIndex) {
+            index = findInWindow(window, index, lastIndex)
+            if (index <= window.globalEndIndex && index <= lastIndex) {
                 // Found a match
                 return index
             }
@@ -132,37 +140,37 @@ class StringSearch(val lookFor: String) {
     }
 
     fun find(buffer: GenericByteBuffer, startIndex: Int = 0, endIndex: Int = buffer.length): Int {
+        val lastIndex = minOf(endIndex, buffer.length) - 1
         var index = startIndex + lookFor.length - 1
-        while (index < endIndex) {
+        while (index <= lastIndex) {
             var lookForIndex = lookFor.length - 1
             while (lookForIndex >= 0 && buffer[index] == lookFor[lookForIndex].code.toByte()) {
                 index--
                 lookForIndex--
             }
             if (lookForIndex < 0) {
-                index += 1
-                break
+              return index + 1
             }
             index += maxOf(skipLut[buffer[index].toInt() and 0xFF], suffixSkip[lookForIndex])
         }
-        return index
+        return -1
     }
 
     fun find(buffer: ByteArray, startIndex: Int = 0, endIndex: Int = buffer.size): Int {
+        val lastIndex = minOf(endIndex, buffer.size) - 1
         var index = startIndex + lookFor.length - 1
-        while (index < endIndex) {
+        while (index <= lastIndex) {
             var lookForIndex = lookFor.length - 1
             while (lookForIndex >= 0 && buffer[index] == lookFor[lookForIndex].code.toByte()) {
                 index--
                 lookForIndex--
             }
             if (lookForIndex < 0) {
-                index += 1
-                break
+              return index + 1
             }
             index += maxOf(skipLut[buffer[index].toInt() and 0xFF], suffixSkip[lookForIndex])
         }
-        return index
+        return -1
     }
 
     private fun findInWindow(window: StreamingReader.Window, globalStartIndex: Int, globalEndIndex: Int): Int {
@@ -188,7 +196,7 @@ class StringSearch(val lookFor: String) {
 fun searchFor(str: String) = StringSearch(str)
 
 fun GenericByteBuffer.contains(str: String, endIndex: Int = this.length): Boolean {
-    val stopAt = minOf(endIndex, this.length - 1)
+    val stopAt = minOf(endIndex, this.length)
     if (this is StreamingReader) {
         return StringSearch(str).findInLoadedRegion(this, stopAt) != -1
     }
