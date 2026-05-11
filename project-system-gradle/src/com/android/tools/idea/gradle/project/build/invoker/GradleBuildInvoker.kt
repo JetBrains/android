@@ -26,6 +26,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Key
 import java.io.File
 import java.util.concurrent.Executor
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
@@ -262,6 +263,8 @@ interface GradleBuildInvoker {
     }
 
     companion object {
+      val SKIP_POST_BUILD_AGP_VERSION_CHECK: Key<Boolean> = Key<Boolean>("android.build.skip.agp.version.check")
+
       @JvmStatic
       fun builder(project: Project, rootProjectPath: File, vararg gradleTasks: String): Builder =
         Builder(project, rootProjectPath, gradleTasks.toList())

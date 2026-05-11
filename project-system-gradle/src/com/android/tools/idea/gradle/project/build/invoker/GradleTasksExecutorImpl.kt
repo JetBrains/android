@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionM
 import com.android.tools.idea.gradle.project.build.attribution.getAgpAttributionFileDir
 import com.android.tools.idea.gradle.project.build.attribution.isBuildAttributionEnabledForProject
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.Request.Companion.SKIP_POST_BUILD_AGP_VERSION_CHECK
 import com.android.tools.idea.gradle.project.common.GradleInitScripts
 import com.android.tools.idea.gradle.util.AndroidGradleSettings
 import com.android.tools.idea.gradle.util.GradleBuilds
@@ -319,9 +320,9 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
               (operation as BuildLauncher).run()
             }
             val buildInfo = buildAttributionManager?.onBuildSuccess(myRequest)
-            val invokedByAgent = executionSettings.arguments.contains("-Pandroid.studio.agent=true")
+            val skipAgpVersionCheck = executionSettings.getUserData(SKIP_POST_BUILD_AGP_VERSION_CHECK) ?: false
             val isJavaHomeOperation = executionSettings.getUserData(AUTO_JAVA_HOME) ?: false
-            if (buildInfo?.agpVersion != null && !invokedByAgent && !isJavaHomeOperation) {
+            if (buildInfo?.agpVersion != null && !skipAgpVersionCheck && !isJavaHomeOperation) {
               reportAgpVersionMismatch(project, buildInfo)
             }
             GradleInvocationResult(myRequest.rootProjectPath, myRequest.gradleTasks, null, model.get())
