@@ -192,9 +192,6 @@ internal fun extractNameAndNamespace(namespacedName: String): Pair<ResourceNames
   }
 }
 
-// TODO android merge
-typealias BinaryResourceValue = com.google.devrel.gmscore.tools.apk.arsc.ResourceValue
-
 private fun formatVal(binResVal: BinaryResourceValue, stringPool: StringPoolChunk, resLookUp: (Int) -> ResourceReference?): String {
   return BinaryXmlParser.formatValue(binResVal, stringPool) { resId ->
     resLookUp(resId)?.resourceUrl?.toString() ?: throw IllegalArgumentException("Could not resolve resource id $resId")
