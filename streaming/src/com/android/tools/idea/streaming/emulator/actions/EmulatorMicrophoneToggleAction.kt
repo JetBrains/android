@@ -51,13 +51,13 @@ internal class EmulatorMicrophoneToggleAction : AbstractEmulatorAction(configFil
     val microphoneInput = getEmulatorView(event)?.microphoneInput
     if (microphoneInput == true) {
       presentation.icon = AllIcons.CodeWithMe.CwmMicOn
-      presentation.text = "Turn Off Microphone"
+      presentation.text = "Disconnect Emulator from System Microphone"
     } else {
       if (microphoneInput == null) {
         presentation.isEnabled = false
       }
       presentation.icon = AllIcons.CodeWithMe.CwmMicOff
-      presentation.text = "Turn On Microphone"
+      presentation.text = "Connect Emulator to System Microphone"
     }
   }
 

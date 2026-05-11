@@ -658,7 +658,7 @@ class EmulatorToolWindowPanelTest {
     assertAppearance("AiGlassesToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
     emulator.clearGrpcCallLog()
 
-    var button = fakeUi.getComponent<ActionButton> { it.action.templateText == "Turn Microphone On/Off" }
+    var button = fakeUi.getComponent<ActionButton> { it.action.templateText == "Connect/Disconnect Microphone" }
     assertThat(button.isSelected).isFalse()
     fakeUi.mouseClickOn(button)
     var call = emulator.getNextGrpcCall(2.seconds)
@@ -717,7 +717,7 @@ class EmulatorToolWindowPanelTest {
     assertAppearance("AiGlassesDisplaylessToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
     emulator.clearGrpcCallLog()
 
-    var button = fakeUi.getComponent<ActionButton> { it.action.templateText == "Turn Microphone On/Off" }
+    var button = fakeUi.getComponent<ActionButton> { it.action.templateText == "Connect/Disconnect Microphone" }
     assertThat(button.isSelected).isFalse()
     fakeUi.mouseClickOn(button)
     var call = emulator.getNextGrpcCall(2.seconds)
