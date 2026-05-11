@@ -71,7 +71,7 @@ class AndroidStudioInitializer(private val coroutineScope: CoroutineScope) : App
 
     HighlightingStats.getInstance().startRecording()
 
-    // TODO android merge
+    // Android Studio Merge: ignore vendor dependencies
     //StudioCodeVersionAdapter.initialize()
 
     setupAndroidSdkForTests()
