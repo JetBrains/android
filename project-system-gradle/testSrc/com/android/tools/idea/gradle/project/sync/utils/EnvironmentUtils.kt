@@ -28,6 +28,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ui.configuration.SdkLookupProvider
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.registerExtension
 import com.intellij.testFramework.replaceService
 import org.jetbrains.plugins.gradle.resolvers.GradleJvmResolver
 import org.mockito.Mockito
@@ -43,8 +44,7 @@ object EnvironmentUtils {
     // Workaround registering an GradleJvmResolver to resolve gradleJVM = '#JAVA_HOME', since EelApi implementation
     // doesn't expose any easy and maintainable way of overriding environment variables IJPL-197722
     val javaHomeGradleJvmResolver = JavaHomeGradleJvmResolver(environmentVariablesMap)
-    // TODO android merge ; gradle issue
-    //ApplicationManager.getApplication().registerExtension(GradleJvmResolver.EP_NAME, javaHomeGradleJvmResolver, disposable)
+    ApplicationManager.getApplication().registerExtension(GradleJvmResolver.EP_NAME, javaHomeGradleJvmResolver, disposable)
 
     handleSpecialCasesEnvironmentVariables(environmentVariablesMap, disposable)
   }
