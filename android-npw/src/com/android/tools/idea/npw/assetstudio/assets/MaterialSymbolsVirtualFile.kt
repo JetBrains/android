@@ -40,7 +40,7 @@ private const val BASE_XML =
         'wght' %s,
         'GRAD' %s,
         'opsz' %s"
-    android:text="\u%s"
+    android:text="&#x%s;"
     android:textSize="100px"
     android:background="@android:color/transparent"
     android:textColor="%s"
@@ -57,7 +57,7 @@ private const val BASE_XML =
  * @return String in the expected RGB format
  */
 private fun Color.toHex(): String {
-  return "#%06X".format(this.rgb and 0xFFFFFF)
+  return "#%06X".format(this.rgb and 0xFFFFFF).uppercase()
 }
 
 private fun getXMLString(symbolConfiguration: SymbolConfiguration, unicode: Int, fontPath: String): String {
