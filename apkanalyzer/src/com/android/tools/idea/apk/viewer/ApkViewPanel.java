@@ -679,10 +679,6 @@ public class ApkViewPanel implements TreeSelectionListener {
           // TODO: Use dedicated icon for this.
           return AllIcons.FileTypes.Hprof;
         }
-        // TODO: android merge
-        // else if (entry.getIsElf()) {
-        //  return AllIcons.FileTypes.BinaryData;
-        //}
 
         FileType fileType = FileTypeRegistry.getInstance().getFileTypeByFileName(fileName);
         // Don't override icons for known file types. Just fall back if they are otherwise unknown.
