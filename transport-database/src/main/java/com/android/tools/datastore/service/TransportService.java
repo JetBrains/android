@@ -459,4 +459,12 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
     responseObserver.onNext(UnsetTaskDbResponse.getDefaultInstance());
     responseObserver.onCompleted();
   }
+
+  @Override
+  public void addTaskDbMetadata(Transport.AddTaskDbMetadataRequest request,
+                                StreamObserver<Transport.AddTaskDbMetadataResponse> responseObserver) {
+    myService.addTaskDbMetadata(request.getSessionId(), request.getMetadataMap());
+    responseObserver.onNext(Transport.AddTaskDbMetadataResponse.getDefaultInstance());
+    responseObserver.onCompleted();
+  }
 }

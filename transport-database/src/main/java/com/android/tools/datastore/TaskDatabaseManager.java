@@ -149,6 +149,26 @@ public class TaskDatabaseManager {
   }
 
   /**
+   * Inserts new key-value pairs into the _metadata table of the active task database.
+   */
+  public synchronized void addMetadata(long sessionId, @NotNull java.util.Map<String, String> metadata) {
+    if (myTaskSessionId != sessionId || myTaskDatabase == null) return;
+
+    try (PreparedStatement stmt = myTaskDatabase.getConnection().prepareStatement(
+      "INSERT OR IGNORE INTO _metadata (key, value) VALUES (?, ?)")) {
+      for (java.util.Map.Entry<String, String> entry : metadata.entrySet()) {
+        stmt.setString(1, entry.getKey());
+        stmt.setString(2, entry.getValue());
+        stmt.addBatch();
+      }
+      stmt.executeBatch();
+    }
+    catch (SQLException e) {
+      myLogService.getLogger(TaskDatabaseManager.class).error(e);
+    }
+  }
+
+  /**
    * Reads the metadata from a task DB to create a mapping from the fake session ID (used by Studio)
    * to the real stream/process IDs (used in the DB file). This is necessary for querying imported
    * traces.

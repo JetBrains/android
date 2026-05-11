@@ -280,6 +280,10 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     myTaskDatabaseManager.unsetTaskDb(sessionId);
   }
 
+  public void addTaskDbMetadata(long sessionId, @NotNull java.util.Map<String, String> metadata) {
+    myTaskDatabaseManager.addMetadata(sessionId, metadata);
+  }
+
   @VisibleForTesting
   List<ServicePassThrough> getRegisteredServices() {
     return myServices;

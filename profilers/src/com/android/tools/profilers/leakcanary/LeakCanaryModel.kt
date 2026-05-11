@@ -59,9 +59,19 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.diagnostic.Logger
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.jetbrains.annotations.NotNull
+
+/**
+ * The hardcoded version of the Shark Analyzer library bundled with Android Studio. This must be updated manually whenever the prebuilt
+ * Shark dependencies in the BUILD file are updated.
+ */
+private const val ON_HOST_SHARK_VERSION = "2.14"
+
+private const val METADATA_KEY_LEAKCANARY_MODE = "leakcanary_mode"
+private const val METADATA_KEY_SHARK_VERSION = "shark_version"
 
 class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumper: LeakCanaryHeapDumper? = null) :
   ModelStage(profilers), Updatable {
@@ -115,6 +125,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
   val isStopping = _isStopping.asStateFlow()
   private val _isForceDumpExecuting = MutableStateFlow(false)
   val isForceDumpExecuting = _isForceDumpExecuting.asStateFlow()
+  private val isSharkVersionEmitted = AtomicBoolean(false)
 
   @VisibleForTesting var leakcanaryMode = StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE
 
@@ -201,6 +212,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
 
   fun startListening() {
     logger.info("Starting LeakCanary tracking.")
+    isSharkVersionEmitted.set(false)
     updateModeFromSettings()
     _isForceDumpExecuting.value = false
     profilers.updater.register(this)
@@ -210,6 +222,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
     setAnalysisProgress(0)
     registerLeakCanaryListeners()
     toggleLeakCanaryTracking(profilers.session, enable = true)
+    saveModeAndHostSharkVersion()
   }
 
   fun requestStopRecording() {
@@ -511,10 +524,20 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
    */
   private fun leakDetected(event: Common.Event) {
     val analysis = Analysis.fromString(event.leakcanaryAnalysis.data) ?: return
+    saveDeviceSharkVersion(analysis)
     if (handleRetainedObject(analysis)) return
     if (handleAnalysisProgress(analysis)) return
     setObjectRetainedCount(0)
     handleLeakAnalysis(analysis)
+  }
+
+  /** Saves the ON_DEVICE LeakCanary version extracted from the parsed logcat Analysis metadata to the .asdb database. */
+  private fun saveDeviceSharkVersion(analysis: Analysis) {
+    if (!isSharkVersionEmitted.get() && analysis is AnalysisSuccess) {
+      analysis.metadata["LeakCanary version"]?.let { deviceVersion ->
+        profilers.ideServices.poolExecutor.execute { sendSharkVersionMetadataUpdate(deviceVersion) }
+      }
+    }
   }
 
   private fun handleRetainedObject(analysis: Analysis): Boolean {
@@ -796,6 +819,44 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
   fun trackUiAction(action: LeakCanaryUiAction) {
     logger.info("Tracked LeakCanary UI action: $action")
     myTaskTracker.trackLeakCanaryUiAction(action)
+  }
+
+  /** Saves the LeakCanary mode and, if running ON_HOST, the hardcoded Shark version to the .asdb */
+  private fun saveModeAndHostSharkVersion() {
+    profilers.ideServices.poolExecutor.execute {
+      try {
+        val request =
+          Transport.AddTaskDbMetadataRequest.newBuilder()
+            .setSessionId(sessionData.sessionId)
+            .putMetadata(METADATA_KEY_LEAKCANARY_MODE, leakcanaryMode.name)
+            .build()
+        profilers.client.transportClient.addTaskDbMetadata(request)
+        logger.info("Saved LeakCanary mode to .asdb _metadata (Mode: ${leakcanaryMode.name})")
+      } catch (e: Exception) {
+        logger.warn("Failed to save LeakCanary mode to .asdb _metadata", e)
+      }
+
+      if (leakcanaryMode == ON_HOST) {
+        sendSharkVersionMetadataUpdate(ON_HOST_SHARK_VERSION)
+      }
+    }
+  }
+
+  /** Synchronously sends the AddTaskDbMetadata RPC to save the given Shark version. */
+  private fun sendSharkVersionMetadataUpdate(version: String) {
+    if (isSharkVersionEmitted.getAndSet(true)) return
+
+    try {
+      val request =
+        Transport.AddTaskDbMetadataRequest.newBuilder()
+          .setSessionId(sessionData.sessionId)
+          .putMetadata(METADATA_KEY_SHARK_VERSION, version)
+          .build()
+      profilers.client.transportClient.addTaskDbMetadata(request)
+      logger.info("Saved Shark version to .asdb _metadata (Version: $version)")
+    } catch (e: Exception) {
+      logger.warn("Failed to save Shark version to .asdb _metadata", e)
+    }
   }
 
   companion object {
