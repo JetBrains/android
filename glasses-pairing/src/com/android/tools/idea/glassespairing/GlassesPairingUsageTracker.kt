@@ -21,14 +21,13 @@ import com.google.wireless.android.sdk.stats.GlassesPairingEvent
 
 object GlassesPairingUsageTracker {
   fun log(eventKind: GlassesPairingEvent.EventKind) {
-    // TODO android merge
-    //val event = GlassesPairingEvent.newBuilder().setKind(eventKind).build()
-    //
-    //val builder =
-    //  AndroidStudioEvent.newBuilder()
-    //    .setKind(AndroidStudioEvent.EventKind.GLASSES_PAIRING_EVENT)
-    //    .setGlassesPairingEvent(event)
-    //
-    //UsageTracker.log(builder)
+    val event = GlassesPairingEvent.newBuilder().setKind(eventKind).build()
+
+    val builder =
+      AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.GLASSES_PAIRING_EVENT)
+        .setGlassesPairingEvent(event)
+
+    UsageTracker.log(builder)
   }
 }
