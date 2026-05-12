@@ -36,6 +36,8 @@ import java.awt.Font
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.KeyboardFocusManager
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.util.Locale
@@ -49,6 +51,10 @@ import javax.swing.JSlider
 import javax.swing.JSpinner
 import javax.swing.SpinnerNumberModel
 import javax.swing.SwingUtilities
+import javax.swing.text.AttributeSet
+import javax.swing.text.DefaultFormatterFactory
+import javax.swing.text.DocumentFilter
+import javax.swing.text.NumberFormatter
 
 /**
  * The OptionsPanel control is dynamically populated based on the currently set {@link OptionsProvider}. This control will enumerate all
@@ -349,6 +355,7 @@ private class IntBinder : OptionsBinder {
       add(JLabel(data.name), TabularLayout.Constraint(0, 0))
       add(
         JSpinner(SpinnerNumberModel(data.value as Int, 0, 100000, 100)).apply {
+          enforceNonNegativeIntegerInputOnly()
           addChangeListener { data.value = this.value }
           isEnabled = !readonly
         },
@@ -357,6 +364,58 @@ private class IntBinder : OptionsBinder {
       add(JLabel(data.unit), TabularLayout.Constraint(0, 2))
     }
   }
+}
+
+/**
+ * Configures a JSpinner to silently reject non-digit characters (except grouping separators), allow clearing the field, and fallback to the
+ * previous value if left blank.
+ */
+private fun JSpinner.enforceNonNegativeIntegerInputOnly() {
+  val numberEditor = editor as? JSpinner.NumberEditor ?: return
+  val textField = numberEditor.textField
+  val groupingSeparator = numberEditor.format?.decimalFormatSymbols?.groupingSeparator ?: ','
+
+  val customFormatter =
+    object : NumberFormatter(numberEditor.format) {
+      init {
+        valueClass = model?.value?.javaClass ?: Int::class.javaObjectType
+        minimum = (model as? SpinnerNumberModel)?.minimum
+        maximum = (model as? SpinnerNumberModel)?.maximum
+        allowsInvalid = true // Required to permit temporary empty strings while clearing the field.
+      }
+
+      override fun getDocumentFilter(): DocumentFilter {
+        val baseFilter = super.getDocumentFilter()
+        return object : DocumentFilter() {
+          private fun isValid(s: String?) = s == null || s.all { it.isDigit() || it == groupingSeparator }
+
+          override fun insertString(fb: FilterBypass, offset: Int, string: String?, attr: AttributeSet?) {
+            if (isValid(string)) baseFilter.insertString(fb, offset, string, attr)
+          }
+
+          override fun replace(fb: FilterBypass, offset: Int, length: Int, text: String?, attrs: AttributeSet?) {
+            if (isValid(text)) baseFilter.replace(fb, offset, length, text, attrs)
+          }
+
+          override fun remove(fb: FilterBypass, offset: Int, length: Int) {
+            baseFilter.remove(fb, offset, length)
+          }
+        }
+      }
+    }
+
+  textField.formatterFactory = DefaultFormatterFactory(customFormatter)
+
+  // FocusListener: If the user leaves the field empty, fallback to the previously saved value
+  textField.addFocusListener(
+    object : FocusAdapter() {
+      override fun focusLost(e: FocusEvent?) {
+        if (textField.text.isNullOrBlank()) {
+          textField.value = value
+        }
+      }
+    }
+  )
 }
 
 private class StringBinder : OptionsBinder {

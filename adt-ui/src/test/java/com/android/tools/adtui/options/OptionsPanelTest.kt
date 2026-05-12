@@ -27,6 +27,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
+import java.awt.event.FocusEvent
 import javax.swing.JLabel
 import javax.swing.JSlider
 import javax.swing.JSpinner
@@ -110,6 +111,55 @@ class OptionsPanelTest {
     val readOnlySpinner = walker.descendants().filterIsInstance(JSpinner::class.java)
     assertThat(readOnlySpinner).hasSize(1)
     assertThat(readOnlySpinner[0].isEnabled).isEqualTo(false)
+  }
+
+  @Test
+  fun intBinderInvalidInputTest() {
+    val panel = OptionsPanel()
+    val provider = IntBindingProvider()
+    panel.setOption(provider, false, false)
+
+    val walker = TreeWalker(panel)
+    val spinner = walker.descendants().filterIsInstance(JSpinner::class.java).first()
+    val textField = (spinner.editor as JSpinner.DefaultEditor).textField
+
+    textField.text = "100"
+    spinner.commitEdit()
+    assertThat(provider.intTestOne).isEqualTo(100)
+
+    // Try to set invalid text
+    textField.text = "abc"
+    // The invalid text should be rejected and the text should remain 100
+    assertThat(textField.text).isEqualTo("100")
+  }
+
+  @Test
+  fun intBinderClearAndFocusLostTest() {
+    val panel = OptionsPanel()
+    val provider = IntBindingProvider()
+    panel.setOption(provider, false, false)
+
+    val walker = TreeWalker(panel)
+    val spinner = walker.descendants().filterIsInstance(JSpinner::class.java).first()
+    val textField = (spinner.editor as JSpinner.DefaultEditor).textField
+
+    // Initially set to 100
+    textField.text = "100"
+    spinner.commitEdit()
+    assertThat(provider.intTestOne).isEqualTo(100)
+
+    // Clear the field
+    textField.text = ""
+    assertThat(textField.text).isEmpty()
+
+    // Trigger focus lost
+    val focusEvent = FocusEvent(textField, FocusEvent.FOCUS_LOST)
+    textField.focusListeners.forEach { it.focusLost(focusEvent) }
+
+    // Should revert to the previous value (100)
+    assertThat(textField.text).isEqualTo("100")
+    assertThat(spinner.value).isEqualTo(100)
+    assertThat(provider.intTestOne).isEqualTo(100)
   }
 
   @Test
