@@ -51,6 +51,7 @@ public final class TransformedImageAsset {
   @NotNull private final GraphicGeneratorContext myContext;
   @Nullable private final Color myTint;
   private final double myOpacity;
+  private final boolean myIsClipart;
   private final boolean myIsTrimmed;
   @NotNull private final String myLineSeparator;
   @NotNull private final Dimension myTargetSize;
@@ -91,6 +92,7 @@ public final class TransformedImageAsset {
     myImageFuture = myDrawableFuture == null ? asset.toImage() : null;
     myTint = asset instanceof TextAsset && asset.color().getValue().equals(tint) ? null : tint;
     myOpacity = asset instanceof TextAsset ? 1 : asset.opacityPercent().get() / 100.;
+    myIsClipart = asset.isClipart();
     myIsTrimmed = asset.trimmed().get();
     myTargetSize = targetSize;
     myScaleFactor = scaleFactor;
@@ -131,6 +133,10 @@ public final class TransformedImageAsset {
 
   public boolean isRasterImage() {
     return myImageFuture != null;
+  }
+
+  public boolean isClipart() {
+    return myIsClipart;
   }
 
   /**

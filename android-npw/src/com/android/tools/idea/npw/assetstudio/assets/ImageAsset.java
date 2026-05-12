@@ -142,6 +142,7 @@ public final class ImageAsset extends BaseAsset {
   /**
    * Checks if the image is clipart. All clipart images are black on a transparent background.
    */
+  @Override
   public boolean isClipart() {
     return isClipart;
   }

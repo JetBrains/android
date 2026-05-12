@@ -265,10 +265,12 @@ public class TvBannerGenerator extends IconGenerator {
 
       tasks.add(() -> {
         String xmlAdaptiveIcon = getAdaptiveIconXml(iconOptions);
-        return new GeneratedXmlResource(name,
+        GeneratedXmlResource icon = new GeneratedXmlResource(name,
                                         new PathString(getIconPath(iconOptions, name)),
                                         IconCategory.XML_RESOURCE,
                                         xmlAdaptiveIcon);
+        icon.setClipart(isClipart());
+        return icon;
       });
     }
 
@@ -313,10 +315,12 @@ public class TvBannerGenerator extends IconGenerator {
 
         xmlDrawableText = applyAdaptiveIconScaleFactor(xmlDrawableText);
         iconOptions.apiVersion = calculateMinRequiredApiLevel(xmlDrawableText, myMinSdkVersion);
-        return new GeneratedXmlResource(name,
+        GeneratedXmlResource icon = new GeneratedXmlResource(name,
                                         new PathString(getIconPath(iconOptions, iconOptions.foregroundLayerName)),
                                         IconCategory.ADAPTIVE_FOREGROUND_LAYER,
                                         xmlDrawableText);
+        icon.setClipart(image != null && image.isClipart());
+        return icon;
       });
     }
 
@@ -340,10 +344,12 @@ public class TvBannerGenerator extends IconGenerator {
 
         xmlDrawableText = applyAdaptiveIconScaleFactor(xmlDrawableText);
         iconOptions.apiVersion = calculateMinRequiredApiLevel(xmlDrawableText, myMinSdkVersion);
-        return new GeneratedXmlResource(name,
+        GeneratedXmlResource icon = new GeneratedXmlResource(name,
                                         new PathString(getIconPath(iconOptions, iconOptions.backgroundLayerName)),
                                         IconCategory.ADAPTIVE_BACKGROUND_LAYER,
                                         xmlDrawableText);
+        icon.setClipart(backgroundImage.isClipart());
+        return icon;
       });
     } else if (options.backgroundImage == null) {
       // Generate background color value.
@@ -399,6 +405,15 @@ public class TvBannerGenerator extends IconGenerator {
     gOut.drawImage(image2, 0, 0, null);
     gOut.dispose();
     return outImage;
+  }
+
+  @Override
+  protected boolean isClipart() {
+    if (super.isClipart()) {
+      return true;
+    }
+    BaseAsset backgroundAsset = myBackgroundImageAsset.getValueOrNull();
+    return backgroundAsset != null && backgroundAsset.isClipart();
   }
 
   @NotNull

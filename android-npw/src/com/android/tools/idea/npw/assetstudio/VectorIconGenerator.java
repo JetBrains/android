@@ -103,7 +103,8 @@ public class VectorIconGenerator extends IconGenerator {
     }
     String xmlContent = result.getXmlContent();
     assert xmlContent != null;
-    GeneratedIcon icon = new GeneratedXmlResource(name, new PathString(getIconPath(options, name)), IconCategory.XML_RESOURCE, xmlContent);
+    GeneratedXmlResource icon = new GeneratedXmlResource(name, new PathString(getIconPath(options, name)), IconCategory.XML_RESOURCE, xmlContent);
+    icon.setClipart(vectorAsset.isClipart());
     return Collections.singleton(icon);
   }
 

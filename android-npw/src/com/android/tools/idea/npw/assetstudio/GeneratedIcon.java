@@ -28,6 +28,7 @@ public abstract class GeneratedIcon {
   @Nullable private final PathString outputPath;
   @NotNull private final IconCategory category;
   @Nullable private String errorMessage;
+  private boolean isClipart = false;
 
   protected GeneratedIcon(
       @NotNull String name, @Nullable PathString outputPath, @NotNull IconCategory category, @Nullable String errorMessage) {
@@ -71,5 +72,13 @@ public abstract class GeneratedIcon {
 
   public void setErrorMessage(@Nullable String errorMessage) {
     this.errorMessage = errorMessage;
+  }
+
+  public boolean isClipart() {
+    return isClipart;
+  }
+
+  public void setClipart(boolean isClipart) {
+    this.isClipart = isClipart;
   }
 }

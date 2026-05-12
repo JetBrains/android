@@ -72,6 +72,8 @@ public final class VectorAsset extends BaseAsset {
 
   @NotNull private final ObjectProperty<VectorDrawableInfo> myVectorDrawableInfo = new ObjectValueProperty<>(SELECT_A_FILE);
 
+  private boolean myIsClipart;
+
   public VectorAsset() {
     InvalidationListener listener = () -> {
       File file = myPath.getValueOrNull();
@@ -95,6 +97,18 @@ public final class VectorAsset extends BaseAsset {
 
   public boolean isCurrentFile(@Nullable Object file) {
     return Objects.equals(file, myPath.getValueOrNull());
+  }
+
+  /**
+   * Sets the clipart designation of the vector asset.
+   */
+  public void setClipart(boolean clipart) {
+    myIsClipart = clipart;
+  }
+
+  @Override
+  public boolean isClipart() {
+    return myIsClipart;
   }
 
   @NotNull

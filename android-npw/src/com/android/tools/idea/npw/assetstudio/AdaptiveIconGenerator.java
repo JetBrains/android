@@ -118,6 +118,19 @@ public abstract class AdaptiveIconGenerator extends IconGenerator {
     return myGenerateLegacyIcon;
   }
 
+  @Override
+  protected boolean isClipart() {
+    if (super.isClipart()) {
+      return true;
+    }
+    BaseAsset backgroundAsset = myBackgroundImageAsset.getValueOrNull();
+    if (backgroundAsset != null && backgroundAsset.isClipart()) {
+      return true;
+    }
+    BaseAsset monochromeAsset = myMonochromeImageAsset.getValueOrNull();
+    return monochromeAsset != null && monochromeAsset.isClipart();
+  }
+
   @NotNull
   protected String getAdaptiveIconXml(@NotNull AdaptiveIconOptions options) {
     String backgroundType = options.backgroundImage == null ? "color" : options.backgroundImage.isDrawable() ? "drawable" : "mipmap";

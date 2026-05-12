@@ -92,6 +92,14 @@ public abstract class BaseAsset implements PersistentStateComponent<PersistentSt
     return true;
   }
 
+  /**
+   * Checks if the asset is a "clipart" (e.g. from the IDE's built-in images).
+   * Subclasses may override.
+   */
+  public boolean isClipart() {
+    return false;
+  }
+
   @NotNull
   public IntProperty opacityPercent() {
     return myOpacityPercent;

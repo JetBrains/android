@@ -308,7 +308,8 @@ public abstract class IconGenerator implements Disposable {
         }
         else if (icon instanceof GeneratedXmlResource) {
           if (FileUtilRt.extensionEquals(file.getName(), "xml")) {
-            String xmlTextWithLicense = getLicenseHeader() + ((GeneratedXmlResource)icon).getXmlText();
+            String xmlText = ((GeneratedXmlResource)icon).getXmlText();
+            String xmlTextWithLicense = icon.isClipart() ? getLicenseHeader() + xmlText : xmlText;
             writeTextToDisk(file, xmlTextWithLicense);
           }
           else {
@@ -391,6 +392,11 @@ public abstract class IconGenerator implements Disposable {
            "  -->" + myLineSeparator;
   }
 
+  protected boolean isClipart() {
+    BaseAsset asset = mySourceAsset.getValueOrNull();
+    return asset != null && asset.isClipart();
+  }
+
   @NotNull
   public Collection<GeneratedIcon> generateIcons(
       @NotNull GraphicGeneratorContext context, @NotNull IconOptions options, @NotNull String name) {
@@ -458,10 +464,12 @@ public abstract class IconGenerator implements Disposable {
             String xmlDrawableText = imageAsset.getTransformedDrawable();
             assert xmlDrawableText != null;
             iconOptions.apiVersion = calculateMinRequiredApiLevel(xmlDrawableText, myMinSdkVersion);
-            return new GeneratedXmlResource(name,
+            GeneratedXmlResource icon = new GeneratedXmlResource(name,
                                             new PathString(getIconPath(iconOptions, name)),
                                             IconCategory.REGULAR,
                                             xmlDrawableText);
+            icon.setClipart(imageAsset.isClipart());
+            return icon;
           });
         } else {
           // Generate a bitmap drawable.

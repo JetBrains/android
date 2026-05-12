@@ -136,6 +136,7 @@ public final class IconGeneratorTest {
     String xmlText = "<vector/>";
     String fileName = "test_icon.xml";
     GeneratedXmlResource resource = new GeneratedXmlResource("test", new PathString(fileName), IconCategory.REGULAR, xmlText);
+    resource.setClipart(true);
 
     generateIconsToDisk(iconGenerator, Collections.singletonList(resource), outputDir);
     VirtualFile outputFile = VfsUtil.findFileByIoFile(new File(outputDir, fileName), true);
@@ -144,6 +145,57 @@ public final class IconGeneratorTest {
     assertThat(content).contains("Copyright (C)");
     assertThat(content).contains("Licensed under the Apache License, Version 2.0");
     assertThat(content).endsWith("<vector/>");
+  }
+
+  @Test
+  public void writeTextToDisk_doesNotAddLicenseHeader() throws Exception {
+    IconGenerator iconGenerator = new IconGenerator(myProjectRule.getProject(), 1, new GraphicGeneratorContext(1)) {
+      @NotNull @Override public AnnotatedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull IconOptions options) { return PLACEHOLDER_IMAGE; }
+      @NotNull @Override public IconOptions createOptions(boolean forPreview) { return new IconOptions(forPreview); }
+      @NotNull @Override protected List<Callable<GeneratedIcon>> createIconGenerationTasks(@NotNull GraphicGeneratorContext context, @NotNull IconOptions options, @NotNull String name) { return Collections.emptyList(); }
+    };
+
+    File outputDir = FileUtilRt.createTempDirectory("IconGeneratorTest", null);
+    String xmlText = "<vector/>";
+    String fileName = "test_icon.xml";
+    GeneratedXmlResource resource = new GeneratedXmlResource("test", new PathString(fileName), IconCategory.REGULAR, xmlText);
+    resource.setClipart(false);
+
+    generateIconsToDisk(iconGenerator, Collections.singletonList(resource), outputDir);
+    VirtualFile outputFile = VfsUtil.findFileByIoFile(new File(outputDir, fileName), true);
+    assertThat(outputFile).isNotNull();
+    String content = new String(outputFile.contentsToByteArray(), StandardCharsets.UTF_8);
+    assertThat(content).doesNotContain("Copyright (C)");
+    assertThat(content).doesNotContain("Licensed under the Apache License, Version 2.0");
+    assertThat(content).isEqualTo("<vector/>");
+  }
+
+  @Test
+  public void isClipart_returnsTrueForClipart() {
+    IconGenerator iconGenerator = new IconGenerator(myProjectRule.getProject(), 1, new GraphicGeneratorContext(1)) {
+      @NotNull @Override public AnnotatedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull IconOptions options) { return PLACEHOLDER_IMAGE; }
+      @NotNull @Override public IconOptions createOptions(boolean forPreview) { return new IconOptions(forPreview); }
+      @NotNull @Override protected List<Callable<GeneratedIcon>> createIconGenerationTasks(@NotNull GraphicGeneratorContext context, @NotNull IconOptions options, @NotNull String name) { return Collections.emptyList(); }
+    };
+    VectorAsset asset = new VectorAsset();
+    asset.setClipart(true);
+    iconGenerator.sourceAsset().setValue(asset);
+
+    assertThat(iconGenerator.isClipart()).isTrue();
+  }
+
+  @Test
+  public void isClipart_returnsFalseForLocalFile() {
+    IconGenerator iconGenerator = new IconGenerator(myProjectRule.getProject(), 1, new GraphicGeneratorContext(1)) {
+      @NotNull @Override public AnnotatedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull IconOptions options) { return PLACEHOLDER_IMAGE; }
+      @NotNull @Override public IconOptions createOptions(boolean forPreview) { return new IconOptions(forPreview); }
+      @NotNull @Override protected List<Callable<GeneratedIcon>> createIconGenerationTasks(@NotNull GraphicGeneratorContext context, @NotNull IconOptions options, @NotNull String name) { return Collections.emptyList(); }
+    };
+    VectorAsset asset = new VectorAsset();
+    asset.setClipart(false);
+    iconGenerator.sourceAsset().setValue(asset);
+
+    assertThat(iconGenerator.isClipart()).isFalse();
   }
 
   private void generateIconsToDisk(IconGenerator iconGenerator, Collection<? extends GeneratedIcon> icons, File outputDir) {

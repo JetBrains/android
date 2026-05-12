@@ -354,19 +354,23 @@ public class LauncherIconGenerator extends AdaptiveIconGenerator {
 
       tasks.add(() -> {
         String xmlAdaptiveIcon = getAdaptiveIconXml(iconOptions);
-        return new GeneratedXmlResource(name,
+        GeneratedXmlResource icon = new GeneratedXmlResource(name,
                                         new PathString(getIconPath(iconOptions, name)),
                                         IconCategory.XML_RESOURCE,
                                         xmlAdaptiveIcon);
+        icon.setClipart(isClipart());
+        return icon;
       });
 
       if (iconOptions.generateRoundIcon) {
         tasks.add(() -> {
           String xmlAdaptiveIcon = getAdaptiveIconXml(iconOptions);
-          return new GeneratedXmlResource(name + "_round",
+          GeneratedXmlResource icon = new GeneratedXmlResource(name + "_round",
                                           new PathString(getIconPath(iconOptions, name + "_round")),
                                           IconCategory.XML_RESOURCE,
                                           xmlAdaptiveIcon);
+          icon.setClipart(isClipart());
+          return icon;
         });
       }
     }
@@ -453,10 +457,12 @@ public class LauncherIconGenerator extends AdaptiveIconGenerator {
       xmlDrawableText = "<vector/>"; // Use an empty image. It will be recomputed again soon.
     }
     iconOptions.apiVersion = calculateMinRequiredApiLevel(xmlDrawableText, myMinSdkVersion);
-    return new GeneratedXmlResource(name,
+    GeneratedXmlResource icon = new GeneratedXmlResource(name,
                                     new PathString(getIconPath(iconOptions, layerName)),
                                     foregroundIconCategory,
                                     xmlDrawableText);
+    icon.setClipart(image.isClipart());
+    return icon;
   }
 
   private void createPreviewImagesTasks(@NotNull GraphicGeneratorContext context, @NotNull LauncherIconOptions options,

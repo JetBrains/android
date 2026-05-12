@@ -59,6 +59,7 @@ public final class VectorIconButton extends JButton
   @Nullable private VdIcon myIcon;
 
   public VectorIconButton(AndroidFacet myAndroidFacet) {
+    myXmlAsset.setClipart(true);
     ActionListener actionListener =
       StudioFlags.DYNAMIC_MATERIAL_SYMBOLS.get() ?
       actionEvent -> {
