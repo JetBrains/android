@@ -560,9 +560,21 @@ class ComposePreviewRepresentation(psiFile: PsiFile, composePreviewViewProvider:
               // If the animation inspection is active, start the PreviewAnimationClock with the current epoch time.
               toolsAttribute("animationClockStartTime", System.currentTimeMillis().toString())
             }
+
+            if (mode.value is PreviewMode.Interactive) {
+              toolsAttribute("lookaheadAnimationVisualDebuggingEnabled", isLookaheadAnimationVisualDebuggingEnabled.toString())
+              toolsAttribute(
+                "lookaheadAnimationVisualDebuggingKeyLabelEnabled",
+                isLookaheadAnimationVisualDebuggingKeyLabelEnabled.toString(),
+              )
+            }
           }
           .buildString()
     }
+
+  @get:TestOnly
+  val previewElementModelAdapterForTest: ComposePreviewElementModelAdapter
+    get() = previewElementModelAdapter
 
   private val usageTrackerProvider = { InteractivePreviewUsageTracker.getInstance(surface) }
 
@@ -684,6 +696,22 @@ class ComposePreviewRepresentation(psiFile: PsiFile, composePreviewViewProvider:
 
   override var showDebugBoundaries: Boolean = false
     set(value) {
+      field = value
+      invalidate()
+      requestRefresh()
+    }
+
+  override var isLookaheadAnimationVisualDebuggingEnabled: Boolean = false
+    set(value) {
+      if (field == value) return
+      field = value
+      invalidate()
+      requestRefresh()
+    }
+
+  override var isLookaheadAnimationVisualDebuggingKeyLabelEnabled: Boolean = false
+    set(value) {
+      if (field == value) return
       field = value
       invalidate()
       requestRefresh()

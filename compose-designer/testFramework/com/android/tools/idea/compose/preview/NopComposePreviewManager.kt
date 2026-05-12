@@ -43,4 +43,8 @@ class NopComposePreviewManager : ComposePreviewManager {
   override fun setMode(mode: PreviewMode) {
     _mode.value = mode
   }
+
+  override var isLookaheadAnimationVisualDebuggingEnabled = false
+
+  override var isLookaheadAnimationVisualDebuggingKeyLabelEnabled = false
 }

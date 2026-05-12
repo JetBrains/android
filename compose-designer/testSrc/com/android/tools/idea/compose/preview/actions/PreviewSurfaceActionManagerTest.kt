@@ -58,7 +58,9 @@ import org.mockito.kotlin.whenever
 // PredictiveBackNavigationControlsAction(),
 // ComposePreviewAgentsDropdownAction() or ChangeUIAction(), depending on flag value.
 // in wrappers
-private const val EXPECTED_NUMBER_OF_ACTIONS = 9
+// LookaheadVisualizationAction(),
+// LookaheadLabelsAction()
+private const val EXPECTED_NUMBER_OF_ACTIONS = 11
 
 // SavePreviewInNewSize()
 // EnableUiCheckAction(),
@@ -108,6 +110,7 @@ class PreviewSurfaceActionManagerTest {
     StudioFlags.COMPOSE_PREVIEW_MATCH_UI_AGENT.overrideForTest(true, projectRule.testRootDisposable)
     StudioFlags.COMPOSE_UI_CHECK_FIX_WITH_AI.overrideForTest(true, projectRule.testRootDisposable)
     StudioFlags.COMPOSE_INTERACTIVE_PREVIEW_PREDICTIVE_BACK.overrideForTest(true, projectRule.testRootDisposable)
+    StudioFlags.COMPOSE_PREVIEW_LOOKAHEAD_VISUALIZATION.overrideForTest(true, projectRule.testRootDisposable)
 
     // Simulate multiple actions
     ExtensionTestUtil.maskExtensions(
@@ -150,8 +153,11 @@ class PreviewSurfaceActionManagerTest {
     val predictiveBackNavigationControlsAction = (actions[7] as AnActionWrapper).delegate
     assertThat(predictiveBackNavigationControlsAction).isInstanceOf(PredictiveBackNavigationControlsAction::class.java)
 
+    assertThat((actions[8] as AnActionWrapper).delegate).isInstanceOf(LookaheadVisualizationAction::class.java)
+    assertThat((actions[9] as AnActionWrapper).delegate).isInstanceOf(LookaheadLabelsAction::class.java)
+
     // AI actions - Multiple actions should be in dropdown
-    val aiActionsDefaultGroup = (actions[8] as ShowGroupUnderConditionWrapper).getChildren(null).single() as DefaultActionGroup
+    val aiActionsDefaultGroup = (actions[10] as ShowGroupUnderConditionWrapper).getChildren(null).single() as DefaultActionGroup
     assertThat(aiActionsDefaultGroup.templatePresentation.text).isEqualTo("previewAgents")
     assertThat(aiActionsDefaultGroup is DefaultActionGroup)
     val children = aiActionsDefaultGroup.getChildren(null)

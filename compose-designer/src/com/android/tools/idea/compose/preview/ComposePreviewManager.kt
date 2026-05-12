@@ -63,6 +63,12 @@ interface ComposePreviewManager : Disposable, PreviewModeManager, PreviewInvalid
 
   /** Flag to indicate if the UI Check filter is enabled or not. */
   var isUiCheckFilterEnabled: Boolean
+
+  /** Allows enabling and customizing shared element and animated bounds animation debugging. */
+  var isLookaheadAnimationVisualDebuggingEnabled: Boolean
+
+  /** Specifying whether to print animated element keys. */
+  var isLookaheadAnimationVisualDebuggingKeyLabelEnabled: Boolean
 }
 
 /**

@@ -1633,6 +1633,11 @@ public final class StudioFlags {
     COMPOSE, "preview.reference.provider.enabled", "Enable Compose Preview Reference Provider",
     "If enabled, the Compose Preview Reference Provider will be available for context attachment."
   );
+
+  public static final Flag<Boolean> COMPOSE_PREVIEW_LOOKAHEAD_VISUALIZATION = new BooleanFlag(
+    COMPOSE, "preview.lookahead.visualization", "Enable Lookahead Visualization in Interactive Preview",
+    "Enables Lookahead Visualization in Compose Interactive Preview.");
+
   public static final Flag<Boolean> COMPOSE_INTERACTIVE_PREVIEW_PREDICTIVE_BACK = new BooleanFlag(
     COMPOSE, "interactive.preview.predictive.back", "Enable predictive back navigation in Interactive Preview",
     "When using navigation3, enables a bottom panel to interact with the predictive back feature.");

@@ -100,5 +100,9 @@ internal class PreviewSurfaceActionManager(
             PredictiveBackNavigationControlsAction().visibleOnlyInInteractive(),
           )
         }
+        .orEmpty() +
+      StudioFlags.COMPOSE_PREVIEW_LOOKAHEAD_VISUALIZATION.ifEnabled {
+          listOfNotNull(LookaheadVisualizationAction().visibleOnlyInInteractive(), LookaheadLabelsAction().visibleOnlyInInteractive())
+        }
         .orEmpty()
 }

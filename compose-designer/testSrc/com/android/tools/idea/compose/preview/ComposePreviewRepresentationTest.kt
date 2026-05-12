@@ -962,6 +962,57 @@ class ComposePreviewRepresentationTest {
   }
 
   @Test
+  fun testLookaheadVisualizationRefreshesPreview() = runComposePreviewRepresentationTest {
+    val preview = createPreviewAndCompile()
+    var refreshCount = 0
+    composeView.refreshCompletedListeners.add { refreshCount++ }
+
+    preview.isLookaheadAnimationVisualDebuggingEnabled = true
+    delayUntilCondition(delayPerIterationMs = 500) { refreshCount == 1 }
+
+    preview.isLookaheadAnimationVisualDebuggingKeyLabelEnabled = true
+    delayUntilCondition(delayPerIterationMs = 500) { refreshCount == 2 }
+
+    preview.isLookaheadAnimationVisualDebuggingEnabled = false
+    delayUntilCondition(delayPerIterationMs = 500) { refreshCount == 3 }
+
+    preview.isLookaheadAnimationVisualDebuggingKeyLabelEnabled = false
+    delayUntilCondition(delayPerIterationMs = 500) { refreshCount == 4 }
+  }
+
+  @Test
+  fun testLookaheadVisualizationXml() = runComposePreviewRepresentationTest {
+    val preview = createPreviewAndCompile(expectedModelCount = 1)
+    val previewElement = preview.renderedPreviewElementsInstancesFlowForTest().value.asCollection().first()
+
+    val adapter = preview.previewElementModelAdapterForTest
+
+    // Default mode (not interactive)
+    adapter.toXml(previewElement).also { xml ->
+      assertThat(xml).doesNotContain("lookaheadAnimationVisualDebuggingEnabled")
+      assertThat(xml).doesNotContain("lookaheadAnimationVisualDebuggingKeyLabelEnabled")
+    }
+
+    // Interactive mode
+    setModeAndWaitForRefresh(PreviewMode.Interactive(previewElement))
+    preview.isLookaheadAnimationVisualDebuggingEnabled = true
+    preview.isLookaheadAnimationVisualDebuggingKeyLabelEnabled = true
+
+    adapter.toXml(previewElement).also { xml ->
+      assertThat(xml).contains("tools:lookaheadAnimationVisualDebuggingEnabled=\"true\"")
+      assertThat(xml).contains("tools:lookaheadAnimationVisualDebuggingKeyLabelEnabled=\"true\"")
+    }
+
+    preview.isLookaheadAnimationVisualDebuggingEnabled = false
+    preview.isLookaheadAnimationVisualDebuggingKeyLabelEnabled = false
+
+    adapter.toXml(previewElement).also { xml ->
+      assertThat(xml).contains("tools:lookaheadAnimationVisualDebuggingEnabled=\"false\"")
+      assertThat(xml).contains("tools:lookaheadAnimationVisualDebuggingKeyLabelEnabled=\"false\"")
+    }
+  }
+
+  @Test
   fun testWearUiCheckMode() {
     val testPsiFile = runWriteActionAndWait {
       fixture.addFileToProjectAndInvalidate(

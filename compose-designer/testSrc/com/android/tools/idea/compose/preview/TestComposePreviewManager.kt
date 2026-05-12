@@ -37,6 +37,10 @@ open class TestComposePreviewManager : ComposePreviewManager {
 
   override var isUiCheckFilterEnabled: Boolean = false
 
+  override var isLookaheadAnimationVisualDebuggingEnabled = false
+
+  override var isLookaheadAnimationVisualDebuggingKeyLabelEnabled = false
+
   private val _mode: MutableStateFlow<PreviewMode> = MutableStateFlow(PreviewMode.Default())
   override val mode = _mode.asStateFlow()
 
