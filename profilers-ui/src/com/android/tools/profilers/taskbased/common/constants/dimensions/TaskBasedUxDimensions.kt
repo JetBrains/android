@@ -34,6 +34,7 @@ object TaskBasedUxDimensions {
   val TASK_GRID_VERTICAL_SPACE_V2_DP = 14.dp
   val TASK_GRID_HORIZONTAL_PADDING_V2_DP = 24.dp
   val TASK_GRID_VERTICAL_PADDING_V2_DP = 24.dp
+  val TASK_TOOLTIP_WIDTH_V2_DP = 210.dp
 
   // Task tooltip width
   val TASK_TOOLTIP_WIDTH_DP = 200.dp

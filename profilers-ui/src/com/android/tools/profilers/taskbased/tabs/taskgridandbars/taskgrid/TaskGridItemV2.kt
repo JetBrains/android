@@ -46,27 +46,71 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
+import com.android.tools.adtui.compose.LingeringTooltip
 import com.android.tools.profilers.taskbased.common.constants.colors.TaskBasedUxColors.TASK_HOVER_BACKGROUND_COLOR
 import com.android.tools.profilers.taskbased.common.constants.colors.TaskBasedUxColors.TASK_SELECTION_BACKGROUND_COLOR
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_HEIGHT_V2_DP
-import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_TOOLTIP_WIDTH_DP
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_TOOLTIP_WIDTH_V2_DP
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings
 import com.android.tools.profilers.taskbased.common.icons.TaskIconUtils
 import com.android.tools.profilers.tasks.ProfilerTaskType
+import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.editor.colors.EditorColorsManager
 import org.jetbrains.jewel.foundation.modifier.onHover
 import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.foundation.theme.LocalTextStyle
 import org.jetbrains.jewel.ui.component.ButtonState
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
-import org.jetbrains.jewel.ui.component.Tooltip
+import org.jetbrains.jewel.ui.component.styling.LocalLinkStyle
 import org.jetbrains.jewel.ui.focusOutline
+import org.jetbrains.jewel.ui.theme.tooltipStyle
 
 @Composable
 fun TaskGridItemV2(task: ProfilerTaskType, isSelectedTask: Boolean, onTaskSelection: (task: ProfilerTaskType) -> Unit) {
   TaskIconAndDescriptionWrapperV2(task = task, isSelectedTask = isSelectedTask, onTaskSelection = onTaskSelection)
+}
+
+@Composable
+private fun TaskTooltipContent(task: ProfilerTaskType) {
+  val linkColor = LocalLinkStyle.current.colors.content
+  val tooltipText = TaskBasedUxStrings.getTaskTooltip(task, true)
+
+  val annotatedString =
+    if (task == ProfilerTaskType.SYSTEM_TRACE) {
+      val linkText = "custom instrumentation"
+      val linkStartIndex = tooltipText.indexOf(linkText)
+      if (linkStartIndex != -1) {
+        buildAnnotatedString {
+          val url = "https://developer.android.com/topic/performance/tracing/custom-events"
+          append(tooltipText.substring(0, linkStartIndex))
+          withLink(
+            LinkAnnotation.Url(
+              url = url,
+              styles = TextLinkStyles(style = SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline)),
+              linkInteractionListener = { BrowserUtil.browse(url) },
+            )
+          ) {
+            append(linkText)
+          }
+          append(tooltipText.substring(linkStartIndex + linkText.length))
+        }
+      } else {
+        buildAnnotatedString { append(tooltipText) }
+      }
+    } else {
+      buildAnnotatedString { append(tooltipText) }
+    }
+
+  Text(text = annotatedString, style = LocalTextStyle.current.copy(color = JewelTheme.tooltipStyle.colors.content))
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -85,8 +129,9 @@ fun TaskIconAndDescriptionWrapperV2(task: ProfilerTaskType, isSelectedTask: Bool
     }
   }
 
-  Tooltip(
-    { Text(TaskBasedUxStrings.getTaskTooltip(task, true), modifier = Modifier.width(TASK_TOOLTIP_WIDTH_DP)) },
+  LingeringTooltip(
+    tooltip = { Box(modifier = Modifier.width(TASK_TOOLTIP_WIDTH_V2_DP)) { TaskTooltipContent(task) } },
+    lingerMillis = 0,
     tooltipPlacement = TooltipPlacement.ComponentRect(),
   ) {
     Box(
