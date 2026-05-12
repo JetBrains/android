@@ -9,6 +9,7 @@ import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.execution.common.assertTaskPresentedInStats
+import com.android.tools.idea.execution.common.debug.DebuggerThreadCleanupRule
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.RunStatsService
@@ -20,6 +21,7 @@ import com.android.tools.idea.run.FakeAndroidDevice
 import com.android.tools.idea.run.editor.NoApksProvider
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.google.common.base.Stopwatch
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.RunManager
@@ -29,20 +31,22 @@ import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder
 import com.intellij.execution.testframework.sm.TestHistoryConfiguration
+import com.intellij.execution.ui.RunContentManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Computable
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.replaceService
 import com.intellij.util.ui.UIUtil
+import com.intellij.xdebugger.XDebuggerManager
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.fail
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Assume
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -64,13 +68,29 @@ class AndroidTestRunConfigurationExecutorTest {
 
   private val usageTrackerRule = UsageTrackerRule()
 
-  @get:Rule val chain = RuleChain.outerRule(cleaner).around(usageTrackerRule).around(projectRule).around(fakeAdb)
+  private val debuggerThreadCleanupRule = DebuggerThreadCleanupRule { fakeAdb.adbServer }
+
+  @get:Rule
+  val chain = RuleChain.outerRule(cleaner).around(usageTrackerRule).around(projectRule).around(fakeAdb).around(debuggerThreadCleanupRule)
 
   @After
   fun after() {
+    val project = projectRule.project
+    val debugSessions = XDebuggerManager.getInstance(project).debugSessions
+    if (debugSessions.isNotEmpty()) {
+      debugSessions.forEach { it.stop() }
+      invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
+      val stopwatch = Stopwatch.createStarted()
+      while (XDebuggerManager.getInstance(project).debugSessions.isNotEmpty() && stopwatch.elapsed(TimeUnit.SECONDS) < 5) {
+        Thread.sleep(100)
+        invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
+      }
+    }
+    RunContentManager.getInstance(project).allDescriptors.forEach { Disposer.dispose(it) }
+
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
 
-    AndroidDebugBridge.getBridge()!!.devices.forEach { fakeAdb.disconnectDevice(it.serialNumber) }
+    AndroidDebugBridge.getBridge()?.devices?.forEach { fakeAdb.disconnectDevice(it.serialNumber) }
   }
 
   @Test
@@ -122,7 +142,6 @@ class AndroidTestRunConfigurationExecutorTest {
     }
   }
 
-  @Ignore("b/508138785")
   @Test
   fun debugSucceeded() {
     val historyLatch = CountDownLatch(1)
@@ -164,10 +183,6 @@ class AndroidTestRunConfigurationExecutorTest {
     if (!historyLatch.await(20, TimeUnit.SECONDS)) {
       fail("History is not saved")
     }
-
-    // Give some time for the virtual machine to finish initializing.
-    // Otherwise, JDI Internal Event Handler thread viewed as leaked.
-    Thread.sleep(250)
   }
 
   @Test
