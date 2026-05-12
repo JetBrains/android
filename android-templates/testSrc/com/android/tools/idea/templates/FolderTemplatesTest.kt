@@ -202,4 +202,40 @@ class FolderTemplatesTest {
 
     checkResourcesTemplate("XML Resources Folder", true, "my/xml/folder", expectedLine)
   }
+
+  @Test
+  fun testNonAsciiModuleName() {
+    // Verifies that rendering works correctly when a module name contains non-ASCII characters
+    val template = TemplateResolver.getTemplateByName("AIDL Folder") ?: throw RuntimeException("Invalid template")
+    val moduleStateBuilder = getDefaultModuleState(projectRule.project, template, AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT)
+
+    val nonAsciiModuleName = "模块名称 module"
+    moduleStateBuilder.name = nonAsciiModuleName
+    val projectRoot = moduleStateBuilder.projectTemplateDataBuilder.topOut!!
+    val paths = GradleAndroidModuleTemplate.createDefaultModuleTemplate(projectRule.project, nonAsciiModuleName).paths
+    moduleStateBuilder.setModuleRoots(paths, projectRoot.path, nonAsciiModuleName, moduleStateBuilder.packageName!!)
+
+    val moduleRoot = paths.moduleRoot!!.toPath()
+    val templateData = moduleStateBuilder.build()
+    val context =
+      RenderingContext(
+        project = projectRule.project,
+        module = null,
+        commandName = "Run non-ASCII test",
+        templateData = templateData,
+        moduleRoot = moduleRoot.toFile(),
+        dryRun = false,
+        showErrors = true,
+      )
+    val moduleRecipeExecutor = DefaultRecipeExecutor(context)
+
+    writeBuildGradleKtsFile(moduleRoot)
+
+    WizardParameterData(templateData.packageName, false, "main", template.parameters)
+    template.render(context, moduleRecipeExecutor)
+
+    WriteCommandAction.writeCommandAction(projectRule.project).run<IOException> { moduleRecipeExecutor.applyChanges() }
+
+    assertTrue(moduleRoot.resolve("src/main/aidl").toFile().isDirectory)
+  }
 }
