@@ -135,7 +135,10 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    module_name = "intellij.android.whats-new-assistant-test",
+    associates = [
+        "//android/whats-new-assistant",
+        "//android/whats-new-assistant:whats-new-assistant_test_lib",
+    ],
     visibility = ["//visibility:public"],
     runtime_deps = [
         # do not sort,
@@ -174,8 +177,6 @@ jvm_library(
         "//android/android-test-framework:testFramework_test_lib",
         "//android/intellij.android.testutils:testutils",
         "//android/intellij.android.testutils:testutils_test_lib",
-        "//android/whats-new-assistant",
-        "//android/whats-new-assistant:whats-new-assistant_test_lib",
         "//java/testFramework",
         "//java/testFramework:testFramework_test_lib",
         "//platform/core-api:core",
@@ -199,6 +200,10 @@ jvm_library(
         "//platform/core-ui:core-ui_test_lib",
         "//platform/lang-core",
         "//platform/lang-core:lang-core_test_lib",
+        "//android/adt-ui-compose",
+        "//android/adt-ui-compose:adt-ui-compose_test_lib",
+        "//android/adt-ui-compose:adt-ui-compose-tests",
+        "//android/adt-ui-compose:adt-ui-compose-tests_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.whats-new-assistant-test` end

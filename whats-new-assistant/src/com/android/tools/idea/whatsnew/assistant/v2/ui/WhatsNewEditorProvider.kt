@@ -15,24 +15,45 @@
  */
 package com.android.tools.idea.whatsnew.assistant.v2.ui
 
-import com.android.tools.idea.whatsnew.assistant.WhatsNewBundle
+import com.android.tools.idea.whatsnew.assistant.v2.model.WhatsNewDocumentLoaderImpl
+import com.android.tools.idea.whatsnew.assistant.v2.model.WhatsNewMarkdownDocument
+import com.intellij.openapi.application.EDT
+import com.intellij.openapi.editor.Document
+import com.intellij.openapi.fileEditor.AsyncFileEditorProvider
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorPolicy
-import com.intellij.openapi.fileEditor.FileEditorProvider
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.NlsSafe
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.NonNls
 
-class WhatsNewEditorProvider: FileEditorProvider {
+class WhatsNewEditorProvider : AsyncFileEditorProvider {
+  private var cachedDocuments: List<WhatsNewMarkdownDocument>? = null
+
   override fun accept(project: Project, file: VirtualFile): Boolean {
     return file is WhatsNewVirtualFile
   }
 
-  override fun createEditor(project: Project,
-                            file: VirtualFile): FileEditor {
-    return WhatsNewEditor(file as WhatsNewVirtualFile)
+  override fun createEditor(project: Project, file: VirtualFile): FileEditor {
+    // This is a fallback for when the async provider is not used.
+    // It returns an editor with empty documents, which is not ideal, but `createEditor`
+    // shouldn't be called if the platform prefers async providers.
+    return WhatsNewEditor(file as WhatsNewVirtualFile, emptyList(), project)
+  }
+
+  @Suppress("UnstableApiUsage")
+  override suspend fun createFileEditor(
+    project: Project,
+    file: VirtualFile,
+    document: Document?,
+    editorCoroutineScope: CoroutineScope,
+  ): FileEditor {
+    val documents = cachedDocuments ?: WhatsNewDocumentLoaderImpl().loadDocuments().also { cachedDocuments = it }
+    return withContext(Dispatchers.EDT) { WhatsNewEditor(file as WhatsNewVirtualFile, documents, project) }
   }
 
   override fun getEditorTypeId(): @NonNls String {
@@ -40,12 +61,11 @@ class WhatsNewEditorProvider: FileEditorProvider {
   }
 
   override fun getPolicy(): FileEditorPolicy {
-    @Suppress("UnstableApiUsage")
     return FileEditorPolicy.HIDE_OTHER_EDITORS
   }
 }
 
-class WhatsNewVirtualFile(val bundle: WhatsNewBundle): LightVirtualFile() {
+class WhatsNewVirtualFile : LightVirtualFile() {
   override fun getPresentableName(): @NlsSafe String {
     return "What's New"
   }

@@ -21,6 +21,7 @@ import com.android.tools.idea.assistant.AssistantBundleCreator;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.ui.GuiTestingService;
 import com.android.tools.idea.util.OpenStudioBotOnFirstStart;
+import com.android.tools.idea.whatsnew.assistant.v2.ui.WhatsNewEditorAction;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.application.ApplicationInfo;
@@ -41,6 +42,15 @@ import org.jetbrains.annotations.NotNull;
 public class WhatsNewStartupActivity implements StartupActivity.DumbAware {
   @Override
   public void runActivity(@NotNull Project project) {
+    if (StudioFlags.WHATS_NEW_V2.get()) {
+      runActivityV2(project);
+    }
+    else {
+      runActivityV1(project);
+    }
+  }
+
+  private void runActivityV1(@NotNull Project project) {
     WhatsNewBundleCreator bundleCreator = AssistantBundleCreator.EP_NAME.findExtension(WhatsNewBundleCreator.class);
     if (bundleCreator == null || bundleCreator.shouldNotShowWhatsNew()) {
       return;
@@ -79,6 +89,32 @@ public class WhatsNewStartupActivity implements StartupActivity.DumbAware {
       WhatsNewCheckVersionTask task =
         new WhatsNewCheckVersionTask(project, new VersionCheckCallback(project));
       task.queue();
+    }
+  }
+
+  // V2 shows in an editor window and is always bundled, so we aren't affected by StudioBot conflicts or version check
+  public void runActivityV2(@NotNull Project project) {
+    if (!IdeInfo.getInstance().isAndroidStudio()) {
+      return;
+    }
+
+    WhatsNewService service = ApplicationManager.getApplication().getService(WhatsNewService.class);
+    if (service == null) {
+      return;
+    }
+
+    WhatsNewData data = service.getState();
+
+    if (GuiTestingService.getInstance().isGuiTestingMode() || ApplicationManager.getApplication().isUnitTestMode()) {
+      return;
+    }
+
+    Revision applicationRevision = Revision.safeParseRevision(ApplicationInfo.getInstance().getStrictVersion());
+
+    // If the Android Studio version is new, then always show on startup
+    if (isNewStudioVersion(data, applicationRevision)) {
+      ApplicationManager.getApplication().invokeLater(
+        () -> ((WhatsNewEditorAction)ActionManager.getInstance().getAction("WhatsNewEditorAction")).openWhatsNewEditor(project, true));
     }
   }
 

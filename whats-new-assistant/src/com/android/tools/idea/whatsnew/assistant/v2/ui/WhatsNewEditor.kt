@@ -16,17 +16,30 @@
 package com.android.tools.idea.whatsnew.assistant.v2.ui
 
 import com.android.tools.adtui.compose.StudioComposePanel
-import com.android.tools.idea.whatsnew.assistant.v2.model.toWhatsNewData
+import com.android.tools.idea.whatsnew.assistant.WhatsNewMetricsTracker
+import com.android.tools.idea.whatsnew.assistant.v2.model.WhatsNewMarkdownDocument
+import com.android.tools.idea.whatsnew.assistant.v2.ui.composeutils.DefaultImagePainterLoader
+import com.android.tools.idea.whatsnew.assistant.v2.ui.composeutils.ImagePainterLoader
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorState
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.vfs.VirtualFile
 import java.beans.PropertyChangeListener
 import javax.swing.JComponent
 import org.jetbrains.annotations.Nls
 
-class WhatsNewEditor(val virtualFile: WhatsNewVirtualFile) : UserDataHolderBase(), FileEditor {
-  var panel: JComponent = StudioComposePanel { WhatsNewPanel(virtualFile.bundle.toWhatsNewData()) }
+class WhatsNewEditor(
+  val virtualFile: WhatsNewVirtualFile,
+  markdownDocuments: List<WhatsNewMarkdownDocument>,
+  val project: Project,
+) : UserDataHolderBase(), FileEditor {
+  private val imageLoader: ImagePainterLoader = DefaultImagePainterLoader()
+
+  private val panel: JComponent =
+    StudioComposePanel {
+      WhatsNewEditorPanel(markdownDocuments = markdownDocuments, imageLoader = imageLoader)
+    }
 
   override fun getComponent(): JComponent = panel
 
@@ -50,7 +63,9 @@ class WhatsNewEditor(val virtualFile: WhatsNewVirtualFile) : UserDataHolderBase(
 
   override fun removePropertyChangeListener(listener: PropertyChangeListener) {}
 
-  override fun dispose() {}
+  override fun dispose() {
+    WhatsNewMetricsTracker.getInstance().close(project)
+  }
 
   override fun getFile(): VirtualFile {
     return virtualFile

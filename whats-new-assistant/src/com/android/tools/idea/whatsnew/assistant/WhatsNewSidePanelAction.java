@@ -20,9 +20,11 @@ import static com.android.tools.idea.assistant.AssistantToolWindowService.TOOL_W
 import com.android.tools.idea.assistant.AssistantBundleCreator;
 import com.android.tools.idea.assistant.AssistantToolWindowService;
 import com.android.tools.idea.assistant.OpenAssistSidePanelAction;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.actions.WhatsNewAction;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -85,7 +87,12 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction implement
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
-    openWhatsNewSidePanel(event.getProject(), false);
+    if (StudioFlags.WHATS_NEW_V2.get()) {
+      ActionManager.getInstance().getAction("WhatsNewEditorAction").actionPerformed(event);
+    }
+    else {
+      openWhatsNewSidePanel(event.getProject(), false);
+    }
   }
 
   void openWhatsNewSidePanel(@Nullable Project project, boolean isAutoOpened) {

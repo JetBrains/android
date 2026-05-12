@@ -34,7 +34,7 @@ public final class WhatsNewMetricsTracker {
     return Objects.requireNonNull(PanelFactory.EP_NAME.findExtension(WhatsNewUpdateStatusPanelFactory.class)).getMetricsTracker();
   }
 
-  void open(@NotNull Project project, boolean isAutoOpened) {
+  public void open(@NotNull Project project, boolean isAutoOpened) {
     // An extra "open" can fire when the window is already open and the user manually uses the WhatsNewSidePanelAction
     // again, so in this case just ignore the call and treat the original open as the actual beginning.
     MetricsEventBuilder metrics = project.getUserData(METRICS_BUILDER_KEY);
@@ -61,7 +61,7 @@ public final class WhatsNewMetricsTracker {
     }
   }
 
-  void scrolledToBottom(@NotNull Project project) {
+  public void scrolledToBottom(@NotNull Project project) {
     MetricsEventBuilder metrics = getMetricsBuilder(project);
     if (metrics != null) {
       metrics.scrolledToBottom();
@@ -103,7 +103,7 @@ public final class WhatsNewMetricsTracker {
     }
   }
 
-  void close(@NotNull Project project) {
+  public void close(@NotNull Project project) {
     MetricsEventBuilder metrics = getMetricsBuilder(project);
     if (metrics != null) {
       metrics.buildAndLog();
