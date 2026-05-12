@@ -486,12 +486,13 @@ class StudioLocalEmulatorDeviceHandle(
 
   private fun confirmPairingWizardCancellation(): Boolean =
     MessageDialogBuilder.okCancel(
-        "Cancel Glasses emulator pairing",
-        "Stop pairing wizard?\n\nYou can launch the pairing wizard again from the glasses emulator's overflow menu in Device Manager.",
+        "Quit Glasses emulator pairing assistant",
+        "Stop pairing assistant?\n\nYou can launch the pairing assistant again from the glasses emulator's overflow menu in Device Manager.",
       )
+      .yesText("Quit Pairing Assistant")
       .doNotAsk(
         object : DoNotAskOption.Adapter() {
-          override fun getDoNotShowMessage() = "Do not auto-launch pairing wizard again for this device"
+          override fun getDoNotShowMessage() = "Do not auto-launch pairing assistant again for this device"
 
           override fun isSelectedByDefault() = false
 
