@@ -18,6 +18,7 @@ package com.android.tools.idea
 import com.android.tools.testlib.Adb
 import com.android.tools.testlib.Emulator
 import java.util.concurrent.TimeUnit
+import java.util.regex.Matcher
 
 internal data class PairingData(val pairingPort: String, val pairingCode: String, val tlsConnectionPort: String)
 
@@ -79,44 +80,43 @@ internal fun startPairingCodePairing(adb: Adb, emulator: Emulator) {
 
 // See b/496156110 for more information.
 private fun checkAndDismissSystemUiNotRespondingDialog(adb: Adb, emulator: Emulator) {
-  for (i in 1..10) {
-    try {
-      adb.runCommand("exec-out", "uiautomator", "dump", "/dev/tty", emulator = emulator).use { output ->
-        val regex = ".*System UI isn't responding.*text=\"Wait\"[^>]*?bounds=\"([^\"]+)\".*"
-        try {
-          val matcher = output.waitForLog(regex, 5, TimeUnit.SECONDS)
-          println("System UI isn't responding detected, attempting to dismiss (attempt $i of 10)...")
-          val bounds = matcher.group(1)
-          val boundsRegex = "\\[(\\d+),(\\d+)\\]\\[(\\d+),(\\d+)\\]".toRegex()
-          val matchResult = boundsRegex.find(bounds) ?: return@use
-          val (x1, y1, x2, y2) = matchResult.destructured
-          val x = (x1.toInt() + x2.toInt()) / 2
-          val y = (y1.toInt() + y2.toInt()) / 2
-          adb.runCommandAndSleep("shell", "input", "tap", "$x", "$y", emulator = emulator)
-          return
-        } catch (_: Exception) {
-          // Dialog not found or "Wait" button not found.
-          println("System UI isn't responding not detected (attempt $i of 10).")
-        }
-      }
-    } catch (_: Exception) {
-      println("uiautomator dump failed (attempt $i of 10).")
-    }
-    sleep()
+  val regex = ".*System UI isn't responding.*text=\"Wait\"[^>]*?bounds=\"([^\"]+)\".*"
+  try {
+    adb.clickUiElement(regex, emulator, timeoutSeconds = 60)
+    println("System UI isn't responding detected, attempted to dismiss.")
+  } catch (_: Exception) {
+    println("System UI isn't responding not detected or timed out.")
   }
 }
 
-private fun Adb.clickUiElement(regex: String, emulator: Emulator, timeoutSeconds: Long = 30) {
-  runCommand("exec-out", "uiautomator", "dump", "/dev/tty", emulator = emulator).use { output ->
-    val matcher = output.waitForLog(regex, timeoutSeconds, TimeUnit.SECONDS)
-    val bounds = matcher.group(1)
-    val boundsRegex = "\\[(\\d+),(\\d+)\\]\\[(\\d+),(\\d+)\\]".toRegex()
-    val matchResult = boundsRegex.find(bounds) ?: throw RuntimeException("Failed to parse bounds: $bounds")
-    val (x1, y1, x2, y2) = matchResult.destructured
-    val x = (x1.toInt() + x2.toInt()) / 2
-    val y = (y1.toInt() + y2.toInt()) / 2
-    runCommandAndSleep("shell", "input", "tap", "$x", "$y", emulator = emulator)
+private fun Adb.waitForUiElement(regex: String, emulator: Emulator, timeoutSeconds: Long = 60): Matcher {
+  val startTime = System.currentTimeMillis()
+  while (System.currentTimeMillis() - startTime < timeoutSeconds * 1000) {
+    try {
+      runCommand("exec-out", "uiautomator", "dump", "/dev/tty", emulator = emulator).use { output ->
+        try {
+          return output.waitForLog(regex, 5, TimeUnit.SECONDS)
+        } catch (_: Exception) {
+          // Element not found yet, continue polling
+        }
+      }
+    } catch (_: Exception) {
+      // Command failed, continue polling
+    }
+    Thread.sleep(2000)
   }
+  throw RuntimeException("Timed out waiting for UI element matching $regex")
+}
+
+private fun Adb.clickUiElement(regex: String, emulator: Emulator, timeoutSeconds: Long = 60) {
+  val matcher = waitForUiElement(regex, emulator, timeoutSeconds)
+  val bounds = matcher.group(1)
+  val boundsRegex = "\\[(\\d+),(\\d+)\\]\\[(\\d+),(\\d+)\\]".toRegex()
+  val matchResult = boundsRegex.find(bounds) ?: throw RuntimeException("Failed to parse bounds: $bounds")
+  val (x1, y1, x2, y2) = matchResult.destructured
+  val x = (x1.toInt() + x2.toInt()) / 2
+  val y = (y1.toInt() + y2.toInt()) / 2
+  runCommandAndSleep("shell", "input", "tap", "$x", "$y", emulator = emulator)
 }
 
 private fun enableAdbWifi(adb: Adb, emulator: Emulator) {
@@ -125,17 +125,30 @@ private fun enableAdbWifi(adb: Adb, emulator: Emulator) {
   // root needed to launch wireless debugging activity.
   adb.runCommandAndSleep("root", emulator = emulator)
   adb.runCommandAndSleep("shell", "am", "start", "-a", "android.settings.DEVICE_INFO_SETTINGS", emulator = emulator)
-  adb.runCommandAndSleep(
-    "shell",
-    "am",
-    "start",
-    "-n",
-    "com.android.settings/.SubSettings",
-    "-e",
-    ":settings:show_fragment",
-    "com.android.settings.development.AdbWirelessDebuggingFragment",
-    emulator = emulator,
-  )
+  for (i in 1..5) {
+    try {
+      adb.runCommandAndSleep(
+        "shell",
+        "am",
+        "start",
+        "-n",
+        "com.android.settings/.SubSettings",
+        "-e",
+        ":settings:show_fragment",
+        "com.android.settings.development.AdbWirelessDebuggingFragment",
+        emulator = emulator,
+      )
+      // Wait for the fragment to be visible
+      adb.waitForUiElement(".*text=\"Use wireless debugging\".*", emulator)
+      break
+    } catch (e: Exception) {
+      if (i == 5) {
+        throw e
+      }
+      println("Attempt $i to launch AdbWirelessDebuggingFragment failed, retrying...")
+    }
+  }
+
   adb.runCommandAndSleep("shell", "settings", "put", "global", "adb_wifi_enabled", "1", emulator = emulator)
 }
 
@@ -168,11 +181,9 @@ internal fun connectToWifi(adb: Adb, emulator: Emulator) {
   }
 }
 
-private fun Adb.extractUiElement(regex: String, emulator: Emulator, timeoutSeconds: Long = 30): String {
-  runCommand("exec-out", "uiautomator", "dump", "/dev/tty", emulator = emulator).use { output ->
-    val matcher = output.waitForLog(regex, timeoutSeconds, TimeUnit.SECONDS)
-    return matcher.group(1)
-  }
+private fun Adb.extractUiElement(regex: String, emulator: Emulator, timeoutSeconds: Long = 60): String {
+  val matcher = waitForUiElement(regex, emulator, timeoutSeconds)
+  return matcher.group(1)
 }
 
 private fun sleep(millis: Long = 20000) {
