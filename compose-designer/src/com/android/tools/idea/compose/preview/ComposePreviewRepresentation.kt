@@ -122,6 +122,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
+import com.intellij.openapi.application.UI
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
@@ -1168,7 +1169,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile, composePreviewViewProvider:
       log.warn("Some preview elements have failed")
     }
     // Restoring the surface visibility after render as it may have been hidden in focus mode.
-    surface.interactionPane.isVisible = true
+    withContext(Dispatchers.UI) { surface.interactionPane.isVisible = true }
   }
 
   /**
