@@ -21,6 +21,7 @@ import com.android.tools.inspectors.common.ui.dataviewer.DataViewer.Style.RAW
 import com.intellij.codeInsight.folding.CodeFoldingManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadActionBlocking
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
@@ -160,7 +161,7 @@ private fun createFile(fileType: FileType?, text: String) = LightVirtualFile("tm
 
 private fun createFormattedFile(project: Project, fileType: FileType, content: String): VirtualFile {
   val psiFileFactory = PsiFileFactory.getInstance(project)
-  val psiFile = psiFileFactory.createFileFromText("file", fileType, content)
+  val psiFile = runReadActionBlocking { psiFileFactory.createFileFromText("file", fileType, content) }
   reformatPsiFile(project, psiFile)
   return psiFile.virtualFile ?: createFile(fileType, psiFile.text)
 }
