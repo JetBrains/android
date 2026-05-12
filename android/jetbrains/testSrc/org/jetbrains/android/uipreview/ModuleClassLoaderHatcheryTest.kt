@@ -16,8 +16,8 @@
 package org.jetbrains.android.uipreview
 
 import com.android.tools.idea.rendering.StudioModuleRenderContext
-import com.android.tools.idea.rendering.classloading.FirewalledResourcesClassLoader
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.rendering.classloading.FirewalledResourcesClassLoader
 import com.android.tools.rendering.classloading.toClassTransform
 import com.android.tools.rendering.classloading.useWithClassLoader
 import kotlin.test.assertEquals

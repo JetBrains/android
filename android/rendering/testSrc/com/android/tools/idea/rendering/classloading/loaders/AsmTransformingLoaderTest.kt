@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.rendering.classloading.loaders
 
-import com.android.tools.idea.rendering.classloading.loadClassBytes
 import com.android.tools.rendering.classloading.ClassTransform
 import com.android.tools.rendering.classloading.NopClassLocator
 import com.android.tools.rendering.classloading.loaders.AsmTransformingLoader
@@ -32,6 +31,13 @@ import org.jetbrains.org.objectweb.asm.commons.SimpleRemapper
 import org.jetbrains.org.objectweb.asm.util.TraceClassVisitor
 import org.junit.Assert.assertNull
 import org.junit.Test
+
+private fun loadClassBytes(c: Class<*>): ByteArray {
+  val className = "${org.objectweb.asm.Type.getInternalName(c)}.class"
+  c.classLoader.getResourceAsStream(className)!!.use {
+    return it.readBytes()
+  }
+}
 
 private fun textifyClass(c: ByteArray): String {
   val stringWriter = StringWriter()

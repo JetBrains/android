@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.rendering
 
-import com.android.tools.idea.rendering.classloading.FilteringClassLoader
-import com.android.tools.idea.rendering.classloading.FirewalledResourcesClassLoader
+import com.android.tools.rendering.classloading.FilteringClassLoader
+import com.android.tools.rendering.classloading.FirewalledResourcesClassLoader
 import com.android.tools.rendering.classloading.PseudoClassLocatorForLoader
 import com.android.tools.rendering.classloading.loaders.ClassLoaderLoader
 import com.android.tools.rendering.classloading.loaders.NopLoader

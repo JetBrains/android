@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.classloading
+package com.android.tools.rendering.classloading
 
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.android.tools.rendering.classloading.loaders.StaticLoader
@@ -29,13 +29,6 @@ class B1
 
 class B2
 
-fun loadClassBytes(c: Class<*>): ByteArray {
-  val className = "${Type.getInternalName(c)}.class"
-  c.classLoader.getResourceAsStream(className)!!.use {
-    return it.readBytes()
-  }
-}
-
 class FilteringClassLoaderTest {
   private val parentClassLoader =
     DelegatingClassLoader(
@@ -45,10 +38,10 @@ class FilteringClassLoaderTest {
         A2::class.java.name to loadClassBytes(A2::class.java),
         B1::class.java.name to loadClassBytes(B1::class.java),
         B2::class.java.name to loadClassBytes(B2::class.java),
-        com.android.tools.idea.rendering.classloading.prefix.A1::class.java.name to
-          loadClassBytes(com.android.tools.idea.rendering.classloading.prefix.A1::class.java),
-        com.android.tools.idea.rendering.classloading.prefix.A2::class.java.name to
-          loadClassBytes(com.android.tools.idea.rendering.classloading.prefix.A2::class.java),
+        com.android.tools.rendering.classloading.prefix.A1::class.java.name to
+          loadClassBytes(com.android.tools.rendering.classloading.prefix.A1::class.java),
+        com.android.tools.rendering.classloading.prefix.A2::class.java.name to
+          loadClassBytes(com.android.tools.rendering.classloading.prefix.A2::class.java),
       ),
     )
 
@@ -67,20 +60,20 @@ class FilteringClassLoaderTest {
 
     allow1ClassLoader.loadClass(A1::class.java.name)
     allow1ClassLoader.loadClass(B1::class.java.name)
-    allow1ClassLoader.loadClass(com.android.tools.idea.rendering.classloading.prefix.A1::class.java.name)
+    allow1ClassLoader.loadClass(com.android.tools.rendering.classloading.prefix.A1::class.java.name)
     allow2ClassLoader.loadClass(A2::class.java.name)
     allow2ClassLoader.loadClass(B2::class.java.name)
-    allow2ClassLoader.loadClass(com.android.tools.idea.rendering.classloading.prefix.A2::class.java.name)
+    allow2ClassLoader.loadClass(com.android.tools.rendering.classloading.prefix.A2::class.java.name)
 
     // The following will not be found
-    listOf(A2::class.java.name, B2::class.java.name, com.android.tools.idea.rendering.classloading.prefix.A2::class.java.name).forEach {
+    listOf(A2::class.java.name, B2::class.java.name, com.android.tools.rendering.classloading.prefix.A2::class.java.name).forEach {
       try {
         allow1ClassLoader.loadClass(it)
         fail("ClassNotFoundException expected for '$it'")
       } catch (_: ClassNotFoundException) {}
     }
 
-    listOf(A1::class.java.name, B1::class.java.name, com.android.tools.idea.rendering.classloading.prefix.A1::class.java.name).forEach {
+    listOf(A1::class.java.name, B1::class.java.name, com.android.tools.rendering.classloading.prefix.A1::class.java.name).forEach {
       try {
         allow2ClassLoader.loadClass(it)
         fail("ClassNotFoundException expected for '$it'")
@@ -91,10 +84,10 @@ class FilteringClassLoaderTest {
   @Test
   fun `test prefix filtering allow`() {
     val filteringClassLoader =
-      FilteringClassLoader.allowedPrefixes(parentClassLoader, listOf("com.android.tools.idea.rendering.classloading.prefix."))
+      FilteringClassLoader.allowedPrefixes(parentClassLoader, listOf("com.android.tools.rendering.classloading.prefix."))
 
-    filteringClassLoader.loadClass(com.android.tools.idea.rendering.classloading.prefix.A1::class.java.name)
-    filteringClassLoader.loadClass(com.android.tools.idea.rendering.classloading.prefix.A2::class.java.name)
+    filteringClassLoader.loadClass(com.android.tools.rendering.classloading.prefix.A1::class.java.name)
+    filteringClassLoader.loadClass(com.android.tools.rendering.classloading.prefix.A2::class.java.name)
 
     // The following will not be found
     listOf(A1::class.java.name, A2::class.java.name).forEach {

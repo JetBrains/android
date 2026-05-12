@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.classloading
+package com.android.tools.rendering.classloading
 
 import java.io.PrintWriter
 import java.io.StringWriter
@@ -23,47 +23,39 @@ import org.jetbrains.org.objectweb.asm.util.TraceClassVisitor
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class TestClass
+class StringReplaceTestClass {
+  val property = "PropertyValue"
 
-class ToBeRepackaged {
   fun method() {
-    Class.forName("com.android.tools.idea.rendering.classloading.TestClass")
+    println("MethodValue")
   }
 }
 
-class RepackageTransformTest {
+class StringReplaceTransformTest {
   @Test
-  fun testRepackaging() {
-    val testClassBytes = loadClassBytes(ToBeRepackaged::class.java)
+  fun testRenaming() {
+    val testClassBytes = loadClassBytes(StringReplaceTestClass::class.java)
 
     val classReader = ClassReader(testClassBytes)
     val outputTrace = StringWriter()
     val classOutputWriter = TraceClassVisitor(ClassWriter(ClassWriter.COMPUTE_MAXS), PrintWriter(outputTrace))
     val repackageTransform =
-      RepackageTransform(classOutputWriter, listOf("com.android.tools.idea.rendering.classloading."), "internal.test.")
+      StringReplaceTransform(
+        classOutputWriter,
+        mapOf(
+          StringReplaceTestClass::class.qualifiedName!! to
+            mapOf("PropertyValue" to "RenamedPropertyValue", "MethodValue" to "RenamedMethodValue")
+        ),
+      )
     classReader.accept(repackageTransform, ClassReader.EXPAND_FRAMES)
 
-    // Find all references to the class name and make sure they've been transformed.
-    val referenceRegex = Regex("([a-z./]+com/android/tools/[a-z./]+)")
-
-    assertEquals(
-      "internal/test/com/android/tools/idea/rendering/classloading/",
-      referenceRegex.findAll(outputTrace.toString()).map { it.value }.distinct().joinToString("\n"),
-    )
-
     assertEquals(
       """
-      LDC "com.android.tools.idea.rendering.classloading.TestClass"
-      LDC "internal.test.com.android.tools.idea.rendering.classloading.TestClass"
-      INVOKESTATIC internal/test/com/android/tools/idea/rendering/classloading/ClassForNameHandler.forName (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Class;
+      LDC "RenamedPropertyValue"
+      LDC "RenamedMethodValue"
       """
         .trimIndent(),
-      outputTrace
-        .toString()
-        .lines()
-        .filter { it.trimStart().startsWith("LDC") || it.trimStart().startsWith("INVOKESTATIC") }
-        .map { it.trim() }
-        .joinToString("\n"),
+      outputTrace.toString().lines().filter { it.trimStart().startsWith("LDC") }.map { it.trim() }.joinToString("\n"),
     )
   }
 }

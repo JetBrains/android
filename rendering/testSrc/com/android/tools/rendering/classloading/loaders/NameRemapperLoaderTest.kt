@@ -13,12 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.classloading.loaders
+package com.android.tools.rendering.classloading.loaders
 
-import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Test
 
-/** A [DelegatingClassLoader.Loader] that allows re-mapping the FQCN before passing it to the [delegate]. */
-class NameRemapperLoader(private val delegate: DelegatingClassLoader.Loader, private val mapping: (String) -> (String)) :
-  DelegatingClassLoader.Loader {
-  override fun loadClass(fqcn: String): ByteArray? = delegate.loadClass(mapping(fqcn))
+class NameRemapperLoaderTest {
+  @Test
+  fun `check remapping`() {
+    // A simple remapper that adds "b." in front of the requested class name
+    val loader = NameRemapperLoader(StaticLoader("b.a.class1" to ByteArray(1), "b.a.class2" to ByteArray(2))) { "b.$it" }
+    assertNull(loader.loadClass(""))
+    assertNull(loader.loadClass("b.a.class1"))
+    assertEquals(1, loader.loadClass("a.class1")?.size)
+    assertEquals(2, loader.loadClass("a.class2")?.size)
+  }
 }

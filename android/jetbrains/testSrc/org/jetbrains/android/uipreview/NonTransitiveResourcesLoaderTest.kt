@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.layoutlib.LayoutLibrary
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.AndroidFacetRenderModelModule
-import com.android.tools.idea.rendering.classloading.loaders.NameRemapperLoader
 import com.android.tools.idea.res.StudioResourceIdManager
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
@@ -34,6 +33,7 @@ import com.android.tools.idea.util.androidFacet
 import com.android.tools.rendering.IRenderLogger
 import com.android.tools.rendering.ViewLoader
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
+import com.android.tools.rendering.classloading.loaders.NameRemapperLoader
 import com.android.tools.rendering.classloading.loaders.StaticLoader
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.roots.ModuleRootModificationUtil

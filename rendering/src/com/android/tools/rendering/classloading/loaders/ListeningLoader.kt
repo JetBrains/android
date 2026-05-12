@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.classloading.loaders
-
-import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
+package com.android.tools.rendering.classloading.loaders
 
 /**
  * A [DelegatingClassLoader.Loader] that delegates the loads to [delegate] and calls [onBeforeLoad] and [onAfterLoad] before and after

@@ -13,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.classloading
+package com.android.tools.rendering.classloading
 
-import com.android.tools.rendering.classloading.ClassVisitorUniqueIdProvider
-import com.android.tools.rendering.classloading.fromBinaryNameToPackageName
-import com.android.tools.rendering.classloading.fromPackageNameToBinaryName
 import com.intellij.util.ReflectionUtil
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.MethodVisitor
