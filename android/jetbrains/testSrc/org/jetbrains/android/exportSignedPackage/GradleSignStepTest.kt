@@ -283,15 +283,11 @@ class GradleSignStepTest {
     // Enable the flag
     // Assuming override method exists or similar mechanism.
     // If this fails to compile, I will need to find the correct API.
-    StudioFlags.PLAY_PUBLISHING_WIZARD_INTEGRATION.override(true)
-    try {
-      val stepEnabled = GradleSignStep(myWizard)
-      val componentEnabled = stepEnabled.component
-      val separatorsEnabled = UIUtil.findComponentsOfType(componentEnabled, TitledSeparator::class.java)
-      assertThat(separatorsEnabled.map { it.text }).contains("Publishing")
-    } finally {
-      StudioFlags.PLAY_PUBLISHING_WIZARD_INTEGRATION.clearOverride()
-    }
+    StudioFlags.PLAY_PUBLISHING_WIZARD_INTEGRATION.overrideForTest(true, projectRule.disposable)
+    val stepEnabled = GradleSignStep(myWizard)
+    val componentEnabled = stepEnabled.component
+    val separatorsEnabled = UIUtil.findComponentsOfType(componentEnabled, TitledSeparator::class.java)
+    assertThat(separatorsEnabled.map { it.text }).contains("Publish your Android app for testing")
   }
 
   @Test
@@ -301,7 +297,7 @@ class GradleSignStepTest {
     val component = step.component
 
     val labels = UIUtil.findComponentsOfType(component, JBLabel::class.java)
-    val label = labels.find { it.text == "Continue to the Upload to Play Wizard" }
+    val label = labels.find { it.text == "Continue to the Publish for Testing Wizard" }
     assertThat(label != null).isTrue()
 
     val checkboxes = UIUtil.findComponentsOfType(component, JCheckBox::class.java)

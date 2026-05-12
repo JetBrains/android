@@ -397,14 +397,14 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
     }
 
     if (StudioFlags.PLAY_PUBLISHING_WIZARD_INTEGRATION.get()) {
-      final TitledSeparator publishingSeparator = new TitledSeparator("Publishing");
+      final TitledSeparator publishingSeparator = new TitledSeparator("Publish your Android app for testing");
       myContentPanel.add(publishingSeparator, new GridConstraints(8, 0, 1, 3, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                                         GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
                                                         new Dimension(-1, 20), null, 0, false));
 
       BorderLayoutPanel textPanel = new BorderLayoutPanel(0, 5);
       textPanel.setBorder(JBUI.Borders.empty(2));
-      JBLabel checkboxLabel = new JBLabel("Continue to the Upload to Play Wizard");
+      JBLabel checkboxLabel = new JBLabel("Continue to the Publish for Testing Wizard");
       checkboxLabel.addMouseListener(new MouseAdapter() {
         @Override
         public void mouseClicked(MouseEvent e) {
