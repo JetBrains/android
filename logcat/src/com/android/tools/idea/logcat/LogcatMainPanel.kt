@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.adblib.adbLogger
+import com.android.adblib.utils.logIOCompletionErrors
+import com.android.adblib.withPrefix
 import com.android.annotations.concurrency.UiThread
 import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.sdklib.AndroidApiLevel
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatMainPanel.LogcatServiceEvent.LoadLogcatFile
@@ -902,18 +906,25 @@ constructor(
     messageBacklog.get().clear()
 
     return coroutineScope.launch(Dispatchers.IO) {
-      val logcatFlow = logcatService.readLogcat(device).map { LogcatMessagesEvent(it) }
-      val processMonitorFlow = projectAppMonitor.monitorDevice(device.serialNumber).map { LogcatMessagesEvent(listOf(it)) }
+      runCatching {
+          val logcatFlow = logcatService.readLogcat(device).map { LogcatMessagesEvent(it) }
+          val processMonitorFlow = projectAppMonitor.monitorDevice(device.serialNumber).map { LogcatMessagesEvent(listOf(it)) }
 
-      connectedDevice.set(device)
+          connectedDevice.set(device)
 
-      if (StudioFlags.LOGCAT_PANEL_MEMORY_SAVER.get()) {
-        val panelVisibilityFlow = trackVisibility().map { LogcatPanelVisibility(it) }
-        val flow = merge(logcatFlow, processMonitorFlow, panelVisibilityFlow)
-        flow.consume(this@LogcatMainPanel, device.serialNumber, logcatSettings.bufferSize)
-      } else {
-        merge(logcatFlow, processMonitorFlow).collect { processMessages(it.messages) }
-      }
+          if (StudioFlags.LOGCAT_PANEL_MEMORY_SAVER.get()) {
+            val panelVisibilityFlow = trackVisibility().map { LogcatPanelVisibility(it) }
+            val flow = merge(logcatFlow, processMonitorFlow, panelVisibilityFlow)
+            flow.consume(this@LogcatMainPanel, device.serialNumber, logcatSettings.bufferSize)
+          } else {
+            merge(logcatFlow, processMonitorFlow).collect { processMessages(it.messages) }
+          }
+        }
+        .onFailure { throwable ->
+          val adbSession = AdbLibService.getSession(project)
+          val logger = adbLogger(adbSession).withPrefix("$adbSession - ${device.serialNumber}")
+          logger.logIOCompletionErrors(throwable)
+        }
     }
   }
 
