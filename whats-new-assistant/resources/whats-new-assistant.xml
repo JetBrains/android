@@ -19,14 +19,14 @@
     resourceRoot="/"
     stepByStep="false"
     hideStepIndex="true"
-    version="2026.1.1.00">
+    version="2026.1.2.00">
   <feature
-      name="What's New in Quail 1">
+      name="What's New in Quail 2">
     <tutorial
         key="whats-new"
-        label=" What's New in Quail 1"
+        label=" What's New in Quail 2"
         icon="preview/product-icon.svg"
-        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/preview-release-notes/2026-1-1"
+        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/preview-release-notes/2026-1-2"
         remoteLinkLabel="Read in a browser">
       <description>
         <![CDATA[
@@ -147,7 +147,7 @@
         <stepElement>
           <section>
             <![CDATA[
-              <br><em>Last updated 04/14/2026</em><br>
+              <br><em>Last updated 05/14/2026</em><br>
             ]]>
           </section>
         </stepElement>
