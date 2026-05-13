@@ -242,6 +242,7 @@ internal abstract class AbstractDisplayPanel<T : AbstractDisplayView>(disposable
     sink[DISPLAY_ID_KEY] = displayId
     sink[DISPLAY_VIEW_KEY] = displayView
     sink[ZOOMABLE_KEY] = displayView
+    (zoomToolbar ?: xrNavigationToolbar)?.let { floatingToolbar -> sink[FLOATING_TOOLBAR_KEY] = floatingToolbar }
   }
 
   /** Zoom and scroll state of the panel. */

@@ -32,6 +32,8 @@ import javax.swing.JComponent
 
 @JvmField internal val NUMBER_OF_DISPLAYS_KEY = DataKey.create<Int>("NumberOfDisplays")
 
+@JvmField internal val FLOATING_TOOLBAR_KEY = DataKey.create<JComponent>("StreamingFloatingToolbar")
+
 internal val RUNNING_DEVICES_NOTIFICATION_GROUP: NotificationGroup
   get() = findRegisteredGroup("Running Devices Messages")!!
 

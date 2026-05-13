@@ -15,15 +15,21 @@
  */
 package com.android.tools.idea.streaming.actions
 
+import com.android.tools.idea.streaming.core.FloatingToolbarContainer
 import com.android.tools.idea.streaming.xr.XrInputMode
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Toggleable
+import com.intellij.openapi.ui.popup.JBPopupFactory
 import icons.StudioIcons
 
 /** Displays a popup menu of XR input modes. */
 internal class StreamingXrInputModePopupGroup : DefaultActionGroup(), Toggleable {
+
+  init {
+    templatePresentation.isPerformGroup = true
+  }
 
   override fun update(event: AnActionEvent) {
     val presentation = event.presentation
@@ -32,6 +38,11 @@ internal class StreamingXrInputModePopupGroup : DefaultActionGroup(), Toggleable
       presentation.isEnabledAndVisible = false
       return
     }
+
+    // We only want to show as a group IF the floating toolbar is active (expanded). The reason for this is that
+    // when collapsed, the first click will simply expand the floating toolbar first.
+    val container = FloatingToolbarContainer.fromActionEvent(event)
+    presentation.isPopupGroup = childrenCount > 1 && (container == null || !container.collapsible || container.isActive)
 
     val inputMode = controller.inputMode
     presentation.icon =
@@ -45,4 +56,30 @@ internal class StreamingXrInputModePopupGroup : DefaultActionGroup(), Toggleable
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
+  override fun actionPerformed(event: AnActionEvent) {
+    val multipleChildren = childrenCount > 1
+    val container = FloatingToolbarContainer.fromActionEvent(event)
+    // If the group has multiple children and the floating toolbar is collapsible but not active, in this click, activate.
+    if (multipleChildren && container?.collapsible == true && !container.isActive) {
+      FloatingToolbarContainer.triggerActivation(event)
+      return
+    }
+
+    // Manually show the popup since isPerformGroup = true might bypass the default toolbar behavior
+    val popup =
+      JBPopupFactory.getInstance()
+        .createActionGroupPopup(
+          null,
+          this,
+          event.dataContext,
+          JBPopupFactory.ActionSelectionAid.MNEMONICS,
+          true,
+          null,
+          -1,
+          null,
+          event.place,
+        )
+    event.inputEvent?.component?.let { popup.showUnderneathOf(it) } ?: popup.showInFocusCenter()
+  }
 }

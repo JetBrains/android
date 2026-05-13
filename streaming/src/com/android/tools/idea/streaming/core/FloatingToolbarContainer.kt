@@ -134,7 +134,7 @@ internal class FloatingToolbarContainer(
       }
     }
 
-  private val collapsible: Boolean
+  internal val collapsible: Boolean
     get() = collapsedStateSelector != null
 
   init {
@@ -542,7 +542,7 @@ internal class FloatingToolbarContainer(
      * a button of that toolbar.
      */
     fun fromActionEvent(event: AnActionEvent): FloatingToolbarContainer? =
-      event.inputEvent?.component?.findAncestor<FloatingToolbarContainer>()
+      event.dataContext.getData(FLOATING_TOOLBAR_KEY) as? FloatingToolbarContainer
 
     /** Activates the floating toolbar. The action [event] has to be triggered by a mouse event on a button of that toolbar. */
     fun triggerActivation(event: AnActionEvent) {
