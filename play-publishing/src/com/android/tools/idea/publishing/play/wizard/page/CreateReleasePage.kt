@@ -112,13 +112,18 @@ fun WizardPageScope.CreateReleasePage() {
   var tracks: List<Track> by remember { mutableStateOf(emptyList()) }
   var selectedTrack: String? by remember { mutableStateOf(null) }
 
+  // For a new app, we only allow internal test track.
+  // For an existing app, we allow all tracks except production
+  fun shouldFilterTrack(track: Track) =
+    if (state.isAppCreated) track.track == INTERNAL_TEST_TRACK_NAME else track.track != PRODUCTION_TRACK_NAME
+
   LaunchedEffect(Unit) {
     try {
       state.packageName?.let { packageName ->
         val edit = state.client.insertEdit(packageName)
         appEdit = edit
         // We don't support releasing to production from Android Studio.
-        tracks = state.client.listEditTracks(packageName, edit.id).filterNot { it.track == PRODUCTION_TRACK_NAME }
+        tracks = state.client.listEditTracks(packageName, edit.id).filter(::shouldFilterTrack)
         selectedTrack =
           if (tracks.isNotEmpty()) {
             if (tracks.any { it.track == INTERNAL_TEST_TRACK_NAME }) {
@@ -223,8 +228,7 @@ fun WizardPageScope.CreateReleasePage() {
     }
   }
 
-  fun shouldDisableNextAction() =
-    isLoadingTracks || tracks.isEmpty() || releaseNameState.text.isEmpty() || extractedTags == null || selectedTrack == null
+  fun shouldDisableNextAction() = isLoadingTracks || tracks.isEmpty() || extractedTags == null || selectedTrack == null
 
   // If the app is created in this dialog, we shouldn't go back. Coming back to this page will call
   // the create app API again and fail since the package name will already exist.
