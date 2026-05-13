@@ -429,6 +429,13 @@ public final class StudioFlags {
   public static final Flag<Boolean> MATERIAL_SYMBOLS_TOOL = new BooleanFlag(
     DESIGN_TOOLS, "material.symbols.tool", "Enable the Material Symbols Search agent tool",
     "If enabled, an agent tool to search and find Material Symbol AVD and Compose icons will be available to the agent.");
+
+
+  public static final Flag<Boolean> RENDER_TOOL_DIFF_VIEWER = new BooleanFlag(
+    DESIGN_TOOLS, "render.tool.diff.viewer", "Enable the render tool diff viewer",
+    "If enabled, the render tool shows previous render in a diff viewer");
+
+
   //endregion
 
   //region Layout Editor
