@@ -24,7 +24,6 @@ import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher;
 import com.android.tools.asdriver.tests.MemoryUsageReportProcessor;
 import com.android.tools.asdriver.tests.UIXpathGenerator;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.util.EmbeddedDistributionPaths;
 import com.intellij.openapi.util.SystemInfo;
 import java.nio.file.Path;
 import org.junit.Ignore;
@@ -71,8 +70,8 @@ public class CreateProjectTest {
     String localDistributionUrl = TestUtils.resolveWorkspacePathUnchecked(distributionPath).toUri().toString();
     system.getInstallation().addVmOption("-Dgradle.ide.local.distribution.url=" + localDistributionUrl);
 
-    Path jdk17Path = EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk17");
-    system.setEnv(IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME, jdk17Path.toString());
+    Path jdk21Path = TestUtils.getJava21Jdk();
+    system.setEnv(IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME, jdk21Path.toString());
 
     // Prevent a "Trust project" dialog from appearing, which would prevent Gradle from syncing.
     // This is only needed on macOS and only when running from IDEA.

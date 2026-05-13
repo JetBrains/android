@@ -585,7 +585,7 @@ iml_test(
 create_project_test_data = [
     ":createproject_deps",
     "//prebuilts/studio/sdk:build-tools/36.0.0",
-    "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
+    "//prebuilts/studio/jdk:jdk21",
     "//prebuilts/studio/sdk:platforms/android-36",
     "//tools/base/build-system:gradle-distrib-9.1.0",  # The test itself sets a flag for which AGP version to use, so we can't rely on the framework choosing INTEGRATION_TEST_GRADLE_VERSION for us
 ]
