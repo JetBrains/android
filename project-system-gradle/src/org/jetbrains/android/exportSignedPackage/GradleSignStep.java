@@ -397,7 +397,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
     }
 
     if (StudioFlags.PLAY_PUBLISHING_WIZARD_INTEGRATION.get()) {
-      final TitledSeparator publishingSeparator = new TitledSeparator("Publish your Android app for testing");
+      final TitledSeparator publishingSeparator = new TitledSeparator("Publish your app to Google Play for testing");
       myContentPanel.add(publishingSeparator, new GridConstraints(8, 0, 1, 3, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                                         GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
                                                         new Dimension(-1, 20), null, 0, false));

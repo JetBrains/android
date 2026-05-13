@@ -287,7 +287,7 @@ class GradleSignStepTest {
     val stepEnabled = GradleSignStep(myWizard)
     val componentEnabled = stepEnabled.component
     val separatorsEnabled = UIUtil.findComponentsOfType(componentEnabled, TitledSeparator::class.java)
-    assertThat(separatorsEnabled.map { it.text }).contains("Publish your Android app for testing")
+    assertThat(separatorsEnabled.map { it.text }).contains("Publish your app to Google Play for testing")
   }
 
   @Test
