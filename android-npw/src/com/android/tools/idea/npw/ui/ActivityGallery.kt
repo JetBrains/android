@@ -21,8 +21,10 @@
 
 package com.android.tools.idea.npw.ui
 
+import com.android.tools.idea.npw.template.PluginPromotionTemplate
 import com.android.tools.idea.npw.toWizardFormFactor
 import com.android.tools.idea.wizard.template.Template
+import com.android.tools.idea.wizard.template.Thumb
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.IconLoader
 import icons.StudioIllustrations
@@ -33,16 +35,21 @@ fun getTemplateIcon(template: Template): TemplateIcon? {
   if (template == Template.NoActivity) {
     return TemplateIcon(StudioIllustrations.Wizards.NO_ACTIVITY)
   }
+  return loadTemplateIcon(template::thumb)
+}
 
-  return try {
-    val icon = IconLoader.findIcon(template.thumb().path()) ?: return null
-    TemplateIcon(icon)
-  } catch (e: Exception) {
-    logger.warn(e)
-    // Return the icon for No Activity to prevent other templates from not being rendered even if an exception is thrown.
-    // For example if a template has a wrong path name for its thumbnail, template.thumb() throws IllegalArgumentException
-    TemplateIcon(StudioIllustrations.Wizards.NO_ACTIVITY)
-  }
+fun getPromotionTemplateIcon(promotionTemplate: PluginPromotionTemplate): TemplateIcon? =
+  loadTemplateIcon(promotionTemplate::thumb)
+
+// thumb() may throw IllegalArgumentException for a bad path, so it must run inside the try.
+private fun loadTemplateIcon(thumb: () -> Thumb): TemplateIcon? = try {
+  val icon = IconLoader.findIcon(thumb().path()) ?: return null
+  TemplateIcon(icon)
+} catch (e: Exception) {
+  logger.warn(e)
+  // Return the icon for No Activity to prevent other templates from not being rendered even if an exception is thrown.
+  // For example if a template has a wrong path name for its thumbnail, template.thumb() throws IllegalArgumentException
+  TemplateIcon(StudioIllustrations.Wizards.NO_ACTIVITY)
 }
 
 

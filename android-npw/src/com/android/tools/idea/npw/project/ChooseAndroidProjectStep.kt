@@ -27,24 +27,33 @@ import com.android.tools.idea.npw.model.NewProjectModel
 import com.android.tools.idea.npw.model.NewProjectModuleModel
 import com.android.tools.idea.npw.template.ChooseGalleryItemStep
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep
+import com.android.tools.idea.npw.template.PluginPromotionTemplate
+import com.android.tools.idea.npw.template.PluginPromotionTemplateResolver
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.npw.template.getDefaultSelectedTemplateIndex
 import com.android.tools.idea.npw.ui.WizardGallery
+import com.android.tools.idea.npw.ui.getPromotionTemplateIcon
 import com.android.tools.idea.npw.ui.getTemplateIcon
 import com.android.tools.idea.npw.ui.getTemplateTitle
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.observable.ui.SelectedListValueProperty
+import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizard.Facade
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.WizardUiContext
 import com.google.common.base.Suppliers
+import com.intellij.ide.plugins.InstalledPluginsState
+import com.intellij.ide.plugins.PluginManagerConfigurable
+import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.progress.util.BackgroundTaskUtil
+import com.intellij.openapi.updateSettings.impl.pluginsAdvertisement.installAndEnable
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
@@ -283,9 +292,30 @@ class ChooseAndroidProjectStep(model: NewProjectModel) :
           newProjectModuleModel.extraRenderTemplateModel.newTemplate =
             if (hasExtraDetailStep) selectedTemplate.template else Template.NoActivity
         }
+        is NewPluginPromotionTemplateRendererWithDescription -> {
+          handlePluginInstallation(selectedTemplate)
+        }
         else -> throw IllegalArgumentException("Add support for additional template renderer")
       }
     }
+  }
+
+  private fun handlePluginInstallation(pluginPromotionTemplate: NewPluginPromotionTemplateRendererWithDescription): Nothing {
+    val pluginId = PluginId.getId(pluginPromotionTemplate.pluginId)
+    installAndEnable(
+      project = null,
+      pluginIds = setOf(pluginId),
+      showDialog = true,
+      selectAlInDialog = true,
+      onSuccess = Runnable {
+        // checks if the plugin needs a restart and shows restart dialog
+        if (InstalledPluginsState.getInstance().wasInstalled(pluginId)) {
+          PluginManagerConfigurable.shutdownOrRestartApp()
+        }
+      },
+    )
+    // Abort the forward move — there is no template to render.
+    throw ModelWizard.ActionCancellationException("Installing promoted plugin. Plugin promotion templates have no screens to continue to.", null)
   }
 
   private fun selectNextRow() {
@@ -363,6 +393,26 @@ class ChooseAndroidProjectStep(model: NewProjectModel) :
     override val documentationUrl: String? = template.documentationUrl
   }
 
+  class NewPluginPromotionTemplateRendererWithDescription(private val promotionTemplate: PluginPromotionTemplate) :
+    TemplateRendererWithDescription {
+    override val label: String
+      get() = promotionTemplate.name
+
+    override val icon: Icon?
+      get() = getPromotionTemplateIcon(promotionTemplate)
+
+    override val description: String
+      get() = message("android.wizard.project.plugin.promotion.template.description", pluginId)
+
+    override val documentationUrl: String?
+      get() = null
+
+    override val exists: Boolean = true
+
+    val pluginId: String
+      get() = promotionTemplate.pluginId
+  }
+
   companion object {
     fun createTitle(): JBLabel {
       return JBLabel("Templates").apply {
@@ -387,6 +437,11 @@ class ChooseAndroidProjectStep(model: NewProjectModel) :
             StudioFlags.NPW_ENABLE_ARCHITECTURE_SAMPLE_TEMPLATE.get())
       }
 
+    private fun FormFactor.getAllPromotionTemplates() =
+      PluginPromotionTemplateResolver.getAllPromotionTemplates().filter {
+        it.formFactor == this
+      }
+
     private fun createFormFactors(wizardTitle: String): List<FormFactorInfo> =
       FormFactor.values()
         .filterNot { it.getProjectTemplates().isEmpty() }
@@ -403,6 +458,10 @@ class ChooseAndroidProjectStep(model: NewProjectModel) :
             }
             formFactor.getProjectTemplates().forEach {
               yield(NewTemplateRendererWithDescription(it))
+            }
+            formFactor.getAllPromotionTemplates().forEach {
+              if (PluginManagerCore.isPluginInstalled(PluginId.getId(it.pluginId))) return@forEach
+              yield(NewPluginPromotionTemplateRendererWithDescription(it))
             }
           }
           .toList()
