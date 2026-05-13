@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.datastore.database.UnifiedEventsTable;
 import com.android.tools.profiler.proto.Common;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
@@ -30,6 +31,9 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.testFramework.ApplicationRule;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.junit.Rule;
 import org.junit.After;
 import org.junit.Before;
@@ -40,9 +44,11 @@ import org.mockito.Mockito;
 public class TaskDatabaseManagerTest {
 
   @Rule public TemporaryFolder myTempFolder = new TemporaryFolder();
+  @Rule public ApplicationRule myApplicationRule = new ApplicationRule();
   private TaskDatabaseManager myManager;
   private File myTempDir;
   private AtomicReference<Throwable> myExceptionHandler;
+  private Disposable myDisposable;
 
   @Before
   public void setUp() throws Exception {
@@ -50,20 +56,23 @@ public class TaskDatabaseManagerTest {
     ApplicationInfo appInfo = Mockito.mock(ApplicationInfo.class);
     Mockito.when(appInfo.getMajorVersion()).thenReturn("2025");
     Mockito.when(appInfo.getMinorVersion()).thenReturn("1.1");
-    Application app = Mockito.mock(Application.class);
-    Mockito.when(app.getService(ApplicationInfo.class)).thenReturn(appInfo);
-    ApplicationManager.setApplication(app, () -> {});
+
+    myDisposable = Disposer.newDisposable();
+
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), ApplicationInfo.class, appInfo, myDisposable);
 
     myTempDir = myTempFolder.newFolder();
     myExceptionHandler = new AtomicReference<>();
     myManager = new TaskDatabaseManager(new FakeLogService(),
                                         t -> myExceptionHandler.set(t),
                                         t -> myExceptionHandler.set(t));
+
+    Disposer.register(myDisposable, myManager::shutdown);
   }
 
   @After
   public void tearDown() {
-    myManager.shutdown();
+    Disposer.dispose(myDisposable);
   }
 
   @Test
