@@ -24,6 +24,7 @@ import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.flow.MutableSharedFlow
 import org.junit.Before
 import org.junit.Test
 import org.mockito.kotlin.mock
@@ -43,7 +44,8 @@ class InteractivePreviewBackNavigationUpdaterTest {
 
   @Before
   fun setUp() {
-    myInteractivePreviewNavigationController = InteractivePreviewNavigationController({ InteractiveNopTracker() })
+    myInteractivePreviewNavigationController =
+      InteractivePreviewNavigationController({ InteractiveNopTracker() }, fpsUpdater = MutableSharedFlow())
   }
 
   val composable =

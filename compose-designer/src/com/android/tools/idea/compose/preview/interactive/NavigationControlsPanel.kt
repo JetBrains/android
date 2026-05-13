@@ -30,6 +30,7 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -42,6 +43,7 @@ import com.android.tools.idea.compose.preview.BackNavigationEdge
 import com.android.tools.idea.compose.preview.InteractivePreviewNavigationController
 import com.android.tools.idea.compose.preview.message
 import icons.StudioIconsCompose
+import kotlinx.coroutines.flow.SharedFlow
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.Dropdown
@@ -53,11 +55,23 @@ import org.jetbrains.jewel.ui.component.Text
 /** @see also [NavigationControlsPanel] */
 @Composable
 fun NavigationControlsContent(
-  interactivePreviewNavigationController: InteractivePreviewNavigationController,
   modifier: Modifier = Modifier,
+  interactivePreviewNavigationController: InteractivePreviewNavigationController,
+  fpsUpdater: SharedFlow<Unit>,
 ) {
   Box(modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-    NavigationControlsPanel(modifier, interactivePreviewNavigationController)
+    NavigationControlsPanel(
+      canBackPress = { interactivePreviewNavigationController.canBackPress() },
+      onBackPress = {
+        interactivePreviewNavigationController.backPressCompleted()
+        interactivePreviewNavigationController.trackNavigationBackPress()
+      },
+      onBackPressStart = { interactivePreviewNavigationController.backPressStart(it) },
+      onBackPressProgress = { progress, edge -> interactivePreviewNavigationController.backPressProgress(progress, edge) },
+      onBackPressTrackProgress = { interactivePreviewNavigationController.trackNavigationProgressPress() },
+      onEdgeDropdownPress = { interactivePreviewNavigationController.trackEdgeDropdownPress() },
+      fpsUpdater = fpsUpdater,
+    )
   }
 }
 
@@ -70,13 +84,29 @@ fun NavigationControlsContent(
  * - A slider to simulate predictive back progress.
  *
  * @param modifier The modifier to be applied to this Composable.
- * @param interactivePreviewNavigationController The controller for handling interactive navigation events.
+ * @param canBackPress A callback that returns whether back navigation is currently available.
+ * @param onBackPress A callback invoked when the back button is clicked.
+ * @param onBackPressStart A callback invoked when a predictive back gesture starts.
+ * @param onBackPressProgress A callback invoked with the current progress of a predictive back gesture.
+ * @param onBackPressTrackProgress A callback invoked when the predictive back gesture tracking finishes.
+ * @param onEdgeDropdownPress A callback invoked when the navigation edge dropdown is interacted with.
+ * @param fpsUpdater A [SharedFlow] used to refresh the state of the panel (e.g., re-evaluating [canBackPress]).
  */
 @Composable
-fun NavigationControlsPanel(modifier: Modifier = Modifier, interactivePreviewNavigationController: InteractivePreviewNavigationController) {
+fun NavigationControlsPanel(
+  modifier: Modifier = Modifier,
+  canBackPress: () -> Boolean,
+  onBackPress: () -> Unit,
+  onBackPressStart: (BackNavigationEdge) -> Unit,
+  onBackPressProgress: (Float, BackNavigationEdge) -> Unit,
+  onBackPressTrackProgress: () -> Unit,
+  onEdgeDropdownPress: () -> Unit,
+  fpsUpdater: SharedFlow<Unit>,
+) {
   var sliderPosition by remember { mutableFloatStateOf(0f) }
   var backStarted by remember { mutableStateOf(false) }
   val selectedEdge = remember { mutableStateOf(BackNavigationEdge.LEFT_EDGE) }
+  val backNavigationAvailable by produceState(canBackPress(), fpsUpdater) { fpsUpdater.collect { value = canBackPress() } }
 
   Column(modifier.padding(16.dp).fillMaxWidth().testTag(NavigationControlsPanelTestTags.panel)) {
     Row(
@@ -86,10 +116,9 @@ fun NavigationControlsPanel(modifier: Modifier = Modifier, interactivePreviewNav
     ) {
       OutlinedButton(
         modifier = modifier.testTag(NavigationControlsPanelTestTags.backButton),
-        enabled = true,
+        enabled = backNavigationAvailable,
         onClick = {
-          interactivePreviewNavigationController.backPressCompleted()
-          interactivePreviewNavigationController.trackNavigationBackPress()
+          onBackPress()
           backStarted = false
           sliderPosition = 0f
         },
@@ -104,7 +133,7 @@ fun NavigationControlsPanel(modifier: Modifier = Modifier, interactivePreviewNav
           Text(text = message("action.navigate.back.button.text"))
         }
       }
-      DropDownAction(modifier, message("action.navigate.back.navigation.edge.label"), selectedEdge, interactivePreviewNavigationController)
+      DropDownAction(modifier, message("action.navigate.back.navigation.edge.label"), selectedEdge, onEdgeDropdownPress)
     }
     Row(
       modifier =
@@ -121,18 +150,19 @@ fun NavigationControlsPanel(modifier: Modifier = Modifier, interactivePreviewNav
           modifier = modifier.padding(8.dp).testTag(NavigationControlsPanelTestTags.progressSlider),
           value = sliderPosition,
           valueRange = 0f..1f,
+          enabled = backNavigationAvailable,
           onValueChange = {
             if (!backStarted) {
               backStarted = true
-              interactivePreviewNavigationController.backPressStart(selectedEdge.value)
+              onBackPressStart(selectedEdge.value)
             }
             sliderPosition = it
           },
-          onValueChangeFinished = { interactivePreviewNavigationController.trackNavigationProgressPress() },
+          onValueChangeFinished = { onBackPressTrackProgress() },
         )
         SideEffect {
           if (backStarted) {
-            interactivePreviewNavigationController.backPressProgress(sliderPosition, selectedEdge.value)
+            onBackPressProgress(sliderPosition, selectedEdge.value)
           }
         }
       }
@@ -153,7 +183,7 @@ private fun DropDownAction(
   modifier: Modifier = Modifier,
   label: String,
   selectedEdge: MutableState<BackNavigationEdge>,
-  interactivePreviewNavigationController: InteractivePreviewNavigationController,
+  onEdgeDropdownPress: () -> Unit,
 ) =
   Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
     Text(text = label, modifier = Modifier.padding(8.dp))
@@ -165,7 +195,7 @@ private fun DropDownAction(
             selected = selectedEdge.value == edge,
             onClick = {
               selectedEdge.value = edge
-              interactivePreviewNavigationController.trackEdgeDropdownPress()
+              onEdgeDropdownPress()
             },
           ) {
             Text(text = edge.visibleName)

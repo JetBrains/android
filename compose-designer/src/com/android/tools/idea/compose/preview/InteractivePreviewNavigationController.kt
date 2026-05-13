@@ -24,6 +24,7 @@ import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.openapi.actionSystem.DataKey
 import java.lang.reflect.Method
 import javax.swing.JComponent
+import kotlinx.coroutines.flow.SharedFlow
 
 /** Enum representing the edge from which a back navigation gesture can be initiated. */
 enum class BackNavigationEdge(val visibleName: String) {
@@ -45,9 +46,12 @@ enum class BackNavigationEdge(val visibleName: String) {
 class InteractivePreviewNavigationController(
   private val usageTrackerProvider: () -> InteractivePreviewUsageTracker,
   private val onAfterPanelUpdate: () -> Unit = {},
+  fpsUpdater: SharedFlow<Unit>,
 ) {
 
-  private val showNavigationControlsProvider = { StudioComposePanel { NavigationControlsContent(this) } }
+  private val showNavigationControlsProvider = {
+    StudioComposePanel { NavigationControlsContent(interactivePreviewNavigationController = this, fpsUpdater = fpsUpdater) }
+  }
 
   /** The currently active [JComponent] for back navigation controls, or null if controls are hidden. */
   private var activeBackNavigationPanelInInteractiveMode: JComponent? = null

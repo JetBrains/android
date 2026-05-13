@@ -583,6 +583,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile, composePreviewViewProvider:
     InteractivePreviewNavigationController(
       usageTrackerProvider = usageTrackerProvider,
       onAfterPanelUpdate = { updateBottomPanelVisibility() },
+      fpsUpdater = interactiveManager.fpsUpdater,
     )
   }
 
