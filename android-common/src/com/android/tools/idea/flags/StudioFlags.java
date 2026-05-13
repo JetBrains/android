@@ -3074,13 +3074,6 @@ public final class StudioFlags {
 
   // region Play Publishing
   private static final FlagGroup PLAY_PUBLISHING = new FlagGroup(FLAGS, "play.publishing", "Play Publishing");
-  public static final Flag<Boolean> SHOW_PUBLISH_IN_BUILD =
-    new BooleanFlag(
-      PLAY_PUBLISHING,
-      "show.publish.in.build",
-      "Show Publish Bundle action",
-      "Show Publish Bundle action in Build menu"
-    );
   public static final Flag<String> PLAY_PUBLISHING_ENDPOINT =
     new StringFlag(
       PLAY_PUBLISHING,

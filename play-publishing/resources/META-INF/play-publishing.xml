@@ -17,11 +17,6 @@
   <extensions defaultExtensionNs="com.intellij">
     <notificationGroup id="Play Publishing" displayType="BALLOON"/>
   </extensions>
-  <actions>
-    <group id="Android.PublishBundle" class="com.android.tools.idea.publishing.play.action.PublishBundleAction" popup="true">
-      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="Android.GenerateSignedApk"/>
-    </group>
-  </actions>
   <extensions defaultExtensionNs="com.android.tools.idea.publishing">
     <appPublisher implementation="com.android.tools.idea.publishing.play.PlayAppPublisher" />
   </extensions>
