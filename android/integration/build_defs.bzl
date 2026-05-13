@@ -5,7 +5,7 @@ This module contains common constants used in builds/tests.
 # The version of Gradle to use for integration tests. This must be kept
 # in-sync with code (search the codebase for
 # "INTEGRATION_TEST_GRADLE_VERSION").
-INTEGRATION_TEST_GRADLE_VERSION = "//tools/base/build-system:gradle-distrib-8.6"
+INTEGRATION_TEST_GRADLE_VERSION = "//tools/adt/idea/android/integration:gradle-distrib-8.6-with-jre21"
 
 # The emulator to use for integration tests. This must be kept in-sync with
 # code (search the codebase for "INTEGRATION_TEST_SYSTEM_IMAGE").

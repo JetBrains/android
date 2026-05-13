@@ -31,6 +31,15 @@ iml_module(
     deps = ["@intellij//:com.intellij.java"],
 )
 
+filegroup(
+    name = "gradle-distrib-8.6-with-jre21",
+    srcs = [
+        "//prebuilts/studio/jdk:jdk21",
+        "//tools/base/build-system:gradle-distrib-8.6",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 open_project_data = [
     ":minapp",
     ":openproject_deps",
