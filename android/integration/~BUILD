@@ -330,6 +330,7 @@ iml_test(
     name = "AdbWifiPairTest",
     timeout = "long",
     data = [
+        "//prebuilts/studio/jdk:jdk21",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:system_image_android-CANARY_r11_default",
@@ -355,6 +356,7 @@ iml_test(
     name = "AdbWifiAutoEnableTest",
     timeout = "long",
     data = [
+        "//prebuilts/studio/jdk:jdk21",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:system_image_android-CANARY_r11_default",
@@ -381,6 +383,7 @@ iml_test(
     timeout = "long",
     data = [
         ":minapp",
+        "//prebuilts/studio/jdk:jdk21",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
         INTEGRATION_TEST_SYSTEM_IMAGE,
@@ -405,7 +408,7 @@ iml_test(
         ":minapp",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
-        "//tools/base/build-system:gradle-distrib-7.2",
+        INTEGRATION_TEST_GRADLE_VERSION,
         INTEGRATION_TEST_SYSTEM_IMAGE,
     ] + emulator_snapshot_data(INTEGRATION_TEST_SYSTEM_IMAGE),
     jvm_flags = emulator_snapshot_jvm_flags(INTEGRATION_TEST_SYSTEM_IMAGE),
@@ -449,6 +452,7 @@ live_edit_test_data = [
     "//prebuilts/studio/sdk:platforms/android-35",
     "//prebuilts/studio/sdk:build-tools/35.0.0",
     "//prebuilts/studio/sdk:platform-tools",
+    "//prebuilts/studio/jdk:jdk21",
 ]
 
 iml_test(
@@ -768,6 +772,7 @@ iml_test(
     timeout = "long",
     data = [
         ":helloworldapk",
+        "//prebuilts/studio/jdk:jdk21",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
@@ -1243,7 +1248,7 @@ studio_project_model(
     srcs = [
         ":buildproject_deps",
         ":minapp",
-        "//tools/base/build-system:gradle-distrib-8.6",
+        INTEGRATION_TEST_GRADLE_VERSION,
     ],
     manifest_path = "tools/adt/idea/android/integration/buildproject_deps.manifest",
     out_dir_name = "minapp_project_model",
@@ -1256,7 +1261,7 @@ studio_project_model(
     srcs = [
         ":debug_junit_test_deps",
         ":debugjunittest",
-        "//tools/base/build-system:gradle-distrib-8.6",
+        INTEGRATION_TEST_GRADLE_VERSION,
     ],
     manifest_path = "tools/adt/idea/android/integration/debug_junit_test_deps.manifest",
     out_dir_name = "debugjunittest_project_model",
@@ -1268,7 +1273,7 @@ studio_project_model(
     srcs = [
         ":architectureSamples",
         ":editor_performance_test_deps",
-        "//tools/base/build-system:gradle-distrib-8.6",
+        INTEGRATION_TEST_GRADLE_VERSION,
     ],
     manifest_path = "tools/adt/idea/android/integration/editor_performance_test_deps.manifest",
     out_dir_name = "architectureSamples_project_model",
@@ -1280,7 +1285,7 @@ studio_project_model(
     srcs = [
         ":languagehighlighting",
         ":languagehighlighting_deps",
-        "//tools/base/build-system:gradle-distrib-8.6",
+        INTEGRATION_TEST_GRADLE_VERSION,
     ],
     manifest_path = "tools/adt/idea/android/integration/languagehighlighting_deps.manifest",
     out_dir_name = "languagehighlighting_project_model",
@@ -1292,7 +1297,7 @@ studio_project_model(
     srcs = [
         ":applychangesproject",
         ":buildproject_deps",
-        "//tools/base/build-system:gradle-distrib-8.6",
+        INTEGRATION_TEST_GRADLE_VERSION,
     ],
     manifest_path = "tools/adt/idea/android/integration/buildproject_deps.manifest",
     out_dir_name = "applychanges_project_model",
@@ -1304,7 +1309,7 @@ studio_project_model(
     srcs = [
         ":instrumenttestapp",
         ":run_instrumented_test_project_deps",
-        "//tools/base/build-system:gradle-distrib-8.6",
+        INTEGRATION_TEST_GRADLE_VERSION,
     ],
     manifest_path = "tools/adt/idea/android/integration/run_instrumented_test_project_deps.manifest",
     out_dir_name = "instrumenttestapp_project_model",
@@ -1317,7 +1322,7 @@ studio_project_model(
     srcs = [
         ":buildproject_deps",
         ":mindebugapp",
-        "//tools/base/build-system:gradle-distrib-8.6",
+        INTEGRATION_TEST_GRADLE_VERSION,
     ],
     manifest_path = "tools/adt/idea/android/integration/buildproject_deps.manifest",
     out_dir_name = "mindebugapp_project_model",
@@ -1329,7 +1334,7 @@ studio_project_model(
     srcs = [
         ":buildkmpproject_deps",
         ":kmpapp",
-        "//tools/base/build-system:gradle-distrib-8.6",
+        INTEGRATION_TEST_GRADLE_VERSION,
     ],
     manifest_path = "tools/adt/idea/android/integration/buildkmpproject_deps.manifest",
     out_dir_name = "kmpapp_project_model",
