@@ -10,7 +10,7 @@ aswb_library(
         "//tools/adt/idea/aswb/base:__subpackages__",
     ],
     deps = [
-        "//tools/vendor/google/aswb/plugin_api",
-        "//tools/vendor/google/aswb/plugin_api:jsr305",  # unuseddeps: keep
+        "//tools/adt/idea/aswb/plugin_api",
+        "//tools/adt/idea/aswb/plugin_api:jsr305",  # unuseddeps: keep
     ],
 )

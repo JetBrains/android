@@ -24,9 +24,9 @@ aswb_library(
     visibility = [":__subpackages__"],
     deps = [
         "//tools/adt/idea/aswb/common/util:platform",
+        "//tools/adt/idea/aswb/plugin_api",
+        "//tools/adt/idea/aswb/plugin_api:jsr305",
         "//tools/adt/idea/aswb/third_party/java/auto_value",
-        "//tools/vendor/google/aswb/plugin_api",
-        "//tools/vendor/google/aswb/plugin_api:jsr305",
     ],
 )
 
@@ -54,8 +54,8 @@ java_library(
     visibility = [":__subpackages__"],
     deps = [
         ":experiments",
-        "//tools/vendor/google/aswb/plugin_api",
-        "//tools/vendor/google/aswb/plugin_api:jsr305",
+        "//tools/adt/idea/aswb/plugin_api",
+        "//tools/adt/idea/aswb/plugin_api:jsr305",
     ],
 )
 
@@ -68,10 +68,10 @@ intellij_unit_test_suite(
     deps = [
         ":experiments",
         ":unit_test_utils",
+        "//tools/adt/idea/aswb/plugin_api",
+        "//tools/adt/idea/aswb/plugin_api:test_libs",
         "//tools/adt/idea/aswb/testing:lib",
         "//tools/adt/idea/aswb/third_party/java/junit",
-        "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
-        "//tools/vendor/google/aswb/plugin_api:test_libs",
     ],
 )

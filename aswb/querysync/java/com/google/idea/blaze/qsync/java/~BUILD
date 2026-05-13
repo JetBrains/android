@@ -30,6 +30,7 @@ aswb_library(
     ]),
     deps = [
         "//tools/adt/idea/aswb/common/experiments",
+        "//tools/adt/idea/aswb/plugin_api",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps:artifact_tracker_state_java_proto",
@@ -39,6 +40,5 @@ aswb_library(
         "//tools/adt/idea/aswb/shared",
         "//tools/adt/idea/aswb/shared:artifact",
         "//tools/adt/idea/aswb/third_party/java/auto_value",
-        "//tools/vendor/google/aswb/plugin_api",
     ],
 )

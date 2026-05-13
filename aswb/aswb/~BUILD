@@ -43,9 +43,9 @@ java_library(
     deps = [
         ":aswb_lib",
         "//tools/adt/idea/aswb/base",
-        "//tools/vendor/google/aswb/plugin_api",
+        "//tools/adt/idea/aswb/plugin_api",
+        "//tools/adt/idea/aswb/plugin_api:test_libs",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
-        "//tools/vendor/google/aswb/plugin_api:test_libs",
     ],
 )
 
@@ -63,13 +63,13 @@ java_library(
         "//tools/adt/idea/aswb/common/experiments:unit_test_utils",
         "//tools/adt/idea/aswb/cpp:cpp_lib",
         "//tools/adt/idea/aswb/java:java_lib",
+        "//tools/adt/idea/aswb/plugin_api",
+        "//tools/adt/idea/aswb/plugin_api:jsr305",
+        "//tools/adt/idea/aswb/plugin_api:test_libs",
         "//tools/adt/idea/aswb/shared:artifact",
         "//tools/adt/idea/aswb/testing:lib",
         "//tools/adt/idea/aswb/third_party/java/junit",
-        "//tools/vendor/google/aswb/plugin_api",
-        "//tools/vendor/google/aswb/plugin_api:jsr305",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",  # unuseddeps: keep
-        "//tools/vendor/google/aswb/plugin_api:test_libs",
     ],
 )
 
@@ -98,13 +98,13 @@ aswb_library(
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/cpp:cpp_lib",
         "//tools/adt/idea/aswb/java:java_lib",
+        "//tools/adt/idea/aswb/plugin_api",
+        "//tools/adt/idea/aswb/plugin_api:jsr305",  # unuseddeps: keep
         "//tools/adt/idea/aswb/proto:proto_deps",
         "//tools/adt/idea/aswb/querysync",
         "//tools/adt/idea/aswb/shared",
         "//tools/adt/idea/aswb/shared:artifact",
         "//tools/adt/idea/aswb/third_party/java/auto_value",
-        "//tools/vendor/google/aswb/plugin_api",
-        "//tools/vendor/google/aswb/plugin_api:jsr305",  # unuseddeps: keep
     ],
 )
 
@@ -131,15 +131,15 @@ intellij_unit_test_suite(
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/common/experiments:unit_test_utils",
         "//tools/adt/idea/aswb/java:java_lib",
+        "//tools/adt/idea/aswb/plugin_api",
+        "//tools/adt/idea/aswb/plugin_api:jsr305",
+        "//tools/adt/idea/aswb/plugin_api:test_libs",
         "//tools/adt/idea/aswb/proto:proto_deps",
         "//tools/adt/idea/aswb/shared",
         "//tools/adt/idea/aswb/shared:artifact",
         "//tools/adt/idea/aswb/testing:lib",
         "//tools/adt/idea/aswb/third_party/java/junit",
-        "//tools/vendor/google/aswb/plugin_api",
-        "//tools/vendor/google/aswb/plugin_api:jsr305",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
-        "//tools/vendor/google/aswb/plugin_api:test_libs",
     ],
 )
 
@@ -165,15 +165,15 @@ intellij_integration_test_suite(
         "//tools/adt/idea/aswb/common/experiments:unit_test_utils",
         "//tools/adt/idea/aswb/cpp:cpp_lib",
         "//tools/adt/idea/aswb/java:java_lib",
+        "//tools/adt/idea/aswb/plugin_api",
+        "//tools/adt/idea/aswb/plugin_api:jsr305",
+        "//tools/adt/idea/aswb/plugin_api:test_libs",
         "//tools/adt/idea/aswb/proto:proto_deps",
         "//tools/adt/idea/aswb/shared:artifact",
         "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common",
         "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/exception",
         "//tools/adt/idea/aswb/shared/javatests/com/google/idea/blaze/common/artifact:test_utils",
         "//tools/adt/idea/aswb/third_party/java/junit",
-        "//tools/vendor/google/aswb/plugin_api",
-        "//tools/vendor/google/aswb/plugin_api:jsr305",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
-        "//tools/vendor/google/aswb/plugin_api:test_libs",
     ],
 )

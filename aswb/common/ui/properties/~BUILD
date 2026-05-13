@@ -19,8 +19,8 @@ aswb_library(
     srcs = glob(["src/**/*.java"]),
     visibility = COMMON_PLUGINS_VISIBILITY,
     deps = [
-        "//tools/vendor/google/aswb/plugin_api",
-        "//tools/vendor/google/aswb/plugin_api:jsr305",
+        "//tools/adt/idea/aswb/plugin_api",
+        "//tools/adt/idea/aswb/plugin_api:jsr305",
     ],
 )
 
@@ -31,11 +31,11 @@ intellij_unit_test_suite(
     test_package_root = "com.google.idea.common.ui.properties",
     visibility = DEFAULT_TEST_VISIBILITY,
     runtime_deps = [
-        "//tools/vendor/google/aswb/plugin_api:guava_for_external_binaries",
+        "//tools/adt/idea/aswb/plugin_api:guava_for_external_binaries",
     ],
     deps = [
         ":properties",
+        "//tools/adt/idea/aswb/plugin_api:test_libs",
         "//tools/adt/idea/aswb/third_party/java/junit",
-        "//tools/vendor/google/aswb/plugin_api:test_libs",
     ],
 )

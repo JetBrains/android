@@ -11,6 +11,6 @@ aswb_library(
     ]),
     deps = [
         "//tools/adt/idea/aswb/common/experiments",
-        "//tools/vendor/google/aswb/plugin_api",
+        "//tools/adt/idea/aswb/plugin_api",
     ],
 )

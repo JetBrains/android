@@ -206,7 +206,7 @@ _plugin_deps = rule(
     attrs = {
         "plugins": attr.label_list(providers = [PluginInfo], allow_empty = True),
         "_plugin_api": attr.label(
-            default = Label("//tools/vendor/google/aswb/plugin_api:plugin_api"),
+            default = Label("//tools/adt/idea/aswb/plugin_api"),
         ),
     },
     implementation = _plugin_deps_impl,

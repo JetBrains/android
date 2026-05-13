@@ -9,7 +9,7 @@ aswb_library(
     srcs = glob(["*.kt"]),
     deps = [
         "//tools/adt/idea/aswb/common/experiments",
+        "//tools/adt/idea/aswb/plugin_api",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/dispatchers",
-        "//tools/vendor/google/aswb/plugin_api",
     ],
 )

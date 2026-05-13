@@ -64,12 +64,12 @@ aswb_library(
         ":language_class_java_proto",
         ":snapshot_java_proto",
         "//prebuilts/tools/common/m2:jsr305-2.0.1",
+        "//tools/adt/idea/aswb/plugin_api",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/query",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/query:querysummary_java_proto",
         "//tools/adt/idea/aswb/shared",
         "//tools/adt/idea/aswb/shared:vcs",
         "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common",
         "//tools/adt/idea/aswb/third_party/java/auto_value",
-        "//tools/vendor/google/aswb/plugin_api",
     ],
 )

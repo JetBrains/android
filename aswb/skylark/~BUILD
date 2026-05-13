@@ -21,9 +21,9 @@ java_library(
     deps = [
         "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/common/experiments",
+        "//tools/adt/idea/aswb/plugin_api",
+        "//tools/adt/idea/aswb/plugin_api:jsr305",
         "//tools/adt/idea/aswb/proto:proto_deps",
-        "//tools/vendor/google/aswb/plugin_api",
-        "//tools/vendor/google/aswb/plugin_api:jsr305",
     ],
 )
 

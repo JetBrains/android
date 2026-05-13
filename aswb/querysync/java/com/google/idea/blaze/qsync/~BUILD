@@ -12,6 +12,7 @@ aswb_library(
     deps = [
         "//prebuilts/tools/common/m2:jsr305-2.0.1",
         "//tools/adt/idea/aswb/common/experiments",
+        "//tools/adt/idea/aswb/plugin_api",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/cc",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps",
@@ -28,6 +29,5 @@ aswb_library(
         "//tools/adt/idea/aswb/shared:vcs",
         "//tools/adt/idea/aswb/third_party/java/auto_value",
         "//tools/base/annotations",
-        "//tools/vendor/google/aswb/plugin_api",
     ],
 )

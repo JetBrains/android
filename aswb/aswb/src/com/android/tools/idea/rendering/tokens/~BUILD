@@ -14,10 +14,10 @@ aswb_library(
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/cpp:cpp_lib",
         "//tools/adt/idea/aswb/java:java_lib",
+        "//tools/adt/idea/aswb/plugin_api",
         "//tools/adt/idea/aswb/proto:proto_deps",
         "//tools/adt/idea/aswb/querysync",
         "//tools/adt/idea/aswb/shared",
         "//tools/adt/idea/aswb/shared:artifact",
-        "//tools/vendor/google/aswb/plugin_api",
     ],
 )

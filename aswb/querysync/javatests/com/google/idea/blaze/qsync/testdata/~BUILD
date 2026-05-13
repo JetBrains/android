@@ -246,6 +246,7 @@ aswb_library(
     deps = [
         ":build_graphs",
         ":testdata",
+        "//tools/adt/idea/aswb/plugin_api",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/java",
@@ -255,7 +256,6 @@ aswb_library(
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync:TestUtils",
         "//tools/adt/idea/aswb/shared:exception",
         "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common",
-        "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
     ],
 )

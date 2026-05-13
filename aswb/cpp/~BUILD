@@ -29,12 +29,12 @@ aswb_library(
         "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/common/util:platform",
+        "//tools/adt/idea/aswb/plugin_api",
+        "//tools/adt/idea/aswb/plugin_api:jsr305",
         "//tools/adt/idea/aswb/proto:proto_deps",
         "//tools/adt/idea/aswb/querysync",
         "//tools/adt/idea/aswb/shared",
         "//tools/adt/idea/aswb/third_party/java/auto_value",
-        "//tools/vendor/google/aswb/plugin_api",
-        "//tools/vendor/google/aswb/plugin_api:jsr305",
     ],
 )
 
@@ -57,9 +57,9 @@ java_library(
     srcs = ["tests/utils/com/google/idea/bazel/cpp/ClionUnitTestSystemPropertiesRule.java"],
     visibility = PLUGIN_PACKAGES_VISIBILITY,
     deps = [
+        "//tools/adt/idea/aswb/plugin_api",
+        "//tools/adt/idea/aswb/plugin_api:jsr305",
         "//tools/adt/idea/aswb/third_party/java/junit",
-        "//tools/vendor/google/aswb/plugin_api",
-        "//tools/vendor/google/aswb/plugin_api:jsr305",
     ],
 )
 
@@ -71,17 +71,17 @@ intellij_unit_test_suite(
     test_package_root = "com.google.idea.bazel.cpp",
     visibility = DEFAULT_TEST_VISIBILITY,
     # Needed to work around one-version issue
-    runtime_deps = ["//tools/vendor/google/aswb/plugin_api:test_libs"],
+    runtime_deps = ["//tools/adt/idea/aswb/plugin_api:test_libs"],
     deps = [
         ":cpp_lib",
         "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/base:unit_test_utils",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/common/experiments:unit_test_utils",
+        "//tools/adt/idea/aswb/plugin_api",
+        "//tools/adt/idea/aswb/plugin_api:test_libs",
         "//tools/adt/idea/aswb/third_party/java/junit",
-        "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
-        "//tools/vendor/google/aswb/plugin_api:test_libs",
     ],
 )
 
@@ -96,11 +96,11 @@ java_library(
         "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/base:integration_test_utils",
         "//tools/adt/idea/aswb/base:unit_test_utils",
+        "//tools/adt/idea/aswb/plugin_api",
+        "//tools/adt/idea/aswb/plugin_api:test_libs",
         "//tools/adt/idea/aswb/testing:lib",
         "//tools/adt/idea/aswb/third_party/java/junit",
-        "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
-        "//tools/vendor/google/aswb/plugin_api:test_libs",
     ],
 )
 
@@ -122,10 +122,10 @@ intellij_integration_test_suite(
         "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/base:integration_test_utils",
         "//tools/adt/idea/aswb/base:unit_test_utils",
+        "//tools/adt/idea/aswb/plugin_api",
+        "//tools/adt/idea/aswb/plugin_api:jsr305",
+        "//tools/adt/idea/aswb/plugin_api:test_libs",
         "//tools/adt/idea/aswb/third_party/java/junit",
-        "//tools/vendor/google/aswb/plugin_api",
-        "//tools/vendor/google/aswb/plugin_api:jsr305",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
-        "//tools/vendor/google/aswb/plugin_api:test_libs",
     ],
 )

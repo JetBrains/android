@@ -12,6 +12,7 @@ aswb_test(
         "//prebuilts/tools/common/m2:jsr305-2.0.1",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/common/experiments:unit_test_utils",
+        "//tools/adt/idea/aswb/plugin_api",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
         "//tools/adt/idea/aswb/shared",
@@ -20,7 +21,6 @@ aswb_test(
         "//tools/adt/idea/aswb/testing:lib",
         "//tools/adt/idea/aswb/third_party/java/junit",
         "//tools/adt/idea/aswb/third_party/java/truth",
-        "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
     ],
 )
@@ -29,9 +29,9 @@ java_library(
     name = "mock_artifact_cache",
     srcs = ["MockArtifactCache.java"],
     deps = [
+        "//tools/adt/idea/aswb/plugin_api",
         "//tools/adt/idea/aswb/shared",
         "//tools/adt/idea/aswb/shared:artifact",
-        "//tools/vendor/google/aswb/plugin_api",
     ],
 )
 
@@ -39,7 +39,7 @@ java_library(
     name = "aspect_protos",
     srcs = ["AspectProtos.java"],
     deps = [
+        "//tools/adt/idea/aswb/plugin_api",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts:build_artifact_java_proto",
-        "//tools/vendor/google/aswb/plugin_api",
     ],
 )

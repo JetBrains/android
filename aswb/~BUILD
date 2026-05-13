@@ -38,7 +38,7 @@ test_suite(
 
 aswb_module(
     name = "aswb_core_module",
-    aswb_module_deps = ["//tools/vendor/google/aswb/plugin_api:plugin_api_module"],
+    aswb_module_deps = ["//tools/adt/idea/aswb/plugin_api:plugin_api_module"],
     scope_prefixes = ["//tools/adt/idea/aswb/"],
     target_compatible_with = select({
         "@platforms//os:windows": ["@platforms//:incompatible"],
@@ -65,7 +65,7 @@ aswb_plugin_module(
     visibility = ["//tools/vendor/google/aswb:__pkg__"],
     deps = [
         ":aswb_core_module",
-        "//tools/vendor/google/aswb/plugin_api:plugin_api_module",
+        "//tools/adt/idea/aswb/plugin_api:plugin_api_module",
     ],
 )
 
@@ -82,7 +82,7 @@ studio_plugin(
     modules = {
         "aswb_core.jar": [
             ":aswb_core_module",
-            "//tools/vendor/google/aswb/plugin_api:plugin_api_module",
+            "//tools/adt/idea/aswb/plugin_api:plugin_api_module",
         ],
         "aswb_core_plugin_xml.jar": ["//tools/adt/idea/aswb:aswb_plugin_xml"],
     },

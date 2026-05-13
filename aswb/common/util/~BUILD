@@ -16,8 +16,8 @@ aswb_library(
     name = "concurrency",
     srcs = ["src/com/google/idea/common/util/ConcurrencyUtil.java"],
     deps = [
-        "//tools/vendor/google/aswb/plugin_api",
-        "//tools/vendor/google/aswb/plugin_api:jsr305",  # unuseddeps: keep for @Nullable
+        "//tools/adt/idea/aswb/plugin_api",
+        "//tools/adt/idea/aswb/plugin_api:jsr305",  # unuseddeps: keep for @Nullable
     ],
 )
 
@@ -27,7 +27,7 @@ aswb_library(
         "src/com/google/idea/common/util/MorePlatformUtils.java",
     ],
     deps = [
-        "//tools/vendor/google/aswb/plugin_api",
+        "//tools/adt/idea/aswb/plugin_api",
     ],
 )
 
@@ -35,7 +35,7 @@ aswb_library(
     name = "transactions",
     srcs = ["src/com/google/idea/common/util/Transactions.java"],
     deps = [
-        "//tools/vendor/google/aswb/plugin_api",
+        "//tools/adt/idea/aswb/plugin_api",
     ],
 )
 
@@ -43,9 +43,9 @@ aswb_library(
     name = "process",
     srcs = glob(["src/com/google/idea/async/process/*.java"]),
     deps = [
+        "//tools/adt/idea/aswb/plugin_api",
+        "//tools/adt/idea/aswb/plugin_api:jsr305",  # unuseddeps: keep for @Nullable
         "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common",
-        "//tools/vendor/google/aswb/plugin_api",
-        "//tools/vendor/google/aswb/plugin_api:jsr305",  # unuseddeps: keep for @Nullable
     ],
 )
 
@@ -56,12 +56,12 @@ aswb_test(
     test_class = "com.google.idea.common.async.process.CommandLineTaskTest",
     deps = [
         ":process",
+        "//tools/adt/idea/aswb/plugin_api",
+        "//tools/adt/idea/aswb/plugin_api:jsr305",  # unuseddeps: keep for @Nullable
+        "//tools/adt/idea/aswb/plugin_api:test_libs",
+        "//tools/adt/idea/aswb/plugin_api:truth",
         "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common",
         "//tools/adt/idea/aswb/third_party/java/junit",
-        "//tools/vendor/google/aswb/plugin_api",
-        "//tools/vendor/google/aswb/plugin_api:jsr305",  # unuseddeps: keep for @Nullable
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
-        "//tools/vendor/google/aswb/plugin_api:test_libs",
-        "//tools/vendor/google/aswb/plugin_api:truth",
     ],
 )

@@ -20,9 +20,9 @@ aswb_library(
     ],
     deps = [
         "//tools/adt/idea/aswb/base",
-        "//tools/vendor/google/aswb/plugin_api",
-        "//tools/vendor/google/aswb/plugin_api:jsr305",
-        "//tools/vendor/google/aswb/plugin_api:terminal",
+        "//tools/adt/idea/aswb/plugin_api",
+        "//tools/adt/idea/aswb/plugin_api:jsr305",
+        "//tools/adt/idea/aswb/plugin_api:terminal",
     ],
 )
 

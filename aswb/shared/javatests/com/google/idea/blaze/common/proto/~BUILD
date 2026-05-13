@@ -27,10 +27,10 @@ aswb_test(
     test_class = "com.google.idea.blaze.common.proto.ProtoStringInternerTest",
     deps = [
         ":test_java_proto",
+        "//tools/adt/idea/aswb/plugin_api",
         "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common/proto",
         "//tools/adt/idea/aswb/third_party/java/junit",
         "//tools/adt/idea/aswb/third_party/java/truth",
-        "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
     ],
 )
