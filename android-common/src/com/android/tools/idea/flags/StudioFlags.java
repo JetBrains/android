@@ -2799,6 +2799,12 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "agy.harness",
                     "Enable support for Antigravity Harness",
                     "Enables the integration to connect and use Antigravity Harness");
+
+  public static final Flag<Boolean> STUDIOBOT_SYMBOL_LINKIFICATION_ENABLED =
+    new BooleanFlag(STUDIOBOT, "symbol.linkification",
+                    "Enable project-wide symbol linkification and navigation",
+                    "Enables one-click navigation to code symbols mentioned in Studio Bot responses");
+
   // endregion STUDIO_BOT
 
   // region EXPERIMENTAL_UI
