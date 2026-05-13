@@ -64,11 +64,25 @@ class LoggedOutPageTest {
 
     composeTestRule.setContent { wizard.Content() }
 
-    composeTestRule.onNodeWithText("Upload to Play").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Publish your application directly to the Google Play Store from Android Studio.").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Sign in and link your Play Console account, if necessary").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Publish your Android app for testing").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Publish your application directly to Google Play Store from Android Studio.").assertIsDisplayed()
+    composeTestRule.onNodeWithText("In the following steps, you will be guided to:").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Sign in and link your Google Play account to Android Studio, if necessary").assertIsDisplayed()
     composeTestRule.onNodeWithText("Upload your Android App Bundle (.aab) or APK").assertIsDisplayed()
     composeTestRule.onNodeWithText("Configure your release").assertIsDisplayed()
+
+    composeTestRule
+      .onNodeWithText(
+        "You must have a Google Play developer account to publish apps. If you don't have one yet, you can start the registration at Google Play Console",
+        substring = true,
+      )
+      .assertIsDisplayed()
+
+    composeTestRule
+      .onNodeWithText(
+        "Using this wizard requires signing into Android Studio. You will be redirected to the web to sign in at the next step."
+      )
+      .assertIsDisplayed()
   }
 
   // TODO: android-merge; both tests drive the next action, which signs in through

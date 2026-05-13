@@ -26,7 +26,7 @@ import com.intellij.openapi.project.Project
 
 fun showPublishingWizard(project: Project, context: AppPublishingContext) {
   val wizard =
-    ComposeWizard(project, "Upload to Play Wizard") {
+    ComposeWizard(project, "Publish for Testing Wizard") {
       getOrCreateState { context.toPublishingWizardState() }
       // TODO: android-merge; the logged in branch needs com.google.gct.login2.fstLoginFeature from
       // tools/vendor/google/login, which this repository does not carry, so the wizard always starts on the

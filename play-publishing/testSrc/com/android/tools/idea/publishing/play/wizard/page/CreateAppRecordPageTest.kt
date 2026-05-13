@@ -81,7 +81,7 @@ class CreateAppRecordPageTest {
     fakeClient.config = FakePlayPublishingClient.Config(listDeveloperCall = { CompletableDeferred<List<Developer>>().await() })
     createWizard()
 
-    composeTestRule.onNodeWithText("Upload to Play").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Publish your Android app for testing").assertIsDisplayed()
     composeTestRule.onNodeWithText("Create new app").assertIsDisplayed()
     composeTestRule.onNodeWithText("Loading accounts...").assertIsDisplayed()
   }

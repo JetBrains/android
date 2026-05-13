@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.input.InputTransformation
@@ -41,7 +40,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.android.tools.adtui.compose.LocalProject
@@ -50,6 +48,8 @@ import com.android.tools.adtui.compose.WizardPageScope
 import com.android.tools.idea.publishing.play.client.type.AppEdit
 import com.android.tools.idea.publishing.play.client.type.Track
 import com.android.tools.idea.publishing.play.client.type.parseGoogleApiError
+import com.android.tools.idea.publishing.play.wizard.FormField
+import com.android.tools.idea.publishing.play.wizard.PlayPublishingWizardHeader
 import com.android.tools.idea.publishing.play.wizard.PlayPublishingWizardState
 import com.google.api.client.http.HttpResponseException
 // TODO: android-merge; com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
@@ -63,7 +63,6 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
-import icons.StudioIllustrationsCompose
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import kotlin.coroutines.cancellation.CancellationException
@@ -72,7 +71,6 @@ import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.CircularProgressIndicator
 import org.jetbrains.jewel.ui.component.Dropdown
-import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.InlineErrorBanner
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextArea
@@ -149,75 +147,68 @@ fun WizardPageScope.CreateReleasePage() {
   LaunchedEffect(releaseNotesState.text) { state.releaseNotes = releaseNotesState.text.toString() }
 
   Box(modifier = Modifier.fillMaxSize()) {
-    Column(modifier = Modifier.fillMaxSize().padding(24.dp).verticalScroll(rememberScrollState())) {
-      // Header
-      Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(key = StudioIllustrationsCompose.Common.PlayConsoleIcon, contentDescription = null, modifier = Modifier.size(24.dp))
-        Spacer(modifier = Modifier.width(12.dp))
-        Text(text = "Upload to Play", style = JewelTheme.defaultTextStyle.copy(fontSize = 24.sp, fontWeight = FontWeight.Bold))
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(text = "Create release", style = JewelTheme.defaultTextStyle.copy(fontSize = 18.sp, color = Color.Gray))
-      }
+    Column(modifier = Modifier.fillMaxSize()) {
+      PlayPublishingWizardHeader(subtitle = "Create release")
 
-      Spacer(modifier = Modifier.height(32.dp))
-
-      // Form fields
-      Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        FormField(label = "Publish to:") {
-          if (isLoadingTracks) {
-            Row(modifier = Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-              CircularProgressIndicator()
-              Spacer(modifier = Modifier.width(8.dp))
-              Text("Loading tracks...")
-            }
-          } else if (tracks.isEmpty()) {
-            Text("No tracks found.", color = JewelTheme.globalColors.text.disabled, modifier = Modifier.padding(top = 8.dp))
-          } else {
-            Dropdown(
-              modifier = Modifier.fillMaxWidth(),
-              menuContent = {
-                tracks.forEach { track ->
-                  selectableItem(selected = (track.track == selectedTrack), onClick = { selectedTrack = track.track }) {
-                    Text(track.track.displayTrackName())
+      Column(modifier = Modifier.fillMaxSize().padding(24.dp).verticalScroll(rememberScrollState())) {
+        // Form fields
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+          FormField(label = "Publish to:") {
+            if (isLoadingTracks) {
+              Row(modifier = Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                CircularProgressIndicator()
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Loading tracks...")
+              }
+            } else if (tracks.isEmpty()) {
+              Text("No tracks found.", color = JewelTheme.globalColors.text.disabled, modifier = Modifier.padding(top = 8.dp))
+            } else {
+              Dropdown(
+                modifier = Modifier.fillMaxWidth(),
+                menuContent = {
+                  tracks.forEach { track ->
+                    selectableItem(selected = (track.track == selectedTrack), onClick = { selectedTrack = track.track }) {
+                      Text(track.track.displayTrackName())
+                    }
                   }
-                }
-              },
-            ) {
-              selectedTrack?.let { Text(it.displayTrackName()) }
+                },
+              ) {
+                selectedTrack?.let { Text(it.displayTrackName()) }
+              }
             }
           }
-        }
 
-        // Release Name
-        FormField(label = "Release name:") {
-          Column {
-            TextField(
-              state = releaseNameState,
-              modifier = Modifier.fillMaxWidth(),
-              placeholder = { Text(DEFAULT_RELEASE_NAME) },
-              inputTransformation = InputTransformation.maxLength(RELEASE_NAME_CHAR_LIMIT),
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-              text = "For internal identification. Not shown on Google Play.",
-              style = JewelTheme.defaultTextStyle.copy(fontSize = 12.sp, color = Color.Gray),
-            )
+          // Release Name
+          FormField(label = "Release name:") {
+            Column {
+              TextField(
+                state = releaseNameState,
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text(DEFAULT_RELEASE_NAME) },
+                inputTransformation = InputTransformation.maxLength(RELEASE_NAME_CHAR_LIMIT),
+              )
+              Spacer(modifier = Modifier.height(4.dp))
+              Text(
+                text = "For internal identification. Not shown on Google Play.",
+                style = JewelTheme.defaultTextStyle.copy(fontSize = 12.sp, color = Color.Gray),
+              )
+            }
           }
-        }
 
-        // Release Notes
-        FormField(label = "Release notes:") {
-          Column {
-            TextArea(
-              state = releaseNotesState,
-              modifier = Modifier.fillMaxWidth().height(200.dp),
-              placeholder = { Text(DEFAULT_RELEASE_NOTES) },
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-              text = "Enter release notes for each language within the tags.",
-              style = JewelTheme.defaultTextStyle.copy(fontSize = 12.sp, color = Color.Gray),
-            )
+          // Release Notes
+          FormField(label = "Release notes:") {
+            Column {
+              TextArea(
+                state = releaseNotesState,
+                modifier = Modifier.fillMaxWidth().height(200.dp),
+                placeholder = { Text(DEFAULT_RELEASE_NOTES) },
+              )
+              Spacer(modifier = Modifier.height(4.dp))
+              Text(
+                text = "Enter release notes for each language within the tags.",
+                style = JewelTheme.defaultTextStyle.copy(fontSize = 12.sp, color = Color.Gray),
+              )
+            }
           }
         }
       }
@@ -233,7 +224,7 @@ fun WizardPageScope.CreateReleasePage() {
   // If the app is created in this dialog, we shouldn't go back. Coming back to this page will call
   // the create app API again and fail since the package name will already exist.
   prevButtonEnabled = !state.isAppCreated
-  nextActionName = "Upload"
+  nextActionName = "Publish app"
   nextAction =
     if (shouldDisableNextAction()) {
       WizardAction.Disabled
@@ -246,7 +237,7 @@ fun WizardPageScope.CreateReleasePage() {
 
         ProgressManager.getInstance()
           .run(
-            object : Task.Backgroundable(project, "Uploading build to Play...", true) {
+            object : Task.Backgroundable(project, "Uploading Build to Google Play...", true) {
               override fun run(indicator: ProgressIndicator) {
                 indicator.isIndeterminate = true
                 runBlocking {
@@ -261,7 +252,13 @@ fun WizardPageScope.CreateReleasePage() {
                       selectedTrackId,
                     )
                     state.client.commitEdit(packageName, editId)
-                    showUploadSuccessfulNotification(project, releaseNameState.text.toString(), selectedTrack, state.appName)
+                    showUploadSuccessfulNotification(
+                      project,
+                      releaseNameState.text.toString(),
+                      selectedTrack,
+                      state.appName,
+                      state.developerId,
+                    )
                   } catch (e: HttpResponseException) {
                     val error = e.parseGoogleApiError()
                     val message = error?.message ?: e.message ?: "Unknown error"
@@ -279,31 +276,30 @@ fun WizardPageScope.CreateReleasePage() {
       }
 }
 
-@Composable
-private fun FormField(label: String, content: @Composable () -> Unit) {
-  Row(verticalAlignment = Alignment.Top) {
-    Text(text = label, modifier = Modifier.width(150.dp).padding(top = 8.dp), style = JewelTheme.defaultTextStyle.copy(fontSize = 13.sp))
-    Box(modifier = Modifier.weight(1f)) { content() }
-  }
-}
-
-private fun showUploadSuccessfulNotification(project: Project?, releaseName: String?, selectedTrack: String?, appName: String?) {
+private fun showUploadSuccessfulNotification(
+  project: Project?,
+  releaseName: String?,
+  selectedTrack: String?,
+  appName: String?,
+  developerId: Long?,
+) {
   val content =
     "Your release ${if(releaseName.isNullOrEmpty()) "" else "\"${releaseName}\" "}has been successfully uploaded to ${selectedTrack?.displayTrackName()}${if (appName.isNullOrEmpty()) "." else " for \"${appName}\"."}"
   val notification =
     NotificationGroupManager.getInstance()
       .getNotificationGroup("Play Publishing")
-      .createNotification("Upload successful", content, NotificationType.INFORMATION)
+      .createNotification("Publishing successful", content, NotificationType.INFORMATION)
       .setIcon(StudioIcons.Common.SUCCESS)
 
   // TODO: android-merge; the signed-in account comes from com.google.gct.login2.GoogleLoginService in
   // tools/vendor/google/login, which this repository does not carry, so the notification has no
-  // "Open in Play Console" action here.
+  // "Open Play Console" action here.
   // val email = GoogleLoginService.instance.getEmail()
   // if (email != null) {
   //   notification.addAction(
-  //     NotificationAction.createSimpleExpiring("Open in Play Console \u2197") {
-  //       val url = playConsoleViaAccountChooserUrl(email, "https://play.google.com/console")
+  //     NotificationAction.createSimpleExpiring("Open Play Console \u2197") {
+  //       val developer = developerId?.let { "developers/$it" } ?: ""
+  //       val url = playConsoleViaAccountChooserUrl(email, "https://play.google.com/console/$developer")
   //       BrowserUtil.browse(url)
   //     }
   //   )
@@ -315,7 +311,7 @@ private fun showUploadSuccessfulNotification(project: Project?, releaseName: Str
 private fun showUploadFailedNotification(project: Project?, errorMessage: String) {
   NotificationGroupManager.getInstance()
     .getNotificationGroup("Play Publishing")
-    .createNotification("Upload failed", errorMessage, NotificationType.ERROR)
+    .createNotification("Publishing failed", errorMessage, NotificationType.ERROR)
     .notify(project)
 }
 
