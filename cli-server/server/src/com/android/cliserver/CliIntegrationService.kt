@@ -16,6 +16,7 @@
 package com.android.cliserver
 
 import com.android.prefs.AndroidLocationsSingleton
+import com.android.tools.idea.flags.StudioFlags
 import com.google.protobuf.kotlin.toByteString
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationInfo
@@ -39,6 +40,8 @@ class CliIntegrationService : Disposable, ServerInfoProvider {
   var server: CliServer? = null
 
   fun startIfNeeded() {
+    if (!StudioFlags.ENABLE_CLI_INTEGRATION_SERVER.get()) return
+
     synchronized(startedLock) {
       if (!started) {
         server = CliServer(CliServerRegistry(AndroidLocationsSingleton.prefsLocation), this)

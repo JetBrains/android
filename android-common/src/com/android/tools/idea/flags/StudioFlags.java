@@ -3084,6 +3084,19 @@ public final class StudioFlags {
     );
   // endregion Play Publishing
 
+  // region Android CLI
+
+  private static final FlagGroup ANDROID_CLI = new FlagGroup(FLAGS, "android.cli", "Android CLI");
+  public static final Flag<Boolean> ENABLE_CLI_INTEGRATION_SERVER =
+    new BooleanFlag(
+      ANDROID_CLI,
+      "enable.integration.server",
+      "Enable Android CLI integration server",
+      "Enable Android CLI integration server"
+    );
+
+  // endregion Android CLI
+
   private StudioFlags() { }
 
   private static Boolean isUnitTestMode() {

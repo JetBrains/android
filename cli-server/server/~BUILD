@@ -17,12 +17,14 @@ iml_module(
     exports = ["//tools/adt/idea/cli-server/server:studio_cli_service_kt_proto"],
     # do not sort: must match IML order
     deps = [
+        "//tools/base/flags:studio.android.sdktools.flags",
         "@intellij//:intellij-sdk",
         "@intellij//:intellij.libraries.grpc",
         "//tools/adt/idea/.idea/libraries:protobuf-kotlin",
         "//tools/adt/idea/cli-server/server:studio_cli_service_kt_proto",
         "//tools/base/common:studio.android.sdktools.common",
         "@intellij//:intellij.libraries.grpc.netty.shaded",
+        "//tools/adt/idea/android-common:intellij.android.common",
     ],
 )
 
