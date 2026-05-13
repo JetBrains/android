@@ -119,6 +119,15 @@ public class AndroidSystem implements AutoCloseable, TestRule {
       system.install.setNewUi();
       system.install.createGeneralPropertiesXml();
 
+      // Explicitly configure the JDK to use Java 21
+      Path jdkDir = TestUtils.getJava21Jdk();
+      String javaHome = jdkDir.toAbsolutePath().toString();
+      system.setEnv("GRADLE_LOCAL_JAVA_HOME", javaHome);
+      system.setEnv("JAVA_HOME", javaHome);
+      system.setEnv("STUDIO_GRADLE_JDK", javaHome);
+      system.setEnv("STUDIO_JDK", javaHome);
+      system.install.addVmOption("-Dgradle.jvm=" + javaHome);
+
       return system;
     }
     catch (IOException e) {
