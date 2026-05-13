@@ -90,12 +90,12 @@ import icons.StudioIcons
 import java.awt.Component
 import java.io.IOException
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -208,8 +208,6 @@ class StudioLocalEmulatorDeviceHandle(
   DeletableDeviceHandle {
   fun updatePairedPhone(phone: StudioLocalEmulatorDeviceHandle?) = baseDeviceHandle.updatePairedPhone(phone?.baseDeviceHandle)
 
-  private var activationJob: Job? = null
-
   // Do not cache this; getDefaultAvdManagerConnection() changes when the local SDK path changes.
   private val avdManagerConnection
     get() = AvdManagerConnection.getDefaultAvdManagerConnection()
@@ -255,21 +253,14 @@ class StudioLocalEmulatorDeviceHandle(
       baseDeviceHandle.activate(action)
     }
 
-    activationJob =
-      baseDeviceHandle.scope.launch {
-        val ready = withTimeoutOrNull(120_000L) { stateFlow.first { it.isReady } }
-        if (ready != null && isUnpairedAiGlasses()) {
+    if (state.properties.deviceType == DeviceType.AI_GLASSES && state.properties.pairedPhoneId == null) {
+      scope.launch {
+        val state = withTimeoutOrNull(2.minutes) { awaitReady() } ?: return@launch
+        if (state.connectedDevice.isUnpaired()) {
           launchAutomaticGlassesPairing()
         }
       }
-  }
-
-  private suspend fun isUnpairedAiGlasses(): Boolean {
-    if (state.properties.deviceType == DeviceType.AI_GLASSES) {
-      awaitReady()
-      return state.connectedDevice?.isUnpaired() ?: false
     }
-    return false
   }
 
   private suspend fun ConnectedDevice.isUnpaired(): Boolean =
