@@ -42,7 +42,7 @@ class OpenFileHandler : CliActionHandler {
       ApplicationManager.getApplication().invokeAndWait {
         val editors =
           FileEditorManager.getInstance(project)
-            .openFile(LocalFileSystem.getInstance().findFileByPath(project.basePath + "/" + file) ?: throw Exception("File not found"))
+            .openFile(LocalFileSystem.getInstance().findFileByPath(file) ?: throw Exception("File not found"))
         val editor = editors.getOrNull(0) as? TextEditorWithPreview ?: return@invokeAndWait
         editor.setLayout(TextEditorWithPreview.Layout.SHOW_EDITOR_AND_PREVIEW)
       }
