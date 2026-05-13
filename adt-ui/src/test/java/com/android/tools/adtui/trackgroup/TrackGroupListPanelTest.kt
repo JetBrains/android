@@ -26,6 +26,7 @@ import com.android.tools.adtui.model.trackgroup.TestTrackRendererType
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel
 import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.IconLoaderRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
@@ -42,6 +43,8 @@ class TrackGroupListPanelTest {
     val TRACK_RENDERER_FACTORY = TestTrackRendererFactory()
 
     @JvmField @ClassRule val appRule = ApplicationRule()
+
+    @JvmField @ClassRule val iconRule = IconLoaderRule()
   }
 
   @JvmField @Rule val edtRule = EdtRule()
