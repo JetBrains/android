@@ -22,6 +22,7 @@ iml_module(
 
 iml_test(
     name = "DeviceManagerTest",
+    data = ["//prebuilts/studio/jdk:jdk21"],
     module = ":device-manager-v2.integration",
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],

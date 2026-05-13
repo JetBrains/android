@@ -163,6 +163,7 @@ iml_test(
 iml_test(
     name = "GradleTokensTest",
     timeout = "long",
+    data = ["//prebuilts/studio/jdk:jdk21"],
     jvm_flags = ["-Didea.skip.indices.initialization=true"],
     module = ":intellij.android.projectSystem.integration.tests",
     tags = ["studio-e2e-test"],

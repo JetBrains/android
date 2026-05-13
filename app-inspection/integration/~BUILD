@@ -34,6 +34,7 @@ iml_test(
         "//prebuilts/studio/sdk:platform-tools",
         INTEGRATION_TEST_GRADLE_VERSION,
         INTEGRATION_TEST_SYSTEM_IMAGE,
+        "//prebuilts/studio/jdk:jdk21",
     ] + emulator_snapshot_data(INTEGRATION_TEST_SYSTEM_IMAGE),
     jvm_flags = emulator_snapshot_jvm_flags(INTEGRATION_TEST_SYSTEM_IMAGE),
     module = ":app-inspection.integration",
@@ -70,6 +71,7 @@ studio_project_model(
     srcs = [
         ":minapp",
         ":minapp_deps",
+        "//prebuilts/studio/jdk:jdk21",
         "//tools/base/build-system:gradle-distrib-8.6",
     ],
     manifest_path = "tools/adt/idea/app-inspection/integration/minapp_deps.manifest",
