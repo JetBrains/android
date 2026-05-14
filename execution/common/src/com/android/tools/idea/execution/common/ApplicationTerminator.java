@@ -74,6 +74,10 @@ public class ApplicationTerminator implements AndroidDebugBridge.IDeviceChangeLi
 
     AndroidDebugBridge.addDeviceChangeListener(this);
 
+    // There is a slight chance that by the time we added addDeviceChangeListener() forceStop might already finish.
+    // We force a deviceChange check here to make sure we are not waiting for a client that is already gone.
+    deviceChanged(myIDevice, IDevice.CHANGE_CLIENT_LIST);
+
     try {
       // Ensure all Clients are killed prior to handing off to the AndroidProcessHandler.
       if (!myProcessKilledLatch.await(10, TimeUnit.SECONDS)) {
