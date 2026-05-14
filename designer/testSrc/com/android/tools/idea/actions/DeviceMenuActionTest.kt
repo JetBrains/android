@@ -187,6 +187,7 @@ class DeviceMenuActionTest {
               AI Glasses (Display) (450 × 450 dp, mdpi)
               ------------------------------------------------------
               Generic Devices
+                  Small Tablet (960 × 600 dp, xhdpi)
                   Small Phone (360 × 640 dp, xhdpi)
                   Resizable (Experimental) (411 × 914 dp, 420dpi)
                   Medium Tablet (1280 × 800 dp, xhdpi)

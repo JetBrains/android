@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
  * <ol>
  *   <li>Small Phone
  *   <li>Medium Phone
+ *   <li>Small Tablet
  *   <li>Medium Tablet
  *   <li>The other devices (in reversed natural order)
  *   <li>Pixel XL
@@ -51,6 +52,7 @@ public final class NameComparator implements Comparator<Device> {
   private enum SortKey {
     SMALL_PHONE,
     MEDIUM_PHONE,
+    SMALL_TABLET,
     MEDIUM_TABLET,
     // All other devices, sorted in reverse order
     DEVICE,
@@ -76,6 +78,7 @@ public final class NameComparator implements Comparator<Device> {
       return switch (displayName) {
         case "Small Phone" -> SMALL_PHONE;
         case "Medium Phone" -> MEDIUM_PHONE;
+        case "Small Tablet" -> SMALL_TABLET;
         case "Medium Tablet" -> MEDIUM_TABLET;
         case "Pixel XL", "Pixel" -> PIXEL_1;
         case "Pixel Fold" -> PIXEL_FOLD;

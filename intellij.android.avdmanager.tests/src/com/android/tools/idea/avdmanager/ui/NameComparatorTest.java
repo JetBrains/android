@@ -78,7 +78,8 @@ public final class NameComparatorTest {
   @Test
   public void compareTablet() {
     // Arrange
-    var expectedDevices = List.of(mockDevice("Medium Tablet"),
+    var expectedDevices = List.of(mockDevice("Small Tablet"),
+                                  mockDevice("Medium Tablet"),
                                   mockDevice("Pixel Tablet"),
                                   mockDevice("Pixel C"));
 
