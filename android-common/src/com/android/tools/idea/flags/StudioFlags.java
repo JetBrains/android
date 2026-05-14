@@ -3080,7 +3080,7 @@ public final class StudioFlags {
       "play.publishing.endpoint",
       "Set Play Publishing server address",
       "Set Play Publishing server address",
-      "staging-androidpublisher.sandbox.googleapis.com"
+      "androidpublisher.googleapis.com"
     );
   // endregion Play Publishing
 
