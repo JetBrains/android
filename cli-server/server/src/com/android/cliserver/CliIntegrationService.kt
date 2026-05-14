@@ -27,6 +27,7 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.startup.ProjectActivity
+import java.nio.file.Paths
 
 @Service
 class CliIntegrationService : Disposable, ServerInfoProvider {
@@ -91,8 +92,25 @@ internal fun CliActionHandler.invokeHandler(
   val project =
     if (projectName.isEmpty() && openProjects.size == 1) {
       openProjects[0]
+    } else if (projectName.isNotEmpty()) {
+      val targetPath =
+        try {
+          Paths.get(projectName).toAbsolutePath().normalize()
+        } catch (_: Exception) {
+          null
+        }
+      openProjects.singleOrNull { p ->
+        p.name == projectName ||
+          (targetPath != null &&
+            p.basePath != null &&
+            try {
+              Paths.get(p.basePath).toAbsolutePath().normalize().equals(targetPath)
+            } catch (_: Exception) {
+              false
+            })
+      }
     } else {
-      (openProjects.singleOrNull { it.name == projectName })
+      null
     }
   // TODO: android-merge; upstream builds the three responses below with the generated Kotlin DSL, `commandResponse { ... }`
   //  and `genericError { ... }`. Those builders are top-level functions of the generated proto, and the studio-platform jar
@@ -106,7 +124,7 @@ internal fun CliActionHandler.invokeHandler(
             when {
               openProjects.isEmpty() -> "Studio has no open projects"
               request.project.isNullOrEmpty() && openProjects.size > 1 -> "There are multiple open projects, please specify one"
-              else -> "No project with name ${request.project}"
+              else -> "No project found matching \"${request.project}\""
             }
           )
       )

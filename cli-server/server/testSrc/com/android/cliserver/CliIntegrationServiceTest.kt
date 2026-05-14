@@ -71,7 +71,7 @@ class CliIntegrationServiceTest {
 
     val response = handler.invokeHandler(request, arrayOf(project))
     assertThat(response.hasError()).isTrue()
-    assertThat(response.error.message).contains("No project with name non-existent")
+    assertThat(response.error.message).contains("No project found matching \"non-existent\"")
   }
 
   @Test
@@ -95,5 +95,57 @@ class CliIntegrationServiceTest {
     val response = handler.invokeHandler(request, arrayOf(project1, project2))
     assertThat(response.hasError()).isTrue()
     assertThat(response.error.message).contains("There are multiple open projects")
+  }
+
+  @Test
+  fun testInvokeHandler_withSpecificProjectPath() {
+    val project = mock(Project::class.java)
+    `when`(project.name).thenReturn("testProject")
+    val absPath = java.nio.file.Paths.get("/path/to/project").toAbsolutePath().normalize().toString()
+    `when`(project.basePath).thenReturn(absPath)
+
+    var handled = false
+    val handler =
+      object : CliActionHandler {
+        override val type = 1
+
+        override fun handle(project: Project, request: ByteArray): ByteArray {
+          handled = true
+          return ByteArray(0)
+        }
+      }
+
+    // TODO: android-merge; upstream writes `commandRequest { this.project = absPath }`; the generated Kotlin DSL builders
+    //  are invisible here because the studio-platform jar declares no kotlin_module for com.android.cliserver.
+    val request = CommandRequest.newBuilder().setProject(absPath).build()
+
+    val response = handler.invokeHandler(request, arrayOf(project))
+    assertThat(response.hasError()).isFalse()
+    assertThat(handled).isTrue()
+  }
+
+  @Test
+  fun testInvokeHandler_withSpecificProjectNameMatch() {
+    val project = mock(Project::class.java)
+    `when`(project.name).thenReturn("testProject")
+
+    var handled = false
+    val handler =
+      object : CliActionHandler {
+        override val type = 1
+
+        override fun handle(project: Project, request: ByteArray): ByteArray {
+          handled = true
+          return ByteArray(0)
+        }
+      }
+
+    // TODO: android-merge; upstream writes `commandRequest { this.project = "testProject" }`; the generated Kotlin DSL
+    //  builders are invisible here because the studio-platform jar declares no kotlin_module for com.android.cliserver.
+    val request = CommandRequest.newBuilder().setProject("testProject").build()
+
+    val response = handler.invokeHandler(request, arrayOf(project))
+    assertThat(response.hasError()).isFalse()
+    assertThat(handled).isTrue()
   }
 }
