@@ -42,7 +42,7 @@ data class MergedManifestContributors(
 }
 
 fun AndroidModuleSystem.defaultGetMergedManifestContributors(): MergedManifestContributors {
-  val facet = module.androidFacet!!
+  val facet = module.androidFacet ?: return MergedManifestContributors(null, emptyList(), emptyList(), emptyList(), emptyList())
   val dependencies = getResourceModuleDependencies().mapNotNull { it.androidFacet }
   return MergedManifestContributors(
     primaryManifest = facet.sourceProviders.mainManifestFile,
