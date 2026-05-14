@@ -28,24 +28,19 @@ class FakePlayPublishingClient : PlayPublishingClient {
 
   var config = Config()
 
-  override suspend fun listApps(): List<App> {
-    return emptyList()
-  }
+  override suspend fun listApps(): List<App> = config.listAppsCall()
 
   override suspend fun listDevelopers(): List<Developer> = config.listDeveloperCall()
 
   override suspend fun createAppRecord(developerId: Long, appConfig: AppConfig): AppConfig =
     config.createAppRecordCall(developerId, appConfig)
 
-  override suspend fun insertEdit(packageName: String): AppEdit = AppEdit("", "")
+  override suspend fun insertEdit(packageName: String): AppEdit = config.insertEditCall(packageName)
 
-  override suspend fun listEditTracks(packageName: String, editId: String): List<Track> {
-    return emptyList()
-  }
+  override suspend fun listEditTracks(packageName: String, editId: String): List<Track> = config.listEditTracksCall(packageName, editId)
 
-  override suspend fun uploadArtifact(packageName: String, editId: String, artifactPath: String, isBundle: Boolean): Artifact {
-    return Bundle(0, "", "")
-  }
+  override suspend fun uploadArtifact(packageName: String, editId: String, artifactPath: String, isBundle: Boolean): Artifact =
+    config.uploadArtifactCall(packageName, editId, artifactPath, isBundle)
 
   override suspend fun createRelease(
     packageName: String,
@@ -54,12 +49,18 @@ class FakePlayPublishingClient : PlayPublishingClient {
     releaseNotes: Map<String, String>,
     versionCode: Int,
     trackId: String,
-  ) = Unit
+  ) = config.createReleaseCall(packageName, editId, releaseName, releaseNotes, versionCode, trackId)
 
-  override suspend fun commitEdit(packageName: String, editId: String) = Unit
+  override suspend fun commitEdit(packageName: String, editId: String) = config.commitEditCall(packageName, editId)
 
   data class Config(
+    val listAppsCall: suspend () -> List<App> = { emptyList() },
     val listDeveloperCall: suspend () -> List<Developer> = { emptyList() },
     val createAppRecordCall: suspend (Long, AppConfig) -> AppConfig = { _, cfg -> cfg },
+    val insertEditCall: suspend (String) -> AppEdit = { AppEdit("1", "1") },
+    val listEditTracksCall: suspend (String, String) -> List<Track> = { _, _ -> emptyList() },
+    val uploadArtifactCall: suspend (String, String, String, Boolean) -> Artifact = { _, _, _, _ -> Bundle(0, "", "") },
+    val createReleaseCall: suspend (String, String, String, Map<String, String>, Int, String) -> Unit = { _, _, _, _, _, _ -> },
+    val commitEditCall: suspend (String, String) -> Unit = { _, _ -> },
   )
 }

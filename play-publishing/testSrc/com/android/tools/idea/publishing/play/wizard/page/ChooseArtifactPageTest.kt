@@ -28,6 +28,8 @@ import com.android.tools.adtui.compose.LocalProject
 import com.android.tools.adtui.compose.TestComposeWizard
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule
 import com.android.tools.idea.publishing.play.AppMetadata
+import com.android.tools.idea.publishing.play.client.FakePlayPublishingClient
+import com.android.tools.idea.publishing.play.client.type.App
 import com.android.tools.idea.publishing.play.wizard.PlayPublishingWizardState
 // TODO: android-merge; com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
 // import com.google.gct.login2.LoginFeatureRule
@@ -52,6 +54,7 @@ class ChooseArtifactPageTest {
   // the tests below run without them.
   // private val loginFeatureRule = LoginFeatureRule()
   // private val loginUsersRule = LoginUsersRule()
+  private lateinit var fakeClient: FakePlayPublishingClient
 
   @get:Rule
   val ruleChain: RuleChain =
@@ -66,6 +69,7 @@ class ChooseArtifactPageTest {
   fun setUp() {
     // TODO: android-merge; LoginUsersRule is in tools/vendor/google/login, which this repository does not carry.
     // loginUsersRule.setActiveUser("user@example.com")
+    fakeClient = FakePlayPublishingClient()
   }
 
   @Test
@@ -201,9 +205,68 @@ class ChooseArtifactPageTest {
     composeTestRule.onNodeWithText("Previous").assertIsNotEnabled()
   }
 
-  private fun createWizard(appMetadata: () -> AppMetadata): TestComposeWizard {
+  @Test
+  fun testAppInConsoleShowsNextActionAsCreateRelease() {
+    fakeClient.config =
+      FakePlayPublishingClient.Config(listAppsCall = { listOf(App(packageName = "com.fake.app", displayName = "Fake App")) })
+    val state = PlayPublishingWizardState(artifactPath = "/some/fake/path", isRegistered = true, client = fakeClient)
+    val wizard = createWizard(state) { AppMetadata("Fake App", "com.fake.app", "123", "1.2.3") }
+    composeTestRule.waitForIdle()
+
+    composeTestRule.onNodeWithText("Matches existing app").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Next").assertIsEnabled()
+
+    wizard.performAction(wizard.nextAction)
+    // Page stack size goes from 1 to 2
+    assert(wizard.pageStackSize() == 2)
+    composeTestRule.onNodeWithText("Create release").assertIsDisplayed()
+  }
+
+  @Test
+  fun testAppNotInConsoleShowsNextActionAsCreateAppRecord() {
+    fakeClient.config = FakePlayPublishingClient.Config(listAppsCall = { emptyList() })
+    // isRegistered is false (meaning they are in the console but don't have this app, or haven't registered)
+    val state = PlayPublishingWizardState(artifactPath = "/some/fake/path", isRegistered = false, client = fakeClient)
+    val wizard = createWizard(state) { AppMetadata("Fake App", "com.fake.app", "123", "1.2.3") }
+    composeTestRule.waitForIdle()
+
+    composeTestRule.onNodeWithText("Package name available").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Next").assertIsEnabled()
+
+    wizard.performAction(wizard.nextAction)
+    assert(wizard.pageStackSize() == 2)
+    composeTestRule.onNodeWithText("Create new app").assertIsDisplayed()
+  }
+
+  @Test
+  fun testPackageNameNotAvailableShowsErrorBanner() {
+    fakeClient.config = FakePlayPublishingClient.Config(listAppsCall = { emptyList() })
+    // isRegistered is true, but app not in console -> error banner
+    val state = PlayPublishingWizardState(artifactPath = "/some/fake/path", isRegistered = true, client = fakeClient)
+    createWizard(state) { AppMetadata("Fake App", "com.fake.app", "123", "1.2.3") }
+    composeTestRule.waitForIdle()
+
+    composeTestRule.onNodeWithText("The package name (com.fake.app) is not available", substring = true).assertIsDisplayed()
+    composeTestRule.onNodeWithText("Next").assertIsNotEnabled()
+  }
+
+  @Test
+  fun testFailedToLoadAppsShowsErrorBanner() {
+    fakeClient.config = FakePlayPublishingClient.Config(listAppsCall = { throw Exception("Network failure") })
+    val state = PlayPublishingWizardState(artifactPath = "/some/fake/path", isRegistered = true, client = fakeClient)
+    createWizard(state) { AppMetadata("Fake App", "com.fake.app", "123", "1.2.3") }
+    composeTestRule.waitForIdle()
+
+    composeTestRule.onNodeWithText("Failed to check package availability: Network failure", substring = true).assertIsDisplayed()
+    composeTestRule.onNodeWithText("Next").assertIsNotEnabled()
+  }
+
+  private fun createWizard(
+    state: PlayPublishingWizardState = PlayPublishingWizardState(artifactPath = "/some/fake/path", client = fakeClient),
+    appMetadata: () -> AppMetadata,
+  ): TestComposeWizard {
     val wizard = TestComposeWizard {
-      getOrCreateState { PlayPublishingWizardState(artifactPath = "/some/fake/path") }
+      getOrCreateState { state }
       ChooseArtifactPage { appMetadata() }
     }
     composeTestRule.setContent { CompositionLocalProvider(LocalProject provides null) { wizard.Content() } }
