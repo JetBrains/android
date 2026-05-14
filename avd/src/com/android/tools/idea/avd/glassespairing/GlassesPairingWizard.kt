@@ -768,7 +768,8 @@ private suspend fun FlowCollector<PairingState>.runPairingSequence(
         when (pairingState) {
           "PAIRED" -> emit(PairingState.Complete(phoneName, glassesName))
           "UI_CDM_ASSOCIATING" -> emit(PairingState.AwaitingAuthorization(phoneName))
-          "WORKER_CONNECTING" -> emit(PairingState.GlassesCoreConnecting(phoneName))
+          "WORKER_CONNECTING",
+          "WORKER_STREAMING_ROLE_REQUIRED" -> emit(PairingState.GlassesCoreConnecting(phoneName))
           "WORKER_GLASSES_CORE_CONNECTED" -> emit(PairingState.GlassesCoreConnected(phoneName))
           AiGlassesPairing.AWAITING_FOREGROUND -> emit(PairingState.AwaitingForeground(phoneName))
           in AiGlassesPairing.TERMINAL_STATES ->
