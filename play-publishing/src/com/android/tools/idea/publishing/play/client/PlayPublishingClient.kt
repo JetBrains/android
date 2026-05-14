@@ -47,3 +47,5 @@ interface PlayPublishingClient {
 
   suspend fun commitEdit(packageName: String, editId: String)
 }
+
+class PlayPublishingException(message: String, cause: Throwable? = null) : Exception(message, cause)

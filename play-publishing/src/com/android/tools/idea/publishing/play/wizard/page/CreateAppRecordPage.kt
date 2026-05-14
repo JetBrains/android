@@ -44,14 +44,13 @@ import androidx.compose.ui.unit.sp
 import com.android.tools.adtui.compose.LocalProject
 import com.android.tools.adtui.compose.WizardAction
 import com.android.tools.adtui.compose.WizardPageScope
+import com.android.tools.idea.publishing.play.client.PlayPublishingException
 import com.android.tools.idea.publishing.play.client.playStoreLanguageNames
 import com.android.tools.idea.publishing.play.client.type.AppConfig
 import com.android.tools.idea.publishing.play.client.type.AppType
-import com.android.tools.idea.publishing.play.client.type.parseGoogleApiError
 import com.android.tools.idea.publishing.play.wizard.FormField
 import com.android.tools.idea.publishing.play.wizard.PlayPublishingWizardHeader
 import com.android.tools.idea.publishing.play.wizard.PlayPublishingWizardState
-import com.google.api.client.http.HttpResponseException
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import kotlinx.coroutines.runBlocking
@@ -87,9 +86,8 @@ fun WizardPageScope.CreateAppRecordPage() {
     produceState(initialValue = emptyList()) {
       try {
         value = state.client.listDevelopers()
-      } catch (e: HttpResponseException) {
-        val error = e.parseGoogleApiError()
-        errorMessage = "Failed to load developers: ${error?.message ?: e.message ?: "Unknown error"}"
+      } catch (e: PlayPublishingException) {
+        errorMessage = "Failed to load developers: ${e.message}"
       } catch (e: Exception) {
         errorMessage = "Failed to load developers: ${e.message}"
       } finally {
@@ -214,9 +212,8 @@ fun WizardPageScope.CreateAppRecordPage() {
                   state.releaseName = DEFAULT_RELEASE_NAME
                   state.releaseNotes = DEFAULT_RELEASE_NOTES
                   pushPage { CreateReleasePage() }
-                } catch (e: HttpResponseException) {
-                  val error = e.parseGoogleApiError()
-                  val message = error?.message ?: e.message ?: "Unknown error"
+                } catch (e: PlayPublishingException) {
+                  val message = e.message ?: "Unknown error"
                   errorMessage =
                     if (message.contains("Package name ${state.packageName} is not available on Play", ignoreCase = true)) {
                       "The package name ${state.packageName} is not available on Play. Please change the package name, generate a new signed bundle or APK and try again."

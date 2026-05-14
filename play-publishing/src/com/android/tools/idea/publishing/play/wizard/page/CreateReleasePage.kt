@@ -45,13 +45,12 @@ import androidx.compose.ui.unit.sp
 import com.android.tools.adtui.compose.LocalProject
 import com.android.tools.adtui.compose.WizardAction
 import com.android.tools.adtui.compose.WizardPageScope
+import com.android.tools.idea.publishing.play.client.PlayPublishingException
 import com.android.tools.idea.publishing.play.client.type.AppEdit
 import com.android.tools.idea.publishing.play.client.type.Track
-import com.android.tools.idea.publishing.play.client.type.parseGoogleApiError
 import com.android.tools.idea.publishing.play.wizard.FormField
 import com.android.tools.idea.publishing.play.wizard.PlayPublishingWizardHeader
 import com.android.tools.idea.publishing.play.wizard.PlayPublishingWizardState
-import com.google.api.client.http.HttpResponseException
 // TODO: android-merge; com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
 // import com.google.gct.login2.GoogleLoginService
 import com.intellij.ide.BrowserUtil
@@ -133,9 +132,8 @@ fun WizardPageScope.CreateReleasePage() {
             null
           }
       }
-    } catch (e: HttpResponseException) {
-      val error = e.parseGoogleApiError()
-      errorMessage = "Failed to load tracks: ${error?.message ?: e.message ?: "Unknown error"}"
+    } catch (e: PlayPublishingException) {
+      errorMessage = "Failed to load tracks: ${e.message}"
     } catch (e: Exception) {
       errorMessage = "Failed to load tracks: ${e.message}"
     } finally {
@@ -259,9 +257,8 @@ fun WizardPageScope.CreateReleasePage() {
                       state.appName,
                       state.developerId,
                     )
-                  } catch (e: HttpResponseException) {
-                    val error = e.parseGoogleApiError()
-                    val message = error?.message ?: e.message ?: "Unknown error"
+                  } catch (e: PlayPublishingException) {
+                    val message = e.message ?: "Unknown error"
                     showUploadFailedNotification(project, message)
                   } catch (e: CancellationException) {
                     throw e
