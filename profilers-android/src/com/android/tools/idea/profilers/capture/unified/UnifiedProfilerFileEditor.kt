@@ -96,11 +96,6 @@ class UnifiedProfilerFileEditor(private val project: Project, private val file: 
     if (window != null) {
       window.isAvailable = true
 
-      // If the profiler tool window hasn't been initialized yet, show it so the user knows
-      // the file is being opened. If it has been initialized but minimized, keep it minimized.
-      if (!AndroidProfilerToolWindowFactory.isProfilerToolWindowInitialized(project)) {
-        window.show(null)
-      }
       val profilerToolWindow = AndroidProfilerToolWindowFactory.getProfilerToolWindow(project)
       profilerToolWindow?.openFile(file)
     }
