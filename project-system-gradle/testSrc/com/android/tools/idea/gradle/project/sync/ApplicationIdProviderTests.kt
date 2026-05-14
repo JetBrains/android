@@ -46,6 +46,7 @@ private val APP_LEGACY_WARNINGS =
     For more information, see http://developer.android.com/build/r/new-dsl.
 
     To determine what is calling applicationVariants, use -Pandroid.debug.obsoleteApi=true on the command line to display more information.
+    Add android.sync.suppressAgpWarnings=DEPRECATED_DSL to the gradle.properties file to suppress this warning.
     """
       .trimIndent()
       .replace("adding\n", "adding \n"),
@@ -58,6 +59,7 @@ private val APP_LEGACY_WARNINGS =
     For more information, see http://developer.android.com/build/r/new-dsl.
 
     To determine what is calling unitTestVariants, use -Pandroid.debug.obsoleteApi=true on the command line to display more information.
+    Add android.sync.suppressAgpWarnings=DEPRECATED_DSL to the gradle.properties file to suppress this warning.
     """
       .trimIndent()
       .replace("adding\n", "adding \n"),
@@ -70,6 +72,7 @@ private val APP_LEGACY_WARNINGS =
     For more information, see http://developer.android.com/build/r/new-dsl.
 
     To determine what is calling testVariants, use -Pandroid.debug.obsoleteApi=true on the command line to display more information.
+    Add android.sync.suppressAgpWarnings=DEPRECATED_DSL to the gradle.properties file to suppress this warning.
     """
       .trimIndent()
       .replace("adding\n", "adding \n"),
@@ -87,6 +90,7 @@ private val LIB_LEGACY_WARNINGS =
     For more information, see http://developer.android.com/build/r/new-dsl.
 
     To determine what is calling libraryVariants, use -Pandroid.debug.obsoleteApi=true on the command line to display more information.
+    Add android.sync.suppressAgpWarnings=DEPRECATED_DSL to the gradle.properties file to suppress this warning.
     """
       .trimIndent()
       .replace("adding\n", "adding \n")
