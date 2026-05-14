@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.publishing.play.client
 
+import com.android.tools.idea.publishing.play.client.type.App
 import com.android.tools.idea.publishing.play.client.type.AppConfig
 import com.android.tools.idea.publishing.play.client.type.AppEdit
 import com.android.tools.idea.publishing.play.client.type.Artifact
@@ -26,6 +27,10 @@ import com.android.tools.idea.publishing.play.client.type.Track
 class FakePlayPublishingClient : PlayPublishingClient {
 
   var config = Config()
+
+  override suspend fun listApps(): List<App> {
+    return emptyList()
+  }
 
   override suspend fun listDevelopers(): List<Developer> = config.listDeveloperCall()
 

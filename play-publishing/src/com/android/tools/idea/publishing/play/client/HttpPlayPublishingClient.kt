@@ -17,11 +17,13 @@ package com.android.tools.idea.publishing.play.client
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.publishing.play.client.type.Apk
+import com.android.tools.idea.publishing.play.client.type.App
 import com.android.tools.idea.publishing.play.client.type.AppConfig
 import com.android.tools.idea.publishing.play.client.type.AppEdit
 import com.android.tools.idea.publishing.play.client.type.Artifact
 import com.android.tools.idea.publishing.play.client.type.Bundle
 import com.android.tools.idea.publishing.play.client.type.Developer
+import com.android.tools.idea.publishing.play.client.type.ListAppResponse
 import com.android.tools.idea.publishing.play.client.type.ListDevelopersResponse
 import com.android.tools.idea.publishing.play.client.type.ListTrackResponse
 import com.android.tools.idea.publishing.play.client.type.LocalizedText
@@ -48,7 +50,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 private const val BASE_PATH = "androidpublisher/v3"
-private const val ONE_MINUTE_IN_MILLIS = 60_000
 
 class HttpPlayPublishingClient(
   private val endPoint: String = StudioFlags.PLAY_PUBLISHING_ENDPOINT.get(),
@@ -70,6 +71,25 @@ class HttpPlayPublishingClient(
         // it.interceptor = GoogleLoginService.instance.getCredential(fstLoginFeature)
         it.parser = JsonObjectParser(GsonFactory.getDefaultInstance())
       }
+
+  override suspend fun listApps(): List<App> =
+    withContext(Dispatchers.IO) {
+      val allApps = mutableListOf<App>()
+      var nextPageToken: String? = null
+
+      do {
+        val listAppUrl = GenericUrl("https://${StudioFlags.PLAY_VITALS_GRPC_SERVER.get()}/v1beta1/apps:search")
+        if (nextPageToken != null) {
+          listAppUrl.set("pageToken", nextPageToken)
+        }
+        val request = requestFactory.buildGetRequest(listAppUrl)
+        val response = request.execute()
+        val listAppResponse = response.parseAs<ListAppResponse>()
+        allApps.addAll(listAppResponse.apps)
+        nextPageToken = listAppResponse.nextPageToken.takeIf { it.isNotEmpty() }
+      } while (nextPageToken != null)
+      allApps
+    }
 
   override suspend fun listDevelopers(): List<Developer> =
     withContext(Dispatchers.IO) {

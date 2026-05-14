@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.publishing.play.client
 
+import com.android.tools.idea.publishing.play.client.type.App
 import com.android.tools.idea.publishing.play.client.type.AppConfig
 import com.android.tools.idea.publishing.play.client.type.AppEdit
 import com.android.tools.idea.publishing.play.client.type.Artifact
@@ -22,6 +23,9 @@ import com.android.tools.idea.publishing.play.client.type.Developer
 import com.android.tools.idea.publishing.play.client.type.Track
 
 interface PlayPublishingClient {
+
+  suspend fun listApps(): List<App>
+
   suspend fun listDevelopers(): List<Developer>
 
   suspend fun createAppRecord(developerId: Long, appConfig: AppConfig): AppConfig
