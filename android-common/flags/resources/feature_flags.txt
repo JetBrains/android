@@ -47,6 +47,7 @@ device.manager.emulator.aehd.to.whpx.conversion=PREVIEW
 device.manager.xr.device.support.enabled=COMPLETE:2025
 device.manager.xr.glasses.device.support.enabled=PREVIEW
 device.mirroring.unicode.typing=INTERNAL
+device.mirroring.xr.simulated.passthrough=PREVIEW
 editor.enable.change.review.agent=PREVIEW
 editor.restrict.to.completion.weigher=COMPLETE:2025
 embedded.emulator.allow.ai.glasses=PREVIEW
