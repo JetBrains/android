@@ -25,13 +25,15 @@ import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Multisets;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.intellij.diagnostic.LogMessage;
 import com.intellij.diagnostic.ThreadDump;
 import com.intellij.diagnostic.ThreadDumper;
+import com.intellij.platform.diagnostic.freezeAnalyzer.FreezeAnalysisResult;
+import com.intellij.platform.diagnostic.freezeAnalyzer.FreezeAnalysisThread;
+import com.intellij.platform.diagnostic.freezeAnalyzer.FreezeAnalyzer;
 import com.intellij.openapi.diagnostic.Logger;
-// TODO: android-merge; com.intellij.platform.diagnostic.plugin.freeze is not in the studio-platform jar
-//import com.intellij.platform.diagnostic.plugin.freeze.FreezeReason;
-//import com.intellij.platform.diagnostic.plugin.freeze.PluginFreezeWatcher;
+import com.intellij.openapi.extensions.PluginId;
+import com.intellij.ide.plugins.PluginUtil;
+import com.intellij.util.containers.ContainerUtil;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import java.io.StringWriter;
@@ -40,17 +42,22 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.function.BiConsumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -60,6 +67,9 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
   private static final int MAX_REPORT_LENGTH_BYTES = 200_000;
   public static final int DEBUGDATA_MAX_LIST_ENTRIES = 1_000;
   private static final String NON_PLUGIN_FREEZE = "__NON_PLUGIN_FREEZE__";
+
+  private static final Pattern STACK_TRACE_PATTERN =
+    Pattern.compile("at (\\S+)\\.(\\S+)\\(([^:]+):(\\d+)\\)");
 
   private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1, new ThreadFactoryBuilder().setNameFormat("ThreadSamplingReportContributor-%d").build());
   private final ThreadMXBean myThreadMXBean = ManagementFactory.getThreadMXBean();
@@ -169,20 +179,66 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
     }
   }
 
-  // TODO: android-merge; PluginFreezeWatcher and FreezeReason are not in the studio-platform jar
-  //@SuppressWarnings("UnstableApiUsage")
-  //@Nullable
-  //private static FreezeReason computeFreezeReason(ThreadInfo[] allThreads) {
-  //  final LogMessage fakeLogMessage = new LogMessage(new Throwable(), null, Collections.emptyList());
-  //
-  //  ThreadDumper.sort(allThreads);
-  //  StringWriter writer = new StringWriter();
-  //  StackTraceElement[] edtStack = dumpThreadInfos(allThreads, writer);
-  //
-  //  // dumpedThreads required a NotNull LogMessage, but only uses it to include it into resulting FreezeReason. We don't need it there so
-  //  // it's ok to pass fake one.
-  //  return PluginFreezeWatcher.getInstance().dumpedThreads(fakeLogMessage, new ThreadDump(writer.toString(), edtStack, allThreads), 0);
-  //}
+  @SuppressWarnings("UnstableApiUsage")
+  @Nullable
+  private static PluginId computeFreezePluginId(ThreadInfo[] allThreads) {
+    ThreadDumper.sort(allThreads);
+    StringWriter writer = new StringWriter();
+    StackTraceElement[] edtStack = dumpThreadInfos(allThreads, writer);
+
+    FreezeAnalysisResult freezeAnalysisResult = FreezeAnalyzer.INSTANCE.analyzeFreeze(new ThreadDump(writer.toString(), edtStack, allThreads).getRawDump(), null);
+    if (freezeAnalysisResult == null) {
+      return null;
+    }
+    // JetBrains patch: FreezeAnalysisResult.getThreads() returns FreezeAnalysisThread in this platform (upstream: ThreadState), with the same getStackTrace().
+    List<FreezeAnalysisThread> freezeCausingThreads = freezeAnalysisResult.getThreads();
+    List<PluginId> pluginIds = ContainerUtil.mapNotNull(freezeCausingThreads, ThreadSamplingReportContributor::analyzeFreezeCausingPlugin);
+
+    return pluginIds.stream()
+      .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+      .entrySet().stream()
+      .max(Map.Entry.comparingByValue())
+      .map(Map.Entry::getKey)
+      .orElse(null);
+  }
+
+  @Nullable
+  private static StackTraceElement parseStackTraceElement(@Nullable String stackTrace) {
+    if (stackTrace == null) {
+      return null;
+    }
+
+    Matcher matcher = STACK_TRACE_PATTERN.matcher(stackTrace.trim());
+
+    if (matcher.find()) {
+      String className = matcher.group(1);
+      String methodName = matcher.group(2);
+      String fileName = matcher.group(3);
+      int lineNumber = Integer.parseInt(matcher.group(4));
+
+      return new StackTraceElement(className, methodName, fileName, lineNumber);
+    }
+
+    return null;
+  }
+
+  /**
+   * Reimplementation of PluginFreezeWatcher.analyzeFreezeCausingPlugin
+   */
+  @SuppressWarnings("UnstableApiUsage")
+  @Nullable
+  private static PluginId analyzeFreezeCausingPlugin(@NotNull FreezeAnalysisThread threadInfo) {
+    String[] stackTraceLines = threadInfo.getStackTrace().split("\\n");
+    StackTraceElement[] stackTraceElements = Arrays.stream(stackTraceLines)
+      .map(ThreadSamplingReportContributor::parseStackTraceElement)
+      .filter(Objects::nonNull)
+      .toArray(StackTraceElement[]::new);
+
+    Throwable throwable = new Throwable();
+    throwable.setStackTrace(stackTraceElements);
+    // JetBrains patch: PluginUtilImpl.doFindPluginId does not exist in this platform, PluginUtil.findPluginId does the same lookup.
+    return PluginUtil.getInstance().findPluginId(throwable);
+  }
 
   /**
    * Reimplementation of {@link ThreadDumper#dumpThreadInfos} because it is a private method.
@@ -219,14 +275,13 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
       sampleCount = mySampledStacks.size();
       LOG.info("Collected " + sampleCount + " samples");
       for (ThreadInfo[] sampledThreads : mySampledStacks) {
-        // TODO: android-merge; FreezeReason and computeFreezeReason need PluginFreezeWatcher, which is not in the studio-platform jar
-        //FreezeReason freezeReason = computeFreezeReason(sampledThreads.clone());
-        //if (freezeReason == null) {
-        //  freezeReasonPluginNames.add(NON_PLUGIN_FREEZE);
-        //}
-        //else {
-        //  freezeReasonPluginNames.add(freezeReason.getPluginId().toString());
-        //}
+        PluginId freezeReasonPluginId = computeFreezePluginId(sampledThreads.clone());
+        if (freezeReasonPluginId == null) {
+          freezeReasonPluginNames.add(NON_PLUGIN_FREEZE);
+        }
+        else {
+          freezeReasonPluginNames.add(freezeReasonPluginId.toString());
+        }
         for (ThreadInfo ti : sampledThreads) {
           ThreadCallTree callTree = threadMap.get(ti.getThreadId());
           if (callTree == null) {

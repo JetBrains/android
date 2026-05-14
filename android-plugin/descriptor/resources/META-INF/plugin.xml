@@ -58,6 +58,7 @@
     <module name="intellij.java.impl"/>
 <!--  TODO: android-merge; no intellij.platform.diagnostic.freezes module in the monorepo, the freeze watcher lives in intellij.performanceTesting.freezes-->
 <!--  <module name="intellij.platform.diagnostic.freezes"/>-->
+    <module name="intellij.platform.diagnostic.freezeAnalyzer"/>
     <!-- region Generated dependencies - run `Generate Product Layouts` to regenerate -->
     <plugin id="com.intellij.modules.compose"/>
     <plugin id="org.intellij.groovy"/>
