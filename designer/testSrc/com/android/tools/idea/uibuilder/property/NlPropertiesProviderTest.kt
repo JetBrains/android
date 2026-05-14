@@ -101,7 +101,7 @@ class NlPropertiesProviderTest {
     val provider = NlPropertiesProvider(facet)
     val model = NlPropertiesModel(projectRule.testRootDisposable, facet)
     val components = createViewTagComponent()
-    val properties = runReadAction { provider.getProperties(model, null, components) }
+    val properties = provider.getProperties(model, null, components)
     assertThat(properties.size).isAtLeast(124)
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsAllIn(viewAttrs)
     assertThat(properties.getByNamespace("").keys).contains(ATTR_STYLE)
@@ -113,7 +113,7 @@ class NlPropertiesProviderTest {
     val provider = NlPropertiesProvider(facet)
     val model = NlPropertiesModel(projectRule.testRootDisposable, facet)
     val components = createViewTagComponent()
-    val properties = runReadAction { provider.getProperties(model, null, components) }
+    val properties = provider.getProperties(model, null, components)
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsAllIn(frameLayoutAttrs)
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsAllIn(gridLayoutAttrs)
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsAllIn(linearLayoutAttrs)
@@ -126,7 +126,7 @@ class NlPropertiesProviderTest {
     val provider = NlPropertiesProvider(facet)
     val model = NlPropertiesModel(projectRule.testRootDisposable, facet)
     val components = createComponents(component(TEXT_VIEW))
-    val properties = runReadAction { provider.getProperties(model, null, components) }
+    val properties = provider.getProperties(model, null, components)
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsAllIn(linearLayoutAttrs)
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsNoneIn(gridLayoutAttrs)
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsNoneIn(relativeLayoutAttrs)
@@ -139,7 +139,7 @@ class NlPropertiesProviderTest {
     val provider = NlPropertiesProvider(facet)
     val model = NlPropertiesModel(projectRule.testRootDisposable, facet)
     val components = createComponents(component(TEXT_VIEW).viewObjectClassName(APPCOMPAT_TEXT_VIEW))
-    val properties = runReadAction { provider.getProperties(model, null, components) }
+    val properties = provider.getProperties(model, null, components)
     assertThat(properties.contains(AUTO_URI, ATTR_FONT_FAMILY)).isTrue()
     assertThat(properties.doesNotContain(ANDROID_URI, ATTR_FONT_FAMILY)).isTrue()
   }
@@ -151,7 +151,7 @@ class NlPropertiesProviderTest {
     val provider = NlPropertiesProvider(facet)
     val model = NlPropertiesModel(projectRule.testRootDisposable, facet)
     val components = createComponents(component(TEXT_VIEW).viewObjectClassName(APPCOMPAT_TEXT_VIEW))
-    val properties = runReadAction { provider.getProperties(model, null, components) }
+    val properties = provider.getProperties(model, null, components)
     assertThat(properties.doesNotContain(AUTO_URI, ATTR_FONT_FAMILY)).isTrue()
     assertThat(properties.contains(ANDROID_URI, ATTR_FONT_FAMILY)).isTrue()
   }
@@ -163,7 +163,7 @@ class NlPropertiesProviderTest {
     val provider = NlPropertiesProvider(facet)
     val model = NlPropertiesModel(projectRule.testRootDisposable, facet)
     val components = createComponents(component(IMAGE_VIEW).viewObjectClassName(APPCOMPAT_IMAGE_VIEW))
-    val properties = runReadAction { provider.getProperties(model, null, components) }
+    val properties = provider.getProperties(model, null, components)
     assertThat(properties.doesNotContain(ANDROID_URI, ATTR_SRC)).isTrue()
     assertThat(properties.contains(AUTO_URI, ATTR_SRC_COMPAT)).isTrue()
   }
@@ -177,7 +177,7 @@ class NlPropertiesProviderTest {
     val model = NlPropertiesModel(projectRule.testRootDisposable, facet)
     val components = createComponents(component(IMAGE_VIEW).viewObjectClassName(APPCOMPAT_IMAGE_VIEW))
     components.first().setAttribute(ANDROID_URI, ATTR_SRC, "@drawable/mine")
-    val properties = runReadAction { provider.getProperties(model, null, components) }
+    val properties = provider.getProperties(model, null, components)
     assertThat(properties.contains(ANDROID_URI, ATTR_SRC)).isTrue()
     assertThat(properties.contains(AUTO_URI, ATTR_SRC_COMPAT)).isTrue()
   }
@@ -188,7 +188,7 @@ class NlPropertiesProviderTest {
     val provider = NlPropertiesProvider(facet)
     val model = NlPropertiesModel(projectRule.testRootDisposable, facet)
     val components = createComponents(component(IMAGE_VIEW))
-    val properties = runReadAction { provider.getProperties(model, null, components) }
+    val properties = provider.getProperties(model, null, components)
     assertThat(properties.contains(ANDROID_URI, ATTR_SRC)).isTrue()
     assertThat(properties.doesNotContain(AUTO_URI, ATTR_SRC_COMPAT)).isTrue()
   }
@@ -200,7 +200,7 @@ class NlPropertiesProviderTest {
     val provider = NlPropertiesProvider(facet)
     val model = NlPropertiesModel(projectRule.testRootDisposable, facet)
     val components = createComponents(component(CUSTOM_TAG))
-    val properties = runReadAction { provider.getProperties(model, null, components) }
+    val properties = provider.getProperties(model, null, components)
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsAllIn(viewAttrs)
     assertThat(properties.getByNamespace("").keys).contains(ATTR_STYLE)
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsAllIn(linearLayoutAttrs)
@@ -215,7 +215,7 @@ class NlPropertiesProviderTest {
     val provider = NlPropertiesProvider(facet)
     val model = NlPropertiesModel(projectRule.testRootDisposable, facet)
     val components = createComponents(component(IMAGE_VIEW).viewObjectClassName(APPCOMPAT_IMAGE_VIEW))
-    val properties = runReadAction { provider.getProperties(model, null, components) }
+    val properties = provider.getProperties(model, null, components)
     assertThat(properties[ResourceNamespace.TODO().xmlNamespaceUri, ATTR_SRC_COMPAT].componentName).isEqualTo(APPCOMPAT_IMAGE_VIEW)
     assertThat(properties[ANDROID_URI, ATTR_SCALE_TYPE].componentName).isEqualTo(FQCN_IMAGE_VIEW)
     assertThat(properties[ANDROID_URI, ATTR_VISIBILITY].componentName).isEqualTo(CLASS_VIEW)
@@ -227,7 +227,7 @@ class NlPropertiesProviderTest {
     val provider = NlPropertiesProvider(facet)
     val model = NlPropertiesModel(projectRule.testRootDisposable, facet)
     val components = createComponents(ComponentDescriptor(EDIT_TEXT))
-    val properties = runReadAction { provider.getProperties(model, null, components) }
+    val properties = provider.getProperties(model, null, components)
     val property = properties[ANDROID_URI, ATTR_INPUT_TYPE]
     assertThat(property).isInstanceOf(InputTypePropertyItem::class.java)
   }
@@ -238,7 +238,7 @@ class NlPropertiesProviderTest {
     val provider = NlPropertiesProvider(facet)
     val model = NlPropertiesModel(projectRule.testRootDisposable, facet)
     val components = createComponents(component(LIST_PREFERENCE).viewObjectClassName(FQCN_LINEAR_LAYOUT), PREFERENCE_SCREEN, FD_RES_XML)
-    val properties = runReadAction { provider.getProperties(model, null, components) }
+    val properties = provider.getProperties(model, null, components)
 
     // From ListPreference: (2)
     properties.check(ATTR_ENTRIES, NlPropertyType.STRING_ARRAY)

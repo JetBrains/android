@@ -88,22 +88,23 @@ class NlPropertiesProvider(private val facet: AndroidFacet) : PropertiesProvider
     }
 
     val project = facet.module.project
-    val apiLookup = LintIdeClient.getApiLookup(facet.module.project)
-    val resourceManagers = ModuleResourceManagers.getInstance(facet)
-    val localResourceManager = resourceManagers.localResourceManager
-    val frameworkResourceManager = resourceManagers.frameworkResourceManager
-    val localAttrDefs = localResourceManager.attributeDefinitions
-    val systemAttrDefs = frameworkResourceManager?.attributeDefinitions
-
-    if (frameworkResourceManager == null) {
-      Logger.getInstance(NlPropertiesProvider::class.java).error("No system resource manager for module: " + facet.module.name)
-      return PropertiesTable.emptyTable()
-    }
-    if (systemAttrDefs == null) {
-      return PropertiesTable.emptyTable()
-    }
 
     return ReadAction.nonBlocking<PropertiesTable<NlPropertyItem>> {
+        val apiLookup = LintIdeClient.getApiLookup(facet.module.project)
+        val resourceManagers = ModuleResourceManagers.getInstance(facet)
+        val localResourceManager = resourceManagers.localResourceManager
+        val frameworkResourceManager = resourceManagers.frameworkResourceManager
+        val localAttrDefs = localResourceManager.attributeDefinitions
+        val systemAttrDefs = frameworkResourceManager?.attributeDefinitions
+
+        if (frameworkResourceManager == null) {
+          Logger.getInstance(NlPropertiesProvider::class.java).error("No system resource manager for module: " + facet.module.name)
+          return@nonBlocking PropertiesTable.emptyTable()
+        }
+        if (systemAttrDefs == null) {
+          return@nonBlocking PropertiesTable.emptyTable()
+        }
+
         val generator = PropertiesGenerator(facet, model, components, localAttrDefs, systemAttrDefs, apiLookup)
         PropertiesTable.create(generator.generate())
       }
