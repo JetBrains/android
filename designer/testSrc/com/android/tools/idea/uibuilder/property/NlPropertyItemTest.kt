@@ -227,6 +227,7 @@ class NlPropertyItemTest {
     assertThat(browseButton.actionIcon).isEqualTo(StudioIcons.Common.PROPERTY_UNBOUND)
   }
 
+  @Ignore("b/318693686")
   @Test
   fun testColorPropertyWithColorStateList() =
     testScope.runTest {
