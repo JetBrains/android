@@ -132,9 +132,10 @@ internal sealed class EmulatorEnvironmentAction : AbstractEmulatorAction(configF
 
   companion object {
     // TODO: Remove emulator version check after 2026-09-01.
-    val emulatorSupported =
-      ApplicationManager.getApplication().isUnitTestMode ||
-        AvdManagerConnection.getDefaultAvdManagerConnection().emulator?.version?.let { it >= Revision(36, 6, 4) } ?: false
+    val emulatorSupported
+      get() =
+        ApplicationManager.getApplication().isUnitTestMode ||
+          AvdManagerConnection.getDefaultAvdManagerConnection().emulator?.version?.let { it >= Revision(36, 6, 4) } ?: false
 
     private const val RECENT_FILES_KEY = "EmulatorEnvironmentAction.recentFiles"
 
