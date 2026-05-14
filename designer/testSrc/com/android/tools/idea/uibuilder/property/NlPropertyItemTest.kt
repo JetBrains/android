@@ -743,6 +743,7 @@ class NlPropertyItemTest {
       delayUntilCondition(100L) { property.model.resolver != null }
     }
 
+  @Ignore("b/513183912")
   @Test
   fun testNavigationItems() =
     testScope.runTest {

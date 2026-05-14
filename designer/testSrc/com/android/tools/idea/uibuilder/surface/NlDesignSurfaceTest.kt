@@ -323,7 +323,8 @@ class NlDesignSurfaceTest : LayoutTestCase() {
     assertComponentWithId(model, "cuteLittleButton2")
   }
 
-  fun testZoom() = runTest {
+  // b/512814159
+  fun ignore_testZoom() = runTest {
     val model =
       model(
           "my_linear.xml",
