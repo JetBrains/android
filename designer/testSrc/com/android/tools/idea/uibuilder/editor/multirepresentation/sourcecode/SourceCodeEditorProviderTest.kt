@@ -281,6 +281,20 @@ class SourceCodeEditorProviderTest(private val asyncMode: EditorCreationMode) {
     assertFalse(sourceCodeProvider.accept(project = projectRule.project, file))
   }
 
+  @Test
+  fun testCreateFileEditorWithUncommittedDocument(): Unit = runBlocking {
+    if (asyncMode != EditorCreationMode.ASYNC) return@runBlocking
+
+    val file = fixture.addFileToProject("src/Preview.kt", "")
+    val document = readAction { FileDocumentManager.getInstance().getDocument(file.virtualFile) }
+
+    withContext(Dispatchers.EDT) { runWriteActionAndWait { document!!.setText("class Foo") } }
+
+    val editor = buildEditor(provider, file.project, file.virtualFile)
+    TestCase.assertNotNull(editor)
+    withContext(Dispatchers.EDT) { provider.disposeEditor(editor) }
+  }
+
   companion object {
     @JvmStatic
     @Parameterized.Parameters(name = "editorCreationmode={0}")
