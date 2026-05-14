@@ -32,7 +32,6 @@ iml_module(
         "JetNewsProjectCheck": {
             "test_filter": "com.android.tools.idea.benchmarks.tests.JetNewsBenchmarkTest",
             "timeout": "long",
-            "tags": ["manual"],
         },
         "MlModelBindingProjectCheck": {
             "test_filter": "com.android.tools.idea.benchmarks.tests.MlModelBindingBenchmarkTest",
@@ -179,7 +178,7 @@ maven_repository(
         "@maven//:javax.annotation.javax.annotation-api_1.2",
         "@maven//:junit.junit_4.13.2",
         "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-common_2.3.10",  # Used by com.android.tools.idea.benchmarks.tests.JetNewsBenchmarkTest
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-common_2.3.20",  # Used by com.android.tools.idea.benchmarks.tests.JetNewsBenchmarkTest
         "@maven//:org.jetbrains.kotlin.plugin.parcelize.org.jetbrains.kotlin.plugin.parcelize.gradle.plugin_" + KGP_VERSION_FOR_TESTS,  # Used by com.android.tools.idea.benchmarks.tests.JetNewsBenchmarkTest
         "@maven//:org.mockito.mockito-core_5.12.0",
     ],
