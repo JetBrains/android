@@ -4487,6 +4487,12 @@ object StudioIconsCompose {
         "/studio/icons/studio-bot/generic-ai-action.svg",
         StudioIconsCompose.javaClass,
       ) // 16x16
+    val Gemma: IntelliJIconKey =
+      IntelliJIconKey(
+        "/studio/icons/studio-bot/gemma.svg",
+        "/studio/icons/studio-bot/gemma.svg",
+        StudioIconsCompose.javaClass,
+      ) // 16x16
   }
 
   object Test {
