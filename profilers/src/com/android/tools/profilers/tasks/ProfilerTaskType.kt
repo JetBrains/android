@@ -16,13 +16,13 @@
 package com.android.tools.profilers.tasks
 
 enum class ProfilerTaskType(val description: String, val prefersProfileable: Boolean, val rank: Int) {
-  HEAP_DUMP("Heap Dump", false, 0),
+  SYSTEM_TRACE("System Trace", true, 0),
   LIVE_VIEW("Live View", true, 1),
-  SYSTEM_TRACE("System Trace", true, 2),
-  JAVA_KOTLIN_ALLOCATIONS("Java/Kotlin Allocations", false, 3),
-  LEAKCANARY("LeakCanary", false, 4),
-  JAVA_KOTLIN_METHOD_RECORDING("Java/Kotlin Method Recording", true, 5),
-  CALLSTACK_SAMPLE("Callstack Sample", true, 6),
+  JAVA_KOTLIN_METHOD_RECORDING("Java/Kotlin Method Recording", true, 2),
+  CALLSTACK_SAMPLE("Callstack Sample", true, 3),
+  HEAP_DUMP("Heap Dump", false, 4),
+  LEAKCANARY("LeakCanary", false, 5),
+  JAVA_KOTLIN_ALLOCATIONS("Java/Kotlin Allocations", false, 6),
   NATIVE_ALLOCATIONS("Native Allocations", true, 7),
   UNSPECIFIED("Unspecified", false, Int.MAX_VALUE);
 

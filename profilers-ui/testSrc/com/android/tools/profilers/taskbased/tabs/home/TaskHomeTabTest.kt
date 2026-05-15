@@ -148,7 +148,7 @@ class TaskHomeTabTest {
     assertThat(taskHomeTabModel.selectedProcess.name).isEqualTo("FakeProcess1")
 
     // The profiler pre-selects the first task in the task grid already, so no explicit selection is needed.
-    assertThat(taskHomeTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.HEAP_DUMP)
+    assertThat(taskHomeTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.SYSTEM_TRACE)
 
     // Set starting point to 'NOW' to enable the start task button.
     verifyAndSelectNow()
