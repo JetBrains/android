@@ -16,7 +16,9 @@
 package com.android.tools.idea.startup;
 
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -32,6 +34,7 @@ public class AndroidStudioActionCustomizer implements ActionConfigurationCustomi
     setUpCodeMenuActions(actionManager);
     setUpGradleActions(actionManager);
     hideDebuggerHotSwapAction(actionManager);
+    hideProfilerActionsInSearch(actionManager);
   }
 
   // Remove popup actions that we don't use
@@ -67,5 +70,19 @@ public class AndroidStudioActionCustomizer implements ActionConfigurationCustomi
    */
   private static void hideDebuggerHotSwapAction(ActionManager actionManager) {
     Actions.hideAction(actionManager, "Hotswap");
+  }
+
+  private static void hideProfilerActionsInSearch(ActionManager actionManager) {
+    // Hide dynamically generated platform UI actions that wrap the base Profiler actions.
+    // This prevents redundant "Profile" popups (e.g., empty "Nothing here" popups or duplicate dropdowns)
+    // from polluting the Search Everywhere results.
+    List.of(
+      "Android Profiler Group",
+      "Android Profiler Group_delegate",
+      "newConfigurationProfileGroupRunClass",
+      "ProfileGroupRunClass"
+    ).forEach(id ->
+                Actions.hideAction(actionManager, id, e -> ActionPlaces.ACTION_SEARCH.equals(e.getPlace()))
+    );
   }
 }
