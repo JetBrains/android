@@ -255,7 +255,7 @@ fun WizardPageScope.CreateReleasePage() {
                       releaseNameState.text.toString(),
                       selectedTrack,
                       state.appName,
-                      state.developerId,
+                      state.packageName,
                     )
                   } catch (e: PlayPublishingException) {
                     val message = e.message ?: "Unknown error"
@@ -278,7 +278,7 @@ private fun showUploadSuccessfulNotification(
   releaseName: String?,
   selectedTrack: String?,
   appName: String?,
-  developerId: Long?,
+  packageName: String?,
 ) {
   val content =
     "Your release ${if(releaseName.isNullOrEmpty()) "" else "\"${releaseName}\" "}has been successfully uploaded to ${selectedTrack?.displayTrackName()}${if (appName.isNullOrEmpty()) "." else " for \"${appName}\"."}"
@@ -295,8 +295,8 @@ private fun showUploadSuccessfulNotification(
   // if (email != null) {
   //   notification.addAction(
   //     NotificationAction.createSimpleExpiring("Open Play Console \u2197") {
-  //       val developer = developerId?.let { "developers/$it" } ?: ""
-  //       val url = playConsoleViaAccountChooserUrl(email, "https://play.google.com/console/$developer")
+  //       val packagePath = packageName?.let { "package/$it" } ?: ""
+  //       val url = playConsoleViaAccountChooserUrl(email, "https://play.google.com/console/$packagePath")
   //       BrowserUtil.browse(url)
   //     }
   //   )
