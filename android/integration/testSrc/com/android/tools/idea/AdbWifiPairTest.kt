@@ -18,12 +18,14 @@ package com.android.tools.idea
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.testlib.Emulator
 import java.util.concurrent.TimeUnit
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
 class AdbWifiPairTest {
   @JvmField @Rule val system: AndroidSystem = AndroidSystem.standard()
 
+  @Ignore("b/512173064")
   @Test
   fun pairAndConnectTest() {
     system.runAdb { adb ->
