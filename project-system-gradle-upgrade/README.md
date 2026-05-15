@@ -22,7 +22,7 @@ The introduction of the AGP Upgrade Assistant in Android Studio 4.2 allowed
 users to modify their build files if necessary to account for the switch of
 default in AGP to use Java 8 (rather than the historic default of Java 7), as
 well as to recommend modifying dependency configurations from the deprecated
-`compile` to whichever of `api` and `implementation` was appropriate, and to
+`compile` to whichever of `contract` and `implementation` was appropriate, and to
 support migration of projects [from fabric to Firebase
 Crashlytics](http://web.archive.org/web/20211017083605/https://firebase.google.com/docs/crashlytics/upgrade-sdk?platform=android).
 Without the AGP Upgrade Assistant, each of these steps (or operations like them)
