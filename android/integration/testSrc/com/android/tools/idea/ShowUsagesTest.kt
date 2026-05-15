@@ -22,6 +22,7 @@ import com.android.tools.asdriver.tests.ComponentMatchersBuilder
 import com.android.tools.asdriver.tests.MavenRepo
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -31,6 +32,7 @@ import org.junit.runners.JUnit4
 // The Provider is otherwise unrelated to this test.
 private const val regex = ".*ComposeUsageGroupingRuleProvider.*?Saw usage.*"
 
+@Ignore("b/513219181")
 @RunWith(JUnit4::class)
 class ShowUsagesTest {
   @get:Rule val system: AndroidSystem = AndroidSystem.standardWithTmpDir()

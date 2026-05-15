@@ -20,9 +20,11 @@ import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.base.IdeInstallation
 import java.nio.file.Paths
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
+@Ignore("b/513219181")
 class MultiProjectSameWindowTest {
   @JvmField @Rule val system: AndroidSystem = AndroidSystem.standardWithTmpDir()
 

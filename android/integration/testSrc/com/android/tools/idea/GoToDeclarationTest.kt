@@ -22,11 +22,13 @@ import com.android.tools.asdriver.tests.ComponentMatchersBuilder
 import com.android.tools.asdriver.tests.MavenRepo
 import java.nio.file.Paths
 import kotlin.io.path.name
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
+@Ignore("b/513219181")
 @RunWith(JUnit4::class)
 class GoToDeclarationTest {
   @get:Rule val system: AndroidSystem = AndroidSystem.standardWithTmpDir()

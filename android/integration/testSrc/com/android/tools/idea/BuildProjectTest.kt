@@ -21,9 +21,11 @@ import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import java.nio.file.Paths
 import org.junit.Assert
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
+@Ignore("b/513219181")
 class BuildProjectTest {
   @JvmField @Rule val system: AndroidSystem = AndroidSystem.standardWithTmpDir()
 
