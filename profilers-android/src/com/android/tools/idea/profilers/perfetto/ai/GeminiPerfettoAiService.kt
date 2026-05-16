@@ -16,53 +16,59 @@
 
 package com.android.tools.idea.profilers.perfetto.ai
 
-import com.android.tools.idea.gemini.GeminiPluginApi
-import com.android.tools.idea.gemini.buildLlmPrompt
+import com.android.tools.idea.gemini.GeminiPluginApiV2
+import com.android.tools.idea.gemini.LlmChatInToolWindowResult
 // The sherlock.common module is not part of the monorepo and Google publishes no artifact for it,
 // so com.android.tools.sherlock.common.perfetto.ai.PerfettoAiService cannot be imported here.
 // This is permanent, not a pending merge step.
 // import com.android.tools.sherlock.common.perfetto.ai.PerfettoAiService
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 /**
- * Gemini-backed implementation of [PerfettoAiService]. This service uses the [GeminiPluginApi] to send chat queries to the Gemini assistant
- * in Android Studio.
+ * Gemini-backed implementation of [PerfettoAiService]. This service uses [GeminiPluginApiV2] to send chat queries to the Gemini agent in
+ * Android Studio.
  */
 // PerfettoAiService lives in the sherlock.common module, which the monorepo does not carry, so
 // this class cannot implement it here and neither generateQuery nor analyzeTrace can be an
 // override. This is permanent, not a pending merge step.
-// class GeminiPerfettoAiService(private val project: Project) : PerfettoAiService {
-class GeminiPerfettoAiService(private val project: Project) {
+// class GeminiPerfettoAiService(private val project: Project, private val scope: CoroutineScope) : PerfettoAiService {
+class GeminiPerfettoAiService(private val project: Project, private val scope: CoroutineScope) {
+
+  companion object {
+    private val LOG = Logger.getInstance(GeminiPerfettoAiService::class.java)
+  }
+
   fun generateQuery(prompt: String, traceFilePath: String) {
-    sendPromptWithSkill(
-      "Generate Perfetto SQL Query: $prompt. The trace file is available at: $traceFilePath",
-      GeminiPerfettoAiConstants.PERFETTO_SQL_SYSTEM_INSTRUCTION,
-    )
+    sendPromptToAgent("Generate Perfetto SQL Query: $prompt. The trace file is available at: $traceFilePath")
   }
 
   fun analyzeTrace(prompt: String, traceFilePath: String) {
-    sendPromptWithSkill(
-      "Analyze Perfetto Trace: $prompt. The trace file is available at: $traceFilePath",
-      GeminiPerfettoAiConstants.PERFETTO_TRACE_ANALYSIS_SYSTEM_INSTRUCTION,
-    )
+    sendPromptToAgent("Analyze Perfetto Trace: $prompt. The trace file is available at: $traceFilePath")
   }
 
   /**
-   * Helper method to construct an LLM prompt and send it to the Gemini chat window.
+   * Helper method to send a query to the Gemini agent in the tool window.
    *
-   * @param prompt The prompt text to display in the chat and send to the model.
-   * @param systemMessageText The system message to guide the AI (e.g., specifying the skill to use).
+   * @param prompt The prompt text to send to the model.
    */
-  private fun sendPromptWithSkill(prompt: String, systemMessageText: String) {
-    val api = GeminiPluginApi.getInstance()
-    if (!api.isAvailable()) return
-
-    val llmPrompt =
-      buildLlmPrompt(project) {
-        systemMessage { text(systemMessageText, filesUsed = emptyList()) }
-        userMessage { text(prompt, filesUsed = emptyList()) }
+  private fun sendPromptToAgent(prompt: String) {
+    scope.launch {
+      try {
+        val api = GeminiPluginApiV2.getInstance()
+        when (val result = api.submitQueryInToolWindow(project, prompt)) {
+          is LlmChatInToolWindowResult.Success -> {
+            LOG.info("Successfully submitted query to Gemini agent.")
+          }
+          is LlmChatInToolWindowResult.RequestNotSubmitted -> {
+            LOG.warn("Failed to submit query to Gemini tool window: ${result.reason}")
+          }
+        }
+      } catch (e: Exception) {
+        LOG.warn("Exception while submitting query to Gemini tool window", e)
       }
-
-    api.sendChatQuery(project, llmPrompt, displayText = prompt, requestSource = GeminiPluginApi.RequestSource.OTHER)
+    }
   }
 }
