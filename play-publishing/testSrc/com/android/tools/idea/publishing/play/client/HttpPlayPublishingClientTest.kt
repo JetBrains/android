@@ -22,6 +22,7 @@ import com.google.api.client.http.LowLevelHttpResponse
 import com.google.api.client.testing.http.MockHttpTransport
 import com.google.api.client.testing.http.MockLowLevelHttpRequest
 import com.google.api.client.testing.http.MockLowLevelHttpResponse
+import com.google.common.truth.Truth.assertThat
 // TODO: android-merge; com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
 // import com.google.gct.login2.LoginFeatureRule
 // import com.google.gct.login2.LoginUsersRule
@@ -29,7 +30,6 @@ import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import java.io.IOException
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Rule
 import org.junit.Test
@@ -66,9 +66,9 @@ class HttpPlayPublishingClientTest {
     val client = HttpPlayPublishingClient(httpTransport = transport)
 
     val apps = client.listApps()
-    assertEquals(1, apps.size)
-    assertEquals("com.example.app", apps[0].packageName)
-    assertEquals("My App", apps[0].displayName)
+    assertThat(apps).hasSize(1)
+    assertThat(apps[0].packageName).isEqualTo("com.example.app")
+    assertThat(apps[0].displayName).isEqualTo("My App")
   }
 
   @Test
@@ -82,7 +82,49 @@ class HttpPlayPublishingClientTest {
 
     val exception = assertThrows(PlayPublishingException::class.java) { runBlocking { client.listApps() } }
 
-    assertEquals("Bad request", exception.message)
+    assertThat(exception).hasMessageThat().isEqualTo("Bad request")
+  }
+
+  @Test
+  fun testListAppsHttpErrorDraftAppDraftReleaseThrowsPlayPublishingException() {
+    val transport =
+      MockHttpTransport.Builder()
+        .setLowLevelHttpResponse(
+          MockLowLevelHttpResponse()
+            .setStatusCode(400)
+            .setContent("""{"error": {"message": "Only releases with status draft may be created on draft app."}}""")
+        )
+        .build()
+
+    val client = HttpPlayPublishingClient(httpTransport = transport)
+
+    val exception = assertThrows(PlayPublishingException::class.java) { runBlocking { client.listApps() } }
+
+    assertThat(exception)
+      .hasMessageThat()
+      .isEqualTo("No app listing is available for this app. Create one before publishing releases to non-Internal Test Tracks.")
+  }
+
+  @Test
+  fun testListAppsHttpErrorFailedPreconditionTrackRestrictedThrowsPlayPublishingException() {
+    val transport =
+      MockHttpTransport.Builder()
+        .setLowLevelHttpResponse(
+          MockLowLevelHttpResponse()
+            .setStatusCode(400)
+            .setContent(
+              """{"error": {"message": "Precondition check failed.", "errors": [{"debugInfo": "Track beta of app com.test is restricted"}]}}"""
+            )
+        )
+        .build()
+
+    val client = HttpPlayPublishingClient(httpTransport = transport)
+
+    val exception = assertThrows(PlayPublishingException::class.java) { runBlocking { client.listApps() } }
+
+    assertThat(exception)
+      .hasMessageThat()
+      .isEqualTo("No app listing is available for this app. Create one before publishing releases to non-Internal Test Tracks.")
   }
 
   @Test
@@ -102,7 +144,7 @@ class HttpPlayPublishingClientTest {
 
     val exception = assertThrows(PlayPublishingException::class.java) { runBlocking { client.listApps() } }
 
-    assertEquals("Network error", exception.message)
+    assertThat(exception).hasMessageThat().isEqualTo("Network error")
   }
 
   @Test
@@ -117,9 +159,9 @@ class HttpPlayPublishingClientTest {
     val client = HttpPlayPublishingClient(httpTransport = transport)
 
     val developers = client.listDevelopers()
-    assertEquals(1, developers.size)
-    assertEquals(123L, developers[0].developerId)
-    assertEquals("Google", developers[0].businessName)
+    assertThat(developers).hasSize(1)
+    assertThat(developers[0].developerId).isEqualTo(123L)
+    assertThat(developers[0].businessName).isEqualTo("Google")
   }
 
   @Test
@@ -139,11 +181,11 @@ class HttpPlayPublishingClientTest {
 
     val appConfig = com.android.tools.idea.publishing.play.client.type.AppConfig(packageName = "com.test", title = "Test App")
     val result = client.createAppRecord(123L, appConfig)
-    assertEquals("com.test", result.packageName)
-    assertEquals("Test App", result.title)
-    assertEquals("en-US", result.defaultLanguageCode)
-    assertEquals(com.android.tools.idea.publishing.play.client.type.AppType.APP_TYPE_APP, result.appType)
-    assertEquals(false, result.paid)
+    assertThat(result.packageName).isEqualTo("com.test")
+    assertThat(result.title).isEqualTo("Test App")
+    assertThat(result.defaultLanguageCode).isEqualTo("en-US")
+    assertThat(result.appType).isEqualTo(com.android.tools.idea.publishing.play.client.type.AppType.APP_TYPE_APP)
+    assertThat(result.paid).isFalse()
   }
 
   @Test
@@ -158,32 +200,33 @@ class HttpPlayPublishingClientTest {
     val client = HttpPlayPublishingClient(httpTransport = transport)
 
     val result = client.insertEdit("com.test")
-    assertEquals("edit-123", result.id)
-    assertEquals("1000", result.expiryTimeSeconds)
+    assertThat(result.id).isEqualTo("edit-123")
+    assertThat(result.expiryTimeSeconds).isEqualTo("1000")
   }
 
   @Test
-  fun testListEditTracksSuccess() = runBlocking {
-    val transport =
-      MockHttpTransport.Builder()
-        .setLowLevelHttpResponse(
-          MockLowLevelHttpResponse()
-            .setStatusCode(200)
-            .setContent(
-              """{"tracks": [{"track": "production", "releases": [{"name": "1.0", "versionCodes": ["1"], "status": "completed"}]}]}"""
-            )
-        )
-        .build()
+  fun testListEditTracksSuccess() =
+    runBlocking<Unit> {
+      val transport =
+        MockHttpTransport.Builder()
+          .setLowLevelHttpResponse(
+            MockLowLevelHttpResponse()
+              .setStatusCode(200)
+              .setContent(
+                """{"tracks": [{"track": "production", "releases": [{"name": "1.0", "versionCodes": ["1"], "status": "completed"}]}]}"""
+              )
+          )
+          .build()
 
-    val client = HttpPlayPublishingClient(httpTransport = transport)
+      val client = HttpPlayPublishingClient(httpTransport = transport)
 
-    val tracks = client.listEditTracks("com.test", "edit-123")
-    assertEquals(1, tracks.size)
-    assertEquals("production", tracks[0].track)
-    assertEquals(1, tracks[0].releases.size)
-    assertEquals("1.0", tracks[0].releases[0].name)
-    assertEquals(listOf("1"), tracks[0].releases[0].versionCodes)
-  }
+      val tracks = client.listEditTracks("com.test", "edit-123")
+      assertThat(tracks).hasSize(1)
+      assertThat(tracks[0].track).isEqualTo("production")
+      assertThat(tracks[0].releases).hasSize(1)
+      assertThat(tracks[0].releases[0].name).isEqualTo("1.0")
+      assertThat(tracks[0].releases[0].versionCodes).containsExactly("1")
+    }
 
   @Test
   fun testUploadArtifactBundleSuccess() = runBlocking {
@@ -200,9 +243,9 @@ class HttpPlayPublishingClientTest {
     tempFile.deleteOnExit()
 
     val result = client.uploadArtifact("com.test", "edit-123", tempFile.absolutePath, isBundle = true)
-    assertEquals(1, result.versionCode)
-    assertEquals("abc", result.sha1)
-    assertEquals("def", result.sha256)
+    assertThat(result.versionCode).isEqualTo(1)
+    assertThat(result.sha1).isEqualTo("abc")
+    assertThat(result.sha256).isEqualTo("def")
   }
 
   @Test
@@ -220,10 +263,10 @@ class HttpPlayPublishingClientTest {
     tempFile.deleteOnExit()
 
     val result = client.uploadArtifact("com.test", "edit-123", tempFile.absolutePath, isBundle = false)
-    assertEquals(2, result.versionCode)
+    assertThat(result.versionCode).isEqualTo(2)
     val apk = result as com.android.tools.idea.publishing.play.client.type.Apk
-    assertEquals("abc", apk.binary.sha1)
-    assertEquals("def", apk.binary.sha256)
+    assertThat(apk.binary.sha1).isEqualTo("abc")
+    assertThat(apk.binary.sha256).isEqualTo("def")
   }
 
   @Test

@@ -23,6 +23,7 @@ import com.android.tools.idea.publishing.play.client.type.AppEdit
 import com.android.tools.idea.publishing.play.client.type.Artifact
 import com.android.tools.idea.publishing.play.client.type.Bundle
 import com.android.tools.idea.publishing.play.client.type.Developer
+import com.android.tools.idea.publishing.play.client.type.GoogleApiInnerError
 import com.android.tools.idea.publishing.play.client.type.ListAppResponse
 import com.android.tools.idea.publishing.play.client.type.ListDevelopersResponse
 import com.android.tools.idea.publishing.play.client.type.ListTrackResponse
@@ -56,6 +57,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 private const val BASE_PATH = "androidpublisher/v3"
+
+private const val NO_APP_LISTING_CORRECTION_MESSAGE =
+  "No app listing is available for this app. Create one before publishing releases to non-Internal Test Tracks."
+private const val DRAFT_APP_DRAFT_RELEASE = "Only releases with status draft may be created on draft app."
+private const val FAILED_PRECONDITION = "Precondition check failed."
+private val TRACK_RESTRICTED_REGEX = "Track .* of app .* is restricted".toRegex()
 
 class HttpPlayPublishingClient(
   private val endPoint: String = StudioFlags.PLAY_PUBLISHING_ENDPOINT.get(),
@@ -193,10 +200,23 @@ class HttpPlayPublishingClient(
         val googleError = e.parseGoogleApiError()
         val message = googleError?.message ?: e.message ?: "Unknown error"
         logger.warn("Play Publishing API error: $message", e)
-        throw PlayPublishingException(message, e)
+        throw PlayPublishingException(maybeCorrectExceptionMessage(message, googleError?.errors), e)
       } catch (e: IOException) {
         logger.warn("Play Publishing network error: ${e.message}", e)
         throw PlayPublishingException(e.message ?: "Unknown error", e)
       }
     }
+
+  private fun maybeCorrectExceptionMessage(message: String, errors: List<GoogleApiInnerError>?): String =
+    when {
+      message.contains(DRAFT_APP_DRAFT_RELEASE) -> {
+        NO_APP_LISTING_CORRECTION_MESSAGE
+      }
+      message.contains(FAILED_PRECONDITION) && (errors?.containsRestrictedTrackDebugInfo() == true) -> {
+        NO_APP_LISTING_CORRECTION_MESSAGE
+      }
+      else -> message
+    }
+
+  private fun List<GoogleApiInnerError>.containsRestrictedTrackDebugInfo() = any { it.debugInfo?.contains(TRACK_RESTRICTED_REGEX) == true }
 }
