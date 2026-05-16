@@ -3412,6 +3412,7 @@ Android Studio Preview.app/Contents/plugins/junit/lib/junit6-rt.jar
 Android Studio Preview.app/Contents/plugins/keymap-eclipse/lib/keymap-eclipse.jar
 Android Studio Preview.app/Contents/plugins/keymap-netbeans/lib/keymap-netbeans.jar
 Android Studio Preview.app/Contents/plugins/keymap-visualStudio/lib/keymap-visualStudio.jar
+Android Studio Preview.app/Contents/plugins/lume/lib/json-schema-validator-1.4.3.jar
 Android Studio Preview.app/Contents/plugins/lume/lib/kaml-jvm-0.61.0.jar
 Android Studio Preview.app/Contents/plugins/lume/lib/liblume-android-plugin.jar
 Android Studio Preview.app/Contents/plugins/lume/lib/liblume-ide-api-impl.jar
