@@ -28,8 +28,10 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.IdeFrame
 import com.intellij.util.concurrency.AppExecutorUtil
+import java.io.IOException
 import java.nio.channels.AsynchronousChannelGroup
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.TimeUnit
 
 /**
  * Implementation of [AdbSessionHost] that integrates with the IntelliJ/Android Studio platform.
@@ -51,11 +53,13 @@ internal class AndroidAdbSessionHost : AdbSessionHost() {
 
   override val usageTracker = AndroidAdbUsageTracker()
 
-  override val asynchronousChannelGroup: AsynchronousChannelGroup? =
+  private val adbSessionChannelGroup: AsynchronousChannelGroup =
     AsynchronousChannelGroup.withCachedThreadPool(
       AppExecutorUtil.createBoundedScheduledExecutorService("AndroidAdbSessionHost", 4),
       1,
     )
+
+  override val asynchronousChannelGroup: AsynchronousChannelGroup = adbSessionChannelGroup
 
   override val parentContext = androidCoroutineExceptionHandler
 
@@ -101,7 +105,24 @@ internal class AndroidAdbSessionHost : AdbSessionHost() {
   }
 
   override fun close() {
-    Disposer.dispose(disposable)
+    try {
+      Disposer.dispose(disposable)
+    }
+    finally {
+      try {
+        adbSessionChannelGroup.shutdownNow()
+        if (!adbSessionChannelGroup.awaitTermination(5, TimeUnit.SECONDS)) {
+          log.warn("Timed out waiting for Android ADB asynchronous channel group termination")
+        }
+      }
+      catch (e: InterruptedException) {
+        Thread.currentThread().interrupt()
+        log.warn("Interrupted while waiting for Android ADB asynchronous channel group termination", e)
+      }
+      catch (e: IOException) {
+        log.warn("Failed to shut down Android ADB asynchronous channel group", e)
+      }
+    }
   }
 
   inner class MyActivationListener : ApplicationActivationListener {

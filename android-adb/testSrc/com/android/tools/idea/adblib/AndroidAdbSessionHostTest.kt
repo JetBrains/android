@@ -26,11 +26,13 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.ui.BalloonLayout
 import java.awt.Rectangle
 import java.time.Duration
+import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
 import org.junit.After
 import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -138,6 +140,16 @@ class AndroidAdbSessionHostTest {
 
     // Assert
     assertEquals(false, host.getPropertyValue(PROCESS_PROPERTIES_COLLECTOR_DELAY_USE_SHORT))
+  }
+
+  @Test
+  fun closeShutsDownAsynchronousChannelGroup() {
+    val group = host.asynchronousChannelGroup
+
+    host.close()
+
+    assertTrue(group.isShutdown)
+    assertTrue(group.awaitTermination(5, TimeUnit.SECONDS))
   }
 
   private class TestingIdeFrame : IdeFrame {
