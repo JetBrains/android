@@ -88,6 +88,7 @@ gradle.ide.gradle.sync.recreate.jdk=COMPLETE:2021
 gradle.ide.gradle.sync.use.v2=COMPLETE:2021
 gradle.ide.gradle.uses.local.java.home.for.new.created.projects=COMPLETE:2023
 gradle.ide.migrate.project.to.gradle.local.java.home=COMPLETE:2023
+gradle.ide.play.publishing.wizard.integration=PREVIEW
 gradle.ide.recommend.patch.releases=COMPLETE:2025
 gradle.ide.restore.invalid.gradle.jdk.configuration=COMPLETE:2025
 journeys.with.gemini.enable.agent.support=PREVIEW
