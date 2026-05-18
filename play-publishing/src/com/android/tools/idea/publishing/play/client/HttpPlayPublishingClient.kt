@@ -109,7 +109,13 @@ class HttpPlayPublishingClient(
     val listDeveloperUrl = GenericUrl("$url/developers")
     val request = requestFactory.buildGetRequest(listDeveloperUrl)
     val response = request.execute()
-    response.parseAs<ListDevelopersResponse>().developers
+
+    // Temporary workaround for b/513706971
+    if (response.statusCode == 204) {
+      emptyList()
+    } else {
+      response.parseAs<ListDevelopersResponse>().developers
+    }
   }
 
   override suspend fun createAppRecord(developerId: Long, appConfig: AppConfig): AppConfig = runPublishingTask {
