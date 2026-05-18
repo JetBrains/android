@@ -1156,6 +1156,14 @@ public final class StudioFlags {
                     );
   //endregion
 
+  //region Lightbuild
+  private static final FlagGroup LIGHTBUILD = new FlagGroup(FLAGS, "lightbuild", "Lightbuild");
+
+  public static final Flag<Boolean> LIGHTBUILD_ENABLE =
+    new BooleanFlag(LIGHTBUILD, "enable", "Enable Lightbuild plugin",
+                    "Enables the Lightbuild plugin.");
+  //endregion
+
   //region Layout Inspector
   private static final FlagGroup LAYOUT_INSPECTOR = new FlagGroup(FLAGS, "layout.inspector", "Layout Inspector");
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_THROW_UNEXPECTED_ERROR = new BooleanFlag(
