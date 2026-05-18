@@ -38,14 +38,14 @@ open class AndroidNewModuleAction : AnAction, DumbAware {
 
   override fun update(e: AnActionEvent) {
     e.project?.getProjectSystem()?.run {
-      e.presentation.isVisible = allowsFileCreation()
+      e.presentation.isVisible = allowsModuleCreation()
       e.presentation.isEnabled = !getSyncManager().isSyncInProgress()
     }
   }
 
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    if (project.getProjectSystem().allowsFileCreation()) {
+    if (project.getProjectSystem().allowsModuleCreation()) {
       if (!AndroidSdkUtils.isAndroidSdkAvailable()) {
         SdkQuickfixUtils.showSdkMissingDialog()
         return

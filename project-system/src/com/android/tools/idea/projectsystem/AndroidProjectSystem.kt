@@ -53,8 +53,11 @@ interface AndroidProjectSystem : ModuleHierarchyProvider {
   /** Indicates whether this project system supports the Android view */
   fun isAndroidProjectViewSupported(): Boolean = false
 
-  /** Returns true if the project allows adding new modules. */
+  /** Returns true if the project allows adding new files (e.g, assets). */
   fun allowsFileCreation(): Boolean
+
+  /** Returns true if the project allows adding new modules. */
+  fun allowsModuleCreation(): Boolean = allowsFileCreation()
 
   /** Returns an interface for interacting with the given module. */
   fun getModuleSystem(module: Module): AndroidModuleSystem
