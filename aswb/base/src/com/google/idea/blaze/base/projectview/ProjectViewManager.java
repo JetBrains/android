@@ -27,26 +27,25 @@ import com.intellij.openapi.project.Project;
 import java.io.IOException;
 import javax.annotation.Nullable;
 
-/**
- * Class that manages access to a project's {@link ProjectView}.
- */
+/** Class that manages access to a project's {@link ProjectView}. */
 public abstract class ProjectViewManager {
   private static final Logger logger = Logger.getInstance(ProjectViewManager.class);
+
   public static ProjectViewManager getInstance(Project project) {
     return project.getService(ProjectViewManager.class);
   }
 
-  public static boolean migrateImportSettingsToProjectViewFile(BlazeImportSettings importSettings,
-                                                               ProjectViewSet.ProjectViewFile projectViewFile) {
+  public static boolean migrateImportSettingsToProjectViewFile(
+      BlazeImportSettings importSettings, ProjectViewSet.ProjectViewFile projectViewFile) {
     ProjectView.Builder projectView = ProjectView.builder(projectViewFile.projectView);
-    boolean isWorkspaceLocationUpdated = addUpdateWorkspaceLocationSection(importSettings, projectViewFile, projectView);
+    boolean isWorkspaceLocationUpdated =
+        addUpdateWorkspaceLocationSection(importSettings, projectViewFile, projectView);
     if (isWorkspaceLocationUpdated) {
       String projectViewText = ProjectViewParser.projectViewToString(projectView.build());
       try {
         ProjectViewStorageManager.getInstance()
-          .writeProjectView(projectViewText, projectViewFile.projectViewFile);
-      }
-      catch (IOException e) {
+            .writeProjectView(projectViewText, projectViewFile.projectViewFile);
+      } catch (IOException e) {
         logger.error(e);
       }
       return true;
@@ -54,14 +53,17 @@ public abstract class ProjectViewManager {
     return false;
   }
 
-  private static boolean addUpdateWorkspaceLocationSection(BlazeImportSettings importSettings,
-                                                           ProjectViewSet.ProjectViewFile projectViewFile,
-                                                           ProjectView.Builder projectView) {
+  private static boolean addUpdateWorkspaceLocationSection(
+      BlazeImportSettings importSettings,
+      ProjectViewSet.ProjectViewFile projectViewFile,
+      ProjectView.Builder projectView) {
     ScalarSection<String> workspaceRootSection = null;
-    if (projectViewFile.projectView.getSections().stream().noneMatch(x -> x.isSectionType(WorkspaceLocationSection.KEY))) {
-      workspaceRootSection = ScalarSection.builder(WorkspaceLocationSection.KEY)
-        .set(importSettings.getWorkspaceRoot())
-        .build();
+    if (projectViewFile.projectView.getSections().stream()
+        .noneMatch(x -> x.isSectionType(WorkspaceLocationSection.KEY))) {
+      workspaceRootSection =
+          ScalarSection.builder(WorkspaceLocationSection.KEY)
+              .set(importSettings.getWorkspaceRoot())
+              .build();
     }
     if (workspaceRootSection != null) {
       projectView.add(workspaceRootSection);
@@ -70,17 +72,13 @@ public abstract class ProjectViewManager {
     return false;
   }
 
-  /**
-   * Returns the current project view collection. If there is an error, returns null.
-   */
+  /** Returns the current project view collection. If there is an error, returns null. */
   @Nullable
   public abstract ProjectViewSet getProjectViewSet();
 
-  /**
-   * Reloads the project view, replacing the current one only if there are no errors.
-   */
+  /** Reloads the project view, replacing the current one only if there are no errors. */
   public abstract ProjectViewSet reloadProjectView(BlazeContext context) throws BuildException;
 
-  public abstract ProjectViewSet doLoadProjectView(BlazeContext context, BlazeImportSettings importSettings)
-    throws ConfigurationException;
+  public abstract ProjectViewSet doLoadProjectView(
+      BlazeContext context, BlazeImportSettings importSettings) throws ConfigurationException;
 }

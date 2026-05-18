@@ -26,7 +26,8 @@ public class Blaze {
   private Blaze() {}
 
   /**
-   * Returns whether the project is a Bazel or Blaze project currently assigned to BazelProjectSystem.
+   * Returns whether the project is a Bazel or Blaze project currently assigned to
+   * BazelProjectSystem.
    */
   public static boolean isBlazeProject(@Nullable Project project) {
     return project != null

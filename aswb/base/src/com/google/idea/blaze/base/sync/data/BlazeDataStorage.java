@@ -47,7 +47,8 @@ public class BlazeDataStorage {
   }
 
   /**
-   * DO NOT USE! Project subdirectories will need to be registered and described so that their location can be redirected by policy.
+   * DO NOT USE! Project subdirectories will need to be registered and described so that their
+   * location can be redirected by policy.
    */
   @java.lang.Deprecated
   public static File getProjectDataDirDoNotUse(BlazeImportSettings importSettings) {

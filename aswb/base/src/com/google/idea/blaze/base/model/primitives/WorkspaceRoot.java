@@ -78,20 +78,21 @@ public class WorkspaceRoot {
     return fromImportSettings(importSettings);
   }
 
-  public static ImmutableSet<Path> virtualFilesToWorkspaceRelativePaths(Project project, Collection<VirtualFile> virtualFiles) {
+  public static ImmutableSet<Path> virtualFilesToWorkspaceRelativePaths(
+      Project project, Collection<VirtualFile> virtualFiles) {
     WorkspaceRoot workspaceRootOrNull = fromProjectSafe(project);
     if (workspaceRootOrNull == null) {
       return ImmutableSet.of();
     }
     final var workspaceRoot = workspaceRootOrNull.path();
-    ImmutableSet<Path> paths = virtualFiles
-      .stream()
-      .filter(VirtualFile::isInLocalFileSystem)
-      .map(it -> it.getFileSystem().getNioPath(it))
-      .filter(Objects::nonNull)
-      .filter(it -> it.startsWith(workspaceRoot))
-      .map(workspaceRoot::relativize)
-      .collect(toImmutableSet());
+    ImmutableSet<Path> paths =
+        virtualFiles.stream()
+            .filter(VirtualFile::isInLocalFileSystem)
+            .map(it -> it.getFileSystem().getNioPath(it))
+            .filter(Objects::nonNull)
+            .filter(it -> it.startsWith(workspaceRoot))
+            .map(workspaceRoot::relativize)
+            .collect(toImmutableSet());
     return paths;
   }
 
