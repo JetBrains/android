@@ -26,9 +26,6 @@ class AndroidPluginModuleConsistencyTest : AndroidPluginProjectConsistencyTestCa
   private val intelliJOnlyAndroidModules = listOf(
     // The IntelliJ project consistency test module that exists only in IJ monorepo
     "intellij.android.projectStructureTests",
-    // Remote dev module available only in ultimate
-    "intellij.android.backend.split",
-    "intellij.android.backend.split.tests",
   )
 
   /**
