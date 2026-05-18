@@ -951,6 +951,7 @@ public final class StudioIcons {
 
   public static final class StudioBot {
     /** 16x16 */ public static final @NotNull Icon ASK = load("studio/icons/studio-bot/ask.svg", -323558851, 2);
+    /** 16x16 */ public static final @NotNull Icon CHANGE_REVIEW = load("studio/icons/studio-bot/change-review.svg", 1665363647, 2);
     /** 16x16 */ public static final @NotNull Icon GEMINI_LOGO_MONOCHROME = load("studio/icons/studio-bot/gemini-logo-monochrome.svg", 1337628391, 2);
     /** 16x16 */ public static final @NotNull Icon GEMINI_LOGO = load("studio/icons/studio-bot/gemini-logo.svg", 2058042118, 2);
     /** 16x16 */ public static final @NotNull Icon GEMMA = load("studio/icons/studio-bot/gemma.svg", -164322164, 2);

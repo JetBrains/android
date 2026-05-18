@@ -4469,6 +4469,12 @@ object StudioIconsCompose {
   object StudioBot {
     val Ask: IntelliJIconKey =
       IntelliJIconKey("/studio/icons/studio-bot/ask.svg", "/studio/icons/studio-bot/ask.svg", StudioIconsCompose.javaClass) // 16x16
+    val ChangeReview: IntelliJIconKey =
+      IntelliJIconKey(
+        "/studio/icons/studio-bot/change-review.svg",
+        "/studio/icons/studio-bot/change-review.svg",
+        StudioIconsCompose.javaClass,
+      ) // 16x16
     val GeminiLogoMonochrome: IntelliJIconKey =
       IntelliJIconKey(
         "/studio/icons/studio-bot/gemini-logo-monochrome.svg",
