@@ -29,6 +29,7 @@
 
   <dependencies>
     <module name="intellij.xml.emmet"/>
+    <module name="intellij.platform.bookmarks"/>
   </dependencies>
 
   <depends optional="true" config-file="android-plugin-androidstudio.xml">com.intellij.modules.androidstudio</depends>
