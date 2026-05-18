@@ -18,10 +18,8 @@ package com.android.tools.idea.adblib
 import com.android.adblib.AdbSession
 import com.android.adblib.tools.debugging.impl.JdwpProcessSessionFinder
 import com.android.adblib.tools.debugging.impl.addJdwpProcessSessionFinder
-import com.android.ddmlib.DdmPreferences
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
-import java.time.Duration
 
 /** The production implementation of [AdbLibService] */
 internal class AdbLibServiceImpl(project: Project) : AdbLibService, Disposable {
@@ -48,10 +46,6 @@ internal class AdbLibServiceImpl(project: Project) : AdbLibService, Disposable {
           parentSession = AdbLibApplicationService.instance.session,
           host = host,
           channelProvider = channelProvider,
-          // Double the preferred timeout for remote devices that need more time to execute
-          // commands.
-          // TODO (b/390732614) Set higher timeout only for remote devices.
-          connectionTimeout = Duration.ofMillis(DdmPreferences.getTimeOut().toLong() * 2),
         )
         .also { projectSession ->
           // Ensure all JDWP connections are delegated to the application session

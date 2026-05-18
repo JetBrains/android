@@ -74,25 +74,6 @@ public final class AdbService implements Disposable {
   public static boolean disabled = false;
 
   private static final Logger LOG = Logger.getInstance(AdbService.class);
-  /**
-   * The default timeout used by many calls to ddmlib. This includes executing a command,
-   * waiting for a response from a command, trying to send a command, etc.
-   * The default value is very high because some operations using this timeout can
-   * take a long time to complete (e.g. installing an application on a device). See
-   * <a href="https://github.com/JetBrains/android/commit/c667dabb759df8bddc72120f51192ee4a5b4e308">IDEA-67042 increase timeout</a>
-   * and <a href="https://github.com/JetBrains/android/commit/d17853af32a17788dbd8bd11c1ec5e720fb5bb6a">increase timeout</a>
-   * for commits that resulted in the current value of 50 minutes.
-   *
-   * <p>The problem with such a worst-case timeout value is that many operations are
-   * expected to take a very short amount of time, but, at the same time, ADB can
-   * sometimes hang for unexpected reasons. This state of affairs makes it difficult
-   * for callers to provide a user friendly experience, especially in cases where
-   * ADB hangs unexpectedly.  Addressing this issue would require non trivial refactoring
-   * of this code, and its callers, to either provide an explicit timeout for every invocation,
-   * or maybe expose 2 timeouts: one for short lived operations, and one for operations that
-   * can take a long time.
-   */
-  private static final int ADB_DEFAULT_TIMEOUT_MILLIS = (int)TimeUnit.MINUTES.toMillis(50);
 
   /**
    * Default timeout to use when calling {@link #terminateDdmlib()}. This ensures
@@ -246,7 +227,6 @@ public final class AdbService implements Disposable {
                                ? Log.LogLevel.DEBUG.getStringValue()
                                : Log.LogLevel.INFO.getStringValue();
     DdmPreferences.setLogLevel(defaultLogLevel);
-    DdmPreferences.setTimeOut(ADB_DEFAULT_TIMEOUT_MILLIS);
 
     Log.addLogger(new AdbLogOutput.SystemLogRedirecter());
 
