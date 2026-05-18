@@ -21,6 +21,7 @@ import com.google.idea.blaze.qsync.deps.ArtifactIndex
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.PostQuerySyncData
+import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.ProjectStructureData
 import com.google.idea.blaze.qsync.project.ProjectTarget
@@ -36,6 +37,7 @@ import java.nio.file.Path
  * * The IDE project structure metadata, [.projectStructureData].
  * * The output from all dependency builds to date, [.artifactState].
  * * The IntelliJ project structure derived from the above, presented as a proto, [ ][.project].
+ * * The definition that this project is based on, [.projectDefinition].
  *
  * This class is immutable, any modifications to the project will yield a new instance.
  */
@@ -46,6 +48,7 @@ data class QuerySyncProjectSnapshot(
   val artifactState: ArtifactTracker.State,
   val project: ProjectProto.Project,
   val incompleteTargets: Set<Label>,
+  val projectDefinition: ProjectDefinition,
 ) {
   companion object {
     @JvmField
@@ -57,6 +60,7 @@ data class QuerySyncProjectSnapshot(
         artifactState = ArtifactTracker.State.EMPTY,
         project = ProjectProto.Project.getDefaultInstance(),
         incompleteTargets = emptySet(),
+        projectDefinition = ProjectDefinition.EMPTY,
       )
   }
 
@@ -69,6 +73,8 @@ data class QuerySyncProjectSnapshot(
   fun withArtifactState(value: ArtifactTracker.State): QuerySyncProjectSnapshot = copy(artifactState = value)
 
   fun withProject(value: ProjectProto.Project): QuerySyncProjectSnapshot = copy(project = value)
+
+  fun withProjectDefinition(value: ProjectDefinition): QuerySyncProjectSnapshot = copy(projectDefinition = value)
 
   /**
    * Given a path to a file it returns the targets that own the file.

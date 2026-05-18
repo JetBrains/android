@@ -40,12 +40,12 @@ public class FullProjectUpdate implements RefreshOperation {
   private final QuerySpec.QueryStrategy queryStrategy;
 
   public FullProjectUpdate(
-    Context<?> context,
-    Path workspaceRoot,
-    ProjectDefinition definition,
-    Optional<VcsState> vcsState,
-    Optional<String> bazelVersion,
-    QuerySpec.QueryStrategy queryStrategy) {
+      Context<?> context,
+      Path workspaceRoot,
+      ProjectDefinition definition,
+      Optional<VcsState> vcsState,
+      Optional<String> bazelVersion,
+      QuerySpec.QueryStrategy queryStrategy) {
     this.context = context;
     this.workspaceRoot = workspaceRoot;
     this.projectDefinition = definition;
@@ -57,19 +57,18 @@ public class FullProjectUpdate implements RefreshOperation {
   @Override
   public Optional<QuerySpec> getQuerySpec() {
     return Optional.of(
-      projectDefinition
-        .deriveQuerySpec(context, queryStrategy, workspaceRoot)
-        .supportedRuleClasses(BlazeQueryParser.getAllSupportedRuleClasses())
-        .build());
+        projectDefinition
+            .deriveQuerySpec(context, queryStrategy, workspaceRoot)
+            .supportedRuleClasses(BlazeQueryParser.getAllSupportedRuleClasses())
+            .build());
   }
 
   @Override
   public PostQuerySyncData createPostQuerySyncData(QuerySummary output) {
     return PostQuerySyncData.builder()
-      .setProjectDefinition(projectDefinition)
-      .setVcsState(vcsState)
-      .setBazelVersion(bazelVersion)
-      .setQuerySummary(output)
-      .build();
+        .setVcsState(vcsState)
+        .setBazelVersion(bazelVersion)
+        .setQuerySummary(output)
+        .build();
   }
 }

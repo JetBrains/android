@@ -234,7 +234,7 @@ class QuerySyncProject(
 
   private fun buildGraphData(postQuerySyncData: PostQuerySyncData, context: Context<*>): BuildGraphData {
     return BlazeQueryParser(
-        postQuerySyncData.projectDefinition().effectiveTargetPatterns,
+        projectDefinition.effectiveTargetPatterns,
         postQuerySyncData.querySummary(),
         context,
         ImmutableSet.copyOf(handledRuleKinds),

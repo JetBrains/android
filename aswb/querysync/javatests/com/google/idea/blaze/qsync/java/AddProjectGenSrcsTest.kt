@@ -108,7 +108,7 @@ class AddProjectGenSrcsTest {
         )
       )
 
-    val addGensrcs = AddProjectGenSrcs(original.queryData.projectDefinition(), javaSourcePackageExtractor)
+    val addGensrcs = AddProjectGenSrcs(original.projectDefinition, javaSourcePackageExtractor)
 
     val update = ProjectProtoUpdate(original.project)
     addGensrcs.update(update, artifactState, context, ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
@@ -189,7 +189,7 @@ class AddProjectGenSrcsTest {
 
     val artifactState = ArtifactTracker.State.create(ImmutableMap.of(genSrc1.label, genSrc1, genSrc2.label, genSrc2), ImmutableMap.of())
 
-    val addGenSrcs = AddProjectGenSrcs(original.queryData.projectDefinition(), javaSourcePackageExtractor)
+    val addGenSrcs = AddProjectGenSrcs(original.projectDefinition, javaSourcePackageExtractor)
 
     val update = ProjectProtoUpdate(original.project)
     addGenSrcs.update(update, artifactState, context, ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
@@ -270,7 +270,7 @@ class AddProjectGenSrcsTest {
 
     val artifactState = ArtifactTracker.State.create(ImmutableMap.of(genSrc1.label, genSrc1, genSrc2.label, genSrc2), ImmutableMap.of())
 
-    val addGenSrcs = AddProjectGenSrcs(original.queryData.projectDefinition(), javaSourcePackageExtractor)
+    val addGenSrcs = AddProjectGenSrcs(original.projectDefinition, javaSourcePackageExtractor)
 
     val update = ProjectProtoUpdate(original.project)
     addGenSrcs.update(update, artifactState, context, ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
@@ -294,7 +294,7 @@ class AddProjectGenSrcsTest {
         )
       )
 
-    val addGensrcs = AddProjectGenSrcs(original.queryData.projectDefinition(), javaSourcePackageExtractor)
+    val addGensrcs = AddProjectGenSrcs(original.projectDefinition, javaSourcePackageExtractor)
 
     val update = ProjectProtoUpdate(original.project)
     addGensrcs.update(update, artifactState, context, ProjectPath.ExternalRepositoryFinder.createEmptyForTests())

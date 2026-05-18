@@ -39,16 +39,19 @@ public class RefreshParameters {
   final PostQuerySyncData currentProject;
   final Optional<VcsState> latestVcsState;
   final Optional<String> latestBazelVersion;
+  final ProjectDefinition currentProjectDefinition;
   final ProjectDefinition latestProjectDefinition;
   final VcsStateDiffer vcsDiffer;
 
   RefreshParameters(
       PostQuerySyncData currentProject,
+      ProjectDefinition currentProjectDefinition,
       Optional<VcsState> latestVcsState,
       Optional<String> latestBazelVersion,
       ProjectDefinition latestProjectDefinition,
       VcsStateDiffer vcsDiffer) {
     this.currentProject = currentProject;
+    this.currentProjectDefinition = currentProjectDefinition;
     this.latestVcsState = latestVcsState;
     this.latestBazelVersion = latestBazelVersion;
     this.latestProjectDefinition = latestProjectDefinition;
@@ -60,7 +63,7 @@ public class RefreshParameters {
       context.output(PrintOutput.output("IDE has updated since last sync; performing full query"));
       return true;
     }
-    if (!currentProject.projectDefinition().equals(latestProjectDefinition)) {
+    if (!currentProjectDefinition.equals(latestProjectDefinition)) {
       context.output(PrintOutput.output("Project definition has changed; performing full query"));
       return true;
     }
@@ -134,7 +137,7 @@ public class RefreshParameters {
 
     return AffectedPackagesCalculator.builder()
         .context(context)
-        .projectScope(currentProject.projectDefinition()::isIncluded)
+        .projectScope(currentProjectDefinition::isIncluded)
         .changedFiles(changed)
         .lastQuery(currentProject.querySummary())
         .build()

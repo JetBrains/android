@@ -92,8 +92,7 @@ class AddDependencySrcJarsTest {
   @Test
   @Throws(Exception::class)
   fun no_deps_built() {
-    val addSrcJars =
-      AddDependencySrcJars(original.queryData.projectDefinition(), pathResolver!!, SrcJarInnerPathFinder(PackageStatementParser()))
+    val addSrcJars = AddDependencySrcJars(original.projectDefinition, pathResolver!!, SrcJarInnerPathFinder(PackageStatementParser()))
     no_deps_built(addSrcJars)
   }
 
@@ -113,8 +112,7 @@ class AddDependencySrcJarsTest {
   @Test
   @Throws(Exception::class)
   fun external_srcjar_added() {
-    val addSrcJars =
-      AddDependencySrcJars(original.queryData.projectDefinition(), pathResolver!!, SrcJarInnerPathFinder(PackageStatementParser()))
+    val addSrcJars = AddDependencySrcJars(original.projectDefinition, pathResolver!!, SrcJarInnerPathFinder(PackageStatementParser()))
     external_srcjar_added(
       addSrcJars,
       ProjectProto.Library(

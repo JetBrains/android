@@ -136,7 +136,7 @@ public class DependencyTrackerImpl implements DependencyTracker {
     }
 
     if (!outputInfo.getTargetsWithErrors().isEmpty()) {
-      ProjectDefinition projectDefinition = snapshot.getQueryData().projectDefinition();
+      ProjectDefinition projectDefinition = snapshot.getProjectDefinition();
       context.setHasWarnings();
       ImmutableListMultimap<Boolean, Label> targetsByInclusion =
           Multimaps.index(outputInfo.getTargetsWithErrors(), projectDefinition::isIncluded);

@@ -36,10 +36,15 @@ class SnapshotSerializer() {
 
   @CanIgnoreReturnValue
   fun visit(snapshot: PostQuerySyncData): SnapshotSerializer {
-    visitProjectDefinition(snapshot.projectDefinition())
     snapshot.vcsState().ifPresent(::visitVcsState)
     visitQuerySummary(snapshot.querySummary())
     visitBazelVersion(snapshot.bazelVersion().orElse(null))
+    return this
+  }
+
+  @CanIgnoreReturnValue
+  fun visit(projectDefinition: ProjectDefinition): SnapshotSerializer {
+    visitProjectDefinition(projectDefinition)
     return this
   }
 

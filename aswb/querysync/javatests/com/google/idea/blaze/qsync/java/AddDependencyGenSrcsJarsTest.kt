@@ -92,7 +92,7 @@ class AddDependencyGenSrcsJarsTest {
 
   @Test
   fun no_deps_built() {
-    val addGenSrcJars = AddDependencyGenSrcsJars(original.queryData.projectDefinition(), innerRootsMetadata)
+    val addGenSrcJars = AddDependencyGenSrcsJars(original.projectDefinition, innerRootsMetadata)
     no_deps_built(addGenSrcJars)
   }
 
@@ -112,7 +112,7 @@ class AddDependencyGenSrcsJarsTest {
   @Test
   @Throws(Exception::class)
   fun project_gensrcs_ignored() {
-    val addGenSrcJars = AddDependencyGenSrcsJars(original.queryData.projectDefinition(), innerRootsMetadata)
+    val addGenSrcJars = AddDependencyGenSrcsJars(original.projectDefinition, innerRootsMetadata)
     project_gensrcs_ignored(addGenSrcJars)
   }
 
@@ -145,7 +145,7 @@ class AddDependencyGenSrcsJarsTest {
   fun external_gensrcs_added() {
     val experimentService = ApplicationManager.getApplication().getService(ExperimentService::class.java) as? MockExperimentService
     experimentService?.setExperiment(com.google.idea.blaze.qsync.java.AddDependencyGenSrcsJars.ENABLED_NAVIGATION_POLICY, false)
-    val addGenSrcJars = AddDependencyGenSrcsJars(original.queryData.projectDefinition(), innerRootsMetadata)
+    val addGenSrcJars = AddDependencyGenSrcsJars(original.projectDefinition, innerRootsMetadata)
     external_gensrcs_added(
       addGenSrcJars,
       ProjectProto.Library(
@@ -189,7 +189,7 @@ class AddDependencyGenSrcsJarsTest {
   fun no_metadata_present() {
     val experimentService = ApplicationManager.getApplication().getService(ExperimentService::class.java) as? MockExperimentService
     experimentService?.setExperiment(com.google.idea.blaze.qsync.java.AddDependencyGenSrcsJars.ENABLED_NAVIGATION_POLICY, false)
-    val addGenSrcJars = AddDependencyGenSrcsJars(original.queryData.projectDefinition(), innerRootsMetadata)
+    val addGenSrcJars = AddDependencyGenSrcsJars(original.projectDefinition, innerRootsMetadata)
     no_metadata_present(
       addGenSrcJars,
       ProjectProto.Library(

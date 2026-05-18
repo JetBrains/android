@@ -53,6 +53,7 @@ import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.PostQuerySyncData
+import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.ProjectStructureData
 import com.google.idea.blaze.qsync.project.SerializedProjectStructureAndQueryData
@@ -193,8 +194,11 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     }
 
   private sealed class ReloadProjectResult {
-    class SnapshotRetained(val existingPostQuerySyncData: PostQuerySyncData, val existingProjectStructureData: ProjectStructureData) :
-      ReloadProjectResult()
+    class SnapshotRetained(
+      val existingPostQuerySyncData: PostQuerySyncData,
+      val existingProjectStructureData: ProjectStructureData,
+      val existingProjectDefinition: ProjectDefinition,
+    ) : ReloadProjectResult()
 
     object SnapshotUnavailable : ReloadProjectResult()
   }
@@ -206,7 +210,9 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
       loadedProject?.takeIf { loader.isUpToDate(it) }
         ?: runCatching { loader.loadProject() }.getOrElse { throw BuildException("Failed to load project", it) }
     val existingSnapshotData =
-      currentSnapshot.getOrNull()?.let { SerializedProjectStructureAndQueryData(it.queryData, it.projectStructureData) }
+      currentSnapshot.getOrNull()?.let {
+        SerializedProjectStructureAndQueryData(it.queryData, it.projectStructureData, it.projectDefinition)
+      }
         ?: runCatching { readSnapshotFromDisk(context) }
           .getOrElse {
             context.output(PrintOutput("Failed to read snapshot from disk. Error: ${it.message}"))
@@ -221,6 +227,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
         ReloadProjectResult.SnapshotRetained(
           existingPostQuerySyncData = existingSnapshotData.queryData,
           existingProjectStructureData = existingSnapshotData.projectStructureData,
+          existingProjectDefinition = existingSnapshotData.projectDefinition,
         )
     }
   }
@@ -253,7 +260,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
       } else {
         updateCurrentSnapshot(context) {
           val coreSyncResult = assertProjectLoaded().syncQueryCore(context, result.existingPostQuerySyncData)
-          applySyncResult(coreSyncResult, result.existingProjectStructureData)
+          applySyncResult(coreSyncResult, result.existingProjectStructureData, result.existingProjectDefinition)
         }
       }
       val buildTriggered = autoEnableCodeAnalysis(context, startup = true)
@@ -484,7 +491,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     val postQuerySyncData = runQueryAndComputePostQuerySyncData(context, lastQuery)
     val coreSyncResult = assertProjectLoaded().syncQueryCore(context, postQuerySyncData)
     val projectStructureDataToUse = readProjectStructureData(context, postQuerySyncData, lastProjectStructureData, coreSyncResult)
-    updateCurrentSnapshot(context) { applySyncResult(coreSyncResult, projectStructureDataToUse) }
+    updateCurrentSnapshot(context) { applySyncResult(coreSyncResult, projectStructureDataToUse, assertProjectLoaded().projectDefinition) }
   }
 
   private fun readProjectStructureData(
@@ -494,7 +501,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     coreSyncResult: QuerySyncProject.QueryCoreSyncResult,
   ): ProjectStructureData =
     assertProjectLoaded()
-      .computeProjectStructureData(context, postQuerySyncData.projectDefinition(), lastProjectStructureData, coreSyncResult.graph)
+      .computeProjectStructureData(context, assertProjectLoaded().projectDefinition, lastProjectStructureData, coreSyncResult.graph)
 
   private fun runQueryAndComputePostQuerySyncData(context: BlazeContext, lastQuery: PostQuerySyncData?): PostQuerySyncData {
     SaveUtil.saveAllFiles()
@@ -528,12 +535,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     }
     val loadedProject = assertProjectLoaded()
     val result =
-      loadedProject.createProjectStructure(
-        context,
-        newSnapshot.queryData.projectDefinition(),
-        newSnapshot.staleGraph,
-        newSnapshot.projectStructureData,
-      )
+      loadedProject.createProjectStructure(context, newSnapshot.projectDefinition, newSnapshot.staleGraph, newSnapshot.projectStructureData)
     val updatedSnapshot =
       onNewSnapshot(
         context,
@@ -545,6 +547,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
           projectStructureData = newSnapshot.projectStructureData,
           project = result.projectStructure,
           incompleteTargets = emptySet(),
+          projectDefinition = newSnapshot.projectDefinition,
         ),
       )
     lastProjectUpdateFromArtifactState = newArtifactState
@@ -601,7 +604,8 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
   private fun writeToDisk(snapshot: QuerySyncProjectSnapshot) {
     AtomicFileWriter.create(getSnapshotFilePath(ideProject)).use { writer ->
       GZIPOutputStream(writer.outputStream).use { zip ->
-        val message = SnapshotSerializer().visit(snapshot.queryData).visit(snapshot.projectStructureData).toProto()
+        val message =
+          SnapshotSerializer().visit(snapshot.projectDefinition).visit(snapshot.queryData).visit(snapshot.projectStructureData).toProto()
         val codedOutput = CodedOutputStream.newInstance(zip, 1024 * 1024)
         message.writeTo(codedOutput)
         codedOutput.flush()
@@ -872,6 +876,12 @@ fun QuerySyncManager.updateCurrentSnapshot(context: BlazeContext, mutator: Query
 fun QuerySyncProjectSnapshot.applySyncResult(
   coreSyncResult: QuerySyncProject.QueryCoreSyncResult,
   projectStructureData: ProjectStructureData,
+  projectDefinition: ProjectDefinition,
 ): QuerySyncProjectSnapshot {
-  return copy(queryData = coreSyncResult.postQuerySyncData, staleGraph = coreSyncResult.graph, projectStructureData = projectStructureData)
+  return copy(
+    queryData = coreSyncResult.postQuerySyncData,
+    staleGraph = coreSyncResult.graph,
+    projectStructureData = projectStructureData,
+    projectDefinition = projectDefinition,
+  )
 }

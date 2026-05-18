@@ -15,4 +15,8 @@
  */
 package com.google.idea.blaze.qsync.project
 
-data class SerializedProjectStructureAndQueryData(val queryData: PostQuerySyncData, val projectStructureData: ProjectStructureData)
+data class SerializedProjectStructureAndQueryData(
+  val queryData: PostQuerySyncData,
+  val projectStructureData: ProjectStructureData,
+  val projectDefinition: ProjectDefinition,
+)

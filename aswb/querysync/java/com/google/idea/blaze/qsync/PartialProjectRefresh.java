@@ -85,7 +85,6 @@ class PartialProjectRefresh implements RefreshOperation {
     return PostQuerySyncData.builder()
         .setVcsState(currentVcsState)
         .setBazelVersion(bazelVersion)
-        .setProjectDefinition(previousState.projectDefinition())
         .setQuerySummary(effectiveQuery)
         .build();
   }

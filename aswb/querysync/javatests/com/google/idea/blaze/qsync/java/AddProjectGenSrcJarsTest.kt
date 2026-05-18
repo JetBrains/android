@@ -95,7 +95,7 @@ class AddProjectGenSrcJarsTest {
         ),
       )
 
-    val javaDeps = AddProjectGenSrcJars(original.queryData.projectDefinition(), innerPathsMetadata)
+    val javaDeps = AddProjectGenSrcJars(original.projectDefinition, innerPathsMetadata)
 
     val update = ProjectProtoUpdate(original.project)
     javaDeps.update(update, artifactState, NoopContext(), ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
@@ -126,7 +126,7 @@ class AddProjectGenSrcJarsTest {
         )
       )
 
-    val javaDeps = AddProjectGenSrcJars(original.queryData.projectDefinition(), innerPathsMetadata)
+    val javaDeps = AddProjectGenSrcJars(original.projectDefinition, innerPathsMetadata)
 
     val update = ProjectProtoUpdate(original.project)
     javaDeps.update(update, artifactState, NoopContext(), ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
@@ -175,7 +175,7 @@ class AddProjectGenSrcJarsTest {
         )
       )
 
-    val javaDeps = AddProjectGenSrcJars(original.queryData.projectDefinition(), innerPathsMetadata)
+    val javaDeps = AddProjectGenSrcJars(original.projectDefinition, innerPathsMetadata)
 
     val update = ProjectProtoUpdate(original.project)
     javaDeps.update(update, artifactState, NoopContext(), ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
@@ -220,7 +220,7 @@ class AddProjectGenSrcJarsTest {
         )
       )
 
-    val javaDeps = AddProjectGenSrcJars(original.queryData.projectDefinition(), innerPathsMetadata)
+    val javaDeps = AddProjectGenSrcJars(original.projectDefinition, innerPathsMetadata)
 
     val update = ProjectProtoUpdate(original.project)
     javaDeps.update(update, artifactState, NoopContext(), ProjectPath.ExternalRepositoryFinder.createEmptyForTests())

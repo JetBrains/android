@@ -35,14 +35,10 @@ public abstract class PostQuerySyncData {
 
   public static final PostQuerySyncData EMPTY =
       builder()
-          .setProjectDefinition(ProjectDefinition.EMPTY)
           .setVcsState(Optional.empty())
           .setBazelVersion(Optional.empty())
           .setQuerySummary(QuerySummary.EMPTY)
           .build();
-
-  /** The definition that this project is based on. */
-  public abstract ProjectDefinition projectDefinition();
 
   /** The VCS state at the time that the query was run. */
   public abstract Optional<VcsState> vcsState();
@@ -62,8 +58,6 @@ public abstract class PostQuerySyncData {
   /** Builder for {@link PostQuerySyncData}. */
   @AutoValue.Builder
   public abstract static class Builder {
-
-    public abstract Builder setProjectDefinition(ProjectDefinition value);
 
     public abstract Builder setVcsState(Optional<VcsState> value);
 

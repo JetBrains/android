@@ -34,6 +34,7 @@ import java.util.Optional
 class SnapshotDeserializer private constructor() {
   private val syncDataBuilder = PostQuerySyncData.builder()
   private var projectStructureData: ProjectStructureData? = null
+  private var projectDefinition: ProjectDefinition? = null
 
   companion object {
     @Throws(IOException::class)
@@ -62,12 +63,13 @@ class SnapshotDeserializer private constructor() {
             context.output(PrintOutput.output("Incomplete sync data; performing full sync"))
             return@readFrom null
           },
+        deserializer.projectDefinition ?: ProjectDefinition.EMPTY,
       )
     }
   }
 
   private fun visitProjectDefinition(proto: SnapshotProto.ProjectDefinition) {
-    syncDataBuilder.setProjectDefinition(
+    projectDefinition =
       ProjectDefinition(
         projectIncludes = proto.includePathsList.map { Path.of(it) }.toSet(),
         projectExcludes = proto.excludePathsList.map { Path.of(it) }.toSet(),
@@ -78,7 +80,6 @@ class SnapshotDeserializer private constructor() {
         testSources = proto.testSourcesList.toSet(),
         systemExcludes = proto.systemExcludesList.map { Path.of(it) }.toSet(),
       )
-    )
   }
 
   private fun visitVcsState(proto: SnapshotProto.VcsState) {

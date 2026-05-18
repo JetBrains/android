@@ -53,7 +53,8 @@ public class ProjectRefresher {
       ProjectDefinition spec,
       Optional<VcsState> vcsState,
       Optional<String> bazelVersion) {
-    return new FullProjectUpdate(context, workspaceRoot, spec, vcsState, bazelVersion, queryStrategy);
+    return new FullProjectUpdate(
+        context, workspaceRoot, spec, vcsState, bazelVersion, queryStrategy);
   }
 
   public RefreshOperation startPartialRefresh(
@@ -63,9 +64,19 @@ public class ProjectRefresher {
       Optional<String> latestBazelVersion,
       ProjectDefinition latestProjectDefinition)
       throws BuildException {
+    ProjectDefinition currentProjectDefinition =
+        latestProjectSnapshotSupplier
+            .get()
+            .map(QuerySyncProjectSnapshot::getProjectDefinition)
+            .orElse(ProjectDefinition.EMPTY);
     return startPartialRefresh(
         new RefreshParameters(
-            currentProject, latestVcsState, latestBazelVersion, latestProjectDefinition, vcsDiffer),
+            currentProject,
+            currentProjectDefinition,
+            latestVcsState,
+            latestBazelVersion,
+            latestProjectDefinition,
+            vcsDiffer),
         context);
   }
 

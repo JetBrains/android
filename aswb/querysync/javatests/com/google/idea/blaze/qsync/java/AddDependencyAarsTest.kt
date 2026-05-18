@@ -87,7 +87,7 @@ class AddDependencyAarsTest {
   fun no_deps_built() {
     val original = syncer.sync(TestData.ANDROID_LIB_QUERY)
 
-    val addAars = AddDependencyAars(original.queryData.projectDefinition(), aarPackageMetadata)
+    val addAars = AddDependencyAars(original.projectDefinition, aarPackageMetadata)
 
     val update = ProjectProtoUpdate(original.project)
 
@@ -104,7 +104,7 @@ class AddDependencyAarsTest {
   fun dep_aar_added() {
     val original = syncer.sync(TestData.ANDROID_LIB_QUERY)
 
-    val addAars = AddDependencyAars(original.queryData.projectDefinition(), aarPackageMetadata)
+    val addAars = AddDependencyAars(original.projectDefinition, aarPackageMetadata)
 
     val update = ProjectProtoUpdate(original.project)
 
@@ -167,7 +167,7 @@ class AddDependencyAarsTest {
   fun dep_aar_no_package_name_added() {
     val original = syncer.sync(TestData.ANDROID_LIB_QUERY)
 
-    val addAars = AddDependencyAars(original.queryData.projectDefinition(), aarPackageMetadata)
+    val addAars = AddDependencyAars(original.projectDefinition, aarPackageMetadata)
 
     val update = ProjectProtoUpdate(original.project)
 

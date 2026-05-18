@@ -41,8 +41,7 @@ public class ProjectStatsLogger {
               scope
                   .getProjectInfoStatsBuilder()
                   .setLanguagesActive(
-                      ImmutableSet.copyOf(
-                          instance.getQueryData().projectDefinition().getLanguageClasses()))
+                      ImmutableSet.copyOf(instance.getProjectDefinition().getLanguageClasses()))
                   .setProjectTargetCount(
                       instance.getStaleGraph().getProjectSupportedTargetCountForStatsOnly())
                   .setExternalDependencyCount(
