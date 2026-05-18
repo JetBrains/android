@@ -1,6 +1,6 @@
 # This file should not be edited manually! See go/template-diff-tests
 [versions]
-agp = "9.3.0-dev"
+agp = "{LATEST_AGP_VERSION}"
 junit = "4.13.2"
 junitVersion = "1.1.5"
 espressoCore = "3.5.1"

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates.diff.activity
 
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.util.AGP_BUILT_IN_KOTLIN_VERSION
 import com.android.tools.idea.templates.diff.TemplateDiffTestUtils.smartDiffAgpVersion
 import com.android.tools.idea.wizard.template.Template
@@ -85,10 +86,9 @@ private fun diffDirectories(goldenDir: Path, projectDir: Path, printPrefix: Stri
     try {
       val goldenLines =
         Files.readAllLines(goldenFile)
-          .map { replaceLatestAgpVersion(it, printPrefix).replaceAgpBuiltInKotlinVersion() }
+          .map { it.replaceAgpVersionPlaceholder(printPrefix).replaceAgpBuiltInKotlinVersion() }
           .filter { !it.contains("go/template-diff-tests") }
-      val projectLines =
-        Files.readAllLines(projectFile).map { replaceLatestAgpVersion(it, printPrefix) }.filter { !it.contains("go/template-diff-tests") }
+      val projectLines = Files.readAllLines(projectFile).filter { !it.contains("go/template-diff-tests") }
       Truth.assertWithMessage("File contents differ. See go/template-diff-tests for instructions on how to update golden files.")
         .that(projectLines)
         .isEqualTo(goldenLines)
@@ -131,25 +131,18 @@ private fun isDirectoryEffectivelyEmpty(dir: Path, printPrefix: String = ""): Bo
   return empty
 }
 
-// The version in libs.versions.toml of similar format to:
-// agp = "8.6.0-dev"
-val AGP_VERSION_REF = Regex("agp = \".*\"")
-
-// This string replaces the version reference in libs.versions.toml. See
-// replaceLatestGradleVersion. It is only replaced when we test the latest AGP version.
-const val AGP_VERSION_REF_REPLACEMENT = "agp = \"LATEST_AGP_VERSION\""
-
 /**
- * When testing the latest AGP version, we replace the version string because it changes ~weekly, to avoid constantly updating golden files.
+ * When testing the latest AGP version, we replace the {LATEST_AGP_VERSION} placeholder in golden files with the actual latest AGP version.
+ * This avoids constantly updating golden files when the version string changes (~weekly).
  */
-private fun replaceLatestAgpVersion(text: String, printPrefix: String = ""): String {
+private fun String.replaceAgpVersionPlaceholder(printPrefix: String = ""): String {
   if (!smartDiffAgpVersion()) {
-    return text
+    return this
   }
 
-  val replacedText = AGP_VERSION_REF.replace(text, AGP_VERSION_REF_REPLACEMENT)
-  if (replacedText != text) {
-    println("${printPrefix}Replaced AGP version in $text")
+  val replacedText = replace("{LATEST_AGP_VERSION}", AgpVersions.latestKnown.toString())
+  if (replacedText != this) {
+    println("${printPrefix}Replaced AGP version in $this")
   }
   return replacedText
 }

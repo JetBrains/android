@@ -1,6 +1,6 @@
 # This file should not be edited manually! See go/template-diff-tests
 [versions]
-agp = "9.3.0-dev"
+agp = "{LATEST_AGP_VERSION}"
 coreKtx = "1.10.1"
 appcompat = "1.6.1"
 kotlin = "{AGP_BUILT_IN_KOTLIN_VERSION}"

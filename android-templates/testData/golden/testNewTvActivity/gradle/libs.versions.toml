@@ -1,6 +1,6 @@
 # This file should not be edited manually! See go/template-diff-tests
 [versions]
-agp = "9.3.0-dev"
+agp = "{LATEST_AGP_VERSION}"
 leanback = "1.2.0"
 glide = "4.11.0"
 

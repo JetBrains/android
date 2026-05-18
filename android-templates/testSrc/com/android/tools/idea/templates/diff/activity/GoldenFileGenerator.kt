@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.templates.diff.activity
 
+import com.android.tools.idea.gradle.plugin.AgpVersions
+import com.android.tools.idea.gradle.util.AGP_BUILT_IN_KOTLIN_VERSION
 import com.android.tools.idea.templates.diff.TemplateDiffTestUtils
 import com.android.tools.idea.wizard.template.Template
 import com.android.utils.FileUtils
@@ -39,6 +41,16 @@ class GoldenFileGenerator(template: Template, goldenDirName: String) : ProjectRe
     outputDir.toFile().walk().forEach { file ->
       if (file.isFile) {
         addHeaderComment(file)
+        if (file.name == "libs.versions.toml" && TemplateDiffTestUtils.smartDiffAgpVersion()) {
+          val content = file.readText()
+          val newContent =
+            content
+              .replace(AgpVersions.latestKnown.toString(), "{LATEST_AGP_VERSION}")
+              .replace(AGP_BUILT_IN_KOTLIN_VERSION, "{AGP_BUILT_IN_KOTLIN_VERSION}")
+          if (content != newContent) {
+            file.writeText(newContent)
+          }
+        }
       }
     }
 

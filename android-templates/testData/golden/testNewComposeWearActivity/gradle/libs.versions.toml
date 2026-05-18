@@ -1,6 +1,6 @@
 # This file should not be edited manually! See go/template-diff-tests
 [versions]
-agp = "9.3.0-dev"
+agp = "{LATEST_AGP_VERSION}"
 playServicesWearable = "18.0.0"
 kotlin = "{AGP_BUILT_IN_KOTLIN_VERSION}"
 composeBom = "2024.09.00"
