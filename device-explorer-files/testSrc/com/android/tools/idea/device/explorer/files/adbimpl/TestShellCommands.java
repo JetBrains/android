@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.device.explorer.files.adbimpl;
 
+import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.Map;
-import org.jetbrains.annotations.NotNull;
 
 public class TestShellCommands {
   @NotNull private final Map<String, TestShellCommandResult> myCommands = new HashMap<>();
@@ -31,11 +31,7 @@ public class TestShellCommands {
     myCommands.put(command, new TestShellCommandResult(lines));
   }
 
-  public void addError(@NotNull String command, @NotNull Exception error) {
-    myCommands.put(command, new TestShellCommandResult(error));
-  }
-
-  public TestShellCommandResult get(@NotNull String command) {
+  TestShellCommandResult get(@NotNull String command) {
     return myCommands.get(command);
   }
 }

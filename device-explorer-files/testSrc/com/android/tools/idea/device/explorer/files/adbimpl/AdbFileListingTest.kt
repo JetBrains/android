@@ -19,15 +19,14 @@ import com.android.adblib.ConnectedDevice
 import com.android.adblib.connectedDevicesTracker
 import com.android.adblib.testingutils.FakeAdbServerProviderRule
 import com.android.ddmlib.DdmPreferences
-import com.android.ddmlib.ShellCommandUnresponsiveException
 import com.android.fakeadbserver.ShellProtocolType.SHELL
 import com.android.fakeadbserver.ShellProtocolType.SHELL_V2
 import com.android.sdklib.AndroidApiLevel
+import com.android.tools.idea.adb.AdbShellCommandException
 import com.android.tools.idea.device.explorer.files.adbimpl.AdbFileListingEntry.EntryKind
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.TestApplicationManager
 import java.time.Duration
-import java.util.concurrent.TimeoutException
 import java.util.function.Consumer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -102,14 +101,14 @@ class AdbFileListingTest {
   fun test_Nexus7Api23_GetRootChildrenError(): Unit = runBlocking {
     // Prepare
     setupMockDevice(TestDevices.NEXUS_7_API23)
-    commands.addError("ls -al /" + TestDevices.COMMAND_ERROR_CHECK_SUFFIX, ShellCommandUnresponsiveException())
+    commands.add("ls -al /" + TestDevices.COMMAND_ERROR_CHECK_SUFFIX, "ls: /: Permission denied\nERR-ERR-ERR-ERR\n")
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
 
     // Act
     val root = fileListing.getRoot()
 
     // Assert
-    thrown.expect(TimeoutException::class.java)
+    thrown.expect(AdbShellCommandException::class.java)
     fileListing.getChildren(root)
   }
 
@@ -215,14 +214,17 @@ class AdbFileListingTest {
   fun test_EmulatorApi25_GetRootChildrenError(): Unit = runBlocking {
     // Prepare
     setupMockDevice(TestDevices.EMULATOR_API25)
-    commands.addError("su 0 sh -c 'ls -al /'" + TestDevices.COMMAND_ERROR_CHECK_SUFFIX, ShellCommandUnresponsiveException())
+    commands.add(
+      "su 0 sh -c 'ls -al /'" + TestDevices.COMMAND_ERROR_CHECK_SUFFIX,
+      "/system/bin/sh: su: inaccessible or not found\nERR-ERR-ERR-ERR\n",
+    )
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
 
     // Act
     val root = fileListing.getRoot()
 
     // Assert
-    thrown.expect(TimeoutException::class.java)
+    thrown.expect(AdbShellCommandException::class.java)
     fileListing.getChildren(root)
   }
 

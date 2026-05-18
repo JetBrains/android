@@ -16,31 +16,20 @@
 package com.android.tools.idea.device.explorer.files.adbimpl;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 class TestShellCommandResult {
-  @Nullable private String myOutput;
-  @Nullable private Exception myError;
+  @NotNull private final String myOutput;
 
   public TestShellCommandResult(@NotNull String output) {
     this.myOutput = output;
   }
 
-  public TestShellCommandResult(@NotNull Exception error) {
-    this.myError = error;
-  }
-
-  @Nullable
+  @NotNull
   public String getOutput() {
     return myOutput;
   }
 
-  @Nullable
-  public Exception getError() {
-    return myError;
-  }
-
   public String toString() {
-    return myError == null ? "Success(" + myOutput + ")" : "Error(" + myError.toString() + ")";
+    return "Success(" + myOutput + ")";
   }
 }

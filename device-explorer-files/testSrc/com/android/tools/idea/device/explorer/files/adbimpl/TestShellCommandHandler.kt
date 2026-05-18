@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.device.explorer.files.adbimpl
 
-import com.android.ddmlib.DdmPreferences
-import com.android.ddmlib.ShellCommandUnresponsiveException
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.ShellProtocolType
 import com.android.fakeadbserver.services.ShellCommandOutput
 import com.android.fakeadbserver.services.StatusWriter
 import com.android.fakeadbserver.shellcommandhandlers.ShellHandler
-import java.lang.Thread.sleep
 
 /** Handler for FakeAdbServer that handles shell commands using the given TestShellCommands (i.e. predefined commands and responses). */
 class TestShellCommandHandler(shellProtocolType: ShellProtocolType, val shellCommands: TestShellCommands) :
@@ -44,21 +41,7 @@ class TestShellCommandHandler(shellProtocolType: ShellProtocolType, val shellCom
     val result = shellCommands.get("$shellCommand $shellCommandArgs")
     assert(result != null)
 
-    when (result.error) {
-      is ShellCommandUnresponsiveException -> {
-        statusWriter.writeOk()
-        shellCommandOutput.writeStdout("Starting output...")
-        sleep(DdmPreferences.getTimeOut() + 1000L)
-        return
-      }
-      null -> {
-        statusWriter.writeOk()
-        shellCommandOutput.writeStdout(checkNotNull(result.output))
-      }
-      else -> {
-        statusWriter.writeFail()
-        shellCommandOutput.writeStdout(result.error.toString())
-      }
-    }
+    statusWriter.writeOk()
+    shellCommandOutput.writeStdout(result.output)
   }
 }

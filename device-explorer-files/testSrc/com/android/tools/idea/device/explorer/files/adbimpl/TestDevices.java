@@ -655,7 +655,7 @@ public enum TestDevices {
 
   public abstract void addCommands(@NotNull TestShellCommands commands);
 
-  @NotNull private static final String ERROR_LINE_MARKER = "ERR-ERR-ERR-ERR";
+  @NotNull public static final String ERROR_LINE_MARKER = "ERR-ERR-ERR-ERR";
   @NotNull public static final String COMMAND_ERROR_CHECK_SUFFIX = " || echo " + ERROR_LINE_MARKER;
 
   static void addWhenLsEscapesCommands(@NotNull TestShellCommands commands) {
