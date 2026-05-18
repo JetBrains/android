@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.core
 import com.intellij.icons.AllIcons
 import com.intellij.ide.actions.ToolWindowWindowAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.remoting.ActionRemoteBehavior
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
@@ -52,6 +53,10 @@ class StreamingToolWindowFactory : ToolWindowFactory, DumbAware {
           event.presentation.icon = AllIcons.Actions.MoveToWindow
         }
       }
+    }
+
+    override fun getBehavior(): ActionRemoteBehavior {
+      return ActionRemoteBehavior.FrontendThenBackend
     }
   }
 }
