@@ -9,7 +9,10 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
 
-import androidx.viewpager.widget.ViewPager;
+import androidx.viewpager2.widget.ViewPager2;
+
+import com.google.android.material.tabs.TabLayoutMediator;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -39,11 +42,13 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(this, getSupportFragmentManager());
-        ViewPager viewPager = binding.viewPager;
+        SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(this, this);
+        ViewPager2 viewPager = binding.viewPager;
         viewPager.setAdapter(sectionsPagerAdapter);
         TabLayout tabs = binding.tabs;
-        tabs.setupWithViewPager(viewPager);
+        new TabLayoutMediator(tabs, viewPager,
+                (tab, position) -> tab.setText(sectionsPagerAdapter.getPageTitle(position))
+        ).attach();
         FloatingActionButton fab = binding.fab;
 
         fab.setOnClickListener(new View.OnClickListener() {

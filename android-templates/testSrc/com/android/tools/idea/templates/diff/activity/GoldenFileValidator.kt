@@ -82,22 +82,7 @@ class GoldenFileValidator(template: Template, goldenDirName: String, private val
           "platform-tools package is not installed.", // In every TemplateDiffTest
           "Unable to initialize metrics", // In remote config
         ),
-      // TODO: b/390508868
-      "testAutomotiveMessagingServiceWithKotlin" to
-        setOf(
-          "'class UnreadConversation : Any' is deprecated. Deprecated in Java.",
-          "'fun setUnreadConversation(p0: NotificationCompat.CarExtender.UnreadConversation?): NotificationCompat.CarExtender' is deprecated. Deprecated in Java.",
-        ),
-      // TODO: b/390509438
-      "testNewSettingsActivityWithKotlinMultipleScreens" to
-        setOf("'fun setTargetFragment(p0: Fragment?, p1: Int): Unit' is deprecated. Deprecated in Java."),
-      // TODO: b/390509533
-      "testNewTabbedActivityWithKotlin" to
-        setOf(
-          "'class FragmentPagerAdapter : PagerAdapter' is deprecated. Deprecated in Java.",
-          "'constructor(p0: FragmentManager): FragmentPagerAdapter' is deprecated. Deprecated in Java.",
-          "'class FragmentPagerAdapter : PagerAdapter' is deprecated. Deprecated in Java.",
-        ),
+
       // TODO: b/390508796
       "testGameActivityWithKotlin" to
         setOf(

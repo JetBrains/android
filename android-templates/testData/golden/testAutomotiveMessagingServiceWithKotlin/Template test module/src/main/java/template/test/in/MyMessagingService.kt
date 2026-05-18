@@ -11,8 +11,7 @@ import android.os.Message
 import android.os.Messenger
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationCompat.CarExtender
-import androidx.core.app.NotificationCompat.CarExtender.UnreadConversation
+import androidx.core.app.Person
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.RemoteInput
 
@@ -74,12 +73,40 @@ class MyMessagingService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        // Create the UnreadConversation and populate it with the participant name,
-        // read and reply intents.
-        val unreadConversationBuilder = UnreadConversation.Builder(participant)
-            .setLatestTimestamp(timestamp)
-            .setReadPendingIntent(readPendingIntent)
-            .setReplyAction(replyIntent, remoteInput)
+        // Create a Person object for the sender
+        val sender = Person.Builder()
+            .setName(participant)
+            .build()
+
+        // Create a Person object for the user
+        val user = Person.Builder()
+            .setName("Me")
+            .build()
+
+        // Create the MessagingStyle
+        val messagingStyle = NotificationCompat.MessagingStyle(user)
+            .addMessage(message, timestamp, sender)
+
+        // Build the read action
+        val readAction = NotificationCompat.Action.Builder(
+            0, // No icon
+            "Mark as Read",
+            readPendingIntent
+        )
+            .setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_MARK_AS_READ)
+            .setShowsUserInterface(false)
+            .build()
+
+        // Build the reply action
+        val replyAction = NotificationCompat.Action.Builder(
+            0, // No icon
+            "Reply",
+            replyIntent
+        )
+            .setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_REPLY)
+            .setShowsUserInterface(false)
+            .addRemoteInput(remoteInput)
+            .build()
 
         val channel = NotificationChannelCompat
             .Builder(CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_DEFAULT)
@@ -98,10 +125,9 @@ class MyMessagingService : Service() {
             .setWhen(timestamp)
             .setContentTitle(participant)
             .setContentIntent(readPendingIntent)
-            .extend(
-                CarExtender()
-                    .setUnreadConversation(unreadConversationBuilder.build())
-            )
+            .setStyle(messagingStyle)
+            .addAction(readAction)
+            .addAction(replyAction)
 
         mNotificationManager.notify(conversationId, builder.build())
     }
