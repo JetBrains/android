@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.vitals.ui
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
@@ -22,6 +23,7 @@ import com.android.tools.idea.insights.client.AppInsightsClient
 import com.android.tools.idea.insights.model.connection.AppConnection
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.vitals.VitalsInsightsProvider
 import com.android.tools.idea.vitals.VitalsLoginFeature
 import com.google.gct.login2.LoginFeature
@@ -94,6 +96,7 @@ class VitalsConfigurationManagerTest {
   @Test
   fun `user logs in and then obtains login feature`() =
     runBlocking<Unit> {
+      StudioFlags.ENABLE_FSTS.overrideForTest(false, projectRule.testRootDisposable)
       val client = mock<AppInsightsClient>()
       `when`(client.listConnections()).thenReturn(LoadingState.Ready(listOf(APP_CONNECTION1)))
       loginUsersRule.setActiveUser("foo@goo.com", features = emptyList())

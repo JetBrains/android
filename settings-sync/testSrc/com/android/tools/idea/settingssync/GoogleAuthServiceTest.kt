@@ -20,16 +20,15 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.settingssync.onboarding.BackupAndSyncWizardProvider
 import com.android.tools.idea.settingssync.onboarding.feature
 import com.google.common.truth.Truth.assertThat
-import com.google.gct.login2.LoginFeature
 import com.google.gct.login2.LoginUsersRule
 import com.google.gct.login2.UserInfoEnforcedFeature
+import com.google.gct.login2.maskLoginFeatures
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.settingsSync.core.SettingsSyncLocalSettings
 import com.intellij.settingsSync.core.SettingsSyncSettings
 import com.intellij.settingsSync.core.communicator.SettingsSyncUserData
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
-import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.executeSomeCoroutineTasksAndDispatchAllInvocationEvents
 import com.intellij.testFramework.replaceService
 import kotlinx.coroutines.Dispatchers
@@ -56,7 +55,7 @@ class GoogleAuthServiceTest {
 
   @Before
   fun setUp() {
-    ExtensionTestUtil.maskExtensions(LoginFeature.EP_NAME, listOf(feature, USER_INFO), disposableRule.disposable, false)
+    maskLoginFeatures(listOf(feature, USER_INFO), disposableRule.disposable)
   }
 
   @Test

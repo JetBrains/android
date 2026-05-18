@@ -36,8 +36,8 @@ import com.android.tools.idea.settingssync.PushResult
 import com.android.tools.idea.settingssync.SAMPLE_SNAPSHOT
 import com.android.tools.idea.settingssync.SyncEventsMetrics
 import com.google.common.truth.Truth.assertThat
-import com.google.gct.login2.LoginFeature
 import com.google.gct.login2.PreferredUser
+import com.google.gct.login2.maskLoginFeatures
 import com.google.gct.login2.ui.onboarding.compose.GoogleSignInWizard
 import com.google.gct.wizard.FakeController
 import com.google.gct.wizard.NavigationState
@@ -66,7 +66,6 @@ import com.intellij.settingsSync.core.communicator.SettingsSyncCommunicatorBean
 import com.intellij.settingsSync.core.communicator.SettingsSyncCommunicatorProvider
 import com.intellij.settingsSync.core.communicator.getSyncProviderPoint
 import com.intellij.testFramework.DisposableRule
-import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.replaceService
 import com.intellij.util.text.DateFormatUtil
@@ -134,7 +133,7 @@ class WizardFlowTest {
 
     (getSyncProviderPoint() as ExtensionPointImpl).maskAll(listOf(communicatorProviderBean), disposableRule.disposable, false)
 
-    ExtensionTestUtil.maskExtensions(LoginFeature.Companion.EP_NAME, listOf(feature), disposableRule.disposable, false)
+    maskLoginFeatures(listOf(feature), disposableRule.disposable)
 
     initCommunicatorFromClean()
 

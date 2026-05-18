@@ -22,9 +22,9 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.gct.login2.CredentialedUser
 import com.google.gct.login2.GoogleLoginService
-import com.google.gct.login2.LoginFeature
 import com.google.gct.login2.LoginUsersRule
 import com.google.gct.login2.UserInfoEnforcedFeature
+import com.google.gct.login2.maskLoginFeatures
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.settingsSync.core.SettingsSyncEventListener
 import com.intellij.settingsSync.core.SettingsSyncEvents
@@ -33,7 +33,6 @@ import com.intellij.settingsSync.core.SettingsSyncSettings
 import com.intellij.settingsSync.core.SyncSettingsEvent
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
-import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.replaceService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -71,7 +70,7 @@ class GoogleLoginStateListenerTest {
     ApplicationManager.getApplication()
       .replaceService(GoogleLoginStateListener::class.java, googleLoginStateListener, disposableRule.disposable)
 
-    ExtensionTestUtil.maskExtensions(LoginFeature.Companion.EP_NAME, listOf(feature, USER_INFO), disposableRule.disposable, false)
+    maskLoginFeatures(listOf(feature, USER_INFO), disposableRule.disposable)
 
     testListener =
       object : SettingsSyncEventListener {
@@ -257,7 +256,7 @@ class GoogleLoginStateListenerSimpleTest() {
     ApplicationManager.getApplication()
       .replaceService(GoogleLoginStateListener::class.java, googleLoginStateListener, disposableRule.disposable)
 
-    ExtensionTestUtil.maskExtensions(LoginFeature.Companion.EP_NAME, listOf(feature, USER_INFO), disposableRule.disposable, false)
+    maskLoginFeatures(listOf(feature, USER_INFO), disposableRule.disposable)
 
     testListener =
       object : SettingsSyncEventListener {

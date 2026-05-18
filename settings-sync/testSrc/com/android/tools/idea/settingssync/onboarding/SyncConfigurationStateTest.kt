@@ -23,15 +23,14 @@ import com.android.flags.junit.FlagRule
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
-import com.google.gct.login2.LoginFeature
 import com.google.gct.login2.PreferredUser
+import com.google.gct.login2.maskLoginFeatures
 import com.google.gct.login2.ui.onboarding.compose.GoogleSignInWizard
 import com.google.gct.wizard.FakeController
 import com.google.gct.wizard.WizardPage
 import com.google.gct.wizard.WizardState
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
-import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.common.waitUntil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -54,7 +53,7 @@ class SyncConfigurationStateTest {
 
   @Before
   fun setup() {
-    ExtensionTestUtil.maskExtensions(LoginFeature.Companion.EP_NAME, listOf(feature), disposableRule.disposable, false)
+    maskLoginFeatures(listOf(feature), disposableRule.disposable)
   }
 
   private suspend fun initWizard(pages: List<WizardPage>, state: WizardState, scope: CoroutineScope) {
