@@ -2784,6 +2784,11 @@ public final class StudioFlags {
                     "Enable AICode integration",
                     "Enable AICode backend integration to be used for agent, code transform and code completion");
 
+  public static final Flag<Boolean> STUDIOBOT_USER_QUOTA_UI_ENABLED =
+    new BooleanFlag(STUDIOBOT, "user.quota.ui.enabled",
+                    "Enable user quota UI",
+                    "When enabled, shows user's quota information in the chat UI.");
+
   public static final Flag<Boolean> STUDIOBOT_SHOW_ON_FIRST_OPEN =
     new BooleanFlag(STUDIOBOT,
                     "show.on.first.open",

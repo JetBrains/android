@@ -259,6 +259,7 @@ studiobot.symbol.linkification=PREVIEW
 studiobot.ui.v2.enabled=PREVIEW
 studiobot.use.bm25.find.files=COMPLETE:2026
 studiobot.use.bm25.grep=PREVIEW
+studiobot.user.quota.ui.enabled=INTERNAL
 studiobot.verify.user.tier.in.aida.rpcs=COMPLETE:2025
 studiobot.version.upgrade.agent=COMPLETE:2026
 studiobot.web.search.tool=COMPLETE:2026
