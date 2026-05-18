@@ -18,8 +18,8 @@ package com.android.tools.idea.ui
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.actions.ShowDiagnosticReportAction
 import com.android.tools.idea.diagnostics.report.FileInfo
+import com.android.tools.idea.util.CompressFilesTask
 import com.android.tools.idea.util.ZipData
-import com.android.tools.idea.util.zipFiles
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.CreateDiagnosticReportAction
 import com.intellij.icons.AllIcons
@@ -27,9 +27,9 @@ import com.intellij.ide.actions.RevealFileAction
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.Messages
@@ -191,9 +191,10 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
     }
 
     val saveFile = getSaveFile(project) ?: return
-    createZipFile(saveFile)
-    showNotification(saveFile)
-    log(CreateDiagnosticReportAction.ActionType.CREATED)
+    val list = buildList()
+    val zipInfo = list.map { ZipData(it.source.toString(), it.destination.toString()) }
+    val task = CreateDiagnosticReportTask(project, "Creating Diagnostics Report...", zipInfo, saveFile)
+    ProgressManager.getInstance().run(task)
 
     super.doOKAction()
   }
@@ -228,12 +229,6 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
     val file = "DiagnosticsReport${dateTime}.zip"
 
     return saveFileDialog.save(VfsUtil.getUserHomeDir(), file)?.file?.toPath()
-  }
-
-  private fun createZipFile(path: Path) {
-    val list = buildList()
-    val zipInfo = list.map { ZipData(it.source.toString(), it.destination.toString()) }.toTypedArray()
-    zipFiles(zipInfo, path.toString())
   }
 
   private fun updateContents(node: FileTreeNode?) {
@@ -291,27 +286,27 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
     }
   }
 
-  private fun showNotification(path: Path) {
-    if (!RevealFileAction.isSupported()) {
-      return
+  private class CreateDiagnosticReportTask(project: Project?, title: String, zipData: List<ZipData>, path: Path) :
+    CompressFilesTask(project, title, zipData, path) {
+
+    override fun onSuccess() {
+      super.onSuccess()
+      log(CreateDiagnosticReportAction.ActionType.CREATED)
+
+      if (!RevealFileAction.isSupported()) {
+        return
+      }
+
+      val notificationGroup = NotificationGroupManager.getInstance().getNotificationGroup("Create Diagnostic Report") ?: return
+      val notification =
+        notificationGroup.createNotification(TITLE, "The diagnostic report has been created.", NotificationType.INFORMATION)
+      notification.addAction(ShowDiagnosticReportAction(path.toFile()))
+      Notifications.Bus.notify(notification)
     }
 
-    val notificationGroup = NotificationGroupManager.getInstance().getNotificationGroup("Create Diagnostic Report") ?: return
-
-    val notification = notificationGroup.createNotification(TITLE, "The diagnostic report has been created.", NotificationType.INFORMATION)
-
-    notification.addAction(ShowDiagnosticReportAction(path.toFile()))
-
-    ApplicationManager.getApplication().invokeLater { Notifications.Bus.notify(notification) }
-  }
-
-  private fun log(type: CreateDiagnosticReportAction.ActionType) {
-    UsageTracker.log(
-      AndroidStudioEvent.newBuilder().apply {
-        kind = AndroidStudioEvent.EventKind.CREATE_DIAGNOSTIC_REPORT_ACTION
-        createDiagnosticReportActionEvent = CreateDiagnosticReportAction.newBuilder().apply { actionType = type }.build()
-      }
-    )
+    override fun onCancel() {
+      Files.deleteIfExists(path)
+    }
   }
 
   private class FileTreeRenderer : CheckboxTree.CheckboxTreeCellRenderer() {
@@ -339,4 +334,15 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
   }
 
   class FileTreeNode(userObject: String, val fileInfo: FileInfo? = null) : CheckedTreeNode(userObject)
+
+  companion object {
+    private fun log(type: CreateDiagnosticReportAction.ActionType) {
+      UsageTracker.log(
+        AndroidStudioEvent.newBuilder().apply {
+          kind = AndroidStudioEvent.EventKind.CREATE_DIAGNOSTIC_REPORT_ACTION
+          createDiagnosticReportActionEvent = CreateDiagnosticReportAction.newBuilder().apply { actionType = type }.build()
+        }
+      )
+    }
+  }
 }
