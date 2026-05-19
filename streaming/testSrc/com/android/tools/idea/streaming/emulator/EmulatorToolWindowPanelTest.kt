@@ -609,6 +609,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(xrInputController.passthroughCoefficient).isEqualTo(1f)
     ui.layoutAndDispatchEvents()
     slider.value = 3
+    ui.layoutAndDispatchEvents()
     call = getNextGrpcCallIgnoringStreamScreenshot()
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setXrOptions")
     assertThat(shortDebugString(call.request)).isEqualTo("passthrough_coefficient: 1.0 dimming_value: 0.75")
