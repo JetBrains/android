@@ -63,6 +63,7 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
     PRESENT,
     NOT_PRESENT,
     TIMEOUT,
+    REFLECTION_FAILED,
   }
 
   // Thread-safe state flags to track the async verification process across UI and background threads.
@@ -104,9 +105,9 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
    * Fetches the LeakCanary retained visible threshold from the device. This is a blocking call that waits up to 7 seconds for the app to
    * respond with the threshold via the LEAKCANARY_THRESHOLD event.
    *
-   * @return true if the threshold was successfully fetched, false if it timed out or failed.
+   * @return the threshold value (> 0 on success, -1 on reflection failure, 0 on timeout/not found).
    */
-  private fun fetchThresholdAndWait(): Boolean {
+  private fun fetchThresholdAndWait(): Int {
     val fetchThresholdCommand =
       Commands.Command.newBuilder()
         .setStreamId(profilers.session.streamId)
@@ -116,7 +117,7 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
         .build()
 
     val commandIdFuture = CompletableFuture<Int>()
-    val thresholdFetchedFuture = CompletableFuture<Boolean>()
+    val thresholdFetchedFuture = CompletableFuture<Int>()
 
     val listener =
       TransportEventListener(
@@ -130,11 +131,15 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
         },
         callback = { event ->
           val threshold = event.leakcanaryThreshold.threshold
-          logger.info("Stored LeakCanary threshold $threshold in preferences.")
-          profilers.ideServices.mainExecutor.execute {
-            profilers.ideServices.temporaryProfilerPreferences.setInt("LEAKCANARY_THRESHOLD", threshold)
+          if (threshold > 0) {
+            profilers.ideServices.mainExecutor.execute {
+              profilers.ideServices.temporaryProfilerPreferences.setInt("LEAKCANARY_THRESHOLD", threshold)
+              logger.info("Stored LeakCanary threshold $threshold in preferences.")
+            }
+          } else if (threshold == REFLECTION_FAILED_THRESHOLD) {
+            logger.info("Studio_leakCanary library present but reflection failed.")
           }
-          thresholdFetchedFuture.complete(true)
+          thresholdFetchedFuture.complete(threshold)
           true // Unregister listener
         },
       )
@@ -154,13 +159,13 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
       logger.warn(
         "Timed out waiting for LEAKCANARY_THRESHOLD response after $THRESHOLD_FETCH_TIMEOUT_MS ms. streamId: ${fetchThresholdCommand.streamId}, pid: ${fetchThresholdCommand.pid}, sessionId: ${fetchThresholdCommand.sessionId}"
       )
-      return false
+      return 0
     } catch (e: Exception) {
       logger.warn(
         e,
         "Failed to send GET_LEAKCANARY_THRESHOLD command. streamId: ${fetchThresholdCommand.streamId}, pid: ${fetchThresholdCommand.pid}, sessionId: ${fetchThresholdCommand.sessionId}",
       )
-      return false
+      return 0
     } finally {
       // Always clean up the listener to prevent memory leaks.
       profilers.transportPoller.unregisterListener(listener)
@@ -180,9 +185,15 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
 
       val isAttached = attachAgentAndWait(profilers, streamId, process)
       if (isAttached) {
-        val isThresholdFetched = fetchThresholdAndWait()
-        if (isThresholdFetched) {
+        val fetchedThreshold = fetchThresholdAndWait()
+        if (fetchedThreshold > 0) {
           profilers.ideServices.mainExecutor.execute { onComplete() }
+        } else if (fetchedThreshold == REFLECTION_FAILED_THRESHOLD) {
+          handleStartupFailure(
+            tracker,
+            LeakCanaryStartErrorCode.UNKNOWN_ERROR,
+            "Studio's LeakCanary integration library failed to attach. Required internal APIs are missing from the compiled app.",
+          )
         } else {
           handleStartupFailure(
             tracker,
@@ -340,17 +351,25 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
   }
 
   /** Called when the verification process successfully finishes. Updates the UI state with the result. */
-  private fun updateStateToCompleted(processId: String, found: Boolean, tracker: TaskTracker) {
+  private fun updateStateToCompleted(processId: String, threshold: Int, tracker: TaskTracker) {
     profilers.ideServices.mainExecutor.execute {
       if (isProcessLastChecked(processId)) {
+        val found = threshold > 0
         isPresent.set(found)
         isCheckInProgress.set(false)
-        _checkState.value = if (found) LeakCanaryCheckState.PRESENT else LeakCanaryCheckState.NOT_PRESENT
+
+        _checkState.value =
+          when {
+            found -> LeakCanaryCheckState.PRESENT
+            threshold == REFLECTION_FAILED_THRESHOLD -> LeakCanaryCheckState.REFLECTION_FAILED
+            else -> LeakCanaryCheckState.NOT_PRESENT
+          }
 
         if (!found) {
-          tracker.trackStartTaskFailed(
-            TaskStartFailedMetadata(leakCanaryStartStatus = LeakCanaryStartErrorCode.LIBRARY_NOT_INSTALLED_TIMEOUT)
-          )
+          val errorCode =
+            if (threshold == REFLECTION_FAILED_THRESHOLD) LeakCanaryStartErrorCode.UNKNOWN_ERROR
+            else LeakCanaryStartErrorCode.LIBRARY_NOT_INSTALLED_TIMEOUT
+          tracker.trackStartTaskFailed(TaskStartFailedMetadata(leakCanaryStartStatus = errorCode))
         }
 
         logger.info("PROFILER: Check finished for $processId. State: ${_checkState.value}")
@@ -417,6 +436,8 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
     if (!isPresent.get()) {
       if (_checkState.value == LeakCanaryCheckState.TIMEOUT) {
         return StartTaskSelectionError(StartTaskSelectionErrorCode.LEAKCANARY_CHECK_TIMEOUT)
+      } else if (_checkState.value == LeakCanaryCheckState.REFLECTION_FAILED) {
+        return StartTaskSelectionError(StartTaskSelectionErrorCode.LEAKCANARY_REFLECTION_FAILED)
       }
       return StartTaskSelectionError(StartTaskSelectionErrorCode.LEAKCANARY_NOT_FOUND)
     }
@@ -521,16 +542,18 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
           // Only process the event if it's the direct response to the specific command we just sent.
           if (targetCommandId != -1 && event.commandId == targetCommandId) {
             timer.cancel()
+            val threshold = event.leakcanaryThreshold.threshold
             // A threshold greater than 0 confirms the Studio-LeakCanary library is present and responding.
-            val found = event.leakcanaryThreshold.threshold > 0
+            val found = threshold > 0
             if (found) {
-              val threshold = event.leakcanaryThreshold.threshold
-              logger.info("Stored LeakCanary threshold $threshold in preferences.")
               profilers.ideServices.temporaryProfilerPreferences.setInt("LEAKCANARY_THRESHOLD", threshold)
+              logger.info("Stored LeakCanary threshold $threshold in preferences.")
+            } else if (threshold == REFLECTION_FAILED_THRESHOLD) {
+              logger.info("Stuio_leakCanary library present but reflection failed for $processId")
             } else {
-              logger.info("LeakCanary library not detected in app for $processId")
+              logger.info("Stuio_leakCanary library not detected in app for $processId")
             }
-            updateStateToCompleted(processId, found, tracker)
+            updateStateToCompleted(processId, threshold, tracker)
             true // Match found, unregister listener.
           } else {
             false // Match not found (e.g. stale event), keep listening.
@@ -571,6 +594,8 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
     private const val AGENT_ATTACH_TIMEOUT_MS = 7000L
     // Timeout for fetching the LeakCanary threshold from the device.
     private const val THRESHOLD_FETCH_TIMEOUT_MS = 7000L
+    // Value returned by the device if LeakCanary reflection failed due to minification.
+    private const val REFLECTION_FAILED_THRESHOLD = -1
 
     /**
      * Attempts to attach the JVMTI agent (`libjvmtiagent.so`) to the target process. This agent acts as the low-level bridge between

@@ -298,6 +298,7 @@ data class StartTaskSelectionError(val startTaskSelectionErrorCode: StartTaskSel
     LEAKCANARY_NOT_FOUND,
     LEAKCANARY_CHECK_IN_PROGRESS,
     LEAKCANARY_CHECK_TIMEOUT,
+    LEAKCANARY_REFLECTION_FAILED,
     TASK_HAS_DEBUGGER_ATTACHED,
     // Generalized error to cover the rest of task start errors.
     GENERAL_ERROR,
