@@ -5,7 +5,7 @@ package google.play.developer.reporting.v1beta1;
 import "metrics.proto";
 
 option java_multiple_files = true;
-option java_outer_classname = "ActivationsMetricsProto";
+option java_outer_classname = "FirstOpensMetricsProto";
 option java_package = "com.google.play.developer.reporting";
 
 // Contains first opens data.
@@ -53,8 +53,8 @@ option java_package = "com.google.play.developer.reporting";
 // **Required permissions**: to access this resource, the calling user needs the
 // _View app information (read-only)_ permission for the app.
 //
-// (== resource_for v1beta1.activations ==)
-message ActivationsMetricSet {
+// (== resource_for v1beta1.activations.firstOpens ==)
+message FirstOpensMetricSet {
   // The resource name.
   string name = 1;
 
@@ -62,17 +62,17 @@ message ActivationsMetricSet {
   FreshnessInfo freshness_info = 2;
 }
 
-// Request message for retrieving the activations metric set.
-message GetActivationsMetricSetRequest {
+// Request message for retrieving the first opens metric set.
+message GetFirstOpensMetricSetRequest {
   // The resource name.
-  // Format: apps/{app}/activationsMetricSet
+  // Format: apps/{app}/firstOpensMetricSet
   string name = 1;
 }
 
-// Request message for querying the activations metric set.
-message QueryActivationsMetricSetRequest {
+// Request message for querying the first opens metric set.
+message QueryFirstOpensMetricSetRequest {
   // The resource name.
-  // Format: apps/{app}/activationsMetricSet
+  // Format: apps/{app}/firstOpensMetricSet
   string name = 1;
 
   // Specification of the timeline aggregation parameters.
@@ -144,8 +144,8 @@ message QueryActivationsMetricSetRequest {
   string page_token = 6;
 }
 
-// Response message for querying the activations metric set.
-message QueryActivationsMetricSetResponse {
+// Response message for querying the first opens metric set.
+message QueryFirstOpensMetricSetResponse {
   // The returned rows of metrics.
   repeated MetricsRow rows = 1;
 

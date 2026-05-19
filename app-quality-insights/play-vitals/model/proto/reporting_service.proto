@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package google.play.developer.reporting.v1beta1;
 
-import "activations.proto";
+import "first_opens.proto";
 import "ratings.proto";
 import "releases.proto";
 
@@ -20,13 +20,13 @@ service ReportingService {
   rpc SearchAccessibleApps(SearchAccessibleAppsRequest)
       returns (SearchAccessibleAppsResponse) {}
 
-  // Describes the properties of the activations metric set.
-  rpc GetActivationsMetricSet(GetActivationsMetricSetRequest)
-      returns (ActivationsMetricSet) {}
+  // Describes the properties of the first opens metric set.
+  rpc GetFirstOpensMetricSet(GetFirstOpensMetricSetRequest)
+      returns (FirstOpensMetricSet) {}
 
-  // Queries the metrics in the activations metric set.
-  rpc QueryActivationsMetricSet(QueryActivationsMetricSetRequest)
-      returns (QueryActivationsMetricSetResponse) {}
+  // Queries the metrics in the first opens metric set.
+  rpc QueryFirstOpensMetricSet(QueryFirstOpensMetricSetRequest)
+      returns (QueryFirstOpensMetricSetResponse) {}
 
   // Describes the properties of the metric set.
   rpc GetRatingsMetricSet(GetRatingsMetricSetRequest)
