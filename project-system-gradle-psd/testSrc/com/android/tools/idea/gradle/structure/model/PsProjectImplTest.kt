@@ -194,16 +194,17 @@ class PsProjectImplTest {
     val newSuffix = "testApplyRunAndReparse"
     val newSuffix2 = "testApplyRunAndReparse2"
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
-    preparedProject.open { ideProject ->
+    projectRule.psTestWithProject(preparedProject, resolveModels = false) {
       // First remove :nested2:deep from the test project so that it can abe re-added later.
       run {
-        val tempProjectInstance = PsProjectImpl(ideProject)
+        val tempProjectInstance = PsProjectImpl(resolvedProject)
         assumeThat(tempProjectInstance.findModuleByGradlePath(":nested2:deep")?.isDeclared, equalTo(true))
         tempProjectInstance.removeModule(gradlePath = ":nested2:deep")
         tempProjectInstance.applyChanges()
       }
 
-      val project = PsProjectImpl(ideProject).also { it.testResolve() }
+      reparse()
+      project.testResolve()
       // Subscribe to notifications from the very beginning to ensure that new modules are auto-subscribed.
       project.testSubscribeToNotifications()
 
@@ -215,7 +216,7 @@ class PsProjectImplTest {
 
       // Make an independent change (add :nested2:deep back) to the configuration while in the "run" phase.
       project.applyRunAndReparse {
-        val anotherProjectInstance = PsProjectImpl(ideProject)
+        val anotherProjectInstance = PsProjectImpl(resolvedProject)
         assumeThat(anotherProjectInstance.findModuleByGradlePath(":nested2:deep")?.isDeclared, nullValue())
         // Any previously pending changes should be applied and visible at this point.
         assertThat(
@@ -231,7 +232,7 @@ class PsProjectImplTest {
         // Different DSL models are independent.
         assumeThat(project.findModuleByGradlePath(":nested2:deep")?.isDeclared, nullValue())
         // Validate that the module has re-appeared in the project.
-        val validationProjectInstance = PsProjectImpl(ideProject)
+        val validationProjectInstance = PsProjectImpl(resolvedProject)
         assumeThat(validationProjectInstance.findModuleByGradlePath(":nested2:deep")?.isDeclared, equalTo(true))
         true
       }
@@ -252,12 +253,10 @@ class PsProjectImplTest {
   @Test
   fun testApplyRunAndReparse_cancel() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
-    preparedProject.open { ideProject ->
-      val project = PsProjectImpl(ideProject).also { it.testResolve() }
-
+    projectRule.psTestWithProject(preparedProject) {
       // Make an independent change to the configuration while in the "run" phase.
       project.applyRunAndReparse {
-        val anotherProjectInstance = PsProjectImpl(ideProject)
+        val anotherProjectInstance = PsProjectImpl(resolvedProject)
         assumeThat(anotherProjectInstance.findModuleByGradlePath(":nested2:deep")?.isDeclared, equalTo(true))
 
         anotherProjectInstance.removeModule(gradlePath = ":nested2:deep")
@@ -277,15 +276,13 @@ class PsProjectImplTest {
   @Test
   fun testAgpVersion() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
-    preparedProject.open { ideProject ->
-      var project = PsProjectImpl(ideProject)
-
+    projectRule.psTestWithProject(preparedProject, resolveModels = false) {
       assertThat(project.androidGradlePluginVersion, equalTo(BuildEnvironment.getInstance().gradlePluginVersion.asParsed()))
 
       project.androidGradlePluginVersion = "1.23".asParsed()
       project.applyChanges()
 
-      project = PsProjectImpl(ideProject)
+      reparse()
       assertThat(project.androidGradlePluginVersion, equalTo("1.23".asParsed()))
     }
   }
@@ -293,9 +290,7 @@ class PsProjectImplTest {
   @Test
   fun testAgpVersion_missing() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
-    preparedProject.open { ideProject ->
-      var project = PsProjectImpl(ideProject)
-
+    projectRule.psTestWithProject(preparedProject, resolveModels = false) {
       assertThat(project.androidGradlePluginVersion, equalTo(BuildEnvironment.getInstance().gradlePluginVersion.asParsed()))
 
       val existingAgpDependency =
@@ -311,17 +306,15 @@ class PsProjectImplTest {
   @Test
   fun testGradleVersion() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
-    preparedProject.open { ideProject ->
-      var project = PsProjectImpl(ideProject)
-
-      assertThat(project.gradleVersion, equalTo(GradleWrapper.find(project.ideProject)?.gradleVersion?.asParsed()))
+    projectRule.psTestWithProject(preparedProject, resolveModels = false) {
+      assertThat(project.gradleVersion, equalTo(GradleWrapper.find(resolvedProject)?.gradleVersion?.asParsed()))
 
       project.gradleVersion = "1.1".asParsed()
       project.applyChanges()
 
-      project = PsProjectImpl(ideProject)
+      reparse()
       assertThat(project.gradleVersion, equalTo("1.1".asParsed()))
-      assertThat(GradleWrapper.find(project.ideProject)?.gradleVersion, equalTo("1.1"))
+      assertThat(GradleWrapper.find(resolvedProject)?.gradleVersion, equalTo("1.1"))
     }
   }
 
