@@ -280,9 +280,15 @@ iml_test(
     test_class = "com.android.tools.idea.EmulatorTest",
 )
 
-iml_test(
+studio_test(
     name = "DebuggerTest",
     timeout = "long",
+    # To run test for a single config, like "canary", use target <test target name>_canary
+    configs = [
+        "canary",
+        "nightly",
+        "stable",
+    ],
     data = [
         ":buildproject_deps",
         ":mindebugapp_project_model",
@@ -517,9 +523,15 @@ apply_changes_data = [
     INTEGRATION_TEST_GRADLE_VERSION,
 ]
 
-iml_test(
+studio_test(
     name = "ApplyChangesTest",
     timeout = "long",
+    # To run test for a single config, like "canary", use target <test target name>_canary
+    configs = [
+        "canary",
+        "nightly",
+        "stable",
+    ],
     data = apply_changes_data + emulator_snapshot_data("//prebuilts/studio/sdk:system_image_android-33_default"),
     jvm_flags = emulator_snapshot_jvm_flags("//prebuilts/studio/sdk:system_image_android-33_default"),
     module = ":intellij.android.core.integration",
@@ -590,9 +602,15 @@ create_project_test_data = [
     "//tools/base/build-system:gradle-distrib-9.1.0",  # The test itself sets a flag for which AGP version to use, so we can't rely on the framework choosing INTEGRATION_TEST_GRADLE_VERSION for us
 ]
 
-iml_test(
+studio_test(
     name = "CreateProjectTest",
     timeout = "long",
+    # To run test for a single config, like "canary", use target <test target name>_canary
+    configs = [
+        "canary",
+        "nightly",
+        "stable",
+    ],
     data = create_project_test_data,
     module = ":intellij.android.core.integration",
     tags = [
@@ -725,9 +743,15 @@ maven_repository(
     ] + KOTLIN_ARTIFACTS_FOR_TESTS,
 )
 
-iml_test(
+studio_test(
     name = "BuildProjectTest",
     timeout = "long",
+    # To run test for a single config, like "canary", use target <test target name>_canary
+    configs = [
+        "canary",
+        "nightly",
+        "stable",
+    ],
     data = [
         ":buildproject_deps",
         "//prebuilts/studio/sdk:build-tools/33.0.1",
