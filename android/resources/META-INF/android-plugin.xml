@@ -346,14 +346,6 @@
 
     <facetType implementation="com.android.tools.idea.apk.ApkFacetType"/>
     <fileTemplateGroup implementation="org.jetbrains.android.AndroidFileTemplateProvider"/>
-    <completion.contributor language="JAVA"
-                            id="JavaAndroidDeprecationPresentationCompletionContributor"
-                            implementationClass="org.jetbrains.android.completion.AndroidDeprecationPresentationCompletionContributor"
-                            order="first"/>
-    <completion.contributor language="kotlin"
-                            id="KotlinAndroidDeprecationPresentationCompletionContributor"
-                            implementationClass="org.jetbrains.android.completion.AndroidDeprecationPresentationCompletionContributor"
-                            order="first"/>
     <completion.contributor language="kotlin"
                             id="KotlinResourceCompletionContributor"
                             implementationClass="com.android.tools.idea.res.completion.KotlinResourceCompletionContributor"
