@@ -18,11 +18,12 @@ option java_package = "com.google.play.developer.reporting";
 //
 // **Supported metrics:**
 //
-//  * `dailyAvgRating` (`google.type.Decimal`): The average rating of the app on
-//  each day.
-//  * `dailyGooglePlayAvgRating` (`google.type.Decimal`): The average rating of
+//  * `dailyAverageRating` (`google.type.Decimal`): Average rating that your app
+//  receives each day.
+//  * `googlePlayRating` (`google.type.Decimal`): The average rating of
 //  the app shown to users on Google Play.
-//  * `totalAvgRating` (`google.type.Decimal`): The average rating of the app.
+//  * `lifetimeAverageRating` (`google.type.Decimal`): Average rating that your
+//  app has received over its lifetime.
 //
 // **Supported dimensions:**
 //
@@ -122,11 +123,13 @@ message QueryRatingsMetricSetRequest {
   //
   // **Supported metrics:**
   //
-  //  * `dailyAvgRating` (`google.type.Decimal`): The average rating of the app
-  //  on a given day.
-  //  * `dailyGooglePlayAvgRating` (`google.type.Decimal`): The average rating
-  //  of the app shown to users on Google Play.
-  //  * `totalAvgRating` (`google.type.Decimal`): The average rating of the app.
+  //  * `dailyAverageRating` (`google.type.Decimal`): Average rating that your
+  //  app receives each day.
+  //  * `googlePlayRating` (`google.type.Decimal`): The average rating of
+  //  the app shown to users on Google Play.
+  //  * `lifetimeAverageRating` (`google.type.Decimal`): Average rating that
+  //  your app has received over its lifetime.
+  //
   repeated string metrics = 4;
 
   // Filters to apply to data. The filtering expression follows
