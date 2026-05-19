@@ -35,6 +35,7 @@ import com.android.tools.idea.testing.IntegrationTestEnvironmentRule;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
+import com.intellij.idea.IJIgnore;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
@@ -266,6 +267,7 @@ public class RemoveSdkFromManifestHyperlinkTest {
     });
   }
 
+  @IJIgnore(issue = "IDEA-389582 Hanging RemoveSdkFromManifestHyperlinkTest.testMoveMinSdkVersionOnMultipleModules test in 261")
   @Test
   public void testMoveMinSdkVersionOnMultipleModules() throws Exception {
     final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.DEPENDENT_MODULES);
