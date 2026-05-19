@@ -1030,7 +1030,7 @@ public final class GroovyDslUtil {
     "new", "null", "package", "return",
     "super", "switch", "this", "throw",
     "throws", "trait", "true", "try",
-    "while"
+    "var", "while"
     ));
 
   // from Groovy documentation
