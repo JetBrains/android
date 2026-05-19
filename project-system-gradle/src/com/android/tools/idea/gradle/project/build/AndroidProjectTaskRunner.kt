@@ -1,3 +1,4 @@
+// Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.gradle.project.build
 
 import com.android.tools.idea.IdeInfo
@@ -35,15 +36,10 @@ class AndroidProjectTaskRunner : ProjectTaskRunner() {
 
   override fun canRun(project: Project, projectTask: ProjectTask, context: ProjectTaskContext?): Boolean {
     val configuration = context?.runConfiguration
-    return if (configuration is JavaScratchConfiguration) {
-      false
+    if (configuration is JavaScratchConfiguration) {
+      return false
     }
-    else {
-      canRun(projectTask)
-    }
-  }
 
-  override fun canRun(projectTask: ProjectTask): Boolean {
     return if (Registry.`is`("android.task.runner.restricted") || !isAndroidStudio || (projectTask is ModuleBuildTask && projectTask.module.isMultiPlatformModule)) {
       projectTask is ModuleBuildTask && AndroidFacet.getInstance(projectTask.module) != null
     }
