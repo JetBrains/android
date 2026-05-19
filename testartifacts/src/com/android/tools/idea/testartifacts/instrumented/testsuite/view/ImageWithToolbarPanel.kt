@@ -426,7 +426,8 @@ class ImageWithToolbarPanel(
       toolbar.updateActionsAsync()
     }
 
-    // Revalidate the scroll pane directly to ensure it re-evaluates its viewport and scrollbars.
+    // Revalidate the image container and scroll pane to ensure scrollbars appear correctly.
+    imageContainer.revalidate()
     scrollPane.revalidate()
     scrollPane.repaint()
   }
