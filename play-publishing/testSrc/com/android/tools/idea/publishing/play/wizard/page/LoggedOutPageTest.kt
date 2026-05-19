@@ -22,6 +22,7 @@ import com.android.testutils.waitForCondition
 import com.android.tools.adtui.compose.TestComposeWizard
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.google.common.truth.Truth.assertThat
 // TODO: android-merge; com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
 // import com.google.gct.login2.LoginFeatureRule
@@ -84,6 +85,27 @@ class LoggedOutPageTest {
       )
       .assertIsDisplayed()
   }
+
+  // TODO: android-merge; the test sets up a signed in user through LoginUsersRule and LoginFeatureRule from
+  // tools/vendor/google/login, which this repository does not carry, and the banner it asserts on is shown
+  // only when that login state can be read.
+  // @Test
+  // fun testLoggedOutPageContentRequiresAuthorization() {
+  //   StudioFlags.ENABLE_FSTS.overrideForTest(false, disposableRule.disposable)
+  //   loginUsersRule.setActiveUser("user@example.com", features = listOf(loginFeatureRule.ENFORCED))
+  //   StudioFlags.ENABLE_FSTS.overrideForTest(true, disposableRule.disposable)
+  //
+  //   val wizard = TestComposeWizard { LoggedOutPage() }
+  //
+  //   composeTestRule.setContent { wizard.Content() }
+  //
+  //   composeTestRule
+  //     .onNodeWithText(
+  //       "Using this wizard requires new authorization for Android Studio. You will be redirected to the web to sign in at the next step.",
+  //       substring = true,
+  //     )
+  //     .assertIsDisplayed()
+  // }
 
   // TODO: android-merge; both tests drive the next action, which signs in through
   // com.google.gct.login2.fstLoginFeature from tools/vendor/google/login, which this repository does not carry.

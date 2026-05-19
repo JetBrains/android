@@ -46,6 +46,7 @@ import com.android.tools.adtui.compose.WizardAction
 import com.android.tools.adtui.compose.WizardPageScope
 import com.android.tools.idea.publishing.play.wizard.PlayPublishingWizardHeader
 // TODO: android-merge; com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
+// import com.google.gct.login2.GoogleLoginService
 // import com.google.gct.login2.fstLoginFeature
 import com.intellij.ide.BrowserUtil
 import icons.StudioIllustrationsCompose
@@ -128,6 +129,25 @@ fun WizardPageScope.LoggedOutPage() {
     }
 
     Spacer(modifier = Modifier.weight(1f))
+
+    // TODO: android-merge; choosing the banner text from the login state needs
+    // com.google.gct.login2.GoogleLoginService and fstLoginFeature from tools/vendor/google/login, which this
+    // repository does not carry, so the logged out text is shown unconditionally.
+    // val infoBannerText =
+    //   when {
+    //     !GoogleLoginService.instance.isLoggedIn() -> {
+    //       "Using this wizard requires signing into Android Studio. You will be redirected to the web to sign in at the next step."
+    //     }
+    //     !fstLoginFeature.isLoggedIn() -> {
+    //       "Using this wizard requires new authorization for Android Studio. You will be redirected to the web to sign in at the next step."
+    //     }
+    //     else -> null
+    //   }
+    // if (infoBannerText != null) {
+    //   // Info Banner
+    //   @OptIn(ExperimentalJewelApi::class)
+    //   InlineInformationBanner(text = infoBannerText, modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp))
+    // }
 
     // Info Banner
     @OptIn(ExperimentalJewelApi::class)
