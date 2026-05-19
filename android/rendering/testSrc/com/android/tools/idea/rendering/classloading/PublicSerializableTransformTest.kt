@@ -256,4 +256,51 @@ class PublicSerializableTransformTest {
     // Check visibility: it should NOT be public (it was private)
     assertTrue("Class should NOT be public", (resultNode.access and Opcodes.ACC_PUBLIC) == 0)
   }
+
+  @Test
+  fun testNavKeyAbsentDoesNotTransformClasses() {
+    val testClassBytes = loadClassBytes(SerializableChildNavKey::class.java)
+    val classReader = ClassReader(testClassBytes)
+
+    val parentInternalName = Type.getInternalName(SerializableParentNavKey::class.java)
+    val childInternalName = Type.getInternalName(SerializableChildNavKey::class.java)
+
+    // A locator that simulates NavKey being absent (returns objectPseudoClass for NAV_KEY_INTERNAL_NAME)
+    val pseudoClassLocator =
+      object : PseudoClassLocator {
+        override fun locatePseudoClass(classFqn: String): PseudoClass {
+          return when (classFqn) {
+            parentInternalName.replace('/', '.') ->
+              PseudoClass.forTest(classFqn, JAVA_OBJECT_FQN, false, listOf(NAV_KEY_INTERNAL_NAME.replace('/', '.')), this)
+            childInternalName.replace('/', '.') ->
+              PseudoClass.forTest(classFqn, parentInternalName.replace('/', '.'), false, emptyList(), this)
+            // NavKey is not found/not on classpath, so it maps to objectPseudoClass
+            else -> PseudoClass.objectPseudoClass()
+          }
+        }
+      }
+
+    val classWriter = ClassWriterWithPseudoClassLocator(0, pseudoClassLocator)
+
+    val remapper =
+      SimpleRemapper(
+        mapOf(
+          Type.getInternalName(MockSerializable::class.java) to SERIALIZABLE_INTERNAL_NAME,
+          Type.getInternalName(MockNavKey::class.java) to NAV_KEY_INTERNAL_NAME,
+        )
+      )
+
+    val publicSerializableTransform = PublicSerializableTransform(classWriter)
+    val classRemapperAdapter = ClassRemapper(publicSerializableTransform, remapper)
+
+    classReader.accept(classRemapperAdapter, 0)
+
+    val resultBytes = classWriter.toByteArray()
+    val resultReader = ClassReader(resultBytes)
+    val resultClassNode = ClassNode()
+    resultReader.accept(resultClassNode, 0)
+
+    // Since NavKey was absent/objectPseudoClass, it should NOT have been matched or transformed, so visibility remains private
+    assertTrue("Class should NOT be public when NavKey is absent from classpath", (resultClassNode.access and Opcodes.ACC_PUBLIC) == 0)
+  }
 }

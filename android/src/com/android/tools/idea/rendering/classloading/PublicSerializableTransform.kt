@@ -127,28 +127,60 @@ private fun checkImplementsNavKey(superName: String?, interfaces: Array<out Stri
   if (interfaces?.contains(NAV_KEY_INTERFACE_NAME) == true) return true
   val pseudoLocator = locator ?: return false
 
-  val navKeyPseudoClass =
-    runCatching { pseudoLocator.locatePseudoClass(NAV_KEY_INTERFACE_NAME.replace('/', '.')) }.getOrNull() ?: return false
+  val navKeyFqn = NAV_KEY_INTERFACE_NAME.replace('/', '.')
 
-  // Check super class hierarchy
+  // Check super class hierarchy: if the superclass inherits from or implements NavKey, then this class does too.
   if (superName != null && superName != JAVA_LANG_OBJECT) {
-    val isSuperNavKey =
-      runCatching {
-          val superPseudoClass = pseudoLocator.locatePseudoClass(superName.replace('/', '.'))
-          navKeyPseudoClass.isAssignableFrom(superPseudoClass)
-        }
-        .getOrDefault(false)
-    if (isSuperNavKey) return true
+    val replacedSuperName = superName.replace('/', '.')
+    if (isSubclassOrImplements(replacedSuperName, navKeyFqn, pseudoLocator)) {
+      return true
+    }
   }
 
-  // Check interfaces hierarchy
-  return interfaces?.any { interfaceName ->
-    runCatching {
-        val interfacePseudoClass = pseudoLocator.locatePseudoClass(interfaceName.replace('/', '.'))
-        navKeyPseudoClass.isAssignableFrom(interfacePseudoClass)
+  // Check interfaces hierarchy: if any of the directly implemented interfaces extends NavKey, then this class also implements NavKey.
+  return interfaces?.any { interfaceName -> isSubclassOrImplements(interfaceName.replace('/', '.'), navKeyFqn, pseudoLocator) } ?: false
+}
+
+/**
+ * Traverses the class hierarchy of [className] using [locator] to determine if it is a subclass of, or implements, [targetFqn].
+ *
+ * We climb the hierarchy of [className] instead of locating [targetFqn] directly to prevent triggering ClassNotFoundException log warnings.
+ * `androidx.navigation3.runtime.NavKey` is an optional library dependency; if we call `locatePseudoClass` on it directly when it is absent
+ * from the project's classpath, the class locator would log a highly visible warning. Traversing up from the checked class guarantees that
+ * we only query classes that are already declared and known to exist in the project.
+ *
+ * @param className the fully qualified name of the class to start traversal from
+ * @param targetFqn the fully qualified name of the target class/interface to look for
+ * @param locator the [PseudoClassLocator] to use for resolving the class hierarchy
+ */
+private fun isSubclassOrImplements(className: String, targetFqn: String, locator: PseudoClassLocator): Boolean {
+  val visited = mutableSetOf<String>()
+  val queue = ArrayDeque<String>()
+  queue.add(className)
+
+  while (queue.isNotEmpty()) {
+    val current = queue.removeFirst()
+    if (visited.add(current)) {
+      if (current == targetFqn) {
+        // targetFqn was encountered by name in the traversed hierarchy. To ensure it is a valid and loadable reference on the
+        // classpath, we attempt to locate it. If it fails or maps to objectPseudoClass, we treat it as absent.
+        val targetPseudoClass = runCatching { locator.locatePseudoClass(targetFqn) }.getOrNull()
+        return targetPseudoClass != null && targetPseudoClass.name == targetFqn
       }
-      .getOrDefault(false)
-  } ?: false
+      if (current != JAVA_LANG_OBJECT) {
+        runCatching { locator.locatePseudoClass(current) }
+          .getOrNull()
+          ?.let { pseudoClass ->
+            if (pseudoClass.superName != JAVA_LANG_OBJECT) {
+              queue.add(pseudoClass.superName)
+            }
+            queue.addAll(pseudoClass.interfaces)
+          }
+      }
+    }
+  }
+
+  return false
 }
 
 /** Modifies the given [accessFlags] to ensure the public flag is set and private/protected flags are cleared. */
