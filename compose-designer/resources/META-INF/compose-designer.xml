@@ -154,6 +154,12 @@
     <notificationGroup id="Compose Preview Notification" displayType="NONE"/>
 
     <postStartupActivity implementation="com.android.tools.idea.compose.preview.ComposeNewPreviewNotificationManager$MyStartupActivity"/>
+
+    <toolWindow factoryClass="com.android.tools.idea.compose.meshgradient.MeshGradientToolWindowFactory"
+                id="Mesh Gradient Editor"
+                anchor="right"
+                icon="AllIcons.Toolwindows.ToolwindowPalette"
+                canCloseContents="true" />
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.designer">
