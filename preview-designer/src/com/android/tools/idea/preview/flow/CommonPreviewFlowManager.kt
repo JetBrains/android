@@ -256,7 +256,7 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
             ?.let { module ->
               resourceChangedFlow(module, disposable, log, null)
                 .filter { reasons ->
-                  reasons.contains(ResourceNotificationManager.Reason.EDIT) ||
+                  reasons.contains(ResourceNotificationManager.Reason.RESOURCE_EDIT) ||
                     reasons.contains(ResourceNotificationManager.Reason.IMAGE_RESOURCE_CHANGED)
                 }
                 .onEach {
