@@ -21,6 +21,7 @@ import com.android.sdklib.deviceprovisioner.CreateDeviceAction
 import com.android.sdklib.deviceprovisioner.CreateDeviceTemplateAction
 import com.android.sdklib.deviceprovisioner.DeviceAction
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.sdklib.deviceprovisioner.DeviceState
@@ -46,6 +47,7 @@ import com.android.tools.idea.devicemanagerv2.DeviceTableColumns.columns
 import com.android.tools.idea.devicemanagerv2.details.DeviceDetailsPanel
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.deviceprovisioner.NotificationBannersExtension
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.wearpairing.WearPairingManager
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ConcurrentHashMultiset
@@ -178,11 +180,28 @@ constructor(
       )
       .apply { background = JBUI.CurrentTheme.Table.background(false, true) }
 
-  internal var deviceTable =
+  internal var deviceTable: CategoryTable<DeviceRowData> =
     CategoryTable(
       columns(project, panelScope),
-      DeviceRowData::key,
+      DeviceRowData::id,
       uiContext,
+      parentKeyProvider = { rowData ->
+        if (StudioFlags.AI_GLASSES_NESTED_DEVICE_VIEW_ENABLED.get()) {
+          rowData.parentDeviceId
+        } else {
+          null
+        }
+      },
+      shouldNest = { child, parent ->
+        if (StudioFlags.AI_GLASSES_NESTED_DEVICE_VIEW_ENABLED.get()) {
+          val groups = deviceTable.groupByAttributes
+          groups.singleOrNull() != DeviceTableColumns.Status.attribute ||
+            (child.status == DeviceRowData.Status.ONLINE && parent.status == DeviceRowData.Status.ONLINE)
+        } else {
+          false
+        }
+      },
+      indentColumnIndex = 1,
       rowDataProvider = ::provideRowData,
       emptyStatePanel = emptyStatePanel,
     )
@@ -240,7 +259,8 @@ constructor(
       deviceTable.selection.asFlow().collect { selectedRows ->
         if (deviceDetailsPanelRow != null) {
           (selectedRows.singleOrNull() as? ValueRowKey)?.let { selectedRow ->
-            deviceTable.values.find { it.key() == selectedRow.key }?.let { showDeviceDetails(it) }
+            val selectedId = selectedRow.key as? DeviceId
+            deviceTable.values.find { it.id == selectedId }?.let { showDeviceDetails(it) }
           }
         }
       }
@@ -272,7 +292,7 @@ constructor(
         val removed = currentTemplates.keys - newTemplates
         removed.forEach {
           currentTemplates.remove(it)
-          deviceTable.removeRowByKey(it)
+          deviceTable.removeRowByKey(it.id)
           if (deviceDetailsPanelRow?.template == it) {
             deviceDetailsPanelRow = null
             deviceDetailsPanel = null
@@ -317,13 +337,13 @@ constructor(
             }
             .collect {
               withContext(uiContext) {
-                if (deviceTable.addOrUpdateRow(it, beforeKey = handle.sourceTemplate)) {
+                if (deviceTable.addOrUpdateRow(it, beforeKey = handle.sourceTemplate?.id)) {
                   handle.sourceTemplate?.let {
                     if (templateInstantiationCount.add(it, 1) == 0) {
-                      if (deviceTable.selection.selectedKeys().contains(ValueRowKey(it))) {
-                        deviceTable.selection.selectRow(ValueRowKey(handle))
+                      if (deviceTable.selection.selectedKeys().contains(ValueRowKey(it.id))) {
+                        deviceTable.selection.selectRow(ValueRowKey(handle.id))
                       }
-                      deviceTable.setRowVisibleByKey(it, false)
+                      deviceTable.setRowVisibleByKey(it.id, false)
                     }
                   }
                 }
@@ -337,10 +357,10 @@ constructor(
           deviceDetailsPanelRow = null
           deviceDetailsPanel = null
         }
-        deviceTable.removeRowByKey(handle)
+        deviceTable.removeRowByKey(handle.id)
         handle.sourceTemplate?.let {
           if (templateInstantiationCount.remove(it, 1) == 1) {
-            deviceTable.setRowVisibleByKey(it, true)
+            deviceTable.setRowVisibleByKey(it.id, true)
           }
         }
       }

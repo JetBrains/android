@@ -1831,6 +1831,13 @@ public final class StudioFlags {
     "Migreate emulator AEHD users to use WHPX instead."
   );
 
+  public static final Flag<Boolean> AI_GLASSES_NESTED_DEVICE_VIEW_ENABLED = new BooleanFlag(
+    DEVICE_MANAGER,
+    "ai.glasses.nested.device.view.enabled",
+    "Enable AI Glasses nested device view",
+    "If enabled, nests paired AI Glasses under their host phone rows in the Device Manager table."
+  );
+
   public static final Flag<Boolean> AI_GLASSES_PAIRING_RECONCILIATION_ENABLED = new BooleanFlag(
     DEVICE_MANAGER,
     "ai.glasses.pairing.reconciliation.enabled",

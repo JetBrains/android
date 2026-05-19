@@ -17,16 +17,19 @@ package com.android.tools.idea.devicemanagerv2
 
 import com.android.adblib.testingutils.CoroutineTestUtils.yieldUntil
 import com.android.adblib.utils.createChildScope
+import com.android.flags.junit.FlagRule
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.categorytable.CategoryTable
 import com.android.tools.adtui.categorytable.ColumnSortOrder
 import com.android.tools.adtui.categorytable.IconButton
 import com.android.tools.adtui.categorytable.RowKey.ValueRowKey
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findAllDescendants
+import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.application.EDT
@@ -55,6 +58,7 @@ import org.junit.Test
 class DeviceManagerPanelTest {
 
   @get:Rule val projectRule = ProjectRule()
+  @get:Rule val nestedViewFlagRule = FlagRule(StudioFlags.AI_GLASSES_NESTED_DEVICE_VIEW_ENABLED, true)
 
   @Test
   fun initialSortOrder() = runTestWithFixture {
@@ -66,23 +70,24 @@ class DeviceManagerPanelTest {
   fun activateTemplate() = runTestWithFixture {
     val pixel5Template = createTemplate("Pixel 5")
     val pixel5Handle = createHandle("Pixel 5", pixel5Template)
-    val pixel5Emulator = createHandle("Pixel 5")
+    val pixel5Emulator = createHandle("Pixel 5 Other")
     val pixel6 = createHandle("Pixel 6")
 
     deviceHandles.send(listOf(pixel5Emulator, pixel6))
     deviceTemplates.send(listOf(pixel5Template))
 
-    deviceTable.selection.selectRow(ValueRowKey(pixel5Template))
+    deviceTable.selection.selectRow(ValueRowKey(pixel5Template.id))
 
     assertThat(deviceTable.values).hasSize(3)
-    val originalValues = deviceTable.values.map { it.key() }
+    val originalIds = deviceTable.values.map { it.id }
 
     deviceHandles.send(listOf(pixel5Emulator, pixel6, pixel5Handle))
 
-    val valuesAfterActivation = originalValues.toMutableList().apply { add(indexOf(pixel5Template), pixel5Handle) }
-    assertThat(deviceTable.values.map { it.key() }).containsExactlyElementsIn(valuesAfterActivation).inOrder()
+    val templateIndex = deviceTable.values.indexOfFirst { it.template == pixel5Template }
+    val idsAfterActivation = originalIds.toMutableList().apply { add(templateIndex, pixel5Handle.id) }
+    assertThat(deviceTable.values.map { it.id }).containsExactlyElementsIn(idsAfterActivation).inOrder()
 
-    assertThat(deviceTable.selection.selectedKeys()).containsExactly(ValueRowKey<DeviceRowData>(pixel5Handle))
+    assertThat(deviceTable.selection.selectedKeys()).containsExactly(ValueRowKey<DeviceRowData>(pixel5Handle.id))
   }
 
   @Test
@@ -95,7 +100,7 @@ class DeviceManagerPanelTest {
     deviceHandles.send(listOf(pixel4, pixel6))
     deviceTemplates.send(listOf(pixel5Template))
 
-    assertThat(deviceTable.visibleKeys()).containsExactly(pixel4, pixel5Template, pixel6)
+    assertThat(deviceTable.visibleKeys()).containsExactly(pixel4.id, pixel5Template.id, pixel6.id)
 
     deviceHandles.send(listOf(pixel4, pixel6, pixel5Handle))
     // Send an update to the state to be more realistic
@@ -108,12 +113,12 @@ class DeviceManagerPanelTest {
         }
       )
     }
-    assertThat(deviceTable.visibleKeys()).containsExactly(pixel4, pixel5Handle, pixel6)
+    assertThat(deviceTable.visibleKeys()).containsExactly(pixel4.id, pixel5Handle.id, pixel6.id)
 
     deviceHandles.send(listOf(pixel4, pixel6))
     pixel5Handle.scope.cancel()
 
-    assertThat(deviceTable.visibleKeys()).containsExactly(pixel4, pixel5Template, pixel6)
+    assertThat(deviceTable.visibleKeys()).containsExactly(pixel4.id, pixel5Template.id, pixel6.id)
   }
 
   @Test
@@ -130,7 +135,7 @@ class DeviceManagerPanelTest {
 
     assertThat(panel.deviceDetailsPanelRow).isEqualTo(pixel4Row)
 
-    deviceTable.selection.selectRow(ValueRowKey(pixel5))
+    deviceTable.selection.selectRow(ValueRowKey(pixel5.id))
 
     assertThat(panel.deviceDetailsPanelRow).isEqualTo(pixel5Row)
 
@@ -198,7 +203,7 @@ class DeviceManagerPanelTest {
 
     fakeUi.clickOn(runButton)
 
-    assertThat(deviceTable.selection.selectedKeys()).containsExactly(ValueRowKey<DeviceRowData>(pixel4))
+    assertThat(deviceTable.selection.selectedKeys()).containsExactly(ValueRowKey<DeviceRowData>(pixel4.id))
   }
 
   @Test
@@ -252,13 +257,14 @@ class DeviceManagerPanelTest {
       )
     val deviceTable = panel.deviceTable
 
-    fun createHandle(name: String, sourceTemplate: DeviceTemplate? = null) =
+    fun createHandle(name: String, sourceTemplate: DeviceTemplate? = null, propertiesBlock: DeviceProperties.Builder.() -> Unit = {}) =
       FakeDeviceHandle(
         scope.createChildScope(isSupervisor = true),
         sourceTemplate,
         DeviceProperties.buildForTest {
           model = name
           icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+          propertiesBlock()
         },
       )
 
@@ -271,5 +277,73 @@ class DeviceManagerPanelTest {
     deviceTable.addOrUpdateRow(DeviceRowData.create(handle, emptyList()))
 
     assertThat(DataKey.allKeys().map { it.name }).containsAllOf("DeviceHandle", "DeviceRowData")
+  }
+
+  @Test
+  fun nesting() = runTestWithFixture {
+    val phoneHandle = createHandle("Pixel 6") { deviceType = DeviceType.HANDHELD }
+    val glassesHandle =
+      createHandle("Glasses A") {
+        deviceType = DeviceType.AI_GLASSES
+        pairedPhoneId = phoneHandle.id
+      }
+    val otherPhone = createHandle("Pixel 5") { deviceType = DeviceType.HANDHELD }
+
+    deviceHandles.send(listOf(phoneHandle, glassesHandle, otherPhone))
+
+    panel.setBounds(0, 0, 800, 400)
+    val fakeUi = FakeUi(panel, createFakeWindow = true)
+    fakeUi.layout()
+
+    // When nested, Glasses A follows its parent Phone (Pixel 6):
+    assertThat(deviceTable.values.map { it.name }).containsExactly("Pixel 5", "Pixel 6", "Glasses A").inOrder()
+  }
+
+  @Test
+  fun nesting_flagDisabled() = runTestWithFixture {
+    StudioFlags.AI_GLASSES_NESTED_DEVICE_VIEW_ENABLED.override(false)
+    try {
+      val phoneHandle = createHandle("Pixel 6") { deviceType = DeviceType.HANDHELD }
+      val glassesHandle =
+        createHandle("Glasses A") {
+          deviceType = DeviceType.AI_GLASSES
+          pairedPhoneId = phoneHandle.id
+        }
+      val otherPhone = createHandle("Pixel 5") { deviceType = DeviceType.HANDHELD }
+
+      deviceHandles.send(listOf(phoneHandle, glassesHandle, otherPhone))
+
+      panel.setBounds(0, 0, 800, 400)
+      val fakeUi = FakeUi(panel, createFakeWindow = true)
+      fakeUi.layout()
+
+      // When flat (flag disabled), alphabetical sorting by Name applies flatly:
+      assertThat(deviceTable.values.map { it.name }).containsExactly("Glasses A", "Pixel 5", "Pixel 6").inOrder()
+    } finally {
+      StudioFlags.AI_GLASSES_NESTED_DEVICE_VIEW_ENABLED.clearOverride()
+    }
+  }
+
+  @Test
+  fun nesting_groupedByType() = runTestWithFixture {
+    val phoneHandle = createHandle("Pixel 6") { deviceType = DeviceType.HANDHELD }
+    val glassesHandle =
+      createHandle("Glasses A") {
+        deviceType = DeviceType.AI_GLASSES
+        pairedPhoneId = phoneHandle.id
+      }
+    val otherPhone = createHandle("Pixel 5") { deviceType = DeviceType.HANDHELD }
+
+    deviceHandles.send(listOf(phoneHandle, glassesHandle, otherPhone))
+
+    // Group by Type (HandleType)
+    deviceTable.addGrouping(DeviceTableColumns.HandleType)
+
+    panel.setBounds(0, 0, 800, 400)
+    val fakeUi = FakeUi(panel, createFakeWindow = true)
+    fakeUi.layout()
+
+    // Both are Virtual devices, so they belong to the same Category and should nest:
+    assertThat(deviceTable.values.map { it.name }).containsExactly("Pixel 5", "Pixel 6", "Glasses A").inOrder()
   }
 }

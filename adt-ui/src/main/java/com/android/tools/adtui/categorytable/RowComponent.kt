@@ -124,7 +124,8 @@ internal class ValueRowComponent<T>(
   header: JTableHeader,
   columns: ColumnList<T>,
   initialValue: T,
-  primaryKey: Any,
+  val primaryKey: Any,
+  val indentColumnIndex: Int = 0,
 ) : RowComponent<T>(), UiDataProvider {
   private val mouseDelegate = DelegateMouseEventHandler.delegateTo(this)
 
@@ -132,7 +133,7 @@ internal class ValueRowComponent<T>(
   val componentList: List<ColumnComponent<T, *, *>> = columns.map { ColumnComponent(it, initialValue, mouseDelegate) }
 
   init {
-    layout = ValueRowLayout(header)
+    layout = ValueRowLayout(header, indentColumnIndex)
     componentList.forEach { add(it.component) }
 
     addMouseListener(
@@ -161,7 +162,14 @@ internal class ValueRowComponent<T>(
   private val valueRowLayout: ValueRowLayout
     get() = getLayout() as ValueRowLayout
 
-  override var indent: Int by valueRowLayout::indent
+  override var indent: Int
+    get() = valueRowLayout.indent
+    set(value) {
+      if (valueRowLayout.indent != value) {
+        valueRowLayout.indent = value
+        revalidate()
+      }
+    }
 
   var value = initialValue
     set(value) {
@@ -215,7 +223,7 @@ class DefaultValueRowDataProvider<T : Any>(private val dataKey: DataKey<T>) : Va
   }
 }
 
-private class ValueRowLayout(val header: JTableHeader) : LayoutManager {
+private class ValueRowLayout(val header: JTableHeader, val indentColumnIndex: Int = 0) : LayoutManager {
   private var sizeRequirements: Array<SizeRequirements>? = null
   private var totalHeightRequirements: SizeRequirements? = null
 
@@ -260,12 +268,22 @@ private class ValueRowLayout(val header: JTableHeader) : LayoutManager {
     var x = 0
     val xpos = Array(row.componentList.size) { -1 }
     val width = Array(row.componentList.size) { -1 }
-    for (tableColumn in header.columnModel.columnList) {
-      xpos[tableColumn.modelIndex] = x + remainingIndent
-      width[tableColumn.modelIndex] = (tableColumn.width - remainingIndent).coerceAtLeast(0)
-      remainingIndent = (remainingIndent - tableColumn.width).coerceAtLeast(0)
-      x += tableColumn.width
+
+    val columnList = header.columnModel.columnList
+    columnList.forEachIndexed { i, tableColumn ->
+      val colWidth = tableColumn.width
+      if (i < indentColumnIndex) {
+        xpos[tableColumn.modelIndex] = x
+        width[tableColumn.modelIndex] = colWidth
+        x += colWidth
+      } else {
+        xpos[tableColumn.modelIndex] = x + remainingIndent
+        width[tableColumn.modelIndex] = (colWidth - remainingIndent).coerceAtLeast(0)
+        remainingIndent = (remainingIndent - colWidth).coerceAtLeast(0)
+        x += colWidth
+      }
     }
+
     xpos.forEachIndexed { i, x ->
       val component = row.componentList[i].component
       if (x >= 0) {

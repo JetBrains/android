@@ -37,10 +37,9 @@ internal class GroupingAction(
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     if (state) {
-      table.groupByAttributes.forEach { table.removeGrouping(it) }
-      table.addGrouping(attribute)
+      table.setGrouping(listOf(attribute))
     } else {
-      table.removeGrouping(attribute)
+      table.setGrouping(emptyList())
     }
   }
 }
@@ -51,6 +50,6 @@ internal class GroupByNoneAction(val table: CategoryTable<DeviceRowData>) : Togg
   override fun isSelected(e: AnActionEvent) = table.groupByAttributes.isEmpty()
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
-    table.groupByAttributes.forEach { table.removeGrouping(it) }
+    table.setGrouping(emptyList())
   }
 }

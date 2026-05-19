@@ -72,6 +72,9 @@ class CategoryTable<T : Any>(
   val columns: ColumnList<T>,
   val primaryKey: (T) -> Any = { it },
   private val coroutineContext: CoroutineContext = defaultCoroutineDispatcher,
+  val parentKeyProvider: (T) -> Any? = { null },
+  val shouldNest: (T, T) -> Boolean = { _, _ -> true },
+  val indentColumnIndex: Int = 0,
   colors: Colors = defaultColors,
   private val rowDataProvider: ValueRowDataProvider<T> = NullValueRowDataProvider,
   val emptyStatePanel: JComponent? = null,
@@ -110,6 +113,8 @@ class CategoryTable<T : Any>(
   /** ValueRowComponents indexed by their primary key. These are reused when the value changes. */
   private val valueRows = mutableMapOf<Any, ValueRowComponent<T>>()
 
+  private var valueDepths = emptyMap<Any, Int>()
+
   private val hiddenRows = mutableSetOf<Any>()
 
   /** The columns we are grouping by, in order. */
@@ -141,6 +146,12 @@ class CategoryTable<T : Any>(
 
   private val scaledCategoryIndent
     get() = JBUI.scale(categoryIndent)
+
+  /** The number of pixels to indent nested child rows. */
+  var nestingIndent = 32
+
+  private val scaledNestingIndent
+    get() = JBUI.scale(nestingIndent)
 
   private val actions =
     listOf(
@@ -274,16 +285,30 @@ class CategoryTable<T : Any>(
     }
   }
 
+  fun setGrouping(attributes: List<Attribute<T, *>>) {
+    val toRestore = groupByAttributes.filter { !attributes.contains(it) }
+    val toRemove = attributes.filter { !groupByAttributes.contains(it) }
+
+    toRestore.forEach { attribute ->
+      columns.find { it.attribute == attribute && !it.visibleWhenGrouped }?.let { header.restoreColumn(attribute) }
+    }
+    toRemove.forEach { attribute ->
+      columns.find { it.attribute == attribute && !it.visibleWhenGrouped }?.let { header.removeColumn(attribute) }
+    }
+
+    groupByAttributes = attributes.toPersistentList()
+    groupAndSortValues()
+    updateComponents()
+  }
+
   fun <C> addGrouping(column: Column<T, C, *>) {
     addGrouping(column.attribute)
   }
 
   fun <C> addGrouping(attribute: Attribute<T, C>) {
-    columns.find { it.attribute == attribute && !it.visibleWhenGrouped }?.let { header.removeColumn(attribute) }
-
-    groupByAttributes += attribute
-    groupAndSortValues()
-    updateComponents()
+    if (!groupByAttributes.contains(attribute)) {
+      setGrouping(groupByAttributes + attribute)
+    }
   }
 
   fun <C> removeGrouping(column: Column<T, C, *>) {
@@ -291,11 +316,9 @@ class CategoryTable<T : Any>(
   }
 
   fun <C> removeGrouping(attribute: Attribute<T, C>) {
-    groupByAttributes -= attribute
-    groupAndSortValues()
-    updateComponents()
-
-    columns.find { it.attribute == attribute && !it.visibleWhenGrouped }?.let { header.restoreColumn(attribute) }
+    if (groupByAttributes.contains(attribute)) {
+      setGrouping(groupByAttributes - attribute)
+    }
   }
 
   /**
@@ -311,7 +334,7 @@ class CategoryTable<T : Any>(
     val key = primaryKey(rowValue)
     val add = !valueRows.contains(key)
     if (add) {
-      valueRows[key] = ValueRowComponent(rowDataProvider, header, columns, rowValue, key).also { addRowComponent(it) }
+      valueRows[key] = ValueRowComponent(rowDataProvider, header, columns, rowValue, key, indentColumnIndex).also { addRowComponent(it) }
       updateValues { it.withInsertedItemBefore(beforeKey, rowValue) }
     } else {
       updateValues { currentValues ->
@@ -364,7 +387,37 @@ class CategoryTable<T : Any>(
 
   /** Unconditionally updates the categorized values by re-grouping and sorting them. */
   private fun groupAndSortValues() {
-    values = groupAndSort(values, groupByAttributes, columnSorters)
+    // Sort the values first. The subsequent parent-child grouping step relies on
+    // Kotlin's groupBy preserving this pre-sorted order in the resulting grouped lists.
+    val sortedValues = groupAndSort(values, groupByAttributes, columnSorters)
+    val valuesByKey = sortedValues.associateBy { primaryKey(it) }
+    val valuesByParentKey =
+      sortedValues.groupBy { child ->
+        parentKeyProvider(child)?.takeIf { parentKey ->
+          val parent = valuesByKey[parentKey]
+          parent != null && shouldNest(child, parent) && child.shareSameCategories(parent)
+        }
+      }
+    val topLevel = valuesByParentKey[null] ?: emptyList()
+
+    val depthMap = mutableMapOf<Any, Int>()
+    val flattenedList =
+      buildList(sortedValues.size) {
+        for (item in topLevel) {
+          add(item)
+
+          valuesByParentKey[primaryKey(item)]?.forEach { child ->
+            add(child)
+            depthMap[primaryKey(child)] = 1
+          }
+        }
+      }
+    values = flattenedList
+    valueDepths = depthMap
+  }
+
+  private fun T.shareSameCategories(other: T): Boolean {
+    return groupByAttributes.all { attribute -> attribute.value(this) == attribute.value(other) }
   }
 
   private fun updateValues(updater: (List<T>) -> List<T>) {
@@ -532,7 +585,8 @@ class CategoryTable<T : Any>(
             indent = row.path.size * scaledCategoryIndent
           }
           is ValueRowComponent<*> -> {
-            row.indent = indent
+            val depth = valueDepths[row.primaryKey] ?: 0
+            row.indent = indent + depth * scaledNestingIndent
           }
         }
         row.setBounds(0, y, parent.width, row.preferredSize.height)

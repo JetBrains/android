@@ -257,6 +257,7 @@ class CategoryTableTest {
 
   @Test
   fun sorting() {
+    TestApplicationManager.getInstance()
     val table = CategoryTable(CategoryTableDemo.columns)
     val scrollPane = createScrollPane(table)
     val fakeUi = FakeUi(scrollPane, createFakeWindow = true)
@@ -281,6 +282,7 @@ class CategoryTableTest {
 
   @Test
   fun selection() {
+    TestApplicationManager.getInstance()
     // Set some distinct colors
     val colors =
       CategoryTable.Colors(
@@ -489,5 +491,104 @@ class CategoryTableTest {
     table.removeRow(CategoryTableDemo.devices[0])
 
     assertThat(emptyStatePanel.isVisible).isTrue()
+  }
+
+  @Test
+  fun hierarchy_and_indentColumnIndex() {
+    val phoneA = CategoryTableDemo.Device("Pixel 6", "31", "Phone", "Offline")
+    val phoneB = CategoryTableDemo.Device("Pixel 5", "32", "Phone", "Online")
+    val glassesA = CategoryTableDemo.Device("Glasses A", "31", "Glasses", "Online")
+    val glassesB = CategoryTableDemo.Device("Glasses B", "31", "Glasses", "Online")
+
+    val pairings = mapOf(glassesA.name to phoneA.name, glassesB.name to phoneA.name)
+
+    val table =
+      CategoryTable(CategoryTableDemo.columns, primaryKey = { it.name }, parentKeyProvider = { pairings[it.name] }, indentColumnIndex = 1)
+
+    table.addOrUpdateRow(phoneA)
+    table.addOrUpdateRow(phoneB)
+    table.addOrUpdateRow(glassesA)
+    table.addOrUpdateRow(glassesB)
+
+    table.toggleSortOrder(Name.attribute)
+
+    assertThat(table.values.map { it.name }).containsExactly("Pixel 5", "Pixel 6", "Glasses A", "Glasses B").inOrder()
+
+    val scrollPane = createScrollPane(table)
+    val fakeUi = FakeUi(scrollPane, createFakeWindow = true)
+    fakeUi.layout()
+
+    val rowPixel5 = table.rowComponents[0] as ValueRowComponent<*>
+    val rowPixel6 = table.rowComponents[1] as ValueRowComponent<*>
+    val rowGlassesA = table.rowComponents[2] as ValueRowComponent<*>
+    val rowGlassesB = table.rowComponents[3] as ValueRowComponent<*>
+
+    assertThat(rowPixel5.indent).isEqualTo(0)
+    assertThat(rowPixel6.indent).isEqualTo(0)
+    assertThat(rowGlassesA.indent).isGreaterThan(0)
+    assertThat(rowGlassesB.indent).isGreaterThan(0)
+
+    val firstColumnPixel5 = rowPixel5.componentList[0].component
+    val firstColumnGlassesA = rowGlassesA.componentList[0].component
+    val secondColumnPixel5 = rowPixel5.componentList[1].component
+    val secondColumnGlassesA = rowGlassesA.componentList[1].component
+
+    assertThat(firstColumnGlassesA.x).isEqualTo(firstColumnPixel5.x)
+    assertThat(firstColumnGlassesA.width).isEqualTo(firstColumnPixel5.width)
+    assertThat(secondColumnGlassesA.x).isGreaterThan(secondColumnPixel5.x)
+  }
+
+  @Test
+  fun hierarchy_with_zero_categoryIndent() {
+    val phoneA = CategoryTableDemo.Device("Pixel 6", "31", "Phone", "Offline")
+    val glassesA = CategoryTableDemo.Device("Glasses A", "31", "Glasses", "Online")
+
+    val pairings = mapOf(glassesA.name to phoneA.name)
+
+    val table =
+      CategoryTable(CategoryTableDemo.columns, primaryKey = { it.name }, parentKeyProvider = { pairings[it.name] }, indentColumnIndex = 1)
+    table.categoryIndent = 0
+
+    table.addOrUpdateRow(phoneA)
+    table.addOrUpdateRow(glassesA)
+
+    val scrollPane = createScrollPane(table)
+    val fakeUi = FakeUi(scrollPane, createFakeWindow = true)
+    fakeUi.layout()
+
+    val rowPixel6 = table.rowComponents[0] as ValueRowComponent<*>
+    val rowGlassesA = table.rowComponents[1] as ValueRowComponent<*>
+
+    assertThat(rowPixel6.indent).isEqualTo(0)
+    assertThat(rowGlassesA.indent).isEqualTo(32)
+  }
+
+  @Test
+  fun hierarchy_with_grouping_mismatch() {
+    val phoneA = CategoryTableDemo.Device("Pixel 6", "31", "Phone", "Offline")
+    val glassesA = CategoryTableDemo.Device("Glasses A", "31", "Glasses", "Online")
+
+    val pairings = mapOf(glassesA.name to phoneA.name)
+
+    val table =
+      CategoryTable(CategoryTableDemo.columns, primaryKey = { it.name }, parentKeyProvider = { pairings[it.name] }, indentColumnIndex = 1)
+
+    table.addOrUpdateRow(phoneA)
+    table.addOrUpdateRow(glassesA)
+
+    // Enable grouping by Form Factor (Type)
+    table.addGrouping(Type)
+
+    val scrollPane = createScrollPane(table)
+    val fakeUi = FakeUi(scrollPane, createFakeWindow = true)
+    fakeUi.layout()
+
+    // Because Phone and Glasses belong to different groups ("Phone" vs "Glasses"),
+    // they must NOT be nested under each other. Both should have indent = 0.
+    val rowPixel6 = table.rowComponents.find { (it as? ValueRowComponent<*>)?.primaryKey == phoneA.name } as ValueRowComponent<*>
+    val rowGlassesA = table.rowComponents.find { (it as? ValueRowComponent<*>)?.primaryKey == glassesA.name } as ValueRowComponent<*>
+
+    assertThat(rowPixel6.indent).isEqualTo(24)
+    assertThat(rowGlassesA.indent).isEqualTo(24)
   }
 }

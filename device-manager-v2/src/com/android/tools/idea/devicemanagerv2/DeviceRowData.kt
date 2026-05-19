@@ -18,6 +18,7 @@ package com.android.tools.idea.devicemanagerv2
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceError
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.devices.Abi
@@ -45,6 +46,7 @@ data class DeviceRowData(
   val handleType: HandleType,
   val wearPairingId: String?,
   val pairingStatus: List<PairingStatus>,
+  val parentDeviceId: DeviceId? = null,
 ) {
   init {
     checkNotNull(handle ?: template) { "Either template or handle must be set" }
@@ -53,7 +55,8 @@ data class DeviceRowData(
     DEVICE_HANDLE_KEY
   }
 
-  fun key() = handle ?: template!!
+  val id: DeviceId
+    get() = handle?.id ?: template!!.id
 
   val isVirtual
     get() = handleType == HandleType.VIRTUAL
@@ -85,6 +88,7 @@ data class DeviceRowData(
           },
         wearPairingId = properties.wearPairingId,
         pairingStatus = pairingStatus,
+        parentDeviceId = properties.pairedPhoneId,
       )
     }
 
@@ -103,6 +107,7 @@ data class DeviceRowData(
         handleType = HandleType.REMOTE,
         wearPairingId = null,
         pairingStatus = emptyList(),
+        parentDeviceId = null,
       )
     }
   }
