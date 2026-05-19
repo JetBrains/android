@@ -108,7 +108,7 @@ private const val ATTR_MANY = 0x01000009
 private val PLURALS_NAMES =
   mapOf(ATTR_OTHER to "other", ATTR_ZERO to "zero", ATTR_ONE to "one", ATTR_TWO to "two", ATTR_FEW to "few", ATTR_MANY to "many")
 
-private fun TypeChunk.Entry.createResValue(
+internal fun TypeChunk.Entry.createResValue(
   resRef: ResourceReference,
   apkPath: String,
   stringPool: StringPoolChunk,
@@ -118,9 +118,10 @@ private fun TypeChunk.Entry.createResValue(
     // Following logic in frameworks/base/tools/aapt2/format/binary/ResEntryWriter.cpp
     // MapFlattenVisitor.Visit(Attribute)
     ResourceType.ATTR -> {
-      if (this.value() != null) {
-        throw IllegalArgumentException("Unexpected [${this.value()}] value for ATTR")
-      }
+      // Normally, the simple value of an ATTR resource is expected to be null.
+      // However, AAPT2 encodes ATTR enum constants that have a value of 0 (e.g. wrap_content=0)
+      // as a TYPE_REFERENCE with a value of 0x00000000.
+      // We ignore this simple value to avoid crashing, and instead continue parsing the complex map values below.
       val attrValue = AttrResourceValueImpl(resRef, null)
       this.values()
         .filter { it.key !in SERVICE_VALS }
