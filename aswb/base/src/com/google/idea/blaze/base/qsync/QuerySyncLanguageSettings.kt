@@ -76,29 +76,31 @@ interface QuerySyncLanguageSettings {
       androidSdk: String?,
       androidMinSdk: Int?,
     ): QuerySyncLanguageSettings {
-      return object : QuerySyncLanguageSettings {
-        override val java: Java =
-          object : Java {
-            override val languageLevel: LanguageLevel = javaLanguageLevel
-            override val isJavaWorkspace: Boolean = workspaceLanguageSettings.workspaceType == WorkspaceType.JAVA
-          }
-
-        override val kotlin: Kotlin =
+      return LanguageSettings(
+        java =
+          JavaSettings(languageLevel = javaLanguageLevel, isJavaWorkspace = workspaceLanguageSettings.workspaceType == WorkspaceType.JAVA),
+        kotlin =
           when (LanguageClass.KOTLIN in workspaceLanguageSettings.activeLanguages) {
             true -> Kotlin.Settings
             false -> Kotlin.NotSupported
-          }
-
-        override val android: Android =
+          },
+        android =
           when (workspaceLanguageSettings.workspaceType) {
-            WorkspaceType.ANDROID ->
-              object : Android.Settings {
-                override val sdk: String? = androidSdk
-                override val minSdk: Int? = androidMinSdk
-              }
+            WorkspaceType.ANDROID -> AndroidSettings(sdk = androidSdk, minSdk = androidMinSdk)
             else -> Android.NotSupported
-          }
-      }
+          },
+      )
     }
   }
 }
+
+private data class JavaSettings(override val languageLevel: LanguageLevel, override val isJavaWorkspace: Boolean) :
+  QuerySyncLanguageSettings.Java
+
+private data class AndroidSettings(override val sdk: String?, override val minSdk: Int?) : QuerySyncLanguageSettings.Android.Settings
+
+private data class LanguageSettings(
+  override val java: QuerySyncLanguageSettings.Java,
+  override val kotlin: QuerySyncLanguageSettings.Kotlin,
+  override val android: QuerySyncLanguageSettings.Android,
+) : QuerySyncLanguageSettings
