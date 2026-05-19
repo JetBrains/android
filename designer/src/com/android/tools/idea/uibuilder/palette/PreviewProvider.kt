@@ -157,16 +157,20 @@ class PreviewProvider(
       return null
     }
     val tag =
-      try {
-        elementFactory.createTagFromText(xml)
-      } catch (exception: IncorrectOperationException) {
-        return null
-      }
+      runReadAction {
+        try {
+          elementFactory.createTagFromText(xml)
+        } catch (exception: IncorrectOperationException) {
+          null
+        }
+      } ?: return null
     val component = runWriteAction { model.treeWriter.createComponent(tag, null, null, InsertType.CREATE_PREVIEW) } ?: return null
 
     // Some components require a parent to render correctly.
-    val componentTag = component.tag ?: return null
-    return LINEAR_LAYOUT.format(CONTAINER_ID, componentTag.text)
+    return runReadAction {
+      val componentTag = component.tag ?: return@runReadAction null
+      LINEAR_LAYOUT.format(CONTAINER_ID, componentTag.text)
+    }
   }
 
   private fun getRenderTask(configuration: Configuration): CompletableFuture<RenderTask?> {
