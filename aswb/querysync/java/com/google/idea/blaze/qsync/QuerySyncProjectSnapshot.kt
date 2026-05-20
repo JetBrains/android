@@ -33,7 +33,7 @@ import java.nio.file.Path
 /**
  * A fully sync'd project at a point in time. This consists of:
  * * The output from the query part of sync, [.queryData].
- * * Build graph information derived form the sync data, [.graph].
+ * * Build graph information derived form the sync data, [.staleGraph].
  * * The IDE project structure metadata, [.projectStructureData].
  * * The output from all dependency builds to date, [.artifactState].
  * * The IntelliJ project structure derived from the above, presented as a proto, [ ][.project].

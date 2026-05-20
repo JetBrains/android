@@ -535,7 +535,12 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     }
     val loadedProject = assertProjectLoaded()
     val result =
-      loadedProject.createProjectStructure(context, newSnapshot.projectDefinition, newSnapshot.staleGraph, newSnapshot.projectStructureData)
+      loadedProject.createProjectStructure(
+        context,
+        loadedProject.projectDefinition,
+        newSnapshot.staleGraph,
+        newSnapshot.projectStructureData,
+      )
     val updatedSnapshot =
       onNewSnapshot(
         context,
