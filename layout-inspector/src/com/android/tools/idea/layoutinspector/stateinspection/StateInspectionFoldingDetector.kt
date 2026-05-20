@@ -17,7 +17,7 @@ package com.android.tools.idea.layoutinspector.stateinspection
 
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.intellij.openapi.application.EDT
-import com.intellij.openapi.application.writeAction
+import com.intellij.openapi.application.edtWriteAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.ex.FoldingModelEx
 import kotlinx.coroutines.CoroutineScope
@@ -113,7 +113,7 @@ internal class StateInspectionFoldingDetector(
   fun detectFolding(): Job? {
     val model = foldingModel ?: return null
     return scope.launch(Dispatchers.EDT) {
-      writeAction {
+      edtWriteAction {
         model.runBatchFoldingOperation {
           fetchLines()
           model.clearFoldRegions()

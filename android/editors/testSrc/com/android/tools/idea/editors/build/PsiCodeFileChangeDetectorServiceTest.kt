@@ -6,7 +6,7 @@ import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText
 import com.android.tools.idea.testing.replaceText
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.application.writeAction
+import com.intellij.openapi.application.edtWriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiFile
 import com.intellij.psi.search.GlobalSearchScope
@@ -299,7 +299,7 @@ class PsiCodeFileChangeDetectorServiceTest {
     // File is now out of date
     assertThat(myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles).isNotEmpty()
     @Suppress("UnstableApiUsage")
-    writeAction {
+    edtWriteAction {
       kotlinFile.delete()
     }
     // File is still out of date before marking everything up to date
