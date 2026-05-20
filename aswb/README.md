@@ -36,16 +36,14 @@ Building the ASwB plugin from this project requires some changes to the cloned r
     repo forall -c git checkout {{release_branch}}
     ```
 
-3. Modify `tools/adt/idea/aswb/intellij.MODULE.bazel.OSS` to download the required version of Android Studio platform.
+3. Modify `tools/adt/idea/aswb/intellij.MODULE.bazel.OSS` to download the required version of Android Studio platform. Make sure you are using a version that is compatible with ASwB in this branch.
 
-4. Copy `tools/adt/idea/aswb/intellij.MODULE.bazel.OSS` to `tools/base/intellij-bazel/intellij.MODULE.bazel` to configure the IntelliJ module.
+4. Run `setup_bazel_plugin.py` to set up BUILD files and Android Studio repo for you. This script requires `buildozer`, please make sure you have it installed before using it.
 
-5. Create directory `tools/vendor/google/aswb/plugin_api` and copy `tools/adt/idea/aswb/plugin_api/BUILD.OSS` to `tools/vendor/google/aswb/plugin_api/BUILD` to set up the plugin API targets that the ASwB plugin depends on.
-
-6. You can now build the Android Studio with Bazel plugin via
+5. You can now build the Android Studio with Bazel plugin via
     ```shell
-    bazel build //tools/adt/idea/aswb/aswb:aswb_bazel_zip --config=without_vendor --@//tools/base/intellij-bazel:intellij_platform=my_android_studio
+    bazel build --repo_env=ANDROID_NDK_HOME=<Path To Your Anrdoid NDK> //tools/adt/idea/aswb:aswb_bazel --config=without_vendor --@//tools/base/intellij-bazel:intellij_platform=my_android_studio
     ```
-    This will create a plugin zip file at `bazel-bin/tools/adt/idea/aswb/aswb/aswb_bazel.zip`, which can be installed directly to the IDE.
+    This will create a plugin zip file at `bazel-bin/tools/adt/idea/aswb/aswb_bazel.zip`, which can be installed directly to the IDE.
 
 
