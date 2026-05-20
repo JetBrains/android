@@ -2870,6 +2870,11 @@ public final class StudioFlags {
                     "Enable project-wide symbol linkification and navigation",
                     "Enables one-click navigation to code symbols mentioned in Studio Bot responses");
 
+  public static final Flag<Boolean> STUDIOBOT_TASK_ROADMAP_ENABLED =
+    new BooleanFlag(STUDIOBOT, "task.roadmap.enabled",
+                    "Enable Task Roadmap progress panels",
+                    "When enabled, long-running agent tasks will display a multi-step roadmap status-bar and sidebar.");
+
   // endregion STUDIO_BOT
 
   // region EXPERIMENTAL_UI
