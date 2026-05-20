@@ -45,7 +45,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -60,7 +59,7 @@ public class BlazeImportSettingsManager
     implements PersistentStateComponent<BlazeImportSettings>, BazelImportSettingsManager {
   private static final Logger logger = Logger.getInstance(BlazeImportSettingsManager.class);
 
-  private final AtomicReference<ActualImportSettings> importSettings = new AtomicReference<>(null);
+  private final AtomicReference<LoadedImportSettings> importSettings = new AtomicReference<>(null);
 
   private final Project project;
   @Nullable private BlazeImportSettings loadedImportSettings;
@@ -77,7 +76,7 @@ public class BlazeImportSettingsManager
   @Nullable
   @Override
   public BlazeImportSettings getState() {
-    ActualImportSettings current = importSettings.get();
+    LoadedImportSettings current = importSettings.get();
     if (current == null) {
       return loadedImportSettings;
     }
@@ -94,7 +93,7 @@ public class BlazeImportSettingsManager
   }
 
   @Nullable
-  private ActualImportSettings getImportSettings() {
+  private LoadedImportSettings getImportSettings() {
     synchronized (this) {
       final var result = importSettings.get();
       if (result != null) return result;
@@ -119,7 +118,7 @@ public class BlazeImportSettingsManager
   @Override
   @Nullable
   public Path getWorkspaceRoot() {
-    ActualImportSettings settings = getImportSettings();
+    LoadedImportSettings settings = getImportSettings();
     return settings != null ? settings.workspaceRoot() : null;
   }
 
@@ -130,7 +129,7 @@ public class BlazeImportSettingsManager
   @Override
   @Nullable
   public String getProjectName() {
-    ActualImportSettings settings = getImportSettings();
+    LoadedImportSettings settings = getImportSettings();
     return settings != null ? settings.projectName() : null;
   }
 
@@ -141,7 +140,7 @@ public class BlazeImportSettingsManager
   @Override
   @Nullable
   public Path getProjectViewFilePath() {
-    ActualImportSettings settings = getImportSettings();
+    LoadedImportSettings settings = getImportSettings();
     return settings != null ? settings.projectViewFilePath() : null;
   }
 
@@ -152,7 +151,7 @@ public class BlazeImportSettingsManager
   @Override
   @Nullable
   public BuildSystemName getBuildSystem() {
-    ActualImportSettings settings = getImportSettings();
+    LoadedImportSettings settings = getImportSettings();
     return settings != null ? settings.buildSystem() : null;
   }
 
@@ -164,19 +163,11 @@ public class BlazeImportSettingsManager
             loadedImportSettings.map(BlazeImportSettings::getWorkspaceRoot))
         .ifPresent(
             settings -> {
-              // Phase 1: Unconditional physical workspace mapping
-              String effectiveRoot = settings.getWorkspaceRoot();
-              var actual =
-                  new ActualImportSettings(
-                      Path.of(effectiveRoot),
-                      settings.getProjectName(),
-                      Path.of(settings.getProjectViewFile()),
-                      settings.getBuildSystem());
-              this.importSettings.set(actual);
+              this.importSettings.set(settings);
             });
   }
 
-  public static Optional<BlazeImportSettings> loadImportSettings(
+  public static Optional<LoadedImportSettings> loadImportSettings(
       String projectBasePath,
       String projectName,
       Optional<String> loadedProjectName,
@@ -218,8 +209,8 @@ public class BlazeImportSettingsManager
 
     String workspaceRoot = workspaceLocation.get();
     final var importSettings =
-        new BlazeImportSettings(
-            workspaceRoot, effectiveProjectName, projectViewFilePath.toString(), buildSystem);
+        new LoadedImportSettings(
+            Path.of(workspaceRoot), effectiveProjectName, projectViewFilePath, buildSystem);
 
     return Optional.of(importSettings);
   }
@@ -239,7 +230,7 @@ public class BlazeImportSettingsManager
       Path projectViewFilePath,
       BuildSystemName buildSystem) {
     this.importSettings.set(
-        new ActualImportSettings(workspaceRoot, projectName, projectViewFilePath, buildSystem));
+        new LoadedImportSettings(workspaceRoot, projectName, projectViewFilePath, buildSystem));
   }
 
   @TestOnly
@@ -335,13 +326,8 @@ public class BlazeImportSettingsManager
         .get();
   }
 
-  public static String createLocationHash(String projectName) {
-    String uuid = UUID.randomUUID().toString();
-    uuid = uuid.substring(0, Math.min(uuid.length(), 8));
-    return projectName.replaceAll("[^a-zA-Z0-9]", "") + "-" + uuid;
-  }
-
-  private static record ActualImportSettings(
+  /** Import settings loaded from the top level .bazelproject file. */
+  public record LoadedImportSettings(
       Path workspaceRoot,
       String projectName,
       Path projectViewFilePath,
