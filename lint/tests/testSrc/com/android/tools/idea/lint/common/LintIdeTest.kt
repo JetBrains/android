@@ -96,7 +96,8 @@ class LintIdeTest : JavaCodeInsightFixtureAdtTestCase() {
     doTestWithFix(AndroidLintMissingSuperCallInspection(), "Add super call", "/src/p1/p2/SuperTest.kt", "kt")
   }
 
-  fun testAddSuperCallInterface() {
+  // b/514504561: Flaky (Non-idempotent computation)
+  fun disabled_testAddSuperCallInterface() {
     addCallSuper()
     doTestWithFix(AndroidLintMissingSuperCallInspection(), "Add super call", "/src/p1/p2/SuperTestInterface.kt", "kt")
   }
