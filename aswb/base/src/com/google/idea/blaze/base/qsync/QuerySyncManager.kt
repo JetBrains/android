@@ -203,11 +203,8 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
   private fun reloadProjectIfDefinitionHasChanged(context: BlazeContext): ReloadProjectResult {
     reloadProjectDefinitionIfChanged(context)
     val loadedProject =
-      loadedProject?.takeUnless {
-        val currentProjectViewSet = BazelImportSettingsManager.getInstance(ideProject).projectViewSet
-        it.projectDefinition != loader.loadProjectDefinition(currentProjectViewSet).definition ||
-          it.handledRuleKinds != ProjectLoader.getHandledRuleKinds(ideProject)
-      } ?: runCatching { loader.loadProject() }.getOrElse { throw BuildException("Failed to load project", it) }
+      loadedProject?.takeIf { loader.isUpToDate(it) }
+        ?: runCatching { loader.loadProject() }.getOrElse { throw BuildException("Failed to load project", it) }
     val existingSnapshotData =
       currentSnapshot.getOrNull()?.let { SerializedProjectStructureAndQueryData(it.queryData, it.projectStructureData) }
         ?: runCatching { readSnapshotFromDisk(context) }

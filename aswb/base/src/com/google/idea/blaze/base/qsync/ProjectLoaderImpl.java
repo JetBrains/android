@@ -441,4 +441,38 @@ public class ProjectLoaderImpl implements ProjectLoader {
             .add(Path.of(BazelDependencyBuilder.INVOCATION_FILES_DIR))
             .build());
   }
+
+  @Override
+  public boolean isUpToDate(QuerySyncProject project) {
+    ProjectToLoadDefinition currentDef =
+        loadProjectDefinition(
+            BazelImportSettingsManager.getInstance(this.project).getProjectViewSet());
+
+    if (!project.getProjectDefinition().equals(currentDef.definition())) {
+      return false;
+    }
+
+    if (!project.getLanguageSettings().equals(currentDef.languageSettings())) {
+      return false;
+    }
+
+    if (!project.getWorkspaceLanguageSettings().equals(currentDef.workspaceLanguageSettings())) {
+      return false;
+    }
+
+    if (!project.getWorkspaceRoot().equals(currentDef.workspaceRoot())) {
+      return false;
+    }
+
+    if (!project.getBuildSystem().equals(currentDef.buildSystem())) {
+      return false;
+    }
+
+    ImmutableSet<String> currentHandledRules = ProjectLoader.getHandledRuleKinds(this.project);
+    if (!project.getHandledRuleKinds().equals(currentHandledRules)) {
+      return false;
+    }
+
+    return true;
+  }
 }

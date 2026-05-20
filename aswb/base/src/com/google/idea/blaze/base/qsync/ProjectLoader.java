@@ -11,24 +11,22 @@ import com.google.idea.blaze.qsync.project.ProjectDirectoryConfigurator;
 import com.intellij.openapi.project.Project;
 
 public interface ProjectLoader {
-  /**
-   * A pre-processed definition of a project to be loaded.
-   */
+  /** A pre-processed definition of a project to be loaded. */
   record ProjectToLoadDefinition(
-    WorkspaceRoot workspaceRoot,
-    ProjectDirectoryConfigurator projectDirectoryConfigurator,
-    BuildSystem buildSystem,
-    ProjectDefinition definition,
-    WorkspaceLanguageSettings workspaceLanguageSettings,
-    QuerySyncLanguageSettings languageSettings) {
-  }
+      WorkspaceRoot workspaceRoot,
+      ProjectDirectoryConfigurator projectDirectoryConfigurator,
+      BuildSystem buildSystem,
+      ProjectDefinition definition,
+      WorkspaceLanguageSettings workspaceLanguageSettings,
+      QuerySyncLanguageSettings languageSettings) {}
 
-  /**
-   * Loads a project definition from the import settings and the .bazelproject file.
-   */
+  /** Loads a project definition from the import settings and the .bazelproject file. */
   ProjectToLoadDefinition loadProjectDefinition(ProjectViewSet projectViewSet);
 
   QuerySyncProject loadProject() throws BuildException;
+
+  /** Returns whether the loaded project is up to date with the current project view settings. */
+  boolean isUpToDate(QuerySyncProject project);
 
   /**
    * Returns an {@link ImmutableSet} of rule kinds that query sync or plugin know how to resolve
