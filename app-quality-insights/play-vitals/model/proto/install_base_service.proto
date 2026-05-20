@@ -49,7 +49,7 @@ service InstallBaseService {
 //  * `deviceType`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
 //     The form factor of the user's device (e.g., PHONE, TABLET, CHROMEBOOK).
-//  * `language`
+//  * `languageCode`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
 //     The user's device language, represented as a BCP-47 language tag (e.g.
 //     en-US for English as used in the United States).
@@ -111,7 +111,7 @@ message QueryInstallBaseMetricSetRequest {
   //  * `deviceType`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
   //     The form factor of the user's device (e.g., PHONE, TABLET, CHROMEBOOK).
-  //  * `language`
+  //  * `languageCode`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
   //     The user's device language, represented as a BCP-47 language tag (e.g.
   //     en-US for English as used in the United States).
