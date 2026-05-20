@@ -2495,6 +2495,7 @@
 +++Android Studio Nightly.app/Contents/plugins/android/lib/wire-runtime-jvm-6.0.0.jar
 +++Android Studio Nightly.app/Contents/plugins/android/lib/wizard-template.jar
 +++Android Studio Nightly.app/Contents/plugins/android/lib/workmanager_inspector_proto.jar
++++Android Studio Nightly.app/Contents/plugins/android/resources/android-cli/bin/android
 +++Android Studio Nightly.app/Contents/plugins/android/resources/androidAnnotations.jar
 +++Android Studio Nightly.app/Contents/plugins/android/resources/apks/ComplicationWatchFace.apk
 +++Android Studio Nightly.app/Contents/plugins/android/resources/app-inspection/backgroundtask-inspection.jar
@@ -6394,6 +6395,7 @@
 ---Android Studio Preview.app/Contents/plugins/android/lib/wire-runtime-jvm-6.0.0.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/wizard-template.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/workmanager_inspector_proto.jar
+---Android Studio Preview.app/Contents/plugins/android/resources/android-cli/bin/android
 ---Android Studio Preview.app/Contents/plugins/android/resources/androidAnnotations.jar
 ---Android Studio Preview.app/Contents/plugins/android/resources/apks/ComplicationWatchFace.apk
 ---Android Studio Preview.app/Contents/plugins/android/resources/app-inspection/backgroundtask-inspection.jar

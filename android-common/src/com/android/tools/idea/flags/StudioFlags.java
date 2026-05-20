@@ -3170,6 +3170,14 @@ public final class StudioFlags {
       "Enable Android CLI integration server"
     );
 
+  public static final Flag<Boolean> ENABLE_BUNDLED_ANDROID_CLI_IN_AGENT =
+    new BooleanFlag(
+      ANDROID_CLI,
+      "enable.bundled.cli.in.agent",
+      "Enable the bundled Android CLI binary in the agent",
+      "Enable the bundled Android CLI binary in the agent"
+    );
+
   // endregion Android CLI
 
   private StudioFlags() { }

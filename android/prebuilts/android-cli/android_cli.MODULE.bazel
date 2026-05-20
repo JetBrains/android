@@ -1,0 +1,34 @@
+http_file = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
+
+# Android CLI launcher binaries pulled at build time
+http_file(
+    name = "android_cli_linux",
+    downloaded_file_path = "android",
+    executable = True,
+    sha256 = "24ff3bac5db16e5bcc5fd2a54dc58041fd06db373389cd6442dedb004fe092be",
+    urls = ["https://dl.google.com/android/cli/1.0.15498356/linux_x86_64/android"],
+)
+
+http_file(
+    name = "android_cli_mac",
+    downloaded_file_path = "android",
+    executable = True,
+    sha256 = "13f599a88471996b690446439059b1959c3c56ab25e88fc00127a48594e2412e",
+    urls = ["https://dl.google.com/android/cli/1.0.15498356/darwin_x86_64/android"],
+)
+
+http_file(
+    name = "android_cli_mac_arm",
+    downloaded_file_path = "android",
+    executable = True,
+    sha256 = "288c28a83023fb2c2385dc9f7ed4497d3ef7d39111213bcdb4cb30a93d0243fc",
+    urls = ["https://dl.google.com/android/cli/1.0.15498356/darwin_arm64/android"],
+)
+
+http_file(
+    name = "android_cli_win",
+    downloaded_file_path = "android.exe",
+    executable = True,
+    sha256 = "09e23cdf82c26626d0b13b122e9f05e0979d03126bdd1d9355c0087f0cc91aeb",
+    urls = ["https://dl.google.com/android/cli/1.0.15498356/windows_x86_64/android.exe"],
+)

@@ -2486,6 +2486,7 @@ android-studio/plugins/android/lib/utp.jar
 android-studio/plugins/android/lib/wire-runtime-jvm-6.0.0.jar
 android-studio/plugins/android/lib/wizard-template.jar
 android-studio/plugins/android/lib/workmanager_inspector_proto.jar
+android-studio/plugins/android/resources/android-cli/bin/android
 android-studio/plugins/android/resources/androidAnnotations.jar
 android-studio/plugins/android/resources/apks/ComplicationWatchFace.apk
 android-studio/plugins/android/resources/app-inspection/backgroundtask-inspection.jar

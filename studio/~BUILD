@@ -1,6 +1,7 @@
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@rules_java//java:defs.bzl", "java_binary")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load("//tools/adt/idea/studio:searchable-options/android-studio/content.bzl", "SEARCHABLE_OPTIONS")
 load("//tools/adt/idea/studio:studio.bzl", "android_studio", "android_studio_configuration", "studio_plugin")
 load("//tools/adt/idea/studio/rules:app-icon.bzl", "app_icon")
@@ -435,6 +436,7 @@ studio_plugin(
             "//prebuilts/tools/common/m2:ffmpeg-platform-bundle",
         ],
         "resources": [
+            "//tools/adt/idea/android/prebuilts/android-cli:android-cli-launcher-bundle",
             "//tools/adt/idea/android/lib:sample-data-bundle",
             "//tools/adt/idea/android/lib:apks-bundle",
             "//tools/adt/idea/artwork:device-art-resources-bundle",  # duplicated in android.jar
