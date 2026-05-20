@@ -2962,6 +2962,10 @@ public final class StudioFlags {
     JOURNEYS_WITH_GEMINI, "enable.agent.support", "Enable the Journeys agent",
     "Enable running Journey tests using an AI agent"
   );
+  public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_ANDROID_CLI_TOOLS = new BooleanFlag(
+    JOURNEYS_WITH_GEMINI, "enable.android.cli.tools", "Enable Android CLI tools based Journeys agent",
+    "Enable the use of the Android CLI skill and tool when running Journey tests with an agent"
+  );
   // endregion JOURNEYS_WITH_GEMINI
 
   public static Boolean isBuildOutputShowsDownloadInfo() {
