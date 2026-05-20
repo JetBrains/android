@@ -18,8 +18,8 @@ package com.google.idea.blaze.base.model.primitives;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.idea.blaze.base.settings.BazelImportSettingsManager;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
-import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -61,21 +61,19 @@ public class WorkspaceRoot {
    */
   @Nullable
   public static WorkspaceRoot fromProjectSafe(Project project) {
-    BlazeImportSettings importSettings =
-        BlazeImportSettingsManager.getInstance(project).getImportSettings();
-    return importSettings != null ? fromImportSettings(importSettings) : null;
+    Path workspaceRoot = BazelImportSettingsManager.getInstance(project).getWorkspaceRoot();
+    return workspaceRoot != null ? new WorkspaceRoot(workspaceRoot.toFile()) : null;
   }
 
   /**
    * Tries to load the import settings for the given project and get the workspace root directory.
    */
   public static WorkspaceRoot fromProject(Project project) {
-    BlazeImportSettings importSettings =
-        BlazeImportSettingsManager.getInstance(project).getImportSettings();
-    if (importSettings == null) {
-      throw new IllegalStateException("null BlazeImportSettings.");
+    Path workspaceRoot = BazelImportSettingsManager.getInstance(project).getWorkspaceRoot();
+    if (workspaceRoot == null) {
+      throw new IllegalStateException("Cannot determine the project's workspace root");
     }
-    return fromImportSettings(importSettings);
+    return new WorkspaceRoot(workspaceRoot.toFile());
   }
 
   public static ImmutableSet<Path> virtualFilesToWorkspaceRelativePaths(

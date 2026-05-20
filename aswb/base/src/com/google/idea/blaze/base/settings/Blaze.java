@@ -30,8 +30,7 @@ public class Blaze {
    * BazelProjectSystem.
    */
   public static boolean isBlazeProject(@Nullable Project project) {
-    return project != null
-        && BlazeImportSettingsManager.getInstance(project).getImportSettings() != null;
+    return project != null && BazelImportSettingsManager.getInstance(project).hasImportSettings();
   }
 
   /**
@@ -44,9 +43,7 @@ public class Blaze {
       return ProjectType.UNKNOWN;
     }
 
-    BlazeImportSettings blazeImportSettings =
-        BlazeImportSettingsManager.getInstance(project).getImportSettings();
-    if (blazeImportSettings == null) {
+    if (!BazelImportSettingsManager.getInstance(project).hasImportSettings()) {
       return ProjectType.UNKNOWN;
     }
     return ProjectType.QUERY_SYNC;
@@ -57,14 +54,12 @@ public class Blaze {
    * system if the project is null or not a blaze project.
    */
   public static BuildSystemName getBuildSystemName(@Nullable Project project) {
-    BlazeImportSettings importSettings =
-        project == null
-            ? null
-            : BlazeImportSettingsManager.getInstance(project).getImportSettings();
-    if (importSettings == null) {
+    BuildSystemName buildSystemName =
+        project == null ? null : BazelImportSettingsManager.getInstance(project).getBuildSystem();
+    if (buildSystemName == null) {
       return BuildSystemProvider.defaultBuildSystem().buildSystem();
     }
-    return importSettings.getBuildSystem();
+    return buildSystemName;
   }
 
   /**

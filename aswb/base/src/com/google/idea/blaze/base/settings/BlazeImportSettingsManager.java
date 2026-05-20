@@ -56,10 +56,11 @@ import org.jetbrains.annotations.TestOnly;
 
 /** Manages storage for the project's {@link BlazeImportSettings}. */
 @State(name = "BlazeImportSettings", storages = @Storage(file = StoragePathMacros.WORKSPACE_FILE))
-public class BlazeImportSettingsManager implements PersistentStateComponent<BlazeImportSettings> {
+public class BlazeImportSettingsManager
+    implements PersistentStateComponent<BlazeImportSettings>, BazelImportSettingsManager {
   private static final Logger logger = Logger.getInstance(BlazeImportSettingsManager.class);
 
-  private final AtomicReference<BlazeImportSettings> importSettings = new AtomicReference<>(null);
+  private final AtomicReference<ActualImportSettings> importSettings = new AtomicReference<>(null);
 
   private final Project project;
   @Nullable private BlazeImportSettings loadedImportSettings;
@@ -68,15 +69,23 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
     this.project = project;
   }
 
-  public static BlazeImportSettingsManager getInstance(Project project) {
-    return project.getService(BlazeImportSettingsManager.class);
+  @TestOnly
+  public static BlazeImportSettingsManager getInstanceForTestingOnly(Project project) {
+    return (BlazeImportSettingsManager) BazelImportSettingsManager.getInstance(project);
   }
 
   @Nullable
   @Override
   public BlazeImportSettings getState() {
-    BlazeImportSettings existingImportSettings = importSettings.get();
-    return existingImportSettings != null ? existingImportSettings : loadedImportSettings;
+    ActualImportSettings current = importSettings.get();
+    if (current == null) {
+      return loadedImportSettings;
+    }
+    return new BlazeImportSettings(
+        current.workspaceRoot().toString(),
+        current.projectName(),
+        current.projectViewFilePath().toString(),
+        current.buildSystem());
   }
 
   @Override
@@ -85,19 +94,66 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
   }
 
   @Nullable
-  public BlazeImportSettings getImportSettings() {
+  private ActualImportSettings getImportSettings() {
     synchronized (this) {
       final var result = importSettings.get();
       if (result != null) return result;
       if (!BazelProjectSystemId.isActive(project)) {
         return null;
       }
-      BlazeImportSettingsManager.getInstance(project)
-          .initImportSettings(
-              Optional.ofNullable(
-                  BlazeImportSettingsManager.getInstance(project).loadedImportSettings));
+      initImportSettings(Optional.ofNullable(loadedImportSettings));
       return importSettings.get();
     }
+  }
+
+  /** Returns whether the project has import settings. */
+  @Override
+  public boolean hasImportSettings() {
+    return getImportSettings() != null;
+  }
+
+  /**
+   * Returns the workspace root path if configured and the project is a Blaze/Bazel project, null
+   * otherwise.
+   */
+  @Override
+  @Nullable
+  public Path getWorkspaceRoot() {
+    ActualImportSettings settings = getImportSettings();
+    return settings != null ? settings.workspaceRoot() : null;
+  }
+
+  /**
+   * Returns the project name if configured and the project is a Blaze/Bazel project, null
+   * otherwise.
+   */
+  @Override
+  @Nullable
+  public String getProjectName() {
+    ActualImportSettings settings = getImportSettings();
+    return settings != null ? settings.projectName() : null;
+  }
+
+  /**
+   * Returns the project view file path if configured and the project is a Blaze/Bazel project, null
+   * otherwise.
+   */
+  @Override
+  @Nullable
+  public Path getProjectViewFilePath() {
+    ActualImportSettings settings = getImportSettings();
+    return settings != null ? settings.projectViewFilePath() : null;
+  }
+
+  /**
+   * Returns the build system used by the project, or null if the project is not a Blaze/Bazel
+   * project.
+   */
+  @Override
+  @Nullable
+  public BuildSystemName getBuildSystem() {
+    ActualImportSettings settings = getImportSettings();
+    return settings != null ? settings.buildSystem() : null;
   }
 
   private void initImportSettings(Optional<BlazeImportSettings> loadedImportSettings) {
@@ -105,21 +161,26 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
             project.getBasePath(),
             project.getName(),
             loadedImportSettings.map(BlazeImportSettings::getProjectName),
-            loadedImportSettings.map(BlazeImportSettings::getLocationHash),
             loadedImportSettings.map(BlazeImportSettings::getWorkspaceRoot))
-        .ifPresent(this.importSettings::set);
+        .ifPresent(
+            settings -> {
+              // Phase 1: Unconditional physical workspace mapping
+              String effectiveRoot = settings.getWorkspaceRoot();
+              var actual =
+                  new ActualImportSettings(
+                      Path.of(effectiveRoot),
+                      settings.getProjectName(),
+                      Path.of(settings.getProjectViewFile()),
+                      settings.getBuildSystem());
+              this.importSettings.set(actual);
+            });
   }
 
   public static Optional<BlazeImportSettings> loadImportSettings(
       String projectBasePath,
       String projectName,
       Optional<String> loadedProjectName,
-      Optional<String> loadedLocationHash,
       Optional<String> loadedWorkspaceRoot) {
-    if (projectBasePath == null) {
-      // For example the default project accessed from the Settings dialog.
-      return Optional.empty();
-    }
     // Loaded import settings are previous settings stored in `.idea` directory. Any values that
     // changed in `.bazelproject` file take
     // precedence over previously stored values.
@@ -128,8 +189,6 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
         loadedProjectName
             .flatMap(it -> isNullOrEmpty(it) ? Optional.empty() : Optional.of(it))
             .orElse(projectName);
-    final var locationHash =
-        loadedLocationHash.orElseGet(() -> createLocationHash(effectiveProjectName));
 
     final var projectViewFile =
         Stream.of(
@@ -160,12 +219,7 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
     String workspaceRoot = workspaceLocation.get();
     final var importSettings =
         new BlazeImportSettings(
-            workspaceRoot,
-            effectiveProjectName,
-            projectBasePath,
-            locationHash,
-            projectViewFilePath.toString(),
-            buildSystem);
+            workspaceRoot, effectiveProjectName, projectViewFilePath.toString(), buildSystem);
 
     return Optional.of(importSettings);
   }
@@ -178,25 +232,30 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
     return projectViewSet.getTopLevelProjectViewFile();
   }
 
-  public void initProjectView() {
-    try {
-      reloadProjectView();
-    } catch (BuildException e) {
-      throw new RuntimeException(e);
-    }
+  @TestOnly
+  public void setImportSettingsForTests(
+      Path workspaceRoot,
+      String projectName,
+      Path projectViewFilePath,
+      BuildSystemName buildSystem) {
+    this.importSettings.set(
+        new ActualImportSettings(workspaceRoot, projectName, projectViewFilePath, buildSystem));
   }
 
   @TestOnly
-  public void setImportSettings(BlazeImportSettings importSettings) {
-    this.importSettings.set(importSettings);
+  public void setImportSettingsForTests(Path workspaceRoot, BuildSystemName buildSystem) {
+    setImportSettingsForTests(
+        workspaceRoot, "test-project", workspaceRoot.resolve(".bazelproject"), buildSystem);
   }
 
   private final AtomicReference<ProjectViewSet> projectViewSet = new AtomicReference<>();
 
+  @Override
   public ProjectViewSet getProjectViewSet() {
     return projectViewSet.get();
   }
 
+  @Override
   public ProjectViewSet reloadProjectView() throws BuildException {
     try {
       // Some IDE actions reload the project view in the EDT. Even though it is not right to do it
@@ -238,13 +297,15 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
                             QuerySyncManager.TaskOrigin.AUTOMATIC,
                             BlazeUserSettings.getInstance(),
                             context -> {
-                              final var importSettings = getImportSettings();
+                              final var projectViewFilePath = getProjectViewFilePath();
+                              final var workspaceRoot = getWorkspaceRoot();
                               var loadedProjectView =
                                   ProjectViewManager.getInstance(project)
-                                      .doLoadProjectView(context, importSettings);
+                                      .doLoadProjectView(
+                                          context, projectViewFilePath, workspaceRoot);
                               final var migrated =
                                   migrateImportSettingsToProjectViewFile(
-                                      importSettings,
+                                      Objects.requireNonNull(workspaceRoot).toString(),
                                       Objects.requireNonNull(
                                           loadedProjectView.getTopLevelProjectViewFile()));
                               if (migrated) {
@@ -254,17 +315,21 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
                                             + " file. Re-parsing..."));
                                 loadedProjectView =
                                     ProjectViewManager.getInstance(project)
-                                        .doLoadProjectView(context, importSettings);
+                                        .doLoadProjectView(
+                                            context, projectViewFilePath, workspaceRoot);
                               }
                               projectViewSet.set(loadedProjectView);
-                              final var workspaceLocation =
-                                  loadedProjectView.getScalarValue(WorkspaceLocationSection.KEY);
-                              workspaceLocation.ifPresentOrElse(
-                                  importSettings::setWorkspaceRoot,
-                                  () ->
-                                      logger.error(
-                                          new RuntimeException(
-                                              "Workspace location migration failed.")));
+                              final var activeSettings = getImportSettings();
+                              final var legacySettings =
+                                  activeSettings == null
+                                      ? Optional.<BlazeImportSettings>empty()
+                                      : Optional.of(
+                                          new BlazeImportSettings(
+                                              activeSettings.workspaceRoot().toString(),
+                                              activeSettings.projectName(),
+                                              activeSettings.projectViewFilePath().toString(),
+                                              activeSettings.buildSystem()));
+                              initImportSettings(legacySettings);
                             }))
                 ::apply)
         .get();
@@ -275,4 +340,10 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
     uuid = uuid.substring(0, Math.min(uuid.length(), 8));
     return projectName.replaceAll("[^a-zA-Z0-9]", "") + "-" + uuid;
   }
+
+  private static record ActualImportSettings(
+      Path workspaceRoot,
+      String projectName,
+      Path projectViewFilePath,
+      BuildSystemName buildSystem) {}
 }

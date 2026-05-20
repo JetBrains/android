@@ -17,6 +17,7 @@ package com.google.idea.blaze.android.projectsystem;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.idea.blaze.qsync.project.QuerySyncProjectDirectory.EXTERNAL_REPOSITORIES;
+import static java.util.Objects.requireNonNull;
 
 import com.android.ide.common.repository.WellKnownMavenArtifactId;
 import com.android.ide.common.util.PathString;
@@ -54,7 +55,6 @@ import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.settings.Blaze;
-import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
 import com.google.idea.blaze.base.sync.data.BlazeDataStorage;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.common.Label;
@@ -105,11 +105,7 @@ public final class BazelModuleSystem
   BazelModuleSystem(Module module) {
     this.module = module;
     this.project = module.getProject();
-    Path ideProjectRoot =
-        Path.of(
-            BlazeImportSettingsManager.getInstance(project)
-                .getImportSettings()
-                .getProjectDataDirectory());
+    final var ideProjectRoot = Path.of(requireNonNull(module.getProject().getBasePath()));
     this.pathResolver =
         ProjectPath.Resolver.create(
             WorkspaceRoot.fromProject(project).path(),

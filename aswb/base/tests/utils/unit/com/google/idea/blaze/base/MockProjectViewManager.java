@@ -18,9 +18,9 @@ package com.google.idea.blaze.base;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.scope.BlazeContext;
-import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.testing.ServiceHelper;
 import com.intellij.openapi.project.Project;
+import java.nio.file.Path;
 import javax.annotation.Nullable;
 
 /** Provides a {@link ProjectViewSet} for integration tests. */
@@ -51,7 +51,7 @@ public class MockProjectViewManager extends ProjectViewManager {
 
   @Override
   public ProjectViewSet doLoadProjectView(
-      BlazeContext context, BlazeImportSettings importSettings) {
+      BlazeContext context, Path projectViewRootFile, Path workspaceRoot) {
     return getProjectViewSet();
   }
 }

@@ -17,8 +17,8 @@ package com.google.idea.blaze.base.sync
 
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope
 import com.google.idea.blaze.base.qsync.QuerySyncManager
+import com.google.idea.blaze.base.settings.BazelImportSettingsManager
 import com.google.idea.blaze.base.settings.Blaze
-import com.google.idea.blaze.base.settings.BlazeImportSettingsManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
 
@@ -28,7 +28,7 @@ class BlazeSyncStartupActivity : ProjectActivity {
     if (!Blaze.isBlazeProject(project)) {
       return
     }
-    BlazeImportSettingsManager.getInstance(project).initProjectView()
+    BazelImportSettingsManager.getInstance(project).reloadProjectView()
 
     // When query sync is not enabled hasProjectData triggers the load
     QuerySyncManager.getInstance(project).onStartup(QuerySyncActionStatsScope.create(project, javaClass, null))

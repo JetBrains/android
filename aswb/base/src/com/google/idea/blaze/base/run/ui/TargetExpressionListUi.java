@@ -26,8 +26,8 @@ import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
-import com.google.idea.blaze.base.settings.BlazeImportSettings;
-import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
+import com.google.idea.blaze.base.settings.BazelImportSettingsManager;
+import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.base.sync.projectview.ImportRoots;
 import com.intellij.openapi.project.Project;
@@ -215,20 +215,18 @@ public class TargetExpressionListUi extends JPanel {
     private static Collection<String> getTargets(Project project) {
       BlazeProjectData projectData =
           BlazeProjectDataManager.getInstance(project).getBlazeProjectData();
-      BlazeImportSettings importSettings =
-          BlazeImportSettingsManager.getInstance(project).getImportSettings();
+      BuildSystemName buildSystem =
+          BazelImportSettingsManager.getInstance(project).getBuildSystem();
       ProjectViewSet projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
       WorkspaceRoot workspaceRoot = WorkspaceRoot.fromProjectSafe(project);
       if (projectData == null
-          || importSettings == null
+          || buildSystem == null
           || projectViewSet == null
           || workspaceRoot == null) {
         return ImmutableList.of();
       }
       ImportRoots importRoots =
-          ImportRoots.builder(workspaceRoot, importSettings.getBuildSystem())
-              .add(projectViewSet)
-              .build();
+          ImportRoots.builder(workspaceRoot, buildSystem).add(projectViewSet).build();
 
       return QuerySyncManager.getInstance(project)
           .getCurrentSnapshot()

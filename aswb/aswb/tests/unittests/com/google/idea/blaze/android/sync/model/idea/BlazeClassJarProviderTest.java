@@ -31,11 +31,10 @@ import com.google.idea.blaze.base.model.MockBlazeProjectDataManager;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.scope.BlazeContext;
-import com.google.idea.blaze.base.settings.BlazeImportSettings;
+import com.google.idea.blaze.base.settings.BazelImportSettingsManager;
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
-import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver;
 import com.intellij.mock.MockFileDocumentManagerImpl;
 import com.intellij.mock.MockModule;
 import com.intellij.mock.MockVirtualFile;
@@ -57,6 +56,7 @@ import com.intellij.psi.impl.JvmPsiConversionHelperImpl;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScopeBuilder;
 import com.intellij.psi.search.ProjectScopeBuilderImpl;
+import java.nio.file.Path;
 import javax.annotation.Nullable;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -86,8 +86,8 @@ public class BlazeClassJarProviderTest extends BlazeTestCase {
     projectServices.register(BlazeProjectDataManager.class, mockProjectDataManager);
 
     BlazeImportSettingsManager manager = new BlazeImportSettingsManager(project);
-    manager.setImportSettings(new BlazeImportSettings("", "", "", "", BuildSystemName.Blaze));
-    projectServices.register(BlazeImportSettingsManager.class, manager);
+    manager.setImportSettingsForTests(java.nio.file.Path.of(""), BuildSystemName.Blaze);
+    projectServices.register(BazelImportSettingsManager.class, manager);
     projectServices.register(JvmPsiConversionHelper.class, new JvmPsiConversionHelperImpl());
 
     facade =
@@ -182,8 +182,8 @@ public class BlazeClassJarProviderTest extends BlazeTestCase {
     }
 
     @Override
-    public ProjectViewSet reloadProjectView(
-        BlazeContext context, WorkspacePathResolver workspacePathResolver) {
+    public ProjectViewSet doLoadProjectView(
+        BlazeContext context, Path projectViewRootFile, Path workspaceRoot) {
       return ProjectViewSet.EMPTY;
     }
   }

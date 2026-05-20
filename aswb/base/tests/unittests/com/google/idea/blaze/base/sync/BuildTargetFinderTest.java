@@ -29,7 +29,7 @@ import com.google.idea.blaze.base.model.primitives.TargetExpression;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.section.sections.DirectoryEntry;
-import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
+import com.google.idea.blaze.base.settings.BazelImportSettingsManager;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.projectview.ImportRoots;
 import com.google.idea.common.experiments.ExperimentService;
@@ -73,7 +73,7 @@ public class BuildTargetFinderTest extends BlazeTestCase {
     applicationServices.register(FileOperationProvider.class, fileOperationProvider);
     applicationServices.register(ExperimentService.class, new MockExperimentService());
     projectServices.register(
-        BlazeImportSettingsManager.class, mock(BlazeImportSettingsManager.class));
+        BazelImportSettingsManager.class, mock(BazelImportSettingsManager.class));
   }
 
   @Override

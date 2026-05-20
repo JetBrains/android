@@ -48,7 +48,7 @@ import com.google.idea.blaze.base.run.confighandler.PendingTargetRunConfiguratio
 import com.google.idea.blaze.base.run.state.BlazeCommandRunConfigurationCommonState;
 import com.google.idea.blaze.base.run.targetfinder.TargetFinder;
 import com.google.idea.blaze.base.scope.BlazeContext;
-import com.google.idea.blaze.base.settings.BlazeImportSettings;
+import com.google.idea.blaze.base.settings.BazelImportSettingsManager;
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
 import com.google.idea.blaze.base.settings.BlazeUserSettings;
 import com.google.idea.blaze.base.settings.BuildSystemName;
@@ -67,16 +67,14 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
 
-  private static final BlazeImportSettings DUMMY_IMPORT_SETTINGS =
-      new BlazeImportSettings("", "", "", "", "", BuildSystemName.Blaze);
-
   private BlazeCommandRunConfiguration configuration;
 
   @Override
   protected void initTest(Container applicationServices, Container projectServices) {
     projectServices.register(
-        BlazeImportSettingsManager.class, new BlazeImportSettingsManager(project));
-    BlazeImportSettingsManager.getInstance(getProject()).setImportSettings(DUMMY_IMPORT_SETTINGS);
+        BazelImportSettingsManager.class, new BlazeImportSettingsManager(project));
+    BlazeImportSettingsManager.getInstanceForTestingOnly(getProject())
+        .setImportSettingsForTests(java.nio.file.Path.of(""), BuildSystemName.Blaze);
 
     ExperimentService experimentService = new MockExperimentService();
     applicationServices.register(ExperimentService.class, experimentService);
@@ -297,7 +295,7 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
 
     @Override
     public ProjectViewSet doLoadProjectView(
-        BlazeContext context, BlazeImportSettings importSettings) {
+        BlazeContext context, Path projectViewRootFile, Path workspaceRoot) {
       return ProjectViewSet.EMPTY;
     }
   }

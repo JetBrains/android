@@ -16,8 +16,7 @@
 package com.google.idea.blaze.base.settings.ui;
 
 import com.google.idea.blaze.base.actions.BlazeProjectAction;
-import com.google.idea.blaze.base.settings.BlazeImportSettings;
-import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
+import com.google.idea.blaze.base.settings.BazelImportSettingsManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -27,6 +26,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Optional;
 
 /** Opens the user's local project view file. */
@@ -49,12 +49,15 @@ public class OpenProjectViewAction extends BlazeProjectAction implements DumbAwa
   }
 
   private static Optional<VirtualFile> getLocalProjectViewFile(Project project) {
-    BlazeImportSettings importSettings =
-        BlazeImportSettingsManager.getInstance(project).getImportSettings();
-    File projectViewFile = new File(importSettings.getProjectViewFile());
+    Path projectViewFilePath =
+        BazelImportSettingsManager.getInstance(project).getProjectViewFilePath();
+    if (projectViewFilePath == null) {
+      return Optional.empty();
+    }
+    File projectViewFile = projectViewFilePath.toFile();
     VirtualFile virtualFile = VfsUtil.findFileByIoFile(projectViewFile, true);
     if (virtualFile == null) {
-      logger.warn("Can't find virtual file for " + importSettings.getProjectViewFile());
+      logger.warn("Can't find virtual file for " + projectViewFilePath);
     }
     return Optional.ofNullable(virtualFile);
   }

@@ -37,8 +37,8 @@ import com.google.idea.blaze.base.qsync.rendering.BazelComposeToolingProjectLabe
 import com.google.idea.blaze.base.scope.BlazeContext
 import com.google.idea.blaze.base.scope.scopes.ProgressIndicatorScope
 import com.google.idea.blaze.base.scope.scopes.ToolWindowScopeRunner.runTaskWithToolWindow
+import com.google.idea.blaze.base.settings.BazelImportSettingsManager
 import com.google.idea.blaze.base.settings.Blaze
-import com.google.idea.blaze.base.settings.BlazeImportSettingsManager
 import com.google.idea.blaze.base.settings.BlazeUserSettings
 import com.google.idea.blaze.base.sync.SyncListener
 import com.google.idea.blaze.base.sync.SyncMode
@@ -204,7 +204,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     reloadProjectDefinitionIfChanged(context)
     val loadedProject =
       loadedProject?.takeUnless {
-        val currentProjectViewSet = BlazeImportSettingsManager.getInstance(ideProject).projectViewSet
+        val currentProjectViewSet = BazelImportSettingsManager.getInstance(ideProject).projectViewSet
         it.projectDefinition != loader.loadProjectDefinition(currentProjectViewSet).definition ||
           it.handledRuleKinds != ProjectLoader.getHandledRuleKinds(ideProject)
       } ?: runCatching { loader.loadProject() }.getOrElse { throw BuildException("Failed to load project", it) }
@@ -773,10 +773,11 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     // Ensure edits to the project view and any imports have been saved
     SaveUtil.saveAllFiles()
     val projectViewManager = ProjectViewManager.getInstance(project)
-    val importSettings = BlazeImportSettingsManager.getInstance(project).importSettings ?: return
-    val currentProjectViewSet =
-      projectViewManager.doLoadProjectView(BlazeContext.create(), /* Load silently for comparison*/ importSettings)
-    if (BlazeImportSettingsManager.getInstance(project).projectViewSet != currentProjectViewSet) {
+    val settingsManager = BazelImportSettingsManager.getInstance(project)
+    val projectViewFilePath = settingsManager.projectViewFilePath ?: return
+    val workspaceRoot = settingsManager.workspaceRoot ?: return
+    val currentProjectViewSet = projectViewManager.doLoadProjectView(BlazeContext.create(), projectViewFilePath, workspaceRoot)
+    if (BazelImportSettingsManager.getInstance(project).projectViewSet != currentProjectViewSet) {
       ProjectViewManager.getInstance(project).reloadProjectView(context)
     }
   }

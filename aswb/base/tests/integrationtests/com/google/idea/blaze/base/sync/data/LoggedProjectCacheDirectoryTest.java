@@ -22,8 +22,7 @@ import static org.mockito.Mockito.when;
 
 import com.google.idea.blaze.base.logging.LoggedDirectoryProvider;
 import com.google.idea.blaze.base.logging.LoggedDirectoryProvider.LoggedDirectory;
-import com.google.idea.blaze.base.settings.BlazeImportSettings;
-import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
+import com.google.idea.blaze.base.settings.BazelImportSettingsManager;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.data.BlazeDataStorage.LoggedProjectCacheDirectory;
 import com.google.idea.testing.IntellijRule;
@@ -44,20 +43,20 @@ public class LoggedProjectCacheDirectoryTest {
   @Rule public final IntellijRule intellij = new IntellijRule();
   @Rule public final MockitoRule mockito = MockitoJUnit.rule();
 
-  @Mock private BlazeImportSettingsManager importSettingsManager;
+  @Mock private BazelImportSettingsManager importSettingsManager;
 
   private final LoggedDirectoryProvider directoryProvider = new LoggedProjectCacheDirectory();
 
   @Before
   public void setUp() throws Exception {
-    intellij.registerProjectService(BlazeImportSettingsManager.class, importSettingsManager);
+    intellij.registerProjectService(BazelImportSettingsManager.class, importSettingsManager);
 
     setBuildSystemTo(BuildSystemName.Bazel);
   }
 
   @Test
   public void getLoggedDirectory_whenSettingsNotAvailable_returnsNothing() {
-    when(importSettingsManager.getImportSettings()).thenReturn(null);
+    when(importSettingsManager.hasImportSettings()).thenReturn(false);
 
     Optional<LoggedDirectory> loggedDirectory =
         directoryProvider.getLoggedDirectory(intellij.getProject());
@@ -111,11 +110,7 @@ public class LoggedProjectCacheDirectoryTest {
   }
 
   private void setBuildSystemTo(BuildSystemName buildSystemName) {
-    BlazeImportSettings settings = createSettings(buildSystemName);
-    lenient().when(importSettingsManager.getImportSettings()).thenReturn(settings);
-  }
-
-  private static BlazeImportSettings createSettings(BuildSystemName buildSystemName) {
-    return new BlazeImportSettings("", "", "", "", "", buildSystemName);
+    lenient().when(importSettingsManager.getBuildSystem()).thenReturn(buildSystemName);
+    lenient().when(importSettingsManager.hasImportSettings()).thenReturn(true);
   }
 }

@@ -23,7 +23,6 @@ import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.project.BazelProjectSystemId;
 import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings;
-import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.SyncCache;
@@ -121,15 +120,13 @@ public abstract class BlazeIntegrationTestCase {
           workspace = new WorkspaceFileSystem(workspaceRoot, fileSystem);
         });
 
-    BlazeImportSettingsManager.getInstance(getProject())
-        .setImportSettings(
-            new BlazeImportSettings(
-                workspaceRoot.toString(),
-                "test-project",
-                projectDataDirectory.getPath(),
-                "location-hash",
-                workspaceRoot.fileForPath(new WorkspacePath("project-view-file")).getPath(),
-                buildSystem()));
+    BlazeImportSettingsManager.getInstanceForTestingOnly(getProject())
+        .setImportSettingsForTests(
+            java.nio.file.Path.of(workspaceRoot.toString()),
+            "test-project",
+            java.nio.file.Path.of(
+                workspaceRoot.fileForPath(new WorkspacePath("project-view-file")).getPath()),
+            buildSystem());
 
     registerApplicationService(
         InputStreamProvider.class,

@@ -21,8 +21,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.idea.blaze.base.BlazeTestCase;
 import com.google.idea.blaze.base.command.BlazeCommandName;
+import com.google.idea.blaze.base.settings.BazelImportSettingsManager;
 import com.google.idea.blaze.base.settings.Blaze;
-import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import org.jdom.Element;
@@ -35,8 +35,6 @@ import org.junit.runners.JUnit4;
 /** Tests for {@link BlazeCommandRunConfigurationCommonState}. */
 @RunWith(JUnit4.class)
 public class BlazeCommandRunConfigurationCommonStateTest extends BlazeTestCase {
-  private static final BlazeImportSettings DUMMY_IMPORT_SETTINGS =
-      new BlazeImportSettings("", "", "", "", "", BuildSystemName.Blaze);
   private static final BlazeCommandName COMMAND = BlazeCommandName.fromString("command");
 
   private BlazeCommandRunConfigurationCommonState state;
@@ -46,8 +44,9 @@ public class BlazeCommandRunConfigurationCommonStateTest extends BlazeTestCase {
     super.initTest(applicationServices, projectServices);
 
     projectServices.register(
-        BlazeImportSettingsManager.class, new BlazeImportSettingsManager(project));
-    BlazeImportSettingsManager.getInstance(getProject()).setImportSettings(DUMMY_IMPORT_SETTINGS);
+        BazelImportSettingsManager.class, new BlazeImportSettingsManager(project));
+    BlazeImportSettingsManager.getInstanceForTestingOnly(getProject())
+        .setImportSettingsForTests(java.nio.file.Path.of(""), BuildSystemName.Blaze);
 
     state = new BlazeCommandRunConfigurationCommonState(Blaze.getBuildSystemName(project));
   }

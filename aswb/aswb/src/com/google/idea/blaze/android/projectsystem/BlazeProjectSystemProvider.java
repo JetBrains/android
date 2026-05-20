@@ -39,11 +39,7 @@ public class BlazeProjectSystemProvider implements AndroidProjectSystemProvider 
   @Override
   public boolean isApplicable(Project project) {
     return BlazeImportSettingsManager.loadImportSettings(
-            project.getBasePath(),
-            project.getName(),
-            Optional.empty(),
-            Optional.empty(),
-            Optional.empty())
+            project.getBasePath(), project.getName(), Optional.empty(), Optional.empty())
         .isPresent();
   }
 

@@ -19,12 +19,12 @@ import com.google.idea.blaze.base.projectview.parser.ProjectViewParser;
 import com.google.idea.blaze.base.projectview.section.ScalarSection;
 import com.google.idea.blaze.base.projectview.section.sections.WorkspaceLocationSection;
 import com.google.idea.blaze.base.scope.BlazeContext;
-import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.exception.ConfigurationException;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.IOException;
+import java.nio.file.Path;
 import javax.annotation.Nullable;
 
 /** Class that manages access to a project's {@link ProjectView}. */
@@ -36,10 +36,10 @@ public abstract class ProjectViewManager {
   }
 
   public static boolean migrateImportSettingsToProjectViewFile(
-      BlazeImportSettings importSettings, ProjectViewSet.ProjectViewFile projectViewFile) {
+      String workspaceRoot, ProjectViewSet.ProjectViewFile projectViewFile) {
     ProjectView.Builder projectView = ProjectView.builder(projectViewFile.projectView);
     boolean isWorkspaceLocationUpdated =
-        addUpdateWorkspaceLocationSection(importSettings, projectViewFile, projectView);
+        addUpdateWorkspaceLocationSection(workspaceRoot, projectViewFile, projectView);
     if (isWorkspaceLocationUpdated) {
       String projectViewText = ProjectViewParser.projectViewToString(projectView.build());
       try {
@@ -54,16 +54,14 @@ public abstract class ProjectViewManager {
   }
 
   private static boolean addUpdateWorkspaceLocationSection(
-      BlazeImportSettings importSettings,
+      String workspaceRoot,
       ProjectViewSet.ProjectViewFile projectViewFile,
       ProjectView.Builder projectView) {
     ScalarSection<String> workspaceRootSection = null;
     if (projectViewFile.projectView.getSections().stream()
         .noneMatch(x -> x.isSectionType(WorkspaceLocationSection.KEY))) {
       workspaceRootSection =
-          ScalarSection.builder(WorkspaceLocationSection.KEY)
-              .set(importSettings.getWorkspaceRoot())
-              .build();
+          ScalarSection.builder(WorkspaceLocationSection.KEY).set(workspaceRoot).build();
     }
     if (workspaceRootSection != null) {
       projectView.add(workspaceRootSection);
@@ -80,5 +78,6 @@ public abstract class ProjectViewManager {
   public abstract ProjectViewSet reloadProjectView(BlazeContext context) throws BuildException;
 
   public abstract ProjectViewSet doLoadProjectView(
-      BlazeContext context, BlazeImportSettings importSettings) throws ConfigurationException;
+      BlazeContext context, Path projectViewRootFile, Path workspaceRoot)
+      throws ConfigurationException;
 }

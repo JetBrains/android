@@ -23,7 +23,7 @@ import com.google.idea.blaze.base.model.primitives.Kind
 import com.google.idea.blaze.base.model.primitives.Label
 import com.google.idea.blaze.base.run.confighandler.BlazeCommandRunConfigurationHandlerProvider
 import com.google.idea.blaze.base.run.targetfinder.TargetFinder
-import com.google.idea.blaze.base.settings.BlazeImportSettings
+import com.google.idea.blaze.base.settings.BazelImportSettingsManager
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager
 import com.google.idea.blaze.base.settings.BuildSystemName
 import com.google.idea.common.experiments.ExperimentService
@@ -44,8 +44,9 @@ class BlazeCommandRunConfigurationTest : BlazeTestCase() {
   override fun initTest(applicationServices: Container, projectServices: Container) {
     super.initTest(applicationServices, projectServices)
 
-    projectServices.register(BlazeImportSettingsManager::class.java, BlazeImportSettingsManager(project))
-    BlazeImportSettingsManager.getInstance(project).importSettings = DUMMY_IMPORT_SETTINGS
+    projectServices.register(BazelImportSettingsManager::class.java, BlazeImportSettingsManager(project))
+    BlazeImportSettingsManager.getInstanceForTestingOnly(project)
+      .setImportSettingsForTests(java.nio.file.Path.of(""), BuildSystemName.Blaze)
 
     applicationServices.register(ExperimentService::class.java, MockExperimentService())
     registerExtensionPoint(Kind.Provider.EP_NAME, Kind.Provider::class.java)
@@ -88,9 +89,5 @@ class BlazeCommandRunConfigurationTest : BlazeTestCase() {
     override fun findTarget(project: Project, label: com.google.idea.blaze.common.Label): Future<TargetInfo?> {
       return Futures.immediateFuture(null)
     }
-  }
-
-  companion object {
-    private val DUMMY_IMPORT_SETTINGS = BlazeImportSettings("", "", "", "", "", BuildSystemName.Blaze)
   }
 }

@@ -250,7 +250,8 @@
     <projectService serviceInterface="com.google.idea.blaze.base.toolwindow.TasksToolWindowService"
                     serviceImplementation="com.google.idea.blaze.base.toolwindow.TasksToolWindowServiceImpl"/>
 
-    <projectService serviceImplementation="com.google.idea.blaze.base.settings.BlazeImportSettingsManager"/>
+    <projectService serviceInterface="com.google.idea.blaze.base.settings.BazelImportSettingsManager"
+                    serviceImplementation="com.google.idea.blaze.base.settings.BlazeImportSettingsManager"/>
     <projectService serviceImplementation="com.google.idea.blaze.base.sync.status.BlazeSyncStatusStateManager"/>
     <projectService
         serviceInterface="com.google.idea.blaze.common.artifact.BuildArtifactCache"

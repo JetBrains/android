@@ -39,8 +39,6 @@ import com.google.idea.blaze.base.run.testlogs.BlazeTestResultFetcher;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.OutputSink;
 import com.google.idea.blaze.base.settings.Blaze;
-import com.google.idea.blaze.base.settings.BlazeImportSettings;
-import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.common.Interners;
 import com.google.idea.blaze.common.PrintOutput;
@@ -125,9 +123,7 @@ public final class BlazeCommandGenericRunConfigurationRunner
     @Override
     protected ProcessHandler startProcess() throws ExecutionException {
       Project project = configuration.getProject();
-      BlazeImportSettings importSettings =
-          BlazeImportSettingsManager.getInstance(project).getImportSettings();
-      assert importSettings != null;
+      assert Blaze.isBlazeProject(project);
 
       ProjectViewSet projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
       assert projectViewSet != null;

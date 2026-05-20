@@ -17,9 +17,8 @@ package com.google.idea.blaze.base.sync.data;
 
 import com.google.common.base.Strings;
 import com.google.idea.blaze.base.logging.LoggedDirectoryProvider;
+import com.google.idea.blaze.base.settings.BazelImportSettingsManager;
 import com.google.idea.blaze.base.settings.Blaze;
-import com.google.idea.blaze.base.settings.BlazeImportSettings;
-import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
@@ -46,15 +45,6 @@ public class BlazeDataStorage {
     }
   }
 
-  /**
-   * DO NOT USE! Project subdirectories will need to be registered and described so that their
-   * location can be redirected by policy.
-   */
-  @java.lang.Deprecated
-  public static File getProjectDataDirDoNotUse(BlazeImportSettings importSettings) {
-    return new File(importSettings.getProjectDataDirectory(), ".blaze");
-  }
-
   public static File getProjectCacheDir(Project project, String locationHash) {
 
     // Legacy support: The location hash used to be just the project hash
@@ -78,13 +68,16 @@ public class BlazeDataStorage {
 
     @Override
     public Optional<LoggedDirectory> getLoggedDirectory(Project project) {
-      return Optional.ofNullable(
-              BlazeImportSettingsManager.getInstance(project).getImportSettings())
-          .map(BlazeDataStorage::getProjectDataDirDoNotUse)
+      String dataDirectory = project.getBasePath();
+      if (dataDirectory == null) {
+        return Optional.empty();
+      }
+      File file = new File(dataDirectory, ".blaze");
+      return Optional.of(file)
           .map(
-              file ->
+              f ->
                   LoggedDirectory.builder()
-                      .setPath(file.toPath())
+                      .setPath(f.toPath())
                       .setOriginatingIdePart(
                           String.format("%s plugin", Blaze.buildSystemName(project)))
                       .setPurpose("Build-related project data")
@@ -100,9 +93,11 @@ public class BlazeDataStorage {
 
     @Override
     public Optional<LoggedDirectory> getLoggedDirectory(Project project) {
-      return Optional.ofNullable(
-              BlazeImportSettingsManager.getInstance(project).getImportSettings())
-          .map(settings -> getProjectCacheDir(project, settings.getLocationHash()))
+      if (!BazelImportSettingsManager.getInstance(project).hasImportSettings()) {
+        return Optional.empty();
+      }
+      String locationHash = project.getLocationHash();
+      return Optional.of(getProjectCacheDir(project, locationHash))
           .map(
               file ->
                   LoggedDirectory.builder()

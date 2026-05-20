@@ -37,8 +37,7 @@ import com.google.idea.blaze.base.projectview.section.sections.TargetSection;
 import com.google.idea.blaze.base.projectview.section.sections.TestSourceSection;
 import com.google.idea.blaze.base.projectview.section.sections.WorkspaceTypeSection;
 import com.google.idea.blaze.base.scope.BlazeContext;
-import com.google.idea.blaze.base.settings.BlazeImportSettings;
-import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
+import com.google.idea.blaze.base.settings.BazelImportSettingsManager;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.projectview.ImportRoots;
 import com.google.idea.blaze.base.sync.projectview.LanguageSupport;
@@ -110,7 +109,6 @@ public class ProjectLoaderImpl implements ProjectLoader {
 
   /** Services {@link QuerySyncProject} depends on. */
   public record QuerySyncProjectDeps(
-      BlazeImportSettings importSettings,
       WorkspaceRoot workspaceRoot,
       WorkspacePathResolver workspacePathResolver,
       QuerySyncLanguageSettings languageSettings,
@@ -166,7 +164,6 @@ public class ProjectLoaderImpl implements ProjectLoader {
         new QuerySyncProject(
             project,
             result.snapshotHolder(),
-            result.importSettings(),
             result.workspaceRoot(),
             result.artifactTracker(),
             result.artifactCache(),
@@ -198,9 +195,9 @@ public class ProjectLoaderImpl implements ProjectLoader {
 
   @Override
   public ProjectToLoadDefinition loadProjectDefinition(ProjectViewSet projectViewSet) {
-    BlazeImportSettings importSettings =
+    BuildSystemName buildSystemName =
         Preconditions.checkNotNull(
-            BlazeImportSettingsManager.getInstance(project).getImportSettings());
+            BazelImportSettingsManager.getInstance(project).getBuildSystem());
     WorkspaceRoot workspaceRoot =
         WorkspaceRoot.fromProject(project); // TODO: solodkyy - read from the project view.
     // TODO we may need to get the WorkspacePathResolver from the VcsHandler, as the old sync
@@ -209,14 +206,14 @@ public class ProjectLoaderImpl implements ProjectLoader {
     // implementations of WorkspacePathResolver exists. Perhaps they are performance
     // optimizations?
     ProjectDefinition projectDefinition =
-        createProjectDefinition(workspaceRoot, importSettings.getBuildSystem(), projectViewSet);
+        createProjectDefinition(workspaceRoot, buildSystemName, projectViewSet);
     WorkspaceLanguageSettings workspaceLanguageSettings =
         LanguageSupport.createWorkspaceLanguageSettings(projectViewSet);
     QuerySyncLanguageSettings languageSettings =
         QuerySyncLanguageSettings.from(projectViewSet, workspaceLanguageSettings);
     // TODO: solodkyy - read from the project view.
     BuildSystemProvider buildSystemProvider =
-        BuildSystemProvider.getBuildSystemProvider(importSettings.getBuildSystem());
+        BuildSystemProvider.getBuildSystemProvider(buildSystemName);
     BuildSystem buildSystem = buildSystemProvider.getBuildSystem();
     ProjectDirectoryConfigurator projectDirectoryConfigurator =
         buildSystemProvider.getProjectDirectoryConfigurator(project);
@@ -231,13 +228,11 @@ public class ProjectLoaderImpl implements ProjectLoader {
   }
 
   private QuerySyncProjectDeps instantiateDeps() {
-    BlazeImportSettings importSettings =
-        Preconditions.checkNotNull(
-            BlazeImportSettingsManager.getInstance(project).getImportSettings());
+    Preconditions.checkState(BazelImportSettingsManager.getInstance(project).hasImportSettings());
     final var querySyncUserPreferences =
         QuerySyncUserPreferencesProvider.getInstance(project).getUserPreferences();
     final var projectToLoad =
-        loadProjectDefinition(BlazeImportSettingsManager.getInstance(project).getProjectViewSet());
+        loadProjectDefinition(BazelImportSettingsManager.getInstance(project).getProjectViewSet());
     final var workspaceRoot = projectToLoad.workspaceRoot();
     final var latestProjectDef = projectToLoad.definition();
     final var buildSystem = projectToLoad.buildSystem();
@@ -328,7 +323,6 @@ public class ProjectLoaderImpl implements ProjectLoader {
     QuerySyncSourceToTargetMap sourceToTargetMap =
         new QuerySyncSourceToTargetMap(snapshotHolder, workspaceRoot.path());
     return new QuerySyncProjectDeps(
-        importSettings,
         workspaceRoot,
         new WorkspacePathResolverImpl(workspaceRoot),
         languageSettings,

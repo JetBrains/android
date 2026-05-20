@@ -35,10 +35,6 @@ public final class BlazeImportSettings {
 
   private String projectName = "";
 
-  private String projectDataDirectory = "";
-
-  private String locationHash = "";
-
   private String projectViewFile;
 
   // default for backwards compatibility with existing projects
@@ -46,19 +42,15 @@ public final class BlazeImportSettings {
 
   // Used by bean serialization
   @SuppressWarnings("unused")
-  BlazeImportSettings() { }
+  BlazeImportSettings() {}
 
   public BlazeImportSettings(
-    String workspaceRoot,
-    String projectName,
-    String projectDataDirectory,
-    String locationHash,
-    String projectViewFile,
-    BuildSystemName buildSystemName) {
+      String workspaceRoot,
+      String projectName,
+      String projectViewFile,
+      BuildSystemName buildSystemName) {
     this.workspaceRoot = workspaceRoot;
     this.projectName = projectName;
-    this.projectDataDirectory = projectDataDirectory;
-    this.locationHash = locationHash;
     this.projectViewFile = projectViewFile;
     this.buildSystem = buildSystemName;
   }
@@ -74,30 +66,13 @@ public final class BlazeImportSettings {
     return projectName;
   }
 
-  @SuppressWarnings("unused")
-  public String getProjectDataDirectory() {
-    return projectDataDirectory;
-  }
-
-  /**
-   * Hash used to give the project a unique directory in the system directory.
-   */
-  @SuppressWarnings("unused")
-  public String getLocationHash() {
-    return locationHash;
-  }
-
-  /**
-   * The user's local project view file
-   */
+  /** The user's local project view file */
   @SuppressWarnings("unused")
   public String getProjectViewFile() {
     return projectViewFile;
   }
 
-  /**
-   * The build system used for the project.
-   */
+  /** The build system used for the project. */
   @SuppressWarnings("unused")
   public BuildSystemName getBuildSystem() {
     return buildSystem;
@@ -113,18 +88,6 @@ public final class BlazeImportSettings {
   @SuppressWarnings("unused")
   public void setProjectName(String projectName) {
     this.projectName = projectName;
-  }
-
-  // Used by bean serialization
-  @SuppressWarnings("unused")
-  public void setProjectDataDirectory(String projectDataDirectory) {
-    this.projectDataDirectory = projectDataDirectory;
-  }
-
-  // Used by bean serialization
-  @SuppressWarnings("unused")
-  public void setLocationHash(String locationHash) {
-    this.locationHash = locationHash;
   }
 
   // Used by bean serialization
