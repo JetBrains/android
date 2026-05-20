@@ -15,13 +15,17 @@
  */
 package com.android.tools.idea.profilers.leakcanary
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
+import com.android.tools.idea.gemini.GeminiPluginApiV2
 import com.android.tools.idea.gemini.LlmPrompt
 import com.android.tools.leakcanarylib.data.Leak
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
+import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -32,6 +36,7 @@ import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
 import kotlin.test.assertTrue
+import kotlin.test.assertFalse
 import org.mockito.Mockito
 
 class LeakCanaryAiHandlerTest {
@@ -52,8 +57,15 @@ class LeakCanaryAiHandlerTest {
     ep.registerExtension(mockGeminiApi, projectRule.project)
   }
 
+  @After
+  fun tearDown() {
+    StudioFlags.STUDIOBOT_V2_UI_ENABLED.clearOverride()
+  }
+
   @Test
   fun `test analyzeLeakWithStudioBot sends query to Gemini`() {
+    StudioFlags.STUDIOBOT_V2_UI_ENABLED.override(false)
+
     val rawTrace = "Test Trace"
     val leak = mock(Leak::class.java)
 
@@ -87,5 +99,45 @@ class LeakCanaryAiHandlerTest {
     // TODO: Change to GeminiPluginApi.RequestSource.PROFILER once it is added in the ml-api module.
 
     assertTrue(displayTextCaptor.firstValue.contains(rawTrace))
+  }
+
+  @Test
+  fun `test analyzeLeakWithStudioBot sends query to Gemini V2`() = runBlocking {
+    StudioFlags.STUDIOBOT_V2_UI_ENABLED.override(true)
+
+    val mockGeminiApiV2 = mock(GeminiPluginApiV2::class.java)
+    val epV2 = GeminiPluginApiV2.EP_NAME.getPoint(null)
+    epV2.registerExtension(mockGeminiApiV2, projectRule.project)
+
+    val rawTrace = "Test Trace"
+    val leak = mock(Leak::class.java)
+
+    LeakCanaryAiHandler.getInstance(project).analyzeLeakWithStudioBot(rawTrace, leak)
+    val queryCaptor = argumentCaptor<String>()
+
+    // We pump the event queue so that Application.invokeLater can run.
+    val start = System.currentTimeMillis()
+    while (System.currentTimeMillis() - start < 5000) {
+      ApplicationManager.getApplication().invokeAndWait {
+        PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+      }
+      if (Mockito.mockingDetails(mockGeminiApiV2).invocations.any { it.method.name == "submitQueryInToolWindow" }) {
+        break
+      }
+      Thread.sleep(100)
+    }
+
+    verify(mockGeminiApiV2).submitQueryInToolWindow(
+      eq(project),
+      queryCaptor.capture(),
+      any(),
+      any(),
+      any()
+    )
+
+    val submittedQuery = queryCaptor.firstValue
+    assertTrue(submittedQuery.contains("Fix this memory leak and summarize the outcome:"))
+    assertTrue(submittedQuery.contains(rawTrace))
+    assertFalse(submittedQuery.contains("Role"))
   }
 }
