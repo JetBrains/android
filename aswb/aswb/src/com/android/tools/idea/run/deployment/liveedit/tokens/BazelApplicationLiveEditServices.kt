@@ -17,6 +17,7 @@ package com.android.tools.idea.run.deployment.liveedit.tokens
 
 import com.android.tools.idea.projectsystem.ClassContent
 import com.android.tools.idea.run.classes.BuildOutcome
+import com.android.tools.idea.run.deployment.liveedit.setOptions
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
 import com.google.idea.blaze.base.qsync.QuerySyncManager
 import com.google.idea.blaze.common.Label
@@ -95,10 +96,8 @@ class BazelApplicationLiveEditServices(
     val flags = javaInfo.kotlinCompilerFlags
 
     return CompilerConfiguration.create().apply {
+      setOptions(parseCommandLineArguments<K2JVMCompilerArguments>(flags).toLanguageVersionSettings(MessageCollector.NONE))
       put(CommonConfigurationKeys.MODULE_NAME, label.toString())
-      val arguments = parseCommandLineArguments<K2JVMCompilerArguments>(flags)
-      val languageVersionSettings = arguments.toLanguageVersionSettings(MessageCollector.NONE)
-      put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, languageVersionSettings)
 
       // Add a TODO for improvement on target selection if needed.
       // TODO: Refine target selection to match the actual dependency of the main build target if ambiguous.
