@@ -36,7 +36,7 @@ class AddCompiledJavaDeps(private val emptyJarDigests: Set<String>) : ProjectPro
     update.artifactDirectory(ArtifactDirectories.JAVADEPS) {
       val skipped: MutableSet<String> = hashSetOf()
       val seen: MutableSet<String> = hashSetOf()
-      val libNameToJars: MutableMap<Label, MutableSet<ProjectPath>> = hashMapOf()
+      val libNameToJars: MutableMap<Label, MutableSet<ProjectPath>> = mutableMapOf()
       val outputJarToTarget: Map<String, Label> =
         artifactState
           .targets()
@@ -76,7 +76,7 @@ class AddCompiledJavaDeps(private val emptyJarDigests: Set<String>) : ProjectPro
             ArtifactDirectories.JAVADEPS.resolveChild(jar.artifactPath)
           }
         if (jars.isNotEmpty()) {
-          libNameToJars.getOrPut(target.label) { hashSetOf() } += jars
+          libNameToJars.getOrPut(target.label) { mutableSetOf() } += jars
         }
       }
       context.output(PrintOutput.output("Skipped ${skipped.size} duplicate jars"))
