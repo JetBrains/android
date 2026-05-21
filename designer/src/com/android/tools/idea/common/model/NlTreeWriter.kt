@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.Sets
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
+import com.intellij.openapi.application.runReadActionBlocking
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.DumbService
 import com.intellij.psi.xml.XmlFile
@@ -260,7 +261,7 @@ class NlTreeWriter(
   fun createComponents(item: DnDTransferItem, insertType: InsertType): List<NlComponent> {
     val components: MutableList<NlComponent> = ArrayList(item.components.size)
     for (dndComponent in item.components) {
-      val tag = XmlTagUtil.createTag(facet.module.project, dndComponent.representation)
+      val tag = runReadActionBlocking { XmlTagUtil.createTag(facet.module.project, dndComponent.representation) }
       val component =
         createComponent(tag, null, null, insertType)
           ?: // User may have cancelled
