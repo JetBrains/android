@@ -154,8 +154,8 @@ class ProfilerTransportConfigContributorTest : HeavyPlatformTestCase() {
     verify(mockProxy, times(1)).registerDataPreprocessor(any())
     verify(mockProxy, times(1)).registerEventPreprocessor(any())
     verify(mockProxy, times(1))
-      .registerProxyCommandHandler(eq(Commands.Command.CommandType.STOP_LOGCAT_TRACKING), any(LeakCanaryLogcatCommandHandler::class.java))
+      .registerProxyCommandHandler(eq(Commands.Command.CommandType.START_LEAKCANARY_TASK), any(LeakCanaryLogcatCommandHandler::class.java)) // TODO: android-merge; changed as in upstream
     verify(mockProxy, times(1))
-      .registerProxyCommandHandler(eq(Commands.Command.CommandType.START_LOGCAT_TRACKING), any(LeakCanaryLogcatCommandHandler::class.java))
+      .registerProxyCommandHandler(eq(Commands.Command.CommandType.STOP_LEAKCANARY_TASK), any(LeakCanaryLogcatCommandHandler::class.java)) // TODO: android-merge; changed as in upstream
   }
 }

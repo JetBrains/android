@@ -70,6 +70,7 @@ import com.android.tools.idea.wizard.template.FormFactor;
 import com.android.tools.idea.wizard.template.Language;
 import com.android.tools.idea.wizard.template.Template;
 import com.android.tools.idea.wizard.template.TemplateConstraint;
+import com.android.tools.idea.wizard.template.TemplateFlag;
 import com.android.tools.idea.wizard.ui.StudioWizardLayout;
 import com.android.tools.idea.wizard.ui.WizardUtils;
 import com.google.common.collect.ImmutableList;
@@ -306,7 +307,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myFormFactorSdkControls.startDataLoading(toWizardFormFactor(formFactor), minSdk);
     setTemplateThumbnail(newTemplate);
     boolean isKotlinOnly = newTemplate.getConstraints().contains(TemplateConstraint.Kotlin);
-    boolean isWatchFace = newTemplate.getCategory() == Category.WatchFace;
+    boolean isWatchFace = newTemplate.getFlags().contains(TemplateFlag.WatchFace);
 
     myProjectLanguage.setVisible(!isKotlinOnly && !isWatchFace);
     myProjectLanguageLabel.setVisible(!isKotlinOnly && !isWatchFace);

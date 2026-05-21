@@ -85,8 +85,8 @@ public class ProfilerTransportConfigContributor implements TransportConfigContri
 
     LeakCanaryLogcatCommandHandler lcLogcatHandler =
       new LeakCanaryLogcatCommandHandler(device, TransportServiceGrpc.newBlockingStub(proxy.getTransportChannel()), proxy.getEventQueue());
-    proxy.registerProxyCommandHandler(Commands.Command.CommandType.START_LOGCAT_TRACKING, lcLogcatHandler);
-    proxy.registerProxyCommandHandler(Commands.Command.CommandType.STOP_LOGCAT_TRACKING, lcLogcatHandler);
+    proxy.registerProxyCommandHandler(Commands.Command.CommandType.START_LEAKCANARY_TASK, lcLogcatHandler); // TODO: android-merge; changed as in upstream
+    proxy.registerProxyCommandHandler(Commands.Command.CommandType.STOP_LEAKCANARY_TASK, lcLogcatHandler); // TODO: android-merge; changed as in upstream
 
     LeakCanaryAnalysisCommandHandler lcAnalysisHandler =
       new LeakCanaryAnalysisCommandHandler(TransportServiceGrpc.newBlockingStub(proxy.getTransportChannel()), proxy.getEventQueue());

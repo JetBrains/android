@@ -93,11 +93,11 @@ class LeakCanaryActionBarTest: WithFakeTimer {
   @Test
   fun `test stop recording button action`() {
     val startTimestamp = System.currentTimeMillis()
-    transportService.setCommandHandler(Commands.Command.CommandType.START_LOGCAT_TRACKING,
+    transportService.setCommandHandler(Commands.Command.CommandType.START_LEAKCANARY_TASK, // TODO: android-merge; updated as in upstream
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTimestamp))
     transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTimestamp))
-    transportService.setCommandHandler(Commands.Command.CommandType.STOP_LOGCAT_TRACKING,
+    transportService.setCommandHandler(Commands.Command.CommandType.STOP_LEAKCANARY_TASK, // TODO: android-merge; updated as in upstream
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTimestamp))
     leakCanaryModel.startListening()
     // Recording is in progress

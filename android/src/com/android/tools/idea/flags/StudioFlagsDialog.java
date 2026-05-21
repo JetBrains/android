@@ -108,7 +108,7 @@ public final class StudioFlagsDialog extends DialogWrapper {
    */
   private static final String DIMENSION_KEY = StudioFlagsDialog.class.getSimpleName();
   public static final String TITLE = "Edit Studio Flags";
-  private final FlagValueContainer myBackupOverrides = new InMemoryFlagValueContainer();
+  private final FlagValueContainer myBackupOverrides = new InMemoryFlagValueContainer("StudioFlagsDialog"); // TODO: android-merge; needs a cherry-pick of a commit providing correct value
 
   private final BindingsManager myBindings = new BindingsManager();
   private final ListMultimap<FlagGroup, Flag<?>> myGroupedFlags;
