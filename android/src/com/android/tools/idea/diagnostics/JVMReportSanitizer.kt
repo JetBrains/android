@@ -20,6 +20,7 @@ import java.io.File
 import java.io.FileReader
 
 object JVMReportSanitizer {
+  private val LINE_LIMIT = 10
 
   @JvmStatic
   fun sanitize(report: File): String {
@@ -79,9 +80,10 @@ object JVMReportSanitizer {
       val line = parser.readNextSectionLine()
       if (line == null) {
         return
-      }
-      if (line.startsWith("Heap Regions: ") || line.startsWith("Environment Variables:")) {
+      } else if (line.startsWith("Heap Regions: ") || line.startsWith("Environment Variables:")) {
         skipSubsection(line, parser, builder)
+      } else if (line.startsWith("Classes loaded by more than one classloader:")) {
+        trimSubsection(line, parser, builder)
       } else {
         builder.sanitizeUntilEOL(line)
       }
@@ -115,5 +117,27 @@ object JVMReportSanitizer {
       parser.readNextSectionLine()
     }
     builder.sanitizeUntilEOL("$line\n<Skipped $lineCount lines>")
+  }
+
+  private fun trimSubsection(line: String, parser: JVMReportParser, builder: SanitizedBuilder) {
+    var lineCount = 0
+    builder.sanitizeUntilEOL(line)
+    while (lineCount < LINE_LIMIT && !parser.isEndOfSubsection()) {
+      val tempLine = parser.readNextSectionLine()
+      if (tempLine == null) {
+        return
+      }
+      builder.sanitizeUntilEOL(tempLine)
+      lineCount++
+    }
+    if (parser.isEndOfSubsection()) return
+    lineCount = 0
+    while (!parser.isEndOfSubsection()) {
+      lineCount++
+      if (parser.readNextSectionLine() == null) {
+        break
+      }
+    }
+    builder.sanitizeUntilEOL("<Skipped $lineCount lines>")
   }
 }
