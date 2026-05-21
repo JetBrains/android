@@ -42,13 +42,19 @@ import com.android.tools.idea.testing.buildMainArtifactStub
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import com.google.common.base.Stopwatch
-import com.intellij.openapi.application.ex.ApplicationManagerEx
+import com.intellij.testFramework.StressTestRule
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.testFramework.utils.io.createDirectory
 import com.intellij.testFramework.utils.io.createFile
 import com.intellij.testFramework.utils.io.deleteRecursively
 import com.intellij.util.io.createDirectories
 import com.intellij.util.ui.UIUtil
+import org.junit.After
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.TestRule
 import java.io.File
 import java.net.URI
 import java.nio.file.FileSystems
@@ -56,12 +62,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.spi.FileSystemProvider
 import kotlin.random.Random
-import org.junit.After
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertTrue
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
+
 
 private val NUMBER_OF_SAMPLES = 40
 
@@ -172,11 +173,10 @@ class PerfgateGradleClassFileFinderTest {
       }
     )
 
-  @Before
-  fun setup() {
-    // This is so the IdempotenceChecker does not recalculate cached values on every iteration
-    ApplicationManagerEx.setInStressTest(true)
-  }
+  // This is so the IdempotenceChecker does not recalculate cached values on every iteration
+  @JvmField
+  @Rule
+  val forceStressRule: TestRule = StressTestRule(true)
 
   @After
   fun tearDown() {
