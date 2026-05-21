@@ -17,6 +17,7 @@ package com.android.tools.idea.instrumentation.threading
 
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerHook
+import com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerTrampoline
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ThreadingAgentUsageEvent
@@ -121,6 +122,11 @@ class ThreadingCheckerHookImpl(private val threadingViolationNotifier: Threading
     // Index of an annotated method. We need to skip Thread#getStackTrace, ThreadingCheckerHookImpl#recordViolation,
     // ThreadingCheckerHookImpl#verifyOnUiThread, ThreadingCheckerTrampoline#verifyOnUiThread stack frames.
     val annotatedMethodIndex = 4
+
+    if (ThreadingCheckerTrampoline.isIgnored(stackTrace, annotatedMethodIndex)) {
+      return
+    }
+
     val methodSignature = stackTrace[annotatedMethodIndex].className + "#" + stackTrace[annotatedMethodIndex].methodName
     val violationCount = threadingViolations.computeIfAbsent(methodSignature) { AtomicLong() }.incrementAndGet()
     val loggedStackTrace =

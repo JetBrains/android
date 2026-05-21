@@ -19,6 +19,7 @@ import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerTrampoline
+import com.android.tools.instrumentation.threading.agent.callback.setBaseline
 import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ProductDetails
@@ -157,6 +158,52 @@ class ThreadingCheckerHookImplTest {
     Truth.assertThat(threadingCheckerHook.threadingViolations.keys).hasSize(0)
     thread { ThreadingCheckerTrampoline.verifyReadLock() }.join()
     Truth.assertThat(threadingCheckerHook.threadingViolations.keys).hasSize(1)
+  }
+
+  @Test
+  fun testBaseline() {
+
+    fun violateAll() {
+      val m = MyClass()
+      thread {
+          m.methodUiThreadA()
+          m.methodUiThreadB()
+
+          m.methodReadLockA()
+          m.methodReadLockB()
+          m.methodWriteLockA()
+          m.methodWriteLockB()
+        }
+        .join()
+
+      m.methodWorkerThreadA()
+      m.methodWorkerThreadB()
+
+      m.methodNoReadLockA()
+      m.methodNoReadLockB()
+    }
+
+    Truth.assertThat(threadingCheckerHook.threadingViolations).hasSize(0)
+
+    violateAll()
+
+    Truth.assertThat(threadingCheckerHook.threadingViolations).hasSize(10)
+
+    threadingCheckerHook.threadingViolations.clear()
+    setBaseline(
+      """
+      com.android.tools.idea.instrumentation.threading.MyClass#methodUiThreadA
+      com.android.tools.idea.instrumentation.threading.MyClass#methodReadLockA
+      com.android.tools.idea.instrumentation.threading.MyClass#methodWriteLockA
+      com.android.tools.idea.instrumentation.threading.MyClass#methodWorkerThreadA
+      com.android.tools.idea.instrumentation.threading.MyClass#methodNoReadLockA
+      """
+        .trimIndent()
+    ) {
+      violateAll()
+    }
+
+    Truth.assertThat(threadingCheckerHook.threadingViolations).hasSize(5)
   }
 
   @Test
