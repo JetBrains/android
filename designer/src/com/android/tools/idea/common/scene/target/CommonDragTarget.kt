@@ -20,6 +20,7 @@ import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.addComponentsAndSelectedIfCreated
 import com.android.tools.idea.common.scene.Placeholder
 import com.android.tools.idea.common.scene.Region
@@ -40,6 +41,7 @@ import com.android.tools.idea.uibuilder.handlers.relative.targets.drawTop
 import com.android.tools.idea.uibuilder.scene.target.TargetSnapper
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
+import com.intellij.openapi.application.runReadActionBlocking
 import com.intellij.ui.JBColor
 import java.awt.Color
 import java.awt.Cursor
@@ -408,18 +410,20 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
     draggedComponents.forEach { it.isDragging = false }
     placeholderHosts = emptySet()
     currentSnappedPlaceholder = null
-    draggedComponents.forEachIndexed { index, component ->
-      component.isDragging = false
-      // Rollback the transaction. Some attributes may be changed due to live rendering.
-      val nlComponent = component.authoritativeNlComponent
-      if (nlComponent.startAttributeTransaction().rollback()) {
-        // Has pending value means it has live change, fire live change event since it is changed
-        // back.
-        nlComponent.fireLiveChangeEvent()
+    val componentsToFire = mutableListOf<NlComponent>()
+    runReadActionBlocking {
+      draggedComponents.forEachIndexed { index, component ->
+        component.isDragging = false
+        // Rollback the transaction. Some attributes may be changed due to live rendering.
+        val nlComponent = component.authoritativeNlComponent
+        if (nlComponent.startAttributeTransaction().rollback()) {
+          componentsToFire.add(nlComponent)
+        }
       }
+      draggedComponents.forEach { it.authoritativeNlComponent.clearTransaction() }
     }
+    componentsToFire.forEach { it.fireLiveChangeEvent() }
     newSelectedComponents = draggedComponents
-    draggedComponents.forEach { it.authoritativeNlComponent.clearTransaction() }
     draggedComponents = emptyList()
     myComponent.scene.markNeedsLayout(Scene.ANIMATED_LAYOUT)
   }
