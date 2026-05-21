@@ -308,8 +308,10 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
         });
       });
       ConfigureModuleStepKt.registerKtsAgpVersionValidation(myValidatorPanel, myProjectModel);
-      myBindings.bind(new VisibleProperty(myAndroidGradlePluginCombo), myProjectModel.getTemplateRendererStrategy().transform(it -> it == null));
-      myBindings.bind(new VisibleProperty(myAndroidGradlePluginLabel), myProjectModel.getTemplateRendererStrategy().transform(it -> it == null));
+      myBindings.bind(new VisibleProperty(myAndroidGradlePluginCombo), myProjectModel.getTemplateRendererStrategy().transform(
+        Optional::isEmpty));
+      myBindings.bind(new VisibleProperty(myAndroidGradlePluginLabel), myProjectModel.getTemplateRendererStrategy().transform(
+        Optional::isEmpty));
     } else {
       myAndroidGradlePluginLabel.setVisible(false);
       myAndroidGradlePluginCombo.setVisible(false);
