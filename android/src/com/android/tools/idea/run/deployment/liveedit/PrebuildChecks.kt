@@ -28,6 +28,8 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Co
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedBuildSrcChange
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.virtualFileNotExist
 import com.intellij.ide.plugins.PluginManager
+import com.intellij.internal.statistic.utils.PluginType
+import com.intellij.internal.statistic.utils.getPluginInfoByDescriptor
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.extensions.PluginId
@@ -96,8 +98,22 @@ internal fun checkKotlinPluginBundled() {
   }
 }
 
-fun isKotlinPluginBundled() =
-  PluginManager.getInstance().findEnabledPlugin(PluginId.getId(kotlinPluginId))?.isBundled ?: false
+fun isKotlinPluginBundled(): Boolean {
+  val kotlinPluginDescriptor = PluginManager.getInstance().findEnabledPlugin(PluginId.getId(kotlinPluginId)) ?: return false
+  val kotlinPluginInfo = getPluginInfoByDescriptor(kotlinPluginDescriptor)
+  return when (kotlinPluginInfo.type) {
+    PluginType.JB_BUNDLED,
+    PluginType.JB_UPDATED_BUNDLED -> true
+
+    PluginType.JVM_CORE,
+    PluginType.PLATFORM,
+    PluginType.JB_NOT_BUNDLED,
+    PluginType.LISTED,
+    PluginType.NOT_LISTED,
+    PluginType.UNKNOWN,
+    PluginType.FROM_SOURCES -> false
+  }
+}
 
 internal fun readActionPrebuildChecks(project: Project, file: PsiFile) {
   ApplicationManager.getApplication().assertReadAccessAllowed()
