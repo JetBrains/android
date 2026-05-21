@@ -205,6 +205,7 @@
       <module fileurl="file://$PROJECT_DIR$/app-inspection/integration/intellij.android.app-inspection.integration.iml" filepath="$PROJECT_DIR$/app-inspection/integration/intellij.android.app-inspection.integration.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/asfp/base/asfp.base.iml" filepath="$PROJECT_DIR$/../../vendor/google/asfp/base/asfp.base.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/asfp/base/asfp.base.tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/asfp/base/asfp.base.tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/asfp/internal/asfp.internal.iml" filepath="$PROJECT_DIR$/../../vendor/google/asfp/internal/asfp.internal.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/asfp/studio/asfp.studio.iml" filepath="$PROJECT_DIR$/../../vendor/google/asfp/studio/asfp.studio.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/aswb/integration/aswb.integration.iml" filepath="$PROJECT_DIR$/../../vendor/google/aswb/integration/aswb.integration.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/soong/parser/blueprint-parser.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/soong/parser/blueprint-parser.iml" />
