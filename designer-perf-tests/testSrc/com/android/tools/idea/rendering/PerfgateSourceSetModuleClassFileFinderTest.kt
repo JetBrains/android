@@ -49,6 +49,12 @@ import com.intellij.testFramework.utils.io.createFile
 import com.intellij.testFramework.utils.io.deleteRecursively
 import com.intellij.util.io.createDirectories
 import com.intellij.util.ui.UIUtil
+import org.junit.After
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.TestRule
 import java.io.File
 import java.net.URI
 import java.nio.file.FileSystems
@@ -56,12 +62,6 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.spi.FileSystemProvider
 import kotlin.random.Random
-import org.junit.After
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertTrue
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.TestRule
 
 private val NUMBER_OF_SAMPLES = 40
 
@@ -168,7 +168,9 @@ class PerfgateSourceSetModuleClassFileFinderTest {
     )
 
   // This is so the IdempotenceChecker does not recalculate cached values on every iteration
-  @JvmField @Rule val forceStressRule: TestRule = StressTestRule(true)
+  @JvmField
+  @Rule
+  val forceStressRule: TestRule = StressTestRule(true)
 
   @After
   fun tearDown() {
