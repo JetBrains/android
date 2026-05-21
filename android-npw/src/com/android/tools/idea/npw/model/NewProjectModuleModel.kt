@@ -105,7 +105,7 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
       when {
         hasCompanionApp.get() -> getModuleName(formFactor.get())
         // we don't allow watch faces to have a companion app
-        newRenderTemplate.valueOrNull?.category == Category.WatchFace -> "watchface"
+        newRenderTemplate.valueOrNull?.category == TODO("TODO: android-merge; needs a cherry-pick of a commit replacing Category.WatchFace") -> "watchface"
         else -> SdkConstants.APP_PREFIX
       }
 

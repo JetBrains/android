@@ -101,8 +101,8 @@ class LeakCanaryLogcatCommandHandlerTest {
 
   @Test
   fun testHandleLogcatTracking() {
-    assertTrue(shouldHandleCommand(Commands.Command.CommandType.START_LOGCAT_TRACKING))
-    assertTrue(shouldHandleCommand(Commands.Command.CommandType.STOP_LOGCAT_TRACKING))
+    assertTrue(shouldHandleCommand(Commands.Command.CommandType.START_LEAKCANARY_TASK)) // TODO: android-merge; updated as in upstream
+    assertTrue(shouldHandleCommand(Commands.Command.CommandType.STOP_LEAKCANARY_TASK)) // TODO: android-merge; updated as in upstream
   }
 
   @Test
@@ -113,7 +113,7 @@ class LeakCanaryLogcatCommandHandlerTest {
   @Test
   fun testExecuteStartLogcatTracking() {
     val command = Commands.Command.newBuilder()
-      .setType(Commands.Command.CommandType.START_LOGCAT_TRACKING)
+      .setType(Commands.Command.CommandType.START_LEAKCANARY_TASK) // TODO: android-merge; updated as in upstream
       .setPid(123)
       .build()
     val response = handler.execute(command)
@@ -123,7 +123,7 @@ class LeakCanaryLogcatCommandHandlerTest {
   @Test
   fun testExecuteStopLogcatTracking() {
     val command = Commands.Command.newBuilder()
-      .setType(Commands.Command.CommandType.STOP_LOGCAT_TRACKING)
+      .setType(Commands.Command.CommandType.STOP_LEAKCANARY_TASK) // TODO: android-merge; updated as in upstream
       .build()
     val response = handler.execute(command)
     assertNotNull(response)
@@ -132,7 +132,7 @@ class LeakCanaryLogcatCommandHandlerTest {
   @Test
   fun testLeakCanaryLogWithDifferentTag() = runTest {
     handler = LeakCanaryLogcatCommandHandler(mockDevice, transportServiceGrpc, mockEventQueue)
-    handler.execute(Commands.Command.newBuilder().setType(Commands.Command.CommandType.START_LOGCAT_TRACKING).setPid(123).build())
+    handler.execute(Commands.Command.newBuilder().setType(Commands.Command.CommandType.START_LEAKCANARY_TASK).setPid(123).build()) // TODO: android-merge; updated as in upstream
 
     // Before pushing messages wait for logcat to setup
     waitForEvent(this)
@@ -169,7 +169,7 @@ class LeakCanaryLogcatCommandHandlerTest {
 
   private fun testLogcatWithMultipleLeaks(oneLinePerLogEntry: Boolean) = runTest {
     handler = LeakCanaryLogcatCommandHandler(mockDevice, transportServiceGrpc, mockEventQueue)
-    handler.execute(Commands.Command.newBuilder().setType(Commands.Command.CommandType.START_LOGCAT_TRACKING).setPid(123).build())
+    handler.execute(Commands.Command.newBuilder().setType(Commands.Command.CommandType.START_LEAKCANARY_TASK).setPid(123).build()) // TODO: android-merge; updated as in upstream
 
     // Before pushing messages wait for logcat to setup
     waitForEvent(this)
@@ -200,7 +200,7 @@ class LeakCanaryLogcatCommandHandlerTest {
   @Test
   fun testLogcatWithCompleteLeakAfterInCompleteLeak() = runTest {
     handler = LeakCanaryLogcatCommandHandler(mockDevice, transportServiceGrpc, mockEventQueue)
-    handler.execute(Commands.Command.newBuilder().setType(Commands.Command.CommandType.START_LOGCAT_TRACKING).setPid(123).build())
+    handler.execute(Commands.Command.newBuilder().setType(Commands.Command.CommandType.START_LEAKCANARY_TASK).setPid(123).build()) // TODO: android-merge; updated as in upstream
 
     // Before pushing messages wait for logcat to setup
     waitForEvent(this)
@@ -242,7 +242,7 @@ class LeakCanaryLogcatCommandHandlerTest {
   @Test
   fun testLogcatWithIncompleteLeak() = runTest {
     handler = LeakCanaryLogcatCommandHandler(mockDevice, transportServiceGrpc, mockEventQueue)
-    handler.execute(Commands.Command.newBuilder().setType(Commands.Command.CommandType.START_LOGCAT_TRACKING).setPid(123).build())
+    handler.execute(Commands.Command.newBuilder().setType(Commands.Command.CommandType.START_LEAKCANARY_TASK).setPid(123).build()) // TODO: android-merge; updated as in upstream
 
     // Before pushing messages wait for logcat to setup
     waitForEvent(this)
@@ -275,7 +275,7 @@ class LeakCanaryLogcatCommandHandlerTest {
 
   private fun verifyEndEvent() {
     `when`(transportServiceGrpc.getCurrentTime(any())).thenReturn(Transport.TimeResponse.newBuilder().setTimestampNs(endTime).build())
-    handler.execute(Commands.Command.newBuilder().setType(Commands.Command.CommandType.STOP_LOGCAT_TRACKING).setPid(123).build())
+    handler.execute(Commands.Command.newBuilder().setType(Commands.Command.CommandType.STOP_LEAKCANARY_TASK).setPid(123).build()) // TODO: android-merge; updated as in upstream
     assertEquals(mockEventQueue.size, 1)
     val leakInfoEndEvent = mockEventQueue.poll()
     assertEquals(Common.Event.Kind.LEAKCANARY_ANALYSIS_STATUS, leakInfoEndEvent.kind)

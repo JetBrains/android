@@ -509,6 +509,7 @@ class LintModelFactory : LintModelModuleLoader {
       instrumentationTestOnly = providerContainer.isInstrumentationTest(),
       debugOnly = debugOnly,
       testFixture = providerContainer.isTestFixtures(),
+      keepRulesDirectories = TODO("TODO: android-merge; needs a cherry-pick of a commit providing provider.keepRulesDirectories"),
     )
   }
 
@@ -528,6 +529,7 @@ class LintModelFactory : LintModelModuleLoader {
       instrumentationTestOnly = instrumentationTestOnly,
       debugOnly = debugOnly,
       testFixture = testFixturesOnly,
+      keepRulesDirectories = TODO("TODO: android-merge; needs a cherry-pick of a commit providing provider.keepRulesDirectories"),
     )
   }
 

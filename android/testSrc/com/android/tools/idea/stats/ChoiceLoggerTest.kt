@@ -30,7 +30,7 @@ import org.junit.Test
 
 class ChoiceLoggerTest {
   lateinit var usageTrackerWriter: TestUsageTracker
-  lateinit var oldUsageTrackerWriter: UsageTrackerWriter<AndroidStudioEvent.Builder>
+  lateinit var oldUsageTrackerWriter: UsageTrackerWriter // TODO: android-merge; removed as in upstream
 
   @Before
   fun setUp() {

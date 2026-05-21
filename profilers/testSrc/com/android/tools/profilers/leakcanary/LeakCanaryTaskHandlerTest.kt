@@ -91,7 +91,7 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
   @Test
   fun `startCapture and stopCapture - starting LeakCanary and fetching events till stop`() {
     val startTime = System.currentTimeMillis()
-    transportService.setCommandHandler(Commands.Command.CommandType.START_LOGCAT_TRACKING,
+    transportService.setCommandHandler(Commands.Command.CommandType.START_LEAKCANARY_TASK, // TODO: android-merge; changed as in upstream
                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(
                                         "SingleApplicationLeak.txt",
                                         "SingleApplicationLeakAnalyzeCmd.txt",
@@ -100,7 +100,7 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
                                       ), startTime))
     transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
-    transportService.setCommandHandler(Commands.Command.CommandType.STOP_LOGCAT_TRACKING,
+    transportService.setCommandHandler(Commands.Command.CommandType.STOP_LEAKCANARY_TASK, // TODO: android-merge; changed as in upstream
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     leakCanaryTaskHandler.setupStage()
     val stage = leakCanaryTaskHandler.stage as LeakCanaryModel
@@ -122,7 +122,7 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
   @Test
   fun `startCapture, stopCapture and load test - send events stop and reload the recording`() {
     val startTime = System.currentTimeMillis()
-    transportService.setCommandHandler(Commands.Command.CommandType.START_LOGCAT_TRACKING,
+    transportService.setCommandHandler(Commands.Command.CommandType.START_LEAKCANARY_TASK, // TODO: android-merge; changed as in upstream
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(
                                          "SingleApplicationLeak.txt",
                                          "SingleApplicationLeakAnalyzeCmd.txt",
@@ -131,7 +131,7 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
                                        ), startTime))
     transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
-    transportService.setCommandHandler(Commands.Command.CommandType.STOP_LOGCAT_TRACKING,
+    transportService.setCommandHandler(Commands.Command.CommandType.STOP_LEAKCANARY_TASK, // TODO: android-merge; changed as in upstream
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     leakCanaryTaskHandler.setupStage()
     val stage = leakCanaryTaskHandler.stage as LeakCanaryModel
@@ -241,11 +241,11 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
   @Test
   fun `verify LeakCanary detects destroyed Activity instances leak`() {
     val startTime = System.currentTimeMillis()
-    transportService.setCommandHandler(Commands.Command.CommandType.START_LOGCAT_TRACKING,
+    transportService.setCommandHandler(Commands.Command.CommandType.START_LEAKCANARY_TASK, // TODO: android-merge; changed as in upstream
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf("ActivityLeak.txt"), startTime))
     transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
-    transportService.setCommandHandler(Commands.Command.CommandType.STOP_LOGCAT_TRACKING,
+    transportService.setCommandHandler(Commands.Command.CommandType.STOP_LEAKCANARY_TASK, // TODO: android-merge; changed as in upstream
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     leakCanaryTaskHandler.setupStage()
     val stage = leakCanaryTaskHandler.stage as LeakCanaryModel
@@ -266,11 +266,11 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
   @Test
   fun `verify LeakCanary detects destroyed Fragment instances leak`() {
     val startTime = System.currentTimeMillis()
-    transportService.setCommandHandler(Commands.Command.CommandType.START_LOGCAT_TRACKING,
+    transportService.setCommandHandler(Commands.Command.CommandType.START_LEAKCANARY_TASK, // TODO: android-merge; changed as in upstream
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf("FragmentLeak.txt"), startTime))
     transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
-    transportService.setCommandHandler(Commands.Command.CommandType.STOP_LOGCAT_TRACKING,
+    transportService.setCommandHandler(Commands.Command.CommandType.STOP_LEAKCANARY_TASK, // TODO: android-merge; changed as in upstream
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     leakCanaryTaskHandler.setupStage()
     val stage = leakCanaryTaskHandler.stage as LeakCanaryModel
@@ -295,11 +295,11 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
   @Test
   fun `verify LeakCanary detects destroyed fragment View instances leak`() {
     val startTime = System.currentTimeMillis()
-    transportService.setCommandHandler(Commands.Command.CommandType.START_LOGCAT_TRACKING,
+    transportService.setCommandHandler(Commands.Command.CommandType.START_LEAKCANARY_TASK, // TODO: android-merge; changed as in upstream
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf("FragmentViewLeak.txt"), startTime))
     transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
-    transportService.setCommandHandler(Commands.Command.CommandType.STOP_LOGCAT_TRACKING,
+    transportService.setCommandHandler(Commands.Command.CommandType.STOP_LEAKCANARY_TASK, // TODO: android-merge; changed as in upstream
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     leakCanaryTaskHandler.setupStage()
     val stage = leakCanaryTaskHandler.stage as LeakCanaryModel
@@ -324,11 +324,11 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
   @Test
   fun `verify LeakCanary detects cleared ViewModel instances leak`() {
     val startTime = System.currentTimeMillis()
-    transportService.setCommandHandler(Commands.Command.CommandType.START_LOGCAT_TRACKING,
+    transportService.setCommandHandler(Commands.Command.CommandType.START_LEAKCANARY_TASK, // TODO: android-merge; changed as in upstream
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf("ViewModelLeak.txt"), startTime))
     transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
-    transportService.setCommandHandler(Commands.Command.CommandType.STOP_LOGCAT_TRACKING,
+    transportService.setCommandHandler(Commands.Command.CommandType.STOP_LEAKCANARY_TASK, // TODO: android-merge; changed as in upstream
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     leakCanaryTaskHandler.setupStage()
     val stage = leakCanaryTaskHandler.stage as LeakCanaryModel
@@ -353,11 +353,11 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
   @Test
   fun `verify LeakCanary detects destroyed Service instance leak`() {
     val startTime = System.currentTimeMillis()
-    transportService.setCommandHandler(Commands.Command.CommandType.START_LOGCAT_TRACKING,
+    transportService.setCommandHandler(Commands.Command.CommandType.START_LEAKCANARY_TASK, // TODO: android-merge; changed as in upstream
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf("ServiceLeak.txt"), startTime))
     transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
-    transportService.setCommandHandler(Commands.Command.CommandType.STOP_LOGCAT_TRACKING,
+    transportService.setCommandHandler(Commands.Command.CommandType.STOP_LEAKCANARY_TASK, // TODO: android-merge; changed as in upstream
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     leakCanaryTaskHandler.setupStage()
     val stage = leakCanaryTaskHandler.stage as LeakCanaryModel

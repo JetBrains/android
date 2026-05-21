@@ -51,6 +51,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers,
                       heapDumper: LeakCanaryHeapDumper? = null) : ModelStage(profilers), Updatable {
 
   private lateinit var statusListener: TransportEventListener
+  // TODO: android-merge; removed as in upstream
   private lateinit var hostAnalysisTriggerListener: TransportEventListener
   private val logger: Logger = Logger.getInstance(LeakCanaryModel::class.java)
   private var sessionData = profilers.session
@@ -164,16 +165,17 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers,
                                             })
     profilers.transportPoller.registerListener(statusListener)
 
-    hostAnalysisTriggerListener = TransportEventListener(eventKind = Common.Event.Kind.LEAKCANARY_HOST_ANALYSIS_TRIGGER,
-                                                         executor = profilers.ideServices.poolExecutor,
-                                                         streamId = { profilers.session.streamId },
-                                                         processId = { profilers.session.pid },
-                                                         startTime = { startTime },
-                                                         callback = { _ ->
-                                                           heapDumper.triggerAndAnalyze()
-                                                           false
-                                                         })
-    profilers.transportPoller.registerListener(hostAnalysisTriggerListener)
+    // TODO: android-merge; removed as in upstream
+    //hostAnalysisTriggerListener = TransportEventListener(eventKind = Common.Event.Kind.LEAKCANARY_HOST_ANALYSIS_TRIGGER,
+    //                                                     executor = profilers.ideServices.poolExecutor,
+    //                                                     streamId = { profilers.session.streamId },
+    //                                                     processId = { profilers.session.pid },
+    //                                                     startTime = { startTime },
+    //                                                     callback = { _ ->
+    //                                                       heapDumper.triggerAndAnalyze()
+    //                                                       false
+    //                                                     })
+    //profilers.transportPoller.registerListener(hostAnalysisTriggerListener)
   }
 
   private fun checkLeakCanaryPresence() {
@@ -209,6 +211,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers,
 
   private fun deregisterLeakCanaryListeners() {
     profilers.transportPoller.unregisterListener(statusListener)
+    // TODO: android-merge; removed as in upstream
     profilers.transportPoller.unregisterListener(hostAnalysisTriggerListener)
   }
 
@@ -283,20 +286,21 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers,
   private fun toggleLeakCanaryLogcatTracking(session: Common.Session,
                                              enable: Boolean,
                                              endSession: Boolean) {
-    val cmd = Commands.Command.newBuilder().apply {
-      streamId = session.streamId
-      pid = session.pid
-      if (enable) {
-        type = Commands.Command.CommandType.START_LOGCAT_TRACKING
-      }
-      else {
-        type = Commands.Command.CommandType.STOP_LOGCAT_TRACKING
-        if (endSession) {
-          sessionId = session.sessionId
-        }
-      }
-    }
-    profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(cmd).build())
+    // TODO: android-merge; removed as in upstream
+    //val cmd = Commands.Command.newBuilder().apply {
+    //  streamId = session.streamId
+    //  pid = session.pid
+    //  if (enable) {
+    //    type = Commands.Command.CommandType.START_LOGCAT_TRACKING
+    //  }
+    //  else {
+    //    type = Commands.Command.CommandType.STOP_LOGCAT_TRACKING
+    //    if (endSession) {
+    //      sessionId = session.sessionId
+    //    }
+    //  }
+    //}
+    //profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(cmd).build())
   }
 
   // Setting it to UNKNOWN_STAGE since stage usage is avoided in task-based ux.

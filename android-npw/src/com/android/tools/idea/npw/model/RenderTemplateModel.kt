@@ -175,7 +175,7 @@ private constructor(
         category = newTemplate.category
         isCompose = newTemplate.constraints.contains(TemplateConstraint.Compose)
         isMaterial3 = newTemplate.constraints.contains(TemplateConstraint.Material3)
-        isWatchFace = newTemplate.category == Category.WatchFace
+        isWatchFace = false // TODO: android-merge; needs a cherry-pick of a commit adapting to the new way to test for a watch project
         useGenericInstrumentedTests = newTemplate.useGenericInstrumentedTests
         useGenericLocalTests = newTemplate.useGenericLocalTests
         projectTemplateDataBuilder.language = language.value

@@ -775,7 +775,8 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     buildModel.android().useLibraries().create(name)
   }
 
-  override fun addCompileSdk(androidVersion: AndroidVersion) {
+  // TODO: android-merge; the interface we override this for had changed the signature
+  override fun addCompileSdk(androidVersion: AndroidVersion, isKotlinMultiplatform: Boolean) {
     val agpVersion = AndroidGradlePluginVersion.parse(projectTemplateData.agpVersion.toString())
     val compileSdkBlockVersion = VersionConstraint.agpFrom(COMPILE_SDK_BLOCK_VERSION)
 

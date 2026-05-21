@@ -62,7 +62,7 @@ public final class StudioFlags {
   private static Flags createFlags() {
     FlagValueContainer userOverrides;
     if (isUnitTestMode()) {
-      userOverrides = new InMemoryFlagValueContainer();
+      userOverrides = new InMemoryFlagValueContainer("StudioFlags"); // TODO: android-merge; needs a cherry-pick of a commit providing correct value
     }
     else {
       userOverrides = new LazyStudioFlagSettings();

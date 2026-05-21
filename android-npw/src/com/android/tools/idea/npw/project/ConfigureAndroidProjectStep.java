@@ -306,7 +306,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myFormFactorSdkControls.startDataLoading(toWizardFormFactor(formFactor), minSdk);
     setTemplateThumbnail(newTemplate);
     boolean isKotlinOnly = newTemplate.getConstraints().contains(TemplateConstraint.Kotlin);
-    boolean isWatchFace = newTemplate.getCategory() == Category.WatchFace;
+    boolean isWatchFace = false; // TODO: android-merge; needs a cherry-pick of a commit adapting to the new way to test for a watch project
 
     myProjectLanguage.setVisible(!isKotlinOnly && !isWatchFace);
     myProjectLanguageLabel.setVisible(!isKotlinOnly && !isWatchFace);

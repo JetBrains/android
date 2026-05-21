@@ -291,7 +291,7 @@ public class LayoutTestUtilities {
     settings.setOptedIn(true);
     AnalyticsSettings.setInstanceForTest(settings);
 
-    UsageTrackerWriter<AndroidStudioEvent.Builder> tracker = new TestUsageTracker(new VirtualTimeScheduler());
+    UsageTrackerWriter tracker = new TestUsageTracker(new VirtualTimeScheduler()); // TODO: android-merge; the class had dropped the generic parameter
     UsageTracker.setWriterForTest(tracker);
 
     NlUsageTracker usageTracker = mock(NlUsageTracker.class);

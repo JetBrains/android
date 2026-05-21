@@ -74,8 +74,9 @@ class LeakCanaryLogcatCommandHandler(
   }
 
   override fun shouldHandle(command: Commands.Command): Boolean {
-    return command.type == Commands.Command.CommandType.START_LOGCAT_TRACKING ||
-           command.type == Commands.Command.CommandType.STOP_LOGCAT_TRACKING
+    // TODO: android-merge; updated as in upstream
+    return command.type == Commands.Command.CommandType.START_LEAKCANARY_TASK ||
+           command.type == Commands.Command.CommandType.STOP_LEAKCANARY_TASK
   }
 
   private fun resetTrackingState() {
@@ -196,9 +197,10 @@ class LeakCanaryLogcatCommandHandler(
   }
 
   override fun execute(command: Commands.Command): Transport.ExecuteResponse {
+    // TODO: android-merge; updated as in upstream
     when (command.type) {
-      Commands.Command.CommandType.START_LOGCAT_TRACKING -> startTrace(command)
-      Commands.Command.CommandType.STOP_LOGCAT_TRACKING -> stopTrace(command)
+      Commands.Command.CommandType.START_LEAKCANARY_TASK -> startTrace(command)
+      Commands.Command.CommandType.STOP_LEAKCANARY_TASK -> stopTrace(command)
       else -> {}
     }
     return Transport.ExecuteResponse.newBuilder().build()
@@ -225,9 +227,10 @@ class LeakCanaryLogcatCommandHandler(
             handled = detectAndHandleCompleteLeakTraces(logcatMessage)
           }
 
-          if (!handled) {
-            handled = detectAndHandleHostAnalysisTrigger(logcatMessage)
-          }
+          // TODO: android-merge; removed as in upstream
+          //if (!handled) {
+          //  handled = detectAndHandleHostAnalysisTrigger(logcatMessage)
+          //}
 
           // Partial traces should only run if the logcat message was not handled by an explicit LeakCanary event (complete trace, trigger, etc.)
           if (!handled) {
@@ -381,19 +384,20 @@ Heap dump duration: Unknown
     }
   }
 
-  // Returns true if the host analysis trigger event was sent, false otherwise.
-  private fun detectAndHandleHostAnalysisTrigger(logcatMessage: LogcatMessage): Boolean {
-    val HOST_ANALYSIS_TRIGGER_STRING = "The heap dump will be collected and analyzed by the Android Studio"
-    if (LEAKCANARY_TAG == logcatMessage.header.tag && HOST_ANALYSIS_TRIGGER_STRING in logcatMessage.message) {
-      logger.info("Host analysis trigger detected.")
-      eventQueue.offer(Common.Event.newBuilder()
-                         .setGroupId(pid.toLong())
-                         .setPid(pid)
-                         .setKind(Common.Event.Kind.LEAKCANARY_HOST_ANALYSIS_TRIGGER)
-                         .setTimestamp(getCurrentTimestampInNs())
-                         .build())
-      return true
-    }
-    return false
-  }
+  // TODO: android-merge; removed as in upstream
+  //// Returns true if the host analysis trigger event was sent, false otherwise.
+  //private fun detectAndHandleHostAnalysisTrigger(logcatMessage: LogcatMessage): Boolean {
+  //  val HOST_ANALYSIS_TRIGGER_STRING = "The heap dump will be collected and analyzed by the Android Studio"
+  //  if (LEAKCANARY_TAG == logcatMessage.header.tag && HOST_ANALYSIS_TRIGGER_STRING in logcatMessage.message) {
+  //    logger.info("Host analysis trigger detected.")
+  //    eventQueue.offer(Common.Event.newBuilder()
+  //                       .setGroupId(pid.toLong())
+  //                       .setPid(pid)
+  //                       .setKind(Common.Event.Kind.LEAKCANARY_HOST_ANALYSIS_TRIGGER)
+  //                       .setTimestamp(getCurrentTimestampInNs())
+  //                       .build())
+  //    return true
+  //  }
+  //  return false
+  //}
 }
