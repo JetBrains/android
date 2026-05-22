@@ -18,7 +18,6 @@ package com.android.tools.idea.device.explorer.files.adbimpl
 import com.android.adblib.ConnectedDevice
 import com.android.adblib.connectedDevicesTracker
 import com.android.adblib.testingutils.FakeAdbServerProviderRule
-import com.android.ddmlib.DdmPreferences
 import com.android.fakeadbserver.ShellProtocolType.SHELL
 import com.android.fakeadbserver.ShellProtocolType.SHELL_V2
 import com.android.sdklib.AndroidApiLevel
@@ -34,12 +33,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.jetbrains.ide.PooledThreadExecutor
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExpectedException
-import org.junit.runners.Parameterized
 
 class AdbFileListingTest {
   private val deviceName = "Test Device"
@@ -60,25 +57,10 @@ class AdbFileListingTest {
   private val dispatcher = PooledThreadExecutor.INSTANCE.asCoroutineDispatcher()
   private val scope = CoroutineScope(dispatcher)
 
-  private var originalTimeout = 0
-
   @Before
   fun setUp() {
     // AdbLib makes use of ApplicationManager, so we need to set one up.
     TestApplicationManager.getInstance()
-
-    // We need the DDMLib timeout to be shorter than the test timeout, so that we can test that
-    // ShellCommandUnresponsiveException is produced when ADB is slow to respond. The default
-    // timeout of 5s is fine. However, the AdbService singleton messes with this timeout, so this
-    // test may fail (depending on test execution order) unless we set the timeout ourselves.
-    // (And the proper solution of resetting all shared state between tests appears infeasible.)
-    originalTimeout = DdmPreferences.getTimeOut()
-    DdmPreferences.setTimeOut(5_000)
-  }
-
-  @After
-  fun tearDown() {
-    DdmPreferences.setTimeOut(originalTimeout)
   }
 
   @Test
@@ -360,10 +342,5 @@ class AdbFileListingTest {
       val entry = checkNotNull(entries.find { it.name == name })
       consumer.accept(entry)
     }
-
-    @SuppressWarnings("unused")
-    @JvmStatic
-    @Parameterized.Parameters(name = "{0}")
-    fun data(): Array<Any?> = arrayOf(DeviceInterfaceLibrary.DDMLIB, DeviceInterfaceLibrary.ADBLIB)
   }
 }
