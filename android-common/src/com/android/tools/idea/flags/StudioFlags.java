@@ -2437,6 +2437,12 @@ public final class StudioFlags {
                     "Allow users to override prompt for suggesting commit messages",
                     "Enables the \"Commit Message Generation\" in Prompt Library setting");
 
+
+  public static final Flag<Boolean> VCS_MERGE_CONFLICTS_ACTION =
+    new BooleanFlag(STUDIOBOT, "vcs.merge.conflicts.agent",
+    "Enable the Merge Conflicts action.",
+    "If enabled, the merge conflicts action is available.");
+
   public static final Flag<Boolean> README_GENERATION =
     new BooleanFlag(STUDIOBOT, "readme.generation",
                     "Use ML model to create a README",
