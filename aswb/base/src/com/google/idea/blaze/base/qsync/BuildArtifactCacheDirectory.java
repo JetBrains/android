@@ -33,6 +33,7 @@ import com.google.common.collect.Sets;
 import com.google.common.io.ByteSource;
 import com.google.common.io.CharSource;
 import com.google.common.io.MoreFiles;
+import com.google.common.io.RecursiveDeleteOption;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -518,7 +519,7 @@ public class BuildArtifactCacheDirectory implements BuildArtifactCache {
           "Failed to purge the build artifact cache. Cannot obtain the write lock.");
     }
     try {
-      MoreFiles.deleteDirectoryContents(cacheDir);
+      MoreFiles.deleteDirectoryContents(cacheDir, RecursiveDeleteOption.ALLOW_INSECURE);
     } catch (IOException e) {
       throw new BuildException("Failed to purge the build artifact cache", e);
     } finally {

@@ -307,6 +307,7 @@ def intellij_integration_test_suite(
     jvm_flags.extend([
         "-Didea.classpath.index.enabled=false",
         "-Djava.awt.headless=true",
+        "-Djava.nio.file.spi.DefaultFileSystemProvider=com.intellij.platform.core.nio.fs.MultiRoutingFileSystemProvider",
         "-Dblaze.idea.api.version.file=$(location %s)" % api_version_txt_name,
         "-Dintellij.ext.binary=/dev/null",
         "-Dintellij.objfs_fetcher.binary=/dev/null",

@@ -61,6 +61,7 @@ aswb_module(
         "//tools/adt/idea/aswb/kotlin",
         "//tools/adt/idea/aswb/querysync",
         "//tools/adt/idea/aswb/skylark",
+        "//tools/adt/idea/aswb/switcher",
         "//tools/adt/idea/aswb/terminal",
         "//tools/adt/idea/aswb/vcs",
     ],
