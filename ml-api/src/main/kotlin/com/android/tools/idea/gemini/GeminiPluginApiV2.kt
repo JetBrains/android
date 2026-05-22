@@ -79,6 +79,9 @@ sealed interface LlmChatInToolWindowResult {
 
 /** A gateway to the V2 chat and conversation API, wrapping `ChatInteractionService`. */
 interface GeminiPluginApiV2 {
+  /** Returns whether Gemini V2 APIs are available (if any model provider is ready and has available models.). */
+  fun isAvailable(): Boolean = false
+
   suspend fun submitQueryInEditor(
     project: Project,
     query: String,
@@ -101,6 +104,8 @@ interface GeminiPluginApiV2 {
 
     private val geminiUnavailable =
       object : GeminiPluginApiV2 {
+        override fun isAvailable(): Boolean = false
+
         override suspend fun submitQueryInEditor(
           project: Project,
           query: String,

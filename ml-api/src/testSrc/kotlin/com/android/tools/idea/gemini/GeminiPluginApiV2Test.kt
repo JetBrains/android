@@ -26,6 +26,10 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
 private class FakeGeminiPluginApiV2 : GeminiPluginApiV2 {
+  var available = true
+
+  override fun isAvailable(): Boolean = available
+
   var editorQuery: String? = null
   var toolWindowQuery: String? = null
   var editorBlobs: List<LlmBlob> = emptyList()
@@ -130,5 +134,25 @@ class GeminiPluginApiV2Test : BasePlatformTestCase() {
     assertThat(fake.editorBlobs).isEqualTo(blobs)
     assertThat(fake.editorPayloads).isEqualTo(payloads)
     assertThat(fake.conversationTarget).isEqualTo(LlmConversationTarget.NewConversation)
+  }
+
+  @Test
+  fun defaultInstance_isAvailable_returnsFalse() {
+    val instance = GeminiPluginApiV2.getInstance()
+    assertThat(instance.isAvailable()).isFalse()
+  }
+
+  @Test
+  fun customInstance_isAvailable_delegatesCorrectly() {
+    val fake = FakeGeminiPluginApiV2()
+    ApplicationManager.getApplication().registerExtension(GeminiPluginApiV2.EP_NAME, fake, testRootDisposable)
+
+    val instance = GeminiPluginApiV2.getInstance()
+
+    fake.available = true
+    assertThat(instance.isAvailable()).isTrue()
+
+    fake.available = false
+    assertThat(instance.isAvailable()).isFalse()
   }
 }
