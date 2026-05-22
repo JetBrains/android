@@ -75,7 +75,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.swing.JComponent;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -111,7 +110,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   @NotNull private TargetType myTargetType = APK;
   private List<String> myBuildVariants;
   private GradleSigningInfo myGradleSigningInfo;
-  private boolean myUploadToPlay;
+  private boolean myUploadToPlay = false;
   @Nullable private Boolean myRegistrationState;
 
 
@@ -138,7 +137,8 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     assert myFacet != null;
     assert AndroidModel.isRequired(myFacet);
 
-    if (myUploadToPlay) {
+    // Show the modal dialog only for uploading a bundle. Uploading APK is not supported.
+    if (isUploadBundleToPlay()) {
       new Task.Modal(myProject, getRootPane(), "Building and Signing...", true) {
         @Override
         public void run(@NotNull ProgressIndicator indicator) {
@@ -207,7 +207,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
       return null;
     }
     ListenableFuture<AssembleInvocationResult> future = doBuildAndSignGradleProject(myProject, myFacet, myBuildVariants, modules, myGradleSigningInfo, myApkPath, myTargetType);
-    buildHandler.accept(future, !myUploadToPlay);
+    buildHandler.accept(future, !isUploadBundleToPlay());
     trackWizardGradleSigning(myProject, toSigningTargetType(myTargetType), modules.size(), myBuildVariants.size());
     return future;
   }
@@ -337,6 +337,10 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
   public void setUploadToPlay(boolean uploadToPlay) {
     myUploadToPlay = uploadToPlay;
+  }
+
+  private boolean isUploadBundleToPlay() {
+    return myUploadToPlay && myTargetType.equals(BUNDLE);
   }
 
   public void setRegistrationState(@Nullable Boolean registrationState) {

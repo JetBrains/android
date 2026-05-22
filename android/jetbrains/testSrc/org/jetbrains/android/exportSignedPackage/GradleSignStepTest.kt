@@ -291,6 +291,54 @@ class GradleSignStepTest {
   }
 
   @Test
+  fun testPublishingPanelShownForBundle() {
+    StudioFlags.PLAY_PUBLISHING_WIZARD_INTEGRATION.overrideForTest(true, projectRule.disposable)
+    whenever(myWizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
+
+    val gradleSignStep = GradleSignStep(myWizard)
+    val testAndroidModel: GradleAndroidModelImpl = mock()
+    whenever(testAndroidModel.moduleName).thenReturn(name)
+    whenever(testAndroidModel.filteredVariantNames).thenReturn(listOf("release"))
+    whenever(testAndroidModel.rootDirPath).thenReturn(File(homePath))
+
+    gradleSignStep._init(testAndroidModel)
+
+    assertThat(gradleSignStep.myPublishingPanel.isVisible).isTrue()
+  }
+
+  @Test
+  fun testPublishingPanelNotShownForApk() {
+    StudioFlags.PLAY_PUBLISHING_WIZARD_INTEGRATION.overrideForTest(true, projectRule.disposable)
+    whenever(myWizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
+
+    val gradleSignStep = GradleSignStep(myWizard)
+    val testAndroidModel: GradleAndroidModelImpl = mock()
+    whenever(testAndroidModel.moduleName).thenReturn(name)
+    whenever(testAndroidModel.filteredVariantNames).thenReturn(listOf("release"))
+    whenever(testAndroidModel.rootDirPath).thenReturn(File(homePath))
+
+    gradleSignStep._init(testAndroidModel)
+
+    assertThat(gradleSignStep.myPublishingPanel.isVisible).isFalse()
+  }
+
+  @Test
+  fun testPublishingPanelNotShownWhenFlagDisabled() {
+    StudioFlags.PLAY_PUBLISHING_WIZARD_INTEGRATION.overrideForTest(false, projectRule.disposable)
+    whenever(myWizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
+
+    val gradleSignStep = GradleSignStep(myWizard)
+    val testAndroidModel: GradleAndroidModelImpl = mock()
+    whenever(testAndroidModel.moduleName).thenReturn(name)
+    whenever(testAndroidModel.filteredVariantNames).thenReturn(listOf("release"))
+    whenever(testAndroidModel.rootDirPath).thenReturn(File(homePath))
+
+    gradleSignStep._init(testAndroidModel)
+
+    assertThat(gradleSignStep.myPublishingPanel.isVisible).isFalse()
+  }
+
+  @Test
   fun testClickTextTogglesCheckbox() {
     StudioFlags.PLAY_PUBLISHING_WIZARD_INTEGRATION.overrideForTest(true, projectRule.disposable)
     val step = GradleSignStep(myWizard)

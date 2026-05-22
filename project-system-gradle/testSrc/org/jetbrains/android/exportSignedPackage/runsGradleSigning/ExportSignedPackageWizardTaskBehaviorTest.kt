@@ -27,7 +27,11 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper.OK_EXIT_CODE
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import java.security.cert.X509Certificate
+import org.jetbrains.android.exportSignedPackage.ChooseBundleOrApkStep
 import org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard
+import org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizardStep
+import org.jetbrains.android.exportSignedPackage.GradleSignStep
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Before
@@ -36,6 +40,7 @@ import org.junit.Test
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 @RunsInEdt
 class ExportSignedPackageWizardTaskBehaviorTest {
@@ -86,6 +91,54 @@ class ExportSignedPackageWizardTaskBehaviorTest {
     assertThat(task.title).isEqualTo("Building and Signing...")
   }
 
+  @Test
+  fun testSwitchingFromBundleWithCheckboxChecked_SwitchToApk_DoesNotShowModal() {
+    val gradleStep = wizard.steps.last() as GradleSignStep
+
+    // Choose bundle and check the checkbox
+    wizard.setButtonsInChooseStep(ExportSignedPackageWizard.BUNDLE)
+    gradleStep._init()
+    wizard.setUploadToPlay(true)
+
+    // Simulate going back and choosing APK
+    wizard.setButtonsInChooseStep(ExportSignedPackageWizard.APK)
+    gradleStep._init()
+
+    wizard.okAction()
+
+    val taskCaptor = argumentCaptor<Task>()
+    verify(progressManager).run(taskCaptor.capture())
+    val task = taskCaptor.firstValue
+    assertThat(task).isInstanceOf(Task.Backgroundable::class.java)
+    assertThat(task.title).isEqualTo("Generating Signed APKs")
+  }
+
+  @Test
+  fun testSwitchingFromBundleWithCheckboxChecked_SwitchToApk_SwitchBackToBundle_ShowsModal() {
+    val gradleStep = wizard.steps.last() as GradleSignStep
+
+    // Choose bundle and check the checkbox
+    wizard.setButtonsInChooseStep(ExportSignedPackageWizard.BUNDLE)
+    gradleStep._init()
+    wizard.setUploadToPlay(true)
+
+    // Simulate going back and choosing APK
+    wizard.setButtonsInChooseStep(ExportSignedPackageWizard.APK)
+    gradleStep._init()
+
+    // Simulate going back and choosing Bundle
+    wizard.setButtonsInChooseStep(ExportSignedPackageWizard.BUNDLE)
+    gradleStep._init()
+
+    wizard.okAction()
+
+    val taskCaptor = argumentCaptor<Task>()
+    verify(progressManager).run(taskCaptor.capture())
+    val task = taskCaptor.firstValue
+    assertThat(task).isInstanceOf(Task.Modal::class.java)
+    assertThat(task.title).isEqualTo("Building and Signing...")
+  }
+
   private class TestExportSignedPackageWizard(project: Project, facet: List<AndroidFacet>) : ExportSignedPackageWizard(project, facet) {
     init {
       setGradleOptions(listOf("app"))
@@ -93,6 +146,17 @@ class ExportSignedPackageWizardTaskBehaviorTest {
 
     override fun updateStep() = Unit
 
+    override fun getCertificate(): X509Certificate {
+      return mock<X509Certificate>().apply { whenever(this.encoded).thenReturn(ByteArray(0)) }
+    }
+
     fun okAction() = super.doOKAction()
+
+    fun setButtonsInChooseStep(type: TargetType) {
+      (steps[0] as ChooseBundleOrApkStep).setButtonForType(type)
+    }
+
+    val steps: ArrayList<ExportSignedPackageWizardStep>
+      get() = mySteps
   }
 }
