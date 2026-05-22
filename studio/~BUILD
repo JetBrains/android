@@ -1057,6 +1057,7 @@ STUDIO_CORE_PLUGINS = [
     "//tools/adt/idea/studio:com.android.tools.gradle.dcl",
     "//tools/adt/idea/studio:com.android.tools.gradle.dsl",
     "//tools/vendor/google/optional-plugins/project-system-lume:com.google.lightbuild",
+    "//tools/vendor/google/optional-plugins/project-system-lume/aiplugin-lume:com.google.lightbuild.aiplugin",
 ]
 
 STUDIO_BASE_PLUGINS = STUDIO_CORE_PLUGINS + STUDIO_NDK_LSP_PLUGINS
@@ -1398,6 +1399,7 @@ iml_module(
         "@intellij//:com.intellij.java",
         "//tools/vendor/google/optional-plugins",
         "//tools/vendor/google/optional-plugins/project-system-lume:intellij.android.projectSystem.lume",
+        "//tools/vendor/google/optional-plugins/project-system-lume/aiplugin-lume:intellij.android.lume.aiplugin",
         "//tools/adt/idea/smali:intellij.android.smali",
     ],
 )

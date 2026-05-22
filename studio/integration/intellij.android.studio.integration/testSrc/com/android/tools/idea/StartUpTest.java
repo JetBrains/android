@@ -135,6 +135,7 @@ public class StartUpTest {
                                     "Jetpack Compose",
                                     "Kotlin",
                                     "Lightbuild",
+                                    "Lightbuild AI Plugin",
                                     "Machine Learning Code Completion",
                                     "Markdown",
                                     "Mercurial",
