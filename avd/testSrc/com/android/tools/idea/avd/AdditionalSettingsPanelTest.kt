@@ -113,8 +113,7 @@ class AdditionalSettingsPanelTest {
   @Test
   fun orientationDropdownOnClick() {
     // Arrange
-    val deviceProfiles = vendorDevicesTable
-    val pixel8 = deviceProfiles.getDevice("pixel_8", "Google")!!
+    val pixel8 = vendorDevicesTable.getDevice("pixel_8", "Google")!!
     val device = VirtualDevice(pixel8).apply { initializeFromProfile() }
     val state = configureDevicePanelState(device)
 
@@ -130,8 +129,7 @@ class AdditionalSettingsPanelTest {
 
   @Test
   fun orientationNotPresentWithoutMultipleStates() {
-    val devices = vendorDevicesTable
-    val xrHeadset = devices.getDevice("xr_headset_device", "Google")!!
+    val xrHeadset = vendorDevicesTable.getDevice("xr_headset_device", "Google")!!
     assertThat(xrHeadset.allStates).hasSize(1)
 
     val device = VirtualDevice(xrHeadset).apply { initializeFromProfile() }

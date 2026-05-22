@@ -27,9 +27,9 @@ import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.tools.idea.adddevicedialog.FormFactors
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
+import com.android.utils.NullLogger
 import java.io.ByteArrayInputStream
 import java.nio.file.Path
-import com.android.utils.NullLogger
 import org.mockito.kotlin.mock
 
 val vendorDevicesTable by lazy { DeviceResourceTable(NullLogger(), isSupportedDevice = { true }, DeviceManager.VENDOR_DEVICE_RESOURCES) }
