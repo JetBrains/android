@@ -37,6 +37,7 @@ class PlayPolicyInsightIntegrationTest {
     system.installRepo(MavenRepo("tools/adt/idea/app-quality-insights/play-policy/integration/minapp_deps.manifest"))
 
     system.installation.copySystemDir(projectArtifactsPath)
+    system.installation.copyConfigDir(projectArtifactsPath)
     system.runStudio(project, watcher.dashboardName) { studio ->
       studio.waitForSyncSkippedLog()
       studio.waitForIndexingSkippedLog()

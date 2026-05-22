@@ -20,11 +20,9 @@ import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.base.IdeInstallation
 import java.nio.file.Paths
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
-@Ignore("b/513219181")
 class MultiProjectSameWindowTest {
   @JvmField @Rule val system: AndroidSystem = AndroidSystem.standardWithTmpDir()
 
@@ -37,6 +35,7 @@ class MultiProjectSameWindowTest {
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/buildproject_deps.manifest"))
     system.getInstallation().copySystemDir(projectArtifactsPath)
+    system.getInstallation().copyConfigDir(projectArtifactsPath)
     system.runStudio(project) { studio ->
       studio.waitForSyncSkippedLog()
       studio.waitForIndexingSkippedLog()

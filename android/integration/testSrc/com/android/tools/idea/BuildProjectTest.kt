@@ -21,11 +21,9 @@ import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import java.nio.file.Paths
 import org.junit.Assert
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
-@Ignore("b/513219181")
 class BuildProjectTest {
   @JvmField @Rule val system: AndroidSystem = AndroidSystem.standardWithTmpDir()
 
@@ -41,6 +39,7 @@ class BuildProjectTest {
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/buildproject_deps.manifest"))
 
     system.getInstallation().copySystemDir(projectArtifactsPath)
+    system.getInstallation().copyConfigDir(projectArtifactsPath)
     system.runStudio(project, watcher.dashboardName) { studio ->
       studio.waitForSyncSkippedLog()
       studio.waitForIndexingSkippedLog()

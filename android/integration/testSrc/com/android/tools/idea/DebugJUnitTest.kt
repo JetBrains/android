@@ -20,11 +20,9 @@ import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import java.nio.file.Paths
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
-@Ignore("b/513219181")
 class DebugJUnitTest {
 
   @get:Rule val system = AndroidSystem.standardWithTmpDir()
@@ -38,6 +36,7 @@ class DebugJUnitTest {
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/debug_junit_test_deps.manifest"))
     system.getInstallation().copySystemDir(projectArtifactsPath)
+    system.getInstallation().copyConfigDir(projectArtifactsPath)
     system.runStudio(project, watcher.dashboardName) { studio ->
       studio.waitForSyncSkippedLog()
       studio.waitForIndexingSkippedLog()

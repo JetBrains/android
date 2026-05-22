@@ -22,7 +22,6 @@ import com.android.tools.asdriver.tests.ComponentMatchersBuilder
 import com.android.tools.asdriver.tests.MavenRepo
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -32,7 +31,6 @@ import org.junit.runners.JUnit4
 // The Provider is otherwise unrelated to this test.
 private const val regex = ".*ComposeUsageGroupingRuleProvider.*?Saw usage.*"
 
-@Ignore("b/513219181")
 @RunWith(JUnit4::class)
 class ShowUsagesTest {
   @get:Rule val system: AndroidSystem = AndroidSystem.standardWithTmpDir()
@@ -49,6 +47,7 @@ class ShowUsagesTest {
     // Ensure that our log messages show up in idea.log.
     installation.addVmOption("-Didea.log.debug.categories=#com.android.tools.compose.ComposeUsageGroupingRuleProvider")
     system.getInstallation().copySystemDir(projectArtifactsPath)
+    system.getInstallation().copyConfigDir(projectArtifactsPath)
     system.runStudio(project).use { studio ->
       studio.waitForSyncSkippedLog()
       // Line 10, column 15 corresponds to the symbol "label" which should have 2 usages in the rest of the file.

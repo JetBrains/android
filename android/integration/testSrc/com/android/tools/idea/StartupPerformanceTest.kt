@@ -42,6 +42,7 @@ class StartupPerformanceTest {
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/editor_performance_test_deps.manifest"))
     system.getInstallation().copySystemDir(projectArtifactsPath)
+    system.getInstallation().copyConfigDir(projectArtifactsPath)
     project.setDistribution("tools/external/gradle/gradle-8.6-bin.zip")
 
     system.runStudio(project) { studio ->
