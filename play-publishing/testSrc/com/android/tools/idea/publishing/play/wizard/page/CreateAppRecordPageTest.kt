@@ -156,11 +156,29 @@ class CreateAppRecordPageTest {
   @Test
   fun testNextButtonEnabled() {
     fakeClient.config = FakePlayPublishingClient.Config(listDeveloperCall = { listOf(Developer(1, "Account 1")) })
-    val state = PlayPublishingWizardState(packageName = "com.example.app")
+    val state = PlayPublishingWizardState(packageName = "com.example.app", appName = "My App")
     createWizard(state)
 
-    // Next should be enabled as we have an account selected by default (first one)
+    // Next should be enabled as we have an account selected by default (first one) and a non-empty app name
     composeTestRule.onNodeWithText("Next").assertIsEnabled()
+  }
+
+  @Test
+  fun testNextButtonDisabledWhenAppNameIsEmpty() {
+    fakeClient.config = FakePlayPublishingClient.Config(listDeveloperCall = { listOf(Developer(1, "Account 1")) })
+    val state = PlayPublishingWizardState(packageName = "com.example.app", appName = "")
+    createWizard(state)
+
+    composeTestRule.onNodeWithText("Next").assertIsNotEnabled()
+  }
+
+  @Test
+  fun testNextButtonDisabledWhenAppNameIsBlank() {
+    fakeClient.config = FakePlayPublishingClient.Config(listDeveloperCall = { listOf(Developer(1, "Account 1")) })
+    val state = PlayPublishingWizardState(packageName = "com.example.app", appName = "   ")
+    createWizard(state)
+
+    composeTestRule.onNodeWithText("Next").assertIsNotEnabled()
   }
 
   @Test
@@ -181,7 +199,7 @@ class CreateAppRecordPageTest {
           )
         },
       )
-    val state = PlayPublishingWizardState(packageName = "com.example.app")
+    val state = PlayPublishingWizardState(packageName = "com.example.app", appName = "My App")
     createWizard(state)
 
     composeTestRule.onNodeWithText("Next").performClick()
@@ -216,7 +234,7 @@ class CreateAppRecordPageTest {
         createAppRecordCall = { _, _ -> throw Exception("Creation failed") },
       )
 
-    val state = PlayPublishingWizardState(packageName = "com.example.app")
+    val state = PlayPublishingWizardState(packageName = "com.example.app", appName = "My App")
     createWizard(state)
 
     composeTestRule.onNodeWithText("Next").performClick()
@@ -234,7 +252,7 @@ class CreateAppRecordPageTest {
         createAppRecordCall = { _, _ -> throw Exception("The package name com.example.app is not available on Play") },
       )
 
-    val state = PlayPublishingWizardState(packageName = "com.example.app")
+    val state = PlayPublishingWizardState(packageName = "com.example.app", appName = "My App")
     createWizard(state)
 
     composeTestRule.onNodeWithText("Next").performClick()

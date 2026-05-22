@@ -133,22 +133,6 @@ class ChooseBundlePageTest {
   }
 
   @Test
-  fun testAppNameNull() {
-    createWizard { AppMetadata(null, "com.fake.app", "123", "1.2.3") }
-
-    composeTestRule.onNodeWithText("Next").assertIsNotEnabled()
-    composeTestRule.onNodeWithText("Previous").assertIsNotEnabled()
-  }
-
-  @Test
-  fun testAppNameEmpty() {
-    createWizard { AppMetadata("", "com.fake.app", "123", "1.2.3") }
-
-    composeTestRule.onNodeWithText("Next").assertIsNotEnabled()
-    composeTestRule.onNodeWithText("Previous").assertIsNotEnabled()
-  }
-
-  @Test
   fun testVersionCodeNull() {
     createWizard { AppMetadata("Fake App", "com.fake.app", null, "1.2.3") }
 

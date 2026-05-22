@@ -335,8 +335,7 @@ fun WizardPageScope.ChooseBundlePage(extractMetadata: suspend (Path) -> AppMetad
   prevButtonEnabled = false
   nextActionName = "Next"
   nextAction =
-    if (state.packageName.isNullOrEmpty() || state.appName.isNullOrEmpty() || (state.isRegistered == true && !isAppInConsole))
-      WizardAction.Disabled
+    if (state.packageName.isNullOrEmpty() || (state.isRegistered == true && !isAppInConsole)) WizardAction.Disabled
     else
       WizardAction {
         PlayPublishingUsageTracker.trackChooseBundle(

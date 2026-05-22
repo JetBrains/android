@@ -60,6 +60,7 @@ import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import kotlin.coroutines.cancellation.CancellationException
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.ui.Outline
 import org.jetbrains.jewel.ui.component.CircularProgressIndicator
 import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.InlineErrorBanner
@@ -157,6 +158,7 @@ fun WizardPageScope.CreateAppRecordPage() {
                 state = appNameState,
                 modifier = Modifier.fillMaxWidth(),
                 inputTransformation = InputTransformation.maxLength(APP_NAME_CHAR_LIMIT),
+                outline = if (appNameState.text.isBlank()) Outline.Error else Outline.None,
               )
               Spacer(modifier = Modifier.height(4.dp))
               Text(
@@ -193,6 +195,7 @@ fun WizardPageScope.CreateAppRecordPage() {
     if (
       isCreatingApp ||
         selectedAccount == null ||
+        appNameState.text.isBlank() ||
         errorMessage?.contains("The package name ${state.packageName} is not available on Play") == true
     )
       WizardAction.Disabled
