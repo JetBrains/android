@@ -2473,6 +2473,11 @@ public final class StudioFlags {
                     "Enable the AskUserTool",
                     "When enabled, adds the AskUserTool to a set of default tools");
 
+  public static final Flag<Boolean> STUDIOBOT_TOOL_TIMEOUT_MONITOR_ENABLED =
+    new BooleanFlag(STUDIOBOT, "tool.timeout.monitor.enabled",
+                    "Enable the inactivity monitor for tool calls",
+                    "When enabled, tool execution will be monitored for inactivity and cancelled after a timeout");
+
   // rate limits are controlled by server flags
   public static final Flag<Integer> STUDIOBOT_COMPLETIONS_PER_HOUR =
     new IntFlag(STUDIOBOT, "completions.per.hour",
