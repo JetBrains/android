@@ -275,6 +275,10 @@ open class ProfilersTestBase {
     studio.executeAction("Android.SetRecordingTypeToSampling")
   }
 
+  protected fun setRecordingTypeToTracing(studio: AndroidStudio) {
+    studio.executeAction("Android.SetRecordingTypeToTracing")
+  }
+
   protected fun selectDevice(studio: AndroidStudio) {
     studio.executeAction("Android.ProfilerSelectDevice")
   }

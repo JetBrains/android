@@ -23,7 +23,7 @@ class JavaKotlinMethodRecordingTaskTest : ProfilersTaskTestBase() {
 
   override fun selectTask(studio: AndroidStudio) {
     selectJavaKotlinMethodRecordingTask(studio)
-    setRecordingTypeToSampling(studio)
+    setRecordingTypeToTracing(studio)
   }
 
   override fun verifyTaskStarted(studio: AndroidStudio) {
@@ -46,7 +46,7 @@ class JavaKotlinMethodRecordingTaskTest : ProfilersTaskTestBase() {
    * Test Steps:
    * 1. Import "minApp" in the testData directory of this module.
    * 2. Deploy App and open profiler tool window, set to debuggable mode.
-   * 3. Select device -> process -> task (java/kotlin method recording) -> Set recording to Sample
+   * 3. Select device -> process -> task (java/kotlin method recording) -> Set recording type to Tracing
    * 4. Start the task
    * 5. Stop the task.
    *
