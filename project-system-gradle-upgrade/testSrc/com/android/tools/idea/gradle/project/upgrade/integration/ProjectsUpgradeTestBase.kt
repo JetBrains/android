@@ -64,6 +64,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.EdtRule
 import java.io.File
 import junit.framework.TestCase
+import org.gradle.util.GradleVersion
 import org.junit.Before
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
@@ -167,6 +168,7 @@ abstract class ProjectsUpgradeTestBase {
               projectRoot,
               AgpVersion.parse(environment.agpVersion),
               AndroidVersion.fromString(environment.compileSdk),
+              GradleVersion.version(environment.gradleVersion),
             )
           }
         }
@@ -235,7 +237,8 @@ abstract class ProjectsUpgradeTestBase {
                     let {
                       val expectedContainsSuppression = goldenContent.contains("android.suppressUnsupportedCompileSdk=")
                       return@let filter { line ->
-                        expectedContainsSuppression || !line.startsWith("android.suppressUnsupportedCompileSdk=")
+                        (expectedContainsSuppression || !line.startsWith("android.suppressUnsupportedCompileSdk=")) &&
+                          (!line.startsWith("org.gradle.parallel=") && !line.startsWith("org.gradle.tooling.parallel="))
                       }
                     }
                   ".gradle/config.properties" ->

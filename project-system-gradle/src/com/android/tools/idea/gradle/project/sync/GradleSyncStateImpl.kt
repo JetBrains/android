@@ -76,6 +76,7 @@ import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelperExtensi
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncListener as PlatformGradleSyncListener
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase
+import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 
 private val SYNC_NOTIFICATION_GROUP: NotificationGroup by lazy {
   NotificationGroupManager.getInstance().getNotificationGroup("Gradle Sync")
@@ -557,6 +558,15 @@ class GradleSyncStateHolder constructor(private val project: Project) {
         getInstance(context.project).publish {
           context.project.messageBus.syncPublisher(PROJECT_SYSTEM_MODELS_UPDATED_TOPIC).androidModelsUpdated()
         }
+      }
+    }
+  }
+
+  class AndroidStudioGradleSyncHelperExtension : GradleExecutionHelperExtension {
+    override fun configureSettings(settings: GradleExecutionSettings, context: GradleExecutionContext) {
+      // Appending the settings to override IDEA default since 261.
+      if (!settings.isParallelModelFetch) {
+        settings.withArgument("-Didea.parallelModelFetch.enabled=false")
       }
     }
   }

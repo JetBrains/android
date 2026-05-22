@@ -77,6 +77,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.gradle.toolingExtension.util.GradleVersionUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
@@ -283,7 +284,8 @@ public class AndroidGradleTests {
         // Override settings just for tests (e.g. sdk.dir)
         updateLocalProperties(path, TestUtils.getSdk().toFile());
         updateGradleProperties(path, AgpVersion.parse(agpEnvironment.getAgpVersion()),
-                               AndroidVersion.fromString(agpEnvironment.getCompileSdk()));
+                               AndroidVersion.fromString(agpEnvironment.getCompileSdk()),
+                               GradleVersion.version(agpEnvironment.getGradleVersion()));
         // We need the wrapper for import to succeed
         createGradleWrapper(path, agpEnvironment.getGradleVersion(), syncEnabled);
       }
@@ -457,7 +459,7 @@ public class AndroidGradleTests {
     localProperties.save();
   }
 
-  public static void updateGradleProperties(@NotNull File projectRoot, @NotNull AgpVersion agpVersion, @NotNull AndroidVersion androidVersion) throws IOException {
+  public static void updateGradleProperties(@NotNull File projectRoot, @NotNull AgpVersion agpVersion, @NotNull AndroidVersion androidVersion, @NotNull GradleVersion gradleVersion) throws IOException {
     GradleProperties gradleProperties = new GradleProperties(new File(projectRoot, FN_GRADLE_PROPERTIES));
     // Inspired by: https://github.com/gradle/gradle/commit/8da8e742c3562a8130d3ddb5c6391d90ec565c39
     String debugIntegrationTest = System.getenv("DEBUG_INNER_TEST");
@@ -480,7 +482,12 @@ public class AndroidGradleTests {
     // Disable Gradle file watching as it may be causing DirectoryNotEmptyException, see b/184293946.
     gradleProperties.getProperties().setProperty("org.gradle.vfs.watch", "false");
     if (StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get()) {
-      gradleProperties.getProperties().setProperty("org.gradle.parallel", "true");
+      if (GradleVersionUtil.isGradleAtLeast(gradleVersion, "9.4")) {
+        gradleProperties.getProperties().setProperty("org.gradle.tooling.parallel", "true");
+
+      } else {
+        gradleProperties.getProperties().setProperty("org.gradle.parallel", "true");
+      }
     }
     if (agpVersion.compareTo(AgpVersions.getLatestKnown()) < 0) {
       Set<String> current = new LinkedHashSet<>(Splitter.on(",").omitEmptyStrings().splitToList(gradleProperties.getProperties().getProperty("android.suppressUnsupportedCompileSdk", "")));
