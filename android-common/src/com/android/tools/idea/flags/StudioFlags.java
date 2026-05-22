@@ -2686,6 +2686,11 @@ public final class StudioFlags {
                     "Enable v2 agent UI (sessions in editor tabs)",
                     "Disables the toolwindow-based v1 agent UI and replaces it with the v2 editor tabs-based agent UI. Requires restart.");
 
+  public static final Flag<Boolean> STUDIOBOT_AGENT_V2_TELEMETRY_ENABLED =
+    new BooleanFlag(STUDIOBOT, "agent.v2.telemetry.enabled",
+                    "Enable agent V2 telemetry",
+                    "When enabled, telemetry for agent V2 events will be reported.");
+
   public static final Flag<Boolean> STUDIOBOT_PERSONALIZED_GREETING_DISABLED =
     new BooleanFlag(STUDIOBOT, "personalized.greeting.disabled",
                     "Disable personalized greeting",
