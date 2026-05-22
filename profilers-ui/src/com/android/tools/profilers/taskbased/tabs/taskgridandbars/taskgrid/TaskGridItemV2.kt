@@ -54,7 +54,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
-import com.android.tools.adtui.compose.LingeringTooltip
 import com.android.tools.profilers.taskbased.common.constants.colors.TaskBasedUxColors.TASK_HOVER_BACKGROUND_COLOR
 import com.android.tools.profilers.taskbased.common.constants.colors.TaskBasedUxColors.TASK_SELECTION_BACKGROUND_COLOR
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_HEIGHT_V2_DP
@@ -129,7 +128,7 @@ fun TaskIconAndDescriptionWrapperV2(task: ProfilerTaskType, isSelectedTask: Bool
     }
   }
 
-  LingeringTooltip(
+  ProfilerLingeringTooltip(
     tooltip = { Box(modifier = Modifier.width(TASK_TOOLTIP_WIDTH_V2_DP)) { TaskTooltipContent(task) } },
     lingerMillis = 0,
     tooltipPlacement = TooltipPlacement.ComponentRect(),
