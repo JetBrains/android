@@ -16,11 +16,9 @@
 package com.android.tools.idea.publishing.play.client
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.publishing.play.client.type.Apk
 import com.android.tools.idea.publishing.play.client.type.App
 import com.android.tools.idea.publishing.play.client.type.AppConfig
 import com.android.tools.idea.publishing.play.client.type.AppEdit
-import com.android.tools.idea.publishing.play.client.type.Artifact
 import com.android.tools.idea.publishing.play.client.type.Bundle
 import com.android.tools.idea.publishing.play.client.type.Developer
 import com.android.tools.idea.publishing.play.client.type.GoogleApiInnerError
@@ -142,31 +140,20 @@ class HttpPlayPublishingClient(
     request.execute().parseAs<ListTrackResponse>().tracks
   }
 
-  override suspend fun uploadArtifact(packageName: String, editId: String, artifactPath: String, isBundle: Boolean): Artifact =
-    runPublishingTask {
-      val finalPath =
-        if (isBundle) {
-          "bundles"
-        } else {
-          "apks"
-        }
-      val uploadArtifactUrl = GenericUrl("$uploadUrl/applications/$packageName/edits/$editId/$finalPath")
-      val file = File(artifactPath)
-      val content = FileContent("application/octet-stream", file)
-      val request =
-        requestFactory.buildPostRequest(uploadArtifactUrl, content).apply {
-          // Uploading apps may take longer
-          val timeout = 10.minutes.inWholeMilliseconds.toInt()
-          connectTimeout = timeout
-          readTimeout = timeout
-        }
-      val response = request.execute()
-      if (isBundle) {
-        response.parseAs<Bundle>()
-      } else {
-        response.parseAs<Apk>()
+  override suspend fun uploadBundle(packageName: String, editId: String, bundlePath: String): Bundle = runPublishingTask {
+    val uploadBundleUrl = GenericUrl("$uploadUrl/applications/$packageName/edits/$editId/bundles")
+    val file = File(bundlePath)
+    val content = FileContent("application/octet-stream", file)
+    val request =
+      requestFactory.buildPostRequest(uploadBundleUrl, content).apply {
+        // Uploading apps may take longer
+        val timeout = 10.minutes.inWholeMilliseconds.toInt()
+        connectTimeout = timeout
+        readTimeout = timeout
       }
-    }
+    val response = request.execute()
+    response.parseAs<Bundle>()
+  }
 
   override suspend fun createRelease(
     packageName: String,

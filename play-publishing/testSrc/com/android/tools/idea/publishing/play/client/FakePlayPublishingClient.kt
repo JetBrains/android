@@ -18,7 +18,6 @@ package com.android.tools.idea.publishing.play.client
 import com.android.tools.idea.publishing.play.client.type.App
 import com.android.tools.idea.publishing.play.client.type.AppConfig
 import com.android.tools.idea.publishing.play.client.type.AppEdit
-import com.android.tools.idea.publishing.play.client.type.Artifact
 import com.android.tools.idea.publishing.play.client.type.Bundle
 import com.android.tools.idea.publishing.play.client.type.Developer
 import com.android.tools.idea.publishing.play.client.type.Track
@@ -39,8 +38,8 @@ class FakePlayPublishingClient : PlayPublishingClient {
 
   override suspend fun listEditTracks(packageName: String, editId: String): List<Track> = config.listEditTracksCall(packageName, editId)
 
-  override suspend fun uploadArtifact(packageName: String, editId: String, artifactPath: String, isBundle: Boolean): Artifact =
-    config.uploadArtifactCall(packageName, editId, artifactPath, isBundle)
+  override suspend fun uploadBundle(packageName: String, editId: String, bundlePath: String): Bundle =
+    config.uploadArtifactCall(packageName, editId, bundlePath)
 
   override suspend fun createRelease(
     packageName: String,
@@ -59,7 +58,7 @@ class FakePlayPublishingClient : PlayPublishingClient {
     val createAppRecordCall: suspend (Long, AppConfig) -> AppConfig = { _, cfg -> cfg },
     val insertEditCall: suspend (String) -> AppEdit = { AppEdit("1", "1") },
     val listEditTracksCall: suspend (String, String) -> List<Track> = { _, _ -> emptyList() },
-    val uploadArtifactCall: suspend (String, String, String, Boolean) -> Artifact = { _, _, _, _ -> Bundle(0, "", "") },
+    val uploadArtifactCall: suspend (String, String, String) -> Bundle = { _, _, _ -> Bundle(0, "", "") },
     val createReleaseCall: suspend (String, String, String, Map<String, String>, Int, String) -> Unit = { _, _, _, _, _, _ -> },
     val commitEditCall: suspend (String, String) -> Unit = { _, _ -> },
   )

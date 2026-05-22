@@ -17,7 +17,7 @@ package com.android.tools.idea.publishing.play.wizard
 
 import com.android.tools.adtui.compose.ComposeWizard
 import com.android.tools.idea.publishing.AppPublishingContext
-import com.android.tools.idea.publishing.play.wizard.page.ChooseArtifactPage
+import com.android.tools.idea.publishing.play.wizard.page.ChooseBundlePage
 import com.android.tools.idea.publishing.play.wizard.page.LoggedOutPage
 // TODO: android-merge; com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
 // import com.google.gct.login2.fstLoginFeature
@@ -34,7 +34,7 @@ fun showPublishingWizard(project: Project, context: AppPublishingContext) {
       // if (!fstLoginFeature.isLoggedIn()) {
       LoggedOutPage()
       // } else {
-      //   ChooseArtifactPage()
+      //   ChooseBundlePage()
       // }
     }
   invokeLater { wizard.show() }

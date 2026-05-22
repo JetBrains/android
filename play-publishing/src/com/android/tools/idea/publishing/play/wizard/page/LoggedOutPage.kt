@@ -70,7 +70,7 @@ fun WizardPageScope.LoggedOutPage() {
   //     fstLoginFeature.logInBlocking(parentComponent = component)
   //   }
   //   if (fstLoginFeature.isLoggedIn()) {
-  //     pushPage { ChooseArtifactPage() }
+  //     pushPage { ChooseBundlePage() }
   //   }
   // }
 
@@ -92,7 +92,7 @@ fun WizardPageScope.LoggedOutPage() {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
           Text("In the following steps, you will be guided to:", fontWeight = FontWeight.Medium)
           BulletItem("Sign in and link your Google Play account to Android Studio, if necessary")
-          BulletItem("Upload your Android App Bundle (.aab) or APK")
+          BulletItem("Upload your Android App Bundle (.aab)")
           BulletItem("Configure your release")
         }
 
@@ -172,7 +172,7 @@ private fun Illustration() {
     IllustrationIcon(key = StudioIllustrationsCompose.Common.Launch)
     IllustrationIcon(key = StudioIllustrationsCompose.Common.PackageAab)
     IllustrationIcon(key = StudioIllustrationsCompose.Common.Launch)
-    IllustrationIcon(key = StudioIllustrationsCompose.Common.PackageApk)
+    IllustrationIcon(key = StudioIllustrationsCompose.Common.PackageAab)
     IllustrationIcon(key = StudioIllustrationsCompose.Common.Launch)
     IllustrationIcon(key = StudioIllustrationsCompose.Common.PackageAab)
     IllustrationIcon(key = StudioIllustrationsCompose.Common.Launch)

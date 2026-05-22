@@ -239,7 +239,7 @@ class HttpPlayPublishingClientTest {
     }
 
   @Test
-  fun testUploadArtifactBundleSuccess() = runBlocking {
+  fun testUploadBundleBundleSuccess() = runBlocking {
     val transport =
       MockHttpTransport.Builder()
         .setLowLevelHttpResponse(
@@ -252,31 +252,10 @@ class HttpPlayPublishingClientTest {
     val tempFile = java.io.File.createTempFile("test", ".aab")
     tempFile.deleteOnExit()
 
-    val result = client.uploadArtifact("com.test", "edit-123", tempFile.absolutePath, isBundle = true)
+    val result = client.uploadBundle("com.test", "edit-123", tempFile.absolutePath)
     assertThat(result.versionCode).isEqualTo(1)
     assertThat(result.sha1).isEqualTo("abc")
     assertThat(result.sha256).isEqualTo("def")
-  }
-
-  @Test
-  fun testUploadArtifactApkSuccess() = runBlocking {
-    val transport =
-      MockHttpTransport.Builder()
-        .setLowLevelHttpResponse(
-          MockLowLevelHttpResponse().setStatusCode(200).setContent("""{"versionCode": 2, "binary": {"sha1": "abc", "sha256": "def"}}""")
-        )
-        .build()
-
-    val client = HttpPlayPublishingClient(httpTransport = transport)
-
-    val tempFile = java.io.File.createTempFile("test", ".apk")
-    tempFile.deleteOnExit()
-
-    val result = client.uploadArtifact("com.test", "edit-123", tempFile.absolutePath, isBundle = false)
-    assertThat(result.versionCode).isEqualTo(2)
-    val apk = result as com.android.tools.idea.publishing.play.client.type.Apk
-    assertThat(apk.binary.sha1).isEqualTo("abc")
-    assertThat(apk.binary.sha256).isEqualTo("def")
   }
 
   @Test

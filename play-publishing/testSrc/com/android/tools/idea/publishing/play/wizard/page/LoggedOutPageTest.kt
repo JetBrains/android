@@ -69,7 +69,7 @@ class LoggedOutPageTest {
     composeTestRule.onNodeWithText("Publish your application directly to Google Play Store from Android Studio.").assertIsDisplayed()
     composeTestRule.onNodeWithText("In the following steps, you will be guided to:").assertIsDisplayed()
     composeTestRule.onNodeWithText("Sign in and link your Google Play account to Android Studio, if necessary").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Upload your Android App Bundle (.aab) or APK").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Upload your Android App Bundle (.aab)").assertIsDisplayed()
     composeTestRule.onNodeWithText("Configure your release").assertIsDisplayed()
 
     composeTestRule

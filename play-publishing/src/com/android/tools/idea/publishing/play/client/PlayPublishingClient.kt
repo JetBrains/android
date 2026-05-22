@@ -18,7 +18,7 @@ package com.android.tools.idea.publishing.play.client
 import com.android.tools.idea.publishing.play.client.type.App
 import com.android.tools.idea.publishing.play.client.type.AppConfig
 import com.android.tools.idea.publishing.play.client.type.AppEdit
-import com.android.tools.idea.publishing.play.client.type.Artifact
+import com.android.tools.idea.publishing.play.client.type.Bundle
 import com.android.tools.idea.publishing.play.client.type.Developer
 import com.android.tools.idea.publishing.play.client.type.Track
 
@@ -34,7 +34,7 @@ interface PlayPublishingClient {
 
   suspend fun listEditTracks(packageName: String, editId: String): List<Track>
 
-  suspend fun uploadArtifact(packageName: String, editId: String, artifactPath: String, isBundle: Boolean): Artifact
+  suspend fun uploadBundle(packageName: String, editId: String, bundlePath: String): Bundle
 
   suspend fun createRelease(
     packageName: String,
