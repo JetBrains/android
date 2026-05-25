@@ -20,6 +20,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.components.JBLabel
+import com.intellij.util.ui.JBFont
 import java.awt.Dimension
 import java.awt.GraphicsEnvironment
 import java.awt.event.ComponentEvent
@@ -355,5 +356,31 @@ class ImageWithToolbarPanelTest {
     } finally {
       frame.dispose()
     }
+  }
+
+  @Test
+  fun testTitleLabelFontUpdatesOnUIChange() {
+    val panel = ImageWithToolbarPanel(ScreenshotViewType.NEW, showToolbar = true, showTitle = true)
+    val titleLabel = findTitleLabel(panel)
+    assertNotNull("titleLabel should exist when showTitle is true", titleLabel)
+
+    // Trigger updateUI to simulate a look-and-feel / global font change
+    titleLabel!!.updateUI()
+
+    val expectedFont = JBFont.label().biggerOn(2f).asBold()
+    assertEquals(expectedFont, titleLabel.font)
+  }
+
+  private fun findTitleLabel(container: java.awt.Container): JBLabel? {
+    for (component in container.components) {
+      if (component is JBLabel && component.text == ScreenshotViewType.NEW.displayText) {
+        return component
+      }
+      if (component is java.awt.Container) {
+        val found = findTitleLabel(component)
+        if (found != null) return found
+      }
+    }
+    return null
   }
 }

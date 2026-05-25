@@ -27,6 +27,7 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.scale.JBUIScale
+import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
@@ -300,7 +301,13 @@ class ImageWithToolbarPanel(
     if (showTitle || showToolbar) {
       val headerPanel = JPanel(BorderLayout())
       if (showTitle) {
-        val titleLabel = JBLabel(title.displayText, UIUtil.ComponentStyle.LARGE)
+        val titleLabel =
+          object : JBLabel(title.displayText) {
+            override fun updateUI() {
+              super.updateUI()
+              font = JBFont.label().biggerOn(2f).asBold()
+            }
+          }
         titleLabel.horizontalAlignment = SwingConstants.LEFT
         headerPanel.add(titleLabel, BorderLayout.NORTH)
       }

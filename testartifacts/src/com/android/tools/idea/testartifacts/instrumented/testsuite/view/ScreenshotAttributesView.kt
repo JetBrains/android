@@ -256,7 +256,7 @@ class ScreenshotAttributesView : Disposable {
           KeyValueRow("Related Composables") { BlueText(currentState.className) }
         }
 
-        Section("Preview configuration") { CodeSnippet("@Preview(${currentState.methodName})") }
+        Section("Preview configuration") { LightText("@Preview(${currentState.methodName})") }
 
         Section("File info", modifier = Modifier.bringIntoViewRequester(bringIntoViewRequester)) {
           FileInfoTable(
@@ -384,17 +384,6 @@ private fun FileInfoRow(attribute: String, refValue: String, newValue: String, c
       LightText(newValue, modifier = Modifier.width(cellWidth))
     }
   }
-}
-
-/**
- * A code snippet.
- *
- * @param text The text of the code snippet.
- * @param modifier The modifier.
- */
-@Composable
-private fun CodeSnippet(text: String, modifier: Modifier = Modifier) {
-  Text(text = text, modifier = modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = JewelTheme.editorTextStyle)
 }
 
 /**
