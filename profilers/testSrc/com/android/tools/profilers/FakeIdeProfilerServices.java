@@ -597,4 +597,9 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   public Leak getLastLeak() {
     return myLastLeak;
   }
+  @NotNull
+  @Override
+  public kotlinx.coroutines.flow.Flow<String> fetchLeakInsight(@NotNull String rawTrace) {
+    return kotlinx.coroutines.flow.FlowKt.emptyFlow();
+  }
 }
