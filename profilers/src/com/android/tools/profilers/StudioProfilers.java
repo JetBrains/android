@@ -830,6 +830,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       // Only start a new session if the process is valid.
       if (myProcess != null && myProcess.getState() == Common.Process.State.ALIVE) {
         mySessionsManager.beginSession(myDeviceToStreamIds.get(myDevice), myDevice, myProcess, taskType, isStartupTask);
+
+        if (isStartupTask && isTaskBasedUXEnabled) {
+          getTaskHomeTabModel().resetSelectionStateAndClearStartupTaskConfigs();
+        }
       }
     }
   }
