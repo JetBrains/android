@@ -123,7 +123,7 @@ class GlassesPairingWizardTest {
               DeviceProperties.buildForTest {
                 icon = EmptyIcon.DEFAULT
                 manufacturer = "Google"
-                model = "AI Glasses"
+                model = "Audio glasses"
                 deviceType = DeviceType.AI_GLASSES
                 androidVersion = AndroidVersion(36, 1)
               },
@@ -161,15 +161,15 @@ class GlassesPairingWizardTest {
       // Verify initiated event
       assertThat(tracker.events).contains(GlassesPairingEvent.EventKind.PAIRING_INITIATED)
 
-      pairingFlow.value = PairingState.Launching("Pixel 9", Booting, "AI Glasses", Booting)
+      pairingFlow.value = PairingState.Launching("Pixel 9", Booting, "Audio glasses", Booting)
 
-      composeTestRule.onNodeWithText("Starting Pixel 9 and AI Glasses...").assertIsDisplayed()
-      composeTestRule.onNodeWithText("Waiting for AI Glasses to boot").assertIsDisplayed()
+      composeTestRule.onNodeWithText("Starting Pixel 9 and Audio glasses...").assertIsDisplayed()
+      composeTestRule.onNodeWithText("Waiting for Audio glasses to boot").assertIsDisplayed()
 
-      pairingFlow.value = PairingState.Pairing("Initiating pairing with Pixel 9 and AI Glasses...")
+      pairingFlow.value = PairingState.Pairing("Initiating pairing with Pixel 9 and Audio glasses...")
       composeTestRule.waitForIdle()
       composeTestRule.onNodeWithText("Establishing pairing...").assertIsDisplayed()
-      composeTestRule.onNodeWithText("Initiating pairing with Pixel 9 and AI Glasses...").assertIsDisplayed()
+      composeTestRule.onNodeWithText("Initiating pairing with Pixel 9 and Audio glasses...").assertIsDisplayed()
 
       pairingFlow.value = PairingState.AwaitingAuthorization("Pixel 9")
       composeTestRule.waitForIdle()
@@ -183,10 +183,10 @@ class GlassesPairingWizardTest {
       composeTestRule.waitForIdle()
       composeTestRule.onNodeWithText("Finishing pairing with Pixel 9...").assertIsDisplayed()
 
-      pairingFlow.value = PairingState.Complete("Pixel 9", "AI Glasses")
+      pairingFlow.value = PairingState.Complete("Pixel 9", "Audio glasses")
 
       composeTestRule.waitForIdle()
-      composeTestRule.onNodeWithText("Successfully paired Pixel 9 with AI Glasses").assertIsDisplayed()
+      composeTestRule.onNodeWithText("Successfully paired Pixel 9 with Audio glasses").assertIsDisplayed()
 
       // Verify success event
       assertThat(tracker.events).contains(GlassesPairingEvent.EventKind.SHOW_SUCCESSFUL_PAIRING)
@@ -272,7 +272,7 @@ class GlassesPairingWizardTest {
             DeviceProperties.buildForTest {
               icon = EmptyIcon.DEFAULT
               manufacturer = "Google"
-              model = "AI Glasses"
+              model = "Audio glasses"
               deviceType = DeviceType.AI_GLASSES
               androidVersion = AndroidVersion(36, 1)
             }
@@ -348,7 +348,7 @@ class GlassesPairingWizardTest {
             DeviceProperties.buildForTest {
               icon = EmptyIcon.DEFAULT
               manufacturer = "Google"
-              model = "AI Glasses"
+              model = "Audio glasses"
               deviceType = DeviceType.AI_GLASSES
               androidVersion = AndroidVersion(36, 1)
             }
@@ -376,34 +376,34 @@ class GlassesPairingWizardTest {
       // 1. Test UI_CDM_ASSOCIATION_FAILED
       pairingFlow.value =
         PairingState.Error(
-          heading = "Error pairing AI Glasses",
-          detailText = "Failed to create companion device association between Pixel 9 and AI Glasses.",
+          heading = "Error pairing Audio glasses",
+          detailText = "Failed to create companion device association between Pixel 9 and Audio glasses.",
         )
       composeTestRule.waitForIdle()
-      composeTestRule.onNodeWithText("Error pairing AI Glasses").assertIsDisplayed()
-      composeTestRule.onNodeWithText("Failed to create companion device association between Pixel 9 and AI Glasses.").assertIsDisplayed()
+      composeTestRule.onNodeWithText("Error pairing Audio glasses").assertIsDisplayed()
+      composeTestRule.onNodeWithText("Failed to create companion device association between Pixel 9 and Audio glasses.").assertIsDisplayed()
       tracker.events.clear()
 
       // 2. Test WORKER_GLASSES_CORE_CONNECTION_FAILED
       pairingFlow.value =
         PairingState.Error(
-          heading = "Error pairing AI Glasses",
-          detailText = "Failed to connect AI Glasses to XR Services on Pixel 9. Please make sure to accept all permissions on Pixel 9.",
+          heading = "Error pairing Audio glasses",
+          detailText = "Failed to connect Audio glasses to XR Services on Pixel 9. Please make sure to accept all permissions on Pixel 9.",
         )
       composeTestRule.waitForIdle()
       composeTestRule
-        .onNodeWithText("Failed to connect AI Glasses to XR Services on Pixel 9. Please make sure to accept all permissions on Pixel 9.")
+        .onNodeWithText("Failed to connect Audio glasses to XR Services on Pixel 9. Please make sure to accept all permissions on Pixel 9.")
         .assertIsDisplayed()
       tracker.events.clear()
 
       // 3. Test WORKER_BOND_FAILED
       pairingFlow.value =
         PairingState.Error(
-          heading = "Error pairing AI Glasses",
-          detailText = "Failed to create a Bluetooth bond between Pixel 9 and AI Glasses.",
+          heading = "Error pairing Audio glasses",
+          detailText = "Failed to create a Bluetooth bond between Pixel 9 and Audio glasses.",
         )
       composeTestRule.waitForIdle()
-      composeTestRule.onNodeWithText("Failed to create a Bluetooth bond between Pixel 9 and AI Glasses.").assertIsDisplayed()
+      composeTestRule.onNodeWithText("Failed to create a Bluetooth bond between Pixel 9 and Audio glasses.").assertIsDisplayed()
 
       composeTestRule.onNodeWithText("Cancel").performClick()
       wizard.awaitClose()
@@ -425,7 +425,7 @@ class GlassesPairingWizardTest {
           DeviceProperties.buildForTest {
             icon = EmptyIcon.DEFAULT
             manufacturer = "Google"
-            model = "AI Glasses"
+            model = "Audio glasses"
             deviceType = DeviceType.AI_GLASSES
             androidVersion = AndroidVersion(36, 1)
           }
@@ -465,7 +465,7 @@ class GlassesPairingWizardTest {
           DeviceProperties.buildForTest {
             icon = EmptyIcon.DEFAULT
             manufacturer = "Google"
-            model = "AI Glasses 1"
+            model = "Audio glasses 1"
             deviceType = DeviceType.AI_GLASSES
             androidVersion = AndroidVersion(36, 1)
           }
@@ -479,7 +479,7 @@ class GlassesPairingWizardTest {
           DeviceProperties.buildForTest {
             icon = EmptyIcon.DEFAULT
             manufacturer = "Google"
-            model = "AI Glasses 2"
+            model = "Audio glasses 2"
             deviceType = DeviceType.AI_GLASSES
             androidVersion = AndroidVersion(36, 1)
           }
@@ -517,7 +517,7 @@ class GlassesPairingWizardTest {
           DeviceProperties.buildForTest {
             icon = EmptyIcon.DEFAULT
             manufacturer = "Google"
-            model = "AI Glasses"
+            model = "Audio glasses"
             deviceType = DeviceType.AI_GLASSES
             androidVersion = AndroidVersion(36, 1)
           }
@@ -573,7 +573,7 @@ class GlassesPairingWizardTest {
             DeviceProperties.buildForTest {
               icon = EmptyIcon.DEFAULT
               manufacturer = "Google"
-              model = "AI Glasses"
+              model = "Audio glasses"
               deviceType = DeviceType.AI_GLASSES
               androidVersion = AndroidVersion(36, 1)
             }

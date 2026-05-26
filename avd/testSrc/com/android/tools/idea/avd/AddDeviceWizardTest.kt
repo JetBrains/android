@@ -70,6 +70,7 @@ class AddDeviceWizardTest {
   @get:Rule val disposableRule = DisposableRule()
   @get:Rule val composeTestRule = createStudioComposeTestRule()
   @get:Rule val aiGlassesFlagRule = FlagRule(StudioFlags.AI_GLASSES_DEVICE_SUPPORT_ENABLED, true)
+  @get:Rule val aiGlassesDisplaylessFlagRule = FlagRule(StudioFlags.AI_GLASSES_DISPLAYLESS_DEVICE_SUPPORT_ENABLED, true)
   @get:Rule val xrGlassesFlagRule = FlagRule(StudioFlags.XR_GLASSES_DEVICE_SUPPORT_ENABLED, true)
 
   /**
@@ -149,9 +150,9 @@ class AddDeviceWizardTest {
   }
 
   @Test
-  fun addAiGlassesDevice() {
+  fun addAudioGlassesDevice() {
     // The AVD needs to be on a real filesystem for the copy of the default environment to work.
-    val fixture = SdkFixture(avdRoot = createTempDirectory("AddAiGlassesDeviceTest"))
+    val fixture = SdkFixture(avdRoot = createTempDirectory("AddAudioGlassesDeviceTest"))
     with(fixture) {
       // We need to inject the SDK for EnvironmentsUpdater.
       val androidSdks =
@@ -177,7 +178,7 @@ class AddDeviceWizardTest {
       composeTestRule.setContentWithSdkLocals { wizard.Content() }
 
       composeTestRule.onNodeWithText("XR").performClick()
-      composeTestRule.onAllNodesWithText("AI Glasses", substring = true).onFirst().performClick()
+      composeTestRule.onNodeWithText("Audio Glasses").performClick()
       composeTestRule.waitForIdle()
 
       wizard.performAction(wizard.nextAction)

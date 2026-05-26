@@ -331,7 +331,10 @@ internal constructor(
     Column(Modifier.padding(20.dp)) {
       if (sortedDevices.isEmpty()) {
         LargeText(text = "No compatible AVDs found.")
-        Text("Glasses pairing requires a Phone AVD with a system image that includes AI Glasses support.", Modifier.padding(top = 20.dp))
+        Text(
+          "Glasses pairing requires a Phone AVD with a system image that includes Intelligent Eyewear support.",
+          Modifier.padding(top = 20.dp),
+        )
         ExternalLink(
           "Create a compatible device",
           onClick = { launchCreateCompatibleDevice(component, state) },
@@ -707,7 +710,7 @@ private suspend fun FlowCollector<PairingState>.runPairingSequence(
 
     if (!hasCompanionApp) {
       GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ERROR_NO_COMPANION_APP)
-      emit(PairingState.Error("$phoneName does not have support for AI Glasses."))
+      emit(PairingState.Error("$phoneName does not have support for Intelligent Eyewear."))
       return
     }
 
