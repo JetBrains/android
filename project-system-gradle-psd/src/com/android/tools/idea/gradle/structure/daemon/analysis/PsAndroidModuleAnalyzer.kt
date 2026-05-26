@@ -83,26 +83,27 @@ class PsAndroidModuleAnalyzer(val parentDisposable: Disposable, val pathRenderer
 
     val scopeAggregator = createScopeAggregator(model)
 
-    return promotedLibraries.asSequence().map { (promotion, resolvedDependencies) ->
+    return promotedLibraries.asSequence().mapNotNull { (promotion, resolvedDependencies) ->
       val (path, spec, promotedTo) = promotion
+      val declaredVersion = spec.version
+      val promotedVersion = promotedTo.version
+
+      val (message, severity) =
+        when {
+          declaredVersion == null -> return@mapNotNull null
+          promotedVersion == null -> "Gradle promotion from $declaredVersion to unknown version" to WARNING
+          RichVersion.parse(declaredVersion).lowerBound.isPrefixInfimum -> return@mapNotNull null
+          Version.parse(declaredVersion) > Version.parse(promotedVersion) ->
+            "Gradle demoted library version from $declaredVersion to $promotedVersion" to WARNING
+          else -> return@mapNotNull null
+        }
+
       val scopes =
         scopeAggregator.aggregate(
           resolvedDependencies
             .map { PsMessageScope(it.artifact.parent.buildTypeName, it.artifact.parent.productFlavorNames, it.artifact.name) }
             .toSet()
         )
-      val declaredVersion = spec.version
-      val promotedVersion = promotedTo.version
-      val (message, severity) =
-        when {
-          declaredVersion == null -> "Gradle provided version $promotedVersion" to INFO
-          promotedVersion == null -> "Gradle promotion from $declaredVersion to unknown version" to WARNING
-          RichVersion.parse(declaredVersion).lowerBound.isPrefixInfimum ->
-            "Gradle provided version $promotedVersion for $declaredVersion" to INFO
-          Version.parse(declaredVersion) > Version.parse(promotedVersion) ->
-            "Gradle demoted library version from $declaredVersion to $promotedVersion" to WARNING
-          else -> "Gradle promoted library version from $declaredVersion to $promotedVersion" to INFO
-        }
       // TODO(b/110690694): Provide a detailed message showing all known places which request different versions of the same library.
       PsGeneralIssue(message, "in: ${scopes.joinToString("\n") { it.toString() }}", path, PROJECT_ANALYSIS, severity)
     }

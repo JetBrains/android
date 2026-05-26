@@ -61,26 +61,11 @@ class PsAndroidModuleAnalyzerTest {
           .map { it.text to it.description }
           .toSet()
 
-      assertThat(
-        comExampleMessages,
-        equalTo(
-          setOf(
-            "Gradle promoted library version from 0.9.1 to 1.0" to "in: releaseImplementation",
-            "Gradle promoted library version from 0.6 to 1.0" to "in: freeImplementation",
-            "Gradle promoted library version from 0.6 to 1.0" to "in: freeImplementation",
-            "Gradle promoted library version from 0.9.1 to 1.0" to "in: releaseImplementation",
-          )
-        ),
-      )
+      assertThat(comExampleMessages, equalTo(emptySet<Pair<String, String>>()))
 
       assertThat(
         appcompatMessages,
-        equalTo(
-          setOf(
-            "Avoid using '+' in version numbers; can lead to unpredictable and unrepeatable builds." to null,
-            "Gradle provided version 28.0.0 for +" to "in: implementation",
-          )
-        ),
+        equalTo(setOf("Avoid using '+' in version numbers; can lead to unpredictable and unrepeatable builds." to null)),
       )
     }
   }
@@ -102,7 +87,7 @@ class PsAndroidModuleAnalyzerTest {
           .map { it.text to it.description!! }
           .toSet()
 
-      assertThat(messages, equalTo(setOf("Gradle provided version 28.0.0" to "in: implementation")))
+      assertThat(messages, equalTo(emptySet<Pair<String, String>>()))
     }
   }
 }
