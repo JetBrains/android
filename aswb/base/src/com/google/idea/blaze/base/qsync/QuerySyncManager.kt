@@ -264,7 +264,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
 
   private fun autoEnableComposeBasicDependenciesIfNeeded(context: BlazeContext) {
     val snapshot = currentSnapshot.getOrNull()
-    if (snapshot != null && BazelComposeToolingProjectLabelProvider.isComposeProject(project, snapshot.graph)) {
+    if (snapshot != null && BazelComposeToolingProjectLabelProvider.isComposeProject(project, snapshot.staleGraph)) {
       val label = BazelComposeToolingProjectLabelProvider.getComposeToolingLabel(project)
       if (label != null) {
         // TODO: solodkyy - This is a little bit inefficient
@@ -519,7 +519,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     val newArtifactState = loadedProject?.artifactTracker?.stateSnapshot ?: ArtifactTracker.State.EMPTY
     if (
       lastProjectUpdateFromSnapshot.queryData == newSnapshot.queryData &&
-        lastProjectUpdateFromSnapshot.graph == newSnapshot.graph &&
+        lastProjectUpdateFromSnapshot.staleGraph == newSnapshot.staleGraph &&
         lastProjectUpdateFromSnapshot.projectStructureData == newSnapshot.projectStructureData &&
         lastProjectUpdateFromArtifactState == newArtifactState
     ) {
@@ -531,7 +531,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
       loadedProject.createProjectStructure(
         context,
         newSnapshot.queryData.projectDefinition(),
-        newSnapshot.graph,
+        newSnapshot.staleGraph,
         newSnapshot.projectStructureData,
       )
     val updatedSnapshot =
@@ -541,7 +541,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
         QuerySyncProjectSnapshot(
           artifactState = result.artifactState,
           queryData = newSnapshot.queryData,
-          graph = newSnapshot.graph,
+          staleGraph = newSnapshot.staleGraph,
           projectStructureData = newSnapshot.projectStructureData,
           project = result.projectStructure,
           incompleteTargets = emptySet(),
@@ -717,7 +717,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
       updateCurrentSnapshot(context) {
         copy(
           queryData = PostQuerySyncData.EMPTY,
-          graph = BuildGraphData.EMPTY,
+          staleGraph = BuildGraphData.EMPTY,
           artifactState = ArtifactTracker.State.EMPTY,
           project = ProjectProto.Project.getDefaultInstance(),
           incompleteTargets = emptySet(),
@@ -735,7 +735,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
       loadedProject
         .runCatching { loadedProject.artifactTracker.clear() }
         .getOrElse { throw BuildException("Failed to clear dependency info", it) }
-      updateCurrentSnapshot(context) { copy(queryData = PostQuerySyncData.EMPTY, graph = BuildGraphData.EMPTY) }
+      updateCurrentSnapshot(context) { copy(queryData = PostQuerySyncData.EMPTY, staleGraph = BuildGraphData.EMPTY) }
     }
   }
 
@@ -873,5 +873,5 @@ fun QuerySyncProjectSnapshot.applySyncResult(
   coreSyncResult: QuerySyncProject.QueryCoreSyncResult,
   projectStructureData: ProjectStructureData,
 ): QuerySyncProjectSnapshot {
-  return copy(queryData = coreSyncResult.postQuerySyncData, graph = coreSyncResult.graph, projectStructureData = projectStructureData)
+  return copy(queryData = coreSyncResult.postQuerySyncData, staleGraph = coreSyncResult.graph, projectStructureData = projectStructureData)
 }

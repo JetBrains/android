@@ -64,7 +64,7 @@ class ConfigureCcSourcesTest {
   fun emptyArtifactTracker() {
     val original = syncRunner.sync(TestData.CC_LIBRARY_QUERY)
     val update = ProjectProtoUpdate(original.project)
-    ConfigureCcSources().update(update, original.graph, context)
+    ConfigureCcSources().update(update, original.staleGraph, context)
     val project = update.build()
     val ccTarget = Label.of("//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/cc:cc")
     val testClassCcPath =
@@ -94,7 +94,7 @@ class ConfigureCcSourcesTest {
     val original = syncRunner.sync(TestData.CC_LIBRARY_QUERY)
     val update = ProjectProtoUpdate(original.project)
 
-    ConfigureCcSources().update(update, original.graph, context)
+    ConfigureCcSources().update(update, original.staleGraph, context)
 
     val project = update.build()
 

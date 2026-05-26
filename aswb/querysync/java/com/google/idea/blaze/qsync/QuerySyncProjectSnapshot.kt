@@ -41,7 +41,7 @@ import java.nio.file.Path
  */
 data class QuerySyncProjectSnapshot(
   val queryData: PostQuerySyncData,
-  val graph: BuildGraphData,
+  val staleGraph: BuildGraphData,
   val projectStructureData: ProjectStructureData,
   val artifactState: ArtifactTracker.State,
   val project: ProjectProto.Project,
@@ -52,7 +52,7 @@ data class QuerySyncProjectSnapshot(
     val EMPTY =
       QuerySyncProjectSnapshot(
         queryData = PostQuerySyncData.EMPTY,
-        graph = BuildGraphData.EMPTY,
+        staleGraph = BuildGraphData.EMPTY,
         projectStructureData = ProjectStructureData.EMPTY,
         artifactState = ArtifactTracker.State.EMPTY,
         project = ProjectProto.Project.getDefaultInstance(),
@@ -62,7 +62,7 @@ data class QuerySyncProjectSnapshot(
 
   fun withQueryData(value: PostQuerySyncData): QuerySyncProjectSnapshot = copy(queryData = value)
 
-  fun withGraph(value: BuildGraphData): QuerySyncProjectSnapshot = copy(graph = value)
+  fun withGraph(value: BuildGraphData): QuerySyncProjectSnapshot = copy(staleGraph = value)
 
   fun withProjectStructureData(value: ProjectStructureData): QuerySyncProjectSnapshot = copy(projectStructureData = value)
 
@@ -76,12 +76,12 @@ data class QuerySyncProjectSnapshot(
    * @param path a workspace relative path.
    */
   fun getSourceFileOwners(path: Path): Set<Label> {
-    return graph.getSourceFileOwners(projectStructureData.pathToLabel(path) ?: return emptySet())
+    return staleGraph.getSourceFileOwners(projectStructureData.pathToLabel(path) ?: return emptySet())
   }
 
   val allLoadedTargets: Sequence<ProjectTarget>
     /** Returns mapping of targets to [BuildTarget] */
-    get() = graph.allLoadedTargets()
+    get() = staleGraph.allLoadedTargets()
 
   val artifactIndex: ArtifactIndex by lazy(LazyThreadSafetyMode.PUBLICATION) { ArtifactIndex.create(artifactState) }
 
@@ -100,7 +100,7 @@ data class QuerySyncProjectSnapshot(
       .map { target ->
         val requestedTargets =
           RequestedTargets(
-            graph.computeSufficientTargets(listOf(target), replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false)
+            staleGraph.computeSufficientTargets(listOf(target), replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false)
           )
         requestedTargets
           .requiredTargets(getCodeAnalysisDependencyGraphProvider())

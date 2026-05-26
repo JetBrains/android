@@ -81,7 +81,7 @@ public class QuerySyncProjectData implements BlazeProjectData {
   @Nullable
   @Override
   public ProjectTarget getBuildTarget(com.google.idea.blaze.common.Label label) {
-    return blazeProject.map(it -> it.getGraph().getProjectTarget(label)).orElse(null);
+    return blazeProject.map(it -> it.getStaleGraph().getProjectTarget(label)).orElse(null);
   }
 
   /**
@@ -97,7 +97,7 @@ public class QuerySyncProjectData implements BlazeProjectData {
             it -> Optional.ofNullable(pathToLabel(it.getProjectStructureData(), sourcePath)));
     if (sourceLabel.isEmpty()) return Collections.emptyList();
     return blazeProject
-        .map(QuerySyncProjectSnapshot::getGraph)
+        .map(QuerySyncProjectSnapshot::getStaleGraph)
         .map(graph -> graph.getReverseDepsForSource(sourceLabel.get()))
         .orElse(ImmutableList.of());
   }

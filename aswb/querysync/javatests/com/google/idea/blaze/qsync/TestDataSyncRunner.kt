@@ -86,7 +86,7 @@ class TestDataSyncRunner(private val context: Context<*>) {
     val project = update.build()
     return QuerySyncProjectSnapshot(
       queryData = pqsd,
-      graph =
+      staleGraph =
         BlazeQueryParser(
             projectDefinition.effectiveTargetPatterns,
             querySummary,

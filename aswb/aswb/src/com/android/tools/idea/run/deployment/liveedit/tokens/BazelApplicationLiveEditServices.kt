@@ -82,12 +82,12 @@ class BazelApplicationLiveEditServices(
     val workspaceRoot = WorkspaceRoot.fromProject(project)
     val path = workspaceRoot.relativize(ktFile.virtualFile.toNioPath())
     val sourceFileLabel = snapshot.projectStructureData.pathToLabel(path) ?: return CompilerConfiguration.create()
-    val labels = snapshot.graph.getSourceFileOwners(sourceFileLabel)
+    val labels = snapshot.staleGraph.getSourceFileOwners(sourceFileLabel)
     if (labels.isEmpty()) return CompilerConfiguration.create()
 
     // Choose the target that would normally be selected for previews.
     val label =
-      listOf(snapshot.graph.getProjectTargetsForSourceFile(sourceFileLabel))
+      listOf(snapshot.staleGraph.getProjectTargetsForSourceFile(sourceFileLabel))
         .toPreferredLabel(isPreferredTarget = { buildOutcomeProvider.lastBuildOutcome()?.builtJavaTargetPredicate(it) ?: false })
         ?: labels.first()
 

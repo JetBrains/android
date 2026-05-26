@@ -177,16 +177,16 @@ class QuerySyncProject(
         if (path.endsWith("BUILD") || path.endsWith("BUILD.bazel")) {
           val packagePath = path.parent ?: Path.of("")
           val packageLabel = Label.fromWorkspacePackageAndName("", packagePath, Label.PACKAGE_TARGET_NAME)
-          snapshot.graph.getProjectTargetsForBuildPackage(packageLabel)
+          snapshot.staleGraph.getProjectTargetsForBuildPackage(packageLabel)
         } else {
           val packageLabel = Label.fromWorkspacePackageAndName("", path, Label.PACKAGE_TARGET_NAME)
-          val subpackagesTargets = snapshot.graph.getProjectTargetsForBuildPackageWithSubpackages(packageLabel)
+          val subpackagesTargets = snapshot.staleGraph.getProjectTargetsForBuildPackageWithSubpackages(packageLabel)
           if (!subpackagesTargets.isEmpty()) {
             subpackagesTargets
           } else {
             val sourceFileLabel = snapshot.projectStructureData.pathToLabel(path)
             if (sourceFileLabel != null) {
-              snapshot.graph.getProjectTargetsForSourceFile(sourceFileLabel)
+              snapshot.staleGraph.getProjectTargetsForSourceFile(sourceFileLabel)
             } else {
               TargetsToBuild.forUnknownSourceFile(path)
             }
@@ -199,7 +199,7 @@ class QuerySyncProject(
   /** Returns the set of targets with direct dependencies on `targets`. */
   fun getTargetsDependingOn(targets: Set<Label>): Set<Label> {
     val snapshot = snapshotHolder.current.orElseThrow()
-    return snapshot.graph.getSameLanguageTargetsDependingOn(targets)
+    return snapshot.staleGraph.getSameLanguageTargetsDependingOn(targets)
   }
 
   /** Returns workspace-relative paths of modified files, according to the VCS */
@@ -330,7 +330,7 @@ class QuerySyncProject(
 
     // Check known source files.
     val workspaceRelative = workspaceRoot.path().relativize(absolutePath)
-    if (snapshotHolder()?.graph?.sourceFileToLabel(workspaceRelative) != null) {
+    if (snapshotHolder()?.staleGraph?.sourceFileToLabel(workspaceRelative) != null) {
       return Optional.of<Boolean>(false)
     }
 
@@ -351,7 +351,7 @@ class QuerySyncProject(
 
   // TODO: b/397649793 - Remove this method when fixed.
   override fun dependsOnAnyOf_DO_NOT_USE_BROKEN(target: Label, deps: Set<Label>): Boolean {
-    return snapshotHolder.current.map { it.graph }.map { it.dependsOnAnyOf_DO_NOT_USE_BROKEN(target, deps) }.orElse(false)
+    return snapshotHolder.current.map { it.staleGraph }.map { it.dependsOnAnyOf_DO_NOT_USE_BROKEN(target, deps) }.orElse(false)
   }
 }
 

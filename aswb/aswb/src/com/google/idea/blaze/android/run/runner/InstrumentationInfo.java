@@ -71,7 +71,7 @@ public class InstrumentationInfo {
       throw new InstrumentationParserException("Project not synced");
     }
     var projectSnapshot = maybeProjectSnapshot.get();
-    ProjectTarget testTarget = projectSnapshot.getGraph().getProjectTarget(instrumentationTestLabel);
+    ProjectTarget testTarget = projectSnapshot.getStaleGraph().getProjectTarget(instrumentationTestLabel);
     if (testTarget == null) {
       String msg = "Unable to identify target \"" + instrumentationTestLabel + "\".";
       throw new InstrumentationParserException(msg);
@@ -81,7 +81,7 @@ public class InstrumentationInfo {
       throw new InstrumentationParserException(msg);
     }
     var testApp = testTarget.testApp().get();
-    ProjectTarget targetApp = projectSnapshot.getGraph().getProjectTarget(testApp);
+    ProjectTarget targetApp = projectSnapshot.getStaleGraph().getProjectTarget(testApp);
     Label instruments = null;
     if (targetApp != null && targetApp.instruments().isPresent()) {
       instruments = targetApp.instruments().get();

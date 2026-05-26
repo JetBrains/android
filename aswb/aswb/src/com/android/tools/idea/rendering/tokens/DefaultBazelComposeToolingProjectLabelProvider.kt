@@ -34,7 +34,7 @@ class DefaultBazelComposeToolingProjectLabelProvider : BazelComposeToolingProjec
     if (BazelImportSettingsManager.getInstance(project).buildSystem != BuildSystemName.Bazel) {
       return null
     }
-    val graph = QuerySyncManager.getInstance(project).currentSnapshot.getOrNull()?.graph ?: return null
+    val graph = QuerySyncManager.getInstance(project).currentSnapshot.getOrNull()?.staleGraph ?: return null
     return composeDeps(graph).firstOrNull()?.siblingWithName("androidx_compose_ui_ui_tooling")
   }
 

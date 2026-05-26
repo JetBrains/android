@@ -33,9 +33,9 @@ import org.jetbrains.annotations.TestOnly
 fun QuerySyncProjectSnapshot.getCodeAnalysisDependencyGraphProvider(): DependencyGraphProvider {
   return object : DependencyGraphProvider {
     override fun getTarget(label: Label): Target {
-      val projectTarget = graph.getProjectTarget(label)
+      val projectTarget = staleGraph.getProjectTarget(label)
       return if (projectTarget != null) {
-        ProjectTargetWrapper(projectTarget, graph, this)
+        ProjectTargetWrapper(projectTarget, staleGraph, this)
       } else {
         UnknownTargetWrapper(label)
       }

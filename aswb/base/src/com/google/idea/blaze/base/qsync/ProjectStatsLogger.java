@@ -44,12 +44,12 @@ public class ProjectStatsLogger {
                       ImmutableSet.copyOf(
                           instance.getQueryData().projectDefinition().getLanguageClasses()))
                   .setProjectTargetCount(
-                      instance.getGraph().getProjectSupportedTargetCountForStatsOnly())
+                      instance.getStaleGraph().getProjectSupportedTargetCountForStatsOnly())
                   .setExternalDependencyCount(
-                      instance.getGraph().getExternalDependencyCountForStatsOnly());
+                      instance.getStaleGraph().getExternalDependencyCountForStatsOnly());
               scope
                   .getDependenciesInfoStatsBuilder()
-                  .setTargetMapSize(instance.getGraph().getTargetMapSizeForStatsOnly())
+                  .setTargetMapSize(instance.getStaleGraph().getTargetMapSizeForStatsOnly())
                   .setLibraryCount(instance.getProject().getLibraries().size())
                   .setJarCount(
                       instance.getArtifactState().targets().stream()
