@@ -25,6 +25,8 @@ import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel
 import com.android.tools.profilers.tasks.ProfilerTaskType
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import java.io.File
 import java.io.FileOutputStream
 import java.util.concurrent.CompletableFuture
@@ -231,4 +233,13 @@ interface IdeProfilerServices {
    * @param leak The Leak object context (used for display text or other metadata). Can be null if manually entered.
    */
   fun analyzeLeakWithStudioBot(rawTrace: String, leak: Leak?) {}
+
+  /**
+   * Fetches an AI interpretation of a LeakCanary leak.
+   *
+   * @param rawTrace The raw text of the leak trace to be analyzed.
+   * @param leak The Leak object context.
+   * @return A flow of strings representing the AI's response (markdown).
+   */
+  fun fetchLeakInsight(rawTrace: String): Flow<String> = emptyFlow()
 }

@@ -28,6 +28,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
 import com.android.tools.idea.profilers.leakcanary.LeakCanaryAiHandler;
+import kotlinx.coroutines.flow.Flow;
 import com.android.tools.idea.profilers.perfetto.traceprocessor.TraceProcessorServiceImpl;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
 import com.android.tools.idea.profilers.stacktrace.IntelliJNativeFrameSymbolizer;
@@ -791,6 +792,11 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     LeakCanaryAiHandler.getInstance(myProject).analyzeLeakWithStudioBot(rawTrace, leak);
   }
 
+  @NotNull
+  @Override
+  public Flow<String> fetchLeakInsight(@NotNull String rawTrace) {
+    return LeakCanaryAiHandler.fetchLeakInsight(myProject, rawTrace);
+  }
   /**
    * Implementation of {@link FeatureConfig} with values used in production.
    */

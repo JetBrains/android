@@ -394,33 +394,6 @@ class LeakDetailsPanelTest : WithFakeTimer {
     composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_LEAK_DETAIL_EMPTY_INITIAL_MESSAGE).assertDoesNotExist()
   }
 
-  @Test
-  fun `test analyze with studio bot button triggers callback`() {
-    val leaks = getSampleLeak()
-    val selectedLeak = leaks[0]
-    var callbackInvoked = false
-
-    composeTestRule.setContent {
-      val traceNodes = selectedLeak.displayedLeakTrace.firstOrNull()?.nodes ?: emptyList()
-      var openStates by remember(selectedLeak) { mutableStateOf(List(traceNodes.size) { false }) }
-      LeakDetailsPanel(
-        selectedLeak = selectedLeak,
-        gotoDeclaration = leakCanaryModel::goToDeclaration,
-        isRecording = true,
-        isLeakCanaryPresent = true,
-        isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync,
-        openStates = openStates,
-        onOpenStatesChange = { openStates = it },
-        onAnalyzeLeakWithStudioBot = { callbackInvoked = true },
-        isLeakCanaryStudioBotEnabled = true,
-        onCopy = {},
-      )
-    }
-
-    composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_FIX_WITH_AGENT).assertIsDisplayed()
-    composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_FIX_WITH_AGENT).performClick()
-    assertTrue(callbackInvoked)
-  }
 
   private fun getLeakWithNavigatableAndNonNavigatableNode(): List<Leak> {
     val applicationLeakText =

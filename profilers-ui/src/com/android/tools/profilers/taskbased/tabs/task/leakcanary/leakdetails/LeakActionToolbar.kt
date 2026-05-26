@@ -38,7 +38,6 @@ import java.awt.datatransfer.StringSelection
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IconButton
-import org.jetbrains.jewel.ui.component.OutlinedButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.Tooltip
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
@@ -51,8 +50,6 @@ fun LeakActionToolbar(
   onExpandAll: () -> Unit,
   onCollapseAll: () -> Unit,
   onCopy: () -> Unit,
-  isStudioBotEnabled: Boolean,
-  onAnalyzeLeakWithStudioBot: () -> Unit,
 ) {
   Row(
     modifier =
@@ -67,12 +64,6 @@ fun LeakActionToolbar(
     val leakName = selectedLeak?.let { LeakCanaryModel.getLeakClassName(it) } ?: ""
     Text(text = leakName, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f).padding(end = 8.dp))
     Row(verticalAlignment = Alignment.CenterVertically) {
-      if (isStudioBotEnabled) {
-        OutlinedButton(onClick = onAnalyzeLeakWithStudioBot, enabled = selectedLeak != null) {
-          Text(TaskBasedUxStrings.LEAKCANARY_FIX_WITH_AGENT)
-        }
-        Spacer(Modifier.width(8.dp))
-      }
       Tooltip(
         tooltip = {
           Column(horizontalAlignment = Alignment.Start) {

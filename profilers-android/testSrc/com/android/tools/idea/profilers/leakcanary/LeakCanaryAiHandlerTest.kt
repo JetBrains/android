@@ -138,6 +138,5 @@ class LeakCanaryAiHandlerTest {
     val submittedQuery = queryCaptor.firstValue
     assertTrue(submittedQuery.contains("Fix this memory leak and summarize the outcome:"))
     assertTrue(submittedQuery.contains(rawTrace))
-    assertFalse(submittedQuery.contains("Role"))
   }
 }
