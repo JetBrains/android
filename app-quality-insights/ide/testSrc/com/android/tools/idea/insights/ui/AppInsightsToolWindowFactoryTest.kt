@@ -86,14 +86,16 @@ class AppInsightsToolWindowFactoryTest {
 
     factory.createTabs(projectRule.project, toolWindow)
 
-    assertThat(toolWindow.contentManager.selectedContent?.displayName).isEqualTo(provider1.displayName)
+    assertThat(toolWindow.contentManager.selectedContent?.displayName).isEqualTo(provider1.insightsProvider.displayName)
     waitForCondition { provider1.isTabActive }
     waitForCondition { !provider2.isTabActive }
 
-    toolWindow.contentManager.setSelectedContent(toolWindow.contentManager.contents.first { it.displayName == provider2.displayName })
-    waitForCondition { toolWindow.contentManager.selectedContent?.displayName != provider1.displayName }
+    toolWindow.contentManager.setSelectedContent(
+      toolWindow.contentManager.contents.first { it.displayName == provider2.insightsProvider.displayName }
+    )
+    waitForCondition { toolWindow.contentManager.selectedContent?.displayName != provider1.insightsProvider.displayName }
 
-    assertThat(toolWindow.contentManager.selectedContent?.displayName).isEqualTo(provider2.displayName)
+    assertThat(toolWindow.contentManager.selectedContent?.displayName).isEqualTo(provider2.insightsProvider.displayName)
     waitForCondition { !provider1.isTabActive }
     waitForCondition { provider2.isTabActive }
   }

@@ -51,7 +51,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class VitalsTabProvider : AppInsightsTabProvider {
-  override val displayName = VitalsInsightsProvider.displayName
+  override val insightsProvider = VitalsInsightsProvider
 
   override val icon = StudioIllustrations.Common.PLAY_CONSOLE_ICON
 

@@ -91,7 +91,7 @@ interface AppInsightsProjectLevelController {
 
   fun selectSignal(value: SignalType)
 
-  fun selectConnection(value: Connection)
+  fun selectConnection(value: Connection?)
 
   fun nextEvent()
 

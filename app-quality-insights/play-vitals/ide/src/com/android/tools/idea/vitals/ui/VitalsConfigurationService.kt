@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.vitals.ui
 
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.android.tools.idea.insights.AppInsightsModel
@@ -31,6 +31,7 @@ import com.android.tools.idea.insights.client.AppInsightsClient
 import com.android.tools.idea.insights.client.channelBuilderForAddress
 import com.android.tools.idea.insights.events.ExplicitRefresh
 import com.android.tools.idea.insights.getHolderModules
+import com.android.tools.idea.insights.inspection.AppInsightsFilterSelector
 import com.android.tools.idea.insights.isAndroidApp
 import com.android.tools.idea.insights.model.connection.AppConnection
 import com.android.tools.idea.insights.model.connection.ConnectionMode
@@ -48,6 +49,7 @@ import com.google.gct.login2.LoginFeature
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
@@ -61,6 +63,7 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
@@ -90,7 +93,7 @@ class VitalsConfigurationManager(
 ) : AppInsightsConfigurationManager, Disposable {
 
   private val logger = Logger.getInstance(VitalsConfigurationManager::class.java)
-  private val scope = AndroidCoroutineScope(this)
+  private val scope = createCoroutineScope()
   private val refreshConfigurationFlow = MutableSharedFlow<Unit>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
   private val loader = ComponentLoader()
 
@@ -213,7 +216,7 @@ class VitalsConfigurationManager(
         }
         val uiScope =
           try {
-            AndroidCoroutineScope(this@VitalsConfigurationManager, Dispatchers.EDT)
+            this@VitalsConfigurationManager.createCoroutineScope(Dispatchers.EDT)
           } catch (e: IncorrectOperationException) {
             // Project is disposed.
             return@launch
@@ -222,22 +225,37 @@ class VitalsConfigurationManager(
         val codeContextResolver = CodeContextResolverImpl(project)
         val vitalsController =
           AppInsightsProjectLevelControllerImpl(
-            provider = VitalsInsightsProvider,
-            uiScope,
-            Dispatchers.Default,
-            clientDeferred.await(),
-            queryConnectionsFlow.mapConnectionsToVariantConnectionsIfReady(),
-            offlineStatusManager,
-            tracker = AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS),
-            clock = Clock.systemDefaultZone(),
-            project = project,
-            onErrorAction = { msg, hyperlinkListener ->
-              AppInsightsToolWindowFactory.showBalloon(project, MessageType.ERROR, msg, hyperlinkListener)
-            },
-            defaultFilters = createVitalsFilters(),
-            aiInsightToolkit = VitalsAiInsightToolkit(project, codeContextResolver),
-            cache = cache,
-          )
+              provider = VitalsInsightsProvider,
+              uiScope,
+              Dispatchers.Default,
+              clientDeferred.await(),
+              queryConnectionsFlow.mapConnectionsToVariantConnectionsIfReady(),
+              offlineStatusManager,
+              tracker = AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS),
+              clock = Clock.systemDefaultZone(),
+              project = project,
+              onErrorAction = { msg, hyperlinkListener ->
+                AppInsightsToolWindowFactory.showBalloon(project, MessageType.ERROR, msg, hyperlinkListener)
+              },
+              defaultFilters = createVitalsFilters(),
+              aiInsightToolkit = VitalsAiInsightToolkit(project, codeContextResolver),
+              cache = cache,
+            )
+            .apply {
+              // Choose connections from [AppInsightsFilterSelector]
+              if (StudioFlags.APP_INSIGHTS_GLOBAL_SELECTOR.get()) {
+                scope.launch {
+                  state
+                    .combine(project.service<AppInsightsFilterSelector>().selectedAppId) { state, selectedAppId ->
+                      if (selectedAppId != null && state.connections.selected?.appId != selectedAppId) {
+                        val newSelection = state.connections.items.firstOrNull { connection -> connection.appId == selectedAppId }
+                        selectConnection(newSelection)
+                      }
+                    }
+                    .collect()
+                }
+              }
+            }
         controllerDeferred.complete(vitalsController)
       }
     }

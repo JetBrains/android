@@ -70,7 +70,7 @@ open class StubAppInsightsProjectLevelController(
 
   override fun selectSignal(value: SignalType) {}
 
-  override fun selectConnection(value: Connection) {}
+  override fun selectConnection(value: Connection?) {}
 
   override fun nextEvent() {}
 

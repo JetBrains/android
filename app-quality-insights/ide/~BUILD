@@ -12,6 +12,7 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "//tools/adt/idea/android-common:intellij.android.common",
+        "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/adt/idea/artwork:intellij.android.artwork",
         "//tools/adt/idea/app-quality-insights/ui:intellij.android.app-quality-insights.ui",
         "//tools/adt/idea/app-quality-insights/api:intellij.android.app-quality-insights.api",

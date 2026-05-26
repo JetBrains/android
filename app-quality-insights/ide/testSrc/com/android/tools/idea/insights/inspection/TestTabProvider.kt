@@ -18,6 +18,7 @@ package com.android.tools.idea.insights.inspection
 import com.android.tools.idea.insights.AppInsight
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.android.tools.idea.insights.AppInsightsModel
+import com.android.tools.idea.insights.FakeInsightsProvider
 import com.android.tools.idea.insights.OfflineStatusManagerImpl
 import com.android.tools.idea.insights.StubAppInsightsProjectLevelController
 import com.android.tools.idea.insights.ui.AppInsightsTabPanel
@@ -29,7 +30,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-open class TestTabProvider(override val displayName: String) : AppInsightsTabProvider {
+open class TestTabProvider(displayName: String) : AppInsightsTabProvider {
+  override val insightsProvider = FakeInsightsProvider(displayName)
   override val icon: Icon = PlatformIcons.ADD_ICON
 
   private val fakeInsights = mutableListOf<AppInsight>()

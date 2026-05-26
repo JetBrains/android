@@ -15,5 +15,10 @@
  */
 package com.android.tools.idea.insights
 
-class FakeInsightsProvider(override val displayName: String = "Firebase Crashlytics", override val supportsMultipleEvents: Boolean = true) :
-  InsightsProvider
+import com.android.tools.idea.insights.InsightsProvider.Source
+
+class FakeInsightsProvider(
+  override val displayName: String = "Firebase Crashlytics",
+  override val supportsMultipleEvents: Boolean = true,
+  override val source: Source = Source.UNKNOWN,
+) : InsightsProvider

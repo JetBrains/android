@@ -1978,6 +1978,13 @@ public final class StudioFlags {
   // region App Insights
   @VisibleForTesting public static final FlagGroup APP_INSIGHTS = new FlagGroup(FLAGS, "appinsights", "App Insights");
 
+  public static final Flag<Boolean> APP_INSIGHTS_GLOBAL_SELECTOR = new BooleanFlag(
+    APP_INSIGHTS,
+    "global.selector",
+    "Use the global App Quality Insights connection selector instead of the tab-specific ones.",
+    "Use a global App Quality Insights connection selector that spans across multiple providers (Firebase, Play)"
+  );
+
   public static final Flag<Boolean> GEMINI_ASSISTED_CONTEXT_FETCH =
     new BooleanFlag(
       APP_INSIGHTS,

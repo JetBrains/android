@@ -190,7 +190,7 @@ class AppInsightsProjectLevelControllerImpl(
     emit(SignalChanged(value))
   }
 
-  override fun selectConnection(value: Connection) {
+  override fun selectConnection(value: Connection?) {
     emit(ActiveConnectionChanged(value))
   }
 

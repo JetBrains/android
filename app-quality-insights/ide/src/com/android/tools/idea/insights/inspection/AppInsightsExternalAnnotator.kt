@@ -135,20 +135,20 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
             }
           }
           AppInsightsModel.Unauthenticated -> {
-            logger.debug("Skip annotation collection for ${tabProvider.displayName} because it is unauthenticated.")
+            logger.debug("Skip annotation collection for ${tabProvider.insightsProvider.displayName} because it is unauthenticated.")
             emptyList()
           }
           AppInsightsModel.Uninitialized -> {
             // This should only happen at project startup, when things are initializing.
             // Skip collection until the insights model is authenticated, after which the
             // framework will call to collect again and get the correct annotations.
-            logger.debug("Skip annotation collection for ${tabProvider.displayName} because it hasn't initialized.")
+            logger.debug("Skip annotation collection for ${tabProvider.insightsProvider.displayName} because it hasn't initialized.")
             emptyList()
           }
           AppInsightsModel.InitializationFailed -> {
             // This indicates some failure happened at startup and AQI has no useful information to
             // show.
-            logger.debug("Skip annotation collection for ${tabProvider.displayName} because its initialization failed.")
+            logger.debug("Skip annotation collection for ${tabProvider.insightsProvider.displayName} because its initialization failed.")
             emptyList()
           }
         }
