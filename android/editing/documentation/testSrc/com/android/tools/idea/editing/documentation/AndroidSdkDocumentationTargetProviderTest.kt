@@ -38,7 +38,6 @@ import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.platform.backend.documentation.AsyncDocumentation
 import com.intellij.platform.backend.documentation.DocumentationData
-import com.intellij.platform.backend.documentation.DocumentationResult.Documentation
 import com.intellij.platform.backend.documentation.DocumentationTarget
 import com.intellij.platform.backend.documentation.impl.computeDocHintBlocking
 import com.intellij.psi.PsiClass
@@ -166,53 +165,7 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
   }
 
   @Test
-  fun checkDocumentation_fast() {
-    whenever(mockUrlFileCache.getWithStats(eq(urlWithHeaders), any(), isNull(), any()))
-      .thenReturn(
-        // This one is already completed.
-        CompletableDeferred(simpleHtmlPath to FETCH_STATS)
-      )
-
-    setUpCursor()
-    val doc = getDocsAtCursor().single()
-
-    val documentation = runReadAction { doc.computeDocumentation() }
-    assertThat(documentation).isInstanceOf(Documentation::class.java)
-
-    val documentationData = runBlocking { (documentation as Documentation) }
-    assertThat(documentationData).isInstanceOf(DocumentationData::class.java)
-    assertThat((documentationData as DocumentationData).html).isEqualTo(SIMPLE_HTML)
-
-    // Independently check that the passed-in filter is doing the right thing.
-    @Suppress("DeferredResultUnused") verify(mockUrlFileCache).getWithStats(eq(urlWithHeaders), any(), isNull(), transformCaptor.capture())
-
-    val filterOutput =
-      FileInputStream(preFilteringPath.toFile())
-        .use { inputStream -> String(transformCaptor.firstValue.invoke(inputStream).readAllBytes()) }
-        .collapseSpaces()
-
-    assertThat(filterOutput).isEqualTo(documentationContentAfterFiltering)
-
-    val editingMetricsEvents = usageTrackerRule.usages.map { it.studioEvent }.filter { it.kind == EDITING_METRICS_EVENT }
-    assertThat(editingMetricsEvents).hasSize(1)
-    with(editingMetricsEvents.single()) {
-      assertThat(hasEditingMetricsEvent())
-      assertThat(editingMetricsEvent.hasExternalQuickDocEvent())
-      with(editingMetricsEvent.externalQuickDocEvent) {
-        assertThat(fileType).isEqualTo(getEditorFileTypeForAnalytics(testConfig.language.id))
-        assertThat(fetchDurationMs).isEqualTo(FETCH_STATS.fetchDuration.inWholeMilliseconds)
-        assertThat(success).isEqualTo(FETCH_STATS.success)
-        assertThat(cacheHit).isEqualTo(FETCH_STATS.cacheHit)
-        assertThat(serverNotModified).isEqualTo(FETCH_STATS.notModified)
-        assertThat(numBytesFetched).isEqualTo(FETCH_STATS.numBytesFetched)
-        assertThat(numBytesCached).isEqualTo(FETCH_STATS.numBytesCached)
-        assertThat(numBytesDisplayed).isEqualTo(SIMPLE_HTML.toByteArray().size.toLong())
-      }
-    }
-  }
-
-  @Test
-  fun checkDocumentation_slow() {
+  fun checkDocumentation() {
     val completableDeferred = CompletableDeferred<Pair<Path, FetchStats>>()
     whenever(mockUrlFileCache.getWithStats(eq(urlWithHeaders), any(), isNull(), any())).thenReturn(completableDeferred)
 
