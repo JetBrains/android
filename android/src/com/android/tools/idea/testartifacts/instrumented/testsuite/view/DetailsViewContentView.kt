@@ -152,45 +152,18 @@ open class DetailsViewContentView(
     Disposer.register(this, myLogsView)
     logger.addImpressionWhenDisplayed(myLogsView.component, ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_LOG_VIEW)
     val logsHeadingLabel =
-      object : JBLabel("Logs") {
-          override fun getAccessibleContext(): AccessibleContext {
-            if (accessibleContext == null) {
-              accessibleContext =
-                object : AccessibleJLabel() {
-                  override fun getAccessibleRole() =
-                    if (SystemInfoRt.isMac) {
-                      AccessibilityUtils.GROUPED_ELEMENTS
-                    } else {
-                      AccessibleRole.LABEL
-                    }
-                }
-            }
-            return accessibleContext
-          }
-        }
-        .apply {
-          isFocusable = true
-          AccessibleContextUtil.setName(this, "Heading: Logs")
-        }
+      createAccessibleLabel("Logs").apply {
+        isFocusable = true
+        AccessibleContextUtil.setName(this, "Heading: Logs")
+      }
 
     val logsContainer = JPanel(BorderLayout()).apply { add(logsHeadingLabel, BorderLayout.NORTH) }
 
     val logsViewWithVerticalToolbar =
-      object : NonOpaquePanel(BorderLayout()) {
-          override fun getAccessibleContext(): javax.accessibility.AccessibleContext {
-            if (accessibleContext == null) {
-              accessibleContext =
-                object : AccessibleJPanel() {
-                  override fun getAccessibleRole() = javax.accessibility.AccessibleRole.PANEL
-                }
-            }
-            return accessibleContext
-          }
-        }
-        .apply {
-          accessibleContext.accessibleName = "Logs View"
-          isFocusable = true
-        }
+      createAccessiblePanel(BorderLayout(), accessibleName = "Logs View", roleOnMac = javax.accessibility.AccessibleRole.PANEL).apply {
+        isOpaque = false
+        isFocusable = true
+      }
     logsViewWithVerticalToolbar.add(myLogsView.component, BorderLayout.CENTER)
     val logViewToolbar =
       ActionManager.getInstance()
@@ -212,21 +185,10 @@ open class DetailsViewContentView(
     myBenchmarkView = ConsoleViewImpl(project, /* viewer= */ true)
     Disposer.register(this, myBenchmarkView)
     val benchmarkViewWithVerticalToolbar =
-      object : NonOpaquePanel(BorderLayout()) {
-          override fun getAccessibleContext(): javax.accessibility.AccessibleContext {
-            if (accessibleContext == null) {
-              accessibleContext =
-                object : AccessibleJPanel() {
-                  override fun getAccessibleRole() = javax.accessibility.AccessibleRole.PANEL
-                }
-            }
-            return accessibleContext
-          }
-        }
-        .apply {
-          accessibleContext.accessibleName = "Benchmark View"
-          isFocusable = true
-        }
+      createAccessiblePanel(BorderLayout(), accessibleName = "Benchmark View", roleOnMac = javax.accessibility.AccessibleRole.PANEL).apply {
+        isOpaque = false
+        isFocusable = true
+      }
     benchmarkViewWithVerticalToolbar.add(myBenchmarkView.component, BorderLayout.CENTER)
     val benchmarkViewToolbar =
       ActionManager.getInstance()
@@ -253,24 +215,7 @@ open class DetailsViewContentView(
     myDeviceInfoTab.setTooltipText("Show device information")
     tabs.addTab(myDeviceInfoTab)
 
-    rootPanel =
-      object : JPanel(BorderLayout()) {
-        override fun getAccessibleContext(): AccessibleContext {
-          if (accessibleContext == null) {
-            accessibleContext =
-              object : AccessibleJPanel() {
-                  override fun getAccessibleRole() =
-                    if (SystemInfoRt.isMac) {
-                      AccessibilityUtils.GROUPED_ELEMENTS
-                    } else {
-                      AccessibleRole.PANEL
-                    }
-                }
-                .apply { accessibleName = "Test Results Panel Structure" }
-          }
-          return accessibleContext
-        }
-      }
+    rootPanel = createAccessiblePanel(BorderLayout(), accessibleName = "Test Results Panel Structure")
     val actionGroup = DefaultActionGroup()
     actionGroup.addAll(headerActions)
     val toolbar = ActionManager.getInstance().createActionToolbar("AndroidTestSuite.DetailsView.Header", actionGroup, true)
@@ -572,6 +517,44 @@ open class DetailsViewContentView(
     // Clear the logcat message to reduce the impact of the memory leak. b/446684393.
     myLogcat = ""
     myErrorStackTrace = ""
+  }
+}
+
+private fun createAccessiblePanel(
+  layout: java.awt.LayoutManager,
+  accessibleName: String? = null,
+  roleOnMac: AccessibleRole = AccessibilityUtils.GROUPED_ELEMENTS,
+  defaultRole: AccessibleRole = AccessibleRole.PANEL,
+): JPanel {
+  return object : JPanel(layout) {
+    override fun getAccessibleContext(): AccessibleContext {
+      if (accessibleContext == null) {
+        accessibleContext =
+          object : AccessibleJPanel() {
+            override fun getAccessibleRole() = if (SystemInfoRt.isMac) roleOnMac else defaultRole
+          }
+        accessibleName?.let { accessibleContext.accessibleName = it }
+      }
+      return accessibleContext
+    }
+  }
+}
+
+private fun createAccessibleLabel(
+  text: String,
+  roleOnMac: AccessibleRole = AccessibilityUtils.GROUPED_ELEMENTS,
+  defaultRole: AccessibleRole = AccessibleRole.LABEL,
+): JBLabel {
+  return object : JBLabel(text) {
+    override fun getAccessibleContext(): AccessibleContext {
+      if (accessibleContext == null) {
+        accessibleContext =
+          object : AccessibleJLabel() {
+            override fun getAccessibleRole() = if (SystemInfoRt.isMac) roleOnMac else defaultRole
+          }
+      }
+      return accessibleContext
+    }
   }
 }
 
