@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.vitals.ui
 
+import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.AppInsightsClient
+import com.android.tools.idea.insights.inspection.AppInsightsFilterSelector
 import com.android.tools.idea.insights.model.connection.AppConnection
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -28,8 +30,10 @@ import com.android.tools.idea.vitals.VitalsInsightsProvider
 import com.android.tools.idea.vitals.VitalsLoginFeature
 import com.google.gct.login2.LoginFeature
 import com.google.gct.login2.LoginUsersRule
+import com.intellij.openapi.components.service
 import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
@@ -42,13 +46,15 @@ private val APP_CONNECTION1 = AppConnection("app1", "Test App 1")
 
 class VitalsConfigurationManagerTest {
 
+  private val flagRule = FlagRule(StudioFlags.APP_INSIGHTS_GLOBAL_SELECTOR, true)
+
   private val projectRule = AndroidProjectRule.inMemory()
 
   private val executorsRule = AndroidExecutorsRule()
 
   private val loginUsersRule = LoginUsersRule()
 
-  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(executorsRule).around(loginUsersRule)!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(executorsRule).around(loginUsersRule).around(flagRule)!!
 
   @Test
   fun `should return unauthenticated configuration when user is not logged in`() =
@@ -137,5 +143,33 @@ class VitalsConfigurationManagerTest {
       `when`(client.listConnections()).thenReturn(LoadingState.Ready(listOf(APP_CONNECTION1)))
       configManager.refreshConfiguration()
       configManager.configuration.first { it is AppInsightsModel.Authenticated }
+    }
+
+  @Test
+  fun `Vitals filters connection from global selector`() =
+    runBlocking<Unit> {
+      val client = mock<AppInsightsClient>()
+      `when`(client.listConnections()).thenReturn(LoadingState.NetworkFailure("failed"))
+      loginUsersRule.setActiveUser("foo@goo.com", features = listOf(LoginFeature.feature<VitalsLoginFeature>()))
+      `when`(client.listConnections()).thenReturn(LoadingState.Ready(listOf(APP_CONNECTION1)))
+
+      projectRule.project.service<AppInsightsFilterSelector>().selectedAppId.value = null
+      val configManager =
+        VitalsConfigurationManager(
+          projectRule.project,
+          AppInsightsCacheImpl(VitalsInsightsProvider),
+          parentDisposable = projectRule.testRootDisposable,
+          testClient = client,
+        )
+      Disposer.register(projectRule.testRootDisposable, configManager)
+      configManager.refreshConfiguration()
+
+      val state = configManager.configuration.filterIsInstance<AppInsightsModel.Authenticated>().first().controller.state
+      state.first { it.connections.selected == null }
+      projectRule.project.service<AppInsightsFilterSelector>().selectedAppId.value = APP_CONNECTION1.appId
+      state.first { it.connections.selected?.appId == APP_CONNECTION1.appId }
+
+      projectRule.project.service<AppInsightsFilterSelector>().selectedAppId.value = "not matched"
+      state.first { it.connections.selected == null }
     }
 }

@@ -16,8 +16,16 @@
 package com.android.tools.idea.insights
 
 interface InsightsProvider {
+  enum class Source {
+    UNKNOWN,
+    FIREBASE,
+    PLAY,
+  }
+
   /** The name used to identify this insights provider, also used as display name of the tab. */
   val displayName: String
+
+  val source: Source
 
   val supportsMultipleEvents: Boolean
 }

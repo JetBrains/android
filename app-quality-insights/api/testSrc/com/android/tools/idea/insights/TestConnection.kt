@@ -19,17 +19,19 @@ import com.android.tools.idea.insights.model.connection.Connection
 
 data class TestConnection(
   override val appId: String,
-  override val mobileSdkAppId: String?,
-  override val projectId: String?,
-  override val projectNumber: String?,
+  override val mobileSdkAppId: String? = null,
+  override val projectId: String? = "project",
+  override val projectNumber: String? = "123",
   val variantName: String = "variant1",
   val moduleShortName: String = "app1",
   override val isConfigured: Boolean = true,
   val isPreferred: Boolean = true,
+  val isMatching: Boolean = isPreferred,
+  override val displayName: String = "",
 ) : Connection {
   override val clientId: String = "android:${appId}"
 
   override fun isPreferredConnection() = isPreferred
 
-  override fun isMatchingProject() = isPreferred
+  override fun isMatchingProject() = isMatching
 }

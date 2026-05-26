@@ -26,7 +26,7 @@ import com.android.tools.idea.insights.events.actions.Action
 import com.android.tools.idea.insights.model.connection.Connection
 
 /** Any change to the active connection is propagated here. */
-data class ActiveConnectionChanged(val connection: Connection) : ChangeEvent {
+data class ActiveConnectionChanged(val connection: Connection?) : ChangeEvent {
 
   override fun transition(
     state: AppInsightsState,

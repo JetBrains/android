@@ -115,7 +115,7 @@ data class AppInsightsState(
   fun toggleFatality(value: FailureType): AppInsightsState = copy(filters = filters.withFatalityToggle(value))
 
   /** Returns a new state with a new [FirebaseConnection] selected. */
-  fun selectConnection(value: Connection): AppInsightsState = copy(connections = connections.select(value))
+  fun selectConnection(value: Connection?): AppInsightsState = copy(connections = connections.select(value))
 
   fun toEmptyTransition() = StateTransition(this, Action.NONE)
 }

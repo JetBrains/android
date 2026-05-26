@@ -259,7 +259,7 @@ class AppInsightsProjectLevelControllerRule(
 
   fun selectDevices(values: Set<Device>) = controller.selectDevices(values)
 
-  fun selectFirebaseConnection(value: Connection) = controller.selectConnection(value)
+  fun selectFirebaseConnection(value: Connection?) = controller.selectConnection(value)
 
   fun toggleFatality(value: FailureType) = controller.toggleFailureType(value)
 

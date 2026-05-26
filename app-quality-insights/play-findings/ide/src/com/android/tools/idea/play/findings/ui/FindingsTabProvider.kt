@@ -18,10 +18,12 @@ package com.android.tools.idea.play.findings.ui
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.android.tools.idea.insights.AppInsightsModel
+import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.OfflineStatusManager
 import com.android.tools.idea.insights.OfflineStatusManagerImpl
 import com.android.tools.idea.insights.ui.AppInsightsTabPanel
 import com.android.tools.idea.insights.ui.AppInsightsTabProvider
+import com.android.tools.idea.play.findings.PlayFindingsInsightsProvider
 import com.intellij.openapi.project.Project
 import icons.StudioIllustrations
 import javax.swing.Icon
@@ -30,7 +32,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class FindingsTabProvider : AppInsightsTabProvider {
-  override val displayName: String = "Quality Findings"
+  override val insightsProvider: InsightsProvider = PlayFindingsInsightsProvider
 
   override val icon: Icon = StudioIllustrations.Common.PLAY_CONSOLE_ICON
 

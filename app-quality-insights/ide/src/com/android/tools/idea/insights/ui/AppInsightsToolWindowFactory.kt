@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.insights.ui
 
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.insights.inspection.AppInsightsFilterSelector
 import com.android.tools.idea.insights.persistence.AppInsightsSettings
 import com.android.tools.idea.project.AndroidProjectInfo
 import com.intellij.openapi.application.invokeLater
@@ -27,6 +29,7 @@ import com.intellij.openapi.wm.ToolWindowBalloonShowOptions
 import com.intellij.openapi.wm.ToolWindowContentUiType
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.openapi.wm.impl.content.ToolWindowContentUi
 import com.intellij.serviceContainer.AlreadyDisposedException
 import com.intellij.ui.content.ContentFactory
 import com.intellij.ui.content.ContentManagerEvent
@@ -77,6 +80,15 @@ class AppInsightsToolWindowFactory : DumbAware, ToolWindowFactory {
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     createTabs(project, toolWindow)
+    createSelector(project, toolWindow)
+  }
+
+  fun createSelector(project: Project, toolWindow: ToolWindow) {
+    if (!StudioFlags.APP_INSIGHTS_GLOBAL_SELECTOR.get()) return
+    project.service<AppInsightsFilterSelector>().startCollection()
+
+    toolWindow.component.putClientProperty(ToolWindowContentUi.DONT_HIDE_TOOLBAR_IN_HEADER, true)
+    toolWindow.setTitleActions(listOf(FilterSelectorAction(project)))
   }
 
   @VisibleForTesting
@@ -85,15 +97,19 @@ class AppInsightsToolWindowFactory : DumbAware, ToolWindowFactory {
 
     AppInsightsTabProvider.getApplicableExtensions().forEach { tabProvider ->
       val tabPanel = AppInsightsTabPanel()
-      tabProvider.populateTab(project, tabPanel, activeTabFlow.map { it == tabProvider.displayName }.distinctUntilChanged())
+      tabProvider.populateTab(
+        project,
+        tabPanel,
+        activeTabFlow.map { it == tabProvider.insightsProvider.displayName }.distinctUntilChanged(),
+      )
       val tabContent =
-        contentFactory.createContent(tabPanel, tabProvider.displayName, false).apply {
+        contentFactory.createContent(tabPanel, tabProvider.insightsProvider.displayName, false).apply {
           putUserData(ToolWindow.SHOW_CONTENT_ICON, true)
           icon = tabProvider.icon
         }
       tabContent.setDisposer(tabPanel)
       toolWindow.contentManager.addContent(tabContent)
-      if (tabProvider.displayName == project.service<AppInsightsSettings>().selectedTabId) {
+      if (tabProvider.insightsProvider.displayName == project.service<AppInsightsSettings>().selectedTabId) {
         toolWindow.contentManager.setSelectedContent(tabContent)
       }
     }
