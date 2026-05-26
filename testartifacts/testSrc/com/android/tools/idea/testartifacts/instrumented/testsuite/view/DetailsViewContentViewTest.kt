@@ -367,6 +367,57 @@ class DetailsViewContentViewTest {
   }
 
   @Test
+  fun screenshotTabIsSelectedForScreenshotTests() {
+    val view = createView()
+    val testDevice = device("device id", "device name")
+    whenever(mockTestResults.getAdditionalTestArtifacts(testDevice))
+      .thenReturn(mapOf("PreviewScreenshot.newImagePath" to "/path/to/newImage"))
+    whenever(mockTestResults.getBenchmark(testDevice)).thenReturn(BenchmarkOutput.Empty)
+
+    view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
+    UIUtil.dispatchAllInvocationEvents()
+
+    assertThat(view.tabs.selectedInfo).isEqualTo(view.myScreenshotTab)
+  }
+
+  @Test
+  fun screenshotTabIsSelectedWhenComingFromDeviceInfoTab() {
+    val view = createView()
+    val testDevice = device("device id", "device name")
+    whenever(mockTestResults.getAdditionalTestArtifacts(testDevice))
+      .thenReturn(mapOf("PreviewScreenshot.newImagePath" to "/path/to/newImage"))
+    whenever(mockTestResults.getBenchmark(testDevice)).thenReturn(BenchmarkOutput.Empty)
+
+    // Force select Device Info tab first
+    view.tabs.select(view.myDeviceInfoTab, false)
+
+    view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
+    UIUtil.dispatchAllInvocationEvents()
+
+    assertThat(view.tabs.selectedInfo).isEqualTo(view.myScreenshotTab)
+  }
+
+  @Test
+  fun screenshotTabIsNotSelectedIfUserHasSelectedLogsTab() {
+    val view = createView()
+    val testDevice = device("device id", "device name")
+    whenever(mockTestResults.getAdditionalTestArtifacts(testDevice))
+      .thenReturn(mapOf("PreviewScreenshot.newImagePath" to "/path/to/newImage"))
+
+    // Simulate user selecting logs tab
+    view.lastTabSelectedByUser = view.logsTab
+    view.tabs.select(view.logsTab, false)
+
+    view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
+    UIUtil.dispatchAllInvocationEvents()
+
+    assertThat(view.tabs.selectedInfo).isEqualTo(view.logsTab)
+  }
+
+  @Test
   fun screenshotLogsTabAlwaysDisplayedForScreenshotTests() {
     val view = createView()
     val testDevice = device("device id", "device name")

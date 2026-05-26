@@ -431,6 +431,11 @@ open class DetailsViewContentView(
               myAndroidTestCaseResult,
               diffPercent,
             )
+            if (tabs.selectedInfo == logsTab && lastTabSelectedByUser == null) {
+              val savedLastSelected = lastTabSelectedByUser
+              tabs.select(myScreenshotTab, false)
+              lastTabSelectedByUser = savedLastSelected
+            }
           } else {
             // If we are about to hide Screenshots but one was selected, swap to Logs first
             val activeTab = tabs.selectedInfo
