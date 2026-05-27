@@ -106,7 +106,7 @@ class EmulatorProcessHandler(
         parseAndLogMessage(text)
       }
 
-      if (ProcessOutputType.SYSTEM == outputType && isProcessTerminated) {
+      if (ProcessOutputType.isSystem(outputType) && isProcessTerminated) {
         val exitCode = exitCode
         if (exitCode != null && exitCode != 0) {
           // Don't use error level because we don't want Studio crash reports for this; the emulator's
