@@ -20,6 +20,14 @@ import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
 import com.android.tools.idea.rendering.DrawableRenderer;
 import java.awt.Color;
+import com.android.ide.common.util.PathString;
+import com.intellij.openapi.vfs.VirtualFile;
+
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+
 
 /**
  * Tests for {@link LauncherIconGenerator}.
@@ -199,4 +207,58 @@ public class LauncherIconGeneratorTest extends AdaptiveIconGeneratorTest {
     myIconGenerator.legacyIconShape().set(IconGenerator.Shape.VRECT);
     checkGeneratedIcons(expectedFilenames);
   }
+
+  public void testLicenseHeaderPosition() throws Exception {
+    // Case 1: Standard XML with declaration and newline
+    checkLicenseHeaderInsertion("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<vector/>", true);
+
+    // Case 2: XML with declaration and no newline
+    checkLicenseHeaderInsertion("<?xml version=\"1.0\" encoding=\"utf-8\"?><vector/>", true);
+
+    // Case 3: XML with declaration and multiple newlines
+    checkLicenseHeaderInsertion("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n\n\n<vector/>", true);
+
+    // Case 4: XML with declaration and leading spaces
+    checkLicenseHeaderInsertion("   <?xml version=\"1.0\" encoding=\"utf-8\"?>\n<vector/>", true);
+
+    // Case 5: XML without declaration
+    checkLicenseHeaderInsertion("<vector/>", false);
+  }
+
+  private void checkLicenseHeaderInsertion(String xmlContent, boolean hasDeclaration) throws Exception {
+    GeneratedXmlResource xmlIcon = new GeneratedXmlResource(
+        "test_icon",
+        new PathString(""),
+        IconCategory.XML_RESOURCE,
+        xmlContent
+    );
+    xmlIcon.setClipart(true); // Trigger license generation
+
+    VirtualFile tempDir = myFixture.findFileInTempDir("res");
+    File tempResDir = new File(tempDir.getPath());
+
+    File testFile = new File(tempResDir, "test_license.xml");
+    Map<File, GeneratedIcon> customMap = new HashMap<>();
+    customMap.put(testFile, xmlIcon);
+
+    myIconGenerator.writeIconsToDisk(customMap);
+
+    VirtualFile writtenFile = tempDir.findChild("test_license.xml");
+    assertNotNull("File was not written", writtenFile);
+
+    String writtenText = new String(writtenFile.contentsToByteArray(), StandardCharsets.UTF_8);
+
+    if (hasDeclaration) {
+        assertTrue("Should start with trimmed prolog", writtenText.startsWith("<?xml"));
+        int declEnd = writtenText.indexOf("?>");
+        String afterProlog = writtenText.substring(declEnd + 2);
+        assertTrue("License should be after prolog, but was: " + afterProlog.substring(0, Math.min(20, afterProlog.length())),
+                   afterProlog.startsWith("\n<!--") || afterProlog.startsWith("\r\n<!--"));
+    } else {
+        assertTrue("Should start with license", writtenText.startsWith("<!--"));
+    }
+
+
+  }
 }
+

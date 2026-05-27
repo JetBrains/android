@@ -67,6 +67,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+
 import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 import org.jetbrains.annotations.NotNull;
@@ -309,7 +310,7 @@ public abstract class IconGenerator implements Disposable {
         else if (icon instanceof GeneratedXmlResource) {
           if (FileUtilRt.extensionEquals(file.getName(), "xml")) {
             String xmlText = ((GeneratedXmlResource)icon).getXmlText();
-            String xmlTextWithLicense = icon.isClipart() ? getLicenseHeader() + xmlText : xmlText;
+            String xmlTextWithLicense = icon.isClipart() ? insertLicenseHeader(xmlText) : xmlText;
             writeTextToDisk(file, xmlTextWithLicense);
           }
           else {
@@ -390,6 +391,19 @@ public abstract class IconGenerator implements Disposable {
            "  ~ See the License for the specific language governing permissions and" + myLineSeparator +
            "  ~ limitations under the License." + myLineSeparator +
            "  -->" + myLineSeparator;
+  }
+
+  @NotNull
+  private String insertLicenseHeader(@NotNull String xmlText) {
+    int declEnd = xmlText.indexOf("?>");
+    if (declEnd != -1) {
+      // The XML declaration must be the absolute first thing in the file.
+      // Therefore, we must insert the license header after it.
+      String prolog = xmlText.substring(0, declEnd + 2).trim();
+      String rest = xmlText.substring(declEnd + 2).stripLeading();
+      return prolog + myLineSeparator + getLicenseHeader() + rest;
+    }
+    return getLicenseHeader() + xmlText.stripLeading();
   }
 
   protected boolean isClipart() {
