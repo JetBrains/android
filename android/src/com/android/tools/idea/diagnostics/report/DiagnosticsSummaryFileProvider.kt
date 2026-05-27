@@ -52,6 +52,7 @@ interface DiagnosticsSummaryFileProvider {
         DefaultLogFileProvider,
         SystemInfoFileProvider,
         DefaultMetricsLogFileProvider,
+        DisabledBundledPluginsFileProvider,
         HeapReportProvider,
         StudioFlagsDiagnosticFileProvider,
         ThreadDumpProvider,
