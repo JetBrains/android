@@ -897,9 +897,8 @@ class RenderErrorContributorImplTest {
 
   private fun stripSdkHome(html: String): String {
     var html = html
-    val platform = getInstance(module)
-    assertNotNull(platform)
-    var location = platform!!.getSdkData().getLocation().toString()
+    val platform = checkNotNull(getInstance(module))
+    var location = platform.sdkData.location.toString()
     location = FileUtil.toSystemIndependentName(location)
     html = html.replace(location, "\$SDK_HOME").replace("file:///", "file://") // On Windows JavaDoc source may start with /
     return html

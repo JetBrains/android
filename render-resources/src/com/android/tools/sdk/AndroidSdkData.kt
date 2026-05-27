@@ -13,188 +13,121 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.android.tools.sdk
 
-package com.android.tools.sdk;
+import com.android.prefs.AndroidLocationsSingleton
+import com.android.sdklib.BuildToolInfo
+import com.android.sdklib.IAndroidTarget
+import com.android.sdklib.devices.DeviceManager
+import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.tools.sdk.DeviceManagers.getDeviceManager
+import java.io.File
+import java.io.IOException
+import java.lang.ref.SoftReference
+import java.nio.file.Path
+import java.util.concurrent.ConcurrentHashMap
 
-import com.android.prefs.AndroidLocationsSingleton;
-import com.android.repository.api.ProgressIndicator;
-import com.android.sdklib.BuildToolInfo;
-import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.devices.DeviceManager;
-import com.android.sdklib.repository.AndroidSdkHandler;
-import com.google.common.collect.Maps;
-import java.io.File;
-import java.io.IOException;
-import java.lang.ref.SoftReference;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentMap;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+class AndroidSdkData private constructor(localSdk: File) {
+  val sdkHandler: AndroidSdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton, localSdk.toPath())
+  val deviceManager: DeviceManager = getDeviceManager(sdkHandler)
 
-public class AndroidSdkData {
-  private final DeviceManager myDeviceManager;
-  private static final ConcurrentMap<String/* sdk path */, SoftReference<AndroidSdkData>> ourCache = Maps.newConcurrentMap();
-  private final AndroidSdkHandler mySdkHandler;
+  val location: Path
+    get() = checkNotNull(sdkHandler.location)
 
-  @Nullable
-  public static AndroidSdkData getSdkData(@NotNull File sdkLocation) {
-    return getSdkData(sdkLocation, false);
-  }
+  val locationFile: File
+    get() = location.toFile()
 
-  @Nullable
-  public static AndroidSdkData getSdkData(@NotNull File sdkLocation, boolean forceReparse) {
-    return getSdkData(sdkLocation, forceReparse, true);
-  }
+  @get:Deprecated("")
+  val path: String
+    get() = location.toString()
 
-  @NotNull
-  public static AndroidSdkData getSdkDataWithoutValidityCheck(@NotNull File sdkLocation) {
-    return Objects.requireNonNull(getSdkData(sdkLocation, false, false));
-  }
+  fun getLatestBuildTool(allowPreview: Boolean): BuildToolInfo? =
+    sdkHandler.getLatestBuildTool(LoggerProgressIndicator(javaClass), allowPreview)
 
-  @Nullable
-  private static AndroidSdkData getSdkData(@NotNull File sdkLocation, boolean forceReparse, boolean checkValidity) {
-    String canonicalPath;
-    try {
-      canonicalPath = sdkLocation.getCanonicalPath();
-    } catch (IOException ignore) {
-      if (checkValidity) {
-        return null;
-      } else {
-        // We do not care about whether sdk exists or not, we are using the path as a key
-        canonicalPath = sdkLocation.getPath();
-      }
+  val targets: Array<IAndroidTarget>
+    get() = targetCollection.toTypedArray()
+
+  private val targetCollection: Collection<IAndroidTarget>
+    get() {
+      val progress = LoggerProgressIndicator(javaClass)
+      return sdkHandler.getAndroidTargetManager(progress).getTargets(progress)
     }
 
-    // Try to use cached data.
-    if (!forceReparse) {
-      SoftReference<AndroidSdkData> cachedRef = ourCache.get(canonicalPath);
-      if (cachedRef != null) {
-        AndroidSdkData cachedData = cachedRef.get();
-        if (cachedData == null) {
-          ourCache.remove(canonicalPath, cachedRef);
+  fun getTargets(includeAddOns: Boolean): Array<IAndroidTarget> {
+    val targets = targetCollection
+    return if (includeAddOns) {
+      targets.toTypedArray()
+    } else {
+      targets.filter { it.isPlatform }.toTypedArray()
+    }
+  }
+
+  fun findTargetByApiLevel(apiLevel: String): IAndroidTarget? = targets.find { targetHasId(it, apiLevel) }
+
+  fun findTargetByHashString(hashString: String): IAndroidTarget? {
+    val progress = LoggerProgressIndicator(javaClass)
+    return sdkHandler.getAndroidTargetManager(progress).getTargetFromHashString(hashString, progress)
+  }
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (other !is AndroidSdkData) return false
+    return location.normalize().toAbsolutePath() == other.location.normalize().toAbsolutePath()
+  }
+
+  override fun hashCode(): Int = location.normalize().toAbsolutePath().hashCode()
+
+  companion object {
+    private val ourCache = ConcurrentHashMap<String, SoftReference<AndroidSdkData>>()
+
+    @JvmStatic
+    @JvmOverloads
+    fun getSdkData(sdkLocation: File, forceReparse: Boolean = false): AndroidSdkData? {
+      return getSdkData(sdkLocation, forceReparse, checkValidity = true)
+    }
+
+    // Used by standalone-render
+    @JvmStatic
+    fun getSdkDataWithoutValidityCheck(sdkLocation: File): AndroidSdkData =
+      getSdkData(sdkLocation, forceReparse = false, checkValidity = false)!!
+
+    private fun getSdkData(sdkLocation: File, forceReparse: Boolean, checkValidity: Boolean): AndroidSdkData? {
+      val canonicalPath =
+        try {
+          sdkLocation.canonicalPath
+        } catch (ignore: IOException) {
+          if (checkValidity) return null
+          // We do not care about whether sdk exists or not, we are using the path as a key
+          sdkLocation.path
         }
-        else {
-          return cachedData;
-        }
-      }
-    }
 
-    File canonicalLocation = new File(canonicalPath);
-    if (checkValidity && !AndroidSdkPath.isValid(canonicalLocation)) {
-      return null;
-    }
-
-    AndroidSdkData sdkData = new AndroidSdkData(canonicalLocation);
-    ourCache.put(canonicalPath, new SoftReference<>(sdkData));
-    return sdkData;
-  }
-
-  @Nullable
-  public static AndroidSdkData getSdkData(@NotNull String sdkPath) {
-    return getSdkData(new File(sdkPath));
-  }
-
-  private AndroidSdkData(@NotNull File localSdk) {
-    mySdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, localSdk.toPath());
-    myDeviceManager = DeviceManagers.getDeviceManager(mySdkHandler);
-  }
-
-  @NotNull
-  public Path getLocation() {
-    Path location = mySdkHandler.getLocation();
-    // We only construct AndroidSdkData when we have a local SDK, which means location must not be null.
-    assert location != null;
-    return location;
-  }
-
-  @NotNull
-  public File getLocationFile() {
-    return mySdkHandler.getLocation().toFile();
-  }
-
-  @Deprecated
-  @NotNull
-  public String getPath() {
-    return getLocation().toString();
-  }
-
-  @Nullable
-  public BuildToolInfo getLatestBuildTool(boolean allowPreview) {
-    return mySdkHandler.getLatestBuildTool(new LoggerProgressIndicator(getClass()), allowPreview);
-  }
-
-  @NotNull
-  public IAndroidTarget[] getTargets() {
-    Collection<IAndroidTarget> targets = getTargetCollection();
-    return targets.toArray(new IAndroidTarget[0]);
-  }
-
-  @NotNull
-  private Collection<IAndroidTarget> getTargetCollection() {
-    ProgressIndicator progress = new LoggerProgressIndicator(getClass());
-    return mySdkHandler.getAndroidTargetManager(progress).getTargets(progress);
-  }
-
-  @NotNull
-  public IAndroidTarget[] getTargets(boolean includeAddOns) {
-    Collection<IAndroidTarget> targets = getTargetCollection();
-    Collection<IAndroidTarget> result = new ArrayList<>();
-    if (!includeAddOns) {
-      for (IAndroidTarget target : targets) {
-        if (target.isPlatform()) {
-          result.add(target);
+      // Try to use cached data.
+      if (!forceReparse) {
+        val cachedRef = ourCache[canonicalPath]
+        if (cachedRef != null) {
+          val cachedData = cachedRef.get()
+          if (cachedData == null) {
+            ourCache.remove(canonicalPath, cachedRef)
+          } else {
+            return cachedData
+          }
         }
       }
-    }
-    else {
-      result.addAll(targets);
-    }
-    return result.toArray(new IAndroidTarget[0]);
-  }
 
-  private static boolean targetHasId(@NotNull IAndroidTarget target, @NotNull String id) {
-    return id.equals(target.getVersion().getApiString()) || id.equals(target.getVersionName());
-  }
-
-  @Nullable
-  public IAndroidTarget findTargetByApiLevel(@NotNull String apiLevel) {
-    for (IAndroidTarget target : getTargets()) {
-      if (targetHasId(target, apiLevel)) {
-        return target;
+      val canonicalLocation = File(canonicalPath)
+      if (checkValidity && !isValid(canonicalLocation)) {
+        return null
       }
+
+      val sdkData = AndroidSdkData(canonicalLocation)
+      ourCache[canonicalPath] = SoftReference(sdkData)
+      return sdkData
     }
-    return null;
-  }
 
-  @Nullable
-  public IAndroidTarget findTargetByHashString(@NotNull String hashString) {
-    ProgressIndicator progress = new LoggerProgressIndicator(getClass());
-    return mySdkHandler.getAndroidTargetManager(progress).getTargetFromHashString(hashString, progress);
-  }
+    @JvmStatic fun getSdkData(sdkPath: String): AndroidSdkData? = getSdkData(File(sdkPath))
 
-  @Override
-  public boolean equals(Object obj) {
-    if (obj == null) return false;
-    if (obj.getClass() != getClass()) return false;
-    AndroidSdkData sdkData = (AndroidSdkData)obj;
-    return getLocation().normalize().toAbsolutePath().toString().equals(sdkData.getLocation().normalize().toAbsolutePath().toString());
-  }
-
-  @Override
-  public int hashCode() {
-    return getLocation().normalize().toAbsolutePath().toString().hashCode();
-  }
-
-  @NotNull
-  public DeviceManager getDeviceManager() {
-    return myDeviceManager;
-  }
-
-  @NotNull
-  public AndroidSdkHandler getSdkHandler() {
-    return mySdkHandler;
+    private fun targetHasId(target: IAndroidTarget, id: String): Boolean {
+      return id == target.version.apiString || id == target.versionName
+    }
   }
 }
