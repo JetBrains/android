@@ -15,15 +15,10 @@
  */
 package com.android.tools.idea.ui.screenshot
 
-import com.android.prefs.AndroidLocationsSingleton
 import com.android.resources.ScreenRound
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.devices.Device
-import com.android.sdklib.devices.DeviceManager.DeviceCategory.DEFAULT
-import com.android.sdklib.devices.DeviceManager.DeviceCategory.USER
-import com.android.sdklib.devices.DeviceManager.DeviceCategory.VENDOR
 import com.android.sdklib.devices.Screen
-import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.SkinUtils
@@ -237,8 +232,7 @@ private constructor(val serialNumber: String, val deviceType: DeviceType, val de
     }
 
     private fun getDevices(): Collection<Device> {
-      val deviceManager = DeviceManagers.getDeviceManager(AndroidSdkHandler.getInstance(AndroidLocationsSingleton, null))
-      return deviceManager.getDevices(USER, DEFAULT, VENDOR)
+      return DeviceManagers.getDeviceManagerWithoutSystemImageDevices().getDevices()
     }
 
     private val skinHome: Path? = DeviceArtDescriptor.getBundledDescriptorsFolder()?.toPath()

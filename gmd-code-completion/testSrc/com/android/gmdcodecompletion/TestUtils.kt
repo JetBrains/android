@@ -20,11 +20,11 @@ import com.android.gmdcodecompletion.ftl.FtlDeviceCatalog
 import com.android.gmdcodecompletion.ftl.FtlDeviceCatalogState
 import com.android.gmdcodecompletion.managedvirtual.ManagedVirtualDeviceCatalog
 import com.android.gmdcodecompletion.managedvirtual.ManagedVirtualDeviceCatalogState
-import com.android.mockito.kotlin.mockStatic
 import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.sdk.AndroidSdks
-import com.android.tools.sdk.DeviceManagers
+import com.android.tools.sdk.DeviceManagerCache
+import com.android.tools.sdk.DeviceManagerCacheService
 import com.google.api.services.testing.model.AndroidDeviceCatalog
 import com.google.api.services.testing.model.AndroidModel
 import com.google.api.services.testing.model.AndroidRuntimeConfiguration
@@ -32,10 +32,14 @@ import com.google.api.services.testing.model.AndroidVersion
 import com.google.api.services.testing.model.Locale
 import com.google.api.services.testing.model.Orientation
 import com.intellij.codeInsight.lookup.LookupElement
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.testFramework.replaceService
 import java.util.Calendar
+import kotlin.jvm.java
 import org.junit.Assert.assertEquals
-import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
 enum class BuildFileName(val fileName: String) {
@@ -122,19 +126,29 @@ fun matchFtlDeviceCatalog(ftlDeviceCatalog: FtlDeviceCatalog, androidDeviceCatal
     }
 }
 
-fun managedVirtualDeviceCatalogTestHelper(deviceManager: DeviceManager?, androidSdks: AndroidSdks?, callback: () -> Unit) {
+fun managedVirtualDeviceCatalogTestHelper(
+  deviceManager: DeviceManager,
+  androidSdks: AndroidSdks?,
+  parentDisposable: Disposable,
+  callback: () -> Unit,
+) {
   ProgressManager.getInstance()
     .runProcessWithProgressSynchronously(
       {
-        mockStatic<DeviceManager>().use {
-          mockStatic<AndroidSdks>().use {
-            whenever(AndroidSdks.getInstance()).thenReturn(androidSdks)
-            mockStatic<DeviceManagers>().use {
-              whenever(DeviceManagers.getDeviceManager(any<AndroidSdkHandler>())).thenReturn(deviceManager)
-              callback()
-            }
-          }
+        if (androidSdks != null) {
+          ApplicationManager.getApplication().replaceService(AndroidSdks::class.java, androidSdks, parentDisposable)
         }
+        val mockService = mock<DeviceManagerCacheService>()
+        whenever(mockService.cache)
+          .thenReturn(
+            object : DeviceManagerCache {
+              override fun getDeviceManagerWithoutSystemImageDevices(): DeviceManager = deviceManager
+
+              override fun getDeviceManager(sdkHandler: AndroidSdkHandler): DeviceManager = deviceManager
+            }
+          )
+        ApplicationManager.getApplication().replaceService(DeviceManagerCacheService::class.java, mockService, parentDisposable)
+        callback()
       },
       "",
       false,

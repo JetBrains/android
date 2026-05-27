@@ -20,7 +20,6 @@ import com.android.sdklib.BuildToolInfo
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.tools.sdk.DeviceManagers.getDeviceManager
 import java.io.File
 import java.io.IOException
 import java.lang.ref.SoftReference
@@ -119,7 +118,7 @@ class AndroidSdkData private constructor(val sdkHandler: AndroidSdkHandler, val 
       }
 
       val handler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton, canonicalLocation)
-      val manager = getDeviceManager(handler)
+      val manager = DeviceManagers.createDeviceManager(handler)
       val sdkData = AndroidSdkData(handler, manager)
       ourCache[canonicalPath] = SoftReference(sdkData)
       return sdkData

@@ -42,7 +42,7 @@ class DeviceManagerCacheTest {
     writeUserDevices(devicesXml, unsupportedSchemaVersion)
 
     val logger = CapturingLogger()
-    val deviceManager = DeviceManagerCache(logger).getDeviceManager(testSdk.sdkHandler)
+    val deviceManager = deviceManagerFor(testSdk, logger)
 
     assertThat(logger.warnings.any { it.contains("schema version $unsupportedSchemaVersion") }).isTrue()
     // The default/vendor/system-image devices still load instead of the whole scan aborting.
@@ -62,9 +62,9 @@ class DeviceManagerCacheTest {
 
     // First unsupported file, then a second one written later (e.g. by a newer Studio/SDK).
     Files.writeString(devicesXml, "<!-- first --> ${userDevicesXml(unsupportedSchemaVersion)}")
-    DeviceManagerCache(CapturingLogger()).getDeviceManager(testSdk.sdkHandler)
+    deviceManagerFor(testSdk, CapturingLogger())
     Files.writeString(devicesXml, "<!-- second --> ${userDevicesXml(unsupportedSchemaVersion)}")
-    DeviceManagerCache(CapturingLogger()).getDeviceManager(testSdk.sdkHandler)
+    deviceManagerFor(testSdk, CapturingLogger())
 
     val firstBackup = testSdk.androidFolder.resolve(SdkConstants.FN_DEVICES_XML + ".unsupported-schema")
     val secondBackup = testSdk.androidFolder.resolve(SdkConstants.FN_DEVICES_XML + ".unsupported-schema.1")
@@ -81,9 +81,9 @@ class DeviceManagerCacheTest {
 
     // The same unsupported file reappears on the next restart (schema still unsupported).
     writeUserDevices(devicesXml, unsupportedSchemaVersion)
-    DeviceManagerCache(CapturingLogger()).getDeviceManager(testSdk.sdkHandler)
+    deviceManagerFor(testSdk, CapturingLogger())
     writeUserDevices(devicesXml, unsupportedSchemaVersion)
-    DeviceManagerCache(CapturingLogger()).getDeviceManager(testSdk.sdkHandler)
+    deviceManagerFor(testSdk, CapturingLogger())
 
     val firstBackup = testSdk.androidFolder.resolve(SdkConstants.FN_DEVICES_XML + ".unsupported-schema")
     val secondBackup = testSdk.androidFolder.resolve(SdkConstants.FN_DEVICES_XML + ".unsupported-schema.1")
@@ -98,7 +98,7 @@ class DeviceManagerCacheTest {
     writeUserDevices(testSdk.androidFolder.resolve(SdkConstants.FN_DEVICES_XML), DeviceSchema.NS_LATEST_VERSION + 1)
 
     // getDevice() is the call that aborts the AVD scan in RIDER-139412; it must not throw now.
-    val deviceManager = DeviceManagerCache(CapturingLogger()).getDeviceManager(testSdk.sdkHandler)
+    val deviceManager = deviceManagerFor(testSdk, CapturingLogger())
     val defaultDevice = deviceManager.getDevices(DeviceManager.DeviceCategory.DEFAULT).first()
 
     assertThat(deviceManager.getDevice(defaultDevice.id, defaultDevice.manufacturer)).isNotNull()
@@ -111,7 +111,7 @@ class DeviceManagerCacheTest {
     val devicesXml = testSdk.androidFolder.resolve(SdkConstants.FN_DEVICES_XML)
     writeUserDevices(devicesXml, unsupportedSchemaVersion)
 
-    val deviceManager = DeviceManagerCache(CapturingLogger()).getDeviceManager(testSdk.sdkHandler)
+    val deviceManager = deviceManagerFor(testSdk, CapturingLogger())
     val userDevice = deviceManager.getDevices(DeviceManager.DeviceCategory.DEFAULT).first()
     val userDevices = checkNotNull(deviceManager.getUserDevices())
     userDevices.addUserDevice(userDevice)
@@ -134,7 +134,7 @@ class DeviceManagerCacheTest {
     Files.setPosixFilePermissions(testSdk.androidFolder, PosixFilePermissions.fromString("r-xr-xr-x"))
 
     // Backup is best-effort: it must not throw, and it must leave the file as it was.
-    DeviceManagerCache(CapturingLogger()).getDeviceManager(testSdk.sdkHandler)
+    deviceManagerFor(testSdk, CapturingLogger())
 
     assertThat(Files.readString(devicesXml)).isEqualTo(originalContent)
   }
@@ -144,7 +144,7 @@ class DeviceManagerCacheTest {
     val testSdk = newTestSdk()
     val logger = CapturingLogger()
 
-    DeviceManagerCache(logger).getDeviceManager(testSdk.sdkHandler)
+    deviceManagerFor(testSdk, logger)
 
     assertThat(logger.warnings).isEmpty()
   }
@@ -160,10 +160,20 @@ class DeviceManagerCacheTest {
     }
 
     val logger = CapturingLogger()
-    val deviceManager = DeviceManagerCache(logger).getDeviceManager(testSdk.sdkHandler)
+    val deviceManager = deviceManagerFor(testSdk, logger)
 
     assertThat(logger.warnings).isEmpty()
     assertThat(deviceManager.getDevices(DeviceManager.DeviceCategory.USER).map { it.id }).contains(userDevice.id)
+  }
+
+  /**
+   * Does for [testSdk] what DeviceManagerCacheImpl.getDeviceManager does for an SDK: back up user devices written in an unsupported schema
+   * (RIDER-139412), then build the [DeviceManager] that reads them. DeviceManagerCacheImpl is internal and reads user devices from the
+   * shared prefs location, so the tests call the backup and the sdklib factory directly.
+   */
+  private fun deviceManagerFor(testSdk: TestSdk, logger: ILogger): DeviceManager {
+    UserDevicesXmlHandler.backupUnsupportedUserDevicesXml(testSdk.sdkHandler, logger)
+    return DeviceManager.createInstance(testSdk.sdkHandler, logger)
   }
 
   @Suppress("SameParameterValue")

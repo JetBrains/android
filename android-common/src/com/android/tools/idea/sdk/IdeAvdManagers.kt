@@ -21,7 +21,7 @@ import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.sdk.DeviceManagerCache
-import com.android.tools.sdk.DeviceManagers
+import com.android.tools.sdk.DeviceManagerCacheService
 import com.android.utils.ILogger
 import java.nio.file.Path
 
@@ -54,7 +54,7 @@ internal class AvdManagerCacheImpl(private val logger: ILogger, private val devi
 /** The [AvdManagerCache] instance used within Studio. */
 object IdeAvdManagers : AvdManagerCache {
   private val logger = LogWrapper(AvdManager::class.java)
-  private val impl = AvdManagerCacheImpl(logger, DeviceManagers.cache)
+  private val impl = AvdManagerCacheImpl(logger, DeviceManagerCacheService.getDeviceManagerCache())
 
   override fun getAvdManager(sdkHandler: AndroidSdkHandler, avdHomeDir: Path): AvdManager = impl.getAvdManager(sdkHandler, avdHomeDir)
 }

@@ -24,6 +24,7 @@ import com.android.sdklib.devices.DeviceWriter;
 import com.android.sdklib.devices.UserDeviceTable;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.sdk.AndroidSdkData;
 import com.android.tools.sdk.DeviceManagers;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.File;
@@ -38,8 +39,6 @@ import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.WeakHashMap;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactoryConfigurationError;
@@ -53,39 +52,28 @@ import org.jetbrains.annotations.VisibleForTesting;
  */
 public class DeviceManagerConnection {
   private static final Logger IJ_LOG = Logger.getInstance(AvdManagerConnection.class);
-  private static final DeviceManagerConnection NULL_CONNECTION = new DeviceManagerConnection(null);
-  private static Map<Path, DeviceManagerConnection> ourCache = new WeakHashMap<>();
-  @Nullable private final DeviceManager deviceManager;
+  private final DeviceManager deviceManager;
+  @Nullable private final UserDeviceTable userDevices;
 
   @VisibleForTesting
-  DeviceManagerConnection(@Nullable DeviceManager deviceManager) {
+  DeviceManagerConnection(DeviceManager deviceManager) {
     this.deviceManager = deviceManager;
+    this.userDevices = deviceManager.getUserDevices();
   }
 
   @NotNull
   public static DeviceManagerConnection getDeviceManagerConnection(@NotNull Path sdkPath) {
-    if (!ourCache.containsKey(sdkPath)) {
-      DeviceManager deviceManager =
-        DeviceManagers.getDeviceManager(AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, sdkPath));
-      ourCache.put(sdkPath, new DeviceManagerConnection(deviceManager));
-    }
-    return ourCache.get(sdkPath);
+    return new DeviceManagerConnection(DeviceManagers.INSTANCE.getDeviceManager(AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, sdkPath)));
   }
 
   @NotNull
   public static DeviceManagerConnection getDefaultDeviceManagerConnection() {
-    AndroidSdkHandler handler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-    Path sdkPath = handler.getLocation();
-    if (sdkPath != null) {
-      return getDeviceManagerConnection(sdkPath);
+    AndroidSdkData data = AndroidSdks.getInstance().tryToChooseAndroidSdk();
+    if (data != null) {
+      return new DeviceManagerConnection(data.getDeviceManager());
     } else {
-      IJ_LOG.error("No installed SDK found!");
-      return NULL_CONNECTION;
+      return new DeviceManagerConnection(DeviceManagers.INSTANCE.getDeviceManagerWithoutSystemImageDevices());
     }
-  }
-
-  private boolean hasDeviceManager() {
-    return deviceManager != null;
   }
 
   @NotNull
@@ -95,10 +83,6 @@ public class DeviceManagerConnection {
 
   @NotNull
   public Collection<Device> getDevices(@NotNull Collection<DeviceCategory> filters) {
-    if (!hasDeviceManager()) {
-      return List.of();
-    }
-
     return deviceManager.getDevices(filters.toArray(new DeviceCategory[0]));
   }
 
@@ -107,9 +91,6 @@ public class DeviceManagerConnection {
    */
   @Nullable
   public Device getDevice(@NotNull String id, @NotNull String manufacturer) {
-    if (!hasDeviceManager()) {
-      return null;
-    }
     return deviceManager.getDevice(id, manufacturer);
   }
 
@@ -120,10 +101,7 @@ public class DeviceManagerConnection {
   @NotNull
   public String getUniqueId(@Nullable String id) {
     String baseId = id == null ? "New Device" : id;
-    if (!hasDeviceManager()) {
-      return baseId;
-    }
-    var devices = deviceManager.getDevices(DeviceCategory.USER);
+    var devices = deviceManager.getDevices();
     String candidate = baseId;
     int i = 0;
     while (anyIdMatches(candidate, devices)) {
@@ -145,14 +123,7 @@ public class DeviceManagerConnection {
    * Delete the given device if it exists.
    */
   public void deleteDevice(@Nullable Device info) {
-    if (info != null) {
-      if (!hasDeviceManager()) {
-        return;
-      }
-      UserDeviceTable userDevices = deviceManager.getUserDevices();
-      if (userDevices == null) {
-        return;
-      }
+    if (info != null && userDevices != null) {
       userDevices.removeUserDevice(info);
       userDevices.saveUserDevices();
     }
@@ -162,25 +133,16 @@ public class DeviceManagerConnection {
    * Edit the given device, overwriting existing data, or creating it if it does not exist.
    */
   public void createOrEditDevice(@NotNull Device device) {
-    if (!hasDeviceManager()) {
-      return;
+    if (userDevices != null) {
+      userDevices.replaceUserDevice(device);
+      userDevices.saveUserDevices();
     }
-    UserDeviceTable userDevices = deviceManager.getUserDevices();
-    if (userDevices == null) {
-      return;
-    }
-    userDevices.replaceUserDevice(device);
-    userDevices.saveUserDevices();
   }
 
   /**
    * Create the given devices
    */
   public void createDevices(@NotNull List<Device> devices) {
-    if (!hasDeviceManager()) {
-      return;
-    }
-    UserDeviceTable userDevices = deviceManager.getUserDevices();
     if (userDevices == null) {
       return;
     }
@@ -210,11 +172,10 @@ public class DeviceManagerConnection {
    * Return true iff the given device matches one of the user declared devices.
    */
   public boolean isUserDevice(@NotNull final Device device) {
-    if (!hasDeviceManager()) {
+    if (userDevices == null) {
       return false;
     }
-
-    return deviceManager.getDevices(DeviceCategory.USER).stream()
+    return userDevices.getDevices().values().stream()
       .map(Device::getId)
       .anyMatch(device.getId()::equalsIgnoreCase);
   }
@@ -243,26 +204,12 @@ public class DeviceManagerConnection {
 
   public static void writeDevicesToFile(@NotNull List<Device> devices, @NotNull File file) {
     if (!devices.isEmpty()) {
-      FileOutputStream stream = null;
-      try {
-        stream = new FileOutputStream(file);
+      try (FileOutputStream stream = new FileOutputStream(file)) {
         DeviceWriter.writeToXml(stream, devices);
       } catch (FileNotFoundException e) {
         IJ_LOG.warn(String.format("Couldn't open file: %1$s", e.getMessage()));
-      } catch (ParserConfigurationException e) {
+      } catch (ParserConfigurationException | IOException | TransformerFactoryConfigurationError | TransformerException e) {
         IJ_LOG.warn(String.format("Error writing file: %1$s", e.getMessage()));
-      } catch (TransformerFactoryConfigurationError e) {
-        IJ_LOG.warn(String.format("Error writing file: %1$s", e.getMessage()));
-      } catch (TransformerException e) {
-        IJ_LOG.warn(String.format("Error writing file: %1$s", e.getMessage()));
-      } finally {
-        if (stream != null) {
-          try {
-            stream.close();
-          } catch (IOException e) {
-            IJ_LOG.warn(String.format("Error closing file: %1$s", e.getMessage()));
-          }
-        }
       }
     }
   }

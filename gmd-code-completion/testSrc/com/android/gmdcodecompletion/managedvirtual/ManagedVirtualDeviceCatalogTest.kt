@@ -91,11 +91,11 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
     testSystemImageString: String = "",
     testAndroidVersion: AndroidVersion = AndroidVersion(0, null),
     testAbiInfo: String = "",
-    deviceManager: DeviceManager? = mockDeviceManager,
+    deviceManager: DeviceManager = mockDeviceManager,
     androidSdks: AndroidSdks? = mockAndroidSdks,
     callback: () -> Unit,
   ) =
-    managedVirtualDeviceCatalogTestHelper(deviceManager, androidSdks) {
+    managedVirtualDeviceCatalogTestHelper(deviceManager, androidSdks, testRootDisposable) {
       if (testSystemImageString.isNotEmpty()) {
         repoManager.packages.setRemotePkgInfos(
           listOf(
@@ -154,13 +154,6 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
         .thenReturn(listOf(testDevice))
       val deviceCatalog = ManagedVirtualDeviceCatalogService.syncDeviceCatalog()
       assertEquals(deviceCatalog.devices[testDeviceName]!!.supportedApis, listOf(33))
-    }
-  }
-
-  fun testNullDeviceManager() {
-    managedVirtualDeviceCatalogTestHelperWrapper(deviceManager = null) {
-      val deviceCatalog = ManagedVirtualDeviceCatalogService.syncDeviceCatalog()
-      assertTrue(deviceCatalog.devices.isEmpty())
     }
   }
 
