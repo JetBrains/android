@@ -107,8 +107,7 @@ jvm_library(
     "//libraries/grpc",
     "//android/visual-lint",
     "//plugins/kotlin/idea",
-  ],
-  plugins = ["@lib//:compose-plugin"]
+  ]
 )
 
 jvm_library(
@@ -207,8 +206,7 @@ jvm_library(
     "//libraries/grpc:grpc_test_lib",
     "//android/visual-lint:visual-lint_test_lib",
     "//plugins/kotlin/idea:idea_test_lib",
-  ],
-  plugins = ["@lib//:compose-plugin"]
+  ]
 )
 ### auto-generated section `build intellij.android.compose-designer` end
 
@@ -388,8 +386,7 @@ jvm_library(
   module_name = "intellij.android.compose-designer.tests",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
-  runtime_deps = ["//platform/editor-ui-ex:editor-ex"],
-  plugins = ["@lib//:compose-plugin"]
+  runtime_deps = ["//platform/editor-ui-ex:editor-ex"]
 )
 
 jvm_library(
@@ -567,8 +564,7 @@ jvm_library(
     ":compose-designer-tests",
     "//platform/ide-core:ide-core_test_lib",
     "//platform/platform-impl:ide-impl_test_lib",
-  ],
-  plugins = ["@lib//:compose-plugin"]
+  ]
 )
 ### auto-generated section `build intellij.android.compose-designer.tests` end
 

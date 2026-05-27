@@ -33,8 +33,7 @@ jvm_library(
     "//platform/util:util-ui",
     "//android/artwork",
     "//android/artwork-compose",
-  ],
-  plugins = ["@lib//:compose-plugin"]
+  ]
 )
 
 jvm_library(
@@ -64,8 +63,7 @@ jvm_library(
     "//platform/util:util-ui_test_lib",
     "//android/artwork:artwork_test_lib",
     "//android/artwork-compose:artwork-compose_test_lib",
-  ],
-  plugins = ["@lib//:compose-plugin"]
+  ]
 )
 ### auto-generated section `build intellij.android.device` end
 

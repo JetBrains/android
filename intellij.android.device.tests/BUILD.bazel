@@ -13,8 +13,7 @@ jvm_library(
   module_name = "intellij.android.device.tests",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
-  runtime_deps = ["@lib//:kotlin-stdlib"],
-  plugins = ["@lib//:compose-plugin"]
+  runtime_deps = ["@lib//:kotlin-stdlib"]
 )
 
 jvm_library(
@@ -54,8 +53,7 @@ jvm_library(
     "//android/adt-testutils",
     "//android/adt-testutils:adt-testutils_test_lib",
   ],
-  runtime_deps = [":device-tests"],
-  plugins = ["@lib//:compose-plugin"]
+  runtime_deps = [":device-tests"]
 )
 ### auto-generated section `build intellij.android.device.tests` end
 

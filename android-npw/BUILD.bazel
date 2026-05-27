@@ -81,8 +81,7 @@ jvm_library(
     "//android/artwork-compose",
     "//android/adt-ui-compose",
     "//platform/forms_rt:java-guiForms-rt",
-  ],
-  plugins = ["@lib//:compose-plugin"]
+  ]
 )
 
 jvm_library(
@@ -156,8 +155,7 @@ jvm_library(
     "//android/artwork-compose:artwork-compose_test_lib",
     "//android/adt-ui-compose:adt-ui-compose_test_lib",
     "//platform/forms_rt:java-guiForms-rt_test_lib",
-  ],
-  plugins = ["@lib//:compose-plugin"]
+  ]
 )
 ### auto-generated section `build intellij.android.newProjectWizard` end
 
@@ -187,8 +185,7 @@ jvm_library(
     "//plugins/kotlin/gradle/gradle-tooling/impl",
     "//android/adt-ui-compose",
     "//android/ml-api",
-  ],
-  plugins = ["@lib//:compose-plugin"]
+  ]
 )
 
 jvm_library(
@@ -326,8 +323,7 @@ jvm_library(
     "//android/gradle-dsl-toml:gradle-dsl-toml_test_lib",
     "//android/gradle-dsl-declarative:gradle-dsl-declarative_test_lib",
     "//android/gradle-dsl-groovy:gradle-dsl-groovy_test_lib",
-  ],
-  plugins = ["@lib//:compose-plugin"]
+  ]
 )
 ### auto-generated section `build intellij.android.newProjectWizard.tests` end
 

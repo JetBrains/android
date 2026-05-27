@@ -91,8 +91,7 @@ jvm_library(
     "//libraries/xerces",
     "@lib//:kotlinc-kotlin-compiler-ir-provided",
     "//libraries/fastutil",
-  ],
-  plugins = ["@lib//:compose-plugin"]
+  ]
 )
 
 jvm_library(
@@ -275,8 +274,7 @@ jvm_library(
     "//platform/platform-impl/designer:designer_test_lib",
     "//platform/platform-impl:ide-impl_test_lib",
     "//platform/platform-impl/concurrency:concurrency_test_lib",
-  ],
-  plugins = ["@lib//:compose-plugin"]
+  ]
 )
 ### auto-generated section `build intellij.android.designer` end
 
@@ -353,8 +351,7 @@ jvm_library(
   runtime_deps = [
     "//android/assistant",
     "//platform/platform-impl/concurrency",
-  ],
-  plugins = ["@lib//:compose-plugin"]
+  ]
 )
 
 jvm_library(
@@ -533,8 +530,7 @@ jvm_library(
     "//platform/platform-impl:ide-impl_test_lib",
     "//platform/platform-impl/concurrency:concurrency_test_lib",
     "//platform/ide-core:ide-core_test_lib",
-  ],
-  plugins = ["@lib//:compose-plugin"]
+  ]
 )
 ### auto-generated section `build intellij.android.designer.tests` end
 

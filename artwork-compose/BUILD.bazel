@@ -24,8 +24,7 @@ jvm_library(
   exports = [
     "//platform/compose/markdown",
     "//platform/compose",
-  ],
-  plugins = ["@lib//:compose-plugin"]
+  ]
 )
 
 jvm_library(
@@ -48,8 +47,7 @@ jvm_library(
     "//android/artwork:artwork_test_lib",
     "//platform/compose/markdown:markdown_test_lib",
     "//platform/compose:compose_test_lib",
-  ],
-  plugins = ["@lib//:compose-plugin"]
+  ]
 )
 ### auto-generated section `build intellij.android.artwork-compose` end
 

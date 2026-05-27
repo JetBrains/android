@@ -47,8 +47,7 @@ jvm_library(
     "//platform/util-rt",
     "//platform/util:util-ui",
     "//android/artwork-compose",
-  ],
-  plugins = ["@lib//:compose-plugin"]
+  ]
 )
 
 jvm_library(
@@ -135,8 +134,7 @@ jvm_library(
   runtime_deps = [
     "//platform/ide-core:ide-core_test_lib",
     "//platform/platform-impl:ide-impl_test_lib",
-  ],
-  plugins = ["@lib//:compose-plugin"]
+  ]
 )
 ### auto-generated section `build intellij.android.profilers.ui` end
 
