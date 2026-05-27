@@ -651,6 +651,8 @@ jvm_library(
         "//platform/refactoring:refactoring_test_lib",
         "//android/project-system-gradle-models:projectSystem-gradle-models",
         "//android/project-system-gradle-models:projectSystem-gradle-models_test_lib",
+        "//android/lint:lint-common",
+        "//android/lint:lint-common_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.compose-designer.tests` end
