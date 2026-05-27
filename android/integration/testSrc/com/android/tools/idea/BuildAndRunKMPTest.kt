@@ -52,8 +52,7 @@ class BuildAndRunKMPTest {
 
     benchmark.log("studio_start", System.currentTimeMillis())
 
-    system.getInstallation().copySystemDir(projectArtifactsPath)
-    system.getInstallation().copyConfigDir(projectArtifactsPath)
+    system.getInstallation().restoreCachedIdeState(projectArtifactsPath)
     system.runAdb { adb ->
       system.runStudio(project, benchmark) { studio ->
         system.runEmulator(Emulator.SystemImage.API_31) { emulator ->

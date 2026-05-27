@@ -336,6 +336,9 @@ public class AndroidStudio extends Ide {
       TestLogger.log("Sync took %s", matcher.group(1));
     } else {
       TestLogger.log("Sync skipped");
+      if (install.isRestoredFromPrebuiltCache()) {
+        install.clearTransformsCache();
+      }
     }
   }
 }

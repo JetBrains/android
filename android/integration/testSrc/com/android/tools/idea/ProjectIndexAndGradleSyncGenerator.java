@@ -49,12 +49,17 @@ public class ProjectIndexAndGradleSyncGenerator {
     Path systemDir = system.getInstallation().getSystemDir();
     Path projectDir = system.getInstallation().getTmpDir().resolve(projectName);
     Path configDir = system.getInstallation().getConfigDir();
+    Path gradleDir = system.getInstallation().getTmpDir().resolve(".gradle");
     Files.createDirectories(outputDir);
     Path outputSystemDir = outputDir.resolve("system");
     Path outputProjectDir = outputDir.resolve(projectName);
     Path outputConfigDir = outputDir.resolve("config");
+    Path outputGradleDir = outputDir.resolve(".gradle");
     FileUtils.copyDirectory(systemDir.toFile(), outputSystemDir.toFile());
     FileUtils.copyDirectory(projectDir.toFile(), outputProjectDir.toFile());
     FileUtils.copyDirectory(configDir.toFile(), outputConfigDir.toFile());
+    if (Files.exists(gradleDir)) {
+      FileUtils.copyDirectory(gradleDir.toFile(), outputGradleDir.toFile());
+    }
   }
 }

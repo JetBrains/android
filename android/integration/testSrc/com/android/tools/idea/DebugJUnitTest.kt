@@ -35,8 +35,7 @@ class DebugJUnitTest {
     val project = AndroidProject(projectArtifactsPath.resolve("JUnitTestApp").toString())
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/debug_junit_test_deps.manifest"))
-    system.getInstallation().copySystemDir(projectArtifactsPath)
-    system.getInstallation().copyConfigDir(projectArtifactsPath)
+    system.getInstallation().restoreCachedIdeState(projectArtifactsPath)
     system.runStudio(project, watcher.dashboardName) { studio ->
       studio.waitForSyncSkippedLog()
       studio.waitForIndexingSkippedLog()

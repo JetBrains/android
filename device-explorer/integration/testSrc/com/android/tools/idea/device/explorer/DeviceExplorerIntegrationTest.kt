@@ -39,8 +39,7 @@ class DeviceExplorerIntegrationTest {
       "-Didea.log.debug.categories=#com.android.tools.idea.device.explorer.files.DeviceFileExplorerControllerImpl,com.android.tools.idea.device.explorer.monitor.DeviceMonitorModel"
     )
 
-    system.getInstallation().copySystemDir(projectArtifactsPath)
-    system.getInstallation().copyConfigDir(projectArtifactsPath)
+    system.getInstallation().restoreCachedIdeState(projectArtifactsPath)
     system.runAdb { adb ->
       system.runEmulator { emulator ->
         emulator.waitForBoot()

@@ -46,8 +46,7 @@ class ShowUsagesTest {
 
     // Ensure that our log messages show up in idea.log.
     installation.addVmOption("-Didea.log.debug.categories=#com.android.tools.compose.ComposeUsageGroupingRuleProvider")
-    system.getInstallation().copySystemDir(projectArtifactsPath)
-    system.getInstallation().copyConfigDir(projectArtifactsPath)
+    system.getInstallation().restoreCachedIdeState(projectArtifactsPath)
     system.runStudio(project).use { studio ->
       studio.waitForSyncSkippedLog()
       // Line 10, column 15 corresponds to the symbol "label" which should have 2 usages in the rest of the file.

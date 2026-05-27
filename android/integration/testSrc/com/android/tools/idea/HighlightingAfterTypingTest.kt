@@ -38,8 +38,7 @@ class HighlightingAfterTypingTest {
     val project = AndroidProject(projectArtifactsPath.resolve("architecture-samples").toString())
     // Don't show Decompiler legal notice in case of resolving in .class files.
     system.installation.acceptLegalDecompilerNotice()
-    system.getInstallation().copySystemDir(projectArtifactsPath)
-    system.getInstallation().copyConfigDir(projectArtifactsPath)
+    system.getInstallation().restoreCachedIdeState(projectArtifactsPath)
 
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/editor_performance_test_deps.manifest"))

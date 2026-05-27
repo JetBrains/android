@@ -54,8 +54,7 @@ class LaunchInspectorsTest {
     val project = AndroidProject(projectArtifactsPath.resolve("minapp").toString())
     system.installRepo(MavenRepo("tools/adt/idea/app-inspection/integration/minapp_deps.manifest"))
 
-    system.getInstallation().copySystemDir(projectArtifactsPath)
-    system.getInstallation().copyConfigDir(projectArtifactsPath)
+    system.getInstallation().restoreCachedIdeState(projectArtifactsPath)
     system.runAdb { adb ->
       system.runEmulator { emulator ->
         system.runStudio(project, watcher.dashboardName) { studio ->

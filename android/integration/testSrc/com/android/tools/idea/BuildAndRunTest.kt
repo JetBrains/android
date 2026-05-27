@@ -60,8 +60,7 @@ class BuildAndRunTest {
     val project = AndroidProject(projectArtifactsPath.resolve("minapp").toString())
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/buildproject_deps.manifest"))
 
-    system.getInstallation().copySystemDir(projectArtifactsPath)
-    system.getInstallation().copyConfigDir(projectArtifactsPath)
+    system.getInstallation().restoreCachedIdeState(projectArtifactsPath)
     system.runAdb { adb ->
       system.runStudio(project, watcher.dashboardName) { studio ->
         var logCat: LogFile
@@ -90,16 +89,12 @@ class BuildAndRunTest {
 
         studio.executeAction("Run")
         studio.waitForEmulatorStart(system.installation.ideaLog, null, "com\\.example\\.minapp", 180, TimeUnit.SECONDS)
-        adb.runCommand("logcat") {
-          waitForLog(".*Hello Minimal World!.*", 120, TimeUnit.SECONDS);
-        }
+        adb.runCommand("logcat") { waitForLog(".*Hello Minimal World!.*", 120, TimeUnit.SECONDS) }
 
         val path = project.targetProject.resolve("src/main/java/com/example/minapp/MainActivity.kt")
         studio.editFile(project.targetProject.fileName.toString(), path.toString(), "Hello Minimal", "Hey Minimal")
         studio.executeAction("Run")
-        adb.runCommand("logcat") {
-          waitForLog(".*Hey Minimal World!.*", 120, TimeUnit.SECONDS);
-        }
+        adb.runCommand("logcat") { waitForLog(".*Hey Minimal World!.*", 120, TimeUnit.SECONDS) }
 
         if (!SystemInfo.isWindows) emulator?.close() else remoteDeviceManager?.close()
       }

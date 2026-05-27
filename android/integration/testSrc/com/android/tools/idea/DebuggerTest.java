@@ -48,8 +48,7 @@ public class DebuggerTest {
 
     long startTime = System.currentTimeMillis();
 
-    system.getInstallation().copySystemDir(projectArtifactsPath);
-    system.getInstallation().copyConfigDir(projectArtifactsPath);
+    system.getInstallation().restoreCachedIdeState(projectArtifactsPath);
     try (Adb adb = system.runAdb();
          Emulator emulator = system.runEmulator();
          AndroidStudio studio = system.runStudio(project)) {

@@ -67,6 +67,7 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
   protected final Path systemDir;
   //Points to a location outside bazel sandbox, used to ensure constant path for any artifact placed inside
   protected final Path tmpDir;
+  protected boolean isRestoredFromPrebuiltCache = false;
 
   public final TestFileSystem fileSystem;
 
@@ -297,6 +298,9 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
     env.put("JAVA_HOME", javaHome);
     env.put("STUDIO_GRADLE_JDK", javaHome);
     env.put("STUDIO_JDK", javaHome);
+    Path gradleUserHome = tmpDir.resolve(".gradle");
+    env.put("GRADLE_USER_HOME", gradleUserHome.toAbsolutePath().toString());
+    addVmOption("-Dgradle.user.home=" + gradleUserHome.toAbsolutePath().toString());
     addVmOption("-Dgradle.jvm=$javaHome");
     return run(display, env, new String[]{ projectPath.toString() });
   }
@@ -669,6 +673,40 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
 
   public void copyConfigDir(Path projectArtifactsPath) throws IOException {
     FileUtils.copyDirectory(TestUtils.getBinPath(projectArtifactsPath.resolve("config").toString()).toFile(), getConfigDir().toFile());
+  }
+
+  public void copyGradleDir(Path projectArtifactsPath) throws IOException {
+    Path sourceGradle = TestUtils.getBinPath(projectArtifactsPath.resolve(".gradle").toString());
+    if (Files.exists(sourceGradle)) {
+      FileUtils.copyDirectory(sourceGradle.toFile(), tmpDir.resolve(".gradle").toFile());
+    }
+  }
+
+  // We clear the transforms cache to prevent Gradle from crashing with an "Immutable workspace
+  // contents have been modified" error. This happens because Bazel assigns new filesystem
+  // timestamps when staging the prebuilt cache, which mismatch Gradle's internal tracking.
+  public void clearTransformsCache() {
+    Path cachesDir = tmpDir.resolve(".gradle/caches");
+    if (Files.exists(cachesDir)) {
+      try (java.nio.file.DirectoryStream<Path> stream = Files.newDirectoryStream(cachesDir, "transforms-*")) {
+        for (Path entry : stream) {
+          FileUtils.deleteRecursivelyIfExists(entry.toFile());
+        }
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+
+  public void restoreCachedIdeState(Path projectArtifactsPath) throws IOException {
+    isRestoredFromPrebuiltCache = true;
+    copySystemDir(projectArtifactsPath);
+    copyConfigDir(projectArtifactsPath);
+    copyGradleDir(projectArtifactsPath);
+  }
+
+  public boolean isRestoredFromPrebuiltCache() {
+    return isRestoredFromPrebuiltCache;
   }
 
   abstract public T attach() throws IOException, InterruptedException;

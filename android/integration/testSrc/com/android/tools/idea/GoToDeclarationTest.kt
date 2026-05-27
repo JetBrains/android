@@ -38,8 +38,7 @@ class GoToDeclarationTest {
 
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/languagehighlighting_deps.manifest"))
-    system.getInstallation().copySystemDir(projectArtifactsPath)
-    system.getInstallation().copyConfigDir(projectArtifactsPath)
+    system.getInstallation().restoreCachedIdeState(projectArtifactsPath)
     system.runStudio(project).use { studio ->
       studio.waitForSyncSkippedLog()
       studio.waitForIndexingSkippedLog()

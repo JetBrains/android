@@ -36,8 +36,7 @@ class PlayPolicyInsightIntegrationTest {
     val project = AndroidProject(projectArtifactsPath.resolve("minapp").toString())
     system.installRepo(MavenRepo("tools/adt/idea/app-quality-insights/play-policy/integration/minapp_deps.manifest"))
 
-    system.installation.copySystemDir(projectArtifactsPath)
-    system.installation.copyConfigDir(projectArtifactsPath)
+    system.installation.restoreCachedIdeState(projectArtifactsPath)
     system.runStudio(project, watcher.dashboardName) { studio ->
       studio.waitForSyncSkippedLog()
       studio.waitForIndexingSkippedLog()

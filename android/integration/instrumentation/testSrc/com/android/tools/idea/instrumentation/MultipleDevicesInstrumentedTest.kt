@@ -37,8 +37,7 @@ class MultipleDevicesInstrumentedTest {
 
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/run_instrumented_test_project_deps.manifest"))
 
-    system.getInstallation().copySystemDir(projectArtifactsPath)
-    system.getInstallation().copyConfigDir(projectArtifactsPath)
+    system.getInstallation().restoreCachedIdeState(projectArtifactsPath)
     system.runAdb { adb ->
       system.runEmulator(Emulator.SystemImage.API_33_ATD) { emulator1 ->
         system.runEmulator(Emulator.SystemImage.API_33_ATD) { emulator2 ->
