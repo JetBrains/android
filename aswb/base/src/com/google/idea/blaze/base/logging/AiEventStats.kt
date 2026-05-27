@@ -25,6 +25,7 @@ data class AiEventStats(
   val chatBotEvent: ChatBotEventMetadata? = null,
   val devAiEventContext: DevAiContext,
   val feature: Feature,
+  val modelId: String,
 ) : LoggedEvent {
   enum class Feature {
     FEATURE_UNSPECIFIED,
