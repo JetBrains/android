@@ -129,14 +129,14 @@ public class AndroidSdksImpl implements AndroidSdks {
       if (myIdeInfo.isAndroidStudio() || myIdeInfo.isGameTools()) {
         Path path = AndroidSdkPathStore.getInstance().getAndroidSdkPathIfValid();
         if (path != null) {
-          mySdkData = AndroidSdkData.getSdkData(path.toFile());
+          mySdkData = AndroidSdkData.getSdkData(path);
           if (mySdkData != null) {
             return mySdkData;
           }
         }
       }
 
-      for (File path : getAndroidSdkPathsFromExistingPlatforms()) {
+      for (Path path : getAndroidSdkPathsFromExistingPlatforms()) {
         mySdkData = AndroidSdkData.getSdkData(path);
         if (mySdkData != null) {
           break;
@@ -147,13 +147,13 @@ public class AndroidSdksImpl implements AndroidSdks {
   }
 
   @NotNull
-  private Collection<File> getAndroidSdkPathsFromExistingPlatforms() {
-    List<File> result = new ArrayList<>();
+  private Collection<Path> getAndroidSdkPathsFromExistingPlatforms() {
+    List<Path> result = new ArrayList<>();
     for (Sdk androidSdk : getAllAndroidSdks()) {
       AndroidPlatform androidPlatform = AndroidPlatforms.getInstance(androidSdk);
       if (androidPlatform != null) {
         // Put default platforms in the list before non-default ones so they'll be looked at first.
-        File sdkPath = androidPlatform.getSdkData().getLocationFile();
+        Path sdkPath = androidPlatform.getSdkData().getLocation();
         if (result.contains(sdkPath)) {
           continue;
         }

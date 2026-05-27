@@ -406,7 +406,7 @@ public class IdeSdks {
 
       Path resolved = resolvePath(path.toPath());
       // Parse out the new SDK. We'll need its targets to set up IntelliJ SDKs for each.
-      AndroidSdkData sdkData = getSdkData(resolved.toFile(), true);
+      AndroidSdkData sdkData = getSdkData(resolved, true);
       if (sdkData != null) {
         // Iterate over all current existing IJ Android SDKs
         for (Sdk sdk : myAndroidSdks.getAllAndroidSdks()) {

@@ -25,21 +25,16 @@ import java.io.File
 import java.io.IOException
 import java.lang.ref.SoftReference
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.concurrent.ConcurrentHashMap
 
-class AndroidSdkData private constructor(localSdk: File) {
-  val sdkHandler: AndroidSdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton, localSdk.toPath())
-  val deviceManager: DeviceManager = getDeviceManager(sdkHandler)
+class AndroidSdkData private constructor(val sdkHandler: AndroidSdkHandler, val deviceManager: DeviceManager) {
 
   val location: Path
     get() = checkNotNull(sdkHandler.location)
 
   val locationFile: File
     get() = location.toFile()
-
-  @get:Deprecated("")
-  val path: String
-    get() = location.toString()
 
   fun getLatestBuildTool(allowPreview: Boolean): BuildToolInfo? =
     sdkHandler.getLatestBuildTool(LoggerProgressIndicator(javaClass), allowPreview)
@@ -69,37 +64,42 @@ class AndroidSdkData private constructor(localSdk: File) {
     return sdkHandler.getAndroidTargetManager(progress).getTargetFromHashString(hashString, progress)
   }
 
-  override fun equals(other: Any?): Boolean {
-    if (this === other) return true
-    if (other !is AndroidSdkData) return false
-    return location.normalize().toAbsolutePath() == other.location.normalize().toAbsolutePath()
-  }
+  override fun equals(other: Any?): Boolean = other is AndroidSdkData && location == other.location
 
-  override fun hashCode(): Int = location.normalize().toAbsolutePath().hashCode()
+  override fun hashCode(): Int = location.hashCode()
 
   companion object {
     private val ourCache = ConcurrentHashMap<String, SoftReference<AndroidSdkData>>()
 
     @JvmStatic
     @JvmOverloads
-    fun getSdkData(sdkLocation: File, forceReparse: Boolean = false): AndroidSdkData? {
+    fun getSdkData(sdkLocation: Path, forceReparse: Boolean = false): AndroidSdkData? {
       return getSdkData(sdkLocation, forceReparse, checkValidity = true)
     }
 
-    // Used by standalone-render
     @JvmStatic
-    fun getSdkDataWithoutValidityCheck(sdkLocation: File): AndroidSdkData =
+    @JvmOverloads
+    fun getSdkData(sdkLocation: File, forceReparse: Boolean = false): AndroidSdkData? {
+      return getSdkData(sdkLocation.toPath(), forceReparse)
+    }
+
+    @JvmStatic
+    fun getSdkDataWithoutValidityCheck(sdkLocation: Path): AndroidSdkData =
       getSdkData(sdkLocation, forceReparse = false, checkValidity = false)!!
 
-    private fun getSdkData(sdkLocation: File, forceReparse: Boolean, checkValidity: Boolean): AndroidSdkData? {
-      val canonicalPath =
+    // Used by standalone-render and legacy callers
+    @JvmStatic fun getSdkDataWithoutValidityCheck(sdkLocation: File): AndroidSdkData = getSdkDataWithoutValidityCheck(sdkLocation.toPath())
+
+    private fun getSdkData(sdkLocation: Path, forceReparse: Boolean, checkValidity: Boolean): AndroidSdkData? {
+      val canonicalLocation =
         try {
-          sdkLocation.canonicalPath
+          sdkLocation.toRealPath()
         } catch (ignore: IOException) {
           if (checkValidity) return null
           // We do not care about whether sdk exists or not, we are using the path as a key
-          sdkLocation.path
+          sdkLocation.toAbsolutePath().normalize()
         }
+      val canonicalPath = canonicalLocation.toString()
 
       // Try to use cached data.
       if (!forceReparse) {
@@ -114,17 +114,18 @@ class AndroidSdkData private constructor(localSdk: File) {
         }
       }
 
-      val canonicalLocation = File(canonicalPath)
       if (checkValidity && !isValid(canonicalLocation)) {
         return null
       }
 
-      val sdkData = AndroidSdkData(canonicalLocation)
+      val handler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton, canonicalLocation)
+      val manager = getDeviceManager(handler)
+      val sdkData = AndroidSdkData(handler, manager)
       ourCache[canonicalPath] = SoftReference(sdkData)
       return sdkData
     }
 
-    @JvmStatic fun getSdkData(sdkPath: String): AndroidSdkData? = getSdkData(File(sdkPath))
+    @JvmStatic fun getSdkData(sdkPath: String): AndroidSdkData? = getSdkData(Paths.get(sdkPath))
 
     private fun targetHasId(target: IAndroidTarget, id: String): Boolean {
       return id == target.version.apiString || id == target.versionName
