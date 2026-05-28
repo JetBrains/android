@@ -128,6 +128,8 @@
   <xi:include href="/META-INF/pipeline.xml"/>
 <!--  <xi:include href="/META-INF/play-policy.xml"/>-->
 <!--  <xi:include href="/META-INF/play-vitals.xml"/>-->
+<!--  TODO: android-merge; play-findings.xml is a resource of intellij.android.app-quality-insights.play-findings.ide, and no .idea/modules.xml in this repository registers that module, so it is not built here and the include cannot resolve-->
+<!--  <xi:include href="/META-INF/play-findings.xml"/>-->
   <xi:include href="/META-INF/profilers.xml"/>
   <xi:include href="/META-INF/profilers-gradle.xml"/>
   <xi:include href="/META-INF/project-system-plugin.xml"/>

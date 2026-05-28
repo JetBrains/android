@@ -65,6 +65,7 @@ iml_module(
         "//tools/adt/idea/app-quality-insights/ide:intellij.android.app-quality-insights.ide",
         "//tools/adt/idea/app-quality-insights/play-policy/ide:intellij.android.app-quality-insights.play-policy.ide",
         "//tools/adt/idea/app-quality-insights/play-vitals/ide:intellij.android.app-quality-insights.play-vitals.ide",
+        "//tools/adt/idea/app-quality-insights/play-findings/ide:intellij.android.app-quality-insights.play-findings.ide",
         "//tools/adt/idea/android-plugin/descriptor:intellij.android.plugin.descriptor",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea",
         "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector.gradle",

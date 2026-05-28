@@ -124,7 +124,7 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
   private fun collectInsights(file: PsiFile): List<AppInsight> {
     val project = file.project
 
-    return AppInsightsTabProvider.EP_NAME.extensionList
+    return AppInsightsTabProvider.getApplicableExtensions()
       .map { tabProvider ->
         val configurationManager = tabProvider.getConfigurationManager(project)
 

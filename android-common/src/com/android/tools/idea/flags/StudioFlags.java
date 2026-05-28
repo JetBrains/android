@@ -2015,6 +2015,14 @@ public final class StudioFlags {
     new BooleanFlag(APP_INSIGHTS, "fix.with.agent", "Use Agent for suggested fixes.",
                     "Use the AI Agent to propose and implement suggested fixes.");
 
+  public static final Flag<Boolean> PLAY_FINDINGS_ENABLED =
+    new BooleanFlag(
+      APP_INSIGHTS,
+      "play.findings.enabled",
+      "Enable Play Findings",
+      "Enable Play Findings integration."
+    );
+
   // endregion App Insights
 
   // region App Links Assistant

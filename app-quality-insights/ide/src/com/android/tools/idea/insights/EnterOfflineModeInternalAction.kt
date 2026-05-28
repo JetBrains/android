@@ -23,7 +23,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 class EnterOfflineModeInternalAction : AnAction("Enter Offline Mode in AQI") {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    AppInsightsTabProvider.EP_NAME.extensionList.forEach {
+    AppInsightsTabProvider.getApplicableExtensions().forEach {
       it.getConfigurationManager(project).offlineStatusManager.enterMode(ConnectionMode.OFFLINE)
     }
   }

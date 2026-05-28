@@ -83,7 +83,7 @@ class AppInsightsToolWindowFactory : DumbAware, ToolWindowFactory {
   fun createTabs(project: Project, toolWindow: ToolWindow) {
     val contentFactory = ContentFactory.getInstance()
 
-    AppInsightsTabProvider.EP_NAME.extensionList.forEach { tabProvider ->
+    AppInsightsTabProvider.getApplicableExtensions().forEach { tabProvider ->
       val tabPanel = AppInsightsTabPanel()
       tabProvider.populateTab(project, tabPanel, activeTabFlow.map { it == tabProvider.displayName }.distinctUntilChanged())
       val tabContent =

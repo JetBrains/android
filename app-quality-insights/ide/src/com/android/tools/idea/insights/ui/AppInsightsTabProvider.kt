@@ -31,7 +31,14 @@ interface AppInsightsTabProvider {
   /** Returns the active configuration manager for this insights tab for [project]. */
   fun getConfigurationManager(project: Project): AppInsightsConfigurationManager
 
+  /** Returns whether this tab is applicable/enabled. */
+  fun isApplicable(): Boolean = true
+
   companion object {
     @JvmField val EP_NAME = ExtensionPointName<AppInsightsTabProvider>("com.android.tools.idea.insights.ui.appInsightsTabProvider")
+
+    fun getApplicableExtensions(): List<AppInsightsTabProvider> {
+      return EP_NAME.extensionList.filter { it.isApplicable() }
+    }
   }
 }
