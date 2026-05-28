@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.findPreviewManager
 import com.android.tools.idea.preview.modes.PreviewModeManager
@@ -38,7 +40,12 @@ class PredictiveBackNavigationControlsAction : DumbAwareAction(null, null, Studi
       e.dataContext.getData(InteractivePreviewNavigationController.KEY) ?: return
     val selectedPreview =
       e.dataContext.findPreviewManager(PreviewModeManager.KEY)?.mode?.value?.selected as? ComposePreviewElementInstance ?: return
-
+    val zoomController = (e.dataContext.getData(DESIGN_SURFACE) as DesignSurface).zoomController
+    // Check if zoom to fit was set before expanding/collapsing the panel
+    val isZoomToFit = !zoomController.canZoomToFit()
+    if (isZoomToFit) {
+      zoomController.resetZoomToFitSettings(shouldWaitForResize = true, shouldWaitForLayoutCreated = false)
+    }
     if (interactivePreviewNavigationController.isNavigationControlsShown()) {
       // If there was an interaction with the bottom panel navigation, a back navigation might have
       // been started or be in progress. We ensure to cancel any ongoing navigation before closing
@@ -46,6 +53,10 @@ class PredictiveBackNavigationControlsAction : DumbAwareAction(null, null, Studi
       interactivePreviewNavigationController.hideNavigationControls()
     } else {
       interactivePreviewNavigationController.showNavigationControls(selectedPreview)
+    }
+    // If after expanding/collapsing the panel zoom-to-fit was set, we apply again zoom-to-fit so that The preview is always visible.
+    if (isZoomToFit) {
+      zoomController.zoomToFit()
     }
   }
 
