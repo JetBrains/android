@@ -26,21 +26,21 @@ import java.io.File
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 
 /**
- * A [DirectoryIndexExcludePolicy] that temporarily excludes all directories under a Gradle root from the project while the initial sync
- * runs.
+ * A [DirectoryIndexExcludePolicy] that temporarily excludes all directories under a Gradle root from the project while the initial sync or
+ * early DCL setup run.
  *
  * This is needed to prevent directories that are normally excluded from the project after sync from being indexed or included in the VFS
  * before the initial sync completes. Otherwise, indexing itself may take much time and any file included in the VFS stays there and is
  * updated when the VFS area containing this file is refreshed. This in turn may result it massive VFS updates after building a project if
  * its build directories end up in the VFS.
  *
- * [InitialImportExcludeDirectoryPolicy] reports any directories directly under the project's Gradle roots as excluded while there is no
- * source roots yet in the project (i.e. sync has not yet succeeded).
+ * [InitialImportExcludeDirectoryPolicy] reports any directories directly under the project's Gradle roots as excluded while there are no
+ * excluded root URLs yet in the project (i.e. sync has not yet succeeded, neither early DCL setup completed).
  */
 class InitialImportExcludeDirectoryPolicy(private val project: Project) : DirectoryIndexExcludePolicy {
   override fun getExcludeUrlsForProject(): Array<out String> {
     if (project.getUserData(EXCLUDE_DIRS_KEY) == false) return emptyArray()
-    // Stop returning any exclude directories when sync succeeds. A successful sync sets up some source roots unless all modules are empty.
+    // Stop returning any exclude directories when sync succeeds or early Gradle declarative setup has finished.
     // Note: We cannot rely on listeners here to clear the flag as roots are enumerated just after committing project model changes and
     //       listeners run too late.
     if (!project.isGradleProject() || project.projectHasAnyExcludeRoots()) {
@@ -62,7 +62,7 @@ private fun Project.isGradleProject(): Boolean {
 }
 
 private fun Project.projectHasAnyExcludeRoots(): Boolean {
-  return modules.any { ModuleRootManager.getInstance(it).excludeRoots.isNotEmpty() }
+  return modules.any { ModuleRootManager.getInstance(it).excludeRootUrls.isNotEmpty() }
 }
 
 private fun Project.getGradleRoots(): List<File> {
