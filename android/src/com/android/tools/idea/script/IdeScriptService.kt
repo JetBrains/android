@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.script
 
+import com.android.tools.idea.flags.StudioFlags.ANALYSIS_SCRIPTS
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.filters.TextConsoleBuilderFactory
@@ -66,6 +67,7 @@ class IdeScriptService(private val project: Project, private val scope: Coroutin
   }
 
   suspend fun runIdeScript(file: VirtualFile): String? {
+    if (!ANALYSIS_SCRIPTS.get()) throw IllegalStateException("IDE scripts feature flag is disabled")
     if (!file.isInLocalFileSystem) throw IllegalArgumentException("IDE script file must be in local file system: $file")
     if (!file.name.endsWith(IDE_SCRIPT_EXTENSION))
       throw IllegalArgumentException("IDE script file must have $IDE_SCRIPT_EXTENSION extension: $file")
