@@ -54,6 +54,10 @@ class AndroidPlatformSdkComponentTreeNode(
   override fun sdkComponentsMetricKind() = SetupWizardEvent.SdkInstallationMetrics.SdkComponentKind.ANDROID_PLATFORM
 
   private fun findLatestCompatibleBuildTool(): String? {
+    val expectedPath = "${SdkConstants.FD_BUILD_TOOLS};${SdkConstants.CURRENT_BUILD_TOOLS_VERSION}"
+    if (repositoryPackages.remotePackages.containsKey(expectedPath)) {
+      return expectedPath
+    }
     var revision: Revision? = null
     var path: String? = null
     for (remote in repositoryPackages.remotePackages.values) {

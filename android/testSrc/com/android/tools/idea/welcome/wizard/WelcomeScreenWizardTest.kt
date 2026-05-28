@@ -139,6 +139,7 @@ class WelcomeScreenWizardTest {
               createFakeRemotePackageWithLicense("build-tools;33.0.1"),
               createFakeRemotePackageWithLicense("platforms;android-35"),
               createFakeRemotePackageWithLicense("system-images;android-35;google_apis_playstore;arm64-v8a"),
+              createFakeRemotePackageWithLicense("platform-tools"),
             ),
           )
         )

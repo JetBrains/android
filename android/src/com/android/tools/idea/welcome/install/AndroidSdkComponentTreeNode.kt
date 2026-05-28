@@ -33,14 +33,7 @@ class AndroidSdkComponentTreeNode(installUpdates: Boolean) :
       .trimIndent(),
     installUpdates,
   ) {
-  /**
-   * Find latest build tools revision. Versions compatible with the selected platforms will be installed by the platform components.
-   *
-   * @return The Revision of the latest build tools package, or null if no remote build tools packages are available.
-   */
-  private val latestCompatibleBuildToolsPath: String?
-    get() =
-      sdkHandler!!.getLatestRemotePackageForPrefix(SdkConstants.FD_BUILD_TOOLS, null, false, object : ProgressIndicatorAdapter() {})?.path
+
 
   override val requiredSdkPackages: Collection<String>
     get() = getRequiredSdkPackages(isChromeOSAndIsNotHWAccelerated())
@@ -50,7 +43,6 @@ class AndroidSdkComponentTreeNode(installUpdates: Boolean) :
     sequence {
         yield(SdkConstants.FD_EMULATOR.takeIf { !isChromeOSAndIsNotHWAccelerated })
         yield(SdkConstants.FD_PLATFORM_TOOLS)
-        yield(latestCompatibleBuildToolsPath)
       }
       .filterNotNull()
       .toList()
