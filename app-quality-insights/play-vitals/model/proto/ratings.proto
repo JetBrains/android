@@ -20,8 +20,6 @@ option java_package = "com.google.play.developer.reporting";
 //
 //  * `dailyAverageRating` (`google.type.Decimal`): Average rating that your app
 //  receives each day.
-//  * `googlePlayRating` (`google.type.Decimal`): The average rating of
-//  the app shown to users on Google Play.
 //  * `lifetimeAverageRating` (`google.type.Decimal`): Average rating that your
 //  app has received over its lifetime.
 //
@@ -125,8 +123,6 @@ message QueryRatingsMetricSetRequest {
   //
   //  * `dailyAverageRating` (`google.type.Decimal`): Average rating that your
   //  app receives each day.
-  //  * `googlePlayRating` (`google.type.Decimal`): The average rating of
-  //  the app shown to users on Google Play.
   //  * `lifetimeAverageRating` (`google.type.Decimal`): Average rating that
   //  your app has received over its lifetime.
   //
