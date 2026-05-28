@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.appinspection.ide.resolver.http
 
-import com.android.repository.api.ConsoleProgressIndicator
 import com.android.repository.api.Downloader
 import com.android.tools.idea.appinspection.ide.resolver.AppInspectorArtifactPaths
 import com.android.tools.idea.appinspection.ide.resolver.INSPECTOR_JAR
@@ -26,6 +25,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactN
 import com.android.tools.idea.appinspection.inspector.api.launch.RunningArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.android.tools.idea.io.FileService
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.StudioDownloader
 import com.intellij.util.io.createDirectories
 import java.io.IOException
@@ -39,6 +39,8 @@ class HttpArtifactResolver(
   private val artifactPaths: AppInspectorArtifactPaths,
   private val downloader: Downloader = StudioDownloader(),
 ) : ArtifactResolver {
+  private val indicator = StudioLoggerProgressIndicator(HttpArtifactResolver::class.java)
+
   override suspend fun resolveArtifact(artifactCoordinate: RunningArtifactCoordinate) =
     artifactPaths.getInspectorArchive(artifactCoordinate)
       ?: run {
@@ -55,7 +57,7 @@ class HttpArtifactResolver(
     withContext(Dispatchers.IO) {
       try {
         val targetPath = targetDir.resolve(artifactCoordinate.fileName)
-        downloader.downloadFullyWithCaching(artifactCoordinate.toGMavenUrl(), targetPath, null, ConsoleProgressIndicator())
+        downloader.downloadFullyWithCaching(artifactCoordinate.toGMavenUrl(), targetPath, null, indicator)
         targetPath
       } catch (e: IOException) {
         throw throw AppInspectionArtifactNotFoundException(

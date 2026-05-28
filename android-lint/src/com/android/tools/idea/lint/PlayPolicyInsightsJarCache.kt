@@ -19,13 +19,12 @@ import com.android.ide.common.repository.GMAVEN_BASE_URL
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GoogleMavenRepository.Companion.MAVEN_GOOGLE_CACHE_DIR_KEY
 import com.android.repository.api.Checksum
-import com.android.repository.api.ConsoleProgressIndicator
 import com.android.repository.api.Downloader
-import com.android.repository.api.ProgressIndicatorAdapter
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.flags.FeatureConfiguration
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.ui.GuiTestingService
 import com.android.tools.idea.util.StudioPathManager
@@ -74,6 +73,7 @@ class PlayPolicyInsightsJarCache(
   @VisibleForTesting val isUpdating = MutableStateFlow(false)
   @kotlin.concurrent.Volatile private var nextUpdatingTimeMs = 0L
   private val targetLibraryVersion = StudioFlags.PLAY_POLICY_INSIGHTS_TARGET_LIBRARY_VERSION.get().trim()
+  private val indicator = StudioLoggerProgressIndicator(PlayPolicyInsightsJarCache::class.java)
 
   private fun getGoogleMavenRepository(): GoogleMavenRepository {
     return googleMavenRepository
@@ -190,18 +190,13 @@ class PlayPolicyInsightsJarCache(
 
             if (!verified()) {
               val shaFile = jarFile.sha256File()
-              downloader.downloadFullyWithCaching(urlResolver(shaFile.name), shaFile.toPath(), null, object : ProgressIndicatorAdapter() {})
+              downloader.downloadFullyWithCaching(urlResolver(shaFile.name), shaFile.toPath(), null, indicator)
               sha256FileText = jarFile.sha256FileText()
             }
 
             // Download the jar.
             if (!verified()) {
-              downloader.downloadFullyWithCaching(
-                urlResolver(jarName),
-                jarPath,
-                Checksum.create(sha256FileText, "sha-256"),
-                ConsoleProgressIndicator(),
-              )
+              downloader.downloadFullyWithCaching(urlResolver(jarName), jarPath, Checksum.create(sha256FileText, "sha-256"), indicator)
               sha256 = jarFile.sha256()
             }
 

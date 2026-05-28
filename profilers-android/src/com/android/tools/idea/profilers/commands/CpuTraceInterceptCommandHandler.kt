@@ -25,10 +25,10 @@ import androidx.tracing.perfetto.handshake.protocol.ResponseResultCodes.RESULT_C
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
 import com.android.ide.common.repository.GMAVEN_BASE_URL
-import com.android.repository.api.ConsoleProgressIndicator
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.deviceToDeviceInfo
 import com.android.tools.idea.io.IdeFileService
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.transport.TransportProxy
 import com.android.tools.profiler.proto.Commands
@@ -214,7 +214,13 @@ class CpuTraceInterceptCommandHandler(val device: IDevice, private val transport
       val tmpDir = IdeFileService("profiler-artifacts").getOrCreateTempDir("http-tmp")
       val tmpFile = tmpDir.resolve(artifact.fileName)
       log.debug("StudioDownloader downloading: ${artifact.fileName}")
-      StudioDownloader().downloadFullyWithCaching(artifact.toGMavenUrl(), tmpFile, null, ConsoleProgressIndicator())
+      StudioDownloader()
+        .downloadFullyWithCaching(
+          artifact.toGMavenUrl(),
+          tmpFile,
+          null,
+          StudioLoggerProgressIndicator(CpuTraceInterceptCommandHandler::class.java),
+        )
       tmpFile
     } catch (e: IOException) {
       null

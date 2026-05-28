@@ -25,6 +25,7 @@ import com.android.tools.idea.gservices.DevServicesDeprecationData
 import com.android.tools.idea.gservices.DevServicesDeprecationDataProvider
 import com.android.tools.idea.gservices.DevServicesDeprecationStatus
 import com.android.tools.idea.lint.common.LintIgnoredResult
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
@@ -79,6 +80,7 @@ class PlayPolicyInsightsJarCacheTest {
         override fun downloadFully(url: URL, indicator: ProgressIndicator): Path? = null
 
         override fun downloadFully(url: URL, target: Path, checksum: Checksum?, indicator: ProgressIndicator) {
+          assertThat(indicator).isInstanceOf(StudioLoggerProgressIndicator::class.java)
           val data = if (target.extension == "sha256") "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08" else "test"
           target.toFile().writeBytes(data.toByteArray())
         }
@@ -154,8 +156,18 @@ class PlayPolicyInsightsJarCacheTest {
     configureDeprecationService()
     StudioFlags.PLAY_POLICY_INSIGHTS_TARGET_LIBRARY_VERSION.override("")
     // Download a library before updating.
-    downloader.downloadFully(mock(), temporaryFolder.root.toPath().resolve("insights-lint-7.7.7.jar"), null, mock())
-    downloader.downloadFully(mock(), temporaryFolder.root.toPath().resolve("insights-lint-7.7.7.jar.sha256"), null, mock())
+    downloader.downloadFully(
+      mock(),
+      temporaryFolder.root.toPath().resolve("insights-lint-7.7.7.jar"),
+      null,
+      StudioLoggerProgressIndicator(PlayPolicyInsightsJarCache::class.java),
+    )
+    downloader.downloadFully(
+      mock(),
+      temporaryFolder.root.toPath().resolve("insights-lint-7.7.7.jar.sha256"),
+      null,
+      StudioLoggerProgressIndicator(PlayPolicyInsightsJarCache::class.java),
+    )
 
     val cache = PlayPolicyInsightsJarCache(client, temporaryFolder.root.toPath(), downloader)
     cache.getCustomRuleJars()

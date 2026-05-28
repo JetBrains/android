@@ -23,6 +23,7 @@ import com.android.tools.idea.appinspection.ide.resolver.AppInspectorArtifactPat
 import com.android.tools.idea.appinspection.inspector.api.launch.RunningArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.service.TestFileService
 import com.android.tools.idea.appinspection.test.mockMinimumArtifactCoordinate
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import java.io.InputStream
@@ -50,6 +51,7 @@ class HttpArtifactResolverTest {
       override fun setDownloadIntermediatesLocation(intermediatesLocation: Path) {}
 
       override fun downloadFullyWithCaching(url: URL, target: Path, checksum: Checksum?, indicator: ProgressIndicator) {
+        assertThat(indicator).isInstanceOf(StudioLoggerProgressIndicator::class.java)
         // Fake download by resolving the URL against the local testData directory.
         val srcFile = testData.resolve(url.path.substringAfter('/'))
         Files.copy(srcFile, target)
