@@ -48,6 +48,7 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt;
 import com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt;
+import com.android.tools.idea.publishing.AppPublishingSource;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -167,7 +168,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
               return;
             }
 
-            AppPublishingContext context = new AppPublishingContext(artifactPath, myRegistrationState);
+            AppPublishingContext context = new AppPublishingContext(artifactPath, myRegistrationState, AppPublishingSource.EXPORT_SIGNED_PACKAGE_WIZARD);
             invokeLaterIfNeeded(() -> {
               ExportSignedPackageWizard.super.doOKAction();
               AppPublishingService.getInstance(myProject).publishApp("Google Play", context);

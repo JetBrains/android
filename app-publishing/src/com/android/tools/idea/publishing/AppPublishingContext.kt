@@ -19,4 +19,10 @@ data class AppPublishingContext(
   val artifactPath: String,
   // Android Developer Verification status of the package name.
   val isRegistered: Boolean?,
+  val publishingSource: AppPublishingSource,
 )
+
+enum class AppPublishingSource {
+  EXPORT_SIGNED_PACKAGE_WIZARD,
+  BUILD_MENU,
+}
