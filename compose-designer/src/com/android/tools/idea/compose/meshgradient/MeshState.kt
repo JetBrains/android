@@ -32,7 +32,7 @@ class MeshGeneratorState {
   var cols by mutableIntStateOf(4)
     private set
 
-  var blurLevel by mutableFloatStateOf(0f)
+  var blurLevel by mutableFloatStateOf(0.5f)
   var resolution by mutableIntStateOf(10)
   var showPoints by mutableStateOf(true)
   var constrainEdgePoints by mutableStateOf(true)
@@ -56,7 +56,10 @@ class MeshGeneratorState {
       Color(0xFF4CAF50), // Green
     )
 
+  val availableColors = mutableStateListOf<Color>()
+
   init {
+    availableColors.addAll(defaultColors)
     generateMeshPoints()
   }
 
@@ -68,6 +71,20 @@ class MeshGeneratorState {
   fun updateCols(value: Int) {
     cols = value.coerceIn(2, 10)
     generateMeshPoints()
+  }
+
+  fun loadMesh(newRows: Int, newCols: Int, newPoints: List<List<Pair<Offset, Color>>>) {
+    rows = newRows.coerceIn(2, 10)
+    cols = newCols.coerceIn(2, 10)
+    meshPoints.clear()
+    meshPoints.addAll(newPoints)
+
+    val loadedColors = newPoints.flatten().map { it.second }.distinct()
+    loadedColors.forEach { color ->
+      if (color !in availableColors) {
+        availableColors.add(color)
+      }
+    }
   }
 
   fun updateMeshPoint(row: Int, col: Int, offset: Offset) {
@@ -99,10 +116,11 @@ class MeshGeneratorState {
     meshPoints[row] = colorPointsInRow.toList()
   }
 
-  fun updateMeshPointColor(row: Int, col: Int, color: Color) {
+  fun updateVertexColor(row: Int, col: Int, color: Color) {
     if (row !in meshPoints.indices || col !in meshPoints[row].indices) return
     val colorPointsInRow = meshPoints[row].toMutableList()
-    colorPointsInRow[col] = Pair(colorPointsInRow[col].first, color)
+    val newPoint = Pair(colorPointsInRow[col].first, color)
+    colorPointsInRow[col] = newPoint
     meshPoints[row] = colorPointsInRow.toList()
   }
 
@@ -127,6 +145,20 @@ class MeshGeneratorState {
     meshPoints.addAll(updated)
   }
 
+  fun updatePaletteAndMeshColor(oldColor: Color, newColor: Color) {
+    val index = availableColors.indexOf(oldColor)
+    if (index != -1) {
+      availableColors[index] = newColor
+    }
+    updateAllPoints { offset, currentColor ->
+      if (currentColor == oldColor) {
+        Pair(offset, newColor)
+      } else {
+        Pair(offset, currentColor)
+      }
+    }
+  }
+
   private fun generateMeshPoints() {
     val newMeshPoints = mutableListOf<List<Pair<Offset, Color>>>()
     repeat(rows) { rowIdx ->
@@ -134,7 +166,7 @@ class MeshGeneratorState {
       val yPosition = if (rows > 1) rowIdx.toFloat() / (rows - 1) else 0f
       repeat(cols) { colIdx ->
         val xPosition = if (cols > 1) colIdx.toFloat() / (cols - 1) else 0f
-        val color = defaultColors[(rowIdx * cols + colIdx) % defaultColors.size]
+        val color = availableColors[(rowIdx * cols + colIdx) % availableColors.size]
         newPoints.add(Pair(Offset(xPosition, yPosition), color))
       }
       newMeshPoints.add(newPoints.toList())
@@ -150,14 +182,6 @@ class MeshGeneratorState {
 
     meshPoints.forEachIndexed { rowIdx, row ->
       row.forEachIndexed { colIdx, (offset, color) ->
-        val hexColor =
-          String.format(
-            "0x%02X%02X%02X%02X",
-            (color.alpha * 255).toInt(),
-            (color.red * 255).toInt(),
-            (color.green * 255).toInt(),
-            (color.blue * 255).toInt(),
-          )
         sb.append(
           String.format(
             Locale.US,
@@ -166,7 +190,7 @@ class MeshGeneratorState {
             colIdx,
             offset.x,
             offset.y,
-            hexColor,
+            color.toComposeHexLiteral(),
           )
         )
       }
@@ -174,7 +198,6 @@ class MeshGeneratorState {
 
     sb.append("    }\n")
     sb.append("}\n\n")
-    sb.append("Box(Modifier.fillMaxSize().paint(gradientPainter))\n")
 
     return sb.toString()
   }

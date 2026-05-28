@@ -99,9 +99,9 @@ fun ColorSwatch(color: Color, modifier: Modifier = Modifier) {
 fun ColorDropdown(
   selectedColor: Color,
   colors: List<Color>,
-  onSelected: (Color) -> Unit,
   modifier: Modifier = Modifier,
   allowTransparency: Boolean = false,
+  onSelected: (Color) -> Unit,
 ) {
   val focusManager = LocalFocusManager.current
 

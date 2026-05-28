@@ -39,12 +39,14 @@ import kotlin.math.roundToInt
 @Composable
 fun GradientCanvas(
   resolution: Int,
-  meshPoints: List<List<Pair<Offset, Color>>>,
-  showPoints: Boolean,
-  onPointDrag: (row: Int, col: Int, offset: Offset) -> Unit,
   modifier: Modifier = Modifier,
   blurLevel: Float = 0f,
+  meshPoints: List<List<Pair<Offset, Color>>>,
+  showPoints: Boolean,
+  constrainEdgePoints: Boolean = true,
   onTogglePoints: () -> Unit = {},
+  onPointDrag: (row: Int, col: Int, offset: Offset) -> Unit,
+  onPointClick: ((row: Int, col: Int) -> Unit)? = null,
 ) {
   Box(contentAlignment = Alignment.Center, modifier = modifier.fillMaxSize()) {
     BoxWithConstraints(
@@ -80,26 +82,32 @@ fun GradientCanvas(
       Layout(
         content = {
           if (showPoints) {
+            val maxRow = meshPoints.size - 1
             meshPoints.forEachIndexed { rowIdx, row ->
+              val maxCol = row.size - 1
               row.forEachIndexed { colIdx, col ->
+                val isCorner = (rowIdx == 0 || rowIdx == maxRow) && (colIdx == 0 || colIdx == maxCol)
+                val isMovable = !(constrainEdgePoints && isCorner)
                 PointCursor(
                   xIndex = colIdx,
                   yIndex = rowIdx,
                   color = col.second,
+                  enabled = isMovable,
                   modifier =
-                    Modifier.pointerInput(Unit) {
-                      detectDragGestures(
-                        onDragStart = {
-                          // Optional: handle drag start
-                        },
-                        onDragEnd = {
-                          // Optional: handle drag end
-                        },
-                      ) { change, dragAmount ->
-                        change.consume()
-                        handlePointDrag(row = rowIdx, col = colIdx, offsetX = dragAmount.x, offsetY = dragAmount.y)
-                      }
-                    },
+                    Modifier.pointerInput(Unit) { detectTapGestures(onTap = { onPointClick?.invoke(rowIdx, colIdx) }) }
+                      .pointerInput(Unit) {
+                        detectDragGestures(
+                          onDragStart = {
+                            // Optional: handle drag start
+                          },
+                          onDragEnd = {
+                            // Optional: handle drag end
+                          },
+                        ) { change, dragAmount ->
+                          change.consume()
+                          handlePointDrag(row = rowIdx, col = colIdx, offsetX = dragAmount.x, offsetY = dragAmount.y)
+                        }
+                      },
                 )
               }
             }

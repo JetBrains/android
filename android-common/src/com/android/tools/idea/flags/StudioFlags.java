@@ -435,6 +435,10 @@ public final class StudioFlags {
     DESIGN_TOOLS, "render.tool.diff.viewer", "Enable the render tool diff viewer",
     "If enabled, the render tool shows previous render in a diff viewer");
 
+  public static final Flag<Boolean> COMPOSE_MESH_GRADIENT_EDITOR = new BooleanFlag(
+    DESIGN_TOOLS, "compose.mesh.gradient.editor", "Enable the Mesh Gradient Editor",
+    "If enabled, the Mesh Gradient Editor gutter icon and Tools menu action will be available.");
+
 
   //endregion
 

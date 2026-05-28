@@ -52,12 +52,12 @@ fun ParameterSwatch(text: String, modifier: Modifier = Modifier) {
 @Composable
 fun DimensionInputField(
   value: Int,
-  paramName: String,
-  onUpdate: (Int) -> Unit,
   modifier: Modifier = Modifier,
   min: Int? = null,
   max: Int? = null,
   enabled: Boolean = true,
+  paramName: String,
+  onUpdate: (Int) -> Unit,
 ) {
   val focusManager = LocalFocusManager.current
   val textFieldState = remember(value) { TextFieldState(value.toString()) }
@@ -130,7 +130,7 @@ fun DimensionInputField(
 }
 
 @Composable
-fun OffsetInputField(value: Float, paramName: String, onUpdate: (Float) -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
+fun OffsetInputField(value: Float, modifier: Modifier = Modifier, enabled: Boolean = true, paramName: String, onUpdate: (Float) -> Unit) {
   val focusManager = LocalFocusManager.current
   val textFieldState = remember(value) { TextFieldState(formatFloat(value)) }
 

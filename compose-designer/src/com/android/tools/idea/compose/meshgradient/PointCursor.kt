@@ -29,16 +29,17 @@ import org.jetbrains.jewel.ui.component.Text
 // Adapted from the Mesh project: des/c5inco/mesh/common/PointCursor.kt
 
 @Composable
-fun PointCursor(xIndex: Int, yIndex: Int, color: Color, modifier: Modifier = Modifier) {
+fun PointCursor(xIndex: Int, yIndex: Int, color: Color, modifier: Modifier = Modifier, enabled: Boolean = true) {
   Box(
     contentAlignment = Alignment.Center,
     modifier =
       modifier.size(20.dp).drawWithContent {
         drawContent()
         drawCircle(color = color)
-        drawCircle(color = Color.White, style = Stroke(width = 4.dp.toPx())) // Fill is transparent by default
+        val borderColor = if (enabled) Color.White else Color.LightGray
+        drawCircle(color = borderColor, style = Stroke(width = 4.dp.toPx())) // Fill is transparent by default
       },
   ) {
-    Text("$xIndex,$yIndex", color = Color.White)
+    Text("$xIndex,$yIndex", color = if (enabled) Color.White else Color.LightGray)
   }
 }

@@ -147,6 +147,11 @@
     <runLineMarkerContributor
         language="kotlin"
         implementationClass="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunLineMarkerContributor"/>
+<!--  JetBrains patch: codeInsight.lineMarkerProvider is a backend extension registered in a shared module. The Android plugin is not split into frontend and backend modules, so there is no backend descriptor to move it into.-->
+    <!--suppress SplitModeXmlApiUsage -->
+    <codeInsight.lineMarkerProvider
+        language="kotlin"
+        implementationClass="com.android.tools.idea.compose.meshgradient.MeshGradientLineMarkerProvider"/>
     <codeInsight.lineMarkerProvider
         language="kotlin"
         implementationClass="com.android.tools.idea.compose.annotator.PreviewPickerLineMarkerProvider"/>
@@ -154,12 +159,6 @@
     <notificationGroup id="Compose Preview Notification" displayType="NONE"/>
 
     <postStartupActivity implementation="com.android.tools.idea.compose.preview.ComposeNewPreviewNotificationManager$MyStartupActivity"/>
-
-    <toolWindow factoryClass="com.android.tools.idea.compose.meshgradient.MeshGradientToolWindowFactory"
-                id="Mesh Gradient Editor"
-                anchor="right"
-                icon="AllIcons.Toolwindows.ToolwindowPalette"
-                canCloseContents="true" />
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.designer">
@@ -175,6 +174,13 @@
   </extensions>
 
   <actions>
+    <action id="Android.Compose.MeshGradientEditorAction"
+            class="com.android.tools.idea.compose.meshgradient.MeshGradientEditorAction"
+            text="Mesh Gradient Editor..."
+            description="Launch the mesh gradient editor playground">
+      <add-to-group group-id="ToolsMenu" anchor="last"/>
+    </action>
+
     <action id="Android.Designer.ComposeIssueNotificationAction"
             icon="StudioIcons.Common.ERROR"
             class="com.android.tools.idea.common.actions.IssueNotificationAction"
