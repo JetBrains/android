@@ -488,7 +488,6 @@ Android Studio Preview.app/Contents/lib/modules/intellij.platform.customization.
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.debugger.impl.backend.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.debugger.impl.frontend.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.diagnostic.freezeAnalyzer.jar
-Android Studio Preview.app/Contents/lib/modules/intellij.platform.diagnostic.freezes.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.diagnostic.telemetry.agent.extension.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.editor.backend.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.editor.frontend.jar

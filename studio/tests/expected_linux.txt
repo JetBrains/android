@@ -488,7 +488,6 @@ android-studio/lib/modules/intellij.platform.customization.min.jar
 android-studio/lib/modules/intellij.platform.debugger.impl.backend.jar
 android-studio/lib/modules/intellij.platform.debugger.impl.frontend.jar
 android-studio/lib/modules/intellij.platform.diagnostic.freezeAnalyzer.jar
-android-studio/lib/modules/intellij.platform.diagnostic.freezes.jar
 android-studio/lib/modules/intellij.platform.diagnostic.telemetry.agent.extension.jar
 android-studio/lib/modules/intellij.platform.editor.backend.jar
 android-studio/lib/modules/intellij.platform.editor.frontend.jar
