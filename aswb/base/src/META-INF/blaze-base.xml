@@ -187,6 +187,7 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <postStartupActivity implementation="com.google.idea.blaze.base.sync.BlazeSyncStartupActivity"/>
+    <postStartupActivity implementation="com.google.idea.blaze.base.workspace.ui.WorkspaceSwitcherWidgetRefresher"/>
     <postStartupActivity implementation="com.google.idea.blaze.base.project.DisableAndroidFrameworkActivity"/>
     <postStartupActivity implementation="com.google.idea.blaze.base.formatter.ExternalFormatterCodeStyleManager$Installer"/>
 
@@ -330,6 +331,10 @@
     <notificationGroup displayType="STICKY_BALLOON" id="ASwB Legacy Sync Mode" />
     <notificationGroup displayType="BALLOON" id="QuerySyncBuild" />
     <cachesInvalidator implementation="com.google.idea.blaze.base.qsync.action.ResetQuerySyncAction$CachesInvalidator"/>
+<!--  JetBrains patch: statusBarWidgetFactory is a frontend extension registered in a shared module. The Android plugin is not split into frontend and backend modules, so there is no frontend descriptor to move it into.-->
+    <!--suppress SplitModeXmlApiUsage -->
+    <statusBarWidgetFactory id="WorkspaceSwitcherWidget"
+                            implementation="com.google.idea.blaze.base.workspace.ui.WorkspaceSwitcherWidgetFactory"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
