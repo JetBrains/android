@@ -299,7 +299,7 @@ class ActiveTabStateTest {
     waitForCondition(10.seconds) { layoutInspector.notificationModel.notifications.any { it.id == "multiple.ai.glasses.tabs" } }
 
     val notification = layoutInspector.notificationModel.notifications.first { it.id == "multiple.ai.glasses.tabs" }
-    assertThat(notification.message).contains("Multiple AI Glasses tabs are open")
+    assertThat(notification.message).contains("Multiple Intelligent Eyewear tabs are open")
 
     // Remove one tab and verify the notification goes away
     bottomContentManager.removeContent(content1, true)

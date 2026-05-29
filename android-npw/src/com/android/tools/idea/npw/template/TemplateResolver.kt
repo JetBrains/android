@@ -34,7 +34,7 @@ class TemplateResolver {
             "Empty Car App Library App" -> StudioFlags.NPW_EMPTY_CAL_APP_TEMPLATE.get()
             "Gemini API" -> StudioFlags.NPW_ENABLE_GEMINI_FIREBASE_TEMPLATE.get()
             "Basic Headset Activity" -> StudioFlags.NPW_ENABLE_XR_TEMPLATE.get()
-            "Basic AI Glasses Activity" -> StudioFlags.NPW_ENABLE_AI_GLASSES_TEMPLATE.get()
+            "Basic Display Glasses Activity" -> StudioFlags.NPW_ENABLE_AI_GLASSES_TEMPLATE.get()
             "Navigation UI Activity" -> StudioFlags.NPW_ENABLE_NAVIGATION_UI_TEMPLATE.get()
             "Bottom Navigation Views Activity",
             "Navigation Drawer Views Activity" -> !StudioFlags.NPW_ENABLE_NAVIGATION_UI_TEMPLATE.get()

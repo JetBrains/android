@@ -70,7 +70,7 @@ enum class FormFactor(
   XR("XR", "XR", LOWEST_ACTIVE_API_XR, LOWEST_ACTIVE_API_XR, HIGHEST_KNOWN_API_XR, FormFactors.MOBILE, FormFactors.MOBILE_LARGE),
   AI_GLASSES(
     "AI Glasses",
-    "AI Glasses",
+    "Intelligent Eyewear",
     LOWEST_ACTIVE_API_AI_GLASSES,
     LOWEST_ACTIVE_API_AI_GLASSES,
     HIGHEST_KNOWN_API_AI_GLASSES,

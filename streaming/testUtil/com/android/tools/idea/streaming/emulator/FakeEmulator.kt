@@ -2167,7 +2167,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
       androidVersion: AndroidVersion = AndroidVersion(34, 0),
     ): Path {
       val api = androidVersion.androidApiLevel.majorVersion
-      val avdId = "AI_Glasses"
+      val avdId = "Display_Glasses"
       val abi = "x86_64"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
@@ -2215,7 +2215,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           runtime.network.speed=full
           sdcard.size=512M
           showDeviceFrame=yes
-          tag.displaynames=AI Glasses
+          tag.displaynames=Intelligent Eyewear
           tag.ids=ai-glasses
           hw.touchpad0=true
           hw.touchpad0.width=1543
@@ -2277,7 +2277,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
       androidVersion: AndroidVersion = AndroidVersion(34, 0),
     ): Path {
       val api = androidVersion.androidApiLevel.majorVersion
-      val avdId = "AI_Glasses"
+      val avdId = "Audio_Glasses"
       val abi = "x86_64"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
@@ -2322,7 +2322,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           runtime.network.speed=full
           sdcard.size=512M
           showDeviceFrame=yes
-          tag.displaynames=AI Glasses
+          tag.displaynames=Intelligent Eyewear
           tag.ids=ai-glasses
           hw.touchpad0=true
           hw.touchpad0.width=1543

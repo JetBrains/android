@@ -143,7 +143,7 @@
         <keyboard-shortcut first-keystroke="meta shift B" keymap="Mac OS X 10.5+"/>
       </action>
       <group id="android.emulator.environments" class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentActionGroup"
-             icon="icons.StudioIcons.Emulator.XR.ENVIRONMENT" text="Environment" description="Select environment for AI Glasses"
+             icon="icons.StudioIcons.Emulator.XR.ENVIRONMENT" text="Environment" description="Select environment for Intelligent Eyewear"
              popup="true">
         <action id="android.emulator.environment.indoor.study.dark"
                 class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentAction$IndoorStudyDarkImage"
@@ -351,8 +351,8 @@
       <add-to-group group-id="Internal.Android"/>
     </action>
     <action id="android.streaming.glasses.pair.headsup" class="com.android.tools.idea.streaming.emulator.actions.PairHeadsUpAction"
-            icon="StudioIcons.DeviceExplorer.DEVICE_PAIRED" text="Trigger AI Glasses Pairing Heads Up"
-            description="Triggers an AI Glasses pairing heads-up event" internal="true">
+            icon="StudioIcons.DeviceExplorer.DEVICE_PAIRED" text="Trigger Intelligent Eyewear Pairing Heads Up"
+            description="Triggers an Intelligent Eyewear pairing heads-up event" internal="true">
       <add-to-group group-id="Internal.Android"/>
     </action>
 

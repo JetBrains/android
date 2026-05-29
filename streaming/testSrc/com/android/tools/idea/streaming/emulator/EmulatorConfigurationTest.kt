@@ -214,7 +214,7 @@ class EmulatorConfigurationTest {
     // Assert.
     assertThat(config).isNotNull()
     assertThat(config.avdFolder).isEqualTo(avdFolder)
-    assertThat(config.avdName).isEqualTo("AI Glasses")
+    assertThat(config.avdName).isEqualTo("Display Glasses")
     assertThat(config.deviceType).isEqualTo(DeviceType.AI_GLASSES)
     assertThat(config.androidVersion).isEqualTo(androidVersion)
     assertThat(config.displayWidth).isEqualTo(450)
@@ -245,7 +245,7 @@ class EmulatorConfigurationTest {
     // Assert.
     assertThat(config).isNotNull()
     assertThat(config.avdFolder).isEqualTo(avdFolder)
-    assertThat(config.avdName).isEqualTo("AI Glasses")
+    assertThat(config.avdName).isEqualTo("Audio Glasses")
     assertThat(config.deviceType).isEqualTo(DeviceType.AI_GLASSES)
     assertThat(config.androidVersion).isEqualTo(androidVersion)
     assertThat(config.displayWidth).isEqualTo(0)

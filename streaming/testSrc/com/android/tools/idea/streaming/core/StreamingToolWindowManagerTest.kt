@@ -959,7 +959,7 @@ class StreamingToolWindowManagerTest {
     runBlocking { RunningEmulatorCatalog.getInstance().updateNow().await() }
     waitForCondition(5.seconds) { contentManager.contents.size == 2 }
 
-    val contentGlasses = contentManager.contents.find { it.displayName?.startsWith("AI Glasses") == true }!!
+    val contentGlasses = contentManager.contents.find { it.displayName?.startsWith("Display Glasses") == true }!!
     val contentPhone = contentManager.contents.find { it.displayName?.startsWith("Pixel") == true }!!
     val layoutStorage = PairedDevicesLayoutStorage.getInstance()
     waitForCondition(2.seconds) { layoutStorage.getLayout(glasses.deviceId) != null }
@@ -1027,7 +1027,7 @@ class StreamingToolWindowManagerTest {
     if (startGlassesFirst) {
       glasses.start()
       runBlocking { RunningEmulatorCatalog.getInstance().updateNow().await() }
-      waitForCondition(5.seconds) { contentManager.contents.any { it.displayName?.startsWith("AI Glasses") == true } }
+      waitForCondition(5.seconds) { contentManager.contents.any { it.displayName?.startsWith("Display Glasses") == true } }
       phone.start()
     } else {
       phone.start()
@@ -1038,7 +1038,7 @@ class StreamingToolWindowManagerTest {
     runBlocking { RunningEmulatorCatalog.getInstance().updateNow().await() }
     waitForCondition(10.seconds) { contentManager.contentsRecursively.size == 2 }
 
-    val contentGlasses = contentManager.contentsRecursively.find { it.displayName?.startsWith("AI Glasses") == true }!!
+    val contentGlasses = contentManager.contentsRecursively.find { it.displayName?.startsWith("Display Glasses") == true }!!
     val contentPhone = contentManager.contentsRecursively.find { it.displayName?.startsWith("Pixel") == true }!!
 
     if (isSplit) {
