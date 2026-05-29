@@ -360,8 +360,65 @@ public class ImageUtilsTest extends TestCase {
   public void testIconToImage() {
     ColorIcon icon = new ColorIcon(10,  new Color(0xff, 0, 0));
     BufferedImage image = ImageUtils.iconToImage(icon);
-    assertThat(image.getWidth()).isEqualTo(10);
-    assertThat(image.getHeight()).isEqualTo(10);
-    assertThat(image.getRGB(5, 5)).isEqualTo(0xffff0000);
+    // Ensure we are checking logical dimensions for the test assertion
+    assertThat(com.intellij.util.ui.ImageUtil.getUserWidth(image)).isEqualTo(10);
+    assertThat(com.intellij.util.ui.ImageUtil.getUserHeight(image)).isEqualTo(10);
+
+    // To check a pixel reliably in a HiDPI-agnostic way, we can draw it into a standard BufferedImage
+    BufferedImage flat = new BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB);
+    Graphics g = flat.getGraphics();
+    g.drawImage(image, 0, 0, null);
+    g.dispose();
+
+    assertThat(flat.getRGB(5, 5)).isEqualTo(0xffff0000);
+  }
+
+  public void testCreateDiffImage() {
+    BufferedImage img1 = new BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB);
+    Graphics2D g1 = img1.createGraphics();
+    g1.setColor(Color.WHITE);
+    g1.fillRect(0, 0, 10, 10);
+    g1.dispose();
+
+    BufferedImage img2 = new BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB);
+    Graphics2D g2 = img2.createGraphics();
+    g2.setColor(Color.WHITE);
+    g2.fillRect(0, 0, 10, 10);
+    // Add a red square in the middle to create a difference
+    g2.setColor(Color.RED);
+    g2.fillRect(4, 4, 2, 2);
+    g2.dispose();
+
+    BufferedImage diff = ImageUtils.createDiffImage(img1, img2);
+
+    assertEquals(10, diff.getWidth());
+    assertEquals(10, diff.getHeight());
+
+    // Check a pixel that is the same (should be grayscale)
+    // White (255, 255, 255) luminance is 255
+    Color samePixel = new Color(diff.getRGB(0, 0), true);
+    assertEquals(255, samePixel.getRed());
+    assertEquals(255, samePixel.getGreen());
+    assertEquals(255, samePixel.getBlue());
+    assertEquals(255, samePixel.getAlpha());
+
+    // Check a pixel that is different (should be red)
+    Color diffPixel = new Color(diff.getRGB(5, 5), true);
+    assertEquals(255, diffPixel.getRed());
+    assertEquals(0, diffPixel.getGreen());
+    assertEquals(0, diffPixel.getBlue());
+    assertEquals(255, diffPixel.getAlpha());
+  }
+
+  public void testCreateDiffImageDifferentSizes() {
+    BufferedImage img1 = new BufferedImage(5, 5, BufferedImage.TYPE_INT_ARGB);
+    BufferedImage img2 = new BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB);
+
+    try {
+      ImageUtils.createDiffImage(img1, img2);
+      fail("Expected IllegalArgumentException for different image sizes");
+    } catch (IllegalArgumentException e) {
+      assertEquals("Images must be of the same size", e.getMessage());
+    }
   }
 }

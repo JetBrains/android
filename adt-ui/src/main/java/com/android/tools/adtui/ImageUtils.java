@@ -813,6 +813,55 @@ public class ImageUtils {
   }
 
   /**
+   * Creates a diff image between two images. Unchanged pixels are grayscale, changed pixels are red.
+   */
+  @Slow
+  @NotNull
+  public static BufferedImage createDiffImage(@NotNull BufferedImage img1, @NotNull BufferedImage img2) {
+    if (img1.getWidth() != img2.getWidth() || img1.getHeight() != img2.getHeight()) {
+      throw new IllegalArgumentException("Images must be of the same size");
+    }
+    int width = img1.getWidth();
+    int height = img1.getHeight();
+    BufferedImage diffImg = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+
+    // Use scanlines to process the image row-by-row. This is significantly faster than
+    // pixel-by-pixel getRGB() calls while avoiding the memory spikes of loading the
+    // full image into a single buffer.
+    int[] row1 = new int[width];
+    int[] row2 = new int[width];
+    int[] diffRow = new int[width];
+    int redRgb = Color.RED.getRGB();
+
+    for (int y = 0; y < height; y++) {
+      img1.getRGB(0, y, width, 1, row1, 0, width);
+      img2.getRGB(0, y, width, 1, row2, 0, width);
+
+      for (int x = 0; x < width; x++) {
+        int rgb1 = row1[x];
+        int rgb2 = row2[x];
+
+        if (rgb1 == rgb2) {
+          // Same pixel: convert to grayscale using bitwise operations (Rec. 601)
+          int a = (rgb2 >> 24) & 0xFF;
+          int r = (rgb2 >> 16) & 0xFF;
+          int g = (rgb2 >> 8) & 0xFF;
+          int b = rgb2 & 0xFF;
+          // Use Math.round for better accuracy during grayscale conversion.
+          int gray = (int)Math.round(r * 0.299 + g * 0.587 + b * 0.114);
+          diffRow[x] = (a << 24) | (gray << 16) | (gray << 8) | gray;
+        }
+        else {
+          // Different pixel: highlight in red
+          diffRow[x] = redRgb;
+        }
+      }
+      diffImg.setRGB(0, y, width, 1, diffRow, 0, width);
+    }
+    return diffImg;
+  }
+
+  /**
    * Interface implemented by cropping functions that determine whether a pixel should be cropped or not.
    */
   public interface CropFilter {
