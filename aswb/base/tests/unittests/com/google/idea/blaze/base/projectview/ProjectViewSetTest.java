@@ -40,6 +40,7 @@ import com.google.idea.blaze.base.projectview.section.sections.BuildFlagsSection
 import com.google.idea.blaze.base.projectview.section.sections.DirectoryEntry;
 import com.google.idea.blaze.base.projectview.section.sections.DirectorySection;
 import com.google.idea.blaze.base.projectview.section.sections.EnableCodeAnalysisOnSyncSection;
+import com.google.idea.blaze.base.projectview.section.sections.EnableWorkspaceSwitcherSection;
 import com.google.idea.blaze.base.projectview.section.sections.ExcludeTargetSection;
 import com.google.idea.blaze.base.projectview.section.sections.ExcludedSourceSection;
 import com.google.idea.blaze.base.projectview.section.sections.ImportSection;
@@ -61,13 +62,11 @@ import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.BlazeSyncPlugin;
 import com.google.idea.common.experiments.ExperimentService;
 import com.google.idea.common.experiments.MockExperimentService;
-
+import java.io.File;
+import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import java.io.File;
-import java.util.List;
 
 /** Tests for project view sets */
 @RunWith(JUnit4.class)
@@ -82,86 +81,51 @@ public class ProjectViewSetTest extends BlazeTestCase {
 
   @Test
   public void testProjectViewSetSerializable() {
-        ProjectViewSet projectViewSet =
-                ProjectViewSet.builder()
-                        .add(
-                                ProjectView.builder()
-                                        .add(
-                                                ListSection.builder(DirectorySection.KEY)
-                                                        .add(
-                                                                DirectoryEntry.include(
-                                                                        new WorkspacePath("test"))))
-                                        .add(
-                                                ScalarSection.builder(UseQuerySyncSection.KEY)
-                                                        .set(true))
-                                        .add(
-                                                ScalarSection.builder(
-                                                                EnableCodeAnalysisOnSyncSection.KEY)
-                                                        .set(true))
-                                        .add(
-                                                ScalarSection.builder(WorkspaceLocationSection.KEY)
-                                                        .set("/file/path"))
-                                        .add(
-                                                ListSection.builder(TargetSection.KEY)
-                                                        .add(
-                                                                TargetExpression.fromStringSafe(
-                                                                        "//test:all")))
-                                        .add(
-                                                ScalarSection.builder(ImportSection.KEY)
-                                                        .set(new WorkspacePath("test")))
-                                        .add(
-                                                ListSection.builder(TestSourceSection.KEY)
-                                                        .add(new Glob("javatests/*")))
-                                        .add(
-                                                ListSection.builder(ExcludedSourceSection.KEY)
-                                                        .add(new Glob("*.java")))
-                                        .add(
-                                                ListSection.builder(BuildFlagsSection.KEY)
-                                                        .add("--android_sdk=abcd"))
-                                        .add(
-                                                ListSection.builder(SyncFlagsSection.KEY)
-                                                        .add("--config=arm"))
-                                        .add(
-                                                ListSection.builder(TestFlagsSection.KEY)
-                                                        .add("--cache_test_results=no"))
-                                        .add(
-                                                ListSection.builder(ImportTargetOutputSection.KEY)
-                                                        .add(Label.create("//test:test")))
-                                        .add(
-                                                ListSection.builder(ExcludeTargetSection.KEY)
-                                                        .add(Label.create("//test:test")))
-                                        .add(
-                                                ScalarSection.builder(WorkspaceTypeSection.KEY)
-                                                        .set(WorkspaceType.JAVA))
-                                        .add(
-                                                ListSection.builder(AdditionalLanguagesSection.KEY)
-                                                        .add(LanguageClass.JAVA))
-                                        .add(TextBlockSection.of(TextBlock.newLine()))
-                                        .add(
-                                                ListSection.builder(RunConfigurationsSection.KEY)
-                                                        .add(new WorkspacePath("test")))
-                                        .add(
-                                                ScalarSection.builder(
-                                                                AutomaticallyDeriveTargetsSection
-                                                                        .KEY)
-                                                        .set(false))
-                                        .add(
-                                                ScalarSection.builder(ShardBlazeBuildsSection.KEY)
-                                                        .set(false))
-                                        .add(
-                                                ScalarSection.builder(TargetShardSizeSection.KEY)
-                                                        .set(500))
-                                        .add(
-                                                ScalarSection.builder(BazelBinarySection.KEY)
-                                                        .set(new File("/bazel/path/override")))
-                                        .add(
-                                                ScalarSection.builder(BuildConfigSection.KEY)
-                                                        .set(new WorkspacePath("test")))
-                                        .add(
-                                                ScalarSection.builder(AgentsMdSection.KEY)
-                                                        .set(new WorkspacePath("test")))
-                                        .build())
-                        .build();
+    ProjectViewSet projectViewSet =
+        ProjectViewSet.builder()
+            .add(
+                ProjectView.builder()
+                    .add(
+                        ListSection.builder(DirectorySection.KEY)
+                            .add(DirectoryEntry.include(new WorkspacePath("test"))))
+                    .add(ScalarSection.builder(UseQuerySyncSection.KEY).set(true))
+                    .add(ScalarSection.builder(EnableCodeAnalysisOnSyncSection.KEY).set(true))
+                    .add(ScalarSection.builder(EnableWorkspaceSwitcherSection.KEY).set(true))
+                    .add(ScalarSection.builder(WorkspaceLocationSection.KEY).set("/file/path"))
+                    .add(
+                        ListSection.builder(TargetSection.KEY)
+                            .add(TargetExpression.fromStringSafe("//test:all")))
+                    .add(ScalarSection.builder(ImportSection.KEY).set(new WorkspacePath("test")))
+                    .add(ListSection.builder(TestSourceSection.KEY).add(new Glob("javatests/*")))
+                    .add(ListSection.builder(ExcludedSourceSection.KEY).add(new Glob("*.java")))
+                    .add(ListSection.builder(BuildFlagsSection.KEY).add("--android_sdk=abcd"))
+                    .add(ListSection.builder(SyncFlagsSection.KEY).add("--config=arm"))
+                    .add(ListSection.builder(TestFlagsSection.KEY).add("--cache_test_results=no"))
+                    .add(
+                        ListSection.builder(ImportTargetOutputSection.KEY)
+                            .add(Label.create("//test:test")))
+                    .add(
+                        ListSection.builder(ExcludeTargetSection.KEY)
+                            .add(Label.create("//test:test")))
+                    .add(ScalarSection.builder(WorkspaceTypeSection.KEY).set(WorkspaceType.JAVA))
+                    .add(
+                        ListSection.builder(AdditionalLanguagesSection.KEY).add(LanguageClass.JAVA))
+                    .add(TextBlockSection.of(TextBlock.newLine()))
+                    .add(
+                        ListSection.builder(RunConfigurationsSection.KEY)
+                            .add(new WorkspacePath("test")))
+                    .add(ScalarSection.builder(AutomaticallyDeriveTargetsSection.KEY).set(false))
+                    .add(ScalarSection.builder(ShardBlazeBuildsSection.KEY).set(false))
+                    .add(ScalarSection.builder(TargetShardSizeSection.KEY).set(500))
+                    .add(
+                        ScalarSection.builder(BazelBinarySection.KEY)
+                            .set(new File("/bazel/path/override")))
+                    .add(
+                        ScalarSection.builder(BuildConfigSection.KEY)
+                            .set(new WorkspacePath("test")))
+                    .add(ScalarSection.builder(AgentsMdSection.KEY).set(new WorkspacePath("test")))
+                    .build())
+            .build();
 
     // Assert we have all sections
     assertThat(projectViewSet.getTopLevelProjectViewFile()).isNotNull();
@@ -177,13 +141,12 @@ public class ProjectViewSetTest extends BlazeTestCase {
   }
 
   @Test
-    public void testEnableCodeAnalysisOnSyncInsensitive() {
-        ProjectViewParser parser = new ProjectViewParser(BlazeContext.create(), null);
-        parser.parseProjectViewFile(
-                "enable_code_analysis_on_sync: tRuE",
-                List.of(EnableCodeAnalysisOnSyncSection.PARSER));
-        assertThat(parser.getResult().getTopLevelProjectViewFile()).isNotNull();
-        ProjectView projectView = parser.getResult().getTopLevelProjectViewFile().projectView;
-        assertThat(projectView.getScalarValue(EnableCodeAnalysisOnSyncSection.KEY)).isTrue();
-    }
+  public void testEnableCodeAnalysisOnSyncInsensitive() {
+    ProjectViewParser parser = new ProjectViewParser(BlazeContext.create(), null);
+    parser.parseProjectViewFile(
+        "enable_code_analysis_on_sync: tRuE", List.of(EnableCodeAnalysisOnSyncSection.PARSER));
+    assertThat(parser.getResult().getTopLevelProjectViewFile()).isNotNull();
+    ProjectView projectView = parser.getResult().getTopLevelProjectViewFile().projectView;
+    assertThat(projectView.getScalarValue(EnableCodeAnalysisOnSyncSection.KEY)).isTrue();
+  }
 }

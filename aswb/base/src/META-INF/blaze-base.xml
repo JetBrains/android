@@ -107,6 +107,11 @@
         text="Add to project"
         icon="AllIcons.General.Add" />
     <action id="Blaze.ResetQuerySync" class="com.google.idea.blaze.base.qsync.action.ResetQuerySyncAction" text="Reset Sync and Code Analysis State" />
+    <action id="Blaze.SwitchActiveWorkspace"
+            class="com.google.idea.blaze.base.workspace.actions.SwitchActiveWorkspaceAction"
+            text="Switch Active Workspace..."
+            icon="AllIcons.Actions.Move">
+    </action>
 
 
     <group id="Blaze.MainMenuActionGroup" class="com.google.idea.blaze.base.actions.BlazeMenuGroup" popup="true">
@@ -136,6 +141,7 @@
       <separator/>
       <reference ref="Blaze.ExportRunConfigurations"/>
       <reference ref="Blaze.ResetQuerySync" />
+      <reference ref="Blaze.SwitchActiveWorkspace" />
       <!--Add single menu items anchored after this bookmark-->
       <group id="Blaze.MenuFooter"/>
     </group>
@@ -464,6 +470,7 @@
     <extensionPoint qualifiedName="com.google.idea.blaze.BinaryPathRemapper" interface="com.google.idea.blaze.base.async.process.BinaryPathRemapper"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.CustomFormatter" interface="com.google.idea.blaze.base.formatter.CustomFormatter"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.ExperimentLoader" interface="com.google.idea.common.experiments.ExperimentLoader"/>
+    <extensionPoint qualifiedName="com.google.idea.blaze.WorkspaceDiscoverer" interface="com.google.idea.blaze.base.workspace.WorkspaceDiscoverer"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.google.idea.blaze">
@@ -529,6 +536,7 @@
     <ExperimentLoader implementation="com.google.idea.common.experiments.UserOverridesExperimentLoader" order="after SystemPropertyExperimentLoader" id="UserOverridesExperimentLoader"/>
     <BlazeGuard implementation="com.google.idea.blaze.base.execution.TrustedProjectGuard"/>
     <BundledAspectsProvider implementation="com.google.idea.blaze.base.qsync.BazelBundledAspectsProvider" />
+    <WorkspaceDiscoverer implementation="com.google.idea.blaze.base.workspace.DefaultWorkspaceDiscoverer"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.google.idea.blaze.qsync">

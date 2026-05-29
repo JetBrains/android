@@ -64,6 +64,14 @@ interface WorkspaceMappingManager {
   fun getWorkspaceTarget(workspaceName: String): Path?
 
   /**
+   * Retrieves the virtual workspace directory path for [workspaceName].
+   *
+   * @param workspaceName The logical name of the workspace.
+   * @return The virtual workspace directory path.
+   */
+  fun getWorkspacePath(workspaceName: String): Path
+
+  /**
    * Resolves a virtual switch workspace path into its underlying canonical physical path on disk.
    *
    * @param path The incoming path.
@@ -137,6 +145,10 @@ class WorkspaceMappingManagerImpl : WorkspaceMappingManager {
   override fun getWorkspaceTarget(workspaceName: String): Path? {
     Path.of(workspacePath(workspaceName)) // Populate cache.
     return discoveredRootsCache[workspacePath(workspaceName)]?.let { switchesRoot.fileSystem.getPath(it.dest.toString()) }
+  }
+
+  override fun getWorkspacePath(workspaceName: String): Path {
+    return Path.of(workspacePath(workspaceName))
   }
 
   override fun unwrapPhysicalPath(path: Path): Path {

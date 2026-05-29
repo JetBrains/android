@@ -23,11 +23,13 @@ import com.google.idea.blaze.base.project.BazelProjectSystemId;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.projectview.parser.ProjectViewParser;
+import com.google.idea.blaze.base.projectview.section.sections.EnableWorkspaceSwitcherSection;
 import com.google.idea.blaze.base.projectview.section.sections.UseQuerySyncSection;
 import com.google.idea.blaze.base.projectview.section.sections.WorkspaceLocationSection;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.scopes.ToolWindowScopeRunner;
+import com.google.idea.blaze.base.workspace.WorkspaceSwitchManager;
 import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.exception.BuildException;
 import com.intellij.openapi.application.ApplicationManager;
@@ -155,6 +157,12 @@ public class BlazeImportSettingsManager
     return settings != null ? settings.buildSystem() : null;
   }
 
+  /**
+   * Configures the virtual workspace redirect target on disk and initializes the cached import
+   * settings.
+   *
+   * @param loadedImportSettings previously stored settings
+   */
   private void initImportSettings(Optional<BlazeImportSettings> loadedImportSettings) {
     loadImportSettings(
             project.getBasePath(),
@@ -163,10 +171,32 @@ public class BlazeImportSettingsManager
             loadedImportSettings.map(BlazeImportSettings::getWorkspaceRoot))
         .ifPresent(
             settings -> {
-              this.importSettings.set(settings);
+              var effectiveRoot = settings.workspaceRoot();
+              boolean enableSwitcher =
+                  settings.workspaceSwitcherEnabled()
+                      && WorkspaceSwitchManager.WORKSPACE_SWITCHER_ENABLED.getValue();
+              if (enableSwitcher) {
+                effectiveRoot = WorkspaceSwitchManager.setWorkspaceTarget(project, effectiveRoot);
+              }
+              this.importSettings.set(
+                  new LoadedImportSettings(
+                      effectiveRoot,
+                      settings.workspaceSwitcherEnabled(),
+                      settings.projectName(),
+                      settings.projectViewFilePath(),
+                      settings.buildSystem()));
             });
   }
 
+  /**
+   * Parses and resolves project import settings from the `.bazelproject` file on disk.
+   *
+   * @param projectBasePath the absolute basePath of the project directory
+   * @param projectName the IDE project name
+   * @param loadedProjectName previous loaded project name, if any
+   * @param loadedWorkspaceRoot previous loaded workspace root path, if any
+   * @return an Optional containing the LoadedImportSettings record, or empty if parsing failed
+   */
   public static Optional<LoadedImportSettings> loadImportSettings(
       String projectBasePath,
       String projectName,
@@ -197,6 +227,9 @@ public class BlazeImportSettingsManager
 
     final var projectViewWorkspaceLocation =
         Optional.ofNullable(topLevelProjectView.getScalarValue(WorkspaceLocationSection.KEY));
+    final var enableWorkspaceSwitcher =
+        Optional.ofNullable(topLevelProjectView.getScalarValue(EnableWorkspaceSwitcherSection.KEY))
+            .orElse(false);
 
     final var workspaceLocation = projectViewWorkspaceLocation.or(() -> loadedWorkspaceRoot);
     if (workspaceLocation.isEmpty()) {
@@ -210,7 +243,11 @@ public class BlazeImportSettingsManager
     String workspaceRoot = workspaceLocation.get();
     final var importSettings =
         new LoadedImportSettings(
-            Path.of(workspaceRoot), effectiveProjectName, projectViewFilePath, buildSystem);
+            Path.of(workspaceRoot),
+            enableWorkspaceSwitcher,
+            effectiveProjectName,
+            projectViewFilePath,
+            buildSystem);
 
     return Optional.of(importSettings);
   }
@@ -218,7 +255,11 @@ public class BlazeImportSettingsManager
   private static ProjectViewSet.ProjectViewFile parseTopLevelProjectViewFile(File projectViewFile) {
     ProjectViewParser parser = new ProjectViewParser(BlazeContext.create(), null);
     parser.parseProjectViewFile(
-        projectViewFile, List.of(WorkspaceLocationSection.PARSER, UseQuerySyncSection.PARSER));
+        projectViewFile,
+        List.of(
+            WorkspaceLocationSection.PARSER,
+            UseQuerySyncSection.PARSER,
+            EnableWorkspaceSwitcherSection.PARSER));
     ProjectViewSet projectViewSet = parser.getResult();
     return projectViewSet.getTopLevelProjectViewFile();
   }
@@ -230,7 +271,8 @@ public class BlazeImportSettingsManager
       Path projectViewFilePath,
       BuildSystemName buildSystem) {
     this.importSettings.set(
-        new LoadedImportSettings(workspaceRoot, projectName, projectViewFilePath, buildSystem));
+        new LoadedImportSettings(
+            workspaceRoot, false, projectName, projectViewFilePath, buildSystem));
   }
 
   @TestOnly
@@ -326,9 +368,19 @@ public class BlazeImportSettingsManager
         .get();
   }
 
-  /** Import settings loaded from the top level .bazelproject file. */
+  /**
+   * Import settings loaded from the top-level `.bazelproject` file.
+   *
+   * @param workspaceRoot the path of the workspace root directory
+   * @param workspaceSwitcherEnabled whether active workspace switching is enabled for this project
+   *     in .bazelproject
+   * @param projectName the logical name of the project
+   * @param projectViewFilePath the absolute path of the top-level `.bazelproject` project view file
+   * @param buildSystem the build system type (Bazel/Blaze)
+   */
   public record LoadedImportSettings(
       Path workspaceRoot,
+      boolean workspaceSwitcherEnabled,
       String projectName,
       Path projectViewFilePath,
       BuildSystemName buildSystem) {}
