@@ -30,10 +30,10 @@ class BazelClassFileFinder internal constructor(jars: Collection<Path>) : ClassF
   private val classToJarMultimap = jars.asSequence().map { Jar(it) }.flatMap { it.entries }.groupBy({ it.toString() }, { it.jar })
   val jarCountForLoggingOnly = jars.size
 
-  override fun findClassFile(fqcn: String): ClassContent {
+  override fun findClassFile(fqcn: String): ClassContent? {
     val path = getPathFromFqcn(fqcn)
 
-    val jar = requireNotNull(classToJarMultimap[path]) { "$fqcn is expected to be in $classToJarMultimap" }
+    val jar = classToJarMultimap[path] ?: return null
     return jar[0].getContent(path)
   }
 

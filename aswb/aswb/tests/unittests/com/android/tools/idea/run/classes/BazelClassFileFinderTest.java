@@ -19,8 +19,8 @@ package com.android.tools.idea.run.classes;
 import static com.google.idea.testing.runfiles.Runfiles.runfilesPath;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
-import com.android.tools.idea.run.classes.BazelClassFileFinder;
 import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -65,5 +65,18 @@ public final class BazelClassFileFinderTest {
     private Class<?> defineClass(byte[] c) {
       return defineClass(null, c, 0, c.length);
     }
+  }
+
+  @Test
+  public void findClassFileMultimapDoesNotContainClass() {
+    // Arrange
+    var finder = new BazelClassFileFinder(
+      List.of(runfilesPath("tools/adt/idea/aswb/aswb/tests/unittests/com/android/tools/idea/rendering/tokens/libhelloworld.jar")));
+
+    // Act
+    var content = finder.findClassFile("com.android.tools.idea.rendering.tokens.GoodbyeWorld");
+
+    // Assert
+    assertNull(content);
   }
 }
