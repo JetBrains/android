@@ -73,7 +73,7 @@ class GoogleLoginStateListener(private val coroutineScope: CoroutineScope) {
         .map { it[syncUser]?.isLoggedIn(feature) == true }
         .distinctUntilChanged()
         .collect { isLoggedIn ->
-          thisLogger().info("Login status gets changed for $syncUser (login state = $isLoggedIn)...")
+          thisLogger<GoogleLoginStateListener>().info("Login status gets changed for $syncUser (login state = $isLoggedIn)...")
           SettingsSyncEvents.getInstance().fireLoginStateChanged()
 
           // Ideally, we should just fire login state change and the platform will handle the rest
