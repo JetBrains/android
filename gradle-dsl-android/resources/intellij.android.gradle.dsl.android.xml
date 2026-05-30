@@ -1,4 +1,4 @@
-<idea-plugin package="com.android.tools.idea.gradle.dsl.android">
+<idea-plugin package="com.android.tools.idea.gradle.dsl.android" visibility="internal">
   <!-- region Generated dependencies - run `Generate Product Layouts` to regenerate -->
   <dependencies>
     <!-- JetBrains patch: com.android.tools.gradle.dsl is not relevant for IJ -->
