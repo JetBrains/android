@@ -59,6 +59,17 @@ Projects:
                     - PropertyName                  : isUniversalApk
                       Property SimpleType           : BOOLEAN
                 Supertypes                    : com.android.build.api.dsl.Split,kotlin.Any
+            com.android.build.api.dsl.AgpTestSuiteDependencies
+                Name                          : com.android.build.api.dsl.AgpTestSuiteDependencies
+                MemberFunctions
+                Properties
+                    - PropertyName                  : compileOnly
+                      Property ReferenceType        : org.gradle.api.artifacts.dsl.DependencyCollector
+                    - PropertyName                  : implementation
+                      Property ReferenceType        : org.gradle.api.artifacts.dsl.DependencyCollector
+                    - PropertyName                  : runtimeOnly
+                      Property ReferenceType        : org.gradle.api.artifacts.dsl.DependencyCollector
+                Supertypes                    : kotlin.Any
             com.android.build.api.dsl.AndroidResources
                 Name                          : com.android.build.api.dsl.AndroidResources
                 MemberFunctions
@@ -7684,6 +7695,21 @@ Projects:
                       GenericTypes
                           - ConcreteGeneric SimpleType    : STRING
                 Supertypes                    : kotlin.Any
+            com.android.build.api.dsl.ScreenshotTestSuite
+                Name                          : com.android.build.api.dsl.ScreenshotTestSuite
+                MemberFunctions
+                    - MemberFunctionName            : dependencies
+                      Receiver ReferenceType        : com.android.build.api.dsl.ScreenshotTestSuite
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.AgpTestSuiteDependencies
+                Properties
+                    - PropertyName                  : engineVersion
+                      Property SimpleType           : STRING
+                    - PropertyName                  : targetVariants
+                      Property DataClassWithType    : kotlin.collections.List
+                      GenericTypes
+                          - ConcreteGeneric SimpleType    : STRING
+                Supertypes                    : kotlin.Any
             com.android.build.api.dsl.Shaders
                 Name                          : com.android.build.api.dsl.Shaders
                 MemberFunctions
@@ -7838,6 +7864,10 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.TestOptions
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.ManagedDevices
+                    - MemberFunctionName            : screenshotTests
+                      Receiver ReferenceType        : com.android.build.api.dsl.TestOptions
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_ScreenshotTestSuite
                     - MemberFunctionName            : targetSdk
                       Receiver ReferenceType        : com.android.build.api.dsl.TestOptions
                       Parameters
@@ -8228,6 +8258,17 @@ Projects:
                           - Name                          : name
                             Value SimpleType              : STRING
                       Block ReferenceType           : com.android.build.api.dsl.Prefab
+                Properties
+                Supertypes                    :
+            org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_ScreenshotTestSuite
+                Name                          : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_ScreenshotTestSuite
+                MemberFunctions
+                    - MemberFunctionName            : screenshotTestSuite
+                      Receiver ReferenceType        : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_ScreenshotTestSuite
+                      Parameters
+                          - Name                          : name
+                            Value SimpleType              : STRING
+                      Block ReferenceType           : com.android.build.api.dsl.ScreenshotTestSuite
                 Properties
                 Supertypes                    :
             org.gradle.api.artifacts.Dependency
@@ -9946,6 +9987,17 @@ Settings:
                     - PropertyName                  : isUniversalApk
                       Property SimpleType           : BOOLEAN
                 Supertypes                    : com.android.build.api.dsl.Split,kotlin.Any
+            com.android.build.api.dsl.AgpTestSuiteDependencies
+                Name                          : com.android.build.api.dsl.AgpTestSuiteDependencies
+                MemberFunctions
+                Properties
+                    - PropertyName                  : compileOnly
+                      Property ReferenceType        : org.gradle.api.artifacts.dsl.DependencyCollector
+                    - PropertyName                  : implementation
+                      Property ReferenceType        : org.gradle.api.artifacts.dsl.DependencyCollector
+                    - PropertyName                  : runtimeOnly
+                      Property ReferenceType        : org.gradle.api.artifacts.dsl.DependencyCollector
+                Supertypes                    : kotlin.Any
             com.android.build.api.dsl.AndroidResources
                 Name                          : com.android.build.api.dsl.AndroidResources
                 MemberFunctions
@@ -17571,6 +17623,21 @@ Settings:
                       GenericTypes
                           - ConcreteGeneric SimpleType    : STRING
                 Supertypes                    : kotlin.Any
+            com.android.build.api.dsl.ScreenshotTestSuite
+                Name                          : com.android.build.api.dsl.ScreenshotTestSuite
+                MemberFunctions
+                    - MemberFunctionName            : dependencies
+                      Receiver ReferenceType        : com.android.build.api.dsl.ScreenshotTestSuite
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.AgpTestSuiteDependencies
+                Properties
+                    - PropertyName                  : engineVersion
+                      Property SimpleType           : STRING
+                    - PropertyName                  : targetVariants
+                      Property DataClassWithType    : kotlin.collections.List
+                      GenericTypes
+                          - ConcreteGeneric SimpleType    : STRING
+                Supertypes                    : kotlin.Any
             com.android.build.api.dsl.Shaders
                 Name                          : com.android.build.api.dsl.Shaders
                 MemberFunctions
@@ -17725,6 +17792,10 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.TestOptions
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.ManagedDevices
+                    - MemberFunctionName            : screenshotTests
+                      Receiver ReferenceType        : com.android.build.api.dsl.TestOptions
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_ScreenshotTestSuite
                     - MemberFunctionName            : targetSdk
                       Receiver ReferenceType        : com.android.build.api.dsl.TestOptions
                       Parameters
@@ -18115,6 +18186,17 @@ Settings:
                           - Name                          : name
                             Value SimpleType              : STRING
                       Block ReferenceType           : com.android.build.api.dsl.Prefab
+                Properties
+                Supertypes                    :
+            org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_ScreenshotTestSuite
+                Name                          : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_ScreenshotTestSuite
+                MemberFunctions
+                    - MemberFunctionName            : screenshotTestSuite
+                      Receiver ReferenceType        : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_ScreenshotTestSuite
+                      Parameters
+                          - Name                          : name
+                            Value SimpleType              : STRING
+                      Block ReferenceType           : com.android.build.api.dsl.ScreenshotTestSuite
                 Properties
                 Supertypes                    :
             org.gradle.api.artifacts.Dependency
