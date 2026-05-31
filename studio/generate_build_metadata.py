@@ -13,7 +13,7 @@ import sys
 from tools.adt.idea.studio import utils
 
 
-def _produce_manifest(build_txt, resources_jar, channel, code_name, patch_name, out):
+def _produce_manifest(build_txt, resources_jar, channel, code_name, out):
   app_info = utils.read_zip_entry(resources_jar, "idea/AndroidStudioApplicationInfo.xml")
   platform_build_txt = utils.read_file(build_txt)
 
@@ -46,12 +46,11 @@ def _produce_manifest(build_txt, resources_jar, channel, code_name, patch_name, 
              'patch: {patch}\n'
              'build_number: "{build_number}"\n'
              'code_name: "{code_name}"\n'
-             'patch_name: "{patch_name}"\n'
              'full_name: "{full_name}"\n'
              'channel: {channel}\n'
   ).format(major=major, minor=minor, micro=micro, patch=patch,
            build_number=build_number, code_name=code_name,
-           patch_name=patch_name, full_name=full, channel=channel)
+           full_name=full, channel=channel)
 
   utils.write_file(out, contents)
 
@@ -79,11 +78,6 @@ def main(argv):
       dest="code_name",
       help="The code name, e.g. Bumblebee or Dolphin.")
   parser.add_argument(
-      "--patch_name",
-      default="",
-      dest="patch_name",
-      help="The patch name, e.g. Canary 1.")
-  parser.add_argument(
       "--out",
       default="",
       dest="out",
@@ -97,7 +91,6 @@ def main(argv):
       resources_jar = args.resources_jar,
       channel = args.channel,
       code_name = args.code_name,
-      patch_name = args.patch_name,
       out = args.out)
 
 
