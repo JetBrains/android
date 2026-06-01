@@ -87,7 +87,7 @@ class ComposeChooseAndroidProjectStepUITest {
   fun showPreviouslySelectedTemplate() = runTest {
     val formFactorSupplier = Supplier<List<FormFactor>> { FormFactor.entries }
     val model = ChooseAndroidProjectStepModel(formFactorSupplier)
-    val mobileTemplates = FormFactor.Mobile.getProjectTemplates()
+    val mobileTemplateInfos = FormFactor.Mobile.getProjectTemplates()
     model.getAndroidProjectEntries()
 
     composeTestRule.setContent { ChooseAndroidProjectStepUI(model = model) }
@@ -96,7 +96,7 @@ class ComposeChooseAndroidProjectStepUITest {
 
     composeTestRule
       .onNodeWithTag(ChooseAndroidProjectStepLayoutTags.RightPanel.templateGrid)
-      .onChildren()[mobileTemplates.size - 1]
+      .onChildren()[mobileTemplateInfos.size - 1]
       .performClick()
 
     composeTestRule.onNodeWithText(FormFactor.Wear.displayName).performClick()
@@ -118,8 +118,8 @@ class ComposeChooseAndroidProjectStepUITest {
       .assertCountEquals(FormFactor.Mobile.getProjectTemplates().size)
 
     assertEquals(
-      mobileTemplates[mobileTemplates.size - 1].name,
-      (model.chooseAndroidProjectEntries[0] as FormFactorProjectEntry).selectedTemplate?.name,
+      mobileTemplateInfos[mobileTemplateInfos.size - 1].name,
+      (model.chooseAndroidProjectEntries[0] as FormFactorProjectEntry).selectedTemplateInfo?.name,
     )
   }
 

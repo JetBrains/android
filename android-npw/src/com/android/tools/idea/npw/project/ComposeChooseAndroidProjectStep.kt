@@ -280,17 +280,17 @@ private fun NewProjectWizardWithGemini(textFieldState: TextFieldState) {
 
 @Composable
 internal fun TemplateGrid(
-  templates: List<TemplateInfo>,
-  selectedTemplate: TemplateInfo?,
+  templateInfos: List<TemplateInfo>,
+  selectedTemplateInfo: TemplateInfo?,
   onTemplateClick: (TemplateInfo?) -> Unit,
 ) {
   val scrollState = rememberLazyGridState()
   var hasFocus by remember { mutableStateOf(false) }
   val gridFocusRequester = remember { FocusRequester() }
 
-  LaunchedEffect(selectedTemplate) {
-    if (selectedTemplate != null) {
-      val index = templates.indexOf(selectedTemplate)
+  LaunchedEffect(selectedTemplateInfo) {
+    if (selectedTemplateInfo != null) {
+      val index = templateInfos.indexOf(selectedTemplateInfo)
       if (index != -1) {
         scrollState.animateScrollToItem(index)
       }
@@ -311,48 +311,48 @@ internal fun TemplateGrid(
             .focusRequester(gridFocusRequester)
             .focusable()
             .onKeyEvent { event ->
-              if (!hasFocus || selectedTemplate == null) return@onKeyEvent false
-              val currentTemplateIndex = templates.indexOf(selectedTemplate)
+              if (!hasFocus || selectedTemplateInfo == null) return@onKeyEvent false
+              val currentTemplateIndex = templateInfos.indexOf(selectedTemplateInfo)
 
               return@onKeyEvent when {
                 event.type == KeyEventType.KeyUp &&
                   event.key == Key.DirectionUp &&
                   currentTemplateIndex > columnCount - 1 -> {
-                  onTemplateClick(templates[currentTemplateIndex - columnCount])
+                  onTemplateClick(templateInfos[currentTemplateIndex - columnCount])
                   true
                 }
                 event.type == KeyEventType.KeyUp &&
                   event.key == Key.DirectionDown &&
-                  currentTemplateIndex < templates.size - columnCount -> {
-                  onTemplateClick(templates[currentTemplateIndex + columnCount])
+                  currentTemplateIndex < templateInfos.size - columnCount -> {
+                  onTemplateClick(templateInfos[currentTemplateIndex + columnCount])
                   true
                 }
                 event.type == KeyEventType.KeyUp &&
                   event.key == Key.DirectionLeft &&
                   currentTemplateIndex > 0 -> {
-                  onTemplateClick(templates[currentTemplateIndex - 1])
+                  onTemplateClick(templateInfos[currentTemplateIndex - 1])
                   true
                 }
                 event.type == KeyEventType.KeyUp &&
                   event.key == Key.DirectionRight &&
-                  currentTemplateIndex < templates.size - 1 -> {
-                  onTemplateClick(templates[currentTemplateIndex + 1])
+                  currentTemplateIndex < templateInfos.size - 1 -> {
+                  onTemplateClick(templateInfos[currentTemplateIndex + 1])
                   true
                 }
                 else -> false
               }
             },
       ) {
-        itemsIndexed(items = templates) { _, template ->
-          val isSelected = template == selectedTemplate
+        itemsIndexed(items = templateInfos) { _, templateInfo ->
+          val isSelected = templateInfo == selectedTemplateInfo
           val isFocused = hasFocus && isSelected
 
           TemplateItem(
-            template = template,
+            templateInfo = templateInfo,
             isSelected = isSelected,
             isFocused = isFocused,
             onTemplateClick = {
-              onTemplateClick(template)
+              onTemplateClick(templateInfo)
               if (!hasFocus) gridFocusRequester.requestFocus()
             },
           )
@@ -364,7 +364,7 @@ internal fun TemplateGrid(
 
 @Composable
 private fun TemplateItem(
-  template: TemplateInfo,
+  templateInfo: TemplateInfo,
   isSelected: Boolean,
   isFocused: Boolean,
   onTemplateClick: () -> Unit,
@@ -378,23 +378,23 @@ private fun TemplateItem(
     verticalArrangement = Arrangement.Center,
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
-    TemplateImage(template)
-    TemplateText(template, isSelected, isFocused)
+    TemplateImage(templateInfo)
+    TemplateText(templateInfo, isSelected, isFocused)
   }
 }
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-private fun TemplateImage(template: TemplateInfo) {
-  if (template is NewProjectTemplateInfo && template.template == Template.NoActivity) {
+private fun TemplateImage(templateInfo: TemplateInfo) {
+  if (templateInfo is NewProjectTemplateInfo && templateInfo.template == Template.NoActivity) {
     Icon(key = StudioIllustrationsCompose.Wizards.NoActivity, contentDescription = "")
   } else {
 
     val imageState by
-      produceState<ImageBitmap?>(initialValue = null, template) {
+      produceState<ImageBitmap?>(initialValue = null, templateInfo) {
         withContext(Dispatchers.IO) {
           try {
-            val file = File(template.thumb().path().file)
+            val file = File(templateInfo.thumb().path().file)
             val bytes = file.inputStream().use { it.readAllBytes() }
             value = bytes.decodeToImageBitmap()
           } catch (_: Exception) {}
@@ -410,7 +410,7 @@ private fun TemplateImage(template: TemplateInfo) {
 }
 
 @Composable
-private fun TemplateText(template: TemplateInfo, isSelected: Boolean, isFocused: Boolean) {
+private fun TemplateText(templateInfo: TemplateInfo, isSelected: Boolean, isFocused: Boolean) {
   Box(
     modifier =
       Modifier.fillMaxWidth()
@@ -419,7 +419,7 @@ private fun TemplateText(template: TemplateInfo, isSelected: Boolean, isFocused:
   ) {
     Text(
       modifier = Modifier.padding(vertical = 4.dp),
-      text = template.getTemplateTitle(),
+      text = templateInfo.getTemplateTitle(),
       color = UIUtil.getListForeground(isSelected, isFocused).toComposeColor(),
       textAlign = TextAlign.Center,
     )

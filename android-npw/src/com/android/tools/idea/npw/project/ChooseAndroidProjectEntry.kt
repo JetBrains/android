@@ -56,10 +56,10 @@ abstract class ChooseAndroidProjectEntry() {
 
 class FormFactorProjectEntry(
   val formFactorTitle: String,
-  val templates: List<TemplateInfo>,
-  selectedTemplate: TemplateInfo?,
+  val templateInfos: List<TemplateInfo>,
+  selectedTemplateInfo: TemplateInfo?,
 ) : ChooseAndroidProjectEntry() {
-  var selectedTemplate by mutableStateOf(selectedTemplate)
+  var selectedTemplateInfo by mutableStateOf(selectedTemplateInfo)
 
   @Composable
   override fun AndroidProjectListEntry(isSelected: Boolean, isFocused: Boolean) {
@@ -69,16 +69,16 @@ class FormFactorProjectEntry(
   @Composable
   override fun AndroidProjectEntryDetails() {
     TemplateGrid(
-      templates = templates,
-      selectedTemplate = selectedTemplate,
-      onTemplateClick = { template -> selectedTemplate = template },
+      templateInfos = templateInfos,
+      selectedTemplateInfo = selectedTemplateInfo,
+      onTemplateClick = { templateInfo -> selectedTemplateInfo = templateInfo },
     )
   }
 
-  override val canGoForward = derivedStateOf { selectedTemplate != null }
+  override val canGoForward = derivedStateOf { selectedTemplateInfo != null }
 
   override fun onProceeding(newProjectModuleModel: NewProjectModuleModel, model: NewProjectModel): Boolean =
-    when (val templateInfo = selectedTemplate) {
+    when (val templateInfo = selectedTemplateInfo) {
       is NewProjectTemplateInfo -> {
         newProjectModuleModel.formFactor.set(templateInfo.formFactor)
         newProjectModuleModel.newRenderTemplate.setNullableValue(templateInfo.template)

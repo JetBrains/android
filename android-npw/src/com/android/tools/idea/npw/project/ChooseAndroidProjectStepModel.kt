@@ -59,20 +59,20 @@ class ChooseAndroidProjectStepModel(private val formFactorSupplier: Supplier<Lis
     selectedAndroidProjectEntry = entry
   }
 
-  private fun getDefaultSelectedTemplateIndex(
-    templates: List<TemplateInfo>,
+  private fun getDefaultSelectedTemplateInfo(
+    templateInfos: List<TemplateInfo>,
     emptyItemLabel: String = "Empty Activity",
   ): TemplateInfo? =
-    templates.firstOrNull { it.getTemplateTitle() == emptyItemLabel }
-      ?: templates.filterIsInstance<NewProjectTemplateInfo>()
+    templateInfos.firstOrNull { it.getTemplateTitle() == emptyItemLabel }
+      ?: templateInfos.filterIsInstance<NewProjectTemplateInfo>()
         .firstOrNull { it.template != Template.NoActivity }
 
   private fun createFormFactorEntry(formFactorInfo: FormFactor): FormFactorProjectEntry {
-    val templates = formFactorInfo.getProjectTemplates()
+    val templateInfos = formFactorInfo.getProjectTemplates()
     return FormFactorProjectEntry(
       formFactorInfo.toString(),
-      templates,
-      getDefaultSelectedTemplateIndex(templates),
+      templateInfos,
+      getDefaultSelectedTemplateInfo(templateInfos),
     )
   }
 
