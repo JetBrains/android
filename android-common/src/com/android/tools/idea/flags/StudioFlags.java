@@ -2453,13 +2453,6 @@ public final class StudioFlags {
                     "Use ML model analyze thread safety of selected files",
                     "Enables the \"Analyze Thread Safety\" button in the Project tool window");
 
-
-  public static final Flag<Boolean> AI_RETHINK_ACTION =
-    new BooleanFlag(STUDIOBOT, "ai.rethink.action",
-                    "Use AI to suggest better variable names",
-                    "Enables AI to provide better variable renaming functionalities");
-
-
   public static final Flag<Boolean> AI_RENAME_ACTION =
     new BooleanFlag(STUDIOBOT, "ai.rename.action",
                     "Use AI to suggest a better identifier name",
