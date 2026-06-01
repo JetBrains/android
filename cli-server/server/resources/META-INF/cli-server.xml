@@ -15,7 +15,7 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-    <postStartupActivity implementation="com.android.cliserver.CliIntegrationService$CliIntegrationServiceStartupActivity"/>
+    <applicationInitializedListener id="Startup.CliIntegrationServiceInitializer" implementation="com.android.cliserver.CliIntegrationService$CliIntegrationServiceInitializer"/>
   </extensions>
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.cliserver.requestHandler"

@@ -18,6 +18,7 @@ package com.android.cliserver
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.tools.idea.flags.StudioFlags
 import com.google.protobuf.kotlin.toByteString
+import com.intellij.ide.ApplicationInitializedListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.components.Service
@@ -26,7 +27,6 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
-import com.intellij.openapi.startup.ProjectActivity
 import java.nio.file.Paths
 
 @Service
@@ -56,8 +56,8 @@ class CliIntegrationService : Disposable, ServerInfoProvider {
     }
   }
 
-  class CliIntegrationServiceStartupActivity : ProjectActivity {
-    override suspend fun execute(project: Project) {
+  class CliIntegrationServiceInitializer : ApplicationInitializedListener {
+    override suspend fun execute() {
       getInstance().startIfNeeded()
     }
   }
