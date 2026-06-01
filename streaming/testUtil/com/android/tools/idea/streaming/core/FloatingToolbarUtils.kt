@@ -17,7 +17,6 @@ package com.android.tools.idea.streaming.core
 
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.flags.StudioFlags
 import kotlin.time.Duration.Companion.seconds
 
 /** Expands the floating toolbar if it is not expanded already. */
@@ -26,11 +25,7 @@ fun FakeUi.expandFloatingToolbar() {
   val toolbar = getComponent<FloatingToolbarContainer>()
   if (toolbar.activationFactor != 1.0) {
     // Trigger expansion of the floating toolbar.
-    if (StudioFlags.RUNNING_DEVICES_COLLAPSIBLE_FLOATING_TOOLBARS.get()) {
-      mouse.click(toolbar.locationOnScreen.x + toolbar.width - toolbar.height / 2, toolbar.locationOnScreen.y + toolbar.height / 2)
-    } else {
-      mouse.moveTo(toolbar.locationOnScreen.x + toolbar.width / 2, toolbar.locationOnScreen.y + toolbar.height - toolbar.width / 2)
-    }
+    mouse.click(toolbar.locationOnScreen.x + toolbar.width - toolbar.height / 2, toolbar.locationOnScreen.y + toolbar.height / 2)
     layoutAndDispatchEvents()
     waitForCondition(1.seconds) { toolbar.activationFactor == 1.0 }
     layoutAndDispatchEvents()

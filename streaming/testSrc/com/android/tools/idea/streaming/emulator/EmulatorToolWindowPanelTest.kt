@@ -194,17 +194,6 @@ class EmulatorToolWindowPanelTest {
 
   @Test
   fun testAppearanceAndToolbarActions() {
-    StudioFlags.RUNNING_DEVICES_COLLAPSIBLE_FLOATING_TOOLBARS.overrideForTest(false, testRootDisposable)
-    doTestAppearanceAndToolbarActions()
-  }
-
-  @Test
-  fun testAppearanceAndToolbarActionsCollapsibleToolbar() {
-    StudioFlags.RUNNING_DEVICES_COLLAPSIBLE_FLOATING_TOOLBARS.overrideForTest(true, testRootDisposable)
-    doTestAppearanceAndToolbarActions()
-  }
-
-  private fun doTestAppearanceAndToolbarActions() {
     panel = createWindowPanelForPhone()
 
     assertThat(panel.primaryDisplayView).isNull()
@@ -220,12 +209,7 @@ class EmulatorToolWindowPanelTest {
     fakeUi.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 363 height: 515")
-    val goldenImageName =
-      when {
-        StudioFlags.RUNNING_DEVICES_COLLAPSIBLE_FLOATING_TOOLBARS.get() -> "AppearanceAndToolbarActionsCollapsibleToolbar1"
-        else -> "AppearanceAndToolbarActions1"
-      }
-    assertAppearance(goldenImageName, maxPercentDifferentMac = 0.03, maxPercentDifferentWindows = 0.3)
+    assertAppearance("AppearanceAndToolbarActions1", maxPercentDifferentMac = 0.03, maxPercentDifferentWindows = 0.3)
 
     // Check push button actions.
     val pushButtonCases =
@@ -407,17 +391,7 @@ class EmulatorToolWindowPanelTest {
   }
 
   @Test
-  fun testXrHeadsetToolbarActionsLegacyToolbar() {
-    StudioFlags.RUNNING_DEVICES_COLLAPSIBLE_FLOATING_TOOLBARS.overrideForTest(false, testRootDisposable)
-    doTestXrHeadsetToolbarActions()
-  }
-
-  @Test
   fun testXrHeadsetToolbarActions() {
-    doTestXrHeadsetToolbarActions()
-  }
-
-  private fun doTestXrHeadsetToolbarActions() {
     // Move XR buttons to the Running Devices toolbar to check its appearance.
     service<FloatingXrToolbarState>()::floatingXrToolbarEnabled.override(false, testRootDisposable)
     panel = createWindowPanelForXrHeadset()
@@ -531,12 +505,7 @@ class EmulatorToolWindowPanelTest {
 
     val toggleAction = ToggleFloatingXrToolbarAction()
     toggleAction.actionPerformed(createTestEvent(emulatorView, project, ActionPlaces.TOOLWINDOW_POPUP))
-    val goldenImageName =
-      when {
-        StudioFlags.RUNNING_DEVICES_COLLAPSIBLE_FLOATING_TOOLBARS.get() -> "XrHeadsetToolbarActions2"
-        else -> "XrHeadsetToolbarActionsLegacyToolbar2"
-      }
-    assertAppearance(goldenImageName, maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
+    assertAppearance("XrHeadsetToolbarActions2", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
 
     panel.destroyContent()
     assertThat(panel.primaryDisplayView).isNull()
