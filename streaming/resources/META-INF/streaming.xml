@@ -200,6 +200,12 @@
         <keyboard-shortcut first-keystroke="control Y" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="control Y" keymap="Mac OS X 10.5+"/>
       </action>
+      <action id="android.streaming.xr.interaction.mouse"
+          class="com.android.tools.idea.streaming.actions.StreamingXrInputModeAction$InteractionMouse"
+          icon="StudioIcons.Emulator.Toolbar.HARDWARE_INPUT"
+          text="Connected Mouse and Keyboard"
+          description="Mouse and keyboard events are forwarded to the device">
+      </action>
       <action id="android.streaming.xr.view.direction"
               class="com.android.tools.idea.streaming.actions.StreamingXrInputModeAction$ViewDirection"
               icon="StudioIcons.Emulator.XR.ROTATE"
@@ -363,6 +369,7 @@
           <separator text="App Interaction Mode"/>
           <reference ref="android.streaming.xr.interaction.hand"/>
           <reference ref="android.streaming.xr.interaction.eye"/>
+          <reference ref="android.streaming.xr.interaction.mouse"/>
         </group>
         <reference ref="android.streaming.xr.interaction"/>
         <separator/>

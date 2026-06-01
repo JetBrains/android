@@ -468,7 +468,11 @@ class EmulatorToolWindowPanelTest {
     }
 
     val actionIdsAndModes =
-      mapOf("android.streaming.xr.interaction.hand" to XrInputMode.HAND, "android.streaming.xr.interaction.eye" to XrInputMode.EYE)
+      mapOf(
+        "android.streaming.xr.interaction.hand" to XrInputMode.HAND,
+        "android.streaming.xr.interaction.eye" to XrInputMode.EYE,
+        "android.streaming.xr.interaction.mouse" to XrInputMode.MOUSE,
+      )
     for ((actionId, mode) in actionIdsAndModes) {
       executeAction(actionId, emulatorView, project)
       assertThat(xrInputController.inputMode).isEqualTo(mode)

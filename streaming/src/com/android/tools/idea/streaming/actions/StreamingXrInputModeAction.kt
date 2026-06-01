@@ -19,6 +19,7 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.actions.enableRichTooltip
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.FloatingToolbarContainer
+import com.android.tools.idea.streaming.core.STREAMING_DEVICE_ID_KEY
 import com.android.tools.idea.streaming.emulator.actions.isEmulator
 import com.android.tools.idea.streaming.xr.XrInputMode
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -53,6 +54,24 @@ sealed class StreamingXrInputModeAction(private val inputMode: XrInputMode) : To
         (inputMode != XrInputMode.HAND || (StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.get() && isEmulator(event))) &&
         (inputMode != XrInputMode.EYE || (StudioFlags.EMBEDDED_EMULATOR_XR_EYE_TRACKING.get() && isEmulator(event)))
     event.presentation.enableRichTooltip(this)
+  }
+
+  class InteractionMouse : StreamingXrInputModeAction(XrInputMode.MOUSE) {
+
+    override fun setSelected(event: AnActionEvent, state: Boolean) {
+      super.setSelected(event, state)
+      // Mouse interaction mode enables hardware input.
+      val project = event.project ?: return
+      val deviceId = event.getData(STREAMING_DEVICE_ID_KEY) ?: return
+      HardwareInputStateStorage.getInstance(project).setHardwareInputEnabled(deviceId, state)
+    }
+
+    override fun update(event: AnActionEvent) {
+      super.update(event)
+      if (!isHandOrEyeTrackingEnabled(event)) {
+        event.presentation.isEnabledAndVisible = false
+      }
+    }
   }
 
   class InteractionHand : StreamingXrInputModeAction(XrInputMode.HAND)

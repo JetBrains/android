@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.actions
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.actions.enableRichTooltip
 import com.android.tools.idea.streaming.core.StreamingDeviceId
+import com.android.tools.idea.streaming.xr.XrInputMode
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -25,6 +26,7 @@ import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAware
+import com.intellij.openapi.project.Project
 import com.intellij.util.containers.ContainerUtil.createConcurrentList
 
 /**
@@ -36,23 +38,27 @@ internal class StreamingHardwareInputAction : ToggleAction(), DumbAware {
 
   override fun isSelected(event: AnActionEvent): Boolean {
     val displayView = getDisplayView(event) ?: return false
-    return getHardwareInputStateStorage(event)?.isHardwareInputEnabled(displayView.deviceId) == true
+    return event.hardwareInputStateStorage?.isHardwareInputEnabled(displayView.deviceId) == true
   }
 
   override fun setSelected(event: AnActionEvent, selected: Boolean) {
     val displayView = getDisplayView(event) ?: return
-    getHardwareInputStateStorage(event)?.setHardwareInputEnabled(displayView.deviceId, selected)
+    event.hardwareInputStateStorage?.setHardwareInputEnabled(displayView.deviceId, selected)
     displayView.hardwareInputStateChanged(event, selected)
   }
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    if (getDeviceType(event) == DeviceType.AI_GLASSES) {
-      event.presentation.isEnabledAndVisible = false
+
+    val presentation = event.presentation
+    val deviceType = getDeviceType(event)
+    if (deviceType == DeviceType.AI_GLASSES || deviceType == DeviceType.XR_HEADSET && isHandOrEyeTrackingEnabled(event)) {
+      presentation.isEnabledAndVisible = false
       return
     }
-    val presentation = event.presentation
-    if (getXrInputController(event)?.isMouseUsedForNavigation() == true) {
+
+    val controller = getXrInputController(event)
+    if (controller != null && controller.inputMode != XrInputMode.MOUSE) {
       presentation.isEnabled = false
       Toggleable.setSelected(presentation, false)
     }
@@ -61,13 +67,13 @@ internal class StreamingHardwareInputAction : ToggleAction(), DumbAware {
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
-  private fun getHardwareInputStateStorage(event: AnActionEvent): HardwareInputStateStorage? =
-    event.project?.service<HardwareInputStateStorage>()
-
   companion object {
     const val ACTION_ID = "android.streaming.hardware.input"
   }
 }
+
+private val AnActionEvent.hardwareInputStateStorage: HardwareInputStateStorage?
+  get() = project?.let { HardwareInputStateStorage.getInstance(it) }
 
 @Service(Service.Level.PROJECT)
 internal class HardwareInputStateStorage {
@@ -77,10 +83,9 @@ internal class HardwareInputStateStorage {
   fun isHardwareInputEnabled(deviceId: StreamingDeviceId): Boolean = enabledDevices.contains(deviceId.storageKey)
 
   fun setHardwareInputEnabled(deviceId: StreamingDeviceId, enabled: Boolean) {
-    if (enabled) {
-      enabledDevices.addIfAbsent(deviceId.storageKey)
-    } else {
-      enabledDevices.remove(deviceId.storageKey)
+    when {
+      enabled -> enabledDevices.addIfAbsent(deviceId.storageKey)
+      else -> enabledDevices.remove(deviceId.storageKey)
     }
   }
 
@@ -90,4 +95,8 @@ internal class HardwareInputStateStorage {
         is StreamingDeviceId.EmulatorDeviceId -> emulatorId.avdId
         is StreamingDeviceId.PhysicalDeviceId -> serialNumber
       }
+
+  companion object {
+    fun getInstance(project: Project): HardwareInputStateStorage = project.service()
+  }
 }
