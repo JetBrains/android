@@ -40,6 +40,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
 import java.util.Base64
+import javax.swing.JPanel
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -611,6 +612,16 @@ class DetailsViewContentViewTest {
 
     assertThat(view.myLogcat).isEmpty()
     assertThat(view.myErrorStackTrace).isEmpty()
+  }
+
+  /** Verifies that the "Logs" tab doesn't contain a redundant internal heading label. The tab title itself is sufficient. */
+  @Test
+  fun logsTabShouldNotHaveRedundantHeadingLabel() {
+    val view = createView()
+    val tabComponent = view.logsTab.component as JPanel
+
+    val labels = UIUtil.findComponentsOfType(tabComponent, javax.swing.JLabel::class.java)
+    assertThat(labels.map { it.text }).doesNotContain("Logs")
   }
 
   private fun createEncodedJourneyArtifact(): String {

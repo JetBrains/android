@@ -61,7 +61,6 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.messages.MessageBus
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import com.intellij.util.ui.accessibility.AccessibleContextUtil
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.FlowLayout
@@ -151,13 +150,6 @@ open class DetailsViewContentView(
     myLogsView = ConsoleViewImpl(project, /* viewer= */ true)
     Disposer.register(this, myLogsView)
     logger.addImpressionWhenDisplayed(myLogsView.component, ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_LOG_VIEW)
-    val logsHeadingLabel =
-      createAccessibleLabel("Logs").apply {
-        isFocusable = true
-        AccessibleContextUtil.setName(this, "Heading: Logs")
-      }
-
-    val logsContainer = JPanel(BorderLayout()).apply { add(logsHeadingLabel, BorderLayout.NORTH) }
 
     val logsViewWithVerticalToolbar =
       createAccessiblePanel(BorderLayout(), accessibleName = "Logs View", roleOnMac = javax.accessibility.AccessibleRole.PANEL).apply {
@@ -174,9 +166,8 @@ open class DetailsViewContentView(
         )
     logViewToolbar.targetComponent = myLogsView.component
     logsViewWithVerticalToolbar.add(logViewToolbar.component, BorderLayout.EAST)
-    logsContainer.add(logsViewWithVerticalToolbar, BorderLayout.CENTER)
 
-    logsTab = TabInfo(logsContainer)
+    logsTab = TabInfo(logsViewWithVerticalToolbar)
     logsTab.setText("Logs")
     logsTab.setTooltipText("Show logcat output")
     tabs.addTab(logsTab)
