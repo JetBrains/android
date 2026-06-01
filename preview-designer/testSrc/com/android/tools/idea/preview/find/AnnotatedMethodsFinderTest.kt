@@ -17,6 +17,7 @@ package com.android.tools.idea.preview.find
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -130,5 +131,107 @@ class AnnotatedMethodsFinderTest {
     val withReadLock = runCatching { runReadAction { findAnnotations(project, sourceFile.virtualFile, "MyAnnotationA") } }
     assertTrue(withoutReadLock.isFailure)
     assertTrue(withReadLock.isSuccess)
+  }
+
+  @Test
+  fun `test getContainingUMethodAnnotatedWith works with aliased annotations`() = runBlocking {
+    fixture.addFileToProjectAndInvalidate(
+      "com/android/annotations/MyAnnotationA.kt",
+      // language=kotlin
+      """
+      package com.android.annotations
+
+      annotation class MyAnnotationA
+      """
+        .trimIndent(),
+    )
+    fixture.addFileToProjectAndInvalidate(
+      "com/android/annotations/MyComposable.kt",
+      // language=kotlin
+      """
+      package com.android.annotations
+
+      annotation class MyComposable
+      """
+        .trimIndent(),
+    )
+
+    val sourceFile =
+      fixture.addFileToProjectAndInvalidate(
+        "com/android/test/SourceFile.kt",
+        // language=kotlin
+        """
+        package com.android.test
+
+        import com.android.annotations.MyAnnotationA as MyAnnotationAlias
+        import com.android.annotations.MyComposable as MyComposableAlias
+
+        @MyAnnotationAlias
+        @MyComposableAlias
+        fun funWithAlias() { }
+        """
+          .trimIndent(),
+      )
+
+    // Check that we can find the annotated method even when both the indexed annotation and the required annotation are aliased.
+    // When both are aliased, the shortAnnotationName to search for is "MyAnnotationAlias", and the annotationFqn is
+    // "com.android.annotations.MyComposable".
+    val methods = findAnnotatedMethods(project, sourceFile.virtualFile, "com.android.annotations.MyComposable", "MyAnnotationAlias")
+
+    assertEquals(1, methods.size)
+    assertEquals("funWithAlias", readAction { methods.first().name })
+  }
+
+  @Test
+  fun `test getContainingUMethodAnnotatedWith handles shadowed imports`() = runBlocking {
+    fixture.addFileToProjectAndInvalidate(
+      "com/android/annotations/MyAnnotationA.kt",
+      // language=kotlin
+      """
+      package com.android.annotations
+
+      annotation class MyAnnotationA
+      """
+        .trimIndent(),
+    )
+    fixture.addFileToProjectAndInvalidate(
+      "com/android/annotations/MyComposable.kt",
+      // language=kotlin
+      """
+      package com.android.annotations
+
+      annotation class MyComposable
+      """
+        .trimIndent(),
+    )
+
+    val sourceFile =
+      fixture.addFileToProjectAndInvalidate(
+        "com/android/test/SourceFile.kt",
+        // language=kotlin
+        """
+        package com.android.test
+
+        import com.android.annotations.MyAnnotationA
+        import com.android.annotations.MyComposable
+
+        class Outer {
+            // Shadow the imported MyComposable with a nested class of the same name
+            annotation class MyComposable
+
+            @MyAnnotationA
+            @MyComposable
+            fun funWithShadowedImport() { }
+        }
+        """
+          .trimIndent(),
+      )
+
+    // Since the imported MyComposable is shadowed by a local annotation,
+    // the required annotation "com.android.annotations.MyComposable" is NOT actually present on the function.
+    // So the finder must return empty list.
+    val methods = findAnnotatedMethods(project, sourceFile.virtualFile, "com.android.annotations.MyComposable", "MyAnnotationA")
+
+    assertEquals(0, methods.size)
   }
 }

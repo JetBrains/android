@@ -51,6 +51,8 @@ import org.jetbrains.concurrency.Promise
 import org.jetbrains.concurrency.isRejected
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
+import org.jetbrains.kotlin.psi.KtAnnotated
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UClass
 import org.jetbrains.uast.UFile
@@ -135,7 +137,33 @@ private class PromiseModificationTracker(private val promise: Promise<*>) : Modi
 
 @RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
 fun UMethod?.isAnnotatedWith(annotationFqn: String) = runReadAction {
-  this?.uAnnotations?.any { annotation -> annotationFqn == annotation.qualifiedName } ?: false
+  if (this == null) return@runReadAction false
+
+  val psi = sourcePsi
+  if (psi is KtAnnotated) {
+    isAnnotatedWithFast(psi, annotationFqn)?.let {
+      return@runReadAction it
+    }
+  }
+
+  this.uAnnotations.any { annotation -> annotationFqn == annotation.qualifiedName }
+}
+
+@RequiresReadLock
+private fun isAnnotatedWithFast(psi: KtAnnotated, annotationFqn: String): Boolean? {
+  val ktFile = psi.containingFile as? KtFile
+  val importDirective = ktFile?.importDirectives?.firstOrNull { it.importedFqName?.asString() == annotationFqn }
+
+  if (importDirective == null) {
+    // Optimization: If not explicitly imported (e.g. wildcard star import or same package), check
+    // if the default short name is present. If not, we can safely skip full resolution.
+    val shortName = annotationFqn.substringAfterLast('.')
+    val hasShortName = psi.annotationEntries.any { it.shortName?.asString() == shortName }
+    if (!hasShortName) return false
+  }
+
+  // Fall-through to do a full resolution check
+  return null
 }
 
 /**
