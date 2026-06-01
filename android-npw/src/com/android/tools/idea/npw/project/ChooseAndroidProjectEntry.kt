@@ -27,9 +27,12 @@ import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.npw.model.NewProjectModel
 import com.android.tools.idea.npw.model.NewProjectModuleModel
 import com.android.tools.idea.npw.template.TemplateResolver
-import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.Template.NoActivity
 import com.android.tools.idea.wizard.template.WizardUiContext
+import com.intellij.ide.plugins.InstalledPluginsState
+import com.intellij.ide.plugins.PluginManagerConfigurable
+import com.intellij.openapi.extensions.PluginId
+import com.intellij.openapi.updateSettings.impl.pluginsAdvertisement.installAndEnable
 
 abstract class ChooseAndroidProjectEntry() {
   @Composable abstract fun AndroidProjectListEntry(isSelected: Boolean, isFocused: Boolean)
@@ -38,16 +41,23 @@ abstract class ChooseAndroidProjectEntry() {
 
   abstract val canGoForward: State<Boolean>
 
+  /**
+   * Applies this entry's selection to the wizard models.
+   *
+   * @return `true` if the wizard should advance to the next step; `false` if this entry has
+   *   already handled the user's action (e.g. launched a plugin installation) and there is no
+   *   wizard page to continue to.
+   */
   abstract fun onProceeding(
     newProjectModuleModel: NewProjectModuleModel,
     model: NewProjectModel,
-  ): Unit
+  ): Boolean
 }
 
 class FormFactorProjectEntry(
   val formFactorTitle: String,
-  val templates: List<Template>,
-  selectedTemplate: Template?,
+  val templates: List<TemplateInfo>,
+  selectedTemplate: TemplateInfo?,
 ) : ChooseAndroidProjectEntry() {
   var selectedTemplate by mutableStateOf(selectedTemplate)
 
@@ -67,14 +77,37 @@ class FormFactorProjectEntry(
 
   override val canGoForward = derivedStateOf { selectedTemplate != null }
 
-  override fun onProceeding(newProjectModuleModel: NewProjectModuleModel, model: NewProjectModel) {
-    selectedTemplate?.let { template ->
-      newProjectModuleModel.formFactor.set(template.formFactor)
-      newProjectModuleModel.newRenderTemplate.setNullableValue(template)
-      val hasExtraDetailStep = template.uiContexts.contains(WizardUiContext.NewProjectExtraDetail)
-      newProjectModuleModel.extraRenderTemplateModel.newTemplate =
-        if (hasExtraDetailStep) template else NoActivity
+  override fun onProceeding(newProjectModuleModel: NewProjectModuleModel, model: NewProjectModel): Boolean =
+    when (val templateInfo = selectedTemplate) {
+      is NewProjectTemplateInfo -> {
+        newProjectModuleModel.formFactor.set(templateInfo.formFactor)
+        newProjectModuleModel.newRenderTemplate.setNullableValue(templateInfo.template)
+        val hasExtraDetailStep = templateInfo.uiContexts.contains(WizardUiContext.NewProjectExtraDetail)
+        newProjectModuleModel.extraRenderTemplateModel.newTemplate =
+          if (hasExtraDetailStep) templateInfo.template else NoActivity
+        true
+      }
+      is PluginPromotionTemplateInfo -> {
+        installPromotedPlugin(templateInfo.pluginId)
+        false // A promotion template has no wizard pages to continue to.
+      }
+      null -> true
     }
+
+  private fun installPromotedPlugin(pluginId: String) {
+    val id = PluginId.getId(pluginId)
+    installAndEnable(
+      project = null,
+      pluginIds = setOf(id),
+      showDialog = true,
+      selectAlInDialog = true,
+      onSuccess = Runnable {
+        // checks if the plugin needs a restart and shows restart dialog if it does
+        if (InstalledPluginsState.getInstance().wasInstalled(id)) {
+          PluginManagerConfigurable.shutdownOrRestartApp()
+        }
+      },
+    )
   }
 }
 
@@ -93,7 +126,7 @@ class GeminiProjectEntry() : ChooseAndroidProjectEntry() {
 
   override val canGoForward = derivedStateOf { textFieldState.text.isNotEmpty() }
 
-  override fun onProceeding(newProjectModuleModel: NewProjectModuleModel, model: NewProjectModel) {
+  override fun onProceeding(newProjectModuleModel: NewProjectModuleModel, model: NewProjectModel): Boolean {
     val baseTemplateName =
       if (StudioFlags.NPW_ENABLE_ARCHITECTURE_SAMPLE_TEMPLATE.get()) "Architecture Sample"
       else "Empty Activity"
@@ -101,5 +134,6 @@ class GeminiProjectEntry() : ChooseAndroidProjectEntry() {
       TemplateResolver.getAllTemplates().firstOrNull { it.name == baseTemplateName }
     newProjectModuleModel.newRenderTemplate.setNullableValue(templateToUse ?: NoActivity)
     model.prompt.set(textFieldState.text.toString())
+    return true
   }
 }

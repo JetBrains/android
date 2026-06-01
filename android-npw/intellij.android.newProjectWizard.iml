@@ -92,6 +92,7 @@
     <orderEntry type="module" module-name="intellij.android.artwork-compose" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.compose" />
     <orderEntry type="module" module-name="intellij.java.guiForms.rt" />
+    <orderEntry type="module" module-name="intellij.platform.core.impl" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.android" />
   </component>
 </module>

@@ -61,7 +61,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.android.tools.idea.npw.project.ChooseAndroidProjectStep.Companion.getTemplateTitle
 import com.android.tools.idea.wizard.template.Template
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.UIUtil
@@ -281,9 +280,9 @@ private fun NewProjectWizardWithGemini(textFieldState: TextFieldState) {
 
 @Composable
 internal fun TemplateGrid(
-  templates: List<Template>,
-  selectedTemplate: Template?,
-  onTemplateClick: (Template?) -> Unit,
+  templates: List<TemplateInfo>,
+  selectedTemplate: TemplateInfo?,
+  onTemplateClick: (TemplateInfo?) -> Unit,
 ) {
   val scrollState = rememberLazyGridState()
   var hasFocus by remember { mutableStateOf(false) }
@@ -348,7 +347,7 @@ internal fun TemplateGrid(
           val isSelected = template == selectedTemplate
           val isFocused = hasFocus && isSelected
 
-          Template(
+          TemplateItem(
             template = template,
             isSelected = isSelected,
             isFocused = isFocused,
@@ -364,8 +363,8 @@ internal fun TemplateGrid(
 }
 
 @Composable
-private fun Template(
-  template: Template,
+private fun TemplateItem(
+  template: TemplateInfo,
   isSelected: Boolean,
   isFocused: Boolean,
   onTemplateClick: () -> Unit,
@@ -386,8 +385,8 @@ private fun Template(
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-private fun TemplateImage(template: Template) {
-  if (template == Template.NoActivity) {
+private fun TemplateImage(template: TemplateInfo) {
+  if (template is NewProjectTemplateInfo && template.template == Template.NoActivity) {
     Icon(key = StudioIllustrationsCompose.Wizards.NoActivity, contentDescription = "")
   } else {
 
@@ -411,7 +410,7 @@ private fun TemplateImage(template: Template) {
 }
 
 @Composable
-private fun TemplateText(template: Template, isSelected: Boolean, isFocused: Boolean) {
+private fun TemplateText(template: TemplateInfo, isSelected: Boolean, isFocused: Boolean) {
   Box(
     modifier =
       Modifier.fillMaxWidth()

@@ -710,6 +710,8 @@
                     interface="com.android.tools.idea.databinding.LayoutBindingSupport"/>
     <extensionPoint qualifiedName="com.android.tools.idea.wizard.template.wizardTemplateProvider"
                     interface="com.android.tools.idea.wizard.template.WizardTemplateProvider"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.npw.template.wizardPluginPromotionTemplateProvider"
+                    interface="com.android.tools.idea.npw.template.WizardPluginPromotionTemplateProvider"/>
     <extensionPoint qualifiedName="com.android.tools.idea.ndk.nativeWorkspaceProvider"
                     interface="com.android.tools.idea.ndk.NativeWorkspaceProvider"/>
     <extensionPoint qualifiedName="com.android.tools.idea.analytics.ideBrandProvider"

@@ -83,6 +83,7 @@ jvm_library(
     "//android/artwork-compose",
     "//android/adt-ui-compose",
     "//platform/forms_rt:java-guiForms-rt",
+    "//platform/core-impl",
     "//android/gradle-dsl-android",
   ],
   plugins = ["@lib//:compose-plugin"]

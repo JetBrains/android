@@ -21,7 +21,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.project.ChooseAndroidProjectStep.Companion.getProjectTemplates
-import com.android.tools.idea.npw.project.ChooseAndroidProjectStep.Companion.getTemplateTitle
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Template
 import java.util.function.Supplier
@@ -61,11 +60,12 @@ class ChooseAndroidProjectStepModel(private val formFactorSupplier: Supplier<Lis
   }
 
   private fun getDefaultSelectedTemplateIndex(
-    templates: List<Template>,
+    templates: List<TemplateInfo>,
     emptyItemLabel: String = "Empty Activity",
-  ): Template? =
+  ): TemplateInfo? =
     templates.firstOrNull { it.getTemplateTitle() == emptyItemLabel }
-      ?: templates.firstOrNull { it != Template.NoActivity }
+      ?: templates.filterIsInstance<NewProjectTemplateInfo>()
+        .firstOrNull { it.template != Template.NoActivity }
 
   private fun createFormFactorEntry(formFactorInfo: FormFactor): FormFactorProjectEntry {
     val templates = formFactorInfo.getProjectTemplates()

@@ -22,16 +22,19 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.model.NewProjectModel
 import com.android.tools.idea.npw.model.NewProjectModuleModel
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep
+import com.android.tools.idea.npw.template.PluginPromotionTemplateResolver
 import com.android.tools.idea.npw.template.TemplateResolver
-import com.android.tools.idea.npw.toWizardFormFactor
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
+import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizard.Facade
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.WizardUiContext
 import com.google.common.base.Suppliers
+import com.intellij.ide.plugins.PluginManagerCore
+import com.intellij.openapi.extensions.PluginId
 import java.util.function.Supplier
 import javax.swing.JComponent
 import kotlinx.coroutines.Dispatchers
@@ -74,7 +77,13 @@ class ChooseAndroidProjectStep(model: NewProjectModel) :
   }
 
   override fun onProceeding() {
-    uiModel.selectedAndroidProjectEntry?.onProceeding(newProjectModuleModel!!, model)
+    val entry = uiModel.selectedAndroidProjectEntry ?: return
+    val shouldAdvance = entry.onProceeding(newProjectModuleModel!!, model)
+    if (!shouldAdvance) {
+      // The selected entry handled the action itself and has no next page, so cancel forward
+      // navigation and remain on this step (no error is surfaced to the user).
+      throw ModelWizard.ActionCancellationException(/* message = */ null, /* cause = */ null)
+    }
   }
 
   override fun canGoForward(): ObservableBool = canGoForward
@@ -84,12 +93,20 @@ class ChooseAndroidProjectStep(model: NewProjectModel) :
   override fun getPreferredFocusComponent(): JComponent = rootView
 
   companion object {
-    fun FormFactor.getProjectTemplates() =
-      if (includeNoActivity) {
-        listOf(Template.NoActivity) + this.getNewProjectTemplates()
-      } else {
-        this.getNewProjectTemplates()
-      }
+
+    fun FormFactor.getProjectTemplates(): List<TemplateInfo> {
+      val newProjectTemplates =
+        if (includeNoActivity) {
+          listOf(Template.NoActivity) + this.getNewProjectTemplates()
+        } else {
+          this.getNewProjectTemplates()
+        }
+
+      val pluginPromotionTemplates = this.getPluginPromotionTemplates()
+
+      return newProjectTemplates.map { NewProjectTemplateInfo(it) } +
+             pluginPromotionTemplates.map { PluginPromotionTemplateInfo(it) }
+    }
 
     /**
      * Indicates which form factor in the Project Chooser this form factor should be grouped under.
@@ -100,9 +117,6 @@ class ChooseAndroidProjectStep(model: NewProjectModel) :
         else -> this
       }
 
-    fun Template.getTemplateTitle(): String =
-      name.replace("${formFactor.toWizardFormFactor().displayName} ", "")
-
     private fun FormFactor.getNewProjectTemplates() =
       TemplateResolver.getAllTemplates().filter {
         WizardUiContext.NewProject in it.uiContexts &&
@@ -110,6 +124,11 @@ class ChooseAndroidProjectStep(model: NewProjectModel) :
           (it.name !in setOf("Architecture Sample", "AI Starter") ||
             StudioFlags.NPW_ENABLE_ARCHITECTURE_SAMPLE_TEMPLATE.get())
       }
+
+    private fun FormFactor.getPluginPromotionTemplates() =
+      PluginPromotionTemplateResolver.getAllPromotionTemplates()
+        .filter { it.formFactor == this }
+        .filterNot { PluginManagerCore.isPluginInstalled(PluginId.getId(it.pluginId)) }
 
     private fun createFormFactors(): List<FormFactor> =
       FormFactor.values().filterNot { it.getProjectTemplates().isEmpty() }
