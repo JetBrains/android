@@ -32,6 +32,7 @@ import com.intellij.openapi.util.UserDataHolder
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.impl.java.stubs.index.JavaAnnotationIndex
+import com.intellij.psi.impl.light.LightElement
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
@@ -51,8 +52,10 @@ import org.jetbrains.concurrency.isRejected
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
 import org.jetbrains.uast.UAnnotation
+import org.jetbrains.uast.UClass
+import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
-import org.jetbrains.uast.getContainingUMethod
+import org.jetbrains.uast.getParentOfType
 import org.jetbrains.uast.toUElement
 import org.jetbrains.uast.toUElementOfType
 
@@ -78,7 +81,10 @@ class CacheKeysManager() {
 fun <T> CachedValuesManager.getCachedValue(dataHolder: UserDataHolder, key: Key<CachedValue<T>>, provider: CachedValueProvider<T>): T =
   this.getCachedValue(dataHolder, key, provider, false)
 
-/** Finds all the [UAnnotation]s in [vFile] in [project] with [shortAnnotationName] as name. */
+/**
+ * Finds all the [UAnnotation]s in [vFile] in [project] with [shortAnnotationName] as name. Light elements (such as Kotlin light classes or
+ * Java synthetic elements) are explicitly excluded.
+ */
 @RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
 @VisibleForTesting
 internal fun findAnnotations(project: Project, vFile: VirtualFile, shortAnnotationName: String): Collection<UAnnotation> {
@@ -101,7 +107,12 @@ internal fun findAnnotations(project: Project, vFile: VirtualFile, shortAnnotati
         JavaAnnotationIndex.getInstance().getAnnotations(shortAnnotationName, project, scope).asSequence()
       }
 
-    CachedValueProvider.Result.create(annotations.toList().mapNotNull { it.toUElementOfType<UAnnotation>() }.distinct(), psiFile)
+    // We skip light/synthetic elements (such as Kotlin light classes or Java synthetic elements)
+    // to avoid expensive and redundant conversions to UAST, since preview annotations are intended
+    // to be processed from original source files.
+    val filteredAnnotations = annotations.filter { it !is LightElement }
+
+    CachedValueProvider.Result.create(filteredAnnotations.toList().mapNotNull { it.toUElementOfType<UAnnotation>() }.distinct(), psiFile)
   }
 }
 
@@ -137,7 +148,12 @@ fun UAnnotation.getContainingUMethodAnnotatedWith(annotationFqn: String): UMetho
   // read lock are left to this method.
   // The method is tagged RequiresReadLock so it should never be called without the read lock.
   fun getContainingUMethodWithReadLock(): UMethod? {
-    val uMethod = getContainingUMethod() ?: javaPsi?.parentOfType<PsiMethod>()?.toUElement(UMethod::class.java)
+    // We terminate the search early at UClass and UFile boundaries. This prevents UAST from eagerly
+    // traversing beyond the local class/file scopes and performing unnecessary resolution/AST conversions
+    // when annotations are placed on non-method elements (e.g. class declarations or top-level fields).
+    val uMethod =
+      getParentOfType(UMethod::class.java, true, UClass::class.java, UFile::class.java)
+        ?: javaPsi?.parentOfType<PsiMethod>()?.toUElement(UMethod::class.java)
     return if (uMethod.isAnnotatedWith(annotationFqn)) uMethod else null
   }
 
