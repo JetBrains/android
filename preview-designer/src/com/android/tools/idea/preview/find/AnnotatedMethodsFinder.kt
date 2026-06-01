@@ -151,15 +151,16 @@ fun UMethod?.isAnnotatedWith(annotationFqn: String) = runReadAction {
 
 @RequiresReadLock
 private fun isAnnotatedWithFast(psi: KtAnnotated, annotationFqn: String): Boolean? {
+  // Optimization: If the element has no annotations at all, we can immediately exit.
+  if (psi.annotationEntries.isEmpty()) return false
+
   val ktFile = psi.containingFile as? KtFile
   val importDirective = ktFile?.importDirectives?.firstOrNull { it.importedFqName?.asString() == annotationFqn }
 
-  if (importDirective == null) {
-    // Optimization: If not explicitly imported (e.g. wildcard star import or same package), check
-    // if the default short name is present. If not, we can safely skip full resolution.
-    val shortName = annotationFqn.substringAfterLast('.')
-    val hasShortName = psi.annotationEntries.any { it.shortName?.asString() == shortName }
-    if (!hasShortName) return false
+  val expectedName = importDirective?.aliasName ?: annotationFqn.substringAfterLast('.')
+  val hasExpectedName = psi.annotationEntries.any { it.shortName?.asString() == expectedName }
+  if (!hasExpectedName) {
+    return false
   }
 
   // Fall-through to do a full resolution check
