@@ -72,8 +72,12 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
         xrOptions,
         object : EmptyStreamObserver<Empty>() {
           override fun onNext(message: Empty) {
-            this@EmulatorXrInputController.passthroughCoefficient = passthroughCoefficient
-            this@EmulatorXrInputController.dimmingCoefficient = dimmingCoefficient
+            if (passthroughCoefficient != UNKNOWN_PASSTHROUGH_COEFFICIENT) {
+              this@EmulatorXrInputController.passthroughCoefficient = passthroughCoefficient
+            }
+            if (dimmingCoefficient != UNKNOWN_DIMMING_COEFFICIENT) {
+              this@EmulatorXrInputController.dimmingCoefficient = dimmingCoefficient
+            }
             ActivityTracker.getInstance().inc()
             continuation.resume(Unit)
           }
