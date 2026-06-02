@@ -218,6 +218,12 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
           profilers.ideServices.addDependency(GoogleMavenArtifactId.LEAKCANARY, DependencyType.DEBUG_IMPLEMENTATION).thenAccept { success ->
             if (success) {
               startTaskAction.run()
+            } else {
+              // The user canceled the dialog to add the LeakCanary dependency.
+              // We must clear the pending selection state; otherwise, the Profiler will
+              // erroneously attempt to auto-start the task the next time the app is launched.
+              LogUtils.log(javaClass, "User canceled adding LeakCanary dependency. Clearing startup task state.")
+              resetSelectionStateAndClearStartupTaskConfigs()
             }
           }
         } else {
