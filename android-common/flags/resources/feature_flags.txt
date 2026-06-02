@@ -53,7 +53,6 @@ device.mirroring.xr.simulated.passthrough=PREVIEW
 editor.enable.change.review.agent=PREVIEW
 editor.restrict.to.completion.weigher=COMPLETE:2025
 embedded.emulator.allow.ai.glasses=PREVIEW
-embedded.emulator.collapsible.floating.toolbars=COMPLETE:2026
 embedded.emulator.hide.tool.window.name=COMPLETE:2024
 embedded.emulator.wrap.toolbar=COMPLETE:2024
 experimentalui.enabled=COMPLETE:2024
