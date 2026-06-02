@@ -52,6 +52,7 @@ data class GradleModuleModel(
   val safeArgsKotlin: Boolean,
   val hasFtlPlugin: Boolean,
   val hasLegacyKaptPlugin: Boolean,
+  val hasComposeScreenshotPlugin: Boolean,
 ) : ModuleModel {
   constructor(
     moduleName: String,
@@ -74,6 +75,7 @@ data class GradleModuleModel(
     gradlePluginModel?.hasSafeArgsKotlin() ?: false,
     gradlePluginModel?.hasFtlPlugin() ?: false,
     gradlePluginModel?.hasLegacyKaptPlugin() ?: false,
+    gradlePluginModel?.hasComposeScreenshotPlugin() ?: false,
   )
 
   fun buildFileAsVirtualFile() = buildFilePath?.let { VfsUtil.findFileByIoFile(it, true) }

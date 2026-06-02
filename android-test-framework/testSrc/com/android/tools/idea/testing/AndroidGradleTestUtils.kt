@@ -1951,6 +1951,7 @@ private fun createAndroidModuleDataNode(
         safeArgsKotlin = false,
         hasFtlPlugin = false,
         hasLegacyKaptPlugin = false,
+        hasComposeScreenshotPlugin = false,
       ),
       null,
     )
@@ -2128,6 +2129,7 @@ private fun createJavaModuleDataNode(
           safeArgsKotlin = false,
           hasFtlPlugin = false,
           hasLegacyKaptPlugin = false,
+          hasComposeScreenshotPlugin = false,
         ),
         null,
       )

@@ -17,6 +17,10 @@ package com.android.screenshottest.producers
 
 import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.model.impl.toImpl
+import com.android.tools.idea.gradle.project.entities.GradleModuleModelEntity
+import com.android.tools.idea.gradle.project.entities.gradleModuleModel
+import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.testartifacts.TestConfigurationTestingUtil
 import com.android.tools.idea.testartifacts.createAndroidGradleTestConfigurationFromClass
 import com.android.tools.idea.testartifacts.createAndroidGradleTestConfigurationFromDirectory
@@ -28,8 +32,12 @@ import com.android.tools.idea.testing.onEdt
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.actions.ConfigurationFromContextImpl
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil.findFileByIoFile
+import com.intellij.platform.backend.workspace.workspaceModel
+import com.intellij.platform.workspace.jps.entities.ModuleId
+import com.intellij.platform.workspace.jps.entities.modifyModuleEntity
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.RunsInEdt
 import java.io.File
@@ -37,6 +45,7 @@ import kotlin.test.assertEquals
 import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
 import org.junit.Assert
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -669,5 +678,52 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
     FileUtil.createIfDoesntExist(newFile)
     newFile.writeText(content)
     return newFile
+  }
+
+  private fun setModuleTasks(tasks: List<String>, hasComposeScreenshotPlugin: Boolean = false) {
+    val project = projectRule.project
+    val module = projectRule.fixture.module
+    val model =
+      GradleModuleModel(
+        moduleNameField = module.name,
+        testTasks = emptyList(),
+        allTasks = tasks,
+        gradlePath = ":app",
+        rootFolderPath = File(project.basePath!!).toImpl(),
+        buildFilePath = File(project.basePath!!, "build.gradle").toImpl(),
+        gradleVersion = "8.0",
+        agpVersion = "8.0.0",
+        safeArgsJava = false,
+        safeArgsKotlin = false,
+        hasFtlPlugin = false,
+        hasLegacyKaptPlugin = false,
+        hasComposeScreenshotPlugin = hasComposeScreenshotPlugin,
+      )
+
+    runWriteAction {
+      project.workspaceModel.updateProjectModel("Set GradleModuleModel") { storage ->
+        val entity = storage.resolve(ModuleId(module.name)) ?: return@updateProjectModel
+        storage.modifyModuleEntity(entity) { this.gradleModuleModel = GradleModuleModelEntity(model, entity.entitySource) }
+      }
+    }
+  }
+
+  @Test
+  fun testLegacyPluginTaskResolution() {
+    setModuleTasks(listOf("validateDebugScreenshotTest"), hasComposeScreenshotPlugin = true)
+    val project = projectRule.project
+    val runConfiguration = createAndroidGradleTestConfigurationFromClass(project, "com.example.application.MyScreenshotTest")
+    requireNotNull(runConfiguration)
+    assertEquals(":app:validateDebugScreenshotTest", runConfiguration.settings.taskNames[0])
+  }
+
+  @Ignore("b/526938996: Unblock once AGP TestSuite changes are merged")
+  @Test
+  fun testTestSuiteTaskResolution() {
+    setModuleTasks(listOf("testScreenshotTestDebugTestSuite"), hasComposeScreenshotPlugin = false)
+    val project = projectRule.project
+    val runConfiguration = createAndroidGradleTestConfigurationFromClass(project, "com.example.application.MyScreenshotTest")
+    requireNotNull(runConfiguration)
+    assertEquals(":app:testScreenshotTestDebugTestSuite", runConfiguration.settings.taskNames[0])
   }
 }

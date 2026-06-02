@@ -65,6 +65,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/testartifacts:intellij.android.testartifacts",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
+        "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models",
     ],
     test_srcs = ["testSrc"],
     test_timeout = "long",

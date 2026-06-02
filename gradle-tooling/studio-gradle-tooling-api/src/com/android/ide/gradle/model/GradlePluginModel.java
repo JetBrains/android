@@ -29,4 +29,6 @@ public interface GradlePluginModel {
   Boolean hasFtlPlugin();
 
   Boolean hasLegacyKaptPlugin();
+
+  Boolean hasComposeScreenshotPlugin();
 }
