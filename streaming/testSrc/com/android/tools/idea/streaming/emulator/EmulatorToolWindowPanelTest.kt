@@ -467,16 +467,43 @@ class EmulatorToolWindowPanelTest {
       assertThat(xrInputController.inputMode).isEqualTo(mode)
     }
 
-    val actionIdsAndModes =
-      mapOf(
-        "android.streaming.xr.interaction.hand" to XrInputMode.HAND,
-        "android.streaming.xr.interaction.eye" to XrInputMode.EYE,
-        "android.streaming.xr.interaction.mouse" to XrInputMode.MOUSE,
+    val interactButton = fakeUi.getComponent<ActionButton> { it.action.templateText == "Interact with Apps" }
+    ActivityTracker.getInstance().inc()
+    fakeUi.updateToolbarsIfNecessary()
+    assertThat(interactButton.isSelected).isFalse()
+    assertThat(interactButton.presentation.icon).isEqualTo(StudioIcons.Emulator.XR.HAND_TRACKING)
+
+    val actionTextsModesAndIcons =
+      listOf(
+        Triple("Hand Tracking", XrInputMode.HAND, StudioIcons.Emulator.XR.HAND_TRACKING),
+        Triple("Eye Tracking", XrInputMode.EYE, StudioIcons.Emulator.XR.EYE_GAZE),
+        Triple("Connected Mouse and Keyboard", XrInputMode.MOUSE, StudioIcons.Emulator.Toolbar.HARDWARE_INPUT),
       )
-    for ((actionId, mode) in actionIdsAndModes) {
-      executeAction(actionId, emulatorView, project)
+    var previousAppInteractionMode = XrInputMode.HAND
+    for ((actionText, mode, expectedIcon) in actionTextsModesAndIcons) {
+      fakeUi.mouseClickOn(interactButton)
+      assertThat(xrInputController.inputMode).isEqualTo(previousAppInteractionMode)
+      val popup = popupFactory.getNextListPopup<Any>(2.seconds)
+      val index = popup.actions.indexOfFirst { it.templateText == actionText }
+      assertThat(index).isAtLeast(0)
+      executeAction(popup.actions[index], emulatorView, project)
+      popup.cancel()
       assertThat(xrInputController.inputMode).isEqualTo(mode)
+      ActivityTracker.getInstance().inc()
+      fakeUi.updateToolbarsIfNecessary()
+      assertThat(interactButton.isSelected).isTrue()
+      assertThat(interactButton.presentation.icon).isEqualTo(expectedIcon)
+      previousAppInteractionMode = mode
+      fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == "View Direction" })
     }
+
+    xrInputController.inputMode = XrInputMode.MOUSE
+    ActivityTracker.getInstance().inc()
+    fakeUi.updateToolbarsIfNecessary()
+
+    // Clear focus and hover states from toolbar buttons to match golden image.
+    fakeUi.mouse.moveTo(0, 0)
+    fakeUi.keyboard.setFocus(emulatorView)
 
     val button = fakeUi.getComponent<ActionButton> { it.action.templateText == "Home" }
     fakeUi.mousePressOn(button)

@@ -113,9 +113,14 @@ internal abstract class AbstractXrInputController : Disposable {
         }
         val oldValue = field
         field = value
+        if (!value.isNavigation) {
+          lastAppInteractionMode = value
+        }
         firePropertyChange(INPUT_MODE_PROPERTY, oldValue, value)
       }
     }
+
+  var lastAppInteractionMode: XrInputMode = inputMode
 
   private var pressedKeysMask = 0
     set(value) {
@@ -363,14 +368,7 @@ internal abstract class AbstractXrInputController : Disposable {
 
   protected abstract fun sendVelocityUpdate(newMask: Int, oldMask: Int)
 
-  fun isMouseUsedForNavigation(): Boolean {
-    return when (inputMode) {
-      XrInputMode.VIEW_DIRECTION,
-      XrInputMode.LOCATION_IN_SPACE_XY,
-      XrInputMode.LOCATION_IN_SPACE_Z -> true
-      else -> false
-    }
-  }
+  fun isMouseUsedForNavigation(): Boolean = inputMode.isNavigation
 
   protected fun firePropertyChange(propertyName: String, oldValue: Any?, newValue: Any?) {
     val event = PropertyChangeEvent(this, propertyName, oldValue, newValue)
@@ -432,16 +430,20 @@ internal abstract class AbstractXrInputController : Disposable {
 }
 
 internal enum class XrInputMode {
-  /** Mouse and keyboard events are used to interact with running apps. */
-  MOUSE,
   /** Mouse is used to interact with running apps simulating hand tracking. */
   HAND,
   /** Mouse is used to interact with running apps simulating eye tracking. */
   EYE,
+  /** Mouse and keyboard events are used to interact with running apps. */
+  MOUSE,
   /** Relative mouse coordinates control view direction. */
   VIEW_DIRECTION,
   /** Relative mouse coordinates control location in x-y plane. Mouse wheel controls moving forward and back. */
   LOCATION_IN_SPACE_XY,
   /** Relative mouse y coordinate controls moving forward and back. */
-  LOCATION_IN_SPACE_Z,
+  LOCATION_IN_SPACE_Z;
+
+  /** Whether the input mode used for navigation in the virtual space. */
+  val isNavigation: Boolean
+    get() = this == VIEW_DIRECTION || this == LOCATION_IN_SPACE_XY || this == LOCATION_IN_SPACE_Z
 }

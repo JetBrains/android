@@ -44,27 +44,28 @@ internal class StreamingXrInputModePopupGroup : DefaultActionGroup(), Toggleable
     val container = FloatingToolbarContainer.fromActionEvent(event)
     presentation.isPopupGroup = childrenCount > 1 && (container == null || !container.collapsible || container.isActive)
 
-    val inputMode = controller.inputMode
     presentation.icon =
-      when (inputMode) {
+      when (controller.lastAppInteractionMode) {
         XrInputMode.HAND -> StudioIcons.Emulator.XR.HAND_TRACKING
         XrInputMode.EYE -> StudioIcons.Emulator.XR.EYE_GAZE
-        else -> StudioIcons.Emulator.XR.INTERACT
+        else -> StudioIcons.Emulator.Toolbar.HARDWARE_INPUT
       }
 
-    Toggleable.setSelected(presentation, inputMode == XrInputMode.HAND || inputMode == XrInputMode.EYE || inputMode == XrInputMode.MOUSE)
+    Toggleable.setSelected(presentation, !controller.inputMode.isNavigation)
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun actionPerformed(event: AnActionEvent) {
     val multipleChildren = childrenCount > 1
-    val container = FloatingToolbarContainer.fromActionEvent(event)
+    val toolbarContainer = FloatingToolbarContainer.fromActionEvent(event)
     // If the group has multiple children and the floating toolbar is collapsible but not active, in this click, activate.
-    if (multipleChildren && container?.collapsible == true && !container.isActive) {
+    if (multipleChildren && toolbarContainer?.collapsible == true && !toolbarContainer.isActive) {
       FloatingToolbarContainer.triggerActivation(event)
       return
     }
+
+    getXrInputController(event)?.apply { inputMode = lastAppInteractionMode }
 
     // Manually show the popup since isPerformGroup = true might bypass the default toolbar behavior
     val popup =
