@@ -120,6 +120,20 @@ fun SnapshotComparisonTest.assertIsEqualToSnapshot(text: String, snapshotTestSuf
   assertNoDuplicatedSnapshots()
 }
 
+fun SnapshotComparisonTest.assertIsEqualToUpdatedSnapshot(
+  text: String,
+  snapshotTestSuffix: String = "",
+  snapshotOnSaveUpdater: (String) -> String,
+  snapshotOnCompareUpdater: (String) -> String,
+) {
+  val (fullSnapshotName, expectedText) = getAndMaybeUpdateSnapshot(snapshotTestSuffix, text, snapshotOnSaveUpdater = snapshotOnSaveUpdater)
+  assertInSnapshotTextContext()
+    .that(text)
+    .named("Snapshot comparison for $fullSnapshotName")
+    .isEqualTo(snapshotOnCompareUpdater(expectedText))
+  assertNoDuplicatedSnapshots()
+}
+
 fun SnapshotComparisonTest.assertNoDuplicatedSnapshots() {
   val sanitizedTestName = sanitizeFileName(UsefulTestCase.getTestName(getName(), true))
   val duplicates = mutableListOf<File>()
@@ -168,6 +182,7 @@ fun SnapshotComparisonTest.getAndMaybeUpdateSnapshot(
   snapshotTestSuffix: String,
   text: String,
   doNotUpdate: Boolean = false,
+  snapshotOnSaveUpdater: (String) -> String = { it },
 ): Pair<String, String> {
   val sanitizedTestName = sanitizeFileName(UsefulTestCase.getTestName(getName(), true))
   val (expectedText, snapshotFile) = getExpectedTextAndFileFor(sanitizedTestName, snapshotTestSuffix)
@@ -176,10 +191,12 @@ fun SnapshotComparisonTest.getAndMaybeUpdateSnapshot(
     return snapshotFile.name to expectedText
   }
 
+  val textToStore = snapshotOnSaveUpdater(text)
+
   if (System.getProperty(updateSnapshotsJvmProperty) != null) {
     snapshotFile.run {
       println("Writing to: ${this.absolutePath}")
-      writeText(text)
+      writeText(textToStore)
     }
   } else if (TestUtils.runningFromBazel()) {
     // Populate additional test output if the file needs updating
@@ -188,7 +205,7 @@ fun SnapshotComparisonTest.getAndMaybeUpdateSnapshot(
       println("Writing updated snapshot file to bazel additional test output.\n" + "    $workspaceRelativePath")
       TestUtils.getTestOutputDir().resolve(workspaceRelativePath).run {
         Files.createDirectories(parent)
-        writeText(text)
+        writeText(textToStore)
       }
     }
   }
