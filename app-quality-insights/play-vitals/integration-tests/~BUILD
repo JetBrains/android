@@ -9,13 +9,10 @@ iml_module(
     iml_files = ["intellij.android.app-quality-insights.play-vitals.integration-tests.iml"],
     # do not sort: must match IML order
     test_deps = [
-        "//tools/adt/idea/.idea/libraries:junit4",
         "@intellij//:intellij-sdk",
         "//tools/adt/idea/as-driver:as-driver.utils",
-        "//tools/adt/idea/app-quality-insights/api:intellij.android.app-quality-insights.api",
         "//tools/adt/idea/app-quality-insights/client:intellij.android.app-quality-insights.client",
         "//tools/adt/idea/app-quality-insights/play-vitals/model:intellij.android.app-quality-insights.play-vitals.model",
-        "//tools/adt/idea/.idea/libraries:mockito",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
         "//tools/adt/idea/.idea/libraries:truth",
     ],
@@ -23,10 +20,7 @@ iml_module(
     test_srcs = ["src"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    deps = [
-        "@intellij//:com.intellij.java",
-        "@intellij//:intellij.libraries.grpc",
-    ],
+    deps = ["@intellij//:intellij.libraries.grpc"],
 )
 
 filegroup(

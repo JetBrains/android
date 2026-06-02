@@ -9,7 +9,6 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "@intellij//:intellij-sdk",
-        "@intellij//:com.intellij.java",
         "//tools/adt/idea/app-quality-insights/api:intellij.android.app-quality-insights.api",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
         "//tools/base/flags:studio.android.sdktools.flags",
@@ -21,7 +20,8 @@ iml_module(
         "//tools/adt/idea/ml-api:intellij.android.ml-api",
         "@intellij//:intellij.platform.vcs.impl",
         "@intellij//:intellij.platform.vcs.log.impl",
-        "@intellij//:intellij.platform.vcs.dvcs.impl",
+        "@intellij//:intellij.platform.vcs.log",
+        "@intellij//:intellij.platform.vcs.dvcs",
         "//tools/vendor/google/login:google-login",
         "@intellij//:intellij.libraries.grpc",
         "//tools/adt/idea/android:intellij.android.core",
@@ -38,9 +38,7 @@ iml_module(
     test_data = glob(["testData/**"]),
     # do not sort: must match IML order
     test_deps = [
-        "//tools/adt/idea/.idea/libraries:junit4",
         "//tools/adt/idea/.idea/libraries:truth",
-        "//tools/adt/idea/.idea/libraries:mockito",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
         "//tools/base/testutils:studio.android.sdktools.testutils",
@@ -57,10 +55,8 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:kotlin-test",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/adt/idea/ml-api:intellij.android.ml-api",
-        "//tools/adt/idea/server-flags:intellij.android.server-flags",
         "@intellij//:intellij.platform.vcs.impl",
         "//tools/vendor/google/login:google-login",
-        "@intellij//:test-framework",
         "//tools/adt/idea/android:intellij.android.core",
         "//tools/adt/idea/app-quality-insights/client:intellij.android.app-quality-insights.client",
     ],
@@ -70,7 +66,6 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
-        "@intellij//:org.jetbrains.kotlin",
         "@intellij//:intellij.libraries.grpc",
         "@intellij//:intellij.java.execution",
     ],
