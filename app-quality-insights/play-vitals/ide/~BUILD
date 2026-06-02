@@ -10,7 +10,6 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "@intellij//:intellij-sdk",
-        "@intellij//:com.intellij.java",
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/adt/idea/app-quality-insights/ide:intellij.android.app-quality-insights.ide",
@@ -21,10 +20,7 @@ iml_module(
         "//tools/adt/idea/app-quality-insights/play-vitals/model:intellij.android.app-quality-insights.play-vitals.model",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/vendor/google/login:google-login",
-        "//tools/adt/idea/.idea/libraries:javax-inject",
-        "//tools/adt/idea/android:intellij.android.core",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
-        "//tools/adt/idea/ml-api:intellij.android.ml-api",
         "@intellij//:intellij.libraries.grpc",
         "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
         "//tools/adt/idea/artwork-compose:intellij.android.artwork-compose",
@@ -42,7 +38,6 @@ iml_module(
     test_class = "com.android.tools.idea.vitals.VitalsIdeTestSuite",
     # do not sort: must match IML order
     test_deps = [
-        "//tools/adt/idea/.idea/libraries:junit4",
         "@intellij//:intellij-sdk",
         "//tools/base/testutils:studio.android.sdktools.testutils",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
@@ -51,27 +46,17 @@ iml_module(
         "//tools/adt/idea/app-quality-insights/ide:intellij.android.app-quality-insights.ide",
         "//tools/adt/idea/app-quality-insights/play-vitals/ide:intellij.android.app-quality-insights.play-vitals.ide",
         "//tools/adt/idea/.idea/libraries:truth",
-        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
-        "//tools/adt/idea/.idea/libraries:mockito",
         "//tools/vendor/google/login:google-login",
-        "//tools/base/studio-grpc-testutils:studio.studio-grpc-testutils",
         "//tools/adt/idea/app-quality-insights/ui:intellij.android.app-quality-insights.ui",
         "//tools/adt/idea/app-quality-insights/play-vitals/view:intellij.android.app-quality-insights.play-vitals.view",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
-        "//tools/adt/idea/.idea/libraries:kotlin-test",
-        "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
         "//tools/adt/idea/app-quality-insights/client:intellij.android.app-quality-insights.client",
         "//tools/adt/idea/app-quality-insights/play-vitals/model:intellij.android.app-quality-insights.play-vitals.model",
         "//tools/vendor/google/login/onboarding:login.onboarding",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
-    # do not sort: must match IML order
-    deps = [
-        "@intellij//:com.intellij.java",
-        "@intellij//:intellij.libraries.grpc",
-    ],
 )

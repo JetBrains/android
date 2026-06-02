@@ -10,12 +10,10 @@ iml_module(
     # do not sort: must match IML order
     test_deps = [
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
-        "//tools/adt/idea/.idea/libraries:junit4",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
         "//tools/adt/idea/.idea/libraries:truth",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
-        "//tools/adt/idea/.idea/libraries:mockito",
         "//tools/base/testutils:studio.android.sdktools.testutils",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing",
     ],
@@ -29,7 +27,6 @@ iml_module(
         "//tools/adt/idea/lint:intellij.lint",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/analytics-library/tracker:analytics-tracker",
-        "//tools/adt/idea/.idea/libraries:protobuf-kotlin",
         "//tools/adt/idea/android:intellij.android.core",
     ],
 )

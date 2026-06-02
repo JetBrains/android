@@ -7,10 +7,7 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.app-quality-insights.client.iml"],
     # do not sort: must match IML order
-    test_deps = [
-        "//tools/adt/idea/.idea/libraries:junit4",
-        "//tools/adt/idea/.idea/libraries:truth",
-    ],
+    test_deps = ["//tools/adt/idea/.idea/libraries:truth"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

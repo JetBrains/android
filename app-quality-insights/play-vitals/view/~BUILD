@@ -9,9 +9,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "@intellij//:intellij-sdk",
-        "@intellij//:com.intellij.java",
         "//tools/adt/idea/artwork:intellij.android.artwork",
-        "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/adt/idea/app-quality-insights/api:intellij.android.app-quality-insights.api",
         "//tools/adt/idea/app-quality-insights/client:intellij.android.app-quality-insights.client",
@@ -31,10 +29,8 @@ iml_module(
     test_class = "com.android.tools.idea.vitals.ui.VitalsUiTestSuite",
     # do not sort: must match IML order
     test_deps = [
-        "//tools/adt/idea/.idea/libraries:junit4",
         "@intellij//:intellij-sdk",
         "//tools/adt/idea/.idea/libraries:truth",
-        "@intellij//:test-framework",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
         "//tools/adt/idea/.idea/libraries:kotlin-test",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
@@ -45,7 +41,6 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
         "//tools/adt/idea/app-quality-insights/play-vitals/model:intellij.android.app-quality-insights.play-vitals.model",
         "//tools/adt/idea/app-quality-insights/ui:intellij.android.app-quality-insights.ui",
-        "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/adt/idea/artwork:intellij.android.artwork",
         "//tools/adt/idea/app-quality-insights/ui:intellij.android.app-quality-insights.ui.tests",
         "//tools/adt/idea/app-quality-insights/client:intellij.android.app-quality-insights.client",
@@ -53,8 +48,5 @@ iml_module(
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    deps = [
-        "@intellij//:com.intellij.java",
-        "@intellij//:intellij.java.execution",
-    ],
+    deps = ["@intellij//:intellij.java.execution"],
 )
