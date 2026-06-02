@@ -983,6 +983,7 @@ studio_plugin(
         "@intellij//:intellij.platform.vcs.dvcs",
         "@intellij//:intellij.platform.vcs.dvcs.impl",
         "@intellij//:intellij.platform.vcs.impl",
+        "@intellij//:intellij.platform.vcs.impl.shared",
         "@intellij//:intellij.platform.vcs.log",
         "@intellij//:intellij.platform.vcs.log.graph",
         "@intellij//:intellij.platform.vcs.log.impl",
