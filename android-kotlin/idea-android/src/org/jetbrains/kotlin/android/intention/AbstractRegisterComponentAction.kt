@@ -17,7 +17,6 @@
 package org.jetbrains.kotlin.android.intention
 
 import com.android.tools.idea.kotlin.insideBody
-import com.android.tools.idea.kotlin.isSubclassOf
 import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
@@ -35,10 +34,7 @@ import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteActio
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.android.isSubclassOf
 import org.jetbrains.kotlin.asJava.toLightClass
-import org.jetbrains.kotlin.descriptors.ClassDescriptor
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.intentions.SelfTargetingIntention
-import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtClass
@@ -70,24 +66,18 @@ abstract class AbstractRegisterComponentAction<T : ApplicationComponent>(
     }
 
     @OptIn(KaAllowAnalysisOnEdt::class)
-    private fun KtClass.isSubclassOfComponentType(): Boolean =
-        if (KotlinPluginModeProvider.isK2Mode()) {
-            allowAnalysisOnEdt {
-                @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
-                allowAnalysisFromWriteAction {
-                    analyze(this@isSubclassOfComponentType) {
-                        isSubclassOf(
-                            this@isSubclassOfComponentType,
-                            ClassId.topLevel(FqName(componentClassName)),
-                            strict = true
-                        )
-                    }
-                }
+    private fun KtClass.isSubclassOfComponentType(): Boolean = allowAnalysisOnEdt {
+        @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
+        allowAnalysisFromWriteAction {
+            analyze(this@isSubclassOfComponentType) {
+                isSubclassOf(
+                    this@isSubclassOfComponentType,
+                    ClassId.topLevel(FqName(componentClassName)),
+                    strict = true
+                )
             }
         }
-        else {
-            (descriptor as? ClassDescriptor)?.defaultType?.isSubclassOf(componentClassName, strict = true) ?: false
-        }
+    }
 
     private fun KtClass.isRegisteredComponent(manifest: Manifest): Boolean =
         manifest.application.getCurrentComponents().any {
