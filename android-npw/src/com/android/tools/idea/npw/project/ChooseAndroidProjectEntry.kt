@@ -26,6 +26,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.npw.model.NewProjectModel
 import com.android.tools.idea.npw.model.NewProjectModuleModel
+import com.android.tools.idea.npw.startup.PromotionTemplateStateService
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.wizard.template.Template.NoActivity
 import com.android.tools.idea.wizard.template.WizardUiContext
@@ -104,6 +105,7 @@ class FormFactorProjectEntry(
       onSuccess = Runnable {
         // checks if the plugin needs a restart and shows restart dialog if it does
         if (InstalledPluginsState.getInstance().wasInstalled(id)) {
+          PromotionTemplateStateService.getInstance().requestNpwReopenOnNextStartup()
           PluginManagerConfigurable.shutdownOrRestartApp()
         }
       },
