@@ -16,12 +16,14 @@
 package com.android.screenshottest.producers
 
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.gradleModuleModel
 import com.android.tools.idea.projectsystem.CommonTestType
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.containsFile
 import com.intellij.execution.Location
 import com.intellij.execution.actions.ConfigurationContext
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
@@ -64,6 +66,12 @@ fun isScreenshotTestSourceSet(location: Location<PsiElement>, facet: AndroidFace
   return false
 }
 
+/** Checks if the module has the legacy standalone screenshot plugin applied. */
+fun isLegacyScreenshotPluginApplied(module: Module): Boolean {
+  val gradleModuleModel = module.gradleModuleModel ?: return false
+  return gradleModuleModel.hasComposeScreenshotPlugin
+}
+
 /**
  * Retrieves the name of the Gradle task for screenshot validation . It uses the Gradle Android model and module data to construct the task
  * names.
@@ -76,9 +84,12 @@ fun getScreenshotTestTaskNames(context: ConfigurationContext): List<String>? {
   val facet = AndroidFacet.getInstance(myModule) ?: return null
   val androidModel = GradleAndroidModel.get(facet) ?: return null
   val moduleData = GradleUtil.findGradleModuleData(myModule)?.data ?: return null
-  return listOf(
-    moduleData.gradleIdentityPath.trimEnd(':') + ":" + androidModel.getGradleScreenshotTestTaskNameForSelectedVariant("validate")
-  )
+  val modulePath = moduleData.gradleIdentityPath.trimEnd(':')
+
+  // TODO(b/526938996): Re-enable dynamic task resolution for standard TestSuite API once AGP support is merged.
+  // Active fallback to unblock merging:
+  val taskName = androidModel.getGradleScreenshotTestTaskNameForSelectedVariant("validate")
+  return listOf("$modulePath:$taskName")
 }
 
 /**
