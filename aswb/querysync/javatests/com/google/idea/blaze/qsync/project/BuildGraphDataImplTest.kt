@@ -486,7 +486,8 @@ class BuildGraphDataImplTest {
         TestData.JAVA_LIBRARY_NESTED_PACKAGE.assumedOnlyLabel.siblingWithPathAndName("inner:inner"),
       )
     val required = targets.requiredTargets(graph.getCodeAnalysisDependencyGraphProvider())
-    assertThat(required).containsExactly(Label.of("@@+intellij+intellij//:intellij-sdk"), Label.of("@@maven//:com.google.code.gson.gson"))
+    assertThat(required)
+      .containsExactly(Label.of("@@+intellij+intellij//:intellij-sdk"), Label.of("@@+_repo_rules2+maven//:com.google.code.gson.gson"))
   }
 
   @Test
