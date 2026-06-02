@@ -212,6 +212,7 @@ studiobot.edit.chat.request.button.enabled=PREVIEW
 studiobot.editor.action.context.enabled=INTERNAL
 studiobot.editor.ai.experimental.slash.commands.enabled=PREVIEW
 studiobot.editor.ai.multifile.transform.output.enabled=INTERNAL
+studiobot.editor.ai.render.tool.rollback.enabled=PREVIEW
 studiobot.editor.ai.transform.history.enabled=COMPLETE:2024
 studiobot.editor.ai.transform.session.diff.editor.viewer.enabled=PREVIEW
 studiobot.editor.ai.transforms.enabled=COMPLETE:2024
