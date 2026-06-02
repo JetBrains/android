@@ -661,10 +661,15 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
     FileUtils.copyDirectory(prebuiltSdk.toFile(), sdkDir.toFile());
   }
 
+  /** JDK that is bundled with this IDE installation */
+  public Path bundledJdkPath() {
+    return TestUtils.getEmbeddedJdkPath();
+  }
+
   public void setupJdkAtTmpDir() throws IOException {
     Path jdkDir = getJdkDir();
     Files.createDirectories(jdkDir);
-    FileUtils.copyDirectory(TestUtils.getJava21Jdk().toFile(), jdkDir.toFile());
+    FileUtils.copyDirectory(bundledJdkPath().toFile(), jdkDir.toFile());
   }
 
   public void copySystemDir(Path projectArtifactsPath) throws IOException {

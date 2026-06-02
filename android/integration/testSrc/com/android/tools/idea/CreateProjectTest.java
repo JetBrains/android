@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea;
 
+import static com.android.tools.asdriver.tests.AndroidStudioInstallation.AndroidStudioFlavor.FOR_EXTERNAL_USERS;
+import static com.android.tools.asdriver.tests.AndroidSystem.JdkVersion.JDK_21;
+
 import com.android.testutils.TestUtils;
 import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidSystem;
@@ -23,7 +26,6 @@ import com.android.tools.asdriver.tests.MavenRepo;
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher;
 import com.android.tools.asdriver.tests.MemoryUsageReportProcessor;
 import com.android.tools.asdriver.tests.UIXpathGenerator;
-import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.util.SystemInfo;
 import java.nio.file.Path;
 import org.junit.Ignore;
@@ -49,7 +51,8 @@ import org.junit.Test;
  */
 public class CreateProjectTest {
   @Rule
-  public AndroidSystem system = AndroidSystem.standard();
+  // TODO(b/510866256) Test new project wizard with Studio's bundled JDK
+  public AndroidSystem system = AndroidSystem.withCustomJdkForGradle(FOR_EXTERNAL_USERS, JDK_21);
 
   @Rule
   public MemoryDashboardNameProviderWatcher watcher = new MemoryDashboardNameProviderWatcher();
@@ -69,9 +72,6 @@ public class CreateProjectTest {
     String distributionPath = "tools/external/gradle/";
     String localDistributionUrl = TestUtils.resolveWorkspacePathUnchecked(distributionPath).toUri().toString();
     system.getInstallation().addVmOption("-Dgradle.ide.local.distribution.url=" + localDistributionUrl);
-
-    Path jdk21Path = TestUtils.getJava21Jdk();
-    system.setEnv(IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME, jdk21Path.toString());
 
     // Prevent a "Trust project" dialog from appearing, which would prevent Gradle from syncing.
     // This is only needed on macOS and only when running from IDEA.
