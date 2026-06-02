@@ -66,6 +66,16 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.util.Computable;
+import com.android.tools.idea.projectsystem.RegisteredDependencyCompatibilityResult;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.DoNotAskOption;
 import com.intellij.openapi.ui.MessageDialogBuilder;
@@ -516,28 +526,127 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
         RegisteringModuleSystem<@NotNull RegisteredDependencyQueryId, @NotNull RegisteredDependencyId> registeringModuleSystem =
             moduleSystem.getRegisteringModuleSystem();
         if (registeringModuleSystem != null) {
+          // 1. Run a non-blocking background task with a progress bar in the IDE status bar
+          Task.Backgroundable task = new Task.Backgroundable(myProject, "Resolving Dependency Version...", true) {
+            @Override
+            public void run(@NotNull ProgressIndicator indicator) {
+              try {
+                // 2. Get the unresolved ID (which contains the '+' version fallback)
+                RegisteredDependencyId unresolvedId = ApplicationManager.getApplication().runReadAction(
+                    (Computable<RegisteredDependencyId>) () -> registeringModuleSystem.getRegisteredDependencyId(artifact)
+                );
 
-          WriteCommandAction.runWriteCommandAction(myProject, "Add " + artifact.toString(), null, () -> {
-            registeringModuleSystem.registerDependency(artifact, dependencyType);
-          });
+                // 3. Force the project system to analyze it. This safely resolves the '+' to a concrete version via the background index fetch!
+                ListenableFuture<RegisteredDependencyCompatibilityResult<RegisteredDependencyId>> compatibilityFuture =
+                    registeringModuleSystem.analyzeDependencyCompatibility(List.of(unresolvedId));
 
-          ProjectSystemSyncManager syncManager = ProjectSystemUtil.getSyncManager(myProject);
-          ListenableFuture<ProjectSystemSyncManager.SyncResult> syncResult = syncManager.requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
+                RegisteredDependencyId tempResolvedId;
+                if (compatibilityFuture != null) {
+                  RegisteredDependencyCompatibilityResult<RegisteredDependencyId> result;
+                  try {
+                    final long timeoutSeconds = 10;
+                    final long pollIntervalMs = 100;
 
-          syncResult.addListener(() -> {
-            try {
-              future.complete(syncResult.get().isSuccessful());
+                    long startTimeNs = System.nanoTime();
+                    long timeoutNs = TimeUnit.SECONDS.toNanos(timeoutSeconds);
+
+                    // Poll the future, allowing the user to cancel the progress bar
+                    while (!compatibilityFuture.isDone()) {
+                      indicator.checkCanceled();
+
+                      // Use a 10-second timeout to prevent hanging on bad network
+                      if (System.nanoTime() - startTimeNs > timeoutNs) {
+                        throw new TimeoutException("Compatibility analysis timed out after " + timeoutSeconds + " seconds.");
+                      }
+                      try {
+                        compatibilityFuture.get(pollIntervalMs, TimeUnit.MILLISECONDS);
+                      } catch (TimeoutException ignored) {
+                        // Expected during polling. Keep looping.
+                      }
+                    }
+                    result = compatibilityFuture.get();
+
+                    // 4. Extract the concrete, resolved ID if available
+                    if (result.getCompatible().containsKey(unresolvedId)) {
+                      tempResolvedId = result.getCompatible().get(unresolvedId);
+                      getLogger().info("Successfully resolved " + artifact + " to concrete version: " + tempResolvedId);
+                    } else {
+                      tempResolvedId = unresolvedId;
+                      getLogger().warn("Failed to resolve exact version for " + artifact + ". Falling back to dynamic version.");
+                    }
+                  } catch (ProcessCanceledException pce) {
+                    // Handled correctly, complete future as false to safely abort the injection process
+                    compatibilityFuture.cancel(true);
+                    getLogger().info("User canceled dependency injection for " + artifact);
+                    future.complete(false);
+                    throw pce; // Rethrow to let IntelliJ ProgressManager know the task was canceled
+                  } catch (TimeoutException timeoutEx) {
+                    compatibilityFuture.cancel(true);
+                    tempResolvedId = unresolvedId;
+                    getLogger().warn("Network timeout resolving " + artifact + ". Falling back to dynamic version.");
+                  } catch (Exception ex) {
+                    compatibilityFuture.cancel(true);
+                    if (ex instanceof InterruptedException) {
+                      Thread.currentThread().interrupt(); // Restore interrupt status
+                    }
+                    tempResolvedId = unresolvedId;
+                    getLogger().warn("Exception resolving " + artifact + ". Falling back to dynamic version.", ex);
+                  }
+                } else {
+                  // Fallback for tests or unexpected mock behaviors where the future is null
+                  tempResolvedId = unresolvedId;
+                  getLogger().warn("Compatibility analysis returned null future. Falling back to dynamic version.");
+                }
+
+                final RegisteredDependencyId finalResolvedId = tempResolvedId;
+
+                // 5. Safely inject the concrete version on the UI thread
+                ApplicationManager.getApplication().invokeLater(() -> {
+                  try {
+                    if (myProject.isDisposed()) {
+                      future.complete(false);
+                      return;
+                    }
+
+                    WriteCommandAction.runWriteCommandAction(myProject, "Add " + artifact.toString(), null, () -> {
+                      registeringModuleSystem.registerDependency(finalResolvedId, dependencyType); // Use finalResolvedId!
+                    });
+
+                    ProjectSystemSyncManager syncManager = ProjectSystemUtil.getSyncManager(myProject);
+                    ListenableFuture<ProjectSystemSyncManager.SyncResult> syncResult = syncManager.requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
+
+                    syncResult.addListener(() -> {
+                      try {
+                        future.complete(syncResult.get().isSuccessful());
+                      }
+                      catch (Exception e) {
+                        getLogger().warn("Sync failed or interrupted", e);
+                        AndroidNotification.getInstance(myProject).showBalloon(
+                          "LeakCanary",
+                          "Failed to sync project after adding " + artifact + " dependency.",
+                          NotificationType.WARNING
+                        );
+                        future.complete(false);
+                      }
+                    }, command -> command.run());
+                  } catch (Exception e) {
+                    getLogger().error("Failed to inject dependency on UI thread", e);
+                    future.complete(false);
+                  }
+                }, ModalityState.defaultModalityState());
+              } catch (ProcessCanceledException pce) {
+                throw pce;
+              } catch (Exception ex) {
+                getLogger().error("Error resolving dependency version for " + artifact, ex);
+                future.complete(false);
+              }
             }
-            catch (Exception e) {
-              getLogger().warn("Sync failed or interrupted", e);
-              AndroidNotification.getInstance(myProject).showBalloon(
-                "LeakCanary",
-                "Failed to sync project after adding " + artifact + " dependency.",
-                NotificationType.WARNING
-              );
-              future.complete(false);
-            }
-          }, command -> command.run());
+          };
+          if (ApplicationManager.getApplication().isUnitTestMode()) {
+            task.run(new EmptyProgressIndicator());
+          } else {
+            ProgressManager.getInstance().run(task);
+          }
         } else {
           future.complete(false);
         }

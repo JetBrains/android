@@ -249,11 +249,22 @@ class IntellijProfilerServicesTest {
     doReturn(true).whenever(mocks.services).showConfirmationDialog(any(), any(), any())
     whenever(mocks.syncManager.requestSyncProject(any())).thenReturn(mock())
 
+    // Mock background resolution
+    val unresolvedId = mock<RegisteredDependencyId>()
+    whenever(mocks.registeringModuleSystem.getRegisteredDependencyId(artifact)).thenReturn(unresolvedId)
+
+    val resolvedId = mock<RegisteredDependencyId>()
+    val compatibilityResult = mock<com.android.tools.idea.projectsystem.RegisteredDependencyCompatibilityResult<RegisteredDependencyId>>()
+    whenever(compatibilityResult.compatible).thenReturn(mapOf(unresolvedId to resolvedId))
+
+    whenever(mocks.registeringModuleSystem.analyzeDependencyCompatibility(listOf(unresolvedId)))
+      .thenReturn(com.google.common.util.concurrent.Futures.immediateFuture(compatibilityResult))
+
     mocks.services.addDependency(artifact, DependencyType.IMPLEMENTATION)
     ApplicationManager.getApplication().invokeAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
 
     verify(mocks.services).showConfirmationDialog(any(), eq(artifact), eq(DependencyType.IMPLEMENTATION))
-    verify(mocks.registeringModuleSystem).registerDependency(eq(artifact), eq(DependencyType.IMPLEMENTATION))
+    verify(mocks.registeringModuleSystem).registerDependency(eq(resolvedId), eq(DependencyType.IMPLEMENTATION))
     verify(mocks.syncManager).requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
   }
 
