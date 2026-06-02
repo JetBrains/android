@@ -152,7 +152,7 @@ open class DetailsViewContentView(
     logger.addImpressionWhenDisplayed(myLogsView.component, ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_LOG_VIEW)
 
     val logsViewWithVerticalToolbar =
-      createAccessiblePanel(BorderLayout(), accessibleName = "Logs View", roleOnMac = javax.accessibility.AccessibleRole.PANEL).apply {
+      createAccessiblePanel(BorderLayout(), accessibleName = "Logs View", roleOnMac = AccessibleRole.PANEL).apply {
         isOpaque = false
         isFocusable = true
       }
@@ -176,7 +176,7 @@ open class DetailsViewContentView(
     myBenchmarkView = ConsoleViewImpl(project, /* viewer= */ true)
     Disposer.register(this, myBenchmarkView)
     val benchmarkViewWithVerticalToolbar =
-      createAccessiblePanel(BorderLayout(), accessibleName = "Benchmark View", roleOnMac = javax.accessibility.AccessibleRole.PANEL).apply {
+      createAccessiblePanel(BorderLayout(), accessibleName = "Benchmark View", roleOnMac = AccessibleRole.PANEL).apply {
         isOpaque = false
         isFocusable = true
       }
