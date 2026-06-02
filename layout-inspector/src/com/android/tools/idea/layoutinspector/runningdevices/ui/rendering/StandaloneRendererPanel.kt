@@ -28,6 +28,10 @@ class StandaloneRendererPanel(disposable: Disposable, scope: CoroutineScope, ren
   /** The rectangle delimiting the drawing area */
   private val drawRectangleProvider: () -> Rectangle = { renderModel.inspectorModel.root.layoutBounds }
 
+  private val smallestXProvider: () -> Int = { renderModel.inspectorModel.windows.values.minOfOrNull { it.root.layoutBounds.x } ?: 0 }
+
+  private val smallestYProvider: () -> Int = { renderModel.inspectorModel.windows.values.minOfOrNull { it.root.layoutBounds.y } ?: 0 }
+
   private val scaleProvider: () -> Double = { renderModel.renderSettings.scaleFraction }
 
   override val interceptClicks = true
@@ -36,17 +40,20 @@ class StandaloneRendererPanel(disposable: Disposable, scope: CoroutineScope, ren
     return AffineTransform().apply {
       val drawRectangle = drawRectangleProvider()
       val scale = scaleProvider()
+      val smallestX = smallestXProvider()
+      val smallestY = smallestYProvider()
 
       // Translate to center of the panel
       translate(size.width / 2.0, size.height / 2.0)
       scale(scale, scale)
       // Center the rendering
-      translate(-drawRectangle.width / 2.0, -drawRectangle.height / 2.0)
+      translate(-(smallestX + drawRectangle.width / 2.0), -(smallestY + drawRectangle.height / 2.0))
     }
   }
 
   override fun getOverlayBounds(transform: AffineTransform): Rectangle {
-    return drawRectangleProvider()
+    val drawRectangle = drawRectangleProvider()
+    return Rectangle(smallestXProvider(), smallestYProvider(), drawRectangle.width, drawRectangle.height)
   }
 
   override fun getPreferredSize(): Dimension {

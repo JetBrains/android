@@ -83,6 +83,28 @@ class StandaloneRendererPanelTest {
   }
 
   @Test
+  fun testRenderingCenteredWithOffsets() {
+    // Root view starts at (100, 1200) instead of (0, 0), with size 200x300
+    val offsetModel =
+      model(disposable) {
+        view(ROOT, 100, 1200, deviceScreenDimension.width, deviceScreenDimension.height) { view(VIEW1, 150, 1250, 50, 50) }
+      }
+    val (_, renderer) = createRenderer(inspectorModel = offsetModel)
+    renderer.setSize(screenDimension.width, screenDimension.height)
+
+    // The preferred size should still be exactly the size of the content (200x300)
+    assertThat(renderer.preferredSize).isEqualTo(Dimension(deviceScreenDimension.width, deviceScreenDimension.height))
+
+    // Paint the image
+    val renderImage = createRenderImage()
+    paint(renderImage, renderer)
+
+    // Assert that it is rendered identically to the testRenderingCentered because the transform
+    // should offset the start coordinate (100, 1200) perfectly to center the content in the 500x500 canvas!
+    assertSimilar(renderImage, "testRenderingCentered")
+  }
+
+  @Test
   fun testRenderingScaled() {
     val (_, renderer) = createRenderer()
     renderer.setSize(screenDimension.width, screenDimension.height)
