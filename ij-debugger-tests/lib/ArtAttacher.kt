@@ -39,6 +39,7 @@ import com.intellij.openapi.util.io.toNioPathOrNull
 import com.intellij.ui.classFilter.ClassFilter
 import com.intellij.util.io.Compressor
 import com.intellij.util.io.delete
+import java.io.BufferedReader
 import java.lang.ProcessBuilder.Redirect.PIPE
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
@@ -54,6 +55,10 @@ import kotlin.io.path.isDirectory
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.notExists
 import kotlin.io.path.pathString
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
 import org.jetbrains.kotlin.android.debugger.AndroidDexerImpl
 import org.jetbrains.kotlin.idea.debugger.evaluate.classLoading.AndroidDexer
 import org.jetbrains.kotlin.idea.debugger.test.KotlinDescriptorTestCase
@@ -142,18 +147,26 @@ internal class ArtAttacher : VmAttacher {
     }
     val command = buildCommandLine(dexFiles, mainClass)
     val art = ProcessBuilder().command(command).redirectOutput(PIPE).start()
+    val stdout = art.inputStream.bufferedReader()
+    val stderr = art.errorStream.bufferedReader()
 
-    val port: String =
-      art.inputStream.bufferedReader().use {
-        while (true) {
-          val line = it.readLine() ?: break
-          if (line.startsWith("Listening for transport")) {
-            val port = line.substringAfterLast(" ")
-            return@use port
-          }
+    val port = run {
+      while (true) {
+        val line = stdout.readLine() ?: break
+        logStdout(line)
+        if (line.startsWith("Listening for transport")) {
+          val port = line.substringAfterLast(" ")
+          return@run port
         }
-        throw IllegalStateException("Failed to read listening port from ART")
       }
+      throw IllegalStateException("Failed to read listening port from ART")
+    }
+
+    logArtOutput(stdout, stderr)
+    Disposer.register(disposable) {
+      val exitCode = art.waitFor()
+      println("ART process completed with exit code $exitCode")
+    }
 
     return RemoteConnectionBuilder(false, DebuggerSettings.SOCKET_TRANSPORT, port)
       .checkValidity(true)
@@ -267,3 +280,20 @@ private inline fun <reified T : Any> ComponentManager.registerExtension(ep: Exte
   @Suppress("UnstableApiUsage") CoreApplicationEnvironment.registerExtensionPoint(extensionArea, ep, T::class.java)
   extensionArea.getExtensionPoint(ep).registerExtension(extension, disposable)
 }
+
+fun logArtOutput(stdout: BufferedReader, stderr: BufferedReader) {
+  CoroutineScope(Dispatchers.Default).launch {
+    val outputJob = launch(Dispatchers.IO) { stdout.forEachLine(::logStdout) }
+
+    val errorJob = launch(Dispatchers.IO) { stderr.forEachLine(::logStderr) }
+    joinAll(outputJob, errorJob)
+    stdout.close()
+    stderr.close()
+  }
+}
+
+private fun logStdout(line: String) = logArt("stdout", line)
+
+private fun logStderr(line: String) = logArt("stderr", line)
+
+private fun logArt(type: String, line: String) = println("ART $type: $line")
