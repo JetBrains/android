@@ -2827,6 +2827,11 @@ public final class StudioFlags {
                     "Enable user quota UI",
                     "When enabled, shows user's quota information in the chat UI.");
 
+  public static final Flag<Boolean> STUDIOBOT_CCPA_LIST_MODELS_ENABLED =
+    new BooleanFlag(STUDIOBOT, "ccpa.list.models.enabled",
+                    "Enable integration with CCPA ListModels API",
+                    "When enabled, enterprise users can expect to see list of models instead of Default model in model picker");
+
   public static final Flag<Boolean> STUDIOBOT_SHOW_ON_FIRST_OPEN =
     new BooleanFlag(STUDIOBOT,
                     "show.on.first.open",
