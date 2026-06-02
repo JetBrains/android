@@ -1174,7 +1174,7 @@ internal class EmulatorView(
       if (xrInputController?.mousePressed(event, deviceDisplaySize, deviceScaleFactor) == true) {
         return
       }
-      val insideTouchScreen = isInsideDisplayAndMouseInputIsSupported(event)
+      val insideTouchScreen = isInsideDisplayAndMouseInputSupported(event)
       if (handlePopup(event, insideTouchScreen)) {
         return
       }
@@ -1195,7 +1195,7 @@ internal class EmulatorView(
       if (xrInputController?.mouseReleased(event, deviceDisplaySize, deviceScaleFactor) == true) {
         return
       }
-      val insideTouchScreen = isInsideDisplayAndMouseInputIsSupported(event)
+      val insideTouchScreen = isInsideDisplayAndMouseInputSupported(event)
       if (handlePopup(event, insideTouchScreen)) {
         return
       }
@@ -1248,7 +1248,7 @@ internal class EmulatorView(
       }
       updateMultiTouchMode(event)
       if (
-        isInsideDisplayAndMouseInputIsSupported(event) &&
+        isInsideDisplayAndMouseInputSupported(event) &&
           !virtualSceneCameraOperating &&
           !multiTouchMode &&
           (currentButtons and BUTTON_MASK) == 0
@@ -1393,7 +1393,7 @@ internal class EmulatorView(
       return Touch.newBuilder().setX(x).setY(y).setIdentifier(identifier).setPressure(pressure).setExpiration(NEVER_EXPIRE)
     }
 
-    private fun isInsideDisplayAndMouseInputIsSupported(event: MouseEvent): Boolean =
+    private fun isInsideDisplayAndMouseInputSupported(event: MouseEvent): Boolean =
       deviceType != DeviceType.AI_GLASSES && isInsideDisplay(event)
 
     private fun isInsideDisplay(event: MouseEvent): Boolean =
