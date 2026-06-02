@@ -43,14 +43,7 @@ import org.jetbrains.kotlin.asJava.LightClassUtil
 import org.jetbrains.kotlin.asJava.findFacadeClass
 import org.jetbrains.kotlin.asJava.getAccessorLightMethods
 import org.jetbrains.kotlin.asJava.toLightElements
-import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.StandardNames
-import org.jetbrains.kotlin.descriptors.ClassKind
-import org.jetbrains.kotlin.descriptors.PropertyDescriptor
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
-import org.jetbrains.kotlin.idea.caches.resolve.analyze as analyzeFe10
-import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
-import org.jetbrains.kotlin.idea.util.findAnnotation as findAnnotationK1
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtAnnotatedExpression
@@ -72,12 +65,6 @@ import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtVariableDeclaration
 import org.jetbrains.kotlin.psi.psiUtil.getQualifiedExpressionForReceiver
 import org.jetbrains.kotlin.psi.psiUtil.getQualifiedExpressionForSelector
-import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.constants.evaluate.ConstantExpressionEvaluator
-import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
-import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
-import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.TypeUtils
 
 /** Checks if the given offset is within [KtClass.getBody] of this [KtClass]. */
 fun KtClass.insideBody(offset: Int): Boolean =
@@ -95,15 +82,9 @@ inline fun <T> KaSession?.applyOrAnalyze(element: KtElement, block: KaSession.()
 
 /** Checks if this [KtProperty] has a backing field or implements get/set on its own. */
 fun KtProperty.hasBackingField(analysisSession: KaSession? = null): Boolean {
-  if (KotlinPluginModeProvider.isK2Mode()) {
-    analysisSession.applyOrAnalyze(this) {
-      val symbol = symbol as? KaPropertySymbol ?: return false
-      return symbol.hasBackingField
-    }
-  } else {
-    val propertyDescriptor = descriptor as? PropertyDescriptor ?: return false
-    return analyzeFe10(BodyResolveMode.PARTIAL)[
-      BindingContext.BACKING_FIELD_REQUIRED, propertyDescriptor] ?: false
+  return analysisSession.applyOrAnalyze(this) {
+    val symbol = symbol as? KaPropertySymbol
+    symbol?.hasBackingField ?: false
   }
 }
 
@@ -111,15 +92,8 @@ fun KtProperty.hasBackingField(analysisSession: KaSession? = null): Boolean {
  * Computes the qualified name of this [KtAnnotationEntry]. Prefer to use [fqNameMatches], which
  * checks the short name first and thus has better performance.
  */
-fun KtAnnotationEntry.getQualifiedName(analysisSession: KaSession? = null): String? {
-  return if (KotlinPluginModeProvider.isK2Mode()) {
-    analysisSession.applyOrAnalyze(this) {
-      resolveToCall()?.singleConstructorCallOrNull()?.symbol?.containingClassId?.asFqNameString()
-    }
-  } else {
-    analyzeFe10(BodyResolveMode.PARTIAL).get(BindingContext.ANNOTATION, this)?.fqName?.asString()
-  }
-}
+fun KtAnnotationEntry.getQualifiedName(analysisSession: KaSession? = null): String? =
+  analysisSession.applyOrAnalyze(this) { resolveToCall()?.singleConstructorCallOrNull()?.symbol?.containingClassId?.asFqNameString() }
 
 /**
  * This function is like the function [KtAnnotationEntry.getQualifiedName] above, but for K2. It can
@@ -196,30 +170,17 @@ fun KaSession.fqNameMatches(ktAnnotationEntry: KtAnnotationEntry, fqName: String
  * Computes the qualified name for a Kotlin Class. Returns null if the class is a kotlin built-in.
  */
 fun KtClass.getQualifiedName(analysisSession: KaSession? = null): String? {
-  return if (KotlinPluginModeProvider.isK2Mode()) {
-    analysisSession.applyOrAnalyze(this) {
-      val symbol = classSymbol
-      val classId = symbol?.classId ?: return null
+  return analysisSession.applyOrAnalyze(this) {
+    val symbol = classSymbol
+    val classId = symbol?.classId ?: return null
 
-      if (
-        symbol.classKind != KaClassKind.CLASS ||
-          classId.packageFqName.startsWith(StandardNames.BUILT_INS_PACKAGE_NAME)
-      ) {
-        null
-      } else {
-        classId.asFqNameString()
-      }
-    }
-  } else {
-    val classDescriptor =
-      analyzeFe10(BodyResolveMode.PARTIAL).get(BindingContext.CLASS, this) ?: return null
     if (
-      KotlinBuiltIns.isUnderKotlinPackage(classDescriptor) ||
-        classDescriptor.kind != ClassKind.CLASS
+      symbol.classKind != KaClassKind.CLASS ||
+        classId.packageFqName.startsWith(StandardNames.BUILT_INS_PACKAGE_NAME)
     ) {
       null
     } else {
-      classDescriptor.fqNameSafe.asString()
+      classId.asFqNameString()
     }
   }
 }
@@ -294,16 +255,10 @@ tailrec fun KaSession.evaluatePossiblePropertyExpression(
 }
 
 inline fun <reified T> KtExpression.evaluateConstant(analysisSession: KaSession? = null): T? =
-  if (KotlinPluginModeProvider.isK2Mode()) {
-    analysisSession.applyOrAnalyze(this) {
-      evaluatePossiblePropertyExpression(this@evaluateConstant)
-        ?.takeUnless { it is KaConstantValue.ErrorValue }
-        ?.value as? T
-    }
-  } else {
-    ConstantExpressionEvaluator.getConstant(this, analyzeFe10())
-      ?.takeUnless { it.isError }
-      ?.getValue(TypeUtils.NO_EXPECTED_TYPE) as? T
+  analysisSession.applyOrAnalyze(this) {
+    evaluatePossiblePropertyExpression(this@evaluateConstant)
+      ?.takeUnless { it is KaConstantValue.ErrorValue }
+      ?.value as? T
   }
 
 /**
@@ -341,15 +296,6 @@ fun KtExpression.getNextInQualifiedChain(): KtExpression? {
     ?: getQualifiedExpressionForSelector()?.getQualifiedExpressionForReceiver()?.selectorExpression
 }
 
-fun KotlinType.getQualifiedName() = constructor.declarationDescriptor?.fqNameSafe
-
-fun KotlinType.isSubclassOf(className: String, strict: Boolean = false): Boolean {
-  return (!strict && getQualifiedName()?.asString() == className) ||
-    constructor.supertypes.any {
-      it.getQualifiedName()?.asString() == className || it.isSubclassOf(className, true)
-    }
-}
-
 val KtProperty.psiType: PsiType?
   get() {
     val accessors = getAccessorLightMethods()
@@ -366,21 +312,9 @@ fun KtClassOrObject.toPsiType() =
   }
 
 fun KtAnnotated.hasAnnotation(classId: ClassId): Boolean =
-  if (KotlinPluginModeProvider.isK2Mode()) {
-    mapOnDeclarationSymbol { classId in it.annotations } == true ||
-      (findAnnotationEntryByClassId(classId) != null)
-  } else {
-    findAnnotationK1(classId) != null
-  }
+  mapOnDeclarationSymbol { classId in it.annotations } == true || (findAnnotationEntryByClassId(classId) != null)
 
 fun KtAnnotated.findAnnotation(classId: ClassId): KtAnnotationEntry? =
-  if (KotlinPluginModeProvider.isK2Mode()) {
-    findAnnotationK2(classId)
-  } else {
-    findAnnotationK1(classId)
-  }
-
-private fun KtAnnotated.findAnnotationK2(classId: ClassId): KtAnnotationEntry? =
   mapOnDeclarationSymbol { it.annotations[classId].singleOrNull()?.psi as? KtAnnotationEntry }
     ?: findAnnotationEntryByClassId(classId)
 

@@ -18,14 +18,11 @@ package com.android.tools.idea.kotlin
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
-import com.google.common.truth.TruthJUnit.assume
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.RunsInEdt
 import org.intellij.lang.annotations.Language
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginMode
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
@@ -303,9 +300,6 @@ class AndroidKtPsiUtilsTest {
 
   @Test
   fun testKtAnnotated_typeReference() {
-    // Value parameter type-reference lookups only work in K2 mode.
-    assume().that(KotlinPluginModeProvider.currentPluginMode).isEqualTo(KotlinPluginMode.K2)
-
     val file = setFileContents("""
       annotation class Foo
 
