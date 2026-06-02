@@ -102,8 +102,6 @@ jvm_library(
         "//xml/xml-psi-api:psi_test_lib",
         "//xml/xml-psi-impl:psi-impl",
         "//xml/xml-psi-impl:psi-impl_test_lib",
-        "//plugins/kotlin/idea",
-        "//plugins/kotlin/idea:idea_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.nav.safeargs.tests.common` end

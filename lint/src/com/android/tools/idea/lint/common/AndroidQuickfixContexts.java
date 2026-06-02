@@ -23,7 +23,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiEditorUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.kotlin.idea.inspections.IntentionBasedInspectionKt;
+import org.jetbrains.kotlin.idea.codeinsight.utils.EditorUtilsKt;
 
 public class AndroidQuickfixContexts {
   public static abstract class Context {
@@ -40,7 +40,7 @@ public class AndroidQuickfixContexts {
 
     @Nullable
     public Editor getEditor(@NotNull PsiFile file) {
-      Editor editor = IntentionBasedInspectionKt.findExistingEditor(file);
+      Editor editor = EditorUtilsKt.findExistingEditor(file);
       if (editor != null) {
         return editor;
       }

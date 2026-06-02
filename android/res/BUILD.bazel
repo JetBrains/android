@@ -158,8 +158,6 @@ jvm_library(
         "//xml/xml-psi-api:psi_test_lib",
         "//plugins/kotlin/formatter/minimal",
         "//plugins/kotlin/formatter/minimal:minimal_test_lib",
-        "//plugins/kotlin/idea",
-        "//plugins/kotlin/idea:idea_test_lib",
         "//plugins/kotlin/refactorings/kotlin.refactorings.common:kotlin-refactorings-common",
         "//plugins/kotlin/refactorings/kotlin.refactorings.common:kotlin-refactorings-common_test_lib",
         "//plugins/kotlin/base/code-insight",

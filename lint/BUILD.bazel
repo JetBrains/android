@@ -70,14 +70,13 @@ jvm_library(
         "//xml/xml-psi-api:psi",
         "//xml/xml-psi-impl:psi-impl",
         "//plugins/kotlin/base/code-insight",
-        "//plugins/kotlin/base/fe10/code-insight",
-        "//plugins/kotlin/base/obsolete-compat",
         "//plugins/kotlin/base/plugin",
         "//plugins/kotlin/base/util",
         "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
         "//android/gradle-declarative-lang",
         "//xml/xml-analysis-api:analysis",
         "//plugins/gradle/java/groovy",
+        "//plugins/kotlin/code-insight/utils",
     ],
 )
 
@@ -132,14 +131,13 @@ jvm_library(
         "//xml/xml-psi-api:psi_test_lib",
         "//xml/xml-psi-impl:psi-impl_test_lib",
         "//plugins/kotlin/base/code-insight:code-insight_test_lib",
-        "//plugins/kotlin/base/fe10/code-insight:code-insight_test_lib",
-        "//plugins/kotlin/base/obsolete-compat:obsolete-compat_test_lib",
         "//plugins/kotlin/base/plugin:plugin_test_lib",
         "//plugins/kotlin/base/util:util_test_lib",
         "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon_test_lib",
         "//android/gradle-declarative-lang:gradle-declarative-lang_test_lib",
         "//xml/xml-analysis-api:analysis_test_lib",
         "//plugins/gradle/java/groovy:groovy_test_lib",
+        "//plugins/kotlin/code-insight/utils:utils_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.lint.common` end

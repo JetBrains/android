@@ -55,8 +55,6 @@ import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.resolution.singleFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.resolution.symbol
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
-import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
@@ -363,14 +361,9 @@ class PreviewShouldNotBeCalledRecursively : AbstractKotlinInspection() {
           }
 
         private fun KtCallExpression.calleeFunctionName() =
-          if (KotlinPluginModeProvider.isK2Mode()) {
-            analyze(this) {
-              val functionSymbol = resolveToCall()?.singleFunctionCallOrNull()?.symbol
-              functionSymbol?.callableId?.callableName
-            }
-          } else {
-            val resolvedExpression = resolveToCall()
-            resolvedExpression?.resultingDescriptor?.name
+          analyze(this) {
+            val functionSymbol = resolveToCall()?.singleFunctionCallOrNull()?.symbol
+            functionSymbol?.callableId?.callableName
           }
       }
     } else {

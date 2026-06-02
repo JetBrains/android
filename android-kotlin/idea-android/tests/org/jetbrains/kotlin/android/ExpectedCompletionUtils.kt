@@ -30,7 +30,6 @@ import java.util.ArrayList
 import java.util.HashMap
 import java.util.LinkedHashSet
 import org.jetbrains.kotlin.idea.completion.KOTLIN_CAST_REQUIRED_COLOR
-import org.jetbrains.kotlin.idea.core.completion.DeclarationLookupObject
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.platform.isJs
 import org.jetbrains.kotlin.platform.js.JsPlatforms
@@ -292,9 +291,7 @@ object ExpectedCompletionUtils {
   }
 
   private val LookupElement.moduleName: String?
-    get() {
-      return (`object` as? DeclarationLookupObject)?.psiElement?.module?.name
-    }
+      get() = null
 
   private fun textAttributes(presentation: LookupElementPresentation): String {
     return buildString {

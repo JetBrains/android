@@ -85,8 +85,6 @@ jvm_library(
         "//plugins/kotlin/base/plugin:plugin_test_lib",
         "//plugins/kotlin/uast/uast-kotlin-base:kotlin-uast-base",
         "//plugins/kotlin/uast/uast-kotlin-base:kotlin-uast-base_test_lib",
-        "//plugins/kotlin/base/fe10/analysis",
-        "//plugins/kotlin/base/fe10/analysis:analysis_test_lib",
         "@lib//:kotlinc-kotlin-compiler-common-provided",
         "//xml/xml-psi-api:psi",
         "//xml/xml-psi-api:psi_test_lib",

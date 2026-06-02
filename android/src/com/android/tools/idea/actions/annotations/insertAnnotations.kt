@@ -21,9 +21,7 @@ import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotated
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
-import org.jetbrains.kotlin.idea.caches.resolve.analyze as analyzeK1
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotated
@@ -33,8 +31,6 @@ import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtModifierListOwner
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.renderer.render
-import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 
 /**
  * Like [KtModifierListOwner.addAnnotation] in modifierListModifactor.kt,
@@ -103,28 +99,13 @@ fun KtModifierListOwner.addAnnotationWithUsageSite(
 fun KtAnnotated.findAnnotationWithUsageSite(annotationFqName: FqName, useSiteTarget: AnnotationUseSiteTarget?): KtAnnotationEntry? {
   if (annotationEntries.isEmpty()) return null
 
-  if (KotlinPluginModeProvider.isK2Mode()) {
-    allowAnalysisOnEdt {
-      analyze(this) {
-        val annotatedSymbol = (this@findAnnotationWithUsageSite as? KtDeclaration)?.symbol as? KaAnnotated
-        val annotations = annotatedSymbol?.let { it.annotations[ClassId.topLevel(annotationFqName)] }
-        return annotations?.firstOrNull { annoApp ->
-          annoApp.useSiteTarget == useSiteTarget
-        }?.psi as? KtAnnotationEntry
-      }
-    }
-  } else {
-    val context = analyzeK1(bodyResolveMode = BodyResolveMode.PARTIAL)
-    val descriptor = context[BindingContext.DECLARATION_TO_DESCRIPTOR, this] ?: return null
-
-    // Make sure all annotations are resolved
-    descriptor.annotations.toList()
-
-    return annotationEntries.firstOrNull { entry ->
-      val annotationDescriptor = context.get(BindingContext.ANNOTATION, entry)
-      // This extra filtering line is the change from the original:
-      entry.useSiteTarget?.getAnnotationUseSiteTarget() == useSiteTarget &&
-      annotationDescriptor?.fqName == annotationFqName
+  allowAnalysisOnEdt {
+    analyze(this) {
+      val annotatedSymbol = (this@findAnnotationWithUsageSite as? KtDeclaration)?.symbol as? KaAnnotated
+      val annotations = annotatedSymbol?.let { it.annotations[ClassId.topLevel(annotationFqName)] }
+      return annotations?.firstOrNull { annoApp ->
+        annoApp.useSiteTarget == useSiteTarget
+      }?.psi as? KtAnnotationEntry
     }
   }
 }

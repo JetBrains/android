@@ -25,14 +25,15 @@ import com.android.tools.idea.kotlin.tryEvaluateConstantAsText
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
 import com.intellij.psi.codeStyle.CodeStyleManager
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.SlowOperations
 import com.intellij.util.text.nullize
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
-import org.jetbrains.kotlin.idea.core.deleteElementAndCleanParent
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
@@ -127,6 +128,41 @@ internal open class PsiCallParameterPropertyItem(
       argumentExpression = null
     }
     model.firePropertyValuesChanged()
+  }
+
+  fun PsiElement.deleteElementAndCleanParent() {
+    val parent = parent
+
+    deleteElementWithDelimiters(this)
+    deleteChildlessElement(parent, this::class.java)
+  }
+
+  // Delete element if it doesn't contain children of a given type
+  private fun <T : PsiElement> deleteChildlessElement(element: PsiElement, childClass: Class<T>) {
+    if (PsiTreeUtil.getChildrenOfType(element, childClass) == null) {
+      element.delete()
+    }
+  }
+
+  // Delete given element and all the elements separating it from the neighboring elements of the same class
+  private fun deleteElementWithDelimiters(element: PsiElement) {
+    val paramBefore = PsiTreeUtil.getPrevSiblingOfType(element, element.javaClass)
+
+    val from: PsiElement
+    val to: PsiElement
+    if (paramBefore != null) {
+      from = paramBefore.nextSibling
+      to = element
+    } else {
+      val paramAfter = PsiTreeUtil.getNextSiblingOfType(element, element.javaClass)
+
+      from = element
+      to = if (paramAfter != null) paramAfter.prevSibling else element
+    }
+
+    val parent = element.parent
+
+    parent.deleteChildRange(from, to)
   }
 
   private fun writeParameter(parameterString: String) {

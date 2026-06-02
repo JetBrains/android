@@ -72,7 +72,6 @@ import org.jetbrains.kotlin.analysis.api.resolution.symbol
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
-import org.jetbrains.kotlin.idea.caches.resolve.analyze as analyzeK1
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtCallElement
@@ -82,8 +81,6 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
-import org.jetbrains.kotlin.resolve.calls.util.getResolvedCall
-import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.toUElement
@@ -216,9 +213,7 @@ private class PreviewPropertiesProvider(
   private val defaultValues: Map<String, String?>,
   private val annotationEntry: KtAnnotationEntry,
 ) : PsiPropertiesProvider {
-  val resolvedCall: ResolvedCall<out CallableDescriptor>? =
-    if (KotlinPluginModeProvider.isK2Mode()) null
-    else annotationEntry.getResolvedCall(annotationEntry.analyzeK1(BodyResolveMode.FULL))
+  val resolvedCall: ResolvedCall<out CallableDescriptor>? = null
 
   override fun invoke(
     project: Project,

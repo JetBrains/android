@@ -54,7 +54,6 @@ jvm_library(
         "//xml/dom-openapi:dom",
         "//plugins/kotlin/base/plugin",
         "//plugins/kotlin/code-insight/api",
-        "//plugins/kotlin/core",
     ],
 )
 
@@ -93,7 +92,6 @@ jvm_library(
         "//xml/dom-openapi:dom_test_lib",
         "//plugins/kotlin/base/plugin:plugin_test_lib",
         "//plugins/kotlin/code-insight/api:api_test_lib",
-        "//plugins/kotlin/core:core_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.kotlin.idea` end
@@ -232,8 +230,6 @@ jvm_library(
         "//xml/dom-openapi:dom_test_lib",
         "//plugins/kotlin/base/analysis",
         "//plugins/kotlin/base/analysis:analysis_test_lib",
-        "//plugins/kotlin/base/fe10/analysis",
-        "//plugins/kotlin/base/fe10/analysis:analysis_test_lib",
         "//plugins/kotlin/base/plugin",
         "//plugins/kotlin/base/plugin:plugin_test_lib",
         "//plugins/kotlin/base/util",

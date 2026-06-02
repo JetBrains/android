@@ -330,8 +330,6 @@ jvm_library(
         "//xml/dom-openapi:dom_test_lib",
         "//plugins/kotlin/base/plugin",
         "//plugins/kotlin/base/plugin:plugin_test_lib",
-        "//plugins/kotlin/highlighting/highlighting-k1:kotlin-highlighting-k1",
-        "//plugins/kotlin/highlighting/highlighting-k1:kotlin-highlighting-k1_test_lib",
         "//plugins/kotlin/highlighting/highlighting-k2:kotlin-highlighting",
         "//plugins/kotlin/highlighting/highlighting-k2:kotlin-highlighting_test_lib",
         "//jvm/jvm-analysis-impl:analysis-impl",

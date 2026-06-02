@@ -50,7 +50,6 @@ jvm_library(
         "//platform/util",
         "//plugins/kotlin/base/plugin",
         "//plugins/kotlin/base/psi",
-        "//plugins/kotlin/core",
         "//plugins/kotlin/code-insight/api",
     ],
 )
@@ -91,7 +90,6 @@ jvm_library(
         "//platform/util:util_test_lib",
         "//plugins/kotlin/base/plugin:plugin_test_lib",
         "//plugins/kotlin/base/psi:psi_test_lib",
-        "//plugins/kotlin/core:core_test_lib",
         "//plugins/kotlin/code-insight/api:api_test_lib",
     ],
 )

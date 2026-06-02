@@ -78,8 +78,6 @@ jvm_library(
         "//platform/projectModel-api:projectModel_test_lib",
         "//xml/xml-psi-api:psi",
         "//xml/xml-psi-api:psi_test_lib",
-        "//plugins/kotlin/idea",
-        "//plugins/kotlin/idea:idea_test_lib",
         "//android/android-test-framework:testFramework",
         "//android/android-test-framework:testFramework_test_lib",
         "//platform/testFramework",
