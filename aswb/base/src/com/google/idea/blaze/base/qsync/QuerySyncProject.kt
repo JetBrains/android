@@ -139,13 +139,12 @@ class QuerySyncProject(
 
   fun computeProjectStructureData(
     context: BlazeContext,
-    projectDefinition: ProjectDefinition,
     lastProjectStructureData: ProjectStructureData?,
     graph: BuildGraphData, // This is a temporary parameter while we cannot switch over to the new nway completely.
   ): ProjectStructureData {
     return lastProjectStructureData
       ?: (if (readProjectStructureFromDirectory) {
-        readProjectStructureFromDirectory(context, projectDefinition)
+        readProjectStructureFromDirectory(context)
       } else null)
       ?: ProjectStructureData.fromGraph(
         context,
@@ -157,7 +156,7 @@ class QuerySyncProject(
       )
   }
 
-  private fun readProjectStructureFromDirectory(context: Context<*>, projectDefinition: ProjectDefinition): ProjectStructureData? =
+  private fun readProjectStructureFromDirectory(context: Context<*>): ProjectStructureData? =
     projectStructureReader.read(context, workspaceRoot.path(), projectDefinition)
 
   /**
@@ -271,7 +270,6 @@ class QuerySyncProject(
 
   fun createProjectStructure(
     context: BlazeContext,
-    projectDefinition: ProjectDefinition,
     graph: BuildGraphData,
     projectStructureData: ProjectStructureData,
   ): CreateProjectStructureResult {
