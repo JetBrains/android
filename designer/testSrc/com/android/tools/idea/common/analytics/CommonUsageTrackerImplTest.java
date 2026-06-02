@@ -20,6 +20,8 @@ import static com.android.tools.idea.concurrency.CoroutineUtilsKt.createCoroutin
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 
 import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.ViewInfo;
@@ -103,6 +105,11 @@ public class CommonUsageTrackerImplTest extends BaseUsageTrackerImplTest {
     Result renderResult = mock (Result.class);
     when(renderResult.getStatus()).thenReturn(Result.Status.SUCCESS);
     StudioHtmlLinkManager linkManager = mock(StudioHtmlLinkManager.class);
+    when(linkManager.createOpenClassUrl(anyString())).thenReturn("open-class-url");
+    when(linkManager.createActionLink(any())).thenReturn("action-link");
+    when(linkManager.createClearCacheUrl()).thenReturn("clear-cache-url");
+    when(linkManager.createBuildProjectUrl()).thenReturn("build-project-url");
+    when(linkManager.createRefreshRenderUrl()).thenReturn("refresh-render-url");
     RenderLogger logger = mock(RenderLogger.class);
     when(logger.getLinkManager()).thenReturn(linkManager);
     ImmutableMap<String, Throwable> brokenClasses = ImmutableMap.of("com.test.mock", new Throwable("mock error"));

@@ -534,9 +534,8 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
               builder.newlineIfNecessary();
             }
 
-            summary = throwable.getLocalizedMessage() != null ?
-                      throwable.getLocalizedMessage() :
-                      summary;
+            String msg = throwable.getLocalizedMessage();
+            summary = msg != null ? StringUtil.removeHtmlTags(msg) : summary;
           }
         }
         else {
@@ -858,10 +857,15 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
     }
 
 
+    String summaryText = "Rendering sandbox error";
+    if (throwable instanceof RenderSecurityException) {
+      String msg = throwable.getMessage();
+      summaryText = msg != null ? StringUtil.removeHtmlTags(msg) : summaryText;
+    }
+
     addIssue()
       .setSeverity(HighlightSeverity.ERROR)
-      .setSummary((throwable instanceof RenderSecurityException)
-                  ? throwable.getMessage() : "Rendering sandbox error")
+      .setSummary(summaryText)
       .setHtmlContent(builder)
       .build();
 
@@ -908,7 +912,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       }
     }
 
-    builder.addHtml(StringUtil.replace(throwable.toString(), "\n", "<BR/>")).newline();
+    builder.addMultiline(throwable.toString());
 
     addStackTrace(linkManager, builder, frames, end);
 

@@ -289,7 +289,7 @@ class RenderErrorContributorImplTest {
     if (havePlatformSources) {
       assertHtmlEquals(
         "java.lang.ArithmeticException: / by zero<BR/>" +
-          "&nbsp;&nbsp;at com.example.myapplication574.MyCustomView.&lt;init>(<A HREF=\"open:com.example.myapplication574.MyCustomView#<init>;MyCustomView.java:13\">MyCustomView.java:13</A>)<BR/>" +
+          "&nbsp;&nbsp;at com.example.myapplication574.MyCustomView.&lt;init>(<A HREF=\"open:com.example.myapplication574.MyCustomView#&lt;init>;MyCustomView.java:13\">MyCustomView.java:13</A>)<BR/>" +
           "&nbsp;&nbsp;at java.lang.reflect.Constructor.newInstance(Constructor.java:513)<BR/>" +
           "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate_Original(LayoutInflater.java:755)<BR/>" +
           "&nbsp;&nbsp;at android.view.LayoutInflater_Delegate.rInflate(LayoutInflater_Delegate.java:64)<BR/>" +
@@ -306,7 +306,7 @@ class RenderErrorContributorImplTest {
     } else {
       assertHtmlEquals(
         "java.lang.ArithmeticException: / by zero<BR/>" +
-          "&nbsp;&nbsp;at com.example.myapplication574.MyCustomView.&lt;init>(<A HREF=\"open:com.example.myapplication574.MyCustomView#<init>;MyCustomView.java:13\">MyCustomView.java:13</A>)<BR/>" +
+          "&nbsp;&nbsp;at com.example.myapplication574.MyCustomView.&lt;init>(<A HREF=\"open:com.example.myapplication574.MyCustomView#&lt;init>;MyCustomView.java:13\">MyCustomView.java:13</A>)<BR/>" +
           "&nbsp;&nbsp;at java.lang.reflect.Constructor.newInstance(Constructor.java:513)<BR/>" +
           "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate_Original(LayoutInflater.java:755)<BR/>" +
           "&nbsp;&nbsp;at android.view.LayoutInflater_Delegate.rInflate(LayoutInflater_Delegate.java:64)<BR/>" +
@@ -321,6 +321,49 @@ class RenderErrorContributorImplTest {
         issues[0]!!,
       )
     }
+  }
+
+  @Test
+  fun testHtmlInjectionInThrowable() {
+    val operation = LogOperation { logger: RenderLogger, render: RenderResult ->
+      val throwable = Exception("<img src='http://attacker.com/leak'>")
+      throwable.stackTrace =
+        arrayOf(
+          StackTraceElement("com.example.MyCustomView", "init", "MyCustomView.java", 10),
+          StackTraceElement("com.android.layoutlib.bridge.impl.RenderSessionImpl", "inflate", "RenderSessionImpl.java", 100),
+        )
+      logger.error(null, null, throwable, null, null)
+    }
+
+    val issues = getRenderOutput(fixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation)
+    assertSize(1, issues)
+    val issue = issues[0]!!
+
+    val html = issue.getHtmlContent()
+
+    // After the fix, the HTML should have < escaped to &lt;, which is sufficient to prevent injection.
+    assertTrue("HTML should be escaped, got: $html", html.contains("&lt;img src='http://attacker.com/leak'>"))
+    assertTrue("HTML should not contain raw tag, got: $html", !html.contains("<img src='http://attacker.com/leak'>"))
+
+    val summary = issue.summary
+    assertTrue("Summary should not contain raw HTML, got: $summary", !summary.contains("<img"))
+  }
+
+  @Test
+  fun testHtmlInjectionInRenderSecurityException() {
+    val operation = LogOperation { logger: RenderLogger, render: RenderResult ->
+      val throwable = RenderSecurityException.create("<img src='http://attacker.com/leak'>")
+      logger.error(null, null, throwable, null, null)
+    }
+
+    val issues = getRenderOutput(fixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation)
+    assertSize(1, issues)
+    val issue = issues[0]!!
+
+    val summary = issue.summary
+    assertTrue("Summary should not contain raw HTML, got: $summary", !summary.contains("<img"))
+    // It should be sanitized/stripped
+    assertTrue("Summary should be empty or sanitized, got: $summary", summary.isEmpty() || !summary.contains("<"))
   }
 
   @Test
@@ -692,7 +735,7 @@ class RenderErrorContributorImplTest {
         "555;\">Exception Details</font><BR/>java.lang.ArithmeticExcept" +
         "ion: / by zero<BR/>&nbsp;&nbsp;at com.example.myapplication.M" +
         "yButton.&lt;init>(<A HREF=\"open:com.example.myapplication.MyB" +
-        "utton#<init>;MyButton.java:14\">MyButton.java:14</A>)<BR/><A H" +
+        "utton#&lt;init>;MyButton.java:14\">MyButton.java:14</A>)<BR/><A H" +
         "REF=\"\">Copy stack to clipboard</A><BR/><BR/>",
       issues[0]!!,
     )

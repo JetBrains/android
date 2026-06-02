@@ -124,7 +124,11 @@ private class DesignerCommonIssueDetailPanel(
     sink[PlatformDataKeys.VIRTUAL_FILE] = issue.source.files.firstOrNull()
   }
 
-  private fun createTitle() = JBLabel(issue.summary).apply { font = font.deriveFont(Font.BOLD) }
+  private fun createTitle() =
+    JBLabel(issue.summary).apply {
+      font = font.deriveFont(Font.BOLD)
+      putClientProperty("html.disable", true)
+    }
 
   private fun createContent(): JComponent {
     val descriptionPane = DescriptionEditorPane()

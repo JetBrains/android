@@ -331,7 +331,7 @@ public class AndroidUtils extends CommonAndroidUtil {
    */
   private static HtmlBuilder getClickableStackTrace(Throwable throwable, HtmlBuilder builder) {
     int indent = 2;
-    builder.addHtml(StringUtil.replace(throwable.toString(), "\n", "<BR/>")).newline();
+    builder.addMultiline(throwable.toString());
     StackTraceElement[] frames = throwable.getStackTrace();
     for (int i = 0; i < frames.length; i++) {
       StackTraceElement frame = frames[i];
