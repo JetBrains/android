@@ -438,7 +438,6 @@ filegroup(
         "//tools/adt/idea/cli-server/server:studio_cli_service_kt_proto",
         "//tools/adt/idea/debuggers:libjava_sites",
         "//tools/adt/idea/logcat:logcat-proto",
-        "//tools/adt/idea/play-publishing:play_publishing_kt_proto",
         "//tools/adt/idea/profilers-android:traceprocessor-proto",
         "//tools/adt/idea/profilers-ui:traceprocessor-proto",
         "//tools/adt/idea/profilers:traceprocessor-proto",

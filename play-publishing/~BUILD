@@ -1,5 +1,4 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
-load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 # managed by go/iml_to_build
 iml_module(
@@ -29,10 +28,6 @@ iml_module(
         "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
         "//tools/adt/idea/artwork-compose:intellij.android.artwork-compose",
         "//tools/vendor/google/login:google-login",
-        "@intellij//:intellij.libraries.grpc",
-        "@intellij//:intellij.libraries.grpc.netty.shaded",
-        "//tools/adt/idea/.idea/libraries:protobuf-kotlin",
-        "//tools/adt/idea/play-publishing:play_publishing_kt_proto",
         "//tools/adt/idea/app-publishing:intellij.android.app-publishing",
         "//tools/adt/idea/.idea/libraries:aapt-proto",
         "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer",
@@ -42,11 +37,4 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:libbinary-resources",
         "//tools/adt/idea/artwork:intellij.android.artwork",
     ],
-)
-
-# managed by go/iml_to_build
-jvm_import(
-    name = "play_publishing_kt_proto",
-    jars = ["//tools/adt/idea/play-publishing/proto:play_publishing_kt_proto.jar"],
-    visibility = ["//visibility:public"],
 )

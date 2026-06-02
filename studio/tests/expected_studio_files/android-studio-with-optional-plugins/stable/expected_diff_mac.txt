@@ -2460,7 +2460,6 @@
 +++Android Studio.app/Contents/plugins/android/lib/perfetto-protos.jar
 +++Android Studio.app/Contents/plugins/android/lib/perfetto_android_protos.jar
 +++Android Studio.app/Contents/plugins/android/lib/pixelprobe.jar
-+++Android Studio.app/Contents/plugins/android/lib/play_publishing_kt_proto.jar
 +++Android Studio.app/Contents/plugins/android/lib/play_vitals_kt_proto.jar
 +++Android Studio.app/Contents/plugins/android/lib/proto.jar
 +++Android Studio.app/Contents/plugins/android/lib/protobuf-kotlin-3.24.4.jar
@@ -6358,7 +6357,6 @@
 ---Android Studio Preview.app/Contents/plugins/android/lib/perfetto-protos.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/perfetto_android_protos.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/pixelprobe.jar
----Android Studio Preview.app/Contents/plugins/android/lib/play_publishing_kt_proto.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/play_vitals_kt_proto.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/proto.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/protobuf-kotlin-3.24.4.jar
