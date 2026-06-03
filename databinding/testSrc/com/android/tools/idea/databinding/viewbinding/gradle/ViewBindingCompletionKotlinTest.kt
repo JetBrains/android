@@ -32,7 +32,6 @@ import com.intellij.facet.FacetManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -148,25 +147,21 @@ class ViewBindingCompletionKotlinTest {
 
     fixture.completeBasic()
 
-    if (KotlinPluginModeProvider.isK2Mode()) {
-      // In K1 (and Java), the item is not immediately inserted because there's no matching import
-      // for it yet. In K2, however, there is no such check; the item is automatically inserted and
-      // an import is added. This is tracked with https://youtrack.jetbrains.com/issue/KT-71313.
-      fixture.checkResult(
-        // language=kotlin
-        """
-        package google.simpleapplication
+    // In K1 (and Java), the item is not immediately inserted because there's no matching import
+    // for it yet. In K2, however, there is no such check; the item is automatically inserted and
+    // an import is added. This is tracked with https://youtrack.jetbrains.com/issue/KT-71313.
+    fixture.checkResult(
+      // language=kotlin
+      """
+      package google.simpleapplication
 
-        import google.simpleapplication.databinding.ActivityMainBinding
+      import google.simpleapplication.databinding.ActivityMainBinding
 
-        fun sample() {
-          val binding: ActivityMainBinding
-        }
-          """
-          .trimIndent()
-      )
-    } else {
-      assertThat(fixture.lookupElementStrings).containsExactly("ActivityMainBinding")
-    }
+      fun sample() {
+        val binding: ActivityMainBinding
+      }
+      """
+        .trimIndent()
+    )
   }
 }
