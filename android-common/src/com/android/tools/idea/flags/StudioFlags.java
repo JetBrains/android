@@ -2726,6 +2726,12 @@ public final class StudioFlags {
                     "Enable Import Project migration",
                     "Enables the Import Project migration feature in the UI.");
 
+  public static final Flag<Boolean> IMPORT_PROJECT_KMP_SUPPORT_ENABLED =
+    new BooleanFlag(STUDIOBOT, "import.project.kmp.enabled",
+                    "Enable KMP support in Import Project migration",
+                    "Enables KMP target support in the Import Project migration wizard and agent.");
+
+
   public enum DasherSupportMode {
     /**
      * Don't include any special treatment for dasher users.
