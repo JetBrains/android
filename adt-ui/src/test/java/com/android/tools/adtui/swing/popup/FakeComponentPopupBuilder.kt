@@ -108,6 +108,8 @@ open class FakeComponentPopupBuilder(
 
   override fun setNormalWindowLevel(b: Boolean) = this
 
+  override fun setHeaderAlwaysFocusable(b: Boolean): ComponentPopupBuilder = this
+
   override fun setMovable(forceMovable: Boolean) = this
 
   override fun setCancelCallback(shouldProceed: Computable<Boolean>) = this
