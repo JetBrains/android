@@ -19,7 +19,7 @@ import com.android.gmdcodecompletion.AndroidDeviceInfo
 import com.android.gmdcodecompletion.GmdDeviceCatalogService
 import com.android.gmdcodecompletion.MANAGED_VIRTUAL_DEVICE_CATALOG_UPDATE_FREQUENCY
 import com.android.repository.api.CoroutineProgressIndicator
-import com.android.sdklib.devices.DeviceManager
+import com.android.sdklib.devices.DeviceManager.DeviceCategory
 import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
@@ -109,9 +109,7 @@ class ManagedVirtualDeviceCatalogService :
         val availableApis = deviceCatalog.apiLevels.map { it.apiLevel }
 
         // Obtain all devices from Device Manager except custom managed devices
-        for (device in
-          DeviceManagers.getDeviceManager(sdkHandler)
-            .getDevices(DeviceManager.DeviceCategory.DEFAULT, DeviceManager.DeviceCategory.VENDOR)) {
+        for (device in DeviceManagers.getDeviceManager(sdkHandler).getDevices(DeviceCategory.DEFAULT, DeviceCategory.VENDOR)) {
           if (!device.isDeprecated) {
             deviceCatalog.devices[device.displayName] =
               AndroidDeviceInfo(deviceName = "", supportedApis = availableApis, brand = device.manufacturer)

@@ -36,7 +36,6 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 import javax.xml.parsers.ParserConfigurationException;
@@ -78,12 +77,12 @@ public class DeviceManagerConnection {
 
   @NotNull
   public Collection<Device> getDevices() {
-    return getDevices(EnumSet.allOf(DeviceCategory.class));
+    return deviceManager.getDevices();
   }
 
   @NotNull
-  public Collection<Device> getDevices(@NotNull Collection<DeviceCategory> filters) {
-    return deviceManager.getDevices(filters.toArray(new DeviceCategory[0]));
+  public Collection<Device> getDevices(@NotNull DeviceCategory... filters) {
+    return deviceManager.getDevices(filters);
   }
 
   /**

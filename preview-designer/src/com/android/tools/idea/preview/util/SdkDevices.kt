@@ -28,9 +28,8 @@ import org.jetbrains.android.sdk.StudioAndroidSdkData
  * @see DeviceManager
  */
 fun getSdkDevices(module: Module): List<Device> {
-  return AndroidFacet.getInstance(module)?.let { facet ->
-    StudioAndroidSdkData.getSdkData(facet)?.deviceManager?.getDevices()?.toList()
-  } ?: emptyList()
+  return AndroidFacet.getInstance(module)?.let { facet -> StudioAndroidSdkData.getSdkData(facet)?.deviceManager?.getDevices()?.toList() }
+    ?: emptyList()
 }
 
 /** Key to obtain the list of all available devices from the device manager. */

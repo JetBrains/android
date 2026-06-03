@@ -35,14 +35,13 @@ class DeviceManagerConnectionTest {
     val device = Device.Builder(deviceManagerConnection.devices.first()).apply { setName("TestDevice") }.build()
 
     deviceManagerConnection.createDevices(listOf(device))
-    assertThat(deviceManagerConnection.getDevices(listOf(DeviceCategory.USER)).map { it.displayName }).containsExactly("TestDevice")
+    assertThat(deviceManagerConnection.getDevices(DeviceCategory.USER).map { it.displayName }).containsExactly("TestDevice")
 
     deviceManagerConnection.createDevices(listOf(device))
-    assertThat(deviceManagerConnection.getDevices(listOf(DeviceCategory.USER)).map { it.displayName })
-      .containsExactly("TestDevice", "TestDevice_2")
+    assertThat(deviceManagerConnection.getDevices(DeviceCategory.USER).map { it.displayName }).containsExactly("TestDevice", "TestDevice_2")
 
     deviceManagerConnection.createDevices(listOf(device))
-    assertThat(deviceManagerConnection.getDevices(listOf(DeviceCategory.USER)).map { it.displayName })
+    assertThat(deviceManagerConnection.getDevices(DeviceCategory.USER).map { it.displayName })
       .containsExactly("TestDevice", "TestDevice_2", "TestDevice_3")
   }
 
