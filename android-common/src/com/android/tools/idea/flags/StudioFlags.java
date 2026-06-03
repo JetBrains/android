@@ -2404,10 +2404,17 @@ public final class StudioFlags {
                     "Enable tl;dr mode for the agent",
                     "When enabled, the agent timeline UI will show a summary of each plan step execution.");
 
-  public static final Flag<Boolean> STUDIOBOT_PLANNING_MODE_ENABLED =
-    new BooleanFlag(STUDIOBOT, "planning.mode.enabled",
-                    "Enable planning mode",
-                    "When enabled, planning mode will be enabled.");
+  public enum StudioBotPlanMode {
+    NONE,
+    V2,
+    GUIDED_MODE
+  }
+
+  public static final Flag<StudioBotPlanMode> STUDIOBOT_PLAN_MODE =
+    new EnumFlag<>(STUDIOBOT, "plan.mode",
+                   "Select Studio Bot planning mode",
+                   "Controls whether planning mode is disabled, uses v2 planning, or uses guided mode.",
+                   StudioBotPlanMode.V2);
 
   public static final Flag<Boolean> STUDIOBOT_ASK_FOR_MORE_DETAIL_ENABLED =
     new BooleanFlag(STUDIOBOT, "ask.for.more.detail.enabled",

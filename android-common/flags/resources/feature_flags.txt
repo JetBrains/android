@@ -239,7 +239,6 @@ studiobot.new.project.agent=COMPLETE:2026
 studiobot.new.subagent.mode=PREVIEW
 studiobot.open.files.context=PREVIEW
 studiobot.permission.model=COMPLETE:2026
-studiobot.planning.mode.enabled=COMPLETE:2026
 studiobot.project.facts.context.enabled=INTERNAL
 studiobot.prompt.library.chat.lookup=COMPLETE:2025
 studiobot.prompt.library.rules=COMPLETE:2025
