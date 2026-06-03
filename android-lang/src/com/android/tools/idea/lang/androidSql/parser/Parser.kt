@@ -26,6 +26,7 @@ import com.intellij.lang.ASTNode
 import com.intellij.lang.ParserDefinition
 import com.intellij.lang.PsiParser
 import com.intellij.lexer.Lexer
+import com.intellij.openapi.application.runReadActionBlocking
 import com.intellij.openapi.project.Project
 import com.intellij.psi.FileViewProvider
 import com.intellij.psi.PsiElement
@@ -63,7 +64,9 @@ open class AndroidSqlParserDefinition : ParserDefinition {
 
     @JvmStatic
     fun parseSqlQuery(project: Project, input: String): PsiFile {
-      return PsiFileFactory.getInstance(project).createFileFromText("temp.sql", AndroidSqlFileType.INSTANCE, input)
+      return runReadActionBlocking {
+        PsiFileFactory.getInstance(project).createFileFromText("temp.sql", AndroidSqlFileType.INSTANCE, input)
+      }
     }
   }
 }
