@@ -26,6 +26,7 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeRight
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule
 import com.android.tools.idea.compose.preview.BackNavigationEdge
+import com.android.tools.idea.compose.preview.message
 import com.intellij.testFramework.ProjectRule
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -97,5 +98,41 @@ class NavigationControlsPanelUiTest {
     val countBeforeClick = backPressCallCount
     composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.backButton).performClick()
     assertEquals("Callback should not be triggered when button is disabled", countBeforeClick, backPressCallCount)
+  }
+
+  @Test
+  fun testProgressSliderResetsOnBackPressCompletedFlow() {
+    val fpsUpdater = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    val backPressCompletedFlow = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+
+    composeTestRule.setContent {
+      NavigationControlsPanel(
+        canBackPress = { true },
+        onBackPress = {},
+        onBackPressStart = {},
+        onBackPressProgress = { _, _ -> },
+        onBackPressTrackProgress = {},
+        onEdgeDropdownPress = {},
+        fpsUpdater = fpsUpdater,
+        backPressCompletedFlow = backPressCompletedFlow,
+      )
+    }
+
+    // Verify initially the slider is at 0f (label should display 0.0)
+    composeTestRule.onNodeWithText(message("action.navigate.back.predictive.back.progress", 0.0f)).assertIsDisplayed()
+
+    // Drag the slider to update the value
+    composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.progressSlider).assertIsDisplayed().performTouchInput { swipeRight() }
+
+    // Since swipeRight drags the slider, the label should be updated to a positive float value (e.g., 1.0f or something similar)
+    // We can verify that it is NOT at 0.0f anymore
+    composeTestRule.onNodeWithText(message("action.navigate.back.predictive.back.progress", 0.0f)).assertDoesNotExist()
+
+    // Trigger back press completion from the flow
+    backPressCompletedFlow.tryEmit(Unit)
+    composeTestRule.waitForIdle()
+
+    // Verify the slider resets back to 0.0f
+    composeTestRule.onNodeWithText(message("action.navigate.back.predictive.back.progress", 0.0f)).assertIsDisplayed()
   }
 }

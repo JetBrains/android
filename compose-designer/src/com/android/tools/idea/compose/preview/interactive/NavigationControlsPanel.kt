@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
@@ -43,6 +44,7 @@ import com.android.tools.idea.compose.preview.BackNavigationEdge
 import com.android.tools.idea.compose.preview.InteractivePreviewNavigationController
 import com.android.tools.idea.compose.preview.message
 import icons.StudioIconsCompose
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.theme.JewelTheme
@@ -71,6 +73,7 @@ fun NavigationControlsContent(
       onBackPressTrackProgress = { interactivePreviewNavigationController.trackNavigationProgressPress() },
       onEdgeDropdownPress = { interactivePreviewNavigationController.trackEdgeDropdownPress() },
       fpsUpdater = fpsUpdater,
+      backPressCompletedFlow = interactivePreviewNavigationController.backPressCompletedFlow,
     )
   }
 }
@@ -91,6 +94,7 @@ fun NavigationControlsContent(
  * @param onBackPressTrackProgress A callback invoked when the predictive back gesture tracking finishes.
  * @param onEdgeDropdownPress A callback invoked when the navigation edge dropdown is interacted with.
  * @param fpsUpdater A [SharedFlow] used to refresh the state of the panel (e.g., re-evaluating [canBackPress]).
+ * @param backPressCompletedFlow A [SharedFlow] to listen for back navigation completion events.
  */
 @Composable
 fun NavigationControlsPanel(
@@ -102,11 +106,19 @@ fun NavigationControlsPanel(
   onBackPressTrackProgress: () -> Unit,
   onEdgeDropdownPress: () -> Unit,
   fpsUpdater: SharedFlow<Unit>,
+  backPressCompletedFlow: SharedFlow<Unit> = remember { MutableSharedFlow() },
 ) {
   var sliderPosition by remember { mutableFloatStateOf(0f) }
   var backStarted by remember { mutableStateOf(false) }
   val selectedEdge = remember { mutableStateOf(BackNavigationEdge.LEFT_EDGE) }
   val backNavigationAvailable by produceState(canBackPress(), fpsUpdater) { fpsUpdater.collect { value = canBackPress() } }
+
+  LaunchedEffect(backPressCompletedFlow) {
+    backPressCompletedFlow.collect {
+      sliderPosition = 0f
+      backStarted = false
+    }
+  }
 
   Column(modifier.padding(16.dp).fillMaxWidth().testTag(NavigationControlsPanelTestTags.panel)) {
     Row(
@@ -117,11 +129,7 @@ fun NavigationControlsPanel(
       OutlinedButton(
         modifier = modifier.testTag(NavigationControlsPanelTestTags.backButton),
         enabled = backNavigationAvailable,
-        onClick = {
-          onBackPress()
-          backStarted = false
-          sliderPosition = 0f
-        },
+        onClick = onBackPress,
       ) {
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
           Icon(

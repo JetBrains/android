@@ -24,7 +24,10 @@ import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.openapi.actionSystem.DataKey
 import java.lang.reflect.Method
 import javax.swing.JComponent
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 
 /** Enum representing the edge from which a back navigation gesture can be initiated. */
 enum class BackNavigationEdge(val visibleName: String) {
@@ -48,6 +51,9 @@ class InteractivePreviewNavigationController(
   private val onAfterPanelUpdate: () -> Unit = {},
   fpsUpdater: SharedFlow<Unit>,
 ) {
+
+  private val _backPressCompletedFlow = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+  val backPressCompletedFlow = _backPressCompletedFlow.asSharedFlow()
 
   private val showNavigationControlsProvider = {
     StudioComposePanel { NavigationControlsContent(interactivePreviewNavigationController = this, fpsUpdater = fpsUpdater) }
@@ -159,6 +165,7 @@ class InteractivePreviewNavigationController(
       onBackPressCompletedMethod ?: backPressDispatcherOwner.findMethod(ON_BACK_PRESS_COMPLETED).also { onBackPressCompletedMethod = it }
     resolvedMethod?.invoke(backPressDispatcherOwner)
       ?: logger.debug("Can't perform back press,reflected method invocation should not be null")
+    _backPressCompletedFlow.tryEmit(Unit)
   }
 
   /** Cancels the back press, If a back press is in progress stops the interactive back gesture simulation. */
@@ -167,6 +174,7 @@ class InteractivePreviewNavigationController(
       onBackPressCancelledMethod ?: backPressDispatcherOwner.findMethod(ON_BACK_PRESS_CANCELLED).also { onBackPressCancelledMethod = it }
     resolvedMethod?.invoke(backPressDispatcherOwner)
       ?: logger.debug("Can't call back press cancelled, reflected method invocation should not be null")
+    _backPressCompletedFlow.tryEmit(Unit)
   }
 
   /**
