@@ -20,6 +20,7 @@ package com.android.tools.idea.avdmanager
 import com.android.sdklib.internal.avd.getEmulatorPackage
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.EmulatorWindowsHypervisorMigrationEvent
@@ -71,14 +72,14 @@ fun disableWHPX(sdk: AndroidSdkHandler): WhpxResult {
 }
 
 fun switchWhpx(sdk: AndroidSdkHandler, enable: Boolean): WhpxResult {
-  val emulator = sdk.getEmulatorPackage(progressIndicator)
+  val emulator = sdk.getEmulatorPackage(progressIndicator, StudioFlags.EMULATOR_PREVIEW_ENABLED.get())
   val emulatorBinary = emulator?.emulatorBinary ?: return WhpxResult.EmulatorNotFound
 
   val commandLine = ElevatedCommandLine()
   commandLine.setWorkDirectory(emulator.location.toString())
-  val checkBinary = emulator.emulatorCheckBinary?: return WhpxResult.EmulatorNotFound
+  val checkBinary = emulator.emulatorCheckBinary ?: return WhpxResult.EmulatorNotFound
   commandLine.exePath = checkBinary.toString()
-  commandLine.addParameter(if(enable) "enable-whpx" else "disable-whpx")
+  commandLine.addParameter(if (enable) "enable-whpx" else "disable-whpx")
 
   return try {
     WhpxResult.fromExitCode(CapturingAnsiEscapesAwareProcessHandler(commandLine).runProcess().exitCode)

@@ -21,6 +21,7 @@ import com.android.sdklib.internal.avd.EmulatorPackages;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.base.Joiner;
@@ -190,7 +191,7 @@ public class SystemInfoStatsMonitor {
                                           @NotNull Revision lowestEmulatorRevision,
                                           @NotNull AndroidSdkHandler handler) throws ExecutionException {
     EmulatorPackage emulatorPackage =
-      EmulatorPackages.getEmulatorPackage(handler, new StudioLoggerProgressIndicator(SystemInfoStatsMonitor.class));
+      EmulatorPackages.getEmulatorPackage(handler, new StudioLoggerProgressIndicator(SystemInfoStatsMonitor.class), StudioFlags.EMULATOR_PREVIEW_ENABLED.get());
     if (emulatorPackage == null) {
       throw new ExecutionException("No SDK emulator package");
     }

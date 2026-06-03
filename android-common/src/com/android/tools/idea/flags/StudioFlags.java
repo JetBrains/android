@@ -1841,6 +1841,13 @@ public final class StudioFlags {
     "Enable background reconciliation for AI Glasses pairing",
     "If enabled, runs a background loop to reconcile AI Glasses pairing states."
   );
+
+  public static final Flag<Boolean> EMULATOR_PREVIEW_ENABLED = new BooleanFlag(
+    DEVICE_MANAGER,
+    "emulator.preview.enabled",
+    "Enable Emulator Preview",
+    "Enables launching AVDs with the preview version of the emulator, if installed."
+  );
   // endregion
 
   // region Play Policy Insights

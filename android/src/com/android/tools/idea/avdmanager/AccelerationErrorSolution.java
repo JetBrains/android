@@ -23,6 +23,7 @@ import com.android.sdklib.internal.avd.EmulatorPackage;
 import com.android.sdklib.internal.avd.EmulatorPackages;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.targets.SystemImage;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.wizard.AehdWizardService;
@@ -271,7 +272,7 @@ public class AccelerationErrorSolution {
     AndroidSdkHandler sdk = AndroidSdks.getInstance().tryToChooseSdkHandler();
     StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(AccelerationErrorSolution.class);
     Collection<SystemImage> systemImages = sdk.getSystemImageManager(progress).getImages();
-    EmulatorPackage emulator = EmulatorPackages.getEmulatorPackage(sdk, progress);
+    EmulatorPackage emulator = EmulatorPackages.getEmulatorPackage(sdk, progress, StudioFlags.EMULATOR_PREVIEW_ENABLED.get());
     return systemImages.stream()
         .filter(emulator.getSystemImageUpdateRequiredPredicate())
         .map(systemImage -> systemImage.getPackage().getPath())

@@ -34,7 +34,7 @@ import com.intellij.openapi.util.SystemInfo
 
 /** Run "emulator -accel-check" to check the status for emulator acceleration on this machine. Return a [AccelerationErrorCode]. */
 fun checkAcceleration(sdk: AndroidSdkHandler): AccelerationErrorCode {
-  val emulator = sdk.getEmulatorPackage(progressIndicator)
+  val emulator = sdk.getEmulatorPackage(progressIndicator, StudioFlags.EMULATOR_PREVIEW_ENABLED.get())
   val emulatorBinary = emulator?.emulatorBinary ?: return AccelerationErrorCode.NO_EMULATOR_INSTALLED
   if (emulator.version < MINIMUM_EMULATOR_VERSION) return AccelerationErrorCode.EMULATOR_UPDATE_REQUIRED
 
@@ -106,7 +106,7 @@ private fun AndroidSdkHandler.hasPlatformToolsForQemu2Installed(): Boolean {
 }
 
 private fun AndroidSdkHandler.hasSystemImagesForQemu2Installed(): Boolean {
-  val emulator = getEmulatorPackage(progressIndicator) ?: return false
+  val emulator = getEmulatorPackage(progressIndicator, StudioFlags.EMULATOR_PREVIEW_ENABLED.get()) ?: return false
   val images = getSystemImageManager(progressIndicator).getImages()
   return images.stream().noneMatch(emulator.getSystemImageUpdateRequiredPredicate())
 }

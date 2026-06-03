@@ -105,7 +105,7 @@ constructor(
   private val uiContext: CoroutineContext = Dispatchers.EDT + ModalityState.any().asContextElement(),
 ) {
   val emulator: EmulatorPackage?
-    get() = sdkHandler?.getEmulatorPackage(REPO_LOG)
+    get() = sdkHandler?.getEmulatorPackage(REPO_LOG, StudioFlags.EMULATOR_PREVIEW_ENABLED.get())
 
   /**
    * @param forceRefresh if true the manager will read the AVD list from disk. If false, the cached version in memory is returned if
