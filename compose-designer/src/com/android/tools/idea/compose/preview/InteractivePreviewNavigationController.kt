@@ -29,10 +29,10 @@ import kotlinx.coroutines.flow.SharedFlow
 /** Enum representing the edge from which a back navigation gesture can be initiated. */
 enum class BackNavigationEdge(val visibleName: String) {
   /** Represents a back gesture initiated from the left edge of the screen. */
-  LEFT_EDGE("Left Edge"),
+  LEFT_EDGE("Left"),
 
   /** Represents a back gesture initiated from the right edge of the screen. */
-  RIGHT_EDGE("Right Edge"),
+  RIGHT_EDGE("Right"),
 
   /** Represents no specific edge for the back gesture. */
   NONE("None"),
