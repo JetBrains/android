@@ -26,10 +26,7 @@ jvm_library(
     ),
     module_name = "intellij.android.studio.integration",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":android-studio-integration",
-    ],
+    runtime_deps = [":android-studio-integration"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",

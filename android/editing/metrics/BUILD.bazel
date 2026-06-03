@@ -48,10 +48,7 @@ jvm_library(
     ),
     associates = [":metrics"],
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        "//platform/ide-core:ide-core_test_lib",
-    ],
+    runtime_deps = ["//platform/ide-core:ide-core_test_lib"],
     deps = [
         # do not sort,
         "@lib//:kotlin-stdlib",

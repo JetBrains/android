@@ -128,10 +128,7 @@ jvm_library(
     ),
     module_name = "intellij.android.glance-designer.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        "//platform/editor-ui-ex:editor-ex",
-    ],
+    runtime_deps = ["//platform/editor-ui-ex:editor-ex"],
 )
 
 jvm_library(
@@ -150,10 +147,7 @@ jvm_library(
         "//android/glance-designer:glance-designer_test_lib",
     ],
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":glance-designer-tests",
-    ],
+    runtime_deps = [":glance-designer-tests"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",

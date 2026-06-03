@@ -11,10 +11,7 @@ jvm_library(
     ),
     module_name = "intellij.android.ide-perf-tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        "//platform/lang-impl",
-    ],
+    runtime_deps = ["//platform/lang-impl"],
 )
 
 jvm_library(

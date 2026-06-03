@@ -26,10 +26,7 @@ jvm_library(
     ),
     module_name = "intellij.android.core.configurations",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":configurations",
-    ],
+    runtime_deps = [":configurations"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",

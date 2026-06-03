@@ -11,10 +11,7 @@ jvm_library(
     ),
     module_name = "intellij.android.core.ui.resourcemanager",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        "@lib//:kotlin-stdlib",
-    ],
+    runtime_deps = ["@lib//:kotlin-stdlib"],
 )
 
 jvm_library(

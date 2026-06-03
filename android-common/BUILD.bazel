@@ -179,10 +179,7 @@ jvm_library(
     ),
     module_name = "intellij.android.common.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        "//platform/projectModel-api:projectModel",
-    ],
+    runtime_deps = ["//platform/projectModel-api:projectModel"],
 )
 
 jvm_library(

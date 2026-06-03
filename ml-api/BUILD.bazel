@@ -92,10 +92,7 @@ jvm_library(
         "//android/ml-api:ml-api_test_lib",
     ],
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":ml-api-tests",
-    ],
+    runtime_deps = [":ml-api-tests"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",

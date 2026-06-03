@@ -144,10 +144,7 @@ jvm_library(
     ),
     module_name = "intellij.android.build-attribution.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        "//android/artwork",
-    ],
+    runtime_deps = ["//android/artwork"],
 )
 
 jvm_library(

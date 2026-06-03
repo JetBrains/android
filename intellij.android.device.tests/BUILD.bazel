@@ -18,10 +18,7 @@ jvm_library(
     ),
     module_name = "intellij.android.device.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        "@lib//:kotlin-stdlib",
-    ],
+    runtime_deps = ["@lib//:kotlin-stdlib"],
 )
 
 jvm_library(
@@ -41,10 +38,7 @@ jvm_library(
     ],
     kotlinc_opts = ":custom_device-tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":device-tests",
-    ],
+    runtime_deps = [":device-tests"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",

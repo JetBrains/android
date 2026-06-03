@@ -32,10 +32,7 @@ jvm_library(
     ),
     module_name = "intellij.android.as-driver.utils",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":utils",
-    ],
+    runtime_deps = [":utils"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",

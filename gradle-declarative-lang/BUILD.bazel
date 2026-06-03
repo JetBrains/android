@@ -79,10 +79,7 @@ jvm_library(
     ),
     module_name = "intellij.android.gradle.declarative.lang.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        "//android/gradle-declarative-lang-ide",
-    ],
+    runtime_deps = ["//android/gradle-declarative-lang-ide"],
 )
 
 jvm_library(

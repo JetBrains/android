@@ -70,10 +70,7 @@ jvm_library(
     ),
     module_name = "intellij.android.preview-elements.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        "@lib//:kotlin-stdlib",
-    ],
+    runtime_deps = ["@lib//:kotlin-stdlib"],
 )
 
 jvm_library(
@@ -89,10 +86,7 @@ jvm_library(
     ),
     module_name = "intellij.android.preview-elements.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":preview-elements-tests",
-    ],
+    runtime_deps = [":preview-elements-tests"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",

@@ -11,10 +11,7 @@ jvm_library(
     ),
     module_name = "intellij.android.core.actions",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        "//android/project-system-gradle-psd:projectSystem-gradle-psd",
-    ],
+    runtime_deps = ["//android/project-system-gradle-psd:projectSystem-gradle-psd"],
 )
 
 jvm_library(

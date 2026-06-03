@@ -91,10 +91,7 @@ jvm_library(
     ),
     module_name = "intellij.android.projectSystem.gradle.models.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":projectSystem-gradle-models-tests",
-    ],
+    runtime_deps = [":projectSystem-gradle-models-tests"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",

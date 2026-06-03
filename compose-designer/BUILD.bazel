@@ -245,10 +245,7 @@ jvm_library(
     ),
     module_name = "intellij.android.compose-designer.integration",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        "@lib//:kotlin-stdlib",
-    ],
+    runtime_deps = ["@lib//:kotlin-stdlib"],
 )
 
 jvm_library(
@@ -264,10 +261,7 @@ jvm_library(
     ),
     module_name = "intellij.android.compose-designer.integration",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":compose-designer-integration",
-    ],
+    runtime_deps = [":compose-designer-integration"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
@@ -311,10 +305,7 @@ jvm_library(
     ),
     module_name = "intellij.android.compose-designer.testFramework",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        "@lib//:kotlin-stdlib",
-    ],
+    runtime_deps = ["@lib//:kotlin-stdlib"],
 )
 
 jvm_library(
@@ -447,10 +438,7 @@ jvm_library(
     ),
     module_name = "intellij.android.compose-designer.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        "//platform/editor-ui-ex:editor-ex",
-    ],
+    runtime_deps = ["//platform/editor-ui-ex:editor-ex"],
 )
 
 jvm_library(

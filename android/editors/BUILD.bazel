@@ -29,10 +29,7 @@ jvm_library(
         "//android/android:core_test_lib",
     ],
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":editors",
-    ],
+    runtime_deps = [":editors"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",

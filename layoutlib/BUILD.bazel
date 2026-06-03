@@ -73,10 +73,7 @@ jvm_library(
     ),
     module_name = "intellij.android.layoutlib.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        "@lib//:kotlin-stdlib",
-    ],
+    runtime_deps = ["@lib//:kotlin-stdlib"],
 )
 
 jvm_library(
@@ -92,10 +89,7 @@ jvm_library(
     ),
     module_name = "intellij.android.layoutlib.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":layoutlib-tests",
-    ],
+    runtime_deps = [":layoutlib-tests"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",

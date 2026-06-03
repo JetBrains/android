@@ -312,10 +312,7 @@ jvm_library(
     ),
     module_name = "intellij.android.layout-inspector.integration",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        "@lib//:kotlin-stdlib",
-    ],
+    runtime_deps = ["@lib//:kotlin-stdlib"],
 )
 
 jvm_library(
@@ -338,10 +335,7 @@ jvm_library(
         ["integration/testData/**/*"],
     ),
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":layout-inspector-integration",
-    ],
+    runtime_deps = [":layout-inspector-integration"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",

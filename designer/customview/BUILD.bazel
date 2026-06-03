@@ -124,10 +124,7 @@ jvm_library(
     ),
     module_name = "intellij.android.designer.customview.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        "//android/android:core-tests",
-    ],
+    runtime_deps = ["//android/android:core-tests"],
 )
 
 jvm_library(

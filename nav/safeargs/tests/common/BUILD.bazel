@@ -11,10 +11,7 @@ jvm_library(
     ),
     module_name = "intellij.android.nav.safeargs.tests.common",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        "@lib//:kotlin-stdlib",
-    ],
+    runtime_deps = ["@lib//:kotlin-stdlib"],
 )
 
 jvm_library(
@@ -34,10 +31,7 @@ jvm_library(
         ["testResources/**/*"],
     ),
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":common",
-    ],
+    runtime_deps = [":common"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",

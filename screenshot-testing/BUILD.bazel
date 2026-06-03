@@ -124,10 +124,7 @@ jvm_library(
     ),
     module_name = "intellij.android.screenshot-test.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        "//android/screenshot-testing:screenshot-test",
-    ],
+    runtime_deps = ["//android/screenshot-testing:screenshot-test"],
 )
 
 jvm_library(
@@ -144,10 +141,7 @@ jvm_library(
     kotlinc_opts = ":custom_screenshot-test-tests",
     module_name = "intellij.android.screenshot-test.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":screenshot-test-tests",
-    ],
+    runtime_deps = [":screenshot-test-tests"],
     deps = [
         # do not sort,
         "//android/screenshot-testing:screenshot-test",

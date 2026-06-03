@@ -26,10 +26,7 @@ jvm_library(
     ),
     module_name = "intellij.android.core.editors.fast",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":editors.fast",
-    ],
+    runtime_deps = [":editors.fast"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",

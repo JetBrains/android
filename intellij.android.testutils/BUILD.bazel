@@ -26,10 +26,7 @@ jvm_library(
     ),
     module_name = "intellij.android.testutils",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":testutils",
-    ],
+    runtime_deps = [":testutils"],
     deps = [
         # do not sort,
         "@lib//:studio-platform",

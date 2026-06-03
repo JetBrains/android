@@ -77,10 +77,7 @@ jvm_library(
     ),
     module_name = "intellij.android.wear-preview-elements.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":wear-preview-elements-tests",
-    ],
+    runtime_deps = [":wear-preview-elements-tests"],
     deps = [
         # do not sort,
         "@lib//:kotlin-test",

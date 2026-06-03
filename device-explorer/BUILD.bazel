@@ -119,10 +119,7 @@ jvm_library(
     ),
     module_name = "intellij.android.device-explorer.integration.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":device-explorer-integration-tests",
-    ],
+    runtime_deps = [":device-explorer-integration-tests"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
@@ -166,10 +163,7 @@ jvm_library(
     ),
     module_name = "intellij.android.device-explorer.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        "@lib//:kotlin-stdlib",
-    ],
+    runtime_deps = ["@lib//:kotlin-stdlib"],
 )
 
 jvm_library(
@@ -185,10 +179,7 @@ jvm_library(
     ),
     module_name = "intellij.android.device-explorer.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":device-explorer-tests",
-    ],
+    runtime_deps = [":device-explorer-tests"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",

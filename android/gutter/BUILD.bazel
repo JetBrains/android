@@ -34,10 +34,7 @@ jvm_library(
         "//android/android:core_test_lib",
     ],
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":gutter",
-    ],
+    runtime_deps = [":gutter"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",

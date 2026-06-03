@@ -116,10 +116,7 @@ jvm_library(
     ),
     module_name = "intellij.android.projectSystem.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        "//android/android-test-framework:testFramework",
-    ],
+    runtime_deps = ["//android/android-test-framework:testFramework"],
 )
 
 jvm_library(
@@ -135,10 +132,7 @@ jvm_library(
     ),
     module_name = "intellij.android.projectSystem.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":projectSystem-tests",
-    ],
+    runtime_deps = [":projectSystem-tests"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",

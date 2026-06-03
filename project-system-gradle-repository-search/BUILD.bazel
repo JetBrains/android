@@ -82,10 +82,7 @@ jvm_library(
     ),
     module_name = "intellij.android.projectSystem.gradle.repositorySearch.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        "@lib//:kotlin-stdlib",
-    ],
+    runtime_deps = ["@lib//:kotlin-stdlib"],
 )
 
 jvm_library(
@@ -101,10 +98,7 @@ jvm_library(
     ),
     module_name = "intellij.android.projectSystem.gradle.repositorySearch.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":projectSystem-gradle-repositorySearch-tests",
-    ],
+    runtime_deps = [":projectSystem-gradle-repositorySearch-tests"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",

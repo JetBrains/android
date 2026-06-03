@@ -107,10 +107,7 @@ jvm_library(
         ["testData/**/*"],
     ),
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":native-symbolizer-tests",
-    ],
+    runtime_deps = [":native-symbolizer-tests"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",

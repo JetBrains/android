@@ -285,6 +285,7 @@ jvm_library(
     module_name = "intellij.android.core",
     visibility = ["//visibility:public"],
     exports = [
+        # do not sort,
         "//android/build-common",
         "//android/build-common:build-common_test_lib",
     ],

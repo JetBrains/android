@@ -98,10 +98,7 @@ jvm_library(
     ),
     module_name = "intellij.android.rendering.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        "@lib//:kotlin-stdlib",
-    ],
+    runtime_deps = ["@lib//:kotlin-stdlib"],
 )
 
 jvm_library(
@@ -120,10 +117,7 @@ jvm_library(
         "//android/rendering:rendering_test_lib",
     ],
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":rendering-tests",
-    ],
+    runtime_deps = [":rendering-tests"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",

@@ -11,10 +11,7 @@ jvm_library(
     ),
     module_name = "intellij.android.old-agp-tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        "@lib//:kotlin-stdlib",
-    ],
+    runtime_deps = ["@lib//:kotlin-stdlib"],
 )
 
 jvm_library(
@@ -30,10 +27,7 @@ jvm_library(
     ),
     module_name = "intellij.android.old-agp-tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":old-agp-tests",
-    ],
+    runtime_deps = [":old-agp-tests"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",

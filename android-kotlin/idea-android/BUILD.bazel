@@ -122,10 +122,7 @@ jvm_library(
     ),
     module_name = "intellij.android.kotlin.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        "@lib//:kotlin-stdlib",
-    ],
+    runtime_deps = ["@lib//:kotlin-stdlib"],
 )
 
 jvm_library(
@@ -142,10 +139,7 @@ jvm_library(
     kotlinc_opts = ":custom_android-kotlin-tests",
     module_name = "intellij.android.kotlin.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":android-kotlin-tests",
-    ],
+    runtime_deps = [":android-kotlin-tests"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",

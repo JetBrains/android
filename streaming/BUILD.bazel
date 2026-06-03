@@ -177,10 +177,7 @@ jvm_library(
         "//android/streaming:streaming_test_lib",
     ],
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":streaming-integration",
-    ],
+    runtime_deps = [":streaming-integration"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",

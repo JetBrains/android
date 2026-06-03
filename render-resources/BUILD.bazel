@@ -129,10 +129,7 @@ jvm_library(
         "//android/render-resources:render-resources_test_lib",
     ],
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":render-resources-tests",
-    ],
+    runtime_deps = [":render-resources-tests"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
