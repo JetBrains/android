@@ -138,6 +138,7 @@ phased.sync.disable.bridge.data.service=PREVIEW
 phased.sync.enabled=PREVIEW
 playpolicyinsights.play.policy.insights=COMPLETE:2025
 preview.essentials.mode=PREVIEW
+preview.render.sandbox.enabled=INTERNAL
 profiler.home.tab.v2=PREVIEW
 profiler.leakcanary.studiobot=PREVIEW
 profiler.leakcanary=PREVIEW
