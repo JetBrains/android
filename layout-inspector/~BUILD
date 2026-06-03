@@ -218,6 +218,7 @@ iml_test(
     data = layout_inspector_view_data,
     jvm_flags = emulator_snapshot_jvm_flags(INTEGRATION_TEST_SYSTEM_IMAGE),
     module = ":intellij.android.layout-inspector.integration",
+    tags = ["studio-e2e-test"],
     tags_linux = ["block-network"],
     tags_windows = [
         "block-network",
