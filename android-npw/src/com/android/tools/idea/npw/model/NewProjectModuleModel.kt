@@ -27,6 +27,7 @@ import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.wizard.model.WizardModel
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
+import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.StringParameter
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.TemplateFlag
@@ -68,7 +69,7 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
     val newRenderTemplateModel = createMainRenderModel().apply { addRenderDefaultTemplateValues(this, packageName) }
     if (hasCompanionApp.get() && newRenderTemplateModel.hasActivity) {
       val companionModuleModel = createCompanionModuleModel(projectModel)
-      val companionRenderModel = createCompanionRenderModel(companionModuleModel, packageName)
+      val companionRenderModel = createCompanionRenderModel(companionModuleModel, packageName, projectModel.language.valueOrNull)
 
       companionModuleModel.androidSdkInfo.value = androidSdkInfo().value
 
@@ -122,7 +123,8 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
  *
  * TODO: Consider updating this to the Compose/Material3 "Empty Activity" template if the project is Kotlin-based
  */
-internal const val COMPANION_MODULE_TEMPLATE_NAME = "Empty Views Activity"
+internal const val COMPANION_MODULE_TEMPLATE_NAME_VIEWS = "Empty Views Activity"
+internal const val COMPANION_MODULE_TEMPLATE_NAME_COMPOSE = "Empty Activity"
 
 private fun createCompanionModuleModel(projectModel: NewProjectModel): NewAndroidModuleModel {
   // Note: The companion Module is always a Mobile app
@@ -145,10 +147,11 @@ private fun createCompanionModuleModel(projectModel: NewProjectModel): NewAndroi
   return companionModuleModel
 }
 
-private fun createCompanionRenderModel(moduleModel: NewAndroidModuleModel, packageName: String): RenderTemplateModel {
+private fun createCompanionRenderModel(moduleModel: NewAndroidModuleModel, packageName: String, language: Language?): RenderTemplateModel {
+  val templateName = if (language == Language.Kotlin) COMPANION_MODULE_TEMPLATE_NAME_COMPOSE else COMPANION_MODULE_TEMPLATE_NAME_VIEWS
   val companionRenderModel =
     RenderTemplateModel.fromModuleModel(moduleModel).apply {
-      newTemplate = TemplateResolver.getAllTemplates().first { it.name == COMPANION_MODULE_TEMPLATE_NAME }
+      newTemplate = TemplateResolver.getAllTemplates().first { it.name == templateName }
     }
   addRenderDefaultTemplateValues(companionRenderModel, packageName)
 
