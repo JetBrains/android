@@ -37,7 +37,7 @@ import com.intellij.openapi.util.io.FileUtilRt
 
 const val WHPX_ENABLE_PENDING_RESTART = "whpx_enable_pending_restart"
 
-/** Represents the result of a WHPX configuration operation. */
+/** Represents the result of a Windows Hypervisor Platform (WHPX) configuration operation. */
 sealed class WhpxResult(val description: String) {
   object Success : WhpxResult("Operation successful")
 
@@ -63,18 +63,8 @@ sealed class WhpxResult(val description: String) {
   }
 }
 
-fun enableWhpx(sdk: AndroidSdkHandler): WhpxResult {
-  return switchWhpx(sdk, true)
-}
-
-fun disableWHPX(sdk: AndroidSdkHandler): WhpxResult {
-  return switchWhpx(sdk, false)
-}
-
 fun switchWhpx(sdk: AndroidSdkHandler, enable: Boolean): WhpxResult {
-  val emulator = sdk.getEmulatorPackage(progressIndicator, StudioFlags.EMULATOR_PREVIEW_ENABLED.get())
-  val emulatorBinary = emulator?.emulatorBinary ?: return WhpxResult.EmulatorNotFound
-
+  val emulator = sdk.getEmulatorPackage(progressIndicator, StudioFlags.EMULATOR_PREVIEW_ENABLED.get()) ?: return WhpxResult.EmulatorNotFound
   val commandLine = ElevatedCommandLine()
   commandLine.setWorkDirectory(emulator.location.toString())
   val checkBinary = emulator.emulatorCheckBinary ?: return WhpxResult.EmulatorNotFound

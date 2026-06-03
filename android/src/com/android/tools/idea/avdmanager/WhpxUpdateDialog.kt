@@ -19,10 +19,13 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.google.wireless.android.sdk.stats.EmulatorWindowsHypervisorMigrationEvent
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.Messages
+import com.intellij.platform.ide.progress.ModalTaskOwner
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
@@ -35,6 +38,8 @@ import javax.swing.Action
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.SwingConstants
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /** A dialog that prompts the user to update to the Windows Hypervisor Platform (WHPX). */
 class WhpxUpdateDialog(private val project: Project?, private val fromAehd: Boolean) : DialogWrapper(project) {
@@ -69,42 +74,46 @@ class WhpxUpdateDialog(private val project: Project?, private val fromAehd: Bool
   }
 
   private fun enableWhpxAndReboot(rebootNow: Boolean) {
-    val result = enableWhpx(AndroidSdks.getInstance().tryToChooseSdkHandler())
-    if (result is WhpxResult.Success) {
-      isOperationSuccessful = true
-      PropertiesComponent.getInstance().setValue(WHPX_ENABLE_PENDING_RESTART, true)
-      if (fromAehd) logHypervisorMigrationEvent(EmulatorWindowsHypervisorMigrationEvent.Action.ENABLE_WHPX_SUCCESS)
+    runWithModalProgressBlocking(ModalTaskOwner.component(this.owner), "Enable WHPX") {
+      val result = withContext(Dispatchers.IO) { switchWhpx(AndroidSdks.getInstance().tryToChooseSdkHandler(), enable = true) }
+      withContext(Dispatchers.EDT) {
+        if (result is WhpxResult.Success) {
+          isOperationSuccessful = true
+          PropertiesComponent.getInstance().setValue(WHPX_ENABLE_PENDING_RESTART, true)
+          if (fromAehd) logHypervisorMigrationEvent(EmulatorWindowsHypervisorMigrationEvent.Action.ENABLE_WHPX_SUCCESS)
 
-      if (rebootNow) {
-        notifyAndReboot("You must restart your system to complete Windows Hypervisor Platform update.", project)
-      } else {
-        balloonNotifyReboot("Restart your system to complete Windows Hypervisor Platform update.", project)
-      }
-    } else {
-      logger<WhpxUpdateDialog>().error("Operation enableWHPX failed: ${result.description}.")
-      isOperationSuccessful = false
-      if (fromAehd) logHypervisorMigrationEvent(EmulatorWindowsHypervisorMigrationEvent.Action.ENABLE_WHPX_FAILURE)
+          if (rebootNow) {
+            notifyAndReboot("You must restart your system to complete Windows Hypervisor Platform update.", project)
+          } else {
+            balloonNotifyReboot("Restart your system to complete Windows Hypervisor Platform update.", project)
+          }
+        } else {
+          logger<WhpxUpdateDialog>().warn("Operation enableWHPX failed: ${result.description}.")
+          isOperationSuccessful = false
+          if (fromAehd) logHypervisorMigrationEvent(EmulatorWindowsHypervisorMigrationEvent.Action.ENABLE_WHPX_FAILURE)
 
-      when (result) {
-        is WhpxResult.AuthorizationRequired -> {
-          Messages.showErrorDialog(
-            "Enabling WHPX requires authorization. " +
-              "Please retry the operation and click \"Yes\" to allow emulator-check.exe to make changes.",
-            "Authorization Needed",
-          )
-        }
-        is WhpxResult.EmulatorUpdateNeeded -> {
-          Messages.showErrorDialog(
-            "Enabling WHPX requires a newer version of the Android Emulator. " +
-              "Please update the Android Emulator to version 36.5.7 or higher and retry the operation.",
-            "Emulator Update Needed",
-          )
-        }
-        else -> {
-          Messages.showErrorDialog(
-            "Failed to enable WHPX: ${result.description}. Please consult the IDE log (Help | Show Log).",
-            "Operation Failed",
-          )
+          when (result) {
+            is WhpxResult.AuthorizationRequired -> {
+              Messages.showErrorDialog(
+                "Enabling WHPX requires authorization. " +
+                "Please retry the operation and click \"Yes\" to allow emulator-check.exe to make changes.",
+                "Authorization Needed",
+              )
+            }
+            is WhpxResult.EmulatorUpdateNeeded -> {
+              Messages.showErrorDialog(
+                "Enabling WHPX requires a newer version of the Android Emulator. " +
+                "Please update the Android Emulator to version 36.5.7 or higher and retry the operation.",
+                "Emulator Update Needed",
+              )
+            }
+            else -> {
+              Messages.showErrorDialog(
+                "Failed to enable WHPX: ${result.description}. Please consult the IDE log (Help | Show Log).",
+                "Operation Failed",
+              )
+            }
+          }
         }
       }
     }
