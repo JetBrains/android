@@ -175,7 +175,6 @@ class GMavenIndexRepositoryTest {
       content = "[updated]This is for unit test",
       eTag = "84509f",
       rCode = HttpURLConnection.HTTP_CLIENT_TIMEOUT,
-      rLen = "Http client timeout".toByteCnt(),
     )
 
     testScheduler.advanceTimeBy(1.days)
