@@ -1,52 +1,70 @@
-### auto-generated section `build intellij.android.gradle.dsl.groovy` start
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.gradle.dsl.groovy` start
+
 jvm_library(
-  name = "gradle-dsl-groovy",
-  module_name = "intellij.android.gradle.dsl.groovy",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = glob(["resources/**/*"]),
-  resource_strip_prefix = "resources",
-  deps = [
-    "@lib//:kotlin-stdlib",
-    "//libraries/guava",
-    "//platform/util",
-    "//plugins/groovy/groovy-psi:psi",
-    "//java/java-frontback-psi-api:frontback-psi",
-    "//java/java-psi-api:psi",
-    "//platform/core-api:core",
-    "//platform/core-impl",
-    "//android/gradle-dsl",
-  ]
+    name = "gradle-dsl-groovy",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.gradle.dsl.groovy",
+    resource_strip_prefix = "resources",
+    resources = glob(
+        ["resources/**/*"],
+    ),
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:kotlin-stdlib",
+        "//libraries/guava",
+        "//platform/util",
+        "//plugins/groovy/groovy-psi:psi",
+        "//java/java-frontback-psi-api:frontback-psi",
+        "//java/java-psi-api:psi",
+        "//platform/core-api:core",
+        "//platform/core-impl",
+        "//android/gradle-dsl",
+    ],
 )
 
 jvm_library(
-  name = "gradle-dsl-groovy_test_lib",
-  testonly = True,
-  module_name = "intellij.android.gradle.dsl.groovy",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = [
-    ":gradle-dsl-groovy",
-    "//libraries/guava:guava_test_lib",
-    "//platform/testFramework",
-    "//platform/testFramework:testFramework_test_lib",
-    "@lib//:junit4",
-    "@lib//:truth",
-    "//platform/util:util_test_lib",
-    "//plugins/groovy/groovy-psi:psi_test_lib",
-    "//java/java-frontback-psi-api:frontback-psi_test_lib",
-    "//java/java-psi-api:psi_test_lib",
-    "//platform/core-api:core_test_lib",
-    "//platform/core-impl:core-impl_test_lib",
-    "//android/gradle-dsl:gradle-dsl_test_lib",
-  ]
+    name = "gradle-dsl-groovy_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.gradle.dsl.groovy",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":gradle-dsl-groovy",
+        "//libraries/guava:guava_test_lib",
+        "//platform/testFramework",
+        "//platform/testFramework:testFramework_test_lib",
+        "@lib//:junit4",
+        "@lib//:truth",
+        "//platform/util:util_test_lib",
+        "//plugins/groovy/groovy-psi:psi_test_lib",
+        "//java/java-frontback-psi-api:frontback-psi_test_lib",
+        "//java/java-psi-api:psi_test_lib",
+        "//platform/core-api:core_test_lib",
+        "//platform/core-impl:core-impl_test_lib",
+        "//android/gradle-dsl:gradle-dsl_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.gradle.dsl.groovy` end
 
 ### auto-generated section `iml intellij.android.gradle.dsl.groovy` start
-exports_files([
-  "intellij.android.gradle.dsl.groovy.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.gradle.dsl.groovy.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.gradle.dsl.groovy` end

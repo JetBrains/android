@@ -1,98 +1,135 @@
-### auto-generated section `build intellij.android.preview-elements` start
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.preview-elements` start
+
 jvm_library(
-  name = "preview-elements",
-  module_name = "intellij.android.preview-elements",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  deps = [
-    "@lib//:studio-platform-provided",
-    "//libraries/guava",
-    "@lib//:jetbrains-annotations",
-    "@lib//:kotlin-stdlib",
-    "//android/render-resources",
-    "//android/rendering",
-    "//platform/core-api:core",
-    "//platform/util",
-  ]
+    name = "preview-elements",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.preview-elements",
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "//libraries/guava",
+        "@lib//:jetbrains-annotations",
+        "@lib//:kotlin-stdlib",
+        "//android/render-resources",
+        "//android/rendering",
+        "//platform/core-api:core",
+        "//platform/util",
+    ],
 )
 
 jvm_library(
-  name = "preview-elements_test_lib",
-  testonly = True,
-  module_name = "intellij.android.preview-elements",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = [
-    ":preview-elements",
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "//libraries/guava:guava_test_lib",
-    "//android/render-resources:render-resources_test_lib",
-    "//android/rendering:rendering_test_lib",
-    "//platform/core-api:core_test_lib",
-    "//platform/util:util_test_lib",
-  ]
+    name = "preview-elements_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.preview-elements",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":preview-elements",
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "//libraries/guava:guava_test_lib",
+        "//android/render-resources:render-resources_test_lib",
+        "//android/rendering:rendering_test_lib",
+        "//platform/core-api:core_test_lib",
+        "//platform/util:util_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.preview-elements` end
 
 ### auto-generated section `iml intellij.android.preview-elements` start
-exports_files([
-  "intellij.android.preview-elements.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.preview-elements.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.preview-elements` end
 
 ### auto-generated section `build intellij.android.preview-elements.tests` start
+
 jvm_library(
-  name = "preview-elements-tests",
-  module_name = "intellij.android.preview-elements.tests",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = ["@lib//:kotlin-stdlib"]
+    name = "preview-elements-tests",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.preview-elements.tests",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "@lib//:kotlin-stdlib",
+    ],
 )
 
 jvm_library(
-  name = "preview-elements-tests_test_lib",
-  testonly = True,
-  module_name = "intellij.android.preview-elements.tests",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "@lib//:kotlin-stdlib",
-    "//libraries/guava",
-    "//libraries/guava:guava_test_lib",
-    "@lib//:junit4",
-    "@lib//:kotlin-test",
-    "@lib//:truth",
-    "//android/preview-elements",
-    "//android/preview-elements:preview-elements_test_lib",
-    "//android/rendering",
-    "//android/rendering:rendering_test_lib",
-    "//android/render-resources",
-    "//android/render-resources:render-resources_test_lib",
-    "//android/layoutlib-loader",
-    "//android/layoutlib-loader:layoutlib-loader_test_lib",
-    "//platform/core-api:core",
-    "//platform/core-api:core_test_lib",
-  ],
-  runtime_deps = [":preview-elements-tests"]
+    name = "preview-elements-tests_test_lib",
+    testonly = True,
+    srcs = glob(
+        [
+            "testSrc/**/*.kt",
+            "testSrc/**/*.java",
+            "testSrc/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.preview-elements.tests",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":preview-elements-tests",
+    ],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "@lib//:kotlin-stdlib",
+        "//libraries/guava",
+        "//libraries/guava:guava_test_lib",
+        "@lib//:junit4",
+        "@lib//:kotlin-test",
+        "@lib//:truth",
+        "//android/preview-elements",
+        "//android/preview-elements:preview-elements_test_lib",
+        "//android/rendering",
+        "//android/rendering:rendering_test_lib",
+        "//android/render-resources",
+        "//android/render-resources:render-resources_test_lib",
+        "//android/layoutlib-loader",
+        "//android/layoutlib-loader:layoutlib-loader_test_lib",
+        "//platform/core-api:core",
+        "//platform/core-api:core_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.preview-elements.tests` end
 
 ### auto-generated section `iml intellij.android.preview-elements.tests` start
-exports_files([
-  "intellij.android.preview-elements.tests.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.preview-elements.tests.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.preview-elements.tests` end
 
 ### auto-generated section `test intellij.android.preview-elements.tests` start
-load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
-  name = "preview-elements-tests_test",
-  runtime_deps = [":preview-elements-tests_test_lib"]
+    name = "preview-elements-tests_test",
+    runtime_deps = [":preview-elements-tests_test_lib"],
 )
 ### auto-generated section `test intellij.android.preview-elements.tests` end

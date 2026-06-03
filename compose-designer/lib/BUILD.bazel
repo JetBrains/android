@@ -1,19 +1,22 @@
-### auto-generated section `local-libs` start
 load("@rules_java//java:defs.bzl", "java_import")
 
+### auto-generated section `local-libs` start
 java_import(
-  name = "android-compose-designer-tests-ui-animation-tooling",
-  jars = ["ui-animation-tooling-internal.jar"],
-  visibility = ["//visibility:public"]
+    name = "android-compose-designer-tests-ui-animation-tooling",
+    jars = ["ui-animation-tooling-internal.jar"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
-  name = "android-compose-designer-ui-animation-tooling-internal",
-  jars = ["ui-animation-tooling-internal.jar"],
-  visibility = ["//visibility:public"]
+    name = "android-compose-designer-ui-animation-tooling-internal",
+    jars = ["ui-animation-tooling-internal.jar"],
+    visibility = ["//visibility:public"],
 )
 
-exports_files([
-  "ui-animation-tooling-internal.jar",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "ui-animation-tooling-internal.jar",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `local-libs` end

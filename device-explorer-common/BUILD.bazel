@@ -1,41 +1,57 @@
-### auto-generated section `build intellij.android.device-explorer-common` start
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.device-explorer-common` start
+
 jvm_library(
-  name = "device-explorer-common",
-  module_name = "intellij.android.device-explorer-common",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:kotlin-stdlib",
-    "//android/android-common:common",
-    "//platform/core-api:core",
-    "//platform/projectModel-api:projectModel",
-    "//platform/util",
-  ]
+    name = "device-explorer-common",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.device-explorer-common",
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:kotlin-stdlib",
+        "//android/android-common:common",
+        "//platform/core-api:core",
+        "//platform/projectModel-api:projectModel",
+        "//platform/util",
+    ],
 )
 
 jvm_library(
-  name = "device-explorer-common_test_lib",
-  testonly = True,
-  module_name = "intellij.android.device-explorer-common",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = [
-    ":device-explorer-common",
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "//android/android-common:common_test_lib",
-    "//platform/core-api:core_test_lib",
-    "//platform/projectModel-api:projectModel_test_lib",
-    "//platform/util:util_test_lib",
-  ]
+    name = "device-explorer-common_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.device-explorer-common",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":device-explorer-common",
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "//android/android-common:common_test_lib",
+        "//platform/core-api:core_test_lib",
+        "//platform/projectModel-api:projectModel_test_lib",
+        "//platform/util:util_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.device-explorer-common` end
 
 ### auto-generated section `iml intellij.android.device-explorer-common` start
-exports_files([
-  "intellij.android.device-explorer-common.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.device-explorer-common.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.device-explorer-common` end

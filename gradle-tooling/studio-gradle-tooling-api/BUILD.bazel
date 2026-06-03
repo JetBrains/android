@@ -1,36 +1,52 @@
-### auto-generated section `build intellij.android.gradle-tooling.api` start
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.gradle-tooling.api` start
+
 jvm_library(
-  name = "android-gradle-tooling-api",
-  module_name = "intellij.android.gradle-tooling.api",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  kotlinc_opts = "@community//:k8",
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:jetbrains-annotations",
-    "@lib//:kotlin-stdlib",
-  ]
+    name = "android-gradle-tooling-api",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    kotlinc_opts = "@community//:k8",
+    module_name = "intellij.android.gradle-tooling.api",
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:jetbrains-annotations",
+        "@lib//:kotlin-stdlib",
+    ],
 )
 
 jvm_library(
-  name = "android-gradle-tooling-api_test_lib",
-  testonly = True,
-  module_name = "intellij.android.gradle-tooling.api",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  kotlinc_opts = "@community//:k8",
-  runtime_deps = [
-    ":android-gradle-tooling-api",
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-  ]
+    name = "android-gradle-tooling-api_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    kotlinc_opts = "@community//:k8",
+    module_name = "intellij.android.gradle-tooling.api",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":android-gradle-tooling-api",
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+    ],
 )
 ### auto-generated section `build intellij.android.gradle-tooling.api` end
 
 ### auto-generated section `iml intellij.android.gradle-tooling.api` start
-exports_files([
-  "intellij.android.gradle-tooling.api.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.gradle-tooling.api.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.gradle-tooling.api` end

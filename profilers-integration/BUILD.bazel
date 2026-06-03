@@ -1,44 +1,65 @@
-### auto-generated section `build intellij.android.profilers.integration` start
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.profilers.integration` start
+
 jvm_library(
-  name = "profilers-integration",
-  module_name = "intellij.android.profilers.integration",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = ["@lib//:kotlin-stdlib"]
+    name = "profilers-integration",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.profilers.integration",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "@lib//:kotlin-stdlib",
+    ],
 )
 
 jvm_library(
-  name = "profilers-integration_test_lib",
-  testonly = True,
-  module_name = "intellij.android.profilers.integration",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "@lib//:kotlin-stdlib",
-    "@lib//:junit4",
-    "@lib//:truth",
-    "//android/as-driver/utils",
-    "//android/as-driver/utils:utils_test_lib",
-  ],
-  runtime_deps = [":profilers-integration"]
+    name = "profilers-integration_test_lib",
+    testonly = True,
+    srcs = glob(
+        [
+            "testSrc/**/*.kt",
+            "testSrc/**/*.java",
+            "testSrc/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.profilers.integration",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":profilers-integration",
+    ],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "@lib//:kotlin-stdlib",
+        "@lib//:junit4",
+        "@lib//:truth",
+        "//android/as-driver/utils",
+        "//android/as-driver/utils:utils_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.profilers.integration` end
 
 ### auto-generated section `iml intellij.android.profilers.integration` start
-exports_files([
-  "intellij.android.profilers.integration.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.profilers.integration.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.profilers.integration` end
 
 ### auto-generated section `test intellij.android.profilers.integration` start
-load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
-  name = "profilers-integration_test",
-  runtime_deps = [":profilers-integration_test_lib"]
+    name = "profilers-integration_test",
+    runtime_deps = [":profilers-integration_test_lib"],
 )
 ### auto-generated section `test intellij.android.profilers.integration` end

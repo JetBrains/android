@@ -1,100 +1,117 @@
-### auto-generated section `build intellij.android.avdmanager.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.avdmanager.tests` start
+
 jvm_library(
-  name = "avdmanager-tests",
-  module_name = "intellij.android.avdmanager.tests",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = [
-    "@lib//:jimfs",
-    "//android/adt-testutils",
-    "//android/adt-ui",
-    "//android/android-common:common",
-    "//android/android-common:common-tests",
-    "//android/android:core",
-    "//android/observable",
-    "//android/android-test-framework:testFramework",
-    "//android/wizard-model",
-  ]
+    name = "avdmanager-tests",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.avdmanager.tests",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "@lib//:jimfs",
+        "//android/adt-testutils",
+        "//android/adt-ui",
+        "//android/android-common:common",
+        "//android/android-common:common-tests",
+        "//android/android:core",
+        "//android/observable",
+        "//android/android-test-framework:testFramework",
+        "//android/wizard-model",
+    ],
 )
 
 jvm_library(
-  name = "avdmanager-tests_test_lib",
-  testonly = True,
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  associates = [
-    "//android/android:core",
-    "//android/android:core_test_lib",
-  ],
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "@lib//:jimfs",
-    "@lib//:kotlin-stdlib",
-    "//libraries/mockito",
-    "//libraries/mockito:mockito_test_lib",
-    "@lib//:truth",
-    "//libraries/guava",
-    "//libraries/guava:guava_test_lib",
-    "@lib//:junit4",
-    "@lib//:jetbrains-annotations",
-    "//libraries/protobuf",
-    "//libraries/protobuf:protobuf_test_lib",
-    "//android/adt-testutils",
-    "//android/adt-testutils:adt-testutils_test_lib",
-    "//android/adt-ui",
-    "//android/adt-ui:adt-ui_test_lib",
-    "//android/android-common:common",
-    "//android/android-common:common_test_lib",
-    "//android/android-common:common-tests",
-    "//android/android-common:common-tests_test_lib",
-    "//android/observable",
-    "//android/observable:observable_test_lib",
-    "//android/android-test-framework:testFramework",
-    "//android/android-test-framework:testFramework_test_lib",
-    "//android/wizard-model",
-    "//android/wizard-model:wizard-model_test_lib",
-    "//android/android-adb:adb",
-    "//android/android-adb:adb_test_lib",
-    "//android/artwork",
-    "//android/artwork:artwork_test_lib",
-    "//platform/core-api:core",
-    "//platform/core-api:core_test_lib",
-    "//platform/credential-store",
-    "//platform/credential-store:credential-store_test_lib",
-    "//platform/testFramework",
-    "//platform/testFramework:testFramework_test_lib",
-    "@lib//:mockito-kotlin",
-    "//android/intellij.android.testutils:testutils",
-    "//android/intellij.android.testutils:testutils_test_lib",
-    "//platform/platform-util-io:ide-util-io",
-    "//platform/util-ex",
-    "//platform/util-ex:util-ex_test_lib",
-    "//libraries/kotlinx/datetime",
-    "//libraries/kotlinx/datetime:datetime_test_lib",
-    "//java/testFramework",
-    "//java/testFramework:testFramework_test_lib",
-  ],
-  runtime_deps = [
-    ":avdmanager-tests",
-    "//platform/platform-util-io:ide-util-io_test_lib",
-  ]
+    name = "avdmanager-tests_test_lib",
+    testonly = True,
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    associates = [
+        "//android/android:core",
+        "//android/android:core_test_lib",
+    ],
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":avdmanager-tests",
+        "//platform/platform-util-io:ide-util-io_test_lib",
+    ],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "@lib//:jimfs",
+        "@lib//:kotlin-stdlib",
+        "//libraries/mockito",
+        "//libraries/mockito:mockito_test_lib",
+        "@lib//:truth",
+        "//libraries/guava",
+        "//libraries/guava:guava_test_lib",
+        "@lib//:junit4",
+        "@lib//:jetbrains-annotations",
+        "//libraries/protobuf",
+        "//libraries/protobuf:protobuf_test_lib",
+        "//android/adt-testutils",
+        "//android/adt-testutils:adt-testutils_test_lib",
+        "//android/adt-ui",
+        "//android/adt-ui:adt-ui_test_lib",
+        "//android/android-common:common",
+        "//android/android-common:common_test_lib",
+        "//android/android-common:common-tests",
+        "//android/android-common:common-tests_test_lib",
+        "//android/observable",
+        "//android/observable:observable_test_lib",
+        "//android/android-test-framework:testFramework",
+        "//android/android-test-framework:testFramework_test_lib",
+        "//android/wizard-model",
+        "//android/wizard-model:wizard-model_test_lib",
+        "//android/android-adb:adb",
+        "//android/android-adb:adb_test_lib",
+        "//android/artwork",
+        "//android/artwork:artwork_test_lib",
+        "//platform/core-api:core",
+        "//platform/core-api:core_test_lib",
+        "//platform/credential-store",
+        "//platform/credential-store:credential-store_test_lib",
+        "//platform/testFramework",
+        "//platform/testFramework:testFramework_test_lib",
+        "@lib//:mockito-kotlin",
+        "//android/intellij.android.testutils:testutils",
+        "//android/intellij.android.testutils:testutils_test_lib",
+        "//platform/platform-util-io:ide-util-io",
+        "//platform/util-ex",
+        "//platform/util-ex:util-ex_test_lib",
+        "//libraries/kotlinx/datetime",
+        "//libraries/kotlinx/datetime:datetime_test_lib",
+        "//java/testFramework",
+        "//java/testFramework:testFramework_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.avdmanager.tests` end
 
 ### auto-generated section `iml intellij.android.avdmanager.tests` start
-exports_files([
-  "intellij.android.avdmanager.tests.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.avdmanager.tests.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.avdmanager.tests` end
 
 ### auto-generated section `test intellij.android.avdmanager.tests` start
-load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
-  name = "avdmanager-tests_test",
-  runtime_deps = [":avdmanager-tests_test_lib"]
+    name = "avdmanager-tests_test",
+    runtime_deps = [":avdmanager-tests_test_lib"],
 )
 ### auto-generated section `test intellij.android.avdmanager.tests` end

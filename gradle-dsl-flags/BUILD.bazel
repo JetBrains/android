@@ -1,34 +1,52 @@
-### auto-generated section `build intellij.android.gradle.dsl.flags` start
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.gradle.dsl.flags` start
+
 jvm_library(
-  name = "gradle-dsl-flags",
-  module_name = "intellij.android.gradle.dsl.flags",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = glob(["resources/**/*"]),
-  resource_strip_prefix = "resources",
-  deps = [
-    "@lib//:kotlin-stdlib",
-    "//platform/util",
-  ]
+    name = "gradle-dsl-flags",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.gradle.dsl.flags",
+    resource_strip_prefix = "resources",
+    resources = glob(
+        ["resources/**/*"],
+    ),
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:kotlin-stdlib",
+        "//platform/util",
+    ],
 )
 
 jvm_library(
-  name = "gradle-dsl-flags_test_lib",
-  testonly = True,
-  module_name = "intellij.android.gradle.dsl.flags",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = [
-    ":gradle-dsl-flags",
-    "//platform/util:util_test_lib",
-  ]
+    name = "gradle-dsl-flags_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.gradle.dsl.flags",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":gradle-dsl-flags",
+        "//platform/util:util_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.gradle.dsl.flags` end
 
 ### auto-generated section `iml intellij.android.gradle.dsl.flags` start
-exports_files([
-  "intellij.android.gradle.dsl.flags.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.gradle.dsl.flags.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.gradle.dsl.flags` end

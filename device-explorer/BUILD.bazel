@@ -1,192 +1,248 @@
-### auto-generated section `build intellij.android.device-explorer` start
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.device-explorer` start
+
 jvm_library(
-  name = "device-explorer",
-  module_name = "intellij.android.device-explorer",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = glob(["resources/**/*"]),
-  resource_strip_prefix = "resources",
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:jetbrains-annotations",
-    "@lib//:kotlin-stdlib",
-    "//libraries/kotlinx/coroutines/core",
-    "//libraries/protobuf",
-    "//android/android-adb:adb",
-    "//android/adt-ui",
-    "//android/artwork",
-    "//android/android-common:common",
-    "//android/device-explorer-common",
-    "//android/device-explorer-files",
-    "//android/device-explorer-monitor",
-    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
-    "//platform/core-api:core",
-    "//platform/core-ui",
-    "//platform/extensions",
-    "//platform/platform-api:ide",
-    "//platform/ide-core",
-    "//platform/projectModel-api:projectModel",
-    "//platform/util",
-    "//platform/util-rt",
-    "//platform/util:util-ui",
-    "//platform/forms_rt:java-guiForms-rt",
-  ]
+    name = "device-explorer",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.device-explorer",
+    resource_strip_prefix = "resources",
+    resources = glob(
+        ["resources/**/*"],
+    ),
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:jetbrains-annotations",
+        "@lib//:kotlin-stdlib",
+        "//libraries/kotlinx/coroutines/core",
+        "//libraries/protobuf",
+        "//android/android-adb:adb",
+        "//android/adt-ui",
+        "//android/artwork",
+        "//android/android-common:common",
+        "//android/device-explorer-common",
+        "//android/device-explorer-files",
+        "//android/device-explorer-monitor",
+        "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+        "//platform/core-api:core",
+        "//platform/core-ui",
+        "//platform/extensions",
+        "//platform/platform-api:ide",
+        "//platform/ide-core",
+        "//platform/projectModel-api:projectModel",
+        "//platform/util",
+        "//platform/util-rt",
+        "//platform/util:util-ui",
+        "//platform/forms_rt:java-guiForms-rt",
+    ],
 )
 
 jvm_library(
-  name = "device-explorer_test_lib",
-  testonly = True,
-  module_name = "intellij.android.device-explorer",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = [
-    ":device-explorer",
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "//libraries/kotlinx/coroutines/core:core_test_lib",
-    "//libraries/protobuf:protobuf_test_lib",
-    "//android/android-adb:adb_test_lib",
-    "//android/adt-ui:adt-ui_test_lib",
-    "//android/artwork:artwork_test_lib",
-    "//android/android-common:common_test_lib",
-    "//android/device-explorer-common:device-explorer-common_test_lib",
-    "//android/device-explorer-files:device-explorer-files_test_lib",
-    "//android/device-explorer-monitor:device-explorer-monitor_test_lib",
-    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon_test_lib",
-    "//platform/core-api:core_test_lib",
-    "//platform/core-ui:core-ui_test_lib",
-    "//platform/extensions:extensions_test_lib",
-    "//platform/platform-api:ide_test_lib",
-    "//platform/ide-core:ide-core_test_lib",
-    "//platform/projectModel-api:projectModel_test_lib",
-    "//platform/util:util_test_lib",
-    "//platform/util-rt:util-rt_test_lib",
-    "//platform/util:util-ui_test_lib",
-    "//platform/forms_rt:java-guiForms-rt_test_lib",
-  ]
+    name = "device-explorer_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.device-explorer",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":device-explorer",
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "//libraries/kotlinx/coroutines/core:core_test_lib",
+        "//libraries/protobuf:protobuf_test_lib",
+        "//android/android-adb:adb_test_lib",
+        "//android/adt-ui:adt-ui_test_lib",
+        "//android/artwork:artwork_test_lib",
+        "//android/android-common:common_test_lib",
+        "//android/device-explorer-common:device-explorer-common_test_lib",
+        "//android/device-explorer-files:device-explorer-files_test_lib",
+        "//android/device-explorer-monitor:device-explorer-monitor_test_lib",
+        "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon_test_lib",
+        "//platform/core-api:core_test_lib",
+        "//platform/core-ui:core-ui_test_lib",
+        "//platform/extensions:extensions_test_lib",
+        "//platform/platform-api:ide_test_lib",
+        "//platform/ide-core:ide-core_test_lib",
+        "//platform/projectModel-api:projectModel_test_lib",
+        "//platform/util:util_test_lib",
+        "//platform/util-rt:util-rt_test_lib",
+        "//platform/util:util-ui_test_lib",
+        "//platform/forms_rt:java-guiForms-rt_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.device-explorer` end
 
 ### auto-generated section `iml intellij.android.device-explorer` start
-exports_files([
-  "intellij.android.device-explorer.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.device-explorer.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.device-explorer` end
 
 ### auto-generated section `build intellij.android.device-explorer.integration.tests` start
+
 jvm_library(
-  name = "device-explorer-integration-tests",
-  module_name = "intellij.android.device-explorer.integration.tests",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+    name = "device-explorer-integration-tests",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.device-explorer.integration.tests",
+    visibility = ["//visibility:public"],
 )
 
 jvm_library(
-  name = "device-explorer-integration-tests_test_lib",
-  testonly = True,
-  module_name = "intellij.android.device-explorer.integration.tests",
-  visibility = ["//visibility:public"],
-  srcs = glob(["integration/**/*.kt", "integration/**/*.java", "integration/**/*.form"], allow_empty = True),
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "@lib//:kotlin-stdlib",
-    "@lib//:mockito-kotlin",
-    "@lib//:junit4",
-    "@lib//:truth",
-    "//android/as-driver/utils",
-    "//android/as-driver/utils:utils_test_lib",
-    "//android/device-explorer",
-    "//android/device-explorer:device-explorer_test_lib",
-  ],
-  runtime_deps = [":device-explorer-integration-tests"]
+    name = "device-explorer-integration-tests_test_lib",
+    testonly = True,
+    srcs = glob(
+        [
+            "integration/**/*.kt",
+            "integration/**/*.java",
+            "integration/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.device-explorer.integration.tests",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":device-explorer-integration-tests",
+    ],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "@lib//:kotlin-stdlib",
+        "@lib//:mockito-kotlin",
+        "@lib//:junit4",
+        "@lib//:truth",
+        "//android/as-driver/utils",
+        "//android/as-driver/utils:utils_test_lib",
+        "//android/device-explorer",
+        "//android/device-explorer:device-explorer_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.device-explorer.integration.tests` end
 
 ### auto-generated section `iml intellij.android.device-explorer.integration.tests` start
-exports_files([
-  "intellij.android.device-explorer.integration.tests.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.device-explorer.integration.tests.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.device-explorer.integration.tests` end
 
 ### auto-generated section `test intellij.android.device-explorer.integration.tests` start
-load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
-  name = "device-explorer-integration-tests_test",
-  runtime_deps = [":device-explorer-integration-tests_test_lib"]
+    name = "device-explorer-integration-tests_test",
+    runtime_deps = [":device-explorer-integration-tests_test_lib"],
 )
 ### auto-generated section `test intellij.android.device-explorer.integration.tests` end
 
 ### auto-generated section `build intellij.android.device-explorer.tests` start
+
 jvm_library(
-  name = "device-explorer-tests",
-  module_name = "intellij.android.device-explorer.tests",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = ["@lib//:kotlin-stdlib"]
+    name = "device-explorer-tests",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.device-explorer.tests",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "@lib//:kotlin-stdlib",
+    ],
 )
 
 jvm_library(
-  name = "device-explorer-tests_test_lib",
-  testonly = True,
-  module_name = "intellij.android.device-explorer.tests",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "@lib//:kotlin-stdlib",
-    "//libraries/guava",
-    "//libraries/guava:guava_test_lib",
-    "@lib//:junit4",
-    "//libraries/kotlinx/coroutines/core",
-    "//libraries/kotlinx/coroutines/core:core_test_lib",
-    "@lib//:truth",
-    "//android/adt-testutils",
-    "//android/adt-testutils:adt-testutils_test_lib",
-    "//android/android-common:common",
-    "//android/android-common:common_test_lib",
-    "//android/android-common:common-tests",
-    "//android/android-common:common-tests_test_lib",
-    "//android/device-explorer",
-    "//android/device-explorer:device-explorer_test_lib",
-    "//android/device-explorer-common",
-    "//android/device-explorer-common:device-explorer-common_test_lib",
-    "//android/android-test-framework:testFramework",
-    "//android/android-test-framework:testFramework_test_lib",
-    "//platform/core-api:core",
-    "//platform/core-api:core_test_lib",
-    "//platform/extensions",
-    "//platform/extensions:extensions_test_lib",
-    "//platform/platform-api:ide",
-    "//platform/platform-api:ide_test_lib",
-    "//platform/testFramework",
-    "//platform/testFramework:testFramework_test_lib",
-    "//platform/util",
-    "//platform/util:util_test_lib",
-    "//android/project-system",
-    "//android/project-system:project-system_test_lib",
-    "//java/testFramework",
-    "//java/testFramework:testFramework_test_lib",
-  ],
-  runtime_deps = [":device-explorer-tests"]
+    name = "device-explorer-tests_test_lib",
+    testonly = True,
+    srcs = glob(
+        [
+            "testSrc/**/*.kt",
+            "testSrc/**/*.java",
+            "testSrc/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.device-explorer.tests",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":device-explorer-tests",
+    ],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "@lib//:kotlin-stdlib",
+        "//libraries/guava",
+        "//libraries/guava:guava_test_lib",
+        "@lib//:junit4",
+        "//libraries/kotlinx/coroutines/core",
+        "//libraries/kotlinx/coroutines/core:core_test_lib",
+        "@lib//:truth",
+        "//android/adt-testutils",
+        "//android/adt-testutils:adt-testutils_test_lib",
+        "//android/android-common:common",
+        "//android/android-common:common_test_lib",
+        "//android/android-common:common-tests",
+        "//android/android-common:common-tests_test_lib",
+        "//android/device-explorer",
+        "//android/device-explorer:device-explorer_test_lib",
+        "//android/device-explorer-common",
+        "//android/device-explorer-common:device-explorer-common_test_lib",
+        "//android/android-test-framework:testFramework",
+        "//android/android-test-framework:testFramework_test_lib",
+        "//platform/core-api:core",
+        "//platform/core-api:core_test_lib",
+        "//platform/extensions",
+        "//platform/extensions:extensions_test_lib",
+        "//platform/platform-api:ide",
+        "//platform/platform-api:ide_test_lib",
+        "//platform/testFramework",
+        "//platform/testFramework:testFramework_test_lib",
+        "//platform/util",
+        "//platform/util:util_test_lib",
+        "//android/project-system",
+        "//android/project-system:project-system_test_lib",
+        "//java/testFramework",
+        "//java/testFramework:testFramework_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.device-explorer.tests` end
 
 ### auto-generated section `iml intellij.android.device-explorer.tests` start
-exports_files([
-  "intellij.android.device-explorer.tests.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.device-explorer.tests.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.device-explorer.tests` end
 
 ### auto-generated section `test intellij.android.device-explorer.tests` start
-load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
-  name = "device-explorer-tests_test",
-  runtime_deps = [":device-explorer-tests_test_lib"]
+    name = "device-explorer-tests_test",
+    runtime_deps = [":device-explorer-tests_test_lib"],
 )
 ### auto-generated section `test intellij.android.device-explorer.tests` end

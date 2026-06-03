@@ -1,58 +1,76 @@
-### auto-generated section `build intellij.android.gradle.dsl.kotlin` start
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.gradle.dsl.kotlin` start
+
 jvm_library(
-  name = "gradle-dsl-kotlin",
-  module_name = "intellij.android.gradle.dsl.kotlin",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = glob(["resources/**/*"]),
-  resource_strip_prefix = "resources",
-  deps = [
-    "@lib//:studio-platform-provided",
-    "//libraries/guava",
-    "@lib//:jetbrains-annotations",
-    "@lib//:kotlin-stdlib",
-    "@lib//:kotlinc-kotlin-compiler-common-provided",
-    "//android/gradle-dsl",
-    "//java/java-psi-api:psi",
-    "//java/java-psi-impl:psi-impl",
-    "//platform/core-api:core",
-    "//platform/core-impl",
-    "//platform/util",
-    "//platform/util/base",
-    "//platform/util-rt",
-    "//plugins/kotlin/base/psi",
-  ]
+    name = "gradle-dsl-kotlin",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.gradle.dsl.kotlin",
+    resource_strip_prefix = "resources",
+    resources = glob(
+        ["resources/**/*"],
+    ),
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "//libraries/guava",
+        "@lib//:jetbrains-annotations",
+        "@lib//:kotlin-stdlib",
+        "@lib//:kotlinc-kotlin-compiler-common-provided",
+        "//android/gradle-dsl",
+        "//java/java-psi-api:psi",
+        "//java/java-psi-impl:psi-impl",
+        "//platform/core-api:core",
+        "//platform/core-impl",
+        "//platform/util",
+        "//platform/util/base",
+        "//platform/util-rt",
+        "//plugins/kotlin/base/psi",
+    ],
 )
 
 jvm_library(
-  name = "gradle-dsl-kotlin_test_lib",
-  testonly = True,
-  module_name = "intellij.android.gradle.dsl.kotlin",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = [
-    ":gradle-dsl-kotlin",
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "//libraries/guava:guava_test_lib",
-    "@lib//:kotlinc-kotlin-compiler-common-provided",
-    "//android/gradle-dsl:gradle-dsl_test_lib",
-    "//java/java-psi-api:psi_test_lib",
-    "//java/java-psi-impl:psi-impl_test_lib",
-    "//platform/core-api:core_test_lib",
-    "//platform/core-impl:core-impl_test_lib",
-    "//platform/util:util_test_lib",
-    "//platform/util/base:base_test_lib",
-    "//platform/util-rt:util-rt_test_lib",
-    "//plugins/kotlin/base/psi:psi_test_lib",
-  ]
+    name = "gradle-dsl-kotlin_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.gradle.dsl.kotlin",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":gradle-dsl-kotlin",
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "//libraries/guava:guava_test_lib",
+        "@lib//:kotlinc-kotlin-compiler-common-provided",
+        "//android/gradle-dsl:gradle-dsl_test_lib",
+        "//java/java-psi-api:psi_test_lib",
+        "//java/java-psi-impl:psi-impl_test_lib",
+        "//platform/core-api:core_test_lib",
+        "//platform/core-impl:core-impl_test_lib",
+        "//platform/util:util_test_lib",
+        "//platform/util/base:base_test_lib",
+        "//platform/util-rt:util-rt_test_lib",
+        "//plugins/kotlin/base/psi:psi_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.gradle.dsl.kotlin` end
 
 ### auto-generated section `iml intellij.android.gradle.dsl.kotlin` start
-exports_files([
-  "intellij.android.gradle.dsl.kotlin.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.gradle.dsl.kotlin.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.gradle.dsl.kotlin` end

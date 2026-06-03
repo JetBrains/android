@@ -1,79 +1,113 @@
-### auto-generated section `build intellij.android.wear-preview-elements` start
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.wear-preview-elements` start
+
 jvm_library(
-  name = "wear-preview-elements",
-  module_name = "intellij.android.wear-preview-elements",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  deps = [
-    "//libraries/kotlinx/coroutines/core",
-    "@lib//:kotlin-stdlib",
-    "@lib//:studio-platform-provided",
-    "//android/preview-elements",
-  ]
+    name = "wear-preview-elements",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.wear-preview-elements",
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "//libraries/kotlinx/coroutines/core",
+        "@lib//:kotlin-stdlib",
+        "@lib//:studio-platform-provided",
+        "//android/preview-elements",
+    ],
 )
 
 jvm_library(
-  name = "wear-preview-elements_test_lib",
-  testonly = True,
-  module_name = "intellij.android.wear-preview-elements",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = [
-    ":wear-preview-elements",
-    "//libraries/kotlinx/coroutines/core:core_test_lib",
-    "@lib//:studio-platform-provided",
-    "//android/preview-elements:preview-elements_test_lib",
-  ]
+    name = "wear-preview-elements_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.wear-preview-elements",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":wear-preview-elements",
+        "//libraries/kotlinx/coroutines/core:core_test_lib",
+        "@lib//:studio-platform-provided",
+        "//android/preview-elements:preview-elements_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.wear-preview-elements` end
 
 ### auto-generated section `iml intellij.android.wear-preview-elements` start
-exports_files([
-  "intellij.android.wear-preview-elements.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.wear-preview-elements.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.wear-preview-elements` end
 
 ### auto-generated section `build intellij.android.wear-preview-elements.tests` start
+
 jvm_library(
-  name = "wear-preview-elements-tests",
-  module_name = "intellij.android.wear-preview-elements.tests",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+    name = "wear-preview-elements-tests",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.wear-preview-elements.tests",
+    visibility = ["//visibility:public"],
 )
 
 jvm_library(
-  name = "wear-preview-elements-tests_test_lib",
-  testonly = True,
-  module_name = "intellij.android.wear-preview-elements.tests",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
-  deps = [
-    "@lib//:kotlin-test",
-    "@lib//:truth",
-    "@lib//:junit4",
-    "@lib//:kotlin-stdlib",
-    "//android/wear-preview-elements",
-    "//android/wear-preview-elements:wear-preview-elements_test_lib",
-    "//android/preview-elements",
-    "//android/preview-elements:preview-elements_test_lib",
-  ],
-  runtime_deps = [":wear-preview-elements-tests"]
+    name = "wear-preview-elements-tests_test_lib",
+    testonly = True,
+    srcs = glob(
+        [
+            "testSrc/**/*.kt",
+            "testSrc/**/*.java",
+            "testSrc/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.wear-preview-elements.tests",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":wear-preview-elements-tests",
+    ],
+    deps = [
+        # do not sort,
+        "@lib//:kotlin-test",
+        "@lib//:truth",
+        "@lib//:junit4",
+        "@lib//:kotlin-stdlib",
+        "//android/wear-preview-elements",
+        "//android/wear-preview-elements:wear-preview-elements_test_lib",
+        "//android/preview-elements",
+        "//android/preview-elements:preview-elements_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.wear-preview-elements.tests` end
 
 ### auto-generated section `iml intellij.android.wear-preview-elements.tests` start
-exports_files([
-  "intellij.android.wear-preview-elements.tests.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.wear-preview-elements.tests.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.wear-preview-elements.tests` end
 
 ### auto-generated section `test intellij.android.wear-preview-elements.tests` start
-load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
-  name = "wear-preview-elements-tests_test",
-  runtime_deps = [":wear-preview-elements-tests_test_lib"]
+    name = "wear-preview-elements-tests_test",
+    runtime_deps = [":wear-preview-elements-tests_test_lib"],
 )
 ### auto-generated section `test intellij.android.wear-preview-elements.tests` end

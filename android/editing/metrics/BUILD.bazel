@@ -1,89 +1,114 @@
-### auto-generated section `build intellij.android.core.editing.metrics` start
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.core.editing.metrics` start
+
 jvm_library(
-  name = "metrics",
-  module_name = "intellij.android.core.editing.metrics",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = glob(["resources/**/*"]),
-  resource_strip_prefix = "resources",
-  deps = [
-    "@lib//:kotlin-stdlib",
-    "//libraries/protobuf",
-    "@lib//:studio-platform-provided",
-    "//platform/core-api:core",
-    "//platform/editor-ui-api:editor-ui",
-    "//platform/extensions",
-    "//platform/lang-api:lang",
-    "//platform/lang-impl",
-    "//libraries/kotlinx/datetime",
-    "//platform/refactoring",
-    "@lib//:kotlinc-kotlin-compiler-common-provided",
-  ]
+    name = "metrics",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.core.editing.metrics",
+    resource_strip_prefix = "resources",
+    resources = glob(
+        ["resources/**/*"],
+    ),
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:kotlin-stdlib",
+        "//libraries/protobuf",
+        "@lib//:studio-platform-provided",
+        "//platform/core-api:core",
+        "//platform/editor-ui-api:editor-ui",
+        "//platform/extensions",
+        "//platform/lang-api:lang",
+        "//platform/lang-impl",
+        "//libraries/kotlinx/datetime",
+        "//platform/refactoring",
+        "@lib//:kotlinc-kotlin-compiler-common-provided",
+    ],
 )
 
 jvm_library(
-  name = "metrics_test_lib",
-  testonly = True,
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
-  associates = [":metrics"],
-  deps = [
-    "@lib//:kotlin-stdlib",
-    "//libraries/protobuf",
-    "//libraries/protobuf:protobuf_test_lib",
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "//libraries/guava",
-    "//libraries/guava:guava_test_lib",
-    "@lib//:junit4",
-    "@lib//:truth",
-    "//platform/core-api:core",
-    "//platform/core-api:core_test_lib",
-    "//platform/editor-ui-api:editor-ui",
-    "//platform/editor-ui-api:editor-ui_test_lib",
-    "//platform/extensions",
-    "//platform/extensions:extensions_test_lib",
-    "//libraries/kotlinx/coroutines/test",
-    "//libraries/kotlinx/coroutines/test:test_test_lib",
-    "//android/android-test-framework:testFramework",
-    "//android/android-test-framework:testFramework_test_lib",
-    "//libraries/mockito",
-    "//libraries/mockito:mockito_test_lib",
-    "@lib//:mockito-kotlin",
-    "//platform/lang-api:lang",
-    "//platform/lang-api:lang_test_lib",
-    "//platform/lang-impl",
-    "//platform/lang-impl:lang-impl_test_lib",
-    "//libraries/kotlinx/datetime",
-    "//libraries/kotlinx/datetime:datetime_test_lib",
-    "//platform/refactoring",
-    "//platform/refactoring:refactoring_test_lib",
-    "//platform/testFramework",
-    "//platform/testFramework:testFramework_test_lib",
-    "//platform/ide-core",
-    "//platform/util:util-ui",
-    "//platform/util:util-ui_test_lib",
-    "@lib//:kotlinc-kotlin-compiler-common-provided",
-    "//android/adt-testutils",
-    "//android/adt-testutils:adt-testutils_test_lib",
-  ],
-  runtime_deps = ["//platform/ide-core:ide-core_test_lib"]
+    name = "metrics_test_lib",
+    testonly = True,
+    srcs = glob(
+        [
+            "testSrc/**/*.kt",
+            "testSrc/**/*.java",
+            "testSrc/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    associates = [":metrics"],
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//platform/ide-core:ide-core_test_lib",
+    ],
+    deps = [
+        # do not sort,
+        "@lib//:kotlin-stdlib",
+        "//libraries/protobuf",
+        "//libraries/protobuf:protobuf_test_lib",
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "//libraries/guava",
+        "//libraries/guava:guava_test_lib",
+        "@lib//:junit4",
+        "@lib//:truth",
+        "//platform/core-api:core",
+        "//platform/core-api:core_test_lib",
+        "//platform/editor-ui-api:editor-ui",
+        "//platform/editor-ui-api:editor-ui_test_lib",
+        "//platform/extensions",
+        "//platform/extensions:extensions_test_lib",
+        "//libraries/kotlinx/coroutines/test",
+        "//libraries/kotlinx/coroutines/test:test_test_lib",
+        "//android/android-test-framework:testFramework",
+        "//android/android-test-framework:testFramework_test_lib",
+        "//libraries/mockito",
+        "//libraries/mockito:mockito_test_lib",
+        "@lib//:mockito-kotlin",
+        "//platform/lang-api:lang",
+        "//platform/lang-api:lang_test_lib",
+        "//platform/lang-impl",
+        "//platform/lang-impl:lang-impl_test_lib",
+        "//libraries/kotlinx/datetime",
+        "//libraries/kotlinx/datetime:datetime_test_lib",
+        "//platform/refactoring",
+        "//platform/refactoring:refactoring_test_lib",
+        "//platform/testFramework",
+        "//platform/testFramework:testFramework_test_lib",
+        "//platform/ide-core",
+        "//platform/util:util-ui",
+        "//platform/util:util-ui_test_lib",
+        "@lib//:kotlinc-kotlin-compiler-common-provided",
+        "//android/adt-testutils",
+        "//android/adt-testutils:adt-testutils_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.core.editing.metrics` end
 
 ### auto-generated section `iml intellij.android.core.editing.metrics` start
-exports_files([
-  "intellij.android.core.editing.metrics.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.core.editing.metrics.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.core.editing.metrics` end
 
 ### auto-generated section `test intellij.android.core.editing.metrics` start
-load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
-  name = "metrics_test",
-  runtime_deps = [":metrics_test_lib"]
+    name = "metrics_test",
+    runtime_deps = [":metrics_test_lib"],
 )
 ### auto-generated section `test intellij.android.core.editing.metrics` end

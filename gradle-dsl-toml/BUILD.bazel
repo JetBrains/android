@@ -1,45 +1,63 @@
-### auto-generated section `build intellij.android.gradle.dsl.toml` start
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.gradle.dsl.toml` start
+
 jvm_library(
-  name = "gradle-dsl-toml",
-  module_name = "intellij.android.gradle.dsl.toml",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = glob(["resources/**/*"]),
-  resource_strip_prefix = "resources",
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:kotlin-stdlib",
-    "//android/gradle-dsl",
-    "//platform/core-api:core",
-    "//platform/core-impl",
-    "//platform/util",
-    "//plugins/toml/core",
-  ]
+    name = "gradle-dsl-toml",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.gradle.dsl.toml",
+    resource_strip_prefix = "resources",
+    resources = glob(
+        ["resources/**/*"],
+    ),
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:kotlin-stdlib",
+        "//android/gradle-dsl",
+        "//platform/core-api:core",
+        "//platform/core-impl",
+        "//platform/util",
+        "//plugins/toml/core",
+    ],
 )
 
 jvm_library(
-  name = "gradle-dsl-toml_test_lib",
-  testonly = True,
-  module_name = "intellij.android.gradle.dsl.toml",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = [
-    ":gradle-dsl-toml",
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "//android/gradle-dsl:gradle-dsl_test_lib",
-    "//platform/core-api:core_test_lib",
-    "//platform/core-impl:core-impl_test_lib",
-    "//platform/util:util_test_lib",
-    "//plugins/toml/core:core_test_lib",
-  ]
+    name = "gradle-dsl-toml_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.gradle.dsl.toml",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":gradle-dsl-toml",
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "//android/gradle-dsl:gradle-dsl_test_lib",
+        "//platform/core-api:core_test_lib",
+        "//platform/core-impl:core-impl_test_lib",
+        "//platform/util:util_test_lib",
+        "//plugins/toml/core:core_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.gradle.dsl.toml` end
 
 ### auto-generated section `iml intellij.android.gradle.dsl.toml` start
-exports_files([
-  "intellij.android.gradle.dsl.toml.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.gradle.dsl.toml.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.gradle.dsl.toml` end

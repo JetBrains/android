@@ -1,62 +1,84 @@
-### auto-generated section `build intellij.android.gradle-tooling.impl` start
-load("//build:compiler-options.bzl", "create_kotlinc_options")
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("//build:compiler-options.bzl", "create_kotlinc_options")
+
+### auto-generated section `build intellij.android.gradle-tooling.impl` start
 
 create_kotlinc_options(
-  name = "custom_android-gradle-tooling-impl",
-  jvm_target = "8",
-  x_sam_conversions = "class"
+    name = "custom_android-gradle-tooling-impl",
+    jvm_target = "8",
+    x_sam_conversions = "class",
 )
 
 jvm_library(
-  name = "android-gradle-tooling-impl",
-  module_name = "intellij.android.gradle-tooling.impl",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = glob(["resources/**/*"]),
-  resource_strip_prefix = "resources",
-  kotlinc_opts = ":custom_android-gradle-tooling-impl",
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:gradle",
-    "@lib//:kotlin-stdlib",
-    "@lib//:javax-inject-provided",
-    "//android/gradle-tooling/studio-gradle-tooling-api:android-gradle-tooling-api",
-  ]
+    name = "android-gradle-tooling-impl",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    kotlinc_opts = ":custom_android-gradle-tooling-impl",
+    module_name = "intellij.android.gradle-tooling.impl",
+    resource_strip_prefix = "resources",
+    resources = glob(
+        ["resources/**/*"],
+    ),
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:gradle",
+        "@lib//:kotlin-stdlib",
+        "@lib//:javax-inject-provided",
+        "//android/gradle-tooling/studio-gradle-tooling-api:android-gradle-tooling-api",
+    ],
 )
 
 jvm_library(
-  name = "android-gradle-tooling-impl_test_lib",
-  testonly = True,
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
-  kotlinc_opts = ":custom_android-gradle-tooling-impl",
-  associates = [":android-gradle-tooling-impl"],
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "@lib//:gradle",
-    "@lib//:kotlin-stdlib",
-    "@lib//:junit4",
-    "@lib//:javax-inject-provided",
-    "//android/gradle-tooling/studio-gradle-tooling-api:android-gradle-tooling-api",
-    "//android/gradle-tooling/studio-gradle-tooling-api:android-gradle-tooling-api_test_lib",
-    "@lib//:equalsverifier",
-  ]
+    name = "android-gradle-tooling-impl_test_lib",
+    testonly = True,
+    srcs = glob(
+        [
+            "testSrc/**/*.kt",
+            "testSrc/**/*.java",
+            "testSrc/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    associates = [":android-gradle-tooling-impl"],
+    kotlinc_opts = ":custom_android-gradle-tooling-impl",
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "@lib//:gradle",
+        "@lib//:kotlin-stdlib",
+        "@lib//:junit4",
+        "@lib//:javax-inject-provided",
+        "//android/gradle-tooling/studio-gradle-tooling-api:android-gradle-tooling-api",
+        "//android/gradle-tooling/studio-gradle-tooling-api:android-gradle-tooling-api_test_lib",
+        "@lib//:equalsverifier",
+    ],
 )
 ### auto-generated section `build intellij.android.gradle-tooling.impl` end
 
 ### auto-generated section `iml intellij.android.gradle-tooling.impl` start
-exports_files([
-  "intellij.android.gradle-tooling.impl.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.gradle-tooling.impl.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.gradle-tooling.impl` end
 
 ### auto-generated section `test intellij.android.gradle-tooling.impl` start
-load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
-  name = "android-gradle-tooling-impl_test",
-  runtime_deps = [":android-gradle-tooling-impl_test_lib"]
+    name = "android-gradle-tooling-impl_test",
+    runtime_deps = [":android-gradle-tooling-impl_test_lib"],
 )
 ### auto-generated section `test intellij.android.gradle-tooling.impl` end

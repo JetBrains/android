@@ -1,131 +1,170 @@
-### auto-generated section `build intellij.android.native-symbolizer` start
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.native-symbolizer` start
+
 jvm_library(
-  name = "native-symbolizer",
-  module_name = "intellij.android.native-symbolizer",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = glob(["resources/**/*"]),
-  resource_strip_prefix = "resources",
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:kotlin-stdlib",
-    "//android/android-common:common",
-    "//android/android:core",
-    "//android/project-system",
-    "//platform/core-api:core",
-    "//platform/extensions",
-    "//platform/lang-core",
-    "//platform/projectModel-api:projectModel",
-    "//platform/util",
-  ]
+    name = "native-symbolizer",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.native-symbolizer",
+    resource_strip_prefix = "resources",
+    resources = glob(
+        ["resources/**/*"],
+    ),
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:kotlin-stdlib",
+        "//android/android-common:common",
+        "//android/android:core",
+        "//android/project-system",
+        "//platform/core-api:core",
+        "//platform/extensions",
+        "//platform/lang-core",
+        "//platform/projectModel-api:projectModel",
+        "//platform/util",
+    ],
 )
 
 jvm_library(
-  name = "native-symbolizer_test_lib",
-  testonly = True,
-  module_name = "intellij.android.native-symbolizer",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = [
-    ":native-symbolizer",
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "//android/android-common:common_test_lib",
-    "//android/android:core_test_lib",
-    "//android/project-system:project-system_test_lib",
-    "//platform/core-api:core_test_lib",
-    "//platform/extensions:extensions_test_lib",
-    "//platform/lang-core:lang-core_test_lib",
-    "//platform/projectModel-api:projectModel_test_lib",
-    "//platform/util:util_test_lib",
-  ]
+    name = "native-symbolizer_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.native-symbolizer",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":native-symbolizer",
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "//android/android-common:common_test_lib",
+        "//android/android:core_test_lib",
+        "//android/project-system:project-system_test_lib",
+        "//platform/core-api:core_test_lib",
+        "//platform/extensions:extensions_test_lib",
+        "//platform/lang-core:lang-core_test_lib",
+        "//platform/projectModel-api:projectModel_test_lib",
+        "//platform/util:util_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.native-symbolizer` end
 
 ### auto-generated section `iml intellij.android.native-symbolizer` start
-exports_files([
-  "intellij.android.native-symbolizer.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.native-symbolizer.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.native-symbolizer` end
 
 ### auto-generated section `build intellij.android.native-symbolizer.tests` start
+
 jvm_library(
-  name = "native-symbolizer-tests",
-  module_name = "intellij.android.native-symbolizer.tests",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = [
-    "@lib//:kotlin-stdlib",
-    "//android/android-common:common",
-    "//android/android:core",
-    "//android/native-symbolizer",
-    "//android/project-system",
-    "//android/project-system-gradle-models:projectSystem-gradle-models",
-  ]
+    name = "native-symbolizer-tests",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.native-symbolizer.tests",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "@lib//:kotlin-stdlib",
+        "//android/android-common:common",
+        "//android/android:core",
+        "//android/native-symbolizer",
+        "//android/project-system",
+        "//android/project-system-gradle-models:projectSystem-gradle-models",
+    ],
 )
 
 jvm_library(
-  name = "native-symbolizer-tests_test_lib",
-  testonly = True,
-  module_name = "intellij.android.native-symbolizer.tests",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
-  resources = glob(["testData/**/*"]),
-  resource_strip_prefix = "testData",
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "@lib//:kotlin-stdlib",
-    "@lib//:junit4",
-    "@lib//:truth",
-    "//android/android-common:common",
-    "//android/android-common:common_test_lib",
-    "//android/android:core",
-    "//android/android:core_test_lib",
-    "//android/native-symbolizer",
-    "//android/native-symbolizer:native-symbolizer_test_lib",
-    "//android/project-system",
-    "//android/project-system:project-system_test_lib",
-    "//android/project-system-gradle-models:projectSystem-gradle-models",
-    "//android/project-system-gradle-models:projectSystem-gradle-models_test_lib",
-    "//android/adt-testutils",
-    "//android/adt-testutils:adt-testutils_test_lib",
-    "//android/jps-model",
-    "//android/jps-model:jps-model_test_lib",
-    "//android/android-test-framework:testFramework",
-    "//android/android-test-framework:testFramework_test_lib",
-    "//android/intellij.android.testutils:testutils",
-    "//android/intellij.android.testutils:testutils_test_lib",
-    "//java/testFramework",
-    "//java/testFramework:testFramework_test_lib",
-    "//platform/core-api:core",
-    "//platform/core-api:core_test_lib",
-    "//platform/lang-core",
-    "//platform/lang-core:lang-core_test_lib",
-    "//platform/projectModel-api:projectModel",
-    "//platform/projectModel-api:projectModel_test_lib",
-    "//platform/testFramework",
-    "//platform/testFramework:testFramework_test_lib",
-    "//platform/util",
-    "//platform/util:util_test_lib",
-  ],
-  runtime_deps = [":native-symbolizer-tests"]
+    name = "native-symbolizer-tests_test_lib",
+    testonly = True,
+    srcs = glob(
+        [
+            "testSrc/**/*.kt",
+            "testSrc/**/*.java",
+            "testSrc/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.native-symbolizer.tests",
+    resource_strip_prefix = "testData",
+    resources = glob(
+        ["testData/**/*"],
+    ),
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":native-symbolizer-tests",
+    ],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "@lib//:kotlin-stdlib",
+        "@lib//:junit4",
+        "@lib//:truth",
+        "//android/android-common:common",
+        "//android/android-common:common_test_lib",
+        "//android/android:core",
+        "//android/android:core_test_lib",
+        "//android/native-symbolizer",
+        "//android/native-symbolizer:native-symbolizer_test_lib",
+        "//android/project-system",
+        "//android/project-system:project-system_test_lib",
+        "//android/project-system-gradle-models:projectSystem-gradle-models",
+        "//android/project-system-gradle-models:projectSystem-gradle-models_test_lib",
+        "//android/adt-testutils",
+        "//android/adt-testutils:adt-testutils_test_lib",
+        "//android/jps-model",
+        "//android/jps-model:jps-model_test_lib",
+        "//android/android-test-framework:testFramework",
+        "//android/android-test-framework:testFramework_test_lib",
+        "//android/intellij.android.testutils:testutils",
+        "//android/intellij.android.testutils:testutils_test_lib",
+        "//java/testFramework",
+        "//java/testFramework:testFramework_test_lib",
+        "//platform/core-api:core",
+        "//platform/core-api:core_test_lib",
+        "//platform/lang-core",
+        "//platform/lang-core:lang-core_test_lib",
+        "//platform/projectModel-api:projectModel",
+        "//platform/projectModel-api:projectModel_test_lib",
+        "//platform/testFramework",
+        "//platform/testFramework:testFramework_test_lib",
+        "//platform/util",
+        "//platform/util:util_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.native-symbolizer.tests` end
 
 ### auto-generated section `iml intellij.android.native-symbolizer.tests` start
-exports_files([
-  "intellij.android.native-symbolizer.tests.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.native-symbolizer.tests.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.native-symbolizer.tests` end
 
 ### auto-generated section `test intellij.android.native-symbolizer.tests` start
-load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
-  name = "native-symbolizer-tests_test",
-  runtime_deps = [":native-symbolizer-tests_test_lib"]
+    name = "native-symbolizer-tests_test",
+    runtime_deps = [":native-symbolizer-tests_test_lib"],
 )
 ### auto-generated section `test intellij.android.native-symbolizer.tests` end

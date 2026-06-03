@@ -1,63 +1,81 @@
-### auto-generated section `build intellij.android.nav.safeargs.k2` start
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.nav.safeargs.k2` start
+
 jvm_library(
-  name = "k2",
-  module_name = "intellij.android.nav.safeargs.k2",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = glob(["resources/**/*"]),
-  resource_strip_prefix = "resources",
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:kotlin-stdlib",
-    "@lib//:kotlinc-kotlin-compiler-common-provided",
-    "//android/project-system",
-    "//platform/analysis-api:analysis",
-    "//platform/core-api:core",
-    "//xml/impl",
-    "//xml/xml-psi-api:psi",
-    "//plugins/kotlin/base/project-structure",
-    "//plugins/kotlin/base/fe10/project-structure",
-    "//android/nav/safeargs/common",
-    "//plugins/kotlin/base/util",
-    "//platform/util",
-    "//plugins/kotlin/base/analysis",
-    "@lib//:kotlinc-analysis-api-provided",
-    "@lib//:kotlinc-analysis-api-platform-interface-provided",
-  ]
+    name = "k2",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.nav.safeargs.k2",
+    resource_strip_prefix = "resources",
+    resources = glob(
+        ["resources/**/*"],
+    ),
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:kotlin-stdlib",
+        "@lib//:kotlinc-kotlin-compiler-common-provided",
+        "//android/project-system",
+        "//platform/analysis-api:analysis",
+        "//platform/core-api:core",
+        "//xml/impl",
+        "//xml/xml-psi-api:psi",
+        "//plugins/kotlin/base/project-structure",
+        "//plugins/kotlin/base/fe10/project-structure",
+        "//android/nav/safeargs/common",
+        "//plugins/kotlin/base/util",
+        "//platform/util",
+        "//plugins/kotlin/base/analysis",
+        "@lib//:kotlinc-analysis-api-provided",
+        "@lib//:kotlinc-analysis-api-platform-interface-provided",
+    ],
 )
 
 jvm_library(
-  name = "k2_test_lib",
-  testonly = True,
-  module_name = "intellij.android.nav.safeargs.k2",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = [
-    ":k2",
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "@lib//:kotlinc-kotlin-compiler-common-provided",
-    "//android/project-system:project-system_test_lib",
-    "//platform/analysis-api:analysis_test_lib",
-    "//platform/core-api:core_test_lib",
-    "//xml/impl:impl_test_lib",
-    "//xml/xml-psi-api:psi_test_lib",
-    "//plugins/kotlin/base/project-structure:project-structure_test_lib",
-    "//plugins/kotlin/base/fe10/project-structure:project-structure_test_lib",
-    "//android/nav/safeargs/common:common_test_lib",
-    "//plugins/kotlin/base/util:util_test_lib",
-    "//platform/util:util_test_lib",
-    "//plugins/kotlin/base/analysis:analysis_test_lib",
-    "@lib//:kotlinc-analysis-api-provided",
-    "@lib//:kotlinc-analysis-api-platform-interface-provided",
-  ]
+    name = "k2_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.nav.safeargs.k2",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":k2",
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "@lib//:kotlinc-kotlin-compiler-common-provided",
+        "//android/project-system:project-system_test_lib",
+        "//platform/analysis-api:analysis_test_lib",
+        "//platform/core-api:core_test_lib",
+        "//xml/impl:impl_test_lib",
+        "//xml/xml-psi-api:psi_test_lib",
+        "//plugins/kotlin/base/project-structure:project-structure_test_lib",
+        "//plugins/kotlin/base/fe10/project-structure:project-structure_test_lib",
+        "//android/nav/safeargs/common:common_test_lib",
+        "//plugins/kotlin/base/util:util_test_lib",
+        "//platform/util:util_test_lib",
+        "//plugins/kotlin/base/analysis:analysis_test_lib",
+        "@lib//:kotlinc-analysis-api-provided",
+        "@lib//:kotlinc-analysis-api-platform-interface-provided",
+    ],
 )
 ### auto-generated section `build intellij.android.nav.safeargs.k2` end
 
 ### auto-generated section `iml intellij.android.nav.safeargs.k2` start
-exports_files([
-  "intellij.android.nav.safeargs.k2.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.nav.safeargs.k2.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.nav.safeargs.k2` end

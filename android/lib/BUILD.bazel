@@ -1,31 +1,34 @@
-### auto-generated section `local-libs` start
 load("@rules_java//java:defs.bzl", "java_import")
 
+### auto-generated section `local-libs` start
 java_import(
-  name = "android-core-instantapp-instantapps-api",
-  jars = ["instantapps-api-1.8.jar"],
-  visibility = ["//visibility:public"]
+    name = "android-core-instantapp-instantapps-api",
+    jars = ["instantapps-api-1.8.jar"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
-  name = "android-core-instantapps-api",
-  jars = ["instantapps-api-1.8.jar"],
-  visibility = ["//visibility:public"]
+    name = "android-core-instantapps-api",
+    jars = ["instantapps-api-1.8.jar"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
-  name = "android-core-run-instantapps-api-1-8",
-  jars = ["instantapps-api-1.8.jar"],
-  visibility = ["//visibility:public"]
+    name = "android-core-run-instantapps-api-1-8",
+    jars = ["instantapps-api-1.8.jar"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
-  name = "android-core-tests-instantapps-api",
-  jars = ["instantapps-api-1.8.jar"],
-  visibility = ["//visibility:public"]
+    name = "android-core-tests-instantapps-api",
+    jars = ["instantapps-api-1.8.jar"],
+    visibility = ["//visibility:public"],
 )
 
-exports_files([
-  "instantapps-api-1.8.jar",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "instantapps-api-1.8.jar",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `local-libs` end

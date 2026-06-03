@@ -1,50 +1,68 @@
-### auto-generated section `build intellij.android.app-inspection.inspector.ide` start
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.app-inspection.inspector.ide` start
+
 jvm_library(
-  name = "ide",
-  module_name = "intellij.android.app-inspection.inspector.ide",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = glob(["resources/**/*"]),
-  resource_strip_prefix = "resources",
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:jetbrains-annotations",
-    "@lib//:kotlin-stdlib",
-    "//libraries/kotlinx/coroutines/core",
-    "//android/adt-ui",
-    "//android/app-inspection/inspector/api",
-    "//android/android-common:common",
-    "//platform/core-api:core",
-    "//platform/extensions",
-    "//platform/util",
-  ]
+    name = "ide",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.app-inspection.inspector.ide",
+    resource_strip_prefix = "resources",
+    resources = glob(
+        ["resources/**/*"],
+    ),
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:jetbrains-annotations",
+        "@lib//:kotlin-stdlib",
+        "//libraries/kotlinx/coroutines/core",
+        "//android/adt-ui",
+        "//android/app-inspection/inspector/api",
+        "//android/android-common:common",
+        "//platform/core-api:core",
+        "//platform/extensions",
+        "//platform/util",
+    ],
 )
 
 jvm_library(
-  name = "ide_test_lib",
-  testonly = True,
-  module_name = "intellij.android.app-inspection.inspector.ide",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = [
-    ":ide",
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "//libraries/kotlinx/coroutines/core:core_test_lib",
-    "//android/adt-ui:adt-ui_test_lib",
-    "//android/app-inspection/inspector/api:api_test_lib",
-    "//android/android-common:common_test_lib",
-    "//platform/core-api:core_test_lib",
-    "//platform/extensions:extensions_test_lib",
-    "//platform/util:util_test_lib",
-  ]
+    name = "ide_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.app-inspection.inspector.ide",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":ide",
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "//libraries/kotlinx/coroutines/core:core_test_lib",
+        "//android/adt-ui:adt-ui_test_lib",
+        "//android/app-inspection/inspector/api:api_test_lib",
+        "//android/android-common:common_test_lib",
+        "//platform/core-api:core_test_lib",
+        "//platform/extensions:extensions_test_lib",
+        "//platform/util:util_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.app-inspection.inspector.ide` end
 
 ### auto-generated section `iml intellij.android.app-inspection.inspector.ide` start
-exports_files([
-  "intellij.android.app-inspection.inspector.ide.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.app-inspection.inspector.ide.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.app-inspection.inspector.ide` end

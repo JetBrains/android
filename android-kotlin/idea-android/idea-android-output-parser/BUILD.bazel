@@ -1,53 +1,71 @@
-### auto-generated section `build intellij.android.kotlin.output.parser` start
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 
+### auto-generated section `build intellij.android.kotlin.output.parser` start
+
 jvm_provided_library(
-  name = "plugins_maven_artifactResolver-m31_provided",
-  lib = "//plugins/maven/artifact-resolver-m31:artifactResolver-m31"
+    name = "plugins_maven_artifactResolver-m31_provided",
+    lib = "//plugins/maven/artifact-resolver-m31:artifactResolver-m31",
 )
 
 jvm_library(
-  name = "android-kotlin-output-parser",
-  module_name = "intellij.android.kotlin.output.parser",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = glob(["resources/**/*"]),
-  resource_strip_prefix = "resources",
-  deps = [
-    "@lib//:studio-platform-provided",
-    "//libraries/guava",
-    "@lib//:kotlin-stdlib",
-    "@lib//:kotlinc-kotlin-compiler-common-provided",
-    "//android/android:core",
-    "//platform/util",
-    "//platform/util-rt",
-    ":plugins_maven_artifactResolver-m31_provided",
-  ]
+    name = "android-kotlin-output-parser",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.kotlin.output.parser",
+    resource_strip_prefix = "resources",
+    resources = glob(
+        ["resources/**/*"],
+    ),
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "//libraries/guava",
+        "@lib//:kotlin-stdlib",
+        "@lib//:kotlinc-kotlin-compiler-common-provided",
+        "//android/android:core",
+        "//platform/util",
+        "//platform/util-rt",
+        ":plugins_maven_artifactResolver-m31_provided",
+    ],
 )
 
 jvm_library(
-  name = "android-kotlin-output-parser_test_lib",
-  testonly = True,
-  module_name = "intellij.android.kotlin.output.parser",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = [
-    ":android-kotlin-output-parser",
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "//libraries/guava:guava_test_lib",
-    "@lib//:kotlinc-kotlin-compiler-common-provided",
-    "//android/android:core_test_lib",
-    "//plugins/maven/artifact-resolver-m31:artifactResolver-m31",
-    "//plugins/maven/artifact-resolver-m31:artifactResolver-m31_test_lib",
-    "//platform/util:util_test_lib",
-    "//platform/util-rt:util-rt_test_lib",
-  ]
+    name = "android-kotlin-output-parser_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.kotlin.output.parser",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":android-kotlin-output-parser",
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "//libraries/guava:guava_test_lib",
+        "@lib//:kotlinc-kotlin-compiler-common-provided",
+        "//android/android:core_test_lib",
+        "//plugins/maven/artifact-resolver-m31:artifactResolver-m31",
+        "//plugins/maven/artifact-resolver-m31:artifactResolver-m31_test_lib",
+        "//platform/util:util_test_lib",
+        "//platform/util-rt:util-rt_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.kotlin.output.parser` end
 
 ### auto-generated section `iml intellij.android.kotlin.output.parser` start
-exports_files([
-  "intellij.android.kotlin.output.parser.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.kotlin.output.parser.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.kotlin.output.parser` end

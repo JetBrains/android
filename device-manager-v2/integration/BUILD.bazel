@@ -1,46 +1,67 @@
-### auto-generated section `build intellij.android.device-manager-v2.integration` start
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.device-manager-v2.integration` start
+
 jvm_library(
-  name = "integration",
-  module_name = "intellij.android.device-manager-v2.integration",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = ["@lib//:kotlin-stdlib"]
+    name = "integration",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.device-manager-v2.integration",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "@lib//:kotlin-stdlib",
+    ],
 )
 
 jvm_library(
-  name = "integration_test_lib",
-  testonly = True,
-  module_name = "intellij.android.device-manager-v2.integration",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "@lib//:kotlin-stdlib",
-    "@lib//:junit4",
-    "@lib//:truth",
-    "//android/as-driver/utils",
-    "//android/as-driver/utils:utils_test_lib",
-    "//platform/util",
-    "//platform/util:util_test_lib",
-  ],
-  runtime_deps = [":integration"]
+    name = "integration_test_lib",
+    testonly = True,
+    srcs = glob(
+        [
+            "testSrc/**/*.kt",
+            "testSrc/**/*.java",
+            "testSrc/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.device-manager-v2.integration",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":integration",
+    ],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "@lib//:kotlin-stdlib",
+        "@lib//:junit4",
+        "@lib//:truth",
+        "//android/as-driver/utils",
+        "//android/as-driver/utils:utils_test_lib",
+        "//platform/util",
+        "//platform/util:util_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.device-manager-v2.integration` end
 
 ### auto-generated section `iml intellij.android.device-manager-v2.integration` start
-exports_files([
-  "intellij.android.device-manager-v2.integration.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.device-manager-v2.integration.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.device-manager-v2.integration` end
 
 ### auto-generated section `test intellij.android.device-manager-v2.integration` start
-load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
-  name = "integration_test",
-  runtime_deps = [":integration_test_lib"]
+    name = "integration_test",
+    runtime_deps = [":integration_test_lib"],
 )
 ### auto-generated section `test intellij.android.device-manager-v2.integration` end

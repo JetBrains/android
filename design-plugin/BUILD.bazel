@@ -1,52 +1,64 @@
-### auto-generated section `build intellij.android.design-plugin` start
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.design-plugin` start
+
 jvm_library(
-  name = "design-plugin",
-  module_name = "intellij.android.design-plugin",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = [
-    "@lib//:kotlin-stdlib",
-    "@lib//:layoutlib",
-    "//android/compose-designer",
-    "//android/designer",
-    "//android/designer/gradle",
-    "//android/designer/customview",
-    "//android/glance-designer",
-    "//android/layoutlib",
-    "//android/nav/editor",
-    "//android/wear-designer",
-    "//android/design-plugin/descriptor",
-    "//android/nav/editor/gradle",
-  ]
+    name = "design-plugin",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.design-plugin",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "@lib//:kotlin-stdlib",
+        "@lib//:layoutlib",
+        "//android/compose-designer",
+        "//android/designer",
+        "//android/designer/gradle",
+        "//android/designer/customview",
+        "//android/glance-designer",
+        "//android/layoutlib",
+        "//android/nav/editor",
+        "//android/wear-designer",
+        "//android/design-plugin/descriptor",
+        "//android/nav/editor/gradle",
+    ],
 )
 
 jvm_library(
-  name = "design-plugin_test_lib",
-  testonly = True,
-  module_name = "intellij.android.design-plugin",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = [
-    ":design-plugin",
-    "@lib//:studio-test-platform",
-    "//android/compose-designer:compose-designer_test_lib",
-    "//android/designer:designer_test_lib",
-    "//android/designer/gradle:gradle_test_lib",
-    "//android/designer/customview:customview_test_lib",
-    "//android/glance-designer:glance-designer_test_lib",
-    "//android/layoutlib:layoutlib_test_lib",
-    "//android/nav/editor:editor_test_lib",
-    "//android/wear-designer:wear-designer_test_lib",
-    "//android/design-plugin/descriptor:descriptor_test_lib",
-    "//android/nav/editor/gradle:gradle_test_lib",
-  ]
+    name = "design-plugin_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.design-plugin",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":design-plugin",
+        "@lib//:studio-test-platform",
+        "//android/compose-designer:compose-designer_test_lib",
+        "//android/designer:designer_test_lib",
+        "//android/designer/gradle:gradle_test_lib",
+        "//android/designer/customview:customview_test_lib",
+        "//android/glance-designer:glance-designer_test_lib",
+        "//android/layoutlib:layoutlib_test_lib",
+        "//android/nav/editor:editor_test_lib",
+        "//android/wear-designer:wear-designer_test_lib",
+        "//android/design-plugin/descriptor:descriptor_test_lib",
+        "//android/nav/editor/gradle:gradle_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.design-plugin` end
 
 ### auto-generated section `iml intellij.android.design-plugin` start
-exports_files([
-  "intellij.android.design-plugin.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.design-plugin.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.design-plugin` end

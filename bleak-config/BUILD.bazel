@@ -1,52 +1,71 @@
-### auto-generated section `build intellij.android.bleak-config` start
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.bleak-config` start
+
 jvm_library(
-  name = "bleak-config",
-  module_name = "intellij.android.bleak-config",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = [
-    "@lib//:kotlin-stdlib",
-    "//android/bleak",
-  ]
+    name = "bleak-config",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.bleak-config",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "@lib//:kotlin-stdlib",
+        "//android/bleak",
+    ],
 )
 
 jvm_library(
-  name = "bleak-config_test_lib",
-  testonly = True,
-  module_name = "intellij.android.bleak-config",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "@lib//:kotlin-stdlib",
-    "@lib//:junit4",
-    "//android/bleak",
-    "//android/bleak:bleak_test_lib",
-    "//platform/util",
-    "//platform/util:util_test_lib",
-    "//platform/util/base",
-    "//platform/util/base:base_test_lib",
-    "//platform/util/trove",
-    "//platform/util/trove:trove_test_lib",
-  ],
-  runtime_deps = [":bleak-config"]
+    name = "bleak-config_test_lib",
+    testonly = True,
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.bleak-config",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":bleak-config",
+    ],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "@lib//:kotlin-stdlib",
+        "@lib//:junit4",
+        "//android/bleak",
+        "//android/bleak:bleak_test_lib",
+        "//platform/util",
+        "//platform/util:util_test_lib",
+        "//platform/util/base",
+        "//platform/util/base:base_test_lib",
+        "//platform/util/trove",
+        "//platform/util/trove:trove_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.bleak-config` end
 
 ### auto-generated section `iml intellij.android.bleak-config` start
-exports_files([
-  "intellij.android.bleak-config.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.bleak-config.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.bleak-config` end
 
 ### auto-generated section `test intellij.android.bleak-config` start
-load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
-  name = "bleak-config_test",
-  runtime_deps = [":bleak-config_test_lib"]
+    name = "bleak-config_test",
+    runtime_deps = [":bleak-config_test_lib"],
 )
 ### auto-generated section `test intellij.android.bleak-config` end

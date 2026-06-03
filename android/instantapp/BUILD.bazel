@@ -1,81 +1,100 @@
-### auto-generated section `build intellij.android.core.instantapp` start
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.core.instantapp` start
+
 jvm_library(
-  name = "instantapp",
-  module_name = "intellij.android.core.instantapp",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = ["@lib//:kotlin-stdlib"]
+    name = "instantapp",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.core.instantapp",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "@lib//:kotlin-stdlib",
+    ],
 )
 
 jvm_library(
-  name = "instantapp_test_lib",
-  testonly = True,
-  module_name = "intellij.android.core.instantapp",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "//android/android:core",
-    "//android/android:core_test_lib",
-    "//android/android:core-tests",
-    "//android/android:core-tests_test_lib",
-    "//android/android-test-framework:testFramework",
-    "//android/android-test-framework:testFramework_test_lib",
-    "//android/execution/common",
-    "//android/execution/common:common_test_lib",
-    "//libraries/mockito",
-    "//libraries/mockito:mockito_test_lib",
-    "//android/android/lib:android-core-instantapp-instantapps-api",
-    "@lib//:kotlin-stdlib",
-    "//libraries/guava",
-    "//libraries/guava:guava_test_lib",
-    "@lib//:junit4",
-    "@lib//:jetbrains-annotations",
-    "@lib//:truth",
-    "//android/project-system",
-    "//android/project-system:project-system_test_lib",
-    "//android/project-system-gradle-models:projectSystem-gradle-models",
-    "//android/project-system-gradle-models:projectSystem-gradle-models_test_lib",
-    "@lib//:mockito-kotlin",
-    "//platform/core-ui",
-    "//platform/core-ui:core-ui_test_lib",
-    "//platform/execution",
-    "//platform/execution:execution_test_lib",
-    "//platform/core-api:core",
-    "//platform/core-api:core_test_lib",
-    "//platform/execution-impl",
-    "//platform/execution-impl:execution-impl_test_lib",
-    "//platform/util",
-    "//platform/util:util_test_lib",
-    "//platform/testFramework",
-    "//platform/testFramework:testFramework_test_lib",
-    "//java/testFramework",
-    "//java/testFramework:testFramework_test_lib",
-    "//platform/lang-core",
-    "//platform/lang-core:lang-core_test_lib",
-    "//platform/ide-core",
-  ],
-  runtime_deps = [
-    ":instantapp",
-    "//platform/ide-core:ide-core_test_lib",
-  ]
+    name = "instantapp_test_lib",
+    testonly = True,
+    srcs = glob(
+        [
+            "testSrc/**/*.kt",
+            "testSrc/**/*.java",
+            "testSrc/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.core.instantapp",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":instantapp",
+        "//platform/ide-core:ide-core_test_lib",
+    ],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "//android/android:core",
+        "//android/android:core_test_lib",
+        "//android/android:core-tests",
+        "//android/android:core-tests_test_lib",
+        "//android/android-test-framework:testFramework",
+        "//android/android-test-framework:testFramework_test_lib",
+        "//android/execution/common",
+        "//android/execution/common:common_test_lib",
+        "//libraries/mockito",
+        "//libraries/mockito:mockito_test_lib",
+        "//android/android/lib:android-core-instantapp-instantapps-api",
+        "@lib//:kotlin-stdlib",
+        "//libraries/guava",
+        "//libraries/guava:guava_test_lib",
+        "@lib//:junit4",
+        "@lib//:jetbrains-annotations",
+        "@lib//:truth",
+        "//android/project-system",
+        "//android/project-system:project-system_test_lib",
+        "//android/project-system-gradle-models:projectSystem-gradle-models",
+        "//android/project-system-gradle-models:projectSystem-gradle-models_test_lib",
+        "@lib//:mockito-kotlin",
+        "//platform/core-ui",
+        "//platform/core-ui:core-ui_test_lib",
+        "//platform/execution",
+        "//platform/execution:execution_test_lib",
+        "//platform/core-api:core",
+        "//platform/core-api:core_test_lib",
+        "//platform/execution-impl",
+        "//platform/execution-impl:execution-impl_test_lib",
+        "//platform/util",
+        "//platform/util:util_test_lib",
+        "//platform/testFramework",
+        "//platform/testFramework:testFramework_test_lib",
+        "//java/testFramework",
+        "//java/testFramework:testFramework_test_lib",
+        "//platform/lang-core",
+        "//platform/lang-core:lang-core_test_lib",
+        "//platform/ide-core",
+    ],
 )
 ### auto-generated section `build intellij.android.core.instantapp` end
 
 ### auto-generated section `iml intellij.android.core.instantapp` start
-exports_files([
-  "intellij.android.core.instantapp.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.core.instantapp.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.core.instantapp` end
 
 ### auto-generated section `test intellij.android.core.instantapp` start
-load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
-  name = "instantapp_test",
-  runtime_deps = [":instantapp_test_lib"]
+    name = "instantapp_test",
+    runtime_deps = [":instantapp_test_lib"],
 )
 ### auto-generated section `test intellij.android.core.instantapp` end

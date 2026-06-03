@@ -1,66 +1,87 @@
-### auto-generated section `build intellij.android.gradle.dsl.declarative` start
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.gradle.dsl.declarative` start
+
 jvm_library(
-  name = "gradle-dsl-declarative",
-  module_name = "intellij.android.gradle.dsl.declarative",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = glob(["resources/**/*"]),
-  resource_strip_prefix = "resources",
-  deps = [
-    "@lib//:studio-platform-provided",
-    "//platform/core-impl",
-    "//platform/analysis-api:analysis",
-    "//platform/lang-api:lang",
-    "//platform/core-api:core",
-    "//platform/code-style-impl:codeStyle-impl",
-    "//android/gradle-dsl",
-    "//uast/uast-common:uast",
-    "//platform/lang-impl",
-    "//plugins/gradle",
-    "//plugins/kotlin/base/code-insight",
-    "//plugins/kotlin/base/util",
-    "//android/gradle-declarative-lang",
-    "//libraries/guava",
-    "//libraries/commons/lang3",
-    "@lib//:kotlinc-kotlin-compiler-common-provided",
-  ],
-  runtime_deps = ["//android/gradle-declarative-lang-ide"]
+    name = "gradle-dsl-declarative",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.gradle.dsl.declarative",
+    resource_strip_prefix = "resources",
+    resources = glob(
+        ["resources/**/*"],
+    ),
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//android/gradle-declarative-lang-ide",
+    ],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "//platform/core-impl",
+        "//platform/analysis-api:analysis",
+        "//platform/lang-api:lang",
+        "//platform/core-api:core",
+        "//platform/code-style-impl:codeStyle-impl",
+        "//android/gradle-dsl",
+        "//uast/uast-common:uast",
+        "//platform/lang-impl",
+        "//plugins/gradle",
+        "//plugins/kotlin/base/code-insight",
+        "//plugins/kotlin/base/util",
+        "//android/gradle-declarative-lang",
+        "//libraries/guava",
+        "//libraries/commons/lang3",
+        "@lib//:kotlinc-kotlin-compiler-common-provided",
+    ],
 )
 
 jvm_library(
-  name = "gradle-dsl-declarative_test_lib",
-  testonly = True,
-  module_name = "intellij.android.gradle.dsl.declarative",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = [
-    ":gradle-dsl-declarative",
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "//platform/core-impl:core-impl_test_lib",
-    "//platform/analysis-api:analysis_test_lib",
-    "//platform/lang-api:lang_test_lib",
-    "//platform/core-api:core_test_lib",
-    "//platform/code-style-impl:codeStyle-impl_test_lib",
-    "//android/gradle-dsl:gradle-dsl_test_lib",
-    "//uast/uast-common:uast_test_lib",
-    "//platform/lang-impl:lang-impl_test_lib",
-    "//plugins/gradle:gradle_test_lib",
-    "//plugins/kotlin/base/code-insight:code-insight_test_lib",
-    "//plugins/kotlin/base/util:util_test_lib",
-    "//android/gradle-declarative-lang:gradle-declarative-lang_test_lib",
-    "//android/gradle-declarative-lang-ide:gradle-declarative-lang-ide_test_lib",
-    "//libraries/guava:guava_test_lib",
-    "//libraries/commons/lang3:lang3_test_lib",
-    "@lib//:kotlinc-kotlin-compiler-common-provided",
-  ]
+    name = "gradle-dsl-declarative_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.gradle.dsl.declarative",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":gradle-dsl-declarative",
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "//platform/core-impl:core-impl_test_lib",
+        "//platform/analysis-api:analysis_test_lib",
+        "//platform/lang-api:lang_test_lib",
+        "//platform/core-api:core_test_lib",
+        "//platform/code-style-impl:codeStyle-impl_test_lib",
+        "//android/gradle-dsl:gradle-dsl_test_lib",
+        "//uast/uast-common:uast_test_lib",
+        "//platform/lang-impl:lang-impl_test_lib",
+        "//plugins/gradle:gradle_test_lib",
+        "//plugins/kotlin/base/code-insight:code-insight_test_lib",
+        "//plugins/kotlin/base/util:util_test_lib",
+        "//android/gradle-declarative-lang:gradle-declarative-lang_test_lib",
+        "//android/gradle-declarative-lang-ide:gradle-declarative-lang-ide_test_lib",
+        "//libraries/guava:guava_test_lib",
+        "//libraries/commons/lang3:lang3_test_lib",
+        "@lib//:kotlinc-kotlin-compiler-common-provided",
+    ],
 )
 ### auto-generated section `build intellij.android.gradle.dsl.declarative` end
 
 ### auto-generated section `iml intellij.android.gradle.dsl.declarative` start
-exports_files([
-  "intellij.android.gradle.dsl.declarative.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.gradle.dsl.declarative.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.gradle.dsl.declarative` end

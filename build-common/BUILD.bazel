@@ -1,45 +1,61 @@
-### auto-generated section `build intellij.android.buildCommon` start
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.buildCommon` start
+
 jvm_library(
-  name = "build-common",
-  module_name = "intellij.android.buildCommon",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:gradle",
-    "//libraries/guava",
-    "@lib//:jetbrains-annotations",
-    "@lib//:kotlin-stdlib",
-    "//platform/ide-core",
-    "//platform/util",
-    "//platform/util/base",
-    "//platform/util-rt",
-  ]
+    name = "build-common",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.buildCommon",
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:gradle",
+        "//libraries/guava",
+        "@lib//:jetbrains-annotations",
+        "@lib//:kotlin-stdlib",
+        "//platform/ide-core",
+        "//platform/util",
+        "//platform/util/base",
+        "//platform/util-rt",
+    ],
 )
 
 jvm_library(
-  name = "build-common_test_lib",
-  testonly = True,
-  module_name = "intellij.android.buildCommon",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = [
-    ":build-common",
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "//libraries/guava:guava_test_lib",
-    "//platform/ide-core:ide-core_test_lib",
-    "//platform/util:util_test_lib",
-    "//platform/util/base:base_test_lib",
-    "//platform/util-rt:util-rt_test_lib",
-  ]
+    name = "build-common_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.buildCommon",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":build-common",
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "//libraries/guava:guava_test_lib",
+        "//platform/ide-core:ide-core_test_lib",
+        "//platform/util:util_test_lib",
+        "//platform/util/base:base_test_lib",
+        "//platform/util-rt:util-rt_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.buildCommon` end
 
 ### auto-generated section `iml intellij.android.buildCommon` start
-exports_files([
-  "intellij.android.buildCommon.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.buildCommon.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.buildCommon` end

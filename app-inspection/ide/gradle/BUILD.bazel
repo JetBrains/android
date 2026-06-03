@@ -1,55 +1,73 @@
-### auto-generated section `build intellij.android.app-inspection.ide.gradle` start
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.app-inspection.ide.gradle` start
+
 jvm_library(
-  name = "gradle",
-  module_name = "intellij.android.app-inspection.ide.gradle",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = glob(["resources/**/*"]),
-  resource_strip_prefix = "resources",
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:kotlin-stdlib",
-    "//libraries/kotlinx/coroutines/core",
-    "//android/app-inspection/ide",
-    "//android/app-inspection/inspector/api",
-    "//platform/util",
-    "//android/app-inspection/inspector/ide",
-    "//android/android-common:common",
-    "//android/project-system",
-    "//android/project-system-gradle:projectSystem-gradle",
-    "//platform/core-api:core",
-    "//platform/ide-core",
-  ]
+    name = "gradle",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.app-inspection.ide.gradle",
+    resource_strip_prefix = "resources",
+    resources = glob(
+        ["resources/**/*"],
+    ),
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:kotlin-stdlib",
+        "//libraries/kotlinx/coroutines/core",
+        "//android/app-inspection/ide",
+        "//android/app-inspection/inspector/api",
+        "//platform/util",
+        "//android/app-inspection/inspector/ide",
+        "//android/android-common:common",
+        "//android/project-system",
+        "//android/project-system-gradle:projectSystem-gradle",
+        "//platform/core-api:core",
+        "//platform/ide-core",
+    ],
 )
 
 jvm_library(
-  name = "gradle_test_lib",
-  testonly = True,
-  module_name = "intellij.android.app-inspection.ide.gradle",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = [
-    ":gradle",
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "//libraries/kotlinx/coroutines/core:core_test_lib",
-    "//android/app-inspection/ide:ide_test_lib",
-    "//android/app-inspection/inspector/api:api_test_lib",
-    "//platform/util:util_test_lib",
-    "//android/app-inspection/inspector/ide:ide_test_lib",
-    "//android/android-common:common_test_lib",
-    "//android/project-system:project-system_test_lib",
-    "//android/project-system-gradle:projectSystem-gradle_test_lib",
-    "//platform/core-api:core_test_lib",
-    "//platform/ide-core:ide-core_test_lib",
-  ]
+    name = "gradle_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.app-inspection.ide.gradle",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":gradle",
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "//libraries/kotlinx/coroutines/core:core_test_lib",
+        "//android/app-inspection/ide:ide_test_lib",
+        "//android/app-inspection/inspector/api:api_test_lib",
+        "//platform/util:util_test_lib",
+        "//android/app-inspection/inspector/ide:ide_test_lib",
+        "//android/android-common:common_test_lib",
+        "//android/project-system:project-system_test_lib",
+        "//android/project-system-gradle:projectSystem-gradle_test_lib",
+        "//platform/core-api:core_test_lib",
+        "//platform/ide-core:ide-core_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.app-inspection.ide.gradle` end
 
 ### auto-generated section `iml intellij.android.app-inspection.ide.gradle` start
-exports_files([
-  "intellij.android.app-inspection.ide.gradle.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.app-inspection.ide.gradle.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.app-inspection.ide.gradle` end

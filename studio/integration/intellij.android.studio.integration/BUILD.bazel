@@ -1,55 +1,73 @@
-### auto-generated section `build intellij.android.studio.integration` start
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.studio.integration` start
+
 jvm_library(
-  name = "android-studio-integration",
-  module_name = "intellij.android.studio.integration",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+    name = "android-studio-integration",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.studio.integration",
+    visibility = ["//visibility:public"],
 )
 
 jvm_library(
-  name = "android-studio-integration_test_lib",
-  testonly = True,
-  module_name = "intellij.android.studio.integration",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "@lib//:kotlin-stdlib",
-    "//libraries/guava",
-    "//libraries/guava:guava_test_lib",
-    "@lib//:junit4",
-    "//libraries/commons/io",
-    "//libraries/commons/io:io_test_lib",
-    "//libraries/http-client",
-    "//libraries/http-client:http-client_test_lib",
-    "@lib//:truth",
-    "//android/as-driver/utils",
-    "//android/as-driver/utils:utils_test_lib",
-    "//platform/util",
-    "//platform/util:util_test_lib",
-    "//platform/util-rt",
-    "//platform/util-rt:util-rt_test_lib",
-    "//android/intellij.android.testutils:testutils",
-    "//android/intellij.android.testutils:testutils_test_lib",
-  ],
-  runtime_deps = [":android-studio-integration"]
+    name = "android-studio-integration_test_lib",
+    testonly = True,
+    srcs = glob(
+        [
+            "testSrc/**/*.kt",
+            "testSrc/**/*.java",
+            "testSrc/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.studio.integration",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":android-studio-integration",
+    ],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "@lib//:kotlin-stdlib",
+        "//libraries/guava",
+        "//libraries/guava:guava_test_lib",
+        "@lib//:junit4",
+        "//libraries/commons/io",
+        "//libraries/commons/io:io_test_lib",
+        "//libraries/http-client",
+        "//libraries/http-client:http-client_test_lib",
+        "@lib//:truth",
+        "//android/as-driver/utils",
+        "//android/as-driver/utils:utils_test_lib",
+        "//platform/util",
+        "//platform/util:util_test_lib",
+        "//platform/util-rt",
+        "//platform/util-rt:util-rt_test_lib",
+        "//android/intellij.android.testutils:testutils",
+        "//android/intellij.android.testutils:testutils_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.studio.integration` end
 
 ### auto-generated section `iml intellij.android.studio.integration` start
-exports_files([
-  "intellij.android.studio.integration.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.studio.integration.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.studio.integration` end
 
 ### auto-generated section `test intellij.android.studio.integration` start
-load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
-  name = "android-studio-integration_test",
-  runtime_deps = [":android-studio-integration_test_lib"]
+    name = "android-studio-integration_test",
+    runtime_deps = [":android-studio-integration_test_lib"],
 )
 ### auto-generated section `test intellij.android.studio.integration` end

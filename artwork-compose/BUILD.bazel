@@ -1,58 +1,74 @@
-### auto-generated section `build intellij.android.artwork-compose` start
-load("//build:compiler-options.bzl", "create_kotlinc_options")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("//build:compiler-options.bzl", "create_kotlinc_options")
+
+### auto-generated section `build intellij.android.artwork-compose` start
 
 create_kotlinc_options(
-  name = "custom_artwork-compose",
-  x_context_parameters = True,
-  x_sam_conversions = "class"
+    name = "custom_artwork-compose",
+    x_context_parameters = True,
+    x_sam_conversions = "class",
 )
 
 jvm_library(
-  name = "artwork-compose",
-  module_name = "intellij.android.artwork-compose",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  kotlinc_opts = ":custom_artwork-compose",
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:kotlin-stdlib",
-    "//android/artwork",
-    "//platform/compose/markdown",
-    "//platform/compose",
-  ],
-  exports = [
-    "//platform/compose/markdown",
-    "//platform/compose",
-  ]
+    name = "artwork-compose",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    kotlinc_opts = ":custom_artwork-compose",
+    module_name = "intellij.android.artwork-compose",
+    visibility = ["//visibility:public"],
+    exports = [
+        "//platform/compose",
+        "//platform/compose/markdown",
+    ],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:kotlin-stdlib",
+        "//android/artwork",
+        "//platform/compose/markdown",
+        "//platform/compose",
+    ],
 )
 
 jvm_library(
-  name = "artwork-compose_test_lib",
-  testonly = True,
-  module_name = "intellij.android.artwork-compose",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  kotlinc_opts = ":custom_artwork-compose",
-  exports = [
-    "//platform/compose/markdown",
-    "//platform/compose/markdown:markdown_test_lib",
-    "//platform/compose",
-    "//platform/compose:compose_test_lib",
-  ],
-  runtime_deps = [
-    ":artwork-compose",
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "//android/artwork:artwork_test_lib",
-    "//platform/compose/markdown:markdown_test_lib",
-    "//platform/compose:compose_test_lib",
-  ]
+    name = "artwork-compose_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    kotlinc_opts = ":custom_artwork-compose",
+    module_name = "intellij.android.artwork-compose",
+    visibility = ["//visibility:public"],
+    exports = [
+        "//platform/compose",
+        "//platform/compose:compose_test_lib",
+        "//platform/compose/markdown",
+        "//platform/compose/markdown:markdown_test_lib",
+    ],
+    runtime_deps = [
+        # do not sort,
+        ":artwork-compose",
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "//android/artwork:artwork_test_lib",
+        "//platform/compose/markdown:markdown_test_lib",
+        "//platform/compose:compose_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.artwork-compose` end
 
 ### auto-generated section `iml intellij.android.artwork-compose` start
-exports_files([
-  "intellij.android.artwork-compose.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.artwork-compose.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.artwork-compose` end

@@ -1,144 +1,183 @@
-### auto-generated section `build intellij.android.app-inspection.inspectors.network.ide` start
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.app-inspection.inspectors.network.ide` start
+
 jvm_library(
-  name = "ide",
-  module_name = "intellij.android.app-inspection.inspectors.network.ide",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = glob(["resources/**/*"]),
-  resource_strip_prefix = "resources",
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:kotlin-stdlib",
-    "//libraries/kotlinx/coroutines/core",
-    "//libraries/protobuf",
-    "//android/adt-ui",
-    "//android/adt-ui-model",
-    "//android/app-inspection/inspector/api",
-    "//android/app-inspection/inspector/ide",
-    "//android/app-inspection/inspectors/network/model",
-    "//android/app-inspection/inspectors/network/view",
-    "//android/artwork",
-    "//android/codenavigation",
-    "//android/android-common:common",
-    "//android/inspectors-common/api",
-    "//android/inspectors-common/api-ide",
-    "//android/inspectors-common/ui",
-    "//android/native-symbolizer",
-    "//platform/core-api:core",
-    "//platform/extensions",
-    "//platform/util",
-    "//libraries/gson",
-  ]
+    name = "ide",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.app-inspection.inspectors.network.ide",
+    resource_strip_prefix = "resources",
+    resources = glob(
+        ["resources/**/*"],
+    ),
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:kotlin-stdlib",
+        "//libraries/kotlinx/coroutines/core",
+        "//libraries/protobuf",
+        "//android/adt-ui",
+        "//android/adt-ui-model",
+        "//android/app-inspection/inspector/api",
+        "//android/app-inspection/inspector/ide",
+        "//android/app-inspection/inspectors/network/model",
+        "//android/app-inspection/inspectors/network/view",
+        "//android/artwork",
+        "//android/codenavigation",
+        "//android/android-common:common",
+        "//android/inspectors-common/api",
+        "//android/inspectors-common/api-ide",
+        "//android/inspectors-common/ui",
+        "//android/native-symbolizer",
+        "//platform/core-api:core",
+        "//platform/extensions",
+        "//platform/util",
+        "//libraries/gson",
+    ],
 )
 
 jvm_library(
-  name = "ide_test_lib",
-  testonly = True,
-  module_name = "intellij.android.app-inspection.inspectors.network.ide",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = [
-    ":ide",
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "//libraries/kotlinx/coroutines/core:core_test_lib",
-    "//libraries/protobuf:protobuf_test_lib",
-    "//android/adt-ui:adt-ui_test_lib",
-    "//android/adt-ui-model:adt-ui-model_test_lib",
-    "//android/app-inspection/inspector/api:api_test_lib",
-    "//android/app-inspection/inspector/ide:ide_test_lib",
-    "//android/app-inspection/inspectors/network/model:model_test_lib",
-    "//android/app-inspection/inspectors/network/view:view_test_lib",
-    "//android/artwork:artwork_test_lib",
-    "//android/codenavigation:codenavigation_test_lib",
-    "//android/android-common:common_test_lib",
-    "//android/inspectors-common/api:api_test_lib",
-    "//android/inspectors-common/api-ide:api-ide_test_lib",
-    "//android/inspectors-common/ui:ui_test_lib",
-    "//android/native-symbolizer:native-symbolizer_test_lib",
-    "//platform/core-api:core_test_lib",
-    "//platform/extensions:extensions_test_lib",
-    "//platform/util:util_test_lib",
-    "//libraries/gson:gson_test_lib",
-  ]
+    name = "ide_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.app-inspection.inspectors.network.ide",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":ide",
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "//libraries/kotlinx/coroutines/core:core_test_lib",
+        "//libraries/protobuf:protobuf_test_lib",
+        "//android/adt-ui:adt-ui_test_lib",
+        "//android/adt-ui-model:adt-ui-model_test_lib",
+        "//android/app-inspection/inspector/api:api_test_lib",
+        "//android/app-inspection/inspector/ide:ide_test_lib",
+        "//android/app-inspection/inspectors/network/model:model_test_lib",
+        "//android/app-inspection/inspectors/network/view:view_test_lib",
+        "//android/artwork:artwork_test_lib",
+        "//android/codenavigation:codenavigation_test_lib",
+        "//android/android-common:common_test_lib",
+        "//android/inspectors-common/api:api_test_lib",
+        "//android/inspectors-common/api-ide:api-ide_test_lib",
+        "//android/inspectors-common/ui:ui_test_lib",
+        "//android/native-symbolizer:native-symbolizer_test_lib",
+        "//platform/core-api:core_test_lib",
+        "//platform/extensions:extensions_test_lib",
+        "//platform/util:util_test_lib",
+        "//libraries/gson:gson_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.app-inspection.inspectors.network.ide` end
 
 ### auto-generated section `iml intellij.android.app-inspection.inspectors.network.ide` start
-exports_files([
-  "intellij.android.app-inspection.inspectors.network.ide.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.app-inspection.inspectors.network.ide.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.app-inspection.inspectors.network.ide` end
 
 ### auto-generated section `build intellij.android.app-inspection.inspectors.network.ide.tests` start
+
 jvm_library(
-  name = "android-app-inspection-inspectors-network-ide-tests",
-  module_name = "intellij.android.app-inspection.inspectors.network.ide.tests",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = ["@lib//:kotlin-stdlib"]
+    name = "android-app-inspection-inspectors-network-ide-tests",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.app-inspection.inspectors.network.ide.tests",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "@lib//:kotlin-stdlib",
+    ],
 )
 
 jvm_library(
-  name = "android-app-inspection-inspectors-network-ide-tests_test_lib",
-  testonly = True,
-  module_name = "intellij.android.app-inspection.inspectors.network.ide.tests",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "@lib//:kotlin-stdlib",
-    "@lib//:junit4",
-    "@lib//:truth",
-    "//android/adt-testutils",
-    "//android/adt-testutils:adt-testutils_test_lib",
-    "//android/adt-ui",
-    "//android/adt-ui:adt-ui_test_lib",
-    "//android/codenavigation",
-    "//android/codenavigation:codenavigation_test_lib",
-    "//android/app-inspection/inspectors/network/ide",
-    "//android/app-inspection/inspectors/network/ide:ide_test_lib",
-    "//android/app-inspection/inspectors/network/model",
-    "//android/app-inspection/inspectors/network/model:model_test_lib",
-    "//android/app-inspection/inspectors/network/view",
-    "//android/app-inspection/inspectors/network/view:view_test_lib",
-    "//android/inspectors-common/api",
-    "//android/inspectors-common/api:api_test_lib",
-    "//android/inspectors-common/api-ide",
-    "//android/inspectors-common/api-ide:api-ide_test_lib",
-    "//android/inspectors-common/ui",
-    "//android/inspectors-common/ui:ui_test_lib",
-    "//android/android-test-framework:testFramework",
-    "//android/android-test-framework:testFramework_test_lib",
-    "//android/intellij.android.testutils:testutils",
-    "//android/intellij.android.testutils:testutils_test_lib",
-    "//platform/core-api:core",
-    "//platform/core-api:core_test_lib",
-    "//platform/testFramework",
-    "//platform/testFramework:testFramework_test_lib",
-    "//platform/util-ex",
-    "//platform/util-ex:util-ex_test_lib",
-    "//java/testFramework",
-    "//java/testFramework:testFramework_test_lib",
-  ],
-  runtime_deps = [":android-app-inspection-inspectors-network-ide-tests"]
+    name = "android-app-inspection-inspectors-network-ide-tests_test_lib",
+    testonly = True,
+    srcs = glob(
+        [
+            "testSrc/**/*.kt",
+            "testSrc/**/*.java",
+            "testSrc/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.app-inspection.inspectors.network.ide.tests",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":android-app-inspection-inspectors-network-ide-tests",
+    ],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "@lib//:kotlin-stdlib",
+        "@lib//:junit4",
+        "@lib//:truth",
+        "//android/adt-testutils",
+        "//android/adt-testutils:adt-testutils_test_lib",
+        "//android/adt-ui",
+        "//android/adt-ui:adt-ui_test_lib",
+        "//android/codenavigation",
+        "//android/codenavigation:codenavigation_test_lib",
+        "//android/app-inspection/inspectors/network/ide",
+        "//android/app-inspection/inspectors/network/ide:ide_test_lib",
+        "//android/app-inspection/inspectors/network/model",
+        "//android/app-inspection/inspectors/network/model:model_test_lib",
+        "//android/app-inspection/inspectors/network/view",
+        "//android/app-inspection/inspectors/network/view:view_test_lib",
+        "//android/inspectors-common/api",
+        "//android/inspectors-common/api:api_test_lib",
+        "//android/inspectors-common/api-ide",
+        "//android/inspectors-common/api-ide:api-ide_test_lib",
+        "//android/inspectors-common/ui",
+        "//android/inspectors-common/ui:ui_test_lib",
+        "//android/android-test-framework:testFramework",
+        "//android/android-test-framework:testFramework_test_lib",
+        "//android/intellij.android.testutils:testutils",
+        "//android/intellij.android.testutils:testutils_test_lib",
+        "//platform/core-api:core",
+        "//platform/core-api:core_test_lib",
+        "//platform/testFramework",
+        "//platform/testFramework:testFramework_test_lib",
+        "//platform/util-ex",
+        "//platform/util-ex:util-ex_test_lib",
+        "//java/testFramework",
+        "//java/testFramework:testFramework_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.app-inspection.inspectors.network.ide.tests` end
 
 ### auto-generated section `iml intellij.android.app-inspection.inspectors.network.ide.tests` start
-exports_files([
-  "intellij.android.app-inspection.inspectors.network.ide.tests.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.app-inspection.inspectors.network.ide.tests.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.app-inspection.inspectors.network.ide.tests` end
 
 ### auto-generated section `test intellij.android.app-inspection.inspectors.network.ide.tests` start
-load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
-  name = "android-app-inspection-inspectors-network-ide-tests_test",
-  runtime_deps = [":android-app-inspection-inspectors-network-ide-tests_test_lib"]
+    name = "android-app-inspection-inspectors-network-ide-tests_test",
+    runtime_deps = [":android-app-inspection-inspectors-network-ide-tests_test_lib"],
 )
 ### auto-generated section `test intellij.android.app-inspection.inspectors.network.ide.tests` end

@@ -1,36 +1,52 @@
-### auto-generated section `build intellij.android.jps.model` start
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.jps.model` start
+
 jvm_library(
-  name = "jps-model",
-  module_name = "intellij.android.jps.model",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:kotlin-stdlib",
-    "@lib//:jetbrains-annotations",
-    "//platform/util",
-  ]
+    name = "jps-model",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.jps.model",
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:kotlin-stdlib",
+        "@lib//:jetbrains-annotations",
+        "//platform/util",
+    ],
 )
 
 jvm_library(
-  name = "jps-model_test_lib",
-  testonly = True,
-  module_name = "intellij.android.jps.model",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = [
-    ":jps-model",
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "//platform/util:util_test_lib",
-  ]
+    name = "jps-model_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.jps.model",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":jps-model",
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "//platform/util:util_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.jps.model` end
 
 ### auto-generated section `iml intellij.android.jps.model` start
-exports_files([
-  "intellij.android.jps.model.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.jps.model.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.jps.model` end

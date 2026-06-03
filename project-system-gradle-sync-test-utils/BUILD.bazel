@@ -1,48 +1,66 @@
-### auto-generated section `build intellij.android.projectSystem.gradle.sync.testUtils` start
-load("//build:compiler-options.bzl", "create_kotlinc_options")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("//build:compiler-options.bzl", "create_kotlinc_options")
+
+### auto-generated section `build intellij.android.projectSystem.gradle.sync.testUtils` start
 
 create_kotlinc_options(
-  name = "custom_projectSystem-gradle-sync-testUtils",
-  jvm_target = "8",
-  x_sam_conversions = "class",
-  x_strict_java_nullability_assertions = True
+    name = "custom_projectSystem-gradle-sync-testUtils",
+    jvm_target = "8",
+    x_sam_conversions = "class",
+    x_strict_java_nullability_assertions = True,
 )
 
 jvm_library(
-  name = "projectSystem-gradle-sync-testUtils",
-  module_name = "intellij.android.projectSystem.gradle.sync.testUtils",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = glob(["resources/**/*"]),
-  resource_strip_prefix = "resources",
-  kotlinc_opts = ":custom_projectSystem-gradle-sync-testUtils",
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:gradle",
-    "@lib//:kotlin-stdlib",
-    "//plugins/gradle/tooling-extension-api:toolingExtension",
-  ]
+    name = "projectSystem-gradle-sync-testUtils",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    kotlinc_opts = ":custom_projectSystem-gradle-sync-testUtils",
+    module_name = "intellij.android.projectSystem.gradle.sync.testUtils",
+    resource_strip_prefix = "resources",
+    resources = glob(
+        ["resources/**/*"],
+    ),
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:gradle",
+        "@lib//:kotlin-stdlib",
+        "//plugins/gradle/tooling-extension-api:toolingExtension",
+    ],
 )
 
 jvm_library(
-  name = "projectSystem-gradle-sync-testUtils_test_lib",
-  testonly = True,
-  module_name = "intellij.android.projectSystem.gradle.sync.testUtils",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  kotlinc_opts = ":custom_projectSystem-gradle-sync-testUtils",
-  runtime_deps = [
-    ":projectSystem-gradle-sync-testUtils",
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "//plugins/gradle/tooling-extension-api:toolingExtension_test_lib",
-  ]
+    name = "projectSystem-gradle-sync-testUtils_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    kotlinc_opts = ":custom_projectSystem-gradle-sync-testUtils",
+    module_name = "intellij.android.projectSystem.gradle.sync.testUtils",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":projectSystem-gradle-sync-testUtils",
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "//plugins/gradle/tooling-extension-api:toolingExtension_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle.sync.testUtils` end
 
 ### auto-generated section `iml intellij.android.projectSystem.gradle.sync.testUtils` start
-exports_files([
-  "intellij.android.projectSystem.gradle.sync.testUtils.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.projectSystem.gradle.sync.testUtils.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.projectSystem.gradle.sync.testUtils` end

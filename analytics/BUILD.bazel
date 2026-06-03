@@ -1,79 +1,99 @@
-### auto-generated section `build intellij.android.analytics` start
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.analytics` start
+
 jvm_library(
-  name = "analytics",
-  module_name = "intellij.android.analytics",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  deps = [
-    "@lib//:studio-platform-provided",
-    "//libraries/guava",
-    "//libraries/hdr-histogram",
-    "@lib//:kotlin-stdlib",
-    "//libraries/protobuf",
-    "//android/android-common:common",
-    "//android/jps-model",
-    "//android/project-system",
-    "//platform/core-api:core",
-    "//platform/extensions",
-    "//platform/lang-core",
-    "//platform/projectModel-api:projectModel",
-    "//platform/util",
-    "//platform/util-ex",
-  ]
+    name = "analytics",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.analytics",
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "//libraries/guava",
+        "//libraries/hdr-histogram",
+        "@lib//:kotlin-stdlib",
+        "//libraries/protobuf",
+        "//android/android-common:common",
+        "//android/jps-model",
+        "//android/project-system",
+        "//platform/core-api:core",
+        "//platform/extensions",
+        "//platform/lang-core",
+        "//platform/projectModel-api:projectModel",
+        "//platform/util",
+        "//platform/util-ex",
+    ],
 )
 
 jvm_library(
-  name = "analytics_test_lib",
-  testonly = True,
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
-  associates = [":analytics"],
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "//libraries/guava",
-    "//libraries/guava:guava_test_lib",
-    "//libraries/hdr-histogram",
-    "//libraries/hdr-histogram:hdr-histogram_test_lib",
-    "@lib//:kotlin-stdlib",
-    "//libraries/protobuf",
-    "//libraries/protobuf:protobuf_test_lib",
-    "@lib//:junit4",
-    "//android/android-common:common",
-    "//android/android-common:common_test_lib",
-    "//android/jps-model",
-    "//android/jps-model:jps-model_test_lib",
-    "//android/project-system",
-    "//android/project-system:project-system_test_lib",
-    "//platform/core-api:core",
-    "//platform/core-api:core_test_lib",
-    "//platform/extensions",
-    "//platform/extensions:extensions_test_lib",
-    "//platform/lang-core",
-    "//platform/lang-core:lang-core_test_lib",
-    "//platform/projectModel-api:projectModel",
-    "//platform/projectModel-api:projectModel_test_lib",
-    "//platform/util",
-    "//platform/util:util_test_lib",
-    "//platform/util-ex",
-    "//platform/util-ex:util-ex_test_lib",
-  ]
+    name = "analytics_test_lib",
+    testonly = True,
+    srcs = glob(
+        [
+            "testSrc/**/*.kt",
+            "testSrc/**/*.java",
+            "testSrc/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    associates = [":analytics"],
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "//libraries/guava",
+        "//libraries/guava:guava_test_lib",
+        "//libraries/hdr-histogram",
+        "//libraries/hdr-histogram:hdr-histogram_test_lib",
+        "@lib//:kotlin-stdlib",
+        "//libraries/protobuf",
+        "//libraries/protobuf:protobuf_test_lib",
+        "@lib//:junit4",
+        "//android/android-common:common",
+        "//android/android-common:common_test_lib",
+        "//android/jps-model",
+        "//android/jps-model:jps-model_test_lib",
+        "//android/project-system",
+        "//android/project-system:project-system_test_lib",
+        "//platform/core-api:core",
+        "//platform/core-api:core_test_lib",
+        "//platform/extensions",
+        "//platform/extensions:extensions_test_lib",
+        "//platform/lang-core",
+        "//platform/lang-core:lang-core_test_lib",
+        "//platform/projectModel-api:projectModel",
+        "//platform/projectModel-api:projectModel_test_lib",
+        "//platform/util",
+        "//platform/util:util_test_lib",
+        "//platform/util-ex",
+        "//platform/util-ex:util-ex_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.analytics` end
 
 ### auto-generated section `iml intellij.android.analytics` start
-exports_files([
-  "intellij.android.analytics.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.analytics.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.analytics` end
 
 ### auto-generated section `test intellij.android.analytics` start
-load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
-  name = "analytics_test",
-  runtime_deps = [":analytics_test_lib"]
+    name = "analytics_test",
+    runtime_deps = [":analytics_test_lib"],
 )
 ### auto-generated section `test intellij.android.analytics` end

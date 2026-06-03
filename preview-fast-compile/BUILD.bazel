@@ -1,35 +1,51 @@
-### auto-generated section `build intellij.android.preview-fast-compile` start
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.preview-fast-compile` start
+
 jvm_library(
-  name = "preview-fast-compile",
-  module_name = "intellij.android.preview-fast-compile",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:kotlin-stdlib",
-    "//libraries/kotlinx/coroutines/core",
-  ]
+    name = "preview-fast-compile",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.preview-fast-compile",
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:kotlin-stdlib",
+        "//libraries/kotlinx/coroutines/core",
+    ],
 )
 
 jvm_library(
-  name = "preview-fast-compile_test_lib",
-  testonly = True,
-  module_name = "intellij.android.preview-fast-compile",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = [
-    ":preview-fast-compile",
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "//libraries/kotlinx/coroutines/core:core_test_lib",
-  ]
+    name = "preview-fast-compile_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.preview-fast-compile",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":preview-fast-compile",
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "//libraries/kotlinx/coroutines/core:core_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.preview-fast-compile` end
 
 ### auto-generated section `iml intellij.android.preview-fast-compile` start
-exports_files([
-  "intellij.android.preview-fast-compile.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.preview-fast-compile.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.preview-fast-compile` end

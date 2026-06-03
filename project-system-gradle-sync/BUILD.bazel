@@ -1,124 +1,158 @@
-### auto-generated section `build intellij.android.projectSystem.gradle.sync` start
-load("//build:compiler-options.bzl", "create_kotlinc_options")
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("//build:compiler-options.bzl", "create_kotlinc_options")
+
+### auto-generated section `build intellij.android.projectSystem.gradle.sync` start
 
 create_kotlinc_options(
-  name = "custom_projectSystem-gradle-sync",
-  jvm_target = "8",
-  x_sam_conversions = "class"
+    name = "custom_projectSystem-gradle-sync",
+    jvm_target = "8",
+    x_sam_conversions = "class",
 )
 
 jvm_library(
-  name = "projectSystem-gradle-sync",
-  module_name = "intellij.android.projectSystem.gradle.sync",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  kotlinc_opts = ":custom_projectSystem-gradle-sync",
-  deps = [
-    "@lib//:studio-platform-provided",
-    "//libraries/guava",
-    "@lib//:jetbrains-annotations",
-    "@lib//:kotlin-stdlib",
-    "@lib//:gradle",
-    "//android/gradle-tooling/studio-gradle-tooling-api:android-gradle-tooling-api",
-    "//android/gradle-tooling/studio-gradle-tooling-impl:android-gradle-tooling-impl",
-    "//android/memory-usage",
-    "//android/project-system-gradle-models:projectSystem-gradle-models",
-    "//plugins/gradle/tooling-extension-api:toolingExtension",
-    "//platform/core-api:core",
-    "//platform/util",
-    "//plugins/kotlin/gradle/gradle-tooling/impl",
-    "//plugins/gradle/tooling-extension-impl:toolingExtension-impl",
-    "//libraries/jspecify",
-  ]
+    name = "projectSystem-gradle-sync",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    kotlinc_opts = ":custom_projectSystem-gradle-sync",
+    module_name = "intellij.android.projectSystem.gradle.sync",
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "//libraries/guava",
+        "@lib//:jetbrains-annotations",
+        "@lib//:kotlin-stdlib",
+        "@lib//:gradle",
+        "//android/gradle-tooling/studio-gradle-tooling-api:android-gradle-tooling-api",
+        "//android/gradle-tooling/studio-gradle-tooling-impl:android-gradle-tooling-impl",
+        "//android/memory-usage",
+        "//android/project-system-gradle-models:projectSystem-gradle-models",
+        "//plugins/gradle/tooling-extension-api:toolingExtension",
+        "//platform/core-api:core",
+        "//platform/util",
+        "//plugins/kotlin/gradle/gradle-tooling/impl",
+        "//plugins/gradle/tooling-extension-impl:toolingExtension-impl",
+        "//libraries/jspecify",
+    ],
 )
 
 jvm_library(
-  name = "projectSystem-gradle-sync_test_lib",
-  testonly = True,
-  module_name = "intellij.android.projectSystem.gradle.sync",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  kotlinc_opts = ":custom_projectSystem-gradle-sync",
-  runtime_deps = [
-    ":projectSystem-gradle-sync",
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "//libraries/guava:guava_test_lib",
-    "//android/gradle-tooling/studio-gradle-tooling-api:android-gradle-tooling-api_test_lib",
-    "//android/gradle-tooling/studio-gradle-tooling-impl:android-gradle-tooling-impl_test_lib",
-    "//android/memory-usage:memory-usage_test_lib",
-    "//android/project-system-gradle-models:projectSystem-gradle-models_test_lib",
-    "//plugins/gradle/tooling-extension-api:toolingExtension_test_lib",
-    "//platform/core-api:core_test_lib",
-    "//platform/util:util_test_lib",
-    "//plugins/kotlin/gradle/gradle-tooling/impl:impl_test_lib",
-    "//plugins/gradle/tooling-extension-impl:toolingExtension-impl_test_lib",
-    "//libraries/jspecify:jspecify_test_lib",
-  ]
+    name = "projectSystem-gradle-sync_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    kotlinc_opts = ":custom_projectSystem-gradle-sync",
+    module_name = "intellij.android.projectSystem.gradle.sync",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":projectSystem-gradle-sync",
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "//libraries/guava:guava_test_lib",
+        "//android/gradle-tooling/studio-gradle-tooling-api:android-gradle-tooling-api_test_lib",
+        "//android/gradle-tooling/studio-gradle-tooling-impl:android-gradle-tooling-impl_test_lib",
+        "//android/memory-usage:memory-usage_test_lib",
+        "//android/project-system-gradle-models:projectSystem-gradle-models_test_lib",
+        "//plugins/gradle/tooling-extension-api:toolingExtension_test_lib",
+        "//platform/core-api:core_test_lib",
+        "//platform/util:util_test_lib",
+        "//plugins/kotlin/gradle/gradle-tooling/impl:impl_test_lib",
+        "//plugins/gradle/tooling-extension-impl:toolingExtension-impl_test_lib",
+        "//libraries/jspecify:jspecify_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle.sync` end
 
 ### auto-generated section `iml intellij.android.projectSystem.gradle.sync` start
-exports_files([
-  "intellij.android.projectSystem.gradle.sync.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.projectSystem.gradle.sync.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.projectSystem.gradle.sync` end
 
 ### auto-generated section `build intellij.android.projectSystem.gradle.sync.tests` start
+
 jvm_library(
-  name = "projectSystem-gradle-sync-tests",
-  module_name = "intellij.android.projectSystem.gradle.sync.tests",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+    name = "projectSystem-gradle-sync-tests",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.projectSystem.gradle.sync.tests",
+    visibility = ["//visibility:public"],
 )
 
 jvm_library(
-  name = "projectSystem-gradle-sync-tests_test_lib",
-  testonly = True,
-  module_name = "intellij.android.projectSystem.gradle.sync.tests",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "@lib//:kotlin-stdlib",
-    "@lib//:junit4",
-    "//libraries/mockito",
-    "//libraries/mockito:mockito_test_lib",
-    "@lib//:truth",
-    "//android/adt-testutils",
-    "//android/adt-testutils:adt-testutils_test_lib",
-    "//android/android-common:common",
-    "//android/android-common:common_test_lib",
-    "//android/android:core",
-    "//android/android:core_test_lib",
-    "//android/project-system-gradle:projectSystem-gradle",
-    "//android/project-system-gradle:projectSystem-gradle_test_lib",
-    "//android/project-system-gradle-models:projectSystem-gradle-models",
-    "//android/project-system-gradle-models:projectSystem-gradle-models_test_lib",
-    "//android/project-system-gradle-sync:projectSystem-gradle-sync",
-    "//android/project-system-gradle-sync:projectSystem-gradle-sync_test_lib",
-    "//android/project-system-gradle-upgrade:projectSystem-gradle-upgrade",
-    "//android/project-system-gradle-upgrade:projectSystem-gradle-upgrade_test_lib",
-    "//android/android-test-framework:testFramework",
-    "//android/android-test-framework:testFramework_test_lib",
-  ],
-  runtime_deps = [":projectSystem-gradle-sync-tests"]
+    name = "projectSystem-gradle-sync-tests_test_lib",
+    testonly = True,
+    srcs = glob(
+        [
+            "testSrc/**/*.kt",
+            "testSrc/**/*.java",
+            "testSrc/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.projectSystem.gradle.sync.tests",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":projectSystem-gradle-sync-tests",
+    ],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "@lib//:kotlin-stdlib",
+        "@lib//:junit4",
+        "//libraries/mockito",
+        "//libraries/mockito:mockito_test_lib",
+        "@lib//:truth",
+        "//android/adt-testutils",
+        "//android/adt-testutils:adt-testutils_test_lib",
+        "//android/android-common:common",
+        "//android/android-common:common_test_lib",
+        "//android/android:core",
+        "//android/android:core_test_lib",
+        "//android/project-system-gradle:projectSystem-gradle",
+        "//android/project-system-gradle:projectSystem-gradle_test_lib",
+        "//android/project-system-gradle-models:projectSystem-gradle-models",
+        "//android/project-system-gradle-models:projectSystem-gradle-models_test_lib",
+        "//android/project-system-gradle-sync:projectSystem-gradle-sync",
+        "//android/project-system-gradle-sync:projectSystem-gradle-sync_test_lib",
+        "//android/project-system-gradle-upgrade:projectSystem-gradle-upgrade",
+        "//android/project-system-gradle-upgrade:projectSystem-gradle-upgrade_test_lib",
+        "//android/android-test-framework:testFramework",
+        "//android/android-test-framework:testFramework_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle.sync.tests` end
 
 ### auto-generated section `iml intellij.android.projectSystem.gradle.sync.tests` start
-exports_files([
-  "intellij.android.projectSystem.gradle.sync.tests.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.projectSystem.gradle.sync.tests.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.projectSystem.gradle.sync.tests` end
 
 ### auto-generated section `test intellij.android.projectSystem.gradle.sync.tests` start
-load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
-  name = "projectSystem-gradle-sync-tests_test",
-  runtime_deps = [":projectSystem-gradle-sync-tests_test_lib"]
+    name = "projectSystem-gradle-sync-tests_test",
+    runtime_deps = [":projectSystem-gradle-sync-tests_test_lib"],
 )
 ### auto-generated section `test intellij.android.projectSystem.gradle.sync.tests` end

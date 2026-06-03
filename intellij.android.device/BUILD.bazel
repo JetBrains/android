@@ -1,74 +1,90 @@
-### auto-generated section `build intellij.android.device` start
-load("//build:compiler-options.bzl", "create_kotlinc_options")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("//build:compiler-options.bzl", "create_kotlinc_options")
+
+### auto-generated section `build intellij.android.device` start
 
 create_kotlinc_options(
-  name = "custom_device",
-  x_context_parameters = True,
-  x_sam_conversions = "class"
+    name = "custom_device",
+    x_context_parameters = True,
+    x_sam_conversions = "class",
 )
 
 jvm_library(
-  name = "device",
-  module_name = "intellij.android.device",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  kotlinc_opts = ":custom_device",
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:kotlin-stdlib",
-    "//libraries/guava",
-    "//libraries/kotlinx/coroutines/core",
-    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
-    "//android/adt-ui-compose",
-    "//android/android-common:common",
-    "//android/wizard",
-    "//android/wizard-model",
-    "//platform/core-api:core",
-    "//platform/editor-ui-api:editor-ui",
-    "//platform/platform-api:ide",
-    "//platform/ide-core",
-    "//platform/projectModel-api:projectModel",
-    "//platform/util",
-    "//platform/util:util-ui",
-    "//android/artwork",
-    "//android/artwork-compose",
-  ]
+    name = "device",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    kotlinc_opts = ":custom_device",
+    module_name = "intellij.android.device",
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:kotlin-stdlib",
+        "//libraries/guava",
+        "//libraries/kotlinx/coroutines/core",
+        "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
+        "//android/adt-ui-compose",
+        "//android/android-common:common",
+        "//android/wizard",
+        "//android/wizard-model",
+        "//platform/core-api:core",
+        "//platform/editor-ui-api:editor-ui",
+        "//platform/platform-api:ide",
+        "//platform/ide-core",
+        "//platform/projectModel-api:projectModel",
+        "//platform/util",
+        "//platform/util:util-ui",
+        "//android/artwork",
+        "//android/artwork-compose",
+    ],
 )
 
 jvm_library(
-  name = "device_test_lib",
-  testonly = True,
-  module_name = "intellij.android.device",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  kotlinc_opts = ":custom_device",
-  runtime_deps = [
-    ":device",
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "//libraries/guava:guava_test_lib",
-    "//libraries/kotlinx/coroutines/core:core_test_lib",
-    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable_test_lib",
-    "//android/adt-ui-compose:adt-ui-compose_test_lib",
-    "//android/android-common:common_test_lib",
-    "//android/wizard:wizard_test_lib",
-    "//android/wizard-model:wizard-model_test_lib",
-    "//platform/core-api:core_test_lib",
-    "//platform/editor-ui-api:editor-ui_test_lib",
-    "//platform/platform-api:ide_test_lib",
-    "//platform/ide-core:ide-core_test_lib",
-    "//platform/projectModel-api:projectModel_test_lib",
-    "//platform/util:util_test_lib",
-    "//platform/util:util-ui_test_lib",
-    "//android/artwork:artwork_test_lib",
-    "//android/artwork-compose:artwork-compose_test_lib",
-  ]
+    name = "device_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    kotlinc_opts = ":custom_device",
+    module_name = "intellij.android.device",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":device",
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "//libraries/guava:guava_test_lib",
+        "//libraries/kotlinx/coroutines/core:core_test_lib",
+        "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable_test_lib",
+        "//android/adt-ui-compose:adt-ui-compose_test_lib",
+        "//android/android-common:common_test_lib",
+        "//android/wizard:wizard_test_lib",
+        "//android/wizard-model:wizard-model_test_lib",
+        "//platform/core-api:core_test_lib",
+        "//platform/editor-ui-api:editor-ui_test_lib",
+        "//platform/platform-api:ide_test_lib",
+        "//platform/ide-core:ide-core_test_lib",
+        "//platform/projectModel-api:projectModel_test_lib",
+        "//platform/util:util_test_lib",
+        "//platform/util:util-ui_test_lib",
+        "//android/artwork:artwork_test_lib",
+        "//android/artwork-compose:artwork-compose_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.device` end
 
 ### auto-generated section `iml intellij.android.device` start
-exports_files([
-  "intellij.android.device.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.device.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.device` end

@@ -1,56 +1,78 @@
-### auto-generated section `build intellij.android.server-flags` start
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.server-flags` start
+
 jvm_library(
-  name = "server-flags",
-  module_name = "intellij.android.server-flags",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = glob(["resources/**/*"]),
-  resource_strip_prefix = "resources",
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:kotlin-stdlib",
-    "//libraries/protobuf",
-    "//platform/util",
-    "//platform/core-api:core",
-  ]
+    name = "server-flags",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.server-flags",
+    resource_strip_prefix = "resources",
+    resources = glob(
+        ["resources/**/*"],
+    ),
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:kotlin-stdlib",
+        "//libraries/protobuf",
+        "//platform/util",
+        "//platform/core-api:core",
+    ],
 )
 
 jvm_library(
-  name = "server-flags_test_lib",
-  testonly = True,
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
-  associates = [":server-flags"],
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "@lib//:truth",
-    "@lib//:android-server-flags-libserver-flag-test-proto",
-    "@lib//:kotlin-stdlib",
-    "//libraries/protobuf",
-    "//libraries/protobuf:protobuf_test_lib",
-    "@lib//:junit4",
-    "//platform/util",
-    "//platform/util:util_test_lib",
-    "//platform/core-api:core",
-    "//platform/core-api:core_test_lib",
-  ]
+    name = "server-flags_test_lib",
+    testonly = True,
+    srcs = glob(
+        [
+            "testSrc/**/*.kt",
+            "testSrc/**/*.java",
+            "testSrc/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    associates = [":server-flags"],
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "@lib//:truth",
+        "@lib//:android-server-flags-libserver-flag-test-proto",
+        "@lib//:kotlin-stdlib",
+        "//libraries/protobuf",
+        "//libraries/protobuf:protobuf_test_lib",
+        "@lib//:junit4",
+        "//platform/util",
+        "//platform/util:util_test_lib",
+        "//platform/core-api:core",
+        "//platform/core-api:core_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.server-flags` end
 
 ### auto-generated section `iml intellij.android.server-flags` start
-exports_files([
-  "intellij.android.server-flags.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.server-flags.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.server-flags` end
 
 ### auto-generated section `test intellij.android.server-flags` start
-load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
-  name = "server-flags_test",
-  runtime_deps = [":server-flags_test_lib"]
+    name = "server-flags_test",
+    runtime_deps = [":server-flags_test_lib"],
 )
 ### auto-generated section `test intellij.android.server-flags` end

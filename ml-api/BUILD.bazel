@@ -1,106 +1,142 @@
-### auto-generated section `build intellij.android.ml-api` start
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.ml-api` start
+
 jvm_library(
-  name = "ml-api",
-  module_name = "intellij.android.ml-api",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/main/kotlin/**/*.kt", "src/main/kotlin/**/*.java", "src/main/kotlin/**/*.form"], allow_empty = True),
-  resources = glob(["src/resources/**/*"]),
-  resource_strip_prefix = "src/resources",
-  deps = [
-    "@lib//:kotlin-stdlib",
-    "@lib//:studio-platform-provided",
-    "//platform/extensions",
-    "//platform/core-api:core",
-    "//platform/util",
-  ]
+    name = "ml-api",
+    srcs = glob(
+        [
+            "src/main/kotlin/**/*.kt",
+            "src/main/kotlin/**/*.java",
+            "src/main/kotlin/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.ml-api",
+    resource_strip_prefix = "src/resources",
+    resources = glob(
+        ["src/resources/**/*"],
+    ),
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:kotlin-stdlib",
+        "@lib//:studio-platform-provided",
+        "//platform/extensions",
+        "//platform/core-api:core",
+        "//platform/util",
+    ],
 )
 
 jvm_library(
-  name = "ml-api_test_lib",
-  testonly = True,
-  module_name = "intellij.android.ml-api",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = [
-    ":ml-api",
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "@lib//:junit4",
-    "//platform/extensions:extensions_test_lib",
-    "//platform/core-api:core_test_lib",
-    "//platform/util:util_test_lib",
-    "@lib//:truth",
-    "@lib//:kotlin-test",
-    "//android/adt-testutils",
-    "//android/adt-testutils:adt-testutils_test_lib",
-  ]
+    name = "ml-api_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.ml-api",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":ml-api",
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "@lib//:junit4",
+        "//platform/extensions:extensions_test_lib",
+        "//platform/core-api:core_test_lib",
+        "//platform/util:util_test_lib",
+        "@lib//:truth",
+        "@lib//:kotlin-test",
+        "//android/adt-testutils",
+        "//android/adt-testutils:adt-testutils_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.ml-api` end
 
 ### auto-generated section `iml intellij.android.ml-api` start
-exports_files([
-  "intellij.android.ml-api.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.ml-api.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.ml-api` end
 
 ### auto-generated section `build intellij.android.ml-api-tests` start
+
 jvm_library(
-  name = "ml-api-tests",
-  module_name = "intellij.android.ml-api-tests",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+    name = "ml-api-tests",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.ml-api-tests",
+    visibility = ["//visibility:public"],
 )
 
 jvm_library(
-  name = "ml-api-tests_test_lib",
-  testonly = True,
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/testSrc/kotlin/**/*.kt", "src/testSrc/kotlin/**/*.java", "src/testSrc/kotlin/**/*.form"], allow_empty = True),
-  associates = [
-    "//android/ml-api",
-    "//android/ml-api:ml-api_test_lib",
-  ],
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "//libraries/mockito",
-    "//libraries/mockito:mockito_test_lib",
-    "@lib//:mockito-kotlin",
-    "@lib//:truth",
-    "@lib//:kotlin-stdlib",
-    "@lib//:kotlin-test",
-    "@lib//:kotlinc-kotlin-compiler-common",
-    "@lib//:junit4",
-    "//platform/core-api:core",
-    "//platform/core-api:core_test_lib",
-    "//platform/testFramework",
-    "//platform/testFramework:testFramework_test_lib",
-    "//platform/indexing-api:indexing",
-    "//platform/indexing-api:indexing_test_lib",
-    "//platform/indexing-impl",
-    "//platform/indexing-impl:indexing-impl_test_lib",
-    "//java/java-frontback-psi-impl:frontback-psi-impl",
-    "//java/java-frontback-psi-impl:frontback-psi-impl_test_lib",
-    "//android/adt-testutils",
-    "//android/adt-testutils:adt-testutils_test_lib",
-  ],
-  runtime_deps = [":ml-api-tests"]
+    name = "ml-api-tests_test_lib",
+    testonly = True,
+    srcs = glob(
+        [
+            "src/testSrc/kotlin/**/*.kt",
+            "src/testSrc/kotlin/**/*.java",
+            "src/testSrc/kotlin/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    associates = [
+        "//android/ml-api",
+        "//android/ml-api:ml-api_test_lib",
+    ],
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":ml-api-tests",
+    ],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "//libraries/mockito",
+        "//libraries/mockito:mockito_test_lib",
+        "@lib//:mockito-kotlin",
+        "@lib//:truth",
+        "@lib//:kotlin-stdlib",
+        "@lib//:kotlin-test",
+        "@lib//:kotlinc-kotlin-compiler-common",
+        "@lib//:junit4",
+        "//platform/core-api:core",
+        "//platform/core-api:core_test_lib",
+        "//platform/testFramework",
+        "//platform/testFramework:testFramework_test_lib",
+        "//platform/indexing-api:indexing",
+        "//platform/indexing-api:indexing_test_lib",
+        "//platform/indexing-impl",
+        "//platform/indexing-impl:indexing-impl_test_lib",
+        "//java/java-frontback-psi-impl:frontback-psi-impl",
+        "//java/java-frontback-psi-impl:frontback-psi-impl_test_lib",
+        "//android/adt-testutils",
+        "//android/adt-testutils:adt-testutils_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.ml-api-tests` end
 
 ### auto-generated section `iml intellij.android.ml-api-tests` start
-exports_files([
-  "intellij.android.ml-api-tests.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.ml-api-tests.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.ml-api-tests` end
 
 ### auto-generated section `test intellij.android.ml-api-tests` start
-load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
-  name = "ml-api-tests_test",
-  runtime_deps = [":ml-api-tests_test_lib"]
+    name = "ml-api-tests_test",
+    runtime_deps = [":ml-api-tests_test_lib"],
 )
 ### auto-generated section `test intellij.android.ml-api-tests` end

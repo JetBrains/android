@@ -1,68 +1,91 @@
-### auto-generated section `build intellij.android.wizard.model` start
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.wizard.model` start
+
 jvm_library(
-  name = "wizard-model",
-  module_name = "intellij.android.wizard.model",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  deps = [
-    "@lib//:studio-platform-provided",
-    "//libraries/guava",
-    "@lib//:jetbrains-annotations",
-    "//android/observable",
-    "//platform/core-api:core",
-    "//platform/platform-api:ide",
-    "//platform/ide-core",
-    "//platform/util",
-    "//platform/util-rt",
-    "//platform/util/concurrency",
-  ]
+    name = "wizard-model",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.wizard.model",
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "//libraries/guava",
+        "@lib//:jetbrains-annotations",
+        "//android/observable",
+        "//platform/core-api:core",
+        "//platform/platform-api:ide",
+        "//platform/ide-core",
+        "//platform/util",
+        "//platform/util-rt",
+        "//platform/util/concurrency",
+    ],
 )
 
 jvm_library(
-  name = "wizard-model_test_lib",
-  testonly = True,
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
-  associates = [":wizard-model"],
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "//libraries/guava",
-    "//libraries/guava:guava_test_lib",
-    "@lib//:jetbrains-annotations",
-    "@lib//:junit4",
-    "//android/observable",
-    "//android/observable:observable_test_lib",
-    "@lib//:truth",
-    "//platform/core-api:core",
-    "//platform/core-api:core_test_lib",
-    "//platform/platform-api:ide",
-    "//platform/platform-api:ide_test_lib",
-    "//platform/ide-core",
-    "//platform/util",
-    "//platform/util:util_test_lib",
-    "//platform/util-rt",
-    "//platform/util-rt:util-rt_test_lib",
-    "//platform/util/concurrency",
-    "//platform/util/concurrency:concurrency_test_lib",
-  ],
-  runtime_deps = ["//platform/ide-core:ide-core_test_lib"]
+    name = "wizard-model_test_lib",
+    testonly = True,
+    srcs = glob(
+        [
+            "testSrc/**/*.kt",
+            "testSrc/**/*.java",
+            "testSrc/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    associates = [":wizard-model"],
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//platform/ide-core:ide-core_test_lib",
+    ],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "//libraries/guava",
+        "//libraries/guava:guava_test_lib",
+        "@lib//:jetbrains-annotations",
+        "@lib//:junit4",
+        "//android/observable",
+        "//android/observable:observable_test_lib",
+        "@lib//:truth",
+        "//platform/core-api:core",
+        "//platform/core-api:core_test_lib",
+        "//platform/platform-api:ide",
+        "//platform/platform-api:ide_test_lib",
+        "//platform/ide-core",
+        "//platform/util",
+        "//platform/util:util_test_lib",
+        "//platform/util-rt",
+        "//platform/util-rt:util-rt_test_lib",
+        "//platform/util/concurrency",
+        "//platform/util/concurrency:concurrency_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.wizard.model` end
 
 ### auto-generated section `iml intellij.android.wizard.model` start
-exports_files([
-  "intellij.android.wizard.model.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.wizard.model.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.wizard.model` end
 
 ### auto-generated section `test intellij.android.wizard.model` start
-load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
-  name = "wizard-model_test",
-  runtime_deps = [":wizard-model_test_lib"]
+    name = "wizard-model_test",
+    runtime_deps = [":wizard-model_test_lib"],
 )
 ### auto-generated section `test intellij.android.wizard.model` end

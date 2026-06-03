@@ -1,57 +1,73 @@
-### auto-generated section `build intellij.android.completion` start
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.completion` start
+
 jvm_library(
-  name = "completion",
-  module_name = "intellij.android.completion",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:kotlin-stdlib",
-    "//platform/code-style-api:codeStyle",
-    "//platform/core-api:core",
-    "//platform/editor-ui-api:editor-ui",
-    "//platform/platform-impl:ide-impl",
-    "//platform/extensions",
-    "//platform/util",
-    "//platform/analysis-api:analysis",
-    "//platform/platform-api:ide",
-    "//platform/ide-core",
-    "//platform/analysis-impl",
-    "//platform/lang-impl",
-    "//platform/core-ui",
-  ]
+    name = "completion",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.completion",
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:kotlin-stdlib",
+        "//platform/code-style-api:codeStyle",
+        "//platform/core-api:core",
+        "//platform/editor-ui-api:editor-ui",
+        "//platform/platform-impl:ide-impl",
+        "//platform/extensions",
+        "//platform/util",
+        "//platform/analysis-api:analysis",
+        "//platform/platform-api:ide",
+        "//platform/ide-core",
+        "//platform/analysis-impl",
+        "//platform/lang-impl",
+        "//platform/core-ui",
+    ],
 )
 
 jvm_library(
-  name = "completion_test_lib",
-  testonly = True,
-  module_name = "intellij.android.completion",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = [
-    ":completion",
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "//platform/code-style-api:codeStyle_test_lib",
-    "//platform/core-api:core_test_lib",
-    "//platform/editor-ui-api:editor-ui_test_lib",
-    "//platform/platform-impl:ide-impl_test_lib",
-    "//platform/extensions:extensions_test_lib",
-    "//platform/util:util_test_lib",
-    "//platform/analysis-api:analysis_test_lib",
-    "//platform/platform-api:ide_test_lib",
-    "//platform/ide-core:ide-core_test_lib",
-    "//platform/analysis-impl:analysis-impl_test_lib",
-    "//platform/lang-impl:lang-impl_test_lib",
-    "//platform/core-ui:core-ui_test_lib",
-  ]
+    name = "completion_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.completion",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":completion",
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "//platform/code-style-api:codeStyle_test_lib",
+        "//platform/core-api:core_test_lib",
+        "//platform/editor-ui-api:editor-ui_test_lib",
+        "//platform/platform-impl:ide-impl_test_lib",
+        "//platform/extensions:extensions_test_lib",
+        "//platform/util:util_test_lib",
+        "//platform/analysis-api:analysis_test_lib",
+        "//platform/platform-api:ide_test_lib",
+        "//platform/ide-core:ide-core_test_lib",
+        "//platform/analysis-impl:analysis-impl_test_lib",
+        "//platform/lang-impl:lang-impl_test_lib",
+        "//platform/core-ui:core-ui_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.completion` end
 
 ### auto-generated section `iml intellij.android.completion` start
-exports_files([
-  "intellij.android.completion.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.completion.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.completion` end

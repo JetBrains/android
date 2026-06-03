@@ -1,31 +1,44 @@
-### auto-generated section `build intellij.android.plugin.descriptor` start
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.plugin.descriptor` start
+
 jvm_library(
-  name = "descriptor",
-  module_name = "intellij.android.plugin.descriptor",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  resources = glob(["resources/**/*"]),
-  resource_strip_prefix = "resources"
+    name = "descriptor",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.plugin.descriptor",
+    resource_strip_prefix = "resources",
+    resources = glob(
+        ["resources/**/*"],
+    ),
+    visibility = ["//visibility:public"],
 )
 
 jvm_library(
-  name = "descriptor_test_lib",
-  testonly = True,
-  module_name = "intellij.android.plugin.descriptor",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = [
-    ":descriptor",
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-  ]
+    name = "descriptor_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.plugin.descriptor",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":descriptor",
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+    ],
 )
 ### auto-generated section `build intellij.android.plugin.descriptor` end
 
 ### auto-generated section `iml intellij.android.plugin.descriptor` start
-exports_files([
-  "intellij.android.plugin.descriptor.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.plugin.descriptor.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.plugin.descriptor` end

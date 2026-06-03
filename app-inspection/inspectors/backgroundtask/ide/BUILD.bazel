@@ -1,71 +1,89 @@
-### auto-generated section `build intellij.android.app-inspection.inspectors.backgroundtask.ide` start
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.android.app-inspection.inspectors.backgroundtask.ide` start
+
 jvm_library(
-  name = "ide",
-  module_name = "intellij.android.app-inspection.inspectors.backgroundtask.ide",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = glob(["resources/**/*"]),
-  resource_strip_prefix = "resources",
-  deps = [
-    "@lib//:studio-platform-provided",
-    "@lib//:kotlin-stdlib",
-    "//libraries/protobuf",
-    "//android/adt-ui-model",
-    "//android/app-inspection/inspector/api",
-    "//android/app-inspection/inspector/ide",
-    "//android/app-inspection/inspectors/backgroundtask/model",
-    "//android/app-inspection/inspectors/backgroundtask/view",
-    "//android/artwork",
-    "//android/codenavigation",
-    "//android/android-common:common",
-    "//android/inspectors-common/api",
-    "//android/inspectors-common/api-ide",
-    "//android/inspectors-common/ui",
-    "//android/native-symbolizer",
-    "//platform/core-api:core",
-    "//platform/extensions",
-    "//platform/platform-api:ide",
-    "//platform/util",
-    "//platform/util:util-ui",
-  ]
+    name = "ide",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.app-inspection.inspectors.backgroundtask.ide",
+    resource_strip_prefix = "resources",
+    resources = glob(
+        ["resources/**/*"],
+    ),
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:kotlin-stdlib",
+        "//libraries/protobuf",
+        "//android/adt-ui-model",
+        "//android/app-inspection/inspector/api",
+        "//android/app-inspection/inspector/ide",
+        "//android/app-inspection/inspectors/backgroundtask/model",
+        "//android/app-inspection/inspectors/backgroundtask/view",
+        "//android/artwork",
+        "//android/codenavigation",
+        "//android/android-common:common",
+        "//android/inspectors-common/api",
+        "//android/inspectors-common/api-ide",
+        "//android/inspectors-common/ui",
+        "//android/native-symbolizer",
+        "//platform/core-api:core",
+        "//platform/extensions",
+        "//platform/platform-api:ide",
+        "//platform/util",
+        "//platform/util:util-ui",
+    ],
 )
 
 jvm_library(
-  name = "ide_test_lib",
-  testonly = True,
-  module_name = "intellij.android.app-inspection.inspectors.backgroundtask.ide",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = [
-    ":ide",
-    "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
-    "//libraries/protobuf:protobuf_test_lib",
-    "//android/adt-ui-model:adt-ui-model_test_lib",
-    "//android/app-inspection/inspector/api:api_test_lib",
-    "//android/app-inspection/inspector/ide:ide_test_lib",
-    "//android/app-inspection/inspectors/backgroundtask/model:model_test_lib",
-    "//android/app-inspection/inspectors/backgroundtask/view:view_test_lib",
-    "//android/artwork:artwork_test_lib",
-    "//android/codenavigation:codenavigation_test_lib",
-    "//android/android-common:common_test_lib",
-    "//android/inspectors-common/api:api_test_lib",
-    "//android/inspectors-common/api-ide:api-ide_test_lib",
-    "//android/inspectors-common/ui:ui_test_lib",
-    "//android/native-symbolizer:native-symbolizer_test_lib",
-    "//platform/core-api:core_test_lib",
-    "//platform/extensions:extensions_test_lib",
-    "//platform/platform-api:ide_test_lib",
-    "//platform/util:util_test_lib",
-    "//platform/util:util-ui_test_lib",
-  ]
+    name = "ide_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.app-inspection.inspectors.backgroundtask.ide",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":ide",
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "//libraries/protobuf:protobuf_test_lib",
+        "//android/adt-ui-model:adt-ui-model_test_lib",
+        "//android/app-inspection/inspector/api:api_test_lib",
+        "//android/app-inspection/inspector/ide:ide_test_lib",
+        "//android/app-inspection/inspectors/backgroundtask/model:model_test_lib",
+        "//android/app-inspection/inspectors/backgroundtask/view:view_test_lib",
+        "//android/artwork:artwork_test_lib",
+        "//android/codenavigation:codenavigation_test_lib",
+        "//android/android-common:common_test_lib",
+        "//android/inspectors-common/api:api_test_lib",
+        "//android/inspectors-common/api-ide:api-ide_test_lib",
+        "//android/inspectors-common/ui:ui_test_lib",
+        "//android/native-symbolizer:native-symbolizer_test_lib",
+        "//platform/core-api:core_test_lib",
+        "//platform/extensions:extensions_test_lib",
+        "//platform/platform-api:ide_test_lib",
+        "//platform/util:util_test_lib",
+        "//platform/util:util-ui_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.app-inspection.inspectors.backgroundtask.ide` end
 
 ### auto-generated section `iml intellij.android.app-inspection.inspectors.backgroundtask.ide` start
-exports_files([
-  "intellij.android.app-inspection.inspectors.backgroundtask.ide.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.android.app-inspection.inspectors.backgroundtask.ide.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.android.app-inspection.inspectors.backgroundtask.ide` end
