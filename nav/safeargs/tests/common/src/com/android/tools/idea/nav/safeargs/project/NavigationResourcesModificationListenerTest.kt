@@ -15,13 +15,19 @@
  */
 package com.android.tools.idea.nav.safeargs.project
 
+import com.android.ide.common.util.PathString
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
 import com.android.tools.idea.nav.safeargs.extensions.replaceWithSaving
 import com.android.tools.idea.nav.safeargs.extensions.replaceWithoutSaving
 import com.android.tools.idea.nav.safeargs.module.ModuleNavigationResourcesModificationTracker
+import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
+import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
+import kotlin.test.assertNotNull
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runCurrent
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -189,6 +195,37 @@ class NavigationResourcesModificationListenerTest {
     safeArgsRule.waitForPendingUpdates()
     // picked up 1 vfs change
     verifyModuleChangeEventsFired(1)
+  }
+
+  @Test
+  fun `listener coalesces updates for the same module`() {
+    val testScope = TestScope()
+    val listener = NavigationResourcesModificationListener(project, testScope, testScope.testScheduler, testScope.testScheduler)
+
+    var resourcesChanged = 0
+    project.messageBus.connect().subscribe(NAVIGATION_RESOURCES_CHANGED, NavigationResourcesChangeListener { resourcesChanged++ })
+
+    val facet = assertNotNull(safeArgsRule.module.androidFacet)
+    listener.invokeFileChanged(PathString("fake1"), facet)
+    listener.invokeFileChanged(PathString("fake2"), facet)
+    listener.invokeFileChanged(PathString("fake3"), facet)
+
+    assertThat(resourcesChanged).isEqualTo(0)
+    testScope.runCurrent()
+    waitForResourceRepositoryUpdates(safeArgsRule.module)
+    testScope.runCurrent()
+    assertThat(resourcesChanged).isEqualTo(1)
+
+    // Another update should trigger a new dispatch now that the first has gone out.
+    listener.invokeFileChanged(PathString("fake1"), facet)
+    listener.invokeFileChanged(PathString("fake2"), facet)
+    listener.invokeFileChanged(PathString("fake3"), facet)
+
+    assertThat(resourcesChanged).isEqualTo(1)
+    testScope.runCurrent()
+    waitForResourceRepositoryUpdates(safeArgsRule.module)
+    testScope.runCurrent()
+    assertThat(resourcesChanged).isEqualTo(2)
   }
 
   private fun verifyModuleChangeEventsFired(count: Int) {

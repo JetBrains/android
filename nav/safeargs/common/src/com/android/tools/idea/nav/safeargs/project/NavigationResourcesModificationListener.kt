@@ -48,15 +48,20 @@ import com.intellij.openapi.vfs.VirtualFileEvent
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.util.messages.Topic
-import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
 import org.jetbrains.android.facet.AndroidFacet
@@ -70,18 +75,42 @@ import org.jetbrains.annotations.TestOnly
  * [NavigationResourcesModificationListener] registers itself to start actively listening for VFS changes and Document changes after the
  * project opening.
  */
-class NavigationResourcesModificationListener(project: Project, private val coroutineScope: CoroutineScope) :
-  PoliteAndroidVirtualFileListener(project), DocumentListener, FileDocumentManagerListener {
+class NavigationResourcesModificationListener(
+  project: Project,
+  private val coroutineScope: CoroutineScope,
+  private val ioDispatcher: CoroutineContext = Dispatchers.IO,
+  private val edtDispatcher: CoroutineContext = Dispatchers.EDT,
+) : PoliteAndroidVirtualFileListener(project), DocumentListener, FileDocumentManagerListener {
 
   private val psiDocumentManager = PsiDocumentManager.getInstance(project)
   private val fileDocumentManager = FileDocumentManager.getInstance()
 
-  private fun newSupervisorJob(): CompletableJob = SupervisorJob(parent = coroutineScope.coroutineContext[Job])
+  private val startedWorkQueue = AtomicBoolean()
+  private val workQueue = CoalescingWorkQueue<QueueItem>()
 
-  private val supervisorJob = AtomicReference(newSupervisorJob())
+  private fun ensureWorkQueueStarted() {
+    if (startedWorkQueue.getAndSet(true)) return
+
+    workQueue.start(coroutineScope)
+    coroutineScope.launch {
+      while (isActive) {
+        when (val item = workQueue.dequeue()) {
+          is QueueItem.DispatchResourcesChanged -> dispatchResourcesChangedForFacet(item.facet)
+          is QueueItem.WaitForCompletion -> item.completableJob.complete()
+        }
+      }
+    }
+  }
 
   /** Returns a [Job] that will complete when all scheduled updates have completed. */
-  @TestOnly fun completePendingUpdates(): Job = supervisorJob.getAndSet(newSupervisorJob()).also { it.complete() }
+  @TestOnly
+  fun completePendingUpdates(): Job {
+    ensureWorkQueueStarted()
+
+    val item = QueueItem.WaitForCompletion()
+    workQueue.enqueue(item)
+    return item.completableJob
+  }
 
   // If a directory was deleted, we won't get a separate event for each descendant, so we
   // must let directories pass through this fail-fast filter in case they contain relevant files.
@@ -113,28 +142,36 @@ class NavigationResourcesModificationListener(project: Project, private val coro
     return navResourceVfs.any { navVFile -> VfsUtilCore.isAncestor(file, navVFile, false) }
   }
 
+  @TestOnly
+  fun invokeFileChanged(path: PathString, facet: AndroidFacet) {
+    fileChanged(path, facet)
+  }
+
   override fun fileChanged(path: PathString, facet: AndroidFacet) {
-    coroutineScope.launch(supervisorJob.get()) {
-      val resourceManager = StudioResourceRepositoryManager.getInstance(facet)
-      val moduleResources = resourceManager.cachedModuleResources ?: withContext(Dispatchers.IO) { resourceManager.moduleResources }
+    ensureWorkQueueStarted()
+    workQueue.enqueue(QueueItem.DispatchResourcesChanged(facet))
+  }
 
-      withContext(Dispatchers.EDT) {
-        // Ensure that any resource rescan that may have been triggered by this file change event
-        // has already been scheduled, by yielding the EDT to allow other handlers of the event
-        // to finish processing.
-        yield()
+  private suspend fun dispatchResourcesChangedForFacet(facet: AndroidFacet) {
+    val resourceManager = StudioResourceRepositoryManager.getInstance(facet)
+    val moduleResources = resourceManager.cachedModuleResources ?: withContext(ioDispatcher) { resourceManager.moduleResources }
 
-        // Defer dispatching the change event until ResourceFolderRepository is completely done
-        // processing the change. (This happens sequentially on a single background thread, so
-        // because we made sure the rescan was already scheduled above, we won't resume this
-        // coroutine until after the rescan completes.)
-        suspendCancellableCoroutine { continuation ->
-          moduleResources.invokeAfterPendingUpdatesFinish(directExecutor()) { continuation.resume(Unit) }
-        }
+    withContext(edtDispatcher) {
+      // Ensure that any resource rescan that may have been triggered by this file change event
+      // has already been scheduled, by yielding the EDT to allow other handlers of the event
+      // to finish processing.
+      yield()
 
-        // Dispatch the resource-change event to listeners. (This will happen on the EDT.)
-        dispatchResourcesChanged(facet.module)
+      // Defer dispatching the change event until ResourceFolderRepository is completely done
+      // processing the change. (This happens sequentially on a single background thread, so
+      // because we made sure the rescan was already scheduled above, we won't resume this
+      // coroutine until after the rescan completes.)
+      suspendCancellableCoroutine { continuation ->
+        moduleResources.invokeAfterPendingUpdatesFinish(directExecutor()) { continuation.resume(Unit) }
       }
+
+      // Dispatch the resource-change event to listeners. (This will happen on the EDT.)
+      dispatchResourcesChanged(facet.module)
     }
   }
 
@@ -218,6 +255,63 @@ class NavigationResourcesModificationListener(project: Project, private val coro
     }
 
     @TestOnly fun completePendingUpdates(project: Project): Job = project.service<Subscriber>().completePendingUpdates()
+  }
+
+  /** Work items to be tracked with [CoalescingWorkQueue]. */
+  private sealed interface QueueItem {
+
+    /**
+     * An item representing that an [AndroidFacet]'s resources have changed, and a corresponding event should be dispatched.
+     *
+     * Any changes to the same facet will be coalesced while this item is in the queue.
+     */
+    data class DispatchResourcesChanged(val facet: AndroidFacet) : QueueItem
+
+    /** An item containing a [Job] that will be completed when this item reaches the front of the queue. */
+    data class WaitForCompletion(val completableJob: CompletableJob = Job()) : QueueItem
+  }
+
+  /**
+   * Queue of work items that only allows a single equivalent instance at a time.
+   *
+   * [enqueue] can be called any number of times with the same object (using [Object.equals]). If that object is currently in the work
+   * queue, it will not be added again.
+   *
+   * After an object has been removed with [dequeue], it can be added again with [enqueue].
+   */
+  private class CoalescingWorkQueue<T> {
+    /** Channel storing the incoming objects. There may be duplicates in this channel. */
+    private val incoming: Channel<T> = Channel(Channel.UNLIMITED)
+
+    /** Channel storing the actual items in the queue. Items have been de-duplicated before entering the queue. */
+    private val workChannel: Channel<T> = Channel(Channel.UNLIMITED)
+
+    /** Set tracking which items are currently in [workChannel]. */
+    private val itemsInWorkChannel = mutableSetOf<T>()
+
+    private val mutex = Mutex()
+
+    fun start(coroutineScope: CoroutineScope) {
+      coroutineScope.launch {
+        for (item in incoming) {
+          val added = mutex.withLock { itemsInWorkChannel.add(item) }
+          if (!added) continue
+
+          workChannel.send(item)
+        }
+      }
+    }
+
+    fun enqueue(item: T) {
+      incoming.trySend(item)
+    }
+
+    suspend fun dequeue(): T {
+      val next = workChannel.receive()
+      withContext(NonCancellable) { mutex.withLock { itemsInWorkChannel.remove(next) } }
+
+      return next
+    }
   }
 }
 
