@@ -102,6 +102,7 @@ import java.awt.PointerInfo
 import java.awt.Rectangle
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
+import java.awt.event.InputMethodEvent
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.ALT_DOWN_MASK
 import java.awt.event.KeyEvent.CHAR_UNDEFINED
@@ -129,6 +130,7 @@ import java.awt.event.KeyEvent.VK_RIGHT
 import java.awt.event.KeyEvent.VK_SHIFT
 import java.awt.event.KeyEvent.VK_TAB
 import java.awt.event.KeyEvent.VK_UP
+import java.text.AttributedString
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit.SECONDS
@@ -589,6 +591,31 @@ internal class DeviceViewTest {
     focusManager.focusOwner = view
     focusManager.processKeyEvent(view, KeyEvent(view, KEY_PRESSED, System.currentTimeMillis(), SHIFT_DOWN_MASK, VK_TAB, VK_TAB.toChar()))
     verify(focusManager, atLeast(1)).focusNextComponent(eq(view))
+  }
+
+  @Test
+  fun testInputMethodInput() {
+    createDeviceView(150, 250, retinaMode = true)
+    waitForFrame()
+
+    assertThat(view.inputMethodRequests).isNotNull()
+
+    fakeUi.keyboard.setFocus(view)
+
+    // Fully committed text
+    val textString1 = "committed text"
+    val attributedString1 = AttributedString(textString1)
+    val event1 =
+      InputMethodEvent(view, InputMethodEvent.INPUT_METHOD_TEXT_CHANGED, attributedString1.iterator, textString1.length, null, null)
+    view.dispatchEvent(event1)
+    assertThat(agent.getNextControlMessage(2.seconds)).isEqualTo(TextInputMessage(textString1))
+
+    // Partially committed text (e.g. during composition)
+    val textString2 = "committed partcomposed part"
+    val attributedString2 = AttributedString(textString2)
+    val event2 = InputMethodEvent(view, InputMethodEvent.INPUT_METHOD_TEXT_CHANGED, attributedString2.iterator, 14, null, null)
+    view.dispatchEvent(event2)
+    assertThat(agent.getNextControlMessage(2.seconds)).isEqualTo(TextInputMessage("committed part"))
   }
 
   @Test

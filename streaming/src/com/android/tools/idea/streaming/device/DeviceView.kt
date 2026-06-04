@@ -143,7 +143,7 @@ internal class DeviceView(
   private val initialDisplayOrientation: Int,
 ) : AbstractDisplayView(project, displayId, "StreamingContextMenuPhysicalDevice"), DeviceMirroringSettingsListener {
 
-  val isConnected: Boolean
+  override val isConnected: Boolean
     get() = connectionState == ConnectionState.CONNECTED
 
   override val deviceId: StreamingDeviceId = StreamingDeviceId.ofPhysicalDevice(deviceClient.deviceSerialNumber)
@@ -263,8 +263,11 @@ internal class DeviceView(
     addMouseWheelListener(mouseListener)
 
     addKeyListener(MyKeyListener())
-
     project.messageBus.connect(this).subscribe(DeviceMirroringSettingsListener.TOPIC, this)
+  }
+
+  override fun sendTypedText(text: String) {
+    deviceController?.sendControlMessage(TextInputMessage(text))
   }
 
   override fun setBounds(x: Int, y: Int, width: Int, height: Int) {

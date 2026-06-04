@@ -298,7 +298,7 @@ internal class EmulatorView(
     }
 
   @Volatile private var isDisposed = false
-  private val isConnected
+  override val isConnected
     get() = emulator.connectionState == ConnectionState.CONNECTED
 
   private val emulatorConfig
@@ -529,6 +529,10 @@ internal class EmulatorView(
     virtualSceneCameraOperating = false
     streamingSessionTracker.streamingEnded()
     stats?.let { Disposer.dispose(it) } // The stats object has to be disposed last.
+  }
+
+  override fun sendTypedText(text: String) {
+    emulator.sendTypedText(text)
   }
 
   fun addDisplayConfigurationListener(listener: DisplayConfigurationListener) {

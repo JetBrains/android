@@ -501,6 +501,10 @@ class DeviceAdapterTest {
     override val hardwareInput = HardwareInput()
     override val xrInputController: AbstractXrInputController? = null
 
+    override val isConnected = true
+
+    override fun sendTypedText(text: String) {}
+
     override fun hardwareInputStateChanged(event: AnActionEvent, enabled: Boolean) {}
 
     override fun canZoom() = false
