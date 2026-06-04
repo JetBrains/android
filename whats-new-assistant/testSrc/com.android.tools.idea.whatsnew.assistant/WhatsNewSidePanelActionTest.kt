@@ -15,9 +15,17 @@
  */
 package com.android.tools.idea.whatsnew.assistant
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.flags.overrideForTest
+import com.android.tools.idea.whatsnew.assistant.v2.ui.WhatsNewEditorAction
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.replaceService
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -29,6 +37,9 @@ import org.mockito.kotlin.whenever
 
 class WhatsNewSidePanelActionTest {
   @get:Rule val myRule = AndroidProjectRule.inMemory()
+  @get:Rule val edtRule = EdtRule()
+
+  private lateinit var myActionManager: ActionManager
 
   private lateinit var myPresentation: Presentation
   private lateinit var myEvent: AnActionEvent
@@ -47,8 +58,17 @@ class WhatsNewSidePanelActionTest {
     myBrowseToWhatsNewUrl = mock()
   }
 
+  @Before
+  fun mockEditorAction() {
+    // WhatsNewSidePanelAction redirects to WhatsNewEditorAction in V2
+    myActionManager = mock()
+    ApplicationManager.getApplication().replaceService(ActionManager::class.java, myActionManager, myRule.testRootDisposable)
+  }
+
   @Test
   fun updateProjectIsNull() {
+    StudioFlags.WHATS_NEW_V2.overrideForTest(false, myRule.testRootDisposable)
+
     val action = WhatsNewSidePanelAction(myBrowseToWhatsNewUrl)
 
     action.update(myEvent)
@@ -60,6 +80,8 @@ class WhatsNewSidePanelActionTest {
 
   @Test
   fun updateProjectIsNotNull() {
+    StudioFlags.WHATS_NEW_V2.overrideForTest(false, myRule.testRootDisposable)
+
     val action = WhatsNewSidePanelAction(myBrowseToWhatsNewUrl)
     whenever(myEvent.project).thenReturn(myRule.project)
 
@@ -68,5 +90,20 @@ class WhatsNewSidePanelActionTest {
 
     action.actionPerformed(myEvent)
     verify(myBrowseToWhatsNewUrl, never()).run()
+  }
+
+  @Test
+  fun updateV2redirect() {
+    StudioFlags.WHATS_NEW_V2.overrideForTest(true, myRule.testRootDisposable)
+
+    val action = WhatsNewSidePanelAction(myBrowseToWhatsNewUrl)
+    val editorAction: WhatsNewEditorAction = mock()
+    whenever(myActionManager.getAction("WhatsNewEditorAction")).thenReturn(editorAction)
+
+    action.update(myEvent)
+    assertTrue(myPresentation.isEnabled)
+
+    action.actionPerformed(myEvent)
+    verify(editorAction).actionPerformed(myEvent)
   }
 }
