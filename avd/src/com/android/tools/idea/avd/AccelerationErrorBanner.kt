@@ -29,17 +29,18 @@ import org.jetbrains.jewel.ui.component.Tooltip
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun AccelerationErrorBanner(accelerationError: AccelerationErrorCode, refresh: () -> Unit, modifier: Modifier = Modifier) {
-  ErrorBanner(
-    accelerationError.problem,
-    modifier,
-    rightContent = {
-      if (accelerationError.solution == AccelerationErrorSolution.SolutionCode.NONE) {
-        AccelerationErrorLink(accelerationError, refresh)
-      } else {
-        Tooltip(tooltip = { Text(accelerationError.solutionMessage) }) { AccelerationErrorLink(accelerationError, refresh) }
-      }
-    },
-  )
+  val rightContent: @Composable () -> Unit = {
+    if (accelerationError.solution == AccelerationErrorSolution.SolutionCode.NONE) {
+      AccelerationErrorLink(accelerationError, refresh)
+    } else {
+      Tooltip(tooltip = { Text(accelerationError.solutionMessage) }) { AccelerationErrorLink(accelerationError, refresh) }
+    }
+  }
+  if (accelerationError.isInfo) {
+    InfoBanner(accelerationError.problem, modifier, rightContent = rightContent)
+  } else {
+    ErrorBanner(accelerationError.problem, modifier, rightContent = rightContent)
+  }
 }
 
 @Composable

@@ -42,6 +42,11 @@ import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.icon.IconKey
 
 @Composable
+internal fun InfoBanner(text: String, modifier: Modifier = Modifier, rightContent: @Composable () -> Unit = {}) {
+  Banner(BannerUi.Info, StudioIconsCompose.Common.Info, "Info", text, modifier, rightContent)
+}
+
+@Composable
 internal fun WarningBanner(text: String, modifier: Modifier = Modifier) {
   Banner(BannerUi.Warning, StudioIconsCompose.Common.Warning, "Warning", text, modifier)
 }
@@ -95,6 +100,33 @@ internal fun ErrorPanel(modifier: Modifier = Modifier, error: String) {
 }
 
 private object BannerUi {
+  object Info : Colors() {
+    override val border: Color
+      @Composable
+      get() =
+        rememberColor(
+          key = "Banner.infoBorderColor",
+          darkFallbackKey = "ColorPalette.Blue3",
+          darkDefault = Color(IntUiPaletteDefaults.Dark.Blue3),
+          lightFallbackKey = "ColorPalette.Blue10",
+          lightDefault = Color(IntUiPaletteDefaults.Light.Blue10),
+        )
+
+    override val background: Color
+      @Composable
+      get() =
+        rememberColor(
+          key = "Banner.infoBackground",
+          darkFallbackKey = "ColorPalette.Blue1",
+          darkDefault = Color(IntUiPaletteDefaults.Dark.Blue1),
+          lightFallbackKey = "ColorPalette.Blue13",
+          lightDefault = Color(IntUiPaletteDefaults.Light.Blue13),
+        )
+
+    override val foreground: Color
+      @Composable get() = JewelTheme.globalColors.text.normal
+  }
+
   object Warning : Colors() {
     override val border: Color
       @Composable
