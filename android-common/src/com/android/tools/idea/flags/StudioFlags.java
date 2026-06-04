@@ -1960,6 +1960,14 @@ public final class StudioFlags {
       "status.firebase.google.com"
     );
 
+  public static final Flag<Boolean> DIRECT_ACCESS_CREATE_PROJECT_IN_SETUP_DIALOG =
+    new BooleanFlag(
+      FIREBASE_TEST_LAB,
+      "direct.access.create.project.setup.dialog",
+      "Device Streaming create project in setup dialog",
+      "Enable project creation in the device streaming setup dialog instead of during login."
+    );
+
   // endregion Firebase Test Lab
 
   // region App Insights
@@ -2971,7 +2979,7 @@ public final class StudioFlags {
     GOOGLE_PLAY_SDK_INDEX, "show.sdk.index.deprecation.issues", "Show library deprecation issues",
     "Show issues related to deprecated libraries from SDK Index in Lint and PSD"
   );
-  // endregion GOOGLE_PLAY_SDK_INDEXx
+  // endregion GOOGLE_PLAY_SDK_INDEX
 
   // region JOURNEYS_WITH_GEMINI
   private static final FlagGroup JOURNEYS_WITH_GEMINI = new FlagGroup(FLAGS, "journeys.with.gemini", "Journeys with Gemini");
