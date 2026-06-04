@@ -168,6 +168,7 @@ rundebug.installwithadblib=COMPLETE:2024
 rundebug.riscv.support=COMPLETE:2024
 rundebug.use.bitmap.popup.evaluator.v2=COMPLETE:2023
 settingssync.enable=COMPLETE:2025
+settingssync.onboarding.wizard.enable=PREVIEW
 studio.diagnostic.adb.host.logs.diagnostic.report.enable=PREVIEW
 studio.diagnostic.studio.tracing.enable=INTERNAL
 studiobot.agent.changes.drawer=COMPLETE:2025
