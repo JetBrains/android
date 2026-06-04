@@ -18,10 +18,7 @@ package com.android.tools.idea.publishing.play.wizard
 import com.android.tools.adtui.compose.ComposeWizard
 import com.android.tools.idea.publishing.AppPublishingContext
 import com.android.tools.idea.publishing.play.PlayPublishingUsageTracker
-import com.android.tools.idea.publishing.play.wizard.page.ChooseBundlePage
-import com.android.tools.idea.publishing.play.wizard.page.LoggedOutPage
-// TODO: android-merge; com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
-// import com.google.gct.login2.fstLoginFeature
+import com.android.tools.idea.publishing.play.wizard.page.AccountChooserPage
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
 
@@ -29,14 +26,7 @@ fun showPublishingWizard(project: Project, context: AppPublishingContext) {
   val wizard =
     ComposeWizard(project, "Publish for Testing Wizard") {
       getOrCreateState { context.toPublishingWizardState() }
-      // TODO: android-merge; the logged in branch needs com.google.gct.login2.fstLoginFeature from
-      // tools/vendor/google/login, which this repository does not carry, so the wizard always starts on the
-      // logged out page.
-      // if (!fstLoginFeature.isLoggedIn()) {
-      LoggedOutPage()
-      // } else {
-      //   ChooseBundlePage()
-      // }
+      AccountChooserPage()
     }
   invokeLater {
     wizard.show()

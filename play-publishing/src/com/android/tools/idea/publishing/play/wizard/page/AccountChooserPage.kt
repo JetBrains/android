@@ -29,6 +29,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.LinkAnnotation
@@ -44,35 +49,35 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.android.tools.adtui.compose.WizardAction
 import com.android.tools.adtui.compose.WizardPageScope
+import com.android.tools.idea.publishing.play.wizard.FormField
 import com.android.tools.idea.publishing.play.wizard.PlayPublishingWizardHeader
 // TODO: android-merge; com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
 // import com.google.gct.login2.GoogleLoginService
+// import com.google.gct.login2.PreferredUser
 // import com.google.gct.login2.fstLoginFeature
 import com.intellij.ide.BrowserUtil
 import icons.StudioIllustrationsCompose
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.InlineInformationBanner
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.separator
 import org.jetbrains.jewel.ui.icon.IconKey
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
 import org.jetbrains.jewel.ui.theme.editorTabStyle
 import org.jetbrains.jewel.ui.theme.linkStyle
 
 @Composable
-fun WizardPageScope.LoggedOutPage() {
-  nextActionName = "Next"
-  // TODO: android-merge; the sign-in step needs com.google.gct.login2.fstLoginFeature from
-  // tools/vendor/google/login, which this repository does not carry.
-  // nextAction = WizardAction {
-  //   if (!fstLoginFeature.isLoggedIn()) {
-  //     fstLoginFeature.logInBlocking(parentComponent = component)
-  //   }
-  //   if (fstLoginFeature.isLoggedIn()) {
-  //     pushPage { ChooseBundlePage() }
-  //   }
-  // }
+fun WizardPageScope.AccountChooserPage() {
+  // TODO: android-merge; the signed in accounts come from com.google.gct.login2.GoogleLoginService in
+  // tools/vendor/google/login, which this repository does not carry, so there is no account list to choose from.
+  // val loggedInUsers by GoogleLoginService.instance.allUsersFlow.collectAsState()
+  // val activeUser by GoogleLoginService.instance.activeUserFlow.collectAsState()
+  //
+  // var selectedUserEmail by remember(activeUser) { mutableStateOf(activeUser?.email) }
+  // var isSignInWithNewAccount by remember { mutableStateOf(false) }
 
   Column(modifier = Modifier.fillMaxSize()) {
     PlayPublishingWizardHeader()
@@ -124,7 +129,38 @@ fun WizardPageScope.LoggedOutPage() {
           },
           inlineContent = inlineContent,
         )
+
+        // TODO: android-merge; the account dropdown lists the users of
+        // com.google.gct.login2.GoogleLoginService in tools/vendor/google/login, which this repository does not
+        // carry, so the list is always empty here and the dropdown is never shown.
+        // if (loggedInUsers.isNotEmpty()) {
+        //   FormField(label = "Google account:") {
+        //     Dropdown(
+        //       menuContent = {
+        //         loggedInUsers.keys.forEach { email ->
+        //           selectableItem(
+        //             selected = (!isSignInWithNewAccount && email == selectedUserEmail),
+        //             onClick = {
+        //               selectedUserEmail = email
+        //               isSignInWithNewAccount = false
+        //             },
+        //           ) {
+        //             Text(email)
+        //           }
+        //         }
+        //         separator()
+        //         selectableItem(selected = isSignInWithNewAccount, onClick = { isSignInWithNewAccount = true }) {
+        //           Text("Sign in with a new account")
+        //         }
+        //       }
+        //     ) {
+        //       val dropdownText = if (isSignInWithNewAccount) "Sign in with a new account" else (selectedUserEmail ?: "Select account")
+        //       Text(dropdownText)
+        //     }
+        //   }
+        // }
       }
+
       Spacer(modifier = Modifier.fillMaxWidth().weight(0.25f))
     }
 
@@ -132,30 +168,49 @@ fun WizardPageScope.LoggedOutPage() {
 
     // TODO: android-merge; choosing the banner text from the login state needs
     // com.google.gct.login2.GoogleLoginService and fstLoginFeature from tools/vendor/google/login, which this
-    // repository does not carry, so the logged out text is shown unconditionally.
-    // val infoBannerText =
+    // repository does not carry. Without them there are no logged in users, so the first branch below is the
+    // one that always applies and its text is shown unconditionally.
+    // val infoBannerText: String? =
     //   when {
-    //     !GoogleLoginService.instance.isLoggedIn() -> {
-    //       "Using this wizard requires signing into Android Studio. You will be redirected to the web to sign in at the next step."
+    //     loggedInUsers.isEmpty() || isSignInWithNewAccount -> {
+    //       "Signing in to Android Studio is required. You will be redirected to the web to sign in as the next step."
     //     }
-    //     !fstLoginFeature.isLoggedIn() -> {
-    //       "Using this wizard requires new authorization for Android Studio. You will be redirected to the web to sign in at the next step."
+    //     selectedUserEmail?.let { !fstLoginFeature.isLoggedIn(it) } ?: false -> {
+    //       "Using this wizard requires new authorization for Android Studio. You will be redirected to the web to sign in as the next step."
     //     }
     //     else -> null
     //   }
-    // if (infoBannerText != null) {
+    //
+    // infoBannerText?.let {
     //   // Info Banner
     //   @OptIn(ExperimentalJewelApi::class)
-    //   InlineInformationBanner(text = infoBannerText, modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp))
+    //   InlineInformationBanner(text = it, modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp))
     // }
 
     // Info Banner
     @OptIn(ExperimentalJewelApi::class)
     InlineInformationBanner(
-      text = "Using this wizard requires signing into Android Studio. You will be redirected to the web to sign in at the next step.",
+      text = "Signing in to Android Studio is required. You will be redirected to the web to sign in as the next step.",
       modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp),
     )
   }
+
+  nextActionName = "Next"
+  // TODO: android-merge; the sign-in step needs com.google.gct.login2.fstLoginFeature, PreferredUser and
+  // GoogleLoginService from tools/vendor/google/login, which this repository does not carry.
+  // nextAction = WizardAction {
+  //   if (isSignInWithNewAccount) {
+  //     fstLoginFeature.logInBlocking(preferredUser = PreferredUser.None, parentComponent = component)
+  //   } else {
+  //     selectedUserEmail?.let { GoogleLoginService.instance.setActiveUser(it) }
+  //     if (!fstLoginFeature.isLoggedIn()) {
+  //       fstLoginFeature.logInBlocking(parentComponent = component)
+  //     }
+  //   }
+  //   if (fstLoginFeature.isLoggedIn()) {
+  //     pushPage { ChooseBundlePage() }
+  //   }
+  // }
 }
 
 @Composable
