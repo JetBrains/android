@@ -55,6 +55,9 @@ class InteractivePreviewNavigationController(
   private val _backPressCompletedFlow = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
   val backPressCompletedFlow = _backPressCompletedFlow.asSharedFlow()
 
+  var isBackGestureInProgress: Boolean = false
+    private set
+
   private val showNavigationControlsProvider = {
     StudioComposePanel { NavigationControlsContent(interactivePreviewNavigationController = this, fpsUpdater = fpsUpdater) }
   }
@@ -84,6 +87,8 @@ class InteractivePreviewNavigationController(
    */
   fun updateObjects(currentNavigationEventDispatcherOwnerObj: Any?, currentComposeViewAdapterObj: Any) {
     backPressDispatcherOwner = getBackPressDispatcherOwner(currentNavigationEventDispatcherOwnerObj, currentComposeViewAdapterObj)
+
+    isBackGestureInProgress = false
 
     // Reset the cached values
     canBackPressMethod = null
@@ -138,6 +143,7 @@ class InteractivePreviewNavigationController(
    * @param edge The [BackNavigationEdge] of the device on which the progress is performed.
    */
   fun backPressStart(edge: BackNavigationEdge = BackNavigationEdge.LEFT_EDGE) {
+    isBackGestureInProgress = true
     val resolvedMethod =
       onBackPressStartedMethod ?: backPressDispatcherOwner.findMethod(ON_BACK_PRESS_STARTED).also { onBackPressStartedMethod = it }
     resolvedMethod?.invoke(backPressDispatcherOwner, edge.name)
@@ -150,9 +156,14 @@ class InteractivePreviewNavigationController(
    * @param edge The [BackNavigationEdge] of the device on which the progress is performed.
    */
   fun backPressProgress(progress: Float, edge: BackNavigationEdge = BackNavigationEdge.LEFT_EDGE) {
-    val resolvedMethod =
-      onBackPressProgressMethod ?: backPressDispatcherOwner.findMethod(ON_BACK_PRESS_PROGRESS).also { onBackPressProgressMethod = it }
-    resolvedMethod?.invoke(backPressDispatcherOwner, progress.coerceIn(0.0f, 1.0f), edge.name)
+    // If we move progress back, to 0f we cancel the back press
+    if (progress <= 0.0f) {
+      backPressCancelled()
+    } else {
+      val resolvedMethod =
+        onBackPressProgressMethod ?: backPressDispatcherOwner.findMethod(ON_BACK_PRESS_PROGRESS).also { onBackPressProgressMethod = it }
+      resolvedMethod?.invoke(backPressDispatcherOwner, progress.coerceIn(0.0f, 1.0f), edge.name)
+    }
   }
 
   /**
@@ -161,15 +172,17 @@ class InteractivePreviewNavigationController(
    * It uses the interactive back press completion method identified during [updateObjects].
    */
   fun backPressCompleted() {
+    isBackGestureInProgress = false
     val resolvedMethod =
       onBackPressCompletedMethod ?: backPressDispatcherOwner.findMethod(ON_BACK_PRESS_COMPLETED).also { onBackPressCompletedMethod = it }
     resolvedMethod?.invoke(backPressDispatcherOwner)
-      ?: logger.debug("Can't perform back press,reflected method invocation should not be null")
+      ?: logger.debug("Can't perform back press, reflected method invocation should not be null")
     _backPressCompletedFlow.tryEmit(Unit)
   }
 
-  /** Cancels the back press, If a back press is in progress stops the interactive back gesture simulation. */
+  /** Cancels the back press. If a back press is in progress, stops the interactive back gesture simulation. */
   fun backPressCancelled() {
+    isBackGestureInProgress = false
     val resolvedMethod =
       onBackPressCancelledMethod ?: backPressDispatcherOwner.findMethod(ON_BACK_PRESS_CANCELLED).also { onBackPressCancelledMethod = it }
     resolvedMethod?.invoke(backPressDispatcherOwner)
