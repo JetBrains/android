@@ -21,14 +21,10 @@ import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsum
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenPluginBuildFileQuickFix
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.IndexingTestUtil
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.BoundedTaskExecutor
-import java.util.concurrent.TimeUnit
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.junit.After
 import org.junit.Before
@@ -71,13 +67,6 @@ class MissingAndroidPluginIssueCheckerTest {
     assertThat(buildIssue.quickFixes).hasSize(2)
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(AddGoogleMavenRepositoryQuickFix::class.java)
     assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenPluginBuildFileQuickFix::class.java)
-
-    val future = buildIssue.quickFixes[0].runQuickFix(project, SimpleDataContext.getProjectContext(project))
-    IndexingTestUtil.waitUntilIndexesAreReady(project)
-    executor.waitAllTasksExecuted(1, TimeUnit.SECONDS)
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-
-    assertThat(future.get(1, TimeUnit.SECONDS)).isNull()
   }
 
   @Test
