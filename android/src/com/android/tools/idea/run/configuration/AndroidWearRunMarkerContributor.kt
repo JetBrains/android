@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.configuration
 
+import com.android.tools.idea.project.wearConfigurationProducers
 import com.android.tools.idea.util.CommonAndroidUtil
 import com.intellij.execution.JavaExecutionUtil
 import com.intellij.execution.lineMarker.ExecutorAction
@@ -46,7 +47,7 @@ class AndroidWearRunMarkerContributor : RunLineMarkerContributor() {
     if (!CommonAndroidUtil.getInstance().isAndroidProject(e.project)) return null
 
     val psiClass = e.parent ?: return null
-    if (psiClass.isValidWatchFaceService() || psiClass.isValidTileService() || psiClass.isValidComplicationService()) {
+    if (wearConfigurationProducers.any { it.isValidService(psiClass) }) {
       val serviceName = e.getClassQualifiedName() ?: return null
       return Info(AllIcons.RunConfigurations.TestState.Run, ExecutorAction.getActions()) {
         AndroidBundle.message("android.run.configuration.run", JavaExecutionUtil.getPresentableClassName(serviceName)!!)

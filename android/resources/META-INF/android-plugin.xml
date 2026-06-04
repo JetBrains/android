@@ -340,6 +340,7 @@
                               order="first"/>
     <runConfigurationProducer implementation="com.android.tools.idea.run.configuration.AndroidWatchFaceRunConfigurationProducer"/>
     <runConfigurationProducer implementation="com.android.tools.idea.run.configuration.AndroidTileRunConfigurationProducer"/>
+    <runConfigurationProducer implementation="com.android.tools.idea.run.configuration.AndroidWearWidgetRunConfigurationProducer"/>
     <runConfigurationProducer implementation="com.android.tools.idea.run.configuration.AndroidComplicationRunConfigurationProducer"/>
     <runLineMarkerContributor language="JAVA" implementationClass="com.android.tools.idea.run.configuration.AndroidWearRunMarkerContributor"/>
     <runLineMarkerContributor language="kotlin" implementationClass="com.android.tools.idea.run.configuration.AndroidWearRunMarkerContributor"/>
@@ -349,6 +350,7 @@
     <configurationType implementation="com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType"/>
     <configurationType implementation="com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType"/>
     <configurationType implementation="com.android.tools.idea.run.configuration.AndroidTileConfigurationType"/>
+    <configurationType implementation="com.android.tools.idea.run.configuration.AndroidWearWidgetConfigurationType"/>
     <configurationType implementation="com.android.tools.idea.run.configuration.AndroidComplicationConfigurationType"/>
     <configurationType implementation="com.android.tools.idea.run.configuration.AndroidDeclarativeWatchFaceConfigurationType"/>
     <programRunner implementation="com.android.tools.idea.run.DefaultStudioProgramRunner" order="first" id="DefaultStudioProgramRunner"/>

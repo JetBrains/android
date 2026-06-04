@@ -123,6 +123,16 @@ fun CodeInsightTestFixture.addWearDependenciesToProject() { // Simulates that 'c
   )
 
   addFileToProject(
+    "src/androidx/glance/wear/GlanceWearWidgetService.kt",
+    """
+    package androidx.glance.wear
+
+    open class GlanceWearWidgetService
+    """
+      .trimIndent(),
+  )
+
+  addFileToProject(
     "src/androidx/wear/watchface/complications/datasource/ComplicationDataSourceService.kt",
     """
     package androidx.wear.watchface.complications.datasource

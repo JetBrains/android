@@ -163,6 +163,9 @@ public class RunStats {
       case DECLARATIVE_WATCH_FACE:
         runEventType = RunEvent.AppComponent.DECLARATIVE_WATCH_FACE;
         break;
+      case WEAR_WIDGET:
+        runEventType = RunEvent.AppComponent.WEAR_WIDGET;
+        break;
       default:
         runEventType = RunEvent.AppComponent.UNKNOWN;
     }

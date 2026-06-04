@@ -31,6 +31,7 @@ object WearBaseClasses {
   val WATCH_FACES = arrayOf(SdkConstants.CLASS_WATCHFACE_WSL, SdkConstants.CLASS_WATCHFACE_ANDROIDX)
   val COMPLICATIONS = arrayOf(SdkConstants.CLASS_COMPLICATION_SERVICE_ANDROIDX, SdkConstants.CLASS_COMPLICATION_SERVICE_WSL)
   val TILES = arrayOf(SdkConstants.CLASS_TILE_SERVICE)
+  val WIDGETS = arrayOf(SdkConstants.CLASS_GLANCE_WEAR_WIDGET_SERVICE)
 }
 
 internal val Executor.isDebug: Boolean
