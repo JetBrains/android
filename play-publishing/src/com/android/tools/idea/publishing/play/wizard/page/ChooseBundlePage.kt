@@ -53,6 +53,7 @@ import com.android.tools.adtui.compose.LocalProject
 import com.android.tools.adtui.compose.WizardAction
 import com.android.tools.adtui.compose.WizardPageScope
 import com.android.tools.idea.publishing.play.AppMetadata
+import com.android.tools.idea.publishing.play.client.PlayPublishingClient
 import com.android.tools.idea.publishing.play.client.PlayPublishingException
 import com.android.tools.idea.publishing.play.client.type.App
 import com.android.tools.idea.publishing.play.extractAppMetadata
@@ -106,7 +107,7 @@ fun WizardPageScope.ChooseBundlePage(extractMetadata: suspend (Path) -> AppMetad
       isAppsLoading = true
       value =
         try {
-          state.client.listApps()
+          PlayPublishingClient.getInstance().listApps()
         } catch (e: PlayPublishingException) {
           errorMessage = "Failed to check package availability: ${e.message}"
           null

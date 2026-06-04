@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.publishing.play.client.type
 
-import com.google.api.client.util.Key
+import kotlinx.serialization.Serializable
 
-data class App(@field:Key var name: String = "", @field:Key var packageName: String = "", @field:Key var displayName: String = "")
+@Serializable data class App(val name: String = "", val packageName: String = "", val displayName: String = "")
 
-data class ListAppResponse(@field:Key var apps: List<App> = emptyList(), @field:Key var nextPageToken: String = "")
+@Serializable data class ListAppResponse(val apps: List<App> = emptyList(), val nextPageToken: String = "")

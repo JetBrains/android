@@ -15,6 +15,6 @@
  */
 package com.android.tools.idea.publishing.play.client.type
 
-import com.google.api.client.util.Key
+import kotlinx.serialization.Serializable
 
-data class Bundle(@field:Key var versionCode: Int = 0, @field:Key var sha1: String = "", @field:Key var sha256: String = "")
+@Serializable data class Bundle(val versionCode: Int = 0, val sha1: String = "", val sha256: String = "")

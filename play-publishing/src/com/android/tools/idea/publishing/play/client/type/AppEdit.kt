@@ -15,6 +15,6 @@
  */
 package com.android.tools.idea.publishing.play.client.type
 
-import com.google.api.client.util.Key
+import kotlinx.serialization.Serializable
 
-data class AppEdit(@field:Key var id: String = "", @field:Key var expiryTimeSeconds: String = "")
+@Serializable data class AppEdit(val id: String = "", val expiryTimeSeconds: String = "")

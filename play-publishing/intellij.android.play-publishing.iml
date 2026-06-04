@@ -16,6 +16,7 @@
             <arrayArg name="pluginClasspaths">
               <args>
                 <arg>$KOTLIN_COMPOSE_COMPILER_PLUGIN$</arg>
+                <arg>$KOTLIN_BUNDLED$/lib/kotlinx-serialization-compiler-plugin.jar</arg>
               </args>
             </arrayArg>
           </arrayArguments>
@@ -36,6 +37,9 @@
     <orderEntry type="module" module-name="intellij.libraries.gson" />
     <orderEntry type="module" module-name="intellij.libraries.guava" />
     <orderEntry type="module" module-name="intellij.libraries.jetbrains.annotations" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinx.serialization.core" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinx.serialization.json" />
+    <orderEntry type="module" module-name="intellij.libraries.ktor.client" />
     <orderEntry type="module" module-name="intellij.platform.analysis" />
     <orderEntry type="module" module-name="intellij.platform.core" />
     <orderEntry type="module" module-name="intellij.platform.editor.ui" />
@@ -51,6 +55,7 @@
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="library" name="aapt-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.apkanalyzer" />
+    <orderEntry type="library" scope="TEST" name="fleet:io.ktor.client.mock" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.mockito" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.jdom" scope="TEST" />
   </component>

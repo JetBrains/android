@@ -30,29 +30,39 @@ import com.android.tools.idea.publishing.play.client.type.Release
 import com.android.tools.idea.publishing.play.client.type.Status
 import com.android.tools.idea.publishing.play.client.type.Track
 import com.android.tools.idea.publishing.play.client.type.parseGoogleApiError
-import com.google.api.client.http.EmptyContent
-import com.google.api.client.http.FileContent
-import com.google.api.client.http.GenericUrl
-import com.google.api.client.http.HttpResponse
-import com.google.api.client.http.HttpResponseException
-import com.google.api.client.http.HttpTransport
-import com.google.api.client.http.javanet.NetHttpTransport
-import com.google.api.client.http.json.JsonHttpContent
-import com.google.api.client.json.JsonObjectParser
-import com.google.api.client.json.gson.GsonFactory
 // TODO: android-merge; com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
-// import com.google.gct.login2.GoogleLoginService
 // import com.google.gct.login2.fstLoginFeature
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.util.text.nullize
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.content.LocalFileContent
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.ResponseException
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.plugins.timeout
+import io.ktor.client.request.get
+import io.ktor.client.request.header
+import io.ktor.client.request.parameter
+import io.ktor.client.request.post
+import io.ktor.client.request.put
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
+import io.ktor.serialization.kotlinx.json.json
 import java.io.File
 import java.io.IOException
-import kotlin.jvm.java
 import kotlin.time.Duration.Companion.minutes
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 
 private const val BASE_PATH = "androidpublisher/v3"
 
@@ -64,23 +74,14 @@ private val TRACK_RESTRICTED_REGEX = "Track .* of app .* is restricted".toRegex(
 
 class HttpPlayPublishingClient(
   private val endPoint: String = StudioFlags.PLAY_PUBLISHING_ENDPOINT.get(),
-  httpTransport: HttpTransport = NetHttpTransport(),
-) : PlayPublishingClient {
+  private val httpClient: HttpClient = defaultHttpClient(),
+) : PlayPublishingClient, Disposable {
 
   private val url: String
     get() = "https://$endPoint/$BASE_PATH"
 
   private val uploadUrl: String
     get() = "https://$endPoint/upload/$BASE_PATH"
-
-  private val requestFactory =
-    httpTransport.createRequestFactory {
-      // TODO: android-merge; the request is unauthenticated here. The credential comes from
-      // com.google.gct.login2.GoogleLoginService and fstLoginFeature in tools/vendor/google/login,
-      // which this repository does not carry.
-      // it.interceptor = GoogleLoginService.instance.getCredential(fstLoginFeature)
-      it.parser = JsonObjectParser(GsonFactory.getDefaultInstance())
-    }
 
   private val logger: Logger
     get() = thisLogger()
@@ -90,13 +91,13 @@ class HttpPlayPublishingClient(
     var nextPageToken: String? = null
 
     do {
-      val listAppUrl = GenericUrl("https://${StudioFlags.PLAY_VITALS_GRPC_SERVER.get()}/v1beta1/apps:search")
-      if (nextPageToken != null) {
-        listAppUrl.set("pageToken", nextPageToken)
-      }
-      val request = requestFactory.buildGetRequest(listAppUrl)
-      val response = request.execute()
-      val listAppResponse = response.parseAs<ListAppResponse>()
+      val response =
+        httpClient.get("https://${StudioFlags.PLAY_VITALS_GRPC_SERVER.get()}/v1beta1/apps:search") {
+          if (nextPageToken != null) {
+            parameter("pageToken", nextPageToken)
+          }
+        }
+      val listAppResponse = response.body<ListAppResponse>()
       allApps.addAll(listAppResponse.apps)
       nextPageToken = listAppResponse.nextPageToken.nullize()
     } while (nextPageToken != null)
@@ -104,55 +105,53 @@ class HttpPlayPublishingClient(
   }
 
   override suspend fun listDevelopers(): List<Developer> = runPublishingTask {
-    val listDeveloperUrl = GenericUrl("$url/developers")
-    val request = requestFactory.buildGetRequest(listDeveloperUrl)
-    val response = request.execute()
+    val response = httpClient.get("$url/developers")
 
     // Temporary workaround for b/513706971
-    if (response.statusCode == 204) {
+    if (response.status == HttpStatusCode.NoContent) {
       emptyList()
     } else {
-      response.parseAs<ListDevelopersResponse>().developers
+      response.body<ListDevelopersResponse>().developers
     }
   }
 
   override suspend fun createAppRecord(developerId: Long, appConfig: AppConfig): AppConfig = runPublishingTask {
-    val createAppRecordUrl = GenericUrl("$url/developers/$developerId/appsmanagement")
-    val content = JsonHttpContent(GsonFactory.getDefaultInstance(), appConfig)
-    val request =
-      requestFactory.buildPostRequest(createAppRecordUrl, content).apply {
-        val timeout = 1.minutes.inWholeMilliseconds.toInt()
-        connectTimeout = timeout
-        readTimeout = timeout
+    val response =
+      httpClient.post("$url/developers/$developerId/appsmanagement") {
+        contentType(ContentType.Application.Json)
+        setBody(appConfig)
+        timeout {
+          val timeoutMs = 1.minutes.inWholeMilliseconds
+          requestTimeoutMillis = timeoutMs
+          connectTimeoutMillis = timeoutMs
+        }
       }
-    request.execute().parseAs<AppConfig>()
+    response.body<AppConfig>()
   }
 
   override suspend fun insertEdit(packageName: String): AppEdit = runPublishingTask {
-    val insertUrl = GenericUrl("$url/applications/$packageName/edits")
-    val request = requestFactory.buildPostRequest(insertUrl, EmptyContent())
-    request.execute().parseAs<AppEdit>()
+    val response = httpClient.post("$url/applications/$packageName/edits")
+    response.body<AppEdit>()
   }
 
   override suspend fun listEditTracks(packageName: String, editId: String): List<Track> = runPublishingTask {
-    val listEditTrackUrl = GenericUrl("$url/applications/$packageName/edits/$editId/tracks")
-    val request = requestFactory.buildGetRequest(listEditTrackUrl)
-    request.execute().parseAs<ListTrackResponse>().tracks
+    val response = httpClient.get("$url/applications/$packageName/edits/$editId/tracks")
+    response.body<ListTrackResponse>().tracks
   }
 
   override suspend fun uploadBundle(packageName: String, editId: String, bundlePath: String): Bundle = runPublishingTask {
-    val uploadBundleUrl = GenericUrl("$uploadUrl/applications/$packageName/edits/$editId/bundles")
     val file = File(bundlePath)
-    val content = FileContent("application/octet-stream", file)
-    val request =
-      requestFactory.buildPostRequest(uploadBundleUrl, content).apply {
-        // Uploading apps may take longer
-        val timeout = 10.minutes.inWholeMilliseconds.toInt()
-        connectTimeout = timeout
-        readTimeout = timeout
+    val response =
+      httpClient.post("$uploadUrl/applications/$packageName/edits/$editId/bundles") {
+        contentType(ContentType.Application.OctetStream)
+        setBody(LocalFileContent(file, ContentType.Application.OctetStream))
+        timeout {
+          val timeoutMs = 10.minutes.inWholeMilliseconds
+          requestTimeoutMillis = timeoutMs
+          connectTimeoutMillis = timeoutMs
+        }
       }
-    val response = request.execute()
-    response.parseAs<Bundle>()
+    response.body<Bundle>()
   }
 
   override suspend fun createRelease(
@@ -163,7 +162,6 @@ class HttpPlayPublishingClient(
     versionCode: Int,
     trackId: String,
   ) = runPublishingTask {
-    val updateTrackUrl = GenericUrl("$url/applications/$packageName/edits/$editId/tracks/$trackId")
     val release =
       Release(
         name = releaseName,
@@ -172,28 +170,36 @@ class HttpPlayPublishingClient(
         status = Status.COMPLETED,
       )
     val track = Track(track = trackId, releases = listOf(release))
-    val content = JsonHttpContent(GsonFactory.getDefaultInstance(), track)
-    val request = requestFactory.buildPutRequest(updateTrackUrl, content)
-    request.execute().ignore()
+    val response =
+      httpClient.put("$url/applications/$packageName/edits/$editId/tracks/$trackId") {
+        contentType(ContentType.Application.Json)
+        setBody(track)
+      }
+    response.body<Unit>()
   }
 
   override suspend fun commitEdit(packageName: String, editId: String) = runPublishingTask {
-    val commitUrl = GenericUrl("$url/applications/$packageName/edits/$editId:commit")
-    val request = requestFactory.buildPostRequest(commitUrl, EmptyContent())
-    request.execute().ignore()
+    val response = httpClient.post("$url/applications/$packageName/edits/$editId:commit")
+    response.body<Unit>()
   }
-
-  private inline fun <reified T> HttpResponse.parseAs() = parseAs(T::class.java)
 
   private suspend fun <T> runPublishingTask(block: suspend CoroutineScope.() -> T) =
     withContext(Dispatchers.IO) {
       try {
         block()
-      } catch (e: HttpResponseException) {
-        val googleError = e.parseGoogleApiError()
+      } catch (e: ResponseException) {
+        val content =
+          try {
+            e.response.bodyAsText()
+          } catch (_: Exception) {
+            ""
+          }
+        val googleError = parseGoogleApiError(content)
         val message = googleError?.message ?: e.message ?: "Unknown error"
         logger.warn("Play Publishing API error: $message", e)
         throw PlayPublishingException(maybeCorrectExceptionMessage(message, googleError?.errors), e)
+      } catch (e: CancellationException) {
+        throw e
       } catch (e: IOException) {
         logger.warn("Play Publishing network error: ${e.message}", e)
         throw PlayPublishingException(e.message ?: "Unknown error", e)
@@ -212,4 +218,31 @@ class HttpPlayPublishingClient(
     }
 
   private fun List<GoogleApiInnerError>.containsRestrictedTrackDebugInfo() = any { it.debugInfo?.contains(TRACK_RESTRICTED_REGEX) == true }
+
+  override fun dispose() {
+    httpClient.close()
+  }
+}
+
+private fun defaultHttpClient(): HttpClient {
+  return HttpClient {
+    expectSuccess = true
+    install(ContentNegotiation) {
+      json(
+        Json {
+          ignoreUnknownKeys = true
+          coerceInputValues = true
+        }
+      )
+    }
+    install(HttpTimeout)
+    // TODO: android-merge; the request is unauthenticated here. The access token comes from
+    // com.google.gct.login2.fstLoginFeature in tools/vendor/google/login, which this repository does not carry.
+    // defaultRequest {
+    //   val accessToken = fstLoginFeature.oAuthToken()
+    //   if (accessToken != null) {
+    //     header("Authorization", "Bearer $accessToken")
+    //   }
+    // }
+  }
 }

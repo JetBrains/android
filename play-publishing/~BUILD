@@ -6,6 +6,7 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.play-publishing.iml"],
     kotlin_use_compose = True,
+    kotlin_use_serialization = True,
     resources = ["resources"],
     test_class = "com.android.tools.idea.publishing.play.PlayPublishingTestSuite",
     # do not sort: must match IML order
@@ -17,6 +18,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:truth",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
         "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//prebuilts/tools/common/m2:libktor-client-mock",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

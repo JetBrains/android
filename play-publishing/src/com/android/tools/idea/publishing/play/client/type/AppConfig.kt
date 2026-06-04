@@ -15,19 +15,21 @@
  */
 package com.android.tools.idea.publishing.play.client.type
 
-import com.google.api.client.util.Key
-import com.google.api.client.util.Value
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-open class AppConfig(
-  @field:Key var packageName: String = "",
-  @field:Key var title: String = "",
-  @field:Key var defaultLanguageCode: String = "",
-  @field:Key var appType: AppType = AppType.APP_TYPE_UNSPECIFIED,
-  @field:Key var paid: Boolean = false,
+@Serializable
+data class AppConfig(
+  val packageName: String = "",
+  val title: String = "",
+  val defaultLanguageCode: String = "",
+  val appType: AppType = AppType.APP_TYPE_UNSPECIFIED,
+  val paid: Boolean = false,
 )
 
+@Serializable
 enum class AppType {
-  @Value("APP_TYPE_UNSPECIFIED") APP_TYPE_UNSPECIFIED,
-  @Value("APP_TYPE_APP") APP_TYPE_APP,
-  @Value("APP_TYPE_GAME") APP_TYPE_GAME,
+  @SerialName("APP_TYPE_UNSPECIFIED") APP_TYPE_UNSPECIFIED,
+  @SerialName("APP_TYPE_APP") APP_TYPE_APP,
+  @SerialName("APP_TYPE_GAME") APP_TYPE_GAME,
 }

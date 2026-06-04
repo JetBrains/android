@@ -15,31 +15,33 @@
  */
 package com.android.tools.idea.publishing.play.client.type
 
-import com.google.api.client.util.Key
-import com.google.api.client.util.Value
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-data class ListTrackResponse(@field:Key var kind: String = "", @field:Key var tracks: List<Track> = emptyList())
+@Serializable data class ListTrackResponse(val kind: String = "", val tracks: List<Track> = emptyList())
 
-data class Track(@field:Key var track: String = "", @field:Key var releases: List<Release> = emptyList())
+@Serializable data class Track(val track: String = "", val releases: List<Release> = emptyList())
 
+@Serializable
 data class Release(
-  @field:Key var name: String = "",
-  @field:Key var versionCodes: List<String> = emptyList(),
-  @field:Key var releaseNotes: List<LocalizedText> = emptyList(),
-  @field:Key var status: Status = Status.STATUS_UNSPECIFIED,
-  @field:Key var userFraction: Double? = null,
-  @field:Key var countryTargeting: CountryTargeting? = null,
-  @field:Key var inAppUpdatePriority: Long = 0,
+  val name: String = "",
+  val versionCodes: List<String> = emptyList(),
+  val releaseNotes: List<LocalizedText> = emptyList(),
+  val status: Status = Status.STATUS_UNSPECIFIED,
+  val userFraction: Double? = null,
+  val countryTargeting: CountryTargeting? = null,
+  val inAppUpdatePriority: Long = 0,
 )
 
-data class LocalizedText(@field:Key var language: String = "", @field:Key var text: String = "")
+@Serializable data class LocalizedText(val language: String = "", val text: String = "")
 
+@Serializable
 enum class Status {
-  @Value("statusUnspecified") STATUS_UNSPECIFIED,
-  @Value("draft") DRAFT,
-  @Value("inProgress") IN_PROGRESS,
-  @Value("halted") HALTED,
-  @Value("completed") COMPLETED,
+  @SerialName("statusUnspecified") STATUS_UNSPECIFIED,
+  @SerialName("draft") DRAFT,
+  @SerialName("inProgress") IN_PROGRESS,
+  @SerialName("halted") HALTED,
+  @SerialName("completed") COMPLETED,
 }
 
-data class CountryTargeting(@field:Key var countries: List<String> = emptyList(), @field:Key var includeRestOfWorld: Boolean = false)
+@Serializable data class CountryTargeting(val countries: List<String> = emptyList(), val includeRestOfWorld: Boolean = false)

@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import com.android.tools.adtui.compose.LocalProject
 import com.android.tools.adtui.compose.WizardAction
 import com.android.tools.adtui.compose.WizardPageScope
+import com.android.tools.idea.publishing.play.client.PlayPublishingClient
 import com.android.tools.idea.publishing.play.client.PlayPublishingException
 import com.android.tools.idea.publishing.play.client.playStoreLanguageNames
 import com.android.tools.idea.publishing.play.client.type.AppConfig
@@ -85,7 +86,7 @@ fun WizardPageScope.CreateAppRecordPage() {
   val accounts by
     produceState(initialValue = emptyList()) {
       try {
-        value = state.client.listDevelopers()
+        value = PlayPublishingClient.getInstance().listDevelopers()
       } catch (e: PlayPublishingException) {
         errorMessage = "Failed to load developers: ${e.message}"
       } catch (e: Exception) {
@@ -207,7 +208,7 @@ fun WizardPageScope.CreateAppRecordPage() {
               indicator.isIndeterminate = true
               runBlocking {
                 try {
-                  state.client.createAppRecord(dev.developerId, appConfig)
+                  PlayPublishingClient.getInstance().createAppRecord(dev.developerId, appConfig)
                   state.isAppCreated = true
                   state.releaseName = DEFAULT_RELEASE_NAME
                   state.releaseNotes = DEFAULT_RELEASE_NOTES

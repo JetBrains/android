@@ -21,6 +21,7 @@ import com.android.tools.idea.publishing.play.client.type.AppEdit
 import com.android.tools.idea.publishing.play.client.type.Bundle
 import com.android.tools.idea.publishing.play.client.type.Developer
 import com.android.tools.idea.publishing.play.client.type.Track
+import com.intellij.openapi.components.service
 
 interface PlayPublishingClient {
 
@@ -46,6 +47,10 @@ interface PlayPublishingClient {
   )
 
   suspend fun commitEdit(packageName: String, editId: String)
+
+  companion object {
+    @JvmStatic fun getInstance(): PlayPublishingClient = service()
+  }
 }
 
 class PlayPublishingException(message: String, cause: Throwable? = null) : Exception(message, cause)

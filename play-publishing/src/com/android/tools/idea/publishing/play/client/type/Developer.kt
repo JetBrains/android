@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.publishing.play.client.type
 
-import com.google.api.client.util.Key
+import kotlinx.serialization.Serializable
 
-open class Developer(@field:Key var developerId: Long = 0, @field:Key var businessName: String = "")
+@Serializable data class Developer(val developerId: Long = 0, val businessName: String = "")
 
-open class ListDevelopersResponse(@field:Key var developers: List<Developer> = emptyList())
+@Serializable data class ListDevelopersResponse(val developers: List<Developer> = emptyList())

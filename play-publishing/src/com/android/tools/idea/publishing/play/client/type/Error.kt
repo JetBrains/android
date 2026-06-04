@@ -15,35 +15,38 @@
  */
 package com.android.tools.idea.publishing.play.client.type
 
-import com.google.api.client.http.HttpResponseException
-import com.google.api.client.util.Key
-import com.google.gson.Gson
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
 /**
  * Data classes to parse Google API error responses.
  *
  * See: https://cloud.google.com/apis/design/errors#http_mapping
  */
-data class GoogleApiErrorResponse(@field:Key var error: GoogleApiError = GoogleApiError())
+@Serializable data class GoogleApiErrorResponse(val error: GoogleApiError = GoogleApiError())
 
+@Serializable
 data class GoogleApiError(
-  @field:Key var code: Int = 0,
-  @field:Key var message: String = "",
-  @field:Key var errors: List<GoogleApiInnerError>? = null,
-  @field:Key var status: String? = null,
+  val code: Int = 0,
+  val message: String = "",
+  val errors: List<GoogleApiInnerError>? = null,
+  val status: String? = null,
 )
 
+@Serializable
 data class GoogleApiInnerError(
-  @field:Key var message: String? = null,
-  @field:Key var domain: String? = null,
-  @field:Key var reason: String? = null,
-  @field:Key var debugInfo: String? = null,
+  val message: String? = null,
+  val domain: String? = null,
+  val reason: String? = null,
+  val debugInfo: String? = null,
 )
 
-/** Helper to parse the error message from a [HttpResponseException]. */
-fun HttpResponseException.parseGoogleApiError(): GoogleApiError? {
+private val jsonParser = Json { ignoreUnknownKeys = true }
+
+/** Helper to parse the error message from a response content String. */
+fun parseGoogleApiError(content: String): GoogleApiError? {
   return try {
-    Gson().fromJson(content, GoogleApiErrorResponse::class.java)?.error
+    jsonParser.decodeFromString<GoogleApiErrorResponse>(content).error
   } catch (_: Exception) {
     null
   }

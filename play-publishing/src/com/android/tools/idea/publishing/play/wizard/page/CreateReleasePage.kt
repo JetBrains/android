@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import com.android.tools.adtui.compose.LocalProject
 import com.android.tools.adtui.compose.WizardAction
 import com.android.tools.adtui.compose.WizardPageScope
+import com.android.tools.idea.publishing.play.client.PlayPublishingClient
 import com.android.tools.idea.publishing.play.client.PlayPublishingException
 import com.android.tools.idea.publishing.play.client.type.AppEdit
 import com.android.tools.idea.publishing.play.client.type.Track
@@ -117,10 +118,10 @@ fun WizardPageScope.CreateReleasePage() {
   LaunchedEffect(Unit) {
     try {
       state.packageName?.let { packageName ->
-        val edit = state.client.insertEdit(packageName)
+        val edit = PlayPublishingClient.getInstance().insertEdit(packageName)
         appEdit = edit
         // We don't support releasing to production from Android Studio.
-        tracks = state.client.listEditTracks(packageName, edit.id).filter(::shouldFilterTrack)
+        tracks = PlayPublishingClient.getInstance().listEditTracks(packageName, edit.id).filter(::shouldFilterTrack)
         selectedTrack =
           if (tracks.isNotEmpty()) {
             if (tracks.any { it.track == INTERNAL_TEST_TRACK_NAME }) {
@@ -240,16 +241,17 @@ fun WizardPageScope.CreateReleasePage() {
                 indicator.isIndeterminate = true
                 runBlocking {
                   try {
-                    val responseArtifact = state.client.uploadBundle(packageName, editId, artifactPath)
-                    state.client.createRelease(
-                      packageName,
-                      editId,
-                      releaseNameState.text.toString(),
-                      extractedTags ?: emptyMap(),
-                      responseArtifact.versionCode,
-                      selectedTrackId,
-                    )
-                    state.client.commitEdit(packageName, editId)
+                    val responseArtifact = PlayPublishingClient.getInstance().uploadBundle(packageName, editId, artifactPath)
+                    PlayPublishingClient.getInstance()
+                      .createRelease(
+                        packageName,
+                        editId,
+                        releaseNameState.text.toString(),
+                        extractedTags ?: emptyMap(),
+                        responseArtifact.versionCode,
+                        selectedTrackId,
+                      )
+                    PlayPublishingClient.getInstance().commitEdit(packageName, editId)
                     showUploadSuccessfulNotification(
                       project,
                       releaseNameState.text.toString(),

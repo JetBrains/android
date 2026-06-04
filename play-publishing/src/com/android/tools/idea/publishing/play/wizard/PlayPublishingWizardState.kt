@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.publishing.play.wizard
 
-import com.android.tools.idea.publishing.play.client.HttpPlayPublishingClient
-import com.android.tools.idea.publishing.play.client.PlayPublishingClient
-
 data class PlayPublishingWizardState(
   var bundlePath: String? = null,
   var isRegistered: Boolean? = null,
@@ -28,5 +25,4 @@ data class PlayPublishingWizardState(
   var releaseNotes: String? = null,
   var defaultLanguage: String? = null,
   var isAppCreated: Boolean = false,
-  val client: PlayPublishingClient = HttpPlayPublishingClient(),
 )
