@@ -47,6 +47,7 @@ jvm_library(
         "//platform/extensions",
         "//platform/util",
         "//plugins/kotlin/code-insight/api",
+        "//plugins/kotlin/references",
     ],
 )
 
@@ -79,6 +80,7 @@ jvm_library(
         "//platform/extensions:extensions_test_lib",
         "//platform/util:util_test_lib",
         "//plugins/kotlin/code-insight/api:api_test_lib",
+        "//plugins/kotlin/references:references_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.kotlin.idea.k2` end

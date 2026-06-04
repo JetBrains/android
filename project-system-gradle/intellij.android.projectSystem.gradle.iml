@@ -182,5 +182,6 @@
     <orderEntry type="module" module-name="intellij.gradle.java.groovy" />
     <orderEntry type="module" module-name="intellij.android.observable" />
     <orderEntry type="module" module-name="intellij.platform.locking.impl" />
+    <orderEntry type="module" module-name="intellij.kotlin.references" />
   </component>
 </module>

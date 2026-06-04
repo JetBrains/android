@@ -190,6 +190,7 @@ jvm_library(
         "//plugins/gradle/java/groovy",
         "//android/observable",
         "//platform/locking-impl",
+        "//plugins/kotlin/references",
     ],
 )
 
@@ -360,6 +361,7 @@ jvm_library(
         "//plugins/gradle/java/groovy:groovy_test_lib",
         "//android/observable:observable_test_lib",
         "//platform/locking-impl:locking-impl_test_lib",
+        "//plugins/kotlin/references:references_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle` end
