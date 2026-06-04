@@ -29,6 +29,7 @@ import com.intellij.testFramework.assertInstanceOf
 import java.awt.event.KeyEvent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.Mockito
 
@@ -103,5 +104,58 @@ class LayoutlibInteractionHandlerTest {
     assertEquals(0, surface.zoomCounter)
     handler.zoom(ZoomType.ACTUAL, 10, 10)
     assertEquals(1, surface.zoomCounter)
+  }
+
+  @Test
+  fun testNoMousePressedInteractionWhenBackGestureInProgress() {
+    val sceneManager = Mockito.mock(SceneManager::class.java)
+    var interactionStartCalled = false
+
+    // Create a LayoutlibInteractionHandler with isBackGestureInProgress = true
+    // and a mock onInteractionStart callback to detect cancellation.
+    val handler =
+      LayoutlibInteractionHandler(
+        TestInteractableSurface(TestSceneView(100, 100, sceneManager)),
+        TestPannable(),
+        isBackGestureInProgress = { true },
+        onInteractionStart = { interactionStartCalled = true },
+      )
+
+    // Trigger mouse-press interaction.
+    val interaction = handler.createInteractionOnPressed(10, 10, 0)
+
+    // Verify that the interaction is blocked (returns null) and the cancellation callback was invoked.
+    assertNull(interaction)
+    assertTrue(interactionStartCalled)
+
+    Disposer.dispose(sceneManager)
+  }
+
+  @Test
+  fun testNoKeyPressedInteractionWhenBackGestureInProgress() {
+    val sceneManager = Mockito.mock(SceneManager::class.java)
+    var interactionStartCalled = false
+
+    // Create a LayoutlibInteractionHandler with isBackGestureInProgress = true
+    // and a mock onInteractionStart callback to detect cancellation.
+    val handler =
+      LayoutlibInteractionHandler(
+        TestInteractableSurface(TestSceneView(100, 100, sceneManager)),
+        TestPannable(),
+        isBackGestureInProgress = { true },
+        onInteractionStart = { interactionStartCalled = true },
+      )
+
+    // Construct a simulated physical keypress event.
+    val aKeyEvent = KeyEventBuilder(KeyEvent.VK_A, 'a').build()
+
+    // Trigger key-press interaction.
+    val interaction = handler.keyPressedWithoutInteraction(aKeyEvent)
+
+    // Verify that the interaction is blocked (returns null) and the cancellation callback was invoked.
+    assertNull(interaction)
+    assertTrue(interactionStartCalled)
+
+    Disposer.dispose(sceneManager)
   }
 }

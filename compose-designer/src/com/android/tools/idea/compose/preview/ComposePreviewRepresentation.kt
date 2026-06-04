@@ -776,13 +776,15 @@ class ComposePreviewRepresentation(psiFile: PsiFile, composePreviewViewProvider:
   private val fpsLimitFlow = essentialsModeFlow(project, this).fpsLimitFlow(this, COMPOSE_INTERACTIVE_FPS_LIMIT.get())
 
   @VisibleForTesting
-  val interactiveManager =
+  val interactiveManager: InteractivePreviewManager =
     InteractivePreviewManager(
-        composeWorkBench.mainSurface,
-        fpsLimitFlow.value,
-        { surface.sceneManagers },
-        usageTrackerProvider,
-        delegateInteractionHandler,
+        surface = composeWorkBench.mainSurface,
+        initialFpsLimit = fpsLimitFlow.value,
+        interactiveScenesProvider = { surface.sceneManagers },
+        usageTrackerProvider = usageTrackerProvider,
+        delegateInteractionHandler = delegateInteractionHandler,
+        isBackGestureInProgress = { interactivePreviewNavigationController.isBackGestureInProgress },
+        onInteractionStart = { interactivePreviewNavigationController.backPressCancelled() },
       )
       .also { Disposer.register(this@ComposePreviewRepresentation, it) }
 

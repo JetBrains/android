@@ -25,8 +25,17 @@ import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
 
 /** [InteractionHandler] used during interactive mode in the layout/compose previews. */
-class LayoutlibInteractionHandler(private val surface: InteractableScenesSurface, private val pannable: Pannable) : InteractionHandler {
+class LayoutlibInteractionHandler(
+  private val surface: InteractableScenesSurface,
+  private val pannable: Pannable,
+  private val isBackGestureInProgress: () -> Boolean = { false },
+  private val onInteractionStart: () -> Unit = {},
+) : InteractionHandler {
   override fun createInteractionOnPressed(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? {
+    if (isBackGestureInProgress()) {
+      onInteractionStart()
+      return null
+    }
     val view = surface.getSceneViewAtOrPrimary(mouseX, mouseY) ?: return null
     return LayoutlibInteraction(view)
   }
@@ -58,6 +67,10 @@ class LayoutlibInteractionHandler(private val surface: InteractableScenesSurface
   override fun getCursorWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int): Cursor? = surface.scene?.mouseCursor
 
   override fun keyPressedWithoutInteraction(keyEvent: KeyEvent): Interaction? {
+    if (isBackGestureInProgress()) {
+      onInteractionStart()
+      return null
+    }
     return if (keyEvent.keyCode == DesignSurfaceShortcut.PAN.keyCode) {
       PanInteraction(pannable)
     } else {

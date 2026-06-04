@@ -35,6 +35,8 @@ class InteractivePreviewManager(
   private val interactiveScenesProvider: () -> Collection<InteractiveSceneManager>,
   private val usageTrackerProvider: () -> InteractivePreviewUsageTracker,
   private val delegateInteractionHandler: DelegateInteractionHandler,
+  isBackGestureInProgress: () -> Boolean = { false },
+  onInteractionStart: () -> Unit = {},
 ) : Disposable {
 
   val fpsCounter = FpsCalculator { System.nanoTime() }
@@ -43,7 +45,8 @@ class InteractivePreviewManager(
   public val fpsUpdater = _fpsUpdater.asSharedFlow()
 
   private val originalInteractionHandler = delegateInteractionHandler.delegate
-  private val interactiveInteractionHandler = LayoutlibInteractionHandler(surface, surface.pannable)
+  private val interactiveInteractionHandler =
+    LayoutlibInteractionHandler(surface, surface.pannable, isBackGestureInProgress, onInteractionStart)
 
   var fpsLimit = initialFpsLimit
     set(value) {
