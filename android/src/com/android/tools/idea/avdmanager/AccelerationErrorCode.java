@@ -110,6 +110,10 @@ public enum AccelerationErrorCode {
     return mySolutionMessage;
   }
 
+  public boolean isInfo() {
+    return this == WHPX_RECOMMENDED;
+  }
+
   public static AccelerationErrorCode fromExitCode(int code) {
     return switch (code) {
       case   0 -> ALREADY_INSTALLED;
