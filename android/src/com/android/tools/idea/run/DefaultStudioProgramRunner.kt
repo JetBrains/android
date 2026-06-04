@@ -23,6 +23,7 @@ import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.run.configuration.AndroidComplicationConfigurationType
 import com.android.tools.idea.run.configuration.AndroidTileConfigurationType
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType
+import com.android.tools.idea.run.configuration.AndroidWearWidgetConfigurationType
 import com.android.tools.idea.run.util.SwapInfo
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType
 import com.google.common.annotations.VisibleForTesting
@@ -85,6 +86,7 @@ class DefaultStudioProgramRunner : AndroidConfigurationProgramRunner {
       AndroidComplicationConfigurationType().id,
       AndroidWatchFaceConfigurationType().id,
       AndroidTileConfigurationType().id,
+      AndroidWearWidgetConfigurationType().id,
       composePreviewRunConfigurationId,
     )
 

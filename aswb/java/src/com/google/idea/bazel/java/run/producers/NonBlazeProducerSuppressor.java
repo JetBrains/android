@@ -63,6 +63,7 @@ public class NonBlazeProducerSuppressor implements StartupActivity {
           "com.android.tools.idea.run.configuration.AndroidComplicationRunConfigurationProducer",
           "com.android.tools.idea.run.configuration.AndroidTileRunConfigurationProducer",
           "com.android.tools.idea.run.configuration.AndroidWatchFaceRunConfigurationProducer",
+          "com.android.tools.idea.run.configuration.AndroidWearWidgetRunConfigurationProducer",
           "com.android.tools.idea.testartifacts.instrumented.AndroidTestConfigurationProducer",
           "com.android.tools.idea.testartifacts.junit.TestClassAndroidConfigurationProducer",
           "com.android.tools.idea.testartifacts.junit.TestDirectoryAndroidConfigurationProducer",
