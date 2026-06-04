@@ -107,6 +107,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
@@ -152,8 +153,8 @@ class StudioLocalEmulatorProvisionerPlugin(
       .stateIn(scope, SharingStarted.Eagerly, emptyList())
 
   private val notificationBanners: StateFlow<List<EditorNotificationPanel>> =
-    combine(devices, accelerationError) { deviceList, accelError ->
-        if (deviceList.isEmpty() || accelError == AccelerationErrorCode.ALREADY_INSTALLED) emptyList()
+    combine(devices, accelerationError, dismissedErrors) { deviceList, accelError, dismissed ->
+        if (deviceList.isEmpty() || accelError == AccelerationErrorCode.ALREADY_INSTALLED || dismissed.contains(accelError)) emptyList()
         else listOf(EmulatorCheckResultBanner(accelError))
       }
       .stateIn(scope, SharingStarted.Eagerly, emptyList())
@@ -189,7 +190,17 @@ class StudioLocalEmulatorProvisionerPlugin(
       if (accelError == AccelerationErrorCode.WHPX_RECOMMENDED) {
         logHypervisorMigrationEvent(EmulatorWindowsHypervisorMigrationEvent.Action.BANNER_SHOW)
       }
+      if (accelError.isInfo()) {
+        setCloseAction {
+          isVisible = false
+          dismissedErrors.update { it + accelError }
+        }
+      }
     }
+  }
+
+  companion object {
+    private val dismissedErrors = MutableStateFlow<Set<AccelerationErrorCode>>(emptySet())
   }
 }
 
