@@ -64,7 +64,7 @@ fun updateKeyValueFile(file: Path, updates: Map<String, String?>) {
   } catch (e: IOException) {
     try {
       Files.deleteIfExists(tempFile)
-    } catch (ignore: IOException) {}
+    } catch (_: IOException) {}
     logError("Error writing $file", e)
   }
 }

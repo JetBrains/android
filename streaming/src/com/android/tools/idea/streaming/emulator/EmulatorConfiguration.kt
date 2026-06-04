@@ -33,7 +33,8 @@ import com.android.sdklib.SystemImageTags.WEAR_TAG
 import com.android.sdklib.SystemImageTags.XR_HEADSET_TAG
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.internal.avd.ConfigKey
-import com.android.sdklib.internal.avd.HardwareProperties
+import com.android.sdklib.internal.avd.HardwareProperties.HW_DIMMING_LEVELS
+import com.android.sdklib.internal.avd.HardwareProperties.HW_LED_INDICATORS
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.streaming.core.FOLDING_STATE_ICONS
 import com.android.utils.asSeparatedListContains
@@ -42,9 +43,9 @@ import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.text.StringUtil.parseInt
 import java.awt.Dimension
+import java.io.IOException
 import java.nio.file.Path
 import javax.swing.Icon
-import kotlinx.io.IOException
 
 /** Represents configuration of a running Emulator. */
 class EmulatorConfiguration
@@ -66,6 +67,7 @@ private constructor(
   val postures: List<PostureDescriptor> = emptyList(),
   val touchpadSize: Dimension? = null,
   val dimmingLevels: FloatArray = floatArrayOf(),
+  val ledIndicators: List<LedIndicator> = emptyList(),
 ) {
 
   val displayWidth: Int
@@ -183,7 +185,8 @@ private constructor(
       }
 
       val systemImage = configIni["image.sysdir.1"] ?: throw RuntimeException("System image is not defined")
-      val sourcePropertiesFile = androidSdkRoot.resolve(systemImage).resolve("source.properties")
+      val systemImageDir = androidSdkRoot.resolve(systemImage)
+      val sourcePropertiesFile = systemImageDir.resolve("source.properties")
       val versionKeys =
         setOf("AndroidVersion.ApiLevel", "AndroidVersion.CodeName", "AndroidVersion.ExtensionLevel", "AndroidVersion.IsBaseSdk")
       val sourceProperties = readKeyValueFile(sourcePropertiesFile, versionKeys)
@@ -229,21 +232,34 @@ private constructor(
       val touchpadHeight = parseInt(configIni["hw.touchpad0.height"], 0)
       val touchpadSize = if (touchpadWidth > 0 && touchpadHeight > 0) Dimension(touchpadWidth, touchpadHeight) else null
 
+      var systemImageFeatures: Map<String, String>? = null
       val dimmingLevels =
-        when (val dimmingLevelsValue = configIni[HardwareProperties.HW_DIMMING_LEVELS]) {
+        when (val dimmingLevelsValue = configIni[HW_DIMMING_LEVELS]) {
           null -> floatArrayOf()
           else -> {
-            // Check if XrDimming is enabled on the system image before returning the dimming levels
-            val advancedFeaturesFile = androidSdkRoot.resolve(systemImage).resolve("advancedFeatures.ini")
+            val features = systemImageFeatures ?: readSystemImageFeatures(systemImageDir).also { systemImageFeatures = it }
             try {
-              val xrDimming = readKeyValueFile(advancedFeaturesFile, setOf("XrDimming"))["XrDimming"]
-              if (xrDimming == "on") {
-                dimmingLevelsValue.split(',').map(String::toFloat).toFloatArray()
-              } else floatArrayOf()
-            } catch (_: IOException) {
-              floatArrayOf()
+              val xrDimming = features["XrDimming"]
+              if (xrDimming == "on") dimmingLevelsValue.split(',').map(String::toFloat).toFloatArray() else floatArrayOf()
             } catch (_: NumberFormatException) {
-              throw RuntimeException("Unrecognized value of the hw.dimmingLevels property, \"$dimmingLevelsValue\", in $configIniFile")
+              throw RuntimeException("Unrecognized value of the $HW_DIMMING_LEVELS property, \"$dimmingLevelsValue\", in $configIniFile")
+            }
+          }
+        }
+      val ledIndicators =
+        when (val ledIndicatorsValue = configIni[HW_LED_INDICATORS]) {
+          null -> emptyList()
+          else -> {
+            val features = systemImageFeatures ?: readSystemImageFeatures(systemImageDir).also { systemImageFeatures = it }
+            try {
+              val ledIndicatorsFeature = features["LedIndicators"]
+              if (ledIndicatorsFeature == "on") {
+                ledIndicatorsValue.split(',').map { LedIndicator(it) }
+              } else {
+                emptyList()
+              }
+            } catch (e: Exception) {
+              throw RuntimeException("Unrecognized value of the $HW_LED_INDICATORS property, \"$ledIndicatorsValue\", in $configIniFile", e)
             }
           }
         }
@@ -266,6 +282,7 @@ private constructor(
         postures = postures,
         touchpadSize = touchpadSize,
         dimmingLevels = dimmingLevels,
+        ledIndicators = ledIndicators,
       )
     }
 
@@ -321,6 +338,15 @@ private constructor(
       }
       return Pair(values[0], values[1])
     }
+
+    private fun readSystemImageFeatures(systemImageDir: Path): Map<String, String> {
+      val advancedFeaturesFile = systemImageDir.resolve("advancedFeatures.ini")
+      return try {
+        readKeyValueFile(advancedFeaturesFile)
+      } catch (_: IOException) {
+        emptyMap()
+      }
+    }
   }
 
   data class DisplayMode(val displayModeId: DisplayModeValue, val displaySize: Dimension, val hasPostures: Boolean) {
@@ -357,6 +383,19 @@ private constructor(
     enum class ValueType {
       HINGE_ANGLE,
       ROLL_PERCENTAGE,
+    }
+  }
+
+  data class LedIndicator(val id: Int, val facing: Facing) {
+
+    /** Parses a string like "1:OUTSIDE". */
+    constructor(
+      s: String
+    ) : this(id = s.substringBefore(':').trim().toInt(), facing = Facing.valueOf(s.substringAfter(':').trim().uppercase()))
+
+    enum class Facing {
+      INSIDE,
+      OUTSIDE,
     }
   }
 }

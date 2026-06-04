@@ -768,7 +768,7 @@ class StreamingToolWindowManagerTest {
     toolWindow.show()
 
     val avdRoot = emulatorRule.avdRoot
-    val glasses = emulatorRule.newEmulator(FakeEmulator.createAiGlassesAvd(avdRoot))
+    val glasses = emulatorRule.newEmulator(FakeEmulator.createDisplayGlassesAvd(avdRoot))
     val phone = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(avdRoot))
     glasses.pairedDevice = phone
     createMockDeviceProvisioner(glasses.deviceHandle, phone.deviceHandle)
@@ -913,7 +913,7 @@ class StreamingToolWindowManagerTest {
     assertThat(toolWindow.isVisible).isFalse()
 
     val tempFolder = emulatorRule.avdRoot
-    val emulator1 = emulatorRule.newEmulator(FakeEmulator.createAiGlassesAvd(tempFolder))
+    val emulator1 = emulatorRule.newEmulator(FakeEmulator.createDisplayGlassesAvd(tempFolder))
     val emulator2 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
 
     toolWindow.show()
@@ -948,7 +948,7 @@ class StreamingToolWindowManagerTest {
     assertThat(contentManager.contents).isEmpty()
 
     val tempFolder = emulatorRule.avdRoot
-    val glasses = emulatorRule.newEmulator(FakeEmulator.createAiGlassesAvd(tempFolder))
+    val glasses = emulatorRule.newEmulator(FakeEmulator.createDisplayGlassesAvd(tempFolder))
     val phone = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
     glasses.pairedDevice = phone
     createMockDeviceProvisioner(glasses.deviceHandle, phone.deviceHandle)
@@ -1015,7 +1015,7 @@ class StreamingToolWindowManagerTest {
     assertThat(contentManager.contentsRecursively).isEmpty()
 
     val tempFolder = emulatorRule.avdRoot
-    val glasses = emulatorRule.newEmulator(FakeEmulator.createAiGlassesAvd(tempFolder))
+    val glasses = emulatorRule.newEmulator(FakeEmulator.createDisplayGlassesAvd(tempFolder))
     val phone = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
     glasses.pairedDevice = phone
     createMockDeviceProvisioner(glasses.deviceHandle, phone.deviceHandle)

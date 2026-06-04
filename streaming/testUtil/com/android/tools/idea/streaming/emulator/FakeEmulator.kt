@@ -2159,9 +2159,119 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
       return createAvd(avdId, avdFolder, configIni, hardwareIni)
     }
 
-    /** Creates a fake AI Glasses AVD. */
+    /** Creates a fake Audio Glasses AVD. */
     @JvmStatic
-    fun createAiGlassesAvd(
+    fun createAudioGlassesAvd(
+      parentFolder: Path,
+      sdkFolder: Path = getSdkFolder(parentFolder),
+      androidVersion: AndroidVersion = AndroidVersion(34, 0),
+    ): Path {
+      val api = androidVersion.androidApiLevel.majorVersion
+      val avdId = "Audio_Glasses"
+      val abi = "x86_64"
+      val avdFolder = parentFolder.resolve("${avdId}.avd")
+      val avdName = avdId.replace('_', ' ')
+      val systemImage = "system-images/android-$api/android-xr-glasses/$abi/"
+      val systemImageFolder = sdkFolder.resolve(systemImage)
+
+      val configIni =
+        """
+          AvdId=${avdId}
+          PlayStore.enabled=false
+          abi.type=$abi
+          avd.ini.displayname=${avdName}
+          avd.ini.encoding=UTF-8
+          disk.dataPartition.size=6G
+          hw.accelerometer=yes
+          hw.arc=false
+          hw.audioInput=yes
+          hw.battery=yes
+          hw.camera.back=None
+          hw.camera.front=emulated
+          hw.cpu.arch=$abi
+          hw.cpu.ncore=4
+          hw.dPad=no
+          hw.device.name=ai_glasses_device
+          hw.gps=no
+          hw.gpu.enabled=yes
+          hw.gpu.mode=auto
+          hw.initialOrientation=landscape
+          hw.keyboard=yes
+          hw.keyboard.lid=yes
+          hw.lcd.transparent=yes
+          environment.width=1200
+          environment.height=900
+          hw.mainKeys=no
+          hw.ramSize=3096
+          hw.sdCard=yes
+          hw.sensors.orientation=yes
+          hw.sensors.proximity=yes
+          hw.trackBall=no
+          image.sysdir.1=$systemImage
+          runtime.network.latency=none
+          runtime.network.speed=full
+          sdcard.size=512M
+          showDeviceFrame=yes
+          tag.displaynames=Intelligent Eyewear
+          tag.ids=ai-glasses
+          hw.touchpad0=true
+          hw.touchpad0.width=1543
+          hw.touchpad0.height=297
+          hw.screen=no-touch
+          hw.ledIndicators=0:INSIDE,1:OUTSIDE
+          """
+          .trimIndent()
+
+      val hardwareIni =
+        """
+          hw.cpu.arch=$abi
+          hw.cpu.model=qemu32
+          hw.cpu.ncore=4
+          hw.lcd.density=160
+          hw.lcd.width=450
+          hw.lcd.height=450
+          hw.initialOrientation=portrait
+          hw.ramSize=3072
+          hw.screen=multi-touch
+          hw.dPad=false
+          hw.rotaryInput=false
+          hw.gsmModem=true
+          hw.gps=false
+          hw.battery=true
+          hw.accelerometer=false
+          hw.gyroscope=true
+          hw.audioInput=true
+          hw.audioOutput=true
+          hw.sdCard=true
+          hw.sdCard.path=$avdFolder/sdcard.img
+          hw.touchpad0=true
+          hw.touchpad0.width=1543
+          hw.touchpad0.height=297
+          android.sdk.root=$sdkFolder
+          """
+          .trimIndent()
+
+      val sourceProperties =
+        """
+          Pkg.Desc=Android XR Glasses SDK System Image
+          Pkg.UserSrc=false
+          Pkg.Revision=2
+          SystemImage.Abi=$abi
+          SystemImage.GpuSupport=true
+          SystemImage.TagId=android-xr-glasses
+          SystemImage.TagDisplay=Android XR Glasses
+          """
+          .trimIndent()
+
+      val advancedFeatures = "LedIndicators = on\n"
+
+      createSystemImage(systemImageFolder, androidVersion, sourceProperties, advancedFeatures)
+      return createAvd(avdId, avdFolder, configIni, hardwareIni)
+    }
+
+    /** Creates a fake Display Glasses AVD. */
+    @JvmStatic
+    fun createDisplayGlassesAvd(
       parentFolder: Path,
       sdkFolder: Path = getSdkFolder(parentFolder),
       androidVersion: AndroidVersion = AndroidVersion(34, 0),
@@ -2221,6 +2331,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           hw.touchpad0.width=1543
           hw.touchpad0.height=297
           hw.screen=no-touch
+          hw.ledIndicators=0:INSIDE,1:OUTSIDE
           """
           .trimIndent()
 
@@ -2265,114 +2376,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           """
           .trimIndent()
 
-      createSystemImage(systemImageFolder, androidVersion, sourceProperties)
-      return createAvd(avdId, avdFolder, configIni, hardwareIni)
-    }
+      val advancedFeatures = "LedIndicators = on\n"
 
-    /** Creates a fake displayless AI Glasses AVD. */
-    @JvmStatic
-    fun createAiGlassesDisplaylessAvd(
-      parentFolder: Path,
-      sdkFolder: Path = getSdkFolder(parentFolder),
-      androidVersion: AndroidVersion = AndroidVersion(34, 0),
-    ): Path {
-      val api = androidVersion.androidApiLevel.majorVersion
-      val avdId = "Audio_Glasses"
-      val abi = "x86_64"
-      val avdFolder = parentFolder.resolve("${avdId}.avd")
-      val avdName = avdId.replace('_', ' ')
-      val systemImage = "system-images/android-$api/android-xr-glasses/$abi/"
-      val systemImageFolder = sdkFolder.resolve(systemImage)
-
-      val configIni =
-        """
-          AvdId=${avdId}
-          PlayStore.enabled=false
-          abi.type=$abi
-          avd.ini.displayname=${avdName}
-          avd.ini.encoding=UTF-8
-          disk.dataPartition.size=6G
-          hw.accelerometer=yes
-          hw.arc=false
-          hw.audioInput=yes
-          hw.battery=yes
-          hw.camera.back=None
-          hw.camera.front=emulated
-          hw.cpu.arch=$abi
-          hw.cpu.ncore=4
-          hw.dPad=no
-          hw.device.name=ai_glasses_device
-          hw.gps=no
-          hw.gpu.enabled=yes
-          hw.gpu.mode=auto
-          hw.initialOrientation=landscape
-          hw.keyboard=yes
-          hw.keyboard.lid=yes
-          hw.lcd.transparent=yes
-          environment.width=1200
-          environment.height=900
-          hw.mainKeys=no
-          hw.ramSize=3096
-          hw.sdCard=yes
-          hw.sensors.orientation=yes
-          hw.sensors.proximity=yes
-          hw.trackBall=no
-          image.sysdir.1=$systemImage
-          runtime.network.latency=none
-          runtime.network.speed=full
-          sdcard.size=512M
-          showDeviceFrame=yes
-          tag.displaynames=Intelligent Eyewear
-          tag.ids=ai-glasses
-          hw.touchpad0=true
-          hw.touchpad0.width=1543
-          hw.touchpad0.height=297
-          hw.screen=no-touch
-          """
-          .trimIndent()
-
-      val hardwareIni =
-        """
-          hw.cpu.arch=$abi
-          hw.cpu.model=qemu32
-          hw.cpu.ncore=4
-          hw.lcd.density=160
-          hw.lcd.width=450
-          hw.lcd.height=450
-          hw.initialOrientation=portrait
-          hw.ramSize=3072
-          hw.screen=multi-touch
-          hw.dPad=false
-          hw.rotaryInput=false
-          hw.gsmModem=true
-          hw.gps=false
-          hw.battery=true
-          hw.accelerometer=false
-          hw.gyroscope=true
-          hw.audioInput=true
-          hw.audioOutput=true
-          hw.sdCard=true
-          hw.sdCard.path=$avdFolder/sdcard.img
-          hw.touchpad0=true
-          hw.touchpad0.width=1543
-          hw.touchpad0.height=297
-          android.sdk.root=$sdkFolder
-          """
-          .trimIndent()
-
-      val sourceProperties =
-        """
-          Pkg.Desc=Android XR Glasses SDK System Image
-          Pkg.UserSrc=false
-          Pkg.Revision=2
-          SystemImage.Abi=$abi
-          SystemImage.GpuSupport=true
-          SystemImage.TagId=android-xr-glasses
-          SystemImage.TagDisplay=Android XR Glasses
-          """
-          .trimIndent()
-
-      createSystemImage(systemImageFolder, androidVersion, sourceProperties)
+      createSystemImage(systemImageFolder, androidVersion, sourceProperties, advancedFeatures)
       return createAvd(avdId, avdFolder, configIni, hardwareIni)
     }
 

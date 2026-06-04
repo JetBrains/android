@@ -640,7 +640,7 @@ class EmulatorToolWindowPanelTest {
 
   @Test
   fun testAiGlassesToolbarActions() {
-    val avdFolder = FakeEmulator.createAiGlassesAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(36, 0))
+    val avdFolder = FakeEmulator.createDisplayGlassesAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(36, 0))
     panel = createWindowPanel(avdFolder)
 
     assertThat(panel.primaryDisplayView).isNull()
@@ -699,7 +699,7 @@ class EmulatorToolWindowPanelTest {
 
   @Test
   fun testAiGlassesDisplaylessToolbarActions() {
-    val avdFolder = FakeEmulator.createAiGlassesDisplaylessAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(36, 0))
+    val avdFolder = FakeEmulator.createAudioGlassesAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(36, 0))
     panel = createWindowPanel(avdFolder)
 
     assertThat(panel.primaryDisplayView).isNull()

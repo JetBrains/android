@@ -62,7 +62,7 @@ class EmulatorEnvironmentActionTest {
     get() = projectRule.disposable
 
   private val emulator by lazy {
-    val avdFolder = FakeEmulator.createAiGlassesAvd(emulatorRule.avdRoot)
+    val avdFolder = FakeEmulator.createDisplayGlassesAvd(emulatorRule.avdRoot)
     emulatorRule.newEmulator(avdFolder)
   }
   private val emulatorController by lazy {

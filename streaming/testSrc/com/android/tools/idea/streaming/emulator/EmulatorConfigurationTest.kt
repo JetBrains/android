@@ -20,6 +20,8 @@ import com.android.emulator.control.Posture.PostureValue
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.DisplayMode
+import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.LedIndicator
+import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.LedIndicator.Facing
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDescriptor
 import com.google.common.jimfs.Jimfs
 import com.google.common.truth.Truth.assertThat
@@ -166,7 +168,6 @@ class EmulatorConfigurationTest {
     assertThat(config.displayHeight).isEqualTo(2558)
     assertThat(config.density).isEqualTo(320)
     assertThat(config.additionalDisplays).isEmpty()
-    assertThat(config.dimmingLevels).isEmpty()
     assertThat(config.skinFolder?.toString()).isNull()
     assertThat(config.hasOrientationSensors).isTrue()
     assertThat(config.initialOrientationQuadrants).isEqualTo(0)
@@ -194,50 +195,19 @@ class EmulatorConfigurationTest {
     assertThat(config.displayHeight).isEqualTo(1200)
     assertThat(config.density).isEqualTo(320)
     assertThat(config.additionalDisplays).isEmpty()
-    assertThat(config.dimmingLevels).isEqualTo(floatArrayOf(0.0f, 0.25f, 0.5f, 0.75f, 1.0f))
     assertThat(config.skinFolder?.toString()).isNull()
     assertThat(config.hasOrientationSensors).isTrue()
     assertThat(config.initialOrientationQuadrants).isEqualTo(0)
     assertThat(config.displayModes).isEmpty()
     assertThat(config.postures).isEmpty()
+    assertThat(config.dimmingLevels).isEqualTo(floatArrayOf(0.0f, 0.25f, 0.5f, 0.75f, 1.0f))
   }
 
   @Test
-  fun testAiGlasses() {
+  fun testAudioGlasses() {
     // Prepare.
     val androidVersion = AndroidVersion(36, 0)
-    val avdFolder = FakeEmulator.createAiGlassesAvd(avdParentFolder, sdkFolder, androidVersion = androidVersion)
-
-    // Act.
-    val config = EmulatorConfiguration.readAvdDefinition(avdFolder)
-
-    // Assert.
-    assertThat(config).isNotNull()
-    assertThat(config.avdFolder).isEqualTo(avdFolder)
-    assertThat(config.avdName).isEqualTo("Display Glasses")
-    assertThat(config.deviceType).isEqualTo(DeviceType.AI_GLASSES)
-    assertThat(config.androidVersion).isEqualTo(androidVersion)
-    assertThat(config.displayWidth).isEqualTo(450)
-    assertThat(config.displayHeight).isEqualTo(450)
-    assertThat(config.density).isEqualTo(160)
-    assertThat(config.environmentSize).isEqualTo(Dimension(1200, 900))
-    assertThat(config.additionalDisplays).isEmpty()
-    assertThat(config.dimmingLevels).isEmpty()
-    assertThat(config.skinFolder).isNull()
-    assertThat(config.hasOrientationSensors).isTrue()
-    assertThat(config.hasTransparentDisplay).isTrue()
-    assertThat(config.hasTouchScreen).isFalse()
-    assertThat(config.initialOrientationQuadrants).isEqualTo(0)
-    assertThat(config.displayModes).isEmpty()
-    assertThat(config.postures).isEmpty()
-    assertThat(config.touchpadSize).isEqualTo(Dimension(1543, 297))
-  }
-
-  @Test
-  fun testAiGlassesDisplayless() {
-    // Prepare.
-    val androidVersion = AndroidVersion(36, 0)
-    val avdFolder = FakeEmulator.createAiGlassesDisplaylessAvd(avdParentFolder, sdkFolder, androidVersion = androidVersion)
+    val avdFolder = FakeEmulator.createAudioGlassesAvd(avdParentFolder, sdkFolder, androidVersion = androidVersion)
 
     // Act.
     val config = EmulatorConfiguration.readAvdDefinition(avdFolder)
@@ -262,6 +232,39 @@ class EmulatorConfigurationTest {
     assertThat(config.displayModes).isEmpty()
     assertThat(config.postures).isEmpty()
     assertThat(config.touchpadSize).isEqualTo(Dimension(1543, 297))
+    assertThat(config.ledIndicators).containsExactly(LedIndicator(0, Facing.INSIDE), LedIndicator(1, Facing.OUTSIDE)).inOrder()
+  }
+
+  @Test
+  fun testDisplayGlasses() {
+    // Prepare.
+    val androidVersion = AndroidVersion(36, 0)
+    val avdFolder = FakeEmulator.createDisplayGlassesAvd(avdParentFolder, sdkFolder, androidVersion = androidVersion)
+
+    // Act.
+    val config = EmulatorConfiguration.readAvdDefinition(avdFolder)
+
+    // Assert.
+    assertThat(config).isNotNull()
+    assertThat(config.avdFolder).isEqualTo(avdFolder)
+    assertThat(config.avdName).isEqualTo("Display Glasses")
+    assertThat(config.deviceType).isEqualTo(DeviceType.AI_GLASSES)
+    assertThat(config.androidVersion).isEqualTo(androidVersion)
+    assertThat(config.displayWidth).isEqualTo(450)
+    assertThat(config.displayHeight).isEqualTo(450)
+    assertThat(config.density).isEqualTo(160)
+    assertThat(config.environmentSize).isEqualTo(Dimension(1200, 900))
+    assertThat(config.additionalDisplays).isEmpty()
+    assertThat(config.skinFolder).isNull()
+    assertThat(config.hasOrientationSensors).isTrue()
+    assertThat(config.hasTransparentDisplay).isTrue()
+    assertThat(config.hasTouchScreen).isFalse()
+    assertThat(config.initialOrientationQuadrants).isEqualTo(0)
+    assertThat(config.displayModes).isEmpty()
+    assertThat(config.postures).isEmpty()
+    assertThat(config.touchpadSize).isEqualTo(Dimension(1543, 297))
+    assertThat(config.dimmingLevels).isEmpty()
+    assertThat(config.ledIndicators).containsExactly(LedIndicator(0, Facing.INSIDE), LedIndicator(1, Facing.OUTSIDE)).inOrder()
   }
 
   @Test

@@ -179,7 +179,7 @@ class TouchpadPanelTest {
   }
 
   private fun createGlassesAvd(): FakeEmulator =
-    emulatorRule.newEmulator(FakeEmulator.createAiGlassesAvd(emulatorRule.avdRoot)).apply { start(standalone = false) }
+    emulatorRule.newEmulator(FakeEmulator.createDisplayGlassesAvd(emulatorRule.avdRoot)).apply { start(standalone = false) }
 
   private fun assertAppearance(goldenImageName: String) {
     val image = ui.render()

@@ -1137,7 +1137,7 @@ class EmulatorViewTest {
   @Test
   fun testAiGlasses() {
     hiDpiRule.setRetinaMode()
-    val panel = createEmulatorDisplayPanel { path -> FakeEmulator.createAiGlassesAvd(path) }
+    val panel = createEmulatorDisplayPanel { path -> FakeEmulator.createDisplayGlassesAvd(path) }
     fakeUi = FakeUi(panel)
 
     fakeUi.root.size = Dimension(200, 300)
