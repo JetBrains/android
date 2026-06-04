@@ -45,6 +45,8 @@ import org.mockito.kotlin.whenever
 private const val OLD_FILE_CONTENT = "old" // For this test, it doesn't matter if it's a valid Vector Drawable file
 private const val NEW_FILE_CONTENT = "new"
 
+private data class FakeDownloadWithContent(val url: String, val downloadPath: String, val destinationPath: String, val content: String)
+
 class MaterialSymbolsUpdaterTest {
   @get:Rule val projectRule = AndroidProjectRule.withSdk()
 
@@ -89,6 +91,51 @@ class MaterialSymbolsUpdaterTest {
       .thenReturn(mockDownloader)
   }
 
+  private fun mockDownloadServiceWithContent(downloads: List<FakeDownloadWithContent>) {
+    val mockDownloadableFileService = Mockito.mock(DownloadableFileService::class.java)
+    ApplicationManager.getApplication()
+      .registerOrReplaceServiceInstance(
+        DownloadableFileService::class.java,
+        mockDownloadableFileService,
+        projectRule.fixture.testRootDisposable,
+      )
+
+    downloads.forEach { download ->
+      val descriptor = DownloadableFileDescriptionImpl(download.url, FileUtil.toSystemDependentName(download.destinationPath), "tmp")
+      if (download.downloadPath == "temp_font_css.css.tmp") {
+        whenever(mockDownloadableFileService.createFileDescription(Mockito.eq(download.url), Mockito.anyString())).thenReturn(descriptor)
+      } else {
+        whenever(mockDownloadableFileService.createFileDescription(download.url, download.downloadPath)).thenReturn(descriptor)
+      }
+    }
+
+    whenever(mockDownloadableFileService.createDownloader(Mockito.any(), Mockito.anyString())).thenAnswer { invocation ->
+      val descriptions = invocation.arguments[0] as List<DownloadableFileDescription>
+      val downloader = Mockito.mock(FileDownloader::class.java)
+      whenever(downloader.download(Mockito.any())).thenAnswer { downloadInvocation ->
+        val downloadFolder = downloadInvocation.arguments[0] as File
+        val results =
+          descriptions.map { desc ->
+            val matchingDownload = downloads.find { it.url == desc.downloadUrl }
+            val content = matchingDownload?.content ?: NEW_FILE_CONTENT
+            val fileName = matchingDownload?.downloadPath ?: desc.defaultFileName
+            val downloadedFile =
+              downloadFolder
+                .toPath()
+                .resolve(fileName)
+                .apply {
+                  parent.createDirectories()
+                  writeText(content)
+                }
+                .toFile()
+            Pair<File, DownloadableFileDescription>(downloadedFile, desc)
+          }
+        return@thenAnswer results
+      }
+      return@thenAnswer downloader
+    }
+  }
+
   @Before
   fun setup() {
     testDirectory = createTempDirectory(javaClass.simpleName)
@@ -99,54 +146,129 @@ class MaterialSymbolsUpdaterTest {
   fun updateFontFile() {
     val testStyle = Symbols.OUTLINED
 
-    val downloadUrl = "https://my.host.com/s/i/style1/my_icon_1/v2/24px.xml"
-    val downloadPathDir = "variablefont/${testStyle.localName}"
-    val downloadName = "${testStyle.localName}.ttf"
+    val cssUrl = "https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-25..200"
+    val fontUrl =
+      "https://fonts.gstatic.com/s/materialsymbolsoutlined/v344/kJF1BvYX7BgnkSrUwT8OhrdQw4oELdPIeeII9v6oDMzByHX9rA6RzaxHMPdY43zj-jCxv3fzvRNU22ZXGJpEpjC_1v-p_4MrImHCIJIZrDCvHOem.ttf"
+    val cssContent =
+      """
+      @font-face {
+        font-family: 'Material Symbols Outlined';
+        font-style: normal;
+        font-weight: 400;
+        src: url($fontUrl) format('truetype');
+      }
 
-    downloadDir.resolve(downloadPathDir).apply { createDirectories() }.resolve(downloadName).writeText(OLD_FILE_CONTENT)
+      .material-symbols-outlined {
+        font-family: 'Material Symbols Outlined';
+        font-weight: normal;
+        font-style: normal;
+        font-size: 24px;
+        line-height: 1;
+        letter-spacing: normal;
+        text-transform: none;
+        display: inline-block;
+        white-space: nowrap;
+        word-wrap: normal;
+        direction: ltr;
+      }
+      """
+        .trimIndent()
 
     val urlProvider = SymbolsSdkUrlProvider()
-    mockDownloadService(
+    val fontFile = urlProvider.getLocalFontFile(testStyle)!!
+    fontFile.parentFile.mkdirs()
+    fontFile.writeText(OLD_FILE_CONTENT)
+
+    val downloadPathDir = "variablefont/${testStyle.localName}"
+
+    mockDownloadServiceWithContent(
       listOf(
-        FakeDownload(url = downloadUrl, downloadPath = testStyle.remoteFileName, destinationPath = "${downloadPathDir}/${downloadName}")
+        FakeDownloadWithContent(
+          url = cssUrl,
+          downloadPath = "temp_font_css.css.tmp",
+          destinationPath = "${downloadPathDir}/temp_font_css.css.tmp",
+          content = cssContent,
+        ),
+        FakeDownloadWithContent(
+          url = fontUrl,
+          downloadPath = testStyle.remoteFileName,
+          destinationPath = "${downloadPathDir}/${testStyle.remoteFileName}",
+          content = NEW_FILE_CONTENT,
+        ),
       )
     )
 
-    val fontFile = downloadDir.resolve("${downloadPathDir}/${downloadName}")
     assertEquals(OLD_FILE_CONTENT, fontFile.readText())
 
     MaterialSymbolsUpdater.downloadFontFiles(testStyle, urlProvider)
 
-    val updatedFontFile = downloadDir.resolve("${downloadPathDir}/${downloadName}")
-    assertThat(updatedFontFile).exists()
-    assertEquals(NEW_FILE_CONTENT, updatedFontFile.readText())
+    assertThat(fontFile).exists()
+    assertEquals(NEW_FILE_CONTENT, fontFile.readText())
   }
 
   @Test
   fun downloadFontFile() {
     val testStyle = Symbols.OUTLINED
 
-    val downloadUrl = "https://my.host.com/s/i/style1/my_icon_1/v2/24px.xml"
+    val cssUrl = "https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-25..200"
+    val fontUrl =
+      "https://fonts.gstatic.com/s/materialsymbolsoutlined/v344/kJF1BvYX7BgnkSrUwT8OhrdQw4oELdPIeeII9v6oDMzByHX9rA6RzaxHMPdY43zj-jCxv3fzvRNU22ZXGJpEpjC_1v-p_4MrImHCIJIZrDCvHOem.ttf"
+    val cssContent =
+      """
+      @font-face {
+        font-family: 'Material Symbols Outlined';
+        font-style: normal;
+        font-weight: 400;
+        src: url($fontUrl) format('truetype');
+      }
+
+      .material-symbols-outlined {
+        font-family: 'Material Symbols Outlined';
+        font-weight: normal;
+        font-style: normal;
+        font-size: 24px;
+        line-height: 1;
+        letter-spacing: normal;
+        text-transform: none;
+        display: inline-block;
+        white-space: nowrap;
+        word-wrap: normal;
+        direction: ltr;
+      }
+      """
+        .trimIndent()
+
+    val urlProvider = SymbolsSdkUrlProvider()
+    val fontFile = urlProvider.getLocalFontFile(testStyle)!!
+    fontFile.parentFile.mkdirs()
+    fontFile.writeText(OLD_FILE_CONTENT)
+
     val downloadPathDir = "variablefont/${testStyle.localName}"
-    val downloadName = "${testStyle.localName}.ttf"
 
-    downloadDir.resolve(downloadPathDir).apply { createDirectories() }.resolve(downloadName).writeText(OLD_FILE_CONTENT)
-
-    mockDownloadService(
+    mockDownloadServiceWithContent(
       listOf(
-        FakeDownload(url = downloadUrl, downloadPath = testStyle.remoteFileName, destinationPath = "${downloadPathDir}/${downloadName}")
+        FakeDownloadWithContent(
+          url = cssUrl,
+          downloadPath = "temp_font_css.css.tmp",
+          destinationPath = "${downloadPathDir}/temp_font_css.css.tmp",
+          content = cssContent,
+        ),
+        FakeDownloadWithContent(
+          url = fontUrl,
+          downloadPath = testStyle.remoteFileName,
+          destinationPath = "${downloadPathDir}/${testStyle.remoteFileName}",
+          content = NEW_FILE_CONTENT,
+        ),
       )
     )
 
-    val fontFile = downloadDir.resolve("${downloadPathDir}/${downloadName}")
     assertEquals(OLD_FILE_CONTENT, fontFile.readText())
     fontFile.delete()
 
-    MaterialSymbolsUpdater.downloadFontFiles(testStyle, SymbolsSdkUrlProvider())
+    MaterialSymbolsUpdater.downloadFontFiles(testStyle, urlProvider)
 
-    val updatedFontFile = downloadDir.resolve("${downloadPathDir}/${downloadName}")
-    assertThat(updatedFontFile).exists()
-    assertEquals(NEW_FILE_CONTENT, updatedFontFile.readText())
+    assertThat(fontFile).exists()
+    assertEquals(NEW_FILE_CONTENT, fontFile.readText())
   }
 
   @Test

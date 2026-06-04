@@ -153,16 +153,13 @@ interface MaterialSymbolsUrlProvider {
  * It is the only implementation of this interface used in the source code, as this pattern was implemented for testing purposes
  */
 class SymbolsSdkUrlProvider : MaterialSymbolsUrlProvider {
-  private val HOST = "https://raw.githubusercontent.com/google/material-design-icons/master/"
   private val EXTENSION = ".ttf"
 
   private val FOLDER = "variablefont/"
 
   override fun getRemoteFontUrl(type: Symbols): URL {
-    val fileName = type.remoteFileName
-    val encodedString = URLEncoder.encode(fileName, "UTF-8")
-    val url = URL(HOST + FOLDER + encodedString + EXTENSION)
-    return url
+    val encodedFamily = URLEncoder.encode(type.displayName, "UTF-8")
+    return URL("https://fonts.googleapis.com/css2?family=$encodedFamily:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-25..200")
   }
 
   override fun getLocalFontDirectoryFile(type: Symbols): File? {

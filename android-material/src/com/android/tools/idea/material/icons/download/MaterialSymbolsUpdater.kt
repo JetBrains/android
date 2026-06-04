@@ -23,11 +23,12 @@ import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.METADATA_F
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.download.DownloadableFileService
 import java.io.File
-import java.net.URL
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
+import java.util.UUID
 
 private val LOG = Logger.getInstance(MaterialSymbolsUpdater::class.java)
+private val CSS_FONT_URL_REGEX = """url\(['"]?([^'"()]+)['"]?\)""".toRegex()
 
 /** Class to aggregate download methods used in Material Symbols */
 class MaterialSymbolsUpdater {
@@ -40,19 +41,77 @@ class MaterialSymbolsUpdater {
     private const val METADATA_DOWNLOADER_NAME = "MaterialSymbolsMetadata"
     private const val SYMBOL_VD_DOWNLOADER_NAME = "PickedMaterialSymbol"
     private const val FONT_EXTENSION = ".ttf"
+    private const val GOOGLE_FONTS_CSS_INDICATOR = "fonts.googleapis.com/css"
+
+    private fun extractFontUrlFromCss(cssContent: String): String? {
+      // Find all URLs in url(...) blocks
+      val matches = CSS_FONT_URL_REGEX.findAll(cssContent).map { it.groupValues[1] }.toList()
+      if (matches.isEmpty()) return null
+
+      // If there are multiple matches, prefer the one ending in .ttf or having ttf
+      val ttfMatch = matches.find { it.endsWith(FONT_EXTENSION) || it.contains(FONT_EXTENSION) }
+      if (ttfMatch != null) {
+        if (matches.size > 1) {
+          LOG.warn("Multiple font URLs found in CSS: $matches. Selecting the TTF match: $ttfMatch")
+        }
+        return ttfMatch
+      }
+
+      if (matches.size > 1) {
+        LOG.warn("Multiple font URLs found in CSS: $matches. Selecting the first one: ${matches.first()}")
+      }
+      return matches.first()
+    }
 
     /**
-     * Handles the download of the variable font TTF files used in Material Symbols rendering
+     * Handles the download of the variable font TTF files used in Material Symbols rendering.
      *
-     * @param url The download [URL] for the Material Symbols font
-     * @param type The [Symbols] type that corresponds to the font pack rquired
+     * If the remote URL points to a Google Fonts CSS stylesheet (containing "fonts.googleapis.com/css"), it indicates an indirect font
+     * load. We first download the CSS file, extract the actual TTF font file URL from the CSS, and then download the font file from that
+     * extracted URL. Otherwise, we download the font file directly from the remote URL.
+     *
+     * @param type The [Symbols] type that corresponds to the font pack required
      */
     @Slow
     fun downloadFontFiles(type: Symbols, materialSymbolsUrlProvider: MaterialSymbolsUrlProvider) {
       val url = materialSymbolsUrlProvider.getRemoteFontUrl(type)
       val folder = materialSymbolsUrlProvider.getLocalFontDirectoryFile(type) ?: return
       val fileName = type.remoteFileName
-      downloadAndMove(url.toString(), fileName, type.localName + FONT_EXTENSION, folder, FONT_FILE_DOWNLOADER_NAME)
+      val finalFileName = type.localName + FONT_EXTENSION
+
+      if (url.toString().contains(GOOGLE_FONTS_CSS_INDICATOR)) {
+        downloadIndirectFontFromCss(url.toString(), fileName, finalFileName, folder)
+      } else {
+        downloadAndMove(url.toString(), fileName, finalFileName, folder, FONT_FILE_DOWNLOADER_NAME)
+      }
+    }
+
+    /**
+     * The Material Symbols fonts are served to web via a CSS. We use that to download the font. We used to use a github raw endpoint that
+     * contained the ttf but those are frequently out of sync with the latest symbols exposed in fonts.google.com.
+     */
+    @Slow
+    private fun downloadIndirectFontFromCss(cssUrl: String, tempFileName: String, finalFileName: String, folder: File) {
+      val tempCssFileName = "temp_font_css_${UUID.randomUUID()}.css"
+      downloadAndMove(cssUrl, "$tempCssFileName.tmp", tempCssFileName, folder, FONT_FILE_DOWNLOADER_NAME)
+      val cssFile = folder.resolve(tempCssFileName)
+      if (cssFile.exists()) {
+        try {
+          val cssContent = cssFile.readText()
+          val fontUrl = extractFontUrlFromCss(cssContent)
+          if (fontUrl != null) {
+            downloadAndMove(fontUrl, tempFileName, finalFileName, folder, FONT_FILE_DOWNLOADER_NAME)
+          } else {
+            LOG.warn("Could not find font URL in CSS: $cssContent")
+          }
+        } catch (e: Exception) {
+          LOG.warn("Failed to read/parse CSS file: $e")
+        } finally {
+          cssFile.delete()
+        }
+      } else {
+        LOG.warn("Failed to download CSS from $cssUrl")
+      }
     }
 
     /** Downloads the metadata file for the Material Symbols */
