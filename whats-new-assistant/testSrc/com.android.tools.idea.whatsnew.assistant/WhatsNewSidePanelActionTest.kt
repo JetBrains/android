@@ -13,59 +13,60 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.whatsnew.assistant;
+package com.android.tools.idea.whatsnew.assistant
 
-import static org.junit.Assert.assertTrue;
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.Presentation
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
-import com.android.tools.idea.testing.AndroidProjectRule;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.Presentation;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.Mockito;
+class WhatsNewSidePanelActionTest {
+  @get:Rule val myRule = AndroidProjectRule.inMemory()
 
-public class WhatsNewSidePanelActionTest {
-  @Rule
-  public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
-
-  private Presentation myPresentation;
-  private AnActionEvent myEvent;
-  private Runnable myBrowseToWhatsNewUrl;
+  private lateinit var myPresentation: Presentation
+  private lateinit var myEvent: AnActionEvent
+  private lateinit var myBrowseToWhatsNewUrl: Runnable
 
   @Before
-  public void mockEvent() {
-    myPresentation = new Presentation();
+  fun mockEvent() {
+    myPresentation = Presentation()
 
-    myEvent = Mockito.mock(AnActionEvent.class);
-    Mockito.when(myEvent.getPresentation()).thenReturn(myPresentation);
+    myEvent = mock()
+    whenever(myEvent.presentation).thenReturn(myPresentation)
   }
 
   @Before
-  public void mockBrowseToWhatsNewUrl() {
-    myBrowseToWhatsNewUrl = Mockito.mock(Runnable.class);
+  fun mockBrowseToWhatsNewUrl() {
+    myBrowseToWhatsNewUrl = mock()
   }
 
   @Test
-  public void updateProjectIsNull() {
-    WhatsNewSidePanelAction action = new WhatsNewSidePanelAction(myBrowseToWhatsNewUrl);
+  fun updateProjectIsNull() {
+    val action = WhatsNewSidePanelAction(myBrowseToWhatsNewUrl)
 
-    action.update(myEvent);
-    assertTrue(myPresentation.isEnabled());
+    action.update(myEvent)
+    assertTrue(myPresentation.isEnabled)
 
-    action.actionPerformed(myEvent);
-    Mockito.verify(myBrowseToWhatsNewUrl).run();
+    action.actionPerformed(myEvent)
+    verify(myBrowseToWhatsNewUrl).run()
   }
 
   @Test
-  public void updateProjectIsNotNull() {
-    WhatsNewSidePanelAction action = new WhatsNewSidePanelAction(myBrowseToWhatsNewUrl);
-    Mockito.when(myEvent.getProject()).thenReturn(myRule.getProject());
+  fun updateProjectIsNotNull() {
+    val action = WhatsNewSidePanelAction(myBrowseToWhatsNewUrl)
+    whenever(myEvent.project).thenReturn(myRule.project)
 
-    action.update(myEvent);
-    assertTrue(myPresentation.isEnabled());
+    action.update(myEvent)
+    assertTrue(myPresentation.isEnabled)
 
-    action.actionPerformed(myEvent);
-    Mockito.verify(myBrowseToWhatsNewUrl, Mockito.never()).run();
+    action.actionPerformed(myEvent)
+    verify(myBrowseToWhatsNewUrl, never()).run()
   }
 }
