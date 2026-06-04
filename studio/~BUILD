@@ -881,6 +881,7 @@ studio_plugin(
         "//prebuilts/tools/common/m2:anthropic-openai-common-deps",
         "//prebuilts/tools/common/m2:libgoogle_auth_transitive_deps",
         "//prebuilts/tools/common/m2:openai-java-sdk",
+        "//prebuilts/tools/common/m2:pdfbox",
         "//tools/vendor/google/ml/aiplugin/android:agent_log_proto",
         "//tools/vendor/google/ml/aiplugin/cloudcode-core:libgoogle_auth_intellij_lib",
         "//tools/vendor/google/ml/aiplugin/cloudcode-core:libfeedback_java_proto",
