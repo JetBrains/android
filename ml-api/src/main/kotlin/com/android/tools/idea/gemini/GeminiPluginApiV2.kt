@@ -17,6 +17,7 @@ package com.android.tools.idea.gemini
 
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
+import java.nio.file.Path
 
 /** Defines a Blob containing data and a mimeType string (e.g., image/png). */
 data class LlmBlob(val data: ByteArray, val mimeType: String) {
@@ -91,11 +92,19 @@ interface GeminiPluginApiV2 {
     conversationTarget: LlmConversationTarget = LlmConversationTarget.NewConversation,
   ): LlmChatInEditorResult
 
-  suspend fun submitQueryInToolWindow(
+  suspend fun submitQueryWithPayloadsInToolWindow(
     project: Project,
     query: String,
     blobs: List<LlmBlob> = emptyList(),
     payloads: List<LlmUserQueryPayload> = emptyList(),
+    conversationTarget: LlmConversationTarget = LlmConversationTarget.NewConversation,
+  ): LlmChatInToolWindowResult
+
+  suspend fun submitQueryInToolWindow(
+    project: Project,
+    query: String,
+    blobs: List<LlmBlob> = emptyList(),
+    fileReferences: List<Path> = emptyList(),
     conversationTarget: LlmConversationTarget = LlmConversationTarget.NewConversation,
   ): LlmChatInToolWindowResult
 
@@ -117,11 +126,21 @@ interface GeminiPluginApiV2 {
           return LlmChatInEditorResult.RequestNotSubmitted(LlmFailureReason.NO_MODELS_AVAILABLE)
         }
 
-        override suspend fun submitQueryInToolWindow(
+        override suspend fun submitQueryWithPayloadsInToolWindow(
           project: Project,
           query: String,
           blobs: List<LlmBlob>,
           payloads: List<LlmUserQueryPayload>,
+          conversationTarget: LlmConversationTarget,
+        ): LlmChatInToolWindowResult {
+          return LlmChatInToolWindowResult.RequestNotSubmitted(LlmFailureReason.NO_MODELS_AVAILABLE)
+        }
+
+        override suspend fun submitQueryInToolWindow(
+          project: Project,
+          query: String,
+          blobs: List<LlmBlob>,
+          fileReferences: List<Path>,
           conversationTarget: LlmConversationTarget,
         ): LlmChatInToolWindowResult {
           return LlmChatInToolWindowResult.RequestNotSubmitted(LlmFailureReason.NO_MODELS_AVAILABLE)
