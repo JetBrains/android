@@ -62,25 +62,22 @@ public class AdMobFragment extends Fragment {
         // Create the text view to show the level number.
         mLevelTextView = binding.level;
         mLevel = START_LEVEL;
-    }
 
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        if (getActivity() == null || getActivity().getApplicationContext() == null) return;
-        final Context appContext = getActivity().getApplicationContext();
+        if (getContext() != null) {
+            Context appContext = getContext().getApplicationContext();
 
-        mNextLevelButton.setEnabled(false);
-        mNextLevelButton.setOnClickListener(view -> showInterstitial(appContext));
+            mNextLevelButton.setEnabled(false);
+            mNextLevelButton.setOnClickListener(v -> showInterstitial(appContext));
 
-        MobileAds.initialize(appContext, initializationStatus -> {
-        });
-        // Load the InterstitialAd and set the adUnitId (defined in values/strings.xml).
-        loadInterstitialAd(appContext);
+            MobileAds.initialize(appContext, initializationStatus -> {
+            });
+            // Load the InterstitialAd and set the adUnitId (defined in values/strings.xml).
+            loadInterstitialAd(appContext);
 
-        // Toasts the test ad message on the screen.
-        // Remove this after defining your own ad unit ID.
-        Toast.makeText(appContext, TOAST_TEXT, Toast.LENGTH_LONG).show();
+            // Toasts the test ad message on the screen.
+            // Remove this after defining your own ad unit ID.
+            Toast.makeText(appContext, TOAST_TEXT, Toast.LENGTH_LONG).show();
+        }
     }
 
     private void loadInterstitialAd(Context context) {
