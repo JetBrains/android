@@ -32,6 +32,7 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.CurrentTheme.Banner.WARNING_BORDER_COLOR
 import icons.StudioIcons
 import java.awt.BorderLayout
+import java.awt.FlowLayout
 import java.awt.event.ActionEvent
 import javax.swing.AbstractAction
 import javax.swing.Action
@@ -67,9 +68,13 @@ class WhpxUpdateDialog(private val project: Project?, private val fromAehd: Bool
     panel.add(messageLabel, BorderLayout.NORTH)
 
     val warningBanner = RebootWarningPanel("Changes will not take effect until after a system restart")
-    panel.add(warningBanner, BorderLayout.SOUTH)
+    val warningWrapper = JPanel(FlowLayout(FlowLayout.CENTER, 0, 0)).apply {
+      isOpaque = false
+      add(warningBanner)
+    }
+    panel.add(warningWrapper, BorderLayout.SOUTH)
 
-    panel.preferredSize = JBUI.size(500, 100)
+    panel.preferredSize = JBUI.size(490, 100)
     return panel
   }
 
@@ -157,7 +162,11 @@ class WhpxUpdateDialog(private val project: Project?, private val fromAehd: Bool
       myLabel.horizontalTextPosition = SwingConstants.RIGHT
       icon(StudioIcons.Common.WARNING)
       text = warningText
-      border = JBUI.Borders.customLine(WARNING_BORDER_COLOR, 1)
+      myLabel.border = JBUI.Borders.empty()
+      border = JBUI.Borders.compound(
+        JBUI.Borders.customLine(WARNING_BORDER_COLOR, 1),
+        JBUI.Borders.empty(12, 16, 12, 16)
+      )
     }
   }
 
