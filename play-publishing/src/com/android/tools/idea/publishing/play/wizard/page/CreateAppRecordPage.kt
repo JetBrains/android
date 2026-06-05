@@ -52,9 +52,10 @@ import com.android.tools.idea.publishing.play.client.type.AppType
 import com.android.tools.idea.publishing.play.wizard.FormField
 import com.android.tools.idea.publishing.play.wizard.PlayPublishingWizardHeader
 import com.android.tools.idea.publishing.play.wizard.PlayPublishingWizardState
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.Task
-import kotlinx.coroutines.runBlocking
+import com.intellij.platform.ide.progress.ModalTaskOwner
+import com.intellij.platform.ide.progress.TaskCancellation
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
+import kotlin.coroutines.cancellation.CancellationException
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.CircularProgressIndicator
@@ -79,7 +80,7 @@ private const val APP_NAME_CHAR_LIMIT = 30
 @Composable
 fun WizardPageScope.CreateAppRecordPage() {
   val state = getOrCreateState<PlayPublishingWizardState> { error("State not initialized") }
-  val project = LocalProject.current
+  val project = LocalProject.current ?: error("Project cannot be null")
 
   var isLoadingDevelopers by remember { mutableStateOf(true) }
   var errorMessage: String? by remember { mutableStateOf(null) }
@@ -203,32 +204,35 @@ fun WizardPageScope.CreateAppRecordPage() {
             paid = false,
           )
         isCreatingApp = true
-        object : Task.Modal(project, "Creating App...", false) {
-            override fun run(indicator: ProgressIndicator) {
-              indicator.isIndeterminate = true
-              runBlocking {
-                try {
-                  PlayPublishingClient.getInstance().createAppRecord(dev.developerId, appConfig)
-                  state.isAppCreated = true
-                  state.releaseName = DEFAULT_RELEASE_NAME
-                  state.releaseNotes = DEFAULT_RELEASE_NOTES
-                  pushPage { CreateReleasePage() }
-                } catch (e: PlayPublishingException) {
-                  val message = e.message ?: "Unknown error"
-                  errorMessage =
-                    if (message.contains("Package name ${state.packageName} is not available on Play", ignoreCase = true)) {
-                      "The package name ${state.packageName} is not available on Play. Please change the package name, generate a new signed bundle or APK and try again."
-                    } else {
-                      message
-                    }
-                } catch (e: Exception) {
-                  errorMessage = e.message ?: "Unknown error"
-                } finally {
-                  isCreatingApp = false
+
+        val success =
+          runWithModalProgressBlocking(ModalTaskOwner.project(project), "Creating App...", TaskCancellation.nonCancellable()) {
+            try {
+              PlayPublishingClient.getInstance().createAppRecord(dev.developerId, appConfig)
+              true
+            } catch (e: PlayPublishingException) {
+              val message = e.message ?: "Unknown error"
+              errorMessage =
+                if (message.contains("Package name ${state.packageName} is not available on Play", ignoreCase = true)) {
+                  "The package name ${state.packageName} is not available on Play. Please change the package name, generate a new signed bundle or APK and try again."
+                } else {
+                  message
                 }
-              }
+              false
+            } catch (e: CancellationException) {
+              throw e
+            } catch (e: Exception) {
+              errorMessage = e.message ?: "Unknown error"
+              false
+            } finally {
+              isCreatingApp = false
             }
           }
-          .queue()
+        if (success) {
+          state.isAppCreated = true
+          state.releaseName = DEFAULT_RELEASE_NAME
+          state.releaseNotes = DEFAULT_RELEASE_NOTES
+          pushPage { CreateReleasePage() }
+        }
       }
 }

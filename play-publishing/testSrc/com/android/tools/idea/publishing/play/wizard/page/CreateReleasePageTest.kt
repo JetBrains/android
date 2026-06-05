@@ -27,6 +27,7 @@ import com.android.mockito.kotlin.whenever
 import com.android.tools.adtui.compose.LocalProject
 import com.android.tools.adtui.compose.TestComposeWizard
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule
+import com.android.tools.idea.publishing.AppPublishingService
 import com.android.tools.idea.publishing.play.client.FakePlayPublishingClient
 import com.android.tools.idea.publishing.play.client.PlayPublishingClient
 import com.android.tools.idea.publishing.play.client.PlayPublishingException
@@ -44,17 +45,21 @@ import com.intellij.notification.Notification
 import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.impl.NotificationGroupEP
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.util.JDOMUtil
-import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
+import com.intellij.util.application
 import com.intellij.util.xmlb.XmlSerializer
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -67,9 +72,9 @@ private const val NOTIFICATION_GROUP_ID = "Play Publishing"
 @RunsInEdt
 class CreateReleasePageTest {
   private val edtRule = EdtRule()
-  private val applicationRule = ApplicationRule()
+  private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
-  private val notificationRule = NotificationRule()
+  private val notificationRule = NotificationRule(projectRule)
   private val composeTestRule = StudioComposeTestRule.createStudioComposeTestRule()
   // TODO: android-merge; LoginFeatureRule and LoginUsersRule are in tools/vendor/google/login, which this
   // repository does not carry.
@@ -79,7 +84,7 @@ class CreateReleasePageTest {
   @get:Rule
   val ruleChain: RuleChain =
     RuleChain.outerRule(edtRule)
-      .around(applicationRule)
+      .around(projectRule)
       .around(disposableRule)
       .around(notificationRule)
       // .around(loginFeatureRule)
@@ -93,7 +98,7 @@ class CreateReleasePageTest {
     // TODO: android-merge; LoginUsersRule is in tools/vendor/google/login, which this repository does not carry.
     // loginUsersRule.setActiveUser("user@example.com")
     fakeClient = FakePlayPublishingClient()
-    ApplicationManager.getApplication().replaceService(PlayPublishingClient::class.java, fakeClient, disposableRule.disposable)
+    application.replaceService(PlayPublishingClient::class.java, fakeClient, disposableRule.disposable)
 
     // TODO: android-merge; play-publishing.xml is not loaded in this test JVM, so the notification group it
     // declares has to be registered here.
@@ -107,6 +112,12 @@ class CreateReleasePageTest {
         .point
         .registerExtension(group, disposableRule.disposable)
     }
+  }
+
+  @After
+  fun tearDown() {
+    // Cancel background task if it is running at the end of the test.
+    AppPublishingService.getInstance(projectRule.project).coroutineScope.coroutineContext.cancelChildren()
   }
 
   @Test
@@ -225,7 +236,7 @@ class CreateReleasePageTest {
     composeTestRule.waitForIdle()
 
     // We can't easily wait for background Task, so we'll poll briefly
-    composeTestRule.waitUntil(5000) { commitEditCalled }
+    composeTestRule.waitUntil(5000) { notificationRule.notifications.isNotEmpty() }
 
     assertThat(uploadArtifactCalled).isTrue()
     assertThat(createReleaseCalled).isTrue()
@@ -305,6 +316,51 @@ class CreateReleasePageTest {
   }
 
   @Test
+  fun testPublishActionCancelled() {
+    val uploadBundleStarted = CompletableDeferred<Unit>()
+    val uploadBundleCompleted = CompletableDeferred<Bundle>()
+    var createReleaseCalled = false
+    var commitEditCalled = false
+
+    fakeClient.config =
+      FakePlayPublishingClient.Config(
+        insertEditCall = { AppEdit("editId123", "expiry") },
+        listEditTracksCall = { _, _ -> listOf(Track("internal")) },
+        uploadArtifactCall = { _, _, _ ->
+          uploadBundleStarted.complete(Unit)
+          uploadBundleCompleted.await()
+        },
+        createReleaseCall = { _, _, _, _, _, _ -> createReleaseCalled = true },
+        commitEditCall = { _, _ -> commitEditCalled = true },
+      )
+
+    val state = PlayPublishingWizardState(packageName = "com.example.app", bundlePath = "/some/path/app.aab")
+    state.releaseName = "My Release"
+    state.releaseNotes = "<en-US>These are some notes</en-US>"
+    createWizard(state)
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithText("Publish app").performClick()
+
+    // Wait until uploadBundle starts and suspends
+    runBlocking { uploadBundleStarted.await() }
+
+    // Cancel the uploading coroutines
+    val scope = AppPublishingService.getInstance(projectRule.project).coroutineScope
+    scope.coroutineContext.cancelChildren()
+
+    // Complete the deferred to unblock, but since cancelled, it should throw CancellationException
+    uploadBundleCompleted.completeExceptionally(CancellationException("Cancelled"))
+
+    composeTestRule.waitForIdle()
+
+    // Verify nothing else was called and no notification was sent
+    assertThat(createReleaseCalled).isFalse()
+    assertThat(commitEditCalled).isFalse()
+    assertThat(notificationRule.notifications).isEmpty()
+  }
+
+  @Test
   fun testFailedToLoadTracksError() {
     fakeClient.config = FakePlayPublishingClient.Config(listEditTracksCall = { _, _ -> throw Exception("Network failure") })
     val state = PlayPublishingWizardState(packageName = "com.example.app")
@@ -319,7 +375,7 @@ class CreateReleasePageTest {
       getOrCreateState { state }
       CreateReleasePage()
     }
-    composeTestRule.setContent { CompositionLocalProvider(LocalProject provides null) { wizard.Content() } }
+    composeTestRule.setContent { CompositionLocalProvider(LocalProject provides projectRule.project) { wizard.Content() } }
     return wizard
   }
 }

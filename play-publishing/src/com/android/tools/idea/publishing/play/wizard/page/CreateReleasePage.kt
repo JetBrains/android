@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import com.android.tools.adtui.compose.LocalProject
 import com.android.tools.adtui.compose.WizardAction
 import com.android.tools.adtui.compose.WizardPageScope
+import com.android.tools.idea.publishing.AppPublishingService
 import com.android.tools.idea.publishing.play.client.PlayPublishingClient
 import com.android.tools.idea.publishing.play.client.PlayPublishingException
 import com.android.tools.idea.publishing.play.client.type.AppEdit
@@ -58,15 +59,13 @@ import com.intellij.ide.BrowserUtil
 import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
+import com.intellij.platform.ide.progress.withBackgroundProgress
 import icons.StudioIcons
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import kotlin.coroutines.cancellation.CancellationException
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.CircularProgressIndicator
@@ -96,7 +95,7 @@ private fun String.displayTrackName() = trackNameMap[this] ?: (replaceFirstChar 
 @Composable
 fun WizardPageScope.CreateReleasePage() {
   val state = getOrCreateState<PlayPublishingWizardState> { error("State not initialized") }
-  val project = LocalProject.current
+  val project = LocalProject.current ?: error("Project cannot be null")
 
   val releaseNameState = rememberTextFieldState(state.releaseName ?: "")
   val releaseNotesState = rememberTextFieldState(state.releaseNotes ?: "")
@@ -233,50 +232,34 @@ fun WizardPageScope.CreateReleasePage() {
         val editId = appEdit?.id ?: return@WizardAction
         val artifactPath = state.bundlePath ?: return@WizardAction
         val selectedTrackId = selectedTrack ?: return@WizardAction
+        val tags = extractedTags ?: emptyMap()
+        val releaseName = releaseNameState.text.toString()
+        val appName = state.appName
 
-        ProgressManager.getInstance()
-          .run(
-            object : Task.Backgroundable(project, "Uploading Build to Google Play...", true) {
-              override fun run(indicator: ProgressIndicator) {
-                indicator.isIndeterminate = true
-                runBlocking {
-                  try {
-                    val responseArtifact = PlayPublishingClient.getInstance().uploadBundle(packageName, editId, artifactPath)
-                    PlayPublishingClient.getInstance()
-                      .createRelease(
-                        packageName,
-                        editId,
-                        releaseNameState.text.toString(),
-                        extractedTags ?: emptyMap(),
-                        responseArtifact.versionCode,
-                        selectedTrackId,
-                      )
-                    PlayPublishingClient.getInstance().commitEdit(packageName, editId)
-                    showUploadSuccessfulNotification(
-                      project,
-                      releaseNameState.text.toString(),
-                      selectedTrack,
-                      state.appName,
-                      state.packageName,
-                    )
-                  } catch (e: PlayPublishingException) {
-                    val message = e.message ?: "Unknown error"
-                    showUploadFailedNotification(project, message)
-                  } catch (e: CancellationException) {
-                    throw e
-                  } catch (e: Exception) {
-                    showUploadFailedNotification(project, "Unknown error")
-                  }
-                }
-              }
+        AppPublishingService.getInstance(project).coroutineScope.launch {
+          withBackgroundProgress(project, "Uploading Build to Google Play...", true) {
+            try {
+              val responseArtifact = PlayPublishingClient.getInstance().uploadBundle(packageName, editId, artifactPath)
+              PlayPublishingClient.getInstance()
+                .createRelease(packageName, editId, releaseName, tags, responseArtifact.versionCode, selectedTrackId)
+              PlayPublishingClient.getInstance().commitEdit(packageName, editId)
+              showUploadSuccessfulNotification(project, releaseName, selectedTrackId, appName, packageName)
+            } catch (e: PlayPublishingException) {
+              val message = e.message ?: "Unknown error"
+              showUploadFailedNotification(project, message)
+            } catch (e: CancellationException) {
+              throw e
+            } catch (e: Exception) {
+              showUploadFailedNotification(project, "Unknown error")
             }
-          )
+          }
+        }
         close()
       }
 }
 
 private fun showUploadSuccessfulNotification(
-  project: Project?,
+  project: Project,
   releaseName: String?,
   selectedTrack: String?,
   appName: String?,
@@ -307,7 +290,7 @@ private fun showUploadSuccessfulNotification(
   notification.notify(project)
 }
 
-private fun showUploadFailedNotification(project: Project?, errorMessage: String) {
+private fun showUploadFailedNotification(project: Project, errorMessage: String) {
   NotificationGroupManager.getInstance()
     .getNotificationGroup("Play Publishing")
     .createNotification("Publishing failed", errorMessage, NotificationType.ERROR)

@@ -35,12 +35,12 @@ import com.android.tools.idea.publishing.play.wizard.PlayPublishingWizardState
 // TODO: android-merge; com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
 // import com.google.gct.login2.LoginFeatureRule
 // import com.google.gct.login2.LoginUsersRule
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
+import com.intellij.util.application
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -49,7 +49,7 @@ import org.junit.rules.RuleChain
 @RunsInEdt
 class ChooseBundlePageTest {
   private val edtRule = EdtRule()
-  private val applicationRule = ApplicationRule()
+  private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
   private val composeTestRule = StudioComposeTestRule.createStudioComposeTestRule()
   // TODO: android-merge; LoginFeatureRule and LoginUsersRule are in tools/vendor/google/login, which this
@@ -62,7 +62,7 @@ class ChooseBundlePageTest {
   @get:Rule
   val ruleChain: RuleChain =
     RuleChain.outerRule(edtRule)
-      .around(applicationRule)
+      .around(projectRule)
       .around(disposableRule)
       // .around(loginFeatureRule)
       // .around(loginUsersRule)
@@ -73,7 +73,7 @@ class ChooseBundlePageTest {
     // TODO: android-merge; LoginUsersRule is in tools/vendor/google/login, which this repository does not carry.
     // loginUsersRule.setActiveUser("user@example.com")
     fakeClient = FakePlayPublishingClient()
-    ApplicationManager.getApplication().replaceService(PlayPublishingClient::class.java, fakeClient, disposableRule.disposable)
+    application.replaceService(PlayPublishingClient::class.java, fakeClient, disposableRule.disposable)
   }
 
   @Test
@@ -273,7 +273,7 @@ class ChooseBundlePageTest {
       getOrCreateState { state }
       ChooseBundlePage { appMetadata() }
     }
-    composeTestRule.setContent { CompositionLocalProvider(LocalProject provides null) { wizard.Content() } }
+    composeTestRule.setContent { CompositionLocalProvider(LocalProject provides projectRule.project) { wizard.Content() } }
     return wizard
   }
 }
