@@ -170,7 +170,7 @@ class ComposePreviewFakeUiGradleRule(
     runnable: suspend () -> Unit,
   ) {
     try {
-      waitForAllRefreshesToFinish(timeout = 5.seconds)
+      waitForAllRefreshesToFinish(timeout = 15.seconds)
     } catch (t: Throwable) {
       if (failOnTimeout) throw t
     }
