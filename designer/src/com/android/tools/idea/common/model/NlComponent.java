@@ -50,6 +50,7 @@ import com.intellij.lang.java.JavaLanguage;
 import com.intellij.lang.refactoring.NamesValidator;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
@@ -437,7 +438,7 @@ public class NlComponent implements NlAttributesHolder {
   @Override
   public void setAttribute(@Nullable String namespace, @NotNull String attribute, @Nullable String value) {
     XmlTag tag = getTagDeprecated();
-    if (!tag.isValid()) {
+    if (!ReadAction.computeBlocking(tag::isValid)) {
       // This could happen when trying to set an attribute in a component that has been already deleted
       return;
     }
@@ -582,16 +583,12 @@ public class NlComponent implements NlAttributesHolder {
     }
 
     RenderXmlTag tag = new PsiXmlTag(getTagDeprecated());
-    if (tag.isValid()) {
-      Application application = ApplicationManager.getApplication();
-
-      if (!application.isReadAccessAllowed()) {
-        return application.runReadAction((Computable<List<AttributeSnapshot>>)() -> AttributeSnapshot.createAttributesForTag(tag));
+    return ReadAction.computeBlocking(() -> {
+      if (tag.isValid()) {
+        return AttributeSnapshot.createAttributesForTag(tag);
       }
-      return AttributeSnapshot.createAttributesForTag(tag);
-    }
-
-    return Collections.emptyList();
+      return Collections.emptyList();
+    });
   }
 
   /**
