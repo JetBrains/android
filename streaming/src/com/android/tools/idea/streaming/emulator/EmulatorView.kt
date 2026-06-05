@@ -20,21 +20,18 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.UiThread
 import com.android.emulator.ImageConverter
-import com.android.emulator.control.DisplayConfiguration
 import com.android.emulator.control.DisplayModeValue
 import com.android.emulator.control.Image as ImageMessage
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.InputEvent as InputEventMessage
 import com.android.emulator.control.KeyboardEvent.KeyEventType
 import com.android.emulator.control.MouseEvent as MouseEventMessage
-import com.android.emulator.control.Notification as EmulatorNotification
 import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.RotationRadian
 import com.android.emulator.control.Touch
 import com.android.emulator.control.Touch.EventExpiration.NEVER_EXPIRE
 import com.android.emulator.control.TouchEvent
 import com.android.emulator.control.WheelEvent
-import com.android.emulator.control.XrOptions
 import com.android.ide.common.util.Cancelable
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.ImageUtils.ALPHA_MASK
@@ -46,6 +43,7 @@ import com.android.tools.adtui.util.rotatedByQuadrants
 import com.android.tools.adtui.util.scaled
 import com.android.tools.analytics.toProto
 import com.android.tools.idea.avdmanager.RunningAvdTracker
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_SCREENSHOTS
@@ -60,11 +58,9 @@ import com.android.tools.idea.streaming.core.isSameAspectRatio
 import com.android.tools.idea.streaming.core.scaledDown
 import com.android.tools.idea.streaming.core.scaledUnbiased
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.DisplayMode
-import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDescriptor
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionStateListener
 import com.android.tools.idea.streaming.emulator.xr.EmulatorXrInputController
-import com.android.tools.idea.streaming.xr.XrEnvironment
 import com.android.tools.idea.streaming.xr.XrInputMode
 import com.google.protobuf.TextFormat.shortDebugString
 import com.intellij.ide.ActivityTracker
@@ -112,6 +108,7 @@ import com.intellij.openapi.actionSystem.IdeActions.ACTION_REDO
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_SELECT_ALL
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_UNDO
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.keymap.KeymapUtil
@@ -123,7 +120,6 @@ import com.intellij.openapi.wm.impl.IdeGlassPaneEx
 import com.intellij.util.Alarm
 import com.intellij.util.SofterReference
 import com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService
-import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.containers.DisposableWrapperList
 import com.intellij.util.ui.UIUtil
 import com.intellij.xml.util.XmlStringUtil
@@ -184,6 +180,9 @@ import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import org.HdrHistogram.Histogram
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -264,27 +263,14 @@ internal class EmulatorView(
   private var screenshotFeed: Cancelable? = null
   @Volatile private var screenshotReceiver: ScreenshotReceiver? = null
 
-  private var notificationFeed: Cancelable? = null
-  @Volatile private var notificationReceiver: NotificationReceiver? = null
+  private val notificationReceiver = NotificationReceiver.forEmulator(emulator)
+
+  private val coroutineScope = createCoroutineScope()
+  private var notificationCollectionJob: Job? = null
 
   private val sourceFrameListeners = DisposableWrapperList<SourceFrameListener>()
-  private val displayConfigurationListeners: MutableList<DisplayConfigurationListener> = ContainerUtil.createLockFreeCopyOnWriteList()
-  private val postureListeners: MutableList<PostureListener> = ContainerUtil.createLockFreeCopyOnWriteList()
-  @Volatile
-  internal var currentPosture: PostureDescriptor? = null
-    private set(value) {
-      if (field != value) {
-        field = value
-        if (value != null) {
-          if (deviceFrameVisible) {
-            requestScreenshotFeed()
-          }
-          for (listener in postureListeners) {
-            listener.postureChanged(value)
-          }
-        }
-      }
-    }
+  private val currentPosture: PostureValue?
+    get() = notificationReceiver.currentPosture.value?.posture
 
   var deviceFrameVisible: Boolean = deviceFrameVisible
     set(value) {
@@ -323,14 +309,6 @@ internal class EmulatorView(
           val y = projectionRect.y + (projectionRect.height - h) / 2
           Rectangle2D.Double(x, y, w, h)
         }
-      }
-    }
-
-  var microphoneInput: Boolean? = null
-    set(value) {
-      if (field != value) {
-        field = value
-        ActivityTracker.getInstance().inc()
       }
     }
 
@@ -426,13 +404,8 @@ internal class EmulatorView(
         xrInputController == null
   }
 
-  private var virtualSceneCameraActive = false
-    set(value) {
-      if (value != field) {
-        field = value
-        updateCameraPromptAndMultiTouchFeedback()
-      }
-    }
+  private val virtualSceneCameraActive: Boolean
+    get() = notificationReceiver.virtualSceneCameraActive.value
 
   private var virtualSceneCameraOperating = false
     set(value) {
@@ -467,9 +440,6 @@ internal class EmulatorView(
       object : ComponentAdapter() {
         override fun componentShown(event: ComponentEvent) {
           requestScreenshotFeed()
-          if (displayId == PRIMARY_DISPLAY_ID) {
-            requestNotificationFeed()
-          }
         }
       }
     )
@@ -498,6 +468,7 @@ internal class EmulatorView(
           }
         }
       )
+      processNotifications()
     }
 
     messageBusConnection.subscribe(
@@ -523,7 +494,6 @@ internal class EmulatorView(
 
   override fun dispose() {
     isDisposed = true
-    cancelNotificationFeed()
     cancelScreenshotFeed()
     emulator.removeConnectionStateListener(this)
     virtualSceneCameraOperating = false
@@ -533,22 +503,6 @@ internal class EmulatorView(
 
   override fun sendTypedText(text: String) {
     emulator.sendTypedText(text)
-  }
-
-  fun addDisplayConfigurationListener(listener: DisplayConfigurationListener) {
-    displayConfigurationListeners.add(listener)
-  }
-
-  fun removeDisplayConfigurationListener(listener: DisplayConfigurationListener) {
-    displayConfigurationListeners.remove(listener)
-  }
-
-  fun addPostureListener(listener: PostureListener) {
-    postureListeners.add(listener)
-  }
-
-  fun removePostureListener(listener: PostureListener) {
-    postureListeners.remove(listener)
   }
 
   override fun canZoom(): Boolean = isConnected
@@ -582,7 +536,7 @@ internal class EmulatorView(
     }
   }
 
-  internal fun getSkin(): SkinDefinition? = if (displayId == PRIMARY_DISPLAY_ID) emulator.getSkin(currentPosture?.posture) else null
+  internal fun getSkin(): SkinDefinition? = if (displayId == PRIMARY_DISPLAY_ID) emulator.getSkin(currentPosture) else null
 
   override fun connectionStateChanged(emulator: EmulatorController, connectionState: ConnectionState) {
     EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
@@ -599,9 +553,6 @@ internal class EmulatorView(
           requestScreenshotFeed()
         }
         if (displayId == PRIMARY_DISPLAY_ID) {
-          if (notificationFeed == null) {
-            requestNotificationFeed()
-          }
           if (EmulatorSettings.getInstance().synchronizeClipboard) {
             startClipboardSynchronization()
           }
@@ -793,19 +744,18 @@ internal class EmulatorView(
     screenshotFeed = null
   }
 
-  private fun requestNotificationFeed() {
-    cancelNotificationFeed()
-    if (isConnected) {
-      val receiver = NotificationReceiver()
-      notificationReceiver = receiver
-      notificationFeed = emulator.streamNotification(receiver)
-    }
-  }
-
-  private fun cancelNotificationFeed() {
-    notificationReceiver = null
-    notificationFeed?.cancel()
-    notificationFeed = null
+  private fun processNotifications() {
+    notificationCollectionJob =
+      coroutineScope.launch(Dispatchers.EDT) {
+        launch {
+          notificationReceiver.currentPosture.collect { posture ->
+            if (posture != null && deviceFrameVisible) {
+              requestScreenshotFeed()
+            }
+          }
+        }
+        launch { notificationReceiver.virtualSceneCameraActive.collect { updateCameraPromptAndMultiTouchFeedback() } }
+      }
   }
 
   fun notifySourceFrameListeners(frame: BufferedImage) {
@@ -940,56 +890,6 @@ internal class EmulatorView(
 
   interface SourceFrameListener {
     fun frameReceived(frameNumber: UInt, displayOrientationQuadrants: Int, displayImage: BufferedImage)
-  }
-
-  private inner class NotificationReceiver : EmptyStreamObserver<EmulatorNotification>() {
-
-    override fun onNext(message: EmulatorNotification) {
-      log.info("Received notification: ${shortDebugString(message)}")
-
-      if (notificationReceiver != this) {
-        return // This notification feed has already been canceled.
-      }
-
-      EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
-        if (notificationReceiver != this) {
-          return@invokeLater // This notification feed has already been canceled.
-        }
-        when {
-          message.hasCameraNotification() -> virtualSceneCameraActive = message.cameraNotification.active
-          message.hasDisplayConfigurationsChangedNotification() ->
-            notifyDisplayConfigurationListeners(message.displayConfigurationsChangedNotification.displayConfigurations.displaysList)
-          message.hasPosture() -> updateCurrentPosture(message.posture.value)
-          message.hasXrOptions() -> updateXrOptions(message.xrOptions)
-          message.hasMicrophoneState() -> microphoneInput = message.microphoneState.realAudioEnabled
-          else -> {}
-        }
-      }
-    }
-
-    private fun notifyDisplayConfigurationListeners(displayConfigs: List<DisplayConfiguration>) {
-      for (listener in displayConfigurationListeners) {
-        listener.displayConfigurationChanged(displayConfigs)
-      }
-    }
-
-    private fun updateCurrentPosture(posture: PostureValue) {
-      emulatorConfig.postures.find { it.posture == posture }?.let { currentPosture = it } ?: log.error("Unexpected posture: $posture")
-    }
-
-    private fun updateXrOptions(xrOptions: XrOptions) {
-      xrInputController?.apply {
-        environment = xrOptions.environment?.let { XrEnvironment.entries[it.number] }
-        passthroughCoefficient = xrOptions.passthroughCoefficient
-        dimmingCoefficient = xrOptions.dimmingValue
-      }
-    }
-
-    override fun onError(t: Throwable) {
-      if (notificationReceiver == this && t is EmulatorController.RetryException) {
-        requestNotificationFeed()
-      }
-    }
   }
 
   override val hardwareInput: HardwareInput =
@@ -1521,7 +1421,7 @@ internal class EmulatorView(
       val withEnvironment = environmentSize == null || displayId != PRIMARY_DISPLAY_ID
       val displayShape = DisplayShape(width, height, imageRotation, activeDisplayRegion, displayMode, withEnvironment, message.seq.toUInt())
       val screenshot = Screenshot(displayShape, image, frameOriginationTime)
-      val skinLayout = skinLayoutCache.getCached(displayShape, currentPosture?.posture)
+      val skinLayout = skinLayoutCache.getCached(displayShape, currentPosture)
       if (skinLayout == null) {
         computeSkinLayoutOnPooledThread(screenshot)
       } else {
@@ -1570,7 +1470,7 @@ internal class EmulatorView(
           if (screenshot == null) {
             stats?.recordDroppedFrame()
           } else {
-            screenshot.skinLayout = skinLayoutCache.get(screenshot.displayShape, currentPosture?.posture)
+            screenshot.skinLayout = skinLayoutCache.get(screenshot.displayShape, currentPosture)
             updateDisplayImageOnUiThread(screenshot)
           }
         }

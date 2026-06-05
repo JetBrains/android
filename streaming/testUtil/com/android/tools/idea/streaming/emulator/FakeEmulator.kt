@@ -36,6 +36,7 @@ import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.ImageFormat.ImgFormat
 import com.android.emulator.control.InputEvent
 import com.android.emulator.control.KeyboardEvent
+import com.android.emulator.control.LedIndicator
 import com.android.emulator.control.MicrophoneState
 import com.android.emulator.control.MouseEvent
 import com.android.emulator.control.Notification
@@ -211,6 +212,16 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
         notificationStreamObserver?.sendStreamingResponse(Notification.newBuilder().setMicrophoneState(value).build())
       }
     }
+
+  @Volatile
+  var ledStates: Map<Int, LedIndicator> = emptyMap()
+    private set
+
+  fun setLedState(id: Int, state: LedIndicator.State, color: Int) {
+    val led = LedIndicator.newBuilder().setId(id).setState(state).setColor(color).build()
+    ledStates = ledStates + (id to led)
+    notificationStreamObserver?.sendStreamingResponse(Notification.newBuilder().setLedIndicator(led).build())
+  }
 
   private var foldedDisplay: FoldedDisplay? = null
     set(value) {
@@ -766,6 +777,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           responseObserver.sendStreamingResponse(Notification.newBuilder().setXrOptions(xrOptions).build())
         }
         responseObserver.sendStreamingResponse(Notification.newBuilder().setMicrophoneState(microphoneState).build())
+        for (led in ledStates.values) {
+          responseObserver.sendStreamingResponse(Notification.newBuilder().setLedIndicator(led).build())
+        }
       }
     }
 

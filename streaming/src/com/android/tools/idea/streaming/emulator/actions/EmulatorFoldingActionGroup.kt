@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.emulator.actions
 
 import com.android.tools.idea.streaming.core.findComponentForAction
 import com.android.tools.idea.streaming.emulator.EMULATOR_MAIN_TOOLBAR_ID
+import com.android.tools.idea.streaming.emulator.NotificationReceiver
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -36,8 +37,8 @@ internal class EmulatorFoldingActionGroup : DefaultActionGroup(), DumbAware {
   }
 
   override fun actionPerformed(event: AnActionEvent) {
-    val emulatorView = getEmulatorView(event) ?: return
-    val currentPosture = emulatorView.currentPosture
+    val emulator = getEmulatorController(event) ?: return
+    val currentPosture = NotificationReceiver.forEmulator(emulator).currentPosture.value
     if (currentPosture == null) {
       ActionManager.getInstance().getAction(EmulatorShowVirtualSensorsAction.ID).actionPerformed(event)
     } else {
@@ -68,7 +69,8 @@ internal class EmulatorFoldingActionGroup : DefaultActionGroup(), DumbAware {
       return emptyArray()
     }
     val children = mutableListOf<AnAction>()
-    if (emulatorView.currentPosture != null) {
+    val currentPosture = NotificationReceiver.forEmulator(emulatorView.emulator).currentPosture.value
+    if (currentPosture != null) {
       for (posture in postures) {
         children.add(EmulatorFoldingAction(posture))
       }
@@ -87,7 +89,8 @@ internal class EmulatorFoldingActionGroup : DefaultActionGroup(), DumbAware {
     val presentation = event.presentation
     presentation.isEnabledAndVisible = enabled
     if (enabled) {
-      emulatorView.currentPosture?.let { posture ->
+      val currentPosture = NotificationReceiver.forEmulator(emulatorView.emulator).currentPosture.value
+      currentPosture?.let { posture ->
         presentation.icon = posture.icon
         presentation.text = "${templatePresentation.text} (currently ${posture.displayName})"
       }

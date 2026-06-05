@@ -19,6 +19,8 @@ import com.android.emulator.control.MicrophoneState
 import com.android.repository.Revision
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.avdmanager.AvdManagerConnection
+import com.android.tools.idea.streaming.emulator.EmulatorController
+import com.android.tools.idea.streaming.emulator.NotificationReceiver
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -36,8 +38,9 @@ internal class EmulatorMicrophoneToggleAction : AbstractEmulatorAction(configFil
     if (!emulatorSupported) {
       return
     }
-    val microphoneInput = getEmulatorView(event)?.microphoneInput ?: return
     val emulatorController = getEmulatorController(event) ?: return
+    val microphoneInput = emulatorController.microphoneInput ?: return
+
     emulatorController.setMicrophoneState(MicrophoneState.newBuilder().setRealAudioEnabled(!microphoneInput).build())
   }
 
@@ -48,7 +51,7 @@ internal class EmulatorMicrophoneToggleAction : AbstractEmulatorAction(configFil
       presentation.isEnabledAndVisible = false
       return
     }
-    val microphoneInput = getEmulatorView(event)?.microphoneInput
+    val microphoneInput = getEmulatorController(event)?.microphoneInput
     if (microphoneInput == true) {
       presentation.icon = AllIcons.CodeWithMe.CwmMicOn
       presentation.text = "Disconnect Emulator from System Microphone"
@@ -63,3 +66,6 @@ internal class EmulatorMicrophoneToggleAction : AbstractEmulatorAction(configFil
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 }
+
+private val EmulatorController.microphoneInput: Boolean?
+  get() = NotificationReceiver.forEmulator(this).microphoneInput.value

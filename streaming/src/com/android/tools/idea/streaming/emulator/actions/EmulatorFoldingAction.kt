@@ -19,6 +19,7 @@ import com.android.emulator.control.ParameterValue
 import com.android.emulator.control.PhysicalModelValue
 import com.android.emulator.control.PhysicalModelValue.PhysicalType
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDescriptor
+import com.android.tools.idea.streaming.emulator.NotificationReceiver
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 
@@ -31,9 +32,8 @@ internal data class EmulatorFoldingAction(val posture: PostureDescriptor) : Abst
   }
 
   override fun actionPerformed(event: AnActionEvent) {
-    val emulatorView = getEmulatorView(event) ?: return
-    if (posture != emulatorView.currentPosture) {
-      val emulator = emulatorView.emulator
+    val emulator = getEmulatorController(event) ?: return
+    if (posture != NotificationReceiver.forEmulator(emulator).currentPosture.value) {
       val type = if (posture.valueType == PostureDescriptor.ValueType.HINGE_ANGLE) PhysicalType.HINGE_ANGLE0 else PhysicalType.ROLLABLE0
       val physicalModelValue =
         PhysicalModelValue.newBuilder()

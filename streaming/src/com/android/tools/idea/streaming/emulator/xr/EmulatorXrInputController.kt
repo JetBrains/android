@@ -23,11 +23,14 @@ import com.android.emulator.control.Translation
 import com.android.emulator.control.Velocity
 import com.android.emulator.control.XrOptions
 import com.android.emulator.control.XrOptions.Environment.forNumber
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.protobuf.Empty
 import com.android.tools.idea.streaming.core.getNormalizedScrollAmount
 import com.android.tools.idea.streaming.emulator.EmptyStreamObserver
 import com.android.tools.idea.streaming.emulator.EmulatorController
+import com.android.tools.idea.streaming.emulator.NotificationReceiver
 import com.android.tools.idea.streaming.xr.AbstractXrInputController
+import com.android.tools.idea.streaming.xr.XrEnvironment
 import com.android.tools.idea.streaming.xr.XrInputMode
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
@@ -42,6 +45,8 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.math.min
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 
 /** Orchestrates mouse and keyboard input for XR devices. Keeps track of XR environment and passthrough. Thread safe. */
@@ -56,8 +61,19 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
   override val dimmingLevels: FloatArray
     get() = emulator.emulatorConfig.dimmingLevels
 
+  private val coroutineScope = createCoroutineScope()
+
   init {
     Disposer.register(emulator, this)
+    coroutineScope.launch {
+      NotificationReceiver.forEmulator(emulator).xrOptions.collect { xrOptions ->
+        if (xrOptions != null) {
+          environment = xrOptions.environment?.let { XrEnvironment.entries[it.number] }
+          passthroughCoefficient = xrOptions.passthroughCoefficient
+          dimmingCoefficient = xrOptions.dimmingValue
+        }
+      }
+    }
   }
 
   override suspend fun setPassthroughAndDimming(passthroughCoefficient: Float, dimmingCoefficient: Float) {

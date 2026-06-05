@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.emulator
 
+import com.android.emulator.control.LedIndicator
 import com.android.emulator.control.Posture.PostureValue
 import com.android.mockito.kotlin.whenever
 import com.android.testutils.GoldenImageRule
@@ -79,6 +80,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.EditorNotificationPanel
+import java.awt.Color
 import java.awt.Component
 import java.awt.DefaultKeyboardFocusManager
 import java.awt.Dimension
@@ -524,7 +526,9 @@ class EmulatorViewTest {
     assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("mouse_event { x: 1528 y: 1635 }")
 
     fakeEmulator.setPosture(PostureValue.POSTURE_CLOSED)
-    waitForCondition(1.seconds) { view.currentPosture?.posture == PostureValue.POSTURE_CLOSED }
+    waitForCondition(1.seconds) {
+      NotificationReceiver.forEmulator(view.emulator).currentPosture.value?.posture == PostureValue.POSTURE_CLOSED
+    }
     getStreamScreenshotCallAndWaitForFrame()
     assertAppearance("FoldingClosed")
 
@@ -1201,7 +1205,7 @@ class EmulatorViewTest {
     waitForCondition(2.seconds) {
       view.emulator.connectionState == ConnectionState.CONNECTED &&
         view.displayOrientationQuadrants == fakeEmulator.displayRotation.number &&
-        view.currentPosture?.posture == fakeEmulator.devicePosture
+        NotificationReceiver.forEmulator(view.emulator).currentPosture.value?.posture == fakeEmulator.devicePosture
       fakeEmulator.frameNumber > 0u && renderAndGetFrameNumber() == fakeEmulator.frameNumber
     }
   }

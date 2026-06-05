@@ -184,7 +184,7 @@ class EmulatorAdbReadyServiceTest {
     waitForCondition(TIMEOUT) {
       view.emulator.connectionState == EmulatorController.ConnectionState.CONNECTED &&
         view.displayOrientationQuadrants == fakeEmulator.displayRotation.number &&
-        view.currentPosture?.posture == fakeEmulator.devicePosture
+        NotificationReceiver.forEmulator(view.emulator).currentPosture.value?.posture == fakeEmulator.devicePosture
       fakeEmulator.frameNumber > 0u && renderAndGetFrameNumber(ui, view) == fakeEmulator.frameNumber && settingsButtonIsVisible(ui)
     }
   }

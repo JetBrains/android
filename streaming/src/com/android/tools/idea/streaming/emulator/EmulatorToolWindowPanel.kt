@@ -24,6 +24,7 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.ProcessHandleProvider
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.EmulatorLogListener
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.core.AbstractDevicePanel
@@ -42,7 +43,6 @@ import com.android.tools.idea.streaming.core.htmlColored
 import com.android.tools.idea.streaming.core.icon
 import com.android.tools.idea.streaming.core.installFileDropHandler
 import com.android.tools.idea.streaming.core.sizeWithoutInsets
-import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDescriptor
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionStateListener
 import com.android.tools.idea.streaming.emulator.actions.findManageSnapshotDialog
@@ -55,6 +55,7 @@ import com.intellij.ide.ActivityTracker
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
@@ -75,6 +76,8 @@ import java.awt.EventQueue
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 
 /** Provides view of one AVD in the Running Devices tool window. */
@@ -181,14 +184,17 @@ internal class EmulatorToolWindowPanel(disposableParent: Disposable, private val
     val emulatorView = primaryDisplayPanel.displayView
     primaryDisplayView = emulatorView
     installFileDropHandler(this, id.serialNumber, emulatorView, project)
-    emulatorView.addDisplayConfigurationListener(displayConfigurator)
-    emulatorView.addPostureListener(
-      object : PostureListener {
-        override fun postureChanged(posture: PostureDescriptor) {
-          ActivityTracker.getInstance().inc()
+    val coroutineScope = disposable.createCoroutineScope()
+    val notificationReceiver = NotificationReceiver.forEmulator(emulator)
+    coroutineScope.launch(Dispatchers.EDT) { notificationReceiver.currentPosture.collect { ActivityTracker.getInstance().inc() } }
+    coroutineScope.launch(Dispatchers.EDT) { notificationReceiver.currentPosture.collect { ActivityTracker.getInstance().inc() } }
+    coroutineScope.launch(Dispatchers.EDT) {
+      notificationReceiver.displayConfigurations.collect { displayConfigs ->
+        if (displayConfigs != null) {
+          displayConfigurator.displayConfigurationReceived(displayConfigs)
         }
       }
-    )
+    }
     emulator.addConnectionStateListener(this)
 
     val multiDisplayState = multiDisplayStateStorage.getMultiDisplayState(emulatorId.avdId)
@@ -305,16 +311,9 @@ internal class EmulatorToolWindowPanel(disposableParent: Disposable, private val
     }
   }
 
-  private inner class DisplayConfigurator(private val project: Project) : DisplayConfigurationListener {
+  private inner class DisplayConfigurator(private val project: Project) {
 
     var displayDescriptors = emptyList<DisplayDescriptor>()
-
-    @AnyThread
-    override fun displayConfigurationChanged(displayConfigs: List<DisplayConfiguration>) {
-      EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
-        displayConfigurationReceived(displayConfigs)
-      }
-    }
 
     @AnyThread
     fun refreshDisplayConfiguration() {
@@ -334,7 +333,7 @@ internal class EmulatorToolWindowPanel(disposableParent: Disposable, private val
       )
     }
 
-    private fun displayConfigurationReceived(displayConfigs: List<DisplayConfiguration>) {
+    fun displayConfigurationReceived(displayConfigs: List<DisplayConfiguration>) {
       val primaryDisplayView = primaryDisplayView ?: return
       val availableSpace = centerPanel.sizeWithoutInsets
       if (availableSpace.width > 0 && availableSpace.height > 0) {
